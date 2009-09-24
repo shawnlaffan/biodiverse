@@ -1,0 +1,139 @@
+#summary Installation instructions.
+#labels Featured,Phase-Deploy
+
+= Installation (Windows 32-bit) =
+
+== Executable only (no source code) ==
+
+  1. Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
+  1. Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://gladewin32.sourceforge.net/. Use the default options provided during setup, unless you know what you are doing.
+
+Biodiverse can be started by double clicking on the '''BiodiverseGUI_win.exe''' file.
+
+If you want to keep the log then open a command prompt and run '''C:\Biodiverse\bin\BiodiverseGUI_win.exe'''
+
+If the biodiverse bin folder is in your PATH then omit the full path and just type '''BiodiverseGUI_win.exe'''.
+
+You can associate *.bps files with the BiodiverseGUI.bat file if you want to double click on a Biodiverse project file to open it.
+
+== Including the source code ==
+
+  1. Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
+  1. Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/Windows/5.8/ActivePerl-5.8.9.825-MSWin32-x86-288577.zip .
+  1. Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://gladewin32.sourceforge.net/. Use the default options provided during setup (unless, of course, you know what you are doing).
+  1. Edit your system's PATH variable to include C:\Biodiverse\bin (or whichever path you unzipped the Biodiverse files into).
+  1. Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse. Note that this assumes you don't already have ppm repositories defined. If you do then disable the trouchelle repository for the first three sets, as its gtk libs don't install properly (when last I checked).
+
+
+{{{
+ppm install Pod-Simple
+ppm install PadWalker
+
+ppm repo add http://voltar.org/active/5.8
+ppm install http://voltar.org/active/5.8/Gtk2.ppd
+
+ppm repo add http://www.biodiverse.unsw.edu.au/ppm
+ppm install http://www.biodiverse.unsw.edu.au/ppm/Geo-Shapelib.ppd
+ppm install http://www.biodiverse.unsw.edu.au/ppm/Gnome2-Canvas.ppd
+ppm install http://www.biodiverse.unsw.edu.au/ppm/Statistics-Descriptive2.ppd
+ppm install http://www.biodiverse.unsw.edu.au/ppm/Gtk2-GladeXML.ppd
+
+ppm repo add http://trouchelle.com/ppm/
+ppm install Data-DumpXML
+ppm install Math-Random-MT-Auto
+ppm install Devel-Symdump
+ppm install Text-CSV_XS
+ppm install DBD-XBase
+ppm install IO-Stringy
+ppm install HTML-QuickTable
+ppm install YAML-Syck
+ppm install Data-Structure-Util
+}}}
+
+
+  1. You should now be able to run Biodiverse by executing C:\Biodiverse\bin\BiodiverseGUI.bat.
+  1. You can associate *.bps and *.bpy files with the BiodiverseGUI.bat file if you want to double click on a Biodiverse project file to open it.
+
+= Linux/UNIX =
+
+== Including the source code ==
+
+These instructions are vague as we have not fully tested them.
+
+Install GTK using the standard methods (unfortunately I don't know what they are). Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK.
+
+Linux probably comes with Perl. If so then install all the modules above using the CPAN tool that comes with Perl. Additional modules will need to be installed, but we have not yet developed a complete list of them. Apart from Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding. This will take a while until it works. Make sure you install dependencies to save time installing further modules.
+
+Please let us know so we can document it.
+
+= Macintosh =
+
+== Macintosh (including source code) ==
+
+  1. Install Macports from http://www.macports.org/
+  1. On the left-hand side of the page, click on Installing Macports and navigate your way to the Mac OS X Package (.pkg) installer and download the appropriate dmg file depending on your operating system (ie. Leopard).
+  1. Install the dmg file by double-clicking. This will produce a folder called “opt” on your HD which has the components needed to perform the following steps.
+  1. ''It is important that you have read & write access for all the contents of the opt folder''. To do this, open the info tab for the opt folder, under “Sharing & Permissions” change all to have read & write preferences. Directly below, there is a little cog button, which has the option to “apply to enclosed items”. This will mean you have ownership of all the sub folders in Opt.
+  1. To perform the next steps, you must have the X11 software on your Mac. If you have Leopard, you will have this. If you have a previous OSX you will need to get it either from your original CD or from the Apple site.
+
+
+You now need to install a number of ports. Open and X11 window and type:
+
+{{{
+
+port install gtk2
+port install p5-gtk2
+port install p5-gtk2-gladexml
+port install p5-gnome2-canvas
+port install p5-yaml-syck
+
+}}}
+
+  1. You now need to install the following perl libraries using the “cpan” program that comes with perl. To install these, open an X11 terminal window and type:
+
+{{{
+/opt/local/bin/cpan
+}}}
+
+
+Follow the appropriate prompts to set up cpan. If you are asked if you want cpan to install automatically, click YES. It should be all defaults if you are asked any questions.
+
+Once cpan is ready, install the following individually, by typing them in one by one and hitting return after each. Wait until each is installed before going on to the next one.
+
+{{{
+install Data::DumpXML
+install Math::Random::MT::Auto
+install Devel::Symdump
+install Pod::Simple
+install Text::CSV_XS
+install DBD::XBase
+install IO::Stringy
+install Win32::API
+install HTML::QuickTable
+install Geo::Shapelib
+install YAML::Syck
+install PadWalker
+}}}
+
+Anything else that perl complains about when running Biodiverse should be installed using the cpan method. The complaint will look like “Can't locate fred/fred.pm in @INC (@INC contains:...” In this case, install module fred::fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
+
+  1. Now you are ready to install Biodiverse. Until we load it up to Google Code, this needs to be downloaded from http://www.biodiverse.unsw.edu.au/  (click on DOWNLOAD SOFTWARE). Extract the zip file to somewhere on your hard drive, eg /opt/local/biodiverse or ~/biodiverse.
+  1. To run Biodiverse, open an X11 terminal window and change directory to the Biodiverse/bin folder.
+  1. Once you have done this, type the following to open Biodiverse:
+
+{{{
+/opt/local/bin/perl BiodiverseGUI.pl
+}}}
+
+
+You can dispense with the /opt/local/bin text if you are using the first perl in the search path. To check if it is, type:
+
+{{{
+which perl
+}}}
+
+If it returns /opt/local/bin/perl as first in the list then you can dispense with the /opt/local/bin and type
+
+{{{
+perl BiodiverseGUI.pl
+}}}

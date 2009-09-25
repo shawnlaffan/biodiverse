@@ -2,5 +2,4 @@
 
 = Introduction =
 
-Content to be added.  Over time this system will replace the documentation currently distributed with the source code.
-
+_Content to be added.  Over time this system will replace the documentation currently distributed with the source code._

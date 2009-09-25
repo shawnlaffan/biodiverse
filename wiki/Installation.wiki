@@ -14,6 +14,13 @@ These instructions assume you have downloaded the relevant Biodiverse release an
 
 = New installation =
 
+[Installation#Windows_32-bit Windows 32-bit]
+
+[Installation#Linux_and_UNIX Linux/UNIX]
+
+[Installation#Macintosh Macintosh]
+
+
 == Windows 32-bit ==
 
 === Executable only (no source code) ===
@@ -68,7 +75,7 @@ ppm install Data-Structure-Util
   * You should now be able to run Biodiverse by executing C:\Biodiverse\bin\BiodiverseGUI.bat.
   * You can associate .bps files with the BiodiverseGUI.bat file if you want to double click on a Biodiverse project file to open it. (.bpy files are currently supported, but are scheduled for deprecation).
 
-== Linux/UNIX ==
+== Linux and UNIX ==
 
 === Including the source code ===
 

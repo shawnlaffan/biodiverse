@@ -1,0 +1,14 @@
+#summary Release notes
+
+
+= Version 0.9.1185 =
+
+Main changes since previous release (version 0.9.1127)
+
+  * Installation instructions updated, particularly for the Mac installs.
+  * Fixed bug in tree reading module.  Now correctly reads nexus format files, including those exported from Biodiverse.
+  * Documentation updated. 
+  * Example files added to distribution (data folder)
+  * !BaseData import now handles text with embedded newlines (these occur occasionally in plant and other data bases, usually in the collection descriptions).
+  * Statistics::Descriptive2 now included in the distribution (under the lib folder)
+  * Fixed issue where saved project file is given the name "1.bps"

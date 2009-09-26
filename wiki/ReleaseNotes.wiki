@@ -1,4 +1,5 @@
 #summary Release notes
+#labels Featured
 
 
 = Version 0.9.1185 =

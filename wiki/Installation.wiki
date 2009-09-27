@@ -29,11 +29,11 @@ These instructions assume you have downloaded the relevant Biodiverse release an
   * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
   * Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://gladewin32.sourceforge.net/. Use the default options provided during setup, unless you know what you are doing.
 
-  Biodiverse can be started by double clicking on the '''BiodiverseGUI_win.exe''' file.
+  Biodiverse can be started by double clicking on the '''BiodiverseGUI_win32.exe''' file.
 
-  If you want to keep the log then open a command prompt and run '''C:\Biodiverse\bin\BiodiverseGUI_win.exe'''
+  If you want to keep the log then open a command prompt and run '''C:\Biodiverse\bin\BiodiverseGUI_win32.exe'''
 
-  If the biodiverse bin folder is in your PATH then omit the full path and just type '''BiodiverseGUI_win.exe'''.
+  If the biodiverse bin folder is in your PATH then omit the full path and just type '''BiodiverseGUI_win32.exe'''.
 
   You can associate .bps files with the BiodiverseGUI.bat file if you want to double click on a Biodiverse project file to open it.
 

@@ -80,7 +80,7 @@ ppm install Data-Structure-Util
 === Including the source code ===
 
   * These instructions are vague as we have not fully tested them.
-  *  Install GTK using the standard methods (unfortunately I don't know what they are). Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK.
+  *  Install GTK using your distribution's package manager.  Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK if it is not already installed.
   * Linux probably comes with Perl. If so then install all the modules above using the CPAN tool that comes with Perl. Additional modules will need to be installed.  The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding. This will take a while until it works. Make sure you install dependencies to save time installing further modules.
 
   Please let us know so we can document it.

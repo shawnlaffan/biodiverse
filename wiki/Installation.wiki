@@ -35,7 +35,7 @@ These instructions assume you have downloaded the relevant Biodiverse release an
 
   If the biodiverse bin folder is in your PATH then omit the full path and just type '''BiodiverseGUI_win32.exe'''.
 
-  You can associate .bps files with the BiodiverseGUI.bat file if you want to double click on a Biodiverse project file to open it.
+  You can associate .bps files with the BiodiverseGUI.exe file if you want to double click on a Biodiverse project file to open it.
 
 === Including the source code ===
 

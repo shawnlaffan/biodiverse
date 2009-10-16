@@ -96,7 +96,7 @@ ppm install Data-Structure-Util
   * To perform the next steps, you must have the X11 software on your Mac. If you have Leopard, you will have this. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
 
-  You now need to install a number of ports. Open and X11 window and type:
+  You now need to install a number of ports. Open an X11 window and type:
 
 {{{
 

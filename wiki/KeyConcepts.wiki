@@ -1,5 +1,7 @@
 #summary Key Biodiverse concepts - still a work in progress.
 
+<wiki:toc max_depth="4" />
+
 = Key Biodiverse concepts =
 
 This forms a sort of glossary, and perhaps should be named as such.
@@ -13,7 +15,7 @@ The key point to keep in mind when using Biodiverse is that it has been develope
 
 == 2.1 Basedata ==
 
-== 2.2 BaseStructs ==
+== 2.2 Basestructs ==
 
 === 2.2.1 Elements ===
 
@@ -198,7 +200,7 @@ These are based on the fundamental components used for the dissimilarity metrics
 counts the number of samples. *ABC2* is used in endemism calculations, for example, while *ABC3* is used 
 for those needing counts, for example redundancy.
 
-== 4.3 NoData ==
+== 4.3 Nodata ==
 
 This will occur in certain analyses when no reasonable value can result, for example where there is a division by zero or 
 where there are no valid labels in a neighbourhood, e.g. a matris analysis was run, but there are no labels in the neighbourhood 
@@ -207,7 +209,7 @@ that are listed in the matrix and therefore no value can be assigned that is a f
 It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity 
 means the two sets of neighbours are identical.  
 
-NoData values are generally plotted as black.  The value can be changed on export if needed.
+Nodata values are generally plotted as black.  The value can be changed on export if needed.
 
 == 4.4 Scree plot ==
 

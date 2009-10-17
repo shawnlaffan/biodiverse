@@ -312,7 +312,7 @@ Need to explain how to use the table, for example in a GIS.
 
 The tree structure as a table allows the storage of the tree's topology in an RDBMS or other structure, including ancillary data 
 such as from a spatial analysis run for each node of a cluster tree. These cannot currently be exported using Newick (it should 
-be possible using one tree per ancillary variable with the values stored in the bootstrap section, and this is potentially very messy).
+be possible using one tree per ancillary variable with the values stored in the bootstrap section, but this is potentially very messy).
 
 == Element property (remap) tables ==
 

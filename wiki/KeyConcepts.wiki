@@ -1,0 +1,319 @@
+#summary Key Biodiverse concepts - still a work in progress.
+
+= Key Biodiverse concepts =
+
+This forms a sort of glossary, and perhaps should be named as such.
+
+
+= 1 Overview =
+
+The key point to keep in mind when using Biodiverse is that it has been developed first for spatial analyses. This includes the Moving Window, Clustering and Randomisations. All of the code has been written under this framework. Any other analysis that can be conducted is in some senses incidental. This does not mean it is invalid, just that it needs to be cast in a spatial framework to run.
+
+= 2 Data structures =
+
+== 2.1 Basedata ==
+
+== 2.2 BaseStructs ==
+
+=== 2.2.1 Elements ===
+
+=== 2.2.2 Labels ===
+
+=== 2.2.3 Groups ===
+
+== 2.3 Matrices ==
+
+== 2.4 Phylogenies ==
+
+= 3 Analyses =
+
+== 3.1 Clustering ==
+
+== 3.2 Spatial (moving window) analysis ==
+
+== 3.3 Randomisations ==
+
+NEED TO EXPLAIN HOW THEY WORK - OVERVIEW
+
+
+What do the outputs mean? The indices shown are those used in the comparisons, prefixed by a letter with an underscore.
+
+  * C`_*` is the number of times the comparison was higher than the original.
+  * Q`_*` (q = quantum) is the number of comparisons. It is counted because there may be cases where undefined values result. We cannot compare undefined with a number, and we also cannot be sure that the number of times undef results is the same for all indices.
+  * P`_*` is the fractional ranking, calculated as C`_*` / Q`_*`. Multiply by 100 to get a percentile. The P`_*` score is converted into a p-score in the normal way, e.g. if P`_*` = 0.99 then the original measure is higher than the randomised versions 99 times out of every hundred. If one is interested in higher scores then this is the same as a p score of 0.01. Obviously one changes the interpretation appropriately if it is a two tailed system, eg the mean of numeric labels (NUM_MEAN) can be higher or lower. So long as it is in one of the tails of the distribution then the result is significant (e.g. P_NUM_MEAN < 0.05 or P_NUM_MEAN > 0.95).
+
+= 4 Other stuff =
+
+== 4.1 Variety ==
+
+The number of groups the label occurs in. This is analogous to the range.
+
+== 4.2 Samples ==
+
+The number of times this label occurs across all groups. Groups can have many samples of the same label.
+
+== 4.3 Redundancy ==
+
+The sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to zero represents a good overall sample of a label relative to the number of groups it occurs in. A value of one means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
+
+NEEDS TO BE MOVED to an auto-generated file with all the available analyses and their properties based on the subroutine metadata.
+
+== 4.4 Specifying spatial neighbours ==
+
+This is one of the core concepts in the system. Neighbours are essential for the spatial analyses, and allow spatial control over the cluster analyses, and also over some of the randomisations (one at the moment).
+
+These are equations that specify, for each cell, the cells that are to be considered neighbours.
+
+As with any system, there must be compromises between ease of use and system flexibility. In this case we have gone for system flexibility by direct use of PERL syntax. This means you can use arbitrarily complex functions to define neighbourhoods, including loops and other multiple variable conditions. This may be horrifying to non-perlers, as one of the main complaints about perl is its complex grammar and syntax. To alleviate this somewhat, we have provided examples below of some of the basic approaches one might want to use.
+
+Some of the tabs (spatial & cluster) have a syntax verification interface to check that the syntax is valid. This does not, however, guarantee your parameters will work, only that it is valid perl code. (The reality here is that we will just evaluate the parameter statement and warn you if the system raises some sort of exception).
+
+=== 4.4.1 Functions ===
+
+Functions are the easiest way to specify neighbourhoods, as one does not need to wrestle with variables.  Functions also set metadate to tell the system whether, and how to, to use the spatial index.
+
+_Note: Need to list the available functions, eg sp_circle, sp_ellipse, sp_block, sp_match_text, sp_select_sequence. Should really develop an auto-generated file for them so we can list the args from the metadata (like with the analyses)._
+
+=== 4.4.2 Variables ===
+
+There are several different sets of variables implemented that the system recognises. Any undeclared variable you use that does not occur in this list will be treated as a zero or as undefined (depending on where it is used), which means it will probably not behave as you expect. An example declaring variables is given below.
+
+As a general rule, uppercase letters denote absolute values, lower case letters denote signed values (positive or negative). Positive values are north, east, above, or to the right. Negative values are south, west, below or to the left.
+
+A group is considered a neighbour of the central group if the condition evaluates to true. The central group is whichever one is being processed at the time (remember that these are evaluated for all groups in a spatial analysis).
+
+`$D` is the absolute euclidean distance across all dimensions.
+
+`$D[0]`, `$D[1]` are the absolute euclidean distance in dimension 0 and 1. In most cases `$D[0]` will be the X (longitude) dimension, `$D[1]` will be the Y (latitude) dimension. The library functions can actually handle more dimensions than this (eg `$D[2]` for altitude or depth), but the GUI is not set up to display them.
+
+`$d[0]`, `$d[1]` and so forth are the signed euclidean distance in dimension 0, 1 etc. This allows us to extract all groups within some distance in some direction. As with standard Cartesian plots, negative values are to the left or below (west or south), positive values to the right or above (east or north). As with `$D[0]`, `$d[0]` will normally be the X dimension, `$d[1]` will be the y dimension.
+
+Note that using `abs($d[1])` is the same as using `$D[1]`.
+
+`$C`, `$C[0]`, `$C[1]`, `$c[0]`, `$c[1]` are the same as the euclidean distance variables (`$D` etc) but operate directly in group (cell) units. If your groups were imported using a cellsize of 100,000, then `$D[1] < 100000` is the same as `$C[1] < 1`. Note, however, that if you used a different resolution in each dimension, then the euclidean and cell distances are not directly comparable.
+
+`$coord[0]`, `$coord[1]` are the coordinate values in the first and second dimension. As per the above, think of these as X and Y, except that `$coord[5]` will also work if you have that many dimensions. Note that this does not work properly when the spatial index is being used.
+
+=== 4.4.3 Examples ===
+
+  * Set the neighbours to be those groups where the absolute distance from the central group is less than 100,000.
+
+{{{
+$D <= 100000
+}}}
+
+  * Select all groups to the west of the central group.
+
+{{{
+$d[0] < 0
+}}}
+
+  * Select all groups to the north-east of the central group.
+
+{{{
+$d[0] > 0 && $d[1] > 0
+}}}
+
+  * The absolute distance in the first (eg x) dimension is less than 100,000 AND the signed distance is greater than 100,000. This will result in a neighbourhood that is a column of groups 200,000 map units east-west, and including all groups 100,000 map units north of the central group. Not that you would normally want a neighbourhood like this...
+
+{{{
+$D[0] <= 100000 && $d[1] >= 100000
+}}}
+
+=== 4.4.4 Declaring variables and using more complex functions. ===
+
+Variable declaration is done as per perl syntax. For example:
+
+{{{
+$my_var = 10;
+
+($D / $my_var) <= 100
+}}}
+
+This trivial example evaluates to true if the absolute distance divided by 10 (the value in variable $my_var) is less than 100. The semicolon denotes a separation of statements to be processed in sequence, such that this example could be written on one line. The result of the last statement is what is returned to the analysis to determine if the group is part of the neighbourhood or not. It is evaluated as true or false.
+
+A more complex function might involve an ellipse (although this block of code is not guaranteed to work...):
+
+{{{
+my $major_radius = 300000; # longest axis
+
+my $minor_radius = 100000; # shortest axis
+
+# set the offset in radians, anticlockwise (1.57 is north)
+
+my $offsetRad = 1.57;
+
+# now calc the bearing to rotate the coords by
+
+my $bearing = atan2 ($d[0], $d[1]);
+
+my $r_x = cos ($bearing) * $D; # rotated x coord
+
+my $r_y = sin ($bearing) * $D; # rotated y coord
+
+# this last line evaluates to 1 (true) if the candidate
+
+# neighbour is within the ellipse
+
+return 1 >= (($r_y / $major_radius) ** 2) + (($r_x / $minor_radius) ** 2) ** 0.5;
+}}}
+
+
+Note the use of the word "my". This is required to declare your own variables in the correct scope. If it is not used then the variables will not work properly. Do not declare any of the pre-calculated Biodiverse variables with this (`$D` etc) - they already exist and redeclaring will overprint them.
+
+Initial tests indicate that this function works with the spatial index, but test your own data to be sure. Run an analysis with and without the spatial index, using the Element Lists analysis to get the lists of neighbours. Export the results to CSV and use a difference tool to compare the results.
+
+Functions available by default are those in the POSIX library. Look in the perl help files to see a listing of what is there. If you want more then you will need to specify additional libraries in the extensions file under the BaseData section. _NEED TO IMPLEMENT HELP FOR THIS_.
+
+To access environment variables you have set, just use `$ENV{variable_name}`, eg `$ENV{my_default_radius}`.
+
+== 4.1 Specifying extensions ==
+
+_Need to explain the specification of extensions and how to load them._
+
+== 4.1 Using the spatial index ==
+
+_Explain the use of the spatial index. When to use it and when not to. Basic principles of how it works._
+
+The system in most cases will ignore it if it is not valid, but it can be turned off if need be.
+
+The spatial index speeds up processing by reducing the number of comparisons that need to be made with potential neighbours. 
+Exactly how much of a speed up is a function of the index resolution and the neighbourhood specified 
+(larger neighbourhoods take longer as they use more index blocks).
+
+As an example, an analysis of approximately 20,000 groups took ~3600 seconds for a four cell radius neighbourhood without the index. 
+With the index it took 30 seconds. Similarly, one with a radius of one cell took ~3600 seconds without the index and 12 seconds with it.
+
+The reason for the speed-up is that the system no longer needs to assess every other group as a possible neighbour, and instead focuses only on those groups that occur within the indexed blocks that satisfy the spatial condition. Think of the index as a coarse first approximation to the neighbours, with a second search refining the solution to the actual set of neighbours.
+
+== 4.2 The ABC lists ==
+
+_Explain ABC, ABC2 and ABC3_
+These lists appear in the popup windows. They might look odd at first, and are in some senses left over from the early system development
+when most indices depended on some function of A, B and C.
+
+These are based on the fundamental components used for the dissimilarity metrics. *A* is the count of shared labels, 
+*B* is the count of labels found only in the first group, *C* is the count found only in the second group. 
+*ABC2* also counts how many groups each label occurs in for the set of groups specified, while *ABC3* 
+counts the number of samples. *ABC2* is used in endemism calculations, for example, while *ABC3* is used 
+for those needing counts, for example redundancy.
+
+== 4.3 NoData ==
+
+This will occur in certain analyses when no reasonable value can result, for example where there is a division by zero or 
+where there are no valid labels in a neighbourhood, e.g. a matris analysis was run, but there are no labels in the neighbourhood 
+that are listed in the matrix and therefore no value can be assigned that is a function of the matrix.
+
+It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity 
+means the two sets of neighbours are identical.  
+
+NoData values are generally plotted as black.  The value can be changed on export if needed.
+
+== 4.4 Scree plot ==
+
+The scree plot below a tree indicates how many nodes occur at each level of, for example, dissimilarity.
+
+== 4.5 Contrasting colour scheme ==
+
+The contrasting colour scheme is restricted to a maximum of 13 colours, with a different colour scheme used for 9 or fewer. 
+The schemes are derived from http://www.colorbrewer.org, but with the addition of a mid-grey to the 12 colour scheme. 
+We have experimented with more colours, but found them difficult to distinguish (which is pretty much as recommended 
+by the ColorBrewer web site...).
+
+== 4.6 Selecting nodes ==
+
+
+
+== 4.7 Negative length nodes ==
+
+Negative length nodes (those that go backwards) often occur when using link_recalculate clustering or when switching 
+from spatial to non-spatial clustering. In the latter case this is because the two most similar clusters may not be 
+within the spatial neighbourhood specified, and so the similarity of the non-spatial clusters will be closer to zero 
+than the final spatial clusters. In the former case, the recalculation weights each label equally (for most similarity metrics), 
+so the merging of two clusters may actually reduce their joint similarity with the other clusters in the system.
+
+== 4.8 Cluster Linkages ==
+
+Explain them here.
+
+== 4.9 File formats and structures ==
+
+The naming system is a “b” for Biodiverse, followed by a letter for the object type, and then an “s” or “y” to denote if it is 
+in a Storable or YAML format. The Storable version is preferred, as the YAML format requires more time to parse in and out, 
+and also uses more memory. It is, however, useful to interrogate the internal data structure. Note that the YAML format will be 
+deprecated as a standard format, but will be supported for export.
+
+BPS/BPY is a Biodiverse project file. This stores a set of BaseData, Matrix and Phylogeny objects and any display parameters. 
+Note that it stores copies of these objects, so changes made to any of the separate or original versions have no effect, and vice versa.
+
+BDS/BDY is a Biodiverse BaseData object.
+
+BTS/BTY is a Tree object. Generally this is a phylogeny, as we don't allow you to directly save a cluster result from the GUI because it needs 
+its links to the parent Biodiverse object.  The reference system used means that the BaseData object will be folded into the 
+tree object, thus making the separation unneccesary and more complex than it is worth.
+
+BMS/BMY is a matrix object.
+
+The BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments 
+to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will 
+be stored with the BaseData object if it is exported separately from a project, but will not be visible if the BaseData object is 
+subsequently loaded into a new project.
+
+== 4.10 Map overlays ==
+
+Shapefiles only at the moment. They also need to be polyline or polygon. No points, but you could buffer your points by a small 
+distance and plot the resulting polygons.
+
+Overlays are available when a map is displayed, for example when viewing labels or displaying the results of a cluster or spatial analysis.
+
+The system currently ignores any vertices that are beyond the bounds of the BaseData groups, so you cannot zoom out any further 
+than the BaseData extent.
+
+== 4.11 Supported file types ==
+
+=== 4.11.1 Import ===
+
+BaseData and Matrix objects can import from text files such as CSV or TXT. They currently guess the field separator by default, 
+but this can be specified as an argument if guesswork is unsuccessful.
+
+Trees can be imported from Nexus files. NeXML support is planned.
+
+Matrices do not care if the matrix is upper right, lower left, both, or any combination of the above. 
+They will store the last defined value for an element pair (reading left to right, top to bottom).
+
+=== 4.11.2 Export ===
+
+Spatial and cluster objects can be exported to table formats. Supported formats include text (txt & csv), 
+and html table (htm). 
+
+Shapefiles are not supported due to a fatal error in the library we are using, and also due to DBF filed name limitations (see below). 
+They can generally be recreated from the other formats, though.
+
+Data sets that use square cells and have only two axes can be exported to raster format.  
+Currently the system supports Arc/Info asciigrid and floatgrid format, as well as ER-Mapper ERS format.  
+To use these just specify an extension of .asc, .flt or .ers respectively.  Note that the first two options 
+will produce multiple files with the index name inserted before the file extension 
+(e.g., fred.asc can result in `fred_ENDC_CWE.asc` and `fred_ENDC_WE.asc`).  
+The ER-Mapper export produces `fred` (the data file) and `fred.ers` (the header file).
+
+Cluster objects can also be exported to the Newick and Nexus formats (Nexus actually uses ontains the Newick format for trees).
+
+_Note:_ The DBF format only allows field names of ten characters.  This is not long enough for many of the index field names so DBF export has been disabled.
+
+_Note:_ If you are exporting an asymmetric array list as a symmetric structure then the system will use the array elements as the field names and insert a 1 in each of the columns where that column element is in the list for that row element. This is because it does not have any values associated with it. If it did then it would be stored as a hash... [needs to be explained better].
+
+== 4.12 Using the tree exported to a table ==
+
+Need to explain how to use the table, for example in a GIS.
+
+
+
+The tree structure as a table allows the storage of the tree's topology in an RDBMS or other structure, including ancillary data 
+such as from a spatial analysis run for each node of a cluster tree. These cannot currently be exported using Newick (it should 
+be possible using one tree per ancillary variable with the values stored in the bootstrap section, and this is potentially very messy).
+
+== 4.13 Element property (remap) tables ==
+
+The primary purpose of these is to change names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a Basedata object.
+
+One can also use them to set element properties such as label/group sample counts or label ranges on import. One can also exclude or include on a label or group basis. Note that these are applied before the respective label or group names are remapped.

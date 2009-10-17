@@ -134,7 +134,7 @@ $my_var = 10;
 
 This trivial example evaluates to true if the absolute distance divided by 10 (the value in variable $my_var) is less than 100. The semicolon denotes a separation of statements to be processed in sequence, such that this example could be written on one line. The result of the last statement is what is returned to the analysis to determine if the group is part of the neighbourhood or not. It is evaluated as true or false.
 
-A more complex function might involve an ellipse (although this block of code is not guaranteed to work...):
+A more complex function might involve an ellipse (although you could just use `sp_ellipse (major_radius => 300000, minor_radius => 100000)`):
 
 {{{
 my $major_radius = 300000; # longest axis
@@ -143,21 +143,24 @@ my $minor_radius = 100000; # shortest axis
 
 # set the offset in radians, anticlockwise (1.57 is north)
 
-my $offsetRad = 1.57;
+my $rotate_angle = 1.57;
 
 # now calc the bearing to rotate the coords by
 
-my $bearing = atan2 ($d[0], $d[1]);
+my $bearing = atan2 ($d[0], $d[1]) + $rotate_angle;
 
 my $r_x = cos ($bearing) * $D; # rotated x coord
 
 my $r_y = sin ($bearing) * $D; # rotated y coord
 
-# this last line evaluates to 1 (true) if the candidate
+my $a = ($r_y ** 2) / ($major_radius ** 2);
 
+my $b = ($r_x ** 2) / ($minor_radius ** 2);
+
+# this last line evaluates to 1 (true) if the candidate
 # neighbour is within the ellipse
 
-return 1 >= (($r_y / $major_radius) ** 2) + (($r_x / $minor_radius) ** 2) ** 0.5;
+return 1 >= ($a + $b);
 }}}
 
 

@@ -158,12 +158,12 @@ $y > 6000000
 Variable declaration is done as per Perl syntax. For example:
 
 {{{
-$my_var = 10;
+my $some_var = 10;
 
-($D / $my_var) <= 100
+($D / $some_var) <= 100
 }}}
 
-This trivial example evaluates to true if the absolute distance divided by 10 (the value in variable $my_var) is less than 100. The semicolon denotes a separation of statements to be processed in sequence, such that this example could be written on one line. The result of the last statement is what is returned to the analysis to determine if the group is part of the neighbourhood or not. It is evaluated as true or false.
+This trivial example evaluates to true if the absolute distance divided by 10 (the value in variable $some_var) is less than 100. The semicolon denotes a separation of statements to be processed in sequence, such that this example could be written on one line. The result of the last statement is what is returned to the analysis to determine if the group is part of the neighbourhood or not. It is evaluated as true or false.
 
 A more complex function might involve an ellipse (although you could just use `sp_ellipse (major_radius => 300000, minor_radius => 100000, rotate_angle => 1.5714)`)
 

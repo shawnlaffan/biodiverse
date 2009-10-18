@@ -86,16 +86,16 @@ _Need to explain the specification of extensions and how to load them._
 
 _Explain the use of the spatial index. When to use it and when not to. Basic principles of how it works._
 
-The system in most cases will ignore it if it is not valid, but it can be turned off if need be.
+The spatial index speeds up processing by reducing the number of comparisons that need to be made with potential neighbours. Exactly how much of a speed up is a function of the index resolution and the neighbourhood specified (larger neighbourhoods take longer as they use more index blocks).
 
-The spatial index speeds up processing by reducing the number of comparisons that need to be made with potential neighbours. 
-Exactly how much of a speed up is a function of the index resolution and the neighbourhood specified 
-(larger neighbourhoods take longer as they use more index blocks).
-
-As an example, an analysis of approximately 20,000 groups took ~3600 seconds for a four cell radius neighbourhood without the index. 
-With the index it took 30 seconds. Similarly, one with a radius of one cell took ~3600 seconds without the index and 12 seconds with it.
+As an example, an analysis of approximately 20,000 groups took ~3600 seconds for a four cell radius neighbourhood without the index. With the index it took 30 seconds. Similarly, one with a radius of one cell took ~3600 seconds without the index and 12 seconds with it.
 
 The reason for the speed-up is that the system no longer needs to assess every other group as a possible neighbour, and instead focuses only on those groups that occur within the indexed blocks that satisfy the spatial condition. Think of the index as a coarse first approximation to the neighbours, with a second search refining the solution to the actual set of neighbours.
+
+If you are using complex functions with a fine index then it will take some time to preprocess the data to determine which index groups should be assessed to find neighbours.  As we must assume arbitrarily complex spatial conditions then we must assess each corner of the index extent, and each of its immediate neighbours, against every other possible index group.  This results in `m^2 * 3^m * n` pairs of index groups, where `n` is the number of groups in the index and `m` is the number of dimensions in each group.  This works out to `4*9n = 36n` for a data set with two group axes (dimensions).
+
+The system will ignore the index if the spatial conditions specify it must be ignored.  It can also be turned off if need be using the Analyses->Index menu.
+
 
 == The ABC lists ==
 

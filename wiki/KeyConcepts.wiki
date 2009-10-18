@@ -66,6 +66,14 @@ The number of times this label occurs across all groups. Groups can have many sa
 The sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in (many redundant samples). A value of zero means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
 
 
+== Definition Queries ==
+
+Differ from neighbourhoods as they assess only the priocessing group.  However they use the same syntax.  
+
+The system will complain if a neighbourhood function is used.
+
+== Neighbourhoods ==
+
 == Specifying spatial neighbours ==
 
 See the SpatialConditions page.

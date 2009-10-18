@@ -16,7 +16,7 @@ The neighbourhood and definition query interfaces have a syntax verification but
 
 === Functions ===
 
-Functions are the easiest way to specify conditions as one does not need to wrestle with variables.  Functions also set metadata to tell the system whether, and how to, to use the spatial index.  This saves considerable processing time for large data sets as the system does not need to test many pairs of index groups (see KeyConcepts#Using_the_spatial_index).
+Functions are the easiest way to specify conditions as one does not need to wrestle with variables.  Functions also set metadata to tell the system whether, and how to, to use the spatial index.  This saves considerable processing time for large data sets as the system does not need to test many pairs of index groups (see [KeyConcepts#Using_the_spatial_index]).
 
 _Note: Need to list the available functions, eg sp_circle, sp_ellipse, sp_block, sp_match_text, sp_select_sequence. Should really develop an auto-generated file for them so we can list the args from the metadata (like with the analyses).  This should also be part of the GUI - see issue #14._
 

@@ -35,7 +35,9 @@ The key point to keep in mind when using Biodiverse is that it has been develope
 
 == Randomisations ==
 
+<wiki:comment>
 NEED TO EXPLAIN HOW THEY WORK - OVERVIEW
+</wiki:comment>
 
 
 What do the outputs mean? The indices shown are those used in the comparisons, prefixed by a letter with an underscore.
@@ -46,21 +48,30 @@ What do the outputs mean? The indices shown are those used in the comparisons, p
 
 = Other stuff =
 
-== Variety ==
+== View Labels columns ==
 
-The number of groups the label occurs in. This is analogous to the range.
+This is a short definition of the columns visible in the labels part of the View labels tab.  _The columns need to be extended to show the selected set and also any other properties set on import._
 
-== Samples ==
+=== Variety ===
 
-The number of times this label occurs across all groups. Groups can have many samples of the same label.
+The number of groups the label occurs in. This is analogous to the range unless one is set separately on import using the _set label remap and properties_ option.
 
-== Redundancy ==
+=== Samples ===
 
-The sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to zero represents a good overall sample of a label relative to the number of groups it occurs in. A value of one means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
+The number of times this label occurs across all groups. Groups can have many samples of the same label.  Does not include the value set by the _set label remap and properties_ option.
 
-NEEDS TO BE MOVED to an auto-generated file with all the available analyses and their properties based on the subroutine metadata.
+
+=== Redundancy ===
+
+The sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in (many redundant samples). A value of zero means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
+
 
 == Specifying spatial neighbours ==
+
+<wiki:comment>
+_Needs to be moved to its own page_
+</wiki:comment>
+
 
 This is one of the core concepts in the system. Neighbours are essential for the spatial analyses, and allow spatial control over the cluster analyses, and also over some of the randomisations (one at the moment).
 

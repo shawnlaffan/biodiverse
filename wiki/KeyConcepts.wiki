@@ -118,7 +118,7 @@ that are listed in the matrix and therefore no value can be assigned that is a f
 It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity 
 means the two sets of neighbours are identical.  
 
-Nodata values are generally plotted as black.  The value can be changed on export if needed.
+Groups with a value of !NoData are plotted as white.  (Black means the group was not included in the analysis, and is typically the case in a cluster analysis if a neighbourhood or definition query is specified).  The !NoData value can be changed on export if needed, and for the raster outputs is set to -9999 by default.
 
 == Scree plot ==
 

@@ -87,7 +87,7 @@ sp_self_only()
 sp_match_text (text => "type1", axis => 0) 
 
 # match only when the third neighbour axis is the same 
-#   as the processing group's second axis
+#   as the processing group's third axis
 sp_match_text (text => $coord[2], axis => 2) 
 
 

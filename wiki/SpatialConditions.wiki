@@ -16,7 +16,7 @@ As with any system, there must be compromises between ease of use and system fle
 
 The neighbourhood and definition query interfaces have a syntax verification button to check that the syntax is valid. This does not, however, guarantee your parameters will work, only that it is valid Perl code. (The reality here is that we will just evaluate the parameter statement with some default values and warn you if the system raises some sort of exception).
 
-== Evaluation ==
+= Evaluation =
 
 This is a brief description of the evaluation process used to determine the set of neighbours for a group.  Before we describe the process, some definitions are needed.
 
@@ -29,13 +29,13 @@ Spatial conditions need not return symmetric sets.  In this way group i can be i
 The conditions are specified using some combination of pre-defined functions, pre-specified variables, and/or user defined variables and functions.  These are now described.
 
 
-== Functions ==
+= Functions =
 
 Functions are the easiest way to specify conditions as one does not need to wrestle with variables.  Functions also set metadata to tell the system whether, and how to, to use the spatial index.  This saves considerable processing time for large data sets as the system does not need to test many pairs of index blocks to determine which to use (see [KeyConcepts#Using_the_spatial_index]).
 
 _Note: Need to list the available functions, eg sp_circle, sp_ellipse, sp_block, sp_match_text, sp_select_sequence. This should also be part of the GUI - see issue #14._
 
-== Variables ==
+= Variables =
 
 There are several different sets of variables implemented that the system recognises. Any undeclared variable you use that does not occur in this list will be treated as a zero or as undefined (depending on where it is used), which means it will probably not behave as you expect. An example declaring variables is given below.
 
@@ -55,7 +55,7 @@ Note that using `abs($d[1])` is the same as using `$D[1]`.
 
 Non-programmers need to note that the array index starts from zero, so `$coord[1]` is the second coordinate axis and not the first.  This differs from systems like R and AWK, but is consistent with many other programming languages like C and Python.
 
-== Examples ==
+= Examples =
 
   * Set the neighbours to be those groups where the absolute distance from the central group is less than 100,000.
 
@@ -81,7 +81,7 @@ $d[0] > 0 && $d[1] > 0
 $D[0] <= 100000 && $d[1] >= 100000
 }}}
 
-== Declaring variables and using more complex functions. ==
+= Declaring variables and using more complex functions. =
 
 Variable declaration is done as per perl syntax. For example:
 

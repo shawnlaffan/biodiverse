@@ -33,7 +33,18 @@ The conditions are specified using some combination of pre-defined functions, pr
 
 Functions are the easiest way to specify conditions as one does not need to wrestle with variables.  Functions also set metadata to tell the system whether, and how to, to use the spatial index.  This saves considerable processing time for large data sets as the system does not need to test many pairs of index blocks to determine which to use (see [KeyConcepts#Using_the_spatial_index]).
 
-_Note: Need to list the available functions, eg sp_circle, sp_ellipse, sp_block, sp_match_text, sp_select_sequence. This should also be part of the GUI - see issue #14._
+The available functions are currently:
+ * sp_self_only
+ * sp_circle
+ * sp_circle_cell
+ * sp_square
+ * sp_square_cell
+ * sp_block
+ * sp_ellipse
+ * sp_match_text
+ * sp_select_sequence
+
+_This list and appropriate metadata needs to be accessible through the GUI - see issue #14._
 
 = Variables =
 
@@ -81,9 +92,9 @@ $d[0] > 0 && $d[1] > 0
 $D[0] <= 100000 && $d[1] >= 100000
 }}}
 
-= Declaring variables and using more complex functions. =
+= Declaring variables and using more complex functions =
 
-Variable declaration is done as per perl syntax. For example:
+Variable declaration is done as per Perl syntax. For example:
 
 {{{
 $my_var = 10;
@@ -93,16 +104,16 @@ $my_var = 10;
 
 This trivial example evaluates to true if the absolute distance divided by 10 (the value in variable $my_var) is less than 100. The semicolon denotes a separation of statements to be processed in sequence, such that this example could be written on one line. The result of the last statement is what is returned to the analysis to determine if the group is part of the neighbourhood or not. It is evaluated as true or false.
 
-A more complex function might involve an ellipse (although you could just use `sp_ellipse (major_radius => 300000, minor_radius => 100000)`):
+A more complex function might involve an ellipse (although you could just use `sp_ellipse (major_radius => 300000, minor_radius => 100000, rotate_angle => 1.5714)`)
 
 {{{
 my $major_radius = 300000; # longest axis
 
 my $minor_radius = 100000; # shortest axis
 
-# set the offset in radians, anticlockwise (1.57 is north)
+# set the offset in radians, anticlockwise (1.5714 = PI/2 = north)
 
-my $rotate_angle = 1.57;
+my $rotate_angle = 1.5714;
 
 # now calc the bearing to rotate the coords by
 

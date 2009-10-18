@@ -1,11 +1,13 @@
 #summary How to specify the spatial conditions used to define neighbourhoods and definition queries
 #labels Featured
 
+<wiki:toc max_depth="4" />
+
 = Introduction =
 
 Spatial conditions are core to the Biodiverse system.  They are used to specify both neighbourhoods used in the analyses, and also the definition queries used to restrict the calculations to some set of groups.  
 
-Neighbourhoods are essential for any spatial analysis, as it is through these that one can define the set of groups to be considered in an analysis.  In the moving window analyses these determine which groups are compared with which other groups.  In the cluster analyses they determine which groups are considered candidates to be clustered together.  It is also possible to define neighbourhoods for spatially constrained randomisatins (see Laffan and Crisp, 2003, J Biogeog), although this is yet to be implemented.
+Neighbourhoods are essential for any spatial analysis, as it is through these that one can define the set of groups to be considered in an analysis.  In the moving window analyses these determine which groups are compared with which other groups.  In the cluster analyses they determine which groups are considered candidates to be clustered together.  It is also possible to define neighbourhoods for spatially constrained randomisations (see [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003, J Biogeog]), although this is yet to be implemented.
 
 ...NEED TO FLESH OUT _Can be based on location relative to the processing group, but also some other aspect of the system such as the value of a text group (eg using `sp_match_text`)_
 
@@ -14,11 +16,24 @@ As with any system, there must be compromises between ease of use and system fle
 
 The neighbourhood and definition query interfaces have a syntax verification button to check that the syntax is valid. This does not, however, guarantee your parameters will work, only that it is valid Perl code. (The reality here is that we will just evaluate the parameter statement with some default values and warn you if the system raises some sort of exception).
 
+=== Evaluation ===
+
+This is a brief description of the evaluation process used to determine the set of neighbours for a group.  Before we describe the process, some definitions are needed.
+
+The *processing group* is the group being considered in the analysis at some iteration.  Typically every group is considered in turn. The *neighbouring group* is one of the other groups in the data set, and its membership of the set of neighbours for the processing group is evaluated.  If no spatial index is used then every group (other than the processing group) is considered in turn.  If a spatial index is used then only a subset of neighbours is considered (those within the relevant spatial index blocks, this is why the processing times are usually shorter when using an index).
+
+A group is considered a neighbour of the processing group if the spatial condition evaluates to true. Currently the system operates on boolean membership of the set of neighbours, so a neighbouring group either is or is not a neighbour of the processing group.  
+
+Spatial conditions need not return symmetric sets.  In this way group i can be in group j's neighbour set, but j need not be in i's neighbour set.  This is not an issue for moving window analyses, but can cause asymmetric dissimilarity matrices if used to run a spatially constrained cluster analysis.  This is why is is generally a good idea to set the second neighbourhood to be `sp_always_true()` or `1` (which is the same thing).
+
+The conditions are specified using some combination of pre-defined functions, pre-specified variables, and/or user defined variables and functions.  These are now described.
+
+
 === Functions ===
 
-Functions are the easiest way to specify conditions as one does not need to wrestle with variables.  Functions also set metadata to tell the system whether, and how to, to use the spatial index.  This saves considerable processing time for large data sets as the system does not need to test many pairs of index groups (see [KeyConcepts#Using_the_spatial_index]).
+Functions are the easiest way to specify conditions as one does not need to wrestle with variables.  Functions also set metadata to tell the system whether, and how to, to use the spatial index.  This saves considerable processing time for large data sets as the system does not need to test many pairs of index blocks to determine which to use (see [KeyConcepts#Using_the_spatial_index]).
 
-_Note: Need to list the available functions, eg sp_circle, sp_ellipse, sp_block, sp_match_text, sp_select_sequence. Should really develop an auto-generated file for them so we can list the args from the metadata (like with the analyses).  This should also be part of the GUI - see issue #14._
+_Note: Need to list the available functions, eg sp_circle, sp_ellipse, sp_block, sp_match_text, sp_select_sequence. This should also be part of the GUI - see issue #14._
 
 === Variables ===
 
@@ -26,11 +41,9 @@ There are several different sets of variables implemented that the system recogn
 
 As a general rule, uppercase letters denote absolute values, lower case letters denote signed values (positive or negative). Positive values are north, east, above, or to the right. Negative values are south, west, below or to the left.
 
-A group is considered a neighbour of the central group if the condition evaluates to true. The central group is whichever one is being processed at the time (remember that these are evaluated for all groups in a spatial analysis).
-
 `$D` is the absolute euclidean distance across all dimensions.
 
-`$D[0]`, `$D[1]` are the absolute euclidean distance in dimension 0 and 1. In most cases `$D[0]` will be the X (longitude) dimension, `$D[1]` will be the Y (latitude) dimension. The library functions can actually handle more dimensions than this (eg `$D[2]` for altitude or depth), but the GUI is not set up to display them.
+`$D[0]`, `$D[1]` are the absolute euclidean distance in dimension 0 and 1. In most cases `$D[0]` will be the X (longitude) dimension, `$D[1]` will be the Y (latitude) dimension. The library functions can actually handle more dimensions than this (eg `$D[2]` for altitude or depth), but the GUI is not set up to display them (it will plot the data using the first two axes, so only the first of any overlapping groups will be visible).
 
 `$d[0]`, `$d[1]` and so forth are the signed euclidean distance in dimension 0, 1 etc. This allows us to extract all groups within some distance in some direction. As with standard Cartesian plots, negative values are to the left or below (west or south), positive values to the right or above (east or north). As with `$D[0]`, `$d[0]` will normally be the X dimension, `$d[1]` will be the y dimension.
 
@@ -38,7 +51,9 @@ Note that using `abs($d[1])` is the same as using `$D[1]`.
 
 `$C`, `$C[0]`, `$C[1]`, `$c[0]`, `$c[1]` are the same as the euclidean distance variables (`$D` etc) but operate directly in group (cell) units. If your groups were imported using a cellsize of 100,000, then `$D[1] < 100000` is the same as `$C[1] < 1`. Note, however, that if you used a different resolution in each dimension, then the euclidean and cell distances are not directly comparable.
 
-`$coord[0]`, `$coord[1]` are the coordinate values in the first and second dimension. As per the above, think of these as X and Y, except that `$coord[5]` will also work if you have that many dimensions. Note that this does not work properly when the spatial index is being used.
+`$coord[0]`, `$coord[1]` are the coordinate values in the first and second dimension. As per the above, think of these as X and Y, except that `$coord[5]` will also work if your groups have six or more dimensions. Note that this does not necessarily work properly when the spatial index is being used, so you might need to turn it off.
+
+Non-programmers need to note that the array index starts from zero, so `$coord[1]` is the second coordinate axis and not the first.  This differs from systems like R and AWK, but is consistent with many other programming languages like C and Python.
 
 === Examples ===
 
@@ -112,6 +127,6 @@ Note the use of the word "my". This is required to declare your own variables in
 
 Initial tests indicate that this function works with the spatial index, but test your own data to be sure. Run an analysis with and without the spatial index, using the Element Lists analysis to get the lists of neighbours. Export the results to CSV and use a difference tool to compare the results.
 
-Functions available by default are those in the POSIX library. Look in the perl help files to see a listing of what is there. If you want more then you will need to specify additional libraries in the extensions file under the BaseData section. _NEED TO IMPLEMENT HELP FOR THIS_.
+Functions available by default are those in the [http://perldoc.perl.org/POSIX.html#FUNCTIONS Perl POSIX library]. If you want more then you will need to specify additional libraries in the extensions file under the BaseData section. _NEED TO IMPLEMENT HELP FOR THIS_.
 
 To access environment variables you have set, just use `$ENV{variable_name}`, eg `$ENV{my_default_radius}`.

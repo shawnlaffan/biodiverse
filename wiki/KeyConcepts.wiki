@@ -253,16 +253,14 @@ Note that it stores copies of these objects, so changes made to any of the separ
 
 BDS/BDY is a Biodiverse BaseData object.
 
-BTS/BTY is a Tree object. Generally this is a phylogeny, as we don't allow you to directly save a cluster result from the GUI because it needs 
-its links to the parent Biodiverse object.  The reference system used means that the BaseData object will be folded into the 
-tree object, thus making the separation unneccesary and more complex than it is worth.
+BTS/BTY is a Tree object. Generally this is a phylogeny, but can also be a taxonomictree or some other tree-based representation of a hierarchy of relationships.
 
 BMS/BMY is a matrix object.
 
-The BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments 
-to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will 
-be stored with the BaseData object if it is exported separately from a project, but will not be visible if the BaseData object is 
-subsequently loaded into a new project.
+The BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will be stored with the BaseData object if it is exported separately from a project, but will not be visible if the BaseData object is subsequently loaded into a new project.
+
+Note that it is not possible to directly save a cluster result from the GUI because the object needs its links to the parent Biodiverse object.  The reference system used means that the BaseData object will be folded into the tree object thorough its reference, thus making the separation unneccesary and complex to unravel on subsequent import.
+
 
 == Map overlays ==
 
@@ -291,7 +289,7 @@ They will store the last defined value for an element pair (reading left to righ
 Spatial and cluster objects can be exported to table formats. Supported formats include text (txt & csv), 
 and html table (htm). 
 
-Shapefiles are not supported due to a fatal error in the library we are using, and also due to DBF filed name limitations (see below). 
+Shapefiles are not supported due to a fatal error in the library we are using, and also due to DBF field name limitations (see below). 
 They can generally be recreated from the other formats, though.
 
 Data sets that use square cells and have only two axes can be exported to raster format.  
@@ -319,6 +317,8 @@ be possible using one tree per ancillary variable with the values stored in the 
 
 == Element property (remap) tables ==
 
-The primary purpose of these is to change names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a Basedata object.
+The primary purpose of these is to change names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a Basedata object, or vice versa.
+
+Note that remapping of labels occurs at the time of import.  Subsequent remapping is not currently supported.
 
 One can also use them to set element properties such as label/group sample counts or label ranges on import. One can also exclude or include on a label or group basis. Note that these are applied before the respective label or group names are remapped.

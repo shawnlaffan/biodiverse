@@ -1,6 +1,360 @@
 #summary Biodiverse sample session
 
-= Introduction =
+This is an initial effort at documenting the use of the GUI (as opposed to the technical documentation that can stay in POD format).
 
-_Content is yet to be added.  Over time this system will replace the documentation currently distributed with the source code._
+<wiki:toc max_depth="4" />
 
+= A sample session =
+
+There are six main components in a full session.
+
+  1. Import data into a project (basedata, matrices and trees)
+  1. Visualise the data (view labels)
+  1. Exclude some of the data
+  1. Run a cluster analysis.
+  1. Run a moving window analysis
+  1. Run a randomisation to assess the quality of the results
+  1. Export or save the data and results
+
+We suggest you read this in conjunction with the separate ''Key Concepts'' document. Additional information and tooltips can be found within the application itself, for example by hovering the mouse over various buttons and menu items.
+
+''If you wish to experiment with these options then use the Example_site_data.csv file for species sample data, Example_matrix.txt file for matrix data and Example_tree.nex file for tree data. These are under the Biodiverse/data folder in the distribution. Note that these are fictional data so the results have no meaning beyond example purposes.''
+
+= Importing data =
+
+Basedata, Matrix, and Tree object data can be imported by clicking on their respective import buttons (plus signs) in the main toolbar or through their respective menus. Either an existing data set can be extended with the import (obviously, the new file must contain data of a similar format to the basedata being extended), or a new one can be created.
+
+Basedata and Matrix objects can be imported from text files. Currently, only CSV-format (comma separated variable) files are supported. They should contain columns for one or more labels (e.g. names such as genus and species) and groups (e.g. x and y coordinates of a data point). The columns of data in your file don't have to be separated by commas, and a prompt allows you to specify the separator used (or simply to have the system make an “educated” guess) along with various other import options.
+
+Biodiverse does not care if a matrix being imported is upper right, lower left, both, or any combination of the above. They will store the last valid value for an element pair.
+
+Tree data can be imported from nexus format files (.nex or .tre).
+
+The import options allow you to use a label and/or group remapping table for the data you are importing. A remap file should be a CSV file with a column containing the current labels of the data you are importing and a column with the new labels they will be mapped to (a subsequent window will allow you to specify which column is which). Any unmapped labels will simply retain their original names when imported.
+
+For all data object types (basedata, matrices, trees), the import process involves selecting your data file and a label/group remap file (if desired). A file-browsing window will show your Biodiverse directory by default, and will list several common directories you can search through, such as the C drive and Desktop.
+
+sample_session_html_m6fe2d111.jpg
+
+Note these common “Places” in the left panel of the window. You can also select a folder in the right panel and click the ''Add'' button to permanently add this folder to the Places panel for convenient access in the future. Likewise, you can remove added (but not default) directories with the ''Remove'' button.
+
+== !BaseData ==
+
+From the basedata import dialogue window you can select your data file. The text box at the top right of the window allows you to name the basedata object that will be produced (as opposed to the default file name). Once you are finished, click Next.
+
+sample_session_html_m1f801faa.jpg
+
+You will then see a window with various options you can set for the import, such as whether remapping tables are to be used.
+
+sample_session_html_4595b02b.jpg
+
+If you specify that remapping will be used, you will be able to select your remapping file(s) at the end of the import process. The next window allows you to specify how the columns in your file will be treated.
+
+sample_session_html_m16c09cfc.jpg
+
+You must set at least one Group and one Label column, but more than one (of each) may be chosen if so desired. For example, you may typically wish to use both a “species” column and a “genus” column (if separated in your file) as one combined label for your data points, or to specify both the x-coordinate and y-coordinate columns in a file as “Group”, to specify a Cartesian grid (specifying only an “x” column or “y” column as the Group would result in a one-dimensional analysis of the data across that group's domain). You will notice that when a Group column has been set, you have the option of selecting its cell size (assumedly in the same units as the group data is represented) and origin, which default to 100,000.00 and 0.00, respectively.
+
+You can filter which data to use by assigning column types as “Include_columns” and “Exclude_columns” via the Type drop-down menu. You can have any number of each type of column. If one or more inclusion columns is specified, only those data rows with non-zero values in ''at least one'' of these columns will be imported. If one or more exclusion columns is specified, only those data rows with a value of zero in ''all'' of these'' ''columns will be imported (ie. any non-zero value will trigger a row to be excluded).
+
+All columns in your file that are irrelevant to the analysis should be set to “Ignore”.
+
+Click Ok. The next window allows you to order your labels and groups for the desired view. For example, placing “genus” above “species” produces labels named with the species name concatenated after the genus name, and placing “x” above “y” makes the x column data the first dimension of a group's coordinates and y the second (rather than vice versa).
+
+sample_session_html_10ce2013.jpg
+
+Note: once the data is imported and opened, the first group will be displayed along a horizontal axis and the second (if one exists) on a vertical axis. Biodiverse does not support a graphical view for more than 2 dimensions of groupings, although they can still be imported and used for analysis.
+
+Once you have accepted the label and group ordering, and if you had previously specified that remapping of labels and/or groups will be used, you are brought to a final window(s) where you can select the remap file(s) (otherwise, this step is skipped).
+
+sample_session_html_m5dd72dd9.jpg
+
+If you decide you don't want to select a remap file after all, simply click Cancel. The system will now import your data into a basedata object. A status bar appears showing progress. When the import is complete, you are free to visualize and analyse the data. The Outputs tab shows all currently imported basedata objects (and associated analyses, as discussed later) that you can work with.
+
+The process described thus far will create a new basedata object in the Biodiverse session. Alternatively, if you already have a basedata object imported and wish to add more data into this existing set, you can do so by following the normal import process, but in the dialogue window where you select the file to be imported, uncheck the “New” box at the top and select the existing basedata set to import into from the drop-down menu.
+
+sample_session_html_3cd10fff.jpg
+
+Data being appended to an existing basedata object should have group data in the same format as the existing basedata (for example, 'x' and 'y' columns of decimal degree geographic coordinates); otherwise, the results will be unpredictable. Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to without problem.
+
+You may also create a new basedata object as a duplicate of the currently selected basedata by ''Basedata-->Duplicate'' menu option. This will also duplicate any analyses performed on the basedata. To copy the basedata only, select the ''Basedata-->Duplicate without outputs''.
+
+
+
+== Matrices ==
+
+Matrix data can be imported at any time, although it can only be viewed with an existing (and selected) basedata object.
+
+When importing matrix data, you will first be asked to specify the matrix data file in the same way as for basedata objects.
+
+sample_session_html_m2b1b2b76.jpg
+
+The next window asks how the columns in the matrix file should be read.
+
+sample_session_html_m7852f502.jpg
+
+You must select at least one label column, and one (and only one) “Matrix start” column. Any other columns in the file should be set to “Ignore”. Click Ok. Your matrix has now been imported, and should appear in the drop-down menu in the matrix toolbar at the top of the screen. It will be displayed the next time you visualize basedata (though keep in mind it will only produce a useful display if the matrix and basedata objects share some labels).
+
+
+
+== Trees ==
+
+As with matrices, trees can be imported at any time, but can only be visualized once a (any) basedata object has been imported and visualized as well. Again, a tree is most useful if the basedata being displayed shares labels with it.
+
+A tree must be in a nexus format (*.nex or *.tre extension). To import, select the import button in the Tree toolbar. A window will appear for you to select your file.
+
+sample_session_html_m64d7bf17.jpg
+
+Select your file and click Ok. You will then have the option of choosing a label remap file.
+
+sample_session_html_37141781.jpg
+
+If you don't wish to remap labels, simply click Cancel.
+
+Alternatively to importing a tree from a file, you can also derive one at any time during your session if you already have a basedata and/or matrix object selected. This can be done by selecting the “Create tree from labels” or “Convert matrix to tree” options under the ''Basedata'' and ''Matrix'' menus, respectively. When generating a tree from the basedata labels, labels are treated as taxonomic names, and thus are primarily useful for a tree if they have at least 2 components (e.g. genus and species); ie. at least 2 columns representing labels in the original data file or if singular labels are remapped to multi-part labels. The tree hierarchy is then based on the ordering of the label components (see the previous section for how to choose label and group ordering during the basedata import process). A tree generated from a matrix simply reflects the matrix relationships based on the values of its cells.
+
+= Visualising data =
+
+Often the first step you will take once you have imported the data into a basedata object is to view the data to visualize the relationship between the groups and labels. This is done through the ''Basedata -> View Labels'' menu option. Alternatively, you can view the data from the Outputs tab by double-clicking on the basedata object or by selecting it and clicking the ''Show'' button on the right side of the window.
+
+Once this is done, you should see 4 panes, as below (the two panes on the right-hand side may be appear differently depending on whether a matrix or tree is currently selected in their respective dropdown menus in the toolbar at the top of the screen).
+
+sample_session_html_m2efc5ae.jpg
+
+
+
+The top left contains two lists of the labels in the selected basedata object. Each list can be sorted by any of the columns. The top right contains a grid of the selected matrix elements (it is blank if no matrix is selected). The bottom left contains a grid of the groups in the current basedata object. The bottom right contains the currently selected tree (blank if none selected).
+
+The sizes of the panes can be changed by clicking and dragging the dividing bars between them.
+
+Essentially, the system provides a simple linked visualisation system so that the selection (labels, groups, matrix cells or tree nodes) in one pane is reflected in the other three. If more than one label is contained in the selection in any pane, the groups in the group grid are coloured with a hue of red according to the number of the selected labels they contain (dark red for more, lighter red for less, white for none).
+
+If at any time you wish to deselect any currently selected/highlighted labels, hold the control key and click on them in the label lists or simply click on any nongroup location in the group grid pane to deselect all.
+
+Interaction with each of the panes is now described.
+
+
+
+== The label lists ==
+
+Interaction with the labels is similar to many lists you will encounter.
+
+Click on any row in the list to highlight a single label. Hold the shift key down to select a contiguous block, and the control key to select (or deselect) non-contiguous labels. Having two lists means you can more easily select from the top and bottom of each list without excessive scrolling. Other than this, the main use for a second list is to be able to select labels from each list to highlight specific cells – or blocks of cells – in the matrix pane, if a matrix is currently selected. The first (top) label list represents matrix rows, while the second (bottom) label list represents matrix columns.
+
+Sorting the label lists is done by clicking on the column headers. Subsequent clicks on column headers sort the data by that column in ascending, descending, and default order. The default order is by label, in alphabetical order. Ordering of these lists also affects the matrix layout (see section 1.1.2.3 for details).
+
+The following is a description of the label list columns:
+
+  * Label - The name of the label.
+  * Variety - The number of groups in which the label occurs. This is analogous to the range.
+  * Samples - The number of times the label occurs across all groups. Note: An individual group can have multiple samples of the same label.
+  * Redundancy - The sample redundancy for each label. This is calculated as (1 – [variety / samples]). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in. A value of zero means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
+
+The current selection in the lists is updated whenever you select elements in one of the other panes.
+
+One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select ''Basedata-->Transpose'' from the main menu. This will produce a new, transposed basedata object which you can view from the outputs tab. You will notice that the group grid changes to reflect the fact that the old labels are now the groups.
+
+
+
+== The group grid ==
+
+The group grid is a spatial display of the groups. Normally this is a map of the data (e.g. if your group data consists of some form of geographic coordinates), but there is no reason that you are restricted to using geographic locations as your groups. So long as the data have numerical coordinates, everything will be fine and dandy.
+
+Hovering over a group will highlight in bold the nodes in the tree corresponding to the labels it contains, if a tree has been selected.
+
+Left-clicking on a group will highlight it in dark red. Other groups may also be highlighted depending on the number of labels they share with the selected group (darker red for more shared labels, lighter red for less, white for no labels in common). Similarly, you can click and drag a box around multiple groups. Groups will then be highlighted according to the number of labels they have in common with the ''collection'' of groups selected. Labels in selected groups will also be highlighted in the top label list (although the list does not automatically jump to them).
+
+While holding the control key down, click on a group to display a pop-up window that allows you to see a list of the labels it contains and the sample size in that group for each label. Note: this will also select that group (and change highlighting as appropriate). To bring up any group's detailed information without changing current highlighting, use the middle/wheel mouse button to select a group.
+
+sample_session_html_4b67f969.jpg
+
+The title of this window indicates the group being examined. To re-use the same window to display another group's data, check the ''Re-use'' box. If this box is unchecked, data for subsequently selected groups will be displayed in new windows. This is useful when making comparisons between label presence and sampling among different groups. The ''Copy'' button in the group info window makes a copy of the group coordinates and all labels with their sample size to the clipboard for use elsewhere.
+
+You can also display one or more shapefile images (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. To do this, select the ''Overlays'' button in the panel. A list of the currently available overlays will be displayed. To add a new overlay, click ''Add'', and select the desired overlay file (Note: currently, shapefiles are the only type of overlay supported). Your selected file will be added to the list of available overlays. To display it in the group grid, select it and click ''Ok''. It may take a few seconds for the overlay to appear. To remove the currently displayed overlay, open the ''Overlays ''menu again and click the ''Clear'' button. Note: clicking ''Delete'' in the ''Overlays'' window will delete the shapefile from the list, but will not remove it from the display if it is currently being displayed. You must click ''Clear'' as well. Using an overlay may result in noticeably slower display processing (e.g. when highlighting groups).
+
+The group grid view can also be customized by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.
+
+== The matrix grid ==
+
+sample_session_html_4e6f4bc2.jpgThe top right pane displays a grid of the currently selected matrix. Each cell represents a pair of labels from the label lists, coloured according to the pair's matrix value, with a colour scale for these values on the right of the matrix.
+
+Cells are only coloured if both labels they represent are present in the basedata label list. If one or both of its labels are not present in the basedata, a cell remains white.
+
+The system lists which element you are hovering over at the top of the pane, indicating the label pair and its matrix value.
+
+The ordering of the matrix rows matches the current ordering of the upper label list in the label list pane, while the ordering of the matrix columns matches that of the lower label list. Changes in the ordering of either label list will automatically be reflected in the matrix.
+
+Click on a single element (cell) to select one pair of labels. The two label lists will automatically adjust to show these two (the top list highlighting the label corresponding to the matrix row, the bottom list highlighting the label corresponding to the matrix column).
+
+Similarly, you can click and drag the left mouse button to select a rectangular region in the matrix. his will highlight the selected labels in the other panes, adjusting the label lists as best it can.
+
+The matrix grid view can also be customized by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display the whole matrix at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.
+
+== The Tree ==
+
+sample_session_html_m6119eb53.jpg
+
+The tree is generally a representation of the phylogenetic similarities between labels, although it could be used for anything that uses such a structure. In this pane, you should see 2 sections (assuming a tree object is selected in the main toolbar at the top of the window). The upper section displays the relationship between labels in dendrogram form, while the bottom section displays a simple graph of the proportion of nodes present to the left of a vertical cut through the tree above. If this plot is not immediately visible, it may be “hidden” at the bottom. Move the mouse toward the bottom of the tree pane until it indicates a bar that you can click on and drag upward to reveal the graph.
+
+The dendrogram can be plotted by node depth or length via the ''Options'' button at the bottom of the pane. This menu also allows you to change highlighting settings.
+
+Hovering over a tree node highlights the groups containing the node's labels in the group grid. It does this using a circular symbol. Right click on the node to fix the highlights until the next mouse click in the tree pane.
+
+Left-clicking on a branch node selects all labels in terminal descendants (single-label nodes) of that node in the tree that are also in the label lists. Any nodes containing a label that is not present in the basedata will remain black in the tree.
+
+Control-click on a node to display a pop-up window from which you can access lists of the labels, groups and node characteristics (length, name, etc). General interaction with this pop-up is the same as that for the group info pop-up described in section 1.1.2.2.
+
+sample_session_html_6bc519bf.jpg
+
+You should notice a blue vertical sliding bar on the right side of the tree pane. Sometimes it can disappear off the side, in which case use the zoom controls to zoom out and locate out. Hovering the mouse over this bar will display three numbers. The first two numbers indicate the quantity and percentage of nodes present to the right of the bar. If the tree is plotted by node depth, the third number indicates the depth at the current bar position. If the plot is by node length, the third number indicates the distance from the bar position to the most distant (leftmost) leaf node.
+
+The tree view can also be customized by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display the whole tree at once, you can navigate using the scroll bars or by holding down the right mouse button and dragging.
+
+
+
+= Excluding data =
+
+Once you have looked at the labels, or even before if you are confident, you can begin to remove groups and labels that you consider redundant, irrelevant, or even just wrong.
+
+To run the exclusions on the currently selected basedata object, open menu option ''Basedata -> Run Exclusions''. You should see a window similar to the one below.
+
+sample_session_html_m6064b29e.jpg
+
+There are currently four group properties and three label characteristics that can be assessed, setting maximum or minimum values by which to exclude them. These characteristics are variety, samples and redundancy for both labels and groups as well as range for labels. For a description of these terms as they apply to labels, see the ''Key Concepts'' file. Variety of a group is the number of different labels it contains. A group's samples is the total number of samples of all labels it contains. A group's redundancy is the complement of the ratio of the number labels to the number of samples in that group (ie. a group with 2 labels having a total of 8 labels will have a redundancy of 0.75).
+
+If you already have the basedata displayed when you run the exclusions, the visualization will not be updated. To see the new dataset with the exclusions, revisualize it by selecting ''Basedata?View Labels ''from the menu. This will open a new visualization tab (note: the original visualization remains open in its original tab, but still displays old data).
+
+'''A word of warning:''' Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated at the end, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the range of that label.
+
+It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent basedata object if you do this.
+
+= Running a Cluster Analysis =
+
+Cluster analyses are used to identify clusters (often called groups) in the data. To run a cluster analysis on the currently selected basedata object, open menu option ''Analyses-->Cluster''.
+
+The cluster tab has two main sections where you can set options. The first section ('''Parameters''') determines the parameters used in the clustering to generate a tree. The second ('''Spatial analyses to run for each cluster node''') determines what subsequent analyses will be run for each node in this tree using the groups it contains to define the spatial sample.
+
+Once you have specified your parameters and [optionally] desired analyses, click on the ''Go'' button. The system will first build a similarity matrix, then run the clustering, and then any spatial analyses you have selected. One or more (depending on your options) progress bars let you know how things are progressing. Once complete, a prompt asks if you would like to display the results. If so, a display pane comes up showing you the results. You can pull the pane down (via an invisible slider bar at the top of the white pane) to see the options you used; for example, to change them and recalculate an analysis. If you don't wish to view the results at this time, they may be accessed later from the ''Outputs'' tab. In this tab, analyses are automatically placed and indented below the basedata object they were performed on.
+
+== Cluster parameters ==
+
+The '''Name''' option is the name used in the system for that analysis. By default, the name of an analysis is the name of the basedata object (e.g. “sampledata”) followed by an underscore, “Cluster” and a digit (e.g. “sampledata_Cluster0”). Numbering starts at 0 and any subsequent analyses created for that basedata object create a similar name with the number incremented by 1. However, you can give an analysis any name you want, but if one with that name already exists, you will be notified that the original analysis will be overwritten if you continue. Note: naming conflicts only arise for different analyses on the same basedata object; analyses for different basedata objects may have the same name, if you wish.
+
+The '''Metric''' option specifies the similarity measure that will be used to compare groups. It is from this function that the matrix of similarities is built.
+
+The '''Linkage''' option determines how the similarities of newly formed clusters to other groups and clusters in the matrix are calculated.
+
+The '''Spatial conditions '''text boxes allow you to enter a set of spatial constraints for the clustering. Please see section 1.3.4 of the Key Concepts file for details on how to specify (ie. the syntax of) these constraints. If specified, the clustering process will only consider those groups or clusters that have one or more groups that satisfy the spatial constraints. If the clustering process runs out of neighbours then it switches to non-spatial clustering until the process is complete. The '''Verify''' button (the one with the big tick on it) lets you know if the spatial conditions are syntactically valid. It does not check if the conditions do what you want, but this is hardly unusual for a computer program.
+
+== Spatial analysis options ==
+
+Use the check boxes to select which sets of analyses are to be performed, and therefore which indices will be calculated. Press the plus buttons next to each set to select specific analyses. Press the plus button again to see which indices each one calculates. Text at each level tells you about the calculations and what they do.
+
+Not all these analyses or indices are valid for clusters, but the system strips out the ones that are not before any calculations are performed. If a spatial analysis is selected, indices of single values will be stored within a list called SPATIAL_RESULTS in each cluster tree node. Those that are lists will be stored in each node at the same level as SPATIAL_RESULTS. This will become more clear when you run a cluster analysis and view the results.
+
+== Viewing the results ==
+
+There are three sub-panes within the display pane. On the left is the group grid, on the upper right is the tree representing the clustering, and on the lower right is the scree plot for the tree. When initially viewing the analysis results, you will likely need to pull the bottom of the tree pane down to reduce the scree plot's vertical extent and expand the tree so it can be viewed properly.
+
+As with the visualization of basedata/matrix/tree objects described earlier, the system is linked, and interactions in the group grid or tree of the cluster display are generally reflected in the other. Hovering the mouse over a node in the tree highlights the groups (in the group grid) that are contained in that node. Likewise, hovering the mouse over a group in the group grid will highlight the path (set of nodes/clusters) in the tree to which that group belongs. Right click on a tree node to fix a colour to the subclusters (descendant nodes in the tree). These clusters are split into a number of coloured groupings based on the “Clusters to colour” parameter at the bottom of the pane. Take note that some leaf nodes in the tree may have a length of zero (indicated by vertical bars at the leftmost side of the tree, longer bars indicating more zero-length leaf nodes). Thus, if any such nodes occur under (to the left of) the node you have selected, their colouring will not be apparent if you are using “Plot by Length” mode. These nodes, along with their colouring (if selected) can be made apparent by switching to “Plot by Depth” mode under the tree options button.
+
+The blue sliding bar in the tree pane can be dragged across the tree to colour the nodes and groups at that level. The bar also displays the number of nodes it is crossing when the mouse is focused on it. Note that the maximum number of colours the system will display is 13. If the slider bar crosses more than 13 nodes, all nodes will be uniformly coloured red instead, and groups in the group grid will not be coloured.
+
+Groups contained in selected clusters will be coloured in the group grid. The colouring for these groups are assigned according to the hue/sat scheme selected (see the bottom of the groups grid pane) and are based on the value of each group for the index selected.
+
+The choice of which index to show in the group grid is made in the selection boxes beneath the grid. The one on the left is the list of analyses (e.g. SPATIAL_RESULTS, ABC2_LABELS_SET1) and the one on the right shows which index or list element (group or label) to display from that analysis. The default is the special ''Cluster'' list, which colours the clusters using a contrasting colour scheme^[[#sdfootnote1sym|^1^]]^ ([[http://www.colorbrewer.org/|www.colorbrewer.org)]]. Note: the right-hand lists of indices/elements to display only appears once an analysis other than the default Cluster is selected from the left-hand list. In addition to the contrast and continuous colour schemes, white groups in the grid are those that are not in the selected clusters. Black means they are in the selected clusters, but are not relevant to the index and/or elements (group/label) selected from the drop-down menus in the group grid pane.
+
+Holding down the control key while clicking on a group in the grid produces (as usual) a pop-up with a list of the labels in that group. If the group is in a selected cluster, other information and indices pertaining to the group and its cluster can also be accessed from this po-up. Similarly, you can control-click on a node in the tree to see a pop-up with indices for individual labels and groups contained in the node, indices for the collection of groups/labels in the node (SPATIAL_RESULTS), and characteristics of that node (NODE_VALUES). These are accessed from the ''Data'' drop-down menu in the pop-up window.
+
+You can customize the tree display via the ''Option'' button below the scree plot. You can determine (1) whether the tree will be plotted by the length or depth of each node, and (2) whether the cluster grouping that is done when clicking on a node uses length or depth. Normally length for both is good enough, but when you have non-monotonic linkages the overlaps and negative lengths make it easier to plot by depth and group by length.
+
+Vector overlays can be plotted on the group grid using the “overlays” interface below the grid (refer to section 1.1.2.2 on how to do this).
+
+= Running a spatial (moving window) analysis =
+
+Now that you have been amazed by the functionality in the cluster tab, you will probably want to try your hand at one of the spatial analyses.
+
+Spatial analyses are used to identify spatial patterns in the data. Generally it is treated as a moving window analysis, where the neighbourhoods are evaluated for each group in the basedata object, but the flexibility of the spatial neighbourhoods means this is not entirely correct.
+
+To run a spatial analysis on the currently selected basebata object, open menu option ''Analyses -> Spatial''.
+
+The Spatial tab has two main sections where you can set options, and this process is very similar to that of a cluster analysis (see section 1.3). The first section ('''Parameters''') determines the parameters used in defining the two neighbour sets used in the spatial analysis. The second ('''Spatial Analyses to run for each neighbourhood''') determines the subsequent analyses that will be run for the set of neighbours related to each group. You can select any number of analyses to perform.
+
+Unless you have specified a complex spatial neighbourhood then you should turn the spatial index on. The best resolution to use depends on your data set, but a good start is twice the cell size. If you have a cell size of zero then make it approximately the same as your window size.
+
+Once you have specified your parameters, click on the '''Go''' button. The system will then run the selected spatial analyses. The progress bar lets you know how things are progressing. Once it is complete, it pulls up a display pane and shows you a map of the results. Pull the pane down to see the options you used, for example to change them and recalculate. If you do so, you will have to change the analysis name unless you want to overwrite the previous analysis.
+
+== Spatial parameters ==
+
+The '''Name''' option is the name used in the system. Multiple analyses on a given !BaseData may not have the same name, though analyses on different !BaseData may.
+
+The '''Neighbour set 1''' and '''Neighbour set 2 '''text boxes allow you to define the neighbourhoods used for the analyses. The effect of these neighbourhoods depends on the spatial analysis used. Some aggregate them into a single group (eg endemism_whole), others compare the labels in one neighbourhood with another (eg Jaccard), while others use the first set to define the list of labels to use (endemism_central). There is no requirement to have the central group in any of the neighbourhoods, and both neighbourhoods may be arbitrarily defined independently of each other. It is up to the user to identify what is most appropriate for the analysis at hand. You are also not obliged to specify a second neighbourhood.
+
+The '''Verify''' buttons (big green ticks) to the right of the neighbourhood definition boxes let you know if the spatial conditions entered are syntactically valid. It does not check if the conditions do what you want but, as was noted in the clustering section, this is hardly unusual for a computer program.
+
+The '''Plus''' button allows you to specify additional arguments if specified by the analyses, although this is not really used much yet.
+
+== Spatial analysis options ==
+
+This is the same as in the cluster tab. Use the check boxes to select which sets of analyses are to be used, and therefore which indices will be calculated. Press the plus buttons next to each set to select specific analyses. Press the plus button again to see which indices each one calculates. Text at each level tells you about the calculations and what they do.
+
+Indices of single values are stored within a list called SPATIAL_RESULTS in each node. Those that are lists are stored in each node at the same level as SPATIAL_RESULTS. This may not be clear until you run a cluster analysis..
+
+Those analyses or indices that require two neighbourhoods (such as Jaccard or Sorensen dissimilarity) will not be created if a second neighbourhood is not specified.
+
+== Viewing the results ==
+
+The results are displayed as a map in a single pane within the tab.
+
+Hovering over a group will highlight the groups used in the calculations – a solid circle for those in the first neighbourhood and a dash for those in the second neighbourhood. You can display any combination of the neighbourhoods using the '''Neighbours''' selection below the map.
+
+The meaning of the group colourings is determined using the two selection boxes at the bottom left of the window. The default is SPATIAL_RESULTS. This interface excludes lists that are not numeric hashes.
+
+Holding the control key while clicking on a group produces a pop-up list with all the results in it, including those that cannot be displayed spatially. It also includes lists of the neighbourhoods used (Elements set1, set2 and all) and of the labels in these neighbourhoods (Labels set1, set2 and all). Note that “set1” generally refers to the set of groups specified as neighbourhood 1 in the analysis definition screen, whereas “set2” is neighbourhood 2. “All” is the union of these.
+
+Vector overlays can be plotted using the “overlays” interface at the bottom of the screen (refer to section 1.1.2.2 on how to do this).
+
+= Running a randomisation =
+
+The randomisation analyses are a means of assessing the significance of the analysis results against one or more hypotheses of alternate random structure. At this stage the system only supports randomisation of the BaseData but future developments could also randomise, for example, the nodes on a tree.
+
+To run a randomisation analysis on the currently selected basebata object, open menu option ''Analyses -> Randomisation''.
+
+sample_session_html_6e4e8f8d.png
+
+The Randomisation tab has two main sections where you can set options. The first section ('''Setup''') determines the main setup parameters used in the randomisation, for example the randomisation function and the PRNG seed if you want to reproduce a sequence of random values between randomisations. The second ('''Parameters''') are function specific options. At this stage only three randomisations are supported – rand_csr_by_group, rand_no_change and rand_structured.
+
+  * '''rand_csr_by_group''' randomly reallocates each group with all of its labels. The csr stands for Complete Spatial Randomness.
+  * '''rand_no_change''' merely replicates the basedata object. It is useful for assessing cluster analyses as the tie breaker is based on a random choice, or if you are just plain paranoid and want to test the system.
+  * '''rand_structured''' allows the replication of richness patterns from the original basedata in the randomised basedata, within some tolerances (as an additive offset and a multiplier). We will add spatial structure soon as well. Complete spatial randomness, where labels are allocated without any structure at all, can be achieved by specifying an offset larger than the largest richness value across the groups.[[#sdfootnote2sym|^2^]]
+
+Be careful in your selection of the randomisation function, as each specifies a different null model. Each also has a varying “degree of difficulty”. For example, it is easy for an analysis to be more spatially structured than a complete reallocation of labels to groups, as the randomisation destroys any spatial structure. It is more difficult to be “better” than a randomisation that replicates other structural features such as species richness.
+
+Once you have specified your parameters, click on the '''Randomise''' button (or Control-G on the keyboard). The system will then repeat the randomisation algorithm for the specified number of iterations. The progress bar lets you know how things are progressing. Once it is completed you are left back at the tab. You can either run more iterations or open the relevant analyses to view the results (see below). If you do run more iterations then it will warn you that any changes to the parameters, except the iterations, are ignored. This is to avoid chaos and mayhem in the interpretation of the results – if you want to assess different parameters then create a new randomisation and run it separately.
+
+All of the outputs within a basedata are compared with the randomised version. At the moment the system does not check to see if new analyses are conducted after a randomisation, but it is likely that a later version will stop this happening to avoid confusion between outputs (for example where some analyses have 1000 iterations of the randomisation while others start at iteration 900).
+
+== Interpreting the results ==
+
+The outputs of the randomisations do not go into their own object. Instead they are stored on the analyses as additional lists, where the main list is the name of the randomisation specified in the arguments. If the list is called '''Rand1''' then the randomisation results for a spatial analysis go into a list called '''Rand1'''. Trees have at least three lists attached to each node, with a fourth if a spatial analysis was conducted on each node. '''Rand1 '''contains summary statistics of the most similar nodes between the original and randomised trees (e.g. mean, median, SD, quartiles, count of comparisons, how many were identical), with the similarity assessed using a Sorenson dissimilarity index (zero is identical, 0.5 means half of the terminal elements across both nodes were shared, with double counting of shared nodes). '''Rand1_DATA''' is the full set of Sorenson comparison results in case you want to extract them for other nefarious purposes (e.g. how many times did the randomisation produce a node which had 80% or more terminal elements in common?). '''Rand1_ID_LDIFFS'''[[#sdfootnote3sym|^3^]] contains the total lengths (from the tip of the tree) of those nodes that contained an identical set of terminal elements. If all (or most) are longer then the original tree at least has a shorter total length, even though it resulted in the same set of elements being grouped together. '''Rand1_SPATIAL''' contains the comparison values of the spatial outputs for the most similar nodes.
+
+What do the outputs in the spatial analysis '''Rand1''' list mean? The indices shown are those used in the comparisons, prefixed by a letter with an underscore.
+
+  * C_* (eg. C_ENDC_CWE ) is the number of times the comparison was higher than the original.
+  * Q_* (q  quantum) is the number of comparisons (e.g. Q_END_CWE). It is counted because there may be cases where undefined values result. Undefined results are ignored because they cannot be compared with a number. We also cannot be sure that the frequency of undefined results is the same for all indices so we track it for each index.
+  * P_* (e.g. P_ENDC_CWE) is the fractional ranking, calculated as C_* / Q_*. Multiply by 100 to get a percentile. The P_* score is converted into a p-score in the normal way, e.g. if P_*  0.99 then the original measure is higher than the randomised versions 99 times out of every hundred. If one is interested in higher scores then this is the same as a p score of 0.01. If it is a two-tailed statistic then one changes the interpretation appropriately, e.g. the mean of numeric labels (NUM_MEAN) can be significantly higher or lower than expected by chance. So long as it is in one of the tails of the distribution then the result is significant (e.g. P_NUM_MEAN &lt; 0.025 or P_NUM_MEAN > 0.975 for an alpha level of 0.05).
+
+= Exporting and saving =
+
+Exporting an entire project is done through the ''File'' menu using ''Save'' or ''Save As''. This preserves all existing basedata, matrix and tree objects – along with their associated analyses – as a “.bps” file. Exporting of the currently selected basedata, matrix and tree objects (as “.bds”, “.bms” and “.bts” files, respectively) is done through their respective menus or through the “save” icons on the toolbar.
+
+Exporting a cluster or spatial analysis is done through the Outputs tab. Select the appropriate output and choose export. A window will appear with a series of options, depending on what the output is. The right hand side will have the option to specify the file name. The file type is determined by the file extension. The left side of the window contains all the options for the export.
+
+The key spatial options are which list to export and whether to force asymmetric lists to be symmetric. Forcing asymmetric lists produces larger file sizes but allows for easier import of some results into database programs. The size difference will be trivial in many cases. One example use is to generate a matrix of neighbours when using the Element List analyses.
+
+The key option when exporting a cluster analysis is whether to use a table or newick format. Most of the other options relate to the table. One needs to decide which list values to include (if any), how many cluster groups are needed or whether to specify a length or depth to determine the groups (analogous to the slider bar). The structure of the resulting table and how to use it will be explained in the ''Key Concepts'' file.
+
+[[#sdfootnote1anc|1]]Brewer, Cynthia A., '''2005''', ''Designing Better Maps: A Guide for GIS Users,'' ESRI Press, Redlands CA, 203 pp.
+
+[[#sdfootnote2anc|2]] Some might think it odd that the most unstructured randomisation is under the structured function, but one should view it as an end-point of a continuum of outputs that this function allows.
+
+[[#sdfootnote3anc|3]]Short for IDentical node Length DIFFerences. This is a confusing abbreviation and name, so any suggestions are welcome.

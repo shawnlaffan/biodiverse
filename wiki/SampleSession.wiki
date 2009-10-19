@@ -32,6 +32,9 @@ Change the name in the textbox at the top if you want to list them by a differen
 
 http://www.biodiverse.unsw.edu.au/screenshots/open_existing_object.png
 
+Note the common “Places” in the left panel of the window. This is the bookmark system used by Gtk, and are persisent across sessions.  You can also select a folder in the right panel and click the _Add_ button to permanently add this folder to the Places panel for convenient access in the future. Likewise, you can remove added (but not default) directories with the _Remove_ button.
+
+
 == Importing Data ==
 
 Basedata, Matrix, and Tree object data can be imported by clicking on their respective import buttons (plus signs) in the main toolbar or through their respective menus. Either an existing data set can be extended with the import (obviously, the new file must contain data of a similar format to the basedata being extended), or a new one can be created.
@@ -42,13 +45,9 @@ Biodiverse does not care if a matrix being imported is upper right, lower left, 
 
 Tree data can be imported from nexus format files (.nex or .tre).
 
-The import options allow you to use a label and/or group remapping table for the data you are importing. A remap file should be a CSV file with a column containing the current labels of the data you are importing and a column with the new labels they will be mapped to (a subsequent window will allow you to specify which column is which). Any unmapped labels will simply retain their original names when imported.
+The import options allow you to use a label and/or group properties table for the data you are importing (e.g. to remap label names so they match ther data sets or set their sample counts). A properties file should be a CSV file with a column containing the current labels of the data you are importing and a column with the new labels they will be mapped to (a subsequent window will allow you to specify which column is which). Any unmapped labels will simply retain their original names when imported.
 
-For all data object types (basedata, matrices, trees), the import process involves selecting your data file and a label/group remap file (if desired). A file-browsing window will show your Biodiverse directory by default, and will list several common directories you can search through, such as the C: drive and Desktop on Windows.
-
-http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step1.png
-
-Note these common “Places” in the left panel of the window. You can also select a folder in the right panel and click the _Add_ button to permanently add this folder to the Places panel for convenient access in the future. Likewise, you can remove added (but not default) directories with the _Remove_ button.
+For all data object types (basedata, matrices, trees), the import process involves selecting your data file and a label/group properties file (if desired). A file-browsing window will show your Biodiverse directory by default, and will list several common directories you can search through, such as the C: drive and Desktop on Windows.
 
 === !BaseData ===
 

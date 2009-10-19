@@ -24,6 +24,10 @@ We suggest you read this in conjunction with the KeyConcepts document. Additiona
 
 = Importing data =
 
+Data can be loaded into a project if they have previously been saved as separate files on disk.  Use the  _Open_ options under the respective menus, or click on the open folder icon from the selected object bar (tooltip "open from native format").  Change the name in the textbox at the top if you want to list them by a different name.
+
+http://www.biodiverse.unsw.edu.au/screenshots/open_existing_object.png
+
 Basedata, Matrix, and Tree object data can be imported by clicking on their respective import buttons (plus signs) in the main toolbar or through their respective menus. Either an existing data set can be extended with the import (obviously, the new file must contain data of a similar format to the basedata being extended), or a new one can be created.
 
 Basedata and Matrix objects can be imported from text files. Currently, only CSV-format (comma separated variable) files are supported. They should contain columns for one or more labels (e.g. names such as genus and species) and groups (e.g. x and y coordinates of a data point). The columns of data in your file don't have to be separated by commas, and a prompt allows you to specify the separator used (or simply to have the system make an “educated” guess) along with various other import options.
@@ -34,51 +38,51 @@ Tree data can be imported from nexus format files (.nex or .tre).
 
 The import options allow you to use a label and/or group remapping table for the data you are importing. A remap file should be a CSV file with a column containing the current labels of the data you are importing and a column with the new labels they will be mapped to (a subsequent window will allow you to specify which column is which). Any unmapped labels will simply retain their original names when imported.
 
-For all data object types (basedata, matrices, trees), the import process involves selecting your data file and a label/group remap file (if desired). A file-browsing window will show your Biodiverse directory by default, and will list several common directories you can search through, such as the C drive and Desktop.
+For all data object types (basedata, matrices, trees), the import process involves selecting your data file and a label/group remap file (if desired). A file-browsing window will show your Biodiverse directory by default, and will list several common directories you can search through, such as the C: drive and Desktop on Windows.
 
-sample_session_html_m6fe2d111.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step1.png
 
-Note these common “Places” in the left panel of the window. You can also select a folder in the right panel and click the ''Add'' button to permanently add this folder to the Places panel for convenient access in the future. Likewise, you can remove added (but not default) directories with the ''Remove'' button.
+Note these common “Places” in the left panel of the window. You can also select a folder in the right panel and click the _Add_ button to permanently add this folder to the Places panel for convenient access in the future. Likewise, you can remove added (but not default) directories with the _Remove_ button.
 
 == !BaseData ==
 
 From the basedata import dialogue window you can select your data file. The text box at the top right of the window allows you to name the basedata object that will be produced (as opposed to the default file name). Once you are finished, click Next.
 
-sample_session_html_m1f801faa.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step1.png
 
-You will then see a window with various options you can set for the import, such as whether remapping tables are to be used.
+You will then see a window with various options you can set for the import, such as whether remapping tables are to be used.  If you specify that remapping will be used, you will be able to select your remapping file(s) after you set the parameters for the main !BaseData import.
 
-sample_session_html_4595b02b.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step2.png
 
-If you specify that remapping will be used, you will be able to select your remapping file(s) at the end of the import process. The next window allows you to specify how the columns in your file will be treated.
+The next window allows you to specify how the columns in your file will be treated.
 
-sample_session_html_m16c09cfc.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step3.png
 
-You must set at least one Group and one Label column, but more than one (of each) may be chosen if so desired. For example, you may typically wish to use both a “species” column and a “genus” column (if separated in your file) as one combined label for your data points, or to specify both the x-coordinate and y-coordinate columns in a file as “Group”, to specify a Cartesian grid (specifying only an “x” column or “y” column as the Group would result in a one-dimensional analysis of the data across that group's domain). You will notice that when a Group column has been set, you have the option of selecting its cell size (assumedly in the same units as the group data is represented) and origin, which default to 100,000.00 and 0.00, respectively.
+You must set at least one Group and one Label column, but more than one (of each) may be chosen if so desired. For example, you may typically wish to use both a “species” column and a “genus” column (if separated in your file) as one combined label for your data points, or to specify both the x-coordinate and y-coordinate columns in a file as “Group”, to specify a Cartesian grid (specifying only an “x” column or “y” column as the Group would result in a one-dimensional analysis of the data across that group's domain). You will notice that when a Group column has been set, you have the option of selecting its cell size (assumedly in the same units as the group data is represented) and origin, which default to 100,000.00 and 0.00, respectively.  If you have specified a matrix format for your data then you will also need to specify a label_start_col and, optionally, a label_end_col if you want to ignore some columns at the end.  If you want to skip columns between these two limits then set an exclude column in a label remap file.  (Note that the system takes the first label_start_col column if more than one is specified.  The same applies to the label_end_col).
 
-You can filter which data to use by assigning column types as “Include_columns” and “Exclude_columns” via the Type drop-down menu. You can have any number of each type of column. If one or more inclusion columns is specified, only those data rows with non-zero values in ''at least one'' of these columns will be imported. If one or more exclusion columns is specified, only those data rows with a value of zero in ''all'' of these'' ''columns will be imported (ie. any non-zero value will trigger a row to be excluded).
+You can filter which data rows to use by assigning column types as “Include_columns” and “Exclude_columns” via the Type drop-down menu. You can have any number of each type of column. If one or more inclusion columns is specified, only those data rows with non-zero values in ''at least one'' of these columns will be imported. If one or more exclusion columns is specified, only those data rows with a value of zero in ''all'' of these'' ''columns will be imported (ie. any non-zero value will trigger a row to be excluded).
 
 All columns in your file that are irrelevant to the analysis should be set to “Ignore”.
 
-Click Ok. The next window allows you to order your labels and groups for the desired view. For example, placing “genus” above “species” produces labels named with the species name concatenated after the genus name, and placing “x” above “y” makes the x column data the first dimension of a group's coordinates and y the second (rather than vice versa).
+Click Ok. The next window allows you to order your labels and groups for the desired view. In the example data set, placing “genus” above “species” produces labels named with the species name concatenated after the genus name, and placing “y” above “x” makes the y column data the first dimension of a group's coordinates and x the second (this is useful if you have a file where latitude precedes longitude in the file's column order).
 
-sample_session_html_10ce2013.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step4.png
 
 Note: once the data is imported and opened, the first group will be displayed along a horizontal axis and the second (if one exists) on a vertical axis. Biodiverse does not support a graphical view for more than 2 dimensions of groupings, although they can still be imported and used for analysis.
 
-Once you have accepted the label and group ordering, and if you had previously specified that remapping of labels and/or groups will be used, you are brought to a final window(s) where you can select the remap file(s) (otherwise, this step is skipped).
+Once you have accepted the label and group ordering, and if you had previously specified that remapping of labels and/or groups will be used, you are brought to a final window(s) where you can select the remap file(s) and their respective parameters (otherwise, this step is skipped). _need to add details for this_
 
 sample_session_html_m5dd72dd9.jpg
 
-If you decide you don't want to select a remap file after all, simply click Cancel. The system will now import your data into a basedata object. A status bar appears showing progress. When the import is complete, you are free to visualize and analyse the data. The Outputs tab shows all currently imported basedata objects (and associated analyses, as discussed later) that you can work with.
+If you decide you don't want to select a remap file after all, simply click Cancel. The system will now import your data into a basedata object. A status bar appears showing progress. When the import is complete, you are free to visualise and analyse the data. The Outputs tab shows all currently imported basedata objects (and associated analyses, as discussed later) that you can work with.
 
-The process described thus far will create a new basedata object in the Biodiverse session. Alternatively, if you already have a basedata object imported and wish to add more data into this existing set, you can do so by following the normal import process, but in the dialogue window where you select the file to be imported, uncheck the “New” box at the top and select the existing basedata set to import into from the drop-down menu.
+The process described thus far will create a new basedata object in the Biodiverse session. Alternatively, if you have an existing basedata object in your project and wish to add more data you can do so by following the normal import process, but in the dialogue window where you select the file to be imported, uncheck the “New” box at the top and select the existing basedata set to import into from the drop-down menu.
 
-sample_session_html_3cd10fff.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_into_existing.png
 
-Data being appended to an existing basedata object should have group data in the same format as the existing basedata (for example, 'x' and 'y' columns of decimal degree geographic coordinates); otherwise, the results will be unpredictable. Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to without problem.
+Data being appended to an existing basedata object should have group data in the same format as the existing basedata (for example, 'x' and 'y' columns of decimal degree geographic coordinates if the existing data were so); otherwise, the results will be unpredictable. Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to without problem.
 
-You may also create a new basedata object as a duplicate of the currently selected basedata by ''Basedata-->Duplicate'' menu option. This will also duplicate any analyses performed on the basedata. To copy the basedata only, select the ''Basedata-->Duplicate without outputs''.
+You may also create a new basedata object as a duplicate of the currently selected basedata by the _Basedata->Duplicate_ menu option. This will also duplicate any analyses performed on the basedata. To duplicate the basedata only, select _Basedata->Duplicate without outputs_.
 
 
 

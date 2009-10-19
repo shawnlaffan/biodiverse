@@ -153,15 +153,15 @@ The following is a description of the label list columns:
   * Label - The name of the label.
   * Variety - The number of groups in which the label occurs. This is analogous to the range.
   * Samples - The number of times the label occurs across all groups. Note: An individual group can have multiple samples of the same label.
-  * Redundancy - The sample redundancy for each label. This is calculated as (1 – [variety / samples]). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in. A value of zero means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
+  * Redundancy - The sample redundancy for each label. This is calculated as (1 – (variety / sample_count)). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in. A value of zero means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
 
 The current selection in the lists is updated whenever you select elements in one of the other panes.
 
-One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select ''Basedata-->Transpose'' from the main menu. This will produce a new, transposed basedata object which you can view from the outputs tab. You will notice that the group grid changes to reflect the fact that the old labels are now the groups.
+One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed basedata object which you can view from the outputs tab. You will notice that the group grid changes to reflect the fact that the old labels are now the groups.
 
 
 
-== The group grid ==
+== The Group Grid ==
 
 The group grid is a spatial display of the groups. Normally this is a map of the data (e.g. if your group data consists of some form of geographic coordinates), but there is no reason that you are restricted to using geographic locations as your groups. So long as the data have numerical coordinates, everything will be fine and dandy.
 
@@ -179,7 +179,7 @@ You can also display one or more shapefile images (a map of a country's border l
 
 The group grid view can also be customised by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.
 
-== The matrix grid ==
+== The Matrix Grid ==
 
 sample_session_html_4e6f4bc2.jpgThe top right pane displays a grid of the currently selected matrix. Each cell represents a pair of labels from the label lists, coloured according to the pair's matrix value, with a colour scale for these values on the right of the matrix.
 
@@ -217,7 +217,7 @@ The tree view can also be customized by using the three zoom buttons in the bott
 
 
 
-= Excluding data =
+= Excluding Data =
 
 Once you have looked at the labels, or even before if you are confident, you can begin to remove groups and labels that you consider redundant, irrelevant, or even just wrong.
 
@@ -225,21 +225,21 @@ To run the exclusions on the currently selected basedata object, open menu optio
 
 sample_session_html_m6064b29e.jpg
 
-There are currently four group properties and three label characteristics that can be assessed, setting maximum or minimum values by which to exclude them. These characteristics are variety, samples and redundancy for both labels and groups as well as range for labels. For a description of these terms as they apply to labels, see the ''Key Concepts'' file. Variety of a group is the number of different labels it contains. A group's samples is the total number of samples of all labels it contains. A group's redundancy is the complement of the ratio of the number labels to the number of samples in that group (ie. a group with 2 labels having a total of 8 labels will have a redundancy of 0.75).
+There are currently four group properties and three label properties that can be assessed, setting maximum or minimum values by which to exclude them. These characteristics are variety, samples and redundancy for both labels and groups as well as range for labels. For a description of these terms as they apply to labels, see the ''Key Concepts'' file. Variety of a group is the number of different labels it contains. A group's samples is the total number of samples of all labels it contains. A group's redundancy is the complement of the ratio of the number labels to the number of samples in that group (ie. a group with 2 labels having a total of 8 labels will have a redundancy of 0.75).
 
-If you already have the basedata displayed when you run the exclusions, the visualization will not be updated. To see the new dataset with the exclusions, revisualize it by selecting ''Basedata?View Labels ''from the menu. This will open a new visualization tab (note: the original visualization remains open in its original tab, but still displays old data).
+If you already have the basedata displayed when you run the exclusions, the visualisation will not be updated. To see the new dataset with the exclusions, revisualise it by selecting menu option _Basedata->View Labels_. This will open a new visualisation tab (note: the original visualisation remains open in its original tab, but still displays old data).
 
-'''A word of warning:''' Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated at the end, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the range of that label.
+*_A word of warning_*: Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated at the end, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the range of that label.
 
-It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent basedata object if you do this.
+It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent basedata object if you do this.  _In future the system will guard against this, but it is not implemented as of version 0.10._
 
 = Running a Cluster Analysis =
 
-Cluster analyses are used to identify clusters (often called groups) in the data. To run a cluster analysis on the currently selected basedata object, open menu option ''Analyses-->Cluster''.
+Cluster analyses are used to identify clusters (often called groups) in the data. To run a cluster analysis on the currently selected basedata object, open menu option _Analyses->Cluster_.
 
-The cluster tab has two main sections where you can set options. The first section ('''Parameters''') determines the parameters used in the clustering to generate a tree. The second ('''Spatial analyses to run for each cluster node''') determines what subsequent analyses will be run for each node in this tree using the groups it contains to define the spatial sample.
+The cluster tab has two main sections where you can set options. The first section (_Parameters_) determines the parameters used in the clustering to generate a tree. The second (_Spatial analyses to run for each cluster node_) determines what subsequent analyses will be run for each node in this tree using the groups it contains to define the spatial sample.
 
-Once you have specified your parameters and [optionally] desired analyses, click on the ''Go'' button. The system will first build a similarity matrix, then run the clustering, and then any spatial analyses you have selected. One or more (depending on your options) progress bars let you know how things are progressing. Once complete, a prompt asks if you would like to display the results. If so, a display pane comes up showing you the results. You can pull the pane down (via an invisible slider bar at the top of the white pane) to see the options you used; for example, to change them and recalculate an analysis. If you don't wish to view the results at this time, they may be accessed later from the ''Outputs'' tab. In this tab, analyses are automatically placed and indented below the basedata object they were performed on.
+Once you have specified your parameters and any desired analyses, click on the ''Go'' button. The system will first build a similarity matrix, then run the clustering, and then any spatial analyses you have selected. One or more (depending on your options) progress bars let you know how things are progressing. Once complete, a prompt asks if you would like to display the results. If so, a display pane comes up showing you the results. You can pull the pane down (via an invisible slider bar at the top of the white pane) to see the options you used; for example, to change them and recalculate an analysis. If you don't wish to view the results at this time, they may be accessed later from the ''Outputs'' tab. In this tab, analyses are automatically placed and indented below the basedata object they were performed on.
 
 == Cluster parameters ==
 

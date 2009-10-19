@@ -50,7 +50,8 @@ _This list and appropriate metadata needs to be accessible through the GUI - see
 
 {{{
 #  radius of 100,000 map units, uses all axes so will 
-#    be a sphere for three dimensions, and a hypersphere for more
+#    be a circle for two dimensions, a sphere for three dimensions, and a hypersphere
+#    for more
 sp_circle (radius => 100000)
 
 # a circle using the second and fourth group axes

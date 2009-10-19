@@ -2,7 +2,7 @@
 
 This is an initial effort at documenting the use of the GUI (as opposed to the technical documentation that can stay in POD format).
 
-This has been converted from OpenOffice to wiki format, via html, so needs a cleanup of formatting tags and re-linking of screen shots.  Until that happens, users should refer to the sample_session.pdf file under the distribution's Documentation folder.  
+This has been converted from !OpenOffice to wiki format, via html, so needs a cleanup of formatting tags and re-linking of screen shots.  Until that happens, users should refer to the sample_session.pdf file under the distribution's Documentation folder.  
 
 <wiki:toc max_depth="4" />
 
@@ -10,7 +10,7 @@ This has been converted from OpenOffice to wiki format, via html, so needs a cle
 
 There are six main components in a full session.
 
-  1. Import data into a project (basedata, matrices and trees)
+  1. Open or import data into a project (basedata, matrices and trees)
   1. Visualise the data (view labels)
   1. Exclude some of the data
   1. Run a cluster analysis.
@@ -22,11 +22,17 @@ We suggest you read this in conjunction with the KeyConcepts document. Additiona
 
 If you wish to experiment with these options then use the Example_site_data.csv file for species sample data, Example_matrix.txt file for matrix data and Example_tree.nex file for tree data. These are under the Biodiverse/data folder in the distribution. Note that these are fictional data so the results have no meaning beyond example purposes.
 
-= Importing data =
+= Opening/importing data =
 
-Data can be loaded into a project if they have previously been saved as separate files on disk.  Use the  _Open_ options under the respective menus, or click on the open folder icon from the selected object bar (tooltip "open from native format").  Change the name in the textbox at the top if you want to list them by a different name.
+== Opening Data ==
+
+Data can be loaded into a project if they have previously been saved as separate files on disk.  Use the  _Open_ options under the respective menus, or click on the open folder icon from the selected object bar (tooltip "open from native format").  The filename extensions for each object type are given in [KeyConcepts#File_formats_and_structures].
+
+Change the name in the textbox at the top if you want to list them by a different name.
 
 http://www.biodiverse.unsw.edu.au/screenshots/open_existing_object.png
+
+== Importing Data ==
 
 Basedata, Matrix, and Tree object data can be imported by clicking on their respective import buttons (plus signs) in the main toolbar or through their respective menus. Either an existing data set can be extended with the import (obviously, the new file must contain data of a similar format to the basedata being extended), or a new one can be created.
 
@@ -44,7 +50,7 @@ http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step1.png
 
 Note these common “Places” in the left panel of the window. You can also select a folder in the right panel and click the _Add_ button to permanently add this folder to the Places panel for convenient access in the future. Likewise, you can remove added (but not default) directories with the _Remove_ button.
 
-== !BaseData ==
+=== !BaseData ===
 
 From the basedata import dialogue window you can select your data file. The text box at the top right of the window allows you to name the basedata object that will be produced (as opposed to the default file name). Once you are finished, click Next.
 
@@ -86,7 +92,7 @@ You may also create a new basedata object as a duplicate of the currently select
 
 
 
-== Matrices ==
+=== Matrices ===
 
 Matrix data can be imported at any time, although it can only be viewed with an existing (and selected) basedata object.
 
@@ -101,8 +107,7 @@ sample_session_html_m7852f502.jpg
 You must select at least one label column, and one (and only one) “Matrix start” column. Any other columns in the file should be set to “Ignore”. Click Ok. Your matrix has now been imported, and should appear in the drop-down menu in the matrix toolbar at the top of the screen. It will be displayed the next time you visualise basedata (though keep in mind it will only produce a useful display if the matrix and basedata objects share some labels).
 
 
-
-== Trees ==
+=== Trees ===
 
 As with matrices, trees can be imported at any time, but can only be visualized once a (any) basedata object has been imported and visualized as well. Again, a tree is most useful if the basedata being displayed shares labels with it.
 

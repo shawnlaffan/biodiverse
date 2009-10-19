@@ -111,7 +111,7 @@ _Note_: the matrix import methods do not currently support remapping of labels. 
 
 As with matrices, trees can be imported at any time, but can only be visualized once a (any) basedata object has been imported and visualized as well. Again, a tree is most useful if the basedata being displayed shares labels with it.
 
-A tree must be in a nexus format (*.nex or *.tre extension). To import, select the import button in the Tree toolbar. A window will appear for you to select your file.
+A tree must be in a nexus format (*.nex or *.tre extension). All trees in a nexus file will be imported and added to the project.  To import, select the import button in the Tree toolbar. A window will appear for you to select your file.
 
 http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step1.png
 
@@ -122,7 +122,9 @@ http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step2.png
 If you don't wish to remap labels, simply click Cancel and the system will import the tree.  If you do then click OK and then you will be promoted to select a properties (remap) file, followed by an option to specify a column separator and quote character, and then the column types.
 
 http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step3.png
+
 http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step4.png
+
 http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step5.png
 
 Note that you need to specify as many input_element columns as the tree labels have (this will be one until we import tabular trees) and then as many remapped_element columns as your !BaseData object has label columns.  

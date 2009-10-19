@@ -20,7 +20,7 @@ There are six main components in a full session.
 
 We suggest you read this in conjunction with the KeyConcepts document. Additional information and tooltips can be found within the application itself, for example by hovering the mouse over various buttons and menu items.
 
-''If you wish to experiment with these options then use the Example_site_data.csv file for species sample data, Example_matrix.txt file for matrix data and Example_tree.nex file for tree data. These are under the Biodiverse/data folder in the distribution. Note that these are fictional data so the results have no meaning beyond example purposes.''
+If you wish to experiment with these options then use the Example_site_data.csv file for species sample data, Example_matrix.txt file for matrix data and Example_tree.nex file for tree data. These are under the Biodiverse/data folder in the distribution. Note that these are fictional data so the results have no meaning beyond example purposes.
 
 = Importing data =
 

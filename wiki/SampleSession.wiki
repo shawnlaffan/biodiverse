@@ -127,10 +127,10 @@ http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step4.png
 
 http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step5.png
 
-Note that you need to specify as many input_element columns as the tree labels have (this will be one until we import tabular trees) and then as many remapped_element columns as your !BaseData object has label columns.  
+Note that you need to specify as many input_element columns as the tree labels have (this will be one for nexus files, but will increase if we ever import tabular trees) and then as many remapped_element columns as your !BaseData object has label columns.  This is so they match correctly.
 
 
-Alternatively to importing a tree from a file, you can also derive one at any time during your session if you already have a basedata and/or matrix object selected. This can be done by selecting the “Create tree from labels” or “Convert matrix to tree” options under the ''Basedata'' and ''Matrix'' menus, respectively. When generating a tree from the basedata labels, labels are treated as taxonomic names, and thus are primarily useful for a tree if they have at least 2 components (e.g. genus and species); ie. at least 2 columns representing labels in the original data file or if singular labels are remapped to multi-part labels. The tree hierarchy is then based on the ordering of the label components (see the previous section for how to choose label and group ordering during the basedata import process). A tree generated from a matrix simply reflects the matrix relationships based on the values of its cells.
+Alternatively to importing a tree from a file, you can also derive one at any time during your session if you already have a basedata and/or matrix object selected. This can be done by selecting the “Create tree from labels” or “Convert matrix to tree” options under the !BaseData and Matrix menus, respectively. When generating a tree from the basedata labels, labels are treated as taxonomic names, and thus are primarily useful for a tree if they have at least 2 components (e.g. genus and species); ie. at least 2 columns representing labels in the original data file or if singular labels are remapped to multi-part labels. The tree hierarchy is then based on the ordering of the label components (see the previous section for how to choose label and group ordering during the basedata import process). A tree generated from a matrix simply reflects the matrix relationships based on the values of its cells.
 
 = Visualising data =
 

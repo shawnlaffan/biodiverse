@@ -44,7 +44,7 @@ What do the outputs mean? The indices shown are those used in the comparisons, p
 
   * C`_*` is the number of times the comparison was higher than the original.
   * Q`_*` (q = quantum) is the number of comparisons. It is counted because there may be cases where undefined values result. We cannot compare undefined with a number, and we also cannot be sure that the number of times undef results is the same for all indices.
-  * P`_*` is the fractional ranking, calculated as C`_*` / Q`_*`. Multiply by 100 to get a percentile. The P`_*` score is converted into a p-score in the normal way, e.g. if P`_*` = 0.99 then the original measure is higher than the randomised versions 99 times out of every hundred. If one is interested in higher scores then this is the same as a p score of 0.01. Obviously one changes the interpretation appropriately if it is a two tailed system, eg the mean of numeric labels (NUM_MEAN) can be higher or lower. So long as it is in one of the tails of the distribution then the result is significant (e.g. P_NUM_MEAN < 0.05 or P_NUM_MEAN > 0.95).
+  * P`_*` is the fractional ranking, calculated as C`_*` / Q`_*`. Multiply by 100 to get a percentile. The P`_*` score is converted into a p-score in the normal way, e.g. if P`_*` = 0.99 then the original measure is higher than the randomised versions 99 times out of every hundred. If one is interested in higher scores then this is the same as a p score of 0.01. Obviously one changes the interpretation appropriately if it is a two tailed system, eg the mean of numeric labels (NUM_MEAN) can be higher or lower. So long as it is in one of the tails of the distribution then the result is significant (e.g. P_NUM_MEAN < 0.025 or P_NUM_MEAN > 0.975 for an alpha of 0.05).
 
 = Other stuff =
 

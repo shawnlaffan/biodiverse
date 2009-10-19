@@ -1,8 +1,9 @@
 #summary Biodiverse sample session
+#labels Featured
 
 This is an initial effort at documenting the use of the GUI (as opposed to the technical documentation that can stay in POD format).
 
-This has been converted from !OpenOffice to wiki format, via html, so needs a cleanup of formatting tags and re-linking of screen shots.  Until that happens, users should refer to the sample_session.pdf file under the distribution's Documentation folder.  
+This has been converted from !OpenOffice to wiki format, via html, so needs a cleanup of formatting tags and re-linking of screen shots.  Users should also refer to the sample_session.pdf file under the distribution's Documentation folder until that process is complete.  
 
 <wiki:toc max_depth="4" />
 

@@ -85,11 +85,14 @@ sp_select_all()
 sp_self_only() 
 
 #  use any neighbour where the first axis has value of "type1"
-sp_match_text (text => "type1", axis => 0) 
+sp_match_text (text => 'type1', axis => 0, type => 'nbr') 
 
 # match only when the third neighbour axis is the same 
 #   as the processing group's third axis
-sp_match_text (text => $coord[2], axis => 2) 
+sp_match_text (text => $coord[2], axis => 2, type => 'nbr') 
+
+# Set a definition query to only use groups with 'NK' in the third axis
+sp_match_text (text => 'NK', axis => 2, type => 'proc') 
 
 
 # Select every tenth group (groups are sorted alphabetically)

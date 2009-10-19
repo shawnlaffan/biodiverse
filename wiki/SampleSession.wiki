@@ -241,17 +241,19 @@ The tree view can also be customised by using the three zoom buttons in the bott
 
 Once you have looked at the labels, or even before if you are confident, you can begin to remove groups and labels that you consider redundant, irrelevant, or even just wrong.
 
-To run the exclusions on the currently selected basedata object, open menu option ''Basedata -> Run Exclusions''. You should see a window similar to the one below.
+To run the exclusions on the currently selected basedata object, open menu option _Basedata -> Run Exclusions_. You should see a window similar to the one below.
 
-sample_session_html_m6064b29e.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/run_exclusions_checked.png
 
-There are currently four group properties and three label properties that can be assessed, setting maximum or minimum values by which to exclude them. These characteristics are variety, samples and redundancy for both labels and groups as well as range for labels. For a description of these terms as they apply to labels, see the ''Key Concepts'' file. Variety of a group is the number of different labels it contains. A group's samples is the total number of samples of all labels it contains. A group's redundancy is the complement of the ratio of the number labels to the number of samples in that group (ie. a group with 2 labels having a total of 8 labels will have a redundancy of 0.75).
+There are currently four group properties and three label properties that can be assessed, setting maximum or minimum values by which to exclude them. These characteristics are _variety_, _samples_ and _redundancy_ for both labels and groups as well as _range_ for labels. The _variety_ of a group is the number of different labels it contains (the same as the richness). A group's _samples_ is the total number of samples of all labels it contains. A group's _redundancy_ is the complement of the ratio of the number labels to the number of samples in that group (i.e. a group with 2 labels having a total of 8 labels will have a redundancy of 0.75).  For labels, _variety_ is the number of groups it occurs in.  The _samples_ is the number of samples of that label across all groups.  The _redundancy_ is analogous to that used for groups, except it is a function of the ratio of the group count to the sample count for that label.  The label _range_ is the _variety_ unless it has been specified using label properties at the time of import.
 
-If you already have the basedata displayed when you run the exclusions, the visualisation will not be updated. To see the new dataset with the exclusions, revisualise it by selecting menu option _Basedata->View Labels_. This will open a new visualisation tab (note: the original visualisation remains open in its original tab, but still displays old data).
+In the screen shot above, any label with a range exceeding 50 will be removed (excluded) from the !BaseData object, as will any group with a variety of 6 or less, or 10 or fewer samples across all labels it contains.  (All tests are evaluated using conditions of "less than or equal to" or "greater than or equal to", as appropriate).
+
+If you already have the !BaseData displayed when you run the exclusions, the visualisation will not be updated. To see the new dataset with the exclusions, revisualise it by selecting menu option _!BaseData->View Labels_. This will open a new visualisation tab (note: the original visualisation remains open in its original tab if you have left it open, but does to refresh to display the new data).
 
 *_A word of warning_*: Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated at the end, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the range of that label.
 
-It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent basedata object if you do this.  _In future the system will guard against this, but it is not implemented as of version 0.10._
+It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent !BaseData object if you do this.  _In future the system will guard against this, but it is not implemented as of version 0.10._
 
 = Running a Cluster Analysis =
 

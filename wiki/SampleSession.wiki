@@ -94,7 +94,7 @@ The next window asks how the columns in the matrix file should be read.
 
 sample_session_html_m7852f502.jpg
 
-You must select at least one label column, and one (and only one) “Matrix start” column. Any other columns in the file should be set to “Ignore”. Click Ok. Your matrix has now been imported, and should appear in the drop-down menu in the matrix toolbar at the top of the screen. It will be displayed the next time you visualize basedata (though keep in mind it will only produce a useful display if the matrix and basedata objects share some labels).
+You must select at least one label column, and one (and only one) “Matrix start” column. Any other columns in the file should be set to “Ignore”. Click Ok. Your matrix has now been imported, and should appear in the drop-down menu in the matrix toolbar at the top of the screen. It will be displayed the next time you visualise basedata (though keep in mind it will only produce a useful display if the matrix and basedata objects share some labels).
 
 
 
@@ -173,7 +173,7 @@ The title of this window indicates the group being examined. To re-use the same 
 
 You can also display one or more shapefile images (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. To do this, select the ''Overlays'' button in the panel. A list of the currently available overlays will be displayed. To add a new overlay, click ''Add'', and select the desired overlay file (Note: currently, shapefiles are the only type of overlay supported). Your selected file will be added to the list of available overlays. To display it in the group grid, select it and click ''Ok''. It may take a few seconds for the overlay to appear. To remove the currently displayed overlay, open the ''Overlays ''menu again and click the ''Clear'' button. Note: clicking ''Delete'' in the ''Overlays'' window will delete the shapefile from the list, but will not remove it from the display if it is currently being displayed. You must click ''Clear'' as well. Using an overlay may result in noticeably slower display processing (e.g. when highlighting groups).
 
-The group grid view can also be customized by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.
+The group grid view can also be customised by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.
 
 == The matrix grid ==
 
@@ -263,7 +263,7 @@ The blue sliding bar in the tree pane can be dragged across the tree to colour t
 
 Groups contained in selected clusters will be coloured in the group grid. The colouring for these groups are assigned according to the hue/sat scheme selected (see the bottom of the groups grid pane) and are based on the value of each group for the index selected.
 
-The choice of which index to show in the group grid is made in the selection boxes beneath the grid. The one on the left is the list of analyses (e.g. SPATIAL_RESULTS, ABC2_LABELS_SET1) and the one on the right shows which index or list element (group or label) to display from that analysis. The default is the special ''Cluster'' list, which colours the clusters using a contrasting colour scheme^[[#sdfootnote1sym|^1^]]^ ([[http://www.colorbrewer.org/|www.colorbrewer.org)]]. Note: the right-hand lists of indices/elements to display only appears once an analysis other than the default Cluster is selected from the left-hand list. In addition to the contrast and continuous colour schemes, white groups in the grid are those that are not in the selected clusters. Black means they are in the selected clusters, but are not relevant to the index and/or elements (group/label) selected from the drop-down menus in the group grid pane.
+The choice of which index to show in the group grid is made in the selection boxes beneath the grid. The one on the left is the list of analyses (e.g. SPATIAL_RESULTS, ABC2_LABELS_SET1) and the one on the right shows which index or list element (group or label) to display from that analysis. The default is the special ''Cluster'' list, which colours the clusters using a contrasting colour scheme (Brewer, Cynthia A., (2005), _Designing Better Maps: A Guide for GIS Users_, ESRI Press, Redlands CA, 203 pp. [http://www.colorbrewer.org/ www.colorbrewer.org]). Note: the right-hand lists of indices/elements to display only appears once an analysis other than the default Cluster is selected from the left-hand list. In addition to the contrast and continuous colour schemes, white groups in the grid are those that are not in the selected clusters. Black means they are in the selected clusters, but are not relevant to the index and/or elements (group/label) selected from the drop-down menus in the group grid pane.
 
 Holding down the control key while clicking on a group in the grid produces (as usual) a pop-up with a list of the labels in that group. If the group is in a selected cluster, other information and indices pertaining to the group and its cluster can also be accessed from this po-up. Similarly, you can control-click on a node in the tree to see a pop-up with indices for individual labels and groups contained in the node, indices for the collection of groups/labels in the node (SPATIAL_RESULTS), and characteristics of that node (NODE_VALUES). These are accessed from the ''Data'' drop-down menu in the pop-up window.
 
@@ -326,7 +326,7 @@ sample_session_html_6e4e8f8d.png
 The Randomisation tab has two main sections where you can set options. The first section ('''Setup''') determines the main setup parameters used in the randomisation, for example the randomisation function and the PRNG seed if you want to reproduce a sequence of random values between randomisations. The second ('''Parameters''') are function specific options. At this stage only three randomisations are supported – rand_csr_by_group, rand_no_change and rand_structured.
 
   * '''rand_csr_by_group''' randomly reallocates each group with all of its labels. The csr stands for Complete Spatial Randomness.
-  * '''rand_no_change''' merely replicates the basedata object. It is useful for assessing cluster analyses as the tie breaker is based on a random choice, or if you are just plain paranoid and want to test the system.
+  * '''rand_no_change''' merely replicates the !BaseData object. It is useful for assessing cluster analyses as the tie breaker is based on a random choice, or if you are just plain paranoid and want to test the system.
   * '''rand_structured''' allows the replication of richness patterns from the original basedata in the randomised basedata, within some tolerances (as an additive offset and a multiplier). We will add spatial structure soon as well. Complete spatial randomness, where labels are allocated without any structure at all, can be achieved by specifying an offset larger than the largest richness value across the groups.[[#sdfootnote2sym|^2^]]
 
 Be careful in your selection of the randomisation function, as each specifies a different null model. Each also has a varying “degree of difficulty”. For example, it is easy for an analysis to be more spatially structured than a complete reallocation of labels to groups, as the randomisation destroys any spatial structure. It is more difficult to be “better” than a randomisation that replicates other structural features such as species richness.
@@ -339,7 +339,7 @@ All of the outputs within a basedata are compared with the randomised version. A
 
 The outputs of the randomisations do not go into their own object. Instead they are stored on the analyses as additional lists, where the main list is the name of the randomisation specified in the arguments. If the list is called '''Rand1''' then the randomisation results for a spatial analysis go into a list called '''Rand1'''. Trees have at least three lists attached to each node, with a fourth if a spatial analysis was conducted on each node. '''Rand1 '''contains summary statistics of the most similar nodes between the original and randomised trees (e.g. mean, median, SD, quartiles, count of comparisons, how many were identical), with the similarity assessed using a Sorenson dissimilarity index (zero is identical, 0.5 means half of the terminal elements across both nodes were shared, with double counting of shared nodes). '''Rand1_DATA''' is the full set of Sorenson comparison results in case you want to extract them for other nefarious purposes (e.g. how many times did the randomisation produce a node which had 80% or more terminal elements in common?). '''Rand1_ID_LDIFFS'''[[#sdfootnote3sym|^3^]] contains the total lengths (from the tip of the tree) of those nodes that contained an identical set of terminal elements. If all (or most) are longer then the original tree at least has a shorter total length, even though it resulted in the same set of elements being grouped together. '''Rand1_SPATIAL''' contains the comparison values of the spatial outputs for the most similar nodes.
 
-See KeyConcepts#Randomisations for an explanation of what the results mean.
+See [KeyConcepts#Randomisations] for an explanation of what the results mean.
 
 
 = Exporting and saving =
@@ -352,7 +352,6 @@ The key spatial options are which list to export and whether to force asymmetric
 
 The key option when exporting a cluster analysis is whether to use a table or newick format. Most of the other options relate to the table. One needs to decide which list values to include (if any), how many cluster groups are needed or whether to specify a length or depth to determine the groups (analogous to the slider bar). The structure of the resulting table and how to use it will be explained in the ''Key Concepts'' file.
 
-[[#sdfootnote1anc|1]]Brewer, Cynthia A., '''2005''', ''Designing Better Maps: A Guide for GIS Users,'' ESRI Press, Redlands CA, 203 pp.
 
 [[#sdfootnote2anc|2]] Some might think it odd that the most unstructured randomisation is under the structured function, but one should view it as an end-point of a continuum of outputs that this function allows.
 

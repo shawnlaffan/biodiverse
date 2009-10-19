@@ -97,14 +97,15 @@ Matrix data can be imported at any time, although it can only be viewed with an 
 
 When importing matrix data, you will first be asked to specify the matrix data file in the same way as for basedata objects.
 
-sample_session_html_m2b1b2b76.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_matrix_step1.png
 
 The next window asks how the columns in the matrix file should be read.
 
-sample_session_html_m7852f502.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_matrix_step2.png
 
 You must select at least one label column, and one (and only one) “Matrix start” column. Any other columns in the file should be set to “Ignore”. Click Ok. Your matrix has now been imported, and should appear in the drop-down menu in the matrix toolbar at the top of the screen. It will be displayed the next time you visualise basedata (though keep in mind it will only produce a useful display if the matrix and basedata objects share some labels).
 
+_Note_: the matrix import methods do not currently support remapping of labels.  This needs to be corrected, see issue #16.
 
 === Trees ===
 
@@ -112,13 +113,20 @@ As with matrices, trees can be imported at any time, but can only be visualized 
 
 A tree must be in a nexus format (*.nex or *.tre extension). To import, select the import button in the Tree toolbar. A window will appear for you to select your file.
 
-sample_session_html_m64d7bf17.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step1.png
 
 Select your file and click Ok. You will then have the option of choosing a label remap file.
 
-sample_session_html_37141781.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step2.png
 
-If you don't wish to remap labels, simply click Cancel.
+If you don't wish to remap labels, simply click Cancel and the system will import the tree.  If you do then click OK and then you will be promoted to select a properties (remap) file, followed by an option to specify a column separator and quote character, and then the column types.
+
+http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step3.png
+http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step4.png
+http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step5.png
+
+Note that you need to specify as many input_element columns as the tree labels have (this will be one until we import tabular trees) and then as many remapped_element columns as your !BaseData object has label columns.  
+
 
 Alternatively to importing a tree from a file, you can also derive one at any time during your session if you already have a basedata and/or matrix object selected. This can be done by selecting the “Create tree from labels” or “Convert matrix to tree” options under the ''Basedata'' and ''Matrix'' menus, respectively. When generating a tree from the basedata labels, labels are treated as taxonomic names, and thus are primarily useful for a tree if they have at least 2 components (e.g. genus and species); ie. at least 2 columns representing labels in the original data file or if singular labels are remapped to multi-part labels. The tree hierarchy is then based on the ordering of the label components (see the previous section for how to choose label and group ordering during the basedata import process). A tree generated from a matrix simply reflects the matrix relationships based on the values of its cells.
 

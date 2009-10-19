@@ -140,7 +140,7 @@ Interaction with each of the panes is now described.
 
 
 
-== The label lists ==
+== The Label Lists ==
 
 Interaction with the labels is similar to many lists you will encounter.
 

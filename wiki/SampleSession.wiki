@@ -138,9 +138,7 @@ Often the first step you will take once you have imported the data into a baseda
 
 Once this is done, you should see 4 panes, as below (the two panes on the right-hand side may be appear differently depending on whether a matrix or tree is currently selected in their respective dropdown menus in the toolbar at the top of the screen).
 
-sample_session_html_m2efc5ae.jpg
-
-
+http://www.biodiverse.unsw.edu.au/screenshots/view_labels1.png
 
 The top left contains two lists of the labels in the selected basedata object. Each list can be sorted by any of the columns. The top right contains a grid of the selected matrix elements (it is blank if no matrix is selected). The bottom left contains a grid of the groups in the current basedata object. The bottom right contains the currently selected tree (blank if none selected).
 
@@ -158,9 +156,11 @@ Interaction with each of the panes is now described.
 
 Interaction with the labels is similar to many lists you will encounter.
 
-Click on any row in the list to highlight a single label. Hold the shift key down to select a contiguous block, and the control key to select (or deselect) non-contiguous labels. Having two lists means you can more easily select from the top and bottom of each list without excessive scrolling. Other than this, the main use for a second list is to be able to select labels from each list to highlight specific cells – or blocks of cells – in the matrix pane, if a matrix is currently selected. The first (top) label list represents matrix rows, while the second (bottom) label list represents matrix columns.
+Click on any row in the list to highlight a single label. Hold the shift key down to select a contiguous block, and the control key to select (or deselect) non-contiguous labels. The main use for a second list is to be able to select labels from each list to highlight specific cells – or blocks of cells – in the matrix pane, if a matrix is currently selected. The first (top) label list represents matrix rows, while the second (bottom) label list represents matrix columns.
 
-Sorting the label lists is done by clicking on the column headers. Subsequent clicks on column headers sort the data by that column in ascending, descending, and default order. The default order is by label, in alphabetical order. Ordering of these lists also affects the matrix layout (see section 1.1.2.3 for details).
+Sorting the label lists is done by clicking on the column headers. Subsequent clicks on column headers sort the data by that column in ascending, descending, and default order. The default order is by label, in alphabetical order. Re-ordering of these lists also re-orders the matrix plot.
+
+http://www.biodiverse.unsw.edu.au/screenshots/view_labels2_one_label_selected.png
 
 The following is a description of the label list columns:
 
@@ -171,64 +171,70 @@ The following is a description of the label list columns:
 
 The current selection in the lists is updated whenever you select elements in one of the other panes.
 
-One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed basedata object which you can view from the outputs tab. You will notice that the group grid changes to reflect the fact that the old labels are now the groups.
+<wiki:comment>
+The following text needs to be moved - it is out of place here.
+</wiki:comment>
 
+One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed basedata object which you can view from the outputs tab. You will notice that the group grid changes to reflect the fact that the old labels are now the groups.
 
 
 == The Group Grid ==
 
-The group grid is a spatial display of the groups. Normally this is a map of the data (e.g. if your group data consists of some form of geographic coordinates), but there is no reason that you are restricted to using geographic locations as your groups. So long as the data have numerical coordinates, everything will be fine and dandy.
+The group grid is a spatial display of the groups. Normally this is a map of the data (e.g. if your group data consists of some form of geographic coordinates), but there is no reason that you are restricted to using geographic locations as your groups. So long as the data have numerical coordinates, everything will be fine and dandy.  If your data use text group axes then the system will assign them to cells on a grid based on an alphabetical sorting.  This can be difficult to interpret, but the remember system is fundamentally a tool for spatial analysis.
 
 Hovering over a group will highlight in bold the nodes in the tree corresponding to the labels it contains, if a tree has been selected.
 
-Left-clicking on a group will highlight it in dark red. Other groups may also be highlighted depending on the number of labels they share with the selected group (darker red for more shared labels, lighter red for less, white for no labels in common). Similarly, you can click and drag a box around multiple groups. Groups will then be highlighted according to the number of labels they have in common with the ''collection'' of groups selected. Labels in selected groups will also be highlighted in the top label list (although the list does not automatically jump to them).
+Left-clicking on a group will highlight it in dark red. Other groups may also be highlighted depending on the number of labels they share with the selected group (darker red for more shared labels, lighter red for less, white for no labels in common). Similarly, you can click and drag a box around multiple groups. Groups will then be highlighted according to the number of labels they have in common with the selected group. Labels in selected groups will also be highlighted in the top label list (although the list does not automatically jump to them).  Drawing a box over the grid with the left mouse button selects labels from all the groups in the box, allocating the hue based on the species richness of the selection rather than a single group.
+
+http://www.biodiverse.unsw.edu.au/screenshots/view_labels2_one_group_selected.png
 
 While holding the control key down, click on a group to display a pop-up window that allows you to see a list of the labels it contains and the sample size in that group for each label. Note: this will also select that group (and change highlighting as appropriate). To bring up any group's detailed information without changing current highlighting, use the middle/wheel mouse button to select a group.
 
-sample_session_html_4b67f969.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/view_labels3_popup_group.png
 
 The title of this window indicates the group being examined. To re-use the same window to display another group's data, check the ''Re-use'' box. If this box is unchecked, data for subsequently selected groups will be displayed in new windows. This is useful when making comparisons between label presence and sampling among different groups. The ''Copy'' button in the group info window makes a copy of the group coordinates and all labels with their sample size to the clipboard for use elsewhere.
 
-You can also display one or more shapefile images (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. To do this, select the ''Overlays'' button in the panel. A list of the currently available overlays will be displayed. To add a new overlay, click ''Add'', and select the desired overlay file (Note: currently, shapefiles are the only type of overlay supported). Your selected file will be added to the list of available overlays. To display it in the group grid, select it and click ''Ok''. It may take a few seconds for the overlay to appear. To remove the currently displayed overlay, open the ''Overlays ''menu again and click the ''Clear'' button. Note: clicking ''Delete'' in the ''Overlays'' window will delete the shapefile from the list, but will not remove it from the display if it is currently being displayed. You must click ''Clear'' as well. Using an overlay may result in noticeably slower display processing (e.g. when highlighting groups).
+You can also display one or more shapefile images (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. To do this, select the ''Overlays'' button in the panel. A list of the currently available overlays will be displayed. To add a new overlay, click ''Add'', and select the desired overlay file (Note: currently, shapefiles are the only type of overlay supported). Your selected file will be added to the list of available overlays. To display it in the group grid, select it and click ''Ok''. It may take a few seconds for the overlay to appear. To remove the currently displayed overlay, open the ''Overlays ''menu again and click the ''Clear'' button. Note: clicking ''Delete'' in the ''Overlays'' window will delete the shapefile from the list, but will not remove it from the display if it is currently being displayed. You must click ''Clear'' as well. Using an overlay may result in noticeably slower display processing (e.g. when highlighting groups), particularly with more detailed shapefiles.  This is due to the amount of display refreshing that must be done.
 
-The group grid view can also be customised by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.
+The group grid view can also be customised by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.  You can also pan by clicking on a part of the plot without a group and dragging.
 
 == The Matrix Grid ==
 
-sample_session_html_4e6f4bc2.jpgThe top right pane displays a grid of the currently selected matrix. Each cell represents a pair of labels from the label lists, coloured according to the pair's matrix value, with a colour scale for these values on the right of the matrix.
+http://www.biodiverse.unsw.edu.au/screenshots/view_labels2_matrix_subset_selected.png
 
-Cells are only coloured if both labels they represent are present in the basedata label list. If one or both of its labels are not present in the basedata, a cell remains white.
+The top right pane displays a grid of the currently selected matrix. Each cell represents a pair of labels from the label lists, coloured according to the pair's matrix value, with a colour scale for these values on the right of the matrix.
+
+Cells in the matrix grid are only coloured if both labels they represent are present in the basedata label list. If one or both of its labels are not present in the basedata, a cell remains white.
 
 The system lists which element you are hovering over at the top of the pane, indicating the label pair and its matrix value.
 
 The ordering of the matrix rows matches the current ordering of the upper label list in the label list pane, while the ordering of the matrix columns matches that of the lower label list. Changes in the ordering of either label list will automatically be reflected in the matrix.
 
-Click on a single element (cell) to select one pair of labels. The two label lists will automatically adjust to show these two (the top list highlighting the label corresponding to the matrix row, the bottom list highlighting the label corresponding to the matrix column).
+Click on a single element (cell) to select one pair of labels. The two label lists will automatically adjust to show these two (the top list highlighting the label corresponding to the matrix row, the bottom list highlighting the label corresponding to the matrix column).  All cells in the group grid containing those labels will be highlighted in red as per the groups, as will the relevant nodes on the tree.
 
-Similarly, you can click and drag the left mouse button to select a rectangular region in the matrix. his will highlight the selected labels in the other panes, adjusting the label lists as best it can.
+Similarly, you can click and drag the left mouse button to select a rectangular region in the matrix. This will highlight the selected labels in the other panes, adjusting the label lists to reflect the new selection.
 
-The matrix grid view can also be customized by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display the whole matrix at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.
+The matrix grid view can also be customised by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display the whole matrix at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.
 
 == The Tree ==
 
-sample_session_html_m6119eb53.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/view_labels2_one_clade_selected.png
 
-The tree is generally a representation of the phylogenetic similarities between labels, although it could be used for anything that uses such a structure. In this pane, you should see 2 sections (assuming a tree object is selected in the main toolbar at the top of the window). The upper section displays the relationship between labels in dendrogram form, while the bottom section displays a simple graph of the proportion of nodes present to the left of a vertical cut through the tree above. If this plot is not immediately visible, it may be “hidden” at the bottom. Move the mouse toward the bottom of the tree pane until it indicates a bar that you can click on and drag upward to reveal the graph.
+The tree is generally a representation of the phylogenetic similarities between labels, although it could be used for anything that uses such a structure. In this pane, you should see two sections (assuming a tree object is selected in the main toolbar at the top of the window). The upper section displays the relationship between labels as a dendrogram, while the bottom section displays a simple graph of the proportion of nodes present to the left of a vertical cut through the tree above (known as the [KeyConcepts#Scree_plot scree plot]). If this plot is not immediately visible, it may be “hidden” at the bottom. Move the mouse toward the bottom of the tree pane until it indicates a bar that you can click on and drag upward to reveal the graph.  Use this bar to reduce the size of the scree plot if it is too large.
 
-The dendrogram can be plotted by node depth or length via the ''Options'' button at the bottom of the pane. This menu also allows you to change highlighting settings.
+The dendrogram can be plotted by node depth or length via the _Options_ button at the bottom of the pane. This menu also allows you to change highlighting settings.
 
 Hovering over a tree node highlights the groups containing the node's labels in the group grid. It does this using a circular symbol. Right click on the node to fix the highlights until the next mouse click in the tree pane.
 
 Left-clicking on a branch node selects all labels in terminal descendants (single-label nodes) of that node in the tree that are also in the label lists. Any nodes containing a label that is not present in the basedata will remain black in the tree.
 
-Control-click on a node to display a pop-up window from which you can access lists of the labels, groups and node characteristics (length, name, etc). General interaction with this pop-up is the same as that for the group info pop-up described in section 1.1.2.2.
+Control-click on a node to display a pop-up window from which you can access lists of the labels, groups and node characteristics (length, name, etc). General interaction with this pop-up is the same as that for the group info pop-up described [#The_Group_Grid above].
 
-sample_session_html_6bc519bf.jpg
+http://www.biodiverse.unsw.edu.au/screenshots/view_labels3_popup_clade.png
 
-You should notice a blue vertical sliding bar on the right side of the tree pane. Sometimes it can disappear off the side, in which case use the zoom controls to zoom out and locate out. Hovering the mouse over this bar will display three numbers. The first two numbers indicate the quantity and percentage of nodes present to the right of the bar. If the tree is plotted by node depth, the third number indicates the depth at the current bar position. If the plot is by node length, the third number indicates the distance from the bar position to the most distant (leftmost) leaf node.
+You should notice a blue vertical sliding bar on the right side of the tree pane. Sometimes it can disappear off the side under the scroll bar, in which case use the zoom controls to zoom out and locate it, or find it in the scree plot. Hovering the mouse over this bar will display three numbers. The first two numbers indicate the quantity and percentage of nodes present to the right of the bar. If the tree is plotted by node depth, the third number indicates the depth at the current bar position. If the plot is by node length, the third number indicates the distance from the bar position to the most distant (left-most) leaf node.
 
-The tree view can also be customized by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display the whole tree at once, you can navigate using the scroll bars or by holding down the right mouse button and dragging.
-
+The tree view can also be customised by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display the whole tree at once, you can navigate using the scroll bars or by holding down the right mouse button and dragging.
 
 
 = Excluding Data =

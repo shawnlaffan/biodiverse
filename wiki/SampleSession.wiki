@@ -52,7 +52,7 @@ Note these common “Places” in the left panel of the window. You can also sel
 
 === !BaseData ===
 
-From the basedata import dialogue window you can select your data file. The text box at the top right of the window allows you to name the basedata object that will be produced (as opposed to the default file name). Once you are finished, click Next.
+From the basedata import dialogue window you can select your data file or files. The text box at the top right of the window allows you to name the basedata object that will be produced (as opposed to the default file name). Once you are finished, click Next.  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files that do not share column orders then import each one separately.
 
 http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step1.png
 

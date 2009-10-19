@@ -149,10 +149,20 @@ $d[0] > 0 && $d[1] > 0
 $D[0] <= 100000 && $d[1] >= 100000
 }}}
 
-  * Select everything north of 6000000 (e.g. if using UTM coordinates as axes 0 and 1)
+  * Select everything north of 6000000 (e.g. if using UTM coordinates as axes 0 and 1).  This is an example that could be used as a definition query, and will not work well as a neighbourhood (use `$nbr_y` for that).
+
 {{{
 $y > 6000000
 }}}
+
+  * Select everything within a rectangle.  This is another useful definition query.
+
+{{{
+$y > 6000000 && $y <= 6100000 && $x > 580000 && $x <= 600000
+}}}
+
+
+
 
 = Declaring variables and using more complex functions =
 

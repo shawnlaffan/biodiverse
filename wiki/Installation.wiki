@@ -3,6 +3,7 @@
 
 These instructions assume you have downloaded the relevant Biodiverse release and saved it to your hard drive.
 
+<wiki:toc max_depth="4" />
 
 = Update an existing installation =
 
@@ -14,22 +15,17 @@ These instructions assume you have downloaded the relevant Biodiverse release an
 
 = New installation =
 
-[Installation#Windows_32-bit Windows 32-bit]
-
-[Installation#Linux_and_UNIX Linux/UNIX]
-
-[Installation#Macintosh Macintosh]
-
-
 == Windows 32-bit ==
 
-=== Executable only (no source code) ===
+=== Executable version ===
+
+The source code is not needed for this version, although it is still distributed and will be part of the Biodiverse folder.
 
 
   * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
   * Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://gladewin32.sourceforge.net/. Use the default options provided during setup, unless you know what you are doing.
 
-  Biodiverse can be started by double clicking on the '''BiodiverseGUI_win32.exe''' file.
+  Biodiverse can be started by double clicking on the _BiodiverseGUI_win32.exe_ file.
 
   If you want to keep the log then open a command prompt and run '''C:\Biodiverse\bin\BiodiverseGUI_win32.exe'''
 
@@ -37,7 +33,10 @@ These instructions assume you have downloaded the relevant Biodiverse release an
 
   You can associate .bps files with the BiodiverseGUI.exe file if you want to double click on a Biodiverse project file to open it.
 
-=== Including the source code ===
+=== Source code version ===
+
+Use this version if you want to debug the source code and provide patches, etc.  You can still use the exe version if you use this installation.
+
 
   * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
   * Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/Windows/5.8/ActivePerl-5.8.9.825-MSWin32-x86-288577.zip .
@@ -87,7 +86,9 @@ ppm install Data-Structure-Util
 
 == Macintosh ==
 
-=== Macintosh (including source code) ===
+=== Macintosh ===
+
+The current Mac install requires a source code installation.  We are working on a standalone executable, or at least one that bundles all the relevant dependencies.
 
   * Install Macports from http://www.macports.org/
   * On the left-hand side of the page, click on Installing Macports and navigate your way to the Mac OS X Package (.pkg) installer and download the appropriate dmg file depending on your operating system (ie. Leopard).

@@ -73,7 +73,9 @@ These are the set of groups that are are in the neighbouring set of the processi
 
 === Definition Queries ===
 
-These differ from neighbourhoods as they assess only the processing group to determine if a value should be calculated or not.  They use the same syntax as for neighbourhoods, but the system will complain if a condition involving a neighbouring group is used.
+These differ from neighbourhoods as they assess only the processing group to determine if analyses should be calculated for it or not.  They use the same syntax as for neighbourhoods, but the system will commonly complain if a condition involving a neighbouring group is used.
+
+Note that groups that fail the definition query are still considered a neighbour.  Use in conjunction with an appropriate neighbourhood definition if you want complete restriction.  For example, you could use `sp_match_text (axis => 2, text => $z, type => 'proc')` for the definition query and `sp_match_text (axis => 2, text => $nbr_z, type => 'nbr')` for the neighbourhood.
 
 === Specifying spatial neighbours ===
 

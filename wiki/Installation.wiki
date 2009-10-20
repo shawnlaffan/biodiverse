@@ -76,7 +76,6 @@ ppm install Data-Structure-Util
 
 == Linux and UNIX ==
 
-=== Including the source code ===
 
   * These instructions are vague as we have not fully tested them.
   *  Install GTK using your distribution's package manager.  Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK if it is not already installed.
@@ -85,8 +84,6 @@ ppm install Data-Structure-Util
   Please let us know so we can document it.
 
 == Macintosh ==
-
-=== Macintosh ===
 
 The current Mac install requires a source code installation.  We are working on a standalone executable, or at least one that bundles all the relevant dependencies.
 

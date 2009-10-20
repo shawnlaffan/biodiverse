@@ -78,6 +78,12 @@ sp_ellipse (major_radius => 300000,
             rotate_angle => 1.5714
             )  
 
+#  an annulus assessed against all axes
+sp_annulus (inner_radius => 2000000, outer_radius => 4000000)
+
+#  an annulus assessed against axes 0 and 1
+sp_annulus (inner_radius => 2000000, outer_radius => 4000000, axes => [0,1])
+
 #  select every other group
 sp_select_all()
 

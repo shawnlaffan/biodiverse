@@ -48,7 +48,7 @@ Tree data can be imported from nexus format files (.nex or .tre).
 
 The import options allow you to use a label and/or group properties table for the data you are importing (e.g. to remap label names so they match ther data sets or set their sample counts). A properties file should be a delimted text file with a column or columns containing the current labels of the data you are importing and a column or columns with the new labels they will be mapped to (a subsequent window will allow you to specify which column is which). Any unmapped labels will simply retain their original names when imported.
 
-For basedata and tree object types the import process involves selecting your data file and a label/group properties file (if desired). A file-browsing window will show your Biodiverse directory by default, and will list several common directories you can search through, such as the C: drive and Desktop on Windows.  matrices do not yet have remapping, but it is planned (see issue #21).
+For basedata and tree object types the import process involves selecting your data file and a label/group properties file (if desired). A file-browsing window will show your Biodiverse directory by default, and will list several common directories you can search through, such as the C: drive and Desktop on Windows.  Matrices do not yet have remapping, but it is planned (see issue #21).
 
 === !BaseData ===
 

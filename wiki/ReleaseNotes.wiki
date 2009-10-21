@@ -1,7 +1,7 @@
 #summary Release notes will be added as new versions are released
 #labels Featured
 
-= Version 0.10 =
+= Version 0.10 (21Oct2009) =
 
 Main changes since previous version (0.9.1185)
 

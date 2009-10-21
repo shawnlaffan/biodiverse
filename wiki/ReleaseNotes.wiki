@@ -1,6 +1,29 @@
 #summary Release notes will be added as new versions are released
 #labels Featured
 
+= Version 0.10 =
+
+Main changes since previous version (0.9.1185)
+
+  *  Phylogenetic endemism indices are now in the main distribution.  For the theory and some examples, see [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Rosauer, Laffan et al. (2009) Molecular Ecology]
+  *  Basedata objects now import from matrix format files, eg site by species matrices.  These are a common data format for specimen data.
+  *  Documentation is moving to the Google Code wiki site.  http://code.google.com/p/biodiverse/w/list
+  *  Renaming of basedata and outputs is now possible in the GUI
+  *  Users can now specify a definition query to control the groups used in an analysis.  This uses the same syntax as the spatial neighbourhoods.  See http://code.google.com/p/biodiverse/wiki/KeyConcepts#Definition_Queries
+  *  Option to show/hide the spatial neighbour and definition query edit boxes in the spatial and cluster tabs.  This frees up screen real estate but does not disable them.
+  *  Spatial parameters:
+    * sp_circle now has an axes argument to control the axes used (default is still to use all axes)
+    * New subroutine `sp_match_text (text => 'blah', axis => 0, type => 'proc')`
+    * New subroutine `sp_annulus (inner_radius => 100000, outer_radius => 300000)`
+    * See http://code.google.com/p/biodiverse/wiki/SpatialConditions for examples.
+  *  The Biodiverse icon is now used in all versions (previously was only the exe version)
+  *  The version numbering system now excludes the SVN revision number.
+  *  Numerous bug fixes - see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3A%27release0.10%27
+  *  Some minor speed-ups and smaller memory footprint in some cases
+
+  *  For the full issues list and to report a bug or request an enhancement, visit http://code.google.com/p/biodiverse/issues/list
+
+
 
 = Version 0.9.1185 =
 

@@ -23,7 +23,7 @@ The source code is not needed for this version, although it is still distributed
 
 
   * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
-  * Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://gladewin32.sourceforge.net/. Use the default options provided during setup, unless you know what you are doing.
+  * Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://downloads.sourceforge.net/gladewin32/gtk-2.12.9-win32-2.exe. Use the default options provided during setup, unless you know what you are doing.
 
   Biodiverse can be started by double clicking on the _BiodiverseGUI_win32.exe_ file.
 

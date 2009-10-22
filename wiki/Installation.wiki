@@ -94,7 +94,7 @@ The current Mac install requires a source code installation.  We are working on 
   * To perform the next steps, you must have the X11 software on your Mac. If you have Leopard, you will have this. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
 
-  You now need to install a number of ports. Open an X11 window and type the following commands one after the other.  You could copy and paste all of them, but the commands can take a while and typing one makes it easier to track which one you're up to.
+  You now need to install a number of ports. Open an X11 window and copy and paste the following commands one after the other.  You could copy and paste all of them at once, but the commands can take a while and doing them one at a time makes it easier to keep track of which one you're up to.
 
 {{{
 
@@ -115,7 +115,7 @@ port install p5-yaml-syck
 
   Follow the appropriate prompts to set up cpan. If you are asked if you want cpan to install automatically, click YES. It should be all defaults if you are asked any questions.
 
-  Once cpan is ready, install the following libraries individually, by typing them in one by one (or copy-pasting) and hitting return after each. Wait until each is installed before going on to the next one (this is again for keeping track).
+  Once cpan is ready, install the following libraries individually, by copying and pasting them one by one and hitting return after each. Wait until each is installed before going on to the next one (this is again for keeping track).
 
 {{{
 install Data::DumpXML

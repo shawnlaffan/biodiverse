@@ -23,13 +23,13 @@ The source code is not needed for this version, although it is still distributed
 
 
   * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
-  * Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://downloads.sourceforge.net/gladewin32/gtk-2.12.9-win32-2.exe. Use the default options provided during setup, unless you know what you are doing.
+  * Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://downloads.sourceforge.net/gladewin32/gtk-2.12.9-win32-2.exe. Use the default options provided during setup, unless of course you know what you are doing.
 
   Biodiverse can be started by double clicking on the _BiodiverseGUI_win32.exe_ file.
 
-  If you want to keep the log then open a command prompt and run '''C:\Biodiverse\bin\BiodiverseGUI_win32.exe'''
+  If you want to keep the log then open a command prompt and run _C:\Biodiverse\bin\BiodiverseGUI_win32.exe_
 
-  If the biodiverse bin folder is in your PATH then omit the full path and just type '''BiodiverseGUI_win32.exe'''.
+  If the biodiverse bin folder is in your PATH then omit the full path and just type _BiodiverseGUI_win32.exe_.
 
   You can associate .bps files with the BiodiverseGUI.exe file if you want to double click on a Biodiverse project file to open it.
 
@@ -71,15 +71,15 @@ ppm install Data-Structure-Util
 }}}
 
 
-  * You should now be able to run Biodiverse by executing C:\Biodiverse\bin\BiodiverseGUI.bat.
+  * You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat`.
   * You can associate .bps files with the BiodiverseGUI.bat file if you want to double click on a Biodiverse project file to open it. (.bpy files are currently supported, but are scheduled for deprecation).
 
 == Linux and UNIX ==
 
 
-  * These instructions are vague as we have not fully tested them.
+  *  These instructions are vague as we have not fully tested them.
   *  Install GTK using your distribution's package manager.  Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK if it is not already installed.
-  * Linux probably comes with Perl. If so then install all the modules above using the CPAN tool that comes with Perl. Additional modules will need to be installed.  The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding. This will take a while until it works. Make sure you install dependencies to save time installing further modules.
+  *  Linux probably comes with Perl. If so then install all the modules above using the CPAN tool that comes with Perl. Additional modules will need to be installed.  The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from the Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding. This will take a while until it works. Make sure you install dependencies to save time installing further modules.
 
   Please let us know so we can document it.
 
@@ -94,7 +94,7 @@ The current Mac install requires a source code installation.  We are working on 
   * To perform the next steps, you must have the X11 software on your Mac. If you have Leopard, you will have this. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
 
-  You now need to install a number of ports. Open an X11 window and type:
+  You now need to install a number of ports. Open an X11 window and type the following commands one after the other.  You could copy and paste all of them, but the commands can take a while and typing one makes it easier to track which one you're up to.
 
 {{{
 
@@ -115,7 +115,7 @@ port install p5-yaml-syck
 
   Follow the appropriate prompts to set up cpan. If you are asked if you want cpan to install automatically, click YES. It should be all defaults if you are asked any questions.
 
-  Once cpan is ready, install the following individually, by typing them in one by one and hitting return after each. Wait until each is installed before going on to the next one.
+  Once cpan is ready, install the following libraries individually, by typing them in one by one (or copy-pasting) and hitting return after each. Wait until each is installed before going on to the next one (this is again for keeping track).
 
 {{{
 install Data::DumpXML
@@ -132,7 +132,7 @@ install YAML::Syck
 install PadWalker
 }}}
 
-  Anything else that perl complains about when running Biodiverse should be installed using the cpan method. The complaint will look like “Can't locate fred/fred.pm in @INC (@INC contains:...” In this case, install module fred::fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
+  Anything else that perl complains about when running Biodiverse should be installed using the cpan method. The complaint will look like “Can't locate Fred/Fred.pm in @INC (@INC contains:...” In this case, install module Fred::Fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
 
   * Now you are ready to install Biodiverse. Extract the biodiverse zip file to somewhere on your hard drive, eg /opt/local/biodiverse or ~/biodiverse.
   * To run Biodiverse, open an X11 terminal window and change directory to the Biodiverse/bin folder.

@@ -70,6 +70,8 @@ You can filter which data rows to use by assigning column types as “Include_co
 
 All columns in your file that are irrelevant to the analysis should be set to “Ignore”.
 
+_NOTE:  In versions 0.10 and before, the import will fail when it reaches an input line where a group column is either undefined or non-numeric.  This can occur where you do not know the coordinates for a sample, if you choose the wrong column to use for the groups, or if you have a series of lines with no data at the end of a file (a common issue with exporting from spreadsheet programs).  The solution is to remove these lines from the input file before import.  From version 0.11 you are given the option to ignore these records.  This issue does not affect text groups._
+
 Click Ok. The next window allows you to order your labels and groups for the desired view. In the example data set, placing “genus” above “species” produces labels named with the species name concatenated after the genus name, and placing “y” above “x” makes the y column data the first dimension of a group's coordinates and x the second (this is useful if you have a file where latitude precedes longitude in the file's column order).
 
 http://www.biodiverse.unsw.edu.au/screenshots/import_basedata_step4.png

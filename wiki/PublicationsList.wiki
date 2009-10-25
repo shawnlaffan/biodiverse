@@ -1,0 +1,13 @@
+#summary Publications using Biodiverse (or its ancestors)
+
+  *  Bickford, S.A., Laffan, S.W., de Kok, R. & Orthia, L. (2004) Spatial analysis of taxonomic and genetic patterns and their potential for understanding evolutionary histories.   [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Journal of Biogeography, 31, 1715-1733]. 
+
+  *  Bickford, S.A. & Laffan, S.W. (2006) Multi-extent analysis of the relationship between pteridophyte species richness and climate.   [http://dx.doi.org/10.1111/j.1466-8238.2006.00250.x Global Ecology and Biogeography, 15, 588-601]. <br>
+
+  *  Crisp, M., Laffan, S., Linder, H., & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 
+
+  *  Jones C. &  Laffan S.W. (2008) Lexical similarity and endemism in historical wordlists of Australian Aboriginal languages of the greater Sydney region. [http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x Transactions of the Philological Society, 106, 456-486]. 
+
+  * Laffan, S.W. & Crisp, M.D. (2003) Assessing endemism at multiple spatial scales, with an example from the Australian vascular flora. [http://www3.interscience.wiley.com/journal/118882020/abstract Journal of Biogeography, 30, 511-520]. 
+
+  * Rosauer, D.F., Laffan, S.W., Crisp, M.D., Donnellan, S.C. & Cook, L.G. (2009). Phylogenetic endemism: a new approach to identifying geographical concentrations of evolutionary history. [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Molecular Ecology, 18, 4061-4072]. 

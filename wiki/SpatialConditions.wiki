@@ -5,22 +5,19 @@
 
 = Introduction =
 
-Spatial conditions are core to the Biodiverse system.  They are used to specify both neighbourhoods used in the analyses, and also the definition queries used to restrict the calculations to some set of groups.  
+Spatial conditions are core to the Biodiverse system.  They are used to specify both neighbourhoods used in the analyses, and also the definition queries used to restrict the calculations to a subset of groups.  
 
 Neighbourhoods are essential for any spatial analysis, as it is through these that one can define the set of groups to be considered in an analysis.  In the moving window analyses these determine which groups are compared with which other groups.  In the cluster analyses they determine which groups are considered candidates to be clustered together.  It is also possible to define neighbourhoods for spatially constrained randomisations (see [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003, J Biogeog]), although this is yet to be implemented.
 
-...NEED TO FLESH OUT _Can be based on location relative to the processing group, but also some other aspect of the system such as the value of a text group (eg using `sp_match_text`)_
+Before we describe the process, some definitions are needed.  The *processing group* is the group being considered in the analysis at some iteration.  Typically every group is considered in turn. A group is a member of the processing group's set of neighbours (is a *neighbouring group*) if the spatial condition evaluates to true.  
 
-
-As with any system, there must be compromises between ease of use and system flexibility. In this case we have gone for system flexibility by direct use of Perl syntax. This means you can use arbitrarily complex functions to define neighbourhoods, including loops and other multiple variable conditions. This may be horrifying to non-perlers, as one of the main complaints about perl is its complex grammar and syntax. To alleviate this somewhat, we have provided examples below of some of the basic approaches one might want to use.
+As with any system, there must be compromises between ease of use and system flexibility. In this case we have opted for system flexibility by direct use of Perl syntax. This means you can use arbitrarily complex functions to define neighbourhoods, including loops and other multiple variable conditions. This may be horrifying to non-perlers, as one of the main complaints about perl is its complex grammar and syntax. To alleviate this somewhat, we have provided examples below of some of the basic approaches one might want to use.
 
 The neighbourhood and definition query interfaces have a syntax verification button to check that the syntax is valid. This does not, however, guarantee your parameters will work, only that it is valid Perl code. (The reality here is that we will just evaluate the parameter statement with some default values and warn you if the system raises some sort of error or exception).
 
 = Evaluation =
 
-This is a brief description of the evaluation process used to determine the set of neighbours for a group.  Before we describe the process, some definitions are needed.
-
-The *processing group* is the group being considered in the analysis at some iteration.  Typically every group is considered in turn. A group is a member of the processing group's set of neighbours (is a *neighbouring group*) if the spatial condition evaluates to true.  
+This is a brief description of the evaluation process used to determine the set of neighbours for a group.  
 
 Currently the system operates on boolean membership of the set of neighbours, so a group either is or is not a neighbour of the processing group.  
 

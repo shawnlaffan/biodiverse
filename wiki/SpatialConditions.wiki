@@ -50,8 +50,8 @@ _Note: This list and appropriate metadata needs to be accessible through the GUI
 
 {{{
 #  radius of 100,000 map units, uses all axes so will 
-#    be a circle for two dimensions, a sphere for three dimensions, and a hypersphere
-#    for more
+#    be a circle for two dimensions, a sphere for three dimensions, 
+#    and a hypersphere for more
 sp_circle (radius => 100000)
 
 # a circle using the second and fourth group axes
@@ -84,7 +84,10 @@ sp_ellipse (major_radius => 300000,
 sp_annulus (inner_radius => 2000000, outer_radius => 4000000)
 
 #  an annulus assessed against axes 0 and 1
-sp_annulus (inner_radius => 2000000, outer_radius => 4000000, axes => [0,1])
+sp_annulus (inner_radius => 2000000,
+            outer_radius => 4000000, 
+            axes         => [0,1]
+            )
 
 #  select every group, including the procssing group
 sp_select_all()
@@ -94,7 +97,7 @@ sp_select_all() && ! sp_self_only()
 sp_select_all() and not sp_self_only()
 
 
-#  only use the proceessing group
+#  only use the processing group
 sp_self_only() 
 
 #  use any neighbour where the first axis has value of "type1"

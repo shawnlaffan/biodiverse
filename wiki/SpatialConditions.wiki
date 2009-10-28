@@ -227,8 +227,8 @@ return 1 >= ($a + $b);
 
 Note the use of the word "my". This is required to declare your own variables in the correct scope. If it is not used then the variables will not work properly. Do not declare any of the pre-calculated Biodiverse variables with this (`$D` etc) - they already exist and redeclaring will overprint them.
 
-Initial tests indicate that this function works with the spatial index, but test your own data to be sure. Run an analysis with and without the spatial index, using the Element Lists analysis to get the lists of neighbours. Export the results to CSV and use a difference tool to compare the results.
+If you wish to know if your function works with the spatial index then run a moving window analysis twice, once with and onc without the spatial index, using the Element Lists analysis to get the lists of neighbours. Export the results to CSV and use a difference tool to compare the results.
 
-Functions available by default are those in the [http://perldoc.perl.org/POSIX.html#FUNCTIONS Perl POSIX library]. If you want more then you will need to specify additional libraries in the extensions file under the BaseData section _(for which guidelines need to be implemented)_.
+Functions available by default are those in the [http://perldoc.perl.org/POSIX.html#FUNCTIONS Perl POSIX library]. If you want more then you will need to specify additional libraries in the extensions file under the !BaseData section _(for which guidelines need to be implemented)_.
 
 To access environment variables you have set, just use `$ENV{variable_name}`, eg `$ENV{my_default_radius}`.

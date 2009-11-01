@@ -43,7 +43,7 @@ The randomisations do not themselves store any results.  All results are added a
 
 There are currently no methods to export the randomisation outputs specifically, but the results can be viewed and exported from the relevant spatial and cluster outputs.  
 
-Assume in this case that _Rand1_ was used as the name of the randomisation, even though it is not a good name as you will have no idea what it was for in three weeks time.
+Assume in this case that _Rand1_ was used as the name of the randomisation (even though we know it is not a good name to use as in three weeks time you will have no idea what it means or was for).
 
   1. The randomisation results for a spatial analysis go into a list called _Rand1_ on that output. The naming scheme is explained below.  
   1. Cluster analyses (trees) have at least three lists attached to each node, with a fourth if a spatial analysis was conducted on each node. 

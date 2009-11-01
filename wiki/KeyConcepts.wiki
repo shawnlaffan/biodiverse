@@ -39,7 +39,7 @@ The key point to keep in mind when using Biodiverse is that it has been develope
 NEED TO EXPLAIN HOW THEY WORK - OVERVIEW
 </wiki:comment>
 
-The outputs of the randomisations do not go into their own object. Instead they are stored on the analyses as additional lists, where the main list is the name of the randomisation specified in the arguments. The randomisations do not themselves store any results.  All results are added as additional lists in the spatial and cluster outputs.  They can be accessed under the chooser which defaults to SPATIAL_RESULTS for a spatial analysis and Cluster for a cluster analysis.
+The randomisations do not themselves store any results.  All results are added as additional lists in the spatial and cluster outputs.  They can be accessed under the chooser which defaults to SPATIAL_RESULTS for a spatial analysis and Cluster for a cluster analysis.
 
 There are currently no methods to export the randomisation outputs specifically, but the results can be viewed and exported from the relevant spatial and cluster outputs.  
 

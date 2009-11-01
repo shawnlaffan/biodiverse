@@ -125,7 +125,7 @@ for those needing counts, for example redundancy.
 == !NoData ==
 
 This will occur in certain analyses when no reasonable value can result, for example where there is a division by zero or 
-where there are no valid labels in a neighbourhood, e.g. a matris analysis was run, but there are no labels in the neighbourhood 
+where there are no valid labels in a neighbourhood, e.g. a matrix analysis was run, but there are no labels in the neighbourhood 
 that are listed in the matrix and therefore no value can be assigned that is a function of the matrix.
 
 It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity 

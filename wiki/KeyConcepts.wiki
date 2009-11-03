@@ -69,7 +69,7 @@ The hue mode uses colours from light blue through green and yellow to red.  it i
 
 The saturation mode assigns colours as different levels of saturation for a single colour, the default being red.  This is the scheme used in the view labels tab.  You can select an alternate colour using the colour button to the right of the chooser.  Note that greyscale is currently not supported (version 0.11), and the system only uses the hue setting, ignoring any saturation and value settings.  See issue #32.
 
-If you are unsure of how visible your results will be to the colour blind then take a screen shot and put it through the Daltoniser at http://www.vischeck.com/daltonize/ .  Saturation mode should be better than hue in these cases.
+If you are unsure of how visible your results will be to the colour blind then take a screen shot and put it through the Daltonizer at http://www.vischeck.com/daltonize/ .  Saturation mode should be better than hue in these cases.
 
 
 == Contrasting colour scheme ==

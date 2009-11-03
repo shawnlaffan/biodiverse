@@ -2,11 +2,6 @@
 
 <wiki:toc max_depth="4" />
 
-= Key Biodiverse concepts =
-
-This forms a sort of glossary, and perhaps should be named as such.
-
-
 = Overview =
 
 The key point to keep in mind when using Biodiverse is that it has been developed first for spatial analyses. This includes the Moving Window, Clustering and Randomisations. All of the code has been written under this framework. Any other analysis that can be conducted is in some senses incidental. This does not mean it is invalid, just that it needs to be cast in a spatial framework to run.

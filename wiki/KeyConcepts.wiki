@@ -58,7 +58,30 @@ What do the spatial comparison lists mean? The indices shown are those used in t
   * Q`_*` (q = quantum) is the number of comparisons. It is counted because there may be cases where undefined values result. We cannot compare undefined with a number, and we also cannot be sure that the number of times undef results is the same for all indices.
   * P`_*` is the fractional ranking, calculated as C`_*` / Q`_*`. Multiply by 100 to get a percentile. The P`_*` score is converted into a p-score in the normal way, e.g. if P`_*` = 0.99 then the original measure is higher than the randomised versions 99 times out of every hundred. If one is interested in higher scores then this is the same as a p score of 0.01. Obviously one changes the interpretation appropriately if it is a two tailed system, eg the mean of numeric labels (NUM_MEAN) can be higher or lower. So long as it is in one of the tails of the distribution then the result is significant (e.g. P_NUM_MEAN < 0.025 or P_NUM_MEAN > 0.975 for an alpha of 0.05).
 
-= Other stuff =
+
+= Colour schemes =
+
+== Hue and saturation modes ==
+
+Continuous results can be displayed using either Hue or Saturation modes.  
+
+The hue mode uses colours from light blue through green and yellow to red.  it is the default for spatial results.  
+
+The saturation mode assigns colours as different levels of saturation for a single colour, the default being red.  This is the scheme used in the view labels tab.  You can select an alternate colour using the colour button to the right of the chooser.  Note that greyscale is currently not supported (version 0.11), and the system only uses the hue setting, ignoring any saturation and value settings.  See issue #32.
+
+If you are unsure of how visible your results will be to the colour blind then take a screen shot and put it through the Daltoniser at http://www.vischeck.com/daltonize/ .  Saturation mode should be better than hue in these cases.
+
+
+== Contrasting colour scheme ==
+
+Cluster analyses can be displayed as aggregates of nodes using the contrasting colour scheme.  
+
+The contrasting colour scheme is restricted to a maximum of 13 colours, with a different colour scheme used for 9 or fewer. The schemes are derived from http://www.colorbrewer.org, but with the addition of a mid-grey to the 12 colour scheme. We have experimented with more colours, but found them difficult to distinguish (which is pretty much as recommended by the ColorBrewer web site...).
+
+
+
+
+= Other topics =
 
 == View Labels columns ==
 
@@ -137,15 +160,11 @@ Groups with a value of !NoData are plotted as white.  (Black means the group was
 
 The scree plot below a tree indicates how many nodes occur at each level of, for example, dissimilarity.
 
-== Contrasting colour scheme ==
+== Selecting tree nodes ==
 
-The contrasting colour scheme is restricted to a maximum of 13 colours, with a different colour scheme used for 9 or fewer. 
-The schemes are derived from http://www.colorbrewer.org, but with the addition of a mid-grey to the 12 colour scheme. 
-We have experimented with more colours, but found them difficult to distinguish (which is pretty much as recommended 
-by the ColorBrewer web site...).
+Control click or shift click to view the lists under them.  
 
-== Selecting nodes ==
-
+Single click to highlight on the map.  
 
 
 == Negative length nodes ==

@@ -79,7 +79,21 @@ Cluster analyses can be displayed as aggregates of nodes using the contrasting c
 The contrasting colour scheme is restricted to a maximum of 13 colours, with a different colour scheme used for 9 or fewer. The schemes are derived from http://www.colorbrewer.org, but with the addition of a mid-grey to the 12 colour scheme. We have experimented with more colours, but found them difficult to distinguish (which is pretty much as recommended by the ColorBrewer web site...).
 
 
+= Spatial conditions =
 
+== Neighbourhoods ==
+
+These are the set of groups that are are in the neighbouring set of the processing group.  More details are given in the SpatialConditions page.
+
+== Definition Queries ==
+
+These differ from neighbourhoods as they assess only the processing group to determine if analyses should be calculated for it or not.  They use the same syntax as for neighbourhoods, but the system will commonly complain if a condition involving a neighbouring group is used.
+
+Note that groups that fail the definition query are still considered for membership of neighbour sets of those that pass.  Use in conjunction with an appropriate neighbourhood definition if you want to exclude some groups from neighbour sets as well.  For example, you could use `sp_match_text (axis => 2, text => 'fred', type => 'proc')` for the definition query and `sp_match_text (axis => 2, text => 'fred', type => 'nbr')` for the neighbourhood.  This will restrict calculations to those groups with a third axis of 'fred', and also exclude any group without fred in the third axis from the neighbour sets of those groups processed.
+
+== Specifying spatial neighbours ==
+
+See the SpatialConditions page.
 
 = Other topics =
 
@@ -100,21 +114,7 @@ The number of times this label occurs across all groups. Groups can have many sa
 
 The sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in (many redundant samples). A value of zero means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
 
-== Spatial conditions ==
 
-=== Neighbourhoods ===
-
-These are the set of groups that are are in the neighbouring set of the processing group.  More details are given in the SpatialConditions page.
-
-=== Definition Queries ===
-
-These differ from neighbourhoods as they assess only the processing group to determine if analyses should be calculated for it or not.  They use the same syntax as for neighbourhoods, but the system will commonly complain if a condition involving a neighbouring group is used.
-
-Note that groups that fail the definition query are still considered for membership of neighbour sets of those that pass.  Use in conjunction with an appropriate neighbourhood definition if you want to exclude some groups from neighbour sets as well.  For example, you could use `sp_match_text (axis => 2, text => 'fred', type => 'proc')` for the definition query and `sp_match_text (axis => 2, text => 'fred', type => 'nbr')` for the neighbourhood.  This will restrict calculations to those groups with a third axis of 'fred', and also exclude any group without fred in the third axis from the neighbour sets of those groups processed.
-
-=== Specifying spatial neighbours ===
-
-See the SpatialConditions page.
 
 == Specifying extensions ==
 

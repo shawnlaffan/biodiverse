@@ -3,13 +3,13 @@
 
 = Version 0.11 =
 
-This version is yet to be released, but this summarises the main changes.  This will be a bug fix release with no new features.
+This version is yet to be released, but this summarises the main changes.  This will be a cleanup and bug fix release with no new features.
 
   *  Improved feedback and error trapping when running analyses.  If the system fails then a popup window will tell you what went wrong and where.  This information is still printed to the log window so you can access it after closing the popup.
   *  The error trapping also corrects issues where users are unable to close a tab if an analysis fails.  
   *  Basedata imports fail with a warning when they reach a record with an undefined or non-numeric value to be used for the groups (unless it is a text group).  The user can set an option to skip these records (this is on by default).
   *  System warns user when trying to export a randomisation output.  These cannot currently be exported (although the PRNG state would be useful).  The results can be exported from the relevant spatial or cluster output.  See [KeyConcepts#Randomisations]
-
+  *  Exports for spatial outputs, groups and labels now have an option to specify the type of file instead of relying on the file extension for this.  This makes the possibilities obvious to the user.
 
 
 = Version 0.10 =

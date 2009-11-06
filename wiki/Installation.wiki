@@ -39,7 +39,7 @@ Use this version if you want to debug the source code and provide patches, etc. 
 
 
   * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
-  * Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/Windows/5.8/ActivePerl-5.8.9.825-MSWin32-x86-288577.zip .
+  * Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/Windows/5.8/ActivePerl-5.8.9.825-MSWin32-x86-288577.msi .
   * Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://downloads.sourceforge.net/gladewin32/gtk-2.12.9-win32-2.exe. Use the default options provided during setup (unless, of course, you know what you are doing).
   * Edit your system's PATH variable to include C:\Biodiverse\bin (or whichever path you unzipped the Biodiverse files into).
   * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse. Note that this assumes you don't already have ppm repositories defined. If you do then disable the trouchelle repository for the first three sets, as its gtk libs don't install properly (when last I checked).

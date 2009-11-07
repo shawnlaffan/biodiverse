@@ -10,13 +10,13 @@ The key point to keep in mind when using Biodiverse is that it has been develope
 
 All structures store a set of parameters in addition to one or more other types of data.  The parameters are used to record any property needed by the system, as well as other objects such as arguments passed to an analysis.  
 
+== Elements ==
+
+Elements are one of the basic units used in Biodiverse.  Each element has a unique identifier and stores one or more lists, for example the SPATIAL_RESULTS lists of a moving window analysis.  They are also used in the matrices, in which case one element stores only the value for one matrix cell.
+
 == !BaseStructs ==
 
 A !BaseStruct object consists of a set of elements.  It is the storage system used for, amongst other things, the groups, labels, spatial outputs, and element properties tables.
-
-=== Elements ===
-
-Elements are the basic unit used in Biodiverse.  Each element has a unique identifier and stores one or more lists, for example the SPATIAL_RESULTS lists of a moving window analysis.  
 
 == !BaseData ==
 
@@ -55,6 +55,8 @@ See also SampleSession#Running_a_randomisation.
 These are matrices of numeric values representing some relationship between a set of elements.  They should normally be qsuare, bu the system does not impose that requirement.  Normally they are linked to the labels of a !Basedata object and used in the visualisation and analyses.  They are also used in the cluster analyses and can be exported via the cluster outputs.
 
 Previous uses include genetic similarities (Bickford et al. 2004), but any numeric value can be used.  It is up to the user to ensure it is sensible (the system does not stop the user from doing someting stupid, just in case it turns out to be really useful).
+
+Matrices in Biodiverse are stored with a high degree of redundancy, so do use a large amount of memory for large matrices.  This is to allow fast access of attributes such as the smallest and largest values, or counts of rows and columns, or how many defined values each row has.  The storage approach is may change in the future if a more efficient structure is on offer that retains the aspects of speed.  
 
 
 == Trees ==

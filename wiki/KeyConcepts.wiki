@@ -12,34 +12,8 @@ See DataStructures.
 
 = Analyses =
 
-== Clustering ==
+See AnalysisTypes.
 
-== Spatial analyses ==
-
-== Randomisations ==
-
-<wiki:comment>
-NEED TO EXPLAIN HOW THEY WORK - OVERVIEW
-</wiki:comment>
-
-The randomisations do not themselves store any results.  All results are added as additional lists in the spatial and cluster outputs.  They can be accessed under the chooser which defaults to SPATIAL_RESULTS for a spatial analysis and Cluster for a cluster analysis.
-
-There are currently no methods to export the randomisation outputs specifically, but the results can be viewed and exported from the relevant spatial and cluster outputs.  
-
-Assume in this case that _Rand1_ was used as the name of the randomisation (even though we know it is not a good name to use as in three weeks time you will have no idea what it means or was for).
-
-  1. The randomisation results for a spatial analysis go into a list called _Rand1_ on that output. The naming scheme is explained below.  
-  1. Cluster analyses (trees) have at least three lists attached to each node, with a fourth if a spatial analysis was conducted on each node. 
-    1. _Rand1_ contains summary statistics of the most similar nodes between the original and randomised trees (e.g. mean, median, SD, quartiles, count of comparisons, how many were identical), with the similarity assessed using a Sorenson dissimilarity index (zero is identical, 0.5 means half of the terminal elements across both nodes were shared, with double counting of shared nodes).
-    1. _Rand1_DATA_ is the full set of Sorenson comparison results in case you want to extract them for other nefarious purposes (e.g. how many times did the randomisation produce a node which had 80% or more terminal elements in common?).  
-    1. _Rand1_ID_LDIFFS_ contains the total lengths (from the tip of the tree) of those nodes that contained an identical set of terminal elements. If all (or most) are longer then the original tree at least has a shorter total length, even though it resulted in the same set of elements being grouped together.  (The name is an abbreviation of IDentical node Length DIFFerences. This is a confusing abbreviation and name, so any suggestions are welcome.)
-    1. _Rand1_SPATIAL_ contains the comparison values of the spatial outputs for the most similar nodes. The naming scheme is explained below.  
-
-What do the spatial comparison lists mean? The indices shown are those used in the comparisons, prefixed by a letter with an underscore.
-
-  * C`_*` is the number of times the comparison was higher than the original.
-  * Q`_*` (q = quantum) is the number of comparisons. It is counted because there may be cases where undefined values result. We cannot compare undefined with a number, and we also cannot be sure that the number of times undef results is the same for all indices.
-  * P`_*` is the fractional ranking, calculated as C`_*` / Q`_*`. Multiply by 100 to get a percentile. The P`_*` score is converted into a p-score in the normal way, e.g. if P`_*` = 0.99 then the original measure is higher than the randomised versions 99 times out of every hundred. If one is interested in higher scores then this is the same as a p score of 0.01. Obviously one changes the interpretation appropriately if it is a two tailed system, eg the mean of numeric labels (NUM_MEAN) can be higher or lower. So long as it is in one of the tails of the distribution then the result is significant (e.g. P_NUM_MEAN < 0.025 or P_NUM_MEAN > 0.975 for an alpha of 0.05).
 
 
 = Colour schemes =

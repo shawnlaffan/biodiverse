@@ -6,82 +6,9 @@
 
 The key point to keep in mind when using Biodiverse is that it has been developed first for spatial analyses. This includes the Moving Window, Clustering and Randomisations. All of the code has been written under this framework. Any other analysis that can be conducted is in some senses incidental. This does not mean it is invalid, just that it needs to be cast in a spatial framework to run.
 
-= Data structures =
+= Data Structures =
 
-All structures store a set of parameters in addition to one or more other types of data.  The parameters are used to record any property needed by the system, as well as other objects such as arguments passed to an analysis.  
-
-== Elements ==
-
-Elements are one of the basic units used in Biodiverse.  Each element has a unique identifier and stores one or more lists, for example the SPATIAL_RESULTS lists of a moving window analysis.  They are also used in the matrices, in which case one element stores only the value for one matrix cell.
-
-== !BaseStructs ==
-
-A !BaseStruct object consists of a set of elements.  It is the storage system used for, amongst other things, the groups, labels, spatial outputs, and element properties tables.
-
-== !BaseData ==
-
-A !BaseData object is the primary storage object used in Biodiverse.  It consists of one Groups object, one Labels object, a set of parameters, and one or more cluster, moving window and randomisation outputs.  
-
-Transposing a !BaseData object merely creates a a new !BaseData object but with the groups and labels having swapped their type.
-
-=== Labels ===
-
-Labels are a special type of element.  Typically they represent species, but in reality they can be any named entity that is then collected and aggregated into a group.  Their unique identifier (name) can consist of any number of axes, allowing the representation of taxonomic order or some other hierarchy within the labels.  
-
-=== Groups ===
-
-Groups are also a special type of element.  Typically they are square cells into which the labels are aggregated, but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
-
-=== Spatial outputs ===
-
-These are a !BaseStruct object and used to store the results of a moving window analysis.  They are also used in the cluster analyses to determine which neighbours shoul'd be considered for each of the cluster matrices, as this is just a spatial analysis with no actual analyses, just the neighbour sets for each element.
-
-More details are (or will be) given in KeyConcepts#Spatial_analyses and SampleSession#Running_a_spatial_(moving_window)_analysis.
-
-=== Cluster outputs ===
-
-These are a tree object, but also store the matrices used in their construction.  The terminal nodes have the name of the relevant group (element) from the !BaseData object, and this is used to link the data in the display.
-
-More detals are (or will be) given in KeyConcepts#Clustering and SampleSession#Running_a_Cluster_Analysis.
-
-=== Randomisation outputs ===
-
-The randomisation outputs do not themselves store any results (see KeyConcepts#Randomisations).  In addition to the arguments used in their creation, they store the PRNG's current state, as well as that used to start the PRNG stream.
-
-See also SampleSession#Running_a_randomisation.
-
-== Matrices ==
-
-These are matrices of numeric values representing some relationship between a set of elements.  They should normally be qsuare, bu the system does not impose that requirement.  Normally they are linked to the labels of a !Basedata object and used in the visualisation and analyses.  They are also used in the cluster analyses and can be exported via the cluster outputs.
-
-Previous uses include genetic similarities (Bickford et al. 2004), but any numeric value can be used.  It is up to the user to ensure it is sensible (the system does not stop the user from doing someting stupid, just in case it turns out to be really useful).
-
-Matrices in Biodiverse are stored with a high degree of redundancy, so do use a large amount of memory for large matrices.  This is to allow fast access of attributes such as the smallest and largest values, or counts of rows and columns, or how many defined values each row has.  The storage approach may change in the future if a more efficient structure is on offer that retains the aspects of speed.  
-
-
-== Trees ==
-
-These are typicaly phylogenies but can be any form of hierarchical tree structure, for example taxonomies or word roots.  Trees are a collection of nodes, with the hierarchy inferred based on links to and from parent and cild nodes.
-
-=== Tree Nodes ===
-
-These are the individual units of the trees.  They are analogous to Elements in a BaseStruct in that analysis result lists can be stored in them, but they also store links to their parents and to their children.
-
-The node length values are the distance from them to their parent node.  These lengths can be negative in some cases, for example when one or more spatial constraints exclude some more similar elements and/or nodes from the initial clustering.  When these are considered in a subsequent matrix (i.e. for a less constrictive spatial constraint) then  
-the nodes can be negative for such linkages.  Alternately they can occur when using the Recalculation Linkage function as a consequence of recalculating the linkages as if the two nodes are single aggregated elements instead of a weighted function of their respective elements.  This will occur for the cluster indices that do not use sample counts.
-
-Each node must have a unique name.  In the case of those that link to an element (e.g. a group or label) this is straightforward and can use the same name.  Internal nodes are slightly diferent, and are assigned a unique value followed by three underscore characters (, e.g. `18___`).  This is done on the basis that it is unlikely for an element name to have three trailing underscores.  Using three trailing underscores for non-internal names will cause unpredictable behaviour as Biodiverse uses the name to determine if a node is internal or not.
-
-== Element property tables ==
-
-The primary purpose of these is to remap (change) names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a Basedata object, or vice versa.  However, they can also be used to set arbitrary properties for data set elements for use in subsequent analyses.  Species ranges are one example that are currently supported.  
-
-Note that label and group properties are assigned at the time of import.  Subsequent changes are not currently supported.
-
-One can also use these tables to set element properties such as label or group sample counts or label ranges on import. One can also exclude or include on a label or group basis. 
-
-If the table has more than one entry for the same element name then it will use the last property encountered for that element.  Remapping of element names are chained such that the last one is used.  For example, the table might remap species1 to species2 and then to species3.  In this case any occurrences of elements 'species1' and 'species2' are assigned directly to 'species3', with the final name taking properties set for 'species3' and not 'species1' or 'species2'.  An exception to this is the include and exclude flags.  These are applied to the original element name (although this might change in future).
-
+See DataStructures.
 
 = Analyses =
 

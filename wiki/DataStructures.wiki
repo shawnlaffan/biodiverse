@@ -1,5 +1,7 @@
 #summary One-sentence summary of this page.
 
+<wiki:toc max_depth="4" />
+
 = Introduction =
 
 This is an overview of the data structures used in Biodiverse.  

@@ -24,11 +24,11 @@ Transposing a !BaseData object merely creates a a new !BaseData object but with 
 
 == Labels ==
 
-Labels are a special type of element.  Typically they represent species, but in reality they can be any named entity that is then collected and aggregated into a group.  Their unique identifier (name) can consist of any number of axes, allowing the representation of taxonomic order or some other hierarchy within the labels.  
+A labels object is a special type of !BaseStruct, with the labels being a special type of element.  Typically they represent species, but in reality they can be any named entity that is then collected and aggregated into a group.  Their unique identifier (name) can consist of any number of axes, allowing the representation of taxonomic order or some other hierarchy within the labels.  
 
 == Groups ==
 
-Groups are also a special type of element.  Typically they are square cells into which the labels are aggregated, but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
+A groups object is also a special type of !BaseStruct object, with the groups also being a special type of element.  Typically they are square cells into which the labels are aggregated, but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
 
 == Spatial outputs ==
 

@@ -72,9 +72,9 @@ the nodes can be negative for such linkages.  Alternately they can occur when us
 
 Each node must have a unique name.  In the case of those that link to an element (e.g. a group or label) this is straightforward and can use the same name.  Internal nodes are slightly diferent, and are assigned a unique value followed by three underscore characters (, e.g. `18___`).  This is done on the basis that it is unlikely for an element name to have three trailing underscores.  Using three trailing underscores for non-internal names will cause unpredictable behaviour as Biodiverse uses the name to determine if a node is internal or not.
 
-== Element property (remap) tables ==
+== Element property tables ==
 
-The primary purpose of these is to change names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a Basedata object, or vice versa.
+The primary purpose of these is to remap (change) names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a Basedata object, or vice versa.  However, they can also be used to set arbitrary properties for data set elements for use in subsequent analyses.  Species ranges are one example that are currently supported.  
 
 Note that label and group properties are assigned at the time of import.  Subsequent changes are not currently supported.
 

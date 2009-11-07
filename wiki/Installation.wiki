@@ -1,4 +1,4 @@
-#summary Installation instructions.
+#summary Installation instructions
 #labels Featured,Phase-Deploy
 
 These instructions assume you have downloaded the relevant Biodiverse release and saved it to your hard drive.

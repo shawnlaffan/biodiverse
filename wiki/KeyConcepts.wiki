@@ -122,27 +122,6 @@ so the merging of two clusters may actually reduce their joint similarity with t
 
 Explain them here.
 
-== File formats and structures ==
-
-The naming system is a “b” for Biodiverse, followed by a letter for the object type, and then an “s” or “y” to denote if it is 
-in a Storable or YAML format. The Storable version is preferred, as the YAML format requires more time to parse in and out, 
-and also uses more memory. It is, however, useful to interrogate the internal data structure. Note that the YAML format will be 
-deprecated as a standard format, but will be supported for export.
-
-BPS/BPY is a Biodiverse project file. This stores a set of !BaseData, Matrix and Phylogeny objects and any display parameters. 
-Note that it stores copies of these objects, so changes made to any of the separate or original versions have no effect, and vice versa.
-
-BDS/BDY is a Biodiverse !BaseData object.
-
-BTS/BTY is a Tree object. Generally this is a phylogeny, but can also be a taxonomictree or some other tree-based representation of a hierarchy of relationships.
-
-BMS/BMY is a matrix object.
-
-The BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will be stored with the BaseData object if it is exported separately from a project, but will not be visible if the BaseData object is subsequently loaded into a new project.
-
-Note that it is not possible to directly save a cluster result from the GUI because the object needs its links to the parent Biodiverse object.  The reference system used means that the BaseData object will be folded into the tree object thorough its reference, thus making the separation unneccesary and complex to unravel on subsequent import.
-
-
 == Map overlays ==
 
 Shapefiles only at the moment. They also need to be polyline or polygon. No points, but you could buffer your points by a small 

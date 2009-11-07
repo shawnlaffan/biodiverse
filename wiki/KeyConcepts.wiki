@@ -146,31 +146,18 @@ They will store the last defined value for an element pair (reading left to righ
 
 === Export ===
 
-Spatial and cluster objects can be exported to table formats. Supported formats include text (txt & csv), 
-and html table (htm). 
+Spatial and cluster objects can be exported to table formats. Supported formats include delimited text (txt & csv), html table (htm), XML and YAML.  The latter two are probably not as useful as the others.
 
-Shapefiles are not supported due to a fatal error in the library we are using, and also due to DBF field name limitations (see below). 
-They can generally be recreated from the other formats, though.
+Shapefiles are not supported due to a fatal error in the library we are using, and also due to DBF field name limitations (see below).  They can, however, be recreated from the other formats after import to a GIS or by using a suitable library.
 
-Data sets that use square cells and have only two axes can be exported to raster format.  
-Currently the system supports Arc/Info asciigrid and floatgrid format, as well as ER-Mapper ERS format.  
-To use these just specify an extension of .asc, .flt or .ers respectively.  Note that the first two options 
-will produce multiple files with the index name inserted before the file extension 
-(e.g., fred.asc can result in `fred_ENDC_CWE.asc` and `fred_ENDC_WE.asc`).  
-The ER-Mapper export produces `fred` (the data file) and `fred.ers` (the header file).
+!BaseData objects that use square cells and have only two axes can be exported to raster formats.  Currently the system supports Arc/Info asciigrid and floatgrid format, as well as ER-Mapper ERS format.  Note that the first two options will produce multiple files with the index name inserted before any specified file extension (e.g. fred.asc can result in `fred_ENDC_CWE.asc` and `fred_ENDC_WE.asc`).  The ER-Mapper export produces `fred` (the data file in Band Interleaved by Line, or BIL, format) and `fred.ers` (the header file).  Note that the ERS file does not include band statistics so these need to be calculated for them to plot properly in ArcMap.  Exporting labels with more than one column can also cause issues with the flt and asc files, as the colon used to separate the columns is a protected character as far as Windows filenames are concerned (and probably other operating systems).  Use the ERS format in these cases.
 
-Cluster objects can also be exported to the Newick and Nexus formats (Nexus actually uses ontains the Newick format for trees).
+Cluster objects can also be exported to the Newick and Nexus formats (Nexus actually uses the Newick format for trees).
 
 _Note:_ The DBF format only allows field names of ten characters.  This is not long enough for many of the index field names so DBF export has been disabled.
 
-_Note:_ If you are exporting an asymmetric array list as a symmetric structure then the system will use the array elements as the field names and insert a 1 in each of the columns where that column element is in the list for that row element. This is because it does not have any values associated with it. If it did then it would be stored as a hash... [needs to be explained better].
+_Note:_ If you are exporting an asymmetric array list as a symmetric structure then the system will use the array elements as the field names and insert a 1 in each of the columns where that column element is in the list for that row element. This is because it does not have any values associated with it. If it did then it would be stored as a hash, which is a series of key/value pairs where each key is unique.  Array lists are just a sequence of values and can contain repeated values.  They are used for some of the numerical label statistics and also randomisation results for the cluster trees.  
 
 == Using the tree exported to a table ==
 
-Need to explain how to use the table, for example in a GIS.
-
-
-
-The tree structure as a table allows the storage of the tree's topology in an RDBMS or other structure, including ancillary data 
-such as from a spatial analysis run for each node of a cluster tree. These cannot currently be exported using Newick (it should 
-be possible using one tree per ancillary variable with the values stored in the bootstrap section, but this is potentially very messy).
+The tree structure as a table allows the storage of the tree's topology in an RDBMS or other structure, including other list data such as from a spatial analysis run for each node of a cluster tree.  These cannot currently be exported using the Newick format.  (It should be possible by repeating the tree for each list element with the values stored as the bootstrap values for each node, but this is potentially very messy).

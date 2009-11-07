@@ -1,5 +1,7 @@
 #summary An overview of the analysis types available in Biodiverse
 
+<wiki:toc max_depth="4" />
+
 = Introduction =
 
 When complete, this will be a description of the analyses available in Biodiverse.

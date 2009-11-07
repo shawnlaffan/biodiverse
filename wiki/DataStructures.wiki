@@ -15,7 +15,7 @@ Projects consist of a set of any number of !BaseData, Tree and Matrix objects.  
 
 The only external data currently linked are shapefiles used as overlays in plotting, and these can be repaired or ignored when plotting data.
 
-Note that saving a !BaseData, Tree or Matrix to native format elsewhere on disk makes a duplicate copy of that object.  Any changes to that object in the project will have no effect on the separately saved version, and vice versa.  See also the [#file_naming_scheme]
+Note that saving a !BaseData, Tree or Matrix to native format elsewhere on disk makes a duplicate copy of that object.  Any changes to that object in the project will have no effect on the separately saved version, and vice versa.  See also the [#file_naming_scheme file naming scheme]
 
 = Elements =
 
@@ -43,17 +43,17 @@ A groups object is also a special type of !BaseStruct object, with the groups al
 
 These are a !BaseStruct object and used to store the results of a moving window analysis.  They are also used in the cluster analyses to determine which neighbours shoul'd be considered for each of the cluster matrices, as this is just a spatial analysis with no actual analyses, just the neighbour sets for each element.
 
-More details are (or will be) given in [KeyConcepts#Spatial_analyses] and [SampleSession#Running_a_spatial_(moving_window)_analysis].
+More details are (or will be) given in [AnalysisTypes#Spatial_analyses] and [SampleSession#Running_a_spatial_(moving_window)_analysis].
 
 == Cluster outputs ==
 
 These are a tree object, but also store the matrices used in their construction.  The terminal nodes have the name of the relevant group (element) from the !BaseData object, and this is used to link the data in the display.
 
-More detals are (or will be) given in [KeyConcepts#Clustering] and [SampleSession#Running_a_Cluster_Analysis].
+More detals are (or will be) given in [AnalysisTypes#Clustering] and [SampleSession#Running_a_Cluster_Analysis].
 
 == Randomisation outputs ==
 
-The randomisation outputs do not themselves store any results (see [KeyConcepts#Randomisations]).  In addition to the arguments used in their creation, they store the PRNG's current state, as well as that used to start the PRNG stream.
+The randomisation outputs do not themselves store any results (see [AnalysisTypes#Randomisations]).  In addition to the arguments used in their creation, they store the PRNG's current state, as well as that used to start the PRNG stream.
 
 See also [SampleSession#Running_a_randomisation].
 

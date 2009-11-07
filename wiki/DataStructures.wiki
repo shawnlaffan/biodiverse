@@ -1,4 +1,4 @@
-#summary An overview of the data structures used in Biodiverse.
+#summary An overview of the data structures used in Biodiverse
 
 <wiki:toc max_depth="4" />
 

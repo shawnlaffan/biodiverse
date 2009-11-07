@@ -7,9 +7,23 @@
 
 Spatial conditions are core to the Biodiverse system.  They are used to specify both neighbourhoods used in the analyses, and also the definition queries used to restrict the calculations to a subset of groups.  
 
+= Uses for spatial conditions =
+
+Spatial conditions are used both to define the neighbourhoods of the spatial analyses and the definition queries used to constrain the set of groups used in the analyses.  
+
+== Neighbourhoods ==
+
 Neighbourhoods are essential for any spatial analysis, as it is through these that one can define the set of groups to be considered in an analysis.  In the moving window analyses these determine which groups are compared with which other groups.  In the cluster analyses they determine which groups are considered candidates to be clustered together.  It is also possible to define neighbourhoods for spatially constrained randomisations (see [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003, J Biogeog]), although this is yet to be implemented.
 
 Before we describe the process, some definitions are needed.  The *processing group* is the group being considered in the analysis at some iteration.  Typically every group is considered in turn. A group is a member of the processing group's set of neighbours (is a *neighbouring group*) if the spatial condition evaluates to true.  
+
+== Definition Queries ==
+
+These differ from neighbourhoods as they assess only the processing group to determine if analyses should be calculated for it or not.  They use the same syntax as for neighbourhoods, but the system will commonly complain if a condition requiring a neighbouring group is used.
+
+Note that groups that fail the definition query are still considered for membership of neighbour sets of those that pass.  Use in conjunction with an appropriate neighbourhood definition if you want to exclude some groups from neighbour sets as well.  For example, you could use `sp_match_text (axis => 2, text => 'fred', type => 'proc')` for the definition query and `sp_match_text (axis => 2, text => 'fred', type => 'nbr')` for the neighbourhood.  This will restrict calculations to those groups with a third axis of 'fred', and also exclude any group without fred in the third axis from the neighbour sets of those groups processed.
+
+= Some details =
 
 As with any system, there must be compromises between ease of use and system flexibility. In this case we have opted for system flexibility by direct use of Perl syntax. This means you can use arbitrarily complex functions to define neighbourhoods, including loops and other multiple variable conditions. This may be horrifying to non-perlers, as one of the main complaints about perl is its complex grammar and syntax. To alleviate this we are encapsulating many of the common conditions in subroutines that can be called by name with a set of arguments.  We have also provided examples below to assist.
 

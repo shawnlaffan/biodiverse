@@ -15,7 +15,7 @@ Projects consist of a set of any number of !BaseData, Tree and Matrix objects.  
 
 The only external data currently linked are shapefiles used as overlays in plotting, and these can be repaired or ignored when plotting data.
 
-Note that saving a !BaseData, Tree or Matrix to native format elsewhere on disk makes a duplicate copy of that object.  Any changes to that object in the project will have no effect on the separately saved version, and vice versa.  See also the [#file_naming_scheme file naming scheme]
+Note that saving a !BaseData, Tree or Matrix to native format elsewhere on disk makes a duplicate copy of that object.  Any changes to that object in the project will have no effect on the separately saved version, and vice versa.  See also the [#File_naming_scheme file naming scheme]
 
 = Elements =
 

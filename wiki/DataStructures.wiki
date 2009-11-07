@@ -6,7 +6,16 @@
 
 This is an overview of the data structures used in Biodiverse.
 
-All structures store a set of parameters in addition to one or more other types of data.  The parameters are used to record any property needed by the system, as well as other objects such as arguments passed to an analysis.  
+All structures store a set of parameters in addition to one or more other types of data.  The parameters are used to record any property needed by the system, as well as other objects such as arguments passed to an analysis.
+
+
+= Projects =
+
+Projects consist of a set of any number of !BaseData, Tree and Matrix objects.  They are self contained as they have no links to essential external files and thus provide a convenient means of keeping a set of related analyses in one location.
+
+The only external data currently linked are shapefiles used as overlays in plotting, and these can be repaired or ignored when plotting data.
+
+Note that saving a !BaseData, Tree or Matrix to native format elsewhere on disk makes a duplicate copy of that object.  Any changes to that object in the project will have no effect on the separately saved version, and vice versa.  See also the [#file_naming_scheme]
 
 = Elements =
 
@@ -81,3 +90,19 @@ Note that label and group properties are assigned at the time of import.  Subseq
 One can also use these tables to set element properties such as label or group sample counts or label ranges on import. One can also exclude or include on a label or group basis. 
 
 If the table has more than one entry for the same element name then it will use the last property encountered for that element.  Remapping of element names are chained such that the last one is used.  For example, the table might remap species1 to species2 and then to species3.  In this case any occurrences of elements 'species1' and 'species2' are assigned directly to 'species3', with the final name taking properties set for 'species3' and not 'species1' or 'species2'.  An exception to this is the include and exclude flags.  These are applied to the original element name (although this might change in future).
+
+= File naming scheme =
+
+The naming system is a “b” for Biodiverse, followed by a letter for the object type, and then an “s” or “y” to denote if it is in a Storable or YAML format. The Storable version is preferred, as the YAML format requires more time to parse in and out, and also uses more memory. It is, however, useful to interrogate the internal data structure. Note that the YAML format will be deprecated as a standard format, but will be supported for export.
+
+BPS/BPY is a Biodiverse project file. This stores a set of !BaseData, Matrix and Phylogeny objects and any display parameters.  Note that it stores copies of these objects, so changes made to any of the separate or original versions have no effect, and vice versa.
+
+BDS/BDY is a Biodiverse !BaseData object.
+
+BTS/BTY is a Tree object. 
+
+BMS/BMY is a matrix object.
+
+The BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will be stored with the BaseData object if it is exported separately from a project, but will not be visible if the BaseData object is subsequently loaded into a new project.
+
+Note that it is not possible to directly save a cluster, spatial or randomisation analysis from the GUI because the object needs its links to the parent Biodiverse object.  The reference system used means that the !BaseData object will be folded into the analysis object through its reference, thus making the separation unneccesary and complex to unravel on subsequent import.

@@ -52,7 +52,7 @@ See also SampleSession#Running_a_randomisation.
 
 These are matrices of numeric values representing some relationship between a set of elements.  They should normally be qsuare, bu the system does not impose that requirement.  Normally they are linked to the labels of a !Basedata object and used in the visualisation and analyses.  They are also used in the cluster analyses and can be exported via the cluster outputs.
 
-Previous uses include genetic similarities (Bickford et al. 2004), but any numeric value can be used.  It is up to the user to ensure it is sensible (the system does not stop the user from doing someting stupid, just in case it turns out to be really useful).
+Previous uses include genetic similarities ([http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al. 2004]), but any numeric value can be used.  It is up to the user to ensure it is sensible (the system does not stop the user from doing someting stupid, just in case it turns out to be really useful).
 
 Matrices in Biodiverse are stored with a high degree of redundancy, so do use a large amount of memory for large matrices.  This is to allow fast access of attributes such as the smallest and largest values, or counts of rows and columns, or how many defined values each row has.  The storage approach may change in the future if a more efficient structure is on offer that retains the aspects of speed.  
 

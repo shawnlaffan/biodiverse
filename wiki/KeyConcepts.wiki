@@ -61,14 +61,27 @@ Matrices in Biodiverse are stored with a high degree of redundancy, so do use a 
 
 == Trees ==
 
-These are typicaly phylogenies but can be any form of hierarchical tree structure, for example taxonomies or word roots.
+These are typicaly phylogenies but can be any form of hierarchical tree structure, for example taxonomies or word roots.  Trees are a collection of nodes, with the hierarchy inferred based on links to and from parent and cild nodes.
 
-=== Nodes ===
+=== Tree Nodes ===
 
-These are the individual units of the trees.  They are analogous to Elements in a BaseStruct, but store links to their parents and to their children.  
+These are the individual units of the trees.  They are analogous to Elements in a BaseStruct in that analysis result lists can be stored in them, but they also store links to their parents and to their children.
 
-Their length values are the distance from them to their parent node.  These lengths can be negative in some cases, for example when one or more spatial constraints exclude some more similar elements and/or nodes from the initial clustering.  When these are considered in a subsequent matrix (i.e. for a less constrictive spatial constraint) then  
+The node length values are the distance from them to their parent node.  These lengths can be negative in some cases, for example when one or more spatial constraints exclude some more similar elements and/or nodes from the initial clustering.  When these are considered in a subsequent matrix (i.e. for a less constrictive spatial constraint) then  
 the nodes can be negative for such linkages.  Alternately they can occur when using the Recalculation Linkage function as a consequence of recalculating the linkages as if the two nodes are single aggregated elements instead of a weighted function of their respective elements.  This will occur for the cluster indices that do not use sample counts.
+
+Each node must have a unique name.  In the case of those that link to an element (e.g. a group or label) this is straightforward and can use the same name.  Internal nodes are slightly diferent, and are assigned a unique value followed by three underscore characters (, e.g. `18___`).  This is done on the basis that it is unlikely for an element name to have three trailing underscores.  Using three trailing underscores for non-internal names will cause unpredictable behaviour as Biodiverse uses the name to determine if a node is internal or not.
+
+== Element property (remap) tables ==
+
+The primary purpose of these is to change names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a Basedata object, or vice versa.
+
+Note that label and group properties are assigned at the time of import.  Subsequent changes are not currently supported.
+
+One can also use these tables to set element properties such as label or group sample counts or label ranges on import. One can also exclude or include on a label or group basis. 
+
+If the table has more than one entry for the same element name then it will use the last property encountered for that element.  Remapping of element names are chained such that the last one is used.  For example, the table might remap species1 to species2 and then to species3.  In this case any occurrences of elements 'species1' and 'species2' are assigned directly to 'species3', with the final name taking properties set for 'species3' and not 'species1' or 'species2'.  An exception to this is the include and exclude flags.  These are applied to the original element name (although this might change in future).
+
 
 = Analyses =
 
@@ -295,11 +308,3 @@ Need to explain how to use the table, for example in a GIS.
 The tree structure as a table allows the storage of the tree's topology in an RDBMS or other structure, including ancillary data 
 such as from a spatial analysis run for each node of a cluster tree. These cannot currently be exported using Newick (it should 
 be possible using one tree per ancillary variable with the values stored in the bootstrap section, but this is potentially very messy).
-
-== Element property (remap) tables ==
-
-The primary purpose of these is to change names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a Basedata object, or vice versa.
-
-Note that remapping of labels occurs at the time of import.  Subsequent remapping is not currently supported.
-
-One can also use them to set element properties such as label/group sample counts or label ranges on import. One can also exclude or include on a label or group basis. Note that these are applied before the respective label or group names are remapped.

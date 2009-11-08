@@ -1,8 +1,10 @@
-#summary Key Biodiverse concepts - still a work in progress.
+#summary Key Biodiverse concepts
 
 <wiki:toc max_depth="4" />
 
 = Overview =
+
+This serves as the main interface to the help system.  Eventually it will consist of a set of links to other pages.  It is very much a work in progress at the moment.
 
 The key point to keep in mind when using Biodiverse is that it has been developed first for spatial analyses. This includes the Moving Window, Clustering and Randomisations. All of the code has been written under this framework. Any other analysis that can be conducted is in some senses incidental. This does not mean it is invalid, just that it needs to be cast in a spatial framework to run.
 

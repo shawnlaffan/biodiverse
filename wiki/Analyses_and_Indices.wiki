@@ -3,7 +3,7 @@
 = Analyses and indices available in Biodiverse =
 
 || *Type* || *Name* || *Subroutine* || *Analysis Description* || *Index* || *Index Description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| *Endemism and Rarity* || Rarity central || calc_rarity_central || Calculate rarity for species only in neighbour set 1, but with local sample counts calculated from both neighbourhoods. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied. || RAREC_CWE || Corrected weighted rarity ||  || 1 ||
+|| == Endemism and Rarity == || Rarity central || calc_rarity_central || Calculate rarity for species only in neighbour set 1, but with local sample counts calculated from both neighbourhoods. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied. || RAREC_CWE || Corrected weighted rarity ||  || 1 ||
 ||  ||  ||  ||  || RAREC_RICHNESS || Richness used in RAREC_CWE ||  || 1 ||
 ||  ||  ||  ||  || RAREC_WE || Weighted rarity ||  || 1 ||
 ||  || Rarity whole || calc_rarity_whole || Calculate rarity for all species in both neighbourhoods. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied. || RAREW_CWE || Corrected weighted rarity ||  || 1 ||
@@ -21,19 +21,19 @@
 ||  ||  ||  ||  || ENDC_SINGLE || Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in. Useful if your data have sampling biases. (See Slatyer et al. (2007) J. Biogeog). ||  || 1 ||
 ||  ||  ||  ||  || ENDC_WE || Weighted endemism ||  || 1 ||
 ||  ||  ||  ||  || ENDC_WTLIST || List of weights for each label used in the endemism calculations ||  || 1 ||
-|| *Inter-event Interval Statistics* || Inter-event interval statistics data || calc_iei_data || The underlying data used for the IEI stats || IEI_DATA_ARRAY || Interval data in array form. Multiple occurrences are repeated ||  || 1 ||
+|| == Inter-event Interval Statistics == || Inter-event interval statistics data || calc_iei_data || The underlying data used for the IEI stats || IEI_DATA_ARRAY || Interval data in array form. Multiple occurrences are repeated ||  || 1 ||
 ||  ||  ||  ||  || IEI_DATA_HASH || Interval data in hash form where the interval is the key and number of occurrences is the value ||  || 1 ||
 ||  || Inter-event interval statistics || calc_iei_stats || Calculate summary statistics from a set of numeric labels that represent event times Events are calculated within groups and then aggregated if there are multiple nbrs || IEI_CV || Coefficient of variation (IEI_SD / IEI_MEAN) ||  || 1 ||
 ||  ||  ||  ||  || IEI_GMEAN || Geometric mean ||  || 1 ||
 ||  ||  ||  ||  || IEI_KURT || Kurtosis ||  || 1 ||
 ||  ||  ||  ||  || IEI_MAX || Maximum value (100th percentile) ||  || 1 ||
-||  ||  ||  ||  || IEI_MEAN || Mean || yes || 1 ||
+||  ||  ||  ||  || IEI_MEAN || Mean || cluster metric || 1 ||
 ||  ||  ||  ||  || IEI_MIN || Minimum value (zero percentile) ||  || 1 ||
 ||  ||  ||  ||  || IEI_N || Number of samples ||  || 1 ||
 ||  ||  ||  ||  || IEI_RANGE || Range (max - min) ||  || 1 ||
 ||  ||  ||  ||  || IEI_SD || Standard deviation ||  || 1 ||
 ||  ||  ||  ||  || IEI_SKEW || Skewness ||  || 1 ||
-|| *Lists and counts* || Richness || calc_richness || Count the number of labels in the neighbour sets || COMPL || a crude complementarity index for use in clustering might be disabled in a later release || yes || 2 ||
+|| == Lists and counts == || Richness || calc_richness || Count the number of labels in the neighbour sets || COMPL || a crude complementarity index for use in clustering might be disabled in a later release || cluster metric || 2 ||
 ||  ||  ||  ||  || RICHNESS_ALL || for both sets of neighbours ||  || 1 ||
 ||  ||  ||  ||  || RICHNESS_SET1 || for neighbour set 1 ||  || 1 ||
 ||  ||  ||  ||  || RICHNESS_SET2 || for neighbour set 2 ||  || 2 ||
@@ -71,7 +71,7 @@
 ||  ||  ||  ||  || ABC3_SUM_ALL || Sum of the sample counts in neighbour set2 ||  || 2 ||
 ||  ||  ||  ||  || ABC3_SUM_SET1 || Sum of the sample counts in neighbour set1 ||  || 1 ||
 ||  ||  ||  ||  || ABC3_SUM_SET2 || Sum of the sample counts in neighbour set2 ||  || 2 ||
-|| *Matrix* || Matrix statistics || calc_matrix_stats || Calculate summary statistics of labels in the selected matrix. Uses labels from both neighbourhoods || MX_KURT || Kurtosis ||  || 1 ||
+|| == Matrix == || Matrix statistics || calc_matrix_stats || Calculate summary statistics of labels in the selected matrix. Uses labels from both neighbourhoods || MX_KURT || Kurtosis ||  || 1 ||
 ||  ||  ||  ||  || MX_MAXVALUE || Maximum value ||  || 1 ||
 ||  ||  ||  ||  || MX_MEAN || Mean ||  || 1 ||
 ||  ||  ||  ||  || MX_MEDIAN || Median ||  || 1 ||
@@ -93,15 +93,15 @@
 ||  ||  ||  ||  || MXO_M_RATIO || Ratio of the set1 mean to the total mean = (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
 ||  ||  ||  ||  || MXO_N || Count of labels used in neighbour set 1 ||  || 1 ||
 ||  ||  ||  ||  || MXO_TLABELS || All labels used ||  || 1 ||
-||  ||  ||  ||  || MXO_TMEAN || Mean of both neighbour sets || yes || 1 ||
+||  ||  ||  ||  || MXO_TMEAN || Mean of both neighbour sets || cluster metric || 1 ||
 ||  ||  ||  ||  || MXO_TN || Count of all labels used ||  || 1 ||
 ||  ||  ||  ||  || MXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
 ||  ||  ||  ||  || MXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
 ||  ||  ||  ||  || MXO_V_RATIO || Ratio of the set1 variance to the total variance = (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
-||  ||  ||  ||  || MXO_WARD || Ward's dissimilarity metric - set1 versus set2 || yes || 2 ||
+||  ||  ||  ||  || MXO_WARD || Ward's dissimilarity metric - set1 versus set2 || cluster metric || 2 ||
 ||  ||  ||  ||  || MXO_Z_RATIO || A ratio of the z-scores = (MXO_MEAN / sqrt (MXO_VARIANCE)) / (MXO_TMEAN / sqrt (MXO_TVARIANCE)) ||  || 1 ||
 ||  ||  ||  ||  || MXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD = ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
-|| *Numeric Labels* || Numeric label harmonic and geometric means || calc_numeric_label_other_means || Calculate geometric and harmonic means for a set of numeric labels Accounts for multiple occurrences by using calc_abc3 || NUM_GMEAN || Geometric mean ||  || 1 ||
+|| == Numeric Labels == || Numeric label harmonic and geometric means || calc_numeric_label_other_means || Calculate geometric and harmonic means for a set of numeric labels Accounts for multiple occurrences by using calc_abc3 || NUM_GMEAN || Geometric mean ||  || 1 ||
 ||  ||  ||  ||  || NUM_HMEAN || Harmonic mean ||  || 1 ||
 ||  || Numeric label quantiles || calc_numeric_label_quantiles || Calculate quantiles from a set of numeric labels Accounts for multiple occurrences by using calc_abc3 || NUM_Q005 || 5th percentile ||  || 1 ||
 ||  ||  ||  ||  || NUM_Q010 || 10th percentile ||  || 1 ||
@@ -126,13 +126,13 @@
 ||  || Numeric label statistics || calc_numeric_label_stats || Calculate summary statistics from a set of numeric labels Accounts for multiple occurrences by using calc_abc3 || NUM_CV || Coefficient of variation (NUM_SD / NUM_MEAN) ||  || 1 ||
 ||  ||  ||  ||  || NUM_KURT || Kurtosis ||  || 1 ||
 ||  ||  ||  ||  || NUM_MAX || Maximum value (100th quantile) ||  || 1 ||
-||  ||  ||  ||  || NUM_MEAN || Mean || yes || 1 ||
+||  ||  ||  ||  || NUM_MEAN || Mean || cluster metric || 1 ||
 ||  ||  ||  ||  || NUM_MIN || Minimum value (zero quantile) ||  || 1 ||
 ||  ||  ||  ||  || NUM_N || Number of samples ||  || 1 ||
 ||  ||  ||  ||  || NUM_RANGE || Range (max - min) ||  || 1 ||
 ||  ||  ||  ||  || NUM_SD || Standard deviation ||  || 1 ||
 ||  ||  ||  ||  || NUM_SKEW || Skewness ||  || 1 ||
-|| *Phylogenetic Indices* || Phylogenetic Diversity || calc_pd || Calculate PD using species in both neighbourhoods || PD || Phylogenetic diversity ||  || 1 ||
+|| == Phylogenetic Indices == || Phylogenetic Diversity || calc_pd || Calculate PD using species in both neighbourhoods || PD || Phylogenetic diversity ||  || 1 ||
 ||  ||  ||  ||  || PD_INCLUDED_NODES || Tree nodes included in the PD calculations ||  || 1 ||
 ||  ||  ||  ||  || PD_P || Phylogenetic diversity as a proportion of total tree length ||  || 1 ||
 ||  ||  ||  ||  || PD_P_per_taxon || Phylogenetic diversity per taxon as a proportion of total tree length ||  || 1 ||
@@ -143,11 +143,11 @@
 ||  ||  ||  ||  || PE_WE_SINGLE || Phylogenetic endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
 ||  ||  ||  ||  || PE_WE_SINGLE_P || Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
 ||  ||  ||  ||  || PE_WTLIST || Node weights used in PE calcs ||  || 1 ||
-|| *Taxonomic Dissimilarity and Comparison* || Rao's quadratic entropy, taxonomically weighted || calc_tx_rao_qe || Calculate Rao's quadratic entropy for a taxonomic weights scheme. Should collapse to be the Simpson index for presence/absence data. || TX_RAO_QE || Taxonomically weighted quadratic entropy ||  || 1 ||
+|| == Taxonomic Dissimilarity and Comparison == || Rao's quadratic entropy, taxonomically weighted || calc_tx_rao_qe || Calculate Rao's quadratic entropy for a taxonomic weights scheme. Should collapse to be the Simpson index for presence/absence data. || TX_RAO_QE || Taxonomically weighted quadratic entropy ||  || 1 ||
 ||  ||  ||  ||  || TX_RAO_TLABELS || List of labels and values used in the TX_RAO_QE calculations ||  || 1 ||
 ||  ||  ||  ||  || TX_RAO_TN || Count of comparisons used to calculate TX_RAO_QE ||  || 1 ||
-||  || Bray-Curtis non-metric || calc_bray_curtis || Bray-Curtis dissimilarity between two sets of labels. Reduces to the Sorenson metric for binary data. || BRAY_CURTIS || Bray Curtis dissimilarity || yes || 2 ||
-||  || S2 || calc_s2 || S2 dissimilarity between two sets of labels Lennon, J.J., Koleff, P., Greenwood, J.J.D. and Gaston, K.J. (2001) The geographical structure of British bird distributions: diversity, spatial turnover and scale. Journal of Animal Ecology, 70, 966-979. || S2 || dissimilarity index from Lennon et al. || yes || 2 ||
+||  || Bray-Curtis non-metric || calc_bray_curtis || Bray-Curtis dissimilarity between two sets of labels. Reduces to the Sorenson metric for binary data. || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 2 ||
+||  || S2 || calc_s2 || S2 dissimilarity between two sets of labels Lennon, J.J., Koleff, P., Greenwood, J.J.D. and Gaston, K.J. (2001) The geographical structure of British bird distributions: diversity, spatial turnover and scale. Journal of Animal Ecology, 70, 966-979. || S2 || dissimilarity index from Lennon et al. || cluster metric || 2 ||
 ||  || Taxonomic overlap || calc_overlap_tx || Calculate taxonomic overlap metrics between the two sets of elements. Uses deviation from zero for variances. In most cases the means and variances will be the same. Bears some relation to Rao's quadratic entropy, but needs modification to use calc_abc3. || TXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
 ||  ||  ||  ||  || TXO_MEAN || Mean of neighbour set 1 ||  || 1 ||
 ||  ||  ||  ||  || TXO_M_RATIO || Ratio of the set1 mean to the whole mean (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
@@ -158,14 +158,14 @@
 ||  ||  ||  ||  || TXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
 ||  ||  ||  ||  || TXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
 ||  ||  ||  ||  || TXO_V_RATIO || Ratio of the set1 variance to the total variance (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
-||  ||  ||  ||  || TXO_WARD || Ward's dissimilarity metric, set1 versus set2 || yes || 2 ||
+||  ||  ||  ||  || TXO_WARD || Ward's dissimilarity metric, set1 versus set2 || cluster metric || 2 ||
 ||  ||  ||  ||  || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||  || 1 ||
 ||  ||  ||  ||  || TXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
-||  || Beta diversity || calc_beta_diversity || Beta diversity between two sets of labels. (Note that Whittaker's beta is the same as the Sorenson index.) || BETA_2 || The other beta || yes || 2 ||
-||  ||  ||  ||  || BETA_W || Whittaker's beta || yes || 2 ||
+||  || Beta diversity || calc_beta_diversity || Beta diversity between two sets of labels. (Note that Whittaker's beta is the same as the Sorenson index.) || BETA_2 || The other beta || cluster metric || 2 ||
+||  ||  ||  ||  || BETA_W || Whittaker's beta || cluster metric || 2 ||
 ||  || Simpson and Shannon || calc_simpson_shannon || Simpson and Shannon diversity metrics using samples from all neighbourhoods. p_i is the number of samples of the ith label as a proportion of the total number of samples in the neighbourhoods. || SHANNON_E || Shannon's evenness (H/ HMAX) ||  || 1 ||
 ||  ||  ||  ||  || SHANNON_H || Shannon's H ||  || 1 ||
 ||  ||  ||  ||  || SHANNON_HMAX || maximum possible value of Shannon's H ||  || 1 ||
-||  ||  ||  ||  || SIMPSON_D || Simpson's D. A score of zero is more similar. || yes || 1 ||
-||  || Jaccard || calc_jaccard || Jaccard dissimilarity between the labels in neighbour sets 1 and 2 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || yes || 2 ||
-||  || Sorenson || calc_sorenson || Sorenson dissimilarity between two sets of labels. It is the complement of the (unimplemented) Czechanowski index, and numerically the same as Whittaker's beta || SORENSON || Sorenson index || yes || 2 ||
+||  ||  ||  ||  || SIMPSON_D || Simpson's D. A score of zero is more similar. || cluster metric || 1 ||
+||  || Jaccard || calc_jaccard || Jaccard dissimilarity between the labels in neighbour sets 1 and 2 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
+||  || Sorenson || calc_sorenson || Sorenson dissimilarity between two sets of labels. It is the complement of the (unimplemented) Czechanowski index, and numerically the same as Whittaker's beta || SORENSON || Sorenson index || cluster metric || 2 ||

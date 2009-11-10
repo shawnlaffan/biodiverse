@@ -9,170 +9,170 @@ Most of the headings are self-explanatory.  For the others:
   * *Valid cluster metric* is whether or not the index can be used as a clustering metric.  A blank value means it cannot.
   * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set.  Note that many of the analyses lump neighbour sets 1 and 2 together.  For more details on neighbour sets, see the SpatialConditions page.
 
-|| *Type* || *Name* || *Subroutine* || *Analysis Description* || *Index* || *Index Description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| *Endemism and Rarity* || Endemism central || calc_endemism_central || Calculate endemism for labels only in neighbour set 1, but with local ranges calculated using both neighbourhoods || ENDC_CWE || Corrected weighted endemism ||  || 1 ||
-||  ||  ||  ||  || ENDC_RANGELIST || List of ranges for each label used in the endemism calculations ||  || 1 ||
-||  ||  ||  ||  || ENDC_RICHNESS || Richness used in ENDC_CWE (same as index RICHNESS_SET1) ||  || 1 ||
-||  ||  ||  ||  || ENDC_SINGLE || Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in. Useful if your data have sampling biases. (See Slatyer et al. (2007) J. Biogeog). ||  || 1 ||
-||  ||  ||  ||  || ENDC_WE || Weighted endemism ||  || 1 ||
-||  ||  ||  ||  || ENDC_WTLIST || List of weights for each label used in the endemism calculations ||  || 1 ||
-||  || Endemism whole || calc_endemism_whole || Calculate endemism for all labels found in both neighbourhoods || ENDW_CWE || Corrected weighted endemism ||  || 1 ||
-||  ||  ||  ||  || ENDW_RANGELIST || List of ranges for each label used in the endemism calculations ||  || 1 ||
-||  ||  ||  ||  || ENDW_RICHNESS || Richness used in ENDW_CWE (same as index RICHNESS_ALL) ||  || 1 ||
-||  ||  ||  ||  || ENDW_SINGLE || Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in. Useful if your data have sampling biases. (See Slatyer et al. (2007) J. Biogeog). ||  || 1 ||
-||  ||  ||  ||  || ENDW_WE || Weighted endemism ||  || 1 ||
-||  ||  ||  ||  || ENDW_WTLIST || List of weights for each label used in the endemism calculations ||  || 1 ||
-||  || Rarity central || calc_rarity_central || Calculate rarity for species only in neighbour set 1, but with local sample counts calculated from both neighbourhoods. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied. || RAREC_CWE || Corrected weighted rarity ||  || 1 ||
-||  ||  ||  ||  || RAREC_RICHNESS || Richness used in RAREC_CWE ||  || 1 ||
-||  ||  ||  ||  || RAREC_WE || Weighted rarity ||  || 1 ||
-||  || Rarity whole || calc_rarity_whole || Calculate rarity for all species in both neighbourhoods. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied. || RAREW_CWE || Corrected weighted rarity ||  || 1 ||
-||  ||  ||  ||  || RAREW_RICHNESS || Richness used in RAREW_CWE ||  || 1 ||
-||  ||  ||  ||  || RAREW_WE || Weighted rarity ||  || 1 ||
-|| *Inter-event Interval Statistics* || Inter-event interval statistics || calc_iei_stats || Calculate summary statistics from a set of numeric labels that represent event times. Events are calculated within groups and then aggregated if there are multiple nbrs. || IEI_CV || Coefficient of variation (IEI_SD / IEI_MEAN) ||  || 1 ||
-||  ||  ||  ||  || IEI_GMEAN || Geometric mean ||  || 1 ||
-||  ||  ||  ||  || IEI_KURT || Kurtosis ||  || 1 ||
-||  ||  ||  ||  || IEI_MAX || Maximum value (100th percentile) ||  || 1 ||
-||  ||  ||  ||  || IEI_MEAN || Mean || cluster metric || 1 ||
-||  ||  ||  ||  || IEI_MIN || Minimum value (zero percentile) ||  || 1 ||
-||  ||  ||  ||  || IEI_N || Number of samples ||  || 1 ||
-||  ||  ||  ||  || IEI_RANGE || Range (max - min) ||  || 1 ||
-||  ||  ||  ||  || IEI_SD || Standard deviation ||  || 1 ||
-||  ||  ||  ||  || IEI_SKEW || Skewness ||  || 1 ||
-||  || Inter-event interval statistics data || calc_iei_data || The underlying data used for the IEI stats. || IEI_DATA_ARRAY || Interval data in array form. Multiple occurrences are repeated ||  || 1 ||
-||  ||  ||  ||  || IEI_DATA_HASH || Interval data in hash form where the interval is the key and number of occurrences is the value ||  || 1 ||
-|| *Lists and counts* || Element counts || calc_elements_used || Counts and lists of elements used in neighbour sets 1 and 2. These form the basis for all the spatial analyses. || EL_COUNT_ALL || Count of elements in both neighbour sets ||  || 2 ||
-||  ||  ||  ||  || EL_COUNT_SET1 || Count of elements in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || EL_COUNT_SET2 || Count of elements in neighbour set 2 ||  || 2 ||
-||  ||  ||  ||  || EL_LIST_ALL || List of elements in both neighour sets ||  || 2 ||
-||  ||  ||  ||  || EL_LIST_SET1 || List of elements in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || EL_LIST_SET2 || List of elements in neighbour set 2 ||  || 2 ||
-||  || Label Counts || calc_label_counts || Counts of labels in neighbour sets 1 and 2. These form the basis for the Taxonomic Dissimilarity and Comparison indices. || ABC_A || Common to both nenighbour sets ||  || 2 ||
-||  ||  ||  ||  || ABC_ABC || Total label count across both neighbour sets (same as RICHNESS_ALL) ||  || 2 ||
-||  ||  ||  ||  || ABC_B || Unique to neighbour set 1 ||  || 2 ||
-||  ||  ||  ||  || ABC_C || Unique to neighbour set 2 ||  || 2 ||
-||  || Ranges || calc_local_ranges || Local ranges within element sets. Includes lists and basic summary stats. || ABC2_LABELS_ALL || Labels in both element sets ||  || 2 ||
-||  ||  ||  ||  || ABC2_LABELS_SET1 || Labels in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || ABC2_LABELS_SET2 || Labels in neighbour set 2 ||  || 2 ||
-||  ||  ||  ||  || ABC2_MEAN_ALL || Mean label range in both element sets ||  || 1 ||
-||  ||  ||  ||  || ABC2_MEAN_SET1 || Mean label range in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || ABC2_MEAN_SET2 || Mean label range in neighbour set 2 ||  || 2 ||
-||  ||  ||  ||  || ABC2_SD_ALL || Standard deviation of label ranges in both element sets ||  || 2 ||
-||  ||  ||  ||  || ABC2_SD_SET1 || Standard deviation of label ranges in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || ABC2_SD_SET2 || Standard deviation of label ranges in neighbour set 2 ||  || 2 ||
-||  || Redundancy || calc_redundancy || Ratio of labels to samples. Values close to 1 are well sampled while zero means there is no redundancy in the sampling || REDUNDANCY_ALL || for both neighbour sets ||  || 1 ||
-||  ||  ||  ||  || REDUNDANCY_SET1 || for neighour set 1 ||  || 1 ||
-||  ||  ||  ||  || REDUNDANCY_SET2 || for neighour set 2 ||  || 2 ||
-||  || Richness || calc_richness || Count the number of labels in the neighbour sets || COMPL || a crude complementarity index for use in clustering might be disabled in a later release || cluster metric || 2 ||
-||  ||  ||  ||  || RICHNESS_ALL || for both sets of neighbours ||  || 1 ||
-||  ||  ||  ||  || RICHNESS_SET1 || for neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || RICHNESS_SET2 || for neighbour set 2 ||  || 2 ||
-||  || Sample counts || calc_local_samples || Sample counts within element sets, includes lists and basic summary stats These form the basis of the sample indices || ABC3_LABELS_ALL || Labels in both neighbour sets ||  || 2 ||
-||  ||  ||  ||  || ABC3_LABELS_SET1 || Labels in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || ABC3_LABELS_SET2 || Labels in neighbour set 2 ||  || 2 ||
-||  ||  ||  ||  || ABC3_MEAN_ALL || Mean sample counts of labels in both element sets ||  || 2 ||
-||  ||  ||  ||  || ABC3_MEAN_SET1 || Mean sample counts of labels in neighbour set1 ||  || 1 ||
-||  ||  ||  ||  || ABC3_MEAN_SET2 || Mean sample counts of labels in neighbour set 2 ||  || 2 ||
-||  ||  ||  ||  || ABC3_SD_ALL || Standard deviation of label sample counts in both element sets ||  || 2 ||
-||  ||  ||  ||  || ABC3_SD_SET1 || Standard deviation of sample counts in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || ABC3_SD_SET2 || Standard deviation of sample counts in neighbour set 2 ||  || 2 ||
-||  ||  ||  ||  || ABC3_SUM_ALL || Sum of the sample counts in neighbour set2 ||  || 2 ||
-||  ||  ||  ||  || ABC3_SUM_SET1 || Sum of the sample counts in neighbour set1 ||  || 1 ||
-||  ||  ||  ||  || ABC3_SUM_SET2 || Sum of the sample counts in neighbour set2 ||  || 2 ||
-|| *Matrix* || Matrix overlap || calc_overlap_mx || Calculate matrix overlap metrics between the two sets of groups. Many of them measure homogeneity, where 0 = homogeneous. Excludes labels not in the selected matrix, and variances are deviations from zero. || MXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || MXO_MEAN || Mean of neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || MXO_M_RATIO || Ratio of the set1 mean to the total mean = (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
-||  ||  ||  ||  || MXO_N || Count of labels used in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || MXO_TLABELS || All labels used ||  || 1 ||
-||  ||  ||  ||  || MXO_TMEAN || Mean of both neighbour sets || cluster metric || 1 ||
-||  ||  ||  ||  || MXO_TN || Count of all labels used ||  || 1 ||
-||  ||  ||  ||  || MXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
-||  ||  ||  ||  || MXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
-||  ||  ||  ||  || MXO_V_RATIO || Ratio of the set1 variance to the total variance = (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
-||  ||  ||  ||  || MXO_WARD || Ward's dissimilarity metric - set1 versus set2 || cluster metric || 2 ||
-||  ||  ||  ||  || MXO_Z_RATIO || A ratio of the z-scores = (MXO_MEAN / sqrt (MXO_VARIANCE)) / (MXO_TMEAN / sqrt (MXO_TVARIANCE)) ||  || 1 ||
-||  ||  ||  ||  || MXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD = ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
-||  || Matrix statistics || calc_matrix_stats || Calculate summary statistics of labels in the selected matrix. Uses labels from both neighbourhoods || MX_KURT || Kurtosis ||  || 1 ||
-||  ||  ||  ||  || MX_MAXVALUE || Maximum value ||  || 1 ||
-||  ||  ||  ||  || MX_MEAN || Mean ||  || 1 ||
-||  ||  ||  ||  || MX_MEDIAN || Median ||  || 1 ||
-||  ||  ||  ||  || MX_MINVALUE || Minimum value ||  || 1 ||
-||  ||  ||  ||  || MX_N || Number of samples (comparisons, not labels) ||  || 1 ||
-||  ||  ||  ||  || MX_PCT05 || 5th percentile value ||  || 1 ||
-||  ||  ||  ||  || MX_PCT25 || First quartile (25th percentile) ||  || 1 ||
-||  ||  ||  ||  || MX_PCT75 || Third quartile (75th percentile) ||  || 1 ||
-||  ||  ||  ||  || MX_PCT95 || 95th percentile value ||  || 1 ||
-||  ||  ||  ||  || MX_RANGE || Range (max-min) ||  || 1 ||
-||  ||  ||  ||  || MX_SD || Standard deviation ||  || 1 ||
-||  ||  ||  ||  || MX_SKEW || Skewness ||  || 1 ||
-||  ||  ||  ||  || MX_VALUES || List of the matrix values ||  || 1 ||
-||  || Rao's quadratic entropy, matrix weighted || calc_mx_rao_qe || Calculate Rao's quadratic entropy for a matrix weights scheme. BaseData labels not in the matrix are ignored || MX_RAO_QE || Matrix weighted quadratic entropy ||  || 1 ||
-||  ||  ||  ||  || MX_RAO_TLABELS || List of labels and values used in the MX_RAO_QE calculations ||  || 1 ||
-||  ||  ||  ||  || MX_RAO_TN || Count of comparisons used to calculate MX_RAO_QE ||  || 1 ||
-|| *Numeric Labels* || Numeric label data || calc_numeric_label_data || The underlying data used for the numeric labels stats. Use 'Sample Counts' for the hash form. || NUM_DATA_ARRAY || Numeric label data in array form. Multiple occurrences are repeated. ||  || 1 ||
-||  || Numeric label harmonic and geometric means || calc_numeric_label_other_means || Calculate geometric and harmonic means for a set of numeric labels. || NUM_GMEAN || Geometric mean ||  || 1 ||
-||  ||  ||  ||  || NUM_HMEAN || Harmonic mean ||  || 1 ||
-||  || Numeric label quantiles || calc_numeric_label_quantiles || Calculate quantiles from a set of numeric labels. Weights by samples so multiple occurrences are accounted for. || NUM_Q005 || 5th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q010 || 10th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q015 || 15th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q020 || 20th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q025 || 25th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q030 || 30th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q035 || 35th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q040 || 40th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q045 || 45th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q050 || 50th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q055 || 55th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q060 || 60th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q065 || 65th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q070 || 70th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q075 || 75th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q080 || 80th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q085 || 85th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q090 || 90th percentile ||  || 1 ||
-||  ||  ||  ||  || NUM_Q095 || 95th percentile ||  || 1 ||
-||  || Numeric label statistics || calc_numeric_label_stats || Calculate summary statistics from a set of numeric labels. Weights by samples so multiple occurrences are accounted for. || NUM_CV || Coefficient of variation (NUM_SD / NUM_MEAN) ||  || 1 ||
-||  ||  ||  ||  || NUM_KURT || Kurtosis ||  || 1 ||
-||  ||  ||  ||  || NUM_MAX || Maximum value (100th quantile) ||  || 1 ||
-||  ||  ||  ||  || NUM_MEAN || Mean || cluster metric || 1 ||
-||  ||  ||  ||  || NUM_MIN || Minimum value (zero quantile) ||  || 1 ||
-||  ||  ||  ||  || NUM_N || Number of samples ||  || 1 ||
-||  ||  ||  ||  || NUM_RANGE || Range (max - min) ||  || 1 ||
-||  ||  ||  ||  || NUM_SD || Standard deviation ||  || 1 ||
-||  ||  ||  ||  || NUM_SKEW || Skewness ||  || 1 ||
-|| *Phylogenetic Indices* || Phylogenetic Diversity || calc_pd || Calculate PD using species in both neighbourhoods. || PD || Phylogenetic diversity ||  || 1 ||
-||  ||  ||  ||  || PD_INCLUDED_NODES || Tree nodes included in the PD calculations ||  || 1 ||
-||  ||  ||  ||  || PD_P || Phylogenetic diversity as a proportion of total tree length ||  || 1 ||
-||  ||  ||  ||  || PD_P_per_taxon || Phylogenetic diversity per taxon as a proportion of total tree length ||  || 1 ||
-||  ||  ||  ||  || PD_per_taxon || Phylogenetic diversity per taxon ||  || 1 ||
-||  || Phylogenetic Endemism || calc_pe || Calculate Phylogenetic endemism (PE). || PE_RANGELIST || Node ranges used in PE calcs ||  || 1 ||
-||  ||  ||  ||  || PE_WE || Phylogenetic endemism ||  || 1 ||
-||  ||  ||  ||  || PE_WE_P || Phylogenetic weighted endemism as a proportion of the total tree length ||  || 1 ||
-||  ||  ||  ||  || PE_WE_SINGLE || Phylogenetic endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
-||  ||  ||  ||  || PE_WE_SINGLE_P || Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
-||  ||  ||  ||  || PE_WTLIST || Node weights used in PE calcs ||  || 1 ||
-|| *Taxonomic Dissimilarity and Comparison* || Beta diversity || calc_beta_diversity || Beta diversity between neighbour sets 1 and 2. || BETA_2 || The other beta || cluster metric || 2 ||
-||  ||  ||  ||  || BETA_W || Whittaker's beta (Note that this is the same as the Sorenson index.) || cluster metric || 2 ||
-||  || Bray-Curtis non-metric || calc_bray_curtis || Bray-Curtis dissimilarity between two sets of labels. Reduces to the Sorenson metric for binary data. || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 2 ||
-||  || Jaccard || calc_jaccard || Jaccard dissimilarity between the labels in neighbour sets 1 and 2. || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
-||  || Rao's quadratic entropy, taxonomically weighted || calc_tx_rao_qe || Calculate Rao's quadratic entropy for a taxonomic weights scheme. Should collapse to be the Simpson index for presence/absence data. || TX_RAO_QE || Taxonomically weighted quadratic entropy ||  || 1 ||
-||  ||  ||  ||  || TX_RAO_TLABELS || List of labels and values used in the TX_RAO_QE calculations ||  || 1 ||
-||  ||  ||  ||  || TX_RAO_TN || Count of comparisons used to calculate TX_RAO_QE ||  || 1 ||
-||  || S2 || calc_s2 || S2 dissimilarity between two sets of labels || S2 || dissimilarity index from Lennon et al.:Lennon, J.J., Koleff, P., Greenwood, J.J.D. and Gaston, K.J. (2001) The geographical structure of British bird distributions: diversity, spatial turnover and scale. Journal of Animal Ecology, 70, 966-979. || cluster metric || 2 ||
-||  || Simpson and Shannon || calc_simpson_shannon || Simpson and Shannon diversity metrics using samples from all neighbourhoods. || SHANNON_E || Shannon's evenness (H/ HMAX) ||  || 1 ||
-||  ||  ||  ||  || SHANNON_H || Shannon's H ||  || 1 ||
-||  ||  ||  ||  || SHANNON_HMAX || maximum possible value of Shannon's H ||  || 1 ||
-||  ||  ||  ||  || SIMPSON_D || Simpson's D. A score of zero is more similar. || cluster metric || 1 ||
-||  || Sorenson || calc_sorenson || Sorenson dissimilarity between two sets of labels. It is the complement of the (unimplemented) Czechanowski index, and numerically the same as Whittaker's beta. || SORENSON || Sorenson index || cluster metric || 2 ||
-||  || Taxonomic overlap || calc_overlap_tx || Calculate taxonomic overlap metrics between the two sets of elements. Uses deviation from zero for variances. In most cases the means and variances will be the same. Bears some relation to Rao's quadratic entropy after modification to weight by sample counts. || TXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || TXO_MEAN || Mean of neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || TXO_M_RATIO || Ratio of the set1 mean to the whole mean (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
-||  ||  ||  ||  || TXO_N || Count of labels used in neighbour set 1 ||  || 1 ||
-||  ||  ||  ||  || TXO_TLABELS || All labels used ||  || 1 ||
-||  ||  ||  ||  || TXO_TMEAN || Mean of both neighbour sets ||  || 1 ||
-||  ||  ||  ||  || TXO_TN || Count of all labels used ||  || 1 ||
-||  ||  ||  ||  || TXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
-||  ||  ||  ||  || TXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
-||  ||  ||  ||  || TXO_V_RATIO || Ratio of the set1 variance to the total variance (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
-||  ||  ||  ||  || TXO_WARD || Ward's dissimilarity metric, set1 versus set2 || cluster metric || 2 ||
-||  ||  ||  ||  || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||  || 1 ||
-||  ||  ||  ||  || TXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
+|| ** || *Type* || *Name* || *Subroutine* || *Analysis Description* || *Index* || *Index Description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
+|| 1 || *Endemism and Rarity* || Endemism central || calc_endemism_central || Calculate endemism for labels only in neighbour set 1, but with local ranges calculated using both neighbourhoods || ENDC_CWE || Corrected weighted endemism ||  || 1 ||
+|| 2 ||  ||  ||  ||  || ENDC_RANGELIST || List of ranges for each label used in the endemism calculations ||  || 1 ||
+|| 3 ||  ||  ||  ||  || ENDC_RICHNESS || Richness used in ENDC_CWE (same as index RICHNESS_SET1) ||  || 1 ||
+|| 4 ||  ||  ||  ||  || ENDC_SINGLE || Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in. Useful if your data have sampling biases. (See Slatyer et al. (2007) J. Biogeog). ||  || 1 ||
+|| 5 ||  ||  ||  ||  || ENDC_WE || Weighted endemism ||  || 1 ||
+|| 6 ||  ||  ||  ||  || ENDC_WTLIST || List of weights for each label used in the endemism calculations ||  || 1 ||
+|| 7 ||  || Endemism whole || calc_endemism_whole || Calculate endemism for all labels found in both neighbourhoods || ENDW_CWE || Corrected weighted endemism ||  || 1 ||
+|| 8 ||  ||  ||  ||  || ENDW_RANGELIST || List of ranges for each label used in the endemism calculations ||  || 1 ||
+|| 9 ||  ||  ||  ||  || ENDW_RICHNESS || Richness used in ENDW_CWE (same as index RICHNESS_ALL) ||  || 1 ||
+|| 10 ||  ||  ||  ||  || ENDW_SINGLE || Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in. Useful if your data have sampling biases. (See Slatyer et al. (2007) J. Biogeog). ||  || 1 ||
+|| 11 ||  ||  ||  ||  || ENDW_WE || Weighted endemism ||  || 1 ||
+|| 12 ||  ||  ||  ||  || ENDW_WTLIST || List of weights for each label used in the endemism calculations ||  || 1 ||
+|| 13 ||  || Rarity central || calc_rarity_central || Calculate rarity for species only in neighbour set 1, but with local sample counts calculated from both neighbourhoods. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied. || RAREC_CWE || Corrected weighted rarity ||  || 1 ||
+|| 14 ||  ||  ||  ||  || RAREC_RICHNESS || Richness used in RAREC_CWE ||  || 1 ||
+|| 15 ||  ||  ||  ||  || RAREC_WE || Weighted rarity ||  || 1 ||
+|| 16 ||  || Rarity whole || calc_rarity_whole || Calculate rarity for all species in both neighbourhoods. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied. || RAREW_CWE || Corrected weighted rarity ||  || 1 ||
+|| 17 ||  ||  ||  ||  || RAREW_RICHNESS || Richness used in RAREW_CWE ||  || 1 ||
+|| 18 ||  ||  ||  ||  || RAREW_WE || Weighted rarity ||  || 1 ||
+|| 19 || *Inter-event Interval Statistics* || Inter-event interval statistics || calc_iei_stats || Calculate summary statistics from a set of numeric labels that represent event times. Events are calculated within groups and then aggregated if there are multiple nbrs. || IEI_CV || Coefficient of variation (IEI_SD / IEI_MEAN) ||  || 1 ||
+|| 20 ||  ||  ||  ||  || IEI_GMEAN || Geometric mean ||  || 1 ||
+|| 21 ||  ||  ||  ||  || IEI_KURT || Kurtosis ||  || 1 ||
+|| 22 ||  ||  ||  ||  || IEI_MAX || Maximum value (100th percentile) ||  || 1 ||
+|| 23 ||  ||  ||  ||  || IEI_MEAN || Mean || cluster metric || 1 ||
+|| 24 ||  ||  ||  ||  || IEI_MIN || Minimum value (zero percentile) ||  || 1 ||
+|| 25 ||  ||  ||  ||  || IEI_N || Number of samples ||  || 1 ||
+|| 26 ||  ||  ||  ||  || IEI_RANGE || Range (max - min) ||  || 1 ||
+|| 27 ||  ||  ||  ||  || IEI_SD || Standard deviation ||  || 1 ||
+|| 28 ||  ||  ||  ||  || IEI_SKEW || Skewness ||  || 1 ||
+|| 29 ||  || Inter-event interval statistics data || calc_iei_data || The underlying data used for the IEI stats. || IEI_DATA_ARRAY || Interval data in array form. Multiple occurrences are repeated ||  || 1 ||
+|| 30 ||  ||  ||  ||  || IEI_DATA_HASH || Interval data in hash form where the interval is the key and number of occurrences is the value ||  || 1 ||
+|| 31 || *Lists and counts* || Element counts || calc_elements_used || Counts and lists of elements used in neighbour sets 1 and 2. These form the basis for all the spatial analyses. || EL_COUNT_ALL || Count of elements in both neighbour sets ||  || 2 ||
+|| 32 ||  ||  ||  ||  || EL_COUNT_SET1 || Count of elements in neighbour set 1 ||  || 1 ||
+|| 33 ||  ||  ||  ||  || EL_COUNT_SET2 || Count of elements in neighbour set 2 ||  || 2 ||
+|| 34 ||  ||  ||  ||  || EL_LIST_ALL || List of elements in both neighour sets ||  || 2 ||
+|| 35 ||  ||  ||  ||  || EL_LIST_SET1 || List of elements in neighbour set 1 ||  || 1 ||
+|| 36 ||  ||  ||  ||  || EL_LIST_SET2 || List of elements in neighbour set 2 ||  || 2 ||
+|| 37 ||  || Label Counts || calc_label_counts || Counts of labels in neighbour sets 1 and 2. These form the basis for the Taxonomic Dissimilarity and Comparison indices. || ABC_A || Common to both nenighbour sets ||  || 2 ||
+|| 38 ||  ||  ||  ||  || ABC_ABC || Total label count across both neighbour sets (same as RICHNESS_ALL) ||  || 2 ||
+|| 39 ||  ||  ||  ||  || ABC_B || Unique to neighbour set 1 ||  || 2 ||
+|| 40 ||  ||  ||  ||  || ABC_C || Unique to neighbour set 2 ||  || 2 ||
+|| 41 ||  || Ranges || calc_local_ranges || Local ranges within element sets. Includes lists and basic summary stats. || ABC2_LABELS_ALL || Labels in both element sets ||  || 2 ||
+|| 42 ||  ||  ||  ||  || ABC2_LABELS_SET1 || Labels in neighbour set 1 ||  || 1 ||
+|| 43 ||  ||  ||  ||  || ABC2_LABELS_SET2 || Labels in neighbour set 2 ||  || 2 ||
+|| 44 ||  ||  ||  ||  || ABC2_MEAN_ALL || Mean label range in both element sets ||  || 1 ||
+|| 45 ||  ||  ||  ||  || ABC2_MEAN_SET1 || Mean label range in neighbour set 1 ||  || 1 ||
+|| 46 ||  ||  ||  ||  || ABC2_MEAN_SET2 || Mean label range in neighbour set 2 ||  || 2 ||
+|| 47 ||  ||  ||  ||  || ABC2_SD_ALL || Standard deviation of label ranges in both element sets ||  || 2 ||
+|| 48 ||  ||  ||  ||  || ABC2_SD_SET1 || Standard deviation of label ranges in neighbour set 1 ||  || 1 ||
+|| 49 ||  ||  ||  ||  || ABC2_SD_SET2 || Standard deviation of label ranges in neighbour set 2 ||  || 2 ||
+|| 50 ||  || Redundancy || calc_redundancy || Ratio of labels to samples. Values close to 1 are well sampled while zero means there is no redundancy in the sampling || REDUNDANCY_ALL || for both neighbour sets ||  || 1 ||
+|| 51 ||  ||  ||  ||  || REDUNDANCY_SET1 || for neighour set 1 ||  || 1 ||
+|| 52 ||  ||  ||  ||  || REDUNDANCY_SET2 || for neighour set 2 ||  || 2 ||
+|| 53 ||  || Richness || calc_richness || Count the number of labels in the neighbour sets || COMPL || a crude complementarity index for use in clustering might be disabled in a later release || cluster metric || 2 ||
+|| 54 ||  ||  ||  ||  || RICHNESS_ALL || for both sets of neighbours ||  || 1 ||
+|| 55 ||  ||  ||  ||  || RICHNESS_SET1 || for neighbour set 1 ||  || 1 ||
+|| 56 ||  ||  ||  ||  || RICHNESS_SET2 || for neighbour set 2 ||  || 2 ||
+|| 57 ||  || Sample counts || calc_local_samples || Sample counts within element sets, includes lists and basic summary stats These form the basis of the sample indices || ABC3_LABELS_ALL || Labels in both neighbour sets ||  || 2 ||
+|| 58 ||  ||  ||  ||  || ABC3_LABELS_SET1 || Labels in neighbour set 1 ||  || 1 ||
+|| 59 ||  ||  ||  ||  || ABC3_LABELS_SET2 || Labels in neighbour set 2 ||  || 2 ||
+|| 60 ||  ||  ||  ||  || ABC3_MEAN_ALL || Mean sample counts of labels in both element sets ||  || 2 ||
+|| 61 ||  ||  ||  ||  || ABC3_MEAN_SET1 || Mean sample counts of labels in neighbour set1 ||  || 1 ||
+|| 62 ||  ||  ||  ||  || ABC3_MEAN_SET2 || Mean sample counts of labels in neighbour set 2 ||  || 2 ||
+|| 63 ||  ||  ||  ||  || ABC3_SD_ALL || Standard deviation of label sample counts in both element sets ||  || 2 ||
+|| 64 ||  ||  ||  ||  || ABC3_SD_SET1 || Standard deviation of sample counts in neighbour set 1 ||  || 1 ||
+|| 65 ||  ||  ||  ||  || ABC3_SD_SET2 || Standard deviation of sample counts in neighbour set 2 ||  || 2 ||
+|| 66 ||  ||  ||  ||  || ABC3_SUM_ALL || Sum of the sample counts in neighbour set2 ||  || 2 ||
+|| 67 ||  ||  ||  ||  || ABC3_SUM_SET1 || Sum of the sample counts in neighbour set1 ||  || 1 ||
+|| 68 ||  ||  ||  ||  || ABC3_SUM_SET2 || Sum of the sample counts in neighbour set2 ||  || 2 ||
+|| 69 || *Matrix* || Matrix overlap || calc_overlap_mx || Calculate matrix overlap metrics between the two sets of groups. Many of them measure homogeneity, where 0 = homogeneous. Excludes labels not in the selected matrix, and variances are deviations from zero. || MXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
+|| 70 ||  ||  ||  ||  || MXO_MEAN || Mean of neighbour set 1 ||  || 1 ||
+|| 71 ||  ||  ||  ||  || MXO_M_RATIO || Ratio of the set1 mean to the total mean = (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
+|| 72 ||  ||  ||  ||  || MXO_N || Count of labels used in neighbour set 1 ||  || 1 ||
+|| 73 ||  ||  ||  ||  || MXO_TLABELS || All labels used ||  || 1 ||
+|| 74 ||  ||  ||  ||  || MXO_TMEAN || Mean of both neighbour sets || cluster metric || 1 ||
+|| 75 ||  ||  ||  ||  || MXO_TN || Count of all labels used ||  || 1 ||
+|| 76 ||  ||  ||  ||  || MXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
+|| 77 ||  ||  ||  ||  || MXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
+|| 78 ||  ||  ||  ||  || MXO_V_RATIO || Ratio of the set1 variance to the total variance = (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
+|| 79 ||  ||  ||  ||  || MXO_WARD || Ward's dissimilarity metric - set1 versus set2 || cluster metric || 2 ||
+|| 80 ||  ||  ||  ||  || MXO_Z_RATIO || A ratio of the z-scores = (MXO_MEAN / sqrt (MXO_VARIANCE)) / (MXO_TMEAN / sqrt (MXO_TVARIANCE)) ||  || 1 ||
+|| 81 ||  ||  ||  ||  || MXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD = ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
+|| 82 ||  || Matrix statistics || calc_matrix_stats || Calculate summary statistics of labels in the selected matrix. Uses labels from both neighbourhoods || MX_KURT || Kurtosis ||  || 1 ||
+|| 83 ||  ||  ||  ||  || MX_MAXVALUE || Maximum value ||  || 1 ||
+|| 84 ||  ||  ||  ||  || MX_MEAN || Mean ||  || 1 ||
+|| 85 ||  ||  ||  ||  || MX_MEDIAN || Median ||  || 1 ||
+|| 86 ||  ||  ||  ||  || MX_MINVALUE || Minimum value ||  || 1 ||
+|| 87 ||  ||  ||  ||  || MX_N || Number of samples (comparisons, not labels) ||  || 1 ||
+|| 88 ||  ||  ||  ||  || MX_PCT05 || 5th percentile value ||  || 1 ||
+|| 89 ||  ||  ||  ||  || MX_PCT25 || First quartile (25th percentile) ||  || 1 ||
+|| 90 ||  ||  ||  ||  || MX_PCT75 || Third quartile (75th percentile) ||  || 1 ||
+|| 91 ||  ||  ||  ||  || MX_PCT95 || 95th percentile value ||  || 1 ||
+|| 92 ||  ||  ||  ||  || MX_RANGE || Range (max-min) ||  || 1 ||
+|| 93 ||  ||  ||  ||  || MX_SD || Standard deviation ||  || 1 ||
+|| 94 ||  ||  ||  ||  || MX_SKEW || Skewness ||  || 1 ||
+|| 95 ||  ||  ||  ||  || MX_VALUES || List of the matrix values ||  || 1 ||
+|| 96 ||  || Rao's quadratic entropy, matrix weighted || calc_mx_rao_qe || Calculate Rao's quadratic entropy for a matrix weights scheme. BaseData labels not in the matrix are ignored || MX_RAO_QE || Matrix weighted quadratic entropy ||  || 1 ||
+|| 97 ||  ||  ||  ||  || MX_RAO_TLABELS || List of labels and values used in the MX_RAO_QE calculations ||  || 1 ||
+|| 98 ||  ||  ||  ||  || MX_RAO_TN || Count of comparisons used to calculate MX_RAO_QE ||  || 1 ||
+|| 99 || *Numeric Labels* || Numeric label data || calc_numeric_label_data || The underlying data used for the numeric labels stats. Use 'Sample Counts' for the hash form. || NUM_DATA_ARRAY || Numeric label data in array form. Multiple occurrences are repeated. ||  || 1 ||
+|| 100 ||  || Numeric label harmonic and geometric means || calc_numeric_label_other_means || Calculate geometric and harmonic means for a set of numeric labels. || NUM_GMEAN || Geometric mean ||  || 1 ||
+|| 101 ||  ||  ||  ||  || NUM_HMEAN || Harmonic mean ||  || 1 ||
+|| 102 ||  || Numeric label quantiles || calc_numeric_label_quantiles || Calculate quantiles from a set of numeric labels. Weights by samples so multiple occurrences are accounted for. || NUM_Q005 || 5th percentile ||  || 1 ||
+|| 103 ||  ||  ||  ||  || NUM_Q010 || 10th percentile ||  || 1 ||
+|| 104 ||  ||  ||  ||  || NUM_Q015 || 15th percentile ||  || 1 ||
+|| 105 ||  ||  ||  ||  || NUM_Q020 || 20th percentile ||  || 1 ||
+|| 106 ||  ||  ||  ||  || NUM_Q025 || 25th percentile ||  || 1 ||
+|| 107 ||  ||  ||  ||  || NUM_Q030 || 30th percentile ||  || 1 ||
+|| 108 ||  ||  ||  ||  || NUM_Q035 || 35th percentile ||  || 1 ||
+|| 109 ||  ||  ||  ||  || NUM_Q040 || 40th percentile ||  || 1 ||
+|| 110 ||  ||  ||  ||  || NUM_Q045 || 45th percentile ||  || 1 ||
+|| 111 ||  ||  ||  ||  || NUM_Q050 || 50th percentile ||  || 1 ||
+|| 112 ||  ||  ||  ||  || NUM_Q055 || 55th percentile ||  || 1 ||
+|| 113 ||  ||  ||  ||  || NUM_Q060 || 60th percentile ||  || 1 ||
+|| 114 ||  ||  ||  ||  || NUM_Q065 || 65th percentile ||  || 1 ||
+|| 115 ||  ||  ||  ||  || NUM_Q070 || 70th percentile ||  || 1 ||
+|| 116 ||  ||  ||  ||  || NUM_Q075 || 75th percentile ||  || 1 ||
+|| 117 ||  ||  ||  ||  || NUM_Q080 || 80th percentile ||  || 1 ||
+|| 118 ||  ||  ||  ||  || NUM_Q085 || 85th percentile ||  || 1 ||
+|| 119 ||  ||  ||  ||  || NUM_Q090 || 90th percentile ||  || 1 ||
+|| 120 ||  ||  ||  ||  || NUM_Q095 || 95th percentile ||  || 1 ||
+|| 121 ||  || Numeric label statistics || calc_numeric_label_stats || Calculate summary statistics from a set of numeric labels. Weights by samples so multiple occurrences are accounted for. || NUM_CV || Coefficient of variation (NUM_SD / NUM_MEAN) ||  || 1 ||
+|| 122 ||  ||  ||  ||  || NUM_KURT || Kurtosis ||  || 1 ||
+|| 123 ||  ||  ||  ||  || NUM_MAX || Maximum value (100th quantile) ||  || 1 ||
+|| 124 ||  ||  ||  ||  || NUM_MEAN || Mean || cluster metric || 1 ||
+|| 125 ||  ||  ||  ||  || NUM_MIN || Minimum value (zero quantile) ||  || 1 ||
+|| 126 ||  ||  ||  ||  || NUM_N || Number of samples ||  || 1 ||
+|| 127 ||  ||  ||  ||  || NUM_RANGE || Range (max - min) ||  || 1 ||
+|| 128 ||  ||  ||  ||  || NUM_SD || Standard deviation ||  || 1 ||
+|| 129 ||  ||  ||  ||  || NUM_SKEW || Skewness ||  || 1 ||
+|| 130 || *Phylogenetic Indices* || Phylogenetic Diversity || calc_pd || Calculate PD using species in both neighbourhoods. || PD || Phylogenetic diversity ||  || 1 ||
+|| 131 ||  ||  ||  ||  || PD_INCLUDED_NODES || Tree nodes included in the PD calculations ||  || 1 ||
+|| 132 ||  ||  ||  ||  || PD_P || Phylogenetic diversity as a proportion of total tree length ||  || 1 ||
+|| 133 ||  ||  ||  ||  || PD_P_per_taxon || Phylogenetic diversity per taxon as a proportion of total tree length ||  || 1 ||
+|| 134 ||  ||  ||  ||  || PD_per_taxon || Phylogenetic diversity per taxon ||  || 1 ||
+|| 135 ||  || Phylogenetic Endemism || calc_pe || Calculate Phylogenetic endemism (PE). || PE_RANGELIST || Node ranges used in PE calcs ||  || 1 ||
+|| 136 ||  ||  ||  ||  || PE_WE || Phylogenetic endemism ||  || 1 ||
+|| 137 ||  ||  ||  ||  || PE_WE_P || Phylogenetic weighted endemism as a proportion of the total tree length ||  || 1 ||
+|| 138 ||  ||  ||  ||  || PE_WE_SINGLE || Phylogenetic endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
+|| 139 ||  ||  ||  ||  || PE_WE_SINGLE_P || Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
+|| 140 ||  ||  ||  ||  || PE_WTLIST || Node weights used in PE calcs ||  || 1 ||
+|| 141 || *Taxonomic Dissimilarity and Comparison* || Beta diversity || calc_beta_diversity || Beta diversity between neighbour sets 1 and 2. || BETA_2 || The other beta || cluster metric || 2 ||
+|| 142 ||  ||  ||  ||  || BETA_W || Whittaker's beta (Note that this is the same as the Sorenson index.) || cluster metric || 2 ||
+|| 143 ||  || Bray-Curtis non-metric || calc_bray_curtis || Bray-Curtis dissimilarity between two sets of labels. Reduces to the Sorenson metric for binary data. || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 2 ||
+|| 144 ||  || Jaccard || calc_jaccard || Jaccard dissimilarity between the labels in neighbour sets 1 and 2. || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
+|| 145 ||  || Rao's quadratic entropy, taxonomically weighted || calc_tx_rao_qe || Calculate Rao's quadratic entropy for a taxonomic weights scheme. Should collapse to be the Simpson index for presence/absence data. || TX_RAO_QE || Taxonomically weighted quadratic entropy ||  || 1 ||
+|| 146 ||  ||  ||  ||  || TX_RAO_TLABELS || List of labels and values used in the TX_RAO_QE calculations ||  || 1 ||
+|| 147 ||  ||  ||  ||  || TX_RAO_TN || Count of comparisons used to calculate TX_RAO_QE ||  || 1 ||
+|| 148 ||  || S2 || calc_s2 || S2 dissimilarity between two sets of labels || S2 || dissimilarity index from Lennon et al.:Lennon, J.J., Koleff, P., Greenwood, J.J.D. and Gaston, K.J. (2001) The geographical structure of British bird distributions: diversity, spatial turnover and scale. Journal of Animal Ecology, 70, 966-979. || cluster metric || 2 ||
+|| 149 ||  || Simpson and Shannon || calc_simpson_shannon || Simpson and Shannon diversity metrics using samples from all neighbourhoods. || SHANNON_E || Shannon's evenness (H/ HMAX) ||  || 1 ||
+|| 150 ||  ||  ||  ||  || SHANNON_H || Shannon's H ||  || 1 ||
+|| 151 ||  ||  ||  ||  || SHANNON_HMAX || maximum possible value of Shannon's H ||  || 1 ||
+|| 152 ||  ||  ||  ||  || SIMPSON_D || Simpson's D. A score of zero is more similar. || cluster metric || 1 ||
+|| 153 ||  || Sorenson || calc_sorenson || Sorenson dissimilarity between two sets of labels. It is the complement of the (unimplemented) Czechanowski index, and numerically the same as Whittaker's beta. || SORENSON || Sorenson index || cluster metric || 2 ||
+|| 154 ||  || Taxonomic overlap || calc_overlap_tx || Calculate taxonomic overlap metrics between the two sets of elements. Uses deviation from zero for variances. In most cases the means and variances will be the same. Bears some relation to Rao's quadratic entropy after modification to weight by sample counts. || TXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
+|| 155 ||  ||  ||  ||  || TXO_MEAN || Mean of neighbour set 1 ||  || 1 ||
+|| 156 ||  ||  ||  ||  || TXO_M_RATIO || Ratio of the set1 mean to the whole mean (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
+|| 157 ||  ||  ||  ||  || TXO_N || Count of labels used in neighbour set 1 ||  || 1 ||
+|| 158 ||  ||  ||  ||  || TXO_TLABELS || All labels used ||  || 1 ||
+|| 159 ||  ||  ||  ||  || TXO_TMEAN || Mean of both neighbour sets ||  || 1 ||
+|| 160 ||  ||  ||  ||  || TXO_TN || Count of all labels used ||  || 1 ||
+|| 161 ||  ||  ||  ||  || TXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
+|| 162 ||  ||  ||  ||  || TXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
+|| 163 ||  ||  ||  ||  || TXO_V_RATIO || Ratio of the set1 variance to the total variance (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
+|| 164 ||  ||  ||  ||  || TXO_WARD || Ward's dissimilarity metric, set1 versus set2 || cluster metric || 2 ||
+|| 165 ||  ||  ||  ||  || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||  || 1 ||
+|| 166 ||  ||  ||  ||  || TXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||

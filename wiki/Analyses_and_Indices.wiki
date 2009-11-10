@@ -108,7 +108,7 @@ Most of the headings are self-explanatory.  For the others:
 ||  ||  ||  ||  || MX_RAO_TLABELS || List of labels and values used in the MX_RAO_QE calculations ||  || 1 ||
 ||  ||  ||  ||  || MX_RAO_TN || Count of comparisons used to calculate MX_RAO_QE ||  || 1 ||
 || *Numeric Labels* || Numeric label data || calc_numeric_label_data || The underlying data used for the numeric labels stats. Use 'Sample Counts' for the hash form. || NUM_DATA_ARRAY || Numeric label data in array form. Multiple occurrences are repeated. ||  || 1 ||
-||  || Numeric label harmonic and geometric means || calc_numeric_label_other_means || Calculate geometric and harmonic means for a set of numeric labels Accounts for multiple occurrences by using calc_abc3 || NUM_GMEAN || Geometric mean ||  || 1 ||
+||  || Numeric label harmonic and geometric means || calc_numeric_label_other_means || Calculate geometric and harmonic means for a set of numeric labels. || NUM_GMEAN || Geometric mean ||  || 1 ||
 ||  ||  ||  ||  || NUM_HMEAN || Harmonic mean ||  || 1 ||
 ||  || Numeric label quantiles || calc_numeric_label_quantiles || Calculate quantiles from a set of numeric labels. Weights by samples so multiple occurrences are accounted for. || NUM_Q005 || 5th percentile ||  || 1 ||
 ||  ||  ||  ||  || NUM_Q010 || 10th percentile ||  || 1 ||

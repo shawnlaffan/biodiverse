@@ -5,7 +5,7 @@
 
 = Introduction =
 
-This is a listing of the analyses available in Biodiverse and the indices they generate.  It is generated from the system metadata so is identical to that in visible in the GUI.
+This is a listing of the analyses available in Biodiverse and the indices they generate.  It is generated from the system metadata so is identical to that visible in the GUI.
 
 Most of the headings are self-explanatory.  For the others:
   * The *Subroutine* is the name of the subroutine used to call the function if you are using Biodiverse through a script.  

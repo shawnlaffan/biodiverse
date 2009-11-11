@@ -5,7 +5,7 @@
 
 = Introduction =
 
-This is a listing of the analyses available in Biodiverse and the indices they generate.
+This is a listing of the analyses available in Biodiverse and the indices they generate.  It is generated from the system metadata so is identical to that in visible in the GUI.
 
 Most of the headings are self-explanatory.  For the others:
   * The *Subroutine* is the name of the subroutine used to call the function if you are using Biodiverse through a script.  
@@ -16,6 +16,8 @@ Most of the headings are self-explanatory.  For the others:
 Note that analyses can provide different indices depending on the nature of the !BaseData set used.  This currently applies only to the Hierarchical Labels.  
 
 = Analyses and indices available in Biodiverse =
+
+Generated GMT Wed Nov 11 05:08:31 2009 using Biodiverse version 0.12.
 
 == Endemism and Rarity ==
 

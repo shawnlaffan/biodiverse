@@ -1,17 +1,19 @@
+#summary Table of available analyses and indices
 #labels Featured
- #summary Table of available analyses and indices
 
 <wiki:toc max_depth="4" />
 
 = Introduction =
 
-This is a listing of the indices available in Biodiverse.
+This is a listing of the analyses available in Biodiverse and the indices they generate.
 
 Most of the headings are self-explanatory.  For the others:
   * The *Subroutine* is the name of the subroutine used to call the function if you are using Biodiverse through a script.  
   * The *Index* is the name of the index in the SPATIAL_RESULTS list, or if it is its own list then this will be its name.  These lists can contain a variety of values, but are usually lists of labels with some value, for example the weights used in an endemism analysis.  The names of such lists typically end in "LIST", "ARRAY", "HASH" or "LABELS". 
   * *Valid cluster metric* is whether or not the index can be used as a clustering metric.  A blank value means it cannot.
   * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set.  Note that many of the analyses lump neighbour sets 1 and 2 together.  For more details on neighbour sets, see the SpatialConditions page.
+
+Note that analyses can provide different indices depending on the nature of the !BaseData set used.  This currently applies only to the Hierarchical Labels, but this could change in future.  
 
 = Analyses and indices available in Biodiverse =
 
@@ -40,18 +42,18 @@ Most of the headings are self-explanatory.  For the others:
 == Hierarchical Labels ==
 
 || *Name* || *Analysis description* || *Subroutine* || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| *Ratios of hierarchical labels* || Analyse the diversity using hierarchical levels. The A, B and C are the same as in the Label Counts analysis (calc_label_counts). The number of indices generated depends on how many axes are used in the labels. In this case there are 2, with axes numbered from zero. Note also that Level 1 includes all axes || calc_hierarchical_label_ratios || 19 || HIER_A0 || A score, level 0 ||  || 2 ||
-||  ||  ||  || 20 || HIER_A1 || A score, level 1 ||  || 2 ||
-||  ||  ||  || 21 || HIER_ARAT1_0 || Ratio of A scores, level 1 / level 0 ||  || 2 ||
-||  ||  ||  || 22 || HIER_ASUM0 || Count of shared label samples (A counts), level 0 ||  || 2 ||
-||  ||  ||  || 23 || HIER_ASUM1 || Count of shared label samples (A counts), level 1 ||  || 2 ||
-||  ||  ||  || 24 || HIER_ASUMRAT1_0 || 1 - Ratio of shared label samples (A counts), level 1 / level 0 || cluster metric || 2 ||
-||  ||  ||  || 25 || HIER_B0 || B score, level 0 ||  || 2 ||
-||  ||  ||  || 26 || HIER_B1 || B score, level 1 ||  || 2 ||
-||  ||  ||  || 27 || HIER_BRAT1_0 || Ratio of B scores, level 1 / level 0 ||  || 2 ||
-||  ||  ||  || 28 || HIER_C0 || C score, level 0 ||  || 2 ||
-||  ||  ||  || 29 || HIER_C1 || C score, level 1 ||  || 2 ||
-||  ||  ||  || 30 || HIER_CRAT1_0 || Ratio of C scores, level 1 / level 0 ||  || 2 ||
+|| *Ratios of hierarchical labels* || Analyse the diversity of labels using their hierarchical levels. The A, B and C are the same as in the Label Counts analysis (calc_label_counts) but calculated for each hierarchical level, e.g. for three axes one could have A0 as the Family level, A1 for the Family:Genus level, and A2 for the Family:Genus:Species level. The number of indices generated depends on how many axes are used in the labels. In this case there are 2 (and axes are numbered from zero). Level 1 includes all levels || calc_hierarchical_label_ratios || 19 || HIER_A0 || A score for level 0 ||  || 2 ||
+||  ||  ||  || 20 || HIER_A1 || A score for level 1 ||  || 2 ||
+||  ||  ||  || 21 || HIER_ARAT1_0 || Ratio of A scores, (HIER_A1 / HIER_A0) ||  || 2 ||
+||  ||  ||  || 22 || HIER_ASUM0 || Sum of shared label sample counts, level 0 ||  || 2 ||
+||  ||  ||  || 23 || HIER_ASUM1 || Sum of shared label sample counts, level 1 ||  || 2 ||
+||  ||  ||  || 24 || HIER_ASUMRAT1_0 || 1 - Ratio of shared label sample counts, (HIER_ASUM1 / HIER_ASUM0) || cluster metric || 2 ||
+||  ||  ||  || 25 || HIER_B0 || B score for level 0 ||  || 2 ||
+||  ||  ||  || 26 || HIER_B1 || B score for level 1 ||  || 2 ||
+||  ||  ||  || 27 || HIER_BRAT1_0 || Ratio of B scores, (HIER_B1 / HIER_B0) ||  || 2 ||
+||  ||  ||  || 28 || HIER_C0 || C score for level 0 ||  || 2 ||
+||  ||  ||  || 29 || HIER_C1 || C score for level 1 ||  || 2 ||
+||  ||  ||  || 30 || HIER_CRAT1_0 || Ratio of C scores, (HIER_C1 / HIER_C0) ||  || 2 ||
 
 == Inter-event Interval Statistics ==
 

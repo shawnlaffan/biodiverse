@@ -1,6 +1,13 @@
 #summary Release notes will be added as new versions are released
 #labels Featured
 
+= Version 0.12 =
+
+This version is not yet released.  This is a summary of what will be contained in the release.
+
+  *  Feedback to GUI does not contain the line numbers for the code.  This is still printed to the log window, though.
+
+
 = Version 0.11 =
 
 06Nov2009

@@ -79,15 +79,6 @@ ppm install Data-Structure-Util
   * You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat`.
   * You can associate .bps files with the BiodiverseGUI.bat file if you want to double click on a Biodiverse project file to open it. (.bpy files are currently supported, but are scheduled for deprecation).
 
-== Linux and UNIX ==
-
-
-  *  These instructions are vague as we have not fully tested them.
-  *  Install GTK using your distribution's package manager.  Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK if it is not already installed.
-  *  Linux probably comes with Perl. If so then install all the modules above using the CPAN tool that comes with Perl. Additional modules will need to be installed.  The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from the Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding. This will take a while until it works. Make sure you install dependencies to save time installing further modules.
-
-  Please let us know so we can document it.
-
 == Macintosh ==
 
 The current Mac install requires a source code installation.  We are working on a standalone executable, or at least one that bundles all the relevant dependencies.
@@ -173,3 +164,12 @@ perl BiodiverseGUI.pl
 {{{
 sudo port selfupdate
 }}}
+
+== Linux and UNIX ==
+
+
+  *  These instructions are vague as we have not fully tested them.
+  *  Install GTK using your distribution's package manager.  Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK if it is not already installed.
+  *  Linux probably comes with Perl. If so then install all the modules above using the CPAN tool that comes with Perl. Additional modules will need to be installed.  The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from the Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding. This will take a while until it works. Make sure you install dependencies to save time installing further modules.
+
+  Please let us know so we can document it.

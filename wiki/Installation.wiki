@@ -30,7 +30,7 @@ The source code is not needed for this version, although it is still distributed
 
   Biodiverse can be started by double clicking on the _BiodiverseGUI_win32.exe_ file.
 
-  If you want to keep the log then open a command prompt and run _C:\Biodiverse\bin\BiodiverseGUI_win32.exe_
+  If you want to keep the session log after the GUI is closed then open a command prompt and run _C:\Biodiverse\bin\BiodiverseGUI_win32.exe_
 
   If the biodiverse bin folder is in your PATH then omit the full path and just type _BiodiverseGUI_win32.exe_.
 

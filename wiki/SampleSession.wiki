@@ -314,15 +314,17 @@ Unless you have specified a complex spatial neighbourhood then you should turn t
 
 Once you have specified your parameters, click on the _Go_ button. The system will then run the selected spatial analyses. The progress bar lets you know how things are progressing. Once it is complete, it pulls up a display pane and shows you a map of the results. Pull the pane down to see the options you used, for example to change them and recalculate. If you do so, you will have to change the analysis name unless you want to overwrite the previous analysis.
 
-== Spatial parameters ==
+== Spatial analysis options ==
 
 The _Name_ option is the name used in the system. Multiple analyses on a given !BaseData may not have the same name, though analyses on different !BaseData may.
 
-The _Neighbour set 1_ and _Neighbour set 2 _text boxes allow you to define the neighbourhoods used for the analyses. The effect of these neighbourhoods depends on the spatial analysis used. Some aggregate them into a single group (eg endemism_whole), others compare the labels in one neighbourhood with another (eg Jaccard), while others use the first set to define the list of labels to use (endemism_central). There is no requirement to have the central group in any of the neighbourhoods, and both neighbourhoods may be arbitrarily defined independently of each other. It is up to the user to identify what is most appropriate for the analysis at hand. You are also not obliged to specify a second neighbourhood.
+The _Neighbour set 1_ and _Neighbour set 2 _text boxes allow you to define the neighbourhoods used for the analyses (see SpatialConditions for how). There is no requirement to have the processing group in any of the neighbourhoods, and both neighbourhoods may be arbitrarily defined independently of each other. It is up to the user to identify what is most appropriate for the analysis at hand. You are also not obliged to specify a second neighbourhood.  The use of these neighbourhoods varies by analysis. Some aggregate the neighbourhoods into a single set (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_whole]), others compare the labels in the first neighbour set with those in the second (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Taxonomic_Dissimilarity_and_Comparison Jaccard and other dissimilarity indices]), while others use the first set to define the list of labels to use but then consider distributions across both neighbour sets (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_central]). 
 
 The _Verify_ buttons (big green ticks) to the right of the neighbourhood definition boxes let you know if the spatial conditions entered are syntactically valid. It does not check if the conditions do what you want but, as was noted in the clustering section, this is hardly unusual for a computer program.
 
-The _Plus_ button allows you to specify additional arguments if specified by the analyses, although this is not really used much yet.
+<wiki:comment>THIS HAS BEEN REMOVED FROM THE GUI FOR NOW:
+ The _Plus_ button allows you to specify additional arguments if specified by the analyses, although this is not really used much yet.
+</wiki:comment>
 
 == Spatial analysis options ==
 

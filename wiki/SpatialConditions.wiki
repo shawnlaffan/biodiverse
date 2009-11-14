@@ -103,7 +103,7 @@ sp_annulus (inner_radius => 2000000,
             axes         => [0,1]
             )
 
-#  select every group, including the procssing group
+#  select every group, including the processing group
 sp_select_all()
 
 #  two ways to select every group, excluding the processing group

@@ -2,7 +2,7 @@
 #labels Featured
 
 = Analyses and indices available in Biodiverse =
-_Generated GMT Sat Nov 14 05:32:56 2009 using build_indices_table.pl, Biodiverse version 0.12._
+_Generated GMT Sat Nov 14 05:36:28 2009 using build_indices_table.pl, Biodiverse version 0.12._
 
 
 This is a listing of the analyses available in Biodiverse and the indices they generate.  It is generated from the system metadata so is identical to that visible in the GUI.
@@ -11,7 +11,7 @@ Most of the headings are self-explanatory.  For the others:
   * The *Subroutine* is the name of the subroutine used to call the function if you are using Biodiverse through a script.  
   * The *Index* is the name of the index in the SPATIAL_RESULTS list, or if it is its own list then this will be its name.  These lists can contain a variety of values, but are usually lists of labels with some value, for example the weights used in an endemism analysis.  The names of such lists typically end in "LIST", "ARRAY", "HASH" or "LABELS". 
   * *Valid cluster metric* is whether or not the index can be used as a clustering metric.  A blank value means it cannot.
-  * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set.  Note that many of the analyses lump neighbour sets 1 and 2 together.  For more details on neighbour sets, see the SpatialConditions page.
+  * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set (the set of Groups linked to the terminal nodes below a cluster node).  Note that many of the analyses lump neighbour sets 1 and 2 together.  See the SpatialConditions page for more details on neighbour sets.
 
 Note that analyses can provide different numbers of indices depending on the nature of the !BaseData set used.  This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
 
@@ -23,9 +23,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Endemism central ===
 
-*Description: * Calculate endemism for labels only in neighbour set 1, but with local ranges calculated using both neighbour sets
+*Description:* Calculate endemism for labels only in neighbour set 1, but with local ranges calculated using both neighbour sets
 
-*Subroutine: * calc_endemism_central
+*Subroutine:* calc_endemism_central
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 1 || ENDC_CWE || Corrected weighted endemism ||  || 1 ||
@@ -39,9 +39,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Endemism whole ===
 
-*Description: * Calculate endemism using all labels found in both neighbour sets
+*Description:* Calculate endemism using all labels found in both neighbour sets
 
-*Subroutine: * calc_endemism_whole
+*Subroutine:* calc_endemism_whole
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 7 || ENDW_CWE || Corrected weighted endemism ||  || 1 ||
@@ -55,9 +55,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Rarity central ===
 
-*Description: * Calculate rarity for species only in neighbour set 1, but with local sample counts calculated from both neighbour sets. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied.
+*Description:* Calculate rarity for species only in neighbour set 1, but with local sample counts calculated from both neighbour sets. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied.
 
-*Subroutine: * calc_rarity_central
+*Subroutine:* calc_rarity_central
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 13 || RAREC_CWE || Corrected weighted rarity ||  || 1 ||
@@ -68,9 +68,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Rarity whole ===
 
-*Description: * Calculate rarity using all species in both neighbour sets. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied.
+*Description:* Calculate rarity using all species in both neighbour sets. Uses the same algorithm as the endemism indices but weights by sample counts instead of by groups occupied.
 
-*Subroutine: * calc_rarity_whole
+*Subroutine:* calc_rarity_whole
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 16 || RAREW_CWE || Corrected weighted rarity ||  || 1 ||
@@ -83,9 +83,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Ratios of hierarchical labels ===
 
-*Description: * Analyse the diversity of labels using their hierarchical levels. The A, B and C are the same as in the Label Counts analysis (calc_label_counts) but calculated for each hierarchical level, e.g. for three axes one could have A0 as the Family level, A1 for the Family:Genus level, and A2 for the Family:Genus:Species level. The number of indices generated depends on how many axes are used in the labels. In this case there are 2. Axes are numbered from zero, so level 1 results include all levels
+*Description:* Analyse the diversity of labels using their hierarchical levels. The A, B and C are the same as in the Label Counts analysis (calc_label_counts) but calculated for each hierarchical level, e.g. for three axes one could have A0 as the Family level, A1 for the Family:Genus level, and A2 for the Family:Genus:Species level. The number of indices generated depends on how many axes are used in the labels. In this case there are 2. Axes are numbered from zero, so level 1 results include all levels
 
-*Subroutine: * calc_hierarchical_label_ratios
+*Subroutine:* calc_hierarchical_label_ratios
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 19 || HIER_A0 || A score for level 0 ||  || 2 ||
@@ -107,9 +107,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Inter-event interval statistics ===
 
-*Description: * Calculate summary statistics from a set of numeric labels that represent event times. Events are calculated within groups and then aggregated if there are multiple nbrs.
+*Description:* Calculate summary statistics from a set of numeric labels that represent event times. Events are calculated within groups and then aggregated if there are multiple nbrs.
 
-*Subroutine: * calc_iei_stats
+*Subroutine:* calc_iei_stats
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 31 || IEI_CV || Coefficient of variation (IEI_SD / IEI_MEAN) ||  || 1 ||
@@ -127,9 +127,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Inter-event interval statistics data ===
 
-*Description: * The underlying data used for the IEI stats.
+*Description:* The underlying data used for the IEI stats.
 
-*Subroutine: * calc_iei_data
+*Subroutine:* calc_iei_data
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 41 || IEI_DATA_ARRAY || Interval data in array form. Multiple occurrences are repeated ||  || 1 ||
@@ -141,9 +141,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Element counts ===
 
-*Description: * Counts and lists of elements used in neighbour sets 1 and 2. These form the basis for all the spatial analyses.
+*Description:* Counts and lists of elements used in neighbour sets 1 and 2. These form the basis for all the spatial analyses.
 
-*Subroutine: * calc_elements_used
+*Subroutine:* calc_elements_used
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 43 || EL_COUNT_ALL || Count of elements in both neighbour sets ||  || 2 ||
@@ -157,9 +157,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Label Counts ===
 
-*Description: * Counts of labels in neighbour sets 1 and 2. These form the basis for the Taxonomic Dissimilarity and Comparison indices.
+*Description:* Counts of labels in neighbour sets 1 and 2. These form the basis for the Taxonomic Dissimilarity and Comparison indices.
 
-*Subroutine: * calc_label_counts
+*Subroutine:* calc_label_counts
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 49 || ABC_A || Common to both nenighbour sets ||  || 2 ||
@@ -171,9 +171,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Ranges ===
 
-*Description: * Local ranges within element sets. Includes lists and basic summary stats.
+*Description:* Local ranges within element sets. Includes lists and basic summary stats.
 
-*Subroutine: * calc_local_ranges
+*Subroutine:* calc_local_ranges
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 53 || ABC2_LABELS_ALL || Labels in both element sets ||  || 2 ||
@@ -190,9 +190,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Redundancy ===
 
-*Description: * Ratio of labels to samples. Values close to 1 are well sampled while zero means there is no redundancy in the sampling
+*Description:* Ratio of labels to samples. Values close to 1 are well sampled while zero means there is no redundancy in the sampling
 
-*Subroutine: * calc_redundancy
+*Subroutine:* calc_redundancy
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 62 || REDUNDANCY_ALL || for both neighbour sets ||  || 1 ||
@@ -203,9 +203,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Richness ===
 
-*Description: * Count the number of labels in the neighbour sets
+*Description:* Count the number of labels in the neighbour sets
 
-*Subroutine: * calc_richness
+*Subroutine:* calc_richness
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 65 || COMPL || a crude complementarity index for use in clustering might be disabled in a later release || cluster metric || 2 ||
@@ -217,9 +217,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Sample counts ===
 
-*Description: * Sample counts within element sets, includes lists and basic summary stats These form the basis of the sample indices
+*Description:* Sample counts within element sets, includes lists and basic summary stats These form the basis of the sample indices
 
-*Subroutine: * calc_local_samples
+*Subroutine:* calc_local_samples
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 69 || ABC3_LABELS_ALL || Labels in both neighbour sets ||  || 2 ||
@@ -241,9 +241,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Matrix overlap ===
 
-*Description: * Calculate matrix overlap metrics between the two sets of groups. Many of them measure homogeneity, where 0 = homogeneous. Excludes labels not in the selected matrix, and variances are deviations from zero.
+*Description:* Calculate matrix overlap metrics between the two sets of groups. Many of them measure homogeneity, where 0 = homogeneous. Excludes labels not in the selected matrix, and variances are deviations from zero.
 
-*Subroutine: * calc_overlap_mx
+*Subroutine:* calc_overlap_mx
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 81 || MXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
@@ -264,9 +264,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Matrix statistics ===
 
-*Description: * Calculate summary statistics of labels in the selected matrix. Uses labels from both neighbour sets
+*Description:* Calculate summary statistics of labels in the selected matrix. Uses labels from both neighbour sets
 
-*Subroutine: * calc_matrix_stats
+*Subroutine:* calc_matrix_stats
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 94 || MX_KURT || Kurtosis ||  || 1 ||
@@ -288,9 +288,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Rao's quadratic entropy, matrix weighted ===
 
-*Description: * Calculate Rao's quadratic entropy for a matrix weights scheme. BaseData labels not in the matrix are ignored
+*Description:* Calculate Rao's quadratic entropy for a matrix weights scheme. BaseData labels not in the matrix are ignored
 
-*Subroutine: * calc_mx_rao_qe
+*Subroutine:* calc_mx_rao_qe
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 108 || MX_RAO_QE || Matrix weighted quadratic entropy ||  || 1 ||
@@ -303,9 +303,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Numeric label data ===
 
-*Description: * The underlying data used for the numeric labels stats. Use 'Sample Counts' for the hash form.
+*Description:* The underlying data used for the numeric labels stats. Use 'Sample Counts' for the hash form.
 
-*Subroutine: * calc_numeric_label_data
+*Subroutine:* calc_numeric_label_data
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 111 || NUM_DATA_ARRAY || Numeric label data in array form. Multiple occurrences are repeated. ||  || 1 ||
@@ -314,9 +314,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Numeric label harmonic and geometric means ===
 
-*Description: * Calculate geometric and harmonic means for a set of numeric labels.
+*Description:* Calculate geometric and harmonic means for a set of numeric labels.
 
-*Subroutine: * calc_numeric_label_other_means
+*Subroutine:* calc_numeric_label_other_means
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 112 || NUM_GMEAN || Geometric mean ||  || 1 ||
@@ -326,9 +326,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Numeric label quantiles ===
 
-*Description: * Calculate quantiles from a set of numeric labels. Weights by samples so multiple occurrences are accounted for.
+*Description:* Calculate quantiles from a set of numeric labels. Weights by samples so multiple occurrences are accounted for.
 
-*Subroutine: * calc_numeric_label_quantiles
+*Subroutine:* calc_numeric_label_quantiles
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 114 || NUM_Q005 || 5th percentile ||  || 1 ||
@@ -355,9 +355,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Numeric label statistics ===
 
-*Description: * Calculate summary statistics from a set of numeric labels. Weights by samples so multiple occurrences are accounted for.
+*Description:* Calculate summary statistics from a set of numeric labels. Weights by samples so multiple occurrences are accounted for.
 
-*Subroutine: * calc_numeric_label_stats
+*Subroutine:* calc_numeric_label_stats
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 133 || NUM_CV || Coefficient of variation (NUM_SD / NUM_MEAN) ||  || 1 ||
@@ -376,9 +376,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Phylogenetic Diversity ===
 
-*Description: * Calculate PD using species in both neighbourhoods.
+*Description:* Calculate PD using species in both neighbourhoods.
 
-*Subroutine: * calc_pd
+*Subroutine:* calc_pd
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 142 || PD || Phylogenetic diversity ||  || 1 ||
@@ -391,9 +391,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Phylogenetic Endemism ===
 
-*Description: * Calculate Phylogenetic endemism (PE).
+*Description:* Calculate Phylogenetic endemism (PE).
 
-*Subroutine: * calc_pe
+*Subroutine:* calc_pe
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 147 || PE_RANGELIST || Node ranges used in PE calcs ||  || 1 ||
@@ -409,9 +409,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Beta diversity ===
 
-*Description: * Beta diversity between neighbour sets 1 and 2.
+*Description:* Beta diversity between neighbour sets 1 and 2.
 
-*Subroutine: * calc_beta_diversity
+*Subroutine:* calc_beta_diversity
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 153 || BETA_2 || The other beta || cluster metric || 2 ||
@@ -421,9 +421,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Bray-Curtis non-metric ===
 
-*Description: * Bray-Curtis dissimilarity between two sets of labels. Reduces to the Sorenson metric for binary data.
+*Description:* Bray-Curtis dissimilarity between two sets of labels. Reduces to the Sorenson metric for binary data.
 
-*Subroutine: * calc_bray_curtis
+*Subroutine:* calc_bray_curtis
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 155 || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 2 ||
@@ -432,9 +432,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Jaccard ===
 
-*Description: * Jaccard dissimilarity between the labels in neighbour sets 1 and 2.
+*Description:* Jaccard dissimilarity between the labels in neighbour sets 1 and 2.
 
-*Subroutine: * calc_jaccard
+*Subroutine:* calc_jaccard
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 156 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
@@ -443,9 +443,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Rao's quadratic entropy, taxonomically weighted ===
 
-*Description: * Calculate Rao's quadratic entropy for a taxonomic weights scheme. Should collapse to be the Simpson index for presence/absence data.
+*Description:* Calculate Rao's quadratic entropy for a taxonomic weights scheme. Should collapse to be the Simpson index for presence/absence data.
 
-*Subroutine: * calc_tx_rao_qe
+*Subroutine:* calc_tx_rao_qe
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 157 || TX_RAO_QE || Taxonomically weighted quadratic entropy ||  || 1 ||
@@ -456,9 +456,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === S2 ===
 
-*Description: * S2 dissimilarity between two sets of labels
+*Description:* S2 dissimilarity between two sets of labels
 
-*Subroutine: * calc_s2
+*Subroutine:* calc_s2
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 160 || S2 || dissimilarity index from Lennon et al.:Lennon, J.J., Koleff, P., Greenwood, J.J.D. and Gaston, K.J. (2001) The geographical structure of British bird distributions: diversity, spatial turnover and scale. Journal of Animal Ecology, 70, 966-979. || cluster metric || 2 ||
@@ -467,9 +467,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Simpson and Shannon ===
 
-*Description: * Simpson and Shannon diversity metrics using samples from all neighbourhoods.
+*Description:* Simpson and Shannon diversity metrics using samples from all neighbourhoods.
 
-*Subroutine: * calc_simpson_shannon
+*Subroutine:* calc_simpson_shannon
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 161 || SHANNON_E || Shannon's evenness (H / HMAX) ||  || 1 ||
@@ -481,9 +481,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Sorenson ===
 
-*Description: * Sorenson dissimilarity between two sets of labels. It is the complement of the (unimplemented) Czechanowski index, and numerically the same as Whittaker's beta.
+*Description:* Sorenson dissimilarity between two sets of labels. It is the complement of the (unimplemented) Czechanowski index, and numerically the same as Whittaker's beta.
 
-*Subroutine: * calc_sorenson
+*Subroutine:* calc_sorenson
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 165 || SORENSON || Sorenson index || cluster metric || 2 ||
@@ -492,9 +492,9 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Taxonomic overlap ===
 
-*Description: * Calculate taxonomic overlap metrics between the two sets of elements. Uses deviation from zero for variances. In most cases the means and variances will be the same. Bears some relation to Rao's quadratic entropy after modification to weight by sample counts.
+*Description:* Calculate taxonomic overlap metrics between the two sets of elements. Uses deviation from zero for variances. In most cases the means and variances will be the same. Bears some relation to Rao's quadratic entropy after modification to weight by sample counts.
 
-*Subroutine: * calc_overlap_tx
+*Subroutine:* calc_overlap_tx
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 166 || TXO_LABELS || Labels in neighbour set 1 ||  || 1 ||

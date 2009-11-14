@@ -2,7 +2,7 @@
 #labels Featured
 
 = Analyses and indices available in Biodiverse =
-_Generated GMT Sat Nov 14 05:28:35 2009 using build_indices_table.pl, Biodiverse version 0.12._
+_Generated GMT Sat Nov 14 05:30:24 2009 using build_indices_table.pl, Biodiverse version 0.12._
 
 
 This is a listing of the analyses available in Biodiverse and the indices they generate.  It is generated from the system metadata so is identical to that visible in the GUI.
@@ -83,7 +83,7 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Ratios of hierarchical labels ===
 
-*Description: * Analyse the diversity of labels using their hierarchical levels. The A, B and C are the same as in the Label Counts analysis (calc_label_counts) but calculated for each hierarchical level, e.g. for three axes one could have A0 as the Family level, A1 for the Family:Genus level, and A2 for the Family:Genus:Species level. The number of indices generated depends on how many axes are used in the labels. In this case there are 2 (and axes are numbered from zero). Level 1 includes all levels
+*Description: * Analyse the diversity of labels using their hierarchical levels. The A, B and C are the same as in the Label Counts analysis (calc_label_counts) but calculated for each hierarchical level, e.g. for three axes one could have A0 as the Family level, A1 for the Family:Genus level, and A2 for the Family:Genus:Species level. The number of indices generated depends on how many axes are used in the labels. In this case there are 2. Axes are numbered from zero, solevel1 results include all levels
 
 *Subroutine: * calc_hierarchical_label_ratios
 

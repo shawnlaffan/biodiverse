@@ -216,7 +216,6 @@ A more complex function might involve an ellipse (although you could just use `s
 
 {{{
 my $major_radius = 300000; # longest axis
-
 my $minor_radius = 100000; # shortest axis
 
 # set the offset in radians, anticlockwise (1.5714 = PI/2 = north)

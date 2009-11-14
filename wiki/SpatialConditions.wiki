@@ -114,10 +114,14 @@ sp_select_all() and not sp_self_only()
 #  only use the processing group
 sp_self_only() 
 
-#  use any neighbour where the first axis has value of "type1"
-sp_match_text (text => 'type1', axis => 0, type => 'nbr') 
+#  use any group where the first axis has value of "type1"
+sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 
-# match only when the third neighbour axis is the same 
+#  use any group where the first axis has value that is _not_ "type1"
+! sp_match_text (text => 'type1', axis => 0, type => 'nbr')
+
+
+# match only when the third group axis is the same 
 #   as the processing group's third axis
 sp_match_text (text => $coord[2], axis => 2, type => 'nbr') 
 

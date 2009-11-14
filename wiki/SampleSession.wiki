@@ -256,7 +256,7 @@ If you already have the !BaseData displayed when you run the exclusions, the vis
 
 *_A word of warning_*: Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated at the end, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the range of that label.
 
-It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent !BaseData object if you do this.  _In future the system will guard against this, but it is not implemented as of version 0.10._
+It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent !BaseData object if you do this.  Any linking back to elements deleted from the !BaseData, such as for display or interrogration of labels in groups, will cause an error.  _From version 0.12 the GUI will guard against this, but it is not implemented prior to this._
 
 = Running a Cluster Analysis =
 

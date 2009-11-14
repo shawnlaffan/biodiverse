@@ -67,15 +67,15 @@ _Need to explain the specification of extensions and how to load them._
 
 == Using the spatial index ==
 
-The spatial index speeds up processing by reducing the number of comparisons that need to be made when assessing if a roup is a neighbour of the processing goup.  Exactly how much of a speed up is a function of the index resolution and the neighbourhood specified (larger neighbourhoods take longer as they use more index blocksand therefore the system must mak more comparisons).
+The spatial index speeds up processing by reducing the number of comparisons that need to be made when assessing if a group is a neighbour of the processing goup.  Exactly how much of a speed up is a function of the index resolution and the neighbourhood specified (larger neighbourhoods take longer as they use more index blocks and therefore the system must make more comparisons).
 
-As an example, an analysis of approximately 20,000 groups took ~3600 seconds for a four cell radius neighbourhood without the index. With the index it took 30 seconds. Similarly, one with a radius of one cell took ~3600 seconds without the index and 12 seconds with it.
+As an example, an analysis of approximately 20,000 groups took ~3600 seconds for a four cell radius circular neighbourhood without the index. With the index it took 30 seconds. Similarly, one with a radius of one cell also took ~3600 seconds without the index and 12 seconds with it.
 
-The reason for the speed-up is that the system no longer needs to assess every other group as a possible neighbour, and instead focuses only on those groups that occur within the indexed blocks that satisfy the spatial condition. Think of the index as a coarse first approximation to the neighbours, with a second search refining the solution to the actual set of neighbours.
+The reason for the speed-up is that the system no longer needs to assess every other group in the !BaseData as a possible neighbour, and instead focusses only on those groups that occur within the indexed blocks that satisfy the spatial condition. Think of the search through the index returning a coarse first approximation to the neighbours, with a second search refining the solution to the actual set of neighbours.
 
-Most neighbourhoods one will use are likely to be simple and use the available functions.  In these cases the system can precalculate which ibndex bocks to search.  However, if you are using complex spatial conditions then it must preprocess the data to determine which index groups should be assessed to find neighbours.  This can take some time when usng a fine resolution index, as it must assess each corner of the index extents, and every one of each corner's immediate neighbours, against every other possible index group.  This results in `(m^2 * 3^m * n)` comparisons, where `n` is the number of groups (blocks) in the index and `m` is the number of axes (dimensions) used.  This works out to `4*9n = 36n` for a data set with two group axes.
+Most neighbourhoods one will use are likely to be simple and use the available functions.  In these cases the system can precalculate which index bocks (elements) to search.  However, if you are using complex spatial conditions then it must preprocess the data to determine which index blocks should be assessed to find neighbours.  This can take some time when usng a fine resolution index, as it must assess each corner of the index extents, and every one of each corner block's immediate neighbours, against every other possible index block.  This results in `(m^2 * 3^m * n)` comparisons, where `n` is the number of index blocks and `m` is the number of axes (dimensions) used.  This works out to `4*9n = 36n` for a data set with two group axes.
 
-The system will ignore the spatial index if the spatial conditions used specify it must be ignored.  It can also be turned off if need be using the Analyses->Index menu.
+The system will ignore the spatial index if the spatial conditions used specify it must be ignored, for example with the text matching conditions.  It can also be turned off if need be using the Analyses->Index menu.
 
 
 == The ABC lists ==

@@ -368,7 +368,7 @@ All of the outputs within a basedata are compared with the randomised version. A
 
 == Interpreting the results ==
 
-See [KeyConcepts#Randomisations] for an explanation of what the randomisation results mean.
+See [AnalysisTypes#Randomisations] for an explanation of what the randomisation results mean.
 
 
 = Exporting and saving =

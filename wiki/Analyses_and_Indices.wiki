@@ -13,7 +13,7 @@ Most of the headings are self-explanatory.  For the others:
   * *Valid cluster metric* is whether or not the index can be used as a clustering metric.  A blank value means it cannot.
   * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set.  Note that many of the analyses lump neighbour sets 1 and 2 together.  For more details on neighbour sets, see the SpatialConditions page.
 
-Note that analyses can provide different indices depending on the nature of the !BaseData set used.  This currently applies only to the Hierarchical Labels.
+Note that analyses can provide different numbers of indices depending on the nature of the !BaseData set used.  This currently applies only to the Hierarchical Labels.
 
 <wiki:toc max_depth="4" />
 

@@ -273,13 +273,14 @@ The _Linkage_ option determines how the similarities of newly formed clusters to
 
 The _Spatial conditions _text boxes allow you to enter a set of spatial constraints for the clustering. Please see section 1.3.4 of the Key Concepts file for details on how to specify (ie. the syntax of) these constraints. If specified, the clustering process will only consider those groups or clusters that have one or more groups that satisfy the spatial constraints. If the clustering process runs out of neighbours then it switches to non-spatial clustering until the process is complete. The _Verify_ button (the one with the big tick on it) lets you know if the spatial conditions are syntactically valid. It does not check if the conditions do what you want, but this is hardly unusual for a computer program.
 
-== Spatial analysis options ==
+== Running analyses for each node ==
 
 Use the check boxes to select which sets of analyses are to be performed, and therefore which indices will be calculated. Press the plus buttons next to each set to select specific analyses. Press the plus button again to see which indices each one calculates. Text at each level tells you about the calculations and what they do.
 
 Not all these analyses or indices are valid for clusters, but the system strips out the ones that are not before any calculations are performed. If a spatial analysis is selected, indices of single values will be stored within a list called SPATIAL_RESULTS in each cluster tree node. Those that are lists will be stored in each node at the same level as SPATIAL_RESULTS. This will become more clear when you run a cluster analysis and view the results.
 
-== Viewing the results ==
+
+== Viewing the cluster results ==
 
 There are three sub-panes within the display pane. On the left is the group grid, on the upper right is the tree representing the clustering, and on the lower right is the scree plot for the tree. When initially viewing the analysis results, you will likely need to pull the bottom of the tree pane down to reduce the scree plot's vertical extent and expand the tree so it can be viewed properly.
 
@@ -317,35 +318,43 @@ Click on the _Go_ button (or use the shortcut Ctl-G) once you have specified you
 
 The _Name_ option is the name used in the system. Analyses within a given !BaseData may not have the same name.
 
-The _Neighbour set 1_ and _Neighbour set 2 _text boxes allow you to define the neighbour sets used for the analyses (see SpatialConditions for how). There is no requirement to include the processing group in any of the neighbour sets, and both neighbour sets may be arbitrarily defined independently of each other. It is up to the user to identify what is most appropriate for the analysis at hand. You are also not obliged to specify a second neighbourhood.  The use of these neighbourhoods varies by analysis. Some aggregate the neighbourhoods into a single set (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_whole]), others compare the labels in the first neighbour set with those in the second (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Taxonomic_Dissimilarity_and_Comparison Jaccard and other dissimilarity indices]), while others use the first set to define the list of labels to use but then consider distributions across both neighbour sets (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_central]). 
+The _Neighbour set 1_ and _Neighbour set 2 _text boxes allow you to define the neighbour sets used for the analyses (see SpatialConditions for how). There is no requirement to include the processing group in any of the neighbour sets, and both neighbour sets may be arbitrarily defined independently of each other. It is up to the user to identify what is most appropriate for the analysis at hand. You are also not obliged to specify a second neighbourhood.  The use of these neighbourhoods varies by analysis. Some aggregate the neighbourhoods into a single set (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_whole]), others compare the labels in the first neighbour set with those in the second (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Taxonomic_Dissimilarity_and_Comparison Jaccard and other dissimilarity indices]), while others use the first set to define the list of labels to use but then consider distributions across both neighbour sets (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_central]).
 
-The _Verify_ buttons (big green ticks) to the right of the neighbour set definition boxes let you know if the spatial conditions entered are syntactically valid. It does not check if the conditions do what you want but, as was noted in the clustering section, this is hardly unusual for a computer program.
+The _Definition query_ text box allows the analysis to be applied to only a subset of groups (those which satisfy the criteria).  All groups are still considered as neighours though (see [SpatialConditions#Definition_Queries]).
+
+The _Verify_ buttons (big green ticks to the right of the neighbour set and definition query text boxes) let you know if the spatial conditions entered are syntactically valid. The system does not check if the conditions do what you want but, as was noted in the clustering section, this is hardly unusual for a computer program.
 
 <wiki:comment>THIS HAS BEEN REMOVED FROM THE GUI FOR NOW:
  The _Plus_ button allows you to specify additional arguments if specified by the analyses, although this is not really used much yet.
 </wiki:comment>
 
-== Spatial analysis options ==
+== Running analyses for the neighbour sets ==
 
 This is the same as in the cluster tab. Use the check boxes to select which sets of analyses are to be used, and therefore which indices will be calculated. Press the plus buttons next to each set to expand or reduce the tree. Depending on the level, expanding the tree will either show which anlayses are available under a category (top level), or  shows a list of the indices each one calculates with an explanation for each (lower level). This information is also available from the [Analyses_and_Indices] page.
+
+http://www.biodiverse.unsw.edu.au/screenshots/spatial_analysis_selected_analyses.png
 
 Indices which result in single (scalar) values are collected and stored in a list called SPATIAL_RESULTS in each element (group). Those that are lists are stored in each element  at the same level as SPATIAL_RESULTS.
 
 Those analyses or indices that require two neighbourhoods (such as Jaccard or Sorensen dissimilarity) will not be created if a second neighbourhood is not specified.
 
-<wiki:comment>Up to here 2009-11-16, but haven't touched cluster section</wiki:comment>
+== Viewing the spatial results ==
 
-== Viewing the results ==
+The results are displayed as a map in a single pane within the tab.  
 
-The results are displayed as a map in a single pane within the tab.
+http://www.biodiverse.unsw.edu.au/screenshots/spatial_analysis_showing_map.png
 
-Hovering over a group will highlight the groups used in the calculations – a solid circle for those in the first neighbourhood and a dash for those in the second neighbourhood. You can display any combination of the neighbourhoods using the _Neighbours_ selection below the map.
+The colour scheme can be changed to one based on intensity of a single hue if needed.  See [KeyConcepts#Colour_schemes].  Currently the full range of colours is assigned to the index values using linear scaling between the minimum and maximum values.  Changing this is for a future release, or the data can be exported and plotted using a GIS or other package.
 
-The meaning of the group colourings is determined using the two selection boxes at the bottom left of the window. The default is SPATIAL_RESULTS. This interface excludes lists that are not numeric hashes.
+Hovering over a group will highlight the groups used in the calculations – a solid circle for those in the first neighbourhood and a dash for those in the second neighbourhood. Right click on a group to keep the highlighting at that group until the mouse is left clicked on any group.  You can control whether these are displayed, or just display one set, by using the _Neighbours_ selection below the map.
 
-Holding the control key while clicking on a group produces a pop-up list with all the results in it, including those that cannot be displayed spatially. It also includes lists of the neighbourhoods used (Elements set1, set2 and all) and of the labels in these neighbourhoods (Labels set1, set2 and all). Note that “set1” generally refers to the set of groups specified as neighbourhood 1 in the analysis definition screen, whereas “set2” is neighbourhood 2. “All” is the union of these.
+The specific index that is displayed is determined using the two selection boxes at the bottom left of the window. The default is SPATIAL_RESULTS. This interface excludes lists that are not numeric hashes, so any result that is an array of numbers (such as [Analyses_and_Indices#Inter-event_interval_statistics_data IEI_DATA_ARRAY]) cannot be displayed this way.
 
-Vector overlays can be plotted using the “overlays” interface at the bottom of the screen (refer to section 1.1.2.2 on how to do this).
+Holding the control key while clicking on a group, or clicking on a group with the middle mouse button, produces a pop-up list with all the results in it, including those that cannot be displayed spatially. It also includes lists of the elements (groups) in each neighbour set (Elements set1, set2 and all) and of the labels in these neighbour sets (Labels set1, set2 and all). “All” is the union of neighbour sets 1 and 2.
+
+Vector overlays can be plotted using the “overlays” interface at the bottom of the screen (see [SampleSession#The_Group_Grid] <wiki:comment>Needs to be shifted to its own section</wiki:comment>).
+
+The interpretation of some of the list results can take some thought.  Consider the [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_central ENDC_WTLIST] result.  The set of groups that have a result (are coloured) are those that contained that label in their neighbour set.  This is not the same as the set of groups that contain that label unless the sp_self_only() condition was used.  The main advantage of plotting these sorts of lists is that one can visualise where a specific label has a large or small effect.  In terms of weighted endemism, which is an additive calculation, one can also conduct further analyses to determine which labels are contributing the most to the [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_central ENDC_WE] or [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_whole ENDW_WE] scores for each group's neighbour set.
 
 = Running a randomisation =
 

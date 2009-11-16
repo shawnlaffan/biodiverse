@@ -11,13 +11,13 @@ Spatial conditions are core to the Biodiverse system.  They are used to specify 
 
 Spatial conditions are used both to define the neighbourhoods of the spatial analyses and the definition queries used to constrain the set of groups used in the analyses.  
 
-== Neighbourhoods ==
+ == Neighbourhoods ==
 
 Neighbourhoods are essential for any spatial analysis, as it is through these that one can define the set of groups to be considered in an analysis.  In the moving window analyses these determine which groups are compared with which other groups.  In the cluster analyses they determine which groups are considered candidates to be clustered together.  It is also possible to define neighbourhoods for spatially constrained randomisations (see [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003, J Biogeog]), although this is yet to be implemented.
 
 Before we describe the process, some definitions are needed.  The *processing group* is the group being considered in the analysis at some iteration.  Typically every group is considered in turn. A group is a member of the processing group's set of neighbours (is a *neighbouring group*) if the spatial condition evaluates to true.  
 
-== Definition Queries ==
+ == Definition Queries ==
 
 These differ from neighbourhoods as they assess only the processing group to determine if analyses should be calculated for it or not.  They use the same syntax as for neighbourhoods, but the system will commonly complain if a condition requiring a neighbouring group is used.
 
@@ -58,7 +58,9 @@ The available functions are currently:
  * sp_match_text
  * sp_select_sequence
 
+<wiki:comment>
 _Note: This list and appropriate metadata needs to be accessible through the GUI - see issue #14._
+</wiki:comment>
 
 == Examples ==
 
@@ -74,18 +76,18 @@ sp_circle (radius => 100000, axes => [1,3])
 # circle of two cell radius
 sp_circle_cell (radius => 2) 
 
-#  a square
+#  an overlapping square, cube or hypercube depending on the number of axes
 #    note - you cannot yet specify which axes to use 
 #    so it will be square on all sides
 sp_square (size => 300000)
 
 #  non-overlapping square block (hypercube), size 3 map units on a side
-#    (non-overlapping means each group is a member of only one neighbourhood
+#    (non-overlapping means each group is a member of only one neighbour set
 #    so this is a good way of simulating coarser resolutions)
-sp_block (size => 3)  
+sp_block (size => 3)
 
 #  rectangular block, ignores second axis
-sp_block (size => [3, undef, 5]) 
+sp_block (size => [3, undef, 5])
 
 #  northwards oriented ellipse using first two axes
 sp_ellipse (major_radius => 300000, 
@@ -117,9 +119,9 @@ sp_self_only()
 #  use any group where the first axis has value of "type1"
 sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 
-#  use any group where the first axis has value that is _not_ "type1"
+#  two ways to use any group where the first axis has value that is _not_ "type1"
 ! sp_match_text (text => 'type1', axis => 0, type => 'nbr')
-
+not sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 
 # match only when the third group axis is the same 
 #   as the processing group's third axis
@@ -160,7 +162,7 @@ Note that using `abs($d[1])` is the same as using `$D[1]`.
 
 Non-programmers need to note that the array index starts from zero, so `$coord[1]` is the second coordinate axis and not the first.  This differs from systems like R and AWK, but is consistent with many other programming languages like C and Python.
 
-== Examples ==
+ == Examples ==
 
   * Set the neighbours to be those groups where the absolute distance from the central group is less than 100,000.
 

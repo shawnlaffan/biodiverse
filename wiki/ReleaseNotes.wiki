@@ -9,8 +9,9 @@ This version is not yet released.  This is a summary of what will be contained i
   *  Feedback to GUI does not contain the line numbers for the code.  This is still printed to the log window, though.
   *  Allow !BaseData, matrix and tree objects to be loaded on startup (previous versions only allowed a project file to be loaded as an argument on startup).
   *  User is warned if they try to add a new spatial or cluster output to a !BaseData and it has one or more randomisations.
+
   *  More changes will be listed as they are implemented.
-  *  See also http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3Arelease0.12
+  *  See also http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.12
 
 
 = Version 0.11 =

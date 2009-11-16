@@ -255,7 +255,7 @@ It is also a bad idea to run the exclusions after you have run any of the cluste
 
 = Running a Cluster Analysis =
 
-Cluster analyses are used to identify clusters in the data (clusters are often called groups, but the term is not used here as it could cause confusion with [DataStructures#Groups  !BaseData groups], although one could make the case that they are similar). 
+Cluster analyses are used to identify clusters in the data (clusters are often called groups, but the term is not used here as it could cause confusion with [DataStructures#Groups BaseData groups], although one could make the case that they are similar). 
 
 To run a cluster analysis on the currently selected basedata object, open menu option _Analyses->Cluster_.
 

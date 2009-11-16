@@ -348,7 +348,7 @@ The colour scheme can be changed to one based on intensity of a single hue if ne
 
 Hovering over a group will highlight the groups used in the calculations – a solid circle for those in the first neighbourhood and a dash for those in the second neighbourhood. Right click on a group to keep the highlighting at that group until the mouse is left clicked on any group.  You can control whether these are displayed, or just display one set, by using the _Neighbours_ selection below the map.
 
-The specific index that is displayed is determined using the two selection boxes at the bottom left of the window. The default is SPATIAL_RESULTS. This interface excludes lists that are not numeric hashes, so any result that is an array of numbers (such as [Analyses_and_Indices#Inter-event_interval_statistics_data IEI_DATA_ARRAY]) cannot be displayed this way.
+The specific index that is displayed is determined using the two selection boxes at the bottom left of the window. The default is SPATIAL_RESULTS. This interface excludes lists that are not numeric hashes, so any result that is an array of numbers (such as [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Inter-event_interval_statistics_data IEI_DATA_ARRAY]) cannot be displayed this way.
 
 Holding the control key while clicking on a group, or clicking on a group with the middle mouse button, produces a pop-up list with all the results in it, including those that cannot be displayed spatially. It also includes lists of the elements (groups) in each neighbour set (Elements set1, set2 and all) and of the labels in these neighbour sets (Labels set1, set2 and all). “All” is the union of neighbour sets 1 and 2.
 

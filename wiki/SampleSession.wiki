@@ -259,7 +259,7 @@ Cluster analyses are used to identify clusters in the data (clusters are often c
 
 To run a cluster analysis on the currently selected basedata object, open menu option _Analyses->Cluster_.
 
-The cluster tab has two main sections where you can set options. The first section (_Parameters_) determines the parameters used in the clustering to generate a tree. The second (_Spatial analyses to run for each cluster node_) determines what subsequent analyses will be run for each node in this tree using the groups it contains to define the spatial sample.
+The cluster tab has two main sections where you can set options. The upper section (_Parameters_) determines the parameters used in the clustering to generate a tree. The lower (_Spatial analyses to run for each cluster node_) determines what subsequent analyses will be run for each node in this tree using the groups it contains to define the spatial sample.
 
 Once you have specified your parameters and any desired analyses, click on the _Go_ button. The system will first build a similarity matrix, then run the clustering, and then any spatial analyses you have selected. One or more (depending on your options) progress bars let you know how things are progressing. Once complete, a prompt asks if you would like to display the results. If so, a display pane comes up showing you the results. You can pull the pane down (via an invisible slider bar at the top of the white pane) to see the options you used; for example, to change them and recalculate an analysis. If you don't wish to view the results at this time, they may be accessed later from the _Outputs_ tab. In this tab, analyses are automatically placed and indented below the basedata object they were performed on.
 
@@ -301,23 +301,25 @@ Vector overlays can be plotted on the group grid using the “overlays” interf
 
 Now that you have been amazed by the functionality in the cluster tab, you will probably want to try your hand at one of the spatial analyses.
 
-Spatial analyses are used to identify spatial patterns in the data. Generally it is treated as a moving window analysis, where the neighbourhoods are evaluated for each group in the basedata object, but the flexibility of the spatial neighbourhoods means this is not entirely correct.
+Spatial analyses are used to identify spatial patterns in the data. Generally it is treated as a moving window analysis, where the neighbourhoods are evaluated for each group in the basedata object, but the flexibility of the spatial [SpatialConditions neighbourhood definitions] means moving window is not always the correct term.
 
 To run a spatial analysis on the currently selected basebata object, open menu option _Analyses -> Spatial_.
 
-The Spatial tab has two main sections where you can set options, and this process is very similar to that of a cluster analysis (see section 1.3). The first section (_Parameters_) determines the parameters used in defining the two neighbour sets used in the spatial analysis. The second (_Spatial Analyses to run for each neighbourhood_) determines the subsequent analyses that will be run for the set of neighbours related to each group. You can select any number of analyses to perform.
+The Spatial tab has two main sections where you can set options (see below), and this process is very similar to that of a cluster analysis. The upper section (_Parameters_) determines the parameters used in defining the two neighbour sets used in the spatial analysis. The lower (_Spatial Analyses to run for each neighbourhood_) determines the subsequent analyses that will be run for the set of neighbours related to each group. You can select any number of analyses to perform.
 
-Unless you have specified a complex spatial neighbourhood then you should turn the spatial index on. The best resolution to use depends on your data set, but a good start is twice the cell size. If you have a cell size of zero then make it approximately the same as your window size.
+http://www.biodiverse.unsw.edu.au/screenshots/spatial_analysis_first_page.png
 
-Once you have specified your parameters, click on the _Go_ button. The system will then run the selected spatial analyses. The progress bar lets you know how things are progressing. Once it is complete, it pulls up a display pane and shows you a map of the results. Pull the pane down to see the options you used, for example to change them and recalculate. If you do so, you will have to change the analysis name unless you want to overwrite the previous analysis.
+Unless you have specified a complex spatial neighbourhood then you should turn the spatial index on (menu option _Analyses -> Index_). The best resolution to use depends on your data set, but a good start is twice the cell size. If you have a cell size of zero then make it approximately the same as the extent of your neighbourhood definition.
+
+Click on the _Go_ button (or use the shortcut Ctl-G) once you have specified your parameters and selected which analyses you want to run for each processing group (see below for how). The system will then run the selected spatial analyses. The progress bar lets you know how things are progressing (as the name suggests).  Once the analysis is complete, it pulls up a display pane and shows you a map of the results. Pull the pane down to view the options you used, for example to change them and re-run the analysis.  You will be warned about overwriting an existing analysis.  (Note that there is a bug where the display will not refresh properly after re-running - see issue #6).
 
 == Spatial analysis options ==
 
-The _Name_ option is the name used in the system. Multiple analyses on a given !BaseData may not have the same name, though analyses on different !BaseData may.
+The _Name_ option is the name used in the system. Analyses within a given !BaseData may not have the same name.
 
-The _Neighbour set 1_ and _Neighbour set 2 _text boxes allow you to define the neighbourhoods used for the analyses (see SpatialConditions for how). There is no requirement to have the processing group in any of the neighbourhoods, and both neighbourhoods may be arbitrarily defined independently of each other. It is up to the user to identify what is most appropriate for the analysis at hand. You are also not obliged to specify a second neighbourhood.  The use of these neighbourhoods varies by analysis. Some aggregate the neighbourhoods into a single set (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_whole]), others compare the labels in the first neighbour set with those in the second (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Taxonomic_Dissimilarity_and_Comparison Jaccard and other dissimilarity indices]), while others use the first set to define the list of labels to use but then consider distributions across both neighbour sets (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_central]). 
+The _Neighbour set 1_ and _Neighbour set 2 _text boxes allow you to define the neighbour sets used for the analyses (see SpatialConditions for how). There is no requirement to include the processing group in any of the neighbour sets, and both neighbour sets may be arbitrarily defined independently of each other. It is up to the user to identify what is most appropriate for the analysis at hand. You are also not obliged to specify a second neighbourhood.  The use of these neighbourhoods varies by analysis. Some aggregate the neighbourhoods into a single set (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_whole]), others compare the labels in the first neighbour set with those in the second (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Taxonomic_Dissimilarity_and_Comparison Jaccard and other dissimilarity indices]), while others use the first set to define the list of labels to use but then consider distributions across both neighbour sets (e.g. [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_and_Rarity endemism_central]). 
 
-The _Verify_ buttons (big green ticks) to the right of the neighbourhood definition boxes let you know if the spatial conditions entered are syntactically valid. It does not check if the conditions do what you want but, as was noted in the clustering section, this is hardly unusual for a computer program.
+The _Verify_ buttons (big green ticks) to the right of the neighbour set definition boxes let you know if the spatial conditions entered are syntactically valid. It does not check if the conditions do what you want but, as was noted in the clustering section, this is hardly unusual for a computer program.
 
 <wiki:comment>THIS HAS BEEN REMOVED FROM THE GUI FOR NOW:
  The _Plus_ button allows you to specify additional arguments if specified by the analyses, although this is not really used much yet.
@@ -325,11 +327,13 @@ The _Verify_ buttons (big green ticks) to the right of the neighbourhood definit
 
 == Spatial analysis options ==
 
-This is the same as in the cluster tab. Use the check boxes to select which sets of analyses are to be used, and therefore which indices will be calculated. Press the plus buttons next to each set to select specific analyses. Press the plus button again to see which indices each one calculates. Text at each level tells you about the calculations and what they do.
+This is the same as in the cluster tab. Use the check boxes to select which sets of analyses are to be used, and therefore which indices will be calculated. Press the plus buttons next to each set to expand or reduce the tree. Depending on the level, expanding the tree will either show which anlayses are available under a category (top level), or  shows a list of the indices each one calculates with an explanation for each (lower level). This information is also available from the [Analyses_and_Indices] page.
 
-Indices of single values are stored within a list called SPATIAL_RESULTS in each node. Those that are lists are stored in each node at the same level as SPATIAL_RESULTS. This may not be clear until you run a cluster analysis..
+Indices which result in single (scalar) values are collected and stored in a list called SPATIAL_RESULTS in each element (group). Those that are lists are stored in each element  at the same level as SPATIAL_RESULTS.
 
 Those analyses or indices that require two neighbourhoods (such as Jaccard or Sorensen dissimilarity) will not be created if a second neighbourhood is not specified.
+
+<wiki:comment>Up to here 2009-11-16, but haven't touched cluster section</wiki:comment>
 
 == Viewing the results ==
 
@@ -351,7 +355,7 @@ To run a randomisation analysis on the currently selected basebata object, open 
 
 sample_session_html_6e4e8f8d.png
 
-The Randomisation tab has two main sections where you can set options. The first section (_Setup_) determines the main setup parameters used in the randomisation, for example the randomisation function and the PRNG seed if you want to reproduce a sequence of random values between randomisations. The second (_Parameters_) are function specific options. At this stage only three randomisations are supported – rand_csr_by_group, rand_no_change and rand_structured.
+The Randomisation tab has two main sections where you can set options. The upper section (_Setup_) determines the main setup parameters used in the randomisation, for example the randomisation function and the PRNG seed if you want to reproduce a sequence of random values between randomisations. The second (_Parameters_) are function specific options. At this stage only three randomisations are supported – rand_csr_by_group, rand_no_change and rand_structured.
 
   * _rand_csr_by_group_ randomly reallocates each group with all of its labels. The csr stands for Complete Spatial Randomness.
   * _rand_no_change_ merely replicates the !BaseData object. It is useful for assessing cluster analyses as the tie breaker is based on a random choice, or if you are just plain paranoid and want to test the system.

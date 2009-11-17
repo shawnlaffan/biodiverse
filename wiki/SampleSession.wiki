@@ -121,7 +121,7 @@ _Note_: the matrix import methods do not currently support remapping of labels. 
 
 As with matrices, trees can be imported at any time, but can only be visualized once a (any) basedata object has been imported and visualized as well. Again, a tree is most useful if the basedata being displayed shares labels with it.
 
-A tree must be in a nexus format (*.nex or *.tre extension). All trees in a nexus file will be imported and added to the project.  To import, select the import button in the Tree toolbar. A window will appear for you to select your file.
+A tree must be in a nexus format (`*`.nex or `*`.tre extension). All trees in a nexus file will be imported and added to the project.  To import, select the import button in the Tree toolbar. A window will appear for you to select your file.
 
 http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step1.png
 

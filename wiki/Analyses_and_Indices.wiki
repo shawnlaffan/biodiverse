@@ -2,19 +2,22 @@
 #labels Featured
 
 = Analyses and indices available in Biodiverse =
-_Generated GMT Sat Nov 14 05:36:28 2009 using build_indices_table.pl, Biodiverse version 0.12._
+_Generated GMT Tue Nov 17 05:13:17 2009 using build_indices_table.pl, Biodiverse version 0.12._
 
 
-This is a listing of the analyses available in Biodiverse and the indices they generate.  It is generated from the system metadata so is identical to that visible in the GUI.
+This is a listing of the analyses available in Biodiverse and the indices they generate.
+It is generated from the system metadata so is identical to that visible in the GUI.
 
 Most of the headings are self-explanatory.  For the others:
   * The *Subroutine* is the name of the subroutine used to call the function if you are using Biodiverse through a script.  
   * The *Index* is the name of the index in the SPATIAL_RESULTS list, or if it is its own list then this will be its name.  These lists can contain a variety of values, but are usually lists of labels with some value, for example the weights used in an endemism analysis.  The names of such lists typically end in "LIST", "ARRAY", "HASH" or "LABELS". 
   * *Valid cluster metric* is whether or not the index can be used as a clustering metric.  A blank value means it cannot.
-  * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set (the set of Groups linked to the terminal nodes below a cluster node).  Note that many of the analyses lump neighbour sets 1 and 2 together.  See the SpatialConditions page for more details on neighbour sets.
+  * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  (This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set, defined by the set of groups linked to the terminal nodes below a cluster node).  Note that many of the analyses lump neighbour sets 1 and 2 together.  See the SpatialConditions page for more details on neighbour sets.
 
-Note that analyses can provide different numbers of indices depending on the nature of the !BaseData set used.  This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
+Note that analyses can provide different numbers of indices depending on the nature of the !BaseData set used.
+This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
 
+Table of contents:
 <wiki:toc max_depth="4" />
 
 == Endemism and Rarity ==
@@ -47,7 +50,7 @@ Note that analyses can provide different numbers of indices depending on the nat
 || 7 || ENDW_CWE || Corrected weighted endemism ||  || 1 ||
 || 8 || ENDW_RANGELIST || List of ranges for each label used in the endemism calculations ||  || 1 ||
 || 9 || ENDW_RICHNESS || Richness used in ENDW_CWE (same as index RICHNESS_ALL) ||  || 1 ||
-|| 10 || ENDW_SINGLE || Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in. Useful if your data have sampling biases. (See Slatyer et al. (2007) J. Biogeog). ||  || 1 ||
+|| 10 || ENDW_SINGLE || Endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found in. Useful if your data have sampling biases (see Slatyer et al. (2007) J. Biogeog). ||  || 1 ||
 || 11 || ENDW_WE || Weighted endemism ||  || 1 ||
 || 12 || ENDW_WTLIST || List of weights for each label used in the endemism calculations ||  || 1 ||
 
@@ -217,25 +220,40 @@ Note that analyses can provide different numbers of indices depending on the nat
  
  === Sample counts ===
 
-*Description:* Sample counts within element sets, includes lists and basic summary stats These form the basis of the sample indices
+*Description:* Sample counts within element sets, includes lists and basic summary stats These form the basis of the sample indices.
 
 *Subroutine:* calc_local_samples
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 69 || ABC3_LABELS_ALL || Labels in both neighbour sets ||  || 2 ||
-|| 70 || ABC3_LABELS_SET1 || Labels in neighbour set 1 ||  || 1 ||
-|| 71 || ABC3_LABELS_SET2 || Labels in neighbour set 2 ||  || 2 ||
-|| 72 || ABC3_MEAN_ALL || Mean sample counts of labels in both element sets ||  || 2 ||
-|| 73 || ABC3_MEAN_SET1 || Mean sample counts of labels in neighbour set1 ||  || 1 ||
-|| 74 || ABC3_MEAN_SET2 || Mean sample counts of labels in neighbour set 2 ||  || 2 ||
-|| 75 || ABC3_SD_ALL || Standard deviation of label sample counts in both element sets ||  || 2 ||
-|| 76 || ABC3_SD_SET1 || Standard deviation of sample counts in neighbour set 1 ||  || 1 ||
-|| 77 || ABC3_SD_SET2 || Standard deviation of sample counts in neighbour set 2 ||  || 2 ||
-|| 78 || ABC3_SUM_ALL || Sum of the sample counts in neighbour set2 ||  || 2 ||
-|| 79 || ABC3_SUM_SET1 || Sum of the sample counts in neighbour set1 ||  || 1 ||
-|| 80 || ABC3_SUM_SET2 || Sum of the sample counts in neighbour set2 ||  || 2 ||
+|| 69 || ABC3_LABELS_ALL || Labels in both neighbour sets. ||  || 2 ||
+|| 70 || ABC3_LABELS_SET1 || Labels in neighbour set 1. ||  || 1 ||
+|| 71 || ABC3_LABELS_SET2 || Labels in neighbour set 2. ||  || 2 ||
+|| 72 || ABC3_MEAN_ALL || Mean sample counts of labels in both element sets. ||  || 2 ||
+|| 73 || ABC3_MEAN_SET1 || Mean sample counts of labels in neighbour set1. ||  || 1 ||
+|| 74 || ABC3_MEAN_SET2 || Mean sample counts of labels in neighbour set 2. ||  || 2 ||
+|| 75 || ABC3_SD_ALL || Standard deviation of label sample counts in both element sets. ||  || 2 ||
+|| 76 || ABC3_SD_SET1 || Standard deviation of sample counts in neighbour set 1. ||  || 1 ||
+|| 77 || ABC3_SD_SET2 || Standard deviation of sample counts in neighbour set 2. ||  || 2 ||
+|| 78 || ABC3_SUM_ALL || Sum of the sample counts in neighbour set2. ||  || 2 ||
+|| 79 || ABC3_SUM_SET1 || Sum of the sample counts in neighbour set1. ||  || 1 ||
+|| 80 || ABC3_SUM_SET2 || Sum of the sample counts in neighbour set2. ||  || 2 ||
 
 == Matrix ==
+
+
+ 
+ === Compare dissimilarity matrix values ===
+
+*Description:* Compare the set of labels in one neighbour set with those in another using their matrix values (assumes dissimilarities and uses 0 as identical, so take care).
+
+*Subroutine:* calc_compare_dissim_matrix_values
+
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
+|| 81 || MXD_COUNT || Count of comparisons used. ||  || 2 ||
+|| 82 || MXD_LIST1 || List of the labels used from neighbour set 1 (those in the matrix). The list values are the number of times each label was used in the calculations. This will always be 1 for labels in neighbour set 1. ||  || 2 ||
+|| 83 || MXD_LIST2 || List of the labels used from neighbour set 2 (those in the matrix). The list values are the number of times each label was used in the calculations. This will equal the number of labels used from neighbour set 1. ||  || 2 ||
+|| 84 || MXD_MEAN || Mean dissimilarity || cluster metric || 2 ||
+|| 85 || MXD_VARIANCE || Variance of the dissimilarity values || cluster metric || 2 ||
 
 
  
@@ -246,19 +264,18 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_overlap_mx
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 81 || MXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
-|| 82 || MXO_MEAN || Mean of neighbour set 1 ||  || 1 ||
-|| 83 || MXO_M_RATIO || Ratio of the set1 mean to the total mean = (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
-|| 84 || MXO_N || Count of labels used in neighbour set 1 ||  || 1 ||
-|| 85 || MXO_TLABELS || All labels used ||  || 1 ||
-|| 86 || MXO_TMEAN || Mean of both neighbour sets || cluster metric || 1 ||
-|| 87 || MXO_TN || Count of all labels used ||  || 1 ||
-|| 88 || MXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
-|| 89 || MXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
-|| 90 || MXO_V_RATIO || Ratio of the set1 variance to the total variance = (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
-|| 91 || MXO_WARD || Ward's dissimilarity metric - set1 versus set2 || cluster metric || 2 ||
-|| 92 || MXO_Z_RATIO || A ratio of the z-scores = (MXO_MEAN / sqrt (MXO_VARIANCE)) / (MXO_TMEAN / sqrt (MXO_TVARIANCE)) ||  || 1 ||
-|| 93 || MXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD = ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
+|| 86 || MXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
+|| 87 || MXO_MEAN || Mean of neighbour set 1 ||  || 1 ||
+|| 88 || MXO_M_RATIO || Ratio of the set1 mean to the total mean = (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
+|| 89 || MXO_N || Count of labels used in neighbour set 1 ||  || 1 ||
+|| 90 || MXO_TLABELS || All labels used ||  || 1 ||
+|| 91 || MXO_TMEAN || Mean of both neighbour sets || cluster metric || 1 ||
+|| 92 || MXO_TN || Count of all labels used ||  || 1 ||
+|| 93 || MXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
+|| 94 || MXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
+|| 95 || MXO_V_RATIO || Ratio of the set1 variance to the total variance = (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
+|| 96 || MXO_Z_RATIO || A ratio of the z-scores = (MXO_MEAN / sqrt (MXO_VARIANCE)) / (MXO_TMEAN / sqrt (MXO_TVARIANCE)) ||  || 1 ||
+|| 97 || MXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD = ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
 
 
  
@@ -269,20 +286,20 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_matrix_stats
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 94 || MX_KURT || Kurtosis ||  || 1 ||
-|| 95 || MX_MAXVALUE || Maximum value ||  || 1 ||
-|| 96 || MX_MEAN || Mean ||  || 1 ||
-|| 97 || MX_MEDIAN || Median ||  || 1 ||
-|| 98 || MX_MINVALUE || Minimum value ||  || 1 ||
-|| 99 || MX_N || Number of samples (comparisons, not labels) ||  || 1 ||
-|| 100 || MX_PCT05 || 5th percentile value ||  || 1 ||
-|| 101 || MX_PCT25 || First quartile (25th percentile) ||  || 1 ||
-|| 102 || MX_PCT75 || Third quartile (75th percentile) ||  || 1 ||
-|| 103 || MX_PCT95 || 95th percentile value ||  || 1 ||
-|| 104 || MX_RANGE || Range (max-min) ||  || 1 ||
-|| 105 || MX_SD || Standard deviation ||  || 1 ||
-|| 106 || MX_SKEW || Skewness ||  || 1 ||
-|| 107 || MX_VALUES || List of the matrix values ||  || 1 ||
+|| 98 || MX_KURT || Kurtosis ||  || 1 ||
+|| 99 || MX_MAXVALUE || Maximum value ||  || 1 ||
+|| 100 || MX_MEAN || Mean ||  || 1 ||
+|| 101 || MX_MEDIAN || Median ||  || 1 ||
+|| 102 || MX_MINVALUE || Minimum value ||  || 1 ||
+|| 103 || MX_N || Number of samples (comparisons, not labels) ||  || 1 ||
+|| 104 || MX_PCT05 || 5th percentile value ||  || 1 ||
+|| 105 || MX_PCT25 || First quartile (25th percentile) ||  || 1 ||
+|| 106 || MX_PCT75 || Third quartile (75th percentile) ||  || 1 ||
+|| 107 || MX_PCT95 || 95th percentile value ||  || 1 ||
+|| 108 || MX_RANGE || Range (max-min) ||  || 1 ||
+|| 109 || MX_SD || Standard deviation ||  || 1 ||
+|| 110 || MX_SKEW || Skewness ||  || 1 ||
+|| 111 || MX_VALUES || List of the matrix values ||  || 1 ||
 
 
  
@@ -293,9 +310,9 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_mx_rao_qe
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 108 || MX_RAO_QE || Matrix weighted quadratic entropy ||  || 1 ||
-|| 109 || MX_RAO_TLABELS || List of labels and values used in the MX_RAO_QE calculations ||  || 1 ||
-|| 110 || MX_RAO_TN || Count of comparisons used to calculate MX_RAO_QE ||  || 1 ||
+|| 112 || MX_RAO_QE || Matrix weighted quadratic entropy ||  || 1 ||
+|| 113 || MX_RAO_TLABELS || List of labels and values used in the MX_RAO_QE calculations ||  || 1 ||
+|| 114 || MX_RAO_TN || Count of comparisons used to calculate MX_RAO_QE ||  || 1 ||
 
 == Numeric Labels ==
 
@@ -308,7 +325,7 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_numeric_label_data
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 111 || NUM_DATA_ARRAY || Numeric label data in array form. Multiple occurrences are repeated. ||  || 1 ||
+|| 115 || NUM_DATA_ARRAY || Numeric label data in array form. Multiple occurrences are repeated. ||  || 1 ||
 
 
  
@@ -319,8 +336,8 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_numeric_label_other_means
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 112 || NUM_GMEAN || Geometric mean ||  || 1 ||
-|| 113 || NUM_HMEAN || Harmonic mean ||  || 1 ||
+|| 116 || NUM_GMEAN || Geometric mean ||  || 1 ||
+|| 117 || NUM_HMEAN || Harmonic mean ||  || 1 ||
 
 
  
@@ -331,25 +348,25 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_numeric_label_quantiles
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 114 || NUM_Q005 || 5th percentile ||  || 1 ||
-|| 115 || NUM_Q010 || 10th percentile ||  || 1 ||
-|| 116 || NUM_Q015 || 15th percentile ||  || 1 ||
-|| 117 || NUM_Q020 || 20th percentile ||  || 1 ||
-|| 118 || NUM_Q025 || 25th percentile ||  || 1 ||
-|| 119 || NUM_Q030 || 30th percentile ||  || 1 ||
-|| 120 || NUM_Q035 || 35th percentile ||  || 1 ||
-|| 121 || NUM_Q040 || 40th percentile ||  || 1 ||
-|| 122 || NUM_Q045 || 45th percentile ||  || 1 ||
-|| 123 || NUM_Q050 || 50th percentile ||  || 1 ||
-|| 124 || NUM_Q055 || 55th percentile ||  || 1 ||
-|| 125 || NUM_Q060 || 60th percentile ||  || 1 ||
-|| 126 || NUM_Q065 || 65th percentile ||  || 1 ||
-|| 127 || NUM_Q070 || 70th percentile ||  || 1 ||
-|| 128 || NUM_Q075 || 75th percentile ||  || 1 ||
-|| 129 || NUM_Q080 || 80th percentile ||  || 1 ||
-|| 130 || NUM_Q085 || 85th percentile ||  || 1 ||
-|| 131 || NUM_Q090 || 90th percentile ||  || 1 ||
-|| 132 || NUM_Q095 || 95th percentile ||  || 1 ||
+|| 118 || NUM_Q005 || 5th percentile ||  || 1 ||
+|| 119 || NUM_Q010 || 10th percentile ||  || 1 ||
+|| 120 || NUM_Q015 || 15th percentile ||  || 1 ||
+|| 121 || NUM_Q020 || 20th percentile ||  || 1 ||
+|| 122 || NUM_Q025 || 25th percentile ||  || 1 ||
+|| 123 || NUM_Q030 || 30th percentile ||  || 1 ||
+|| 124 || NUM_Q035 || 35th percentile ||  || 1 ||
+|| 125 || NUM_Q040 || 40th percentile ||  || 1 ||
+|| 126 || NUM_Q045 || 45th percentile ||  || 1 ||
+|| 127 || NUM_Q050 || 50th percentile ||  || 1 ||
+|| 128 || NUM_Q055 || 55th percentile ||  || 1 ||
+|| 129 || NUM_Q060 || 60th percentile ||  || 1 ||
+|| 130 || NUM_Q065 || 65th percentile ||  || 1 ||
+|| 131 || NUM_Q070 || 70th percentile ||  || 1 ||
+|| 132 || NUM_Q075 || 75th percentile ||  || 1 ||
+|| 133 || NUM_Q080 || 80th percentile ||  || 1 ||
+|| 134 || NUM_Q085 || 85th percentile ||  || 1 ||
+|| 135 || NUM_Q090 || 90th percentile ||  || 1 ||
+|| 136 || NUM_Q095 || 95th percentile ||  || 1 ||
 
 
  
@@ -360,15 +377,15 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_numeric_label_stats
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 133 || NUM_CV || Coefficient of variation (NUM_SD / NUM_MEAN) ||  || 1 ||
-|| 134 || NUM_KURT || Kurtosis ||  || 1 ||
-|| 135 || NUM_MAX || Maximum value (100th quantile) ||  || 1 ||
-|| 136 || NUM_MEAN || Mean || cluster metric || 1 ||
-|| 137 || NUM_MIN || Minimum value (zero quantile) ||  || 1 ||
-|| 138 || NUM_N || Number of samples ||  || 1 ||
-|| 139 || NUM_RANGE || Range (max - min) ||  || 1 ||
-|| 140 || NUM_SD || Standard deviation ||  || 1 ||
-|| 141 || NUM_SKEW || Skewness ||  || 1 ||
+|| 137 || NUM_CV || Coefficient of variation (NUM_SD / NUM_MEAN) ||  || 1 ||
+|| 138 || NUM_KURT || Kurtosis ||  || 1 ||
+|| 139 || NUM_MAX || Maximum value (100th quantile) ||  || 1 ||
+|| 140 || NUM_MEAN || Mean || cluster metric || 1 ||
+|| 141 || NUM_MIN || Minimum value (zero quantile) ||  || 1 ||
+|| 142 || NUM_N || Number of samples ||  || 1 ||
+|| 143 || NUM_RANGE || Range (max - min) ||  || 1 ||
+|| 144 || NUM_SD || Standard deviation ||  || 1 ||
+|| 145 || NUM_SKEW || Skewness ||  || 1 ||
 
 == Phylogenetic Indices ==
 
@@ -381,11 +398,11 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_pd
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 142 || PD || Phylogenetic diversity ||  || 1 ||
-|| 143 || PD_INCLUDED_NODES || Tree nodes included in the PD calculations ||  || 1 ||
-|| 144 || PD_P || Phylogenetic diversity as a proportion of total tree length ||  || 1 ||
-|| 145 || PD_P_per_taxon || Phylogenetic diversity per taxon as a proportion of total tree length ||  || 1 ||
-|| 146 || PD_per_taxon || Phylogenetic diversity per taxon ||  || 1 ||
+|| 146 || PD || Phylogenetic diversity ||  || 1 ||
+|| 147 || PD_INCLUDED_NODES || Tree nodes included in the PD calculations ||  || 1 ||
+|| 148 || PD_P || Phylogenetic diversity as a proportion of total tree length ||  || 1 ||
+|| 149 || PD_P_per_taxon || Phylogenetic diversity per taxon as a proportion of total tree length ||  || 1 ||
+|| 150 || PD_per_taxon || Phylogenetic diversity per taxon ||  || 1 ||
 
 
  
@@ -396,12 +413,12 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_pe
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 147 || PE_RANGELIST || Node ranges used in PE calcs ||  || 1 ||
-|| 148 || PE_WE || Phylogenetic endemism ||  || 1 ||
-|| 149 || PE_WE_P || Phylogenetic weighted endemism as a proportion of the total tree length ||  || 1 ||
-|| 150 || PE_WE_SINGLE || Phylogenetic endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
-|| 151 || PE_WE_SINGLE_P || Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
-|| 152 || PE_WTLIST || Node weights used in PE calcs ||  || 1 ||
+|| 151 || PE_RANGELIST || Node ranges used in PE calcs ||  || 1 ||
+|| 152 || PE_WE || Phylogenetic endemism ||  || 1 ||
+|| 153 || PE_WE_P || Phylogenetic weighted endemism as a proportion of the total tree length ||  || 1 ||
+|| 154 || PE_WE_SINGLE || Phylogenetic endemism unweighted by the number of neighbours. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
+|| 155 || PE_WE_SINGLE_P || Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length. Counts each label only once, regardless of how many groups in the neighbourhood it is found. Useful if your data have sampling biases. ||  || 1 ||
+|| 156 || PE_WTLIST || Node weights used in PE calcs ||  || 1 ||
 
 == Taxonomic Dissimilarity and Comparison ==
 
@@ -414,8 +431,8 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_beta_diversity
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 153 || BETA_2 || The other beta || cluster metric || 2 ||
-|| 154 || BETA_W || Whittaker's beta (Note that this is the same as the Sorenson index.) || cluster metric || 2 ||
+|| 157 || BETA_2 || The other beta || cluster metric || 2 ||
+|| 158 || BETA_W || Whittaker's beta (Note that this is the same as the Sorenson index.) || cluster metric || 2 ||
 
 
  
@@ -426,7 +443,7 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_bray_curtis
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 155 || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 2 ||
+|| 159 || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 2 ||
 
 
  
@@ -437,7 +454,7 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_jaccard
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 156 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
+|| 160 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
 
 
  
@@ -448,9 +465,9 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_tx_rao_qe
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 157 || TX_RAO_QE || Taxonomically weighted quadratic entropy ||  || 1 ||
-|| 158 || TX_RAO_TLABELS || List of labels and values used in the TX_RAO_QE calculations ||  || 1 ||
-|| 159 || TX_RAO_TN || Count of comparisons used to calculate TX_RAO_QE ||  || 1 ||
+|| 161 || TX_RAO_QE || Taxonomically weighted quadratic entropy ||  || 1 ||
+|| 162 || TX_RAO_TLABELS || List of labels and values used in the TX_RAO_QE calculations ||  || 1 ||
+|| 163 || TX_RAO_TN || Count of comparisons used to calculate TX_RAO_QE ||  || 1 ||
 
 
  
@@ -461,7 +478,7 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_s2
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 160 || S2 || dissimilarity index from Lennon et al.:Lennon, J.J., Koleff, P., Greenwood, J.J.D. and Gaston, K.J. (2001) The geographical structure of British bird distributions: diversity, spatial turnover and scale. Journal of Animal Ecology, 70, 966-979. || cluster metric || 2 ||
+|| 164 || S2 || dissimilarity index from Lennon et al.:Lennon, J.J., Koleff, P., Greenwood, J.J.D. and Gaston, K.J. (2001) The geographical structure of British bird distributions: diversity, spatial turnover and scale. Journal of Animal Ecology, 70, 966-979. || cluster metric || 2 ||
 
 
  
@@ -472,10 +489,10 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_simpson_shannon
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 161 || SHANNON_E || Shannon's evenness (H / HMAX) ||  || 1 ||
-|| 162 || SHANNON_H || Shannon's H ||  || 1 ||
-|| 163 || SHANNON_HMAX || maximum possible value of Shannon's H ||  || 1 ||
-|| 164 || SIMPSON_D || Simpson's D. A score of zero is more similar. || cluster metric || 1 ||
+|| 165 || SHANNON_E || Shannon's evenness (H / HMAX) ||  || 1 ||
+|| 166 || SHANNON_H || Shannon's H ||  || 1 ||
+|| 167 || SHANNON_HMAX || maximum possible value of Shannon's H ||  || 1 ||
+|| 168 || SIMPSON_D || Simpson's D. A score of zero is more similar. || cluster metric || 1 ||
 
 
  
@@ -486,7 +503,7 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_sorenson
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 165 || SORENSON || Sorenson index || cluster metric || 2 ||
+|| 169 || SORENSON || Sorenson index || cluster metric || 2 ||
 
 
  
@@ -497,16 +514,15 @@ Note that analyses can provide different numbers of indices depending on the nat
 *Subroutine:* calc_overlap_tx
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 166 || TXO_LABELS || Labels in neighbour set 1 ||  || 1 ||
-|| 167 || TXO_MEAN || Mean of neighbour set 1 ||  || 1 ||
-|| 168 || TXO_M_RATIO || Ratio of the set1 mean to the whole mean (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
-|| 169 || TXO_N || Count of labels used in neighbour set 1 ||  || 1 ||
-|| 170 || TXO_TLABELS || All labels used ||  || 1 ||
-|| 171 || TXO_TMEAN || Mean of both neighbour sets ||  || 1 ||
-|| 172 || TXO_TN || Count of all labels used ||  || 1 ||
-|| 173 || TXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||  || 1 ||
-|| 174 || TXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||  || 1 ||
-|| 175 || TXO_V_RATIO || Ratio of the set1 variance to the total variance (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
-|| 176 || TXO_WARD || Ward's dissimilarity metric, set1 versus set2 || cluster metric || 2 ||
-|| 177 || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||  || 1 ||
-|| 178 || TXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
+|| 170 || TXO_LABELS || Labels in neighbour set 1. ||  || 1 ||
+|| 171 || TXO_MEAN || Mean of neighbour set 1. ||  || 1 ||
+|| 172 || TXO_M_RATIO || Ratio of the set1 mean to the mean of the combined neighbour sets (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
+|| 173 || TXO_N || Count of labels used in neighbour set 1. ||  || 1 ||
+|| 174 || TXO_TLABELS || All labels used. ||  || 1 ||
+|| 175 || TXO_TMEAN || Mean of both neighbour sets. ||  || 1 ||
+|| 176 || TXO_TN || Count of all labels used in the conbined neighbour sets. ||  || 1 ||
+|| 177 || TXO_TVARIANCE || Variance of the combined neighbour sets (mean squared difference from zero). ||  || 1 ||
+|| 178 || TXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero). ||  || 1 ||
+|| 179 || TXO_V_RATIO || Ratio of the set1 variance to the variance of the combined neighbour sets (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
+|| 180 || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||  || 1 ||
+|| 181 || TXO_Z_SCORE || Z-score of the set1 mean given the mean and SD of the combined neighbour sets ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||

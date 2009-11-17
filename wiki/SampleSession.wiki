@@ -3,13 +3,15 @@
 
 This is an initial effort at documenting the use of the GUI.  Much of the content will move into the other wiki pages over time, with this document being shortened and serving the purpose of an overview.
 
-_Note:  This has been converted from !OpenOffice to wiki format, via html, so needs a cleanup of formatting tags and re-linking of screen shots (cluster and randomisation sections).  Users should also refer to the sample_session.pdf file under the distribution's Documentation folder until that process is complete._
+<wiki:comment>The source of this document is the Sample_session.pdf file distributed with versions 0.11 and earlier.  This was converted from !OpenOffice to wiki format, via html.
+</wiki:comment>
+
 
 <wiki:toc max_depth="4" />
 
 = A sample session =
 
-There are six main components in a full session.
+There are seven main components in a full session.
 
   1. Open or import data into a project (!BasaData, matrices and trees)
   1. Visualise the data (view labels)

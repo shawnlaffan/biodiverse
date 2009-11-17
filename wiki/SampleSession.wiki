@@ -89,7 +89,7 @@ http://www.biodiverse.unsw.edu.au/screenshots/remap_labels_screen2.png
 http://www.biodiverse.unsw.edu.au/screenshots/remap_labels_screen3.png
 
 
-If you decide you don't want to select a remap file after all, simply click Cancel. The system will now import your data into a !BaseData object. A status bar appears showing progress. When the import is complete, you are free to visualise and analyse the data. The Outputs tab shows all currently imported !BaseData objects (and associated analyses, as discussed later) that you can work with.
+If you decide you don't want to select a remap file after all, simply click Cancel. The system will now import your data into a !BaseData object. A status bar appears showing progress. When the import is complete, you are free to visualise and analyse the data. The Outputs tab shows all currently imported !BaseData objects and associated analyses that you can work with.
 
 The process described thus far will create a new !BaseData object in the Biodiverse session. Alternatively, if you have an existing !BaseData object in your project and wish to add more data you can do so by following the normal import process, but in the dialogue window where you select the file to be imported, uncheck the “New” box at the top and select the existing !BaseData set to import into from the drop-down menu.
 

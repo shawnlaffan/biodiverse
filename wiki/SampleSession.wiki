@@ -129,7 +129,7 @@ Select your file and click Ok. You will then have the option of choosing a label
 
 http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step2.png
 
-If you don't wish to remap labels, simply click Cancel and the system will import the tree.  If you do then click OK and then you will be promoted to select a properties (remap) file, followed by an option to specify a column separator and quote character, and then the column types.
+If you don't wish to remap labels, simply click Cancel and the system will import the tree.  If you do then click OK and then you will be prompted to select a properties (remap) file, followed by an option to specify a column separator and quote character, and then the column types.
 
 http://www.biodiverse.unsw.edu.au/screenshots/import_tree_step3.png
 

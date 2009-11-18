@@ -11,6 +11,7 @@ This version is not yet released.  This is a summary of what will be contained i
   *  User is warned if they try to add a new spatial or cluster output to a !BaseData and it has one or more randomisations.
   *  Randomisation outputs can now be deleted.
   *  The MXO_WARD and TXO_WARD metrics have been removed.  Use the new [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Compare_dissimilarity_matrix_values "Compare dissimilarity matrix values"] analysis instead.
+  *  Matrix elements (labels) can be remapped on import, as well as excluded/included using the properties table.
 
   *  More changes will be listed as they are implemented.
   *  See also http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.12

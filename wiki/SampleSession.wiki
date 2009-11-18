@@ -115,7 +115,9 @@ http://www.biodiverse.unsw.edu.au/screenshots/import_matrix_step2.png
 
 You must select at least one label column, and one (and only one) “Matrix start” column. Any other columns in the file should be set to “Ignore”. Click Ok. Your matrix has now been imported, and should appear in the drop-down menu in the matrix toolbar at the top of the screen. It will be displayed the next time you visualise basedata (though keep in mind it will only produce a useful display if the matrix and basedata objects share some labels).
 
-_Note_: the matrix import methods do not currently support remapping of labels.  This needs to be corrected, see issue #16.
+_Note_: The matrix import methods do not support remapping of labels prior to version 0.12 (see issue #16).  
+
+Remapping and explicit inclusion/exclusion of matrix elements is done using an element properties table, the same as for a !BaseData import.  At version 0.12, the remap interface will appear regardless.  Choose cancel to skip it and just load the matrix.
 
 === Trees ===
 

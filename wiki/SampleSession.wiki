@@ -117,7 +117,7 @@ You must select at least one label column, and one (and only one) “Matrix star
 
 _Note_: The matrix import methods do not support remapping of labels prior to version 0.12 (see issue #16).  
 
-Remapping and explicit inclusion/exclusion of matrix elements is done using an element properties table, the same as for a !BaseData import.  At version 0.12, the remap interface will appear regardless.  Choose cancel to skip it and just load the matrix.
+Remapping and explicit inclusion/exclusion of matrix elements is done using an element properties table, the same as for a !BaseData import.  From version 0.12 you will be given the option to use an element properties table after the matrix file and its columns have been specified.  Choosing cancel will stop the whole import.
 
 === Trees ===
 

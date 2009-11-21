@@ -92,9 +92,11 @@ This will occur in certain analyses when no reasonable value can result, for exa
 
 It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity means the two sets of neighbours are identical.  
 
+Nodata is stored internally using Perl's special `undef` value (meaning undefined).
+
 Groups with a value of !NoData are plotted as white.  (Black means the group was not included in the analysis, and is typically the case in a cluster analysis if a neighbourhood or definition query is specified).  
 
-The !NoData value can be changed on export if needed, and for the raster outputs is set to -9999 by default.  A value of zero is possible, but it not a good choice in most cases.  Typically it is best to leave the nodata value as `undef` and let the system change it if needed (which it does for the raster exports).
+The !NoData value can be changed on export if needed, and for the raster outputs is set to -9999 by default.  A value of zero is possible but, as explained above, it not a good choice in most cases.  Typically it is best to leave the nodata value as `undef` and let the system change it if needed (which it does for the raster exports).
 
 == Scree plot ==
 

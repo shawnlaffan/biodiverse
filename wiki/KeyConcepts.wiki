@@ -24,11 +24,11 @@ See the SpatialConditions page.
 
 == Hue and saturation modes ==
 
-Continuous results can be displayed using either Hue or Saturation modes.  
+Numerically continuous analysis results can be displayed using either Hue or Saturation modes.  
 
-The hue mode uses colours from light blue through green and yellow to red.  it is the default for spatial results.  
+The hue mode uses colours from light blue through green and yellow to red.  It is the default for spatial results.  
 
-The saturation mode assigns colours as different levels of saturation for a single colour, the default being red.  This is the scheme used in the view labels tab.  You can select an alternate colour using the colour button to the right of the chooser.  Note that greyscale is currently not supported (version 0.11), and the system only uses the hue setting, ignoring any saturation and value settings.  See issue #32.
+The saturation mode assigns colours as different levels of saturation for a single colour, the default being red.  (This is the scheme used in the view labels tab).  You can select an alternate colour using the colour button to the right of the chooser.  Note that greyscale is currently not supported (at version 0.12), and the system only uses the hue setting, ignoring any saturation and value settings.  See issue #32.
 
 If you are unsure of how visible your results will be to the colour blind then take a screen shot and put it through the Daltonizer at http://www.vischeck.com/daltonize/ .  Saturation mode should be better than hue in these cases.
 
@@ -37,7 +37,7 @@ If you are unsure of how visible your results will be to the colour blind then t
 
 Cluster analyses can be displayed as aggregates of nodes using the contrasting colour scheme.  
 
-The contrasting colour scheme is restricted to a maximum of 13 colours, with a different colour scheme used for 9 or fewer. The schemes are derived from http://www.colorbrewer.org, but with the addition of a mid-grey to the 12 colour scheme. We have experimented with more colours, but found them difficult to distinguish (which is pretty much as recommended by the ColorBrewer web site...).
+The contrasting colour scheme is restricted to a maximum of 13 colours, with a different colour scheme used for 9 or fewer. The schemes are derived from http://www.colorbrewer.org, but with the addition of a mid-grey to the 12 colour scheme. We have experimented with more colours, but found them difficult to distinguish (which is pretty much as recommended on the ColorBrewer web site...).
 
 
 = Other topics =
@@ -52,13 +52,12 @@ The number of groups the label occurs in. This is analogous to the range unless 
 
 === Samples ===
 
-The number of times this label occurs across all groups. Groups can have many samples of the same label.  Does not include the value set by the _set label remap and properties_ option.
+The number of times this label occurs across all groups. Groups can have many samples of the same label.  It does not include the value set by the _set label remap and properties_ option.
 
 
 === Redundancy ===
 
-The sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in (many redundant samples). A value of zero means that there is, on average, close to one sample per groups the label occurs in, and it is therefore not well sampled.
-
+The sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in (many redundant samples). A value of zero means that there is, on average, close to one sample per group the label occurs in, and it is therefore not well sampled.
 
 
 == Specifying extensions ==
@@ -67,39 +66,35 @@ _Need to explain the specification of extensions and how to load them._
 
 == Using the spatial index ==
 
-The spatial index speeds up processing by reducing the number of comparisons that need to be made when assessing if a group is a neighbour of the processing goup.  Exactly how much of a speed up is a function of the index resolution and the neighbourhood specified (larger neighbourhoods take longer as they use more index blocks and therefore the system must make more comparisons).
+The spatial index speeds up processing by reducing the number of comparisons that need to be made when assessing if a group is a neighbour of the processing goup.  Exactly how much of a speed up is a function of the index resolution and the spatial condition specified (larger neighbourhoods take longer as they use more index blocks and therefore the system must make more comparisons).
 
-As an example, an analysis of approximately 20,000 groups took ~3600 seconds for a four cell radius circular neighbourhood without the index. With the index it took 30 seconds. Similarly, one with a radius of one cell also took ~3600 seconds without the index and 12 seconds with it.
+As an example of the speed up, an analysis of approximately 20,000 groups took ~3600 seconds for a four cell radius circular neighbourhood without the index. With the index it took 30 seconds. Similarly, an analysis with a radius of one cell also took ~3600 seconds without the index and 12 seconds with it.
 
 The reason for the speed-up is that the system no longer needs to assess every other group in the !BaseData as a possible neighbour, and instead focusses only on those groups that occur within the indexed blocks that satisfy the spatial condition. Think of the search through the index returning a coarse first approximation to the neighbours, with a second search refining the solution to the actual set of neighbours.
 
-Most neighbourhoods one will use are likely to be simple and use the available functions.  In these cases the system can precalculate which index bocks (elements) to search.  However, if you are using complex spatial conditions then it must preprocess the data to determine which index blocks should be assessed to find neighbours.  This can take some time when usng a fine resolution index, as it must assess each corner of the index extents, and every one of each corner block's immediate neighbours, against every other possible index block.  This results in `(m^2 * 3^m * n)` comparisons, where `n` is the number of index blocks and `m` is the number of axes (dimensions) used.  This works out to `4*9n = 36n` for a data set with two group axes.
+Most spatial conditions one will use are likely to be simple and use the available functions.  In these cases the system can precalculate which index bocks (elements) to search.  However, if you are using complex spatial conditions then it must preprocess the data to determine which index blocks should be assessed to find neighbours.  This can take some time when usng a fine resolution index, as it must assess each corner of the index extents, and every one of each corner block's immediate neighbours, against every other possible index block.  This results in `(m^2 * 3^m * n)` comparisons, where `n` is the number of index blocks and `m` is the number of axes (dimensions) used.  This works out to `4*9n = 36n` for a data set with two group axes.  The final analysis should still be faster for most analyses, though.
 
-The system will ignore the spatial index if the spatial conditions used specify it must be ignored, for example with the text matching conditions.  It can also be turned off if need be using the Analyses->Index menu.
+The system will ignore the spatial index if the spatial conditions used specify it must be ignored, for example with the text matching conditions.  It can also be turned off if needed by using the Analyses->Index menu.
 
 
 == The ABC lists ==
 
 _Explain ABC, ABC2 and ABC3_
-These lists appear in the popup windows. They might look odd at first, and are in some senses left over from the early system development
-when most indices depended on some function of A, B and C.
+These lists appear in the popup windows. They might look odd at first, and are in some senses left over from the early system development when most indices depended on some function of A, B and C.
 
-These are based on the fundamental components used for the dissimilarity metrics. *A* is the count of shared labels, 
-*B* is the count of labels found only in the first group, *C* is the count found only in the second group. 
-*ABC2* also counts how many groups each label occurs in for the set of groups specified, while *ABC3* 
-counts the number of samples. *ABC2* is used in endemism calculations, for example, while *ABC3* is used 
-for those needing counts, for example redundancy.
+These are based on the fundamental components used for the dissimilarity metrics. *A* is the count of shared labels, *B* is the count of labels found only in the first group, *C* is the count found only in the second group. 
+
+*ABC2* also counts how many groups each label occurs in for the set of groups specified, while *ABC3* counts the number of samples. *ABC2* is used in endemism calculations, for example, while *ABC3* is used for those needing counts, for example redundancy.
 
 == !NoData ==
 
-This will occur in certain analyses when no reasonable value can result, for example where there is a division by zero or 
-where there are no valid labels in a neighbourhood, e.g. a matrix analysis was run, but there are no labels in the neighbourhood 
-that are listed in the matrix and therefore no value can be assigned that is a function of the matrix.
+This will occur in certain analyses when no reasonable value can result, for example where there is a division by zero or where there are no valid labels in a neighbourhood, e.g. a matrix analysis was run, but there are no labels in the neighbourhood that are listed in the matrix and therefore no value can be assigned that is a function of the matrix.
 
-It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity 
-means the two sets of neighbours are identical.  
+It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity means the two sets of neighbours are identical.  
 
-Groups with a value of !NoData are plotted as white.  (Black means the group was not included in the analysis, and is typically the case in a cluster analysis if a neighbourhood or definition query is specified).  The !NoData value can be changed on export if needed, and for the raster outputs is set to -9999 by default.
+Groups with a value of !NoData are plotted as white.  (Black means the group was not included in the analysis, and is typically the case in a cluster analysis if a neighbourhood or definition query is specified).  
+
+The !NoData value can be changed on export if needed, and for the raster outputs is set to -9999 by default.  A value of zero is possible, but it not a good choice in most cases.  Typically it is best to leave the nodata value as `undef` and let the system change it if needed (which it does for the raster exports).
 
 == Scree plot ==
 

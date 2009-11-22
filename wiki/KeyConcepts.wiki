@@ -79,12 +79,11 @@ The system will ignore the spatial index if the spatial conditions used specify 
 
 == The ABC lists ==
 
-_Explain ABC, ABC2 and ABC3_
 These lists appear in the popup windows. They might look odd at first, and are in some senses left over from the early system development when most indices depended on some function of A, B and C.
 
 These are based on the fundamental components used for the dissimilarity metrics. *A* is the count of shared labels, *B* is the count of labels found only in the first group, *C* is the count found only in the second group. 
 
-*ABC2* also counts how many groups each label occurs in for the set of groups specified, while *ABC3* counts the number of samples. *ABC2* is used in endemism calculations, for example, while *ABC3* is used for those needing counts, for example redundancy.
+*ABC2* also keeps track of how many groups each label occurs in for the set of groups specified, while *ABC3* reports the number of samples. *ABC2* is used in, for example, endemism calculations while *ABC3* is used for those needing counts, for example redundancy.
 
 == !NoData ==
 
@@ -92,11 +91,9 @@ This will occur in certain analyses when no reasonable value can result, for exa
 
 It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity means the two sets of neighbours are identical.  
 
-Nodata is stored internally using Perl's special `undef` value (meaning undefined).
-
 Groups with a value of !NoData are plotted as white.  (Black means the group was not included in the analysis, and is typically the case in a cluster analysis if a neighbourhood or definition query is specified).  
 
-The !NoData value can be changed on export if needed, and for the raster outputs is set to -9999 by default.  A value of zero is possible but, as explained above, it not a good choice in most cases.  Typically it is best to leave the nodata value as `undef` and let the system change it if needed (which it does for the raster exports).
+!NoData is stored internally using Perl's special `undef` value (meaning undefined).  The !NoData value can be changed on export if needed, and for the raster outputs is set to -9999 by default.  A value of zero is possible but, as explained above, it not a good choice in most cases.  Typically it is best to leave the nodata value as `undef` and let the system change it if needed (which it does for the raster exports).
 
 == Scree plot ==
 
@@ -104,29 +101,22 @@ The scree plot below a tree indicates how many nodes occur at each level of, for
 
 == Selecting tree nodes ==
 
-Control click or shift click to view the lists under them.  
-
-Single click to highlight on the map.  
+See SampleSession#The_Tree and SampleSession#Viewing_the_cluster_results
 
 
 == Negative length nodes ==
 
-Negative length nodes (those that go backwards) often occur when using link_recalculate clustering or when switching 
-from spatial to non-spatial clustering. In the latter case this is because the two most similar clusters may not be 
-within the spatial neighbourhood specified, and so the similarity of the non-spatial clusters will be closer to zero 
-than the final spatial clusters. In the former case, the recalculation weights each label equally (for most similarity metrics), 
-so the merging of two clusters may actually reduce their joint similarity with the other clusters in the system.
+Negative length nodes (those that go backwards) often occur when using link_recalculate clustering or when switching from spatial to non-spatial clustering. In the latter case this is because the two most similar clusters may not be within the spatial neighbourhood specified, and so the similarity of the non-spatial clusters will be closer to zero than the final spatial clusters. In the former case, the recalculation weights each label equally (for most similarity metrics), so the merging of two clusters may actually reduce their joint similarity with the other clusters in the system.
 
 == Cluster Linkages ==
 
-Explain them here.
+See SampleSession#Cluster_parameters.
 
 == Map overlays ==
 
-Shapefiles only at the moment. They also need to be polyline or polygon. No points, but you could buffer your points by a small 
-distance and plot the resulting polygons.
-
 Overlays are available when a map is displayed, for example when viewing labels or displaying the results of a cluster or spatial analysis.
+
+Only shapefiles are supported at the moment. They also need to be polyline or polygon. Points are not ploted, but you could buffer your points by a small distance and plot the resulting polygons.
 
 The system currently ignores any vertices that are beyond the bounds of the BaseData groups, so you cannot zoom out any further 
 than the BaseData extent.

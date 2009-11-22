@@ -136,4 +136,14 @@ _Note:_ If you are exporting an asymmetric array list as a symmetric structure t
 
 == Using the tree exported to a table ==
 
-The tree structure as a table allows the storage of the tree's topology in an RDBMS or other structure, including other list data such as from a spatial analysis run for each node of a cluster tree.  These cannot currently be exported using the Newick format.  (It should be possible by repeating the tree for each list element with the values stored as the bootstrap values for each node, but this is potentially very messy).
+=== Tabular tree ===
+
+The tree structure is a table allows the storage of the tree's topology in an RDBMS or other structure, including other list data such as from a spatial analysis run for each node of a cluster tree.  These cannot currently be exported using the Newick format.  (It should be possible by repeating the tree for each list element with the values stored as the bootstrap values for each node, but this is potentially very messy).
+
+_Need to add an example table._
+
+=== Table grouped ===
+
+This is a means of exporting the tree to an RDBMS format but retaining a classification based on node counts or distance/depth from the root node.  One can choose two types.  First, one can cut the tree along a line as per the slider bar in the tree plotting.  Second, one can specify how many groups below the root node.  Both methods can be applied using length or depth distances.  This is the same as the colouring used in a tree display but applied only to the root node (see [SampleSession#Viewing_the_cluster_results], but a few images down).  
+
+_Need to add an example table._

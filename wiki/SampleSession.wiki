@@ -201,9 +201,9 @@ http://www.biodiverse.unsw.edu.au/screenshots/view_labels3_popup_group.png
 
 The title of this window indicates the group being examined. To re-use the same window to display another group's data, check the _Re-use_ box. If this box is unchecked, data for subsequently selected groups will be displayed in new windows. This is useful when making comparisons between label presence and sampling among different groups. The _Copy_ button in the group info window makes a copy of the group coordinates and all labels with their sample size to the clipboard for use elsewhere.
 
-You can also display one or more shapefile images (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. To do this, select the _Overlays_ button in the panel. A list of the currently available overlays will be displayed. To add a new overlay, click _Add_, and select the desired overlay file (Note: currently, shapefiles are the only type of overlay supported). Your selected file will be added to the list of available overlays. To display it in the group grid, select it and click _Ok_. It may take a few seconds for the overlay to appear. To remove the currently displayed overlay, open the _Overlays _menu again and click the _Clear_ button. Note: clicking _Delete_ in the _Overlays_ window will delete the shapefile from the list, but will not remove it from the display if it is currently being displayed. You must click _Clear_ as well. Using an overlay may result in noticeably slower display processing (e.g. when highlighting groups), particularly with more detailed shapefiles.  This is due to the amount of display refreshing that must be done.
+You can also display one or more shapefile images (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. See [KeyConcepts#Map_overlays] for how.
 
-The group grid view can also be customised by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.  You can also pan by clicking on a part of the plot without a group and dragging.
+The group grid display extent (zoom level) can also be changed by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.  You can also pan by clicking on a part of the plot without a group and dragging.
 
 == The Matrix Grid ==
 
@@ -332,7 +332,7 @@ http://www.biodiverse.unsw.edu.au/screenshots/cluster_analysis_results_page_reca
 
 http://www.biodiverse.unsw.edu.au/screenshots/cluster_analysis_results_page_recalc_linkage_plot_by_depth.png
 
-Vector overlays can be plotted using the “overlays” interface at the bottom of the screen (see [SampleSession#The_Group_Grid] <wiki:comment>Needs to be shifted to its own section</wiki:comment>).
+Vector overlays can be plotted using the “overlays” interface at the bottom of the screen (see [KeyConcepts#Map_overlays]).
 
 = Running a spatial (moving window) analysis =
 
@@ -388,7 +388,7 @@ The specific index that is displayed is determined using the two selection boxes
 
 Holding the control key while clicking on a group, or clicking on a group with the middle mouse button, produces a pop-up list with all the results in it, including those that cannot be displayed spatially. It also includes lists of the elements (groups) in each neighbour set (Elements set1, set2 and all) and of the labels in these neighbour sets (Labels set1, set2 and all). “All” is the union of neighbour sets 1 and 2.
 
-Vector overlays can be plotted using the “overlays” interface at the bottom of the screen (see [SampleSession#The_Group_Grid] <wiki:comment>Needs to be shifted to its own section</wiki:comment>).
+Vector overlays can be plotted using the “overlays” interface at the bottom of the screen (see [KeyConcepts#Map_overlays)).
 
 The interpretation of some of the list results can take some thought.  Consider the [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_central ENDC_WTLIST] result.  The set of groups that have a result (are coloured) are those that contained that label in their neighbour set.  This is not the same as the set of groups that contain that label (unless a condition condition was used that only uses the processing group, e.g. `sp_self_only()` or `$D==0`).  The main advantage of plotting these sorts of lists is that one can visualise where a specific label has a large or small effect.  In terms of weighted endemism, which is an additive calculation, one can also conduct further analyses to determine which labels are contributing the most to the [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_central ENDC_WE] or [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Endemism_whole ENDW_WE] scores for each group's neighbour set.  This can be done by Control-clicking to open the popup list window and then copying and pasting, or [KeyConcepts#Export exporting] the data to a different format. 
 

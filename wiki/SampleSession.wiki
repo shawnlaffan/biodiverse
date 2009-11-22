@@ -172,7 +172,7 @@ Sorting the label lists is done by clicking on the column headers. Subsequent cl
 
 http://www.biodiverse.unsw.edu.au/screenshots/view_labels2_one_label_selected.png
 
-There are currently four columns: the Label (the name of the label), Variety, Samples, and the Redundancy.
+There are currently four columns: the Label (the name of the label), Variety, Samples, and the Redundancy.  <wiki:comment>_The view labels columns need to be extended to show the selected set and also any other properties set on import._</wiki:comment>
 
 The Variety column shows the number of groups the label occurs in. This is analogous to the range unless one is set separately on import using the _set label remap and properties_ option.  
 

@@ -101,7 +101,7 @@ The scree plot below a tree indicates how many nodes occur at each level of, for
 
 == Selecting tree nodes ==
 
-See SampleSession#The_Tree and SampleSession#Viewing_the_cluster_results
+See [SampleSession#The_Tree] and [SampleSession#Viewing_the_cluster_results].
 
 
 == Negative length nodes ==
@@ -110,16 +110,17 @@ Negative length nodes (those that go backwards) often occur when using link_reca
 
 == Cluster Linkages ==
 
-See SampleSession#Cluster_parameters.
+See [SampleSession#Cluster_parameters].
 
 == Map overlays ==
 
-Overlays are available when a map is displayed, for example when viewing labels or displaying the results of a cluster or spatial analysis.
+Overlays are available when a map is displayed, for example when viewing labels or displaying the results of a cluster or spatial analysis (see SampleSession#The_Group_Grid], [SampleSession#Viewing_the_cluster_results] and [http://code.google.com/p/biodiverse/wiki/SampleSession#Viewing_the_spatial_results].
+
+You can display one or more shapefile images (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. To do this, select the Overlays button in the panel. A list of the currently available overlays will be displayed. To add a new overlay, click Add, and select the desired overlay file.  Your selected file will be added to the list of available overlays. To display it in the group grid, select it and click Ok. It may take a few seconds for the overlay to appear. To remove the currently displayed overlay, open the Overlays menu again and click the Clear button. Note: clicking Delete in the Overlays window will delete the shapefile from the list, but will not remove it from the display if it is currently being displayed. You must click Clear as well. Using an overlay may result in noticeably slower display processing (e.g. when highlighting groups), particularly with more detailed shapefiles. This is due to the amount of display refreshing that must be done. 
 
 Only shapefiles are supported at the moment. They also need to be polyline or polygon. Points are not ploted, but you could buffer your points by a small distance and plot the resulting polygons.
 
-The system currently ignores any vertices that are beyond the bounds of the BaseData groups, so you cannot zoom out any further 
-than the BaseData extent.
+The system also ignores any vertices that are beyond the bounds of the BaseData groups, so you cannot zoom out any further than the BaseData extent.
 
 == Supported file types ==
 

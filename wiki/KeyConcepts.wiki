@@ -52,7 +52,7 @@ Only shapefiles are supported at the moment. They also need to be polyline or po
 The system also ignores any vertices that are beyond the bounds of the BaseData groups, so you cannot zoom out any further than the BaseData extent.
 
 
-== Using the spatial index ==
+= Using the spatial index =
 
 The spatial index speeds up processing by reducing the number of comparisons that need to be made when assessing if a group is a neighbour of the processing goup.  Exactly how much of a speed up is a function of the index resolution and the spatial condition specified (larger neighbourhoods take longer as they use more index blocks and therefore the system must make more comparisons).
 
@@ -64,7 +64,7 @@ Most spatial conditions one will use are likely to be simple and use the availab
 
 The system will ignore the spatial index if the spatial conditions used specify it must be ignored, for example with the text matching conditions.  It can also be turned off if needed by using the Analyses->Index menu.
 
-== !NoData ==
+= !NoData =
 
 !NoData represents an unknown or undefined value, and is a commonly used value in geospatial software.  
 

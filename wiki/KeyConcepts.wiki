@@ -66,7 +66,7 @@ The system will ignore the spatial index if the spatial conditions used specify 
 
 = !NoData =
 
-!NoData represents an unknown or undefined value, and is a commonly used value in geospatial software.  
+!NoData represents an unknown or undefined value.  It is commonly used in geospatial analysis software.  
 
 !NoData will occur in certain analyses when no reasonable value can result, for example where there is a division by zero or where there are no valid labels in a neighbourhood, e.g. a matrix analysis was run, but there are no labels in the neighbourhood that are listed in the matrix and therefore no value can be assigned that is a function of the matrix.  It is a bad idea to use zero in these cases, as it often has a meaning of its own, for example 0 for a Jaccard dissimilarity means the two sets of neighbours are identical. Hence the use of !NoData.
 
@@ -76,24 +76,6 @@ Groups with a value of !NoData are plotted as white.  (Black means the group was
 
 
 = Other topics =
-
-== View Labels columns ==
-
-This is a short definition of the columns visible in the labels part of the View labels tab.  _The columns need to be extended to show the selected set and also any other properties set on import._
-
-=== Variety ===
-
-The number of groups the label occurs in. This is analogous to the range unless one is set separately on import using the _set label remap and properties_ option.
-
-=== Samples ===
-
-The number of times this label occurs across all groups. Groups can have many samples of the same label.  It does not include the value set by the _set label remap and properties_ option.
-
-
-=== Redundancy ===
-
-The sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in (many redundant samples). A value of zero means that there is, on average, close to one sample per group the label occurs in, and it is therefore not well sampled.
-
 
 == Specifying extensions ==
 

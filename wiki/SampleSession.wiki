@@ -154,7 +154,7 @@ http://www.biodiverse.unsw.edu.au/screenshots/view_labels1.png
 
 The top left contains two lists of the labels in the selected basedata object. Each list can be sorted by any of the columns. The top right contains a grid of the selected matrix elements (it is blank if no matrix is selected). The bottom left contains a grid of the groups in the current basedata object. The bottom right contains the currently selected tree (blank if none selected).
 
-The sizes of the panes can be changed by clicking and dragging the dividing bars between them.
+The sizes of the panes can be changed by clicking and dragging the dividing bars between them.  These are no visible for the GTK MS-Windows theme but can be located by moving the mouse over them and observing where the mouse icon changes.
 
 Essentially, the system provides a simple linked visualisation system so that the selection (labels, groups, matrix cells or tree nodes) in one pane is reflected in the other three. If more than one label is contained in the selection in any pane, the groups in the group grid are coloured with a hue of red according to the number of the selected labels they contain (dark red for more, lighter red for less, white for none).
 
@@ -162,27 +162,23 @@ If at any time you wish to deselect any currently selected/highlighted labels, h
 
 Interaction with each of the panes is now described.
 
-
-
 == The Label Lists ==
 
 Interaction with the labels is similar to many lists you will encounter.
 
 Click on any row in the list to highlight a single label. Hold the shift key down to select a contiguous block, and the control key to select (or deselect) non-contiguous labels. The main use for a second list is to be able to select labels from each list to highlight specific cells – or blocks of cells – in the matrix pane, if a matrix is currently selected. The first (top) label list represents matrix rows, while the second (bottom) label list represents matrix columns.
 
-Sorting the label lists is done by clicking on the column headers. Subsequent clicks on column headers sort the data by that column in ascending, descending, and default order. The default order is by label, in alphabetical order. Re-ordering of these lists also re-orders the matrix plot.
+Sorting the label lists is done by clicking on the column headers. Subsequent clicks on column headers sort the data by that column in ascending, descending, and default order. The default order is by label, in alphabetical order. Re-ordering of these lists also re-orders the matrix plot.  The current selection in the lists is updated whenever you select elements in one of the other panes.
 
 http://www.biodiverse.unsw.edu.au/screenshots/view_labels2_one_label_selected.png
 
-The label list columns include the Label (the name of the label), the [KeyConcepts#Variety Variety], [KeyConcepts#Samples Samples], and the [KeyConcepts#Redundancy Redundancy] for each label.
+There are currently four columns: the Label (the name of the label), Variety, Samples, and the Redundancy.
 
-The current selection in the lists is updated whenever you select elements in one of the other panes.
+The Variety column shows the number of groups the label occurs in. This is analogous to the range unless one is set separately on import using the _set label remap and properties_ option.  
 
-<wiki:comment>
-The following text needs to be moved - it is out of place here.
-</wiki:comment>
+The Samples column lists number of times this label occurs across all groups. Groups can have many samples of the same label.  It does not include the value set by the _set label remap and properties_ option.  
 
-One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed basedata object which you can view from the outputs tab. You will notice that the group grid changes to reflect the fact that the old labels are now the groups.
+The Redundancy column shows the sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in (many redundant samples). A value of zero means that there is, on average, close to one sample per group the label occurs in, and it is therefore not well sampled.
 
 
 == The Group Grid ==

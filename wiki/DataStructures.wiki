@@ -29,7 +29,7 @@ A !BaseStruct object consists of a set of elements.  It is the storage system us
 
 A !BaseData object is the primary storage object used in Biodiverse.  It consists of one Groups object, one Labels object, a set of parameters, and one or more cluster, moving window and randomisation outputs.  
 
-Transposing a !BaseData object merely creates a a new !BaseData object but with the groups and labels having swapped their type.
+One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed basedata object which you can view and analyse.
 
 == Labels ==
 

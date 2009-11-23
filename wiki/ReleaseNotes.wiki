@@ -5,9 +5,10 @@
 
 This version is not yet released.  This is a summary of what will be contained in the release.
 
-  *  The Windows version will use updated Gtk libs.  These will be downloadable from the Google Code site.
-  *  The export interface has been revamped to use two windows.  This makes the parameter choices clearer as irrelevant parameters are not displayed.  
-  *  Feedback to GUI does not contain the line numbers for the code.  This is still printed to the log window, though.
+  *  The Windows version will come bundled with updated GTK libraries.
+  *  All going well, the Mac OSX distribution will come as a DMG installer.
+  *  The export interface has been revamped to use two windows.  The first allows the selection of the output format and the second has parameters specific to that format.  This makes the parameter choices clearer as irrelevant parameters are not displayed.  
+  *  Feedback to GUI does not contain the line numbers for the code.  They are still printed to the log window, though.
   *  Allow !BaseData, matrix and tree objects to be loaded on startup (previous versions only allowed a project file to be loaded as an argument on startup).
   *  User is warned if they try to add a new spatial or cluster output to a !BaseData and it has one or more randomisations.
   *  Randomisation outputs can now be deleted.

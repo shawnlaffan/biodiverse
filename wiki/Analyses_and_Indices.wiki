@@ -516,13 +516,13 @@ Table of contents:
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 170 || TXO_LABELS || Labels in neighbour set 1. ||  || 1 ||
 || 171 || TXO_MEAN || Mean of neighbour set 1. ||  || 1 ||
-|| 172 || TXO_M_RATIO || Ratio of the set1 mean to the mean of the combined neighbour sets (MXO_MEAN / MXO_TMEAN) ||  || 1 ||
+|| 172 || TXO_M_RATIO || Ratio of the set1 mean to the mean of the combined neighbour sets (TXO_MEAN / TXO_TMEAN) ||  || 1 ||
 || 173 || TXO_N || Count of labels used in neighbour set 1. ||  || 1 ||
 || 174 || TXO_TLABELS || All labels used. ||  || 1 ||
 || 175 || TXO_TMEAN || Mean of both neighbour sets. ||  || 1 ||
 || 176 || TXO_TN || Count of all labels used in the conbined neighbour sets. ||  || 1 ||
 || 177 || TXO_TVARIANCE || Variance of the combined neighbour sets (mean squared difference from zero). ||  || 1 ||
 || 178 || TXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero). ||  || 1 ||
-|| 179 || TXO_V_RATIO || Ratio of the set1 variance to the variance of the combined neighbour sets (MXO_VARIANCE / MXO_TVARIANCE) ||  || 1 ||
+|| 179 || TXO_V_RATIO || Ratio of the set1 variance to the variance of the combined neighbour sets (TXO_VARIANCE / TXO_TVARIANCE) ||  || 1 ||
 || 180 || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||  || 1 ||
-|| 181 || TXO_Z_SCORE || Z-score of the set1 mean given the mean and SD of the combined neighbour sets ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||  || 1 ||
+|| 181 || TXO_Z_SCORE || Z-score of the set1 mean given the mean and SD of the combined neighbour sets ((TXO_MEAN - TXO_TMEAN) / sqrt (TXO_TVARIANCE)) ||  || 1 ||

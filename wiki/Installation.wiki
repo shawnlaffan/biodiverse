@@ -21,9 +21,9 @@ These instructions assume you have downloaded the relevant Biodiverse release an
 
 == Windows 32-bit ==
 
-  === Executable version ===
-
 ----
+
+  === Executable version ===
 
 The source code is not needed for this version, although it is still distributed and will be part of the Biodiverse folder.
 
@@ -46,7 +46,6 @@ The source code is not needed for this version, although it is still distributed
 
   === Source code version ===
 
-----
 
 Use this version if you want to debug the source code and provide patches, etc.  You can still use the exe version if you use this installation.
 

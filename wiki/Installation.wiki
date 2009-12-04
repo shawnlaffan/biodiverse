@@ -31,7 +31,7 @@ The source code is not needed for this version, although it is still distributed
   * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
   *  The next step has two choices.
     1. Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://downloads.sourceforge.net/gladewin32/gtk-2.12.9-win32-2.exe. Use the default options provided during setup, unless of course you know what you are doing.
-    1. Download GTK from http://biodiverse.googlecode.com/files/gtk_2.16_with_glade_win32.zip .  Extract the contents to your hard drive (we suggest putting it in or next to the Biodiverse folder).  Add the path to your system path variable (see for example http://www.computerhope.com/issues/ch000549.htm).  From version 0.12 this will be the method to use and we will probably also bundle GTK with the windows distribution.
+    1. Download GTK from http://biodiverse.googlecode.com/files/gtk_2.16_with_glade_win32.zip .  Extract the contents to your hard drive (we suggest putting it in or next to the Biodiverse folder).  Add the `Gtk/bin` path to your system path variable (e.g. C:\Biodiverse\Gtk\bin, depending on where you put it).  For an example of how to do this, see http://www.computerhope.com/issues/ch000549.htm.  From version 0.12 this will be the method to use and we will also bundle GTK with the windows distribution.
 
 
   Biodiverse can be started by double clicking on the _BiodiverseGUI_win32.exe_ file.

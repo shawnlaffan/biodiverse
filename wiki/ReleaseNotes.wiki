@@ -5,9 +5,9 @@
 
 07Dec2009
 
-Main changes since previous version (0.11).
+Main changes since the previous version (0.11) are:
 
-  *  The Windows version comes bundled with updated GTK libraries.  (We are still working on the Mac install).
+  *  The Windows version comes bundled with updated GTK libraries, and the executable version does not require any additional downloads.  (We are still working on an easy Mac install).
   *  The export interface has been revamped to use two windows.  The first allows the selection of the output format and the second has parameters specific to that format.  This makes the parameter choices clearer as irrelevant parameters are not displayed.  
   *  Feedback to GUI does not contain the line numbers for the code.  They are still printed to the log window, though.
   *  Allow native format !BaseData, matrix and tree files to be loaded on startup (previous versions only allowed a project file to be loaded as an argument on startup).

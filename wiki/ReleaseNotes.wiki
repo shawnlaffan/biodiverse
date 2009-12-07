@@ -3,13 +3,14 @@
 
 = Version 0.12 =
 
-This version is not yet released.  This is a summary of what will be contained in the release.
+07Dec2009
 
-  *  The Windows version will come bundled with updated GTK libraries.
-  *  All going well, the Mac OSX distribution will come as a DMG installer.
+Main changes since previous version (0.11).
+
+  *  The Windows version comes bundled with updated GTK libraries.  (We are still working on the Mac install).
   *  The export interface has been revamped to use two windows.  The first allows the selection of the output format and the second has parameters specific to that format.  This makes the parameter choices clearer as irrelevant parameters are not displayed.  
   *  Feedback to GUI does not contain the line numbers for the code.  They are still printed to the log window, though.
-  *  Allow !BaseData, matrix and tree objects to be loaded on startup (previous versions only allowed a project file to be loaded as an argument on startup).
+  *  Allow native format !BaseData, matrix and tree files to be loaded on startup (previous versions only allowed a project file to be loaded as an argument on startup).
   *  User is warned if they try to add a new spatial or cluster output to a !BaseData and it has one or more randomisations.
   *  Randomisation outputs can now be deleted.
   *  Randomisation outputs now have export methods to generate text files of their initial and current pseudo-random number generator (PRNG) state.
@@ -17,7 +18,6 @@ This version is not yet released.  This is a summary of what will be contained i
   *  Matrix elements (labels) can be remapped on import, as well as excluded/included using the properties table.
   *  The scree plot below the dendrogram is minimised to begin with.  It can be pulled up when needed.
 
-  *  More changes will be listed as they are implemented.
   *  See also http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.12
 
 

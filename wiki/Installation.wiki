@@ -3,59 +3,46 @@
 
 These instructions assume you have downloaded the relevant Biodiverse release and saved it to your hard drive.
 
+They also apply to version 0.12, the current release as of 07Dec2009.
+
 <wiki:toc max_depth="4" />
 
 
-= Update an existing installation =
-
 ----
+
+= Update an existing installation =
 
   * Rename the existing Biodiverse installation to something like Biodiverse_old or Biodiverse_0.9.1127 (or whatever the last version number was).
   * Unzip the new Biodiverse folder and rename it to whatever you were using before, e.g. C:\Biodiverse on Windows.
-  * Run the system as previously. It should work.
+  * Run the system as previously. It should work, as all the path names are the same as before.
   * Delete or retain the previous installation as best suits your needs.  You should obviously take care if you edited any of the files or added new files in that folder.
 
 ----
 
-= New installation =
 
-== Windows 32-bit ==
+= Windows 32-bit =
 
-----
+  *  The windows distribution now includes the GTK binaries so there is no need for additional downloads for the executable version.  Perl is still needed for the source code version.
 
-  === Executable version ===
+  == Executable version ==
 
-The source code is not needed for this version, although it is still distributed and will be part of the Biodiverse folder.
+  * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.  If you have an existing installation then move it out of the way first (rename it).  
+  * Biodiverse can be run by double clicking on `C:\Biodiverse\bin\BiodiverseGUI_win32.exe`
 
-
-  * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
-  *  The next step has two choices.
-    1. Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://downloads.sourceforge.net/gladewin32/gtk-2.12.9-win32-2.exe. Use the default options provided during setup, unless of course you know what you are doing.
-    1. Download GTK from http://biodiverse.googlecode.com/files/gtk_2.16_with_glade_win32.zip .  Extract the contents to your hard drive (we suggest putting it in or next to the Biodiverse folder).  Add the `Gtk/bin` path to your system path variable (e.g. C:\Biodiverse\Gtk\bin, depending on where you put it).  For an example of how to do this, see http://www.computerhope.com/issues/ch000549.htm.  From version 0.12 this will be the method to use and we will also bundle GTK with the windows distribution.
-
-
-  Biodiverse can be started by double clicking on the _BiodiverseGUI_win32.exe_ file.
-
-  If you want to keep the session log after the GUI is closed then open a command prompt and run _C:\Biodiverse\bin\BiodiverseGUI_win32.exe_
-
-  If the biodiverse bin folder is in your PATH then omit the full path and just type _BiodiverseGUI_win32.exe_.
-
-  You can associate .bps files with the BiodiverseGUI.exe file if you want to double click on a Biodiverse project file to open it.
+You can associate .bps, .bds, .bms and .bts files with the BiodiverseGUI_win32.exe file if you want to double click on a Biodiverse file to open it. (.bpy files are currently supported, but are scheduled for deprecation).  See [DataStructures#File_naming_scheme] for an explanation of the file names.  
 
 ----
 
-  === Source code version ===
+  == Source code ==
 
 
-Use this version if you want to debug the source code and provide patches, etc.  You can still use the exe version if you use this installation.
+Use this approach if you want to debug the source code and provide patches, etc.  You can still use the executable version if you use this installation.
 
 
-  * Unzip the biodiverse directory onto your hard drive. This help file will assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
+  * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
+  * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  For an example of how to do this, see http://www.computerhope.com/issues/ch000549.htm.
   * Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/Windows/5.8/ActivePerl-5.8.9.826-MSWin32-x86-290470.msi .
-  *  The next step has two choices.
-    1. Download and install Gtk+ Runtime Environment for Windows 2.12.9-2 from http://downloads.sourceforge.net/gladewin32/gtk-2.12.9-win32-2.exe. Use the default options provided during setup, unless of course you know what you are doing.
-    1. Download GTK from http://biodiverse.googlecode.com/files/gtk_2.16_with_glade_win32.zip .  Extract the contents to your hard drive (we suggest putting it in or next to the Biodiverse folder).  From version 0.12 this will be the method to use. 
-  * Edit your system's PATH variable to include C:\Biodiverse\bin (or whichever path you unzipped the Biodiverse files into).  Also add the gtk\bin path to your system path variable (e.g., C:\Biodiverse\GTK\bin if it was extracted into the Biodiverse folder, see for example http://www.computerhope.com/issues/ch000549.htm).
+  
   * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse. Note that this assumes you don't already have ppm repositories defined. If you do then disable the trouchelle repository for the first three sets, as its gtk libs don't install properly (when last I checked).
 
 
@@ -85,21 +72,21 @@ ppm install Data-Structure-Util
 }}}
 
 
-  * You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat`.
-  * You can associate .bps files with the BiodiverseGUI.bat file if you want to double click on a Biodiverse project file to open it. (.bpy files are currently supported, but are scheduled for deprecation).
+You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat` (or `C:\Biodiverse\bin\BiodiverseGUI.pl` if your system runs Perl files when they are opened).
+
 
 ----
 
-== Macintosh ==
 
-----
+= Macintosh =
+
 
 The current Mac install requires a source code installation.  We are working on a standalone executable, or at least one that bundles all the relevant dependencies.
 
   * Install Macports from http://www.macports.org/
   * On the left-hand side of the page, click on Installing Macports and navigate your way to the Mac OS X Package (.pkg) installer and download the appropriate dmg file depending on your operating system (ie. Leopard).
   * Install the dmg file by double-clicking. This will produce a folder called “opt” on your hard drive which has the components needed to perform the following steps.
-  * To perform the next steps, you must have the X11 software on your Mac. If you have Leopard, you will have this. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
+  * To perform the next steps, you must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
   *  If you already have MacPorts installed then run this command to get the latest versions.
 
@@ -147,7 +134,7 @@ install PadWalker
 
   Anything else that perl complains about when running Biodiverse should be installed using the cpan method. The complaint will look like “Can't locate Fred/Fred.pm in @INC (@INC contains:...” In this case, install module Fred::Fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
 
-  * Now you are ready to install Biodiverse. Extract the biodiverse zip file to somewhere on your hard drive, eg /opt/local/biodiverse or ~/biodiverse.
+  * Now you are ready to install Biodiverse. Extract the biodiverse source code zip file to somewhere on your hard drive, eg /opt/local/biodiverse or ~/biodiverse.
   * To run Biodiverse, open an X11 terminal window and change directory to the Biodiverse/bin folder.
   * Once you have done this, type the following to open Biodiverse:
 
@@ -182,11 +169,12 @@ sudo port selfupdate
 
 ----
 
-== Linux and UNIX ==
+= Linux and UNIX =
 
 
   *  These instructions are vague as we have not fully tested them.
   *  Install GTK using your distribution's package manager.  Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK if it is not already installed.
-  *  Linux probably comes with Perl. If so then install all the modules above using the CPAN tool that comes with Perl. Additional modules will need to be installed.  The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from the Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding. This will take a while until it works. Make sure you install dependencies to save time installing further modules.
+  *  Linux probably comes with Perl, but install it if it is not already there. 
+  *  Next, install all the modules listed for the Macintosh using the CPAN tool that comes with Perl. The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from the Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding (see the [#Mac_trouble_shooting] section). This will take a while until it works. Make sure you install dependencies to save time installing further modules.
 
   Please let us know so we can document it.

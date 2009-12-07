@@ -157,7 +157,7 @@ perl BiodiverseGUI.pl
 
 ----
 
-  === Mac trouble shooting ===
+  == Mac trouble shooting ==
 
   *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed using the cpan method. The complaint will look like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
   * If the _sudo port install_ commands do not work then you need to have read & write access for all the contents of the opt folder. To do this, open the info tab for the opt folder, under “Sharing & Permissions” change all to have read & write preferences. Directly below, there is a small cog button, which has the option to “apply to enclosed items”. This will mean you have ownership of all the sub folders in Opt.

@@ -1,6 +1,14 @@
 #summary Release notes will be added as new versions are released
 #labels Featured
 
+= Version 0.13 =
+
+This version is in development.  A summary of changes is below.  
+
+  *  The endemism analyses have been split.  The lists are now in their own analyses, and need to be called explicitly if needed. 
+
+  *  See also http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.13
+
 = Version 0.12 =
 
 07Dec2009

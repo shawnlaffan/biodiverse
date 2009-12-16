@@ -109,7 +109,7 @@ sudo port install p5-yaml-syck
   * You now need to install the following perl libraries using the “cpan” program that comes with perl. To install these, open an X11 terminal window and type:
 
 {{{
-/opt/local/bin/cpan
+sudo /opt/local/bin/cpan
 }}}
 
 
@@ -125,7 +125,6 @@ install Pod::Simple
 install Text::CSV_XS
 install DBD::XBase
 install IO::Stringy
-install Win32::API
 install HTML::QuickTable
 install Geo::Shapelib
 install YAML::Syck

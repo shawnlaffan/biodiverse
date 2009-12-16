@@ -91,14 +91,12 @@ The current Mac install requires a source code installation.  We are working on 
     * (The generic MacPorts URL is http://www.macports.org ).
     * Double click on the dmg file contents to install.  This will produce a folder called “opt” on your hard drive which has the components needed to perform the following steps.
   *  If you already have MacPorts installed then run this command in a terminal window to get the latest versions.
-
 {{{
 sudo port -v selfupdate
 }}}
 
 
   * You now need to install a number of ports. Open a terminal window and copy and paste the following commands one after the other.  You could copy and paste all of them at once, but the commands can take a while (Gtk takes 30mins+) and download a large number of dependencies.  Doing them one at a time makes it easier to keep track of which one you're up to.
-
 {{{
 
 sudo port install gtk2
@@ -110,7 +108,6 @@ sudo port install p5-yaml-syck
 }}}
 
   * You now need to install the following perl libraries using the “cpan” program that comes with perl. To install these, open an X11 terminal window and type:
-
 {{{
 sudo /opt/local/bin/cpan
 }}}
@@ -119,7 +116,6 @@ sudo /opt/local/bin/cpan
   Follow the appropriate prompts to set up cpan. If you are asked if you want cpan to install automatically, choose YES. It should be all defaults if you are asked any questions.
 
   Once cpan is ready, install the following libraries individually, by copying and pasting them one by one and hitting return after each. Wait until each is installed before going on to the next one (this is again for keeping track).
-
 {{{
 install Data::DumpXML
 install Math::Random::MT::Auto
@@ -134,10 +130,13 @@ install YAML::Syck
 install PadWalker
 }}}
 
-  Anything else that perl complains about when running Biodiverse should be installed using the cpan method. The complaint will look like “Can't locate Fred/Fred.pm in @INC (@INC contains:...” In this case, install module Fred::Fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
+  Anything else that perl complains about when running Biodiverse should be installed using the cpan method. The complaint will look like “Can't locate Fred/Fred.pm in @INC (@INC contains:...)” In this case, install module Fred::Fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
 
-  * Now you are ready to install Biodiverse. Extract the biodiverse source code zip file to somewhere on your hard drive, eg /opt/local/biodiverse or ~/biodiverse.
-  * To run Biodiverse, open an X11 terminal window and change directory to the Biodiverse/bin folder.
+  * Now you are ready to install Biodiverse. Extract the biodiverse source code zip file to somewhere on your hard drive, eg your home folder.
+  * To run Biodiverse, open a terminal window and change directory to the Biodiverse/bin folder.  If it is in your home folder and called biodiverse then type:
+{{{
+cd ~/Biodiverse/bin
+}}}
   * Once you have done this, type the following to open Biodiverse:
 
 {{{
@@ -146,13 +145,11 @@ install PadWalker
 
 
   You can dispense with the /opt/local/bin text if you are using the first perl in the search path. To check if it is, type:
-
 {{{
 which perl
 }}}
 
   If it returns /opt/local/bin/perl as first in the list then you can dispense with the /opt/local/bin and type
-
 {{{
 perl BiodiverseGUI.pl
 }}}

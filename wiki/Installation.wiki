@@ -163,7 +163,7 @@ perl BiodiverseGUI.pl
   *  Macports might also complain that files are out of sync, probably if you have an existing Macports installation.  If this is the case then run this command to ensure all files are up to date.
 
 {{{
-sudo port selfupdate
+sudo port -v selfupdate
 }}}
 
 ----

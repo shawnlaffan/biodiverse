@@ -85,12 +85,12 @@ The current Mac install requires a source code installation.  We are working on 
 
   * First, you must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
-  * Next, install Macports (unless you already have it).
+  * Next, install !Macports (unless you already have it).
     * If your operating system is Snow Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.8.1-10.6-SnowLeopard.dmg
     * If your operating system is Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.8.1-10.5-Leopard.dmg
-    * (The generic MacPorts URL is http://www.macports.org ).
+    * (The generic !MacPorts URL is http://www.macports.org ).
     * Double click on the dmg file contents to install.  This will produce a folder called “opt” on your hard drive which has the components needed to perform the following steps.
-  *  If you already have MacPorts installed then run this command in a terminal window to get the latest versions.
+  *  If you already have !MacPorts installed then run this command in a terminal window to get the latest versions.
 {{{
 sudo port -v selfupdate
 }}}
@@ -115,7 +115,7 @@ sudo /opt/local/bin/cpan
 
   Follow the appropriate prompts to set up cpan. If you are asked if you want cpan to install automatically, choose YES. It should be all defaults if you are asked any questions.
 
-  Once cpan is ready, install the following libraries individually, by copying and pasting them one by one and hitting return after each. Wait until each is installed before going on to the next one (this is again for keeping track).
+  Once `cpan` is ready, install the following libraries individually, by copying and pasting them one by one and hitting return after each. Wait until each is installed before going on to the next one (this is again for keeping track).
 {{{
 install Data::DumpXML
 install Math::Random::MT::Auto
@@ -133,12 +133,11 @@ install PadWalker
   Anything else that perl complains about when running Biodiverse should be installed using the cpan method. The complaint will look like “Can't locate Fred/Fred.pm in @INC (@INC contains:...)” In this case, install module Fred::Fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
 
   * Now you are ready to install Biodiverse. Extract the biodiverse source code zip file to somewhere on your hard drive, eg your home folder.
-  * To run Biodiverse, open a terminal window and change directory to the Biodiverse/bin folder.  If it is in your home folder and called biodiverse then type:
+  * To run Biodiverse, open a terminal window and change directory to the Biodiverse/bin folder.  If it is in your home folder and called Biodiverse then type:
 {{{
 cd ~/Biodiverse/bin
 }}}
   * Once you have done this, type the following to open Biodiverse:
-
 {{{
 /opt/local/bin/perl BiodiverseGUI.pl
 }}}
@@ -159,9 +158,8 @@ perl BiodiverseGUI.pl
   == Mac trouble shooting ==
 
   *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed using the cpan method. The complaint will look like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
-  * If the _sudo port install_ commands do not work then you need to have read & write access for all the contents of the opt folder. To do this, open the info tab for the opt folder, under “Sharing & Permissions” change all to have read & write preferences. Directly below, there is a small cog button, which has the option to “apply to enclosed items”. This will mean you have ownership of all the sub folders in Opt.
-  *  Macports might also complain that files are out of sync, probably if you have an existing Macports installation.  If this is the case then run this command to ensure all files are up to date.
-
+  * If the _sudo port install_ commands do not work then you need to have read & write access for all the contents of the /opt folder. To do this, open the info tab for the opt folder, under “Sharing & Permissions” change all to have read & write preferences. Directly below, there is a small cog button, which has the option to “apply to enclosed items”. This will mean you have ownership of all the sub folders in /opt.
+  *  !Macports might also complain that files are out of sync, probably if you have an existing !Macports installation.  If this is the case then run this command to ensure all files are up to date.
 {{{
 sudo port -v selfupdate
 }}}

@@ -91,7 +91,7 @@ The current Mac install requires a source code installation.  We are working on 
   *  If you already have MacPorts installed then run this command to get the latest versions.
 
 {{{
-sudo port selfupdate
+sudo port -v selfupdate
 }}}
 
   * You now need to install a number of ports. Open an X11 window and copy and paste the following commands one after the other.  You could copy and paste all of them at once, but the commands can take a while and doing them one at a time makes it easier to keep track of which one you're up to.

@@ -83,18 +83,21 @@ You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\Biodive
 
 The current Mac install requires a source code installation.  We are working on a standalone executable, or at least one that bundles all the relevant dependencies.
 
-  * Install Macports from http://www.macports.org/
-  * On the left-hand side of the page, click on Installing Macports and navigate your way to the Mac OS X Package (.pkg) installer and download the appropriate dmg file depending on your operating system (ie. Leopard).
-  * Install the dmg file by double-clicking. This will produce a folder called “opt” on your hard drive which has the components needed to perform the following steps.
-  * To perform the next steps, you must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
+  * First, you must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
-  *  If you already have MacPorts installed then run this command to get the latest versions.
+  * Next, install Macports (unless you already have it).
+    * If your operating system is Snow Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.8.1-10.6-SnowLeopard.dmg
+    * If your operating system is Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.8.1-10.5-Leopard.dmg
+    * (The generic MacPorts URL is http://www.macports.org ).
+    * Double click on the dmg file contents to install.  This will produce a folder called “opt” on your hard drive which has the components needed to perform the following steps.
+  *  If you already have MacPorts installed then run this command in a terminal window to get the latest versions.
 
 {{{
 sudo port -v selfupdate
 }}}
 
-  * You now need to install a number of ports. Open an X11 window and copy and paste the following commands one after the other.  You could copy and paste all of them at once, but the commands can take a while and doing them one at a time makes it easier to keep track of which one you're up to.
+
+  * You now need to install a number of ports. Open a terminal window and copy and paste the following commands one after the other.  You could copy and paste all of them at once, but the commands can take a while (Gtk takes 30mins+) and download a large number of dependencies.  Doing them one at a time makes it easier to keep track of which one you're up to.
 
 {{{
 

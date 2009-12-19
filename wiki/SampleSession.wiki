@@ -408,7 +408,9 @@ Be careful in your selection of the randomisation function, as each specifies a 
 
 Once you have specified your parameters, click on the _Randomise_ button (or Control-G on the keyboard). The system will then repeat the randomisation algorithm for the specified number of iterations. As usual, the progress bar lets you know how things are progressing. Once it is completed you are left back at the tab. You can either run more iterations or open the relevant analyses to view the results (see below). If you do run more iterations then it will warn you that any changes to the parameters, except the number of iterations, are ignored. This is to avoid chaos and mayhem in the interpretation of the results -– if you want to assess different parameters then create a new randomisation and run it separately.
 
-All of the outputs within a !BaseData are compared with the randomised version. Prior to version 0.12 the system does not check to see if new analyses are conducted after a randomisation.  From 0.12 the user is warned if this is the case.  The reason for this is to avoid (reduce) confusion between outputs.  For example, one could have the case where some analyses in a !BaseData has undergone 999 iterations of the randomisation while others were created immediately after the 899th teration and thus their randomisation results are based on only 100 iterations.
+All of the spatial and cluster outputs within a !BaseData are compared with their randomised versions. Prior to version 0.12 the system does not check to see if new analyses are conducted after a randomisation.  From 0.12 the user is warned if this is the case.  The reason for this is to avoid (reduce) confusion between outputs.  For example, one could have the case where some analyses in a !BaseData has undergone 999 iterations of the randomisation while others were created immediately after the 899th teration and thus their randomisation results are based on only 100 iterations.
+
+Note also that there is a bug in version 0.12 where randomisation lists are not visible in the GUI (see issue #45).  This will be fixed in version 0.13.
 
 == Interpreting the results ==
 

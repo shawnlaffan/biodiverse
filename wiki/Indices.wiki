@@ -1,11 +1,11 @@
 #summary Table of available indices
 #labels Featured
 
-= Analyses and indices available in Biodiverse =
+= Indices available in Biodiverse =
 _Generated GMT Tue Nov 17 05:13:17 2009 using build_indices_table.pl, Biodiverse version 0.12._
+_Modified by hand 20Dec2009._
 
-
-This is a listing of the analyses available in Biodiverse and the indices they generate.
+This is a listing of the calculations available in Biodiverse and the indices they generate.
 It is generated from the system metadata so is identical to that visible in the GUI.
 
 Most of the headings are self-explanatory.  For the others:
@@ -14,7 +14,7 @@ Most of the headings are self-explanatory.  For the others:
   * *Valid cluster metric* is whether or not the index can be used as a clustering metric.  A blank value means it cannot.
   * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  (This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set, defined by the set of groups linked to the terminal nodes below a cluster node).  Note that many of the analyses lump neighbour sets 1 and 2 together.  See the SpatialConditions page for more details on neighbour sets.
 
-Note that analyses can provide different numbers of indices depending on the nature of the !BaseData set used.
+Note that calculations can provide different numbers of indices depending on the nature of the !BaseData set used.
 This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
 
 Table of contents:

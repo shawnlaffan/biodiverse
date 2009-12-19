@@ -19,7 +19,7 @@ Before we describe the process, some definitions are needed.  The *processing gr
 
  == Definition Queries ==
 
-These differ from neighbourhoods as they assess only the processing group to determine if analyses should be calculated for it or not.  They use the same syntax as for neighbourhoods, but the system will commonly complain if a condition requiring a neighbouring group is used.
+These differ from neighbourhoods as they assess only the processing group to determine if calculations should be run for it or not.  They use the same syntax as for neighbourhoods, but the system will commonly complain if a condition requiring a neighbouring group is used.
 
 Note that groups that fail the definition query are still considered for membership of neighbour sets of those that pass.  Use in conjunction with an appropriate neighbourhood definition if you want to exclude some groups from neighbour sets as well.  For example, you could use `sp_match_text (axis => 2, text => 'fred', type => 'proc')` for the definition query and `sp_match_text (axis => 2, text => 'fred', type => 'nbr')` for the neighbourhood.  This will restrict calculations to those groups with a third axis of 'fred', and also exclude any group without fred in the third axis from the neighbour sets of those groups processed.
 
@@ -37,7 +37,7 @@ Currently the system operates on boolean membership of the set of neighbours, so
 
 Spatial conditions need not return symmetric sets.  In this way group _i_ can be in group _j_'s neighbour set, but _j_ need not be in _i_'s neighbour set.  This is not an issue for moving window analyses, but can cause asymmetric dissimilarity matrices if used to run a spatially constrained cluster analysis.  This is why it is generally a good idea in these cases to set the second neighbourhood to be `sp_always_true()` or `1` (which is the same thing).
 
-In the analyses, groups in neighbour set 1 are excluded from neighbour set 2 so there are no overlaps that would violate the comparison analyses.
+In the calculations, groups in neighbour set 1 are excluded from neighbour set 2 so there are no overlaps that would violate the comparison calculations.
 
 The conditions are specified using some combination of pre-defined functions, pre-specified variables, and/or user defined variables and functions.  These are now described.
 

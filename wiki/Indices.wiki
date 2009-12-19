@@ -1,4 +1,4 @@
-#summary Table of available analyses and indices
+#summary Table of available indices
 #labels Featured
 
 = Analyses and indices available in Biodiverse =

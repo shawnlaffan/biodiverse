@@ -22,7 +22,7 @@ Main changes since the previous version (0.11) are:
   *  User is warned if they try to add a new spatial or cluster output to a !BaseData and it has one or more randomisations.
   *  Randomisation outputs can now be deleted.
   *  Randomisation outputs now have export methods to generate text files of their initial and current pseudo-random number generator (PRNG) state.
-  *  The MXO_WARD and TXO_WARD metrics have been removed.  Use the new [http://code.google.com/p/biodiverse/wiki/Analyses_and_Indices#Compare_dissimilarity_matrix_values "Compare dissimilarity matrix values"] analysis instead.
+  *  The MXO_WARD and TXO_WARD metrics have been removed.  Use the new [http://code.google.com/p/biodiverse/wiki/Indices#Compare_dissimilarity_matrix_values "Compare dissimilarity matrix values"] analysis instead.
   *  Matrix elements (labels) can be remapped on import, as well as excluded/included using the properties table.
   *  The scree plot below the dendrogram is minimised to begin with.  It can be pulled up when needed.
 

@@ -22,7 +22,6 @@ See [SampleSession#Running_a_randomisation].
 NEED TO EXPLAIN HOW THEY WORK - OVERVIEW
 </wiki:comment>
 
-There are currently no methods to export the randomisation outputs specifically, but the results can be viewed and exported from the relevant spatial and cluster outputs.  
 
 == Where do the randomisation results go and what do they mean? ==
 

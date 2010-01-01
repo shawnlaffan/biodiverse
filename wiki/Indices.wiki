@@ -3,7 +3,7 @@
 
 = Indices available in Biodiverse =
 _Generated GMT Tue Nov 17 05:13:17 2009 using build_indices_table.pl, Biodiverse version 0.12._
-_Modified by hand 20Dec2009._
+_(Modified by hand 20Dec2009 and 02Jan2010)._
 
 This is a listing of the calculations available in Biodiverse and the indices they generate.
 It is generated from the system metadata so is identical to that visible in the GUI.
@@ -12,7 +12,7 @@ Most of the headings are self-explanatory.  For the others:
   * The *Subroutine* is the name of the subroutine used to call the function if you are using Biodiverse through a script.  
   * The *Index* is the name of the index in the SPATIAL_RESULTS list, or if it is its own list then this will be its name.  These lists can contain a variety of values, but are usually lists of labels with some value, for example the weights used in an endemism analysis.  The names of such lists typically end in "LIST", "ARRAY", "HASH" or "LABELS". 
   * *Valid cluster metric* is whether or not the index can be used as a clustering metric.  A blank value means it cannot.
-  * The *Minimum number of neighbour sets* dictates whether or not an analysis will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  (This is always the case for spatial analyses applied to cluster nodes as there is only one neighbour set, defined by the set of groups linked to the terminal nodes below a cluster node).  Note that many of the analyses lump neighbour sets 1 and 2 together.  See the SpatialConditions page for more details on neighbour sets.
+  * The *Minimum number of neighbour sets* dictates whether or not a calculation will be run.  If you specify only one neighbour set then all those that require two sets will be dropped from the analysis.  (This is always the case for calculations applied to cluster nodes as there is only one neighbour set, defined by the set of groups linked to the terminal nodes below a cluster node).  Note that many of the calculations lump neighbour sets 1 and 2 together.  See the SpatialConditions page for more details on neighbour sets.
 
 Note that calculations can provide different numbers of indices depending on the nature of the !BaseData set used.
 This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].

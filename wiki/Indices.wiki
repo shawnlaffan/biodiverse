@@ -1,7 +1,7 @@
 #summary Table of available indices
 
 = Indices available in Biodiverse =
-_Generated GMT Fri Jan  1 22:31:16 2010 using build_indices_table.pl, Biodiverse version 0.13._
+_Generated GMT Fri Jan  1 22:36:51 2010 using build_indices_table.pl, Biodiverse version 0.13._
 
 
 This is a listing of the indices available in Biodiverse, ordered by the calculations used to generate them.
@@ -45,7 +45,7 @@ Table of contents:
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 5 || ENDC_RANGELIST || List of ranges for each label used in the endemism central calculations ||  || 1 ||
-|| 6 || ENDC_WTLIST || List of weights for each label used in theendemism central calculations ||  || 1 ||
+|| 6 || ENDC_WTLIST || List of weights for each label used in the endemism central calculations ||  || 1 ||
 
 
  

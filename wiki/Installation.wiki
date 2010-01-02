@@ -29,14 +29,14 @@ They also apply to version 0.12, the current release as of 07Dec2009.
   * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.  If you have an existing installation then move it out of the way first (rename it).  
   * Biodiverse can be run by double clicking on `C:\Biodiverse\bin\BiodiverseGUI_win32.exe`
 
-You can associate .bps, .bds, .bms and .bts files with the BiodiverseGUI_win32.exe file if you want to double click on a Biodiverse file to open it. (.bpy files are currently supported, but are scheduled for deprecation).  See [DataStructures#File_naming_scheme] for an explanation of the file names.  
+You can associate Biodiverse project (.bps), !BaseData (.bds), matrix (.bms) and tree (.bts) files with the BiodiverseGUI_win32.exe file if you want to double click on a Biodiverse file to open it. (.bpy files are currently supported, but are scheduled for deprecation).  See [DataStructures#File_naming_scheme] for further explanation of the file names.
 
 ----
 
   == Source code ==
 
 
-Use this approach if you want to debug the source code and provide patches, etc.  You can still use the executable version if you use this installation.
+Use this approach if you want to debug the source code, develop extensions and provide patches, etc.  You can still use the executable version if you use this installation.
 
 
   * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
@@ -89,14 +89,14 @@ The current Mac install requires a source code installation.  We are working on 
     * If your operating system is Snow Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.8.1-10.6-SnowLeopard.dmg
     * If your operating system is Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.8.1-10.5-Leopard.dmg
     * (If needed, the generic !MacPorts URL is http://www.macports.org ).
-    * Double click on the dmg file contents to install.  This will produce a folder called “opt” on your hard drive which has the components needed to perform the following steps.
+    * Double click on the dmg file contents to install.  This will produce a folder called `opt` on your hard drive which has the components needed to perform the following steps.
   *  If you already have !MacPorts installed then run this command in a terminal window to get the latest versions.
 {{{
 sudo port -v selfupdate
 }}}
 
 
-  * You now need to install a number of ports. Open a terminal window and copy and paste the following commands one after the other.  You could copy and paste all of them at once, but the commands can take a while (Gtk takes 30mins+) and download a large number of dependencies.  Doing them one at a time makes it easier to keep track of which one you're up to.
+  * You now need to install a number of ports. Open a terminal window and copy and paste the following commands into it.  If you trust the system then copy and paste all of them at once.  If not then do them one at a time.  Note that process can take some time (Gtk takes 30mins+) and downloads a large number of dependencies.
 {{{
 
 sudo port install gtk2
@@ -107,7 +107,7 @@ sudo port install p5-yaml-syck
 
 }}}
 
-  * You now need to install the following perl libraries using the “cpan” program that comes with perl. To install these, open an X11 terminal window and type:
+  * You now need to install the following perl libraries using the `cpan` program that comes with perl. To install these, open an X11 terminal window and type:
 {{{
 sudo /opt/local/bin/cpan
 }}}
@@ -115,7 +115,7 @@ sudo /opt/local/bin/cpan
 
   Follow the appropriate prompts to set up cpan. If you are asked if you want cpan to install automatically, choose YES. It should be all defaults if you are asked any questions.
 
-  Once `cpan` is ready, install the following libraries individually, by copying and pasting them one by one and hitting return after each. Wait until each is installed before going on to the next one (this is again for keeping track).
+  Once `cpan` is ready, install the following libraries either by copying and pasting them all at once (if you trust the system) or individually, by copying and pasting them one by one and hitting return after each and waiting until they are installed.  The latter option is better for identifying any errors. 
 {{{
 install Data::DumpXML
 install Math::Random::MT::Auto
@@ -136,13 +136,17 @@ install PadWalker
 {{{
 cd ~/Biodiverse/bin
 }}}
-  * Once you have done this, type the following to open Biodiverse:
+  * Once you have done this, type the following command to open Biodiverse.
 {{{
 /opt/local/bin/perl BiodiverseGUI.pl
 }}}
+  *  Alternately, you could give the full path to both Perl and Biodiverse if you want to work in a particular directory from the start.
+{{{
+/opt/local/bin/perl ~/Biodiverse/bin/BiodiverseGUI.pl
+}}}
 
 
-  You can dispense with the /opt/local/bin text if you are using the first perl in the search path. To check if it is, type:
+  The full path to perl is needed to ensure the MacPorts version of Perl is used.  You can dispense with the /opt/local/bin text if you are using the first perl in the search path. To check if it is, type:
 {{{
 which perl
 }}}
@@ -156,8 +160,8 @@ perl BiodiverseGUI.pl
 
   == Mac trouble shooting ==
 
-  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed using the cpan method. The complaint will look like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon “::” for each forward slash “/”, and remove the trailing “.pm” from the module it cannot locate).
-  * If the _sudo port install_ commands do not work then you need to have read & write access for all the contents of the /opt folder. To do this, open the info tab for the opt folder, under “Sharing & Permissions” change all to have read & write preferences. Directly below, there is a small cog button, which has the option to “apply to enclosed items”. This will mean you have ownership of all the sub folders in /opt.
+  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed using the `cpan` method. The complaint will look like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate).
+  * If the _sudo port install_ commands do not work then you need to have read & write access for all the contents of the `/opt` folder. To do this, open the info tab for the opt folder, under "Sharing & Permissions" change all to have read & write preferences. Directly below, there is a small cog button, which has the option to "apply to enclosed items". This will mean you have ownership of all the sub folders in /opt.
   *  !MacPorts might also complain that files are out of sync, probably if you have an existing !MacPorts installation.  If this is the case then run this command to ensure all files are up to date.
 {{{
 sudo port -v selfupdate
@@ -168,9 +172,10 @@ sudo port -v selfupdate
 = Linux and UNIX =
 
 
-  *  These instructions are vague as we have not fully tested them.
+  *  These instructions are vague as we have not fully tested them.  There are also many flavours of Linux/UNIX so specific instructions are likely to not work in many cases.
   *  Install GTK using your distribution's package manager.  Make sure you install Glade as well. Actually, if you install Glade then it should collect all its dependencies, which includes the rest of GTK if it is not already installed.
-  *  Linux probably comes with Perl, but install it if it is not already there. 
-  *  Next, install all the modules listed for the Macintosh using the CPAN tool that comes with Perl. The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from the Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding (see the [#Mac_trouble_shooting] section). This will take a while until it works. Make sure you install dependencies to save time installing further modules.
+  *  Linux probably comes with Perl, but install it if it is not already there (use your package manager again).
+  *  Next, install all the modules listed for the Macintosh using the CPAN tool that comes with Perl. The list in the cpan section of the [Installation#Macintosh Macintosh] instructions is likely to be correct, but there might be others. Apart from the Gtk2::Glade lib, the only suggestion is to run Biodiverse and install the modules it fails on not finding (see the [#Mac_trouble_shooting] section). This could take a while until it works. Make sure you install dependencies to save time installing further modules.
 
   Please let us know so we can document it.
+  

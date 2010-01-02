@@ -107,7 +107,7 @@ sudo port install p5-yaml-syck
 
 }}}
 
-  * You now need to install the following perl libraries using the `cpan` program that comes with perl. To install these, open an X11 terminal window and type:
+  * You now need to install the following perl libraries using the `cpan` program that comes with perl. To install these, open a terminal window and type:
 {{{
 sudo /opt/local/bin/cpan
 }}}
@@ -146,14 +146,14 @@ cd ~/Biodiverse/bin
 }}}
 
 
-  The full path to perl is needed to ensure the MacPorts version of Perl is used.  You can dispense with the /opt/local/bin text if you are using the first perl in the search path. To check if it is, type:
+  The full path to perl is needed to ensure the !MacPorts version of Perl is used.  You can dispense with the /opt/local/bin text if you are using the first perl in the search path. To check if it is, type:
 {{{
 which perl
 }}}
 
   If it returns /opt/local/bin/perl as first in the list then you can dispense with the /opt/local/bin and type
 {{{
-perl BiodiverseGUI.pl
+perl ~/Biodiverse/bin/BiodiverseGUI.pl
 }}}
 
 ----

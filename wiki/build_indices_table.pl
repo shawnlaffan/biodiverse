@@ -9,7 +9,6 @@ use Data::Dumper;
 
 #use HTML::HashTable;
 use HTML::QuickTable;
-use YAML::Syck;
 
 my $self = Biodiverse::BaseData -> new;
 $self -> set_param (CELLSIZE => [1,1]);
@@ -23,6 +22,7 @@ $self -> add_element (
 my $html = $self -> get_calculation_metadata_as_html;
 
 #  The YAML version
+#use YAML::Syck;
 #my $yaml = YAML::Syck::Dump (\%analyses_hash);
 #open (my $fh_yaml, '>', 'Indices.yaml');
 #print $fh_yaml $yaml;

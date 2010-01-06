@@ -69,6 +69,7 @@ ppm install IO-Stringy
 ppm install HTML-QuickTable
 ppm install YAML-Syck
 ppm install Data-Structure-Util
+ppm install Clone
 }}}
 
 
@@ -128,6 +129,7 @@ install HTML::QuickTable
 install Geo::Shapelib
 install YAML::Syck
 install PadWalker
+install Clone
 }}}
 
 

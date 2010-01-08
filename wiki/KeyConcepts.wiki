@@ -151,6 +151,6 @@ _Need to add an example table._
 
 === Table grouped ===
 
-This is a means of exporting the tree to an RDBMS format but retaining a classification based on node counts or distance/depth from the root node.  One can choose two types.  First, one can cut the tree along a line as per the slider bar in the tree plotting.  Second, one can specify how many groups below the root node.  Both methods can be applied using length or depth distances.  This is the same as the colouring used in a tree display but applied only to the root node (see [SampleSession#Viewing_the_cluster_results], but a few images down).  
+This is a means of exporting the tree to an RDBMS format but retaining a classification as used for displaying clusters (see [SampleSession#Viewing_the_cluster_results], but a few images down).  One can choose two types.  First, one can cut the tree along a line at a specified depth or length.  This is a means of exporting the result of a slider bar display.  Second, one can specify a number of clusters are to be selected below the root node.  This approach is the same as colouring using a mouse click on the root node.
 
 _Need to add an example table._

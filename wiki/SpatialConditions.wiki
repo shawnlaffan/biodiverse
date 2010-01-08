@@ -62,7 +62,7 @@ The available functions are currently:
 _Note: This list and appropriate metadata needs to be accessible through the GUI - see issue #14._
 </wiki:comment>
 
-== Examples ==
+ == Examples using functions ==
 
 {{{
 #  radius of 100,000 map units, uses all axes so will 
@@ -162,7 +162,7 @@ Note that using `abs($d[1])` is the same as using `$D[1]`.
 
 Non-programmers need to note that the array index starts from zero, so `$coord[1]` is the second coordinate axis and not the first.  This differs from systems like R and AWK, but is consistent with many other programming languages like C and Python.
 
- == Examples ==
+ == Examples using variables ==
 
   * Set the neighbours to be those groups where the absolute distance from the central group is less than 100,000.
 

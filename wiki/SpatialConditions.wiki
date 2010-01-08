@@ -127,7 +127,7 @@ not sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 #   as the processing group's third axis
 sp_match_text (text => $coord[2], axis => 2, type => 'nbr') 
 
-# Set a definition query to only use groups with 'NK' in the third axis
+# Set a definition query to only use groups with 'NK' as the third axis
 sp_match_text (text => 'NK', axis => 2, type => 'proc') 
 
 

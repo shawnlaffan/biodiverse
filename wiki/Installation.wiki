@@ -70,6 +70,7 @@ ppm install HTML-QuickTable
 ppm install YAML-Syck
 ppm install Data-Structure-Util
 ppm install Clone
+ppm install Regexp-Common
 }}}
 
 
@@ -130,6 +131,7 @@ install Geo::Shapelib
 install YAML::Syck
 install PadWalker
 install Clone
+install Regexp::Common
 }}}
 
 

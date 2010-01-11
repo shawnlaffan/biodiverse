@@ -5,9 +5,13 @@
 
 This version is in development.  A summary of changes is below.  
 
-  *  The use of the term "analyses" is now clearer.  Analyses can be one of Cluster, Spatial or Randomisation.  The term "calculation" is now used to describe the collection of indices that are calculated together, e.g. for the groups in a cluster node or in a spatial neighbourhood.  An analysis can apply several calculations to generate some number of indices.
+  *  The use of the term "analyses" in the documentation is now clearer.  Analyses can be one of Cluster, Spatial or Randomisation.  The term "calculation" is now used to describe the collection of indices that are calculated together, e.g. for the groups in a cluster node or in a spatial neighbourhood.  An analysis can apply several calculations to generate some number of indices.
   *  The endemism calculations have been split.  The lists are now in their own calculations, and need to be called explicitly if needed.
   *  Two new rarity calculations have been added to generate the lists of weights and sample counts for each label used, as per the endemism calculations.
+  *  The view labels lists now have additional columns to allow sorting based on the selections (i.e. to promote the selected set to the top of the list).  Note that these change dynamically, so the list will be reordered if one such column is used for sorting and the selection is changed.
+  *  The map legend is now shown in the veiw labels map pane.  This allows easier interpretation of the mapped values.
+  *  Nexus file import is now more flexible in terms of characters it handles, and also numeric formats.
+  *  When displaying the cluster dendrogram, the user can choose not to use the slider bar to select nodes to plot on the map (acess via the dendrogram Options menu).
 
   *  See also http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.13
 

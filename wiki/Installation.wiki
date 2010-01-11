@@ -71,6 +71,7 @@ ppm install YAML-Syck
 ppm install Data-Structure-Util
 ppm install Clone
 ppm install Regexp-Common
+ppm install lib
 }}}
 
 
@@ -132,6 +133,7 @@ install YAML::Syck
 install PadWalker
 install Clone
 install Regexp::Common
+install lib
 }}}
 
 

@@ -14,6 +14,7 @@ This version is in development.  A summary of changes is below.
     *  The map legend is now shown in the view labels map pane.  This allows easier interpretation of the mapped values.
   *  Nexus file import is now more flexible in the characters it accepts in names (anything that has no special meaning in nexus files, and also numeric formats used for lengths.
   *  When displaying the cluster dendrogram, the user can choose not to use the slider bar to select nodes to plot on the map (acess via the dendrogram Options menu).
+  *  Group coordinates can be specified as Degree, Minutes, Seconds within a single column.  (Note: this is currently a beta level implementation).  See issue #61.
   *  The system now warns if the user attempts to create a new output, or rename an existing output, using a name that is already in use for that output type.  See issue #62.
 
   *  For a full list of current or fixed issues, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.13

@@ -16,6 +16,7 @@ This version is in development.  A summary of changes is below.
   *  When displaying the cluster dendrogram, the user can choose not to use the slider bar to select nodes to plot on the map (acess via the dendrogram Options menu).
   *  Group coordinates can be specified as Degree, Minutes, Seconds within a single column.  (Note: this is currently a beta level implementation).  See issue #61.
   *  The system now warns if the user attempts to create a new output, or rename an existing output, using a name that is already in use for that output type.  See issue #62.
+  *  The randomisation list results are now accessible (see issue #45).
 
   *  For a full list of current or fixed issues, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.13
 

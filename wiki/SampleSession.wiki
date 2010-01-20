@@ -425,6 +425,16 @@ All of the spatial and cluster outputs within a !BaseData are compared with thei
 
 Note also that there is a bug in version 0.12 where randomisation lists are not visible in the GUI (see issue #45).  This will be fixed in version 0.13.
 
+{{{
+This is a temporary solution until version 0.13 is released:
+
+1.  Duplicate the basedata (without outputs) (see the basedata menu)
+2.  Re-run the spatial analyses but do not display them.
+3.  Run the randomisations.
+4.  Now display the spatial output.  It will search for the lists to show and should
+now find all of them.
+}}}
+
 == Interpreting the results ==
 
 See [AnalysisTypes#Randomisations] for an explanation of what the randomisation results mean.

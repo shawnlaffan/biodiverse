@@ -3,7 +3,7 @@
 
 = Version 0.13 =
 
-This version is in development.  A summary of changes is below.  
+This version is scheduled for release in the week starting 01Feb2010.  A summary of changes is below.
 
   *  Analyes, Calculations and Indices.
     *  The use of the term "analyses" in the documentation is now clearer.  Analyses can be one of Cluster, Spatial or Randomisation.  The term "calculation" is now used to describe the collection of indices that are calculated together, e.g. for the groups under a cluster node or within a spatial neighbourhood.  An analysis can apply several calculations to generate some number of indices.

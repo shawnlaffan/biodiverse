@@ -12,7 +12,9 @@ This version is in development.  A summary of changes is below.
     *  The view labels lists now have additional columns to allow sorting based on the selections (i.e. to promote the selected set to the top of the list).  Note that the list order changes dynamically according to the sort options.  This means that the list will be reordered if the label selection is changed and there is a sort in place using one or both of these columns.
     *  The second view labels list is only shown if there is a selected matrix.  This is because it is used to show the matrix column selection and control their sort order.
     *  The map legend is now shown in the view labels map pane.  This allows easier interpretation of the mapped values.
-  *  Nexus file import is now more flexible in the characters it accepts in names (anything that has no special meaning in nexus files), and also numeric formats used for lengths.
+  *  Trees
+    *  Nexus file import is now more flexible in the characters it accepts in names (anything that has no special meaning in nexus files), and also numeric formats used for lengths.
+    *  Newick files are now supported for import (see issue #79).
   *  When displaying the cluster dendrogram, the user can choose not to use the slider bar to select nodes to plot on the map (acess via the dendrogram Options menu).
   *  Group coordinates can be specified as Degree, Minutes, Seconds within a single column.  (Note: this is currently a beta level implementation).  See issue #61.
   *  The system now warns if the user attempts to create a new output, or rename an existing output, using a name that is already in use for that output type.  See issue #62.

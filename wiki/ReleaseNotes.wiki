@@ -5,9 +5,10 @@
 
 This version is in development.  A summary of changes is below.  
 
-  *  The use of the term "analyses" in the documentation is now clearer.  Analyses can be one of Cluster, Spatial or Randomisation.  The term "calculation" is now used to describe the collection of indices that are calculated together, e.g. for the groups in a cluster node or in a spatial neighbourhood.  An analysis can apply several calculations to generate some number of indices.
-  *  The endemism calculations have been subdivided.  The lists are now in their own calculations, and need to be called explicitly if needed.
-  *  Two new rarity calculations have been added to generate the lists of weights and sample counts for each label used, as per the endemism calculations.
+  *  Analyes, Calculations and Indices.
+    *  The use of the term "analyses" in the documentation is now clearer.  Analyses can be one of Cluster, Spatial or Randomisation.  The term "calculation" is now used to describe the collection of indices that are calculated together, e.g. for the groups under a cluster node or within a spatial neighbourhood.  An analysis can apply several calculations to generate some number of indices.
+    *  The endemism calculations have been subdivided.  The list indices are now in their own calculations, and need to be called explicitly if needed.
+    *  Two new rarity calculations have been added to generate the lists of weights and sample counts for each label used, as per the endemism calculations.
   *  View labels tab:
     *  The view labels lists now have additional columns to allow sorting based on the selections (i.e. to promote the selected set to the top of the list).  Note that the list order changes dynamically according to the sort options.  This means that the list will be reordered if the label selection is changed and there is a sort in place using one or both of these columns.
     *  The second view labels list is only shown if there is a selected matrix.  This is because it is used to show the matrix column selection and control their sort order.
@@ -15,11 +16,11 @@ This version is in development.  A summary of changes is below.
   *  Trees
     *  Nexus file import is now more flexible in the characters it accepts in names (anything that has no special meaning in nexus files), and also numeric formats used for lengths.
     *  Newick files are now supported for import (see issue #79).
-  *  When displaying the cluster dendrogram, the user can choose not to use the slider bar to select nodes to plot on the map (acess via the dendrogram Options menu).
+    *  When displaying the cluster dendrogram, the user can choose not to use the slider bar to select nodes to plot on the map (acess via the dendrogram Options menu).
   *  Group coordinates can be specified as Degree, Minutes, Seconds within a single column.  (Note: this is currently a beta level implementation).  See issue #61.
-  *  The system now warns if the user attempts to create a new output, or rename an existing output, using a name that is already in use for that output type.  See issue #62.
+  *  The system now warns if the user attempts to create a new output, or rename an existing output, using a name that is already in use for that output type (see issue #62).
   *  The randomisation list results are now accessible (see issue #45).
-  *  The help files should now open in the default browser (see issue #49).
+  *  The help files are now opened in the default browser (beta level fix, see issue #49).
 
   *  For a full list of current or fixed issues, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.13
 

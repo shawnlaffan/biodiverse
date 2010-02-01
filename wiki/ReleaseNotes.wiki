@@ -3,7 +3,9 @@
 
 = Version 0.13 =
 
-This version is scheduled for release in the week starting 01Feb2010.  A summary of changes is below.
+01Feb2010.  
+
+Main changes since the previous version (0.12) are:
 
   *  Analyses, Calculations and Indices.
     *  The use of the term "analyses" in the documentation is now clearer.  Analyses can be one of Cluster, Spatial or Randomisation.  The term "calculation" is now used to describe the collection of indices that are calculated together, e.g. for the groups under a cluster node or within a spatial neighbourhood.  An analysis can apply several calculations to generate some number of indices.
@@ -16,13 +18,13 @@ This version is scheduled for release in the week starting 01Feb2010.  A summary
   *  Trees
     *  Nexus file import is now more flexible in the characters it accepts in names (anything that has no special meaning in nexus files), and also numeric formats used for lengths.
     *  Newick files are now supported for import (see issue #79).
-    *  When displaying the cluster dendrogram, the user can choose not to use the slider bar to select nodes to plot on the map (acess via the dendrogram Options menu).
+    *  When displaying the cluster dendrogram, the user can choose not to use the slider bar to select nodes to plot on the map (access via the dendrogram Options menu).
   *  Group coordinates can be specified as Degree, Minutes, Seconds within a single column.  (Note: this is currently a beta level implementation).  See issue #61.
   *  The system now warns if the user attempts to create a new output, or rename an existing output, using a name that is already in use for that output type (see issue #62).
   *  The randomisation list results are now accessible (see issue #45).
-  *  The help files are now opened in the default browser (beta level fix, see issue #49).
+  *  See also http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.13
 
-  *  For a full list of current or fixed issues, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.13
+  *  For the list of current issues, or to submit a bug report or enhancement request then please see http://code.google.com/p/biodiverse/issues/list
 
 = Version 0.12 =
 

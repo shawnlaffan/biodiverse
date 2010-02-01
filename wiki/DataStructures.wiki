@@ -37,9 +37,11 @@ A labels object is a special type of !BaseStruct, with the labels being a specia
 
 == Groups ==
 
-A groups object is also a special type of !BaseStruct object, with the groups also being a special type of element.  Typically they are square cells into which the labels are aggregated, but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
+A groups object is also a special type of !BaseStruct object, with the groups also being a special type of element.  Typically they are square cells into which the labels are aggregated (binned), but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
 
-Group coordinates: For numerical coordinates, such as X,Y the group location is given by the centre of the group.  For example, for a cell size of 1, with no offset, the coordinates would each end in .5
+Groups are analogous to bins in other systems, for example [UniFrac http://bmf2.colorado.edu/unifrac/index.psp].
+
+Group coordinates: For numerical coordinates, such as X,Y, the group location is given by the centre of the group.  For example, for a cell size of 1, with no offset, the coordinates would each end in .5
 
 == Spatial outputs ==
 

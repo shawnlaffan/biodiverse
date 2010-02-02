@@ -18,7 +18,7 @@ They also apply to version 0.12, the current release as of 07Dec2009.
   * Delete or retain the previous installation as best suits your needs.  You should obviously take care if you edited any of the files or added new files in that folder.
 
   ==Source code version==
-  *  If you are using the source code version (e.g. on a mac or linux box) and have upgraded from version 0.12 to 0.13 then you will also need to install the following modules, using either the cpan or ppm methods.  These are included in the Windows executable file.
+  *  If you are using the source code version (e.g. on a mac or linux box) and have upgraded from version 0.12 to 0.13 then you will also need to install the following modules, using either the cpan or ppm methods from a command line.  These are included in the Windows executable file.
 
   ===Windows source code upgrade===
 {{{

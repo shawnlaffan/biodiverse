@@ -21,9 +21,15 @@ There are seven main components in a full session.
   1. Run a randomisation to assess the quality of the results
   1. Export or save the data and results
 
-We suggest you read this in conjunction with the KeyConcepts document. Much additional information and tooltips can be found within the application itself, for example by hovering the mouse over various buttons and menu items.
+We suggest you read this in conjunction with the KeyConcepts document. Much additional information can be found within the application itself, for example by hovering the mouse over various buttons and menu items to view their associated tooltips.
 
 If you wish to experiment with these options then use the Example_site_data.csv file for species sample data, Example_matrix.txt file for matrix data and Example_tree.nex file for tree data. These are under the Biodiverse/data folder in the distribution. Note that these are fictional data so the results have no meaning beyond example purposes.
+
+==A word of warning==
+Perl is able to handle different numeric locales, meaning that if your language settings use a comma as the radix (decimal point) then several of the comparisons will either fail or will silently not work as expected.  Randomisations are a particular issue here.  The problem is due to how Perl handles strings (text) converted to numbers.  A string representing a number such as '0,5', which might be perfectly valid in your locale, will be quietly converted to 0 when needed for numeric operations.  '0.5' will work as expected.
+
+*How to avoid this problem:*  Use alocale that uses a "." as the radix character (e.g. one of the English locales).  It is also safer to not mix your locales (i.e. do not import data using one locale and then analyse it using another).  A fix has been implemented for version 0.14 to avoid this problem (see issue #81), but it needs to be tested on non-English locales.
+
 
 = Opening/importing data =
 

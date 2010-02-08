@@ -76,6 +76,7 @@ ppm repo add http://voltar.org/active/5.8
 ppm install http://voltar.org/active/5.8/Gtk2.ppd
 
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
+#  Geo::Shapelib is not needed from version 0.14.
 ppm install http://www.biodiverse.unsw.edu.au/ppm/Geo-Shapelib.ppd
 ppm install http://www.biodiverse.unsw.edu.au/ppm/Gnome2-Canvas.ppd
 ppm install http://www.biodiverse.unsw.edu.au/ppm/Statistics-Descriptive2.ppd
@@ -95,6 +96,7 @@ ppm install Clone
 ppm install Regexp-Common
 ppm install lib
 ppm install parent
+ppm install Geo-ShapeFile
 }}}
 
 
@@ -151,13 +153,15 @@ install Text::CSV_XS
 install DBD::XBase
 install IO::Stringy
 install HTML::QuickTable
-install Geo::Shapelib
 install YAML::Syck
 install PadWalker
 install Clone
 install Regexp::Common
 install lib
 install parent
+install Geo::ShapeFile
+#  Geo::Shapoelib is not needed from version 0.14
+install Geo::Shapelib
 }}}
 
 

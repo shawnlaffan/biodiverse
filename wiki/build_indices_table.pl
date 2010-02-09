@@ -30,7 +30,7 @@ my $html = $self -> get_calculation_metadata_as_html;
 
 
 my $fh;
-open ($fh, ">", "indices.html") || croak;
+open ($fh, '>', 'indices.html') || croak;
 
 print $fh $html;
 close $fh;
@@ -72,11 +72,11 @@ END_OF_INTRO
 
 {
     use HTML::WikiConverter;
-    my $wc = new HTML::WikiConverter( dialect => 'MoinMoin' );
+    my $wc = HTML::WikiConverter -> new ( dialect => 'MoinMoin' );
     local $/=undef;
-    open (my $fh, 'indices.html');
-    my $html = <$fh>;
-    $fh -> close;
+    my $success = open (my $html_fh, '<', 'indices.html');
+    $html = <$html_fh>;
+    $html_fh -> close;
     
     my $wiki_text = $intro_wiki
                     . $wc->html2wiki( $html );
@@ -84,7 +84,7 @@ END_OF_INTRO
     $wiki_text =~ s{[']{3}}{\*}g;  #  google don't like '''
     $wiki_text =~ s{[']{2}}{_}g;   #  google don't like '' neither
     $wiki_text =~ s{^(===\s)}{\n \n $1}xgsm;  #  add space between tables and next headers
-    open (my $w_fh, '>', 'Indices.wiki');
+    $success = open (my $w_fh, '>', 'Indices.wiki');
     print {$w_fh} $wiki_text;
     $w_fh -> close;
 }

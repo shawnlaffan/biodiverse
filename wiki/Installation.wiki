@@ -97,6 +97,7 @@ ppm install Regexp-Common
 ppm install lib
 ppm install parent
 ppm install Geo-ShapeFile
+ppm install Tree-R
 }}}
 
 
@@ -160,6 +161,7 @@ install Regexp::Common
 install lib
 install parent
 install Geo::ShapeFile
+install Tree::R
 #  Geo::Shapoelib is not needed from version 0.14
 install Geo::Shapelib
 }}}

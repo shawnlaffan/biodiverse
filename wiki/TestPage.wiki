@@ -1,6 +1,8 @@
 #summary Purely for testing purposes
 = Introduction =
 
+Testing the embedding of MathML code.  Does not display properly in IE as MathML is not supported.
+
 <wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="root3x + x^phi + x_1"/>
 
 <wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="QE = sum_i sum_j d_{ij} p_i p_j"/>

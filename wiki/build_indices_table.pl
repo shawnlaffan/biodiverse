@@ -78,12 +78,18 @@ END_OF_INTRO
     $html = <$html_fh>;
     $html_fh -> close;
     
+    my $gadget_start_text
+        = q{<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="};
+    my $gadget_end_text = q{"/>};
+    
     my $wiki_text = $intro_wiki
                     . $wc->html2wiki( $html );
     
     $wiki_text =~ s{[']{3}}{\*}g;  #  google don't like '''
     $wiki_text =~ s{[']{2}}{_}g;   #  google don't like '' neither
     $wiki_text =~ s{^(===\s)}{\n \n $1}xgsm;  #  add space between tables and next headers
+    $wiki_text =~ s/GADGETGADGETSTARTSTART/$gadget_start_text/g;
+    $wiki_text =~ s/GADGETGADGETENDEND/$gadget_end_text/g;
     $success = open (my $w_fh, '>', 'Indices.wiki');
     print {$w_fh} $wiki_text;
     $w_fh -> close;

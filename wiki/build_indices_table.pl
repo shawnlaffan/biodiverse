@@ -63,7 +63,7 @@ Most of the headings are self-explanatory.  For the others:
 Note that calculations can provide different numbers of indices depending on the nature of the !BaseData set used.
 This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
 
-You will need to use a MathML enabled browser to view the formulae properly
+You will need to use a MathML enabled browser such as Firefox 3+ to view the formulae properly
 (and even then the formatting needs tweaking).
 Internet Explorer needs a plugin.
 See [http://en.wikipedia.org/wiki/MathML#Web_browsers] for more details.

@@ -1,7 +1,7 @@
 #summary Table of available indices
 
 = Indices available in Biodiverse =
-_Generated GMT Thu Feb 11 08:00:40 2010 using build_indices_table.pl, Biodiverse version 0.13._
+_Generated GMT Thu Feb 11 08:02:32 2010 using build_indices_table.pl, Biodiverse version 0.13._
 
 
 This is a listing of the indices available in Biodiverse,

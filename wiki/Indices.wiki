@@ -1,7 +1,7 @@
 #summary Table of available indices
 
 = Indices available in Biodiverse =
-_Generated GMT Thu Feb 11 07:59:55 2010 using build_indices_table.pl, Biodiverse version 0.13._
+_Generated GMT Thu Feb 11 08:00:40 2010 using build_indices_table.pl, Biodiverse version 0.13._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -374,7 +374,7 @@ Table of contents:
 *Subroutine:* calc_mx_rao_qe
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
-|| 123 || MX_RAO_QE || Matrix weighted quadratic entropy ||  || 1 || <wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="QE = sum_i sum_j d_ij p_i p_j/> where i and j are the rows and coluns of the matrix and <wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="d_ij/> is the matrix value for each pair of labels ij. ||
+|| 123 || MX_RAO_QE || Matrix weighted quadratic entropy ||  || 1 || <wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="QE = sum_i sum_j d_ij p_i p_j"/> where i and j are the rows and coluns of the matrix and <wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="d_ij"/> is the matrix value for each pair of labels ij. ||
 || 124 || MX_RAO_TLABELS || List of labels and values used in the MX_RAO_QE calculations ||  || 1 ||  ||
 || 125 || MX_RAO_TN || Count of comparisons used to calculate MX_RAO_QE ||  || 1 ||  ||
 

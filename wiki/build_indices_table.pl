@@ -19,7 +19,7 @@ $self -> add_element (
 );
 
 
-my $html = $self -> get_calculation_metadata_as_html;
+my $html = $self -> get_calculation_metadata_as_wiki;
 
 #  The YAML version
 #use YAML::Syck;
@@ -63,6 +63,12 @@ Most of the headings are self-explanatory.  For the others:
 Note that calculations can provide different numbers of indices depending on the nature of the !BaseData set used.
 This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
 
+You will need to use a MathML enabled browser to view the formulae properly
+(and even then the formatting needs tweaking).
+Internet Explorer needs a plugin.
+See [http://en.wikipedia.org/wiki/MathML#Web_browsers] for more details.
+
+
 Table of contents:
 <wiki:toc max_depth="4" />
 
@@ -83,13 +89,14 @@ END_OF_INTRO
     my $gadget_end_text = q{"/>};
     
     my $wiki_text = $intro_wiki
-                    . $wc->html2wiki( $html );
+                    #. $wc->html2wiki( $html );
+                    . $html;
     
     $wiki_text =~ s{[']{3}}{\*}g;  #  google don't like '''
     $wiki_text =~ s{[']{2}}{_}g;   #  google don't like '' neither
     $wiki_text =~ s{^(===\s)}{\n \n $1}xgsm;  #  add space between tables and next headers
-    $wiki_text =~ s/GADGETGADGETSTARTSTART/$gadget_start_text/g;
-    $wiki_text =~ s/GADGETGADGETENDEND/$gadget_end_text/g;
+    #$wiki_text =~ s/GADGETGADGETSTARTSTART/$gadget_start_text/g;
+    #$wiki_text =~ s/GADGETGADGETENDEND/$gadget_end_text/g;
     $success = open (my $w_fh, '>', 'Indices.wiki');
     print {$w_fh} $wiki_text;
     $w_fh -> close;

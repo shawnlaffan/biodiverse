@@ -42,7 +42,7 @@ sudo /opt/local/bin/cpan install parent
 ----
 
 
-= Windows 32-bit =
+= Windows =
 
   *  The windows distribution now includes the GTK binaries so there is no need for additional downloads for the executable version.  Perl is still needed for the source code version.
 

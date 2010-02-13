@@ -7,8 +7,10 @@ _Generated GMT Thu Feb 11 11:53:21 2010 using build_indices_table.pl, Biodiverse
 <wiki:comment>
 An image <img src="http://latex.codecogs.com/gif.latex?\sum\ \alpha\ ^{\beta}%.png" title="fred" /> followed by some stuff.
 
-<img src="http://latex.codecogs.com/gif.latex?QE = \sum_i \sum_j d_{ij} p_i p_j%.png" title="fred" />, where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="fred2" /> and  <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="fred2" /> are the sample counts for the ith and jth labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="fred" /> is the matrix value for the pair of labels ij.
+<img src="http://latex.codecogs.com/gif.latex?QE = \sum_i \sum_j d_{ij} p_i p_j%.png" title="QE = \sum_i \sum_j d_{ij} p_i p_j" />, where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and  <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the ith and jth labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is the matrix value for the pair of labels <img src="http://latex.codecogs.com/gif.latex?ij%.png" />.
 </wiki:comment>
+
+
 
 
 This is a listing of the indices available in Biodiverse,

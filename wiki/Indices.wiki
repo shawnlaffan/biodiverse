@@ -4,6 +4,13 @@
 _Generated GMT Thu Feb 11 11:53:21 2010 using build_indices_table.pl, Biodiverse version 0.13._
 
 
+<wiki:comment>
+An image <img src="http://latex.codecogs.com/gif.latex?\sum\ \alpha\ ^{\beta}%.png" title="fred" /> followed by some stuff.
+
+<img src="http://latex.codecogs.com/gif.latex?QE = \sum_i \sum_j d_{ij} p_i p_j%.png" title="fred" />, where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="fred2" /> and  <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="fred2" /> are the sample counts for the ith and jth labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="fred" /> is the matrix value for the pair of labels ij.
+</wiki:comment>
+
+
 This is a listing of the indices available in Biodiverse,
 ordered by the calculations used to generate them.
 It is generated from the system metadata and contains all the 
@@ -491,6 +498,9 @@ BaseData labels not in the matrix are ignored
 <wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="d_\{ij\}"/>
  is the matrix value for the pair of labels ij.
 
+
+
+
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 123 || MX_RAO_QE || Matrix weighted quadratic entropy ||   || 1 ||
 || 124 || MX_RAO_TLABELS || List of labels and values used in the MX_RAO_QE calculations ||   || 1 ||
@@ -786,5 +796,3 @@ It is best to apply these using a small neighbour set 1 relative to a large neig
 || 190 || TXO_V_RATIO || Ratio of the set1 variance to the variance of the combined neighbour sets (TXO_VARIANCE / TXO_TVARIANCE) ||   || 1 ||
 || 191 || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||   || 1 ||
 || 192 || TXO_Z_SCORE || Z-score of the set1 mean given the mean and SD of the combined neighbour sets ((TXO_MEAN - TXO_TMEAN) / sqrt (TXO_TVARIANCE)) ||   || 1 ||
-
-

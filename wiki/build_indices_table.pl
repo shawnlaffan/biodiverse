@@ -29,11 +29,6 @@ my $html = $self -> get_calculation_metadata_as_wiki;
 #close $fh_yaml;
 
 
-my $fh;
-open ($fh, '>', 'indices.html') || croak;
-
-print $fh $html;
-close $fh;
 
 use File::Basename;
 
@@ -63,44 +58,47 @@ Most of the headings are self-explanatory.  For the others:
 Note that calculations can provide different numbers of indices depending on the nature of the !BaseData set used.
 This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
 
-You will need to use a MathML enabled browser such as Firefox 3+ to view the formulae properly
-(and even then the formatting needs tweaking).
-Internet Explorer needs a plugin.
-See [http://en.wikipedia.org/wiki/MathML#Web_browsers] for more details.
-
-
 Table of contents:
 <wiki:toc max_depth="4" />
 
 END_OF_INTRO
 
-
-
-{
-    use HTML::WikiConverter;
-    my $wc = HTML::WikiConverter -> new ( dialect => 'MoinMoin' );
-    local $/=undef;
-    my $success = open (my $html_fh, '<', 'indices.html');
-    $html = <$html_fh>;
-    $html_fh -> close;
-    
-    my $gadget_start_text
-        = q{<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="};
-    my $gadget_end_text = q{"/>};
-    
-    my $wiki_text = $intro_wiki
+my $wiki_text = $intro_wiki
                     #. $wc->html2wiki( $html );
                     . $html;
-    
-    $wiki_text =~ s{[']{3}}{\*}g;  #  google don't like '''
-    $wiki_text =~ s{[']{2}}{_}g;   #  google don't like '' neither
-    $wiki_text =~ s{^(===\s)}{\n \n $1}xgsm;  #  add space between tables and next headers
-    #$wiki_text =~ s/GADGETGADGETSTARTSTART/$gadget_start_text/g;
-    #$wiki_text =~ s/GADGETGADGETENDEND/$gadget_end_text/g;
-    $success = open (my $w_fh, '>', 'Indices.wiki');
-    print {$w_fh} $wiki_text;
-    $w_fh -> close;
-}
+
+my $fh;
+open ($fh, '>', 'indices.wiki') || croak;
+
+print $fh $wiki_text;
+close $fh;
+
+#
+#{
+#    use HTML::WikiConverter;
+#    my $wc = HTML::WikiConverter -> new ( dialect => 'MoinMoin' );
+#    local $/=undef;
+#    my $success = open (my $html_fh, '<', 'indices.html');
+#    $html = <$html_fh>;
+#    $html_fh -> close;
+#    
+#    my $gadget_start_text
+#        = q{<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="};
+#    my $gadget_end_text = q{"/>};
+#    
+#    my $wiki_text = $intro_wiki
+#                    #. $wc->html2wiki( $html );
+#                    . $html;
+#    
+#    $wiki_text =~ s{[']{3}}{\*}g;  #  google don't like '''
+#    $wiki_text =~ s{[']{2}}{_}g;   #  google don't like '' neither
+#    $wiki_text =~ s{^(===\s)}{\n \n $1}xgsm;  #  add space between tables and next headers
+#    #$wiki_text =~ s/GADGETGADGETSTARTSTART/$gadget_start_text/g;
+#    #$wiki_text =~ s/GADGETGADGETENDEND/$gadget_end_text/g;
+#    $success = open (my $w_fh, '>', 'Indices.wiki');
+#    print {$w_fh} $wiki_text;
+#    $w_fh -> close;
+#}
 
 
 #$self -> write_table (type => 'GROUPS', file => 'fred.html', data => \@table);

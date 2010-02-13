@@ -1,16 +1,7 @@
 #summary Table of available indices
 
 = Indices available in Biodiverse =
-_Generated GMT Thu Feb 11 11:53:21 2010 using build_indices_table.pl, Biodiverse version 0.13._
-
-
-<wiki:comment>
-An image <img src="http://latex.codecogs.com/gif.latex?\sum\ \alpha\ ^{\beta}%.png" title="fred" /> followed by some stuff.
-
-<img src="http://latex.codecogs.com/gif.latex?QE = \sum_i \sum_j d_{ij} p_i p_j%.png" title="QE = \sum_i \sum_j d_{ij} p_i p_j" />, where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and  <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the ith and jth labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is the matrix value for the pair of labels <img src="http://latex.codecogs.com/gif.latex?ij%.png" />.
-</wiki:comment>
-
-
+_Generated GMT Sat Feb 13 08:56:09 2010 using build_indices_table.pl, Biodiverse version 0.13._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -26,12 +17,6 @@ Most of the headings are self-explanatory.  For the others:
 
 Note that calculations can provide different numbers of indices depending on the nature of the !BaseData set used.
 This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
-
-You will need to use a MathML enabled browser such as Firefox 3+ to view the formulae properly
-(and even then the formatting needs tweaking).
-Internet Explorer needs a plugin.
-See [http://en.wikipedia.org/wiki/MathML#Web_browsers] for more details.
-
 
 Table of contents:
 <wiki:toc max_depth="4" />
@@ -492,16 +477,7 @@ BaseData labels not in the matrix are ignored
 
 *Subroutine:*   calc_mx_rao_qe
 
-*Formula:*   
-<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="QE\ \=\ sum_i\ sum_j\ d_\{ij\}\ p_i\ p_j"/>
- where 
-<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="p_i\ and\ p_j"/>
- are the sample counts for the ith and jth labels and 
-<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="d_\{ij\}"/>
- is the matrix value for the pair of labels ij.
-
-
-
+*Formula:*   <img src="http://latex.codecogs.com/gif.latex?QE = \sum_i \sum_j d_{ij} p_i p_j%.png" title="QE = \sum_i \sum_j d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is the matrix value for the pair of labels <img src="http://latex.codecogs.com/gif.latex?ij%.png" title="ij" /> .
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 123 || MX_RAO_QE || Matrix weighted quadratic entropy ||   || 1 ||
@@ -704,13 +680,7 @@ Should collapse to be the Simpson index for presence/absence data.
 
 *Subroutine:*   calc_tx_rao_qe
 
-*Formula:*   
-<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="QE\ \=\ sum_i\ sum_j\ d_\{ij\}\ p_i\ p_j"/>
- where 
-<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="p_i\ and\ p_j"/>
- are the sample counts for the ith and jth labels and 
-<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="d_\{ij\}"/>
- is a value of zero if i and j are the same, 1 otherwise..
+*Formula:*   <img src="http://latex.codecogs.com/gif.latex?QE = \sum_i \sum_j d_{ij} p_i p_j%.png" title="QE = \sum_i \sum_j d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is a value of zero if <img src="http://latex.codecogs.com/gif.latex?i%.png" title="i" /> and <img src="http://latex.codecogs.com/gif.latex?j%.png" title="j" /> are the same, and 1 otherwise.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 172 || TX_RAO_QE || Taxonomically weighted quadratic entropy ||   || 1 ||
@@ -798,3 +768,5 @@ It is best to apply these using a small neighbour set 1 relative to a large neig
 || 190 || TXO_V_RATIO || Ratio of the set1 variance to the variance of the combined neighbour sets (TXO_VARIANCE / TXO_TVARIANCE) ||   || 1 ||
 || 191 || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||   || 1 ||
 || 192 || TXO_Z_SCORE || Z-score of the set1 mean given the mean and SD of the combined neighbour sets ((TXO_MEAN - TXO_TMEAN) / sqrt (TXO_TVARIANCE)) ||   || 1 ||
+
+

@@ -1,7 +1,7 @@
 #summary Table of available indices
 
 = Indices available in Biodiverse =
-_Generated GMT Sat Feb 13 22:12:48 2010 using build_indices_table.pl, Biodiverse version 0.14._
+_Generated GMT Sat Feb 13 23:51:07 2010 using build_indices_table.pl, Biodiverse version 0.14._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -526,7 +526,7 @@ BaseData labels not in the matrix are ignored
 *Subroutine:*   calc_mx_rao_qe
 
 *Formula:*
-   <img src="http://latex.codecogs.com/gif.latex?= \sum^n_{i=1} \sum^n_{j=1} d_{ij} p_i p_j%.png" title="= \sum^n_{i=1} \sum^n_{j=1} d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is the matrix value for the pair of labels <img src="http://latex.codecogs.com/gif.latex?ij%.png" title="ij" /> and <img src="http://latex.codecogs.com/gif.latex?n%.png" title="n" /> is the number of labels across both neighbour sets that occur in the matrix .
+   <img src="http://latex.codecogs.com/gif.latex?= \sum_{i \in L} \sum_{j \in L} d_{ij} p_i p_j%.png" title="= \sum_{i \in L} \sum_{j \in L} d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels, <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is the matrix value for the pair of labels <img src="http://latex.codecogs.com/gif.latex?ij%.png" title="ij" /> and <img src="http://latex.codecogs.com/gif.latex?L%.png" title="L" /> is the set of labels across both neighbour sets that occur in the matrix.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 123 || MX_RAO_QE || Matrix weighted quadratic entropy ||   || 1 ||
@@ -736,7 +736,7 @@ Should collapse to be the Simpson index for presence/absence data.
 *Subroutine:*   calc_tx_rao_qe
 
 *Formula:*
-   <img src="http://latex.codecogs.com/gif.latex?= \sum^n_{i=1} \sum^n_{j=1} d_{ij} p_i p_j%.png" title="= \sum^n_{i=1} \sum^n_{j=1} d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is a value of zero if <img src="http://latex.codecogs.com/gif.latex?i%.png" title="i" /> and <img src="http://latex.codecogs.com/gif.latex?j%.png" title="j" /> are the same, and a value of 1 otherwise. <img src="http://latex.codecogs.com/gif.latex?n%.png" title="n" /> is the number of labels across both neighbour sets.
+   <img src="http://latex.codecogs.com/gif.latex?= \sum_{i \in L} \sum_{j \in L} d_{ij} p_i p_j%.png" title="= \sum_{i \in L} \sum_{j \in L} d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels, <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is a value of zero if <img src="http://latex.codecogs.com/gif.latex?i%.png" title="i" /> and <img src="http://latex.codecogs.com/gif.latex?j%.png" title="j" /> are the same, and a value of 1 otherwise. <img src="http://latex.codecogs.com/gif.latex?L%.png" title="L" /> is the set of labels across both neighbour sets.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 172 || TX_RAO_QE || Taxonomically weighted quadratic entropy ||   || 1 ||

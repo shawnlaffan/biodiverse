@@ -1,7 +1,7 @@
 #summary Table of available indices
 
 = Indices available in Biodiverse =
-_Generated GMT Sat Feb 13 09:34:08 2010 using build_indices_table.pl, Biodiverse version 0.13._
+_Generated GMT Sat Feb 13 12:50:15 2010 using build_indices_table.pl, Biodiverse version 0.14._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -267,8 +267,8 @@ IEI summary statistics are calculated for each group and then summarisedacross t
  
   ===Element counts===
  
-*Description:*   Counts and lists of elements used in neighbour sets 1 and 2.
-These form the basis for all the spatial calculations.
+*Description:*   Counts of elements used in neighbour sets 1 and 2.
+
 
 *Subroutine:*   calc_elements_used
 
@@ -276,6 +276,21 @@ These form the basis for all the spatial calculations.
 || 54 || EL_COUNT_ALL || Count of elements in both neighbour sets ||   || 2 ||
 || 55 || EL_COUNT_SET1 || Count of elements in neighbour set 1 ||   || 1 ||
 || 56 || EL_COUNT_SET2 || Count of elements in neighbour set 2 ||   || 2 ||
+
+
+
+ 
+ 
+
+ 
+  ===Element lists===
+ 
+*Description:*   Lists of elements used in neighbour sets 1 and 2.
+These form the basis for all the spatial calculations.
+
+*Subroutine:*   calc_element_lists_used
+
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 57 || EL_LIST_ALL || List of elements in both neighour sets ||   || 2 ||
 || 58 || EL_LIST_SET1 || List of elements in neighbour set 1 ||   || 1 ||
 || 59 || EL_LIST_SET2 || List of elements in neighbour set 2 ||   || 2 ||
@@ -286,18 +301,18 @@ These form the basis for all the spatial calculations.
  
 
  
-  ===Label Counts===
+  ===Label counts===
  
 *Description:*   Counts of labels in neighbour sets 1 and 2.
 These form the basis for the Taxonomic Dissimilarity and Comparison indices.
 
-*Subroutine:*   calc_label_counts
+*Subroutine:*   calc_abc_counts
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 60 || ABC_A || Common to both nenighbour sets ||   || 2 ||
+|| 60 || ABC_A || Count of labels common to both neighbour sets ||   || 2 ||
 || 61 || ABC_ABC || Total label count across both neighbour sets (same as RICHNESS_ALL) ||   || 2 ||
-|| 62 || ABC_B || Unique to neighbour set 1 ||   || 2 ||
-|| 63 || ABC_C || Unique to neighbour set 2 ||   || 2 ||
+|| 62 || ABC_B || Count of labels unique to neighbour set 1 ||   || 2 ||
+|| 63 || ABC_C || Count of labels unique to neighbour set 2 ||   || 2 ||
 
 
 
@@ -305,16 +320,31 @@ These form the basis for the Taxonomic Dissimilarity and Comparison indices.
  
 
  
-  ===Ranges===
+  ===Local range lists===
  
-*Description:*   Local ranges within element sets.  Includes lists and basic summary stats.
+*Description:*   Lists of labels with their local ranges as values. 
+The local ranges are the number of elements in which each label is found in each neighour set.
 
-*Subroutine:*   calc_local_ranges
+*Subroutine:*   calc_local_range_lists
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 64 || ABC2_LABELS_ALL || Labels in both element sets ||   || 2 ||
-|| 65 || ABC2_LABELS_SET1 || Labels in neighbour set 1 ||   || 1 ||
-|| 66 || ABC2_LABELS_SET2 || Labels in neighbour set 2 ||   || 2 ||
+|| 64 || ABC2_LABELS_ALL || List of labels in both neighbour sets ||   || 2 ||
+|| 65 || ABC2_LABELS_SET1 || List of labels in neighbour set 1 ||   || 1 ||
+|| 66 || ABC2_LABELS_SET2 || List of labels in neighbour set 2 ||   || 2 ||
+
+
+
+ 
+ 
+
+ 
+  ===Local range summary statistics===
+ 
+*Description:*   Summary stats of the local ranges within neighour sets.
+
+*Subroutine:*   calc_local_range_stats
+
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 67 || ABC2_MEAN_ALL || Mean label range in both element sets ||   || 1 ||
 || 68 || ABC2_MEAN_SET1 || Mean label range in neighbour set 1 ||   || 1 ||
 || 69 || ABC2_MEAN_SET2 || Mean label range in neighbour set 2 ||   || 2 ||
@@ -337,7 +367,8 @@ there is no redundancy in the sampling
 
 *Subroutine:*   calc_redundancy
 
-*Formula:*   <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{richness}{sum\ of\ the\ sample\ counts}%.png" title="= 1 - \frac{richness}{sum\ of\ the\ sample\ counts}" /> 
+*Formula:*
+   <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{richness}{sum\ of\ the\ sample\ counts}%.png" title="= 1 - \frac{richness}{sum\ of\ the\ sample\ counts}" />
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
 || 73 || REDUNDANCY_ALL || for both neighbour sets ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{RICHNESS\_ALL}{ABC3\_SUM\_ALL}%.png" title="= 1 - \frac{RICHNESS\_ALL}{ABC3\_SUM\_ALL}" />   ||
@@ -368,17 +399,32 @@ there is no redundancy in the sampling
  
 
  
-  ===Sample counts===
+  ===Sample count lists===
  
-*Description:*   Sample counts within element sets, includes lists and basic summary stats.
+*Description:*   Lists of sample counts for each label within the neighbour sets.
 These form the basis of the sample indices.
 
-*Subroutine:*   calc_local_samples
+*Subroutine:*   calc_local_sample_count_lists
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 80 || ABC3_LABELS_ALL || List of labels in both neighbour sets with their sample counts as the values. ||   || 2 ||
 || 81 || ABC3_LABELS_SET1 || List of labels in neighbour set 1. Values are the sample counts.   ||   || 1 ||
 || 82 || ABC3_LABELS_SET2 || List of labels in neighbour set 2. Values are the sample counts. ||   || 2 ||
+
+
+
+ 
+ 
+
+ 
+  ===Sample count summary stats===
+ 
+*Description:*   Summary stats of the sample counts across the neighbour sets.
+
+
+*Subroutine:*   calc_local_sample_count_stats
+
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 83 || ABC3_MEAN_ALL || Mean of label sample counts across both element sets. ||   || 2 ||
 || 84 || ABC3_MEAN_SET1 || Mean of label sample counts in neighbour set1. ||   || 1 ||
 || 85 || ABC3_MEAN_SET2 || Mean of label sample counts in neighbour set 2. ||   || 2 ||
@@ -397,7 +443,7 @@ These form the basis of the sample indices.
  
   ===Compare dissimilarity matrix values===
  
-*Description:*   Compare the set of labels in one neighbour set with those in another using their matrix values (assumes dissimilarities and uses 0 as identical, so take care).
+*Description:*   Compare the set of labels in one neighbour set with those in another using their matrix values. Labels not in the matrix are ignored. This calculation assumes a matrix of dissimilarities and uses 0 as identical, so take care).
 
 *Subroutine:*   calc_compare_dissim_matrix_values
 
@@ -405,8 +451,8 @@ These form the basis of the sample indices.
 || 92 || MXD_COUNT || Count of comparisons used. ||   || 2 ||
 || 93 || MXD_LIST1 || List of the labels used from neighbour set 1 (those in the matrix). The list values are the number of times each label was used in the calculations. This will always be 1 for labels in neighbour set 1. ||   || 2 ||
 || 94 || MXD_LIST2 || List of the labels used from neighbour set 2 (those in the matrix). The list values are the number of times each label was used in the calculations. This will equal the number of labels used from neighbour set 1. ||   || 2 ||
-|| 95 || MXD_MEAN || Mean dissimilarity || cluster metric || 2 ||
-|| 96 || MXD_VARIANCE || Variance of the dissimilarity values || cluster metric || 2 ||
+|| 95 || MXD_MEAN || Mean dissimilarity of labels in set 1 to those in set 2. || cluster metric || 2 ||
+|| 96 || MXD_VARIANCE || Variance of the dissimilarity values, set 1 vs set 2. || cluster metric || 2 ||
 
 
 
@@ -423,19 +469,19 @@ It is best to apply these using a small neighbour set 1 relative to a large neig
 
 *Subroutine:*   calc_overlap_mx
 
-|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 97 || MXO_LABELS || Labels in neighbour set 1 ||   || 1 ||
-|| 98 || MXO_MEAN || Mean of neighbour set 1 ||   || 1 ||
-|| 99 || MXO_M_RATIO || Ratio of the set1 mean to the total mean = (MXO_MEAN / MXO_TMEAN) ||   || 1 ||
-|| 100 || MXO_N || Count of labels used in neighbour set 1 ||   || 1 ||
-|| 101 || MXO_TLABELS || All labels used ||   || 1 ||
-|| 102 || MXO_TMEAN || Mean of both neighbour sets || cluster metric || 1 ||
-|| 103 || MXO_TN || Count of all labels used ||   || 1 ||
-|| 104 || MXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||   || 1 ||
-|| 105 || MXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||   || 1 ||
-|| 106 || MXO_V_RATIO || Ratio of the set1 variance to the total variance = (MXO_VARIANCE / MXO_TVARIANCE) ||   || 1 ||
-|| 107 || MXO_Z_RATIO || A ratio of the z-scores = (MXO_MEAN / sqrt (MXO_VARIANCE)) / (MXO_TMEAN / sqrt (MXO_TVARIANCE)) ||   || 1 ||
-|| 108 || MXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD = ((MXO_MEAN - MXO_TMEAN) / sqrt (MXO_TVARIANCE)) ||   || 1 ||
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
+|| 97 || MXO_LABELS || List of labels in neighbour set 1. ||   || 1 ||   ||
+|| 98 || MXO_MEAN || Mean of neighbour set 1 ||   || 1 ||   ||
+|| 99 || MXO_M_RATIO || Ratio of the set1 mean to the total mean ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac { MXO\_MEAN }{ MXO\_TMEAN }%.png" title="= \frac { MXO\_MEAN }{ MXO\_TMEAN }" />  ||
+|| 100 || MXO_N || Count of labels used in neighbour set 1 ||   || 1 ||   ||
+|| 101 || MXO_TLABELS || List of all labels used (across both neighbour sets). ||   || 1 ||   ||
+|| 102 || MXO_TMEAN || Mean of both neighbour sets || cluster metric || 1 ||   ||
+|| 103 || MXO_TN || Count of all labels used ||   || 1 ||   ||
+|| 104 || MXO_TVARIANCE || Variance of both neighbour sets (mean squared difference from zero) ||   || 1 ||   ||
+|| 105 || MXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero) ||   || 1 ||   ||
+|| 106 || MXO_V_RATIO || Ratio of the set1 variance to the total variance ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac { MXO\_VARIANCE }{ MXO\_TVARIANCE }%.png" title="= \frac { MXO\_VARIANCE }{ MXO\_TVARIANCE }" />  ||
+|| 107 || MXO_Z_RATIO || A ratio of the local to total z-scores. ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac { \frac { MXO\_MEAN }{ \sqrt { MXO\_VARIANCE }} }{ \frac { MXO\_TMEAN }{ \sqrt {MXO\_TVARIANCE}} }%.png" title="= \frac { \frac { MXO\_MEAN }{ \sqrt { MXO\_VARIANCE }} }{ \frac { MXO\_TMEAN }{ \sqrt {MXO\_TVARIANCE}} }" />  ||
+|| 108 || MXO_Z_SCORE || Z-score of the set1 mean given the total mean and SD ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac {MXO\_MEAN - MXO\_TMEAN }{ \sqrt { MXO\_TVARIANCE} }%.png" title="= \frac {MXO\_MEAN - MXO\_TMEAN }{ \sqrt { MXO\_TVARIANCE} }" />  ||
 
 
 
@@ -445,8 +491,8 @@ It is best to apply these using a small neighbour set 1 relative to a large neig
  
   ===Matrix statistics===
  
-*Description:*   Calculate summary statistics of labels in the selected matrix.
-Uses labels from both neighbour sets
+*Description:*   Calculate summary statistics of matrix elements in the selected matrix for labels found across both neighbour sets.
+Labels not in the matrix are ignored.
 
 *Subroutine:*   calc_matrix_stats
 
@@ -456,7 +502,7 @@ Uses labels from both neighbour sets
 || 111 || MX_MEAN || Mean ||   || 1 ||
 || 112 || MX_MEDIAN || Median ||   || 1 ||
 || 113 || MX_MINVALUE || Minimum value ||   || 1 ||
-|| 114 || MX_N || Number of samples (comparisons, not labels) ||   || 1 ||
+|| 114 || MX_N || Number of samples (matrix elements, not labels) ||   || 1 ||
 || 115 || MX_PCT05 || 5th percentile value ||   || 1 ||
 || 116 || MX_PCT25 || First quartile (25th percentile) ||   || 1 ||
 || 117 || MX_PCT75 || Third quartile (75th percentile) ||   || 1 ||
@@ -479,7 +525,8 @@ BaseData labels not in the matrix are ignored
 
 *Subroutine:*   calc_mx_rao_qe
 
-*Formula:*   <img src="http://latex.codecogs.com/gif.latex?QE = \sum_i \sum_j d_{ij} p_i p_j%.png" title="QE = \sum_i \sum_j d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is the matrix value for the pair of labels <img src="http://latex.codecogs.com/gif.latex?ij%.png" title="ij" /> .
+*Formula:*
+   <img src="http://latex.codecogs.com/gif.latex?= \sum^n_{i=1} \sum^n_{j=1} d_{ij} p_i p_j%.png" title="= \sum^n_{i=1} \sum^n_{j=1} d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is the matrix value for the pair of labels <img src="http://latex.codecogs.com/gif.latex?ij%.png" title="ij" /> and <img src="http://latex.codecogs.com/gif.latex?n%.png" title="n" /> is the number of labels across both neighbour sets that occur in the matrix .
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 123 || MX_RAO_QE || Matrix weighted quadratic entropy ||   || 1 ||
@@ -494,13 +541,13 @@ BaseData labels not in the matrix are ignored
  
   ===Numeric label data===
  
-*Description:*   The underlying data used for the numeric labels stats.
-Use 'Sample Counts' for the hash form.
+*Description:*   The underlying data used for the numeric labels stats, as an array.
+For the hash form, use the ABC3_LABELS_ALL index from the 'Sample count lists' calculation.
 
 *Subroutine:*   calc_numeric_label_data
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 126 || NUM_DATA_ARRAY || Numeric label data in array form.  Multiple occurrences are repeated. ||   || 1 ||
+|| 126 || NUM_DATA_ARRAY || Numeric label data in array form.  Multiple occurrences are repeated based on their sample counts. ||   || 1 ||
 
 
 
@@ -634,9 +681,9 @@ Uses labels in both neighbourhoods
 
 *Subroutine:*   calc_beta_diversity
 
-|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 168 || BETA_2 || The other beta || cluster metric || 2 ||
-|| 169 || BETA_W || Whittaker's beta (Note that this is the same as the Sorenson index.) || cluster metric || 2 ||
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
+|| 168 || BETA_2 || The other beta || cluster metric || 2 || <img src="http://latex.codecogs.com/gif.latex?= \frac{A + B + C}{max((A+B), (A+C))} - 1%.png" title="= \frac{A + B + C}{max((A+B), (A+C))} - 1" /> where <img src="http://latex.codecogs.com/gif.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/gif.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/gif.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.  ||
+|| 169 || BETA_W || Whittaker's beta (Note that this is numerically the same as the Sorenson index.) || cluster metric || 2 || <img src="http://latex.codecogs.com/gif.latex?= \frac{A + B + C}{(\frac{(A+B) + (A+C)}{2})} - 1%.png" title="= \frac{A + B + C}{(\frac{(A+B) + (A+C)}{2})} - 1" /> where <img src="http://latex.codecogs.com/gif.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/gif.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/gif.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.  ||
 
 
 
@@ -650,6 +697,9 @@ Uses labels in both neighbourhoods
 Reduces to the Sorenson metric for binary data.
 
 *Subroutine:*   calc_bray_curtis
+
+*Formula:*
+   <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{2W}{A + B}%.png" title="= 1 - \frac{2W}{A + B}" /> where <img src="http://latex.codecogs.com/gif.latex?A%.png" title="A" /> is the sum of the sample counts in neighbour set 1, <img src="http://latex.codecogs.com/gif.latex?B%.png" title="B" /> is the sum of sample counts in neighbour set 2, and <img src="http://latex.codecogs.com/gif.latex?W=\sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})%.png" title="W=\sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})" /> (meaning it sums the minimum of the sample counts for each of the <img src="http://latex.codecogs.com/gif.latex?n%.png" title="n" /> labels across the two neighbour sets), 
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 170 || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 2 ||
@@ -665,6 +715,9 @@ Reduces to the Sorenson metric for binary data.
 *Description:*   Jaccard dissimilarity between the labels in neighbour sets 1 and 2.
 
 *Subroutine:*   calc_jaccard
+
+*Formula:*
+   <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{A}{A + B + C}%.png" title="= 1 - \frac{A}{A + B + C}" /> where <img src="http://latex.codecogs.com/gif.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/gif.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/gif.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 171 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
@@ -682,7 +735,8 @@ Should collapse to be the Simpson index for presence/absence data.
 
 *Subroutine:*   calc_tx_rao_qe
 
-*Formula:*   <img src="http://latex.codecogs.com/gif.latex?QE = \sum_i \sum_j d_{ij} p_i p_j%.png" title="QE = \sum_i \sum_j d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is a value of zero if <img src="http://latex.codecogs.com/gif.latex?i%.png" title="i" /> and <img src="http://latex.codecogs.com/gif.latex?j%.png" title="j" /> are the same, and 1 otherwise.
+*Formula:*
+   <img src="http://latex.codecogs.com/gif.latex?= \sum^n_{i=1} \sum^n_{j=1} d_{ij} p_i p_j%.png" title="= \sum^n_{i=1} \sum^n_{j=1} d_{ij} p_i p_j" /> where <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> and <img src="http://latex.codecogs.com/gif.latex?p_j%.png" title="p_j" /> are the sample counts for the i'th and j'th labels and <img src="http://latex.codecogs.com/gif.latex?d_{ij}%.png" title="d_{ij}" /> is a value of zero if <img src="http://latex.codecogs.com/gif.latex?i%.png" title="i" /> and <img src="http://latex.codecogs.com/gif.latex?j%.png" title="j" /> are the same, and a value of 1 otherwise. <img src="http://latex.codecogs.com/gif.latex?n%.png" title="n" /> is the number of labels across both neighbour sets.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 172 || TX_RAO_QE || Taxonomically weighted quadratic entropy ||   || 1 ||
@@ -704,6 +758,9 @@ Should collapse to be the Simpson index for presence/absence data.
 
 *Reference:*   Lennon et al. (2001) J Animal Ecol.  http://dx.doi.org/10.1046/j.0021-8790.2001.00563.x
  
+*Formula:*
+   <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{A}{A + min(B, C)}%.png" title="= 1 - \frac{A}{A + min(B, C)}" /> where <img src="http://latex.codecogs.com/gif.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/gif.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/gif.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.
+
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 175 || S2 || S2 dissimilarity index || cluster metric || 2 ||
 
@@ -720,11 +777,14 @@ Should collapse to be the Simpson index for presence/absence data.
 
 *Subroutine:*   calc_simpson_shannon
 
-|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 176 || SHANNON_E || Shannon's evenness (H / HMAX) ||   || 1 ||
-|| 177 || SHANNON_H || Shannon's H ||   || 1 ||
-|| 178 || SHANNON_HMAX || maximum possible value of Shannon's H ||   || 1 ||
-|| 179 || SIMPSON_D || Simpson's D. A score of zero is more similar. || cluster metric || 1 ||
+*Formula:*
+    For each index formula, <img src="http://latex.codecogs.com/gif.latex?p_i%.png" title="p_i" /> is the number of samples of the i'th label as a proportion of the total number of samples <img src="http://latex.codecogs.com/gif.latex?n%.png" title="n" /> in the neighbourhoods.
+
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
+|| 176 || SHANNON_E || Shannon's evenness (H / HMAX) ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?Evenness = \frac{H}{HMAX}%.png" title="Evenness = \frac{H}{HMAX}" />  ||
+|| 177 || SHANNON_H || Shannon's H ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?H = - \sum^n_{i=1} (p_i \cdot ln (p_i))%.png" title="H = - \sum^n_{i=1} (p_i \cdot ln (p_i))" />  ||
+|| 178 || SHANNON_HMAX || maximum possible value of Shannon's H ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?HMAX = ln(richness)%.png" title="HMAX = ln(richness)" />  ||
+|| 179 || SIMPSON_D || Simpson's D. A score of zero is more similar. || cluster metric || 1 || <img src="http://latex.codecogs.com/gif.latex?D = 1 - \sum^n_{i=1} p_i^2%.png" title="D = 1 - \sum^n_{i=1} p_i^2" />  ||
 
 
 
@@ -739,6 +799,9 @@ It is the complement of the (unimplemented) Czechanowski index, and numerically 
 
 *Subroutine:*   calc_sorenson
 
+*Formula:*
+   <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{2A}{2A + B + C}%.png" title="= 1 - \frac{2A}{2A + B + C}" /> where <img src="http://latex.codecogs.com/gif.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/gif.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/gif.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.
+
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 180 || SORENSON || Sorenson index || cluster metric || 2 ||
 
@@ -752,23 +815,24 @@ It is the complement of the (unimplemented) Czechanowski index, and numerically 
  
 *Description:*   Calculate taxonomic overlap metrics between the two sets of elements.
 Uses deviation from zero for variances.  In most cases the means and variances will be the same.
-Bears some relation to Rao's quadratic entropy after modification to weight by sample counts.
-It is best to apply these using a small neighbour set 1 relative to a large neighbour set 2
+Bears some relation to Rao's quadratic entropy if this calculation were modified to weight by sample counts.
+It is best to apply these indices using a small neighbour set 1 relative to a large neighbour set 2.
+METADATA NEEDS MORE FORMULAE.
 
 *Subroutine:*   calc_overlap_tx
 
-|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 181 || TXO_LABELS || Labels in neighbour set 1. ||   || 1 ||
-|| 182 || TXO_MEAN || Mean of neighbour set 1. ||   || 1 ||
-|| 183 || TXO_M_RATIO || Ratio of the set1 mean to the mean of the combined neighbour sets (TXO_MEAN / TXO_TMEAN) ||   || 1 ||
-|| 184 || TXO_N || Count of labels used in neighbour set 1. ||   || 1 ||
-|| 185 || TXO_TLABELS || All labels used. ||   || 1 ||
-|| 186 || TXO_TMEAN || Mean of both neighbour sets. ||   || 1 ||
-|| 187 || TXO_TN || Count of all labels used in the conbined neighbour sets. ||   || 1 ||
-|| 188 || TXO_TVARIANCE || Variance of the combined neighbour sets (mean squared difference from zero). ||   || 1 ||
-|| 189 || TXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero). ||   || 1 ||
-|| 190 || TXO_V_RATIO || Ratio of the set1 variance to the variance of the combined neighbour sets (TXO_VARIANCE / TXO_TVARIANCE) ||   || 1 ||
-|| 191 || TXO_Z_RATIO || (TXO_MEAN / sqrt (TXO_VARIANCE)) / (TXO_TMEAN / sqrt (TXO_TVARIANCE)) ||   || 1 ||
-|| 192 || TXO_Z_SCORE || Z-score of the set1 mean given the mean and SD of the combined neighbour sets ((TXO_MEAN - TXO_TMEAN) / sqrt (TXO_TVARIANCE)) ||   || 1 ||
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
+|| 181 || TXO_LABELS || List of labels in neighbour set 1. ||   || 1 ||   ||
+|| 182 || TXO_MEAN || Mean of neighbour set 1. ||   || 1 ||   ||
+|| 183 || TXO_M_RATIO || Ratio of the set1 mean to the mean of the combined neighbour sets ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac{TXO\_MEAN}{TXO\_TMEAN}%.png" title="= \frac{TXO\_MEAN}{TXO\_TMEAN}" />  ||
+|| 184 || TXO_N || Count of labels used in neighbour set 1. ||   || 1 ||   ||
+|| 185 || TXO_TLABELS || List of all labels used (across both neighbour sets). ||   || 1 ||   ||
+|| 186 || TXO_TMEAN || Mean of both neighbour sets. ||   || 1 ||   ||
+|| 187 || TXO_TN || Count of all labels used in the conbined neighbour sets. ||   || 1 ||   ||
+|| 188 || TXO_TVARIANCE || Variance of the combined neighbour sets (mean squared difference from zero). ||   || 1 ||   ||
+|| 189 || TXO_VARIANCE || Variance of neighbour set 1 (mean squared difference from zero). ||   || 1 ||   ||
+|| 190 || TXO_V_RATIO || Ratio of the set1 variance to the variance of the combined neighbour sets. ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac{ TXO\_VARIANCE }{ TXO\_TVARIANCE }%.png" title="= \frac{ TXO\_VARIANCE }{ TXO\_TVARIANCE }" />  ||
+|| 191 || TXO_Z_RATIO || (TXO_MEAN / TXO_VARIANCE) / (TXO_TMEAN / TXO_TVARIANCE) ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac{ \frac{TXO\_MEAN}{\sqrt {TXO\_VARIANCE}} }{ \frac{TXO\_TMEAN}{\sqrt {TXO\_TVARIANCE}} }%.png" title="= \frac{ \frac{TXO\_MEAN}{\sqrt {TXO\_VARIANCE}} }{ \frac{TXO\_TMEAN}{\sqrt {TXO\_TVARIANCE}} }" />  ||
+|| 192 || TXO_Z_SCORE || Z-score of the set1 mean given the mean and SD of the combined neighbour sets ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac{TXO\_MEAN - TXO\_TMEAN }{\sqrt {TXO\_TVARIANCE}}%.png" title="= \frac{TXO\_MEAN - TXO\_TMEAN }{\sqrt {TXO\_TVARIANCE}}" />  ||
 
 

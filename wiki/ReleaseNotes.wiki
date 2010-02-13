@@ -5,6 +5,12 @@
 
 This release is in development.
 
+  *  Calculations and indices:
+    *  Element counts and lists are now seperated into their own calculations.
+    *  Metadata for the indices now includes formulae.  These are displayed in the online help.  http://code.google.com/p/biodiverse/wiki/Indices
+
+
+
 To see the full list of changes planned or implemented, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.14
 
 = Version 0.13 =

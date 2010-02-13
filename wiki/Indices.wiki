@@ -1,7 +1,7 @@
 #summary Table of available indices
 
 = Indices available in Biodiverse =
-_Generated GMT Sat Feb 13 12:50:15 2010 using build_indices_table.pl, Biodiverse version 0.14._
+_Generated GMT Sat Feb 13 12:52:14 2010 using build_indices_table.pl, Biodiverse version 0.14._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -694,7 +694,7 @@ Uses labels in both neighbourhoods
   ===Bray-Curtis non-metric===
  
 *Description:*   Bray-Curtis dissimilarity between two sets of labels.
-Reduces to the Sorenson metric for binary data.
+Reduces to the Sorenson metric for binary data (where sample counts are 1 or 0).
 
 *Subroutine:*   calc_bray_curtis
 

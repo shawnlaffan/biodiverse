@@ -1,7 +1,7 @@
 #summary Table of available indices
 
 = Indices available in Biodiverse =
-_Generated GMT Sat Feb 13 08:56:09 2010 using build_indices_table.pl, Biodiverse version 0.13._
+_Generated GMT Sat Feb 13 09:34:08 2010 using build_indices_table.pl, Biodiverse version 0.13._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -337,10 +337,12 @@ there is no redundancy in the sampling
 
 *Subroutine:*   calc_redundancy
 
-|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 73 || REDUNDANCY_ALL || for both neighbour sets ||   || 1 ||
-|| 74 || REDUNDANCY_SET1 || for neighour set 1 ||   || 1 ||
-|| 75 || REDUNDANCY_SET2 || for neighour set 2 ||   || 2 ||
+*Formula:*   <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{richness}{sum\ of\ the\ sample\ counts}%.png" title="= 1 - \frac{richness}{sum\ of\ the\ sample\ counts}" /> 
+
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
+|| 73 || REDUNDANCY_ALL || for both neighbour sets ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{RICHNESS\_ALL}{ABC3\_SUM\_ALL}%.png" title="= 1 - \frac{RICHNESS\_ALL}{ABC3\_SUM\_ALL}" />   ||
+|| 74 || REDUNDANCY_SET1 || for neighour set 1 ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{RICHNESS\_SET1}{ABC3\_SUM\_SET1}%.png" title="= 1 - \frac{RICHNESS\_SET1}{ABC3\_SUM\_SET1}" />   ||
+|| 75 || REDUNDANCY_SET2 || for neighour set 2 ||   || 2 || <img src="http://latex.codecogs.com/gif.latex?= 1 - \frac{RICHNESS\_SET2}{ABC3\_SUM\_SET2}%.png" title="= 1 - \frac{RICHNESS\_SET2}{ABC3\_SUM\_SET2}" />   ||
 
 
 
@@ -355,7 +357,7 @@ there is no redundancy in the sampling
 *Subroutine:*   calc_richness
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 76 || COMPL || a crude complementarity index for use in clustering might be disabled in a later release || cluster metric || 2 ||
+|| 76 || COMPL || A crude complementarity index for use in clustering. It is actually the same as RICHNESS_ALL and might be disabled in a later release. || cluster metric || 2 ||
 || 77 || RICHNESS_ALL || for both sets of neighbours ||   || 1 ||
 || 78 || RICHNESS_SET1 || for neighbour set 1 ||   || 1 ||
 || 79 || RICHNESS_SET2 || for neighbour set 2 ||   || 2 ||
@@ -368,24 +370,24 @@ there is no redundancy in the sampling
  
   ===Sample counts===
  
-*Description:*   Sample counts within element sets, includes lists and basic summary stats
+*Description:*   Sample counts within element sets, includes lists and basic summary stats.
 These form the basis of the sample indices.
 
 *Subroutine:*   calc_local_samples
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 80 || ABC3_LABELS_ALL || Labels in both neighbour sets. ||   || 2 ||
-|| 81 || ABC3_LABELS_SET1 || Labels in neighbour set 1. ||   || 1 ||
-|| 82 || ABC3_LABELS_SET2 || Labels in neighbour set 2. ||   || 2 ||
-|| 83 || ABC3_MEAN_ALL || Mean sample counts of labels in both element sets. ||   || 2 ||
-|| 84 || ABC3_MEAN_SET1 || Mean sample counts of labels in neighbour set1. ||   || 1 ||
-|| 85 || ABC3_MEAN_SET2 || Mean sample counts of labels in neighbour set 2. ||   || 2 ||
+|| 80 || ABC3_LABELS_ALL || List of labels in both neighbour sets with their sample counts as the values. ||   || 2 ||
+|| 81 || ABC3_LABELS_SET1 || List of labels in neighbour set 1. Values are the sample counts.   ||   || 1 ||
+|| 82 || ABC3_LABELS_SET2 || List of labels in neighbour set 2. Values are the sample counts. ||   || 2 ||
+|| 83 || ABC3_MEAN_ALL || Mean of label sample counts across both element sets. ||   || 2 ||
+|| 84 || ABC3_MEAN_SET1 || Mean of label sample counts in neighbour set1. ||   || 1 ||
+|| 85 || ABC3_MEAN_SET2 || Mean of label sample counts in neighbour set 2. ||   || 2 ||
 || 86 || ABC3_SD_ALL || Standard deviation of label sample counts in both element sets. ||   || 2 ||
 || 87 || ABC3_SD_SET1 || Standard deviation of sample counts in neighbour set 1. ||   || 1 ||
-|| 88 || ABC3_SD_SET2 || Standard deviation of sample counts in neighbour set 2. ||   || 2 ||
-|| 89 || ABC3_SUM_ALL || Sum of the sample counts in neighbour set2. ||   || 2 ||
-|| 90 || ABC3_SUM_SET1 || Sum of the sample counts in neighbour set1. ||   || 1 ||
-|| 91 || ABC3_SUM_SET2 || Sum of the sample counts in neighbour set2. ||   || 2 ||
+|| 88 || ABC3_SD_SET2 || Standard deviation of label sample counts in neighbour set 2. ||   || 2 ||
+|| 89 || ABC3_SUM_ALL || Sum of the label sample counts in neighbour set2. ||   || 2 ||
+|| 90 || ABC3_SUM_SET1 || Sum of the label sample counts in neighbour set1. ||   || 1 ||
+|| 91 || ABC3_SUM_SET2 || Sum of the label sample counts in neighbour set2. ||   || 2 ||
 
 
 ==Matrix==

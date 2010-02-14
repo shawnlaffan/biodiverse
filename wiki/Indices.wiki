@@ -37,7 +37,7 @@ but with local ranges calculated using both neighbour sets
 
 *Reference:*   Crisp et al. (2001) J Biogeog. http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x ; Laffan and Crisp (2003) J Biogeog. http://www3.interscience.wiley.com/journal/118882020/abstract 
 
-<a title="ENDC_CWE">
+<a name="ENDC_CWE"></a>
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* || *Reference* ||
 || 1 || ENDC_CWE || Corrected weighted endemism ||   || 1 || <img src="http://latex.codecogs.com/gif.latex?= \frac{ENDC\_WE}{ENDC\_RICHNESS}%.png" title="= \frac{ENDC\_WE}{ENDC\_RICHNESS}" />  ||   ||

@@ -7,7 +7,7 @@ They also apply to version 0.13, the current release as of 01Feb2010.
 
 <wiki:toc max_depth="4" />
 
-http://code.google.com/p/biodiverse/source/browse/wiki/images/Visualization_all_panes.jpg
+http://biodiverse.googlecode.com/svn/wiki/images/Visualization_all_panes.jpg
 
 
 ----

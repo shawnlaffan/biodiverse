@@ -1,13 +1,13 @@
 #summary Installation instructions
 #labels Featured,Phase-Deploy
 
-http://code.google.com/p/biodiverse/source/browse/wiki/images/Visualization_all_panes.jpg
-
 These instructions assume you have downloaded the relevant Biodiverse release and saved it to your hard drive.
 
 They also apply to version 0.13, the current release as of 01Feb2010.
 
 <wiki:toc max_depth="4" />
+
+http://code.google.com/p/biodiverse/source/browse/wiki/images/Visualization_all_panes.jpg
 
 
 ----

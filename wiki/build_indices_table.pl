@@ -41,6 +41,7 @@ my $wiki_leader = "= Indices available in Biodiverse =\n";
 
 my $intro_wiki = <<"END_OF_INTRO";
 #summary Table of available indices
+#labels Featured
 
 $wiki_leader
 

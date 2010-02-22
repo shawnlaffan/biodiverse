@@ -48,7 +48,7 @@ Note the common “Places” in the left panel of the window. This is the bookma
 
 !BaseData, Matrix, and Tree object data can be imported by clicking on their respective import buttons (plus signs) in the main toolbar or through their respective menus. Either an existing data set can be extended with the import (obviously, the new file must contain data of a similar format to the !BaseData being extended), or a new one can be created.
 
-!BaseData and Matrix objects can be imported from text files. Currently, only delimited text files are supported (e.g. CSV, comma separated variable). They should contain columns for one or more labels (e.g. names such as genus and species) and groups (e.g. x and y coordinates of a data point). The columns of data in your file don't have to be separated by commas, and a prompt allows you to specify the separator used (or simply to have the system make an "educated" guess) along with various other import options.
+!BaseData and Matrix objects can be imported from text files. Currently, only delimited text files are supported (e.g. CSV, comma separated variable). They should contain columns for one or more labels (e.g. names such as genus and species) and groups (e.g. x and y coordinates of a data point). The columns of data in your file don't have to be separated by commas, and a prompt allows you to specify the separator used (or simply to have the system make an "educated" guess for tabs, commas, spaces etc.) along with various other import options.
 
 Biodiverse does not care if a matrix being imported is upper right, lower left, both, or any combination of the above. They will store the last valid value for an element pair.
 
@@ -60,7 +60,7 @@ For !BaseData and tree object types the import process involves selecting your d
 
 === !BaseData ===
 
-From the !BaseData import dialogue window you can select your data file or files. The text box at the top right of the window allows you to name the !BaseData object that will be produced (as opposed to the default file name). Once you are finished, click Next.  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files that do not share column orders then import each one separately.
+From the !BaseData import dialogue window you can select your data file or files. The text box at the top right of the window allows you to name the !BaseData object that will be produced (as opposed to the default file name). Once you are finished, click Next.  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files that do not share column orders then import each one separately.  If your data were generated in R using the write.table() function then from version 0.14 the system will detect this and allow for it (see issue #20).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step1.png
 

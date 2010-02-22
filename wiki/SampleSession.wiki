@@ -60,7 +60,7 @@ For !BaseData and tree object types the import process involves selecting your d
 
 === !BaseData ===
 
-From the !BaseData import dialogue window you can select your data file or files. The text box at the top right of the window allows you to name the !BaseData object that will be produced (as opposed to the default file name). Once you are finished, click Next.  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files that do not share column orders then import each one separately.  If your data were generated in R using the write.table() function then from version 0.14 the system will detect this and allow for it (see issue #20).
+From the !BaseData import dialogue window you can select your data file or files. The text box at the top right of the window allows you to name the !BaseData object that will be produced (as opposed to the default file name). Once you are finished, click Next.  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files that do not share column orders then import each one separately.  If your data were generated in R using the write.table() function then from version 0.14 the system will detect this and allow for the missing column header for the row names (see issue #20).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step1.png
 
@@ -120,7 +120,7 @@ You may also create a new !BaseData object as a duplicate of the currently selec
 
 Matrix data can be imported at any time, although it can only be viewed with an existing (and selected) basedata object.
 
-When importing matrix data, you will first be asked to specify the matrix data file in the same way as for basedata objects.
+When importing matrix data, you will first be asked to specify the matrix data file in the same way as for basedata objects.  As with !BaseData files, if your data were generated in R using the write.table() function then from version 0.14 the system will detect this and allow for the missing column header for the row names (see issue #20).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_matrix_step1.png
 

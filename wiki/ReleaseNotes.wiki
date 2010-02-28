@@ -7,12 +7,14 @@ This release is in development.
 
   *  Calculations and indices:
     *  The count calculations have been seperated into one for the lists and one of the summary stats.  This includes the local ranges, local sample counts and element lists.
-    *  Metadata for the indices now includes formulae.  These are displayed in the online help.  http://code.google.com/p/biodiverse/wiki/Indices
-	*  Added new index, NEST_RESULTANT (nestedness-resultant) from Baselga (2010) Glob Ecol Biogeog.  http://dx.doi.org/10.1111/j.1466-8238.2009.00490.x
+    *  Metadata for the indices now includes formulae.  These are displayed in the online help, but are not displayed in the GUI.  http://code.google.com/p/biodiverse/wiki/Indices
+    *  Added new index, NEST_RESULTANT (nestedness-resultant) from Baselga (2010) Glob Ecol Biogeog.  http://dx.doi.org/10.1111/j.1466-8238.2009.00490.x
+    *  The Endemism and Rarity calculations are now listed under their own headings.
+    *  Added new list calculations to enable hierarchical partitioning of the endemism results.  See http://code.google.com/p/biodiverse/issues/detail?id=99
 
 
 
-To see the full list of changes planned or implemented, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.14
+To see the full list of planned or implemented changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.14
 
 = Version 0.13 =
 

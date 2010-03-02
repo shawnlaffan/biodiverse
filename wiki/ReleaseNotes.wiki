@@ -11,6 +11,8 @@ This release is in development.
     *  Added new index, NEST_RESULTANT (nestedness-resultant) from Baselga (2010) Glob Ecol Biogeog.  http://dx.doi.org/10.1111/j.1466-8238.2009.00490.x
     *  The Endemism and Rarity calculations are now listed under their own headings.
     *  Added new list calculations to enable hierarchical partitioning of the endemism results.  See http://code.google.com/p/biodiverse/issues/detail?id=99
+  *  Spatial Conditions
+    *  New condition `sp_match_regex` which allows the user to match using arbitrary regular expressions.  For example, to match any group where the neighbour's third axis starts with the processing group's third axis, use `sp_match_regex (re => qr/^$coord[2]/, axis => 2, type => 'nbr')`
   *  The GUI now recognises R style tables for import.  http://code.google.com/p/biodiverse/issues/detail?id=20
   *  Tree and matrix objects can be renamed.  http://code.google.com/p/biodiverse/issues/detail?id=72
   *  Randomisations

@@ -1,6 +1,8 @@
 #summary How to specify the spatial conditions used to define neighbourhoods and definition queries
 #labels Featured
 
+<wiki:comment>Add details for sp_match_regex when 0.14 is released.</wiki:comment>
+
 <wiki:toc max_depth="4" />
 
 = Introduction =

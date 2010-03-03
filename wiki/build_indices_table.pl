@@ -11,13 +11,14 @@ use Data::Dumper;
 use HTML::QuickTable;
 
 my $self = Biodiverse::BaseData -> new;
-$self -> set_param (CELLSIZE => [1,1]);
+$self -> set_param (CELL_SIZES => [1,1]);
 $self -> add_element (                    
     label => 'a:b',
     group => '1:1',
     count => 1,
 );
-
+my $lb_ref = $self -> get_labels_ref;
+$lb_ref -> set_param (CELL_SIZES => [-1,-1]);
 
 my $html = $self -> get_calculation_metadata_as_wiki;
 
@@ -69,41 +70,8 @@ my $wiki_text = $intro_wiki
                     . $html;
 
 my $fh;
-open ($fh, '>', 'indices.wiki') || croak;
+open ($fh, '>', 'Indices_014.wiki') || croak;
 
 print $fh $wiki_text;
 close $fh;
-
-#
-#{
-#    use HTML::WikiConverter;
-#    my $wc = HTML::WikiConverter -> new ( dialect => 'MoinMoin' );
-#    local $/=undef;
-#    my $success = open (my $html_fh, '<', 'indices.html');
-#    $html = <$html_fh>;
-#    $html_fh -> close;
-#    
-#    my $gadget_start_text
-#        = q{<wiki:gadget url="http://mathml-gadget.googlecode.com/svn/trunk/mathml-gadget.xml" border="0" up_content="};
-#    my $gadget_end_text = q{"/>};
-#    
-#    my $wiki_text = $intro_wiki
-#                    #. $wc->html2wiki( $html );
-#                    . $html;
-#    
-#    $wiki_text =~ s{[']{3}}{\*}g;  #  google don't like '''
-#    $wiki_text =~ s{[']{2}}{_}g;   #  google don't like '' neither
-#    $wiki_text =~ s{^(===\s)}{\n \n $1}xgsm;  #  add space between tables and next headers
-#    #$wiki_text =~ s/GADGETGADGETSTARTSTART/$gadget_start_text/g;
-#    #$wiki_text =~ s/GADGETGADGETENDEND/$gadget_end_text/g;
-#    $success = open (my $w_fh, '>', 'Indices.wiki');
-#    print {$w_fh} $wiki_text;
-#    $w_fh -> close;
-#}
-
-
-#$self -> write_table (type => 'GROUPS', file => 'fred.html', data => \@table);
-
-
-
 

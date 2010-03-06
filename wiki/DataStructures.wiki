@@ -29,7 +29,7 @@ A !BaseStruct object consists of a set of elements.  It is the storage system us
 
 A !BaseData object is the primary storage object used in Biodiverse.  It consists of one Groups object, one Labels object, a set of parameters, and one or more cluster, moving window and randomisation outputs.  
 
-One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed basedata object which you can view and analyse.
+One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed !BaseData object which you can view and analyse.
 
 == Labels ==
 
@@ -37,7 +37,7 @@ A labels object is a special type of !BaseStruct, with the labels being a specia
 
 == Groups ==
 
-A groups object is also a special type of !BaseStruct object, with the groups also being a special type of element.  Typically they are square cells into which the labels are aggregated (binned), but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
+A groups object is also a special type of !BaseStruct object, with groups also being a special type of element.  Typically groups are square cells into which the labels are aggregated (binned), but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
 
 Groups are analogous to bins in other systems, for example [http://bmf2.colorado.edu/unifrac/index.psp UniFrac].
 
@@ -63,9 +63,9 @@ See also [SampleSession#Running_a_randomisation].
 
 = Matrices =
 
-These are matrices of numeric values representing some relationship between a set of elements.  They should normally be qsuare, bu the system does not impose that requirement.  Normally they are linked to the labels of a !Basedata object and used in the visualisation and analyses.  They are also used in the cluster analyses and can be exported via the cluster outputs.
+These are matrices of numeric values representing some relationship between a set of elements.  They should normally be square, but the system does not impose that requirement.  Normally they are linked to the labels of a !BaseData object and used in the visualisation and analyses.  They are also used in the cluster analyses and can be exported via the cluster outputs.
 
-Previous uses include genetic similarities ([http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al. 2004]), but any numeric value can be used.  It is up to the user to ensure it is sensible (the system does not stop the user from doing someting stupid, just in case it turns out to be really useful).
+Previous uses include genetic similarities ([http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al. 2004]), but any numeric value can be used.  It is up to the user to ensure it is sensible (the system does not stop the user from doing something stupid, just in case it turns out to be really useful).
 
 Matrices in Biodiverse are stored with a high degree of redundancy, so do use a large amount of memory for large matrices.  This is to allow fast access of attributes such as the smallest and largest values, or counts of rows and columns, or how many defined values each row has.  The storage approach may change in the future if a more efficient structure is on offer that retains the aspects of speed.  
 

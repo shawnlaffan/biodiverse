@@ -10,7 +10,7 @@ This release is in development.
     *  Reading a tree file from biodiverse format works again.  See issue #105
     *  The GUI now recognises R style tables for import (as exported using the write.table() function in R).  See issue #20
     *  Tree and matrix objects can be renamed.  See issue #72
-    *  Users can now describe the selected basedata, tree and matrix.  Results are printed to a popup and to the log window.  
+    *  Users can now describe the selected basedata, tree and matrix.  Results are printed to a popup and to the log window.  (Issue #93)
   *  Calculations and indices:
     *  The count calculations have been seperated into one for the lists and one of the summary stats.  This includes the local ranges, local sample counts and element lists.
     *  Metadata for the indices now includes formulae.  These are displayed in the online help, but are not displayed in the GUI.  http://code.google.com/p/biodiverse/wiki/Indices

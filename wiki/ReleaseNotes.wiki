@@ -12,6 +12,7 @@ This release is in development.
     *  Tree and matrix objects can be renamed.  (Issue #72)
     *  Users can now describe the selected basedata, tree and matrix.  Results are printed to a popup and to the log window.  (Issue #93)
     *  The parameters sections of the Spatial and Cluster tabs can be hidden to free up real estate - click on the Parameters button at the top left of the tab.  (Issue #68)
+    *  Trees and matrices embedded in basedata objects can be added to the project.  (Issue #71)
   *  Calculations and indices:
     *  The count calculations have each been seperated into one calculation for the lists and one for the summary stats.  This applies to the local ranges, local sample counts and element lists.
     *  Metadata for the indices now includes formulae.  These are displayed in the online help, but are not displayed in the GUI.  http://code.google.com/p/biodiverse/wiki/Indices

@@ -10,7 +10,7 @@ This release is in development.
     *  Reading a tree file from biodiverse format works again.  (Issue #105)
     *  The GUI now recognises R style tables for import (as exported using the write.table() function in R).  (Issue #20)
     *  Tree and matrix objects can be renamed.  (Issue #72)
-    *  Users can now describe the selected basedata, tree and matrix.  Results are printed to a popup and to the log window.  (Issue #93)
+    *  Users can now describe the selected basedata, tree and matrix.  Results are printed to both a popup and to the log window (from where they can be more easily copied).  (Issue #93)
     *  The parameters sections of the Spatial and Cluster tabs can be hidden to free up real estate - click on the Parameters button at the top left of the tab.  (Issue #68)
     *  Trees and matrices embedded in basedata objects can be added to the project.  (Issue #71)
   *  Calculations and indices:

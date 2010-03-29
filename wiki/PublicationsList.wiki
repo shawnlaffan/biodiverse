@@ -5,7 +5,7 @@
 
   *  Bickford, S.A. & Laffan, S.W. (2006) Multi-extent analysis of the relationship between pteridophyte species richness and climate.   [http://dx.doi.org/10.1111/j.1466-8238.2006.00250.x Global Ecology and Biogeography, 15, 588-601]. <br>
 
-  *  Crisp, M., Laffan, S., Linder, H., & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 
+  *  Crisp, M.D., Laffan, S., Linder, H.P., & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 
 
   *  Jones C. &  Laffan S.W. (2008) Lexical similarity and endemism in historical wordlists of Australian Aboriginal languages of the greater Sydney region. [http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x Transactions of the Philological Society, 106, 456-486]. 
 

@@ -29,6 +29,6 @@ Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [Sa
 
 Yes.  Use an Element Property table for this purpose, specifying one or more exclude and/or include columns.  See [DataStructures#Element_property_tables].
 
-== I have exported my results to an ER-Mapper BIL file, but the results do not display properly in ArcMap ==
+== Results exported to ER-Mapper BIL files do not display properly in !ArcMap ==
 
 You will need to calculate statistics for the image for it to display properly.  This can be done in ArcCatalog by right clicking on the file and choosing Calculate Statistics, or by using the _Calculate Statistics_ tool in ArcToolbox.

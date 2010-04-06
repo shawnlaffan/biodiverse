@@ -15,4 +15,4 @@ Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [Sa
 
 == Can I skip a subset of species when importing data? ==
 
-Yes.  Use an Element Property table for this purpose.  See [DataStructures#Element_property_tables].
+Yes.  Use an Element Property table for this purpose, specifying one or more exclude and/or include columns.  See [DataStructures#Element_property_tables].

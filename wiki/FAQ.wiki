@@ -1,0 +1,18 @@
+#summary Frequently asked questions
+
+<wiki:toc max_depth="4" />
+
+
+= Introduction =
+
+This is a list of questions that might be frequently asked.  
+
+= Questions =
+
+== My species list has been provided as a site by species matrix.  How do I import it? ==
+
+Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [SampleSession#BaseData].
+
+== Can I skip a subset of species when importing data? ==
+
+Yes.  Use an Element Property table for this purpose.  See [DataStructures#Element_property_tables].

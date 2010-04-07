@@ -12,7 +12,7 @@ This is a list of questions that might be frequently asked.  It will be extended
 
 == I have a question about how to use the software ==
 
-Contact the developer, or join the Biodiverse-Users google group and post a question there.  
+Check the help pages on the wiki (http://code.google.com/p/biodiverse/w/list).  If it is not covered there then please contact the developers, or join the Biodiverse-Users google group and post a question there.  
 
 == I have found a bug ==
 
@@ -36,10 +36,14 @@ You will need to calculate statistics for the image for it to display properly. 
 
 == Out of memory error ==
 
-In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #20) and when one is using a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while displaying several outputs.
+In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #5) and when one is using a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while displaying several outputs.
 
 The cause is that Biodiverse is implemented in Perl, and therefore uses its memory management system (this makes development much easier).  However, on 32 bit systems the maximum memory allocated to a process is 2GB.  If more than this is needed then the system will crash.  There is also the issue that Perl's memory management system is not perfect, and does not free all memory in case it might need it again later.  This particularly affects the randomisations, as each iteration is assigned a chunk of memory that is not returned to the general pool.  Eventually the system runs out of available memory.
 
-The solution for the large data sets is to close any open tabs before exporting or saving, as the memory used for display is freed and returned properly.  If it still does not work then the only reasonable solution is to move to a 64 bit system which allows more memory per process.  make sure Perl and GTK are both 64 bit, as 32 bit implementations still have the 2GB memory limitation on these systems.
+Closing Biodiverse and restarting it will clear any memory no longer needed, but does not solve all cases involving large data sets.  In this case one should close any open tabs in the GUI before exporting or saving, as the memory used for the GUI section is freed and returned properly.  One can also subdivide the analyses and run them separately (i.e. a small number of analyses per duplicate !BaseData).  Randomisations for these duplicates can be reproduced by specifying the same starting seed and parameters.  
+
+If that does not not work then the next solution is to move to a 64 bit system which allows more memory per process.  Make sure Perl and GTK are both 64 bit, as 32 bit implementations still have the 2GB memory limitation on these systems.  Note that the issue probably still affects 64 bit systems, but that one can get further before crashing.
 
 An alternate solution, if a 64 bit system is not available, is to subdivide the !BaseData object into tiles before analysis, although cluster and randomisations analyses will then not produce correct results as the groups and labels they use will be restricted to each tile.  One must also include overlapping boundaries to ensure moving window analyses have the correct neighbour sets.  Indices that use global statistics, such as when endemism sues the global range, need to also be adjusted.  Global ranges and global sample counts can be set using an Element Properties table.  The range and sample count values can be calculated using endemism and rarity analyses with a spatial condition set to `sp_select_all()`, and then extracted by control clicking on the displayed results to see the lists, from which the values can be copied into a spreadsheet or other program.  (This assumes you can display the results - if not then a script is the only way to go).
+
+For the randomisations we have also developed a command line tool that runs the randomisations a small number of iterations at a time and then restarts the process.  This will be released in version 0.14, and documentation will be added then.  (An initial effort is part of the current release, but it is inflexible).

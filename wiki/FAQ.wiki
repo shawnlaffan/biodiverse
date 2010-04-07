@@ -34,11 +34,11 @@ Yes.  Use an Element Property table for this purpose, specifying one or more exc
 
 You will need to calculate statistics for the image for it to display properly.  This can be done in ArcCatalog by right clicking on the file and choosing Calculate Statistics, or by using the _Calculate Statistics_ tool in ArcToolbox.
 
-== Out of memory error ==
+== I get an Out of memory error ==
 
 In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #5) and when one is using a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while displaying several outputs.
 
-The cause is that Biodiverse is implemented in Perl, and therefore uses its memory management system (this makes development much easier).  However, on 32 bit systems the maximum memory allocated to a process is 2GB.  If more than this is needed then the system will crash.  There is also the issue that Perl's memory management system is not perfect, and does not free all memory in case it might need it again later.  This particularly affects the randomisations, as each iteration is assigned a chunk of memory that is not returned to the general pool.  Eventually the system runs out of available memory.
+On 32 bit systems the maximum memory allocated to a process is 2GB.  If more than this is needed then the system will crash.  There is also the issue that Perl's memory management system is not perfect, and does not free all memory in case it might need it again later.  This particularly affects the randomisations, as each iteration is assigned a chunk of memory that is not returned to the general pool.  Eventually the system runs out of available memory.
 
 Closing Biodiverse and restarting it will clear any memory no longer needed, but does not solve all cases involving large data sets.  In this case one should close any open tabs in the GUI before exporting or saving, as the memory used for the GUI section is freed and returned properly.  One can also subdivide the analyses and run them separately (i.e. a small number of analyses per duplicate !BaseData).  Randomisations for these duplicates can be reproduced by specifying the same starting seed and parameters.  
 

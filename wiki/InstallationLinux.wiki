@@ -1,0 +1,19 @@
+These instructions apply to version 0.14.
+
+Note that they have been tested on Ubuntu.  The package manager will differ for other Linux flavours, but the cpan command will be the same.
+
+These also assume you have saved the Biodiverse source code to your home directory.  If you have not then change the `$HOME/biodiverse/lib` in the following to the appropriate directory.
+
+This will require some interaction when it downloads additional packages, depending on your CPAN settings.  
+
+{{{
+#  get the glade package (this will also get the Gtk, Glib etc.)
+sudo apt-get install glade
+
+sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
+
+}}}
+
+If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).
+
+You can download and install more themese from http://art.gnome.org/themes/gtk2

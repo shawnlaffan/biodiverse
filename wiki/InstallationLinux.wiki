@@ -1,4 +1,4 @@
-#Summary Linux source code install instructions
+#summary Linux source code install instructions
 
 These instructions apply to version 0.14.
 

@@ -112,6 +112,8 @@ You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\Biodive
 
 The current Mac install requires a source code installation.  We are working on a standalone executable, or at least one that bundles all the relevant dependencies.
 
+*Note*: You also need to have xcode installed for MacPorts to compile anything.  This requires registration on the Apple site.  
+
   * First, you must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
   * Next, install !MacPorts (unless you already have it).

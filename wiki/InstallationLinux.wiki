@@ -18,4 +18,4 @@ sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
 
 If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).
 
-You can download and install more themese from http://art.gnome.org/themes/gtk2
+You can download and install more themes from http://art.gnome.org/themes/gtk2

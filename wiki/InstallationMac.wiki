@@ -18,13 +18,13 @@ Note that this can take quite some time.  If you have not previously installed X
     * If your operating system is Snow Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.8.1-10.6-SnowLeopard.dmg
     * If your operating system is Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.8.1-10.5-Leopard.dmg
     * (If needed, the generic !MacPorts URL is http://www.macports.org ).
-    * Double click on the dmg file contents to install.  This will produce a folder called `opt` on your hard drive which has the components needed to perform the remaining steps.
+    * Double click on the dmg file contents to install.  The remaining instructions assume you are using the default location (`/opt`).
   *  Run this command in a terminal window to get the latest versions of the !MacPorts libraries.
 {{{
 sudo port -v selfupdate
 }}}
 
-  *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when it downloads additional packages, depending on your CPAN settings.  The first two steps install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this will take a while).  The third installs the remaining perl libraries.
+  *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when they download additional packages, depending on your CPAN settings.  The first two commands install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this will take a while).  The third installs the remaining perl libraries.
 {{{
 sudo port install p5-gtk2-gladexml
 sudo port install p5-gnome-canvas
@@ -32,9 +32,36 @@ sudo port install p5-gnome-canvas
 sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
 }}}
 
+== Running it ==
+
+  * To run Biodiverse, open a terminal window and change directory to the biodiverse/bin folder.  If it is in your home folder and called `biodiverse` then type:
+{{{
+cd ~/biodiverse/bin
+}}}
+  * Once you have done this, type the following command to open Biodiverse.
+{{{
+/opt/local/bin/perl BiodiverseGUI.pl
+}}}
+  *  Alternately, you could give the full path to both Perl and Biodiverse if you want to work in a particular directory from the start.
+{{{
+/opt/local/bin/perl ~/biodiverse/bin/BiodiverseGUI.pl
+}}}
+
+
+  The full path to perl is used to ensure the !MacPorts version is used.  You can dispense with the `/opt/local/bin` text if the !MacPorts version is the first perl in the search path. To check if it is, type:
+{{{
+which perl
+}}}
+
+  If it returns /opt/local/bin/perl as first in the list then you can dispense with the `/opt/local/bin` and type
+{{{
+perl ~/biodiverse/bin/BiodiverseGUI.pl
+}}}
+
+
 == Trouble shooting ==
 
-  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed using `cpan`. The complaint will look like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate).
+  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed using `cpan`. The complaint will start with text like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate).  E.g.: `sudo /opt/local/bin/perl -MCPAN -e 'install Fred::Fred'` .
   *  !MacPorts might also complain that files are out of sync, probably if you have an existing !MacPorts installation.  If this is the case then run this command to ensure all files are up to date.
 {{{
 sudo port -v selfupdate

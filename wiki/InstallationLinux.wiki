@@ -11,10 +11,9 @@ This will require some interaction when it downloads additional packages, depend
 {{{
 #  get the glade package (this will also get the Gtk, Glib etc.)
 sudo apt-get install glade
-sudo apt-get libgnomecanvas2-0
+sudo apt-get install libgnomecanvas2-0
 
 sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
-
 }}}
 
 If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).

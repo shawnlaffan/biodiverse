@@ -53,7 +53,7 @@ cd ~/biodiverse/bin
 which perl
 }}}
 
-  If it returns /opt/local/bin/perl as first in the list then you can dispense with the `/opt/local/bin` and type
+  If it returns `/opt/local/bin/perl` then you can just type this command to run Biodiverse.
 {{{
 perl ~/biodiverse/bin/BiodiverseGUI.pl
 }}}

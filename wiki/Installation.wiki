@@ -5,12 +5,12 @@ These instructions apply to version 0.14, the current release as of 29Apr2010 (o
 
   *  Windows
     *  Executable:  InstallationWindowsBinary
-	*  Source code:  InstallationWindowsSource
+    *  Source code:  InstallationWindowsSource
 
   *  Macintosh
     *  Binary:  The binary version is still in development.
     *  Source code:  InstallationMacSource
 
-	*  Linux:
+  *  Linux:
     *  Binary:  InstallationLinuxBinary
-	*  Source code:  InstallationLinuxSource
+    *  Source code:  InstallationLinuxSource

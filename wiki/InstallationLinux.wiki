@@ -6,6 +6,9 @@ Note that they have been tested on Ubuntu.  The package manager will differ for 
 
 These also assume you have saved the Biodiverse source code to your home directory.  If you have not then change the `$HOME/biodiverse/lib` in the following to the appropriate directory.
 
+
+== Installation ==
+
 This will require some interaction when it downloads additional packages, depending on your CPAN settings.  
 
 {{{
@@ -19,3 +22,18 @@ sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
 If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).
 
 You can download and install more themes from http://art.gnome.org/themes/gtk2
+
+== Running it ==
+
+  * To run Biodiverse, open a terminal window and change directory to the biodiverse/bin folder.  If it is in your home folder and called `biodiverse` then type:
+{{{
+cd ~/biodiverse/bin
+}}}
+  * Once you have done this, type the following command to open Biodiverse.
+{{{
+perl BiodiverseGUI.pl
+}}}
+  *  Alternately, you could give the full path to Biodiverse if you want to start in a particular directory (i.e. where all your files are).
+{{{
+perl ~/biodiverse/bin/BiodiverseGUI.pl
+}}}

@@ -42,7 +42,7 @@ cd ~/biodiverse/bin
 {{{
 /opt/local/bin/perl BiodiverseGUI.pl
 }}}
-  *  Alternately, you could give the full path to both Perl and Biodiverse if you want to work in a particular directory from the start.
+  *  Alternately, you could give the full path to both Perl and Biodiverse if you want to start in a particular directory (i.e. where all your files are).
 {{{
 /opt/local/bin/perl ~/biodiverse/bin/BiodiverseGUI.pl
 }}}

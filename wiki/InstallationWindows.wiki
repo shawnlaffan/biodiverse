@@ -1,0 +1,64 @@
+#summary Windows source code install instructions
+
+These instructions apply to version 0.14.
+
+Note that they have been tested on Ubuntu.  The package manager will differ for other Linux flavours, but the cpan command will be the same.
+
+These also assume you have saved the Biodiverse source code to C:\biodiverse.  If you have not then change the `C:\biodiverse\lib` in the following to the appropriate directory.
+
+If you don't like the window theme it uses then you can change them using the GTK+ Preference Tool from http://gtk-win.sourceforge.net/home/index.php/Gtk2Prefs
+
+= ActivePerl = 
+
+== Installation ==
+
+  * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
+  * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  For an example of how to do this, see http://www.computerhope.com/issues/ch000549.htm.
+  * Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/releases/5.8.9.827/ActivePerl-5.8.9.827-MSWin32-x86-291969.msi .
+  
+  * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse. Note that this assumes you don't already have ppm repositories defined. If you do then disable the trouchelle repository for the first three sets, as its gtk libs don't install properly (when last I checked).
+{{{
+ppm repo add http://voltar.org/active/5.8
+ppm repo add http://www.biodiverse.unsw.edu.au/ppm
+ppm repo add http://trouchelle.com/ppm/
+ppm install Bundle::Biodiverse
+}}}
+
+== Running it ==
+
+  *  You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat` (or `C:\Biodiverse\bin\BiodiverseGUI.pl` if your system runs Perl files when they are opened).
+
+= CamelBox =
+
+== Installation ==
+
+This will require some interaction when it downloads additional packages, depending on your CPAN settings.  
+
+  *  Download and install !CamelBox from http://code.google.com/p/camelbox/ .  Install everything (the "whole encelada" option).  This will install all the Gtk dependencies.
+  *  Now you need to install the Biodiverse specific dependencies.  
+{{{
+sudo perl -MCPAN -Mlib=C:\biodiverse\lib -e 'install Bundle::Biodiverse'
+}}}
+
+
+== Running it ==
+
+  * To run Biodiverse, open a terminal window and change directory to the biodiverse\bin folder.  If it is in C:\biodiverse\bin:
+{{{
+cd C:\biodiverse\bin
+}}}
+  * Once you have done this, type the following command to open Biodiverse.  This assume you installed !CamelBox into C:\CamelBox, so change the following as necessary.
+{{{
+C:\CamelBox\bin\perl BiodiverseGUI.pl
+}}}
+  *  Alternately, you could give the full path to both Perl and Biodiverse if you want to start in a particular directory (i.e. where all your files are).
+{{{
+C:\CamelBox\bin\perl C:\biodiverse\bin\BiodiverseGUI.pl
+}}}
+
+
+The full path to perl is used to ensure the !CamelBox version is used.
+
+== Trouble shooting ==
+
+  *  If you have more than one Perl and/or GTK installed on your system then you need to ensure that the CamelBox folders are first in the PATH environment variable.  The CamelBox binaries are not compatible with the ActiveState binaries, for example.  You can manually edit the paths, but it is probably best to create a batch script to do this so you don;t have to repeatedly change things back and forth.

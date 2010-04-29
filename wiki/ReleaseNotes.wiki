@@ -17,12 +17,12 @@ Main changes since the previous version (0.13) are:
   *  Calculations and indices:
     *  The count calculations have each been seperated into one calculation for the lists and one for the summary stats.  This applies to the local ranges, local sample counts and element lists.
     *  Metadata for the indices now includes formulae.  These are displayed in the online help, but are not displayed in the GUI.  http://code.google.com/p/biodiverse/wiki/Indices
-    *  Added new index, NEST_RESULTANT (nestedness-resultant) from Baselga (2010) Glob Ecol Biogeog.  http://dx.doi.org/10.1111/j.1466-8238.2009.00490.x (issue #92)
+    *  Added new index, NEST_RESULTANT (nestedness-resultant, [Indices#Nestedness-resultant]) from Baselga (2010) Glob Ecol Biogeog.  http://dx.doi.org/10.1111/j.1466-8238.2009.00490.x (issue #92)
     *  Added binary and sample weighted taxonomic distinctness and variation from Clarke & Warwick (2001) Mar Ecol Progr Ser. http://dx.doi.org/10.3354/meps216265 (note that these are beta level implemenations and need user testing) (issue #102)
     *  The Endemism and Rarity calculations are now listed under their own headings.
     *  Added new list calculations to enable hierarchical partitioning of the endemism results (the ENDC`_`HPART`_` and ENDW`_`HPART`_` lists).  (Issue #99)
-    *  The Bray-Curtis calculation now also returns the A, B and W values used in the calculations.  (Issue #124)
-    *  Added new calculation for Bray-Curtis values normalised by the neighbourhood group counts.  Resultant indices are the BRAY_CURTIS_NORM and associated A, B and W values.  (Issue #126)
+    *  The Bray-Curtis calculation ([Indices#Bray-Curtis_non-metric]) now also returns the A, B and W values used in the calculations. (Issue #124)
+    *  Added new calculation for Bray-Curtis values normalised by the neighbourhood group counts ([Indices#Bray-Curtis_non-metric,_group_count_normalised]).  Resultant indices are the BRAY_CURTIS_NORM and associated A, B and W values. (Issue #126)
   *  Spatial Conditions
     *  New condition `sp_match_regex` which allows the user to match using arbitrary regular expressions.  For example, to match any group where the neighbour's third axis starts with the processing group's third axis, use `sp_match_regex (re => qr/^$coord[2]/, axis => 2, type => 'nbr')`.  (Issue #101)
   *  Randomisations

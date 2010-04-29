@@ -3,7 +3,7 @@
 
 = Version 0.14 =
 
-This release is in development.
+Main changes since the previous version (0.13) are:
 
   *  GUI (and general)
     *  The naming errors with saving basedata, tree, and matrix files to the biodiverse native format have been corrected.  (Issue #104)
@@ -21,15 +21,19 @@ This release is in development.
     *  Added binary and sample weighted taxonomic distinctness and variation from Clarke & Warwick (2001) Mar Ecol Progr Ser. http://dx.doi.org/10.3354/meps216265 (note that these are beta level implemenations and need user testing) (issue #102)
     *  The Endemism and Rarity calculations are now listed under their own headings.
     *  Added new list calculations to enable hierarchical partitioning of the endemism results (the ENDC`_`HPART`_` and ENDW`_`HPART`_` lists).  (Issue #99)
+    *  The Bray-Curtis calculation now also returns the A, B and W values used in the calculations.
+    *  Added new calculation for Bray-Curtis values normalised by the neighbourhood group counts.  Resultant indices are the BRAY_CURTIS_NORM and associated A, B and W values.
   *  Spatial Conditions
     *  New condition `sp_match_regex` which allows the user to match using arbitrary regular expressions.  For example, to match any group where the neighbour's third axis starts with the processing group's third axis, use `sp_match_regex (re => qr/^$coord[2]/, axis => 2, type => 'nbr')`.
   *  Randomisations
     *  The randomisations now compare against all lists, not just those in SPATIAL_RESULTS.  One consequence of this is that the resulting list names have changed.  To enable users to keep track of the results across multiple lists, the results are now named using the randomisation name, followed by `>>`, followed by the original list name.  For example, for a randomisation called `Rand1`, one could have resulting lists called `Rand1>>SPATIAL_RESULTS` and `Rand1>>ENDC_WTLIST`.  The naming scheme for the list contents has not changed (see [AnalysisTypes#Randomisations]).  The code is not backwards compatible, so previously run randomisations cannot be extended cleanly using this method.  This is because the SPATIAL_RESULTS comparisons will be divided across two lists in an output, e.g. `Rand1` and `Rand1>>SPATIAL_RESULTS`.  Re-running the randomisation from scratch is recommended.  Alternately, one can manually sum the `C_` and `Q_` values across the two result sets and from them calculate the updated `P_` values. (Issue 100)
     *  The swapping algorithm has been rewritten so it converges more efficiently  for large data sets.  (Swapping is used to reach richness targets in the rand_structured randomisation).  A consequence of this is that structured randomisations will not produce the same result between versions 0.13 and 0.14 if the seed value is specified.  This is because the random values are used in a different order and so will produce different results if given the same sequence of random values. As with the previous change, the simple solution to this is to start any randomisations afresh after upgrading rather than continuing any existing randomisations.  Continuing randomisations created in !BaseData objects prior to version 0.14 will result in mixed algorithms, thus making reproduction of results difficult.  (Issue #103)
     *  The comparison algorithm used when comparing spatial analyses now uses recycled results, resulting in a smaller memory footprint.  Recycling occurs when results are the same across the neighbourhood, as occurs with block and zone type spatial conditions.  In these cases one can generate one set of results and apply them across the neighbourhood rather than having multiple sets of identical results.  (Issue #107)
+  *  Under the bonnet
+    *  Several optimisations have been added where the system can use recycled results (those where the results are the same for all groups in a neighbourhood).
 
 
-To see the full list of planned or implemented changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.14
+To see the full list of changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.14
 
 = Version 0.13 =
 

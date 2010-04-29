@@ -6,7 +6,7 @@ These assume you have saved the Biodiverse source code to C:\biodiverse.  If you
 
 If you don't like the window theme it uses then you can change them using the GTK+ Preference Tool from http://gtk-win.sourceforge.net/home/index.php/Gtk2Prefs
 
-There are two options you can pursue here.  Both will work.
+There are two options you can pursue here.  Both will work, but the !CamelBox install uses a more recent perl.
 
 <wiki:toc max_depth="4" />
 
@@ -19,7 +19,7 @@ There are two options you can pursue here.  Both will work.
   * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  For an example of how to do this, see http://www.computerhope.com/issues/ch000549.htm.
   * Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/releases/5.8.9.827/ActivePerl-5.8.9.827-MSWin32-x86-291969.msi .
   
-  * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse. Note that this assumes you don't already have ppm repositories defined. If you do then disable the trouchelle repository for the first three sets, as its gtk libs don't install properly (when last I checked).
+  * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse.
 {{{
 ppm repo add http://voltar.org/active/5.8
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
@@ -39,7 +39,7 @@ ppm install Bundle::Biodiverse
 
 == Running it ==
 
-  *  You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat` (or `C:\Biodiverse\bin\BiodiverseGUI.pl` if your system runs Perl files when they are opened).
+  *  You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat` (or `C:\Biodiverse\bin\BiodiverseGUI.pl` if your system runs Perl files when they are double clicked).
 
 = !CamelBox =
 
@@ -79,6 +79,6 @@ C:\CamelBox\bin\perl C:\biodiverse\bin\BiodiverseGUI.pl
 
 The full path to perl is used to ensure the !CamelBox version is used.
 
-== Trouble shooting ==
+= Trouble shooting =
 
-  *  If you have more than one Perl and/or GTK installed on your system then you need to ensure that the CamelBox folders are first in the PATH environment variable.  The CamelBox binaries are not compatible with the ActiveState binaries, for example.  You can manually edit the paths, but it is probably best to create a batch script to do this so you don;t have to repeatedly change things back and forth.
+  *  If you have more than one Perl and/or GTK installed on your system then you need to ensure that the versions you want to use are first in the PATH environment variable.  This is because the CamelBox binaries are not compatible with the ActiveState binaries.  You can manually edit the paths, but it is probably best to create a batch script to do this so it is easy to change things back and forth.

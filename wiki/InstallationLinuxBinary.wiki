@@ -1,0 +1,20 @@
+#summary Linux binary executable install instructions
+
+These instructions apply to version 0.14.
+
+= Installation =
+
+  *  Unzip the Biodiverse zip file to your hard drive.  The following assumes you have unzipped it to $HOME/biodiverse.  If you use a different path then modify the commands as appropriate.
+
+= Running it =
+
+  *  Biodiverse can be run by double clicking on `Biodiverse_linux`.
+  *  If you want to keep the command log visible after you close Biodiverse then run it from an xterm.
+	*  In the xterm, type `$HOME/biodiverse_linux`.
+  *  If you want to avoid all the typing then edit your profile to add the biodiverse directory to your $PATH environment variable.
+
+= Troubleshooting and changes =
+
+  *  If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).  You can download and install more themes from http://art.gnome.org/themes/gtk2
+
+  *  The Windows executable is a generated using the !ActiveState !PerlApp tool.  It will work provided you do not move or rename the Gtk folder.  If you do then you must make sure a Gtk\bin folder is in your system path so it finds the binaries that it requires to run.

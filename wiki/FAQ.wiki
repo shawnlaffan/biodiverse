@@ -32,7 +32,7 @@ Yes.  Use an Element Property table for this purpose, specifying one or more exc
 
 == Results exported to ER-Mapper BIL files do not display properly in !ArcMap ==
 
-You will need to calculate statistics for the image for it to display properly.  This can be done in ArcCatalog by right clicking on the file and choosing Calculate Statistics, or by using the _Calculate Statistics_ tool in ArcToolbox.
+You will need to calculate statistics for the image for it to display properly.  This can be done in !ArcCatalog by right clicking on the file and choosing Calculate Statistics, or by using the _Calculate Statistics_ tool in ArcToolbox.
 
 == I get an Out of memory error ==
 
@@ -47,3 +47,7 @@ If that does not not work then the next solution is to move to a 64 bit system w
 An alternate solution, if a 64 bit system is not available, is to subdivide the !BaseData object into tiles before analysis.  This works well for most moving window analyses, but cluster and randomisations analyses will not produce correct results as the groups and labels they use will be restricted to each tile.  One must also ensure the tiles have overlapping boundaries to ensure the moving window analyses have the correct neighbour sets (the degree of overlap depends on the neighbour set used).  Indices that use global statistics, such as the global range used in the endemism indices, also need some care.  Global ranges and global sample counts can be set using an Element Properties table when importing the !BaseData (see [DataStructures#Element_property_tables]).  This can be constructed from the whole data set by calculating the endemism and rarity lists with a spatial condition set to `sp_select_all()`, and then extracted by control clicking on the displayed results to see the lists, from which the values can be copied into a spreadsheet or other program.  (This assumes you can display the results - if not then a script is the only way to extract the data).
 
 For the randomisations we have also developed a command line tool that runs the randomisations a small number of iterations at a time and then restarts the process.  This will be released in version 0.14, and documentation will be added then.  (An initial effort is part of the current release, but it is inflexible).
+
+== Opening the help system on Linux does not return focus to Biodiverse ==
+
+This seems to be an issue with the command used to open the browser.  The solution is to open the browser before accessing the help.  

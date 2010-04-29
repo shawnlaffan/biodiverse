@@ -1,0 +1,8 @@
+#summary Macintosh binary executable install instructions
+
+This is a stub.
+
+A binary Mac install is still in development and will be released when it is available. 
+
+Until then, please use the source code install at InstallationMacSource
+

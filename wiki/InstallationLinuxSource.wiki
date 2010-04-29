@@ -6,6 +6,8 @@ Note that they have been tested on Ubuntu.  The package manager will differ for 
 
 These also assume you have saved the Biodiverse source code to your home directory.  If you have not then change the `$HOME/biodiverse/lib` in the following to the appropriate directory.
 
+<wiki:toc max_depth="4" />
+
 
 == Installation ==
 

@@ -6,7 +6,12 @@ These assume you have saved the Biodiverse source code to C:\biodiverse.  If you
 
 If you don't like the window theme it uses then you can change them using the GTK+ Preference Tool from http://gtk-win.sourceforge.net/home/index.php/Gtk2Prefs
 
-= ActivePerl = 
+There are two options you can pursue here.  Both will work.
+
+<wiki:toc max_depth="4" />
+
+
+= !ActivePerl = 
 
 == Installation ==
 
@@ -22,11 +27,21 @@ ppm repo add http://trouchelle.com/ppm/
 ppm install Bundle::Biodiverse
 }}}
 
+== Updating ==
+
+  *  If you are updating an existing installation then repeat the ppm steps from the installation process.
+{{{
+ppm repo add http://voltar.org/active/5.8
+ppm repo add http://www.biodiverse.unsw.edu.au/ppm
+ppm repo add http://trouchelle.com/ppm/
+ppm install Bundle::Biodiverse
+}}}
+
 == Running it ==
 
   *  You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat` (or `C:\Biodiverse\bin\BiodiverseGUI.pl` if your system runs Perl files when they are opened).
 
-= CamelBox =
+= !CamelBox =
 
 == Installation ==
 
@@ -38,7 +53,14 @@ This will require some interaction when it downloads additional packages, depend
 sudo perl -MCPAN -Mlib=C:\biodiverse\lib -e 'install Bundle::Biodiverse'
 }}}
 
+== Updating ==
 
+  *  If you are updating an existing installation then repeat the cpan step from the installation process.
+{{{
+sudo perl -MCPAN -Mlib=C:\biodiverse\lib -e 'install Bundle::Biodiverse'
+}}}
+
+  
 == Running it ==
 
   * To run Biodiverse, open a terminal window and change directory to the biodiverse\bin folder.  If it is in C:\biodiverse\bin:

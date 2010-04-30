@@ -4,13 +4,13 @@ These instructions apply to version 0.14.
 
 = Installation =
 
-  *  Unzip the Biodiverse zip file to your hard drive.  The following assumes you have unzipped it to $HOME/biodiverse.  If you use a different path then modify the commands as appropriate.
+  *  Unzip the Biodiverse zip file to your hard drive.  The following assumes you have unzipped it so $HOME/biodiverse is the top level.  If you use a different path then modify the commands as appropriate.
 
 = Running it =
 
-  *  Biodiverse can be run by double clicking on `Biodiverse_linux`.
+  *  Biodiverse can be run by double clicking on `BiodiverseGUI_linux`.
   *  If you want to keep the command log visible after you close Biodiverse then run it from an xterm.
-    *  In the xterm, type `$HOME/biodiverse/biodiverse_linux`.
+    *  In the xterm, type `$HOME/biodiverse/BiodiverseGUI_linux`.
   *  If you want to avoid all the typing then edit your profile to add the biodiverse directory to your $PATH environment variable.
 
 = Troubleshooting and changes =

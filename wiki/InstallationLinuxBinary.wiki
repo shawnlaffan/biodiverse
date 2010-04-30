@@ -10,7 +10,7 @@ These instructions apply to version 0.14.
 
   *  Biodiverse can be run by double clicking on `Biodiverse_linux`.
   *  If you want to keep the command log visible after you close Biodiverse then run it from an xterm.
-	*  In the xterm, type `$HOME/biodiverse_linux`.
+    *  In the xterm, type `$HOME/biodiverse/biodiverse_linux`.
   *  If you want to avoid all the typing then edit your profile to add the biodiverse directory to your $PATH environment variable.
 
 = Troubleshooting and changes =

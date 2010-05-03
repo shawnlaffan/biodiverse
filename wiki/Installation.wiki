@@ -11,6 +11,6 @@ Installation instructions.
     *  Binary:  The binary version is still in development.
     *  Source code:  InstallationMacSource
 
-  *  Linux:
+  *  Linux
     *  Binary:  InstallationLinuxBinary
     *  Source code:  InstallationLinuxSource

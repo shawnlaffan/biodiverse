@@ -1,9 +1,14 @@
-#summary Publications using Biodiverse (or its ancestors)
+#summary Publications describing and using Biodiverse (or its ancestors)
 #labels Featured
 
+To cite Biodiverse or acknowledge its use, cite this publication as follows, substituting the version of the application that you used for "Version 0.13".  The paper was accepted on 03May2010, and details of issue and page numbers will be given when available.
+  *  Laffan, S.W., Lubarsky, E. & Rosauer, D.F. (in press) Biodiverse, a tool for the spatial analysis of biological and related diversity.  Ecography. Vol ?, pp-pp (version 0.14).
+
+
+Publications using Biodiverse.
   *  Bickford, S.A., Laffan, S.W., de Kok, R. & Orthia, L. (2004) Spatial analysis of taxonomic and genetic patterns and their potential for understanding evolutionary histories.   [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Journal of Biogeography, 31, 1715-1733]. 
 
-  *  Bickford, S.A. & Laffan, S.W. (2006) Multi-extent analysis of the relationship between pteridophyte species richness and climate.   [http://dx.doi.org/10.1111/j.1466-8238.2006.00250.x Global Ecology and Biogeography, 15, 588-601]. <br>
+  *  Bickford, S.A. & Laffan, S.W. (2006) Multi-extent analysis of the relationship between pteridophyte species richness and climate.   [http://dx.doi.org/10.1111/j.1466-8238.2006.00250.x Global Ecology and Biogeography, 15, 588-601].
 
   *  Crisp, M.D., Laffan, S., Linder, H.P., & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 
 

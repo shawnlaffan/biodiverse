@@ -1,6 +1,17 @@
 #summary Release notes will be added as new versions are developed
 #labels Featured
 
+= version 0.15 =
+
+This release is in development.  A summary of changes is below.
+
+To see the full list of changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.15
+
+  *  Under the bonnet
+    *  Recycling works properly now.  (Issue #127)
+
+
+
 = Version 0.14 =
 
 Main changes since the previous version (0.13) are:

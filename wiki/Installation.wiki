@@ -6,11 +6,9 @@ Installation instructions.
   *  Windows
     *  Executable:  InstallationWindowsBinary
     *  Source code:  InstallationWindowsSource
-
   *  Macintosh
     *  Binary:  The binary version is still in development.
     *  Source code:  InstallationMacSource
-
   *  Linux
     *  Binary:  InstallationLinuxBinary
     *  Source code:  InstallationLinuxSource

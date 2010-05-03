@@ -1,4 +1,5 @@
 #summary Macintosh binary executable install instructions
+#sidebar Installation
 
 This is a stub.
 

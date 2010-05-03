@@ -1,7 +1,7 @@
 #summary Installation instructions
 #labels Featured,Phase-Deploy
 
-These instructions apply to version 0.14, the current release as of 30Apr2010.
+Installation instructions.
 
   *  Windows
     *  Executable:  InstallationWindowsBinary

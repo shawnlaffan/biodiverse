@@ -16,6 +16,7 @@ There are two options you can pursue here.  Both will work, but the !CamelBox in
 
 == Installation ==
 
+  * Download the windows executable version for this, as it includes the Gtk binaries.  Alternately, the Gtk binaries can be downloaded from http://code.google.com/p/biodiverse/downloads/list
   * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
   * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  For an example of how to do this, see http://www.computerhope.com/issues/ch000549.htm.
   * Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/releases/5.8.9.827/ActivePerl-5.8.9.827-MSWin32-x86-291969.msi .
@@ -26,6 +27,7 @@ ppm repo add http://voltar.org/active/5.8
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
 ppm repo add http://trouchelle.com/ppm/
 ppm install Bundle-Biodiverse
+ppm install Gnome2-Canvas
 }}}
 
 == Updating ==
@@ -36,6 +38,7 @@ ppm repo add http://voltar.org/active/5.8
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
 ppm repo add http://trouchelle.com/ppm/
 ppm install Bundle-Biodiverse
+ppm install Gnome2-Canvas
 }}}
 
 == Running it ==
@@ -52,6 +55,7 @@ This will require some interaction when it downloads additional packages, depend
   *  Now you need to install the Biodiverse specific dependencies.  
 {{{
 sudo perl -MCPAN -Mlib=C:\biodiverse\lib -e 'install Bundle::Biodiverse'
+sudo perl -MCPAN -e 'install Gnome2::Canvas'
 }}}
 
 == Updating ==

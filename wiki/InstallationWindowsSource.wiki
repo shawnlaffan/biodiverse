@@ -54,15 +54,15 @@ This will require some interaction when it downloads additional packages, depend
   *  Download and install !CamelBox from http://code.google.com/p/camelbox/ .  Install everything (the "Bloatware - Whole Enchilada" option).  This will install all the Gtk dependencies.
   *  Now you need to install the Biodiverse specific dependencies.  
 {{{
-sudo perl -MCPAN -Mlib=C:\biodiverse\lib -e 'install Bundle::Biodiverse'
-sudo perl -MCPAN -e 'install Gnome2::Canvas'
+perl -MCPAN -Mlib=C:\biodiverse\lib -e 'install Bundle::Biodiverse'
+perl -MCPAN -e 'install Gnome2::Canvas'
 }}}
 
 == Updating (CB) ==
 
   *  If you are updating an existing installation then repeat the cpan step from the installation process.
 {{{
-sudo perl -MCPAN -Mlib=C:\biodiverse\lib -e 'install Bundle::Biodiverse'
+perl -MCPAN -Mlib=C:\biodiverse\lib -e 'install Bundle::Biodiverse'
 }}}
 
   

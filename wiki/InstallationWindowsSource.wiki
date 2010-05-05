@@ -25,7 +25,7 @@ There are two options you can pursue here.  Both will work, but the !CamelBox in
 ppm repo add http://voltar.org/active/5.8
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
 ppm repo add http://trouchelle.com/ppm/
-ppm install Bundle::Biodiverse
+ppm install Bundle-Biodiverse
 }}}
 
 == Updating ==
@@ -35,7 +35,7 @@ ppm install Bundle::Biodiverse
 ppm repo add http://voltar.org/active/5.8
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
 ppm repo add http://trouchelle.com/ppm/
-ppm install Bundle::Biodiverse
+ppm install Bundle-Biodiverse
 }}}
 
 == Running it ==

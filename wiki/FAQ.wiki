@@ -44,7 +44,7 @@ If you calculate statistics while displaying the image in !ArcMap then it will n
 
 ==  Why do my asciigrid or floatgrid files have strange characters like %3A in the names? ==
 
-The operating systems do not normally allow certain characters in filenames, for example colons, quotes or backslashes.  Keeping these characters causes exports of groups to the ascii and floatgrid formats to fail, as the file names cannot use the actual names (the colon is a separator, and quotes are often used to obey CSV rules.  Changing the characters to the URI escaped forms gets around this.  For a list of the characters and their escaped forms, see http://www.december.com/html/spec/esccodes.html 
+The operating systems do not normally allow certain characters in filenames, for example colons, quotes or backslashes.  If these characters were used in the filenames then exports of groups to the ascii and floatgrid formats to fail, as the file names cannot use the actual names (the colon is a separator, and quotes are often used to obey CSV rules).  Changing the characters to the URI escaped forms gets around this (see isssue #129).  For a list of the characters and their escaped forms, see http://www.december.com/html/spec/esccodes.html 
 
 
 == I get an Out of memory error ==

@@ -38,7 +38,14 @@ Yes.  Use an Element Property table for this purpose, specifying one or more exc
 
 == Results exported to ER-Mapper BIL files do not display properly in !ArcMap ==
 
-You will need to calculate statistics for the image for it to display properly.  This can be done in !ArcCatalog by right clicking on the file and choosing Calculate Statistics, or by using the _Calculate Statistics_ tool in ArcToolbox.
+You will need to calculate statistics for the image for it to display properly (before displaying it).  This can be done in !ArcCatalog by right clicking on the file and choosing Calculate Statistics, or by using the _Calculate Statistics_ tool in !ArcToolbox.
+
+If you calculate statistics while displaying the image in !ArcMap then it will not work properly.   This is possibly because it does so for only the subset of bands being displayed, and then cannot save the file correctly.  Doing the whole file using the approach above gets around this.
+
+==  Why do my asciigrid or floatgrid files have strange characters like %A5 in the names? ==
+
+The operating systems do not normally allow certain characters in filenames, for example colons, quotes or backslashes.  Keeping these characters causes exports of groups to the ascii and floatgrid formats to fail, as the file names cannot use the actual names (the colon is a separator, and quotes are often used to obey CSV rules.  Changing the characters to the URI escaped forms gets around this.  For a list of the characters and their escaped forms, see http://www.december.com/html/spec/esccodes.html 
+
 
 == I get an Out of memory error ==
 

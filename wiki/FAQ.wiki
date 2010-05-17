@@ -17,7 +17,7 @@ Check the help pages on the wiki (http://code.google.com/p/biodiverse/w/list).  
 
 Sample data are distributed with the software.  Look in the data folder.  The Readme.txt file explains what they represent. 
 
-You can download geolocated data from a variety of sources, for example GBIF or Australia's Virtual Herbarium.  There are also many sources for trees.  {we need to add links here}
+You can download geolocated data from a variety of sources, for example [http://data.gbif.org/ GBIF] or [http://www.ersa.edu.au/avh/ Australia's Virtual Herbarium].  There are also many sources for trees, e.g. the [http://tolweb.org/tree/ Tree of Life].
 
 
 == I have found a bug ==

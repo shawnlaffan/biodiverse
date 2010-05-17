@@ -17,6 +17,13 @@ Check the help pages on the wiki (http://code.google.com/p/biodiverse/w/list).  
 
 Please submit bugs via the Issues list at http://code.google.com/p/biodiverse/issues/list
 
+== Where can I get sample data to experiment with? ==
+
+Sample data are distributed with the software.  Look in the data folder.  The Readme.txt file explains what they represent. 
+
+You can download geolocated data from a variety of sources, for example GBIF or Australia's Virtual Herbarium.  There are also many sources for trees.  {we need to add links here}
+
+
 == I would like a new feature to be added to Biodiverse ==
 
 These are also submitted via the issues list.  Just specify the type label as Type-Enhancement (click on the _Type-Defect_ box to open the menu containing this option).  http://code.google.com/p/biodiverse/issues/list

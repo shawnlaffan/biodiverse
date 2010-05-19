@@ -1,5 +1,6 @@
 #summary Installation instructions
 #labels Featured,Phase-Deploy
+#sidebar TOC
 
 Installation instructions.
 

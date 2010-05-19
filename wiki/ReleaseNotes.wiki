@@ -1,5 +1,6 @@
 #summary Release notes will be added as new versions are developed
 #labels Featured
+#sidebar TOC
 
 = Version 0.15 =
 

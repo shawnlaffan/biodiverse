@@ -1,5 +1,6 @@
 #summary Screenshots of the software
 #labels Featured
+#sidebar TOC
 
  1. [http://www.biodiverse.unsw.edu.au/outputs_tab_listing_available_data_sets.png Outputs tab listing available data sets]. Several data sets can be stored in a project.
  1. [http://www.biodiverse.unsw.edu.au/view_labels_tab_with_matrix_and_taxonomic_tree.png View labels tab with matrix and taxonomic tree]. Selecting a set of labels (species) highlights them on the map, the tree and the matrix.

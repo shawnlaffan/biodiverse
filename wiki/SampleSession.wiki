@@ -1,5 +1,6 @@
 #summary Biodiverse sample session
 #labels Featured
+#sidebar TOC
 
 This is an initial effort at documenting the use of the GUI.  Much of the content will move into the other wiki pages over time, with this document being shortened and serving the purpose of an overview.
 

@@ -1,4 +1,5 @@
 #summary An overview of the analysis types available in Biodiverse
+#sidebar TOC
 
 <wiki:toc max_depth="4" />
 

@@ -3,8 +3,8 @@
   * AnalysisTypes
   * DataStructures
   * [FAQ]
-  * Indices
-  * Installation
+  * [Indices]
+  * [Installation]
   * KeyConcepts
   * PublicationsList
   * ReleaseNotes

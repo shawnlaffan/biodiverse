@@ -1,4 +1,5 @@
 #summary Key Biodiverse concepts
+#sidebar TOC
 
 <wiki:toc max_depth="4" />
 

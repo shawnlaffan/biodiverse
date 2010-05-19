@@ -2,8 +2,6 @@
 #labels Featured
 #sidebar TOC
 
-<wiki:comment>Add details for sp_match_regex when 0.14 is released.</wiki:comment>
-
 <wiki:toc max_depth="4" />
 
 = Introduction =
@@ -133,6 +131,16 @@ sp_match_text (text => $coord[2], axis => 2, type => 'nbr')
 # Set a definition query to only use groups with 'NK' as the third axis
 sp_match_text (text => 'NK', axis => 2, type => 'proc') 
 
+#  use any neighbour where the first axis includes the text "type1"
+sp_match_regex (re => qr'type1', axis => 0, type => 'nbr')
+
+# match only when the third neighbour axis starts with
+# the processing group's second axis
+sp_match_regex (re => qr/^$coord[2]/, axis => 2, type => 'nbr')
+
+# Set a definition query to only use groups where the
+# third axis ends in 'park' (case insensitive)
+sp_match_regex (text => qr{park$}i, axis => 2, type => 'proc')
 
 # Select every tenth group (note that groups are first sorted alphabetically)
 sp_select_sequence (frequency => 10)

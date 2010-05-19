@@ -1,13 +1,13 @@
 #summary Table of contents for the help files
 
-  * AnalysisTypes.wiki
-  * DataStructures.wiki
-  * FAQ.wiki
-  * Indices.wiki
-  * Installation.wiki
-  * KeyConcepts.wiki
-  * PublicationsList.wiki
-  * ReleaseNotes.wiki
-  * SampleSession.wiki
-  * ScreenShots.wiki
-  * SpatialConditions.wiki
+  * AnalysisTypes
+  * DataStructures
+  * FAQ
+  * Indices
+  * Installation
+  * KeyConcepts
+  * PublicationsList
+  * ReleaseNotes
+  * SampleSession
+  * ScreenShots
+  * SpatialConditions

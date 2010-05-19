@@ -2,7 +2,7 @@
 
   * AnalysisTypes
   * DataStructures
-  * FAQ
+  * [FAQ]
   * Indices
   * Installation
   * KeyConcepts

@@ -1,13 +1,23 @@
 #summary Table of contents for the help files
 
 AnalysisTypes
+
 DataStructures
+
 [FAQ]
+
 [Indices]
+
 [Installation]
+
 KeyConcepts
+
 PublicationsList
+
 ReleaseNotes
+
 SampleSession
+
 ScreenShots
+
 SpatialConditions

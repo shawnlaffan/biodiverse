@@ -12,6 +12,7 @@ To see the full list of changes, see http://code.google.com/p/biodiverse/issues/
     *  Recycling works properly now (issue #127)
   *  Calculations and Indices
     *  The PD node list has been moved to its own calculation (issue #130)
+    *  The Phylogenetic Endemism (PE) lists have been moved to their own sub (issue #131)
   *  Exporting data
     *  Exporting groups to raster formats now works properly (issue #129)
   *  Importing data

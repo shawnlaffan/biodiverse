@@ -31,9 +31,9 @@ Arguments within angle brackets `<...>` are required.  Arguments within parenthe
   *  `randomisation name`:  The name of the randomisation that is to be used.  If the basedata file contains a randomisation of this name then that will be used.  If not then one of that name will be created. 
   *  `runs`:  The number of times the system will save and reload the basedata file, efectively restarting the randomisation analysis with a clean memory.
   *  `iterations`:  The number of iterations per run.  
-  *  `rest of args`:  These are all the other arguments for the randomisation, and vary depending on what is being used.  Examples include `seed` for the PRNG starting seed, `richness_multiplier` and `richness_addition` for the rand_structured analysis, and `save_checkpoint` to periodically save a copy of the basedata file if one is needed.
-  
-  
+  *  `rest of args`:  These are all the other arguments for the randomisation, and vary depending on what is being used.  Examples include `seed` for the PRNG starting seed, `richness_multiplier` and `richness_addition` for the rand_structured analysis, and `save_checkpoint` to periodically save copies of the basedata file if such are needed.
+
+
 The simplest approach is to use as many iterations as will fit within memory while there is still sufficient memory to save the basedata file (i.e. before the system runs out of memory and crashes).  One then specifies as many runs as are needed to achieve the total number of iterations across runs, with `max_iters` as a stopping criterion.  
 
 The advantage of many iterations per run is that file saves and loads take time with large files.  Minimising these will result in a shorter analysis time (assuming time is important).
@@ -45,6 +45,8 @@ For example, if 99 iterations are needed and up to 10 iterations can be created 
 The utility parses the arguments and then repeatedly calls another utility called `load_and_randomise` to do all the work.  The `runs` argument is the number of times `load_and_randomise` is called.  The iterations argument specifies the number of randmisation iterations each run of `load_and_randomise` completes before saving and returning control back to `load_and_randomise_wrapper` to re-call `load_and_randomise` and complete more iterations, or to exit.
 
 
+Note that randomisations are incremental across runs and iterations so that the randomisation will restart from the last iteration that was saved.  However, if basedata is loaded into a GUI project and additional iterations conducted there then these will not be saved into the basedata file when the project is saved.  The basedata must be deliberately saved, overwriting if necessary (or to a new filename to be safe).
+
 = Limitations =
 
 You need to be able to store all of the following within your system memory limits at the same time.  1) the !BaseData file, 2) its randomised version, and 3) the largest of the output analyses and its randomised comparator.  if you cannot do this then the syse will not be able to complete even a single iteration.
@@ -53,3 +55,4 @@ Possible workarounds involve reducing the memory requirements using a series of 
 
   1.  Reduce the number of indices being assessed in each analysis output, as the system only keeps one randomised output in memory at a time.
   1.  Subdivide the moving window analyses spatially using a set of definition queries.  _Note that this will not work for most cluster analyses as definition queries exclude groups from clustering.  It should, however, work for an analysis that uses a spatial condition that matches the query._  For the moving window analyses, try dividing them into halves first, then quarters, etc.  An example using the western and eastern halves with two definition queries is:  `$x < 200000` and `$x >= 200000` (the `>=` in the second is needed to ensure all groups are considered).  Each subdivision should have the same calculations specified.  Any exported results can be recombined externally to Biodiverse to make a single result file.
+  1.  Replicate the basedata file and store a smaller number of the outputs in each new basedata file.  Then rerun the randomisations as many times as there are new basedata, but making sure you specify the same starting seed for each.  The seed ensures the randomised basedatas will all be identical (replicated) at each iteration, and is effectively the same as doing them all within the one basedata (if it would fit within memory).  This can take much longer than the other options as each randomisation iteration must be regenerated for each replicated basedata.  For large data sets using the rand_structured function must converge on the solution anew each replicated iteration.

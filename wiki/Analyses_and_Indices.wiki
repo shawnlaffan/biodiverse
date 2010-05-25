@@ -1,0 +1,5 @@
+#summary One-sentence summary of this page.
+
+This is a stub.
+
+All the content is now in the [Indices] page.

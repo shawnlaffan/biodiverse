@@ -22,14 +22,14 @@ perl load_and_randomise_wrapper.pl <basedata file> <randomisation name> {runs [1
 
 For example:
 {{{
-load_and_randomise_wrapper.exe Example.bds rand_test runs=10 iterations=10 function=rand_csr_by_group seed=12768545 max_iters=999 save_checkpoint=99
+load_and_randomise_wrapper.exe Example.bds rand_test 10 iterations=10 function=rand_csr_by_group seed=12768545 max_iters=999 save_checkpoint=99
 }}}
 
 Arguments within angle brackets `<...>` are required.  Arguments within parentheses `{...}` are optional, and will take the default values given in square brackets `[...]`.  Arguments are separated by spaces, with argument values specified after an equal sign.  There should be no spaces between the argument name, equals sign and value.  Use quotes if an argument has any special characters or whitespace (e.g. to use the name `rand structa` then put it in quotes: `"rand structa"`).
 
   *  `basedata file`:  The basedata file (`.bds` extension) that will be randomised.
   *  `randomisation name`:  The name of the randomisation that is to be used.  If the basedata file contains a randomisation of this name then that will be used.  If not then one of that name will be created. 
-  *  `runs`:  The number of times the system will save and reload the basedata file, efectively restarting the randomisation analysis with a clean memory.
+  *  `runs`:  The number of times the system will save and reload the basedata file, effectively restarting the randomisation analysis with a clean memory.
   *  `iterations`:  The number of iterations per run.  
   *  `rest of args`:  These are all the other arguments for the randomisation, and vary depending on what is being used.  Examples include `seed` for the PRNG starting seed, `richness_multiplier` and `richness_addition` for the rand_structured analysis, and `save_checkpoint` to periodically save copies of the basedata file if such are needed.
 

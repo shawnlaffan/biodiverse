@@ -1,12 +1,10 @@
 #summary Frequently asked questions
 #sidebar TOC
 
+This is a list of questions that might be frequently asked.  It will be extended as more questions come to light.
+
 <wiki:toc max_depth="4" />
 
-
-= Introduction =
-
-This is a list of questions that might be frequently asked.  It will be extended as more questions come to light.
 
 = Questions =
 

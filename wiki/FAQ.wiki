@@ -43,7 +43,7 @@ If you calculate statistics while displaying the image in !ArcMap then it will n
 
 ==  Why do my asciigrid or floatgrid files have strange characters like %3A in the names? ==
 
-The operating systems do not normally allow certain characters in filenames, for example colons, quotes or backslashes.  If these characters were used in the filenames then exports of groups to the ascii and floatgrid formats to fail, as the file names cannot use the actual names (the colon is a separator, and quotes are often used to obey CSV rules).  Changing the characters to the URI escaped forms gets around this (see issue #129).  For a list of the characters and their escaped forms, see http://www.december.com/html/spec/esccodes.html 
+The operating systems do not normally allow certain characters in filenames, for example colons, quotes or backslashes.  If these characters were used in the filenames then exports of groups to the ascii and floatgrid formats will fail, as the file names cannot use the actual names (the colon is a separator, and quotes are often used to obey CSV rules).  Changing the characters to the URI escaped forms gets around this (see issue #129).  For a list of the characters and their escaped forms, see http://www.december.com/html/spec/esccodes.html 
 
 
 == I get an Out of memory error ==
@@ -58,8 +58,8 @@ If that does not not work then the next solution is to move to a 64 bit system w
 
 An alternate solution, if a 64 bit system is not available, is to subdivide the !BaseData object into tiles before analysis.  This works well for most moving window analyses, but cluster and randomisation analyses will not produce correct results as the groups and labels they use will be restricted to each tile.  One must also ensure the tiles have overlapping boundaries to ensure the moving window analyses have the correct neighbour sets (the degree of overlap depends on the neighbour set used).  Indices that use global statistics, such as the global range used in the endemism indices, also need some care.  Global ranges and global sample counts can be set using an Element Properties table when importing the !BaseData (see [DataStructures#Element_property_tables]).  This can be constructed from the whole data set by calculating the endemism and rarity lists with a spatial condition set to `sp_select_all()`, and then extracted by control clicking on the displayed results to see the lists, from which the values can be copied into a spreadsheet or other program.  (This assumes you can display the results without the crash.   If not then a script is the only way to extract the data).
 
-For the randomisations we have also developed a command line tool that runs the randomisations a small number of iterations at a time and then restarts the process (load_and_randomise_wrapper).  This has been released in version 0.14, although documentation needs to be added (issue #119).
+For the randomisations we have also developed a command line tool that runs the randomisations a small number of iterations at a time and then restarts the process (load_and_randomise_wrapper).  This was released in version 0.14, and documentation are at the LoadAndRandomise page.
 
 == Opening the help system on Linux does not return focus to Biodiverse ==
 
-This seems to be an issue with the command used to open the browser.  The solution is to open the browser outside Biodiverse before accessing the help.
+This seems to be an issue with the command used to open the browser, or possibly the operating system.  The solution is to open the browser outside Biodiverse before accessing the help.

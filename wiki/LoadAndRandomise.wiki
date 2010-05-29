@@ -45,7 +45,13 @@ The utility parses the arguments and then repeatedly calls another utility calle
 
 Note that randomisations are incremental across runs and iterations so that the randomisation will restart from the last iteration that was saved.  However, if basedata is loaded into a GUI project and additional iterations conducted there then these will not be saved into the basedata file when the project is saved.  The basedata must be deliberately saved from the GUI, overwriting if necessary (or to a new filename to be safe).
 
-Note also that arguments that control the randomisation results that are changed between runs will be ignored (e.g. `richness_addition` and `seed`).  Any new PRNG seeds specified after any iterations have been run will also be ignored, and the system will start from the PRNG state at the end of the last completed iteration.  This is the same behaviour as the GUI except that it disables access to the widgets to make any changes.
+Note also that arguments that control the randomisation results that are changed between runs will be ignored (e.g. `richness_addition` and `seed`).  Any new PRNG seeds specified after any iterations have been run will also be ignored, and the system will start from the PRNG state at the end of the last completed iteration.  This is the same behaviour as the GUI except that it disables access to the widgets to make any changes.  
+
+A useful side-effect of the argument handling is that one does not need to specify all the control arguments for an existing randomisation.  Just specify the basedata, the randomisation name, runs and iterations (if non-default values are needed).  For example the following commands are equivalent if Example.bds already contains a randomisation output called rand_test.
+{{{
+load_and_randomise_wrapper.exe Example.bds rand_test 10 iterations=10 function=rand_csr_by_group seed=12768545 max_iters=999 save_checkpoint=99
+load_and_randomise_wrapper.exe Example.bds rand_test 10
+}}}
 
 = Limitations =
 

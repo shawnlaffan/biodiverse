@@ -1,7 +1,7 @@
 #summary Linux binary executable install instructions
 #sidebar Installation
 
-These instructions apply to version 0.14.
+These instructions apply to version 0.14 and later.
 
 = Installation =
 

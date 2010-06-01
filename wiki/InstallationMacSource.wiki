@@ -1,7 +1,7 @@
 #summary Macintosh source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.14.
+These instructions apply to version 0.14 and later.
 
 They have been tested on Snow Leopard, so there might be small changes for Leopard.
 

@@ -16,7 +16,7 @@ These instructions apply to version 0.14.
 
 = Troubleshooting and changes =
 
-  *  Ensure that you have installed the latest GTK+, Glade and GnomeCanvas packages.
+  *  Ensure that you have installed the latest `GTK+`, `Glade` and `GnomeCanvas` packages.
 
   *  If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).  You can download and install more themes from http://art.gnome.org/themes/gtk2
 

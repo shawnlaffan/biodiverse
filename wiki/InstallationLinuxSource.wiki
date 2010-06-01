@@ -13,9 +13,10 @@ These also assume you have saved the Biodiverse source code to your home directo
 This will require some interaction when it downloads additional packages, depending on your CPAN settings.  
 
 {{{
-#  get the glade package (this will also get the Gtk, Glib etc.)
+#  get the glade, canvas and gtk-perl packages (this will also get the Gtk, Glib etc.)
 sudo apt-get install glade
 sudo apt-get install libgnomecanvas2-0
+sudo apt-get install gtk-perl
 
 sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
 }}}

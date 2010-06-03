@@ -55,7 +55,7 @@ load_and_randomise_wrapper.exe Example.bds rand_test 10
 
 = Limitations =
 
-You need to be able to store all of the following within your system memory limits at the same time.  1) the !BaseData file, 2) its randomised version, and 3) the largest of the output analyses and its randomised comparator.  The `rand_structured` randomisation also requires an additional copy of the !BaseData for control purposes.  If you cannot store these within memory then the system will not be able to complete even a single iteration and randomisations cannot be completed.
+You need to be able to store all of the following within your system memory limits at the same time:  1) the !BaseData file, 2) its randomised version, and 3) the largest of the output analyses and its randomised comparator.  The `rand_structured` randomisation also requires an additional copy of the !BaseData for control purposes.  If you cannot store these within memory then the system will not be able to complete even a single iteration and randomisations cannot be completed.
 
 If you cannot access a machine with bigger memory limits then the workarounds involve reducing the memory requirements using divide and conquer appraches.  These can be used in tandem, and complex analyses are best done using a scripting approach to avoid human error (after debugging of course).
 

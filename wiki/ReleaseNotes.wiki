@@ -15,6 +15,7 @@ To see the full list of changes, see http://code.google.com/p/biodiverse/issues/
     *  The Phylogenetic Endemism (PE) lists have been moved to their own sub (issue #131)
   *  Exporting data
     *  Exporting groups to raster formats now works properly (issue #129)
+    *  Exporting matrices from a cluster analyses now works (issue #142)
   *  Importing data
     *  Column numbers are now displayed when importing data (issue #128)
 

@@ -66,6 +66,15 @@ perl ~/biodiverse/bin/BiodiverseGUI.pl
 
 = Trouble shooting =
 
+  *  If, when running the third sudo line, you get an error including the text below then check you have typed the paths correctly.  
+  {{{
+  <...some leader text about what cpan is doing...>
+  Warning: Cannot install Bundle::Biodiverse, don't know what it is.
+  Try the command
+    i /Bundle::Biodiverse/
+	
+  to find objects with matching identifiers.
+  }}}
   *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed using `cpan`. The complaint will start with text like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate).  E.g.: `sudo /opt/local/bin/perl -MCPAN -e 'install Fred::Fred'` .
   *  !MacPorts might also complain that files are out of sync, probably if you have an existing !MacPorts installation.  If this is the case then run this command to ensure all files are up to date.
 {{{

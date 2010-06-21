@@ -32,7 +32,7 @@ sudo port -v selfupdate
   *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when they download additional packages, depending on your CPAN settings.  The first two commands install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this will take a while).  The third installs the remaining perl libraries.
 {{{
 sudo port install p5-gtk2-gladexml
-sudo port install p5-gnome-canvas
+sudo port install p5-gnome2-canvas
 
 sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
 }}}

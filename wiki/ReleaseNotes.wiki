@@ -20,7 +20,7 @@ To see the full list of changes, see http://code.google.com/p/biodiverse/issues/
   *  Randomisations
     *  Ties are now counted (issue #146)
   *  Under the bonnet
-    *  Recycling works properly now (issues #127 & #145)
+    *  Recycling works properly now (issue #127 & issue #145)
 	*  Statistics::Descriptive2 is now deprecated.  It has been replaced by Biodiverse::Statistics which depends explicitly on Statistics::Descriptive (issue #139)
 
 

@@ -8,16 +8,20 @@ This release is in development.  A summary of changes is below.
 
 To see the full list of changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.15
 
-  *  Under the bonnet
-    *  Recycling works properly now (issue #127)
   *  Calculations and Indices
     *  The PD node list has been moved to its own calculation (issue #130)
     *  The Phylogenetic Endemism (PE) lists have been moved to their own sub (issue #131)
   *  Exporting data
     *  Exporting groups to raster formats now works properly (issue #129)
     *  Exporting matrices from a cluster analyses now works (issue #142)
+	*  Exporting to ER-Mapper files now works properly, with some caveats (see issue #135 and the [FAQ#My_ER-Mapper_BIL_file_is_offset_by_half_a_pixel FAQ]
   *  Importing data
     *  Column numbers are now displayed when importing data (issue #128)
+  *  Randomisations
+    *  Ties are now counted (issue #146)
+  *  Under the bonnet
+    *  Recycling works properly now (issues #127 & #145)
+	*  Statistics::Descriptive2 is now deprecated.  It has been replaced by Biodiverse::Statistics which depends explicitly on Statistics::Descriptive (issue #139)
 
 
 

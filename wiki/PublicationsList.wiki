@@ -2,7 +2,7 @@
 #labels Featured
 #sidebar TOC
 
-To cite Biodiverse or acknowledge its use, cite this publication as follows, substituting the version of the application that you used for "Version 0.14".  The paper was accepted on 03May2010, and details of issue and page numbers will be given when available.
+To cite Biodiverse or acknowledge its use, cite this publication as follows, substituting the version of the application that you used for "Version 0.14".  The issue and page numbers will be given when available.
   *  Laffan, S.W., Lubarsky, E. & Rosauer, D.F. (in press) Biodiverse, a tool for the spatial analysis of biological and related diversity.  [http://dx.doi.org/10.1111/j.1600-0587.2010.06237.x Ecography]. Vol ?, pp-pp (version 0.14).
 
 

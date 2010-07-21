@@ -17,6 +17,8 @@ To see the full list of changes, see http://code.google.com/p/biodiverse/issues/
     *  Exporting to ER-Mapper files now works properly, with some caveats (see issue #135 and the [FAQ#My_ER-Mapper_BIL_file_is_offset_by_half_a_pixel FAQ])
   *  Importing data
     *  Column numbers are now displayed when importing data (issue #128)
+  *  Spatial Conditions
+    *  sp_ellipse() works properly now (issue #150)
   *  Randomisations
     *  Ties are now counted (issue #146)
   *  Under the bonnet

@@ -3,6 +3,8 @@
 
 These instructions apply to version 0.14 and later.
 
+*Note that this executable will not work on Windows 2000 and earlier.*
+
 = Installation =
 
   *  Unzip the Biodiverse zip file to your hard drive.  The following assumes you have unzipped it to C:\biodiverse.  If you use a different path then modify the commands as appropriate.

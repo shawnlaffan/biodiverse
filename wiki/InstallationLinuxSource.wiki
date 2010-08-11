@@ -39,3 +39,7 @@ perl BiodiverseGUI.pl
 {{{
 perl ~/biodiverse/bin/BiodiverseGUI.pl
 }}}
+
+= Troubleshooting =
+
+  *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

@@ -21,3 +21,5 @@ These instructions apply to version 0.14 and later.
   *  If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).  You can download and install more themes from http://art.gnome.org/themes/gtk2
 
   *  The Linux executable is a generated using the !ActiveState !PerlApp tool and does not use the accompanying source code.  
+  
+  *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

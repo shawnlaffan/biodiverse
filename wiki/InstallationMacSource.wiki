@@ -80,3 +80,5 @@ perl ~/biodiverse/bin/BiodiverseGUI.pl
 {{{
 sudo port -v selfupdate
 }}}
+  
+  *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

@@ -23,4 +23,4 @@ These instructions apply to version 0.14 and later.
 
   *  The Windows executable is a generated using the !ActiveState !PerlApp tool.  It will work provided you do not move or rename the Gtk folder.  If you do, then make sure a Gtk\bin folder is in your system path so it finds the appropriate binaries that it depends on.
 
-  *  If that does not work then please report an issue using the [Issues issue tracker]
+  *  If that does not work then please report an issue using the [http://code.google.com/p/biodiverse/issues/list issue tracker]

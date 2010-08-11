@@ -22,3 +22,5 @@ These instructions apply to version 0.14 and later.
   *  If you don't like the window theme it uses then you can change them using the GTK+ Preference Tool from http://gtk-win.sourceforge.net/home/index.php/Gtk2Prefs
 
   *  The Windows executable is a generated using the !ActiveState !PerlApp tool.  It will work provided you do not move or rename the Gtk folder.  If you do, then make sure a Gtk\bin folder is in your system path so it finds the appropriate binaries that it depends on.
+
+  *  If that does not work then please report an issue using the [Issues issue tracker]

@@ -23,7 +23,8 @@ To see the full list of changes, see http://code.google.com/p/biodiverse/issues/
   *  Randomisations
     *  Ties are now counted (issue #146)
   *  Under the bonnet
-    *  Recycling works properly now (issue #127 & issue #145)
+    *  User defined properties are now imported properly in the GUI (issue #154)
+    *  Neighbour set recycling works properly now (issue #127 & issue #145)
     *  Module Statistics::Descriptive2 is now deprecated.  It has been replaced by Biodiverse::Statistics which depends explicitly on Statistics::Descriptive (issue #139)
 
 

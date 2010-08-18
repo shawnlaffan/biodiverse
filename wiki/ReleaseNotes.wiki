@@ -22,6 +22,8 @@ To see the full list of changes, see http://code.google.com/p/biodiverse/issues/
     *  sp_ellipse() works properly now (issue #150)
   *  Randomisations
     *  Ties are now counted (issue #146)
+  *  Visualisation
+    *  User defined properties are now displayed in the view labels tab (issue #155).
   *  Under the bonnet
     *  User defined properties are now imported properly in the GUI (issue #154)
     *  Neighbour set recycling works properly now (issue #127 & issue #145)

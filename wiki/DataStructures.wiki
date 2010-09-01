@@ -100,7 +100,7 @@ If the table has more than one entry for the same element name then it will use 
 
 = File naming scheme =
 
-The naming system is a “b” for Biodiverse, followed by a letter for the object type, and then an “s” or “y” to denote if it is in a Storable or YAML format. The Storable version is preferred.  The YAML format requires more time to parse in and out and uses more memory.  It is deprecated and will be removed in a future release, but will be supported for export as it is useful to interrogate the internal data structure using a text editor.
+The naming system is a “b” for Biodiverse, followed by a letter for the object type, and then an “s” or “y” to denote if it is in a Storable or YAML format. The Storable version is preferred.  The YAML format requires more time to parse in and out and uses more memory.  It is deprecated and will be removed in a future release, but will be supported for export as it is sometimes useful to interrogate the internal data structure using a text editor.
 
 BPS/BPY is a Biodiverse project file. This stores a set of !BaseData, Matrix and Phylogeny objects and any display parameters.  Note that it stores copies of these objects, so changes made to any of the separate or original versions have no effect, and vice versa.
 
@@ -110,6 +110,6 @@ BTS/BTY is a Tree object.
 
 BMS/BMY is a matrix object.
 
-The BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will be stored with the !BaseData object if it is exported separately from a project, but will not be visible if the !BaseData object is subsequently loaded into a new project.
+The !BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will be stored with the !BaseData object if it is exported separately from a project, but will not be visible if the !BaseData object is subsequently loaded into a new project.
 
 Note that it is not possible to directly save a cluster, spatial or randomisation analysis from the GUI because the object needs its links to the parent !BaseData object.  The reference system used means that the !BaseData object will be folded into the analysis object through its reference, thus making the separation unnecessary and complex to unravel on subsequent import.

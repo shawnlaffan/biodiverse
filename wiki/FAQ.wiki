@@ -43,7 +43,7 @@ If you calculate statistics while displaying the image in !ArcMap then it will n
 
 == My ER-Mapper BIL file is offset by half a pixel ==
 
-The ER-Mapper file export is written to work with !ArcMap.  However, !ArcMap seems to use the centre of the registration cell as the location of the registration corodinate.  This results in an offset of 0.5 pixels to the north and west when it is plotted using some other system like Erdas or ER-Mapper.  The solution is to edit the header file and change these two lines:
+The ER-Mapper file export is written to work with !ArcMap.  However, !ArcMap seems to use the centre of the registration cell as the location of the registration coordinate.  This results in an offset of 0.5 pixels to the north and west when it is plotted using some other system like Erdas or ER-Mapper.  The solution is to edit the header file and change these two lines:
 {{{
 RegistrationCellX  = 0
 RegistrationCellY  = 0
@@ -54,7 +54,7 @@ RegistrationCellX  = 0.5
 RegistrationCellY  = 0.5
 }}}
 
-The system behaviour is set for !ArcMap purely because we are assuming more people will be using it for display.  If that is not the case then the behaviour can be changed.  With !ArcGIS 10 using the GDAL library this problem will hopefully go away and we can set the registration cells to 0.5.
+The system behaviour is set for !ArcMap purely because we are assuming more people will be using it for display.  If that is not the case then the behaviour can be changed.  With ArcGIS 10 using the GDAL library this problem will hopefully go away and we can set the registration cells to 0.5.
 
 ==  Why do my asciigrid or floatgrid files have strange characters like %3A in the names? ==
 

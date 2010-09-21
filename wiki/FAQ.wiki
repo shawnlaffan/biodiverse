@@ -11,7 +11,7 @@ This is a list of questions that might be frequently asked.  It will be extended
 
 == I have a question about how to use the software ==
 
-Check the help pages on the wiki (http://code.google.com/p/biodiverse/w/list).  If it is not covered there then please contact the developers, or join the Biodiverse-Users google group and post a question there.  http://groups.google.com/group/biodiverse-users
+Check the help pages on the wiki (HelpOverview or http://code.google.com/p/biodiverse/w/list).  If it is not covered there then please contact the developers, or join the Biodiverse-Users google group and post a question there.  http://groups.google.com/group/biodiverse-users
 
 == Where can I get sample data to experiment with? ==
 
@@ -27,6 +27,14 @@ Please submit bugs via the Issues list at http://code.google.com/p/biodiverse/is
 == I would like a new feature to be added to Biodiverse ==
 
 These are also submitted via the issues list.  Just specify the type label as Type-Enhancement (click on the _Type-Defect_ box to open the menu containing this option).  http://code.google.com/p/biodiverse/issues/list
+
+== Does it only work on Ausralian data? ==
+
+No, we just use Australian data for the examples.  It will work on any data you give it.  
+
+== Will it work with non-geographic data?  ==
+
+Yes, Biodiverse is essentially ignorant of geography.  It will work on any data you give it.  (Whether the analysis is appropriate or not is a different issue).
 
 == My species list has been provided as a site by species matrix.  How do I import it? ==
 

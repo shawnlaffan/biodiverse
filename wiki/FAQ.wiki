@@ -28,7 +28,7 @@ Please submit bugs via the Issues list at http://code.google.com/p/biodiverse/is
 
 These are also submitted via the issues list.  Just specify the type label as Type-Enhancement (click on the _Type-Defect_ box to open the menu containing this option).  http://code.google.com/p/biodiverse/issues/list
 
-== Does it only work on Ausralian data? ==
+== Does it only work on Australian data? ==
 
 No, we just use Australian data for the examples.  It will work on any data you give it.  
 

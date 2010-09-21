@@ -16,7 +16,7 @@ Projects consist of a set of any number of !BaseData, Tree and Matrix objects.  
 
 The only external data currently linked are shapefiles used as overlays in plotting, and these can be repaired or ignored when plotting data.
 
-Note that saving a !BaseData, Tree or Matrix to native format elsewhere on disk makes a duplicate copy of that object.  Any changes to that object in the project will have no effect on the separately saved version, and vice versa.  See also the [#File_naming_scheme file naming scheme]
+Note that saving a !BaseData, Tree or Matrix to their own native Biodiverse format elsewhere on disk makes a duplicate copy of that object.  Any changes to that object in the project will have no effect on the separately saved version, and vice versa.  See also the [#File_naming_scheme file naming scheme]
 
 = Elements =
 
@@ -46,7 +46,7 @@ Group coordinates: For numerical coordinates, such as X,Y, the group location is
 
 == Spatial outputs ==
 
-These are a !BaseStruct object and used to store the results of a moving window analysis.  They are also used in the cluster analyses to determine which neighbours shoul'd be considered for each of the cluster matrices, as this is just a spatial analysis with no actual analyses, just the neighbour sets for each element.
+These are a !BaseStruct object and used to store the results of a moving window analysis.  They are also used in the cluster analyses to determine which neighbours should be considered for each of the cluster matrices, as this is just a spatial analysis with no actual analyses, just the neighbour sets for each element.
 
 More details are (or will be) given in [AnalysisTypes#Spatial_analyses] and [SampleSession#Running_a_spatial_(moving_window)_analysis].
 
@@ -64,7 +64,7 @@ See also [SampleSession#Running_a_randomisation].
 
 = Matrices =
 
-These are matrices of numeric values representing some relationship between a set of elements.  They should normally be square, but the system does not impose that requirement.  Normally they are linked to the labels of a !BaseData object and used in the visualisation and analyses.  They are also used in the cluster analyses and can be exported via the cluster outputs.
+These are matrices of numeric values representing some relationship between a set of elements.  They should normally be square, but the system does not impose that requirement.  Normally they are linked to the labels of a !BaseData object and used in the visualisation and analyses.  They are also used in the cluster analyses, and if so they can be exported via the cluster outputs.
 
 Previous uses include genetic similarities ([http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al. 2004]), but any numeric value can be used.  It is up to the user to ensure it is sensible (the system does not stop the user from doing something stupid, just in case it turns out to be really useful).
 
@@ -80,7 +80,7 @@ These are typicaly phylogenies but can be any form of hierarchical tree structur
 These are the individual units of the trees.  They are analogous to Elements in a BaseStruct in that analysis result lists can be stored in them, but they also store links to their parents and to their children.
 
 The node length values are the distance from them to their parent node.  These lengths can be negative in some cases, for example when one or more spatial constraints exclude some more similar elements and/or nodes from the initial clustering.  When these are considered in a subsequent matrix (i.e. for a less constrictive spatial constraint) then  
-the nodes can be negative for such linkages.  Alternately they can occur when using the Recalculation Linkage function as a consequence of recalculating the linkages as if the two nodes are single aggregated elements instead of a weighted function of their respective elements.  This will occur for the cluster indices that do not use sample counts.
+the nodes can be negative for such linkages.  Alternately negative lengths can occur when using the Recalculation Linkage function as a consequence of recalculating the linkages as if the two nodes are single aggregated elements instead of a weighted function of their respective elements.  This will occur for the cluster indices that do not use sample counts.
 
 Each node must have a unique name.  In the case of those that link to an element (e.g. a group or label) this is straightforward and can use the same name.  Internal nodes are slightly diferent, and are assigned a unique value followed by three underscore characters (, e.g. `18___`).  This is done on the basis that it is unlikely for an element name to have three trailing underscores.  Using three trailing underscores for non-internal names will cause unpredictable behaviour as Biodiverse uses the name to determine if a node is internal or not.
 
@@ -88,7 +88,7 @@ Each node must have a unique name.  In the case of those that link to an element
 
 As with so many objects in Biodiverse, element property tables are also special type of !BaseStruct object (making !BaseStruct a relevant name).
 
-The primary purpose of these is to remap (change) names on import so that one data set will properly match another, for example one needs to alter a set of labels in a tree to match those used in a !BaseData object, or vice versa.  However, they can also be used to set arbitrary properties for data set elements for use in subsequent analyses and calculations.  Species ranges are one example that are currently supported.  
+The primary purpose of these tables is to remap (change) names on import so that one data set will properly match another, for example where one needs to alter a set of labels in a tree to match those used in a !BaseData object, or vice versa.  However, they can also be used to set arbitrary properties for data set elements for use in subsequent analyses and calculations.  Species ranges are one example that are currently supported.  
 
 Note that label and group properties are assigned at the time of import.  Subsequent changes are not currently supported.
 

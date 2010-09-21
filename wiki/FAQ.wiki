@@ -11,7 +11,7 @@ This is a list of questions that might be frequently asked.  It will be extended
 
 == I have a question about how to use the software ==
 
-Check the help pages on the wiki (http://code.google.com/p/biodiverse/w/list).  If it is not covered there then please contact the developers, or join the Biodiverse-Users google group and post a question there.  
+Check the help pages on the wiki (http://code.google.com/p/biodiverse/w/list).  If it is not covered there then please contact the developers, or join the Biodiverse-Users google group and post a question there.  http://groups.google.com/group/biodiverse-users
 
 == Where can I get sample data to experiment with? ==
 

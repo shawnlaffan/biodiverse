@@ -1,4 +1,5 @@
 #summary Help overview
+#labels Featured
 #sidebar TOC
 
 = Introduction =

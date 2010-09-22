@@ -13,4 +13,4 @@ Installation instructions.
   *  Linux
     *  Binary:  InstallationLinuxBinary
     *  Source code:  InstallationLinuxSource
-  *  Return to main table of contents: [TOC]
+  *  [TOC Main table of contents]

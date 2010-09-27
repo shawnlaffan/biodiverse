@@ -88,15 +88,29 @@ Each node must have a unique name.  In the case of those that link to an element
 
 As with so many objects in Biodiverse, element property tables are also special type of !BaseStruct object (making !BaseStruct a relevant name).
 
-The primary purpose of these tables is to remap (change) names on import so that one data set will properly match another, for example where one needs to alter a set of labels in a tree to match those used in a !BaseData object, or vice versa.  However, they can also be used to set arbitrary properties for data set elements for use in subsequent analyses and calculations.  Species ranges are one example that are currently supported.  
+The primary purpose of these tables is to remap (change) names on import so that one data set will properly match another, for example where one needs to alter a set of labels in a tree to match those used in a !BaseData object, or vice versa.  One can also use them to keep a single file with taxonomic aggregations rather than editing one's source data (obviously it will not work for divisions, though).  They can also be used to set arbitrary properties for data set elements for use in subsequent analyses and calculations.  Species ranges and sample counts are two examples that are currently supported.  Others still need to be implemented, but they can be displayed in the View Labels tab as of version 0.15 (issue #155).  
 
 Note that label and group properties are assigned at the time of import.  Subsequent changes are not currently supported.
 
 One can also use these tables to set element properties such as label or group sample counts or label ranges on import. 
 
-One can also exclude or include on a label or group basis. If one or more include columns are specified then the effect on !BaseData and matrix imports is that only elements with at least one import column value that returns true will be included.  If one or more exclude columns are specified then the effect is to exclude any element for which the exclude column is true.  Note that matrices are symmetric so excluding an element will remove both its rows and columns.
+One can also exclude or include on a per-label or per-group basis. If one or more include columns are specified then the effect on !BaseData and matrix imports is that only elements with at least one import column value that returns true will be included.  If one or more exclude columns are specified then the effect is to exclude any element for which the exclude column is true.  Note that matrices are symmetric so excluding an element will remove all pairs of which it is part.
 
 If the table has more than one entry for the same element name then it will use the last property encountered for that element.  Remapping of element names are chained such that the last one is used.  For example, the table might remap species1 to species2 and then to species3.  In this case any occurrences of elements 'species1' and 'species2' are assigned directly to 'species3', with the final name taking properties set for 'species3' and not 'species1' or 'species2'.  An exception to this is the include and exclude flags.  These are applied to the original element name (although this might change in future).
+
+Label property tables will perhaps be used more often than group property tables, since locations don't change but names do.  However, it can be useful to add additional axis properties to a group based on its location (for example biome and distance from some key feature).  In this way the properties can be defined once instead of being listed for every single row in the input data set (consider the repetition for data set of 2,000,000 input records with only two possible biomes...).
+
+== Importing element property data ==
+
+The import process is similar to that for a !BaseData set, in that one must select the file, choose the field separator and quotes characters, and then tell the system what rows and columns represent what.  The meaning of the different options are as follows.  If more than one column is given for the range, sample_count and Use_field_name options then the GUI will take the last one specified.  If used in a script then no order is guaranteed, so take care to specify one column only for those options.  
+
+  *  *Input_element*:  This column will be used to form part of the label or group name.  Select as many of these as you have axes in the !BaseData set, otherwise they will not match and the table will have no effect.
+  *  *Remapped_element*:  This column will be used to form part of the remapped element name.
+  *  *Include*:  Control the inclusion of elements.  A value of 1 means it will be included.  More than one of these can be specified (see above for the effect).
+  *  *Exclude*:  Control the exclusion of elements.  A value of 1 means it will be excluded.  More than one of these can be specified (see above for the effect).
+  *  *range*:  This value will be used as the label range instead of counting the number of groups in which the label occurs.  This affects the [Indices#Endemism endemism] calculations.
+  *  *sample_count*:  This value will be used as the sample count value instead of counting the number of samples at import.  This affects the [Indices#Rarity rarity] calculations.
+  *  *Use_field_name*:  A property will be set for each element that has the name of the field and the value of each row.  Use this to import additional properties for a set of labels or groups.  
 
 = File naming scheme =
 

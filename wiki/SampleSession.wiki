@@ -2,10 +2,13 @@
 #labels Featured
 #sidebar TOC
 
-This is an initial effort at documenting the use of the GUI.  Much of the content will move into the other wiki pages over time, with this document being shortened and serving the purpose of an overview.
-
 <wiki:comment>The source of this document is the Sample_session.pdf file distributed with versions 0.11 and earlier.  This was converted from !OpenOffice to wiki format, via html.
 </wiki:comment>
+
+
+This is the main source of documentation for the GUI.  it needs further development, and much of the content will move into the other wiki pages over time, with this document being shortened and serving the purpose of an overview.
+
+If you find parts of it needs to be clarified, or material is missing, then please add a comment at the end of the page or submit an issue (http://code.google.com/p/biodiverse/issues).  If you would like to contribute to the documentation then please submit changes as diff/patch format files if possible as these make it easier to review and apply the changes.  If you aren't sure what those are then plain text will do just as well.
 
 
 <wiki:toc max_depth="4" />
@@ -27,7 +30,8 @@ We suggest you read this in conjunction with the KeyConcepts document. Much addi
 If you wish to experiment with these options then use the Example_site_data.csv file for species sample data, Example_matrix.txt file for matrix data and Example_tree.nex file for tree data. These are under the Biodiverse/data folder in the distribution. Note that these are fictional data so the results have no meaning beyond example purposes.
 
 ==A word of warning==
-Perl is able to handle different numeric locales, however there are some consequences for the analyses.  If your language settings use a comma as the radix (decimal point) then several of the comparisons will either fail or will silently not work as expected.  Randomisations are a particular issue here.  The problem is due to how Perl handles strings (text) converted to numbers.  A string representing a number such as '0,5', which might be perfectly valid in your locale, will be quietly converted by perl to 0 when needed for numeric operations.  '0.5' will work as expected.
+
+Perl is able to handle different numeric locales, however there are some consequences for the analyses.  If your language settings use a comma as the radix (decimal place marker) then several of the comparisons will either fail or will silently not work as expected.  Randomisations are a particular issue here.  The problem is due to how Perl handles strings (text) converted to numbers.  A string representing a number such as '0,5', which might be perfectly valid in your locale, will be quietly converted by perl to 0 when needed for numeric operations.  '0.5' will work as expected.
 
 *How to avoid this problem:*  Use a locale that uses a "." as the radix character (e.g. one of the English locales), or modify your settings to use the "." as the radix.  It is also safer to not mix your locales between Biodiverse sessions (i.e. do not import data using one locale and then analyse it using another).  A fix has been implemented for version 0.14 to avoid this problem (see issue #81), but it needs to be tested on non-English locales.
 
@@ -42,7 +46,7 @@ Change the name in the textbox at the top if you want to list them by a differen
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/open_existing_object.png
 
-Note the common “Places” in the left panel of the window. This is the bookmark system used by Gtk, and is persistent across sessions.  You can also select a folder in the right panel and click the _Add_ button to permanently add this folder to the Places panel for convenient access in the future. Likewise, you can remove added (but not default) directories with the _Remove_ button.  You can also drag and drop folders onto the place section (_check this_).
+Note the common “Places” in the left panel of the window. This is the bookmark system used by Gtk (the window system we use), and is persistent across sessions.  You can also select a folder in the right panel and click the _Add_ button to permanently add this folder to the Places panel for convenient access in the future. Likewise, you can remove added (but not default) directories with the _Remove_ button.  You should also be able to drag and drop folders onto the place section.
 
 
 == Importing Data ==
@@ -94,9 +98,9 @@ Click OK. The next window allows you to order your labels and groups for the des
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step4.png
 
-Note: once the data is imported and opened, the first group will be displayed along a horizontal axis and the second (if one exists) on a vertical axis. Biodiverse does not support a graphical view for more than 2 group axes, although they can still be imported and used for analysis.  It will also display using the first two axes.
+Note: once the data are imported and opened, the first group axis will be displayed along a horizontal axis and the second (if one exists) on a vertical axis. Biodiverse does not currently support a graphical view for more than two group axes, although they can still be imported and analysed.  Any data set containing more than two axes will be displayed using the first two axes.
 
-Once you have accepted the label and group ordering, and if you had previously specified that you wished to set label and/or group properties and remap, you are brought to a final set of windows where you can select the element property table file and its respective parameters (one each for labels and groups if you selected both).  If you did not specify properties were to be set then this step is skipped.  The set of windows is the same for group and label properties, although the column options differ between them.  (See also [DataStructures#Element_property_tables]).
+Once you have accepted the label and group ordering, and if you had previously specified that you wished to set label and/or group properties and remap, you are brought to a final set of windows where you can select the element property table file and its respective parameters (one each for labels and groups if you selected both).  If you did not specify properties were to be set then this step is skipped.  The set of windows is the same for group and label properties, although the column options differ between them.  (See also [DataStructures#Element_property_tables] for details about importing other properties).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/remap_labels_screen1.png
 
@@ -113,7 +117,7 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_into_exist
 
 Data being appended to an existing !BaseData object should have group data in the same format as the existing !BaseData (for example, 'x' and 'y' columns of decimal degree geographic coordinates if the existing data were so); otherwise, the results will be unpredictable. Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to without problem.
 
-You may also create a new !BaseData object as a duplicate of the currently selected !BaseData by the _Basedata->Duplicate_ menu option. This will also duplicate any analyses performed on the !BaseData. To duplicate the basedata only, select _Basedata->Duplicate without outputs_.
+You may also create a new !BaseData object as a duplicate of the currently selected !BaseData by the _Basedata->Duplicate_ menu option.  This will also duplicate any analyses performed on the !BaseData. To duplicate the basedata only, select _Basedata->Duplicate without outputs_.
 
 
 

@@ -124,6 +124,6 @@ BTS/BTY is a Tree object.
 
 BMS/BMY is a matrix object.
 
-The !BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will be stored with the !BaseData object if it is exported separately from a project, but will not be visible if the !BaseData object is subsequently loaded into a new project.
+The !BaseData objects and their cluster and spatial outputs contain references to any matrix or phylogeny arguments to enable the randomisations to function effectively. These references mean that copies of the matrices and phylogenies will be stored with the !BaseData object if it is exported separately from a project, but will not be visible if the !BaseData object is subsequently loaded into a new project.  Use the _!BaseData->Extract embedded matrices_ and _!BaseData->Extract embedded tree_ menu options to make them available to the project.  
 
 Note that it is not possible to directly save a cluster, spatial or randomisation analysis from the GUI because the object needs its links to the parent !BaseData object.  The reference system used means that the !BaseData object will be folded into the analysis object through its reference, thus making the separation unnecessary and complex to unravel on subsequent import.

@@ -65,7 +65,13 @@ For !BaseData and tree object types the import process involves selecting your d
 
 === !BaseData ===
 
-From the !BaseData import dialogue window you can select your data file or files. The text box at the top right of the window allows you to name the !BaseData object that will be produced (as opposed to the default file name). Once you are finished, click Next.  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files that do not share column orders then import each one separately.  If your data were generated in R using the write.table() function then from version 0.14 the system will detect this and allow for the missing column header for the row names (see issue #20).
+There are two types of data supported for import.  In the first case you might have a list where you have one record per observation, for example a list of each species and each coordinate it is found, one per line, with coordinates repeated where there are multiple species found there.  This is the more common data format, and an example is the Example_site_data.csv file in the example data.  The second format is where you have a matrix of data, with coordinates as the rows and species as the columns, for example a sites by species matrix.  The value of each field is the count of observations for that site/species (group/label) pair.  
+
+Most of the import process is common for both, but the specification of groups and labels differs.
+
+==== Common (pt1) ====
+
+From the !BaseData import dialogue window you can select your data file or files. The text box at the top right of the window allows you to name the !BaseData object that will be produced (as opposed to the default file name). Once you are finished, click Next.  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files that do not share column orders then import each one separately into the same !BaseData.  If your data were generated in R using the write.table() function then from version 0.14 the system will detect this and allow for the missing column header for the row names (see issue #20).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step1.png
 
@@ -73,7 +79,12 @@ You will then see a window with various options you can set for the import, such
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step2.png
 
-The next window allows you to specify how the columns in your file will be treated.
+The next window allows you to specify how the columns in your file will be treated.  The available options are determined by your selection of the "Data are in matrix form?" check box.  
+
+_NOTE:  In versions 0.10 and before, the import will fail when it reaches an input line where a group field is either undefined or non-numeric.  This can occur where you do not know the coordinates for a sample, if you choose the wrong column to use for the groups, or if you have a series of lines with no data at the end of a file (a common issue with exporting from spreadsheet programs).  The solution is to remove these lines from the input file before import.  From version 0.11 you are given the option to ignore these records (the "Skip lines with undef groups" option).  This issue does not affect text groups._
+
+
+==== Data not in matrix form ====
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step3.png
 
@@ -92,7 +103,13 @@ You can filter which data rows to use by assigning column types as “Include_co
 
 All columns in your file that are irrelevant to the analysis should be set to “Ignore”.
 
-_NOTE:  In versions 0.10 and before, the import will fail when it reaches an input line where a group column is either undefined or non-numeric.  This can occur where you do not know the coordinates for a sample, if you choose the wrong column to use for the groups, or if you have a series of lines with no data at the end of a file (a common issue with exporting from spreadsheet programs).  The solution is to remove these lines from the input file before import.  From version 0.11 you are given the option to ignore these records (the "Skip lines with undef groups" option).  This issue does not affect text groups._
+==== Data in matrix form ====
+
+_This needs to be written properly._  See issue #158.
+
+But quickly, the key points to note are the label start and end cols.  These denote which columns to use for the labels.  If more than one is specified then the system will use the first start col and last end col.  If you have a single label column before the groups are specified then you will need to move it to after the groups, as the system currently only allows one option per column so it cannot be both start and end.  Include and exclude columns apply as before.
+
+==== Common (pt2) ====
 
 Click OK. The next window allows you to order your labels and groups for the desired view. In the example data set, placing “genus” above “species” produces labels named with the species name concatenated after the genus name, and placing “y” above “x” makes the y column data the first dimension of a group's coordinates and x the second (this is useful if you have a file where latitude precedes longitude in the file's column order).
 
@@ -111,14 +128,15 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/remap_labels_screen3.png
 
 If you decide you don't want to select a remap file after all, simply click Cancel. The system will now import your data into a !BaseData object. A status bar appears showing progress. When the import is complete, you are free to visualise and analyse the data. The Outputs tab shows all currently imported !BaseData objects and associated analyses that you can work with.
 
-The process described thus far will create a new !BaseData object in the Biodiverse session. Alternatively, if you have an existing !BaseData object in your project and wish to add more data you can do so by following the normal import process, but in the dialogue window where you select the file to be imported, uncheck the “New” box at the top and select the existing !BaseData set to import into from the drop-down menu.
+==== Using existing data ===
+
+The process described above will create a new !BaseData object in the Biodiverse session. Alternatively, if you have an existing !BaseData object in your project and wish to add more data you can do so by following the normal import process, but in the dialogue window where you select the file to be imported, uncheck the “New” box at the top and select the existing !BaseData set to import into from the drop-down menu.
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_into_existing.png
 
 Data being appended to an existing !BaseData object should have group data in the same format as the existing !BaseData (for example, 'x' and 'y' columns of decimal degree geographic coordinates if the existing data were so); otherwise, the results will be unpredictable. Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to without problem.
 
 You may also create a new !BaseData object as a duplicate of the currently selected !BaseData by the _Basedata->Duplicate_ menu option.  This will also duplicate any analyses performed on the !BaseData. To duplicate the basedata only, select _Basedata->Duplicate without outputs_.
-
 
 
 === Matrices ===

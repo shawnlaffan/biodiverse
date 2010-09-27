@@ -102,7 +102,7 @@ Label property tables will perhaps be used more often than group property tables
 
 == Importing element property data ==
 
-The import process is similar to that for a !BaseData set, in that one must select the file, choose the field separator and quotes characters, and then tell the system what rows and columns represent what.  The meaning of the different options are as follows.  If more than one column is given for the range, sample_count and Use_field_name options then the GUI will take the last one specified.  If used in a script then no order is guaranteed, so take care to specify one column only for those options.  
+The import process is similar to that for a !BaseData set, in that one must select the file, choose the field separator and quotes characters, and then tell the system what rows and columns represent what.  The meaning of the different options are as follows.  If more than one column is given for the range, sample_count and Use_field_name options then the GUI will take the last one specified.  If used in a script then no order is guaranteed, so take care to specify one column only for those options.  Note that you currently cannot re-order the input or remapped element columns in the GUI so these will need to be in the same order as in the !BaseData set.
 
   *  *Input_element*:  This column will be used to form part of the label or group name.  Select as many of these as you have axes in the !BaseData set, otherwise they will not match and the table will have no effect.
   *  *Remapped_element*:  This column will be used to form part of the remapped element name.

@@ -40,7 +40,7 @@ Perl is able to handle different numeric locales, however there are some consequ
 
 == Opening Data ==
 
-Data can be loaded into a project if they have previously been saved as separate files on disk.  Use the  _Open_ options under the respective menus, or click on the open folder icon from the selected object bar (tooltip "open from native format").  The filename extensions for each object type are given in the DataStructures page.
+Data can be loaded into a project if they have previously been saved as separate files on disk.  Use the  _Open_ options under the respective menus, or click on the open folder icon from the selected object bar (tooltip "open from native format").  The filename extensions for each object type are given at DataStructures#File_naming_scheme.
 
 Change the name in the textbox at the top if you want to list them by a different name.
 

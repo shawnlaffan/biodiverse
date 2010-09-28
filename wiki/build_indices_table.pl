@@ -32,13 +32,14 @@ my $html = $self -> get_calculation_metadata_as_wiki;
 
 
 use File::Basename;
+my $version = $Biodiverse::Config::VERSION;
 
-my $wiki_leader = "= Indices available in Biodiverse =\n";
+my $wiki_leader  = "= Indices available in Biodiverse =\n";
    $wiki_leader .= '_Generated GMT '
                     . (gmtime)
                     . " using "
                     . basename ($0)
-                    . ", Biodiverse version $Biodiverse::VERSION._\n";
+                    . ", Biodiverse version $version._\n";
 
 my $intro_wiki = <<"END_OF_INTRO";
 #summary Table of available indices
@@ -69,8 +70,10 @@ my $wiki_text = $intro_wiki
                     #. $wc->html2wiki( $html );
                     . $html;
 
+
+(my $v = $version) =~ s/\.//g;
 my $fh;
-open ($fh, '>', 'Indices_014.wiki') || croak;
+open ($fh, '>', "Indices_$v.wiki") || croak;
 
 print $fh $wiki_text;
 close $fh;

@@ -6,10 +6,9 @@
 </wiki:comment>
 
 
-This is the main source of documentation for the GUI.  it needs further development, and much of the content will move into the other wiki pages over time, with this document being shortened and serving the purpose of an overview.
+This is the main source of documentation for the GUI.  It needs further development, and much of the content will move into the other wiki pages over time, with this document being shortened and serving the purpose of an overview.
 
-If you find parts of it needs to be clarified, or material is missing, then please add a comment at the end of the page or submit an issue (http://code.google.com/p/biodiverse/issues).  If you would like to contribute to the documentation then please submit changes as diff/patch format files if possible as these make it easier to review and apply the changes.  If you aren't sure what those are then plain text will do just as well.
-
+If you find parts of it need to be clarified, or material is missing, then please add a comment at the end of the page or submit an issue (http://code.google.com/p/biodiverse/issues).  If you would like to contribute to the documentation then please submit changes as diff/patch format files if possible as these make it easier to review and apply the changes.  If you aren't sure what those are then plain text will do just as well.
 
 <wiki:toc max_depth="4" />
 
@@ -28,6 +27,8 @@ There are seven main components in a full session.
 We suggest you read this in conjunction with the KeyConcepts and DataStructures documents. Much additional information can be found within the application itself, for example by hovering the mouse over various buttons and menu items to view their associated tooltips.
 
 If you wish to experiment with these options then use the Example_site_data.csv file for species sample data, Example_matrix.txt file for matrix data and Example_tree.nex file for tree data. These are under the Biodiverse/data folder in the distribution. Note that these are fictional data so the results have no meaning beyond example purposes.
+
+Note also that these instructions apply to version 0.14 and later.
 
 ==A word of warning==
 
@@ -65,7 +66,7 @@ For !BaseData and tree object types the import process involves selecting your d
 
 === !BaseData ===
 
-There are two types of data supported for import.  In the first case you might have a list where you have one record per observation, for example a list of each species and each coordinate it is found, one per line, with coordinates repeated where there are multiple species found there.  This is the more common data format, and an example is the Example_site_data.csv file in the example data.  The second format is where you have a matrix of data, with coordinates as the rows and species as the columns, for example a sites by species matrix.  The value of each field is the count of observations for that site/species (group/label) pair.  
+There are two types of data supported for import.  In the first case you might have a list where you have one record per observation, for example a list of each species and each coordinate it is found, one per line, with coordinates repeated where there are multiple species found there.  This is the more common data format.  The second format is where you have a matrix of data, with coordinates as the rows and species as the columns, for example a sites by species matrix.  The value of each field is the count of observations for that site/species (group/label) pair.  Examples of each format are in the example data, see Example_site_data.csv and Example_site_data_matrix_form.csv.
 
 Most of the import process is common for both, but the specification of groups and labels differs.
 
@@ -79,18 +80,29 @@ You will then see a window with various options you can set for the import, such
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step2.png
 
+The set label/group properties and remap check boxes allow you to specify properties for the labels and groups.  See [DataStructures#Element_property_tables].
+
+Allowing labels with no groups lets you include labels in the analyses which are not assigned to a group.  An example might be where you wish to include species that occur outside your study area when comparing a local region with a broader region.  
+
+Allowing empty groups lets you have groups that are considered for analysis, but that have no labels themselves.  This is useful when you wish to have moving window analyses extend beyond the sampled data to give a smoother result (it is up to the user to ensure such smoothness is valid), or you want a randomisation to assign labels to more groups than just those containing labels.
+
+Both the "empty" options are implemented by setting a sample_count column for the appropriate records (in the next window) to be 0.  If no such column is given then a count of 1 is assumed, rendering these options redundant (and the imported data set possibly erroneous).  It is probably easiest to import these as separate files rather than "pollute" your sample data.  See [#Adding_to_an_existing_data_set] for details of how to do this.  
+
+The "Skip lines with undef groups" check box allows you to ignore records (lines) where a group field is either undefined or non-numeric.  This can occur where you do not know the coordinates for a sample, if you choose the wrong column to use for the groups, or if you have a series of lines with no data at the end of a file (a common issue with exporting from spreadsheet programs).  If turned off and such a line is encountered then the import will fail when it reaches that line.  The alternative is to remove these lines from the input file before import, a sometimes tedious and involved task.  This issue does not affect text groups, as an undefined value is treated as a zero length string - "".
+
+The "Convert sample counts to binary" option converts any non-zero sample count value to a 1.  This is per-record, not per-group.
+
 The next window allows you to specify how the columns in your file will be treated.  The available options are determined by your selection of the "Data are in matrix form?" check box.  
 
-_NOTE:  In versions 0.10 and before, the import will fail when it reaches an input line where a group field is either undefined or non-numeric.  This can occur where you do not know the coordinates for a sample, if you choose the wrong column to use for the groups, or if you have a series of lines with no data at the end of a file (a common issue with exporting from spreadsheet programs).  The solution is to remove these lines from the input file before import.  From version 0.11 you are given the option to ignore these records (the "Skip lines with undef groups" option).  This issue does not affect text groups._
+==== Data are not in matrix format ====
 
-
-==== Data not in matrix form ====
+If you specify that your data *are not* in matrix form then the next window will look like this (explanation below).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step3.png
 
-You must set at least one Group and one Label column, but more than one (of each) may be chosen if so desired. For example, you may typically wish to use both a "species" column and a "genus" column (if separated in your file) as one combined label for your data points, or to specify both the x-coordinate and y-coordinate columns in a file as "Group", to specify a Cartesian grid (specifying only an "x" column or "y" column as the Group would result in a one-dimensional analysis of the data across that group's domain). You will notice that when a Group column has been set, you have the option of selecting its cell size (assumedly in the same units as the group data is represented) and origin, which default to 100,000.00 and 0.00, respectively.  The origin allows you to align your imported data with a non-zero origin, e.g. you are using some coarse resolution climate data and you wish to ensure the resulting cell boundaries align exactly between data sets.  If you have specified a matrix format for your data then you will also need to specify a label_start_col and, optionally, a label_end_col if you want to ignore some columns at the end.  If you want to skip columns between these two limits then set an exclude column in a label remap file.  (Note that the system takes the first label_start_col column if more than one is specified, and the last label_end_col if more than one is specified).
+You must set at least one Group and one Label column, but more than one of each may be chosen. For example, you may typically wish to use both a "species" column and a "genus" column (if separated in your file) as one combined label for your data points, or to specify both the x-coordinate and y-coordinate columns in a file as "Group", to specify a Cartesian grid (specifying only an "x" column or "y" column as the Group would result in a one-dimensional analysis of the data across that group's domain).  When a Group column has been set you will be given the option to select its cell size (in the same units as the group data is stored) and origin.  These default to 100,000.00 and 0.00, respectively so make sure they are appropriate to your data.  The origin allows you to align your imported data with a non-zero origin, e.g. you are using some coarse resolution climate data in a related analysis and you wish to ensure the resulting cell boundaries align exactly between data sets.
 
-From version 0.13 you can also specify if the data are degrees using the _Degrees?_ comboboxes (see issue #61).  This allows the importation of data in degrees minutes seconds formats, as well as some validation to determine if the value is in the valid range.  Specify _is_lat_ for latitude and _is_lon_ for longitude.  Examples of valid formats are:
+You can also specify if the group data are degrees using the _Degrees?_ comboboxes.  This allows the importation of data in degrees minutes seconds formats, as well as some validation to determine if the value is in the valid range.  Specify _is_lat_ for latitude and _is_lon_ for longitude.  Examples of valid formats are:
 {{{
 Latitude,Longitude
 S23°32'09.567", E149°23'18.009"
@@ -103,11 +115,17 @@ You can filter which data rows to use by assigning column types as “Include_co
 
 All columns in your file that are irrelevant to the analysis should be set to “Ignore”.
 
-==== Data in matrix form ====
+==== Data are in matrix format ====
 
-_This needs to be written properly._  See issue #158.
+If you specify that your data *are* in matrix form then the next window will look like this (explanation below).
 
-But quickly, the key points to note are the label start and end cols.  These denote which columns to use for the labels.  If more than one is specified then the system will use the first start col and last end col.  If you have a single label column before the groups are specified then you will need to move it to after the groups, as the system currently only allows one option per column so it cannot be both start and end.  Include and exclude columns apply as before.
+http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step3_matrix_format.png
+
+The group options for the matrix imports are the same as for the non-matrix imports.
+	
+The key difference from the non-matrix import are the label_start_col and label_end_col column options (the Label option is also not available).  These denote which column headers to use for the labels.  The label_end_col is optional.  If not specified then the system will use all columns after the label_start_col.  If more than one start and/or end column is specified then the system will use the first start col and last end col (see issue #164).  If you have a single label column before the groups are specified then you will need to edit the file so it is after the groups, as the system currently only allows one option per column so it cannot be both start and end.  Include and exclude columns apply as before, so take care not to specify a label column as include or exclude as it might not do what you want (although it is possible that it will, for example if presence of a species should be used to exclude a sample row).  If you want to skip columns between the label start and end columns then set an exclude column in a label remap file.  Remember also that the values for each row are the sample counts - set the "Convert sample counts to binary" option in the preceding window if you only want presence/absence data per group.  Finally, use a [DataStructures#Element_property_tables label remap/property table] to change the column names, for example to separate genus and species into separate axes for analysis.
+  
+Those columns marked as ignore but between a label_start_col and label_end_col will be imported.
 
 ==== Common (pt2) ====
 
@@ -128,15 +146,15 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/remap_labels_screen3.png
 
 If you decide you don't want to select a remap file after all, simply click Cancel. The system will now import your data into a !BaseData object. A status bar appears showing progress. When the import is complete, you are free to visualise and analyse the data. The Outputs tab shows all currently imported !BaseData objects and associated analyses that you can work with.
 
-==== Using existing data ===
+==== Adding to an existing data set ===
 
 The process described above will create a new !BaseData object in the Biodiverse session. Alternatively, if you have an existing !BaseData object in your project and wish to add more data you can do so by following the normal import process, but in the dialogue window where you select the file to be imported, uncheck the “New” box at the top and select the existing !BaseData set to import into from the drop-down menu.
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_into_existing.png
 
-Data being appended to an existing !BaseData object should have group data in the same format as the existing !BaseData (for example, 'x' and 'y' columns of decimal degree geographic coordinates if the existing data were so); otherwise, the results will be unpredictable. Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to without problem.
+Data being appended to an existing !BaseData object should have group data in the same format as the existing !BaseData (for example, 'x' and 'y' columns of decimal degree geographic coordinates if the existing data were so), otherwise the results will be unpredictable.  Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to.
 
-You may also create a new !BaseData object as a duplicate of the currently selected !BaseData by the _Basedata->Duplicate_ menu option.  This will also duplicate any analyses performed on the !BaseData. To duplicate the basedata only, select _Basedata->Duplicate without outputs_.
+You may also create a new !BaseData object as a duplicate of the currently selected !BaseData by the _Basedata->Duplicate_ menu option.  This will also duplicate any analyses performed on the !BaseData. To duplicate the !BaseData only, select _Basedata->Duplicate without outputs_.
 
 
 === Matrices ===
@@ -153,9 +171,7 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/import_matrix_step2.png
 
 You must select at least one label column, and one (and only one) “Matrix start” column. Any other columns in the file should be set to “Ignore”. Click Ok. Your matrix has now been imported, and should appear in the drop-down menu in the matrix toolbar at the top of the screen. It will be displayed the next time you visualise basedata (though keep in mind it will only produce a useful display if the matrix and basedata objects share some labels).
 
-_Note_: The matrix import methods do not support remapping of labels prior to version 0.12 (see issue #16).  
-
-Remapping and explicit inclusion/exclusion of matrix elements is done using an element properties table, the same as for a !BaseData import.  From version 0.12 you will be given the option to use an element properties table after the matrix file and its columns have been specified.  Choosing cancel will stop the whole import.
+Remapping and explicit inclusion/exclusion of matrix elements is done using an element properties table, the same as for a !BaseData import.  You will be given the option to use an element properties table after the matrix file and its columns have been specified.  Choosing cancel will stop the whole import.
 
 === Trees ===
 
@@ -288,13 +304,13 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/run_exclusions_checked.png
 
 There are currently four group properties and three label properties that can be assessed, setting maximum or minimum values by which to exclude them. These characteristics are _variety_, _samples_ and _redundancy_ for both labels and groups as well as _range_ for labels. The _variety_ of a group is the number of different labels it contains (the same as the richness). A group's _samples_ is the total number of samples of all labels it contains. A group's _redundancy_ is the complement of the ratio of the number labels to the number of samples in that group (i.e. a group with 2 labels having a total of 8 labels will have a redundancy of 0.75).  For labels, _variety_ is the number of groups it occurs in.  The _samples_ is the number of samples of that label across all groups.  The _redundancy_ is analogous to that used for groups, except it is a function of the ratio of the group count to the sample count for that label.  The label _range_ is the _variety_ unless it has been specified using label properties at the time of import.
 
-In the screen shot above, any label with a range exceeding 50 will be removed (excluded) from the !BaseData object, as will any group with a variety of 6 or less, or 10 or fewer samples across all labels it contains.  (All tests are evaluated using conditions of "less than or equal to" or "greater than or equal to", as appropriate).
+In the screen shot above, any label with a range exceeding 50 will be removed (excluded) from the !BaseData object, as will any group with a variety of 6 or fewer labels, or 10 or fewer samples across all labels it contains.  (All tests are evaluated using conditions of "less than or equal to" or "greater than or equal to", as appropriate).
 
 If you already have the !BaseData displayed when you run the exclusions then any display will not be updated. Close the display and re-open it to see the changes.
 
-*_A word of warning_*: Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated at the end, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the variety of that label, and the range if one is not set using an [DataStructures#Element_property_tables element properties table] at import.
+*_A word of warning_*: Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated each time, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the variety of that label, and the range if one is not set using an [DataStructures#Element_property_tables element properties table] at import.
 
-It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent !BaseData object if you do this.  Any linking back to elements deleted from the !BaseData, such as for display or interrogation of labels in groups, will cause an error.  _From version 0.12 the GUI will guard against this, but it is not implemented in earlier versions._
+It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent !BaseData object if you do this.  Any linking back to elements deleted from the !BaseData, such as for display or interrogation of labels in groups, will cause an error.  For this reason the system will stop you from doing this.  If you do need to run further exclusions then delete all the outputs or duplicate the !BaseData without output (menu _Basedata -> Duplicate without outputs_).
 
 = Running a Cluster Analysis =
 
@@ -386,7 +402,7 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/spatial_analysis_first_pag
 
 Unless you have specified a complex spatial neighbourhood then you should turn the spatial index on (menu option _Analyses -> Index_). The best resolution to use depends on your data set, but a good start is twice the cell size. If you have a cell size of zero then make it approximately the same as the extent of your neighbourhood definition.
 
-Click on the _Go_ button (or use the shortcut Ctl-G) once you have specified your parameters and selected which calculations you want to run for each processing group (see below for how). The system will then run the selected spatial analyses. The progress bar lets you know how things are progressing (as the name suggests).  Once the analysis is complete, it pulls up a display pane and shows you a map of the results. Pull the pane down to view the options you used, for example to change them and re-run the analysis.  You will be warned about overwriting an existing analysis.  (Note that, prior to version 0.12, there is a bug where the display will not refresh properly after re-running - see issue #6).
+Click on the _Go_ button (or use the shortcut Ctl-G) once you have specified your parameters and selected which calculations you want to run for each processing group (see below for how). The system will then run the selected spatial analyses. The progress bar lets you know how things are progressing (as the name suggests).  Once the analysis is complete, it pulls up a display pane and shows you a map of the results. Pull the pane down to view the options you used, for example to change them and re-run the analysis.  You will be warned about overwriting an existing analysis.
 
 == Spatial analysis options ==
 
@@ -450,19 +466,8 @@ Be careful in your selection of the randomisation function, as each specifies a 
 
 Once you have specified your parameters, click on the _Randomise_ button (or Control-G on the keyboard). The system will then repeat the randomisation algorithm for the specified number of iterations. As usual, the progress bar lets you know how things are progressing. Once it is completed you are left back at the tab. You can either run more iterations or open the relevant analyses to view the results (see below). If you do run more iterations then it will warn you that any changes to the parameters, except the number of iterations, are ignored. This is to avoid chaos and mayhem in the interpretation of the results -– if you want to assess different parameters then create a new randomisation and run it separately.
 
-All of the spatial and cluster outputs within a !BaseData are compared with their randomised versions. Prior to version 0.12 the system does not check to see if new analyses are conducted after a randomisation.  From 0.12 the user is warned if this is the case.  The reason for this is to avoid (reduce) confusion between outputs.  For example, one could have the case where some analyses in a !BaseData has undergone 999 iterations of the randomisation while others were created immediately after the 899th teration and thus their randomisation results are based on only 100 iterations.
+All of the spatial and cluster outputs within a !BaseData are compared with their randomised versions. Prior to version 0.12 the system does not check to see if new analyses are conducted after a randomisation.  From version 0.12 the user is warned if this is the case.  The reason for this is to avoid (reduce) confusion between outputs.  For example, one could have the case where some analyses in a !BaseData have undergone 999 iterations of the randomisation while others were created immediately after the 899th iteration and thus their randomisation results are based on only 100 iterations.
 
-Note also that there is a bug in version 0.12 where randomisation lists are not visible in the GUI (see issue #45).  This was be fixed in version 0.13.
-
-{{{
-This is a temporary solution until version 0.13 is released:
-
-1.  Duplicate the basedata (without outputs) (see the basedata menu)
-2.  Re-run the spatial analyses but do not display them.
-3.  Run the randomisations.
-4.  Now display the spatial output.  It will search for the lists to show and should
-now find all of them.
-}}}
 
 == Interpreting the results ==
 
@@ -475,9 +480,7 @@ Exporting an entire project is done through the _File_ menu using _Save_ or _Sav
 
 Exporting a cluster or spatial analysis is done through the Outputs tab. Select the appropriate output and choose export. 
 
-_Prior to version 0.12:_ A window will appear with a series of options, depending on what the output is. The right hand side will have the option to specify the file name. The file type is determined by the file extension for trees and matrices (see Issue #34). The left side of the window contains all the options for the export.
-
-_From version 0.12:_ A window will appear to allow the selection of the output format and file type.  The second window allows the specification of the file name and any relevant parameters.
+A window will appear to allow the selection of the output format and file type.  The second window allows the specification of the file name and any relevant parameters.
 
 
 The key options for the table exports are which list to export and whether to force asymmetric lists to be symmetric. One example use of a symmetric table is to generate a matrix of neighbours when using the Element List calculations.  Forcing lists to be symmetric produces larger file sizes but allows for easier import of some results into database programs.  The size difference will be trivial in many cases, but the system can run out of memory for large files (e.g. exporting 100,000 groups with 30+ labels).

@@ -220,13 +220,13 @@ Interaction with each of the panes is now described.
 
 Interaction with the labels is similar to many lists you will encounter.
 
-Click on any row in the list to highlight a single label. Hold the shift key down to select a contiguous block, and the control key to select (or deselect) non-contiguous labels. The main use for a second list is to be able to select labels from each list to highlight specific cells – or blocks of cells – in the matrix pane, if a matrix is currently selected. The first (top) label list represents matrix rows, while the second (bottom) label list represents matrix columns.
+Click on any row in the list to highlight a single label. Hold the shift key down to select a contiguous block, and the control key to select (or deselect) non-contiguous labels. The main use for a second list is to be able to select labels from each list to highlight specific cells – or blocks of cells – in the matrix pane, if a matrix is currently selected. The first (top) label list represents matrix rows, while the second (bottom) label list represents matrix columns.  The second list is only visible if the project has a selected matrix.
 
 Sorting the label lists is done by clicking on the column headers. Subsequent clicks on column headers sort the data by that column in ascending, descending, and default order. The default order is by label, in alphabetical order. Re-ordering of these lists also re-orders the matrix plot.  The current selection in the lists is updated whenever you select elements in one of the other panes.
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/view_labels2_one_label_selected.png
 
-There are currently four columns: the Label (the name of the label), Variety, Samples, and the Redundancy.  <wiki:comment>_The view labels columns need to be extended to show the selected set and also any other properties set on import._</wiki:comment>
+At version 0.14 there are five or six columns: the Label (the name of the label), Variety, Samples, Redundancy and Selected.  The "Col selected" column is only visible if the project has a selected matrix.  From version 0.15 there are also columns for any user specified properties imported using an element properties table ([DataStructures#Element_property_tables]).
 
 The Variety column shows the number of groups the label occurs in. This is analogous to the range unless one is set separately on import using the _set label remap and properties_ option.  
 
@@ -234,6 +234,7 @@ The Samples column lists number of times this label occurs across all groups. Gr
 
 The Redundancy column shows the sample redundancy for each label. This is calculated as (1 – variety / samples). A value close to one represents a good overall sample of a label relative to the number of groups it occurs in (many redundant samples). A value of zero means that there is, on average, close to one sample per group the label occurs in, and it is therefore not well sampled.
 
+The selection columns have a value of 1 when that label is selected, allowing the user to raise the selected set to the top of the list.  The "Selected col" value is 1 only when one selects a matrix column, either through the lower Label List or on the matrix itself.  
 
 == The Group Grid ==
 

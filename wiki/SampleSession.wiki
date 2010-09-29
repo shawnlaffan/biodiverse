@@ -19,7 +19,8 @@ There are seven main components in a full session.
   1. Open or import data into a project (!BasaData, matrices and trees)
   1. Visualise the data (view labels)
   1. Exclude some of the data
-  1. Run a cluster analysis.
+  1. Build a spatial index
+  1. Run a cluster analysis
   1. Run a moving window analysis
   1. Run a randomisation to assess the quality of the results
   1. Export or save the data and results
@@ -66,7 +67,7 @@ For !BaseData and tree object types the import process involves selecting your d
 
 === !BaseData ===
 
-There are two types of data supported for import.  In the first case you might have a list where you have one record per observation, for example a list of each species and each coordinate it is found, one per line, with coordinates repeated where there are multiple species found there.  This is the more common data format.  The second format is where you have a matrix of data, with coordinates as the rows and species as the columns, for example a sites by species matrix.  The value of each field is the count of observations for that site/species (group/label) pair.  Examples of each format are in the example data, see Example_site_data.csv and Example_site_data_matrix_form.csv.
+There are two types of data supported for import.  In the first case you might have a list where you have one record per observation, for example a list with one line for each species/coordinate combination.  This is the more common data format.  The second format is where you have a matrix of data, with coordinates as the rows and species as the columns, for example a sites by species matrix.  The value of each field is the count of observations for that site/species (group/label) pair.  Examples of each format are in the example data, see Example_site_data.csv and Example_site_data_matrix_form.csv.
 
 Most of the import process is common for both, but the specification of groups and labels differs.
 
@@ -102,7 +103,7 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step3.png
 
 You must set at least one Group and one Label column, but more than one of each may be chosen. For example, you may typically wish to use both a "species" column and a "genus" column (if separated in your file) as one combined label for your data points, or to specify both the x-coordinate and y-coordinate columns in a file as "Group", to specify a Cartesian grid (specifying only an "x" column or "y" column as the Group would result in a one-dimensional analysis of the data across that group's domain).  When a Group column has been set you will be given the option to select its cell size (in the same units as the group data is stored) and origin.  These default to 100,000.00 and 0.00, respectively so make sure they are appropriate to your data.  The origin allows you to align your imported data with a non-zero origin, e.g. you are using some coarse resolution climate data in a related analysis and you wish to ensure the resulting cell boundaries align exactly between data sets.
 
-You can also specify if the group data are degrees using the _Degrees?_ comboboxes.  This allows the importation of data in degrees minutes seconds formats, as well as some validation to determine if the value is in the valid range.  Specify _is_lat_ for latitude and _is_lon_ for longitude.  Examples of valid formats are:
+You can also specify if the group data are degrees using the _Degrees?_ comboboxes.  This allows the importation of data in degrees minutes seconds formats, as well as some validation of data to determine if the value is in the valid range (the latter works for both DMS and decimal degrees formats).  Specify _is_lat_ for latitude and _is_lon_ for longitude.  Examples of valid formats are:
 {{{
 Latitude,Longitude
 S23°32'09.567", E149°23'18.009"
@@ -135,7 +136,7 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step4.png
 
 Note: once the data are imported and opened, the first group axis will be displayed along a horizontal axis and the second (if one exists) on a vertical axis. Biodiverse does not currently support a graphical view for more than two group axes, although they can still be imported and analysed.  Any data set containing more than two axes will be displayed using the first two axes.
 
-Once you have accepted the label and group ordering, and if you had previously specified that you wished to set label and/or group properties and remap, you are brought to a final set of windows where you can select the element property table file and its respective parameters (one each for labels and groups if you selected both).  If you did not specify properties were to be set then this step is skipped.  The set of windows is the same for group and label properties, although the column options differ between them.  (See also [DataStructures#Element_property_tables] for details about importing other properties).
+Once you have accepted the label and group ordering, and if you had previously specified that you wished to set label and/or group properties and remap, you are brought to a final set of windows where you can select the element property table file and its respective parameters (one each for labels and groups if you selected both).  If you did not specify that any properties were to be set then this step is skipped.  The set of windows is the same for group and label properties, although the column options differ between them.  (See also [DataStructures#Element_property_tables] for details about importing other properties).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/remap_labels_screen1.png
 
@@ -156,6 +157,7 @@ Data being appended to an existing !BaseData object should have group data in th
 
 You may also create a new !BaseData object as a duplicate of the currently selected !BaseData by the _Basedata->Duplicate_ menu option.  This will also duplicate any analyses performed on the !BaseData. To duplicate the !BaseData only, select _Basedata->Duplicate without outputs_.
 
+Note that any spatial index will need to be rebuilt if new data are imported (unless no new groups are added).  See [KeyConcepts#Using_the_spatial_index].
 
 === Matrices ===
 
@@ -313,6 +315,12 @@ If you already have the !BaseData displayed when you run the exclusions then any
 
 It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent !BaseData object if you do this.  Any linking back to elements deleted from the !BaseData, such as for display or interrogation of labels in groups, will cause an error.  For this reason the system will stop you from doing this.  If you do need to run further exclusions then delete all the outputs or duplicate the !BaseData without output (menu _Basedata -> Duplicate without outputs_).
 
+= Building a spatial index =
+
+A spatial index will make the spatial analyses run faster, although users should note that not all spatial conditions will work with the index (typically those with complex user-defined conditions).  To set this use the menu option _Analyses -> Build Spatial Index_.  The index can be deleted and rebuilt at any time, and these changes affect only subsequent analyses, not those that preceded any change.
+
+See [KeyConcepts#Using_the_spatial_index] for more details about the choice of settings and how it works.  
+
 = Running a Cluster Analysis =
 
 Cluster analyses are used to identify clusters in the data.  Biodiverse supports agglomerative clustering of the groups based on their labels, or some function of their labels such as the values of a linked matrix or tree.
@@ -401,7 +409,7 @@ The Spatial tab has two main sections where you can set options (see below), and
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/spatial_analysis_first_page.png
 
-Unless you have specified a complex spatial neighbourhood then you should turn the spatial index on (menu option _Analyses -> Index_). The best resolution to use depends on your data set, but a good start is twice the cell size. If you have a cell size of zero then make it approximately the same as the extent of your neighbourhood definition.
+Unless you have specified a complex spatial neighbourhood then you should turn the [KeyConcepts#Using_the_spatial_index spatial index] on (menu option _Analyses -> Build Spatial Index_). The best resolution to use depends on your data set, but a good start is twice the cell size. If you have a cell size of zero then make it approximately the same as the extent of your neighbourhood definition.
 
 Click on the _Go_ button (or use the shortcut Ctl-G) once you have specified your parameters and selected which calculations you want to run for each processing group (see below for how). The system will then run the selected spatial analyses. The progress bar lets you know how things are progressing (as the name suggests).  Once the analysis is complete, it pulls up a display pane and shows you a map of the results. Pull the pane down to view the options you used, for example to change them and re-run the analysis.  You will be warned about overwriting an existing analysis.
 
@@ -445,7 +453,7 @@ Holding the control key while clicking on a group, or clicking on a group with t
 
 Vector overlays can be plotted using the “overlays” interface at the bottom of the screen (see [KeyConcepts#Map_overlays)).
 
-The interpretation of some of the list results can take some thought.  Consider the [http://code.google.com/p/biodiverse/wiki/Indices#Endemism_central ENDC_WTLIST] result.  The set of groups that have a result (are coloured) are those that contained that label in their neighbour set.  This is not the same as the set of groups that contain that label (unless a condition condition was used that only uses the processing group, e.g. `sp_self_only()` or `$D==0`).  The main advantage of plotting these sorts of lists is that one can visualise where a specific label has a large or small effect.  In terms of weighted endemism, which is an additive calculation, one can also conduct further calculations outside of Biodiverse to determine which labels are contributing the most to the [http://code.google.com/p/biodiverse/wiki/Indices#Endemism_central ENDC_WE] or [http://code.google.com/p/biodiverse/wiki/Indices#Endemism_whole ENDW_WE] scores for each group's neighbour set.  This can be done by Control-clicking to open the popup list window and then copying and pasting, or [KeyConcepts#Export exporting] the data to a different format. 
+The interpretation of some of the list results can take some thought.  Consider the [http://code.google.com/p/biodiverse/wiki/Indices#Endemism_central ENDC_WTLIST] result.  The set of groups that have a result (are coloured) are those that contained that label in their neighbour set.  This is not the same as the set of groups that contain that label (unless a condition was used that only uses the processing group, e.g. `sp_self_only()` or `$D==0`).  The main advantage of plotting these sorts of lists is that one can visualise where a specific label has a large or small effect.  In terms of weighted endemism, which is an additive calculation, one can also conduct further calculations outside of Biodiverse to determine which labels are contributing the most to the [http://code.google.com/p/biodiverse/wiki/Indices#Endemism_central ENDC_WE] or [http://code.google.com/p/biodiverse/wiki/Indices#Endemism_whole ENDW_WE] scores for each group's neighbour set.  This can be done by Control-clicking to open the popup list window and then copying and pasting, or [KeyConcepts#Export exporting] the data to a different format. 
 
 = Running a randomisation =
 

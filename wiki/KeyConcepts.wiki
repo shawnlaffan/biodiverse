@@ -57,15 +57,21 @@ The system also ignores any vertices that are beyond the bounds of the BaseData 
 
 = Using the spatial index =
 
+A spatial index can only be set if there is a selected !BaseData object.  It is saved as part of the !BaseData object it is related to.
+
 The spatial index speeds up processing by reducing the number of comparisons that need to be made when assessing if a group is a neighbour of the processing goup.  Exactly how much of a speed up is a function of the index resolution and the spatial condition specified (larger neighbourhoods take longer as they use more index blocks and therefore the system must make more comparisons).
 
 As an example of the speed up, an analysis of approximately 20,000 groups took ~3600 seconds for a four cell radius circular neighbourhood without the index. With the index it took 30 seconds. Similarly, an analysis with a radius of one cell also took ~3600 seconds without the index and 12 seconds with it.
 
 The reason for the speed-up is that the system no longer needs to assess every other group in the !BaseData as a possible neighbour, and instead focusses only on those groups that occur within the indexed blocks that satisfy the spatial condition. Think of the search through the index returning a coarse first approximation to the neighbours, with a second search refining the solution to the actual set of neighbours.
 
-Most spatial conditions one will use are likely to be simple and use the available functions.  In these cases the system can precalculate which index bocks (elements) to search.  However, if you are using complex spatial conditions then it must preprocess the data to determine which index blocks should be assessed to find neighbours.  This can take some time when usng a fine resolution index, as it must assess each corner of the index extents, and every one of each corner block's immediate neighbours, against every other possible index block.  This results in `(m^2 * 3^m * n)` comparisons, where `n` is the number of index blocks and `m` is the number of axes (dimensions) used.  This works out to `4*9n = 36n` for a data set with two group axes.  The final analysis should still be faster for most calculations, though.
+Most spatial conditions one will use are likely to be simple and use the available functions.  In these cases the system can precalculate which index bocks (elements) to search.  However, if you are using complex spatial conditions then it must search the index to determine which index blocks should be assessed as containing possible neighbours in the analysis.  This can take some time when using a fine resolution index as it must assess each corner of the index extents, and every one of each corner block's immediate neighbours, against every other possible index block.  This results in `(m^2 * 3^m * n)` comparisons, where `n` is the number of index blocks and `m` is the number of axes (dimensions) used.  This works out to `4*9n = 36n` for a data set with two group axes.  The final analysis should still be faster for most calculations, though.
 
-The system will ignore the spatial index if the spatial conditions used specify it must be ignored, for example with the text matching conditions.  It can also be turned off if needed by using the Analyses->Index menu.
+The system will ignore the spatial index if the spatial conditions used specify it must be ignored, for example with the text matching conditions.  It can also be turned off if needed by using the _Analyses->Index_ menu.
+
+The optimal size of the spatial index is a function of the spatial conditions specified.  The default is twice the resolution of each axis, and this will work reasonably well for most analyses.  For analyses where the spatial conditions do not involve user defined conditions then setting the index to the same size as the !BaseData group resolutions should be fastest.  For cell sizes of zero you should start with an index resolution similar to the analyses being run and experiment from there.  For cases where the system must search the index to find possible neighbours then the optimal size is a trade-off between the initial search and the number of subsequent searches (think of this in terms of the pay-off in the shorter analysis time given the investment in the initial index search).
+
+Note that the index can be deleted and rebuilt at any time, and these changes affect only subsequent analyses, not those that preceded any change.
 
 = !NoData =
 

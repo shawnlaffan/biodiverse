@@ -62,6 +62,8 @@ The choice of neighbourhood size is one of those hoary old chestnuts that affect
 
 One solution is to approach neighbourhoods from the angle of "At what neighbourhood size is my analysis result optimised?"  In the case of endemism, one looks for the size of neighbourhood that maximises endemism, possibly also assessing the rate of change of endemism with increasing neighbourhood size (see for example [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003]).  This principle applies to any spatial analysis, though (see [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al., 2004], [http://dx.doi.org/10.1111/j.1365-3180.2006.00491.x Laffan, 2006]).  One can also develop neighbourhoods based on the assumed controlling process and compare them with other simpler neighbourhoods ([http://dx.doi.org/10.1080/13658810110099107 Laffan, 2002]).
 
+One can also use the cluster analyses to define neighbourhoods based on the data themselves.  Simply choose a set of calculations to run at the bottom of the cluster window (see SampleSession#Running_calculations_for_each_node).  (Note that this method will only run those analyses that require a minimum of one neighbour set, so indices such as those that measure dissimilarity between two sets of neighbours cannot be calculated).  
+
 == I want to analyse environmental data ==
 
 Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the numeric labels calculations to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.
@@ -102,7 +104,7 @@ See also the Issues list http://code.google.com/p/biodiverse/issues/list
 
 == I get an Out of memory error ==
 
-In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #5) and when one is using a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while aso displaying several outputs.
+In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #5) and when one is using a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while also displaying several outputs.
 
 On most 32-bit operating systems the maximum memory allocated to a process is 2GB. On Linux it is 3GB, and server versions of Windows can be configured for 3GB.  If more than this is needed then the system will crash.  There is also the issue that Perl's memory management system is not perfect, and does not completely free all memory in case it might need it again later.  This particularly affects the randomisations.  Each iteration is assigned a chunk of memory that is not returned to the general pool, and eventually the system runs out of available memory and crashes.
 

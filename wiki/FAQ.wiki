@@ -44,6 +44,15 @@ Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [Sa
 
 Yes.  Use an Element Property table for this purpose, specifying one or more exclude and/or include columns.  See [DataStructures#Element_property_tables].
 
+== What is the difference between the central and whole endemism analyses? ==
+
+The underlying calculations are the same between the two analyses.  The only difference between them is the set of labels (e.g. species) used in the calculations.  In the endemism whole analyses (those starting with ENDW) the list of species and their local ranges are taken from both neighbour sets, effectively treating the two neighbour sets as a single combined neighbour set.  In the central analyses (those starting with ENDC) the list of species is taken from the first neighbour set but the local ranges used in the numerator are taken across both neighbour sets.
+
+In essence, the difference is in the question asked.  For the ENDW analyses it is "to what degree are the labels in my neighbour sets endemic to the area defined by neighbour sets 1 and 2", whereas for the ENDC analyses it is "to what degree are the labels in neighbour set 1 endemic to the area defined by neighbour sets 1 and 2".  
+
+If you have only one neighbour set then the two analyses will produce identical results.
+
+
 == Results exported to ER-Mapper BIL files do not display properly in !ArcMap ==
 
 You will need to calculate statistics for the image for it to display properly (before displaying it).  This can be done in !ArcCatalog by right clicking on the file and choosing Calculate Statistics, or by using the _Calculate Statistics_ tool in !ArcToolbox.

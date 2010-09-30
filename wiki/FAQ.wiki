@@ -7,7 +7,7 @@ This is a list of questions that might be frequently asked.  It will be extended
 <wiki:toc max_depth="4" />
 
 
-= Questions =
+= General Questions =
 
 == I have a question about how to use the software ==
 
@@ -36,6 +36,8 @@ No, we just use Australian data for the examples.  It will work on any data you 
 
 Yes, Biodiverse is essentially ignorant of geography.  It will work on any data you give it.  (Whether the analysis is appropriate or not is a different issue).
 
+= Data import =
+
 == My species list has been provided as a site by species matrix.  How do I import it? ==
 
 Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [SampleSession#BaseData].
@@ -43,6 +45,8 @@ Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [Sa
 == Can I skip a subset of species when importing data? ==
 
 Yes.  Use an Element Property table for this purpose, specifying one or more exclude and/or include columns.  See [DataStructures#Element_property_tables].
+
+= Analyses =
 
 == What is the difference between the central and whole endemism analyses? ==
 
@@ -52,6 +56,17 @@ In essence, the difference is in the question asked.  For the ENDW analyses it i
 
 If you have only one neighbour set then the two analyses will produce identical results.
 
+== What neighbourhood size should I use? ==
+
+The choice of neighbourhood size is one of those hoary old chestnuts that affects all spatial analyses.  Neighbourhood size is analogous to a spatially moving MAUP ([http://en.wikipedia.org/wiki/Modifiable_areal_unit_problem modifiable areal unit problem], of which gerrymandering is a good example).  See Chapter 2 of [http://dx.doi.org/10.1002/9780470549094 O'Sullivan and Unwin, 2010, Geographic Information Analysis] for a good introduction to this and other general issues of spatial analysis.
+
+One solution is to approach neighbourhoods from the angle of "At what neighbourhood size is my analysis result optimised?"  In the case of endemism, one looks for the size of neighbourhood that maximises endemism, possibly also assessing the rate of change of endemism with increasing neighbourhood size (see for example [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003]).  This principle applies to any spatial analysis, though (see [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al., 2004], [http://dx.doi.org/10.1111/j.1365-3180.2006.00491.x Laffan, 2006]).  One can also develop neighbourhoods based on the assumed controlling process and compare them with other simpler neighbourhoods ([http://dx.doi.org/10.1080/13658810110099107 Laffan, 2002]).
+
+== I want to analyse environmental data ==
+
+Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the numeric labels analyses to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.
+
+= Exported data =
 
 == Results exported to ER-Mapper BIL files do not display properly in !ArcMap ==
 
@@ -81,9 +96,13 @@ This applies to version 0.15 and later.
 The operating systems do not normally allow certain characters in filenames, for example colons, quotes or backslashes.  If these characters were used in the filenames then exports of groups to the ascii and floatgrid formats will fail, as the file names cannot use the actual names (the colon is a separator, and quotes are often used to obey CSV rules).  Changing the characters to the URI escaped forms gets around this (see issue #129).  For a list of the characters and their escaped forms, see http://www.december.com/html/spec/esccodes.html 
 
 
+= Known issues =
+
+See also the Issues list http://code.google.com/p/biodiverse/issues/list
+
 == I get an Out of memory error ==
 
-In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #5) and when one is using a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while displaying several outputs.
+In some cases the system will use up all the available memory, following which it will crash.  Specific cases are the randomisations (see issue #5) and when one is using a large !BaseData object (e.g. >100,000 groups and ~60 labels) and tries to save the data set while aso displaying several outputs.
 
 On most 32-bit operating systems the maximum memory allocated to a process is 2GB. On Linux it is 3GB, and server versions of Windows can be configured for 3GB.  If more than this is needed then the system will crash.  There is also the issue that Perl's memory management system is not perfect, and does not completely free all memory in case it might need it again later.  This particularly affects the randomisations.  Each iteration is assigned a chunk of memory that is not returned to the general pool, and eventually the system runs out of available memory and crashes.
 

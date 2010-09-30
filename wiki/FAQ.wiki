@@ -48,13 +48,13 @@ Yes.  Use an Element Property table for this purpose, specifying one or more exc
 
 = Analyses =
 
-== What is the difference between the central and whole endemism analyses? ==
+== What is the difference between the central and whole endemism calculations? ==
 
-The underlying calculations are the same between the two analyses.  The only difference between them is the set of labels (e.g. species) used in the calculations.  In the endemism whole analyses (those starting with ENDW) the list of species and their local ranges are taken from both neighbour sets, effectively treating the two neighbour sets as a single combined neighbour set.  In the central analyses (those starting with ENDC) the list of species is taken from the first neighbour set but the local ranges used in the numerator are taken across both neighbour sets.
+The underlying calculations are the same between the two calculations.  The only difference between them is the set of labels (e.g. species) used in the calculations.  In the endemism whole calculations (those starting with ENDW) the list of species and their local ranges are taken from both neighbour sets, effectively treating the two neighbour sets as a single combined neighbour set.  In the central calculations (those starting with ENDC) the list of species is taken from the first neighbour set but the local ranges used in the numerator are taken across both neighbour sets.
 
-In essence, the difference is in the question asked.  For the ENDW analyses it is "to what degree are the labels in my neighbour sets endemic to the area defined by neighbour sets 1 and 2", whereas for the ENDC analyses it is "to what degree are the labels in neighbour set 1 endemic to the area defined by neighbour sets 1 and 2".  
+In essence, the difference is in the question asked.  For the ENDW calculations it is "to what degree are the labels in my neighbour sets endemic to the area defined by neighbour sets 1 and 2", whereas for the ENDC calculations it is "to what degree are the labels in neighbour set 1 endemic to the area defined by neighbour sets 1 and 2".  
 
-If you have only one neighbour set then the two analyses will produce identical results.
+If you have only one neighbour set then the two calculations will produce identical results.
 
 == What neighbourhood size should I use? ==
 
@@ -64,7 +64,7 @@ One solution is to approach neighbourhoods from the angle of "At what neighbourh
 
 == I want to analyse environmental data ==
 
-Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the numeric labels analyses to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.
+Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the numeric labels calculations to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.
 
 = Exported data =
 

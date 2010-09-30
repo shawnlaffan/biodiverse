@@ -17,7 +17,7 @@ Note that this can take quite some time.  If you have not previously installed X
   
   *  You must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
-  *  Install the Xcode software, as it is needed to compile the !MacPorts libraries.  This requires registration with Apple.  If you do not have the installation disk (it comes with the computer when you purchase it) then you need to download it.  The download is also >2GB, of which a large part of which is the iPhone SDK which we don't need.  http://developer.apple.com/technologies/xcode.html
+  *  Install the Xcode software, as it is needed to compile the !MacPorts libraries.  This requires registration with Apple.  If you do not have the installation disk (it comes with the computer when you purchase it) then you need to download it.  The download is also >2GB, of which unfortunately a large part is the iPhone SDK which we don't need.  http://developer.apple.com/technologies/xcode.html
 
   *  Install !MacPorts unless you already have it.  If you are not sure then try to install it anyway and it will tell you.
     * If your operating system is Snow Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.9.1-10.6-SnowLeopard.dmg

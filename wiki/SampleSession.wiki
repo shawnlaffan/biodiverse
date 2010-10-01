@@ -309,7 +309,9 @@ There are currently four group properties and three label properties that can be
 
 In the screen shot above, any label with a range of 50 or more will be removed (excluded) from the !BaseData object, as will any group with a variety of 6 or fewer labels, or 10 or fewer samples across all labels it contains.  (All tests are evaluated using conditions of "less than or equal to" or "greater than or equal to", as appropriate).
 
-If you already have the !BaseData displayed when you run the exclusions then any display will not be updated. Close the display and re-open it to see the changes.  Prior to version 0.15 you will also need to manually rebuild any spatial index if groups were deleted, as this will contain references to deleted groups and any subsequent analysis will fail (see issue #171).
+If you already have the !BaseData displayed when you run the exclusions then any display will not be updated. Close the display and re-open it to see the changes.  
+
+Prior to version 0.15 you will also need to manually rebuild any spatial index if groups were deleted, as this will contain references to deleted groups and any subsequent analysis will fail (see issue #171).
 
 *_A word of warning_*: Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated each time, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the variety of that label, and the range if one is not set using an [DataStructures#Element_property_tables element properties table] at import.
 

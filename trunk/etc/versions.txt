@@ -1,5 +1,8 @@
-#  versions
-$VAR = {
-    release     => '0.15',
-	development => '0.16',
-};
+[explanation]
+Version numbers for Biodiverse releases. 
+
+[release]
+0.15
+
+[development]
+0.16

@@ -68,7 +68,7 @@ One can also use the cluster analyses to define neighbourhoods based on the data
 
 Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the [Indices#Numeric_Labels numeric labels] calculations to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.
 
-== My structured randomisations do not have constant ricness scores ==
+== My structured randomisations do not have constant richness scores ==
 
 The rand_structured randomisation function with arguments rand_multiplier=1 and rand_addition=0 is only guaranteed to keep the species richness constant in each group.  If your neighbourhood includes more than one group then the randomly assigned richness will not be constant across the neighbourhood.  While it is constant per group, the randomised assemblages in neighbouring groups differ, and thus the richness across the neighbour set will differ from that of the original.  This effect will be most noted in the endemism and richness calculations. 
 

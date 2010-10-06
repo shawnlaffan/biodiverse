@@ -202,9 +202,9 @@ Alternatively to importing a tree from a file, you can also derive one at any ti
 
 = Visualising data =
 
-Often the first step you will take once you have imported the data into a basedata object is to view the data to visualize the relationship between the groups and labels. This is done through the _Basedata -> View Labels_ menu option. Alternatively, you can view the data from the Outputs tab by double-clicking on the basedata object or by selecting it and clicking the _Show_ button on the right side of the window.
+Often the first step you will take once you have imported the data into a !BaseData object is to view the data to visualize the relationship between the groups and labels. This is done through the _Basedata->View Labels_ menu option. Alternatively, you can view the data from the Outputs tab by double-clicking on the basedata object or by selecting it and clicking the _Show_ button on the right side of the window.
 
-Once this is done, you should see 4 panes, as below (the two panes on the right-hand side may be appear differently depending on whether a matrix or tree is currently selected in their respective dropdown menus in the toolbar at the top of the screen).
+Once this is done, you should see four panes, as below (the two panes on the right-hand side may be appear differently depending on whether a matrix or tree is currently selected in their respective dropdown menus in the toolbar at the top of the screen).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/view_labels1.png
 
@@ -315,7 +315,7 @@ Prior to version 0.15 you will also need to manually rebuild any spatial index i
 
 *_A word of warning_*: Running the exclusions multiple times is not a good idea. The remaining groups and labels are updated each time, thus recalculating their various scores. For example, if you delete a group on the basis of its redundancy then you will reduce the diversity of any of its labels by one. This means that for analyses that use it you will reduce the variety of that label, and the range if one is not set using an [DataStructures#Element_property_tables element properties table] at import.
 
-It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent !BaseData object if you do this.  Any linking back to elements deleted from the !BaseData, such as for display or interrogation of labels in groups, will cause an error.  For this reason the system will stop you from doing this.  If you do need to run further exclusions then delete all the outputs or duplicate the !BaseData without output (menu _Basedata -> Duplicate without outputs_).
+It is also a bad idea to run the exclusions after you have run any of the cluster or spatial analyses. These analyses will no longer properly relate to their parent !BaseData object if you do this.  Any linking back to elements deleted from the !BaseData, such as for display or interrogation of labels in groups, will cause an error.  For this reason the system will stop you from doing this.  If you do need to run further exclusions then delete all the outputs or duplicate the !BaseData without outputs and work on that (menu _Basedata -> Duplicate without outputs_).
 
 = Building a spatial index =
 

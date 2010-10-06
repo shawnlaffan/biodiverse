@@ -50,7 +50,7 @@ Yes.  Use an Element Property table for this purpose, specifying one or more exc
 
 == What is the difference between the central and whole endemism calculations? ==
 
-The underlying calculations are the same between the two calculations.  The only difference between them is the set of labels (e.g. species) used in the calculations.  In the endemism whole calculations (those starting with ENDW) the list of species and their local ranges are taken from both neighbour sets, effectively treating the two neighbour sets as a single combined neighbour set.  In the central calculations (those starting with ENDC) the list of species is taken from the first neighbour set but the local ranges used in the numerator are taken across both neighbour sets.
+The underlying calculations are the same between the two calculations.  The only difference between them is the set of labels (e.g. species) used in the calculations.  In the endemism whole calculations (those indices starting with ENDW) the list of species and their local ranges are taken from both neighbour sets, effectively treating the two neighbour sets as a single combined neighbour set.  In the central calculations (those indices starting with ENDC) the list of species is taken from the first neighbour set but the local ranges used in the numerator are taken across both neighbour sets.
 
 In essence, the difference is in the question asked.  For the ENDW calculations it is "to what degree are the labels in my neighbour sets endemic to the area defined by neighbour sets 1 and 2", whereas for the ENDC calculations it is "to what degree are the labels in neighbour set 1 endemic to the area defined by neighbour sets 1 and 2".  
 
@@ -66,7 +66,15 @@ One can also use the cluster analyses to define neighbourhoods based on the data
 
 == I want to analyse environmental data ==
 
-Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the numeric labels calculations to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.
+Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the [Indices#Numeric_Labels numeric labels] calculations to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.
+
+== My structured randomisations do not have constant ricness scores ==
+
+The rand_structured randomisation function with arguments rand_multiplier=1 and rand_addition=0 is only guaranteed to keep the species richness constant in each group.  If your neighbourhood includes more than one group then the randomly assigned richness will not be constant across the neighbourhood.  While it is constant per group, the randomised assemblages in neighbouring groups differ, and thus the richness across the neighbour set will differ from that of the original.  This effect will be most noted in the endemism and richness calculations. 
+
+Consider an example where a neighbour set of two groups has four distinct labels, with Group 1 containing three (labels A, B & C) and Group 2 containing three also (labels B, C & D).  In the randomised version each of Groups 1 and 2 will have three labels, but this could be a distribution where Group 1 has labels C, D & E while Group 2 has labels X, Y & Z.  This is an aggregate richness across the neighbour set of six.
+
+Is there a cure?  Not really.  It is more of a feature since the randomisation is operating as designed.  If you want to reduce the effect then you will need to wait for the spatially constrained randomisations to be implemented (issues #76 and #160).  While these will not be guaranteed to make the richness of each neighbour set constant, they will be closer since they will assign labels in a spatially clustered fashion (depending on the spatial constraint specified, and also on the spatial clustering of labels in the original data set).
 
 = Exported data =
 
@@ -101,6 +109,10 @@ The operating systems do not normally allow certain characters in filenames, for
 = Known issues =
 
 See also the Issues list http://code.google.com/p/biodiverse/issues/list
+
+== Biodiverse crashes and disappears without any message ==
+
+This is an [#I_get_an_Out_of_memory_error out of memory error].
 
 == I get an Out of memory error ==
 

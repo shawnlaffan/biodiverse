@@ -4,9 +4,7 @@
 
 = Version 0.15 =
 
-This release is in development.  A summary of changes is below.
-
-To see the full list of changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.15
+Main changes since the previous version (0.13) are:
 
   *  Calculations and Indices
     *  The PD node list has been moved to its own calculation (issue #130)
@@ -29,6 +27,7 @@ To see the full list of changes, see http://code.google.com/p/biodiverse/issues/
     *  Neighbour set recycling works properly now (issue #127 & issue #145)
     *  Module Statistics::Descriptive2 is now deprecated.  It has been replaced by Biodiverse::Statistics which depends explicitly on Statistics::Descriptive (issue #139)
 
+To see the full list of changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.15
 
 
 = Version 0.14 =

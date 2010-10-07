@@ -4,7 +4,7 @@
 
 = Version 0.15 =
 
-Main changes since the previous version (0.13) are:
+Main changes since the previous version (0.14) are:
 
   *  Calculations and Indices
     *  The PD node list has been moved to its own calculation (issue #130)

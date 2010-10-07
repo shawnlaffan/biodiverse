@@ -86,7 +86,7 @@ If you calculate statistics while displaying the image in !ArcMap then it will n
 
 == My ER-Mapper BIL file is offset by half a pixel ==
 
-The ER-Mapper file export is written to work with !ArcMap.  However, !ArcMap seems to use the centre of the registration cell as the location of the registration coordinate.  This results in an offset of 0.5 pixels to the north and west when it is plotted using some other system like Erdas or ER-Mapper.  The solution is to edit the header file and change these two lines:
+The ER-Mapper file export is written to work with !ArcMap 9.  However, !ArcMap 9 seems to use the centre of the registration cell as the location of the registration coordinate.  This results in an offset of 0.5 pixels to the north and west when it is plotted using some other system like Erdas or ER-Mapper.  The solution is to edit the header file and change these two lines:
 {{{
 RegistrationCellX  = 0
 RegistrationCellY  = 0
@@ -97,13 +97,13 @@ RegistrationCellX  = 0.5
 RegistrationCellY  = 0.5
 }}}
 
-The system behaviour is set for !ArcMap purely because we are assuming more people will be using it for display.  If that is not the case then the behaviour can be changed.  With ArcGIS 10 using the GDAL library this problem will hopefully go away and we can set the registration cells to 0.5.
+The system behaviour is set for !ArcMap 9 purely because we are assuming more people will be using it for display.  If that is not the case then the behaviour can be changed.  With ArcGIS 10 using the GDAL library this problem will hopefully go away and we can set the registration cells to 0.5.
 
 ==  Why do my asciigrid or floatgrid files have strange characters like %3A in the names? ==
 
 This applies to version 0.15 and later. 
 
-The operating systems do not normally allow certain characters in filenames, for example colons, quotes or backslashes.  If these characters were used in the filenames then exports of groups to the ascii and floatgrid formats will fail, as the file names cannot use the actual names (the colon is a separator, and quotes are often used to obey CSV rules).  Changing the characters to the URI escaped forms gets around this (see issue #129).  For a list of the characters and their escaped forms, see http://www.december.com/html/spec/esccodes.html 
+The operating systems do not normally allow certain characters in filenames, for example colons, quotes or backslashes.  If these characters are used in the filenames then exports of groups to the ascii and floatgrid formats will fail, as the file names cannot use the actual names (the colon is a separator, and quotes are often used to obey CSV rules).  Changing the characters to the URI escaped forms gets around this (see issue #129).  For a list of the characters and their escaped forms, see http://www.december.com/html/spec/esccodes.html 
 
 
 = Known issues =

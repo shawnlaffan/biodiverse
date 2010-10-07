@@ -4,7 +4,7 @@
 
 = Introduction =
 
-This is an overview of the help system.  At this stage the system is very much a work in progress.  Any constructive feedback is appreciated, either thorugh comments n the pages themselves, or by raising a new issue (http://code.google.com/p/biodiverse/issues/list).  
+This is an overview of the help system.  At this stage the system is very much a work in progress.  Any constructive feedback is appreciated, either through comments on the pages themselves, or by raising a new issue (http://code.google.com/p/biodiverse/issues/list).  
 
 Use the side bar at the left to navigate between most pages.  
 

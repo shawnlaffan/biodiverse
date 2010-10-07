@@ -183,7 +183,7 @@ A tree must be in a nexus format (`*`.nex or `*`.tre extension). All trees in a 
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_tree_step1.png
 
-Select your file and click Ok. You will then have the option of choosing a label remap file.
+Select your file and click Ok. You will then have the option of choosing a label remap file.  This is often needed so the node names match the relevant !BaseData labels (see FAQ#My_phylogenetic_analyses_have_empty_results).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_tree_step2.png
 

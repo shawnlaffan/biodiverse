@@ -76,6 +76,12 @@ Consider an example where a neighbour set of two groups has four distinct labels
 
 Is there a cure?  Not really.  It is more of a feature since the randomisation is operating as designed.  If you want to reduce the effect then you will need to wait for the spatially constrained randomisations to be implemented (issues #76 and #160).  While these will not be guaranteed to make the richness of each neighbour set constant, they will be closer since they will assign labels in a spatially clustered fashion (depending on the spatial constraint specified, and also on the spatial clustering of labels in the original data set).
 
+== My phylogenetic analyses have empty results ==
+
+This is likely caused by the !BaseData and tree having non-matching labels and node names, respectively.  The way to correct it is to use a [DataStructures#Element_property_tables properties table] on import to remap the names of one to match the other.  Which one to remap depends on your circumstances.  If multiple !BaseData labels are represented by a single node on the tree then it is probably best to remap the !BaseData.  If you wish to run other analyses that use the hierarchies implied by a label name (e.g. Family::Genus::Species in the [Indices#Hierarchical_Labels hierarchical labels] and [Indices#Endemism_central_hierarchical_partition endemism partitioning]) then remap the tree node names to match the !BaseData.  In cases where neither is needed then it will probably not matter.
+
+The way to test if the !BaseData labels match the tree node names is to use the [SampleSession#Visualising_data View Labels] tab.  If they match then the appropriate labels and nodes will be selected in each pane.
+
 = Exported data =
 
 == Results exported to ER-Mapper BIL files do not display properly in !ArcMap ==

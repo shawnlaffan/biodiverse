@@ -1,7 +1,7 @@
 #summary Windows source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.14.
+These instructions apply to version 0.15.
 
 These assume you have saved the Biodiverse source code to C:\biodiverse.  If you have not then change the `C:\biodiverse\lib` in the following to the appropriate directory.
 
@@ -54,6 +54,7 @@ This will require some interaction when it downloads additional packages, depend
   *  Download and install !CamelBox from http://code.google.com/p/camelbox/ .  Install everything (the "Bloatware - Whole Enchilada" option).  This will install all the Gtk dependencies.
   *  Now you need to install the Biodiverse specific dependencies.  
 {{{
+perl -MCPAN -Mlib=C:\biodiverse\lib -e "install Bundle::BiodiverseNoGUI"
 perl -MCPAN -Mlib=C:\biodiverse\lib -e "install Bundle::Biodiverse"
 perl -MCPAN -e "install Gnome2::Canvas"
 }}}

@@ -1,7 +1,7 @@
 #summary Linux source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.14 and later.
+These instructions apply to version 0.15 and later.
 
 Note that they have been tested on Ubuntu.  The package manager will differ for other Linux flavours, but the cpan command will be the same.
 
@@ -16,8 +16,9 @@ This will require some interaction when it downloads additional packages, depend
 #  get the glade, canvas and gtk-perl packages (this will also get the Gtk, Glib etc.)
 sudo apt-get install glade
 sudo apt-get install libgnomecanvas2-0
-sudo apt-get install gtk-perl
+sudo apt-get install libgtk2-gladexml-perl
 
+sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::BiodiverseNoGUI'
 sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
 }}}
 
@@ -39,6 +40,11 @@ perl BiodiverseGUI.pl
 {{{
 perl ~/biodiverse/bin/BiodiverseGUI.pl
 }}}
+  *  If you want your comman prompt back after opening Biodiverse then run it as a background job.  However, the log output will then be mixed with any other commands you type.
+{{{
+perl BiodiverseGUI.pl &
+}}}
+  
 
 = Troubleshooting =
 

@@ -1,7 +1,7 @@
 #summary Macintosh source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.14 and later.
+These instructions apply to version 0.15 and later.
 
 They have been tested on Snow Leopard, so there might be small changes for Leopard.
 
@@ -29,11 +29,12 @@ Note that this can take quite some time.  If you have not previously installed X
 sudo port -v selfupdate
 }}}
 
-  *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when they download additional packages, depending on your CPAN settings.  The first two commands install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this will take a while).  The third installs the remaining perl libraries.
+  *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when they download additional packages, depending on your CPAN settings.  The first two commands install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this will take a while).  The final two commands install the remaining perl libraries.  If you get errors then please see the [#Trouble_shooting trouble shooting section] (installing the URI module can require some forcing).
 {{{
 sudo port install p5-gtk2-gladexml
 sudo port install p5-gnome2-canvas
 
+sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::BiodiverseNoGUI'
 sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
 }}}
 
@@ -51,6 +52,11 @@ cd ~/biodiverse/bin
 {{{
 /opt/local/bin/perl ~/biodiverse/bin/BiodiverseGUI.pl
 }}}
+  *  If you want your command prompt back after opening Biodiverse then run it as a background job.  However, the log output will then be mixed with any other commands you type.
+{{{
+perl BiodiverseGUI.pl &
+}}}
+
 
 
   The full path to perl is used to ensure the !MacPorts version is used.  You can dispense with the `/opt/local/bin` text if the !MacPorts version is the first perl in the search path. To check if it is, type:
@@ -66,7 +72,7 @@ perl ~/biodiverse/bin/BiodiverseGUI.pl
 
 = Trouble shooting =
 
-  *  If, when running the third sudo line, you get an error including the text below then check you have typed the paths correctly.  
+  *  If, when running the third sudo line, you get an error including the text below then check you have typed the paths correctly (the `-Mlib=$HOME...` text).  
   {{{
   <...some leader text about what cpan is doing...>
   Warning: Cannot install Bundle::Biodiverse, don't know what it is.
@@ -75,7 +81,8 @@ perl ~/biodiverse/bin/BiodiverseGUI.pl
 	
   to find objects with matching identifiers.
   }}}
-  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed using `cpan`. The complaint will start with text like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate).  E.g.: `sudo /opt/local/bin/perl -MCPAN -e 'install Fred::Fred'` .
+  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively usng the cpan shell `sudo /opt/local/bin/cpan`. The complaint will start with text like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate).  E.g.: `sudo /opt/local/bin/perl -MCPAN -e 'install Fred::Fred'` .  This can happen if one or more of the modules listed in the bundle failed to install.
+  *  If the installation of the Bundle files fails then check whch module causes it.  The URI is one suspect, as it fails one test, causing the installation to stop.  In this case start the cpan shell in interactve mode (`sudo /opt/local/bin/cpan`) and then type `force install URI`.
   *  !MacPorts might also complain that files are out of sync, probably if you have an existing !MacPorts installation.  If this is the case then run this command to ensure all files are up to date.
 {{{
 sudo port -v selfupdate

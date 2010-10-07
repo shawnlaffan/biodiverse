@@ -1,5 +1,4 @@
 #summary Table of available indices
-#labels Featured
 #sidebar TOC
 
 = Indices available in Biodiverse =

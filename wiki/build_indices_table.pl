@@ -59,7 +59,7 @@ Most of the headings are self-explanatory.  For the others:
   * The *Minimum number of neighbour sets* dictates whether or not a calculation or index will be run.  If you specify only one neighbour set then all those calculations that require two sets will be dropped from the analysis.  (This is always the case for calculations applied to cluster nodes as there is only one neighbour set, defined by the set of groups linked to the terminal nodes below a cluster node).  Note that many of the calculations lump neighbour sets 1 and 2 together.  See the SpatialConditions page for more details on neighbour sets.
 
 Note that calculations can provide different numbers of indices depending on the nature of the !BaseData set used.
-This currently applies only to the [#Hierarchical_Labels Hierarchical Labels].
+This currently applies to the hierarchically partitioned endemism calculations (both [#Endemism_central_hierarchical_partition  central] and [#Endemism_whole_hierarchical_partition whole]) and [#Hierarchical_Labels hierarchical labels].
 
 Table of contents:
 <wiki:toc max_depth="4" />

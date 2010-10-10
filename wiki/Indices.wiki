@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Thu Oct  7 03:51:28 2010 using build_indices_table.pl, Biodiverse version 0.15._
+_Generated GMT Sun Oct 10 23:56:01 2010 using build_indices_table.pl, Biodiverse version 0.15._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -198,6 +198,9 @@ of the hierarchy.
 
 
 *Subroutine:*   calc_hierarchical_label_ratios
+
+*Reference:*   Jones and Laffan (2008) Trans Philol Soc http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x
+ 
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 33 || HIER_A0 || A score for level 0 ||   || 2 ||
@@ -837,8 +840,8 @@ by sample counts instead of by groups occupied.
 *Subroutine:*   calc_beta_diversity
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
-|| 190 || BETA_2 || The other beta || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= \frac{A + B + C}{max((A+B), (A+C))} - 1%.png" title="= \frac{A + B + C}{max((A+B), (A+C))} - 1" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.  ||
-|| 191 || BETA_W || Whittaker's beta (Note that this is numerically the same as the Sorenson index.) || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= \frac{A + B + C}{(\frac{(A+B) + (A+C)}{2})} - 1%.png" title="= \frac{A + B + C}{(\frac{(A+B) + (A+C)}{2})} - 1" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.  ||
+|| 190 || BETA_2 || The other beta || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= \frac{A + B + C}{max((A+B), (A+C))} - 1%.png" title="= \frac{A + B + C}{max((A+B), (A+C))} - 1" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.  ||
+|| 191 || BETA_W || Whittaker's beta (Note that this is numerically the same as the Sorenson index.) || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= \frac{A + B + C}{(\frac{(A+B) + (A+C)}{2})} - 1%.png" title="= \frac{A + B + C}{(\frac{(A+B) + (A+C)}{2})} - 1" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.  ||
 
 
 
@@ -900,7 +903,7 @@ for unbalanced sizes.
 *Subroutine:*   calc_jaccard
 
 *Formula:*
-   <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{A}{A + B + C}%.png" title="= 1 - \frac{A}{A + B + C}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.
+   <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{A}{A + B + C}%.png" title="= 1 - \frac{A}{A + B + C}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 200 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
@@ -921,7 +924,7 @@ for unbalanced sizes.
  
 
 *Formula:*
-   <img src="http://latex.codecogs.com/png.latex?=\frac{ \left | B - C \right | }{ 2A + B + C } \times \frac { A }{ A + min (B, C) }%.png" title="=\frac{ \left | B - C \right | }{ 2A + B + C } \times \frac { A }{ A + min (B, C) }" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.
+   <img src="http://latex.codecogs.com/png.latex?=\frac{ \left | B - C \right | }{ 2A + B + C } \times \frac { A }{ A + min (B, C) }%.png" title="=\frac{ \left | B - C \right | }{ 2A + B + C } \times \frac { A }{ A + min (B, C) }" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 201 || NEST_RESULTANT || Nestedness-resultant value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
@@ -964,7 +967,7 @@ Should collapse to be the Simpson index for presence/absence data.
  
 
 *Formula:*
-   <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{A}{A + min(B, C)}%.png" title="= 1 - \frac{A}{A + min(B, C)}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.
+   <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{A}{A + min(B, C)}%.png" title="= 1 - \frac{A}{A + min(B, C)}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 205 || S2 || S2 dissimilarity index || cluster metric || 2 ||
@@ -1005,7 +1008,7 @@ It is the complement of the (unimplemented) Czechanowski index, and numerically 
 *Subroutine:*   calc_sorenson
 
 *Formula:*
-   <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{2A}{2A + B + C}%.png" title="= 1 - \frac{2A}{2A + B + C}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the 'Label counts' calculation to derive these directly.
+   <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{2A}{2A + B + C}%.png" title="= 1 - \frac{2A}{2A + B + C}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 || 210 || SORENSON || Sorenson index || cluster metric || 2 ||

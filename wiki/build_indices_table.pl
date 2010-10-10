@@ -70,6 +70,12 @@ my $wiki_text = $intro_wiki
                     #. $wc->html2wiki( $html );
                     . $html;
 
+#  Maybe insert hyperlinks later on, but need to handle overlapping heading
+#  names like 'Endemism' and 'Endemism central'
+#my @headings = $wiki_text =~ m/={2,3}(.+?)={2,3}/mgx;
+
+#  hyperlink the Label counts text for now
+$wiki_text =~ s/'Label counts'/\[#Label_counts Label counts\]/g;
 
 (my $v = $version) =~ s/\.//g;
 my $fh;

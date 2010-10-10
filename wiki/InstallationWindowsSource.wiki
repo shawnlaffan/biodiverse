@@ -1,7 +1,9 @@
 #summary Windows source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.15.
+The !ActivePerl instructions apply to version 0.14 while the !CamelBox instructions apply to version 0.15.  
+
+The !ActivePerl version 0.15 requires some updates need to be applied for new dependencies under 0.15 for it to work cleanly.  Until then follow these instructions and then check the troubleshooting section for how to install the new dependencies.
 
 These assume you have saved the Biodiverse source code to C:\biodiverse.  If you have not then change the `C:\biodiverse\lib` in the following to the appropriate directory.
 
@@ -63,6 +65,7 @@ perl -MCPAN -e "install Gnome2::Canvas"
 
   *  If you are updating an existing installation then repeat the cpan step from the installation process.
 {{{
+perl -MCPAN -Mlib=C:\biodiverse\lib -e "install Bundle::BiodiverseNoGUI"
 perl -MCPAN -Mlib=C:\biodiverse\lib -e "install Bundle::Biodiverse"
 }}}
 
@@ -88,5 +91,9 @@ The full path to perl is used to ensure the !CamelBox version is used.
 = Trouble shooting =
 
   *  If you have more than one Perl and/or GTK installed on your system then you need to ensure that the versions you want to use are first in the PATH environment variable.  This is because the CamelBox binaries are not compatible with the ActiveState binaries.  You can manually edit the paths, but it is probably best to create a batch script to do this so it is easy to change things back and forth.
+  *  !ActivePerl
+    *  If, when using the !ActivePerl version, Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively using the ppm utility.  The complaint will start with text like Can't locate Fred/Fred.pm in @INC (@INC contains:...)  In this case, install package Fred-Fred (substitute a hyphen for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate). You can use the GUI version that comes with !ActivePerl, or install from the command line, e.g.: `ppm install Fred-Fred` . This can happen if one or more of the modules listed in the bundle failed to install.
+  *  !CamelBox
+    *  If, when using the !CamelBox version, Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively using the cpan shell sudo /opt/local/bin/cpan. The complaint will start with text like Can't locate Fred/Fred.pm in @INC (@INC contains:...)  In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate). E.g.: `C:\CamelBox\bin\perl -MCPAN -e 'install Fred::Fred'` . This can happen if one or more of the modules listed in the bundle failed to install.
 
   *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

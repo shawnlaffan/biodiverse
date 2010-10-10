@@ -1,9 +1,7 @@
 #summary Windows source code install instructions
 #sidebar Installation
 
-The !ActivePerl instructions apply to version 0.14 while the !CamelBox instructions apply to version 0.15.  
-
-The !ActivePerl version 0.15 requires some updates need to be applied for new dependencies under 0.15 for it to work cleanly.  Until then follow these instructions and then check the troubleshooting section for how to install the new dependencies.
+These instructions apply to version 0.15.  
 
 These assume you have saved the Biodiverse source code to C:\biodiverse.  If you have not then change the `C:\biodiverse\lib` in the following to the appropriate directory.
 
@@ -28,19 +26,22 @@ There are two options you can pursue here.  Both will work, but the !CamelBox in
 ppm repo add http://voltar.org/active/5.8
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
 ppm repo add http://trouchelle.com/ppm/
+ppm install Bundle-BiodiverseNoGUI
 ppm install Bundle-Biodiverse
+ppm install mylib
 ppm install Gnome2-Canvas
 }}}
 
 == Updating (AS) ==
 
-  *  If you are updating an existing installation then repeat the ppm steps from the installation process.
+  *  If you are updating an existing installation then it is for the most part a repeat the ppm steps from the installation process.
 {{{
 ppm repo add http://voltar.org/active/5.8
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
 ppm repo add http://trouchelle.com/ppm/
+ppm install Bundle-BiodiverseNoGUI
 ppm install Bundle-Biodiverse
-ppm install Gnome2-Canvas
+ppm install mylib
 }}}
 
 == Running it (AS) ==

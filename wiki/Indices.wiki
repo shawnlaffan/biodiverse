@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Sun Oct 10 23:56:01 2010 using build_indices_table.pl, Biodiverse version 0.15._
+_Generated GMT Mon Oct 11 00:00:05 2010 using build_indices_table.pl, Biodiverse version 0.15._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -916,7 +916,7 @@ for unbalanced sizes.
  
   ===Nestedness-resultant===
  
-*Description:*   Nestedness-resultant dissimilarity between the labels in neighbour sets 1 and 2. *Available from Version 0.14.*
+*Description:*   Nestedness-resultant dissimilarity between the labels in neighbour sets 1 and 2. 
 
 *Subroutine:*   calc_nestedness_resultant
 

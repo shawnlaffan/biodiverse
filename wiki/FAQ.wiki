@@ -84,7 +84,7 @@ The way to test if the !BaseData labels match the tree node names is to use the 
 
 = Exported data =
 
-== What cordinate system are my data in? ==
+== What coordinate system are my data in? ==
 
 The coordinates of the exported data are in the same coordinate system as your input data.  There is one known issue with ER-Mapper files ([#My_ER-Mapper_BIL_file_is_offset_by_half_a_pixel listed below]).
 

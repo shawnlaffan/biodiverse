@@ -48,7 +48,7 @@ Yes.  Use an Element Property table for this purpose, specifying one or more exc
 
 == Where is the menu option to load an element properties table? ==
 
-There isn't one at the moment.  Properties tables are loaded as part of the [SampleSession#BaseData !BaseData import process].  If you are [SampleSession#Adding_to_an_existing_data_set importing multiple files into the same !BaseData object] then unfortunately you will need to import the properties table each time.
+There isn't one at the moment.  Properties tables are loaded as part of the [SampleSession#BaseData BaseData import process].  If you are [SampleSession#Adding_to_an_existing_data_set importing multiple files into the same BaseData object] then unfortunately you will need to import the properties table each time.
 
 = Analyses =
 
@@ -62,9 +62,9 @@ If you have only one neighbour set then the two calculations will produce identi
 
 == What neighbourhood size should I use? ==
 
-The choice of neighbourhood size is one of those hoary old chestnuts that affects all spatial analyses.  Neighbourhood size is analogous to a spatially moving MAUP ([http://en.wikipedia.org/wiki/Modifiable_areal_unit_problem modifiable areal unit problem], of which gerrymandering is a good example).  See Chapter 2 of [http://dx.doi.org/10.1002/9780470549094 O'Sullivan and Unwin, 2010, Geographic Information Analysis] for a good introduction to this and other general issues of spatial analysis.
+The choice of neighbourhood size is one of those hoary old chestnuts that affects all spatial analyses.  Neighbourhood size is analogous to a spatially moving MAUP ([http://en.wikipedia.org/wiki/Modifiable_areal_unit_problem modifiable areal unit problem], of which [http://en.wikipedia.org/wiki/Gerrymandering gerrymandering] is a good example).  See Chapter 2 of [http://dx.doi.org/10.1002/9780470549094 O'Sullivan and Unwin, 2010, Geographic Information Analysis] for a good introduction to this and other general issues of spatial analysis.
 
-One solution is to approach neighbourhoods from the angle of "At what neighbourhood size is my analysis result optimised?"  In the case of endemism, one looks for the size of neighbourhood that maximises endemism, possibly also assessing the rate of change of endemism with increasing neighbourhood size (see for example [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003]).  This principle applies to any spatial analysis, though (see [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al., 2004], [http://dx.doi.org/10.1111/j.1365-3180.2006.00491.x Laffan, 2006]).  One can also develop neighbourhoods based on the assumed controlling process and compare them with other simpler neighbourhoods ([http://dx.doi.org/10.1080/13658810110099107 Laffan, 2002]).
+One approach to neighbourhood selection is to approach them from the perspective of "At what neighbourhood size is my analysis result optimised?"  In the case of endemism, one looks for the size of neighbourhood that maximises endemism, possibly also assessing the rate of change of endemism with increasing neighbourhood size (see for example [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003]).  This principle applies to any spatial analysis, though (see [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al., 2004], [http://dx.doi.org/10.1111/j.1365-3180.2006.00491.x Laffan, 2006]).  One can also develop neighbourhoods based on the assumed controlling process and compare them with other simpler neighbourhoods ([http://dx.doi.org/10.1080/13658810110099107 Laffan, 2002]).
 
 One can also use the cluster analyses to define neighbourhoods based on the data themselves.  Simply choose a set of calculations to run at the bottom of the cluster window (see SampleSession#Running_calculations_for_each_node).  (Note that this method will only run those analyses that require a minimum of one neighbour set, so indices such as those that measure dissimilarity between two sets of neighbours cannot be calculated).  
 

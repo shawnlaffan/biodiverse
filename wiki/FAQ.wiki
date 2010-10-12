@@ -84,6 +84,10 @@ The way to test if the !BaseData labels match the tree node names is to use the 
 
 = Exported data =
 
+== What cordinate system are my data in? ==
+
+The coordinates of the exported data are in the same coordinate system as your input data.  There is one known issue with ER-Mapper files ([#My_ER-Mapper_BIL_file_is_offset_by_half_a_pixel listed below]).
+
 == Results exported to ER-Mapper BIL files do not display properly in !ArcMap ==
 
 You will need to calculate statistics for the image for it to display properly (before displaying it).  This can be done in !ArcCatalog by right clicking on the file and choosing Calculate Statistics, or by using the _Calculate Statistics_ tool in !ArcToolbox.

@@ -46,6 +46,10 @@ Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [Sa
 
 Yes.  Use an Element Property table for this purpose, specifying one or more exclude and/or include columns.  See [DataStructures#Element_property_tables].
 
+== Where is the menu option to load an element properties table? ==
+
+There isn't one at the moment.  Properties tables are loaded as part of the [SampleSession#BaseData !BaseData import process].  If you are [SampleSession#Adding_to_an_existing_data_set importing multiple files into the same !BaseData object] then unfortunately you will need to import the properties table each time.
+
 = Analyses =
 
 == What is the difference between the central and whole endemism calculations? ==

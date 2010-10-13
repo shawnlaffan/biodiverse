@@ -77,7 +77,7 @@ perl -MCPAN -Mlib=C:\biodiverse\lib -e "install Bundle::Biodiverse"
 {{{
 cd C:\biodiverse\bin
 }}}
-  * Once you have done this, type the following command to open Biodiverse.  This assume you installed !CamelBox into C:\CamelBox, so change the following as necessary.
+  * Once you have done this, type the following command to open Biodiverse.  This assumes you installed !CamelBox into C:\CamelBox, so change the following as necessary.
 {{{
 C:\CamelBox\bin\perl BiodiverseGUI.pl
 }}}

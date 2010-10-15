@@ -175,31 +175,31 @@ Non-programmers need to note that the array index starts from zero, so `$coord[1
 
  == Examples using variables ==
 
-  * Set the neighbours to be those groups where the absolute distance from the central group is less than 100,000.
+  * Set the neighbours to be those groups where the absolute distance from the processing group is less than 100,000.
 
 {{{
 $D <= 100000
 }}}
 
-  * Select all groups to the west of the central group.
+  * Select all groups to the west of the processing group.
 
 {{{
 $d[0] < 0
 }}}
 
-  * Select all groups to the north-east of the central group.
+  * Select all groups to the north-east of the processing group.
 
 {{{
 $d[0] > 0 && $d[1] > 0
 }}}
 
-  * The absolute distance in the first (eg x) dimension is less than 100,000 AND the signed distance is greater than 100,000. This will result in a neighbourhood that is a column of groups 200,000 map units east-west, and including all groups 100,000 map units north of the central group. Not that you would normally want a neighbourhood like this...
+  * The absolute distance in the first (eg x) dimension is less than 100,000 AND the signed distance is greater than 100,000. This will result in a neighbourhood that is a column of groups 200,000 map units east-west, and including all groups 100,000 map units north of the processing group. Not that you would normally want a neighbourhood like this...
 
 {{{
 $D[0] <= 100000 && $d[1] >= 100000
 }}}
 
-  * Select everything north of 6000000 (e.g. if using UTM coordinates as axes 0 and 1).  This is an example that could be used as a definition query, and will not work well as a neighbourhood (use `$nbr_y` for that).
+  * Select everything north of 6000000 (e.g. if using UTM coordinates as axes 0 and 1).  This is an example that could be used as a definition query, and will not work well as a neighbourhood (use `$nbr_y` instead of `$y` for that).
 
 {{{
 $y > 6000000

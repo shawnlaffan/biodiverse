@@ -14,7 +14,7 @@ Spatial conditions are used both to define the neighbourhoods of the spatial ana
 
  == Neighbourhoods ==
 
-Neighbourhoods are essential for any spatial analysis, as it is through these that one can define the set of groups to be considered in an analysis.  In the moving window analyses these determine which groups are compared with which other groups.  In the cluster analyses they determine which groups are considered candidates to be clustered together.  It is also possible to define neighbourhoods for spatially constrained randomisations (see [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003, J Biogeog]), although this is yet to be implemented.
+Neighbourhoods are essential for any spatial analysis, as it is through these that one can define the set of groups to be considered in an analysis.  In the moving window analyses these determine which groups are compared with which other groups.  In the cluster analyses they determine which groups are considered candidates to be clustered together.  It is also possible to define neighbourhoods for spatially constrained randomisations (see [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003, J Biogeog]), although this is yet to be implemented (see issue #76).
 
 Before we describe the process, some definitions are needed.  The *processing group* is the group being considered in the analysis at some iteration.  Typically every group is considered in turn. A group is a member of the processing group's set of neighbours (is a *neighbouring group*) if the spatial condition evaluates to true.  
 
@@ -34,7 +34,7 @@ The neighbourhood and definition query interfaces have a syntax verification but
 
 This is a brief description of the evaluation process used to determine the set of neighbours for a group.  
 
-Currently the system operates on boolean membership of the set of neighbours, so a group either is or is not a neighbour of the processing group.  If no spatial index is used then every group's membership of the processing cell's neighbour set is considered in turn.  If a spatial index is used then only a subset of neighbours is considered (those within the relevant spatial index blocks - this is why processing times are usually shorter when using an index).
+Currently the system operates on boolean membership of the set of neighbours, so a group either is or is not a neighbour of the processing group.  If no spatial index is used then every group's membership of the processing cell's neighbour set is considered in turn.  If a spatial index is used then only a subset of neighbours is considered (those within the relevant spatial index blocks).  This is why processing times are usually shorter when using an index (see KeyConcepts#Using_the_spatial_index).
 
 Spatial conditions need not return symmetric sets.  In this way group _i_ can be in group _j_'s neighbour set, but _j_ need not be in _i_'s neighbour set.  This is not an issue for moving window analyses, but can cause asymmetric dissimilarity matrices if used to run a spatially constrained cluster analysis.  This is why it is generally a good idea in these cases to set the second neighbourhood to be `sp_always_true()` or `1` (which is the same thing).
 

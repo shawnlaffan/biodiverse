@@ -50,6 +50,15 @@ Yes.  Use an Element Property table for this purpose, specifying one or more exc
 
 There isn't one at the moment.  Properties tables are loaded as part of the [SampleSession#BaseData BaseData import process].  If you are [SampleSession#Adding_to_an_existing_data_set importing multiple files into the same BaseData object] then unfortunately you will need to import the properties table each time.
 
+== Can I import more than one file at a time? ==
+
+Yes, for !BaseData objects.  Note that this requires that each input file has the same column order (the headings can differ, but the contents must have the same meaning).  
+
+It is possible to do this for a standard import.  Importing from matrix format files needs to be tested.  
+
+If your input files do not have common headings then you can import them sequentially into an existing !BaseData object.  See [SampleSession#Adding_to_an_existing_data_set].
+
+
 = Analyses =
 
 == What is the difference between the central and whole endemism calculations? ==

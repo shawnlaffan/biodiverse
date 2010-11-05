@@ -9,17 +9,19 @@ You will need Administrative privileges to run the installation.
 
 Note that this can take quite some time.  If you have not previously installed Xcode or !MacPorts then it could take several hours.  It will also download a large number of files, so make sure you have network access with good bandwidth and large download limits.
 
+You might want to consider using the windows executable version under a Windows emulation environment, albeit we have not tested this approach.
+
 <wiki:toc max_depth="4" />
 
 = Installation =
 
-  *  These instructions assume you have extracted the Biodiverse folders into your home directory, with the top level being `$HOME/biodiverse`.  If not then change the `$HOME/biodiverse/lib` text in the following for the folder path you have used (i.e. if it is in `/opt/biodiverse` then use `/opt/biodiverse/lib`).
-  
+  *  These instructions assume you have [http://code.google.com/p/biodiverse/downloads/list downloaded] and extracted the Biodiverse source code distribution into your home directory, with the top level being `Users/your_login/`, which is the same as `$HOME/biodiverse`.  You might need to rename the Biodiverse folder from `biodiverse_0.15_source` to `biodiverse`.  If you prefer not to, or have extracted it elsewhere, then make sure to change the `$HOME/biodiverse/lib` text in the following for the folder path you have used (i.e. if it is in `/opt/biodiverse` then use `/opt/biodiverse/lib`, if it is still `$HOME/biodiverse_0.15_source` then use `$HOME/biodiverse_0.15_source/lib`).
+
   *  You must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
   *  Install the Xcode software, as it is needed to compile the !MacPorts libraries.  This requires registration with Apple.  If you do not have the installation disk (it comes with the computer when you purchase it) then you need to download it.  The download is also >2GB, of which unfortunately a large part is the iPhone SDK which we don't need.  http://developer.apple.com/technologies/xcode.html
 
-  *  Install !MacPorts unless you already have it.  If you are not sure then try to install it anyway and it will tell you.
+  *  Install !MacPorts unless you already have it.  If you are not sure then try to install it anyway and it will tell you.  
     * If your operating system is Snow Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.9.1-10.6-SnowLeopard.dmg
     * If your operating system is Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.9.1-10.5-Leopard.dmg
     * (If needed, for example to get an installer for an older OS, the generic !MacPorts URL is http://www.macports.org ).
@@ -29,11 +31,12 @@ Note that this can take quite some time.  If you have not previously installed X
 sudo port -v selfupdate
 }}}
 
-  *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when they download additional packages, depending on your CPAN settings.  The first two commands install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this will take a while).  The final two commands install the remaining perl libraries.  If you get errors then please see the [#Trouble_shooting trouble shooting section] (installing the URI module can require some forcing).
+  *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when they download additional packages, depending on your CPAN settings.  The first two commands install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this can take more than an hour).  The final three commands install the remaining perl libraries.  If you get errors then please see the [#Trouble_shooting trouble shooting section] (installing the URI module can require some forcing).
 {{{
 sudo port install p5-gtk2-gladexml
 sudo port install p5-gnome2-canvas
 
+sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install LWP::Simple'
 sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::BiodiverseNoGUI'
 sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
 }}}
@@ -52,7 +55,7 @@ cd ~/biodiverse/bin
 {{{
 /opt/local/bin/perl ~/biodiverse/bin/BiodiverseGUI.pl
 }}}
-  *  If you want your command prompt back after opening Biodiverse then run it as a background job.  However, the log output will then be mixed with any other commands you type.
+  *  If you want your command prompt back after opening Biodiverse then run it as a background job.  However, the log output will then be mixed with any other commands you type so things can become confusing.
 {{{
 perl BiodiverseGUI.pl &
 }}}

@@ -72,6 +72,20 @@ which perl
 perl ~/biodiverse/bin/BiodiverseGUI.pl
 }}}
 
+  This needs testing on a macports system, but you can also add an alias to your profile to save a bit of typing.  Edit the file `$HOME/.profile` (e.g. `Users\your_login\.profile`) and add this line to the end of the file (remembering to edit the biodiverse path if it differs from this):
+{{{
+alias biodiverse '/opt/local/bin/perl ~/biodiverse/bin/BiodiverseGUI.pl'
+}}}
+  The next time you open a terminal window you can just type this to start the system:
+{{{
+biodiverse
+}}}
+  If you are impatient and don't want to open a new window then type this after editing the file (note that you don't need to do it if each time you open a terminal).
+{{{
+source ~/.profile
+biodiverse
+}}}
+
 
 = Trouble shooting =
 

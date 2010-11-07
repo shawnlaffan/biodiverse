@@ -80,7 +80,7 @@ alias biodiverse '/opt/local/bin/perl ~/biodiverse/bin/BiodiverseGUI.pl'
 {{{
 biodiverse
 }}}
-  If you are impatient and don't want to open a new window then type this after editing the file (note that you don't need to do it if each time you open a terminal).
+  If you are impatient and don't want to open a new window then type this after editing the file (note that you don't need to do it when you start a new terminal).
 {{{
 source ~/.profile
 biodiverse

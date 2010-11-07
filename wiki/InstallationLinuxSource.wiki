@@ -40,11 +40,13 @@ perl BiodiverseGUI.pl
 {{{
 perl ~/biodiverse/bin/BiodiverseGUI.pl
 }}}
-  *  If you want your comman prompt back after opening Biodiverse then run it as a background job.  However, the log output will then be mixed with any other commands you type.
+  *  If you want your command prompt back after opening Biodiverse then run it as a background job.  However, the log output will then be mixed with any other commands you type.
 {{{
 perl BiodiverseGUI.pl &
 }}}
   
+
+  * You can also add the `biodiverse/bin` folder to your PATH variable to save some typing. You will might also need to edit the shebang line in BiodiverseGUI.pl to point to the correct perl executable.
 
 = Troubleshooting =
 

@@ -15,7 +15,7 @@ You might want to consider using the windows executable version under a Windows 
 
 = Installation =
 
-  *  These instructions assume you have [http://code.google.com/p/biodiverse/downloads/list downloaded] and extracted the Biodiverse source code distribution into your home directory, with the top level being `Users/your_login/`, which is the same as `$HOME/biodiverse`.  You might need to rename the Biodiverse folder from `biodiverse_0.15_source` to `biodiverse`.  If you prefer not to, or have extracted it elsewhere, then make sure to change the `$HOME/biodiverse/lib` text in the following for the folder path you have used (i.e. if it is in `/opt/biodiverse` then use `/opt/biodiverse/lib`, if it is still `$HOME/biodiverse_0.15_source` then use `$HOME/biodiverse_0.15_source/lib`).
+  *  These instructions assume you have [http://code.google.com/p/biodiverse/downloads/list downloaded] and extracted the Biodiverse source code distribution into your home directory (this will be `Users/your_login_name/` and is the same as `$HOME/biodiverse`).  You then need to rename the Biodiverse folder from `biodiverse_0.15_source` to `biodiverse`.  If you prefer not to, or have extracted it elsewhere, then make sure to change the `$HOME/biodiverse/lib` text in the following for the folder path you have used (i.e. if it is in `/opt/biodiverse` then use `/opt/biodiverse/lib`, if it is still `$HOME/biodiverse_0.15_source` then use `$HOME/biodiverse_0.15_source/lib`).
 
   *  You must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 

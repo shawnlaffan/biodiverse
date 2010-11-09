@@ -169,7 +169,9 @@ Note that using `abs($d[1])` is the same as using `$D[1]`.
 
 `$C`, `$C[0]`, `$C[1]`, `$c[0]`, `$c[1]` are the same as the euclidean distance variables (`$D` etc) but operate directly in group (cell) units. If your groups were imported using a cellsize of 100,000, then `$D[1] < 100000` is the same as `$C[1] < 1`. Note, however, that if you used a different resolution in each dimension, then the map and cell distances are not directly comparable.  For example, if cell sizes of 100 and 200 were used for axes 0 and 1 then `$C<1` is the same as `sqrt($C[0]**2 + $C[1]**2) < 1` which is `sqrt(($D[0]/100)**2 + ($D[1]/200)**2) < 1`, and _not_ `$D<100`.  
 
-`$coord[0]`, `$coord[1]` are the coordinate values in the first and second dimensions. As per the above, think of these as X and Y, except that `$coord[5]` will also work if your groups have six or more dimensions. Note that this does not necessarily work properly when the spatial index is being used, so you might need to turn it off.
+`$coord[0]`, `$coord[1]` are the coordinate values in the first and second dimensions. As per the above, think of these as X and Y, except that `$coord[5]` will also work if your groups have six or more dimensions. Note that this does not necessarily work properly when the spatial index is being used, so you might need to turn it off
+
+`$nbrcoord[0]` etc are analogous to `$coord[0]` etc, except that they are the coordinates for the current neighbour group.
 
 Non-programmers need to note that the array index starts from zero, so `$coord[1]` is the second coordinate axis and not the first.  This differs from systems like R and AWK, but is consistent with many other programming languages like C and Python.
 

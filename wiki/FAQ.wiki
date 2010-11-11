@@ -95,6 +95,19 @@ This is likely caused by the !BaseData and tree having non-matching labels and n
 
 The way to test if the !BaseData labels match the tree node names is to use the [SampleSession#Visualising_data View Labels] tab.  If they match then the appropriate labels and nodes will be selected in each pane.
 
+== Why aren't there analysis results everywhere? ==
+
+By default, Biodiverse only stores groups with data in them.  The effect of this is that, when you run your analysis, it will only consider those groups in the data set.
+
+This approach is useful for two reasons.  First, it restricts calculations to those locations that have data and therefore reduces the smoothing effects that can occur if all neighbouring locations are used (this can sometimes give a misleading impression of data continuity).  Second, it makes for smaller data sets, thus saving a bit of memory (albeit that's less important than accuracy).  
+
+All of that said, it's up to the user to decide how they want to run their analysis.  If you want to include empty cells in your analyses then these need to be enabled at the time of import by checking the "Allow empty groups?" check box in the import properties.  You will need to provide a data set of cell coordinates for Biodiverse to use, or include them in the original import file.  See the second image under [SampleSession#BaseData] and the para starting with 'Both the "empty" options...'.
+
+== What are labels without groups? ==
+
+These are the label version of the empty groups.  They allow the system to consider additional labels in analyses, for example where labels are not in your data set but still need to be considered in an analysis using a tree.  One can set label properties for these, such as label ranges, and they will be considered in any analyses.  An example might be a phylogenetic endemism calculation for Australia, where the phylogeny includes species from outside of Australia.  (Please note that this needs to be tested more thoroughly than it has thus far).
+
+
 = Exported data =
 
 == What coordinate system are my data in? ==

@@ -75,7 +75,7 @@ The choice of neighbourhood size is one of those hoary old chestnuts that affect
 
 One approach to neighbourhood selection is to approach them from the perspective of "At what neighbourhood size is my analysis result optimised?"  In the case of endemism, one looks for the size of neighbourhood that maximises endemism, possibly also assessing the rate of change of endemism with increasing neighbourhood size (see for example [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003]).  This principle applies to any spatial analysis, though (see [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al., 2004], [http://dx.doi.org/10.1111/j.1365-3180.2006.00491.x Laffan, 2006]).  One can also develop neighbourhoods based on the assumed controlling process and compare them with other simpler neighbourhoods ([http://dx.doi.org/10.1080/13658810110099107 Laffan, 2002]).
 
-One can also use the cluster analyses to define neighbourhoods based on the data themselves.  Simply choose a set of calculations to run at the bottom of the cluster window (see SampleSession#Running_calculations_for_each_node).  (Note that this method will only run those analyses that require a minimum of one neighbour set, so indices such as those that measure dissimilarity between two sets of neighbours cannot be calculated).  
+One can also use the cluster analyses to define neighbourhoods based on the data themselves.  Simply choose a set of calculations to run at the bottom of the cluster window (see [SampleSession#Running_calculations_for_each_node]).  (Note that this method will only run those analyses that require a minimum of one neighbour set, so indices such as those that measure dissimilarity between two sets of neighbours cannot be calculated).  
 
 == I want to analyse environmental data ==
 
@@ -87,7 +87,7 @@ The rand_structured randomisation function with arguments rand_multiplier=1 and 
 
 Consider an example where a neighbour set of two groups has four distinct labels, with Group 1 containing three (labels A, B & C) and Group 2 containing three also (labels B, C & D).  In the randomised version each of Groups 1 and 2 will have three labels, but this could be a distribution where Group 1 has labels C, D & E while Group 2 has labels X, Y & Z.  This is an aggregate richness across the neighbour set of six.
 
-Is there a cure?  Not really.  It is more of a feature since the randomisation is operating as designed.  If you want to reduce the effect then you will need to wait for the spatially constrained randomisations to be implemented (issues #76 and #160).  While these will not be guaranteed to make the richness of each neighbour set constant, they will be closer since they will assign labels in a spatially clustered fashion (depending on the spatial constraint specified, and also on the spatial clustering of labels in the original data set).
+Is there a cure?  Not really.  It is more of a feature since the randomisation is operating as designed.  If you want to reduce the effect then you will need to wait for the spatially constrained randomisations to be implemented (issue #76 and issue #160).  While these will not be guaranteed to make the richness of each neighbour set constant, they will be closer since they will assign labels in a spatially clustered fashion (depending on the spatial constraint specified, and also on the spatial clustering of labels in the original data set).
 
 == My phylogenetic analyses have empty results ==
 

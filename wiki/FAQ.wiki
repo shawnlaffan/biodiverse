@@ -101,7 +101,7 @@ By default, Biodiverse only stores groups with data in them.  The effect of this
 
 This approach is useful for two reasons.  First, it restricts calculations to those locations that have data and therefore reduces the smoothing effects that can occur if all neighbouring locations are used (this can sometimes give a misleading impression of data continuity).  Second, it makes for smaller data sets, thus saving a bit of memory (albeit that's less important than accuracy).  
 
-All of that said, it's up to the user to decide how they want to run their analysis.  If you want to include empty cells in your analyses then these need to be enabled at the time of import by checking the "Allow empty groups?" check box in the import properties.  You will need to provide a data set of cell coordinates for Biodiverse to use, or include them in the original import file.  Go to [SampleSession#BaseData] and look for the second screen shot and the subsequent para starting with 'Both the _empty groups_ and...'.
+All of that said, it's up to the user to decide how they want to run their analysis.  If you want to include empty cells in your analyses then these need to be enabled at the time of import by checking the "Allow empty groups?" check box in the import properties.  You will need to provide a data set of cell coordinates for Biodiverse to use, or include them in the original import file.  Go to [SampleSession#BaseData] and look for the second screen shot and the subsequent para starting with 'Both the _empty groups_ and...'.  (Note that this is broken in version 0.15 - see issue #180).
 
 == What are labels without groups? ==
 

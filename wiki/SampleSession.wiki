@@ -85,7 +85,7 @@ The set label/group properties and remap check boxes allow you to specify proper
 
 Allowing labels with no groups lets you include labels in the analyses which are not assigned to a group.  An example might be where you wish to include species that occur outside your study area when comparing a local region with a broader region.  
 
-Allowing empty groups lets you have groups that are considered for analysis, but that have no labels themselves.  This is useful when you wish to have moving window analyses extend beyond the sampled data to give a smoother result (it is up to the user to ensure such smoothness is valid), or you want a randomisation to assign labels to more groups than just those containing labels.
+Allowing empty groups lets you have groups that are considered for analysis, but that have no labels themselves.  This is useful when you wish to have moving window analyses extend beyond the sampled data to give a smoother result (it is up to the user to ensure such smoothness is valid), or you want a randomisation to assign labels to more groups than just those containing labels.  (Note that this is broken in version 0.15 - see issue #180).
 
 Both the _empty groups_ and _labels with no groups_ options are implemented by setting a sample_count column in the input file, with the appropriate records given a value of 0.  If no such column is given or the value is blank then a count of 1 is assumed, rendering these options redundant (and the imported data set possibly erroneous).  It is probably easiest to import these as separate files rather than "pollute" your sample data.  See [#Adding_to_an_existing_data_set] for details of how to do this.
 

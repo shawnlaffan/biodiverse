@@ -107,6 +107,13 @@ All of that said, it's up to the user to decide how they want to run their analy
 
 These are the label version of the empty groups.  They allow the system to consider additional labels in analyses, for example where labels are not in your data set but still need to be considered in an analysis using a tree.  One can set label properties for these, such as label ranges, and they will be considered in any analyses.  An example might be a phylogenetic endemism calculation for Australia, where the phylogeny includes species from outside of Australia.  (Please note that this needs to be tested more thoroughly than it has thus far).
 
+== What is length vs total length in the cluster analyses? ==
+
+Length is the length of the node clicked on.  Total length is the length from that node to the tip of the tree (and should probably be renamed).  
+
+== What are total_length_gui and `_`y in the cluster analyses? ==
+
+These are display parameters used by the system and can be ignored.  
 
 = Exported data =
 

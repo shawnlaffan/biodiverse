@@ -77,6 +77,16 @@ One approach to neighbourhood selection is to approach them from the perspective
 
 One can also use the cluster analyses to define neighbourhoods based on the data themselves.  Simply choose a set of calculations to run at the bottom of the cluster window (see [SampleSession#Running_calculations_for_each_node]).  (Note that this method will only run those analyses that require a minimum of one neighbour set, so indices such as those that measure dissimilarity between two sets of neighbours cannot be calculated).  
 
+== How does the system use the spatial conditions when clustering? ==
+
+The way it works is that every group pair that satisfies the first condition is clustered together.  Once there are no more of these to cluster it starts to use those that satisfy the second condition.  If there is anything left over that did not satisfy either condition then all of the nodes are lumped together under a single root node, taking the node with the longest total length as the position of the root.
+
+One benefit of this approach is if one has an axis that represents a region.  One can set a condition to consider only within-region group-pairs (e.g. `sp_match_text()` or `sp_match_regex()`), followed by one that considers all pairs.
+
+In most cases one would set the second condition to use all pairs (`sp_select_all()`), which is the same as reverting to a non-spatial clustering.  However, sometimes one might wish to use to increasing spatial lag distances.  The GUI currently only supports two conditions but any number can be specified through a script.  
+
+
+
 == I want to analyse environmental data ==
 
 Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the [Indices#Numeric_Labels numeric labels] calculations to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.

@@ -128,9 +128,11 @@ The key difference from the non-matrix import are the label_start_col and label_
   
 Those columns marked as ignore but between a label_start_col and label_end_col will be imported.
 
+Click OK.
+
 ==== Common (pt2) ====
 
-Click OK. The next window allows you to order your labels and groups for the desired view. In the example data set, placing “genus” above “species” produces labels named with the species name concatenated after the genus name, and placing “y” above “x” makes the y column data the first dimension of a group's coordinates and x the second (this is useful if you have a file where latitude precedes longitude in the file's column order).
+The next window allows you to order your labels and groups for the desired view. In the example data set, placing “genus” above “species” produces labels named with the species name concatenated after the genus name, and placing “y” above “x” makes the y column data the first dimension of a group's coordinates and x the second (this is useful if you have a file where latitude precedes longitude in the file's column order).
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step4.png
 

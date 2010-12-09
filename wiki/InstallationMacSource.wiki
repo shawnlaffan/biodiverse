@@ -19,7 +19,8 @@ You might want to consider using the windows executable version under a Windows 
 
   *  You must have the X11 software on your Mac. You will have this if you have Leopard or later. If you have a previous OSX you will need to obtain it either from your original CD or from the Apple site.
 
-  *  Install the Xcode software, as it is needed to compile the !MacPorts libraries.  This requires registration with Apple.  If you do not have the installation disk (it comes with the computer when you purchase it) then you need to download it.  The download is also >2GB, of which unfortunately a large part is the iPhone SDK which we don't need.  http://developer.apple.com/technologies/xcode.html
+  *  Install the Xcode software, as it is needed to compile the !MacPorts libraries.  This requires registration with Apple.  If you do not have the installation disk (it comes with the computer when you purchase it) then you need to download it.  The download is also >2GB, of which unfortunately a large part is the iPhone SDK which we don't need.  http://developer.apple.com/technologies/xcode.html.  
+    *  If you are using OSX version 10.5 then you will need to download an older version.  This takes a bit more finding.  Go to connect.apple.com and then click on the _Developer Tools_ link at the right.  In the next page, search for _Xcode 3.1.4 Developer Tools_.
 
   *  Install !MacPorts unless you already have it.  If you are not sure then try to install it anyway and it will tell you.  
     * If your operating system is Snow Leopard then use http://distfiles.macports.org/MacPorts/MacPorts-1.9.1-10.6-SnowLeopard.dmg
@@ -39,6 +40,9 @@ sudo port install p5-gnome2-canvas
 sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install LWP::Simple'
 sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::BiodiverseNoGUI'
 sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
+# repeat this command as one of the libs is not installed on the first go
+sudo /opt/local/bin/perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::BiodiverseNoGUI'
+
 }}}
 
 = Running it =
@@ -98,7 +102,7 @@ biodiverse
 	
   to find objects with matching identifiers.
   }}}
-  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively usng the cpan shell `sudo /opt/local/bin/cpan`. The complaint will start with text like _Can't locate Fred/Fred.pm in @INC (@INC contains:...)_ In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate).  E.g.: `sudo /opt/local/bin/perl -MCPAN -e 'install Fred::Fred'` .  This can happen if one or more of the modules listed in the bundle failed to install.
+  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively usng the cpan shell `sudo /opt/local/bin/cpan`. The complaint will start with text like `Can't locate Fred/Fred.pm in @INC (@INC contains:...)` In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate).  E.g.: `sudo /opt/local/bin/perl -MCPAN -e 'install Fred::Fred'` .  This can happen if one or more of the modules listed in the bundle failed to install.
   *  If the installation of the Bundle files fails then check which module causes it.  The URI is one suspect, as it failed one test at the time 0.15 was released, causing the installation to stop.  In this case start the cpan shell in interactive mode (`sudo /opt/local/bin/cpan`) and then type `force install URI`.
   *  !MacPorts might also complain that files are out of sync, probably if you have an existing !MacPorts installation.  If this is the case then run this command to ensure all files are up to date.
 {{{

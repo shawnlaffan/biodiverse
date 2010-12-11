@@ -13,6 +13,7 @@ These instructions apply to version 0.14 and later.
 = Running it =
 
   *  Biodiverse can be run by double clicking on `C:\biodiverse\BiodiverseGUI_win.exe`.
+    *  Do not use the `BiodiverseGUI.bat` file.  It is used for the source code version.  
   *  If you want to keep the command log visible after you close Biodiverse then run it from a command prompt.
     *  Under `Start Menu -> Run` type `cmd`.  
     *  In the resulting command window, type `C:\biodiverse\BiodiverseGUI_win.exe`.

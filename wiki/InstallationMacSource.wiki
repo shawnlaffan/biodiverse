@@ -32,7 +32,7 @@ You might want to consider using the windows executable version under a Windows 
 sudo port -v selfupdate
 }}}
 
-  *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when they download additional packages, depending on your CPAN settings.  The first two commands install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this can take more than an hour).  The final three commands install the remaining perl libraries.  If you get errors then please see the [#Trouble_shooting trouble shooting section] (installing the URI module can require some forcing).
+  *  Now install the perl libraries needed by Biodiverse.  The following commands will require some interaction when they download additional packages, depending on your CPAN settings.  The first two commands install the perl wrappers for Glade and Gnome Canvas and will also install all the other necessary libraries on which they depend (this can take more than an hour).  The final three commands install the remaining perl libraries.  If you get errors then please see the [#Trouble_shooting trouble shooting section] (installing the URI module can require some forcing).  (If you want to copy and paste these then open http://biodiverse.googlecode.com/svn/trunk/etc/macports_install.sh).
 {{{
 sudo port install p5-gtk2-gladexml
 sudo port install p5-gnome2-canvas

@@ -18,6 +18,7 @@ Main changes since the previous version (0.15) are:
   *  Analyses
     *  sp_select_sequence() now works as a definition query.  Issue #189.
     *  Cluster matrices can be written to file as they are built.  These are not added to the GUI, thus saving memory and allowing extremely large matrices to be built for use in external applications.  Issue #186.
+    *  NEST_RESULTANT index is now correctly calculated.  Issue #182.
 
 To see the full list of issues and changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.16
 

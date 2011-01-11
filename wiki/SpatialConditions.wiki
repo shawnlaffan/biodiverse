@@ -156,10 +156,11 @@ sp_select_sequence (frequency => 10, first_offset => 2)
 #  Select every tenth group, starting from the third last and working backwards
 sp_select_sequence (frequency => 10, first_offset => 2, reverse_order => 1)
 
+#  From version 0.16.
 #  Match when the neighbour is to the left of a vector radiating out
 #  from the processing group.  The angle is measured anticlockwise from east.
-sp_is_left_of (vector_angle => 1.5714)  #  angle in radians
-sp_is_left_of (vector_angle_deg => 90)  #  angle in degrees
+sp_is_left_of (vector_angle => 1.5707963267949)  #  angle in radians
+sp_is_left_of (vector_angle_deg => 90)           #  angle in degrees
 
 }}}
 

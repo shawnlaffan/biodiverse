@@ -256,7 +256,7 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/view_labels3_popup_group.p
 
 The title of this window indicates the group being examined. To re-use the same window to display another group's data, check the _Re-use_ box. If this box is unchecked, data for subsequently selected groups will be displayed in new windows. This is useful when making comparisons between label presence and sampling among different groups. The _Copy_ button in the group info window makes a copy of the group coordinates and all labels with their sample size to the clipboard for use elsewhere.
 
-You can also display one or more shapefile images (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. See [KeyConcepts#Map_overlays] for how.
+You can also display a shapefile (a map of a country's border lines, for example) in the group grid pane as a background to make it easier to identify groups, especially if they are geographically related. See [KeyConcepts#Map_overlays] for how.
 
 The group grid display extent (zoom level) can also be changed by using the three zoom buttons in the bottom left of the pane. If you are at a zoom level that does not display all groups at once, you can navigate using the scroll bars or by right-clicking (or clicking the middle/wheel mouse button) and dragging.  You can also pan by clicking on a part of the plot without a group and dragging.
 

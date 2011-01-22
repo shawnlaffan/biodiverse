@@ -18,8 +18,8 @@ sudo apt-get install glade
 sudo apt-get install libgnomecanvas2-0
 sudo apt-get install libgtk2-gladexml-perl
 
-sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::BiodiverseNoGUI'
-sudo perl -MCPAN -Mlib=$HOME/biodiverse/lib -e 'install Bundle::Biodiverse'
+sudo perl -MCPAN -e 'install Bundle::BiodiverseNoGUI'
+sudo perl -MCPAN -e 'install Bundle::Biodiverse'
 }}}
 
 If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).
@@ -46,7 +46,7 @@ perl BiodiverseGUI.pl &
 }}}
   
 
-  * You can also add the `biodiverse/bin` folder to your PATH variable to save some typing. You will might also need to edit the shebang line in BiodiverseGUI.pl to point to the correct perl executable.
+  * You can also add the `biodiverse/bin` folder to your PATH variable to save some typing. You might also need to edit the shebang line in BiodiverseGUI.pl to point to the correct perl executable.
 
 = Troubleshooting =
 

@@ -13,14 +13,17 @@ Main changes since the previous version (0.15) are:
     *  Grey scale shading is now supported.  Issue #32.
     *  Users can now switch between tabs using control-tab and shift-control-tab keys. Issue #196.
     *  The colour of the shapefile plot can be changed.  Issue #75.
+    *  Outputs tab - the output type is listed next to each output.  Issue #201.
     *  View labels tab
       *  Element properties with a value of nodata are displayed as -99999.  Issue #189.
       *  System no longer intermittently hangs when control clicking.  Issue #194.
   *  Analyses
-    *  sp_select_sequence() now works as a definition query.  Issue #189.
+    *  sp_select_sequence() now works as a definition query.  Issue #190.
     *  Cluster matrices can be written to file as they are built.  These are not added to the GUI, thus saving memory and allowing extremely large matrices to be built for use in external applications.  Issue #186.
     *  NEST_RESULTANT index is now correctly calculated.  Issue #182.
     *  Label properties can be analysed spatially (summary stats).  Issue #207.
+    *  New analysis type of RegionGrower.  It is an extension to the cluster analyses that uses any scalar metric that lumps two neighbour sets together when calculated.  One can also merge those pairs that either maximise or minimise the seleted index.  When used with idnceis like richness it is effectively a one-pass complementarity analysis.  (Its matrices can also be displayed spatially, as per issue #199).  Issue #204.
+    *  A new set of calculations have been added that allow the summary of label properties, if set.  Issue #207.
 
 To see the full list of issues and changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.16
 

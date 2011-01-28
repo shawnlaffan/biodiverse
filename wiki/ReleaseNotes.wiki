@@ -21,7 +21,7 @@ Main changes since the previous version (0.15) are:
     *  sp_select_sequence() now works as a definition query.  Issue #190.
     *  Cluster matrices can be written to file as they are built.  These are not added to the GUI, thus saving memory and allowing extremely large matrices to be built for use in external applications.  Issue #186.
     *  NEST_RESULTANT index is now correctly calculated.  Issue #182.
-    *  Label properties can be analysed spatially (summary stats).  Issue #207.
+    *  Label and group properties can be analysed spatially (summary stats).  Issues #207 and #212.
     *  New analysis type of RegionGrower.  It is an extension to the cluster analyses that uses any scalar metric that lumps two neighbour sets together when calculated.  One can also merge those pairs that either maximise or minimise the seleted index.  When used with idnceis like richness it is effectively a one-pass complementarity analysis.  (Its matrices can also be displayed spatially, as per issue #199).  Issue #204.
     *  A new set of calculations have been added that allow the summary of label properties, if set.  Issue #207.
 

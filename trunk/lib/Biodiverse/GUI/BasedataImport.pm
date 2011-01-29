@@ -189,7 +189,7 @@ sub run {
         $response = $dlg->run();
         if ($response eq 'help') {
             #  do stuff
-            print "hjelp me!\n";
+            #print "hjelp me!\n";
             explain_import_col_options($dlg, $use_matrix);
         }
         elsif ($response eq 'ok') {
@@ -596,9 +596,9 @@ sub explain_import_col_options {
                              . 'If this is not set then each record is assumed to equal one sample.',
             Include_columns => 'Only those records with a value of 1 or '
                              . '<i>undef</i> across all Include_columns will '
-                             . 'be imported. CHECKCHECK',
+                             . 'be imported. ???  CHECKCHECK...',
             Exclude_columns => 'Those records with a value of 1 in any '
-                             . 'Exclude_column will not be imported. CHECKCHECK',
+                             . 'Exclude_column will not be imported. ???  CHECKCHECK...',
         );
     }
     
@@ -649,11 +649,24 @@ sub explain_import_col_options {
         }
     }
 
-    $dlg->set_modal(0);
+    $dlg->set_modal(undef);
+    #$dlg->set_focus(undef);
     $dlg->show_all;
 
+    #  Callbacks are sort of redundant now, since dialogs are always modal
+    #  so we cannot return control to the input window that called us.
+    #my $destroy_sub = sub {$_[0]->destroy};
+    #$dlg->signal_connect_swapped(
+    #    response => $destroy_sub,
+    #    $dlg,
+    #);
+    #$dlg->signal_connect_swapped(
+    #    close => $destroy_sub,
+    #    $dlg,
+    #);
+
     $dlg->run;
-    $dlg->destroy;  # should allow it to stay open and use signal connect to destroy
+    $dlg->destroy;
 
     return;
 }
@@ -945,7 +958,7 @@ sub makeColumnsDialog {
     #my $sep = Gtk2::HSeparator->new();
     #$dlg->vbox->pack_start ($sep, 0, 0, 0);
 
-    my $label = Gtk2::Label->new('<b>Select column types</b>');
+    my $label = Gtk2::Label->new('<b>Set column options</b>');
     $label->set_use_markup(1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);
 
@@ -976,6 +989,8 @@ sub makeColumnsDialog {
     $col++;
     $label = Gtk2::Label->new('Type');
     $label->set_alignment(0.5, 1);
+    $label->set_has_tooltip(1);
+    $label->set_tooltip_text ('Click on the help to see the column meanings');
     $table->attach($label, $col, $col + 1, 0, 1, ['expand', 'fill'], 'shrink', 0, 0);
 
     $col++;
@@ -989,7 +1004,7 @@ sub makeColumnsDialog {
     $label = Gtk2::Label->new('Cell origin');
     $label->set_alignment(0.5, 1);
     $label->set_has_tooltip(1);
-    $label->set_tooltip_text ("Origin of this axis.\nGroup corners will be offset by this amount.");
+    $label->set_tooltip_text ('Origin of this axis.\nGroup corners will be offset by this amount.');
     $table->attach($label, $col, $col + 1, 0, 1, ['expand', 'fill'], 'shrink', 50, 0);
     
     $col++;
@@ -997,9 +1012,8 @@ sub makeColumnsDialog {
     $label->set_alignment(0.5, 1);
     $label->set_has_tooltip(1);
     $label->set_tooltip_text ('Are the group data for this axis in degrees latitude or longitude?');
-    $table->attach($label, $col, $col + 1, 0, 1, ['expand', 'fill'], 'shrink', 0, 0);    
-    
-    
+    $table->attach($label, $col, $col + 1, 0, 1, ['expand', 'fill'], 'shrink', 0, 0);
+
     # Add columns
     # use row_widgets to store the radio buttons, spinboxes
     my $row_widgets = [];
@@ -1075,10 +1089,10 @@ sub addRow {
     
     #  degrees minutes seconds
     my $combo_dms = Gtk2::ComboBox->new_text;
-    $combo_dms ->set_has_tooltip (1);
+    $combo_dms->set_has_tooltip (1);
     my $tooltip_text = q{Set to 'is_lat' if column contains latitude values, }
                        . q{'is_lon' if longitude values. Leave as blank if neither.};
-    $combo_dms ->set_tooltip_text ($tooltip_text);
+    $combo_dms->set_tooltip_text ($tooltip_text);
     foreach my $choice ('', 'is_lat', 'is_lon') {
         $combo_dms->append_text($choice);
     }

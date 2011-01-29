@@ -23,7 +23,7 @@ use Biodiverse::ElementProperties;
 #  for use in check_if_r_data_frame
 use Biodiverse::Common;
 
-#  a few name setups for a change-over
+#  a few name setups for a change-over that never happened
 my $import_n = ""; #  use "" for orig, 3 for the one with embedded params table
 my $dlg_name = "dlgImport1";
 my $chkNew = "chkNew$import_n";
@@ -569,10 +569,10 @@ sub explain_import_col_options {
         Ignore          => 'There is no setting for this column.  '
                          . 'It will be ignored or used depending on your other settings.',
         Group           => 'Use this column as a group axis '
-                         . '(numerical type - it will be aggregated according '
-                         . 'to your cellsize settings)',
-        Text_group      => 'Use this column as a group axis '
-                         . '(text type - it will be used exactly as provided)',
+                         . '(numerical type).  It will be aggregated according '
+                         . 'to your cellsize settings.  Non-numeric values will cause an error.',
+        Text_group      => 'Use this column as a group axis (text type).  '
+                         . 'It will be used exactly as provided.',
     );
     if ($use_matrix) {
         %explain = (
@@ -584,43 +584,74 @@ sub explain_import_col_options {
             Label_end_col   => 'This column is the last of the labels.  '
                              . 'Not setting one will use all columns from the '
                              . 'Label_start_col to the end.',
-            Include_columns => '???',
-            Exclude_columns => '???',
+            Include_columns => '???  CHECKCHECK...',
+            Exclude_columns => '???  CHECKCHECK...',
         );
     }
     else {
         %explain = (
             %explain,
-            Label           => 'Values in this column represent one of the label axes.',
-            Sample_counts   => 'Values in this column represent sample counts (abundances).',
+            Label           => 'Values in this column will be used as one of the label axes.',
+            Sample_counts   => 'Values in this column represent sample counts (abundances).  '
+                             . 'If this is not set then each record is assumed to equal one sample.',
             Include_columns => 'Only those records with a value of 1 or '
-                             . 'undefined across all Include_columns will '
+                             . '<i>undef</i> across all Include_columns will '
                              . 'be imported. CHECKCHECK',
             Exclude_columns => 'Those records with a value of 1 in any '
                              . 'Exclude_column will not be imported. CHECKCHECK',
         );
     }
-
-    my $text;
-    while (my ($label, $expl) = each %explain) {
-        $text .= "<b>$label</b>:\t$expl\n";
-    }
-    print $text;
-    my $label = Gtk2::Label->new($text);
-    $label->set_use_markup(1);
-
+    
     my $dlg = Gtk2::Dialog->new(
-        'Columns options',
+        'Column options',
         $parent,
         'destroy-with-parent',
         'gtk-ok' => 'ok',
     );
 
-    $dlg->vbox->pack_start ($label, 0, 0, 0);
+    my $table = Gtk2::Table->new(1 + scalar keys %explain, 2);
+    $table->set_row_spacings(5);
+    $table->set_col_spacings(5);
+
+    # Make scroll window for table
+    #my $scroll = Gtk2::ScrolledWindow->new;
+    #$scroll->add_with_viewport($table);
+    #$scroll->set_policy('never', 'automatic');
+    #$dlg->vbox->pack_start($scroll, 1, 1, 5);
+
+    $dlg->vbox->pack_start($table, 1, 1, 5);
+
+    my $col = 0;
+    # Make header column
+    my $label1 = Gtk2::Label->new('<b>Column option</b>');
+    $label1->set_alignment(0, 1);
+    $label1->set_use_markup(1);
+    $table->attach($label1, 0, 1, $col, $col + 1, ['expand', 'fill'], 'shrink', 0, 0);
+    my $label2 = Gtk2::Label->new('<b>Explanation</b>');
+    $label2->set_alignment(0, 1);
+    $label2->set_use_markup(1);
+    $table->attach($label2, 1, 2, $col, $col + 1, ['expand', 'fill'], 'shrink', 0, 0);
+
+    my $text;
+    #while (my ($label, $expl) = each %explain) {
+    foreach my $label (sort keys %explain) {
+        my $expl = $explain{$label};
+        $col++;
+        my $label_widget = Gtk2::Label->new("<b>$label</b>");
+        $table->attach($label_widget, 0, 1, $col, $col + 1, ['expand', 'fill'], 'shrink', 0, 0);
+        my $expl_widget  = Gtk2::Label->new($expl);
+        $table->attach($expl_widget,  1, 2, $col, $col + 1, ['expand', 'fill'], 'shrink', 0, 0);
+
+        foreach my $widget ($expl_widget, $label_widget) {
+            $widget->set_alignment(0, 1);
+            $widget->set_use_markup(1);
+            $widget->set_selectable(1);
+        }
+    }
+
     $dlg->set_modal(0);
     $dlg->show_all;
-    
-    
+
     $dlg->run;
     $dlg->destroy;  # should allow it to stay open and use signal connect to destroy
 

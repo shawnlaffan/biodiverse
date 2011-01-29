@@ -1,0 +1,24 @@
+$VAR1 = [
+          {
+            'Perl::Critic::Policy::Modules::RequireFilenameMatchesPackage' => 0,
+            'Perl::Critic::Policy::BuiltinFunctions::RequireGlobFunction' => 0,
+            'Perl::Critic::Policy::Subroutines::ProhibitSubroutinePrototypes' => 0,
+            'Perl::Critic::Policy::Modules::ProhibitEvilModules' => 0,
+            'Perl::Critic::Policy::Variables::RequireLexicalLoopIterators' => 12,
+            'Perl::Critic::Policy::Modules::RequireBarewordIncludes' => 0,
+            'Perl::Critic::Policy::InputOutput::ProhibitBarewordFileHandles' => 10,
+            'Perl::Critic::Policy::InputOutput::ProhibitTwoArgOpen' => 16,
+            'Perl::Critic::Policy::ValuesAndExpressions::ProhibitLeadingZeros' => 0,
+            'Perl::Critic::Policy::TestingAndDebugging::ProhibitNoStrict' => 2,
+            'Perl::Critic::Policy::BuiltinFunctions::ProhibitSleepViaSelect' => 0,
+            'Perl::Critic::Policy::BuiltinFunctions::ProhibitStringyEval' => 22,
+            'Perl::Critic::Policy::ClassHierarchies::ProhibitOneArgBless' => 1,
+            'Perl::Critic::Policy::InputOutput::ProhibitInteractiveTest' => 0,
+            'Perl::Critic::Policy::Subroutines::ProhibitNestedSubs' => 0,
+            'Perl::Critic::Policy::Subroutines::ProhibitReturnSort' => 2,
+            'Perl::Critic::Policy::TestingAndDebugging::RequireUseStrict' => 5,
+            'Perl::Critic::Policy::ControlStructures::ProhibitMutatingListFunctions' => 0,
+            'Perl::Critic::Policy::Subroutines::ProhibitExplicitReturnUndef' => 5,
+            'Perl::Critic::Policy::Variables::ProhibitConditionalDeclarations' => 6
+          }
+        ];

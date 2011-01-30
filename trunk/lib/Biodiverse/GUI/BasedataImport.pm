@@ -11,6 +11,7 @@ our $VERSION = '0.16';
 use File::Basename;
 use Gtk2;
 use Gtk2::GladeXML;
+use Text::Wrapper;
 
 use Scalar::Util qw /reftype/;
 
@@ -568,11 +569,16 @@ sub explain_import_col_options {
     my %explain = (
         Ignore          => 'There is no setting for this column.  '
                          . 'It will be ignored or used depending on your other settings.',
-        Group           => 'Use this column as a group axis '
-                         . '(numerical type).  It will be aggregated according '
+        Group           => 'Use records in this column to define a group axis '
+                         . '(numerical type).  Values will be aggregated according '
                          . 'to your cellsize settings.  Non-numeric values will cause an error.',
-        Text_group      => 'Use this column as a group axis (text type).  '
-                         . 'It will be used exactly as provided.',
+        Text_group      => 'Use records in this column as a group axis (text type).  '
+                         . 'Values will be used exactly as given.',
+        Include_columns => 'Only those records with a value of 1 in '
+                         . '<i>at least one</i> of the Include_columns will '
+                         . 'be imported.',
+        Exclude_columns => 'Those records with a value of 1 in any '
+                         . 'Exclude_column will not be imported.',
     );
     if ($use_matrix) {
         %explain = (
@@ -580,12 +586,11 @@ sub explain_import_col_options {
             Label_start_col => 'This column is the start of the labels. '
                              . 'The headers will be used as the labels, '
                              . 'the values as the abundance scores. '
-                             . 'All columns set to Ignore until the Label_end_col will be treated as labels.',
+                             . 'All columns set to Ignore until the '
+                             . 'Label_end_col will be treated as labels.',
             Label_end_col   => 'This column is the last of the labels.  '
                              . 'Not setting one will use all columns from the '
                              . 'Label_start_col to the end.',
-            Include_columns => '???  CHECKCHECK...',
-            Exclude_columns => '???  CHECKCHECK...',
         );
     }
     else {
@@ -594,14 +599,18 @@ sub explain_import_col_options {
             Label           => 'Values in this column will be used as one of the label axes.',
             Sample_counts   => 'Values in this column represent sample counts (abundances).  '
                              . 'If this is not set then each record is assumed to equal one sample.',
-            Include_columns => 'Only those records with a value of 1 or '
-                             . '<i>undef</i> across all Include_columns will '
-                             . 'be imported. ???  CHECKCHECK...',
-            Exclude_columns => 'Those records with a value of 1 in any '
-                             . 'Exclude_column will not be imported. ???  CHECKCHECK...',
         );
     }
-    
+
+    show_expl_dialog (\%explain, $parent);
+
+    return;
+}
+
+sub show_expl_dialog {
+    my $expl_hash = shift;
+    my $parent    = shift;
+#$parent = undef;
     my $dlg = Gtk2::Dialog->new(
         'Column options',
         $parent,
@@ -609,7 +618,9 @@ sub explain_import_col_options {
         'gtk-ok' => 'ok',
     );
 
-    my $table = Gtk2::Table->new(1 + scalar keys %explain, 2);
+    my $text_wrapper = Text::Wrapper->new(columns => 90);
+
+    my $table = Gtk2::Table->new(1 + scalar keys %$expl_hash, 2);
     $table->set_row_spacings(5);
     $table->set_col_spacings(5);
 
@@ -634,16 +645,18 @@ sub explain_import_col_options {
 
     my $text;
     #while (my ($label, $expl) = each %explain) {
-    foreach my $label (sort keys %explain) {
-        my $expl = $explain{$label};
+    foreach my $label (sort keys %$expl_hash) {
         $col++;
         my $label_widget = Gtk2::Label->new("<b>$label</b>");
         $table->attach($label_widget, 0, 1, $col, $col + 1, ['expand', 'fill'], 'shrink', 0, 0);
+
+        my $expl = $expl_hash->{$label};
+        #$expl = $text_wrapper->wrap($expl);
         my $expl_widget  = Gtk2::Label->new($expl);
         $table->attach($expl_widget,  1, 2, $col, $col + 1, ['expand', 'fill'], 'shrink', 0, 0);
 
         foreach my $widget ($expl_widget, $label_widget) {
-            $widget->set_alignment(0, 1);
+            $widget->set_alignment(0, 0);
             $widget->set_use_markup(1);
             $widget->set_selectable(1);
         }

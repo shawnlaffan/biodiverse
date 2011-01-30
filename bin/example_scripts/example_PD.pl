@@ -137,7 +137,7 @@ if ($do_spatial) {
         my $success = eval {
             $output->run_analysis (
                 spatial_conditions => $spatial_conditions,
-                analyses           => $analyses_to_run,
+                calculations       => $analyses_to_run,
                 tree_ref           => $tree_ref,
             );
         };
@@ -167,14 +167,14 @@ if ($do_matrix_cluster) {
         my $output = $bd->add_cluster_output (name => $name_clust);
         my $success = eval {
             $output->run_analysis (
-                spatial_conditions => $spatial_conditions_clust,
-                spatial_analyses   => $analyses_to_run,  #  run these analyses for each node on the tree - comment out if not neneded
-                tree_ref           => $tree_ref,
-                index              => 'PHYLO_SORENSON',
-                linkage_function   => 'link_average',
+                spatial_conditions   => $spatial_conditions_clust,
+                spatial_calculations => $analyses_to_run,  #  run these analyses for each node on the tree - comment out if not needed
+                tree_ref             => $tree_ref,
+                index                => 'PHYLO_SORENSON',  #  this isn't publicly available yet (2011-01-30)
+                linkage_function     => 'link_average',
             );
         };
-      
+
         if ($success) {
             # to export the cluster tree
             #$output->export (file => $output->get_param ('NAME') . '.nex',

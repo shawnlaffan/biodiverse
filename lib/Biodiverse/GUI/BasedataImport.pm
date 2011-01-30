@@ -607,6 +607,37 @@ sub explain_import_col_options {
     return;
 }
 
+sub explain_remap_col_options {
+    my $parent = shift;
+    
+    my $inc_exc_suffix = 'This applies to the main input file, '
+                       . 'and is assessed before any remapping is done.';
+
+    my %explain = (
+        Ignore           => 'There is no setting for this column.  '
+                          . 'It will be ignored or used depending on your other settings.',
+        Property         => 'The value for this field will be added as a property, '
+                          . 'using the name of the column as the property name.',
+        Input_element    => 'Values in this column will be used as one of the element (label or group) axes. '
+                          . 'Make sure you have as many of these columns set as you have '
+                          . 'element axes or they will not match and the properties will be ignored.',
+        Remapped_element => 'The input element (label or group) will be renamed to this. '
+                          . 'Set as many remapped label axes as you like, '
+                          . 'but make sure the group axes remain the same',
+        Include_columns  => 'Only those Input_elements with a value of 1 in '
+                          . '<i>at least one</i> of the Include_columns will '
+                          . 'be imported. '
+                          . $inc_exc_suffix,
+        Exclude_columns  => 'Those Input_elements with a value of 1 in any '
+                          . 'Exclude_column will not be imported.  '
+                          . $inc_exc_suffix,
+    );
+
+    show_expl_dialog (\%explain, $parent);
+
+    return;
+}
+
 sub show_expl_dialog {
     my $expl_hash = shift;
     my $parent    = shift;
@@ -1254,7 +1285,11 @@ sub getRemapInfo {
     RUN_DLG:
     while (1) {
         $response = $dlg->run();
-        if ($response eq 'ok') {
+        if ($response eq 'help') {
+            explain_remap_col_options($dlg);
+            next RUN_DLG;
+        }
+        elsif ($response eq 'ok') {
             $column_settings = getRemapColumnSettings ($col_widgets, \@headers);
         }
         else {
@@ -1343,7 +1378,14 @@ sub makeRemapColumnsDialog {
     print "[GUI] Generating make columns dialog for $num_columns columns\n";
 
     # Make dialog
-    my $dlg = Gtk2::Dialog->new("Choose columns", $wndMain, "modal", "gtk-cancel" => "cancel", "gtk-ok" => "ok");
+    my $dlg = Gtk2::Dialog->new(
+        'Choose columns',
+        $wndMain,
+        'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+        'gtk-help'   => 'help',
+    );
     my $label = Gtk2::Label->new("<b>Select column types</b>");
     $label->set_use_markup(1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);

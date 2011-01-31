@@ -52,6 +52,7 @@ my $index     = $rest{metric}  || 'SORENSON';
 my $max_lag   = $rest{max_lag};
 my $sp_cond_f = $rest{sp_cond};
 my $def_q_f   = $rest{def_q};
+my $no_dir    = $rest{no_dir};
 my $overwrite = defined $rest{overwrite} ? $rest{overwrite} : 1;
 my $lag_size  = $rest{lag_size} || 0;
 
@@ -93,6 +94,8 @@ process_results ($bd, $out_filex);
 sub process_results {
     my ($bd, $out_filex) = @_;
     
+    print "Processing results\n";
+    
     open (my $fh, '<', $out_filex)
       or croak "Unable to open $out_filex to read the results";
     open (my $ofh, '>', $out_file)
@@ -100,32 +103,44 @@ sub process_results {
     
     my $csv = $bd->get_csv_object;
     my $gp  = $bd->get_groups_ref;
+    my %done;
     
     #  and now read the file back, calculating the distances
     #  it is inefficient to write then read, but should work
     my $header = <$fh>;
-    my @header = $bd->csv2list(
+    my @orig_header = $bd->csv2list(
         csv_object => $csv,
         string     => $header,
     );
+    my @header = qw /x1 y1 x2 y2/;
+    push @header, $orig_header[-1];
+    push @header, 'distance';
+    if (! $no_dir) {
+        push @header, 'direction';
+    };
     print {$ofh}
-      $bd->list2csv(list => [@header, 'distance', 'direction'], csv_object => $csv)
+      $bd->list2csv(list => \@header, csv_object => $csv)
       . "\n";
-    
+
+    LINE:
     while (my $line = <$fh>) {
+
         my @line = $bd->csv2list(
             csv_object => $csv,
             string     => $line,
         );
         my ($from, $to, $value) = @line;
+
+        next LINE if exists $done{$from}{$to} or exists $done{$to}{$from};
+
         my @coord1 = $gp->get_element_name_as_array (element => $from);
         my @coord2 = $gp->get_element_name_as_array (element => $to);
-        
+
         my $offsets = [
             $coord1[0] - $coord2[0],
             $coord1[1] - $coord2[1],
         ];
-        
+
         my $dist = sqrt (
             $offsets->[0] ** 2
           + $offsets->[1] ** 2
@@ -134,13 +149,19 @@ sub process_results {
             $dist -= fmod ($dist, $lag_size);
         }
         next if $max_lag and $dist > $max_lag;
-        
-        my $dir = atan2 ($offsets->[1], $offsets->[0]);
-        
-        my $line2 = $bd->list2csv(list => [@line, $dist, $dir], csv_object => $csv);
-        print {$ofh} $line2 . "\n";
-    }
     
+        my @result = (@coord1, @coord2, $value, $dist);
+        if (! $no_dir) {
+            my $dir = atan2 ($offsets->[1], $offsets->[0]);
+            push @result, $dir;
+        }
+
+        my $line2 = $bd->list2csv(list => \@result, csv_object => $csv);
+        print {$ofh} $line2 . "\n";
+
+        $done{$from}{$to} ++;
+    }
+
     return;
 }
 
@@ -202,6 +223,7 @@ usage: \n
         def_q     {definition query file}
         overwrite {1 | 0}
         lag_size  {0}
+        no_dir    {0}    
 
     The default index is SORENSON.
     Variables after <out file name> are keyword/value pairs, all on one line.  e.g.:

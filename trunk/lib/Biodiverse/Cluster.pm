@@ -312,6 +312,7 @@ sub build_matrices {
     foreach my $fh (@$file_handles) {
         print {$fh} "Element1,Element2,Value\n";
     }
+    delete $args{file_handles};
 
     print "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING\n";
 
@@ -326,10 +327,11 @@ sub build_matrices {
             spatial_conditions            => \@spatial_conditions,
             definition_query              => $definition_query,
             no_create_failed_def_query    => 1,  #  only want those that pass the def query
+            calc_only_elements_to_calc    => 1,
         );
     };
     my $e = $EVAL_ERROR;                #  Did we complete properly?
-    $bd->delete_output (output => $sp); #  Clear it from the basedata object.
+    #$bd->delete_output (output => $sp); #  Clear it from the basedata object.
     croak $e if $e;                     #  Throw a hissy fit if we didn't complete properly
 
     my %cache;  #  cache the label hashes
@@ -413,8 +415,14 @@ sub build_matrices {
 
             $valid_count += $x;
         }
-
-        $done{$element1}++;
+        #  DEBUG
+        #{
+        #    local $self->{PARAMS}{BASEDATA_REF} = undef;
+        #    local $self->{PARAMS}{INDICES_OBJECT}{PARAMS}{BASEDATA_REF} = undef;
+        #    
+        #    $self->save_to_yaml (filename => 'xxx' . $valid_count . '.yml');
+        #}
+        #$done{$element1}++;  #  never used...
     }
 
     my $element_check = $self->get_param ('ELEMENT_CHECK');
@@ -457,7 +465,7 @@ sub build_matrix_elements {
     my $cache = $args{element_label_cache} || $self->get_param ('MATRIX_ELEMENT_LABEL_CACHE');
     my $matrices = $args{matrices};  #  two items, second is shadow matrix
 
-    my $definition_query = $self->get_param ('DEFINITION_QUERY');
+    #my $definition_query = $self->get_param ('DEFINITION_QUERY');
     my $index_function   = $args{index_function}
                            || $self->get_param ('CLUSTER_INDEX_SUB');
     my $index            = $args{index}
@@ -468,6 +476,8 @@ sub build_matrix_elements {
                            || $self->get_param ('INDICES_OBJECT');
 
     my $ofh = $args{file_handle};
+    delete $args{file_handle};
+
     my $csv_out;
     #  take care of closed file handles
     if ( defined $ofh ) {
@@ -484,12 +494,17 @@ sub build_matrix_elements {
 
     my $sp = $args{spatial_object};
     my $pass_def_query = $sp->get_param ('PASS_DEF_QUERY');
+    #my $pass_def_query = {};
 
     my $valid_count = 0;
+    
+    #print "Elements to calc: ", (scalar @$element_list2), "\n";
 
-    ELEMENTS: foreach my $element2 (sort @$element_list2) {
+    ELEMENTS:
+    foreach my $element2 (sort @$element_list2) {
         next ELEMENTS if $element1 eq $element2;
-        if ($definition_query) {  #  poss redundant check now
+        if ($pass_def_query) {  #  poss redundant check now
+            my $null = undef;  #  debug
             next ELEMENTS
               if (not exists $pass_def_query->{$element2});
         }
@@ -502,7 +517,9 @@ sub build_matrix_elements {
         my $iter = 0;
         my %not_exists_iter;
         my $value;
+        MX:
         foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
+            last MX if defined $ofh; # we're writing to files so don't check
             my $x = $mx->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2
@@ -535,12 +552,19 @@ sub build_matrix_elements {
 
         #  use elements if no cached labels
         #  set to undef if we have a cached label_hash
-        my $el1_ref = defined $cache->{$element1} ? undef : [$element1];
-        my $el2_ref = defined $cache->{$element2} ? undef : [$element2];
+        my ($el1_ref, $el2_ref, $label_hash1, $label_hash2);
+        if ($cache_abc) {
+            $el1_ref = defined $cache->{$element1} ? undef : [$element1];
+            $el2_ref = defined $cache->{$element2} ? undef : [$element2];
 
-        #  use cached labels if they exist (gets undef otherwise)
-        my $label_hash1 = $cache->{$element1};
-        my $label_hash2 = $cache->{$element2};
+            #  use cached labels if they exist (gets undef otherwise)
+            $label_hash1 = exists $cache->{$element1} ? $cache->{$element1} : undef;
+            $label_hash2 = exists $cache->{$element2} ? $cache->{$element2} : undef;
+        }
+        else {
+            $el1_ref = [$element1];
+            $el2_ref = [$element2];            
+        }
 
         my %elements = (
             element_list1   => $el1_ref,
@@ -590,7 +614,7 @@ sub build_matrix_elements {
                 list       => $res_list,
                 csv_object => $csv_out,
             );
-            print {$ofh} $text . "\n";
+            print {$ofh} ($text . "\n");
         }
         else {
             foreach my $mx (@$matrices) {
@@ -604,6 +628,8 @@ sub build_matrix_elements {
 
         $valid_count ++;
     }
+    
+    my $cache_size = scalar keys %$cache;
 
     return $valid_count;
 }

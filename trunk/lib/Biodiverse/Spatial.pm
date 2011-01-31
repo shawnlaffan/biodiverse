@@ -498,8 +498,13 @@ sub sp_calc {
     }
     
     my @elements_to_calc;
+    my @elements_to_exclude;
     if ($args{calc_only_elements_to_calc}) { #  a bit messy but should save RAM 
         @elements_to_calc = keys %elements_to_use;
+        my %elements_to_exclude_h;
+        @elements_to_exclude_h{$bd->get_groups} = undef;
+        delete @elements_to_exclude_h{@elements_to_calc};
+        @elements_to_exclude = keys %elements_to_exclude_h;
     }
     else {
         @elements_to_calc = $bd->get_groups;
@@ -516,7 +521,7 @@ sub sp_calc {
     #  create all the elements and the SPATIAL_RESULTS list
     my $toDo = scalar @elements_to_calc;
     #my $timer = [gettimeofday];
-    print "[SPATIAL] Creating $toDo target groups\n";
+    print "[SPATIAL] Creating target groups\n";
     
     my $progress_text_create
         = $progress_text . "\nCreating target groups";
@@ -552,8 +557,12 @@ sub sp_calc {
         if (        $definition_query
             and not exists $pass_def_query->{$element}) {
             
-            next GET_ELEMENTS_TO_CALC
-              if $no_create_failed_def_query;
+            if ($no_create_failed_def_query) {
+                if ($args{calc_only_elements_to_calc}) {
+                    push @elements_to_exclude, $element;
+                }
+                next GET_ELEMENTS_TO_CALC;
+            }
             
             $sp_res_hash = $failed_def_query_sp_res_hash;
         }
@@ -664,8 +673,9 @@ sub sp_calc {
                     
                     if ($list) {
                         my %tmp;  #  remove any that should not be there
+                        my $excl = [@exclude, @elements_to_exclude];
                         @tmp{@$list} = (1) x @$list;
-                        delete @tmp{@exclude};
+                        delete @tmp{@$excl};
                         $nbr_list[$i] = [keys %tmp];
                     }
                     else {    #  no nbr list thus far so go looking
@@ -682,7 +692,7 @@ sub sp_calc {
                             spatial_params  => $spatial_params_ref->[$i],
                             index           => $sp_index_i,
                             index_offsets   => $search_blocks_ref->[$i],
-                            exclude_list    => \@exclude,
+                            exclude_list    => [@exclude, @elements_to_exclude],
                         );
                     }
                     

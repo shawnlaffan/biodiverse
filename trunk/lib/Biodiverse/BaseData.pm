@@ -2628,8 +2628,8 @@ sub get_neighbours {
     #  element_list1 elements in these neighbours,
     #  therefore making neighbourhood parameter definitions easier.
     my %exclude_hash =
-      $self -> array_to_hash_keys (
-        list => $args{exclude_list},
+      $self->array_to_hash_keys (
+        list  => $args{exclude_list},
         value => 1,
     );
 
@@ -2677,7 +2677,7 @@ sub get_neighbours {
         next NBR if not defined $element2;
 
         #  skip if in the exclusion list
-        next NBR if exists $exclude_hash{$element2};  
+        next NBR if exists $exclude_hash{$element2};
 
         #  warn and skip if already done
         if (exists $valid_nbrs{$element2}) {
@@ -2718,9 +2718,12 @@ sub get_neighbours {
             my $subset_nbrs = $spatial_params -> get_cached_subset_nbrs (coord_id => $element1);
             if ($subset_nbrs) {
                 %valid_nbrs = %$subset_nbrs;
+                #print "Found ", scalar keys %valid_nbrs, " valid nbrs\n";
                 delete @valid_nbrs{keys %exclude_hash};
+                $spatial_params->clear_cached_subset_nbrs(coord_id => $element1);
                 last NBR;
             }
+            
         }
 
         #  drop out if not a nbr

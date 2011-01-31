@@ -1528,6 +1528,10 @@ sub sp_select_sequence {
     my $cycle_offset = defined $args{cycle_offset} ? $args{cycle_offset} : 1;
     my $use_cache    = defined $args{use_cache} ? $args{use_cache} : 1;
 
+    if ($args{clear_cache}) {
+        $self->set_param(SP_SELECT_SEQUENCE_CLEAR_CACHE => 1);
+    }
+
     my $ID                = join q{,}, @_;
     my $cache_gp_name     = 'SP_SELECT_SEQUENCE_CACHED_GROUP_LIST' . $ID;
     my $cache_nbr_name    = 'SP_SELECT_SEQUENCE_CACHED_NBRS' . $ID;
@@ -1552,7 +1556,6 @@ sub sp_select_sequence {
             if ( $cycle_offset and $offset >= $spacing ) {
                 $offset = 0;
             }
-
         }
     }
     $self->set_param( $cache_last_coord_id_name => $coord_id1 );
@@ -1585,10 +1588,10 @@ sub sp_select_sequence {
             #  (should also put in a random option)
 
             if ( $args{reverse_order} ) {
-                @groups = reverse sort $bd ->get_groups;
+                @groups = reverse sort $bd->get_groups;
             }
             else {
-                @groups = sort $bd ->get_groups;
+                @groups = sort $bd->get_groups;
 
             }
 
@@ -1620,7 +1623,7 @@ sub sp_select_sequence {
         }
     }
 
-    return exists $nbrs->{$coord_id2};
+    return defined $coord_id2 ? exists $nbrs->{$coord_id2} : 0;
 }
 
 #  get the list of cached nbrs - VERY BODGY needs generalising
@@ -1647,6 +1650,26 @@ sub get_cached_subset_nbrs {
     my $sub_cache = $cache->{ $args{coord_id} };
 
     return wantarray ? %$sub_cache : $sub_cache;
+}
+
+sub clear_cached_subset_nbrs {
+    my $self = shift;
+    my %args = @_;
+
+    my $clear = $self->get_param('SP_SELECT_SEQUENCE_CLEAR_CACHE');
+    return if ! $clear;
+    
+    my $cache_name;
+    my $cache_pfx = 'SP_SELECT_SEQUENCE_CACHED';    #  BODGE
+    
+    my %params = $self->get_params_hash;    #  find the cache name
+    foreach my $param ( keys %params ) {
+        next if not $param =~ /^$cache_pfx/;
+        $cache_name = $param;
+        $self->delete_param ($cache_name);
+    }
+
+    return;
 }
 
 sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }

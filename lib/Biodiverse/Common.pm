@@ -532,7 +532,9 @@ sub save_to_xml {  #  dump the whole object to an xml file.  Get the prefix from
     return $file;
 }
 
-sub save_to_yaml {  #  dump the whole object to a yaml file.  Get the prefix from $self{PARAMS}, or some other default
+#  dump the whole object to a yaml file.
+#  Get the prefix from $self{PARAMS}, or some other default
+sub save_to_yaml {  
     my $self = shift;
     my %args = @_;
 

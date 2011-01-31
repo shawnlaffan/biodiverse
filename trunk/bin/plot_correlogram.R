@@ -38,10 +38,10 @@ subset_by_dir = function (data, dirfld='direction', wedge_angle=0, wedge_width=p
     w = wedge_width / 2
     min_angle1 = wedge_angle - w  
     max_angle1 = wedge_angle + w
-    min_angle2 = min_angle + pi   #  Allow for round-the-circle in either direction.
-    max_angle2 = max_angle + pi   #  Surely this can be done better?
-    min_angle3 = min_angle - pi
-    max_angle3 = max_angle - pi
+    min_angle2 = min_angle1 + pi   #  Allow for round-the-circle in either direction.
+    max_angle2 = max_angle1 + pi   #  Surely this can be done better?
+    min_angle3 = min_angle1 - pi
+    max_angle3 = max_angle1 - pi
     
     return (
         subset (data,

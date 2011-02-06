@@ -399,11 +399,12 @@ sub verify {
     }
     else {
 
- #my $caller_object = Biodiverse::BaseData -> new;  #  a real bodge workaround
-        $args{caller_object} = Biodiverse::BaseData->new
-            ;    #  a real bodge workaround - need to get these from metadata
+        #  a real bodge workaround - need to get these from metadata
+        $args{caller_object} = Biodiverse::BaseData->new;    
         $args{coord_id1} = 'a';
         $args{coord_id2} = 'b';
+        my $coord_id1 = $args{coord_id1};
+        my $coord_id2 = $args{coord_id2};
 
         #  COMMENTED BLOCK is an attempt to simplify the generation of default
         #  vars, but we have lexical scoping issues due to the for loop
@@ -632,6 +633,9 @@ sub evaluate {
             $self -> set_param (LAST_DISTS => \%dists);
         }
     }
+
+    my $coord_id1 = $args{coord_id1};
+    my $coord_id2 = $args{coord_id2};
 
     my @coord = @{ $args{coord_array1} };
     
@@ -1202,14 +1206,18 @@ sub sp_ellipse {
     my $r_x = sin($bearing) * $D;    #  rotated x coord
     my $r_y = cos($bearing) * $D;    #  rotated y coord
 
-    my $a = ( $r_y**2 ) / ( $major_radius**2 );
-    my $b = ( $r_x**2 ) / ( $minor_radius**2 );
+    my $a_dist = ( $r_y ** 2 ) / ( $major_radius**2 );
+    my $b_dist = ( $r_x ** 2 ) / ( $minor_radius**2 );
+    my $precision = '%.14f';
+    $a_dist = $self->set_precision(value => $a_dist, precision => $precision) + 0;
+    $b_dist = $self->set_precision(value => $b_dist, precision => $precision) + 0;
+#print "$rotate_angle, $a_dist, $b_dist\n";
 
 #my $sum = $a + $b;
 #  this last line evaluates to 1 (true) if the candidate
 #  neighbour is within the ellipse (sum of ratios is less than 1)
 #return 1 >= ((($r_y ** 2) / ($major_radius ** 2) + (($r_x / $minor_radius) ** 2));
-    my $test = eval { 1 >= ( $a + $b ) };
+    my $test = eval { 1 >= ( $a_dist + $b_dist ) };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $test;
@@ -1422,7 +1430,7 @@ sub get_metadata_sp_is_left_of {
 }
 
 
-sub sp_is_left_of {
+sub _sp_is_left_of {
     my $self = shift;
     my %args = @_;
 

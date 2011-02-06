@@ -14,7 +14,7 @@ use Gtk2;
 use Data::Dumper;
 require Biodiverse::GUI::GUIManager;
 require Biodiverse::GUI::Help;
-require Biodiverse::GUI::ParamEditor;
+#require Biodiverse::GUI::ParamEditor;
 require Biodiverse::GUI::Tabs::Spatial;
 require Biodiverse::GUI::Tabs::Clustering;
 require Biodiverse::GUI::Tabs::Labels;

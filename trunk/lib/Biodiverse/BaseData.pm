@@ -977,22 +977,32 @@ sub import_data {  #  load a data file into the selected BaseData object.
                 }
 
                 if ($cell_sizes[$i] > 0) {
-                    
+
                     #  allow for different snap value - shift before aggregation
-                    my $tmp = $coord - $cell_origins[$i];  
-                    my $offset = fmod ($tmp, $cell_sizes[$i]);
+                    my $tmp = $coord - $cell_origins[$i];
+
+                    #  how many cells away from the origin are we?
+                    #  snap to 10dp precision to avoid cellsize==0.1 issues
+                    my $tmp_prec = $self->set_precision(
+                        value     => $tmp / $cell_sizes[$i],
+                        precision => '%.10f',
+                    );
+                    my $offset = int (abs ($tmp_prec));
+
+                    #  which cell are we?
+                    my $gp_val = $offset * $cell_sizes[$i];
                     
-                    #  adjustment to ensure negative groups go
-                    #  in the same direction as positive groups
-                    if ($offset < 0) {
-                        $group[$i] = $tmp - $offset - $half_cellsize[$i];
+                    #  now assign the centre of the cell we are in
+                    $gp_val += $half_cellsize[$i];
+                    
+                    #  -ve cells need to be negative and pushed right/up
+                    if ($tmp < 0) {
+                        $gp_val *= -1;
+                        $gp_val += $cell_sizes[$i];
                     }
-                    else {
-                        $group[$i] = $tmp - $offset + $half_cellsize[$i];
-                    }
+
                     #  now shift the aggregated cell back to where it should be
-                    $group[$i] += $cell_origins[$i];  
-                    
+                    $group[$i] = $gp_val + $cell_origins[$i];
                 }
                 else {
                     #  commented next check - don't trap undef text fields as they can be useful

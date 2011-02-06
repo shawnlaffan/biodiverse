@@ -6,6 +6,7 @@ use Carp;
 use POSIX qw /fmod/;
 my $NULL_STRING = q{};
 
+our $VERSION = '0.16';
 
 sub new {
     my $class = shift;

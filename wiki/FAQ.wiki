@@ -89,7 +89,7 @@ In most cases one would set the second condition to use all pairs (`sp_select_al
 
 == I want to analyse environmental data ==
 
-Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the [Indices#Numeric_Labels numeric labels] calculations to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label properties, but we have yet to develop calculations that use them.  They can be viewed in the [SampleSession#Visualising_data View Labels] tab, though.
+Biodiverse supports the analysis and aggregation of environmental variables but these need to be imported into their own basedata object (preferably using the same cell size and origin as the species data).  You can use the [Indices#Numeric_Labels numeric labels] calculations to get summaries of their distributions.  The species and environmental data can be combined afterwards in a stats package, database or spreadsheet and then analysed for correlations and the like.  One can also import environmental data as label or group properties, for which calculations will be part of version 0.16 (issue #212, issue #207 and issue #214).  Label properties can be viewed in the [SampleSession#Visualising_data View Labels] tab in version 0.15, though.
 
 == My structured randomisations do not have constant richness scores ==
 
@@ -133,7 +133,7 @@ The coordinates of the exported data are in the same coordinate system as your i
 
 == How do I export as a raster? ==
 
-Use the ER-Mapper BIL file, ArcInfo Asciigrid or ArcInfo Floatgrid options.  
+Use the ER-Mapper BIL file, !ArcInfo Asciigrid or !ArcInfo Floatgrid options.  
 
 These are currently not supported for the cluster analyses (see issue #161).  In that case, export to delimited text and then import this as a point data source and convert to raster.  It is probably best to use the grouped option for this, as it will not have overlapping node ranges.  Alternately, select each node in turn and create a separate raster using its terminal nodes (this will need a scripting approach).
 
@@ -157,7 +157,7 @@ RegistrationCellX  = 0.5
 RegistrationCellY  = 0.5
 }}}
 
-The system behaviour is set for !ArcMap 9 purely because we are assuming more people will be using it for display.  If that is not the case then the behaviour can be changed.  With ArcGIS 10 using the GDAL library this problem will hopefully go away and we can set the registration cells to 0.5.
+The system behaviour is set for !ArcMap 9 purely because we are assuming more people will be using it for display.  If that is not the case then the behaviour can be changed.  With !ArcGIS 10 using the GDAL library this problem will hopefully go away and we can set the registration cells to 0.5.
 
 ==  Why do my asciigrid or floatgrid files have strange characters like %3A in the names? ==
 

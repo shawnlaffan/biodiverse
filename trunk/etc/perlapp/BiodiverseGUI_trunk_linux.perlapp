@@ -1,0 +1,42 @@
+#!/home/shawn/PDK-9.0.1.293382-linux/pdk/bin/perlapp-gui
+PAP-Version: 1.0
+Packer: ../PDK-9.0.1.293382-linux/pdk/bin/perlapp
+Script: bin/BiodiverseGUI.pl
+Cwd: /home/shawn/biodiverse
+Add: Object::InsideOut::
+Add: Biodiverse::**
+Bind: biodiverse.glade[file=bin/glade/biodiverse.glade,text,extract,mode=666]
+Bind: biodiverse.gladep[file=bin/glade/biodiverse.gladep,text,extract,mode=666]
+Bind: Biodiverse_icon.ico[file=bin/Biodiverse_icon.ico,mode=666]
+Bind: Biodiverse_icon.ico[file=bin/Biodiverse_icon.ico,mode=644]
+Clean: 0
+Date: 2010-10-06 15:39:42
+Debug: 
+Dependent: 0
+Dyndll: 0
+Exe: BiodiverseGUI_linux
+Force: 1
+Gui: 0
+Hostname: fishera-desktop
+Icon: bin/Biodiverse_icon.ico
+Lib: lib:lib
+Manifest: 
+No-Compress: 0
+No-Logo: 0
+Runlib: 
+Scan: etc/perlapp/module_list.pl
+Shared: private
+Tmpdir: 
+Verbose: 0
+Version-Comments: Developed by Shawn Laffan, Eugene Lubarsky and Dan Rosauer
+Version-CompanyName: School of BEES, UNSW
+Version-FileDescription: Biodiverse is a tool for the spatial analysis of diversity
+Version-FileVersion: 0.15
+Version-InternalName: 
+Version-LegalCopyright: GNU Lesser General Public License (LGPL)
+Version-LegalTrademarks: 
+Version-OriginalFilename: 
+Version-ProductName: Biodiverse
+Version-ProductVersion: 0.15
+Warnings: 0
+Xclude: 0

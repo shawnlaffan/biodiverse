@@ -18,6 +18,7 @@ Main changes since the previous version (0.15) are:
       *  Element properties with a value of nodata are displayed as -99999.  Issue #189.
       *  System no longer intermittently hangs when control clicking.  Issue #194.
   *  Analyses
+    *  Indices for phylogenetic dissimilarity have been added to the release version.  Issue #215.
     *  sp_select_sequence() now works as a definition query.  Issue #190.
     *  Cluster matrices can be written to file as they are built.  These are not added to the GUI, thus saving memory and allowing extremely large matrices to be built for use in external applications.  Issue #186.
     *  NEST_RESULTANT index is now correctly calculated.  Issue #182.

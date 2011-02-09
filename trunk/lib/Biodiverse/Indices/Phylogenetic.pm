@@ -782,6 +782,219 @@ sub _calc_taxonomic_distinctness {
 }
 
 
+sub get_metadata_calc_phylo_sorenson {
+    
+    my %arguments = (
+        name           =>  'Phylo Sorenson',
+        type           =>  'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        description    =>  "Sorenson phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
+        pre_calc       =>  'calc_phylo_abc',
+        uses_nbr_lists =>  2,  #  how many sets of lists it must have
+        indices        => {
+            PHYLO_SORENSON => {
+                cluster     =>  1,
+                formula     =>  '1 - (2A / (2A + B + C))',
+                description => 'Phylo Sorenson score',
+            }
+        },
+        required_args => {'tree_ref' => 1}
+    );
+           
+    return wantarray ? %arguments : \%arguments;   
+}
+
+sub calc_phylo_sorenson {  # calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+
+    my $self = shift;
+    my %args = @_;
+    
+    #i assume following lines are redundant
+    #my $el1 = $self -> array_to_hash_keys (list => $args{element_list1});
+    #my $el2 = $self -> array_to_hash_keys (list => $args{element_list2});
+    
+    my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};
+    
+    my $val;
+    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+        $val = eval {1 - (2 * $A / ($A + $ABC))};
+    }
+    
+    my %results = (PHYLO_SORENSON => $val);
+
+    return wantarray
+            ? %results
+            : \%results;
+}
+
+sub get_metadata_calc_phylo_jaccard {
+    
+    my %arguments = (
+        name           =>  'Phylo Jaccard',
+        type           =>  'Phylogenetic Indices',
+        description    =>  "Jaccard phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
+        pre_calc       =>  'calc_phylo_abc',
+        uses_nbr_lists =>  2,  #  how many sets of lists it must have
+        indices        => {
+            PHYLO_JACCARD => {
+                cluster     =>  1,
+                RCOMP       =>  ">",
+                formula     =>  "= 1 - (A / (A + B + C))",
+                description => 'Phylo Jaccard score',
+            }
+        },
+        required_args => {'tree_ref' => 1}
+    );
+           
+    return wantarray ? %arguments : \%arguments;   
+}
+
+sub calc_phylo_jaccard {  # calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+    my $self = shift;
+    my %args = @_;
+
+    my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};  
+    
+    my $val;
+    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+        $val = eval {1 - ($A / $ABC)};
+    }    
+
+    my %results = (PHYLO_JACCARD => $val);
+
+    return wantarray
+            ? %results
+            : \%results;
+}
+
+sub get_metadata_calc_phylo_abc {
+    
+    my %arguments = (
+        name            =>  'Phylogenetic ABC',
+        description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
+        type            =>  'Phylogenetic Indices',
+        pre_calc        =>  'calc_abc',
+        pre_calc_global =>  'get_trimmed_tree',
+        uses_nbr_lists  =>  2,  #  how many sets of lists it must have
+        required_args   => {'tree_ref' => 1},
+        indices         => {
+            PHYLO_A => {
+                description  =>  'Length of branches shared by labels in nbr sets 1 and 2',
+                lumper       => 1,
+            },
+            PHYLO_B => {
+                description  =>  'Length of branches unique to labels in nbr set 1',
+                lumper       => 0,
+            },
+            PHYLO_C => {
+                description  =>  'Length of branches unique to labels in nbr set 2',
+                lumper       => 0,
+            },
+            PHYLO_ABC => {
+                description  =>  'Length of all branches associated with labels in nbr sets 1 and 2',
+                lumper       => 1,
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;   
+}
+
+sub calc_phylo_abc {
+    my $self = shift;
+        my %args = @_;
+
+    return $self -> _calc_phylo_abc(@_);
+}
+
+sub _calc_phylo_abc {
+    my $self = shift;
+    my %args = @_;
+
+    #  assume we are in a spatial or tree object first, or a basedata object otherwise
+    #my $bd = $self->get_basedata_ref;
+
+    croak "none of refs element_list1, element_list2, label_list1, label_list2, label_hash1, label_hash2 specified\n"
+        if (! defined $args{element_list1} && ! defined $args{element_list2} &&
+            ! defined $args{label_list1} && ! defined $args{label_list2} &&
+            ! defined $args{label_hash1} && ! defined $args{label_hash2} &&
+            !defined $args{tree_ref});
+
+    #  make copies of the label hashes so we don't mess things up with auto-vivification
+    my %l1 = %{$args{label_hash1}};
+    my %l2 = %{$args{label_hash2}};
+    my %labels = (%l1, %l2);
+
+    my ($phylo_A, $phylo_B, $phylo_C, $phylo_ABC)= (0, 0, 0, 0);    
+
+    my $tree = $args{trimmed_tree};
+    
+    my $nodes_in_path1 = $self -> get_paths_to_root_node (
+        @_,
+        labels => \%l1,
+        tree_ref => $tree
+    );
+    
+    my $nodes_in_path2 = $self -> get_paths_to_root_node (
+        @_,
+        labels => \%l2,
+        tree_ref => $tree
+    );
+    
+    my %ABC = (%$nodes_in_path1, %$nodes_in_path2); 
+    
+    # get length of %ABC
+    foreach my $node (values %ABC) {
+        $phylo_ABC += $node->get_length;
+    };
+        
+    # create a new hash %B for nodes in label hash 1 but not 2
+    my %B = %ABC;
+    delete @B{keys %$nodes_in_path2};
+    
+    # get length of B = branches in label hash 1 but not 2
+    foreach my $node (values %B) {
+        $phylo_B += $node ->get_length;
+    };
+    
+    # create a new hash %C for nodes in label hash 2 but not 1
+    my %C = %ABC;
+    delete @C{keys %$nodes_in_path1};
+    
+    # get length of C = branches in label hash 2 but not 1
+    foreach my $node (values %C) {
+        $phylo_C += $node ->get_length;
+    };
+    
+    # get length A = shared branches
+    $phylo_A = $phylo_ABC - ($phylo_B + $phylo_C);
+
+    #  return the values but reduce the precision to avoid floating point problems later on
+    my $precision = "%.10f";
+    my %results = (
+        PHYLO_A   => $self -> set_precision (
+            precision => $precision,
+            value     => $phylo_A,
+        ),
+        PHYLO_B   => $self -> set_precision (
+            precision => $precision,
+            value     => $phylo_B,
+        ),
+        PHYLO_C   => $self -> set_precision (
+            precision => $precision,
+            value     => $phylo_C,
+        ),
+        PHYLO_ABC => $self -> set_precision (
+            precision => $precision,
+            value     => $phylo_ABC,
+        ),
+    );
+
+    return wantarray
+            ? %results
+            : \%results;
+}
+
+
 1;
 
 

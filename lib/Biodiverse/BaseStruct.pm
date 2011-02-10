@@ -1302,9 +1302,12 @@ sub raster_export_process_args {
             : @{$self -> get_param ('CELL_SIZES')};
 
     #  check the resolutions.
-    $self->raster_export_test_axes_validity (
-        resolutions => [@res[@axes_to_use]],
-    );
+    eval {
+        $self->raster_export_test_axes_validity (
+            resolutions => [@res[@axes_to_use]],
+        );
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
 
     my @coord_cols = $self->raster_export_get_coord_cols (%args);
     my %coord_cols_hash;
@@ -1336,16 +1339,19 @@ sub raster_export_test_axes_validity {
     my %args = @_;
     my @resolutions = @{$args{resolutions}};
     
-    my $i;
+    my $i = 0;
     foreach my $r (@resolutions) {
 
         croak "[BASESTRUCT] Cannot export text axes to raster, axis $i\n"
-          if $r <= 0;
+          if $r < 0;
+
+        croak "[BASESTRUCT] Cannot export point axes to raster, axis $i\n"
+          if $r == 0;
 
         $i++;
     }
     
-    return;
+    return 1;
 }
 
 sub raster_export_get_coord_cols {

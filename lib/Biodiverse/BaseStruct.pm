@@ -31,8 +31,10 @@ our $VERSION = '0.16';
 
 my $EMPTY_STRING = q{};
 
-
 use base qw ( Biodiverse::Common ); #  access the common functions as methods
+
+use Biodiverse::Statistics;
+my $stats_class = 'Biodiverse::Statistics';
 
 
 sub new {
@@ -2467,6 +2469,37 @@ sub get_element_properties {
     delete @p{qw /INCLUDE EXCLUDE/};  #  don't want these
     
     return wantarray ? %p : \%p;
+}
+
+sub get_element_properties_summary_stats {
+    my $self = shift;
+
+    my %results;
+
+    my %stats_data;
+    foreach my $prop_name ($self->get_element_property_keys) {
+        $stats_data{$prop_name} = [];
+    }
+
+    foreach my $element ($self->get_element_list) {    
+        my %p = $self->get_element_properties(element => $element);
+        while (my ($prop, $data) = each %stats_data) {
+            next if ! defined $p{$prop};
+            push @$data, $p{$prop};
+        }
+    }
+    
+    while (my ($prop, $data) = each %stats_data) {
+        next if not scalar @$data;
+        
+        my $stats_object = $stats_class->new;
+        $stats_object->add_data($data);
+        foreach my $stat (qw /mean sum standard_deviation count/) { 
+            $results{$prop}{$stat} = $stats_object->$stat;
+        }
+    }
+
+    return wantarray ? %results : \%results;
 }
 
 

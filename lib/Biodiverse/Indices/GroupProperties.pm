@@ -95,6 +95,15 @@ sub _get_gpprop_stats_hash_key {
     return 'GPPROP_STATS_' . $prop . '_LIST';
 }
 
+sub _get_gpprop_names {
+    my $self = shift;
+
+    my $bd = $self->get_basedata_ref;
+    my $gp = $bd->get_groups_ref;
+
+    return $gp->get_element_property_keys;
+}
+
 sub _get_gpprop_stats_hash_keynames {
     my $self = shift;
 
@@ -229,12 +238,12 @@ sub get_metadata_calc_gpprop_stats {
                         : $stat;
             $stat_name = $stat_pfx . uc $stat_name;
             $indices{$stat_name} = {
-                description => ucfirst $stat . ' of label property ' . $prop,
+                description => ucfirst $stat . ' of group property ' . $prop,
             };
         }
     }
 
-    my $desc = 'Summary statistics for each label property across both neighbour sets';
+    my $desc = 'Summary statistics for each group property across both neighbour sets';
 
     my %arguments = (
         description     => $desc,
@@ -282,12 +291,12 @@ sub get_metadata_calc_gpprop_quantiles {
         foreach my $stat (@quantiles) {
             my $stat_name = $stat_pfx . $stat;
             $indices{$stat_name} = {
-                description => $stat . 'th quantile of label property ' . $prop,
+                description => $stat . 'th quantile of group property ' . $prop,
             };
         }
     }
 
-    my $desc = 'Quantiles for each label property across both neighbour sets';
+    my $desc = 'Quantiles for each group property across both neighbour sets';
 
     my %arguments = (
         description     => $desc,
@@ -321,6 +330,103 @@ sub calc_gpprop_quantiles {
 }
 
 
+sub get_metadata_calc_gpprop_gistar {
+    my $self = shift;
+
+    my %indices;
+    
+    foreach my $prop ($self->_get_gpprop_names) {
+        my $stat_name = 'GPPROP_GISTAR_' . $prop;
+        $indices{$stat_name} = {
+            description => 'Gi* score for group property ' . $prop,
+        };
+    }
+
+    my $desc = 'Getis-Ord Gi* statistic for each group property across both neighbour sets';
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Group property Gi* statistics',
+        type            => 'Element Properties',
+        pre_calc        => ['get_gpp_stats_objects'],
+        pre_calc_global => [qw /_get_gpprop_global_summary_stats/],
+        uses_nbr_lists  => 1,
+        indices         => \%indices,
+        reference       => 'need to add',
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_gpprop_gistar {
+    my $self = shift;
+    my %args = @_;
+
+    my %results;
+
+    my $global_hash   = $args{GPPROP_GLOBAL_SUMMARY_STATS};
+    my %local_objects = %{$args{GPPROP_STATS_OBJECTS}};
+
+    while (my ($prop, $global_data) = each %$global_hash) {
+        #  bodgy - need generic method
+        my $local_data = $local_objects{'GPPROP_STATS_' . $prop . '_LIST'};
+
+        my $n  = $global_data->{count};  #  these are hash values
+        my $W  = $local_data->count;     #  these are objects
+        my $S1 = $W;  #  binary weights here
+        my $sum = $local_data->sum;
+        my $expected = $W * $global_data->{mean};
+
+        my $numerator = $sum - $expected;
+
+        my $denominator = $W
+            ? $global_data->{standard_deviation}
+                * sqrt (
+                    (($n * $S1) - $W ** 2)
+                    / ($n - 1)
+                )
+            : undef;
+
+        $results{'GPPROP_GISTAR_' . $prop} = $denominator ? $numerator / $denominator : undef;
+    }
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata__get_gpprop_global_summary_stats {
+    my $self = shift;
+    
+    my $descr = 'Global summary stats for group properties';
+
+    my %arguments = (
+        description     => $descr,
+        name            => $descr,
+        type            => 'Element Properties',
+        indices         => {
+            GPPROP_GLOBAL_SUMMARY_STATS => {
+                description => $descr,
+            }
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub _get_gpprop_global_summary_stats {
+    my $self = shift;
+
+    my $bd = $self->get_basedata_ref;
+    my $gp = $bd->get_groups_ref;
+    my $hash = $gp->get_element_properties_summary_stats;
+    
+    my %results = (
+        GPPROP_GLOBAL_SUMMARY_STATS => $hash,
+    );
+    
+    return wantarray ? %results : \%results;
+}
+
+
 1;
 
 
@@ -336,7 +442,7 @@ Biodiverse::Indices::GroupProperties
 
 =head1 DESCRIPTION
 
-Label property indices for the Biodiverse system.
+Group property indices for the Biodiverse system.
 It is inherited by Biodiverse::Indices and not to be used on it own.
 
 See L<http://code.google.com/p/biodiverse/wiki/Indices> for more details.

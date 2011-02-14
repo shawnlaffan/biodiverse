@@ -413,7 +413,7 @@ The Spatial tab has two main sections where you can set options (see below), and
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/spatial_analysis_first_page.png
 
-Unless you have specified a complex spatial neighbourhood then you should turn the [KeyConcepts#Using_the_spatial_index spatial index] on (menu option _Analyses -> Build Spatial Index_). The best resolution to use depends on your data set, but a good start is twice the cell size. If you have a cell size of zero then make it approximately the same as the extent of your neighbourhood definition.
+Unless you have specified a complex spatial neighbourhood that causes errors in the neighbours then you should turn the [KeyConcepts#Using_the_spatial_index spatial index] on (menu option _Analyses -> Build Spatial Index_) (see also [#Building_a_spatial_index]). The best resolution to use depends on your data set, but a good start is twice the cell size. If you have a cell size of zero then make it approximately the same as the extent of your neighbourhood definition.
 
 Click on the _Go_ button (or use the shortcut Ctl-G) once you have specified your parameters and selected which calculations you want to run for each processing group (see below for how). The system will then run the selected spatial analyses. The progress bar lets you know how things are progressing (as the name suggests).  Once the analysis is complete, it pulls up a display pane and shows you a map of the results. Pull the pane down to view the options you used, for example to change them and re-run the analysis.  You will be warned about overwriting an existing analysis.
 

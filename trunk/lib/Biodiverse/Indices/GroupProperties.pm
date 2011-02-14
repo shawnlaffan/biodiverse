@@ -386,8 +386,13 @@ sub calc_gpprop_gistar {
                     / ($n - 1)
                 )
             : undef;
+        
+        my $res;
+        if ($W) {
+            $res = $denominator ? $numerator / $denominator : 0;
+        }
 
-        $results{'GPPROP_GISTAR_' . $prop} = $denominator ? $numerator / $denominator : undef;
+        $results{'GPPROP_GISTAR_' . $prop} = $res;
     }
 
     return wantarray ? %results : \%results;

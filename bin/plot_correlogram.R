@@ -6,7 +6,9 @@ plot_correlogram = function (data, fld='Value', modifier = 1, max_dist=0, lag=1,
     } else {
         data2 = data
     }
-    lag_vector = floor (data2$distance / lag) / modifier * lag + lag / 2
+	mod_lag  = lag / modifier
+	mod_lag2 = mod_lag / 2
+    lag_vector = floor (data2$distance / lag) * mod_lag + mod_lag2
     boxplot(data2[[fld]] ~ lag_vector, xlab='distance')
 }
 
@@ -53,7 +55,7 @@ subset_by_dir = function (data, dirfld='direction', wedge_angle=0, wedge_width=p
 }
 
 radians2degrees = function (angle) {
-    a = angle %% (2 * pi)              #  snap to interval [0,2PI]
+    a = angle %% (2 * pi)          #  snap to interval [0,2PI]
     a = 1.25 - (a / (2 * pi))      #  invert and rotate
     a = a %% 1                     #  snap to unit interval
     a = 360 * a

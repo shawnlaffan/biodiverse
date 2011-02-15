@@ -147,7 +147,8 @@ sp_match_regex (re => qr/^$coord[2]/, axis => 2, type => 'nbr')
 # third axis ends in 'park' (case insensitive)
 sp_match_regex (text => qr{park$}i, axis => 2, type => 'proc')
 
-# Select every tenth group (note that groups are first sorted alphabetically)
+# Select every tenth group 
+# (note that groups are first sorted alphabetically in versions prior to 0.16, and south-west to north-east from 0.16)
 sp_select_sequence (frequency => 10)
 
 #  Select every tenth group, starting from the third

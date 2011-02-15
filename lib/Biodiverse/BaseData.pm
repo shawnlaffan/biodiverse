@@ -2709,6 +2709,7 @@ sub get_neighbours {
             %eval_args = (
                 coord_array1 => \@coord,
                 coord_id1    => $element2,
+                coord_id2    => $element2,
             );
         }
         else {
@@ -2738,7 +2739,7 @@ sub get_neighbours {
             
         }
 
-        #  drop out if not a nbr
+        #  skip if not a nbr
         next NBR if not $success;
 
         # If it has survived then it must be valid.

@@ -1519,7 +1519,7 @@ sub get_metadata_sp_select_sequence {
     my %args_r = (
         description =>
             'Select a subset of all available neighbours based on a sample sequence '
-            . '(note that groups are sorted alphabetically)',
+            . '(note that groups are sorted south-west to north-east)',
 
         #  flag index dist if easy to determine
         index_max_dist => undef,
@@ -1576,6 +1576,9 @@ sub sp_select_sequence {
     my $cache_nbr_name    = 'SP_SELECT_SEQUENCE_CACHED_NBRS' . $ID;
     my $cache_offset_name = 'SP_SELECT_SEQUENCE_LAST_OFFSET' . $ID;
     my $cache_last_coord_id_name = 'SP_SELECT_SEQUENCE_LAST_COORD_ID1' . $ID;
+    
+    #  inefficient - should put in metadata
+    $self->set_param(NBR_CACHE_PFX => 'SP_SELECT_SEQUENCE_CACHED_NBRS');
 
     #  get the offset and increment if needed
     my $offset = $self->get_param($cache_offset_name);
@@ -1627,11 +1630,10 @@ sub sp_select_sequence {
             #  (should also put in a random option)
 
             if ( $args{reverse_order} ) {
-                @groups = reverse sort $bd->get_groups;
+                @groups = reverse $bd->get_groups_ref->get_element_list_sorted;
             }
             else {
-                @groups = sort $bd->get_groups;
-
+                @groups = $bd->get_groups_ref->get_element_list_sorted;
             }
 
             if ( $use_cache and not $verifying ) {
@@ -1675,7 +1677,8 @@ sub get_cached_subset_nbrs {
         if $self->get_result_type ne 'subset';
 
     my $cache_name;
-    my $cache_pfx = 'SP_SELECT_SEQUENCE_CACHED_NBRS';    #  BODGE
+    my $cache_pfx = $self->get_param('NBR_CACHE_PFX');
+    #'SP_SELECT_SEQUENCE_CACHED_NBRS';    #  BODGE
 
     my %params = $self->get_params_hash;    #  find the cache name
     foreach my $param ( keys %params ) {
@@ -1780,7 +1783,7 @@ sub sp_select_block {
     my $cached_sp_list_name = 'SP_BLOCK_NBRS';
 
     #  generate the spatial output and get the relevant groups
-    #  NEED TO USE THE PARENT DEF QUERY IF SET
+    #  NEED TO USE THE PARENT DEF QUERY IF SET? Not if this is to calculate it...
     my $sp = $self->get_param ($cache_sp_out_name);
     if (! $sp) {
         $sp = $self->get_spatial_output_sp_select_block (
@@ -1810,7 +1813,8 @@ sub sp_select_block {
             $sorted_nbrs = [reverse @$sorted_nbrs];
         }
 
-        @groups = @$sorted_nbrs[0 .. ($frequency - 1)];
+        my $target = min (($frequency - 1), scalar @$sorted_nbrs);
+        @groups = @$sorted_nbrs[0 .. $target];
         @$nbrs{@groups} = (1) x scalar @groups;
 
         foreach my $nbr (@$these_nbrs) {  #  cache it
@@ -1856,6 +1860,7 @@ sub get_spatial_output_sp_select_block {
 
 
 sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
+sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
 
 
 =head1 NAME

@@ -2089,7 +2089,9 @@ sub delete_output {
               "\n";
     }
     
-    $object -> set_param (BASEDATA_REF => undef);  #  free its parent ref
+    if (!defined $args{delete_basedata_ref} || $args{delete_basedata_ref}) {
+        $object -> set_param (BASEDATA_REF => undef);  #  free its parent ref
+    }
     $object = undef;  #  clear it
 
     return;
@@ -2725,7 +2727,7 @@ sub get_neighbours {
         );
 
         if ($type_is_subset) {  
-            my $subset_nbrs = $spatial_params -> get_cached_subset_nbrs (coord_id => $element1);
+            my $subset_nbrs = $spatial_params->get_cached_subset_nbrs (coord_id => $element1);
             if ($subset_nbrs) {
                 %valid_nbrs = %$subset_nbrs;
                 #print "Found ", scalar keys %valid_nbrs, " valid nbrs\n";

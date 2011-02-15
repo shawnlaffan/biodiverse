@@ -17,6 +17,8 @@ Class that implements the widgets for entering spatial params, with:
 use strict;
 use warnings;
 
+use English qw { -no_match_vars };
+
 our $VERSION = '0.16';
 
 use Glib;
@@ -137,17 +139,18 @@ sub onSyntaxCheck {
     my $self = shift;
     my $show_ok = shift || 'ok';
 
-    my $expr = $self->get_text;
-    my $spatial_params
-        = Biodiverse::SpatialParams -> new (conditions => $expr);
-    
-    #my ($dlg, $msg, $type, $ret);
+    my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    my $result_hash = $spatial_params -> verify;
-    
+    my $expr = $self->get_text;
+    my $spatial_params = eval {
+        Biodiverse::SpatialParams -> new (conditions => $expr);
+    };
+
+    my $result_hash = $spatial_params -> verify (basedata_ref => $gui->getProject->getSelectedBaseData);
+
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {
         my $dlg = Gtk2::MessageDialog->new(
-            Biodiverse::GUI::GUIManager->instance->getWidget('wndMain'),
+            $gui->getWidget('wndMain'),
             'destroy-with-parent',
             $result_hash->{type},
             'ok',

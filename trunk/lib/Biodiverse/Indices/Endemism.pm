@@ -238,7 +238,7 @@ sub calc_endemism_central_lists {
 sub get_metadata_calc_endemism_central_hier_part {
     my $self = shift;
 
-    return $self -> metadata_for_calc_endemism_hier_part (
+    return $self->metadata_for_calc_endemism_hier_part (
         @_,
         prefix        => 'ENDC_HPART_',
         endemism_type => 'central',
@@ -285,8 +285,8 @@ sub metadata_for_calc_endemism_hier_part {
     
     #  how many levels in the hierarchy?
     my $bd         = $self->get_basedata_ref;
-    my $labels_ref = $bd -> get_labels_ref;
-    my $axes       = $labels_ref -> get_param ('CELL_SIZES');
+    my $labels_ref = $bd->get_labels_ref;
+    my $axes       = $labels_ref->get_param ('CELL_SIZES');
     my $hier_max   = scalar @$axes - 1;
     
     my $indices = {};

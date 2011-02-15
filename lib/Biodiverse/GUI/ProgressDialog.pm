@@ -64,7 +64,7 @@ sub new {
     # Show the dialog
     #$dlg->set_modal(1);
     $dlg->show_all();
-    #$dlg->raise();
+    #$dlg->present();  #  raise to top
 
     # Make object
     my $self = { dlgxml => $dlgxml, dlg => $dlg };
@@ -113,6 +113,8 @@ sub update {
                    );
     
     $self->{last_update_time} = [gettimeofday];
+
+    #$self->{dlg}->present;  #  raise to top
 
     # update dialog
     my $widget = $self->{dlgxml}->get_widget('label');

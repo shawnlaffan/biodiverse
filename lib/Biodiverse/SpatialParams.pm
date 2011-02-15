@@ -98,6 +98,7 @@ sub parse_distances {
 
     my %params;
     my %missing_args;
+    my %incorrect_args;
     my $results_types = $NULL_STRING;
     my $index_max_dist;
     my $index_max_dist_off;
@@ -204,6 +205,7 @@ sub parse_distances {
 
     #  loop idea also courtesy Friedl
 
+    CHECK_CONDITIONS:
     while ( not $conditions =~ m/ \G \z /xgcs ) {
 
         #  haven't hit the end of line yet
@@ -225,12 +227,11 @@ sub parse_distances {
             #print "Position is " . (pos $conditions) . " of $str_len\n";
             my $sub = $1;
 
+            my $sub_args = $NULL_STRING;
+
             #  get the contents of the sub's arguments (text in brackets)
             $conditions =~ m/ \G \( ( $re_text_in_brackets ) \) /xgcs;
-
             #print "sub_args are ($1)";
-
-            my $sub_args = $NULL_STRING;
             if ( defined $1 ) {
                 $sub_args = $1;
             }
@@ -239,7 +240,18 @@ sub parse_distances {
             #my %hash_1 = eval "($1)";
             #  the next does not allow for variables,
             #  which we haven't handled here
-            my %hash_1 = ( eval $sub_args );
+            my %hash_1;
+            if ($sub_args) {
+                use warnings FATAL => qw(all);  #  make warnings fatal so we get the eval error
+                eval {
+                    %hash_1 = ( eval $sub_args );
+                };
+                if ($EVAL_ERROR) {
+                    $incorrect_args{$sub} = qq{$sub ($sub_args) . "\n" . $EVAL_ERROR};
+                    $conditions =~ m/ \G (.) /xgcs; #  bump along by one
+                    next CHECK_CONDITIONS;          #  and move to the next part
+                }
+            }
 
             #  the following is clunky and not guaranteed to work
             #  if there are quotes surrounding these chars
@@ -329,6 +341,7 @@ sub parse_distances {
     $self->set_param( INDEX_MAX_DIST => $index_max_dist );
     $self->set_param( INDEX_NO_USE   => $index_no_use );
     $self->set_param( MISSING_ARGS   => \%missing_args );
+    $self->set_param( INCORRECT_ARGS => \%incorrect_args );
     $self->set_param( USES           => \%params );
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
@@ -389,6 +402,8 @@ sub verify {
     my $msg;
     my $SPACE = q{ };    #  looks weird, but is Perl Best Practice.
 
+    my $valid = 1;
+
     my $missing = $self->get_param('MISSING_ARGS');
     if ( $missing and scalar keys %$missing ) {
         $msg = "Subs are missing required arguments\n";
@@ -396,13 +411,29 @@ sub verify {
             my $sub_m = $missing->{$sub};
             $msg .= "$sub : " . join( ', ', keys %$sub_m ) . "\n";
         }
+        $valid = 0;
     }
-    else {
+    my $incorrect_args = $self->get_param('INCORRECT_ARGS');
+    if ( $incorrect_args and scalar keys %$incorrect_args ) {
+        $msg .= "\nSubs have incorrectly specified arguments\n";
+        foreach my $sub ( keys %$incorrect_args ) {
+            $msg .= $incorrect_args->{$sub} . "\n";
+        }
+        $valid = 0;
+    }
+
+    if ($valid) {
 
         #  a real bodge workaround - need to get these from metadata
-        $args{caller_object} = Biodiverse::BaseData->new;    
-        $args{coord_id1} = 'a';
-        $args{coord_id2} = 'b';
+        my $bd = Biodiverse::BaseData->new (
+            CELL_SIZES => [1, 1, 1],
+        );
+        $bd->add_element (group => '1', label => 'a');
+        $bd->add_element (group => '2', label => 'b');
+
+        $args{caller_object} = $bd;
+        $args{coord_id1} = '1';
+        $args{coord_id2} = '2';
         my $coord_id1 = $args{coord_id1};
         my $coord_id2 = $args{coord_id2};
 
@@ -1401,7 +1432,7 @@ sub sp_match_regex {
 }
 
 
-sub get_metadata_sp_is_left_of {
+sub get_metadata__sp_is_left_of {
     my $self = shift;
     my %args = @_;
 
@@ -1679,6 +1710,150 @@ sub clear_cached_subset_nbrs {
 
     return;
 }
+
+
+sub get_metadata_sp_select_block {
+    my $self = shift;
+    my %args = @_;
+
+    my %metadata = (
+        description =>
+            'Select a subset of all available neighbours based on a block sample sequence',
+
+        #  flag index dist if easy to determine
+        index_max_dist =>
+            ( looks_like_number $args{size} ? $args{size} : undef ),
+        required_args      => [
+            'size',           #  size of the block
+        ],    
+        optional_args => [
+            'frequency',      #  how many groups per block?
+            'use_cache',      #  a boolean flag, defaults to 1
+            'reverse_order',  #  work from the other end
+            'random',         #  randomise within blocks?
+            'prng_seed',      #  seed for the PRNG
+        ],
+        #index_no_use => 1,          #  turn the index off
+        #result_type  => 'subset',
+        #result_type  => 'non_overlapping',
+        result_type  => 'complex',  #  need to make it a subset, but that part needs work
+        example =>
+            '# Select up to two groups per block with each block being 5 groups '
+            . "on a side where the group size is 100\n"
+            . q{sp_select_block (size => 500, frequency => 2)}
+            . "#  Now do it non-randomly and start from the lower right\n"
+            . q{sp_select_block (size => 500, frequency => 10, random => 0, reverse => 1)}
+            . "#  Rectangular block with user specified PRNG starting seed\n"
+            . q{sp_select_block (size => [300, 500], frequency => 1, prng_seed => 454678)}
+            . "# Lower memory footprint (but lonmger running times for neighbour searches)\n"
+            . q{sp_select_block (size => 500, frequency => 2, clear_cache => 1)}
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub sp_select_block {
+    my $self = shift;
+    my %args = @_;
+
+    #  do stuff here
+    my $h           = $self->get_param('CURRENT_ARGS');
+    my $caller_args = $h->{'%args'};
+
+    my $bd        = $args{caller_object} || $caller_args->{caller_object};
+    my $coord_id1 = $caller_args->{coord_id1};
+    my $coord_id2 = $caller_args->{coord_id2};
+
+    my $verifying = $self->get_param('VERIFYING');
+
+    my $frequency    = defined $args{frequency} ? $args{frequency} : 1;
+    my $size         = $args{size}; #  should be a function of cellsizes
+    my $prng_seed    = $args{prng_seed};
+    my $random       = defined $args{random} ? $args{random} : 1;
+    my $use_cache    = defined $args{use_cache} ? $args{use_cache} : 1;
+
+    if ($args{clear_cache}) {
+        $self->set_param(SP_SELECT_BLOCK_CLEAR_CACHE => 1);
+    }
+
+    my $cache_sp_out_name   = 'SP_SELECT_BLOCK_CACHED_SP_OUT';
+    my $cached_sp_list_name = 'SP_BLOCK_NBRS';
+
+    #  generate the spatial output and get the relevant groups
+    #  NEED TO USE THE PARENT DEF QUERY IF SET
+    my $sp = $self->get_param ($cache_sp_out_name);
+    if (! $sp) {
+        $sp = $self->get_spatial_output_sp_select_block (
+            basedata_ref => $bd,
+            size         => $size,
+        );    
+        $self->set_param($cache_sp_out_name => $sp);
+    }
+
+    my $nbrs = {};
+    my @groups;
+    
+    if ( $sp->exists_list(list => $cached_sp_list_name, element => $coord_id1) ) {
+        $nbrs = $sp->get_list_values (
+            element => $coord_id1,
+            list    => $cached_sp_list_name,
+        );
+    }
+    else {
+        my $these_nbrs = $sp->get_list_values (
+            element => $coord_id1,
+            list    => '_NBR_SET1',
+        );
+        my $sorted_nbrs = $sp->get_element_list_sorted(list => $these_nbrs);
+
+        if ( $args{reverse_order} ) {
+            $sorted_nbrs = [reverse @$sorted_nbrs];
+        }
+
+        @groups = @$sorted_nbrs[0 .. ($frequency - 1)];
+        @$nbrs{@groups} = (1) x scalar @groups;
+
+        foreach my $nbr (@$these_nbrs) {  #  cache it
+            $sp->add_to_lists (
+                element              => $nbr,
+                $cached_sp_list_name => $nbrs,
+                use_ref              => 1,
+            );
+        }
+    }
+
+    return defined $coord_id2 ? exists $nbrs->{$coord_id2} : 0;
+}
+
+
+sub get_spatial_output_sp_select_block {
+    my $self = shift;
+    my %args = @_;
+
+    my $size = $args{size};
+
+    my $bd = $args{basedata_ref};
+    my $sp = $bd->add_spatial_output (name => 'get nbrs for sp_select_block ' . time());
+    $bd->delete_output(output => $sp, delete_basedata_ref => 0);
+
+    #  add a null element to avoid some errors
+    #$sp->add_element(group => 'null_group', label => 'null_label');
+
+    my $spatial_conditions = ["sp_block (size => $size)"];
+
+    $sp->run_analysis(
+        calculations                  => [],
+        override_valid_analysis_check => 1,
+        spatial_conditions            => $spatial_conditions,
+        #definition_query              => $definition_query,
+        no_create_failed_def_query    => 1,  #  only want those that pass the def query
+        calc_only_elements_to_calc    => 1,
+        #basedata_ref                  => $bd,
+    );
+
+    return $sp;
+}
+
 
 sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
 

@@ -318,7 +318,7 @@ sub build_matrices {
 
     #  we use a spatial object as it handles all the spatial checks.
     print "[CLUSTER] Generating neighbour lists\n";
-    my $sp = $bd->add_spatial_output (name => $name . "_to_get_nbrs_for_clustering");
+    my $sp = $bd->add_spatial_output (name => $name . "_to_get_nbrs_for_clustering" . time());
     my $sp_success = eval {
         $sp->run_analysis (
             %args,

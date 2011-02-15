@@ -4,7 +4,7 @@ use warnings;
 use Carp;
 use English qw { -no_match_vars };
 
-use Test::More tests => 240;
+use Test::More tests => 255;
 
 local $| = 1;
 
@@ -38,6 +38,10 @@ my %conditions = (
 
     'sp_select_all() && ! sp_circle (radius => ##1)' => 9995,
     '! sp_circle (radius => ##1) && sp_select_all()' => 9995,
+    
+    'sp_block (size => ##3)' => 9,
+    'sp_block (size => [##3, ##3])' => 9,
+    'sp_select_block (size => 500, frequency => 2)' => 2,
 );
 
 

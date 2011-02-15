@@ -2683,7 +2683,7 @@ sub get_neighbours {
 
     my %valid_nbrs;
     NBR:
-    foreach my $element2 (@compare_list) {
+    foreach my $element2 (sort @compare_list) {
         #  some of the elements may be undefined based
         #  on calls to get_index_elements
         next NBR if not defined $element2;

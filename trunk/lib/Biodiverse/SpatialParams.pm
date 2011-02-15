@@ -1730,7 +1730,7 @@ sub get_metadata_sp_select_block {
             'size',           #  size of the block
         ],    
         optional_args => [
-            'frequency',      #  how many groups per block?
+            'count',      #  how many groups per block?
             'use_cache',      #  a boolean flag, defaults to 1
             'reverse_order',  #  work from the other end
             'random',         #  randomise within blocks?
@@ -1743,13 +1743,13 @@ sub get_metadata_sp_select_block {
         example =>
             '# Select up to two groups per block with each block being 5 groups '
             . "on a side where the group size is 100\n"
-            . q{sp_select_block (size => 500, frequency => 2)}
+            . q{sp_select_block (size => 500, count => 2)}
             . "#  Now do it non-randomly and start from the lower right\n"
-            . q{sp_select_block (size => 500, frequency => 10, random => 0, reverse => 1)}
+            . q{sp_select_block (size => 500, count => 10, random => 0, reverse => 1)}
             . "#  Rectangular block with user specified PRNG starting seed\n"
-            . q{sp_select_block (size => [300, 500], frequency => 1, prng_seed => 454678)}
+            . q{sp_select_block (size => [300, 500], count => 1, prng_seed => 454678)}
             . "# Lower memory footprint (but lonmger running times for neighbour searches)\n"
-            . q{sp_select_block (size => 500, frequency => 2, clear_cache => 1)}
+            . q{sp_select_block (size => 500, count => 2, clear_cache => 1)}
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -1769,7 +1769,7 @@ sub sp_select_block {
 
     my $verifying = $self->get_param('VERIFYING');
 
-    my $frequency    = defined $args{frequency} ? $args{frequency} : 1;
+    my $frequency    = defined $args{count} ? $args{count} : 1;
     my $size         = $args{size}; #  should be a function of cellsizes
     my $prng_seed    = $args{prng_seed};
     my $random       = defined $args{random} ? $args{random} : 1;
@@ -1785,12 +1785,18 @@ sub sp_select_block {
     #  generate the spatial output and get the relevant groups
     #  NEED TO USE THE PARENT DEF QUERY IF SET? Not if this is to calculate it...
     my $sp = $self->get_param ($cache_sp_out_name);
+    my $prng;
     if (! $sp) {
         $sp = $self->get_spatial_output_sp_select_block (
             basedata_ref => $bd,
             size         => $size,
         );    
         $self->set_param($cache_sp_out_name => $sp);
+        $prng = $sp->initialise_rand(seed => $prng_seed);
+        $sp->set_param(PRNG => $prng);
+    }
+    else {
+        $prng = $sp->get_param ('PRNG');
     }
 
     my $nbrs = {};
@@ -1812,8 +1818,11 @@ sub sp_select_block {
         if ( $args{reverse_order} ) {
             $sorted_nbrs = [reverse @$sorted_nbrs];
         }
+        if ($random) {
+            $sorted_nbrs = $prng->shuffle($sorted_nbrs);
+        }
 
-        my $target = min (($frequency - 1), scalar @$sorted_nbrs);
+        my $target = min (($frequency - 1), $#$sorted_nbrs);
         @groups = @$sorted_nbrs[0 .. $target];
         @$nbrs{@groups} = (1) x scalar @groups;
 

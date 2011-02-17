@@ -1,4 +1,4 @@
-#summary Table of available indices, version 0.14
+#summary Table of available indices, version 0.14.  See the Indices page for the latest details.
 #sidebar TOC
 
 = Indices available in Biodiverse =

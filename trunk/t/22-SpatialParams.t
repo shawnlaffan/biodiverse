@@ -4,7 +4,8 @@ use warnings;
 use Carp;
 use English qw { -no_match_vars };
 
-use Test::More tests => 255;
+#use Test::More tests => 255;
+use Test::More;
 
 local $| = 1;
 
@@ -16,7 +17,7 @@ use Biodiverse::TestHelpers qw {:basedata};
 
 #  need to build these from tables
 #  need to add more
-#  the ##1 notation is odd, but is changed using regexes
+#  the ##1 notation is odd, but is changed for each test using regexes
 my %conditions = (
     'sp_circle (radius => ##1)' => 5,
     'sp_circle (radius => ##2)' => 13,
@@ -41,7 +42,8 @@ my %conditions = (
     
     'sp_block (size => ##3)' => 9,
     'sp_block (size => [##3, ##3])' => 9,
-    'sp_select_block (size => 500, frequency => 2)' => 2,
+    'sp_select_block (size => ##5, count => 2)' => 2,
+    'sp_select_block (size => ##3, count => 3)' => 3,
 );
 
 
@@ -73,8 +75,8 @@ SKIP:
         x_spacing  => $res[0],
         y_spacing  => $res[1],
         CELL_SIZES => \@res,
-        x_max      => -1,
-        y_max      => -1,
+        x_max      =>   -1,
+        y_max      =>   -1,
         x_min      => -100,
         y_min      => -100,
     );
@@ -135,7 +137,7 @@ SKIP:
 #  now try for a mix of +ve and -ve coords
 #  but with cell sizes < 1
 {
-    my @res = (.1, .1);
+    my @res = (0.1, 0.1);
     my $bd = get_basedata_object(
         x_spacing  => $res[0],
         y_spacing  => $res[1],
@@ -151,6 +153,10 @@ SKIP:
         element  => '0.05:0.05',
     );
 }
+
+
+done_testing();
+
 
 sub run_tests {
     my %args = @_;

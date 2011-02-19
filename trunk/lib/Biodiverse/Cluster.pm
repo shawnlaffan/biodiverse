@@ -310,7 +310,7 @@ sub build_matrices {
     #  any file handles to output
     my $file_handles = $args{file_handles} ? $args{file_handles} : [];
     foreach my $fh (@$file_handles) {
-        print {$fh} "Element1,Element2,Value\n";
+        print {$fh} "Element1,Element2,$index\n";
     }
     delete $args{file_handles};
 

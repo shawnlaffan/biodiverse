@@ -332,7 +332,7 @@ sub get_metadata_calc_nestedness_resultant {
     
     my %arguments = (
         name            => 'Nestedness-resultant',
-        description     => 'Nestedness-resultant dissimilarity between the '
+        description     => 'Nestedness-resultant index between the '
                             . 'labels in neighbour sets 1 and 2. ',
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
@@ -341,16 +341,16 @@ sub get_metadata_calc_nestedness_resultant {
         pre_calc        => 'calc_abc',
         formula         => [
             '=\frac{ \left | B - C \right | }{ 2A + B + C } '
-            . '\times \frac { A }{ A + min (B, C) }',
-            '',
-            '=1 \if A=0 \and \min (B, C)=0',
+            . '\times \frac { A }{ A + min (B, C) }'
+            . '=SORENSON - S2',
+            #'',
+            #'=0 \if A=0 \and \min (B, C)=0',
             $self -> get_formula_explanation_ABC,
         ],
         indices         => {
             NEST_RESULTANT  => {
                 cluster     => 1,
-                description => 'Nestedness-resultant value, 0 is identical, '
-                               . '1 is completely dissimilar',
+                description => 'Nestedness-resultant index',
             }
         },
     );
@@ -368,8 +368,8 @@ sub calc_nestedness_resultant {
     
     my $score;
     if ($A == 0 and $B > 0 and $C > 0) {
-        #  nothing in common
-        $score = 1;
+        #  nothing in common, no nestedness
+        $score = 0;
     }
     elsif ($A == 0 and min ($B, $C) == 0) {
         #  only one set has labels (possibly neither)

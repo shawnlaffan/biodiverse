@@ -15,6 +15,18 @@ Agglomerative clustering of the groups based on their labels, or based on some f
 
 These are moving window analyses.  See [SampleSession#Running_a_spatial_(moving_window)_analysis]
 
+= Matrix visualisations =
+
+_Available from version 0.16._
+
+Need to add text here.
+
+= Region Grower =
+
+_Available from version 0.16._
+
+Need to add text here.
+
 = Randomisations =
 
 See [SampleSession#Running_a_randomisation].

@@ -8,7 +8,7 @@ Bind: biodiverse.glade[file=bin\glade\biodiverse.glade,text,extract,mode=666]
 Bind: biodiverse.glade.bak[file=bin\glade\biodiverse.glade.bak,text,extract,mode=666]
 Bind: Biodiverse_icon.ico[file=bin\Biodiverse_icon.ico,mode=666]
 Clean: 0
-Date: 2011-02-09 17:21:22
+Date: 2011-02-24 13:11:42
 Debug: 
 Dependent: 0
 Dyndll: 0
@@ -35,7 +35,7 @@ Version-InternalName:
 Version-LegalCopyright: GNU Lesser General Public License (LGPL)
 Version-LegalTrademarks: 
 Version-OriginalFilename: 
-Version-ProductName: Biodiverse
+Version-ProductName: Biodiverse beta 2011-02-24
 Version-ProductVersion: 0.16
 Warnings: 0
 Xclude: 0

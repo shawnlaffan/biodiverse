@@ -1398,8 +1398,10 @@ sub link_recalculate {
             : $check_node;
     }
 
+    my $analysis_args = $self->get_param('ANALYSIS_ARGS');
     my $results = $indices_object->run_calculations(
         %args,
+        %$analysis_args,
         element_list1   => $el1_list,
         element_list2   => $el2_list,
         label_hash1     => $label_hash1,

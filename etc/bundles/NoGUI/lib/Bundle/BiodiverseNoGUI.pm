@@ -66,6 +66,8 @@ Exporter::Easy
 
 Exception::Class
 
+Math::Polygon
+
 =head1 DESCRIPTION
 
 Bundle file for Biodiverse dependencies for non-GUI use across all platforms.

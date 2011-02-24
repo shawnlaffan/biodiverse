@@ -36,6 +36,14 @@ No, we just use Australian data for the examples.  It will work on any data you 
 
 Yes, Biodiverse is essentially ignorant of geography.  It will work on any data you give it.  (Whether the analysis is appropriate or not is a different issue).
 
+== What are groups and labels? == 
+
+See [DataStructures#BaseData]
+
+== What are labels without groups? ==
+
+These are the label version of the empty groups.  They allow the system to consider additional labels in analyses, for example where labels are not in your data set but still need to be considered in an analysis using a tree.  One can set label properties for these, such as label ranges, and they will be considered in any analyses.  An example might be a phylogenetic endemism calculation for Australia, where the phylogeny includes species from outside of Australia.  (Please note that this needs to be tested more thoroughly than it has thus far).
+
 = Data import =
 
 == My species list has been provided as a site by species matrix.  How do I import it? ==
@@ -112,10 +120,6 @@ By default, Biodiverse only stores groups with data in them.  The effect of this
 This approach is useful for two reasons.  First, it restricts calculations to those locations that have data and therefore reduces the smoothing effects that can occur if all neighbouring locations are used (this can sometimes give a misleading impression of data continuity).  Second, it makes for smaller data sets, thus saving a bit of memory (albeit that's less important than accuracy).  
 
 All of that said, it's up to the user to decide how they want to run their analysis.  If you want to include empty cells in your analyses then these need to be enabled at the time of import by checking the "Allow empty groups?" check box in the import properties.  You will need to provide a data set of cell coordinates for Biodiverse to use, or include them in the original import file.  Go to [SampleSession#BaseData] and look for the second screen shot and the subsequent para starting with 'Both the _empty groups_ and...'.  (Note that this is broken in version 0.15 - see issue #180).
-
-== What are labels without groups? ==
-
-These are the label version of the empty groups.  They allow the system to consider additional labels in analyses, for example where labels are not in your data set but still need to be considered in an analysis using a tree.  One can set label properties for these, such as label ranges, and they will be considered in any analyses.  An example might be a phylogenetic endemism calculation for Australia, where the phylogeny includes species from outside of Australia.  (Please note that this needs to be tested more thoroughly than it has thus far).
 
 == What is length vs total length in the cluster analyses? ==
 

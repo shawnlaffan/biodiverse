@@ -24,21 +24,21 @@ Elements are one of the basic units used in Biodiverse.  Each element has a uniq
 
 = !BaseStructs =
 
-A !BaseStruct object consists of a set of elements.  It is the storage system used for, amongst other things, the groups, labels, spatial outputs, and element properties tables.
+A !BaseStruct object consists of a set of [#Elements elements].  It is the storage system used for, amongst other things, the [#Groups groups], [#Labels labels], spatial outputs, and [#Element_property_tables element property tables].
 
 = !BaseData =
 
 A !BaseData object is the primary storage object used in Biodiverse.  It consists of one Groups object, one Labels object, a set of parameters, and one or more cluster, moving window and randomisation outputs.  
 
-One potentially useful function you can perform on the basedata is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed !BaseData object which you can view and analyse.
+One potentially useful function you can perform on the !BaseData is to transpose it, causing the labels to be groups and vice versa. To do so, select _Basedata->Transpose_ from the main menu. This will produce a new, transposed !BaseData object which you can view and analyse.
 
 == Labels ==
 
-A labels object is a special type of !BaseStruct, with the labels being a special type of element.  Typically they represent species, but in reality they can be any named entity that is then collected and aggregated into a group.  Their unique identifier (name) can consist of any number of axes, allowing the representation of taxonomic order or some other hierarchy within the labels.  
+A labels object is a special type of !BaseStruct, with the labels being a special type of [#Element element].  Typically they represent species, but in reality they can be any named entity that is then collected and aggregated into a group.  Their unique identifier (name) can consist of any number of axes, allowing the representation of taxonomic order or some other hierarchy within the labels.  
 
 == Groups ==
 
-A groups object is also a special type of !BaseStruct object, with groups also being a special type of element.  Typically groups are square cells into which the labels are aggregated (binned), but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
+A groups object is also a special type of !BaseStruct object, with groups also being a special type of [#Element element].  Typically groups are square cells into which the labels are aggregated (binned), but can represent any number of axes with differing cell sizes and numeric and text types.  These are plotted in the map outputs and used for the spatial components of the moving window, cluster and randomisation analyses.
 
 Groups are analogous to bins in other systems, for example [http://bmf2.colorado.edu/unifrac/index.psp UniFrac].
 
@@ -46,13 +46,13 @@ Group coordinates: For numerical coordinates, such as X,Y, the group location is
 
 == Spatial outputs ==
 
-These are a !BaseStruct object and used to store the results of a moving window analysis.  They are also used in the cluster analyses to determine which neighbours should be considered for each of the cluster matrices, as this is just a spatial analysis with no actual analyses, just the neighbour sets for each element.
+These are a !BaseStruct object and used to store the results of a moving window analysis.  They are also used in the cluster analyses to determine which neighbours should be considered for each of the cluster matrices, as this is just a spatial analysis with no actual analyses, just the neighbour sets for each [#Element element].
 
 More details are (or will be) given in [AnalysisTypes#Spatial_analyses] and [SampleSession#Running_a_spatial_(moving_window)_analysis].
 
 == Cluster outputs ==
 
-These are a tree object, but also store the matrices used in their construction.  The terminal nodes have the name of the relevant group (element) from the !BaseData object, and this is used to link the data in the display.
+These are a tree object, but also store the matrices used in their construction.  The terminal nodes have the name of the relevant [#Group group] (element) from the !BaseData object, and this is used to link the data in the display.
 
 More detals are (or will be) given in [AnalysisTypes#Clustering] and [SampleSession#Running_a_Cluster_Analysis].
 
@@ -64,7 +64,7 @@ See also [SampleSession#Running_a_randomisation].
 
 = Matrices =
 
-These are matrices of numeric values representing some relationship between a set of elements.  They should normally be square, but the system does not impose that requirement.  Normally they are linked to the labels of a !BaseData object and used in the visualisation and analyses.  They are also used in the cluster analyses, and if so they can be exported via the cluster outputs.
+These are matrices of numeric values representing some relationship between a set of [#Element elements].  They should normally be square, but the system does not impose that requirement.  Normally they are linked to the labels of a !BaseData object and used in the visualisation and analyses.  They are also used in the cluster analyses, and if so they can be exported via the cluster outputs.
 
 Previous uses include genetic similarities ([http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Bickford et al. 2004]), but any numeric value can be used.  It is up to the user to ensure it is sensible (the system does not stop the user from doing something stupid, just in case it turns out to be really useful).
 
@@ -77,12 +77,12 @@ These are typicaly phylogenies but can be any form of hierarchical tree structur
 
 == Tree Nodes ==
 
-These are the individual units of the trees.  They are analogous to Elements in a BaseStruct in that analysis result lists can be stored in them, but they also store links to their parents and to their children.
+These are the individual units of the trees.  They are analogous to [#Elements elements] in a BaseStruct in that analysis result lists can be stored in them, but they also store links to their parents and to their children.
 
 The node length values are the distance from them to their parent node.  These lengths can be negative in some cases, for example when one or more spatial constraints exclude some more similar elements and/or nodes from the initial clustering.  When these are considered in a subsequent matrix (i.e. for a less constrictive spatial constraint) then  
-the nodes can be negative for such linkages.  Alternately negative lengths can occur when using the Recalculation Linkage function as a consequence of recalculating the linkages as if the two nodes are single aggregated elements instead of a weighted function of their respective elements.  This will occur for the cluster indices that do not use sample counts.
+the nodes can be negative for such linkages.  Alternately negative lengths can occur when using the Recalculation Linkage function as a consequence of recalculating the linkages as if the two nodes are single aggregated [#Element elements] instead of a weighted function of their respective elements.  This will occur for the cluster indices that do not use sample counts.
 
-Each node must have a unique name.  In the case of those that link to an element (e.g. a group or label) this is straightforward and can use the same name.  Internal nodes are slightly diferent, and are assigned a unique value followed by three underscore characters (, e.g. `18___`).  This is done on the basis that it is unlikely for an element name to have three trailing underscores.  Using three trailing underscores for non-internal names will cause unpredictable behaviour as Biodiverse uses the name to determine if a node is internal or not.
+Each node must have a unique name.  In the case of those that link to an [#Element element] (e.g. a [#Groups group] or [#Labels label]) this is straightforward and can use the same name.  Internal nodes are slightly different, and are assigned a unique value followed by three underscore characters (, e.g. `18___`).  This is done on the basis that it is unlikely for an element name to have three trailing underscores.  Using three trailing underscores for non-internal names will cause unpredictable behaviour as Biodiverse uses the name to determine if a node is internal or not.
 
 = Element property tables =
 

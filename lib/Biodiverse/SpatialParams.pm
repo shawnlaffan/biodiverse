@@ -9,6 +9,7 @@ use Carp;
 use PadWalker qw /peek_my/;
 use POSIX qw /fmod/;
 use Math::Trig;
+use Math::Polygon;
 
 use Scalar::Util qw /looks_like_number/;
 use Devel::Symdump;
@@ -1865,6 +1866,48 @@ sub get_spatial_output_sp_select_block {
     );
 
     return $sp;
+}
+
+sub get_metadata_sp_point_in_poly {
+    my $self = shift;
+    
+    my %args = @_;
+
+    my %metadata = (
+        description =>
+            'Select groups that occur within a user-defined polygon',
+        #  flag index dist if easy to determine
+        index_max_dist =>
+            ( looks_like_number $args{size} ? $args{size} : undef ),
+        required_args      => [
+            'polygon',           #  size of the block
+        ],    
+        optional_args => [
+            'point',      #  point to use 
+        ],
+        index_no_use => 1,
+        result_type  => 'complex',  #  is it really complex?  depends on whether it is a def query or not
+        example =>
+              q{# Is the neighbour coord in a square polygon?}
+            . q{sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoord)}
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub sp_point_in_poly {
+    my $self = shift;
+    my %args = @_;
+    my $h = $self->get_param('CURRENT_ARGS');
+    
+    my $vertices = $args{polygon};
+    my $point = $args{point} || $h->{'@coord'};
+    
+    my $poly = Math::Polygon->new( points => $vertices );
+
+    
+    return $poly->contains($point);
 }
 
 

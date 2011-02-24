@@ -101,6 +101,7 @@ sub get_metadata_calc_pd_node_list {
         indices         => {
             PD_INCLUDED_NODE_LIST => {
                 description   => 'List of tree nodes included in the PD calculations',
+                type          => 'list',
             },
         },
     );

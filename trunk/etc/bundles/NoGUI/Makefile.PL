@@ -29,5 +29,6 @@ WriteMakefile(
         "Text::Wrapper" => "0",
         "Exporter::Easy" => "0",
         "Exception::Class" => "0",
+        "Math::Polygon" => "0",
     }
 );

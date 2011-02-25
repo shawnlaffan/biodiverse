@@ -1,5 +1,6 @@
 #summary Table of available indices
 #labels Featured
+#sidebar TOC
 
 = Indices available in Biodiverse =
 _Generated GMT Mon Oct 11 00:00:05 2010 using build_indices_table.pl, Biodiverse version 0.15._
@@ -1042,5 +1043,3 @@ METADATA NEEDS MORE FORMULAE.
 || 220 || TXO_V_RATIO || Ratio of the set1 variance to the variance of the combined neighbour sets. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= \frac{ TXO\_VARIANCE }{ TXO\_TVARIANCE }%.png" title="= \frac{ TXO\_VARIANCE }{ TXO\_TVARIANCE }" />  ||
 || 221 || TXO_Z_RATIO || (TXO_MEAN / TXO_VARIANCE) / (TXO_TMEAN / TXO_TVARIANCE) ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= \frac{ \frac{TXO\_MEAN}{\sqrt {TXO\_VARIANCE}} }{ \frac{TXO\_TMEAN}{\sqrt {TXO\_TVARIANCE}} }%.png" title="= \frac{ \frac{TXO\_MEAN}{\sqrt {TXO\_VARIANCE}} }{ \frac{TXO\_TMEAN}{\sqrt {TXO\_TVARIANCE}} }" />  ||
 || 222 || TXO_Z_SCORE || Z-score of the set1 mean given the mean and SD of the combined neighbour sets ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= \frac{TXO\_MEAN - TXO\_TMEAN }{\sqrt {TXO\_TVARIANCE}}%.png" title="= \frac{TXO\_MEAN - TXO\_TMEAN }{\sqrt {TXO\_TVARIANCE}}" />  ||
-
-

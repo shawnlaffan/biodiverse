@@ -276,6 +276,94 @@ sub calc_numeric_label_data {
 
 }
 
+sub get_metadata_calc_compare_dissim_numeric_label_values {
+    my $self = shift;
+    
+    my %arguments = (
+        name            => 'Numeric label dissimilarity',
+        description     => q{Compare the set of numeric labels in one neighbour set with those in another. },
+        type            => 'Numeric Labels',
+        pre_calc        => 'calc_abc3',
+        #required_args   => [],
+        uses_nbr_lists  => 2,  #  how many sets of lists it must have
+        indices => {
+            NUMD_MEAN       => {
+                description => 'Mean absolute dissimilarity of labels in set 1 to those in set 2.',
+                cluster     => 1,
+            },
+            NUMD_VARIANCE   => {
+                description => 'Variance of the dissimilarity values, set 1 vs set 2.',
+                cluster     => 1,
+            },
+            NUMD_COUNT   => {
+                description => 'Count of comparisons used.',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;    
+}
+
+#  compare the set of labels in one neighbour set with those in another,
+#  using their matrix values (assumes dissimilarities)
+sub calc_compare_dissim_numeric_label_values {
+    my $self = shift;
+    my %args = @_;
+    
+    if (! $self->get_param ('BASEDATA_REF')->labels_are_numeric) {
+        my %results = (NUMD_IS_INVALID => 1);
+        return wantarray ? %results : \%results;
+    }
+
+    my $label_list1     = $args{label_hash1};
+    my $label_list2     = $args{label_hash2};
+
+    #  we need to get the distance between and across two groups
+    my ($sumX, $sumXsqr, $count) = (undef, undef, 0);
+    #my ($totalSumX, $totalSumXsqr, $totalCount) = (undef, undef, 0);
+    my (%list1_hash, %list2_hash);
+
+    #my (%done, %compared, %centre_compared);
+    BY_LABEL1:
+    while (my ($label1, $count1) = each %{$label_list1}) {
+        $list1_hash{$label1} ++;  #  track the times it is used
+
+        BY_LABEL2:
+        while (my ($label2, $count2) = each %{$label_list2}) {
+
+            $list2_hash{$label2} ++;
+
+            my $value = $label1 - $label2;
+            my $joint_count = $count1 * $count2;
+
+            #  tally the stats  #  NEED TO WEIGHT BY COUNT
+            $sumX    += abs($value) * $joint_count;
+            $sumXsqr += $value**2 * $joint_count;
+            $count   += $joint_count;
+        }
+    }
+
+    my %results;
+    {
+        #  suppress these warnings within this block
+        no warnings qw /uninitialized numeric/;  
+
+        $results{NUMD_MEAN}     = eval {$sumX / $count};
+        $results{NUMD_VARIANCE} = eval {$sumXsqr / $count};
+        $results{NUMD_COUNT}    = $count;
+    }
+
+    return wantarray ? %results : \%results;
+}
+
+sub _get_metadata_calc_numeric_label_rao_qe {
+    return;
+}
+
+sub _calc_numeric_label_rao_qe {
+    return;
+}
+
 #sub numerically {$a <=> $b};
 
 1;

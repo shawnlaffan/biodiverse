@@ -5,22 +5,25 @@ use Carp;
 
 
 use Biodiverse::BaseData;
+use Biodiverse::Indices;
 use Data::Dumper;
 
 #use HTML::HashTable;
 use HTML::QuickTable;
 
-my $self = Biodiverse::BaseData -> new;
-$self -> set_param (CELL_SIZES => [1,1]);
-$self -> add_element (                    
+my $bd = Biodiverse::BaseData -> new;
+$bd->set_param (CELL_SIZES => [1,1]);
+$bd->add_element (                    
     label => 'a:b',
     group => '1:1',
     count => 1,
 );
-my $lb_ref = $self -> get_labels_ref;
-$lb_ref -> set_param (CELL_SIZES => [-1,-1]);
+my $lb_ref = $bd -> get_labels_ref;
+$lb_ref->set_param (CELL_SIZES => [-1,-1]);
 
-my $html = $self -> get_calculation_metadata_as_wiki;
+my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+
+my $html = $indices -> get_calculation_metadata_as_wiki;
 
 #  The YAML version
 #use YAML::Syck;
@@ -84,3 +87,4 @@ open ($fh, '>', "Indices_$v.wiki") || croak;
 print $fh $wiki_text;
 close $fh;
 
+print "done\n";

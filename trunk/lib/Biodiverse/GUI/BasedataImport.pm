@@ -141,7 +141,7 @@ sub run {
         string      => $line,
         quote_char  => $quotes,
         sep_char    => $sep,
-        eol         => $eol
+        eol         => $eol,
     );
     
     #  R data frames are saved missing the first field in the header

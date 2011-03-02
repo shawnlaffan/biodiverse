@@ -290,13 +290,35 @@ sub get_metadata_calc_compare_dissim_numeric_label_values {
             NUMD_MEAN       => {
                 description => 'Mean absolute dissimilarity of labels in set 1 to those in set 2.',
                 cluster     => 1,
+                formula     => [
+                    'NUMD\_MEAN = \frac{\sum^{L1}_i \sum^{L2}_j abs (l_{1i} - l_{2j})}{n1 * n2}',
+                    'where',
+                    'L1',
+                    ' and ',
+                    'L2',
+                    ' are the labels in neighbours sets 1 and 2 respectively, and ',
+                    'n1',
+                    ' and ',
+                    'n2',
+                    ' are the sample counts in neighbour sets 1 and 2'
+                ],
             },
             NUMD_VARIANCE   => {
                 description => 'Variance of the dissimilarity values, set 1 vs set 2.',
                 cluster     => 1,
+                formula     => [
+                    'NUMD\_VARIANCE = \frac{\sum^{L1}_i \sum^{L2}_j (l_{1i} - l_{2j})^2}{n1 * n2}',
+                    'where values are as for ',
+                    'NUMD_\MEAN',
+                ],
             },
             NUMD_COUNT   => {
                 description => 'Count of comparisons used.',
+                formula     => [
+                    'NUMD\_COUNT = n1 * n2',
+                    'where values are as for ',
+                    'NUMD_\MEAN',
+                ],
             },
         },
     );
@@ -338,7 +360,7 @@ sub calc_compare_dissim_numeric_label_values {
 
             #  tally the stats  #  NEED TO WEIGHT BY COUNT
             $sumX    += abs($value) * $joint_count;
-            $sumXsqr += $value**2 * $joint_count;
+            $sumXsqr += $value ** 2 * $joint_count;
             $count   += $joint_count;
         }
     }

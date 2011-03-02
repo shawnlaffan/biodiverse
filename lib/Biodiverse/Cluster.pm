@@ -602,9 +602,6 @@ sub build_matrix_elements {
             }
         }
 
-        #  run any local post_calcs - no these are done in run_calculations
-        #$indices_object->run_postcalc_locals;
-
         next if ! defined $values->{$index};  #  don't add it if it is undefined
 
         # write results to file handles if supplied, otherwise store them

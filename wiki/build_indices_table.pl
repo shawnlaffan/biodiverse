@@ -80,7 +80,17 @@ my $wiki_text = $intro_wiki
 #  hyperlink the Label counts text for now
 $wiki_text =~ s/'Label counts'/\[#Label_counts Label counts\]/g;
 
-(my $v = $version) =~ s/\.//g;
+my $code_cogs = << 'END_CODE_COGS'
+<img src="http://www.codecogs.com/images/poweredbycc.gif" width="102" height="34" vspace="5" border="0" alt="Powered by CodeCogs"/>
+http://www.codecogs.com
+END_CODE_COGS
+;
+
+$wiki_text .= $code_cogs;
+
+$version =~ s/\.//g;
+my $v = $version;
+
 my $fh;
 open ($fh, '>', "Indices_$v.wiki") || croak;
 

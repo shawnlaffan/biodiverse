@@ -6,8 +6,8 @@ plot_correlogram = function (data, fld='Value', modifier = 1, max_dist=0, lag=1,
     } else {
         data2 = data
     }
-	mod_lag  = lag / modifier
-	mod_lag2 = mod_lag / 2
+    mod_lag  = lag / modifier
+    mod_lag2 = mod_lag / 2
     lag_vector = floor (data2$distance / lag) * mod_lag + mod_lag2
     boxplot(data2[[fld]] ~ lag_vector, xlab='distance')
 }

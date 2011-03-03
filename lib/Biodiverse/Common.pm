@@ -1402,15 +1402,18 @@ sub guess_quote_char {
     my @q_types = defined $ENV{BIODIVERSE_QUOTES}
                     ? @$ENV{BIODIVERSE_QUOTES}
                     : qw /" '/;
-    my $eol = $self->guess_eol(%args);
+    my $eol = $args{eol} or $self->guess_eol(%args);
     #my @q_types = qw /' "/;
+
     my %q_count;
 
-    my $i = 0;
+    #my $i = 0;
     foreach my $q (@q_types) {
         my @cracked = split ($q, $string);
-        $q_count{$#cracked} = $q if $#cracked and $#cracked % 2 == 0;
-        $i++;
+        if ($#cracked and $#cracked % 2 == 0) {
+            $q_count{$#cracked} = $q;
+        }
+        #$i++;
     }
     #  now we sort the keys, take the highest and use it as the
     #  index to use from q_count, thus giving us the most common
@@ -1437,9 +1440,11 @@ sub guess_eol {
 
     my $pattern = $args{pattern} || '[\n|\r]*';
 
-    $string =~ /($pattern$)/;
+    if ($string =~ /($pattern$)/) {
+        return $1;
+    }
 
-    return $1;
+    return;
 }
 
 sub get_next_line_set {
@@ -1500,25 +1505,26 @@ sub get_args {
         if ($self -> can ($metadata_sub)) {
             $sub_args = eval {$self -> $metadata_sub (@_)};
         }
-        elsif ($self -> can ($sub)) {  #  allow for old system
-            $sub_args = eval {$self -> $sub (get_args => 1, @_)};
+        elsif ($self -> can ($sub)) {  #  don't allow for error prone old system
+            croak "Metadata sub $metadata_sub does not exist\n";
+            #$sub_args = eval {$self -> $sub (get_args => 1, @_)};
         }
     }
     else {  #  called in non-OO manner  - not ideal
-        carp "get_args called in non-OO manner - this is deprecated.\n";
+        croak "get_args called in non-OO manner - this is deprecated.\n";
         #  cope with any package context
         #if (my ($package, $subname) = $sub =~ / ( (?:[^:]+ ::)+ ) (.+) /xms) {
         #    $metadata_sub = $package . 'get_metadata_' . $subname;
         #}
         #my $fn = "$metadata_sub ( " . join (q{,}, @_) . ' )';
         #$sub_args = eval "$fn";
-        $sub_args = eval "$metadata_sub()";  #  ignore args for these for now - all should really be OO calls
-        if ($EVAL_ERROR) {  #  try the old method
-            #  should add a warning here about using old system once new system is implemented properly
-            #$fn = "&$sub (undef, get_args => 1, " . join (q{,}, @_) . ')';
-            #$sub_args = eval "$fn";
-            $sub_args = eval "$sub (undef, get_args => 1)";
-        }
+        #$sub_args = eval "$metadata_sub()";  #  ignore args for these for now - all should really be OO calls
+        #if ($EVAL_ERROR) {  #  try the old method
+        #    #  should add a warning here about using old system once new system is implemented properly
+        #    #$fn = "&$sub (undef, get_args => 1, " . join (q{,}, @_) . ')';
+        #    #$sub_args = eval "$fn";
+        #    $sub_args = eval "$sub (undef, get_args => 1)";
+        #}
     }
     my $error = $EVAL_ERROR;
     if (blessed $error) {
@@ -1815,7 +1821,8 @@ sub store_rand_state {  #  we cannot store the object itself, as it does not ser
     }
 }
 
-sub store_rand_state_init {  #  Store the initial rand state (assumes it is called at the right time...)
+#  Store the initial rand state (assumes it is called at the right time...)
+sub store_rand_state_init {  
     my $self = shift;
     my %args = @_;
 

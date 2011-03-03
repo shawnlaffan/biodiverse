@@ -794,7 +794,11 @@ sub get_metadata_calc_phylo_sorenson {
         indices        => {
             PHYLO_SORENSON => {
                 cluster     =>  1,
-                formula     =>  '1 - (2A / (2A + B + C))',
+                formula     =>  [
+                    '1 - (2A / (2A + B + C))',
+                    ' where A is the length of shared branches, '
+                    . 'and B and C are the length of branches found only in neighbour sets 1 and 2'
+                ],
                 description => 'Phylo Sorenson score',
             }
         },
@@ -838,8 +842,11 @@ sub get_metadata_calc_phylo_jaccard {
         indices        => {
             PHYLO_JACCARD => {
                 cluster     =>  1,
-                RCOMP       =>  ">",
-                formula     =>  "= 1 - (A / (A + B + C))",
+                formula     =>  [
+                    '= 1 - (A / (A + B + C))',
+                    ' where A is the length of shared branches, '
+                    . 'and B and C are the length of branches found only in neighbour sets 1 and 2',
+                ],
                 description => 'Phylo Jaccard score',
             }
         },

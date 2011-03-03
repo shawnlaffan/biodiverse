@@ -1876,12 +1876,9 @@ sub get_metadata_sp_point_in_poly {
     my %metadata = (
         description =>
             'Select groups that occur within a user-defined polygon',
-        #  flag index dist if easy to determine
-        index_max_dist =>
-            ( looks_like_number $args{size} ? $args{size} : undef ),
         required_args      => [
-            'polygon',           #  size of the block
-        ],    
+            'polygon',           #  array of vertices, or a Math::Polygon object
+        ],
         optional_args => [
             'point',      #  point to use 
         ],
@@ -1904,9 +1901,10 @@ sub sp_point_in_poly {
     my $vertices = $args{polygon};
     my $point = $args{point} || $h->{'@coord'};
     
-    my $poly = Math::Polygon->new( points => $vertices );
+    my $poly = blessed ($vertices) eq 'Math::Polygon'
+                ? $vertices
+                : Math::Polygon->new( points => $vertices );
 
-    
     return $poly->contains($point);
 }
 

@@ -102,7 +102,7 @@ sub get_calculations {
         my $ref = $self -> get_args (sub => $sub_name);
         #$ref->{source_module} = $source_module;
         push @{$calculations{$ref->{type}}}, $sub_name;
-        print Data::Dumper::Dump ($ref) if ! exists $ref->{type};
+        print Data::Dumper::Dump ($ref) if ! defined $ref->{type};
     }
 
     return wantarray ? %calculations : \%calculations;

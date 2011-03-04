@@ -227,7 +227,9 @@ sub calc_sorenson {  # calculate the Sorenson dissimilarity index between two li
     my $self = shift;
     my %args = @_;
 
-    my $value = eval {1 - ((2 * $args{A}) / ($args{A} + $args{ABC}))};
+    my $value = $args{ABC}
+                ? eval {1 - ((2 * $args{A}) / ($args{A} + $args{ABC}))}
+                : undef;
 
     return wantarray
         ? (SORENSON => $value)
@@ -260,18 +262,21 @@ sub get_metadata_calc_jaccard {
     return wantarray ? %arguments : \%arguments;
 }
 
-sub calc_jaccard {  # calculate the Jaccard dissimilarity index between two label lists.  Build label lists from element lists if specified
-               #  J = a/(a+b+c) where a is shared presence between groups, b&c are in one group only
-               #  this is almost identical to calc_sorenson
+# calculate the Jaccard dissimilarity index between two label lists.  Build label lists from element lists if specified
+#  J = a/(a+b+c) where a is shared presence between groups, b&c are in one group only
+#  this is almost identical to calc_sorenson    
+sub calc_jaccard {
+    
     my $self = shift;
-    my %abc = @_;
+    my %args = @_;
 
-    my $value = eval {1 - ($abc{A} / $abc{ABC})};
-
+    my $value = $args{ABC}
+                ? eval {1 - ($args{A} / $args{ABC})}
+                : undef;
+                
     return wantarray
             ? (JACCARD => $value)
             : {JACCARD => $value};
-
 }
 
 
@@ -691,10 +696,12 @@ sub calc_s2 {  #  Used to calculate the species turnover between two element set
                     #    Journal of Animal Ecology, 70, 966-979
                     #
     my $self = shift;
-    my %abc = @_;
+    my %args = @_;
 
     no warnings 'uninitialized';
-    my $value = eval { 1 - ($abc{A} / ($abc{A} + min ($abc{B}, $abc{C}))) };
+    my $value = $args{ABC}
+                ? eval { 1 - ($args{A} / ($args{A} + min ($args{B}, $args{C}))) }
+                : undef;
 
     return wantarray
         ? (S2 => $value)

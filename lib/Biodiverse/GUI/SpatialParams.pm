@@ -145,6 +145,7 @@ sub onSyntaxCheck {
     my $spatial_params = eval {
         Biodiverse::SpatialParams -> new (conditions => $expr);
     };
+    #croak $EVAL_ERROR if $EVAL_ERROR;
 
     my $result_hash = $spatial_params -> verify (basedata_ref => $gui->getProject->getSelectedBaseData);
 

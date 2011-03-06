@@ -21,8 +21,9 @@ our $VERSION = '0.16';
 our $NULL_STRING = q{};
 
 use Regexp::Common qw /number/;
-my $RE_NUMBER = qr /$RE{num}{real}/xms;
-my $RE_INT    = qr /$RE{num}{int}/xms;
+my $RE_NUMBER  = qr /$RE{num}{real}/xms;
+my $RE_INT     = qr /$RE{num}{int}/xms;
+my $RE_COMMENT = $RE{comment}{Perl};
 
 #  straight from Friedl, page 330.  Could be overkill, but works
 my $re_text_in_brackets;
@@ -96,6 +97,8 @@ sub parse_distances {
     my %args = @_;
 
     my $conditions = $self->get_conditions;
+    $conditions .= "\n";
+    $conditions =~ s/$RE_COMMENT//g;
 
     my %params;
     my %missing_args;

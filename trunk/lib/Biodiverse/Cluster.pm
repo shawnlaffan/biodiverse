@@ -297,7 +297,7 @@ sub build_matrices {
         if (length ($definition_query) == 0) {
             $definition_query = undef ;
         }
-   elsif (not blessed $definition_query) {
+        elsif (not blessed $definition_query) {
             $definition_query = Biodiverse::SpatialParams->new (
                 conditions => $definition_query,
             );

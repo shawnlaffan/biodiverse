@@ -141,7 +141,7 @@ sub new {
             $def_query_init1 = $empty_string;
         }
         elsif (blessed $def_query_init1) { #  get the text if already an object 
-            $def_query_init1 = $def_query_init1 -> get_conditions ;
+            $def_query_init1 = $def_query_init1 -> get_conditions (unparsed => 1);
         }
     }
     $self->{output_ref} = $cluster_ref;

@@ -3323,52 +3323,69 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                               </packing>
                                             </child>
                                             <child>
-                                              <widget class="GtkHBox" id="hbox_cluster_options">
+                                              <widget class="GtkFrame" id="frame2">
                                                 <property name="visible">True</property>
+                                                <property name="label_xalign">0</property>
                                                 <child>
-                                                  <widget class="GtkCheckButton" id="chk_no_cache_abc">
-                                                    <property name="label" translatable="yes">Do not use caching </property>
+                                                  <widget class="GtkHBox" id="hbox_cluster_options">
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                    <property name="receives_default">False</property>
-                                                    <property name="has_tooltip">True</property>
-                                                    <property name="tooltip" translatable="yes">Don't use caching when building the matrix.
+                                                    <child>
+                                                      <widget class="GtkCheckButton" id="chk_no_cache_abc">
+                                                        <property name="label" translatable="yes">Do not use caching </property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="has_tooltip">True</property>
+                                                        <property name="tooltip" translatable="yes">Don't use caching when building the matrix.
 This reduces memory requirements
 but can slow down processing.</property>
-                                                    <property name="draw_indicator">True</property>
-                                                  </widget>
-                                                  <packing>
-                                                    <property name="position">0</property>
-                                                  </packing>
-                                                </child>
-                                                <child>
-                                                  <widget class="GtkCheckButton" id="chk_build_matrices_only">
-                                                    <property name="label" translatable="yes">Build matrices 
+                                                        <property name="draw_indicator">True</property>
+                                                      </widget>
+                                                      <packing>
+                                                        <property name="position">0</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkCheckButton" id="chk_build_matrices_only">
+                                                        <property name="label" translatable="yes">Build matrices 
 and then stop?</property>
-                                                    <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                    <property name="receives_default">False</property>
-                                                    <property name="tooltip" translatable="yes">Just build the matrices 
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="has_tooltip">True</property>
+                                                        <property name="tooltip" translatable="yes">Just build the matrices 
 and don't actually cluster.</property>
-                                                    <property name="draw_indicator">True</property>
+                                                        <property name="draw_indicator">True</property>
+                                                      </widget>
+                                                      <packing>
+                                                        <property name="position">1</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkCheckButton" id="chk_output_to_file">
+                                                        <property name="label" translatable="yes">Output matrices 
+direct to text files</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="has_tooltip">True</property>
+                                                        <property name="tooltip" translatable="yes">Output the matrices direct to a text formatted sparse matrix file or files.
+Will not cluster if set and matrices will not be displayable via the project.</property>
+                                                        <property name="draw_indicator">True</property>
+                                                      </widget>
+                                                      <packing>
+                                                        <property name="position">2</property>
+                                                      </packing>
+                                                    </child>
                                                   </widget>
-                                                  <packing>
-                                                    <property name="position">1</property>
-                                                  </packing>
                                                 </child>
                                                 <child>
-                                                  <widget class="GtkCheckButton" id="chk_output_to_file">
-                                                    <property name="label" translatable="yes">Output matrices 
-direct to text files</property>
+                                                  <widget class="GtkLabel" id="label_frame2">
                                                     <property name="visible">True</property>
-                                                    <property name="can_focus">True</property>
-                                                    <property name="receives_default">False</property>
-                                                    <property name="tooltip" translatable="yes">Output the matrices direct to a text formatted sparse matrix file or files.
-Will not cluster if set and matrices will not be displayable via the project.</property>
-                                                    <property name="draw_indicator">True</property>
+                                                    <property name="use_markup">True</property>
                                                   </widget>
                                                   <packing>
-                                                    <property name="position">2</property>
+                                                    <property name="type">label_item</property>
                                                   </packing>
                                                 </child>
                                               </widget>

@@ -29,7 +29,6 @@ use Biodiverse::Progress;
 
 use base qw /
     Biodiverse::Common
-    Biodiverse::Indices
 /;
 
 my $EMPTY_STRING = q{};

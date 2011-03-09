@@ -22,6 +22,7 @@ use File::Basename;
 use POSIX;  #  make all the POSIX functions available to the spatial parameters
 use HTML::QuickTable;
 #use XBase;
+use Class::ISA;
 
 use Math::Random::MT::Auto;  
 
@@ -1721,38 +1722,40 @@ sub get_shared_hash_keys {
     return wantarray ? %shared : \%shared;
 }
 
+
 #  recurse through the ISA trees and extract the packages needed
 #  adapted from Devel::SymDump
-sub get_isa_tree_flattened {
-    my $self = shift;
-    my %args = @_;
-    my $package = $args{package} || blessed ($self);
-
-    my $depth = $args{depth} || 0;
-
-    $depth++;
-    if ($depth > 100){
-        warn "Deep recursion in ISA\n";
-        return;
-    }
-
-    my %results;
-    # print "DEBUG: package[$package]depth[$depth]\n";
-    #my $isaisa;
-    no strict 'refs';
-    foreach my $isaisa (@{"$package\::ISA"}) {
-        $results{$isaisa} ++;
-        my @next_level = $self -> get_isa_tree_flattened (package => $isaisa,
-                                                          depth   => $depth
-                                                         );
-
-        foreach my $subisa (@next_level) {
-            $results{$isaisa} ++;
-        }
-
-    }
-    return wantarray ? keys %results : [keys %results];
-}
+#  SUPERSEDED BY Class::ISA::self_and_super_path
+#sub get_isa_tree_flattened {
+#    my $self = shift;
+#    my %args = @_;
+#    my $package = $args{package} || blessed ($self);
+#
+#    my $depth = $args{depth} || 0;
+#
+#    $depth++;
+#    if ($depth > 100){
+#        warn "Deep recursion in ISA\n";
+#        return;
+#    }
+#
+#    my %results;
+#    # print "DEBUG: package[$package]depth[$depth]\n";
+#    #my $isaisa;
+#    no strict 'refs';
+#    foreach my $isaisa (@{"$package\::ISA"}) {
+#        $results{$isaisa} ++;
+#        my @next_level = $self -> get_isa_tree_flattened (package => $isaisa,
+#                                                          depth   => $depth
+#                                                         );
+#
+#        foreach my $subisa (@next_level) {
+#            $results{$isaisa} ++;
+#        }
+#
+#    }
+#    return wantarray ? keys %results : [keys %results];
+#}
 
 #  get a list of available subs (analyses) with a specified prefix
 #sub get_analyses {
@@ -1763,7 +1766,8 @@ sub get_subs_with_prefix {
     my $prefix = $args{prefix};
     croak "prefix not defined\n" if not defined $prefix;
 
-    my @tree = ((blessed $self), $self -> get_isa_tree_flattened);
+    #my @tree = ((blessed $self), $self -> get_isa_tree_flattened);
+    my @tree = Class::ISA::self_and_super_path($args{class} or blessed ($self));
 
     my $syms = Devel::Symdump->rnew(@tree);
     my %analyses;

@@ -11,7 +11,7 @@ use POSIX qw /fmod/;
 use Math::Trig;
 use Math::Polygon;
 
-use Scalar::Util qw /looks_like_number/;
+use Scalar::Util qw /looks_like_number blessed/;
 use Devel::Symdump;
 
 use base qw /Biodiverse::Common/;
@@ -801,7 +801,8 @@ sub _get_analyses {
 #  have to build the ISA tree, as Devel::Symdump::rnew seems not to use it
 #my $tree = "Biodiverse::Indices" . Devel::Symdump::_isa_tree ("Biodiverse::Indices");
 
-    my @tree = ( blessed($self), $self->get_isa_tree_flattened );
+    #my @tree = ( blessed($self), $self->get_isa_tree_flattened );
+    my @tree = Class::ISA::self_and_super_path(blessed ($self));
 
     #my $tst = Devel::Symdump -> rnew (__PACKAGE__);
     #my $tst2 = $tst -> isa_tree (__PACKAGE__);

@@ -68,6 +68,8 @@ Exception::Class
 
 Math::Polygon
 
+Class::ISA
+
 =head1 DESCRIPTION
 
 Bundle file for Biodiverse dependencies for non-GUI use across all platforms.

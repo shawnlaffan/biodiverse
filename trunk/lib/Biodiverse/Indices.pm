@@ -11,6 +11,7 @@ use Devel::Symdump;
 use Data::Dumper;
 use Scalar::Util qw /blessed weaken/;
 use English ( -no_match_vars );
+use Class::ISA;
 
 #$Data::Dumper::Sortkeys = 1;  #  sort the keys dumped by get_args
 #$Data::Dumper::Indent = 1;    #  reduce the indentation used by Dumper in get_args
@@ -88,7 +89,8 @@ sub get_calculations {
     #my $tree = "Biodiverse::Indices" . Devel::Symdump::_isa_tree ("Biodiverse::Indices");
     #my $tree = __PACKAGE__ . Devel::Symdump::_isa_tree (__PACKAGE__);
     #my @tree = split (/\s+/, $tree);
-    my @tree = (__PACKAGE__, $self -> get_isa_tree_flattened (package => __PACKAGE__));
+    #my @tree = (__PACKAGE__, $self -> get_isa_tree_flattened (package => __PACKAGE__));
+    my @tree = Class::ISA::self_and_super_path(blessed ($self));
 
     my $syms = Devel::Symdump->rnew(@tree);
     my %calculations;

@@ -561,7 +561,8 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
     return 1;  # return success if we get this far
 }
 
-sub element_pair_exists {  #  check an element pair exists, returning 1 if yes, 2 if yes, but in different order, undef otherwise
+#  check an element pair exists, returning 1 if yes, 2 if yes, but in different order, undef otherwise
+sub element_pair_exists {  
     my $self = shift;
     my %args = @_;
     confess "element1 or element2 not defined\n" if ! defined $args{element1} || ! defined $args{element2};
@@ -578,7 +579,8 @@ sub element_pair_exists {  #  check an element pair exists, returning 1 if yes, 
     return 0;
 }
 
-sub element_is_in_matrix { #  check if the matrix contains an element with any pair
+#  check if the matrix contains an element with any pair
+sub element_is_in_matrix { 
     my $self = shift;
     my %args = @_;
     

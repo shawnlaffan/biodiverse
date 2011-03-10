@@ -744,11 +744,11 @@ sub get_all_children { #  get all the nodes (whether terminal or not) which are 
 #  get all the nodes along a path from self to another node,
 #  including self and other, and the shared ancestor
 sub get_path_to_node {
-
     my $self = shift;
-    my %args = (cache => 1, #  cache unless told otherwise
-                @_,
-                );  
+    my %args = (
+        cache => 1, #  cache unless told otherwise
+        @_,
+    );  
     
     my $target = $args{node};
     my $target_name = $target -> get_name;
@@ -813,17 +813,17 @@ sub get_path_to_node {
         $self -> set_cached_value ($cache_list => $path);
     }
     
-    return wantarray ? %$path
-                     : $path;
+    return wantarray ? %$path : $path;
 }
 
 
 #  get the length of the path to another node
 sub get_path_length_to_node {
     my $self = shift;
-    my %args = (cache => 1, #  cache unless told otherwise
-                @_,
-                );
+    my %args = (
+        cache => 1, #  cache unless told otherwise
+        @_,
+    );
     
     my $target = $args{node};
     my $target_name = $target -> get_name;
@@ -858,21 +858,44 @@ sub get_path_length_to_node {
 #  it will be the first parent node that shares one or more terminal elements
 sub get_shared_ancestor {
     my $self = shift;
-    my %args = @_;
+    my %args = (
+        cache => 1,
+        @_,
+    );
+
     my $compare = $args{node};
     
+    my $cache_name = 'SHARED_ANCESTOR::' . $self . '::TO::' . $compare;
+    if ($args{cache}) {
+        my $cached_ancestor = $self -> get_cached_value ($cache_name);
+        if (not defined $cached_ancestor) {  #  try the reverse, as they are the same
+            my $cache_name2 = 'SHARED_ANCESTOR::' . $compare . '::TO::' . $self;
+            $cached_ancestor = $self -> get_cached_value ($cache_name2);
+        }
+        if (defined $cached_ancestor) {
+            return wantarray ? %$cached_ancestor : $cached_ancestor;
+        }
+    }
+
     my %children = $self -> get_terminal_elements;
     my $count = scalar keys %children;
     my %comp_children = $compare -> get_terminal_elements;
     delete @children{keys %comp_children};  #  delete shared keys
     my $count2 = scalar keys %children;
-    
+
+    my $shared;
     if ($count != $count2) {
-        return $self;
+        $shared = $self;
     }
     else {
-        return $self -> get_parent -> get_shared_ancestor (@_);
+        $shared = $self->get_parent->get_shared_ancestor (@_);
     }
+
+    if ($args{cache}) {
+        $self->set_cached_value ($cache_name => $shared);
+    }
+
+    return $shared;
 }
 
 #  get the list of hashes in the nodes

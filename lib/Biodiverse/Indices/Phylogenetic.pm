@@ -715,7 +715,7 @@ sub _calc_taxonomic_distinctness {
 
     my $numerator;
     my $denominator = 0;
-    my $sum_sqr_wts;
+    my $ssq_wtd_value;
     my @labels = sort keys %$label_hash;
     
     #  Need to loop over each label and get the weighted contribution
@@ -727,14 +727,16 @@ sub _calc_taxonomic_distinctness {
     #  and use get_path_to_node for the full path length.
     #  We can pop from @labels as we go to achieve this
     #  (this is the i<j constraint from Warwick & Clarke, but used in reverse)
+    
+    #  Actually, it's simpler to loop over the list twice and get the lengths to shared ancestor
 
 
     BY_LABEL:
     foreach my $label (@labels) {
-        my $label_count = $label_hash->{$label};
+        my $label_count1 = $label_hash->{$label};
 
         #  save some calcs (if ever this happens)
-        next BY_LABEL if $label_count == 0;
+        next BY_LABEL if $label_count1 == 0;
 
         my $node = $tree -> get_node_ref (node => $label);
 
@@ -744,6 +746,9 @@ sub _calc_taxonomic_distinctness {
             #  skip same labels
             next LABEL2 if $label eq $label2;
 
+            my $label_count2 = $label_hash->{$label2};
+            next LABEL2 if $label_count2 == 0;
+
             my $node2 = $tree->get_node_ref (node => $label2);
 
             my $ancestor = $node->get_shared_ancestor (node => $node2);
@@ -751,13 +756,13 @@ sub _calc_taxonomic_distinctness {
             my $path_length = $ancestor->get_total_length
                             - $node2->get_total_length;
 
-            my $unweighted_value = $label_count * $label_hash->{$label2};
+            my $weight = $label_count1 * $label_count2;
 
-            my $wt = $path_length * $unweighted_value;
+            my $wtd_value = $path_length * $weight;
 
-            $numerator   += $wt;
-            $denominator += $unweighted_value;
-            $sum_sqr_wts += $wt ** 2;
+            $numerator     += $wtd_value;
+            $ssq_wtd_value += $wtd_value ** 2;
+            $denominator   += $weight;
         }
     }
 
@@ -767,7 +772,7 @@ sub _calc_taxonomic_distinctness {
     {
         no warnings 'uninitialized';
         $distinctness  = eval {$numerator / $denominator};
-        $variance = eval {$sum_sqr_wts / $denominator - $distinctness ** 2}
+        $variance = eval {$ssq_wtd_value / $denominator - $distinctness ** 2}
     }
 
 
@@ -804,26 +809,23 @@ sub get_metadata_calc_phylo_sorenson {
         },
         required_args => {'tree_ref' => 1}
     );
-           
+
     return wantarray ? %arguments : \%arguments;   
 }
 
-sub calc_phylo_sorenson {  # calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+# calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+sub calc_phylo_sorenson {
 
     my $self = shift;
     my %args = @_;
-    
-    #i assume following lines are redundant
-    #my $el1 = $self -> array_to_hash_keys (list => $args{element_list1});
-    #my $el2 = $self -> array_to_hash_keys (list => $args{element_list2});
-    
+
     my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};
-    
+
     my $val;
     if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
         $val = eval {1 - (2 * $A / ($A + $ABC))};
     }
-    
+
     my %results = (PHYLO_SORENSON => $val);
 
     return wantarray
@@ -832,7 +834,7 @@ sub calc_phylo_sorenson {  # calculate the phylogenetic Sorenson dissimilarity i
 }
 
 sub get_metadata_calc_phylo_jaccard {
-    
+
     my %arguments = (
         name           =>  'Phylo Jaccard',
         type           =>  'Phylogenetic Indices',
@@ -852,16 +854,17 @@ sub get_metadata_calc_phylo_jaccard {
         },
         required_args => {'tree_ref' => 1}
     );
-           
+
     return wantarray ? %arguments : \%arguments;   
 }
 
-sub calc_phylo_jaccard {  # calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+# calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+sub calc_phylo_jaccard {
     my $self = shift;
     my %args = @_;
 
     my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};  
-    
+
     my $val;
     if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
         $val = eval {1 - ($A / $ABC)};

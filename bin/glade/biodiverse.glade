@@ -3381,7 +3381,7 @@ Will not cluster if set and matrices will not be displayable via the project.</p
                                                 </child>
                                                 <child>
                                                   <widget class="GtkLabel" id="label_frame2">
-                                                    <property name="visible">True</property>
+                                                    <property name="label" translatable="yes">Options</property>
                                                     <property name="use_markup">True</property>
                                                   </widget>
                                                   <packing>
@@ -6585,8 +6585,8 @@ in existing outputs so is disabled for BaseData with outputs</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7061,8 +7061,8 @@ Merely closes the window if no file is selected.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7079,8 +7079,8 @@ Merely closes the window if no file is selected.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>

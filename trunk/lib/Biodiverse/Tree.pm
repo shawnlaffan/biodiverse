@@ -1005,19 +1005,13 @@ sub to_matrix {
         }
     }
     
-    my %done;
+    #my %done;
     my $progress;
     my $to_do = scalar keys %nodes;
     foreach my $node1 (values %nodes) {
         my $name1 = $node1 -> get_name;
-        #print "$name1\t";
+
         $progress ++;
-        #if ($progress_bar) {
-            #$progress_bar -> update(
-            #    "Converting tree $name to matrix\n($progress / $to_do)",
-            #    $progress / $to_do,
-            #);
-        #}
 
         NODE2:
         foreach my $node2 (values %nodes) {
@@ -1026,20 +1020,27 @@ sub to_matrix {
                 "Converting tree $name to matrix\n($progress / $to_do)",
                 $progress / $to_do,
             );
-            next NODE2 if $done{$name1}{$name2} || $done{$name2}{$name1};
-            #print "$name2\t";
+
+            next NODE2 if $matrix->element_pair_exists(element1 => $name1, element2 => $name2);
+
             my $shared_ancestor = $node1 -> get_shared_ancestor (node => $node2);
             my $total_length = $shared_ancestor -> get_total_length;
+            
+            #  should allow user to choose whether to just get length to shared ancestor?
+            my $path_length1 = $total_length - $node1->get_total_length;
+            my $path_length2 = $total_length - $node2->get_total_length;
+            my $path_length_total = $path_length1 + $path_length2;
+            
             $matrix -> add_element (
                 element1 => $name1,
                 element2 => $name2,
-                value    => $total_length,
+                value    => $path_length_total,
             );
-            $done{$name1}{$name2}++;
+            #$done{$name1}{$name2}++;
         }
         #print "\n";
     }
-    
+
     return $matrix;
 }
 

@@ -44,10 +44,17 @@ sub new {
 
 sub median {
     my $self = shift;
-    return if ! $self->count;
+    return undef if ! $self->count;
     
     return $self->SUPER::median;
 }
+
+#sub mean {
+#    my $self = shift;
+#    return undef if ! $self->count;
+#    
+#    return $self->SUPER::mean;
+#}
 
 #  Snaps percentiles to range 1..100,
 #  does not return undef if percentile is < bin size

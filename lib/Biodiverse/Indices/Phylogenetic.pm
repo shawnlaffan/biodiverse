@@ -10,6 +10,9 @@ use Biodiverse::Progress;
 
 our $VERSION = '0.16';
 
+use Biodiverse::Statistics;
+my $stats_package = 'Biodiverse::Statistics';
+
 
 sub get_metadata_calc_pd {
 
@@ -788,6 +791,144 @@ sub _calc_taxonomic_distinctness {
 }
 
 
+sub get_metadata_calc_phylo_mntd {
+    my $self = shift;
+
+    my $indices = {
+        PNTD_MEAN => {
+            description    => 'Mean nearest taxon distance',
+            formula        => [
+            ],
+        },
+        PNTD_MAX => {
+            description    => 'Maximum nearest taxon distance',
+            formula        => [
+            ],
+        },
+        PNTD_MIN => {
+            description    => 'Minimum nearest taxon distance',
+            formula        => [
+            ],
+        },
+        PNTD_SD => {
+            description    => 'Standard deviation of nearest taxon distances',
+            formula        => [
+            ],
+        },
+    };
+
+    my $ref = 'Webb et al. (2002) DOI NEEDED';
+
+    my %metadata = (
+        description     => 'Nearest taxon distance stats from each label to '
+                         . 'all other labels acros both neighbour sets.',
+        name            => 'Nearest taxon distances',
+        type            => 'Phylogenetic Indices',
+        reference       => $ref,
+        pre_calc        => ['calc_abc3'],
+        pre_calc_global => ['get_trimmed_tree_as_matrix'],
+        uses_nbr_lists  => 1,
+        indices         => $indices,
+    );
+
+    return wantarray
+        ? %metadata
+        : \%metadata;
+}
+
+
+#  this allows for a non-binary version later on
+#  with more modification we could also get at the udnerlying data
+sub calc_phylo_mntd {
+    my $self = shift;
+
+    return $self->_calc_mntd(@_);
+}
+
+
+#  mean nearest taxon distance
+sub _calc_mntd {
+    my $self = shift;
+    my %args = @_;
+
+    my $label_hash = $args{label_hash_all};
+    my $mx = $args{TRIMMED_TREE_AS_MATRIX};
+
+    my @labels = sort keys %$label_hash;
+    my @min_path_lengths;
+
+    BY_LABEL:
+    while (defined (my $label1 = shift @labels)) {
+        my $label_count1 = $label_hash->{$label1};
+
+        #  save some calcs (if ever this happens)
+        next BY_LABEL if $label_count1 == 0;
+        
+        next BY_LABEL if ! $mx->element_is_in_matrix(element => $label1);
+
+        #my $node = $tree -> get_node_ref (node => $label);
+        my $min;
+        my $i = 0;
+
+        LABEL2:
+        foreach my $label2 (@labels) {
+
+            #  skip same labels
+            next LABEL2 if $label1 eq $label2;
+
+            next LABEL2 if ! $mx->element_is_in_matrix(element => $label2);
+
+            my $label_count2 = $label_hash->{$label2};
+            next LABEL2 if $label_count2 == 0;
+
+            #my $node2 = $tree->get_node_ref (node => $label2);
+
+            my $path_length = $mx->get_value(element1 => $label1, element2 => $label2);
+
+            $min = defined $min ? min ($path_length, $min) : $path_length;
+            $i ++;
+        }
+        if ($i) {  #  only if we added something
+            push @min_path_lengths, $min;
+        }
+    }
+
+    #  allows us to generalise later on
+    my $stats = $stats_package->new();
+    $stats->add_data(\@min_path_lengths);
+
+    my %results = (
+        PNTD_MEAN => $stats->count ? $stats->mean : undef,
+        PNTD_MAX  => $stats->count ? $stats->max  : undef,
+        PNTD_MIN  => $stats->count ? $stats->min  : undef,
+        PNTD_SD   => $stats->count ? $stats->standard_deviation : undef,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_trimmed_tree_as_matrix {
+    my $self = shift;
+
+    my %metadata = (
+        pre_calc_global => ['get_trimmed_tree'],
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub get_trimmed_tree_as_matrix {
+    my $self = shift;
+    my %args = @_;
+
+    my $mx = $args{trimmed_tree}->to_matrix;
+
+    my %results = (TRIMMED_TREE_AS_MATRIX => $mx);
+
+    return wantarray ? %results : \%results;
+}
+
+
 sub get_metadata_calc_phylo_sorenson {
     
     my %arguments = (
@@ -1005,6 +1146,7 @@ sub _calc_phylo_abc {
             : \%results;
 }
 
+sub min {return $_[0] < $_[1] ? $_[0] : $_[1]}
 
 1;
 

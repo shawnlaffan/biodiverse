@@ -98,10 +98,19 @@ sub _get_gpprop_stats_hash_key {
 sub _get_gpprop_names {
     my $self = shift;
 
-    my $bd = $self->get_basedata_ref;
-    my $gp = $bd->get_groups_ref;
+    #  use a cache to save time on repeated lookups
+    my $names = $self->get_param('GPPROP_NAMES');
 
-    return $gp->get_element_property_keys;
+    if (! $names) {
+        my $bd = $self->get_basedata_ref;
+        my $gp = $bd->get_groups_ref;
+
+        $names = $gp->get_element_property_keys;
+
+        $self -> set_param (GPPROP_NAMES => $names);
+    }    
+
+    return wantarray ? @$names : $names;
 }
 
 sub _get_gpprop_stats_hash_keynames {

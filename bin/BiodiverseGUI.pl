@@ -23,9 +23,7 @@ my $perl_app_tool = $PerlApp::TOOL;
 
 #  add the lib folder if needed
 use lib File::Spec->catfile( $Bin, '..', 'lib');
-eval {
-    use mylib;
-};
+eval 'use mylib';
 
 
 #  load up the user defined libs

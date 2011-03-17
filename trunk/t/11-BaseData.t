@@ -13,7 +13,8 @@ local $| = 1;
 
 use mylib;
 
-use Test::More tests => 5;
+#use Test::More tests => 5;
+use Test::More;
 
 use Biodiverse::BaseData;
 use Biodiverse::TestHelpers qw /:basedata/;
@@ -85,3 +86,30 @@ my @setup = (
     }
 }
 
+{
+
+    my $bd = eval {
+        get_basedata_object (
+            x_spacing  => 1,
+            y_spacing  => 1,
+            CELL_SIZES => [1, 1],
+            x_max      =>  50,
+            y_max      =>  50,
+            x_min      => -49,
+            y_min      => -49,
+        );
+    };
+    
+    $bd->save (filename => 'bd_test1.bds');
+
+    #  clunky...
+    my @groups = ('0.5:0.5', '-1.5:0.5', '0.5:-1.5', '-1.5:-1.5', '1.5:1.5');
+    foreach my $group (@groups) {
+        ok ($bd->exists_group(group => $group), "Group $group exists");
+    }
+
+    
+}
+
+
+done_testing();

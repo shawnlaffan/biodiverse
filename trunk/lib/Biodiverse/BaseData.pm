@@ -10,7 +10,7 @@ use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use IO::File;
-
+use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 
 use English qw { -no_match_vars };
@@ -987,7 +987,8 @@ sub import_data {  #  load a data file into the selected BaseData object.
                         value     => $tmp / $cell_sizes[$i],
                         precision => '%.10f',
                     );
-                    my $offset = int (abs ($tmp_prec));
+                    #my $offset = int (abs ($tmp_prec));
+                    my $offset = floor ($tmp_prec);
 
                     #  which cell are we?
                     my $gp_val = $offset * $cell_sizes[$i];
@@ -996,10 +997,10 @@ sub import_data {  #  load a data file into the selected BaseData object.
                     $gp_val += $half_cellsize[$i];
                     
                     #  -ve cells need to be negative and pushed right/up
-                    if ($tmp < 0) {
-                        $gp_val *= -1;
-                        $gp_val += $cell_sizes[$i];
-                    }
+                    #if ($tmp < 0) {
+                    #    $gp_val *= -1;
+                    #    #$gp_val += $cell_sizes[$i];
+                    #}
 
                     #  now shift the aggregated cell back to where it should be
                     $group[$i] = $gp_val + $cell_origins[$i];

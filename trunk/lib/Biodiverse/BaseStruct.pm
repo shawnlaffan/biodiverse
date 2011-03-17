@@ -2307,6 +2307,34 @@ sub get_hash_lists {
     return wantarray ? @list : \@list;
 }
 
+sub get_hash_list_keys_across_elements {
+    my $self = shift;
+    my %args = @_;
+    
+    my $list_name = $args{list};
+
+    my $elements = $self->get_element_hash() || {};
+
+    my %hash_keys;
+
+    ELEMENT:
+    foreach my $elt (keys %$elements) {
+        my $hash = $self->get_list_ref (
+            element    => $elt,
+            list       => $list_name,
+            autovivify => 0,
+        );
+        next ELEMENT if ! $hash;
+        next ELEMENT if ! (ref ($hash) =~ /HASH/);
+
+        if (scalar keys %$hash) {
+            @hash_keys{keys %$hash} = values %$hash;
+        }
+    }
+
+    return wantarray ? keys %hash_keys : [keys %hash_keys];
+}
+
 sub get_list_ref {  #  return a reference to the specified list - allows for direct operation on its values
     my $self = shift;
     my %args = (
@@ -2437,16 +2465,19 @@ sub get_base_stats {  #  calculate basestats for a single element
 sub get_element_property_keys {
     my $self = shift;
 
-    my $res = {};
+    my $res = [];
 
-    my $elements = $self->get_element_list;
-
-    return $res if ! scalar @$elements;
+    #my $elements = $self->get_element_list;
+    #
+    #return wantarray ? @$res : $res
+    #    if ! scalar @$elements;
 
     #  cheat a bit and assume all have the same props (they should)    
-    my %p = $self->get_element_properties(element => $elements->[0]);
+    #my %p = $self->get_element_properties(element => $elements->[0]);
+    #
+    #my @keys = keys %p;
 
-    my @keys = keys %p;
+    my @keys = $self->get_hash_list_keys_across_elements(list => 'PROPERTIES');
 
     return wantarray ? @keys : \@keys;
 }

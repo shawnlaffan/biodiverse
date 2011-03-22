@@ -87,29 +87,45 @@ my @setup = (
 }
 
 {
+    #  check values near zero are imported correctly
+    #    - was getting issues with negative values one cell left/lower than
+    #    they should have been for coords on the cell edge
 
-    my $bd = eval {
-        get_basedata_object (
-            x_spacing  => 1,
-            y_spacing  => 1,
-            CELL_SIZES => [1, 1],
-            x_max      =>  50,
-            y_max      =>  50,
-            x_min      => -49,
-            y_min      => -49,
-        );
-    };
+    foreach my $min (-49, -49.5) {
+        my $bd = eval {
+            get_basedata_object (
+                x_spacing  => 1,
+                y_spacing  => 1,
+                CELL_SIZES => [1, 1],
+                x_max      => $min + 100,
+                y_max      => $min + 100,
+                x_min      => $min,
+                y_min      => $min,
+            );
+        };
+        
+        #$bd->save (filename => "bd_test_$min.bds");
     
-    $bd->save (filename => 'bd_test1.bds');
-
-    #  clunky...
-    my @groups = ('0.5:0.5', '-1.5:0.5', '0.5:-1.5', '-1.5:-1.5', '1.5:1.5');
-    foreach my $group (@groups) {
-        ok ($bd->exists_group(group => $group), "Group $group exists");
+        #  clunky...
+        #my @groups = ('0.5:0.5', '-0.5:0.5', '0.5:-0.5', '-0.5:-0.5', '-1.5:-1.5');
+        my @groups;
+        my @axis_coords = (-1.5, -0.5, 0.5, 1.5);
+        foreach my $i (@axis_coords) {
+            foreach my $j (@axis_coords) {
+                push @groups, "$i:$j";
+            }
+        }
+        foreach my $group (@groups) {
+            ok ($bd->exists_group(group => $group), "Group $group exists");
+        }
+        
+        #  should also text the extents of the data set, min & max on each axis
     }
-
     
 }
+
+
+#  need to test multidimenional data import, including text axes
 
 
 done_testing();

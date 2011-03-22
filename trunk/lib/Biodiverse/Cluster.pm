@@ -156,13 +156,16 @@ sub build_matrices {
     my $self = shift;
     my %args = @_;
 
+    #  any file handles to output
+    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
+    delete $args{file_handles};
+
     #  override any args if we are a re-run
     if (defined $self->get_param('ANALYSIS_ARGS')) {  
         %args = %{$self->get_param ('ANALYSIS_ARGS')};
     }
     else {  #  store them for future use
         my %args_sub = %args;
-        delete $args_sub{file_handles};
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
 
@@ -307,14 +310,12 @@ sub build_matrices {
         $self->set_param (DEFINITION_QUERY => $definition_query);
     }
 
-    #  any file handles to output
-    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
+    print "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING\n";
+
+    #  print headers to file handles (if such are present)
     foreach my $fh (@$file_handles) {
         print {$fh} "Element1,Element2,$index\n";
     }
-    delete $args{file_handles};
-
-    print "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING\n";
 
     #  we use a spatial object as it handles all the spatial checks.
     print "[CLUSTER] Generating neighbour lists\n";
@@ -340,7 +341,7 @@ sub build_matrices {
     $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => \%cache);
 
     my %done;
-    my @nbr_matrices;  #  cache of each set of neighbours
+    #my @nbr_matrices;  #  cache of each set of neighbours
     my $valid_count = 0;
 
     # only those that passed the def query (if set) will be considered
@@ -364,7 +365,7 @@ sub build_matrices {
         $count ++;
         my $progress = $count / $toDo;
         $progress_bar->update(
-            "Building matrix\n$name\n(row $count / $toDo)",
+            "Building matrix\n$name\n",
             $progress,
         );
 
@@ -385,7 +386,7 @@ sub build_matrices {
             #if ($i) {  #  matrices should not be exclusive?
             #    #  merge $i-1
             #}
-            $nbr_matrices[$i]{$element1} = $neighbours[$i];
+            #$nbr_matrices[$i]{$element1} = $neighbours[$i];
         }
 
         #  loop over the neighbours and add them to the appropriate matrix
@@ -441,7 +442,7 @@ sub build_matrices {
 
     #$self->{MATRICES} = \@matrices;
     $self->set_matrix_ref(matrices => \@matrices);
-    $self->{NBR_MATRICES} = \@nbr_matrices;  #  still needed?
+    #$self->{NBR_MATRICES} = \@nbr_matrices;  #  still needed?
 
     #  Clear the cache unless we're using link_recalculate
     #  Is this already set or not?
@@ -716,6 +717,7 @@ sub delete_shadow_matrix {
     return;
 }
 
+#  redundant? 
 sub get_nbr_matrix_ref {
     my $self = shift;
     return if not exists $self->{NBR_MATRICES}; #  avoid autovivification
@@ -724,6 +726,7 @@ sub get_nbr_matrix_ref {
     return $self->{NBR_MATRICES}[$i];
 }
 
+#  redundant? 
 sub delete_nbr_matrices {
     my $self = shift;
     return if not exists $self->{NBR_MATRIX}; #  avoid autovivification
@@ -756,6 +759,7 @@ sub cluster_matrix_elements {
     }
     else {  #  store them for future use
         my %args_sub = %args;
+        delete $args_sub{file_handles};  #  don't store these as Storable no like them
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
 
@@ -911,6 +915,8 @@ sub cluster {
     my $start_time = time;
 
     $self->set_param (COMPLETED => 0);
+    
+    my $file_handles = $args{file_handles};
 
     #  override most of the arguments if the system has values set
     if (defined $self->get_param('ANALYSIS_ARGS')) {
@@ -918,7 +924,7 @@ sub cluster {
     }
     else {  #  store them for future use
         my %args_sub = %args;
-        #delete $args_sub{progress};
+        delete $args_sub{file_handles};  #  but don't store file handles
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
 
@@ -958,7 +964,7 @@ sub cluster {
             }
             else {  #  build them
                 @matrices = eval {
-                    $self->build_matrices ();
+                    $self->build_matrices (file_handles => $file_handles);
                 };
                 croak $EVAL_ERROR if $EVAL_ERROR;
             }

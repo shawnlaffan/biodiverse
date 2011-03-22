@@ -506,6 +506,7 @@ sub save_to_storable {  #  dump the whole object to a Storable file.  Get the pr
     print "[COMMON] WRITING TO FILE $file\n";
 
     #local $Storable::Deparse = 1;  #  store code refs
+    $Storable::forgive_me = 1;  #  don;t croak on GLOBs, regexps etc.
     eval { nstore $self, $file };
     croak $EVAL_ERROR if $EVAL_ERROR;
 

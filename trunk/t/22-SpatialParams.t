@@ -52,6 +52,14 @@ my %conditions = (
     'sp_is_left_of(vector_angle_deg => 0)'  => 420,
     'sp_is_left_of(vector_angle_deg => 45)' => 435,
     'sp_is_left_of(vector_angle_deg => 90)' => 450,
+
+    'sp_is_right_of()' => 450,
+    'sp_is_right_of(vector_angle => 0)' => 450,
+    'sp_is_right_of(vector_angle => Math::Trig::pip2)' => 420,
+    'sp_is_right_of(vector_angle => Math::Trig::pip4)' => 435,
+    'sp_is_right_of(vector_angle_deg => 0)'  => 450,
+    'sp_is_right_of(vector_angle_deg => 45)' => 435,
+    'sp_is_right_of(vector_angle_deg => 90)' => 420,
 );
 
 
@@ -72,6 +80,7 @@ SKIP:
         y_min      => $y[0],
     );
 
+    #  should sub this - get centre_group or something
     my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
     my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
     my $element = join ":", $element_x, $element_y;

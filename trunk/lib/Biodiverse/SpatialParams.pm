@@ -9,6 +9,7 @@ use Carp;
 use PadWalker qw /peek_my/;
 use POSIX qw /fmod floor ceil/;
 use Math::Trig;
+use Math::Trig ':pi';
 use Math::Polygon;
 
 use Scalar::Util qw /looks_like_number blessed/;
@@ -1484,14 +1485,58 @@ sub get_metadata_sp_is_left_of {
 sub sp_is_left_of {
     my $self = shift;
     my %args = @_;
+    
+    return $self->_sp_side(@_) < 0; 
+}
+
+sub get_metadata_sp_is_right_of {
+    my $self = shift;
+    my %args = @_;
+
+    my $axes = $args{axes};
+    if ( ( ref $axes ) !~ /ARRAY/ ) {
+        $axes = [ 0, 1 ];
+    }
+
+    my $description =
+        q{Are we to the right of a vector radiating out from the processing cell? }
+      . q{Use the 'axes' argument to control }
+      . q{which are used (default is [0,1])};
+
+    my %args_r = (
+        description => $description,
+
+        #  flag the index dist if easy to determine
+        index_max_dist => undef,
+        optional_args => [qw /axes vector_angle vector_angle_deg/],
+        result_type   => 'side',
+        example       =>
+              'sp_is_right_of (vector_angle => 1.5714)',
+    );
+
+    return wantarray ? %args_r : \%args_r;
+}
+
+
+sub sp_is_right_of {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_sp_side(@_) > 0; 
+}
+
+
+sub _sp_side {
+    my $self = shift;
+    my %args = @_;
 
     my $axes = defined $args{axes} ? $args{axes} : [0,1];
     if ( defined $axes ) {
-        croak "sp_is_left_of:  axes arg is not an array ref\n"
+        croak "_sp_side:  axes arg is not an array ref\n"
             if ( ref $axes ) !~ /ARRAY/;
         my $axis_count = scalar @$axes;
         croak
-          "sp_is_left_of:  axes array needs two axes, you have given $axis_count\n"
+          "_sp_side:  axes array needs two axes, you have given $axis_count\n"
           if $axis_count != 2;
     }
 
@@ -1503,6 +1548,11 @@ sub sp_is_left_of {
     my @coord     = @{ $h->{'@coord'} };
     my @nbr_coord = @{ $h->{'@nbrcoord'} };
 
+    #  coincident points are in line
+    return 0 if (
+           $nbr_coord[$axes->[1]] == $coord[$axes->[1]]
+        && $nbr_coord[$axes->[0]] == $coord[$axes->[0]]
+    );
 
     #  set the default offset as east in radians
     my $vector_angle = $args{vector_angle};
@@ -1525,9 +1575,16 @@ sub sp_is_left_of {
     };
 
     #  is to the left of the input vector if $dir is in the interval [0,PI]
-    #print "$dir, ", pi, "\t";
-    #my $pi = pi;
-    my $test = ($dir > 0 and $dir < pi);
+    #  otherwise to the right
+    print "$dir\n" if $h->{'$coord_id2'} eq $h->{'$coord_id1'};
+          
+    my $test = 0;
+    if ($dir > 0 && $dir < pi) {
+        $test = -1;
+    }
+    elsif ($dir > pi && $dir < Math::Trig::pi2) {
+        $test = 1;
+    }
     return $test;
 }
 

@@ -136,17 +136,17 @@ sub new {
         #  allow for empty conditions
         $initial_sp1
             = defined $spatial_params->[0]
-            ? $spatial_params->[0] -> get_conditions (unparsed => 1)
+            ? $spatial_params->[0] -> get_conditions_unparsed()
             : $NULL_STRING;
         $initial_sp2
             = defined $spatial_params->[1]
-            ? $spatial_params->[1] -> get_conditions (unparsed => 1)
+            ? $spatial_params->[1] -> get_conditions_unparsed()
             : $NULL_STRING;
         
         my $definition_query = $output_ref -> get_param ('DEFINITION_QUERY');
         $initial_def1
             = defined $definition_query
-            ? $definition_query -> get_conditions
+            ? $definition_query -> get_conditions_unparsed()
             : $NULL_STRING;
     }
     else {

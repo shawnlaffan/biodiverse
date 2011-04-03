@@ -7,7 +7,7 @@ use English qw ( -no_match_vars );
 
 use Carp;
 use PadWalker qw /peek_my/;
-use POSIX qw /fmod/;
+use POSIX qw /fmod floor ceil/;
 use Math::Trig;
 use Math::Polygon;
 
@@ -102,6 +102,7 @@ sub parse_distances {
 
     my %params;
     my %missing_args;
+    my %invalid_args;
     my %incorrect_args;
     my $results_types = $NULL_STRING;
     my $index_max_dist;
@@ -219,55 +220,46 @@ sub parse_distances {
 
         #  march through any whitespace and newlines
         if ( $conditions =~ m/ \G [\s\n\r]+ /xgcs ) {
-
-            #print "found some whitespace\n";
-            #print "Position is " . (pos $conditions) . " of $str_len\n";
+            next CHECK_CONDITIONS;
         }
 
         #  find anything that matches our valid subs
         elsif ( $conditions =~ m/ \G ( $re_sub_names ) \s* /xgcs ) {
 
-            #print "found a valid sub - $1\n";
-            #print "Position is " . (pos $conditions) . " of $str_len\n";
             my $sub = $1;
 
             my $sub_args = $NULL_STRING;
 
             #  get the contents of the sub's arguments (text in brackets)
             $conditions =~ m/ \G \( ( $re_text_in_brackets ) \) /xgcs;
-            #print "sub_args are ($1)";
             if ( defined $1 ) {
                 $sub_args = $1;
             }
 
-            #  get all the args and components
-            #my %hash_1 = eval "($1)";
-            #  the next does not allow for variables,
-            #  which we haven't handled here
+            my $sub_name_and_args = "$sub ($sub_args)";
+
+            #  Get all the args and components.
+            #  This does not allow for variables,
+            #  which we haven't handled here.
             my %hash_1;
             if ($sub_args) {
-                use warnings FATAL => qw(all);  #  make warnings fatal so we get the eval error
+                use warnings FATAL => qw(all);  #  make warnings fatal so we get any eval error
                 eval {
                     %hash_1 = ( eval $sub_args );
                 };
                 if ($EVAL_ERROR) {
-                    $incorrect_args{$sub} = qq{$sub ($sub_args) . "\n" . $EVAL_ERROR};
+                    $incorrect_args{$sub} = qq{$sub_name_and_args . "\n" . $EVAL_ERROR};
                     $conditions =~ m/ \G (.) /xgcs; #  bump along by one
                     next CHECK_CONDITIONS;          #  and move to the next part
                 }
             }
 
-            #  the following is clunky and not guaranteed to work
-            #  if there are quotes surrounding these chars
-            #my %hash_1 = split (/,|=>/, $sub_args);
-            #my $fn = "$sub (get_args => 1, $sub_args)";
-            #my $fn = "$self -> get_args (sub => $sub, $sub_args)";
-            #my %res = eval $fn;
-            #my %res = $sub (get_args => 1, %hash_1);
+            my $invalid = $self->get_invalid_args_for_sub_call (sub => $sub, args => \%hash_1);
+            if (scalar @$invalid) {
+                $invalid_args{$sub_name_and_args} = $invalid;
+            }
 
             my %res = $self->get_args( sub => $sub, %hash_1 );
-
-            #my %res = $sub (get_args => 1);
 
             foreach my $key ( keys %res ) {
 
@@ -293,11 +285,11 @@ sub parse_distances {
                     }
                 }
 
-                #  check required args are present (not that they are valid)
+                #  check required args are present (but not that they are valid)
                 if ( $key eq 'required_args' ) {
                     foreach my $req ( @{ $res{$key} } ) {
                         if ( not exists $hash_1{$req} ) {
-                            $missing_args{$sub}{$req}++;
+                            $missing_args{$sub_name_and_args}{$req}++;
                         }
                     }
                 }
@@ -327,24 +319,19 @@ sub parse_distances {
                 elsif ( $key eq 'index_no_use' and $res{$key} ) {
                     $index_no_use = 1;
                 }
-
             }
         }
         else {    #  bumpalong by one
             $conditions =~ m/ \G (.) /xgcs;
-
-            #print "bumpalong - $1\n";
-            #print "Position is " . (pos $conditions) . " of $str_len\n";
         }
     }
-
-    #my $x = \%params;
 
     $results_types =~ s/^\s+//;    #  strip any leading whitespace
     $self->set_param( RESULT_TYPE    => $results_types );
     $self->set_param( INDEX_MAX_DIST => $index_max_dist );
     $self->set_param( INDEX_NO_USE   => $index_no_use );
     $self->set_param( MISSING_ARGS   => \%missing_args );
+    $self->set_param( INVALID_ARGS   => \%invalid_args );
     $self->set_param( INCORRECT_ARGS => \%incorrect_args );
     $self->set_param( USES           => \%params );
 
@@ -387,6 +374,25 @@ sub parse_distances {
     return;
 }
 
+
+sub get_invalid_args_for_sub_call {
+    my $self = shift;
+    my %args = @_;
+
+    my %called_args_hash = %{$args{args}};
+
+    my %metadata = $self->get_args (sub => $args{sub});
+
+    foreach my $key (qw /required_args optional_args/) {
+        my $list = $metadata{$key} || [];
+        delete @called_args_hash{@$list};
+    }
+
+    my @invalid = keys %called_args_hash;
+
+    return wantarray ? @invalid : \@invalid;
+}
+
 #  verify if a user defined set of spatial params will compile cleanly
 #  returns any exceptions raised, or a success message
 #  it does not test if they will work...
@@ -422,6 +428,15 @@ sub verify {
         $msg .= "\nSubs have incorrectly specified arguments\n";
         foreach my $sub ( keys %$incorrect_args ) {
             $msg .= $incorrect_args->{$sub} . "\n";
+        }
+        $valid = 0;
+    }
+    my $invalid_args = $self->get_param ('INVALID_ARGS');
+    if ( $incorrect_args and scalar keys %$invalid_args ) {
+        $msg .= "\nSubs have invalid arguments - they might not work as you hope.\n";
+        foreach my $sub ( keys %$invalid_args ) {
+            my $sub_m = $invalid_args->{$sub};
+            $msg .= "$sub : " . join( ', ', @$sub_m ) . "\n";
         }
         $valid = 0;
     }
@@ -1470,7 +1485,7 @@ sub _sp_is_left_of {
     my $self = shift;
     my %args = @_;
 
-    my $axes = $args{axes};
+    my $axes = defined $args{axes} ? $args{axes} : [0,1];
     if ( defined $axes ) {
         croak "sp_is_left_of:  axes arg is not an array ref\n"
             if ( ref $axes ) !~ /ARRAY/;
@@ -1478,9 +1493,6 @@ sub _sp_is_left_of {
         croak
           "sp_is_left_of:  axes array needs two axes, you have given $axis_count\n"
           if $axis_count != 2;
-    }
-    else {
-        $axes = [ 0, 1 ];
     }
 
     #my $h = peek_my (1);  # get a hash of the $C etc from the level above
@@ -1493,10 +1505,12 @@ sub _sp_is_left_of {
 
 
     #  set the default offset as east in radians
-    my $vector_angle =
-        defined $args{vector_angle} ? $args{vector_angle} : 0;
+    my $vector_angle = $args{vector_angle};
     if ( defined $args{vector_angle_deg} and not defined $args{vector_angle} ) {
         $vector_angle = deg2rad ( $args{vector_angle_deg} );
+    }
+    else {
+        $vector_angle = defined $args{vector_angle} ? $args{vector_angle} : 0
     }
 
     #  get the direction and rotate it so vector_angle is zero
@@ -1753,7 +1767,7 @@ sub get_metadata_sp_select_block {
             . q{sp_select_block (size => 500, count => 10, random => 0, reverse => 1)}
             . "#  Rectangular block with user specified PRNG starting seed\n"
             . q{sp_select_block (size => [300, 500], count => 1, prng_seed => 454678)}
-            . "# Lower memory footprint (but lonmger running times for neighbour searches)\n"
+            . "# Lower memory footprint (but longer running times for neighbour searches)\n"
             . q{sp_select_block (size => 500, count => 2, clear_cache => 1)}
     );
 

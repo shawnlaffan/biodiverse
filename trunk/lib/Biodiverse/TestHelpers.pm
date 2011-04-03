@@ -54,16 +54,19 @@ sub get_basedata_test_data {
         y_max     => 100,
         x_min     => 1,
         y_min     => 1,
+        count     => 1,
         @_,
     );
 
+    my $count = $args{count} || 0;
+
     my $data;
-    $data .= "label,x,y\n";
+    $data .= "label,x,y,count\n";
     foreach my $i ($args{x_min} .. $args{x_max}) {
         my $ii = $i * $args{x_spacing};
         foreach my $j ($args{y_min} .. $args{y_max}) {
             my $jj = $j * $args{y_spacing};
-            $data .= "$i"."_$j,$ii,$jj\n";
+            $data .= "$i"."_$j,$ii,$jj,$count\n";
         }
     }
 

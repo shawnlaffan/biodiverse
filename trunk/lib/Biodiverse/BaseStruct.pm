@@ -1949,7 +1949,7 @@ sub get_list_values {
     my $list = $args{list};
 
     croak "List not defined\n" if ! defined $list;
-    croak "Element does not exist\n" if ! exists $self->{ELEMENTS}{$element};
+    croak "Element does not exist in BaseStruct\n" if ! $self->exists_element(element => $element);
     return if ! exists $self->{ELEMENTS}{$element}{$list};
 
     return $self->{ELEMENTS}{$element}{$list} if ! wantarray;
@@ -2298,7 +2298,7 @@ sub get_hash_lists {
     my $element = $args{element}; 
     my @list;
 
-    croak "Element does not exist\n" if ! $self -> exists_element (element => $element);
+    croak "Element does not exist, cannot get hash list\n" if ! $self -> exists_element (element => $element);
     #if ($self -> exists_element (element => $element)) {
         foreach my $tmp (keys %{$self->{ELEMENTS}{$element}}) {
             push @list, $tmp if ref($self->{ELEMENTS}{$element}{$tmp}) =~ /HASH/;

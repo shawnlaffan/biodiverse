@@ -673,8 +673,8 @@ sub get_element_values {  #  get all values associated with one element
     my $self = shift;
     my %args = @_;
     
-    croak "element not specified\n"  if ! defined $args{element};
-    croak "element does not exist\n" if ! $self -> element_is_in_matrix (element => $args{element});
+    croak "element not specified (matrix)\n"  if ! defined $args{element};
+    croak "matrix element does not exist\n" if ! $self -> element_is_in_matrix (element => $args{element});
     
     
     my @elements = $self -> get_elements_as_array;

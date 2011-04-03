@@ -437,7 +437,6 @@ sub get_metadata_calc_bray_curtis {
                 lumper      => 1,
             },
         },
-
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -475,7 +474,6 @@ sub calc_bray_curtis {
     return wantarray
             ? %results
             : \%results;
-
 }
 
 sub get_metadata_calc_bray_curtis_norm_by_gp_counts {
@@ -751,7 +749,7 @@ sub get_metadata_calc_simpson_shannon {
     return wantarray ? %arguments : \%arguments;
 }
 
-#  calculate the siimpson and shannon indices
+#  calculate the simpson and shannon indices
 sub calc_simpson_shannon {
     my $self = shift;
     my %args = @_;
@@ -786,20 +784,26 @@ sub calc_simpson_shannon {
     );
 
     return wantarray ? %results : \%results;
-
 }
 
 
 
 sub get_metadata_calc_overlap_tx {
 
+    my $desc = <<OLAP_TX_DESC
+Calculate taxonomic overlap metrics between the two sets of elements.
+Uses deviation from zero for variances.  In most cases the means and
+variances will be the same.  
+Bears some relation to Rao's quadratic entropy if this calculation
+were modified to weight by sample counts.
+It is best to apply these indices using a small neighbour set 1
+relative to a large neighbour set 2.
+OLAP_TX_DESC
+  ;
+
     my %arguments = (
         name            => 'Taxonomic overlap',
-        description     => "Calculate taxonomic overlap metrics between the two sets of elements.\n"
-                           . "Uses deviation from zero for variances.  In most cases the means and variances will be the same.\n"
-                           . "Bears some relation to Rao's quadratic entropy if this calculation were modified to weight by sample counts.\n"
-                           . "It is best to apply these indices using a small neighbour set 1 relative to a large neighbour set 2.\n"
-                           . 'METADATA NEEDS MORE FORMULAE.',
+        description     => $desc,
         type            => 'Taxonomic Dissimilarity and Comparison',
         pre_calc        => 'calc_abc',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have

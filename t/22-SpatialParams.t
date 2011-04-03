@@ -24,26 +24,34 @@ my %conditions = (
     'sp_circle (radius => ##3)' => 29,
     'sp_circle (radius => ##4)' => 49,
     
-    'sp_select_all()' => 10000,
+    'sp_select_all()' => 900,
     'sp_self_only()'  => 1,
     
     'sp_ellipse (major_radius =>  ##4, minor_radius =>  ##2)' => 25,
     'sp_ellipse (major_radius =>  ##2, minor_radius =>  ##2)' => 13,
     'sp_ellipse (major_radius =>  ##4, minor_radius =>  ##2, rotate_angle => 1.308996939)' => 25,
     
-    'sp_ellipse (major_radius => ##40, minor_radius => ##20)' => 2509,
-    'sp_ellipse (major_radius => ##40, minor_radius => ##20, rotate_angle => 0)'   => 2509,
-    'sp_ellipse (major_radius => ##40, minor_radius => ##20, rotate_angle => Math::Trig::pi)'   => 2509,
-    'sp_ellipse (major_radius => ##40, minor_radius => ##20, rotate_angle => Math::Trig::pip2)' => 2509,
-    'sp_ellipse (major_radius => ##40, minor_radius => ##20, rotate_angle => Math::Trig::pip4)' => 2517,
+    'sp_ellipse (major_radius => ##10, minor_radius => ##5)' => 159,
+    'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => 0)'   => 159,
+    'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pi)'   => 159,
+    'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip2)' => 159,
+    'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip4)' => 153,
 
-    'sp_select_all() && ! sp_circle (radius => ##1)' => 9995,
-    '! sp_circle (radius => ##1) && sp_select_all()' => 9995,
+    'sp_select_all() && ! sp_circle (radius => ##1)' => 895,
+    '! sp_circle (radius => ##1) && sp_select_all()' => 895,
     
     'sp_block (size => ##3)' => 9,
     'sp_block (size => [##3, ##3])' => 9,
     'sp_select_block (size => ##5, count => 2)' => 2,
     'sp_select_block (size => ##3, count => 3)' => 3,
+    
+    'sp_is_left_of()' => 420,
+    'sp_is_left_of(vector_angle => 0)' => 420,
+    'sp_is_left_of(vector_angle => Math::Trig::pip2)' => 450,
+    'sp_is_left_of(vector_angle => Math::Trig::pip4)' => 435,
+    'sp_is_left_of(vector_angle_deg => 0)'  => 420,
+    'sp_is_left_of(vector_angle_deg => 45)' => 435,
+    'sp_is_left_of(vector_angle_deg => 90)' => 450,
 );
 
 
@@ -52,15 +60,25 @@ SKIP:
     #skip ('because', 48);
     
     my @res = (10, 10);
+    my @x   = (1, 30);
+    my @y   = @x;
     my $bd = get_basedata_object(
         x_spacing  => $res[0],
         y_spacing  => $res[1],
         CELL_SIZES => \@res,
+        x_max      => $x[1],
+        y_max      => $y[1],
+        x_min      => $x[0],
+        y_min      => $y[0],
     );
+
+    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
+    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
+    my $element = join ":", $element_x, $element_y;
 
     run_tests (
         basedata => $bd,
-        element  => '495:495',
+        element  => $element,
     );
 }
 
@@ -71,19 +89,25 @@ SKIP:
     #skip ('because', 48);
     
     my @res = (10, 10);
+    my @x   = (-30, -1);
+    my @y   = @x;
     my $bd = get_basedata_object(
         x_spacing  => $res[0],
         y_spacing  => $res[1],
         CELL_SIZES => \@res,
-        x_max      =>   -1,
-        y_max      =>   -1,
-        x_min      => -100,
-        y_min      => -100,
+        x_max      => $x[1],
+        y_max      => $y[1],
+        x_min      => $x[0],
+        y_min      => $y[0],
     );
+
+    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
+    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
+    my $element = join ":", $element_x, $element_y;
 
     run_tests (
         basedata => $bd,
-        element  => '-495:-495',
+        element  => $element,
     );
 }
 
@@ -93,19 +117,25 @@ SKIP:
     #skip ('because', 48);
     
     my @res = (10, 10);
+    my @x = (-14, 15);
+    my @y = @x;
     my $bd = get_basedata_object(
         x_spacing  => $res[0],
         y_spacing  => $res[1],
         CELL_SIZES => \@res,
-        x_max      =>  50,
-        y_max      =>  50,
-        x_min      => -49,
-        y_min      => -49,
+        x_max      => $x[1],
+        y_max      => $y[1],
+        x_min      => $x[0],
+        y_min      => $y[0],
     );
-#$bd->save(filename => 'posneg.bds');
+
+    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
+    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
+    my $element = join ":", $element_x, $element_y;
+
     run_tests (
         basedata => $bd,
-        element  => '5:5',
+        element  => $element,
     );
 }
 
@@ -116,20 +146,25 @@ SKIP:
     #skip 'because', 48;
     
     my @res = (0.1, 0.1);
+    my @x = (1, 30);
+    my @y = @x;
     my $bd = get_basedata_object(
         x_spacing  => $res[0],
         y_spacing  => $res[1],
         CELL_SIZES => \@res,
-        x_max      => 100,
-        y_max      => 100,
-        x_min      => 1,
-        y_min      => 1,
+        x_max      => $x[1],
+        y_max      => $y[1],
+        x_min      => $x[0],
+        y_min      => $y[0],
     );
-    #$bd->save(filename => 'pos_lt1.bds');
+
+    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
+    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
+    my $element = join ":", $element_x, $element_y;
 
     run_tests (
         basedata => $bd,
-        element  => '4.95:4.95',
+        element  => $element,
     );
 }
 
@@ -138,19 +173,25 @@ SKIP:
 #  but with cell sizes < 1
 {
     my @res = (0.1, 0.1);
+    my @x = (-14, 15);
+    my @y = @x;
     my $bd = get_basedata_object(
         x_spacing  => $res[0],
         y_spacing  => $res[1],
         CELL_SIZES => \@res,
-        x_max      =>  50,
-        y_max      =>  50,
-        x_min      => -49,
-        y_min      => -49,
+        x_max      => $x[1],
+        y_max      => $y[1],
+        x_min      => $x[0],
+        y_min      => $y[0],
     );
-    #$bd->save(filename => 'posneg_lt1.bds');
+
+    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
+    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
+    my $element = join ":", $element_x, $element_y;
+
     run_tests (
         basedata => $bd,
-        element  => '0.05:0.05',
+        element  => $element,
     );
 }
 

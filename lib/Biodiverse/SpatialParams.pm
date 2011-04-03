@@ -1452,7 +1452,7 @@ sub sp_match_regex {
 }
 
 
-sub get_metadata__sp_is_left_of {
+sub get_metadata_sp_is_left_of {
     my $self = shift;
     my %args = @_;
 
@@ -1481,7 +1481,7 @@ sub get_metadata__sp_is_left_of {
 }
 
 
-sub _sp_is_left_of {
+sub sp_is_left_of {
     my $self = shift;
     my %args = @_;
 

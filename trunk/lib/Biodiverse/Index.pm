@@ -328,7 +328,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     #  should add it as an argument
     
     my $spatial_params = $args{spatial_params};
-    my $conditions = $spatial_params -> get_conditions;
+    my $conditions = $spatial_params -> get_conditions_unparsed();
     $self -> update_log (text => "[INDEX] PREDICTING SPATIAL INDEX NEIGHBOURS\n$conditions\n");
     
 

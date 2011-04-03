@@ -1570,14 +1570,14 @@ sub _sp_side {
     )
     - $vector_angle;
 
+    #  Do we need to do this?  Must modify checks below if removed.
     if ($dir < 0) {
-        $dir += 2 * pi;
+        $dir += Math::Trig::pi2;
     };
 
-    #  is to the left of the input vector if $dir is in the interval [0,PI]
-    #  otherwise to the right
-    print "$dir\n" if $h->{'$coord_id2'} eq $h->{'$coord_id1'};
-          
+    #  Is to the left of the input vector if $dir is < PI,
+    #  to the right if PI < $dir < 2PI,
+    #  otherwise it is in line
     my $test = 0;
     if ($dir > 0 && $dir < pi) {
         $test = -1;

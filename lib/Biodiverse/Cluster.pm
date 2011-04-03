@@ -345,7 +345,8 @@ sub build_matrices {
     my $valid_count = 0;
 
     # only those that passed the def query (if set) will be considered
-    my @elements_to_calc = keys %{$sp->get_element_hash};
+    # sort to ensure consistent order - easier for debug
+    my @elements_to_calc = sort keys %{$sp->get_element_hash};
 
     my $toDo = scalar @elements_to_calc;
 
@@ -355,8 +356,9 @@ sub build_matrices {
     my $progress_bar = Biodiverse::Progress->new();
     my $count = 0;
     my $printedProgress = -1;
-    print "[CLUSTER] Progress (% of $toDo elements):     ";
-    #my $last_update_time = [gettimeofday];
+    my $target_element_count = $toDo * ($toDo - 1) / 2; # n(n-1)/2
+    my $progress_pfx = "Building matrix\n$name\nTarget is $target_element_count matrix elements\n";
+    #print "[CLUSTER] Progress (% of $toDo elements):     ";
 
     #  Use $sp for the groups so any def query will have an effect
     BY_ELEMENT:
@@ -365,7 +367,7 @@ sub build_matrices {
         $count ++;
         my $progress = $count / $toDo;
         $progress_bar->update(
-            "Building matrix\n$name\n",
+            $progress_pfx . "(row $count / $toDo)",
             $progress,
         );
 

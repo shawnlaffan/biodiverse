@@ -1976,7 +1976,7 @@ sub sp_point_in_poly {
     my $vertices = $args{polygon};
     my $point = $args{point} || $h->{'@coord'};
     
-    my $poly = blessed ($vertices) eq 'Math::Polygon'
+    my $poly = (blessed ($vertices) || $NULL_STRING) eq 'Math::Polygon'
                 ? $vertices
                 : Math::Polygon->new( points => $vertices );
 

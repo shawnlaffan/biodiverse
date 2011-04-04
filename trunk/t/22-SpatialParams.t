@@ -60,148 +60,72 @@ my %conditions = (
     'sp_is_right_of(vector_angle_deg => 0)'  => 450,
     'sp_is_right_of(vector_angle_deg => 45)' => 435,
     'sp_is_right_of(vector_angle_deg => 90)' => 420,
+    
+    'sp_in_line_with()' => 30,
+    'sp_in_line_with(vector_angle => 0)' => 30,
+    'sp_in_line_with(vector_angle => Math::Trig::pip2)' => 30,
+    'sp_in_line_with(vector_angle => Math::Trig::pip4)' => 30,
+    'sp_in_line_with(vector_angle_deg => 0)'  => 30,
+    'sp_in_line_with(vector_angle_deg => 45)' => 30,
+    'sp_in_line_with(vector_angle_deg => 90)' => 30,
 );
 
+my @res_pairs = (
+    ##  now try for a mix of +ve and -ve coords
+    ##  but with cell sizes < 1
+    {
+        res =>   [10, 10],
+        min_x => 1,
+    },
+    ##  now try for negative coords
+    {
+        res =>   [10, 10],
+        min_x => -30,
+    },
+    ##  now try for a mix of +ve and -ve coords
+    {
+        res =>   [10, 10],
+        min_x => -14,
+    },
+    ##  now try for +ve coords
+    ##  but with cell sizes < 1
+    {
+        res =>   [.1, .1],
+        min_x => 1,
+    },
+    #  cellsize < 1 and +ve and -ve coords
+    {
+        res =>   [.1, .1],
+        min_x => -14,
+    },
+);
 
 SKIP:
 {
-    #skip ('because', 48);
-    
-    my @res = (10, 10);
-    my @x   = (1, 30);
-    my @y   = @x;
-    my $bd = get_basedata_object(
-        x_spacing  => $res[0],
-        y_spacing  => $res[1],
-        CELL_SIZES => \@res,
-        x_max      => $x[1],
-        y_max      => $y[1],
-        x_min      => $x[0],
-        y_min      => $y[0],
-    );
+    while (my $cond = shift @res_pairs) {
+        my $res = $cond->{res};
+        my @x   = ($cond->{min_x}, $cond->{min_x} + 29);
+        my @y   = @x;
+        my $bd = get_basedata_object(
+            x_spacing  => $res->[0],
+            y_spacing  => $res->[1],
+            CELL_SIZES => $res,
+            x_max      => $x[1],
+            y_max      => $y[1],
+            x_min      => $x[0],
+            y_min      => $y[0],
+        );
 
-    #  should sub this - get centre_group or something
-    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
-    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
-    my $element = join ":", $element_x, $element_y;
+        #  should sub this - get centre_group or something
+        my $element_x = $res->[0] * (($x[0] + $x[1]) / 2) + $res->[0];
+        my $element_y = $res->[1] * (($y[0] + $y[1]) / 2) + $res->[1];
+        my $element = join ":", $element_x, $element_y;
 
-    run_tests (
-        basedata => $bd,
-        element  => $element,
-    );
-}
-
-
-#  now try for negative coords
-SKIP:
-{
-    #skip ('because', 48);
-    
-    my @res = (10, 10);
-    my @x   = (-30, -1);
-    my @y   = @x;
-    my $bd = get_basedata_object(
-        x_spacing  => $res[0],
-        y_spacing  => $res[1],
-        CELL_SIZES => \@res,
-        x_max      => $x[1],
-        y_max      => $y[1],
-        x_min      => $x[0],
-        y_min      => $y[0],
-    );
-
-    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
-    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
-    my $element = join ":", $element_x, $element_y;
-
-    run_tests (
-        basedata => $bd,
-        element  => $element,
-    );
-}
-
-#  now try for a mix of +ve and -ve coords
-SKIP:
-{
-    #skip ('because', 48);
-    
-    my @res = (10, 10);
-    my @x = (-14, 15);
-    my @y = @x;
-    my $bd = get_basedata_object(
-        x_spacing  => $res[0],
-        y_spacing  => $res[1],
-        CELL_SIZES => \@res,
-        x_max      => $x[1],
-        y_max      => $y[1],
-        x_min      => $x[0],
-        y_min      => $y[0],
-    );
-
-    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
-    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
-    my $element = join ":", $element_x, $element_y;
-
-    run_tests (
-        basedata => $bd,
-        element  => $element,
-    );
-}
-
-#  now try for +ve coords
-#  but with cell sizes < 1
-SKIP:
-{
-    #skip 'because', 48;
-    
-    my @res = (0.1, 0.1);
-    my @x = (1, 30);
-    my @y = @x;
-    my $bd = get_basedata_object(
-        x_spacing  => $res[0],
-        y_spacing  => $res[1],
-        CELL_SIZES => \@res,
-        x_max      => $x[1],
-        y_max      => $y[1],
-        x_min      => $x[0],
-        y_min      => $y[0],
-    );
-
-    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
-    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
-    my $element = join ":", $element_x, $element_y;
-
-    run_tests (
-        basedata => $bd,
-        element  => $element,
-    );
-}
-
-
-#  now try for a mix of +ve and -ve coords
-#  but with cell sizes < 1
-{
-    my @res = (0.1, 0.1);
-    my @x = (-14, 15);
-    my @y = @x;
-    my $bd = get_basedata_object(
-        x_spacing  => $res[0],
-        y_spacing  => $res[1],
-        CELL_SIZES => \@res,
-        x_max      => $x[1],
-        y_max      => $y[1],
-        x_min      => $x[0],
-        y_min      => $y[0],
-    );
-
-    my $element_x = $res[0] * (($x[0] + $x[1]) / 2) + $res[0];
-    my $element_y = $res[1] * (($y[0] + $y[1]) / 2) + $res[1];
-    my $element = join ":", $element_x, $element_y;
-
-    run_tests (
-        basedata => $bd,
-        element  => $element,
-    );
+        run_tests (
+            basedata => $bd,
+            element  => $element,
+        );
+    }
 }
 
 

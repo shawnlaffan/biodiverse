@@ -1525,6 +1525,42 @@ sub sp_is_right_of {
     return $self->_sp_side(@_) > 0; 
 }
 
+sub get_metadata_sp_in_line_with {
+    my $self = shift;
+    my %args = @_;
+
+    my $axes = $args{axes};
+    if ( ( ref $axes ) !~ /ARRAY/ ) {
+        $axes = [ 0, 1 ];
+    }
+
+    my $description =
+        q{Are we in line with a vector radiating out from the processing cell? }
+      . q{Use the 'axes' argument to control }
+      . q{which are used (default is [0,1])};
+
+    my %args_r = (
+        description => $description,
+
+        #  flag the index dist if easy to determine
+        index_max_dist => undef,
+        optional_args => [qw /axes vector_angle vector_angle_deg/],
+        result_type   => 'side',
+        example       =>
+              'sp_in_line_with (vector_angle => Math::Trig::pip2) #  pi/2 = 90 degree angle',
+    );
+
+    return wantarray ? %args_r : \%args_r;
+}
+
+
+sub sp_in_line_with {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_sp_side(@_) == 0; 
+}
+
 
 sub _sp_side {
     my $self = shift;

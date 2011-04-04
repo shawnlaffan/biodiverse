@@ -155,15 +155,13 @@ sub snap_to_index {
     my $element_array = $args{element_array} || croak "element_array not specified\n";
     (ref ($element_array)) =~ /ARRAY/ || croak "element_array is not an array ref\n";
 
-
-
     my @columns = @$element_array;
     my @index_res = @{$self -> get_param('RESOLUTIONS')};
 
     my @index;
     foreach my $i (0 .. $#columns) {
         my $indexValue = 0;
-        if ($index_res[$i] > 0) {
+        if ($index_res[$i] > 0) {  #  should update to avoid fmod
             $indexValue = $columns[$i] - fmod ($columns[$i], $index_res[$i]);
             $indexValue += $index_res[$i] if $columns[$i] < 0;
         }

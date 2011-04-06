@@ -26,6 +26,23 @@ my $RE_NUMBER  = qr /$RE{num}{real}/xms;
 my $RE_INT     = qr /$RE{num}{int}/xms;
 my $RE_COMMENT = $RE{comment}{Perl};
 
+my $BOUNDED_COND_RE = qr {
+    \$nbr                   #  leading variable sigil
+    (?:
+       _[xyz]
+       |
+       coord\[$RE_INT\]     #  _x,_y,_z or coord[..]
+    )
+    \s*
+    (?:
+       <|>|<=|>=|==         #  condition
+     )
+    \s*
+    (?:
+       $RE_NUMBER           #  the value
+     )
+}x;
+
 #  straight from Friedl, page 330.  Could be overkill, but works
 my $re_text_in_brackets;
 $re_text_in_brackets =
@@ -60,6 +77,9 @@ sub new {
     return $self;
 }
 
+sub get_type {return 'spatial conditions'};
+
+
 sub get_conditions {
     my $self = shift;
     my %args = @_;
@@ -84,6 +104,7 @@ sub has_conditions {
 
     # anything left after whitespace means it has a condition
     # - will this always work? nope - comments not handled
+    # update - should do now as comments are stripped in parsing
     $conditions =~ s/\s//g;
     return length $conditions;
 }
@@ -169,24 +190,6 @@ sub parse_distances {
     foreach my $dist ( $conditions =~ /\$C\[\s*($RE_INT)\]/g ) {
         $params{use_abs_cell_distances}{$dist}++;
     }
-
-    my $BOUNDED_COND_RE = qr {
-            \$nbr                   #  leading variable sigil
-            (?:
-               _[xyz]
-               |
-               coord\[$RE_INT\]     #  _x,_y,_z or coord[..]
-            )
-            \s*
-            (?:
-               <|>|<=|>=|==         #  condition
-             )
-            \s*
-            (?:
-               $RE_NUMBER           #  the value
-             )
-        }x;
-
 
     #  match $nbr_z==5, $nbrcoord[1]<=10 etc
     foreach my $dist ( $conditions =~ /$BOUNDED_COND_RE/gc ) {
@@ -1984,7 +1987,7 @@ sub get_metadata_sp_point_in_poly {
             'point',      #  point to use 
         ],
         index_no_use => 1,
-        result_type  => 'non_overlapping',  #  is it really complex?  depends on whether it is a def query or not
+        result_type  => 'complex',  #  is it really complex?  depends on whether it is a def query or not
         example =>
               q{# Is the neighbour coord in a square polygon?}
             . q{sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoord)}
@@ -1998,10 +2001,11 @@ sub sp_point_in_poly {
     my $self = shift;
     my %args = @_;
     my $h = $self->get_param('CURRENT_ARGS');
-    
+
     my $vertices = $args{polygon};
-    my $point = $args{point} || $h->{'@coord'};
-    
+    my $point = $args{point};
+    $point ||= eval {$self->is_def_query} ? $h->{'@coord'} : $h->{'@nbrcoord'};
+
     my $poly = (blessed ($vertices) || $NULL_STRING) eq 'Math::Polygon'
                 ? $vertices
                 : Math::Polygon->new( points => $vertices );

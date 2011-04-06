@@ -1227,19 +1227,14 @@ sub sp_ellipse {
         $axes = [ 0, 1 ];
     }
 
-    #my $h = peek_my (1);  # get a hash of the $C etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
     #  PadWalker gives hashrefs of scalar refs,
     #  so need to de-ref to get the value
-        #${ $h->{'$D'} }; 
     my @d = @{ $h->{'@d'} };
 
     my $major_radius = $args{major_radius};    #  longest axis
     my $minor_radius = $args{minor_radius};    #  shortest axis
-
-    #my $PI      = pi;
-    #my $deg2rad = 180 / $PI;
 
     #  set the default offset as north in radians, anticlockwise 1.57 is north
     my $rotate_angle =
@@ -1263,12 +1258,7 @@ sub sp_ellipse {
     my $precision = '%.14f';
     $a_dist = $self->set_precision(value => $a_dist, precision => $precision) + 0;
     $b_dist = $self->set_precision(value => $b_dist, precision => $precision) + 0;
-#print "$rotate_angle, $a_dist, $b_dist\n";
 
-#my $sum = $a + $b;
-#  this last line evaluates to 1 (true) if the candidate
-#  neighbour is within the ellipse (sum of ratios is less than 1)
-#return 1 >= ((($r_y ** 2) / ($major_radius ** 2) + (($r_x / $minor_radius) ** 2));
     my $test = eval { 1 >= ( $a_dist + $b_dist ) };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -1994,7 +1984,7 @@ sub get_metadata_sp_point_in_poly {
             'point',      #  point to use 
         ],
         index_no_use => 1,
-        result_type  => 'complex',  #  is it really complex?  depends on whether it is a def query or not
+        result_type  => 'non_overlapping',  #  is it really complex?  depends on whether it is a def query or not
         example =>
               q{# Is the neighbour coord in a square polygon?}
             . q{sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoord)}

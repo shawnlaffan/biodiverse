@@ -178,6 +178,35 @@ sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
 }
 
 
+sub get_metadata_is_dissimilarity_valid {
+    my $self = shift;
+    
+    my %arguments = (
+        name            => 'Dissimilarity is valid',
+        description     => 'Check if the dissimilarity analyses will produce valid results',
+        indices         => {
+            DISSIMILARITY_IS_VALID  => {
+                description => 'Dissimilarity validity check',
+            }
+        },
+        type            => 'Taxonomic Dissimilarity and Comparison',
+        pre_calc        => 'calc_abc',
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub is_dissimilarity_valid {
+    my $self = shift;
+    my %args = @_;
+
+    my %result = (
+        DISSIMILARITY_IS_VALID => ($args{A} || $args{B}) && ($args{A} || $args{C}),
+    );
+
+    return wantarray ? %result : \%result;
+}
+
 #  for the formula metadata
 sub get_formula_explanation_ABC {
     my $self = shift;
@@ -215,25 +244,26 @@ sub get_metadata_calc_sorenson {
             }
         },
         type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => 'calc_abc',
+        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
         uses_nbr_lists  => 2,
     );
 
     return wantarray ? %arguments : \%arguments;
 }
 
-sub calc_sorenson {  # calculate the Sorenson dissimilarity index between two lists (1 - Czechanowski)
-                    #  = 2a/(2a+b+c) where a is shared presence between groups, b&c are in one group only
+# calculate the Sorenson dissimilarity index between two lists (1 - Czechanowski)
+#  = 2a/(2a+b+c) where a is shared presence between groups, b&c are in one group only
+sub calc_sorenson {
     my $self = shift;
     my %args = @_;
 
-    my $value = $args{ABC}
+    my $value = $args{DISSIMILARITY_IS_VALID}
                 ? eval {1 - ((2 * $args{A}) / ($args{A} + $args{ABC}))}
                 : undef;
 
-    return wantarray
-        ? (SORENSON => $value)
-        : {SORENSON => $value};
+    my %result = (SORENSON => $value);
+
+    return wantarray ? %result : \%result;
 }
 
 
@@ -245,7 +275,7 @@ sub get_metadata_calc_jaccard {
         description     => 'Jaccard dissimilarity between the labels in neighbour sets 1 and 2.',
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        pre_calc        => 'calc_abc',
+        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
         formula         => [
             '= 1 - \frac{A}{A + B + C}',
             $self -> get_formula_explanation_ABC,
@@ -262,23 +292,21 @@ sub get_metadata_calc_jaccard {
     return wantarray ? %arguments : \%arguments;
 }
 
-# calculate the Jaccard dissimilarity index between two label lists.  Build label lists from element lists if specified
+#  calculate the Jaccard dissimilarity index between two label lists.
 #  J = a/(a+b+c) where a is shared presence between groups, b&c are in one group only
 #  this is almost identical to calc_sorenson    
-sub calc_jaccard {
-    
+sub calc_jaccard {    
     my $self = shift;
     my %args = @_;
 
-    my $value = $args{ABC}
+    my $value = $args{DISSIMILARITY_IS_VALID}
                 ? eval {1 - ($args{A} / $args{ABC})}
                 : undef;
-                
-    return wantarray
-            ? (JACCARD => $value)
-            : {JACCARD => $value};
-}
 
+    my %result = (JACCARD => $value);
+
+    return wantarray ? %result : \%result;
+}
 
 
 ##  fager index - not ready yet - probably needs to run over multiple nbr sets
@@ -343,13 +371,11 @@ sub get_metadata_calc_nestedness_resultant {
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         reference       => 'Baselga (2010) Glob Ecol Biogeog.  '
                            . 'http://dx.doi.org/10.1111/j.1466-8238.2009.00490.x',
-        pre_calc        => 'calc_abc',
+        pre_calc        => [qw /calc_abc/],
         formula         => [
             '=\frac{ \left | B - C \right | }{ 2A + B + C } '
             . '\times \frac { A }{ A + min (B, C) }'
-            . '=SORENSON - S2',
-            #'',
-            #'=0 \if A=0 \and \min (B, C)=0',
+            . '= SORENSON - S2',
             $self -> get_formula_explanation_ABC,
         ],
         indices         => {

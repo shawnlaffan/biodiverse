@@ -24,6 +24,7 @@ use Scalar::Util qw /weaken blessed/;
 our $VERSION = '0.16';
 
 use Biodiverse::SpatialParams;
+use Biodiverse::SpatialParams::DefQuery;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 
@@ -247,124 +248,13 @@ sub sp_calc {
     
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
 
-    #  can we copy the results from one element to another?
-    #  e.g. for non-overlapping blocks
-    my @recyclable_nbrhoods;
-    my $results_are_recyclable = 0;
-    
-    my $spatial_params_ref = $self->get_param ('SPATIAL_PARAMS');
-    #  if we don't already have spatial params then check the arguments
-    if (! defined $spatial_params_ref) {
+    my $spatial_params_ref  = $self->get_spatial_params_ref (%args);
+    my $recyclable_nbrhoods = $self->get_recyclable_nbrhoods;
+    my $results_are_recyclable = $self->get_param('RESULTS_ARE_RECYCLABLE');
 
-        croak "spatial_conditions not an array ref or not defined\n"
-          if not (ref $args{spatial_conditions}) =~ /ARRAY/;
-            
-        $spatial_params_ref = $args{spatial_conditions};
-        my $check = 1;
-        
-        while ($check) {  #  clean up undef params at the end
-            
-            if (scalar @$spatial_params_ref == 0) {
-                warn "[Spatial] No valid spatial conditions specified\n";
-                #  put an empty string as the only entry,
-                #  saves problems down the line
-                $spatial_params_ref->[0] = $empty_string;
-                return;
-            }
-            
-            #my $param = $spatial_params_ref->[$#$spatial_params_ref];
-            my $param = $spatial_params_ref->[-1];
-            $param =~ s/^\s*//;  #  strip leading and trailing whitespace
-            $param =~ s/\s*$//;
-            if (! defined $param || $param eq "") {
-                print "[SPATIAL] Deleting undefined spatial condition\n";
-                pop @$spatial_params_ref;
-            }
-            else {
-                $check = 0;  #  stop checking
-            }
-        }
-        #  Now loop over them and:
-        #  1.  parse the spatial params into objects if needed
-        #  2.  check for recycling opportunities.
-        #      These are for nbrs and results
-        for my $i (0 .. $#$spatial_params_ref) {
-            if (! blessed $spatial_params_ref->[$i]) {
-                $spatial_params_ref->[$i]
-                    = Biodiverse::SpatialParams->new (
-                        conditions => $spatial_params_ref->[$i],
-                    );
-
-
-                #  nbrhood can be recycled if this nbrhood is non-overlapping
-                #  (is constant for all nbrs in nbrhood)
-                #  and so are its predecessors
-                my $result_type = $spatial_params_ref->[$i]->get_result_type;
-
-                my %recyc_candidates = (
-                    non_overlapping  => 0,     # only index 0
-                    always_true      => undef, # any index
-                    text_match_exact => undef, # any index
-                );
-
-                my $prev_nbr_is_recyclable = 1;  #  always check first one
-                if ($i > 0) {  #  only check $i if $i-1 is true
-                    $prev_nbr_is_recyclable = $recyclable_nbrhoods[$i-1];
-                }
-
-                if (    $prev_nbr_is_recyclable
-                     && exists $recyc_candidates{$result_type} ) {
-
-                    # only those in the first nbrhood,
-                    # or if the previous nbrhood is recyclable
-                    # and we allow recyc beyond first index
-                    my $is_valid_recyc_index =
-                      defined $recyc_candidates{$result_type}
-                      ? $i <= $recyc_candidates{$result_type}
-                      : 1;
-
-                    if ( $is_valid_recyc_index ) { 
-                        $recyclable_nbrhoods[$i] = 1;
-                        $results_are_recyclable ++;
-                    }
-                }
-            }
-        }
-        $self->set_param (SPATIAL_PARAMS => $spatial_params_ref);
-        delete $args{spatial_params};
-        $spatial_params_ref = $self->get_param ('SPATIAL_PARAMS');
-    }
-    
-    #  we can only recycle the results if all nbr sets are recyclable 
-    if ($results_are_recyclable != scalar @$spatial_params_ref) {
-        $results_are_recyclable = 0;
-    }
-
-    if (1 and $results_are_recyclable) {
-        print '[SPATIAL] Results are recyclable.  '
-              . "This will save some processing\n";
-    }
-    #  need a better name - unique to nbrhood? same_for_whole_nbrhood?
-    $self->set_param( RESULTS_ARE_RECYCLABLE => $results_are_recyclable );
-    
     #  check the definition query
-    my $definition_query = $self->get_param ('DEFINITION_QUERY')
-                           || $args{definition_query};
-
-    if ($definition_query) {
-        if (length ($definition_query) == 0) {
-            $definition_query = undef ;
-        }
-        #  now parse the query into an object if needed
-        elsif (not blessed $definition_query) {
-            $definition_query = Biodiverse::SpatialParams->new (
-                conditions => $definition_query,
-            );
-        }
-
-        $self->set_param (DEFINITION_QUERY => $definition_query);
-    }
-    
+    my $definition_query
+      = $self->get_definition_query (definition_query => $args{definition_query});
     
     my $start_time = time;
 
@@ -748,7 +638,7 @@ sub sp_calc {
         #  to the relevant groups now
         #  Note - only applies to groups in first nbr set
         my %nbrs_1;  #  the first nbr list as a hash
-        if ($recyclable_nbrhoods[0]) {
+        if ($recyclable_nbrhoods->[0]) {
             @nbrs_1{@{$nbr_list[0]}} = (1) x scalar @{$nbr_list[0]};
             #  Ignore those we aren't interested in
             #  - does not affect calcs, only recycled results.
@@ -762,7 +652,7 @@ sub sp_calc {
                 #  for each nbr in %nbrs_1,
                 #  copy the neighbour sets for those that are recyclable
                 $self->recycle_nbr_lists (
-                    recyclable_nbrhoods => \@recyclable_nbrhoods,
+                    recyclable_nbrhoods => $recyclable_nbrhoods,
                     nbr_lists           => \@nbr_list,
                     nbrs_1              => \%nbrs_1,
                     definition_query    => $definition_query,
@@ -953,6 +843,149 @@ sub get_embedded_matrix {
 
     return;
 }
+
+sub get_definition_query {
+    my $self = shift;
+    my %args = @_;
+    
+    my $definition_query = $self->get_param ('DEFINITION_QUERY')
+                           || $args{definition_query};
+
+    return if ! defined $definition_query;
+
+    if (length ($definition_query) == 0) {
+        $definition_query = undef ;
+    }
+    #  now parse the query into an object if needed
+    elsif (not blessed $definition_query) {
+        $definition_query = Biodiverse::SpatialParams::DefQuery->new (
+            conditions => $definition_query,
+        );
+    }
+
+    $self->set_param (DEFINITION_QUERY => $definition_query);
+
+    
+    return $definition_query;
+}
+
+sub get_spatial_params_ref {
+    my $self = shift;
+    my %args  = @_;
+    
+    my $spatial_params_ref = $self->get_param ('SPATIAL_PARAMS');
+    
+    return $spatial_params_ref if defined $spatial_params_ref;
+    
+    #  if we don't already have spatial params then check the arguments
+
+    croak "spatial_conditions not an array ref or not defined\n"
+      if not (ref $args{spatial_conditions}) =~ /ARRAY/;
+
+    $spatial_params_ref = $args{spatial_conditions};
+    my $check = 1;
+
+    while ($check) {  #  clean up undef params at the end
+        
+        if (scalar @$spatial_params_ref == 0) {
+            warn "[Spatial] No valid spatial conditions specified\n";
+            #  put an empty string as the only entry,
+            #  saves problems down the line
+            $spatial_params_ref->[0] = $empty_string;
+            return;
+        }
+        
+        #my $param = $spatial_params_ref->[$#$spatial_params_ref];
+        my $param = $spatial_params_ref->[-1];
+        $param =~ s/^\s*//;  #  strip leading and trailing whitespace
+        $param =~ s/\s*$//;
+        if (! defined $param || $param eq "") {
+            print "[SPATIAL] Deleting undefined spatial condition\n";
+            pop @$spatial_params_ref;
+        }
+        else {
+            $check = 0;  #  stop checking
+        }
+    }
+    #  Now loop over them and parse the spatial params into objects if needed
+    for my $i (0 .. $#$spatial_params_ref) {
+        if (! blessed $spatial_params_ref->[$i]) {
+            $spatial_params_ref->[$i]
+                = Biodiverse::SpatialParams->new (
+                    conditions => $spatial_params_ref->[$i],
+                );
+        }
+    }
+    $self->set_param (SPATIAL_PARAMS => $spatial_params_ref);
+    delete $args{spatial_params};
+    $spatial_params_ref = $self->get_param ('SPATIAL_PARAMS');
+
+    return $spatial_params_ref;
+}
+
+
+#  a nbrhood can be recycled if it nbrhood is non-overlapping
+#  (is constant for all nbrs in nbrhood)
+#  and so are all its predecessors
+sub get_recyclable_nbrhoods {
+    my $self = shift;
+    my %args = @_;
+
+    my $spatial_params_ref = $self->get_spatial_params_ref;
+
+    my @recyclable_nbrhoods;
+    my $results_are_recyclable = 0;
+
+    for my $i (0 .. $#$spatial_params_ref) {
+        my $result_type = $spatial_params_ref->[$i]->get_result_type;
+
+        my %recyc_candidates = (
+            non_overlapping  => 0,     # only index 0
+            always_true      => undef, # any index
+            text_match_exact => undef, # any index
+        );
+
+        my $prev_nbr_is_recyclable = 1;  #  always check first one
+        if ($i > 0) {  #  only check $i if $i-1 is true
+            $prev_nbr_is_recyclable = $recyclable_nbrhoods[$i-1];
+        }
+
+        if (    $prev_nbr_is_recyclable
+             && exists $recyc_candidates{$result_type} ) {
+
+            # only those in the first nbrhood,
+            # or if the previous nbrhood is recyclable
+            # and we allow recyc beyond first index
+            my $is_valid_recyc_index =
+              defined $recyc_candidates{$result_type}
+              ? $i <= $recyc_candidates{$result_type}
+              : 1;
+
+            if ( $is_valid_recyc_index ) { 
+                $recyclable_nbrhoods[$i] = 1;
+                $results_are_recyclable ++;
+            }
+        }
+    }
+    
+    #  we can only recycle the results if all nbr sets are recyclable 
+    if ($results_are_recyclable != scalar @$spatial_params_ref) {
+        $results_are_recyclable = 0;
+    }
+
+    if (1 and $results_are_recyclable) {
+        print '[SPATIAL] Results are recyclable.  '
+              . "This will save some processing\n";
+    }
+
+    #  need a better name - unique to nbrhood? same_for_whole_nbrhood?
+    $self->set_param( RESULTS_ARE_RECYCLABLE => $results_are_recyclable );
+
+    
+    return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
+}
+
+
 
 #sub numerically {$a <=> $b};
 sub max {

@@ -1354,6 +1354,8 @@ END_SP_MT_EX
         required_args => [
             'text',  #  the match text
             'axis',  #  which axis from nbrcoord to use in the match
+        ],
+        optional_args => [
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         index_no_use => 1,                   #  turn the index off
@@ -1368,19 +1370,19 @@ sub sp_match_text {
     my $self = shift;
     my %args = @_;
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
+    my $type = $args{type};
+    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
+
     my $h = $self->get_param('CURRENT_ARGS');
 
-    #my $coord = $h->{'@coord'};
     my $compcoord;
-    if ( $args{type} eq 'proc' ) {
+    if ( $type eq 'proc' ) {
         $compcoord = $h->{'@coord'};
     }
-    elsif ( $args{type} eq 'nbr' ) {
+    elsif ( $type eq 'nbr' ) {
         $compcoord = $h->{'@nbrcoord'};
     }
 
-    #  blows up if $arg{type} wasn't specified
     return $args{text} eq $compcoord->[ $args{axis} ];
 }
 
@@ -1412,6 +1414,8 @@ END_RE_EXAMPLE
         required_args => [
             're',    #  the regex
             'axis',  #  which axis from nbrcoord to use in the match
+        ],
+        optional_args => [
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         index_no_use => 1,                   #  turn the index off
@@ -1426,22 +1430,24 @@ sub sp_match_regex {
     my $self = shift;
     my %args = @_;
 
+    my $type = $args{type};
+    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
+
     #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
     #my $coord = $h->{'@coord'};
     my $compcoord;
-    if ( $args{type} eq 'proc' ) {
+    if ( $type eq 'proc' ) {
         $compcoord = $h->{'@coord'};
     }
-    elsif ( $args{type} eq 'nbr' ) {
+    elsif ( $type eq 'nbr' ) {
         $compcoord = $h->{'@nbrcoord'};
     }
 
     #my $y = $compcoord->[$args{axis}];
     #my $x = $y =~ $args{re};
 
-    #  blows up if $arg{re} wasn't specified
     return $compcoord->[ $args{axis} ] =~ $args{re};
 }
 

@@ -168,7 +168,7 @@ sub new {
     
     $hide_flag = not (length $def_query_init1);
     $self->{definition_query1}
-        = Biodiverse::GUI::SpatialParams->new($def_query_init1, $hide_flag);
+        = Biodiverse::GUI::SpatialParams->new($def_query_init1, $hide_flag, 'is_def_query');
     $xml_page->get_widget('frameClusterDefinitionQuery1')->add(
         $self->{definition_query1}->get_widget
     );

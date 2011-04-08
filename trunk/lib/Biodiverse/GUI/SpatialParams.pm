@@ -25,12 +25,13 @@ use Glib;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::SpatialParams;
-
+use Biodiverse::SpatialParams::DefQuery;
 
 sub new {
     my $class = shift;
     my $initial_text = shift;
     my $start_hidden = shift;
+    my $is_def_query = shift;
 
     my $text_buffer = Gtk2::TextBuffer->new;
     my $hbox = Gtk2::HBox->new(0,2);
@@ -39,9 +40,10 @@ sub new {
     my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
 
     my $self = {
-        buffer      => $text_buffer,
-        hbox        => $hbox,
-        text_view   => $text_view,
+        buffer       => $text_buffer,
+        hbox         => $hbox,
+        text_view    => $text_view,
+        is_def_query => $is_def_query,
     };
     bless $self, $class;
 
@@ -141,11 +143,13 @@ sub onSyntaxCheck {
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    my $expr = $self->get_text;
+    my $expr  = $self->get_text;
+    my $class = $self->{is_def_query}
+                ? 'Biodiverse::SpatialParams::DefQuery'
+                : 'Biodiverse::SpatialParams';
     my $spatial_params = eval {
-        Biodiverse::SpatialParams -> new (conditions => $expr);
+        $class->new (conditions => $expr);
     };
-    #croak $EVAL_ERROR if $EVAL_ERROR;
 
     my $result_hash = $spatial_params -> verify (basedata_ref => $gui->getProject->getSelectedBaseData);
 

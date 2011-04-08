@@ -216,8 +216,9 @@ sub add_to_node_hash {
     my $nodeRef = $args{node_ref};
     my $name = $nodeRef -> get_name;
     
-    croak "[TREE] Node $name already exists\n" if $self -> exists_node (@_);
-    
+    croak "[TREE] Node $name already exists in this tree\n"
+      if $self -> exists_node (@_);
+
     $self->{TREE_BY_NAME}{$name} = $nodeRef;
     return $nodeRef if defined wantarray;
 }

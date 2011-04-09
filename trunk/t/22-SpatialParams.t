@@ -70,6 +70,7 @@ my %conditions = (
     'sp_in_line_with(vector_angle_deg => 90)' => 30,
 );
 
+
 my @res_pairs = (
     ##  now try for a mix of +ve and -ve coords
     ##  but with cell sizes < 1
@@ -100,6 +101,9 @@ my @res_pairs = (
     },
 );
 
+plan tests =>  3 * @res_pairs * keys %conditions;
+
+
 SKIP:
 {
     while (my $cond = shift @res_pairs) {
@@ -129,7 +133,7 @@ SKIP:
 }
 
 
-done_testing();
+#done_testing();
 
 
 sub run_tests {

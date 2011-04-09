@@ -90,9 +90,10 @@ sub get_calculations {
     #my $tree = __PACKAGE__ . Devel::Symdump::_isa_tree (__PACKAGE__);
     #my @tree = split (/\s+/, $tree);
     #my @tree = (__PACKAGE__, $self -> get_isa_tree_flattened (package => __PACKAGE__));
-    my @tree = Class::ISA::self_and_super_path(blessed ($self));
+    #my @tree = Class::ISA::self_and_super_path(blessed ($self));
+    my $tree = mro::get_linear_isa(blessed ($self));
 
-    my $syms = Devel::Symdump->rnew(@tree);
+    my $syms = Devel::Symdump->rnew(@$tree);
     my %calculations;
     my @list = sort $syms -> functions;
     foreach my $calculations (@list) {

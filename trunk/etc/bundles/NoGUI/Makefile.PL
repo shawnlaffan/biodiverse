@@ -30,6 +30,6 @@ WriteMakefile(
         "Exporter::Easy" => "0",
         "Exception::Class" => "0",
         "Math::Polygon" => "0",
-        "Class::ISA" => "0",
+        "MRO::Compat" => "0",
     }
 );

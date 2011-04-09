@@ -4,10 +4,10 @@ package Biodiverse::Matrix;
 #  these are not matrices in the proper sense of the word, but are actually hash tables to provide easier linking
 #  they are also double indexed - "by pair" and "by value by pair".
 
-our $VERSION = '0.16';
-
 use strict;
 use warnings;
+
+our $VERSION = '0.16';
 
 use English ( -no_match_vars );
 
@@ -189,7 +189,7 @@ sub to_table_normal {
     my @data;
     my @elements = sort $self -> get_elements_as_array;
     
-    $data[0] = ["", @elements];  #  header line with blank leader
+    $data[0] = [q{}, @elements];  #  header line with blank leader
     my $i = 0;
     
     #  allow for both UL and LL to be specified

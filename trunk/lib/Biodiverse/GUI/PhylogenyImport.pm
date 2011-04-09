@@ -120,20 +120,20 @@ sub getRemapInfo {
     my ($_file, $data_dir, $_suffixes) = fileparse($tree_filename);
 
     # Get filename for the name-translation file
-    my $filename = $gui->showOpenDialog('Select Label remap file', '*', $data_dir);
-    return (undef,undef,undef) if not $filename;
+    my $filename = $gui->showOpenDialog('Select Label remap file', q{*}, $data_dir);
+    return (undef, undef, undef) if not $filename;
 
     # Get header columns
     print "[GUI] Discovering columns from $filename\n";
     my $line;
     
-    open (FILE, $filename);
-    while (<FILE>) { # get first non-blank line
+    open (my $fh, $filename);
+    while (<$fh>) { # get first non-blank line
         $line = $_;
         chomp $line;
         last if $line;
     }
-    close (FILE);
+    $fh->close;
     
     my $sep = $gui->getProject->guess_field_separator (string => $line);
     my $eol = $gui->getProject->guess_eol (string => $line);

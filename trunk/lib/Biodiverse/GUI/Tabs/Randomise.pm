@@ -324,7 +324,7 @@ sub makeFunctionModel {
     my $self = shift;
     my %args = @_;
         
-    $self->{function_model} = Gtk2::ListStore->new(    "Glib::String" ); # NAME
+    $self->{function_model} = Gtk2::ListStore->new( 'Glib::String' ); # NAME
     my $model = $self->{function_model};
 
     # Add each randomisation function

@@ -328,7 +328,7 @@ sub import_data {
                 warn "[BASEDATA] Element remap of >=10 interchanges\n";
             }
             elsif ($#remap_history > 20) {
-                my $r_h = join (" ", @remap_history);
+                my $r_h = join (q{ }, @remap_history);
                 warn "[BASEDATA] Remap exceeds 20 interchanges\n"
                      . "You might want to check your table, or you are "
                      . "working with a really contested taxonomy\n"

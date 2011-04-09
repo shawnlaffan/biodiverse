@@ -8,14 +8,7 @@ our $VERSION = '0.16';
 
 use File::Temp;
 
-#our @ISA = qw (Exporter);
-#our @EXPORT_OK = qw {
-#    get_element_properties_test_data
-#    get_basedata_object
-#};
-
 use Exporter::Easy (
-    #EXPORT => [qw( init :base )],
     TAGS => [
         basedata => [
             qw(
@@ -29,10 +22,8 @@ use Exporter::Easy (
                 get_element_properties_test_data
             )
         ],
-        #all   => [qw( :base :read :write :misc)],
     ],
-    #OK => [qw( some other stuff )],
-  );
+);
 
 
 sub get_basedata_import_data_file {

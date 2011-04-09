@@ -11,12 +11,15 @@ use Devel::Symdump;
 use Data::Dumper;
 use Scalar::Util qw /blessed weaken/;
 use English ( -no_match_vars );
-use Class::ISA;
+#use Class::ISA;
+use MRO::Compat;
 
 #$Data::Dumper::Sortkeys = 1;  #  sort the keys dumped by get_args
 #$Data::Dumper::Indent = 1;    #  reduce the indentation used by Dumper in get_args
 
 our $VERSION = '0.16';
+
+my $EMPTY_STRING = q{};
 
 #  The Biodiverse::Indices::* modules are the indices themselves 
 use base qw {

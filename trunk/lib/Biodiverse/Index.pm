@@ -355,7 +355,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     foreach my $i (0 .. $#$minima) {
         $ranges[$i] = $maxima->[$i] - $minima->[$i];
         $index_resolutions->[$i] =~  /^(\d*\.){1}(\d*)/;  #  match after decimal will be $2
-        my $decimal_len = length (defined $2 ? $2 : "");
+        my $decimal_len = length (defined $2 ? $2 : q{});
         $index_res_precision[$i] = "%.$decimal_len" . "f";  #  count the numbers at the end after the decimal place
     }
     
@@ -437,11 +437,10 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             resolutions => $index_resolutions,
             precision   => \@index_res_precision,
         );
-        #print "$element has ", (scalar @$nbrsRef), " neighbours\n";
-        #print join (" ", @$nbrsRef), "\n";
+
         $element_search_list{$element} = $nbrsRef;
         $element_search_arrays{$element} = $element_array;
-        
+
         if ($use_subset_search) {  #  only want to search a few nearby index cells
             #  do we want to go up or down?
             my @target;
@@ -487,7 +486,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     
     my $progress_bar = Biodiverse::Progress->new();
     my $to_do = $total_elements_to_search;
-    my $resolutions_text = join (" ", @{$self -> get_param ('RESOLUTIONS')});
+    my $resolutions_text = join (q{ }, @{$self -> get_param ('RESOLUTIONS')});
     my ($count, $printedProgress) = (0, -1);
     my %index_element_arrays;  #  keep a cache of the arrays to save converting them
     print "[INDEX] Case of $to_do: ";

@@ -42,8 +42,8 @@ sub run {
         #print "mode1\n";
         $text .= '<b>'
                 . Glib::Markup::escape_text ($args->{header})
-                . "</b>
-                   ";
+                . '</b>
+                  ';
     }
     if (defined $args->{text}) {
         $text .= Glib::Markup::escape_text(

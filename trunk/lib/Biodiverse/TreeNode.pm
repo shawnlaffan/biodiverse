@@ -16,6 +16,9 @@ use base qw /Biodiverse::Common/;
 
 our $VERSION = '0.16';
 
+my $EMPTY_STRING = q{};
+my $SPACE = q{ };
+
 our $default_length = 0;
 
 #  create and manipulate tree elements in a cluster object
@@ -497,7 +500,7 @@ sub group_nodes_below {
     NODE_SEARCH: while ($group_count < $groups_needed) {
         @current_nodes = values %{$search_hash{$lower_value}{$upper_value}};
         #print "check $i $upper_value\n"; 
-        my $current_node_string = join ("", sort @current_nodes);
+        my $current_node_string = join ($EMPTY_STRING, sort @current_nodes);
         foreach my $current_node (@current_nodes) {
             my @children = $current_node -> get_children;
             
@@ -1060,7 +1063,7 @@ sub to_table {
     # create a BaseStruct object to contain the table
     my $bs = Biodiverse::BaseStruct->new (
         NAME => $treename,
-        #JOIN_CHAR => "",
+        #JOIN_CHAR => $EMPTY_STRING,
         #QUOTES => "'",
     );  #  may need to specify some other params
 
@@ -1084,7 +1087,7 @@ sub to_table {
             $taxon_name = $node -> get_name;
         }
         else {
-            $taxon_name = "";
+            $taxon_name = $EMPTY_STRING;
         }
         my $number = $node -> get_value ('NODE_NUMBER');
         my %data;
@@ -1275,7 +1278,7 @@ sub to_nexus {
     $string .= "\tTree '$tree_name' = " . $self -> to_newick (remap => \%remap, %args) . ";\n";
     $string .= "end;\n\n";
     
-    #print "";
+    #print $EMPTY_STRING;
     
     return $string;
 }
@@ -1286,8 +1289,8 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
 
     my $use_int_names = $args{use_internal_names};
     my $boot_name = $args{boot} || 'boot';
-    #my $string = $self -> is_terminal_node ? "" : '(';  #  no brackets around terminals
-    my $string = "";
+    #my $string = $self -> is_terminal_node ? $EMPTY_STRING : '(';  #  no brackets around terminals
+    my $string = $EMPTY_STRING;
 
     my $remap = $args{remap} || {};
     my $name = $self->get_name;
@@ -1343,11 +1346,11 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
 
 sub print { # prints out the tree (for debugging)
     my $self = shift;
-    my $space = shift || '';
+    my $space = shift || $EMPTY_STRING;
 
     print "$space " . $self->get_name() . "\t\t\t" . $self->get_length . "\n";
     foreach my $child ($self->get_children) {
-            $child->print($space . " ");
+            $child->print($space . $SPACE);
     }
     return;
 }

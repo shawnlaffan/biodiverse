@@ -1,5 +1,8 @@
 package Biodiverse::GUI::Project;
 
+use strict;
+use warnings;
+
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
 use Biodiverse::BaseData;
@@ -12,9 +15,8 @@ use English ( -no_match_vars );
 our $VERSION = '0.16';
 
 require      Exporter;
-#@ISA       = qw(Exporter Biodiverse::Common);
 use base qw /Exporter Biodiverse::Common/;
-@EXPORT    = qw(
+our @EXPORT    = qw(
     MODEL_BASEDATA
     MODEL_OUTPUT
     MODEL_ANALYSIS
@@ -24,9 +26,6 @@ use base qw /Exporter Biodiverse::Common/;
     MODEL_OUTPUT_TYPE
 );
 
-use strict;
-use warnings;
-#use Biodiverse::GUI::GUIManager;
 use Data::DumpXML::Parser;
 use Storable;
 #use Geo::Shapelib;

@@ -512,9 +512,8 @@ sub sp_calc {
             )
         );
 
-        my @exclude;
         my @nbr_list;
-        my $nbrs_already_recycled;
+        my @exclude;
         foreach my $i (0 .. $#$spatial_params_ref) {
             my $nbr_list_name = '_NBR_SET' . ($i+1);
             #  useful since we can have non-overlapping neighbourhoods
@@ -527,13 +526,12 @@ sub sp_calc {
                 my $nbrs
                   = $self->get_list_values (
                       element => $element,
-                      list => $nbr_list_name,
+                      list    => $nbr_list_name,
                   )
                   || [];
 
                 $nbr_list[$i] = $nbrs;
                 push @exclude, @$nbrs;
-                $nbrs_already_recycled = 1;  #  flag so we don't re-set them
             }
             else {
                 if ($use_nbrs_from) {
@@ -648,7 +646,7 @@ sub sp_calc {
                 }
             }
 
-            if (not $nbrs_already_recycled) {
+            if (! $self->nbr_list_already_recycled(element => $element)) {
                 #  for each nbr in %nbrs_1,
                 #  copy the neighbour sets for those that are recyclable
                 $self->recycle_nbr_lists (
@@ -785,6 +783,18 @@ sub recycle_nbr_lists {
     return;
 }
 
+sub nbr_list_already_recycled {
+    my $self = shift;
+    my %args = @_;
+
+    #  we only work on the first nbr set
+    my $nbr_list_name = '_NBR_SET0';
+
+    return $self->exists_list (
+        element => $args{element},
+        list    => $nbr_list_name
+    );    
+}
 
 #  internal sub to check results are recycled properly
 #  Note - only valid for randomisations when nbrhood is

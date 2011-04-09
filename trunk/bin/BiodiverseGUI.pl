@@ -7,7 +7,7 @@ use warnings;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 local $| = 1;
 

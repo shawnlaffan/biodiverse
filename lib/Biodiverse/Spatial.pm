@@ -512,91 +512,12 @@ sub sp_calc {
             )
         );
 
-        my @nbr_list;
-        my @exclude;
-        foreach my $i (0 .. $#$spatial_params_ref) {
-            my $nbr_list_name = '_NBR_SET' . ($i+1);
-            #  useful since we can have non-overlapping neighbourhoods
-            #  where we set all the results in one go
-            if ($self->exists_list (
-                    element => $element,
-                    list    => $nbr_list_name
-                )) {
-
-                my $nbrs
-                  = $self->get_list_values (
-                      element => $element,
-                      list    => $nbr_list_name,
-                  )
-                  || [];
-
-                $nbr_list[$i] = $nbrs;
-                push @exclude, @$nbrs;
-            }
-            else {
-                if ($use_nbrs_from) {
-                    $nbr_list[$i] = $use_nbrs_from->get_list_values (
-                        element => $element,
-                        list    => $nbr_list_name,
-                    );
-                    if (! defined $nbr_list[$i]) {
-                        $nbr_list[$i] = [];  #  use empty list if necessary
-                    }
-                }
-                #  if $use_nbrs_from lacks the list, or we're finding the neighbours ourselves
-                if (not defined $nbr_list[$i]) {  
-                    my $list;
-                    #  get everything
-                    if ($spatial_params_ref->[$i]->get_result_type eq 'always_true') {  
-                        $list = $bd->get_groups;
-                    }
-                    #  nothing to work with
-                    elsif ($spatial_params_ref->[$i]->get_result_type eq 'always_false') {  
-                        $list = [];
-                    }
-                    #  no nbrs, just oneself
-                    elsif ($spatial_params_ref->[$i]->get_result_type eq 'self_only') {
-                        $list = [$element];
-                    }
-                    
-                    if ($list) {
-                        my %tmp;  #  remove any that should not be there
-                        my $excl = [@exclude, @elements_to_exclude];
-                        @tmp{@$list} = (1) x @$list;
-                        delete @tmp{@$excl};
-                        $nbr_list[$i] = [keys %tmp];
-                    }
-                    else {    #  no nbr list thus far so go looking
-
-                        #  don't use the index if there are no search blocks
-                        my $sp_index_i
-                          = defined $search_blocks_ref->[$i]
-                          ? $sp_index
-                          : undef;
-
-                        #  go search
-                        $nbr_list[$i] = $bd->get_neighbours_as_array (
-                            element         => $element,
-                            spatial_params  => $spatial_params_ref->[$i],
-                            index           => $sp_index_i,
-                            index_offsets   => $search_blocks_ref->[$i],
-                            exclude_list    => [@exclude, @elements_to_exclude],
-                        );
-                    }
-                    
-                    #  Add to the exclude list unless we are at the last spatial param,
-                    #  in which case it is no longer needed.
-                    #  Hopefully this will save meaningful memory for large neighbour sets
-                    if ($i != $#$spatial_params_ref) {
-                        push @exclude, @{$nbr_list[$i]};
-                    }
-                }
-                $self->add_to_lists (
-                    element        => $element,
-                    $nbr_list_name => $nbr_list[$i],
-                );
-            }
-        }
+        my @nbr_list = $self->get_nbrs_for_element (
+            element       => $element,
+            use_nbrs_from => $use_nbrs_from,
+            elements_to_exclude => \@elements_to_exclude,
+            search_blocks_ref => $search_blocks_ref,
+        );
 
         my %elements = (
             element_list1 => $nbr_list[0],
@@ -705,6 +626,109 @@ sub sp_calc {
     return 1;
 }
 
+
+sub get_nbrs_for_element {
+    my $self = shift;
+    my %args = @_;
+
+    my $element       = $args{element};
+    my $use_nbrs_from = $args{use_nbrs_from};
+    my $elements_to_exclude = $args{elements_to_exclude};
+    my $search_blocks_ref = $args{search_blocks_ref};
+    
+    my $spatial_params_ref = $self->get_param('SPATIAL_PARAMS');
+    my $sp_index = $self->get_param ('SPATIAL_INDEX');
+    my $bd = $self->get_basedata_ref;
+
+    my @nbr_list;
+    my @exclude;
+
+    foreach my $i (0 .. $#$spatial_params_ref) {
+        my $nbr_list_name = '_NBR_SET' . ($i+1);
+        #  useful since we can have non-overlapping neighbourhoods
+        #  where we set all the results in one go
+        if ($self->exists_list (
+                element => $element,
+                list    => $nbr_list_name
+            )) {
+
+            my $nbrs
+              = $self->get_list_values (
+                  element => $element,
+                  list    => $nbr_list_name,
+              )
+              || [];
+
+            $nbr_list[$i] = $nbrs;
+            push @exclude, @$nbrs;
+        }
+        else {
+            if ($use_nbrs_from) {
+                $nbr_list[$i] = $use_nbrs_from->get_list_values (
+                    element => $element,
+                    list    => $nbr_list_name,
+                );
+                if (! defined $nbr_list[$i]) {
+                    $nbr_list[$i] = [];  #  use empty list if necessary
+                }
+            }
+            #  if $use_nbrs_from lacks the list, or we're finding the neighbours ourselves
+            if (not defined $nbr_list[$i]) {  
+                my $list;
+                #  get everything
+                if ($spatial_params_ref->[$i]->get_result_type eq 'always_true') {  
+                    $list = $bd->get_groups;
+                }
+                #  nothing to work with
+                elsif ($spatial_params_ref->[$i]->get_result_type eq 'always_false') {  
+                    $list = [];
+                }
+                #  no nbrs, just oneself
+                elsif ($spatial_params_ref->[$i]->get_result_type eq 'self_only') {
+                    $list = [$element];
+                }
+                
+                if ($list) {
+                    my %tmp;  #  remove any that should not be there
+                    my $excl = [@exclude, @$elements_to_exclude];
+                    @tmp{@$list} = (1) x @$list;
+                    delete @tmp{@$excl};
+                    $nbr_list[$i] = [keys %tmp];
+                }
+                else {    #  no nbr list thus far so go looking
+
+                    #  don't use the index if there are no search blocks
+                    my $sp_index_i
+                      = defined $search_blocks_ref->[$i]
+                      ? $sp_index
+                      : undef;
+
+                    #  go search
+                    $nbr_list[$i] = $bd->get_neighbours_as_array (
+                        element         => $element,
+                        spatial_params  => $spatial_params_ref->[$i],
+                        index           => $sp_index_i,
+                        index_offsets   => $search_blocks_ref->[$i],
+                        exclude_list    => [@exclude, @$elements_to_exclude],
+                    );
+                }
+                
+                #  Add to the exclude list unless we are at the last spatial param,
+                #  in which case it is no longer needed.
+                #  Hopefully this will save meaningful memory for large neighbour sets
+                if ($i != $#$spatial_params_ref) {
+                    push @exclude, @{$nbr_list[$i]};
+                }
+            }
+            $self->add_to_lists (
+                element        => $element,
+                $nbr_list_name => $nbr_list[$i],
+            );
+        }
+    }
+
+    return wantarray ? @nbr_list : \@nbr_list;
+}
 
 #  recycle any list results
 sub recycle_list_results {

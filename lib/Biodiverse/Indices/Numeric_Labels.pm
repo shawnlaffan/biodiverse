@@ -373,7 +373,7 @@ sub calc_numeric_label_dissimilarity {
         #  suppress these warnings within this block
         no warnings qw /uninitialized numeric/;
 
-        $results{NUMD_MEAN}     = eval {$sum_absX / $count};
+        $results{NUMD_MEAN}     = eval {$sumX / $count};
         $results{NUMD_ABSMEAN}  = eval {$sum_absX / $count};
         $results{NUMD_VARIANCE} = eval {$sumXsqr / $count};
         $results{NUMD_COUNT}    = $count;

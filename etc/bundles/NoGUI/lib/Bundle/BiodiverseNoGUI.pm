@@ -68,7 +68,7 @@ Exception::Class
 
 Math::Polygon
 
-Class::ISA
+MRO::Compat;
 
 =head1 DESCRIPTION
 

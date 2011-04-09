@@ -22,7 +22,8 @@ use File::Basename;
 use POSIX;  #  make all the POSIX functions available to the spatial parameters
 use HTML::QuickTable;
 #use XBase;
-use Class::ISA;
+#use Class::ISA;
+use MRO::Compat;
 
 use Math::Random::MT::Auto;  
 
@@ -1768,9 +1769,10 @@ sub get_subs_with_prefix {
     croak "prefix not defined\n" if not defined $prefix;
 
     #my @tree = ((blessed $self), $self -> get_isa_tree_flattened);
-    my @tree = Class::ISA::self_and_super_path($args{class} or blessed ($self));
+    #my @tree = Class::ISA::self_and_super_path($args{class} or blessed ($self));
+    my $tree = mro::get_linear_isa($args{class} or blessed ($self));
 
-    my $syms = Devel::Symdump->rnew(@tree);
+    my $syms = Devel::Symdump->rnew(@$tree);
     my %analyses;
     my @analyses_array = sort $syms -> functions;
     foreach my $analysis (@analyses_array) {

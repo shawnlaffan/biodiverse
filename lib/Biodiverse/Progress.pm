@@ -113,7 +113,7 @@ sub reset {
     
     $self->{last_text}          = $NULL_STRING;
     $self->{print_text}         =  1;
-    $self->{last_reported_prog} = -1,
+    $self->{last_reported_prog} = -1;
 
     print "\n";
 

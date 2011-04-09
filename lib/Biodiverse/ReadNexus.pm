@@ -451,10 +451,10 @@ sub parse_newick {
             }
             else {
                 pos $string = 0;
-                my @left  = ($string =~ / \( /gx);
-                my @right = ($string =~ / \) /gx);
-                my $left_count  = scalar @left;
-                my $right_count = scalar @right;
+                my @left_side  = ($string =~ / \( /gx);
+                my @right_side = ($string =~ / \) /gx);
+                my $left_count  = scalar @left_side;
+                my $right_count = scalar @right_side;
                 croak "Tree has unbalanced parentheses "
                       . "(left is $left_count, "
                       . "right is $right_count), "

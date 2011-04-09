@@ -88,13 +88,9 @@ sub rename {
         croak "[Basestruct] Argument 'new_name' not defined\n";
     }
 
-    #  first tell the basedata object - No, leave that to the basedata object
-    #my $bd = $self -> get_param ('BASEDATA_REF');
-    #$bd -> rename_output (object => $self, new_name => $name);
-
-    # and now change ourselves   
     $self -> set_param (NAME => $name);
-    
+
+    return;
 }
 
 #  metadata is bigger than the actual sub...
@@ -484,25 +480,8 @@ sub write_table {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
     
     $args{file} = File::Spec->rel2abs ($args{file});
-    
-    #  now do stuff depending on what format was chosen, based on the suffix
-    #my ($prefix, $suffix) = lc ($args{file}) =~ /(.*?)\.(.*?)$/;
-    #if (! defined $suffix) {
-    #    $suffix = "csv";  #  does not affect the actual file name, as it is not passed onwards
-    #}
-    
-    #if ($suffix =~ /asc/i) {
-    #    $self -> write_table_asciigrid (%args, symmetric => 1);
-    #}
-    #elsif ($suffix =~ /flt/i) {
-    #    $self -> write_table_floatgrid (%args, symmetric => 1);
-    #}
-    #elsif ($suffix =~ /ers/i) {
-    #    $self -> write_table_ers (%args, symmetric => 1);
-    #}
-    #else {
-        $self -> SUPER::write_table (%args);
-    #}
+
+    return;
 }
 
 #  control whether a file is written symetrically or not
@@ -512,15 +491,14 @@ sub to_table {
     #  modify to make the default, rather than required
     #my $file = $args{file} || ($self->get_param('OUTPFX') . ".csv");  
     my $as_symmetric = $args{symmetric} || 0;
-    
+
     croak "[BaseStruct] argument 'list' not specified\n"
       if !defined $args{list}; 
 
     my $list = $args{list};
-    
+
     my $checkElements = $self -> get_element_list;
-    #my $list_type = ref ($self->get_list_values (element => $checkElements->[0], list => $list));
-    
+
     #  check if the file is symmetric or not.  Check the list type as well.
     my $last_contents_count = -1;
     my $is_asym = 0;
@@ -1887,6 +1865,8 @@ sub delete_sub_element {
     if (exists $self->{ELEMENTS}{$element}{SUBELEMENTS}) {
         delete $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement};
     }
+
+    return;
 }
 
 sub exists_element {
@@ -1924,6 +1904,8 @@ sub add_values {  #  add a set of values and their keys to a list in $element
     foreach my $key (keys %args) {  #  we could assign it directly, but this ensures everything is uppercase
         $self->{ELEMENTS}{$element}{uc($key)} = $args{$key};
     }
+
+    return;
 }
 
 sub increment_values {  #  increment a set of values and their keys to a list in $element
@@ -1960,6 +1942,8 @@ sub get_list_values {
 
     return sort @{$self->{ELEMENTS}{$element}{$list}}   #  SWL 15Feb2011: should this always sort?
       if ref($self->{ELEMENTS}{$element}{$list}) =~ /ARRAY/;
+
+    return;
 }
 
 sub get_hash_list_values {
@@ -2157,6 +2141,7 @@ sub get_lists {
 sub clear_lists_across_elements_cache {
     my $self = shift;
     $self -> set_param (LISTS_ACROSS_ELEMENTS => undef);
+    return;
 }
 
 
@@ -2168,11 +2153,9 @@ sub get_lists_across_elements {
     my $max_search = $args{max_search} || $self -> get_element_count;
     my $no_private = $args{no_private};
     my $rerun = $args{rerun};
-    
-    #my $progress_bar = Biodiverse::Progress->new();
-    
+
     croak "max_search arg is negative\n" if $max_search < 0;
-    
+
     #  get from cache
     my $cached_list = $self -> get_param ('LISTS_ACROSS_ELEMENTS');
     my $cached_list_max_search
@@ -2203,15 +2186,12 @@ sub get_lists_across_elements {
         #print "[BASESTRUCT] Using cached list items\n";
         return (wantarray ? @$cached_list : $cached_list);   
     }
-    
-    #print "[BASESTRUCT] Searching for list items across $max_search elements\n";
-    
+
     my $elements = $self -> get_element_hash;
-    
+
     my %tmp_hash;
     my $count = 0;
-    #my $timer = [gettimeofday];
-    
+
     SEARCH_FOR_LISTS:
     foreach my $elt (keys %$elements) {
         
@@ -2222,9 +2202,7 @@ sub get_lists_across_elements {
         $count++;
         last SEARCH_FOR_LISTS if $count > $max_search;
     }
-    
-    #print join (':', keys %tmp_hash), "\n";
-    
+
     #  remove private lists if needed
     if ($no_private) {
         foreach my $key (keys %tmp_hash) {
@@ -2241,8 +2219,6 @@ sub get_lists_across_elements {
         LISTS_ACROSS_ELEMENTS_LAST_MAX_SEARCH  => $max_search,
         LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME => $last_cache_time,
     );
-
-    #print join (':', keys %tmp_hash), "\n";
 
     return wantarray ? @lists : \@lists;
 }

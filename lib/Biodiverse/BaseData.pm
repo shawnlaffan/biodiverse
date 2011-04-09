@@ -455,7 +455,7 @@ sub get_metadata_import_data {
     
     my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
                   ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  : (',', 'tab', ';', 'space', ":");
+                  : (q{,}, 'tab', q{;}, 'space', q{:});
     my @input_sep_chars = ('guess', @sep_chars);
     
     my @quote_chars = qw /" ' + $/;
@@ -1992,6 +1992,8 @@ sub write_table {  #  still needed?
     
     #  Just pass the args straight through
     $self->{$args{type}}->write_table(@_);  
+
+    return;
 }
 
 #  is this still needed?
@@ -2001,6 +2003,8 @@ sub write_sub_elements_csv {
     croak "Type not specified\n" if ! defined $args{type};
     my $data = $self->{$args{type}} -> to_table (@_, list => 'SUBELEMENTS');
     $self -> write_table (@_, data => $data);
+
+    return;
 }
 
 sub get_groups_ref {
@@ -2363,15 +2367,17 @@ sub add_spatial_output {
 sub get_spatial_output_ref {  #  return the reference for a specified output
     my $self = shift;
     my %args = @_;
-    
+
     return if ! exists $self->{SPATIAL_OUTPUTS}{$args{name}};
-    
+
     return $self->{SPATIAL_OUTPUTS}{$args{name}};
 }
 
 sub get_spatial_output_list {
     my $self = shift;
-    return sort keys %{$self->{SPATIAL_OUTPUTS}};
+
+    my @result = sort keys %{$self->{SPATIAL_OUTPUTS}};
+    return wantarray ? @result : \@result;
 }
 
 sub delete_spatial_output {
@@ -2472,7 +2478,8 @@ sub get_matrix_output_ref {  #  return the reference for a specified output
 
 sub get_matrix_output_list {
     my $self = shift;
-    return sort keys %{$self->{MATRIX_OUTPUTS}};
+    my @result = sort keys %{$self->{MATRIX_OUTPUTS}};
+    return wantarray ? @result : \@result;
 }
 
 sub delete_matrix_output {
@@ -2580,6 +2587,8 @@ sub delete_randomisation_output {
     croak "parameter name not specified\n" if ! defined $args{name};
     #delete $self->{SPATIAL_OUTPUTS}{$args{name}};
     $self -> delete_output (output => $self->{RANDOMISATION_OUTPUTS}{$args{name}});
+
+    return;
 }
 
 sub get_randomisation_output_refs {

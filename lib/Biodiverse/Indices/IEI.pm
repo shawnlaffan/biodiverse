@@ -10,8 +10,9 @@ use Carp;
 our $VERSION = '0.16';
 
 use Biodiverse::Statistics;
-
 my $stats_package = 'Biodiverse::Statistics';
+
+my $EMPTY_STRING = q{};
 
 sub get_metadata_calc_iei_data {
 
@@ -436,15 +437,14 @@ sub cleanup_iei_element_cache {
     my $results_are_recyclable          # param will be renamed at some stage
         = $self -> get_param ('RESULTS_ARE_RECYCLABLE');
 
+    print $EMPTY_STRING;
 
-    print "";
-    
     #  clear the cache if needed
     if ($args{no_IEI_cache} || $args{no_cache} || $results_are_recyclable) {
         delete @{$hash_cache}{keys %$hash_cache};
         delete @{$array_cache}{keys %$array_cache};
     }
-    
+
     return;
 }
 

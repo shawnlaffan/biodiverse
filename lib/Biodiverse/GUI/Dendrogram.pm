@@ -1232,32 +1232,32 @@ sub initYCoordsInner {
 # Returns first element equal-or-lower than target
     # FIXME: still need to check all the corner cases
     # ie: if 2222 333 444 searching for 2, will it start from the first 2?
-sub binarySearch {
-    my ($array, $target) = @_;
-    my $last = $#{$array};
-    my ($l, $r) = (0, $last);
-    my ($m, $elt);
-
-    while ($l < $r) {
-        $m = ceil ( ($l+$r)/2 );
-        $elt = $array->[$m]->get_value('total_length_gui');
-
-        if ($elt < $target) {
-            $l = $m + 1; # search in upper half
-        }
-        else {
-            $r = $m - 1; # search in lower half
-        }
-        #print "$l $r $m\n";
-    }
-
-    $l = $last if $l > $last;
-
-    # Might have landed too far above 
-    while ($l > 0 && ($array->[$l]->get_value('total_length_gui') > $target)) { $l--; }
-
-    return $l;
-}
+#sub binarySearch {
+#    my ($array, $target) = @_;
+#    my $last = $#{$array};
+#    my ($l, $r) = (0, $last);
+#    my ($m, $elt);
+#
+#    while ($l < $r) {
+#        $m = ceil ( ($l+$r)/2 );
+#        $elt = $array->[$m]->get_value('total_length_gui');
+#
+#        if ($elt < $target) {
+#            $l = $m + 1; # search in upper half
+#        }
+#        else {
+#            $r = $m - 1; # search in lower half
+#        }
+#        #print "$l $r $m\n";
+#    }
+#
+#    $l = $last if $l > $last;
+#
+#    # Might have landed too far above 
+#    while ($l > 0 && ($array->[$l]->get_value('total_length_gui') > $target)) { $l--; }
+#
+#    return $l;
+#}
 
 # These make an array out of the tree nodes
 # sorted based on total length up to the node

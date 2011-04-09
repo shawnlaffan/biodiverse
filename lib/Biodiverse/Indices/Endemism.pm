@@ -442,8 +442,8 @@ END_FORMULA
     $main_formula =~ s/\n/ /g;
     #$main_formula =~ s/\s+/ /g;
     $main_formula =~ s/\s+$//g;
-    $main_formula = 'equation\ is\ in\ progress',
-    $main_formula = q{};  #  place holder
+    #$main_formula = 'equation\ is\ in\ progress';
+    #$main_formula = q{};  #  place holder
 
     my @formula = (
       $main_formula,

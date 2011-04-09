@@ -14,6 +14,7 @@ use POSIX qw { ceil floor };
 use Time::HiRes qw { gettimeofday tv_interval };
 use Scalar::Util qw { blessed };
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
+use MRO::Compat;
 
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
@@ -256,12 +257,9 @@ sub get_randomisations {
     my $self = shift;
 
     #  get the @ISA array for the current object.
-    # This allows inheritance from user defined packages
-    #  __PACKAGE__ is the current package and makes life easier if we rename or move the sub
-    my $isa_tree = __PACKAGE__ . Devel::Symdump::_isa_tree (__PACKAGE__);
-    my @isa_tree = split (/\s+/, $isa_tree);
-    
-    my $syms = Devel::Symdump -> rnew(@isa_tree);
+    my $isa_tree = mro::get_linear_isa(blessed ($self) || __PACKAGE__);
+
+    my $syms = Devel::Symdump -> rnew(@$isa_tree);
 
     my %analyses;
     
@@ -323,7 +321,7 @@ sub run_randomisation {
     
     #  loop through and get all the key/value pairs that are not refs.
     #  Assume these are arguments to the randomisation
-    my $single_level_args = "";
+    my $single_level_args = $EMPTY_STRING;
     foreach my $key (sort keys %args) {
         my $val = $args{$key};
         $val = 'undef' if not defined $val;
@@ -455,7 +453,7 @@ sub run_randomisation {
         #$self -> find_circular_refs_above (top_level => 5);
         #use Devel::Refcount qw( refcount );
         #print "REFCOUNT IS " . refcount($rand_bd) . "\n";
-        #print "";
+        #print $EMPTY_STRING;
         #use Devel::FindRef;
         #print Devel::FindRef::track $rand_bd;
 
@@ -711,7 +709,7 @@ END_PROGRESS_TEXT
     $new_bd -> get_groups_ref->set_param ($bd -> get_groups_ref -> get_params_hash);
     $new_bd -> get_labels_ref->set_param ($bd -> get_labels_ref -> get_params_hash);
     my $new_bd_name = $new_bd->get_param ('NAME');
-    $new_bd -> rename (name => $new_bd_name . "_$name" . '');
+    $new_bd -> rename (name => $new_bd_name . "_" . $name);
     
     print "[RANDOMISE] Creating clone for destructive sampling\n";
     #if ($progress_bar) {
@@ -792,7 +790,7 @@ END_PROGRESS_TEXT
         = $bd -> array_to_hash_keys (list => \@target_groups);
     my %filled_groups;
     my %unfilled_groups = %target_richness;
-    my $last_filled = "";
+    my $last_filled = $EMPTY_STRING;
     $i = 0;
     $total_to_do = scalar @$rand_label_order;
     print "[RANDOMISE] Target is $total_to_do.  Running.\n";
@@ -991,7 +989,7 @@ sub swap_to_reach_targets {
 
 
     my $swap_count = 0;
-    my $last_filled = "";
+    my $last_filled = $EMPTY_STRING;
     my $last_update_time = [gettimeofday];
 
     #  keep going until we've reached the fill threshold for each group

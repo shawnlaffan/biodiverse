@@ -374,9 +374,9 @@ BEGIN {
         if (-e $ENV{BIODIVERSE_DEFAULT_PARAMS}) {
             print " from file $ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
             local $/ = undef;
-            open (FILE, $ENV{BIODIVERSE_DEFAULT_PARAMS});
-            $x = eval (<FILE>);
-            close (FILE);
+            open (my $fh, $ENV{BIODIVERSE_DEFAULT_PARAMS});
+            $x = eval (<$fh>);
+            close ($fh);
         }
         else {
             print " directly from environment variable\n";
@@ -1363,7 +1363,7 @@ sub guess_field_separator {
     #  try a sequence of separators, starting with the default parameter
     my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}  #  these should be globals set by use_base
                     ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                    : (',', "\t", ';', " ");
+                    : (',', "\t", ';', q{ });
     my $eol = $self->guess_eol(%args);
 
     my %sep_count;

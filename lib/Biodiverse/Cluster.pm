@@ -702,6 +702,7 @@ sub set_shadow_matrix {
     my $self = shift;
     my %args = @_;
     $self->{SHADOW_MATRIX} = $args{matrix};  #  defaults to undef
+    return;
 }
 
 #  get a reference to the shadow matrix object within this cluster object - this is the combination of all the matrices
@@ -1326,7 +1327,7 @@ sub _link_centroid {
     my $self = shift;
     #  calculate the centroid of the similarities below this
     #  requires that we traverse the tree - or at least cache the values
-
+    return;
 }
 
 #  calculate the linkages fom the ground up
@@ -1629,14 +1630,11 @@ sub delete_links_from_matrix {
 }
 
 #  get a list of the all the publicly available linkages.
-sub get_linkage_functions {  
-
+sub get_linkage_functions {
     my $self = shift;
 
-    my $tree = __PACKAGE__ . Devel::Symdump::_isa_tree (__PACKAGE__);
-    my @tree = split (/\s+/, $tree);
-
-    my $syms = Devel::Symdump->rnew(@tree);
+    my $tree = mro::get_linear_isa(blessed ($self) || __PACKAGE__);
+    my $syms = Devel::Symdump->rnew(@$tree);
 
     my @linkages;
 

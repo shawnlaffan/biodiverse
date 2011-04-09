@@ -998,17 +998,20 @@ sub onDendrogramHover {
     my $self = shift;
     my $node = shift || return;
 
-    no warnings "uninitialized";  #  don't complain if nodes have not been numbered
+    no warnings 'uninitialized';  #  don't complain if nodes have not been numbered
 
     my $map_text = '<b>Node label: </b> ' . $node->get_name;
-    my $dendo_text = sprintf ('<b>Node Length: </b> %.4f <b>Element numbers: First</b> %d <b>Last:</b> %d',
-                                $node -> get_total_length, # round to 4 d.p.
-                                $node -> get_value ('TERMINAL_NODE_FIRST'),
-                                $node -> get_value ('TERMINAL_NODE_LAST'),
-                               );
+    my $dendro_text = sprintf (
+        '<b>Node Length: </b> %.4f <b>Element numbers: First</b> %d <b>Last:</b> %d',
+         $node -> get_total_length, # round to 4 d.p.
+         $node -> get_value ('TERMINAL_NODE_FIRST'),
+         $node -> get_value ('TERMINAL_NODE_LAST'),
+    );
 
     $self->{xmlPage}->get_widget('lblMap')->set_markup($map_text);
-    $self->{xmlPage}->get_widget('lblDendrogram')->set_markup($dendo_text);
+    $self->{xmlPage}->get_widget('lblDendrogram')->set_markup($dendro_text);
+
+    return;
 }
 
 # Circles a node's terminal elements. Clear marks if $node undef
@@ -1021,6 +1024,8 @@ sub onDendrogramHighlight {
 
     #my @elts = keys %$terminal_elements;
     #print "marked: @elts\n";
+
+    return;
 }
 
 ##################################################

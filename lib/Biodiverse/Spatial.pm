@@ -30,7 +30,7 @@ use Biodiverse::Indices;
 
 use base qw /Biodiverse::BaseStruct/;
 
-my $empty_string = q{};
+my $EMPTY_STRING = q{};
 
 
 
@@ -471,7 +471,7 @@ sub sp_calc {
 
 
     local $| = 1;  #  write to screen as we go
-    my $using_index_text = defined $sp_index ? "" : "\nNot using spatial index";
+    my $using_index_text = defined $sp_index ? $EMPTY_STRING : "\nNot using spatial index";
 
     my ($count, $printedProgress) = (0, -1);
     print "[SPATIAL] Progress (% of $toDo elements):     ";
@@ -925,7 +925,7 @@ sub get_spatial_params_ref {
             warn "[Spatial] No valid spatial conditions specified\n";
             #  put an empty string as the only entry,
             #  saves problems down the line
-            $spatial_params_ref->[0] = $empty_string;
+            $spatial_params_ref->[0] = $EMPTY_STRING;
             return;
         }
         
@@ -933,7 +933,7 @@ sub get_spatial_params_ref {
         my $param = $spatial_params_ref->[-1];
         $param =~ s/^\s*//;  #  strip leading and trailing whitespace
         $param =~ s/\s*$//;
-        if (! defined $param || $param eq "") {
+        if (! defined $param || $param eq $EMPTY_STRING) {
             print "[SPATIAL] Deleting undefined spatial condition\n";
             pop @$spatial_params_ref;
         }

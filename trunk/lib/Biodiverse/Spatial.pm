@@ -19,6 +19,7 @@ use English qw { -no_match_vars };
 
 use Data::Dumper;
 use Scalar::Util qw /weaken blessed/;
+use List::Util;
 #use Time::HiRes qw /tv_interval gettimeofday/;
 
 our $VERSION = '0.16';
@@ -400,6 +401,8 @@ sub sp_calc {
         @elements_to_calc = $bd->get_groups;
     }
     
+    my $exclude_processed_elements = $args{exclude_processed_elements};
+    
     #EL: Set our CELL_SIZES
     # SL: modified for new structure
     if (! defined $self->get_param ('CELL_SIZES')) {
@@ -601,6 +604,10 @@ sub sp_calc {
         #    use_nbrs_from => $use_nbrs_from,
         #    results_are_recyclable => $results_are_recyclable,
         #);
+
+        if ($exclude_processed_elements) {
+            push @elements_to_exclude, $element;
+        }
         
     }  #  end BY_ELEMENT
 

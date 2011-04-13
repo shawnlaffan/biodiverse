@@ -1927,11 +1927,14 @@ sub get_list_values {
     my $self = shift;
     my %args = @_;
     croak "element not specified\n" if not defined $args{element};
+
     my $element = $args{element};
     my $list = $args{list};
 
     croak "List not defined\n" if ! defined $list;
-    croak "Element does not exist in BaseStruct\n" if ! $self->exists_element(element => $element);
+    croak "Element $element does not exist in BaseStruct\n"
+      if ! $self->exists_element(element => $element);
+
     return if ! exists $self->{ELEMENTS}{$element}{$list};
 
     return $self->{ELEMENTS}{$element}{$list} if ! wantarray;

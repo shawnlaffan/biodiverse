@@ -294,20 +294,20 @@ sub build_matrices {
         $self->set_param (SPATIAL_PARAMS => $spatial_params_array)
     }
 
+    #  let the spatial object to handle the object stuff
     my $definition_query
         = $self->get_param ('DEFINITION_QUERY')
           || $args{definition_query};
-
-    if (defined $definition_query) {  #  parse it if defined
-        if (length ($definition_query) == 0) {
-            $definition_query = undef ;
-        }
-        elsif (not blessed $definition_query) {
-            $definition_query = Biodiverse::SpatialParams->new (
-                conditions => $definition_query,
-            );
-        }
-    }
+    #if (defined $definition_query) {  #  parse it if defined
+    #    if (length ($definition_query) == 0) {
+    #        $definition_query = undef ;
+    #    }
+    #    elsif (not blessed $definition_query) {
+    #        $definition_query = Biodiverse::SpatialParams::DefQuery->new (
+    #            conditions => $definition_query,
+    #        );
+    #    }
+    #}
     if (not defined $self->get_param ('DEFINITION_QUERY')) {
         $self->set_param (DEFINITION_QUERY => $definition_query);
     }
@@ -323,7 +323,7 @@ sub build_matrices {
 
     #  we use a spatial object as it handles all the spatial checks.
     print "[CLUSTER] Generating neighbour lists\n";
-    my $sp = $bd->add_spatial_output (name => $name . "_to_get_nbrs_for_clustering" . time());
+    my $sp = $bd->add_spatial_output (name => $name . "_to_get_nbrs_for_clustering_" . time());
     my $sp_success = eval {
         $sp->run_analysis (
             %args,
@@ -471,7 +471,6 @@ sub build_matrix_elements {
     my $cache = $args{element_label_cache} || $self->get_param ('MATRIX_ELEMENT_LABEL_CACHE');
     my $matrices = $args{matrices};  #  two items, second is shadow matrix
 
-    #my $definition_query = $self->get_param ('DEFINITION_QUERY');
     my $index_function   = $args{index_function}
                            || $self->get_param ('CLUSTER_INDEX_SUB');
     my $index            = $args{index}

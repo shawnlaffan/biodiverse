@@ -432,6 +432,9 @@ sub sp_calc {
                 is_def_query   => 1,
             );
         $self->set_param (PASS_DEF_QUERY => $pass_def_query);
+
+        croak "Nothing passed the definition query\n"
+          if ! scalar keys %$pass_def_query;
     }
     
     my $progress = Biodiverse::Progress->new();

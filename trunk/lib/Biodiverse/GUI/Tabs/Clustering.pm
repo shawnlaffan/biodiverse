@@ -966,7 +966,7 @@ sub onRunAnalysis {
         $self->{gui}->report_error ($EVAL_ERROR);
     }
 
-    if (not $success) { # dropped out for some reason, eg no valid analyses.
+    if (not $success) {  # dropped out for some reason, eg no valid analyses.
         $self->onClose;  #  close the tab to avoid horrible problems with multiple instances
         return;
     }

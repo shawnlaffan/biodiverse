@@ -165,7 +165,7 @@ sub new {
     $xml_page->get_widget('frameClusterSpatialParams2')->add(
         $self->{spatialParams2}->get_widget
     );
-    
+
     $hide_flag = not (length $def_query_init1);
     $self->{definition_query1}
         = Biodiverse::GUI::SpatialParams->new($def_query_init1, $hide_flag, 'is_def_query');
@@ -750,6 +750,16 @@ sub get_build_matrices_only {
     return $value;
 }
 
+sub get_output_gdm_format {
+    my $self = shift;
+
+    my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
+    
+    my $value = $widget->get_active;
+    
+    return $value;
+}
+
 sub get_output_file_handles {
     my $self = shift;
     
@@ -884,6 +894,7 @@ sub onRunAnalysis {
     my $no_cache_abc     = $self->get_no_cache_abc_value;
     my $build_matrices_only = $self->get_build_matrices_only;
     my $file_handles     = $self->get_output_file_handles;
+    my $output_gdm_format = $self->get_output_gdm_format;
 
     # Get spatial calculations to run
     my @toRun = Biodiverse::GUI::Tabs::AnalysisTree::getAnalysesToRun(
@@ -916,6 +927,7 @@ sub onRunAnalysis {
         no_cache_abc         => $no_cache_abc,
         build_matrices_only  => $build_matrices_only,
         file_handles         => $file_handles,
+        output_gdm_format    => $output_gdm_format,
         spatial_calculations => \@toRun,
         spatial_conditions   => [
             $self->{spatialParams1}->get_text(),
@@ -960,6 +972,7 @@ sub onRunAnalysis {
     }
 
     foreach my $ref ($output_ref->get_orig_matrices) {
+        next if not $ref->get_element_count;  #  don't add if empty
         $self->{project}->addOutput($self->{basedata_ref}, $ref);
     }
 

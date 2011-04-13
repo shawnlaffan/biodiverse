@@ -11,7 +11,7 @@ use Data::Dumper;
 use Devel::Symdump;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval/;
-
+use List::Util;
 #use Math::Random::MT::Auto qw /rand shuffle get_state/;
 
 our $VERSION = '0.16';
@@ -168,6 +168,8 @@ sub build_matrices {
         my %args_sub = %args;
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
+    
+    my $output_gdm_format = $args{output_gdm_format};  #  need to make all the fle stuff a hashref
 
     my $bd = $self->get_param ('BASEDATA_REF') || $self;
 
@@ -314,7 +316,9 @@ sub build_matrices {
 
     #  print headers to file handles (if such are present)
     foreach my $fh (@$file_handles) {
-        print {$fh} "Element1,Element2,$index\n";
+        print {$fh} $output_gdm_format
+        ? "x1,y1,x2,y2,$index\n"
+        : "Element1,Element2,$index\n";
     }
 
     #  we use a spatial object as it handles all the spatial checks.
@@ -329,6 +333,7 @@ sub build_matrices {
             definition_query              => $definition_query,
             no_create_failed_def_query    => 1,  #  only want those that pass the def query
             calc_only_elements_to_calc    => 1,
+            exclude_processed_elements    => 1,
         );
     };
     my $e = $EVAL_ERROR;                #  Did we complete properly?
@@ -357,12 +362,15 @@ sub build_matrices {
     my $count = 0;
     my $printedProgress = -1;
     my $target_element_count = $toDo * ($toDo - 1) / 2; # n(n-1)/2
-    my $progress_pfx = "Building matrix\n$name\nTarget is $target_element_count matrix elements\n";
+    my $progress_pfx = "Building matrix\n"
+                        . "$name\n"
+                        . "Target is $target_element_count matrix elements\n";
     #print "[CLUSTER] Progress (% of $toDo elements):     ";
+    my @processed_elements;
 
     #  Use $sp for the groups so any def query will have an effect
     BY_ELEMENT:
-    foreach my $element1 (@elements_to_calc) {
+    foreach my $element1 (sort @elements_to_calc) {
 
         $count ++;
         my $progress = $count / $toDo;
@@ -374,7 +382,7 @@ sub build_matrices {
         my @neighbours;  #  store the neighbours of this element
         my %all_nbrs_this_element;
         foreach my $i (0 .. $#matrices) {
-            my $nbr_list_name = "_NBR_SET" . ($i+1);
+            my $nbr_list_name = '_NBR_SET' . ($i+1);
             my $neighours = $sp->get_list_values (
                 element => $element1,
                 list    => $nbr_list_name,
@@ -414,18 +422,13 @@ sub build_matrices {
                 file_handle        => $file_handles->[$i],
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
+                processed_elements => \@processed_elements,
             );
 
             $valid_count += $x;
         }
-        #  DEBUG
-        #{
-        #    local $self->{PARAMS}{BASEDATA_REF} = undef;
-        #    local $self->{PARAMS}{INDICES_OBJECT}{PARAMS}{BASEDATA_REF} = undef;
-        #    
-        #    $self->save_to_yaml (filename => 'xxx' . $valid_count . '.yml');
-        #}
-        #$done{$element1}++;  #  never used...
+
+        push @processed_elements, $element1;
     }
 
     my $element_check = $self->get_param ('ELEMENT_CHECK');
@@ -442,9 +445,7 @@ sub build_matrices {
         croak "No valid results - matrix is empty\n";
     }
 
-    #$self->{MATRICES} = \@matrices;
     $self->set_matrix_ref(matrices => \@matrices);
-    #$self->{NBR_MATRICES} = \@nbr_matrices;  #  still needed?
 
     #  Clear the cache unless we're using link_recalculate
     #  Is this already set or not?
@@ -463,7 +464,9 @@ sub build_matrix_elements {
 
     my $element1 = $args{element};
     my $element_list2 = $args{element_list};
-    $element_list2 = [keys %$element_list2] if (ref $element_list2) =~ /HASH/;
+    if ((ref $element_list2) =~ /HASH/) {
+        $element_list2 = [keys %$element_list2];
+    }
 
     my $cache = $args{element_label_cache} || $self->get_param ('MATRIX_ELEMENT_LABEL_CACHE');
     my $matrices = $args{matrices};  #  two items, second is shadow matrix
@@ -478,8 +481,19 @@ sub build_matrix_elements {
     my $indices_object   = $args{indices_object}
                            || $self->get_param ('INDICES_OBJECT');
 
+    my $processed_elements = $args{processed_elements};
+
     my $ofh = $args{file_handle};
     delete $args{file_handle};
+    my $output_gdm_format = $args{output_gdm_format};
+
+    my $bd = $self->get_param ('BASEDATA_REF');
+
+    my $sp = $args{spatial_object};
+    my $pass_def_query = $sp->get_param ('PASS_DEF_QUERY');
+    #my $pass_def_query = {};
+
+    my %already_calculated;
 
     my $csv_out;
     #  take care of closed file handles
@@ -491,13 +505,13 @@ sub build_matrix_elements {
             $ofh = undef;
         }
         $csv_out = $self->get_csv_object;
+
+        %already_calculated = $self->infer_if_already_calculated (
+            spatial_object => $sp,
+            element => $element1,
+            processed_elements => $processed_elements,
+        );
     }
-
-    my $bd = $self->get_param ('BASEDATA_REF');
-
-    my $sp = $args{spatial_object};
-    my $pass_def_query = $sp->get_param ('PASS_DEF_QUERY');
-    #my $pass_def_query = {};
 
     my $valid_count = 0;
     
@@ -506,6 +520,8 @@ sub build_matrix_elements {
     ELEMENTS:
     foreach my $element2 (sort @$element_list2) {
         next ELEMENTS if $element1 eq $element2;
+        next ELEMENTS if $already_calculated{$element2};
+
         if ($pass_def_query) {  #  poss redundant check now
             my $null = undef;  #  debug
             next ELEMENTS
@@ -522,7 +538,8 @@ sub build_matrix_elements {
         my $value;
         MX:
         foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
-            last MX if defined $ofh; # we're writing to files so don't check
+            #last MX if $ofh;
+            
             my $x = $mx->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2
@@ -609,7 +626,13 @@ sub build_matrix_elements {
 
         # write results to file handles if supplied, otherwise store them
         if (defined $ofh) {
-            my $res_list = [$element1, $element2, $values->{$index}];
+            my $res_list = $output_gdm_format
+                ? [
+                   @{[$bd->get_group_element_as_array(element => $element1)]}[0,1],  #  need to generalise these
+                   @{[$bd->get_group_element_as_array(element => $element2)]}[0,1],
+                   $values->{$index}
+                   ]
+                : [$element1, $element2, $values->{$index}];
             my $text = $self->list2csv(
                 list       => $res_list,
                 csv_object => $csv_out,
@@ -632,6 +655,40 @@ sub build_matrix_elements {
     my $cache_size = scalar keys %$cache;
 
     return $valid_count;
+}
+
+#  We have been calculated
+#  if el2 is a neighbour of el1,
+#  and el1 has been processed.
+sub infer_if_already_calculated {
+    my $self = shift;
+    my %args = @_;
+
+    my $sp = $args{spatial_object};
+    my $element = $args{element};
+    my $processed_elements = $args{processed_elements};
+
+    my %already_calculated;
+    
+    return wantarray ? %already_calculated : \%already_calculated
+      if scalar @$processed_elements == 0;
+    
+    my $nbr_list_name = '_NBR_SET1';  #  need to generalise this, or pass as an arg (and make a method)
+    my $nbrs
+          = $sp->get_list_values (
+              element => $element,
+              list    => $nbr_list_name,
+              autovivify => 0,
+          )
+          || [];
+
+    NBR:
+    foreach my $nbr (@$nbrs) {
+        next NBR if ! defined (List::Util::first {$_ eq $nbr} @$processed_elements);
+        $already_calculated{$nbr} = 1;
+    }
+
+    return wantarray ? %already_calculated : \%already_calculated;
 }
 
 #  add the matrices to the basedata object

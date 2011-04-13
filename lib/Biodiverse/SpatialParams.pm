@@ -1433,7 +1433,7 @@ sub sp_match_regex {
     my $type = $args{type};
     $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
+    # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
     #my $coord = $h->{'@coord'};

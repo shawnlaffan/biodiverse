@@ -1383,6 +1383,12 @@ sub sp_match_text {
         $compcoord = $h->{'@nbrcoord'};
     }
 
+    #  (currently does not check negative offsets)
+    croak ("axis argument $args{axis} beyond array bounds, comparing with "
+        . join (q{ }, @$compcoord)
+        )
+      if $args{axis} > $#$compcoord;
+
     return $args{text} eq $compcoord->[ $args{axis} ];
 }
 
@@ -1445,8 +1451,11 @@ sub sp_match_regex {
         $compcoord = $h->{'@nbrcoord'};
     }
 
-    #my $y = $compcoord->[$args{axis}];
-    #my $x = $y =~ $args{re};
+    #  (currently does not check negative offsets)
+    croak ("axis argument $args{axis} beyond array bounds, comparing with "
+        . join (q{ }, @$compcoord)
+        )
+      if $args{axis} > $#$compcoord;
 
     return $compcoord->[ $args{axis} ] =~ $args{re};
 }

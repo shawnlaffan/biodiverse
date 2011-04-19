@@ -447,51 +447,90 @@ sub verify {
 
     if ($valid) {
 
+        my $basedata = $args{basedata};  #  should use this for the distances
+        my $bd = $args{basedata};
         #  a real bodge workaround - need to get these from metadata
-        my $bd = Biodiverse::BaseData->new (
-            CELL_SIZES => [1, 1, 1],
-        );
-        $bd->add_element (group => '1', label => 'a');
-        $bd->add_element (group => '2', label => 'b');
-
-        $args{caller_object} = $bd;
-        $args{coord_id1} = '1';
-        $args{coord_id2} = '2';
-        my $coord_id1 = $args{coord_id1};
-        my $coord_id2 = $args{coord_id2};
-
-        #  COMMENTED BLOCK is an attempt to simplify the generation of default
-        #  vars, but we have lexical scoping issues due to the for loop
-        #my $xx = $self -> get_dummy_distances;
-        #foreach my $key (keys %$xx) {
-        #    print "$key\n";
-        #    $key =~ /(^.)/;
-        #    my $type = $1;
-        #    my $str = 'my $key = ' . $type . '{$xx->{$key}}';
-        #    eval $str;
-        #    eval 'print "key is $key\n"';
-        #}
-
-        my $D = my $C = my $Dsqr = my $Csqr = 1;
-        my @D = my @C = (1) x 20;
-        my @d = my @c = (1) x 20;
-        my @coord = @d;
-        my ( $x, $y, $z ) = ( 1, 1, 1 );
-        my @nbrcoord = @d;
-        my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
-
-        #print "NBRS: ", $nbr_x, $nbr_y, $nbr_z, "\n";
-        $self->set_param( CURRENT_ARGS => peek_my(0) );
-
+        #my $bd = Biodiverse::BaseData->new (
+        #    CELL_SIZES => [1, 1, 1],
+        #);
+        #$bd->add_element (group => '1', label => 'a');
+        #$bd->add_element (group => '2', label => 'b');
+        #
+        #$args{caller_object} = $bd;
+        #$args{coord_id1} = '1';
+        #$args{coord_id2} = '2';
+        #my $coord_id1 = $args{coord_id1};
+        #my $coord_id2 = $args{coord_id2};
+        #
+        ##  COMMENTED BLOCK is an attempt to simplify the generation of default
+        ##  vars, but we have lexical scoping issues due to the for loop
+        ##my $xx = $self -> get_dummy_distances;
+        ##foreach my $key (keys %$xx) {
+        ##    print "$key\n";
+        ##    $key =~ /(^.)/;
+        ##    my $type = $1;
+        ##    my $str = 'my $key = ' . $type . '{$xx->{$key}}';
+        ##    eval $str;
+        ##    eval 'print "key is $key\n"';
+        ##}
+        #
+        #my $D = my $C = my $Dsqr = my $Csqr = 1;
+        #my @D = my @C = (1) x 20;
+        #my @d = my @c = (1) x 20;
+        #my @coord = @d;
+        #my ( $x, $y, $z ) = ( 1, 1, 1 );
+        #my @nbrcoord = @d;
+        #my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
+        #
+        #
+        ##print "NBRS: ", $nbr_x, $nbr_y, $nbr_z, "\n";
+        #$self->set_param( CURRENT_ARGS => peek_my(0) );
+        #
         $self->set_param( VERIFYING => 1 );
 
         my $conditions = $self->get_conditions;
 
-        my $result = eval $conditions;
-        my $error  = $EVAL_ERROR;
+        #my $result = eval $conditions;
+        #my $error  = $EVAL_ERROR;
+        #
+        ##  clear the args, avoid ref cycles
+        #$self->set_param( CURRENT_ARGS => undef );
+        
+        #  Get the first two elements
+        my $elements = $bd->get_groups;
+        my $element1 = $elements->[0];
+        my $element2 = $elements->[1];
 
-        #  clear the args, avoid ref cycles
-        $self->set_param( CURRENT_ARGS => undef );    
+        my $coord_array1 =
+           $bd->get_group_element_as_array (element => $element1);
+        my $coord_array2 =
+           $bd->get_group_element_as_array (element => $element2);
+
+        my %eval_args;   
+        if (eval {$self->is_def_query}) {  
+            %eval_args = (
+                coord_array1 => $coord_array2,
+                coord_id1    => $element2,
+                coord_id2    => $element2,
+            );
+        }
+        else {
+            %eval_args = (
+                coord_array1 => $coord_array1,
+                coord_array2 => $coord_array2,
+                coord_id1    => $element1,
+                coord_id2    => $element2,
+            );
+        }
+
+        my $cellsizes = $bd->get_param ('CELL_SIZES');
+        my $success = $self->evaluate (
+            %eval_args,
+            cellsizes     => $cellsizes,
+            caller_object => $bd,
+            basedata      => $bd,
+        );
+        my $error  = $EVAL_ERROR;
 
         if ($error) {
             $msg = "Syntax error:\n\n$EVAL_ERROR";
@@ -664,7 +703,7 @@ sub evaluate {
     );
 
     #  CHEATING... should use a generic means of getting at the caller object
-    my $basedata = $args{basedata}; 
+    my $basedata = $args{basedata} || $args{caller_object}; 
 
     my %dists;
 

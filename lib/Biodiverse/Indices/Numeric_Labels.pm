@@ -352,6 +352,7 @@ sub calc_numeric_label_dissimilarity {
     my ($sumX, $sum_absX, $sumXsqr, $count) = (undef, undef, undef, 0);
 
     #  should look into using PDL to handle this, as it will be much, much faster
+    #  (but it will use more memory, which will be bad for large label lists)
     BY_LABEL1:
     while (my ($label1, $count1) = each %{$label_list1}) {
 

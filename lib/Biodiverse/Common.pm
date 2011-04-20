@@ -22,7 +22,6 @@ use File::Basename;
 use POSIX;  #  make all the POSIX functions available to the spatial parameters
 use HTML::QuickTable;
 #use XBase;
-#use Class::ISA;
 use MRO::Compat;
 
 use Math::Random::MT::Auto;  
@@ -37,12 +36,6 @@ require Clone;
 our $VERSION = '0.16';
 
 my $EMPTY_STRING = q{};
-
-#use Exception::Class (
-#    'Biodiverse::MissingBasedataRef' => {
-#        description => 'Caller object is missing the basedata ref',
-#    },
-#);
 
 
 sub clone {
@@ -494,7 +487,9 @@ sub save_to {
     return;
 }
 
-sub save_to_storable {  #  dump the whole object to a Storable file.  Get the prefix from $self{PARAMS}, or some other default
+#  Dump the whole object to a Storable file.
+#  Get the prefix from $self{PARAMS}, or some other default.
+sub save_to_storable {  
     my $self = shift;
     my %args = @_;
 
@@ -514,7 +509,9 @@ sub save_to_storable {  #  dump the whole object to a Storable file.  Get the pr
     return $file;
 }
 
-sub save_to_xml {  #  dump the whole object to an xml file.  Get the prefix from $self{PARAMS}, or some other default
+#  Dump the whole object to an xml file.
+#  Get the prefix from $self{PARAMS}, or some other default.
+sub save_to_xml {  
     my $self = shift;
     my %args = @_;
 
@@ -535,8 +532,8 @@ sub save_to_xml {  #  dump the whole object to an xml file.  Get the prefix from
     return $file;
 }
 
-#  dump the whole object to a yaml file.
-#  Get the prefix from $self{PARAMS}, or some other default
+#  Dump the whole object to a yaml file.
+#  Get the prefix from $self{PARAMS}, or some other default.
 sub save_to_yaml {  
     my $self = shift;
     my %args = @_;
@@ -555,7 +552,8 @@ sub save_to_yaml {
     return $file;
 }
 
-sub dump_to_yaml {  #  dump a data structure to a yaml file.
+#  dump a data structure to a yaml file.
+sub dump_to_yaml {  
     my $self = shift;
     my %args = @_;
 
@@ -1725,40 +1723,6 @@ sub get_shared_hash_keys {
 }
 
 
-#  recurse through the ISA trees and extract the packages needed
-#  adapted from Devel::SymDump
-#  SUPERSEDED BY Class::ISA::self_and_super_path
-#sub get_isa_tree_flattened {
-#    my $self = shift;
-#    my %args = @_;
-#    my $package = $args{package} || blessed ($self);
-#
-#    my $depth = $args{depth} || 0;
-#
-#    $depth++;
-#    if ($depth > 100){
-#        warn "Deep recursion in ISA\n";
-#        return;
-#    }
-#
-#    my %results;
-#    # print "DEBUG: package[$package]depth[$depth]\n";
-#    #my $isaisa;
-#    no strict 'refs';
-#    foreach my $isaisa (@{"$package\::ISA"}) {
-#        $results{$isaisa} ++;
-#        my @next_level = $self -> get_isa_tree_flattened (package => $isaisa,
-#                                                          depth   => $depth
-#                                                         );
-#
-#        foreach my $subisa (@next_level) {
-#            $results{$isaisa} ++;
-#        }
-#
-#    }
-#    return wantarray ? keys %results : [keys %results];
-#}
-
 #  get a list of available subs (analyses) with a specified prefix
 #sub get_analyses {
 sub get_subs_with_prefix {
@@ -1768,8 +1732,6 @@ sub get_subs_with_prefix {
     my $prefix = $args{prefix};
     croak "prefix not defined\n" if not defined $prefix;
 
-    #my @tree = ((blessed $self), $self -> get_isa_tree_flattened);
-    #my @tree = Class::ISA::self_and_super_path($args{class} or blessed ($self));
     my $tree = mro::get_linear_isa($args{class} or blessed ($self));
 
     my $syms = Devel::Symdump->rnew(@$tree);

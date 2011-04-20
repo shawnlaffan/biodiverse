@@ -1335,12 +1335,7 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
         }
         #$string .= ",";
     }
-    #if ($self -> is_root_node) {  #  NO NEED TO CHECK THIS ANYMORE 
-    #    $string =~ s/,\)/\)/g;  #  strip commas adjacent to closing brackets
-    #    $string =~ s/,$//;      #  strip trailing comma
-    #    $string .= ")";         #  add closing bracket
-    #    $string = "($string)";  #  add surrounding brackets
-    #}
+
     return $string;
 }
 

@@ -1962,8 +1962,9 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         
         ELEMENT:
         foreach my $element (@{$args{$listname}}) {
-            #  deal with lazy array refs pointing
-            #  to longer lists than we have elements
+            #  Deal with lazy array refs pointing
+            #  to longer lists than we have elements.
+            #  Should really croak these days.
             next ELEMENT if ! defined $element;
 
             push (@label_list, $bd -> get_labels_in_group_as_hash (group => $element));

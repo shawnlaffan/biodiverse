@@ -13,7 +13,6 @@ use Math::Trig ':pi';
 use Math::Polygon;
 
 use Scalar::Util qw /looks_like_number blessed/;
-use Devel::Symdump;
 
 use base qw /Biodiverse::Common/;
 
@@ -449,52 +448,10 @@ sub verify {
 
         my $basedata = $args{basedata};  #  should use this for the distances
         my $bd = $args{basedata};
-        #  a real bodge workaround - need to get these from metadata
-        #my $bd = Biodiverse::BaseData->new (
-        #    CELL_SIZES => [1, 1, 1],
-        #);
-        #$bd->add_element (group => '1', label => 'a');
-        #$bd->add_element (group => '2', label => 'b');
-        #
-        #$args{caller_object} = $bd;
-        #$args{coord_id1} = '1';
-        #$args{coord_id2} = '2';
-        #my $coord_id1 = $args{coord_id1};
-        #my $coord_id2 = $args{coord_id2};
-        #
-        ##  COMMENTED BLOCK is an attempt to simplify the generation of default
-        ##  vars, but we have lexical scoping issues due to the for loop
-        ##my $xx = $self -> get_dummy_distances;
-        ##foreach my $key (keys %$xx) {
-        ##    print "$key\n";
-        ##    $key =~ /(^.)/;
-        ##    my $type = $1;
-        ##    my $str = 'my $key = ' . $type . '{$xx->{$key}}';
-        ##    eval $str;
-        ##    eval 'print "key is $key\n"';
-        ##}
-        #
-        #my $D = my $C = my $Dsqr = my $Csqr = 1;
-        #my @D = my @C = (1) x 20;
-        #my @d = my @c = (1) x 20;
-        #my @coord = @d;
-        #my ( $x, $y, $z ) = ( 1, 1, 1 );
-        #my @nbrcoord = @d;
-        #my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
-        #
-        #
-        ##print "NBRS: ", $nbr_x, $nbr_y, $nbr_z, "\n";
-        #$self->set_param( CURRENT_ARGS => peek_my(0) );
-        #
+
         $self->set_param( VERIFYING => 1 );
 
         my $conditions = $self->get_conditions;
-
-        #my $result = eval $conditions;
-        #my $error  = $EVAL_ERROR;
-        #
-        ##  clear the args, avoid ref cycles
-        #$self->set_param( CURRENT_ARGS => undef );
         
         #  Get the first two elements
         my $elements = $bd->get_groups;
@@ -524,6 +481,7 @@ sub verify {
         }
 
         my $cellsizes = $bd->get_param ('CELL_SIZES');
+
         my $success = $self->evaluate (
             %eval_args,
             cellsizes     => $cellsizes,
@@ -547,26 +505,6 @@ sub verify {
         );
     }
     return wantarray ? %hash : \%hash;
-}
-
-#  get a set of dummy distances for use in verify and parse subs
-sub get_dummy_distances {
-    my $self = shift;
-
-    my $D = my $C = my $Dsqr = my $Csqr = 1;
-    my @D = my @C = (1) x 20;
-    my @d = my @c = (1) x 20;
-    my @coord = @d;
-    my ( $x, $y, $z ) = ( 1, 1, 1 );
-    my @nbrcoord = @d;
-    my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
-
-    my $h = peek_my(0);
-    delete $h->{'$self'};
-    delete $h->{'$h'};
-
-    return $h;
-
 }
 
 #  calculate the distances between two sets of coords
@@ -852,34 +790,9 @@ sub get_index_max_dist {
 #  should put some checks in here?  or restructure the get_result_type to find both at once
 }
 
-#  get a list of the all the publicly available analyses - those starting with "sp_".
-sub _get_analyses {
-    my $self = shift;
 
-#  have to build the ISA tree, as Devel::Symdump::rnew seems not to use it
-#my $tree = "Biodiverse::Indices" . Devel::Symdump::_isa_tree ("Biodiverse::Indices");
-
-    #my @tree = ( blessed($self), $self->get_isa_tree_flattened );
-    my @tree = Class::ISA::self_and_super_path(blessed ($self));
-
-    #my $tst = Devel::Symdump -> rnew (__PACKAGE__);
-    #my $tst2 = $tst -> isa_tree (__PACKAGE__);
-    #my @tst_tree = split /\s+/, $tst2;
-    #my $tree = __PACKAGE__ . Devel::Symdump::_isa_tree (__PACKAGE__);
-    #my @tree = split (/\s+/, $tree);
-
-    my $syms = Devel::Symdump->rnew(@tree);
-    my %analyses;
-    foreach my $analysis ( sort $syms ->functions ) {
-        next if $analysis !~ /^.*::sp_/;
-        $analysis =~ s/(.*::)*//;    #  clear the package stuff
-        $analyses{$analysis}++;
-    }
-
-    return wantarray ? %analyses : \%analyses;
-}
-
-#  now for a set of shortcut subs so people don't have to learn perl syntax,
+################################################################################
+#  now for a set of shortcut subs so people don't have to learn so much perl syntax,
 #    and it doesn't have to guess things
 
 #  process still needs thought - eg the metadata

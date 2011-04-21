@@ -10,6 +10,7 @@ use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use IO::File;
+use File::BOM qw /:subs/;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 
@@ -715,35 +716,39 @@ sub import_data {  #  load a data file into the selected BaseData object.
         my @tmp = File::Basename::fileparse ($file, $EMPTY_STRING);
         my $file_base = shift @tmp;
         my $file_handle = IO::File -> new;
-        
+
         if (-e $file and -r $file) {
-            $file_handle -> open ($file, '<');
+            $file_handle -> open ($file, '<:via(File::BOM)');
         }
         else {
             croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n";
         }
-        
+
+        #my $file_start_pos = tell $file_handle;
+        #warn "File start pos is $file_start_pos\n";
+
         my $file_size_Mb
             = $self -> set_precision (
                 precision => "%.3f",
                 value => (-s $file)
             )
             / $bytes_per_MB;
-        
-        my $input_binary = $args{binary};  #  a boolean flag for Text::CSV_XS
-        $input_binary = 1 if not defined $input_binary;
 
-        #  get the header line, assumes no binary chars in it.
-        #  If there are then there is something really wrong with the file
-        my $header = $file_handle -> getline;  
-        #  could be futile - the read operator uses $/,
-        #  although \r\n will be captured
-        #  should really seek to end of file and then read back a few chars,
-        #  assuming that's faster
+        my $input_binary = $args{binary};  #  a boolean flag for Text::CSV_XS
+        if (not defined $input_binary) {
+            $input_binary = 1;
+        }
+
+        #  Get the header line, assumes no binary chars in it.
+        #  If there are then there is something really wrong with the file.
+        my $header = $file_handle->getline;
+        #  Could be futile - the read operator uses $/,
+        #  although \r\n will be captured.
+        #  Should really seek to end of file and then read back a few chars,
+        #  assuming that's faster.
         my $eol = $self -> guess_eol (string => $header);
         my $eol_char_len = length ($eol);
-        #local $/ = $eol;
-        
+
         #  for progress bar stuff
         my $size_comment
             = $file_size_Mb > 10
@@ -751,33 +756,31 @@ sub import_data {  #  load a data file into the selected BaseData object.
               . "(it is still working if the progress bar is not moving)" 
             : $EMPTY_STRING;
 
-    
         my $input_quotes = $args{input_quotes};
         #  guess the quotes character?
         if (not defined $input_quotes or $input_quotes eq 'guess') {  
             #  read in a chunk of the file
-            #my $posn = $file_handle -> tell;
-            my $first_10000_chars = $EMPTY_STRING;
-            my $count_chars = $file_handle -> read ($first_10000_chars, 10000);
-            my $dropout = 0;
-            while (not $dropout) {  #  strip trailing chars until we get $eol at the end
-                                    #  not perfect for CSV if embedded newlines, but it's a start
-                if ($first_10000_chars =~ /$eol$/) {
-                    $dropout = 1;
-                }
-                else {
-                    chop $first_10000_chars;
-                }
+            my $first_10000_chars;
+
+            my $fh2 = IO::File->new;
+            $fh2->open ($file, '<:via(File::BOM)');
+            my $count_chars = $fh2->read ($first_10000_chars, 10000);
+            $fh2->close;
+
+            #  Strip trailing chars until we get $eol at the end.
+            #  Not perfect for CSV if embedded newlines, but it's a start.
+            while (length $first_10000_chars) {
+                last if ($first_10000_chars =~ /$eol$/);
+                chop $first_10000_chars;
             }
-            #$file_handle -> seek ($posn, 0);  #  back to the start of the first data line
-            #print "Moved back to position ", $file_handle -> tell, " from $posn\n";
-            
+
             $input_quotes = $self -> guess_quote_char (string => \$first_10000_chars);
             #  if all else fails...
-            $input_quotes = $self -> get_param ('QUOTES') if ! defined $input_quotes;
+            if (! defined $input_quotes) {
+                $input_quotes = $self -> get_param ('QUOTES');
+            }
         }
-        $file_handle -> seek (0, 0);  #  go back to the start
-        
+
         my $sep = $args{input_sep_char};
         if (not defined $sep or $sep eq "guess") {
             $sep = $self -> guess_field_separator (
@@ -785,7 +788,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
                 quote_char => $input_quotes
             );
         }
-        
+
         my $in_csv = $self -> get_csv_object (
             sep_char   => $sep,
             quote_char => $input_quotes,
@@ -796,17 +799,13 @@ sub import_data {  #  load a data file into the selected BaseData object.
             quote_char => $quotes,
         );
 
-
         my $lines = $self -> get_next_line_set (
-            #progress           => $progress_bar,
             file_handle        => $file_handle,
             file_name          => $file,
             target_line_count  => $lines_to_read_per_chunk,
             csv_object         => $in_csv,
         );
 
-        my $header_array = shift @$lines;
-        
         #  parse the header line if we are using a matrix format file
         my $matrix_label_col_hash = {};
         if ($args{data_in_matrix_form}) {
@@ -823,7 +822,10 @@ sub import_data {  #  load a data file into the selected BaseData object.
             if (ref $label_end_col) {  
                 $label_end_col = $label_end_col->[-1];
             }
-            
+            my $header_array = $self->csv2list (
+                csv_object => $in_csv,
+                string     => $header,
+            );
             $matrix_label_col_hash
                 = $self -> get_label_columns_for_matrix_import  (
                     csv_object       => $out_csv,
@@ -970,8 +972,8 @@ sub import_data {  #  load a data file into the selected BaseData object.
                     elsif (! looks_like_number ($coord)) {
                         #next BYLINE if $skip_lines_with_undef_groups;
                         
-                        croak "[BASEDATA] Non-numeric cell size field $column,"
-                             . " check your data or cellsize arguments.\n"
+                        croak "[BASEDATA] Non-numeric group field in column $column"
+                             . " ($coord), check your data or cellsize arguments.\n"
                              . "near line $line_num of file $file\n";
                     }
                 }

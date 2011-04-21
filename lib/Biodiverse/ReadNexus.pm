@@ -10,6 +10,7 @@ use Carp;
 use English ( -no_match_vars );
 
 use Scalar::Util qw /looks_like_number/;
+use File::BOM qw / :subs /;
 
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
@@ -330,7 +331,7 @@ sub read_whole_file {
 
     #  now we open the file and suck it al in
     my $fh;
-    open ($fh, '<', $file)
+    open ($fh, '<:via(File::BOM)', $file)
       || croak "[READNEXUS] cannot open $file for reading\n";
 
     local $/ = undef;

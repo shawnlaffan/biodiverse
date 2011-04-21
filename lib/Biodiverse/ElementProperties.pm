@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Carp;
 use Scalar::Util qw/looks_like_number/;
+use File::BOM qw /:subs/;
 
 use Biodiverse::Exception;
 
@@ -129,22 +130,20 @@ sub import_data {
     }
     
     my $whole_file;
-    open (my $fh, $file) || croak "Cannot open file $file\n";
+    open (my $fh1, '<:via(File::BOM)', $file) || croak "Cannot open file $file\n";
     
-    my $header = <$fh>;
+    my $header = <$fh1>;
     
     do {
         local $/ = undef;  #  slurp whole file
-        $whole_file = <$fh>;
+        $whole_file = <$fh1>;
         #close $fh;
     };
-    
-    $fh -> seek (0, 0);  #  rewind
+    $fh1->close;
     
     my $quotes = $self -> get_param ('QUOTES');  #  for storage, not import
     my $el_sep = $self -> get_param ('JOIN_CHAR');
-    
-    
+
     if (not defined $input_quotes or $input_quotes eq 'guess') {
         #  guess the quotes character
         $input_quotes = $self->guess_quote_char (string => \$whole_file);
@@ -171,10 +170,10 @@ sub import_data {
         sep_char => $el_sep,
         quote_char => $quotes,
     );
-    
-    #my @lines = split ($eol, $whole_file);
-    
+
     my $lines_to_read_per_chunk = 50000;
+
+    open (my $fh, '<:via(File::BOM)', $file) || croak "Cannot open file $file\n";
     
     my $lines = $self -> get_next_line_set (
         progress            => $args{progress_bar},
@@ -187,8 +186,7 @@ sub import_data {
     shift @$lines;  #  remove header
     
     my @element_order;
-    #my %hash;
-    #my (%range_hash, %sample_count_hash, %exclude_hash, %include_hash);
+
     while (my $FldsRef = shift @$lines) {
 
         if (scalar @$lines == 0) {
@@ -201,12 +199,10 @@ sub import_data {
             );
         }
 
-
         my $element = $self -> list2csv (
             list       => [@$FldsRef[@$in_cols]],
             csv_object => $csv_out,
         );
-
 
         my $hash;  #  list to store the properties
 
@@ -234,8 +230,7 @@ sub import_data {
                         csv_object => $csv_out,
                     )
                     : undef;
-        
-        
+
         #  check the remap value is valid (need to test for quotes?)
         my $null_entry = $el_sep x $#remap;
         $hash->{REMAP} = $remapped unless (
@@ -244,7 +239,7 @@ sub import_data {
             $remapped eq $null_entry or                 #  contains only the join char
             $remapped eq $element                       #  remapping to self, no need to store
         );
-        
+
         my $include;
         if (defined $include_cols and scalar @$include_cols) {
             $include = 0;  #  default to not include
@@ -282,7 +277,7 @@ sub import_data {
                 }
             }
         }
-        
+
         $hash->{INCLUDE} = $include if defined $include_cols;
         $hash->{EXCLUDE} = $exclude if defined $exclude_cols;
 
@@ -300,10 +295,10 @@ sub import_data {
         my @remap_history;
         my %r_hash;
         my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
-        
+
         my $props_orig = $props;
         my $element_orig = $element;
-        
+
         REMAP:
         while (exists $props->{REMAP} and defined $props->{REMAP}) {
             if (exists $r_hash{$element} or $element eq $props->{REMAP}) {
@@ -311,19 +306,19 @@ sub import_data {
                 last;  #  avoid circular remaps
             }
             $r_hash{$element}++;
-            
+
             $element = $props->{REMAP};
             push @remap_history, $element;
-            
+
             #  drop out if we have no props for this remapped element
             last REMAP if !$self->exists_element(element => $element);
-            
+
             #  get the properties of this next remapped element
             $props = $self->get_list_ref (
                 element => $element,
                 list    => 'PROPERTIES',
             );
-            
+
             if ($#remap_history == 10) {
                 warn "[BASEDATA] Element remap of >=10 interchanges\n";
             }
@@ -343,8 +338,6 @@ sub import_data {
     
     return 1;
 }
-
-
 
 sub get_element_properties {
     my $self = shift;

@@ -12,6 +12,7 @@ use File::Basename;
 use Gtk2;
 use Gtk2::GladeXML;
 use Text::Wrapper;
+use File::BOM qw / :subs /;
 
 use Scalar::Util qw /reftype/;
 
@@ -122,28 +123,27 @@ sub run {
     # Get header columns
     print "[GUI] Discovering columns from $filenames[0]\n";
     
-    my $open_success = open (my $fh, '<', $filenames[0]);
-    
+    my $open_success = open (my $fh, '<:via(File::BOM)', $filenames[0]);
     my $line = <$fh>;
     close ($fh);
 
     my $sep     = $import_params{input_sep_char} eq 'guess' 
                 ? $gui->getProject->guess_field_separator (string => $line)
                 : $import_params{input_sep_char};
-            
+
     my $quotes  = $import_params{input_quote_char} eq 'guess'
                 ? $gui->getProject->guess_quote_char (string => $line)
                 : $import_params{input_quote_char};
             
     my $eol     = $gui->getProject->guess_eol (string => $line);
-    
+
     my @header  = $gui->getProject->csv2list(
         string      => $line,
         quote_char  => $quotes,
         sep_char    => $sep,
         eol         => $eol,
     );
-    
+
     #  R data frames are saved missing the first field in the header
     my $is_r_data_frame = check_if_r_data_frame (
         file     => $filenames[0],
@@ -158,9 +158,7 @@ sub run {
     my $use_matrix = $import_params{data_in_matrix_form};
     my $col_names_for_dialog = \@header;
     my $col_options = undef;
-    #my $mx_group_cols = undef;
-    #my $matrix_start_col = undef;
-    
+
     if ($use_matrix) {
         $col_options = [qw /
             Ignore
@@ -172,7 +170,7 @@ sub run {
             Exclude_columns
         /];
     }
-    
+
     #########
     # 2. Get column types (using first file...)
     #########
@@ -388,7 +386,7 @@ sub check_if_r_data_frame {
     my $csv = $package -> get_csv_object (@_);
     
     my $fh;
-    open ($fh, '<', $args{file})
+    open ($fh, '<:via(File::BOM)', $args{file})
         || croak "Unable to open file $args{file}\n";
 
     my @lines = $package -> get_next_line_set (
@@ -1235,7 +1233,7 @@ sub getRemapInfo {
     # Get header columns
     print "[GUI] Discovering columns from $filename\n";
     
-    open (my $input_fh, '<', $filename)
+    open (my $input_fh, '<:via(File::BOM)', $filename)
       || croak "Cannot open $filename\n";
 
     my ($line, $line_unchomped);

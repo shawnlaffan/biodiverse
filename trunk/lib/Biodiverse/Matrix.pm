@@ -13,15 +13,13 @@ use English ( -no_match_vars );
 
 use Carp;
 use Data::Dumper;
-#use Data::DumpXML::Parser;
 use Scalar::Util qw /looks_like_number/;
-#use Biodiverse::Common;
+use File::BOM qw /:subs/;
 
 my $EMPTY_STRING = q{};
 
 #  access the miscellaneous functions as methods
 use base qw /Biodiverse::Common/; 
-
 
 sub new {
     my $class = shift;
@@ -735,26 +733,26 @@ sub load_data {
     my $values_start_col = ($self->get_param('MATRIX_STARTCOL') || $label_columns[-1] + 1);
 
     print "[MATRICES] INPUT MATRIX FILE: $file\n";
-    open (my $fh, '<', $file) || croak "Could not open $file for reading\n";
-    my $header = <$fh>;  #  get header line
-    
+    open (my $fh1, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
+    my $header = <$fh1>;  #  get header line
+    $fh1->close;
+
     my $in_sep_char = $args{sep_char};
     if (! defined $in_sep_char) {
         $in_sep_char = $self -> guess_field_separator (string => $header);
     }
     my $eol = $self -> guess_eol (string => $header);
-    
-    $fh -> seek (0, 0);  #  go back to the beginning, as the header is often important to us
-    
+
+    #  Re-open the file as the header is often important to us
+    #  (seeking back to zero causes probs between File::BOM and Text::CSV_XS)
+    open (my $fh2, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
     my $whole_file;
     do {
         local $/ = undef;  #  slurp whole file
-        $whole_file = <$fh>;
+        $whole_file = <$fh2>;
     };
-    $fh -> seek (0,0);  #  go back to the beginning
+    $fh2->close();  #  go back to the beginning
 
-    #my @lines = split ($eol, $whole_file);
-    
     my $input_quotes = $args{input_quotes};
     if (! defined $input_quotes) {  #  guess the quotes character
         $input_quotes = $self -> guess_quote_char (string => \$whole_file);
@@ -778,7 +776,9 @@ sub load_data {
     );
     
     my $lines_to_read_per_chunk = 50000;  #  needs to be a big matrix to go further than this
-    
+
+    open (my $fh, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
+
     my $lines = $self -> get_next_line_set (
         progress            => $args{progress_bar},
         file_handle         => $fh,
@@ -817,10 +817,6 @@ sub load_data {
         $valid_col_index ++;
 
         #  get the label for this row
-        #my @tmp;
-        #foreach my $column (@label_columns) {  #  build the list of label columns
-        #    push (@tmp, $flds_ref->[$column]);
-        #}
         my @tmp = @$flds_ref[@label_columns];  #  build the label from the relevant slice
         my $label = $self->list2csv (
             list       => \@tmp,
@@ -854,13 +850,8 @@ sub load_data {
         push @data, $flds_ref;
         push @cols_to_use, $valid_col_index;
 
-        #  OLD STUFF symmetric matrix, lower left side only, so we can read in with names as we go.
-        #for (my $i = $values_start_col; $i < $IDcount + $values_start_col; $i++) {
-        
         $IDcount++;
-
     }
-
 
     #  now we build the matrix, skipping lower left values if it is symmetric
     my $text_allowed = $self -> get_param ('ALLOW_TEXT');
@@ -877,30 +868,28 @@ sub load_data {
             
             my $label = $labelList{$label_count};
             my $label2 = $labelList{$i};
-            next BY_FIELD
+            next BY_FIELD  #  skip if in the matrix and already defined
                 if defined 
-                    $self -> get_value (element1 => $label,
-                                        element2 => $label2,
-                                        )
-                ;  #  skip if in the matrix and already defined
-            
-            $self -> add_element (element1 => $label,
-                                  element2 => $label2,
-                                  value => $flds_ref->[$i],
-                                  );
+                    $self -> get_value (
+                        element1 => $label,
+                        element2 => $label2,
+                    );
+
+            $self -> add_element (
+                element1 => $label,
+                element2 => $label2,
+                value    => $flds_ref->[$i],
+            );
         }
         $label_count ++;
     }
-
 
     return;
 }
 
 sub numerically {$a <=> $b};
 
-
 1;
-
 
 
 __END__

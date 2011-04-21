@@ -5,6 +5,8 @@ use warnings;
 use File::Basename;
 use Carp;
 
+use File::BOM qw / :subs /;
+
 use Gtk2;
 use Gtk2::GladeXML;
 
@@ -34,7 +36,7 @@ sub run {
     
     my $line;
     
-    open (my $fh, '<', $filename) || croak "Unable to open $filename\n";
+    open (my $fh, '<:via(File::BOM)', $filename) || croak "Unable to open $filename\n";
 
     BY_LINE:
     while (<$fh>) { # get first non-blank line

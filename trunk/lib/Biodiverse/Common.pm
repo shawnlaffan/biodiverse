@@ -367,7 +367,7 @@ BEGIN {
         if (-e $ENV{BIODIVERSE_DEFAULT_PARAMS}) {
             print " from file $ENV{BIODIVERSE_DEFAULT_PARAMS}\n";
             local $/ = undef;
-            open (my $fh, $ENV{BIODIVERSE_DEFAULT_PARAMS});
+            open (my $fh, '<', $ENV{BIODIVERSE_DEFAULT_PARAMS});
             $x = eval (<$fh>);
             close ($fh);
         }
@@ -525,7 +525,7 @@ sub save_to_xml {
 
     print "[COMMON] WRITING TO FILE $file\n";
 
-    open (my $fh, ">$file");
+    open (my $fh, '>', $file);
     print $fh dump_xml ($self);
     $fh -> close;
 
@@ -907,13 +907,17 @@ sub csv2list {  #  return a list of values from a csv string
         @Fld = $csv_obj->fields;
     }
     else {
+        if (length $string > 50) {
+            $string = substr $string, 0, 50;
+            $string .= '...';
+        }
         my $error_string = join (
             $EMPTY_STRING,
             "csv2list parse() failed on string $string\n",
             $csv_obj->error_input,
             "\nline $.\nQuote Char is ",
             $csv_obj->quote_char,
-            "sep char is ",
+            "\nsep char is ",
             $csv_obj->sep_char,
             "\nSkipping\n",
         );
@@ -1375,10 +1379,11 @@ sub guess_field_separator {
         my @flds = $self -> csv2list (
             %args,
             sep_char => $sep,
-            eol => $eol,
+            eol      => $eol,
         );
-        $sep_count{$#flds} = $sep if $#flds;  #  need two or more fields to result
-
+        if ($#flds) {
+            $sep_count{$#flds} = $sep;  #  need two or more fields to result
+        }
         $i++;
     }
     #  now we sort the keys, take the highest and use it as the

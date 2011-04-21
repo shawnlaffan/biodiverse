@@ -5,6 +5,8 @@ use warnings;
 use English ( -no_match_vars );
 
 use File::Basename;
+use File::BOM qw / :subs /;
+
 use Gtk2;
 use Gtk2::GladeXML;
 use Biodiverse::ReadNexus;
@@ -127,7 +129,7 @@ sub getRemapInfo {
     print "[GUI] Discovering columns from $filename\n";
     my $line;
     
-    open (my $fh, $filename);
+    open (my $fh, '<:via(File::BOM)', $filename);
     while (<$fh>) { # get first non-blank line
         $line = $_;
         chomp $line;

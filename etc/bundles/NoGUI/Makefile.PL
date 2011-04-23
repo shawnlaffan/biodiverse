@@ -31,5 +31,7 @@ WriteMakefile(
         "Exception::Class" => "0",
         "Math::Polygon" => "0",
         "MRO::Compat" => "0",
+	"File::BOM" => "0",
+	'Math::Polygon" => "0",
     }
 );

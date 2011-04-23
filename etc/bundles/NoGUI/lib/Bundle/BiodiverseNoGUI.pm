@@ -68,7 +68,12 @@ Exception::Class
 
 Math::Polygon
 
-MRO::Compat;
+MRO::Compat
+
+File::BOM
+
+Math::Polygon
+
 
 =head1 DESCRIPTION
 

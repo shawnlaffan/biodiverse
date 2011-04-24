@@ -1943,8 +1943,11 @@ sub get_list_values {
     return %{$self->{ELEMENTS}{$element}{$list}}
       if ref($self->{ELEMENTS}{$element}{$list}) =~ /HASH/;
 
-    return sort @{$self->{ELEMENTS}{$element}{$list}}   #  SWL 15Feb2011: should this always sort?
-      if ref($self->{ELEMENTS}{$element}{$list}) =~ /ARRAY/;
+    if (ref($self->{ELEMENTS}{$element}{$list}) =~ /ARRAY/) {
+        #  SWL 15Feb2011: should this always sort?
+        my @list = sort @{$self->{ELEMENTS}{$element}{$list}};
+        return @list;
+    }
 
     return;
 }

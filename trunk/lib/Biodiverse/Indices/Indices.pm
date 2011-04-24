@@ -1967,7 +1967,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
             #  Should really croak these days.
             next ELEMENT if ! defined $element;
 
-            push (@label_list, $bd -> get_labels_in_group_as_hash (group => $element));
+            push (@label_list, $bd->get_labels_in_group_as_hash (group => $element));
             push @checked_elements, $element;
         }
         if ($args{count_labels}) {
@@ -2015,9 +2015,9 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         }
 
         if ($args{count_labels} || $args{count_samples}) {
-            foreach $label (@{$args{$listname}}) {
-                $label_list_master{$label}++;
-                $label_list{$iter}{$label}++;
+            foreach my $lbl (@{$args{$listname}}) {
+                $label_list_master{$lbl}++;
+                $label_list{$iter}{$lbl}++;
             }
         }
         else {

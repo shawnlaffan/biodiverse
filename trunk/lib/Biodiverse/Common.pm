@@ -216,8 +216,8 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
     my $self = shift;
     my %args = @_;
 
-    open (my $fh, $args{file}) || croak ("Cannot open $args{file}\n");
-    
+    open (my $fh, '<', $args{file}) || croak ("Cannot open $args{file}\n");
+
     local $/ = undef;
     my $data = <$fh>;
     $fh -> close;

@@ -854,17 +854,18 @@ sub setAnalysis {
     }
     $self->{last_analysis_drawn} = $analysis;
 
-    my $check_min = 1 if ! defined $min;
-    my $check_max = 1 if ! defined $max;
+    my $check_min = defined $min ? 1 : 0;
+    my $check_max = defined $max ? 1 : 0;
+
     # Find max and min values
     #print "[Grid] Calculating min/max\n";
     if ($check_min || $check_max) {
         foreach my $cell (values %{$self->{cells}}) {
             my $val = $cell->[INDEX_VALUES]{$analysis};
-    
+
             #my $elt = $cell->[INDEX_ELEMENT];
             #print "\t$elt: $val\n";
-            
+
             # Sometimes have no value!
             if (defined $val) {
                 $min = $val if ( $check_min && ((not defined $min) || $val < $min));

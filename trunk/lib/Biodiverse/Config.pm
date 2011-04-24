@@ -60,19 +60,12 @@ sub add_lib_paths {
         }
         push @lib_paths, split $sep, $ENV{$var};
     }
-
-    #  next section commented out - 'use mylib;' makes it redundant
-    #  add the biodiverse lib path if not there already (and at the front)
-    #my $bd_path =
-    #  File::Spec->rel2abs( File::Spec->catfile( $FindBin::Bin, q{..}, 'lib' ) );
-    #
-    ##print "$bd_path\n";
-    #
-    #unshift @lib_paths, $bd_path;
     
     print join q{ }, @lib_paths, "\n";
 
     use lib @lib_paths;
+
+    return;
 }
 
 #  load all the relevant user defined libs into their respective packages
@@ -91,7 +84,7 @@ sub use_base {
         }
     }
     my %check_packages;
-    
+
     print "[USE_BASE] Checking and loading user modules";
     my $x;
     if (-e $file) {
@@ -118,7 +111,6 @@ sub use_base {
     }
     @check_packages{keys %$x} = values %$x if (ref $x) =~ /HASH/;
 
-    
     foreach my $package (keys %check_packages) {
         my @packs = @{$check_packages{$package}};
         my $pack_list = join (q{ }, @packs);
@@ -127,9 +119,9 @@ sub use_base {
         #print "$cmd\n";
         eval $cmd;
         warn $EVAL_ERROR if $EVAL_ERROR;
-        
-        #print @{$package::ISA};
     }
+
+    return;
 }
 
 1;

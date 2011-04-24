@@ -501,13 +501,13 @@ sub getMaskRects {
     # Create regions for all selected rows and columns
     my $row_reg = Gtk2::Gdk::Region->new;
     my $col_reg = Gtk2::Gdk::Region->new;
-    my ($sel, $rect);
+    my $rect;
 
-    foreach $sel (@$sel_rows) {
+    foreach my $sel (@$sel_rows) {
         $rect = Gtk2::Gdk::Rectangle->new(0, $sel * CELL_SIZE, $side_length, CELL_SIZE);
         $row_reg->union_with_rect($rect);
     }
-    foreach $sel (@$sel_cols) {
+    foreach my $sel (@$sel_cols) {
         $rect = Gtk2::Gdk::Rectangle->new($sel * CELL_SIZE, 0, CELL_SIZE, $side_length);
         $col_reg->union_with_rect($rect);
     }

@@ -1756,15 +1756,19 @@ sub get_group_sample_count {  #  I'm rather enjoying these cheat methods...
     return $self -> get_groups_ref -> get_sample_count(@_);
 }
 
-sub get_range { #  get the range as defined by the user,
-                #  or based on the variety of groups this labels occurs in
-                #  take the max if range is < vairety
+#  get the range as defined by the user,
+#  or based on the variety of groups this labels occurs in
+#  take the max if range is < variety
+sub get_range {
     my $self = shift;
     
     my $labels_ref = $self -> get_labels_ref;
     
-    my $props = $labels_ref -> get_list_values (@_, list => "PROPERTIES");
-    my %props = %$props if ((ref $props) =~ /HASH/); #  make a copy - avoid auto-viv.  break otherwise
+    my $props = $labels_ref -> get_list_values (@_, list => 'PROPERTIES');
+    my %props;
+    if ((ref $props) =~ /HASH/) {
+        %props = %$props ; #  make a copy - avoid auto-viv.  break otherwise
+    }
     
     my $variety = $labels_ref -> get_variety (@_);
     

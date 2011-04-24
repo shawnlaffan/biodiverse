@@ -19,7 +19,6 @@ use Scalar::Util qw /reftype/;
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
 
 use Biodiverse::GUI::Project;
-#use Biodiverse::GUI::ProgressDialog;
 use Biodiverse::ElementProperties;
 
 #  for use in check_if_r_data_frame

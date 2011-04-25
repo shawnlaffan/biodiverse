@@ -708,6 +708,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
 
 
     my $line_count_all_input_files = 0;
+    my $orig_group_count = $self->get_group_count;
 
     #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file (@{$args{input_files}}) {
@@ -723,9 +724,6 @@ sub import_data {  #  load a data file into the selected BaseData object.
         else {
             croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n";
         }
-
-        #my $file_start_pos = tell $file_handle;
-        #warn "File start pos is $file_start_pos\n";
 
         my $file_size_Mb
             = $self -> set_precision (
@@ -1176,6 +1174,14 @@ sub import_data {  #  load a data file into the selected BaseData object.
     
     #  clear the rtree if one exists (used for plotting)
     $groups_ref -> delete_param ('RTREE');
+    
+    #  now rebuild the index if need be
+    if (    $orig_group_count != $self->get_group_count
+        and $self -> get_param ('SPATIAL_INDEX')
+        ) {
+        $self->rebuild_spatial_index();
+    }
+
 
     return 1;  #  success
 }

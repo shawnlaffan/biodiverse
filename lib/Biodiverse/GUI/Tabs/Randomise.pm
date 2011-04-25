@@ -68,9 +68,11 @@ sub new {
     $self->{tab_menu_label} = $label_widget;
     
     # Add to notebook
-    $self->{notebook} = $self->{gui}->getNotebook();
-    $self->{page_index} = $self->{notebook}->append_page_menu($page, $label, $label_widget);
+    $self->{notebook}   = $self->{gui}->getNotebook();
+    $self->{notebook}->append_page_menu($page, $label, $label_widget);
+    $self->{page}       = $page;
     $self->{gui}->addTab($self);
+    
     
     $self->set_tab_reorderable($page);
 

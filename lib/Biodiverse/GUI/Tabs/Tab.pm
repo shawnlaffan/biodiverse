@@ -11,12 +11,18 @@ use Carp;
 
 sub getPageIndex {
     my $self = shift;
-    return $self->{page_index};
+    my $page = shift || $self->{page};
+    my $index = $self->{notebook}->page_num($page);
+    return $index;
 }
 
 sub setPageIndex {
     my $self = shift;
-    $self->{page_index} = shift;
+    
+    #  no-op now
+    #$self->{page_index} = shift;
+    
+    return;
 }
 
 sub get_base_ref {
@@ -59,17 +65,16 @@ sub remove {
     if (exists $self->{current_registration}) {  #  deregister if necessary
         $self->{project}->registerInOutputsModel($self->{current_registration}, undef);
     }
-    $self->{notebook}->remove_page( $self->{page_index} );
+    $self->{notebook}->remove_page( $self->getPageIndex );
 
     return;
 }
 
 sub set_tab_reorderable {
     my $self = shift;
-    my $page = shift;
+    my $page = shift || $self->{page};
 
-    #  need to handle the page index changes before enabling this
-    #$self->{notebook}->set_tab_reorderable($page, 1);
+    $self->{notebook}->set_tab_reorderable($page, 1);
 
     return;
 }

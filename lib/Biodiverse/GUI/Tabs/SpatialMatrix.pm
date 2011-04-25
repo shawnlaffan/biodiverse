@@ -11,12 +11,9 @@ use Carp;
 use Scalar::Util qw /blessed looks_like_number/;
 
 use Biodiverse::GUI::GUIManager;
-#use Biodiverse::GUI::ProgressDialog;
 use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Overlays;
 use Biodiverse::GUI::Project;
-#use Biodiverse::GUI::SpatialParams;
-#use Biodiverse::GUI::Tabs::AnalysisTree;
 
 use Biodiverse::Matrix;  #  needed?
 use Data::Dumper;
@@ -69,10 +66,12 @@ sub new {
     $self->{tab_menu_label} = $label_widget;
 
     # Add to notebook
-    $self->{notebook} = $self->{gui}->getNotebook();
-    $self->{page_index} = $self->{notebook}->append_page_menu($page, $label, $label_widget);
+    $self->{notebook}   = $self->{gui}->getNotebook();
+    $self->{notebook}->append_page_menu($page, $label, $label_widget);
+    $self->{page}       = $page;
     $self->{gui}->addTab($self);
     
+
     $self->set_tab_reorderable($page);
     
     my ($elt_count, $completed);  #  used to control display

@@ -36,12 +36,14 @@ sub new {
 
     my $page  = $self->{xmlPage} ->get_widget('hboxOutputsPage');
     my $label = $self->{xmlLabel}->get_widget('hboxOutputsLabel');
+    my $menu_label = Gtk2::Label->new ('Outputs tab');
 
     # Add to notebook
     $self->{notebook}   = $self->{gui}->getNotebook();
-    $self->{page_index} = $self->{notebook}->prepend_page($page, $label);
+    $self->{page_index} = $self->{notebook}->prepend_page_menu($page, $label, $menu_label);
     $self->{gui}->addTab($self);
 
+    $self->set_tab_reorderable($page);
 
     # Initialise the tree
     my $tree = $self->{xmlPage}->get_widget('outputsTree');

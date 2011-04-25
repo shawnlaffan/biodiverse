@@ -118,6 +118,8 @@ sub init {
 
     # Notebook...
     $self->{notebook} = Gtk2::Notebook->new;
+    $self->{notebook}->set_scrollable(1);
+    $self->{notebook}->popup_enable;
     $self->{notebook}->signal_connect_swapped(
         'switch-page',
         \&onSwitchTab,
@@ -582,11 +584,11 @@ sub doRenameBasedata {
     if ($response eq 'ok') {
         my $chosen_name = $txtName->get_text;
         $self->{project}->renameBaseData($chosen_name);
-        
+
         my $tab_was_open;
         foreach my $tab (@{$self->{tabs}}) {
-            my $reg_ref = $tab->get_base_ref;
-            
+            my $reg_ref = eval {$tab->get_base_ref};
+
             if (defined $reg_ref and $reg_ref eq $bd) {
                 #$tab -> update_current_registration ($object);
                 $tab -> update_name ('Labels - ' . $chosen_name);

@@ -587,6 +587,10 @@ sub doRenameBasedata {
 
         my $tab_was_open;
         foreach my $tab (@{$self->{tabs}}) {
+            #  don't rename tabs which aren't label viewers
+            my $aa = (blessed $tab);
+            next if ! ((blessed $tab) =~ /Labels$/);
+
             my $reg_ref = eval {$tab->get_base_ref};
 
             if (defined $reg_ref and $reg_ref eq $bd) {

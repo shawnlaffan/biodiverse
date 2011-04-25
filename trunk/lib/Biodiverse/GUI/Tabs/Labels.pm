@@ -61,12 +61,13 @@ sub new {
     $self->{tab_menu_label} = $tab_menu_label;
 
     # Add to notebook
-    $self->{notebook} = $self->{gui}->getNotebook();
-    $self->{page_index} = $self->{notebook}->append_page_menu($page, $label, $tab_menu_label);
+    $self->{notebook}   = $self->{gui}->getNotebook();
+    $self->{notebook}->append_page_menu($page, $label, $tab_menu_label);
+    $self->{page}       = $page;
     $self->{gui}->addTab($self);
     
-    $self->set_tab_reorderable($page);
 
+    $self->set_tab_reorderable($page);
 
     # Get basename
     # Something has to be selected - otherwise menu item is disabled
@@ -1044,17 +1045,10 @@ sub getType {
     return 'labels';
 }
 
-#sub onClose {
-#    my $self = shift;
-#    $self->{gui}->removeTab($self);
-#    
-#    return;
-#}
-
 sub remove {
     my $self = shift;
     $self->{grid}->destroy();
-    $self->{notebook}->remove_page( $self->{page_index} );
+    $self->{notebook}->remove_page( $self->getPageIndex );
     $self->{project}->deleteSelectionCallback('matrix', $self->{matrix_callback});
     $self->{project}->deleteSelectionCallback('phylogeny', $self->{phylogeny_callback});
     

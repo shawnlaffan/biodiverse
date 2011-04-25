@@ -40,8 +40,10 @@ sub new {
 
     # Add to notebook
     $self->{notebook}   = $self->{gui}->getNotebook();
-    $self->{page_index} = $self->{notebook}->prepend_page_menu($page, $label, $menu_label);
+    $self->{notebook}->prepend_page_menu($page, $label, $menu_label);
+    $self->{page}       = $page;
     $self->{gui}->addTab($self);
+    
 
     $self->set_tab_reorderable($page);
 

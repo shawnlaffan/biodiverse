@@ -1981,6 +1981,46 @@ sub sp_point_in_poly {
 }
 
 
+sub get_metadata_sp_group_not_empty {
+    my $self = shift;
+    
+    my %args = @_;
+
+    my %metadata = (
+        description   => 'Is an element non-empty?',
+        required_args => [],
+        optional_args => [
+            'element',      #  which element to use 
+        ],
+        result_type   => $NULL_STRING,
+        example       =>
+              q{# Restrict calculations to those non-empty groups.}
+            . q{#  Will use the processing group if a def query, the neighbour group otherwise.}
+            . q{sp_group_not_empty ()}
+            . q{# The same as above, but being specific about which group (element) to test.}
+            . q{#  This is probably best used in cases where the element to check is varied spatially.}
+            . q{sp_group_not_empty (element => '5467:9876')},
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub sp_group_not_empty {
+    my $self = shift;
+    my %args = @_;
+    my $h = $self->get_param('CURRENT_ARGS');
+    
+    my $element = $args{element};
+    if (not defined $element) {
+        $element = eval {$self->is_def_query()} ? $h->{'$coord_id1'} : $h->{'$coord_id2'};
+        $element = ${$element};  #  deref it
+    }
+
+    my $bd  = ${$h->{'$basedata'}};
+
+    return $bd->get_richness (element => $element) ? 1 : 0;
+}
+
 sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
 sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
 

@@ -20,8 +20,7 @@ Main changes since the previous version (0.15) are:
   *  Analyses
     *  Indices for phylogenetic dissimilarity have been added to the release version.  Issue #215.
     *  Cluster matrices can be written to file as they are built.  These are not added to the GUI, thus saving memory and allowing extremely large matrices to be built for use in external applications.  Issue #186.
-    *  More efficient cluster matrix construction and use.  Issue 185, Issue #210
-, Issue #230, Issue #234
+    *  More efficient cluster matrix construction and use.  Issue 185, Issue #210, Issue #230, Issue #234
     *  NEST_RESULTANT index is now correctly calculated.  Issue #182.
     *  New analysis type of !RegionGrower.  It is an extension to the cluster analyses that uses any scalar metric that lumps two neighbour sets together when calculated.  One can also merge those pairs that either maximise or minimise the selected index.  When used with indices like richness it is effectively a one-pass complementarity analysis.  (Its matrices can also be displayed spatially since it is just a variant on the cluster analyses - see issue #199).  Issue #204.
     *  A new set of calculations have been added that allow the summary of label and group properties, if set.  Issue #207, Issue #212.

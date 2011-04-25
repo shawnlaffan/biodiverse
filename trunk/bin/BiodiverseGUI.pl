@@ -68,28 +68,10 @@ use POSIX qw(locale_h);
 my $locale = setlocale(LC_ALL);
 print "\nCurrent perl numeric locale is: " . $locale . "\n\n";
 
-my $eval_result;
+#my $eval_result;
 
-
-#  set the icon
-my $icon = File::Spec->catfile( $Bin, 'Biodiverse_icon.ico' );
-
-if (!(-e $icon)) {
-    $icon = File::Spec->catfile( $Bin, 'bin', 'Biodiverse_icon.ico' );
-    if ( !(-e $icon)) {
-        if ( defined $perl_app_tool && $perl_app_tool eq 'PerlApp') {
-            $eval_result = eval {
-                $icon = PerlApp::extract_bound_file('Biodiverse_icon.ico')
-            };
-            croak $EVAL_ERROR if $EVAL_ERROR;
-            print "Using perlapp icon file\n";
-        }
-        else {
-            $icon = undef;
-        }
-    }
-}
-$eval_result = eval {
+my $icon = get_iconfile();
+my $eval_result = eval {
     Gtk2::Window->set_default_icon_from_file($icon)
 };
 croak $EVAL_ERROR if $EVAL_ERROR;
@@ -98,22 +80,8 @@ croak $EVAL_ERROR if $EVAL_ERROR;
 ###########################
 # Create the UI
 
-#  get the glade file from ./glade or ./bin/glade
-my $gladefile = File::Spec->catfile( $Bin, 'glade', 'biodiverse.glade' );
 
-if (!(-e $gladefile)) {
-    $gladefile = File::Spec->catfile( $Bin, 'bin', 'glade', 'biodiverse.glade' );
-    if (!(-e $gladefile)) {
-        if ( defined $perl_app_tool && $perl_app_tool eq 'PerlApp' ) {
-            $eval_result = eval {
-                $gladefile = PerlApp::extract_bound_file('biodiverse.glade')
-            };
-            croak $EVAL_ERROR if $EVAL_ERROR;
-            print "Using perlapp glade file\n";
-        }
-    }
-}
-
+my $gladefile = get_gladefile();
 my $gladexml = Gtk2::GladeXML->new( $gladefile, 'wndMain' );
 $gladexml->signal_autoconnect_from_package('Biodiverse::GUI::Callbacks');
 
@@ -140,6 +108,8 @@ croak $EVAL_ERROR if $EVAL_ERROR;
 
 exit;
 
+################################################################################
+
 sub usage {
     print STDERR << "END_OF_USAGE";
 Biodiverse - A spatial analysis tool for species (and other) diversity.
@@ -151,6 +121,59 @@ usage: $0 <filename>
 END_OF_USAGE
 
     exit();
+}
+
+sub get_gladefile {
+    my $gladefile;
+
+    #  get the one we're compiled with (if we're a perlapp exe file)
+    if ( defined $perl_app_tool && $perl_app_tool eq 'PerlApp' ) {
+        my $eval_result = eval {
+            $gladefile = PerlApp::extract_bound_file('biodiverse.glade')
+        };
+        croak $EVAL_ERROR if $EVAL_ERROR;
+        print "Using perlapp glade file\n";
+        return $gladefile;
+    }
+
+    #  get the glade file from ./glade or ./bin/glade
+    $gladefile = File::Spec->catfile( $Bin, 'glade', 'biodiverse.glade' );
+    if (! -e $gladefile) {
+        $gladefile = File::Spec->catfile( $Bin, 'bin', 'glade', 'biodiverse.glade' );
+    }
+    if (! -e $gladefile) {  #  desperation
+        $gladefile = File::Spec->catfile( $Bin, 'biodiverse.glade' );
+    }
+
+    croak 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
+
+    return $gladefile;
+}
+
+sub get_iconfile {
+
+    my $icon;
+
+    if ( defined $perl_app_tool && $perl_app_tool eq 'PerlApp') {
+        my $eval_result = eval {
+            $icon = PerlApp::extract_bound_file('Biodiverse_icon.ico')
+        };
+        croak $EVAL_ERROR if $EVAL_ERROR;
+
+        print "Using perlapp icon file\n";
+
+        return $icon;
+    }
+
+    $icon = File::Spec->catfile( $Bin, 'Biodiverse_icon.ico' );
+    if (! -e $icon) {
+        $icon = File::Spec->catfile( $Bin, 'bin', 'Biodiverse_icon.ico' );
+    }
+    if ( ! -e $icon) {
+        $icon = undef;
+    }
+
+    return $icon;
 }
 
 __END__

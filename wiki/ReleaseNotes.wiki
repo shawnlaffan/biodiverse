@@ -19,12 +19,14 @@ Main changes since the previous version (0.15) are:
       *  System no longer intermittently hangs when control clicking.  Issue #194.
   *  Analyses
     *  Indices for phylogenetic dissimilarity have been added to the release version.  Issue #215.
-    *  sp_select_sequence() now works as a definition query.  Issue #190.
     *  Cluster matrices can be written to file as they are built.  These are not added to the GUI, thus saving memory and allowing extremely large matrices to be built for use in external applications.  Issue #186.
     *  NEST_RESULTANT index is now correctly calculated.  Issue #182.
-    *  Label and group properties can be analysed spatially (summary stats).  Issues #207 and #212.
-    *  New analysis type of RegionGrower.  It is an extension to the cluster analyses that uses any scalar metric that lumps two neighbour sets together when calculated.  One can also merge those pairs that either maximise or minimise the selected index.  When used with indices like richness it is effectively a one-pass complementarity analysis.  (Its matrices can also be displayed spatially since it is just a variant on the cluster analyses - see issue #199).  Issue #204.
+    *  New analysis type of !RegionGrower.  It is an extension to the cluster analyses that uses any scalar metric that lumps two neighbour sets together when calculated.  One can also merge those pairs that either maximise or minimise the selected index.  When used with indices like richness it is effectively a one-pass complementarity analysis.  (Its matrices can also be displayed spatially since it is just a variant on the cluster analyses - see issue #199).  Issue #204.
     *  A new set of calculations have been added that allow the summary of label and group properties, if set.  Issue #207, Issue #212.
+    *  Better handling of empty groups.  Issue #180, Issue #181, Issue #228, Issue #234.
+  *  Spatial conditions
+    *  sp_select_sequence() now works as a definition query.  Issue #190.
+    *  Several new conditions have been added (_details to be added_). Issue #218, Issue #233, Issue #221.
 
 To see the full list of issues and changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.16
 

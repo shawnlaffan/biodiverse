@@ -64,12 +64,16 @@ sub new {
 
     my $page  = $self->{xmlPage}->get_widget('vpaneSpatial');
     my $label = $self->{xmlLabel}->get_widget('hboxSpatialLabel');
+    my $label_text = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
+    my $label_widget = Gtk2::Label->new ($label_text);
+    $self->{tab_menu_label} = $label_widget;
 
     # Add to notebook
     $self->{notebook} = $self->{gui}->getNotebook();
-    $self->{page_index} = $self->{notebook}->append_page($page, $label);
+    $self->{page_index} = $self->{notebook}->append_page_menu($page, $label, $label_widget);
     $self->{gui}->addTab($self);
     
+    $self->set_tab_reorderable($page);
     
     my ($elt_count, $completed);  #  used to control display
 
@@ -156,11 +160,7 @@ sub new {
     foreach my $w_name (@to_hide) {
         $self->{xmlPage}->get_widget($w_name)->hide;
     }
-    #my $widget = $self->{xmlPage}->get_widget('tbl_spatial_parameters');
-    #my ($w_rows, $w_cols) = $widget->get_size;
-    #$widget->resize(1, $widget->get('n-columns'));
 
-    #$self->initListsCombo();
     $self->initOutputAnalysesCombo();
     
 
@@ -238,17 +238,15 @@ sub initGrid {
         $select_closure,
     );
 
-    #if ($self->{existing}) {
-        my $data = $self->{groups_ref};  #  should be the groups?
-        my $elt_count = $data -> get_element_count;
-        my $completed = $data -> get_param ('COMPLETED');
-        #  backwards compatibility - old versions did not have this flag
-        $completed = 1 if not defined $completed;  
-        
-        if (defined $data and $elt_count and $completed) {
-            $self->{grid}->setBaseStruct ($data);
-        }
-    #}
+    my $data = $self->{groups_ref};  #  should be the groups?
+    my $elt_count = $data -> get_element_count;
+    my $completed = $data -> get_param ('COMPLETED');
+    #  backwards compatibility - old versions did not have this flag
+    $completed = 1 if not defined $completed;  
+    
+    if (defined $data and $elt_count and $completed) {
+        $self->{grid}->setBaseStruct ($data);
+    }
 
     
     return;
@@ -260,58 +258,10 @@ sub initListsCombo {
 
 }
 
-#  inherited
-#sub initOutputAnalysesCombo {
-#    my $self = shift;
-#
-#    my $combo = $self->{xmlPage}->get_widget('comboAnalyses');
-#    my $renderer = Gtk2::CellRendererText->new();
-#    $combo->pack_start($renderer, 1);
-#    $combo->add_attribute($renderer, text => 0);
-#
-#    # Only do this if we aren't a new spatial analysis...
-#    if ($self->{existing}) {
-#        $self->updateOutputAnalysesCombo();
-#    }
-#    
-#    return;
-#}
-
 sub updateListsCombo {
     my $self = shift;
     return;
 }
-
-#  inherited
-#sub updateOutputAnalysesCombo {
-#    my $self = shift;
-#
-#    # Make the model
-#    $self->{output_analysis_model} = $self->makeOutputAnalysisModel();
-#    my $combo = $self->{xmlPage}->get_widget('comboAnalyses');
-#    $combo->set_model($self->{output_analysis_model});
-#
-#    # Select the previous analysis (or the first one)
-#    my $iter = $self->{output_analysis_model}->get_iter_first();
-#    my $selected = $iter;
-#    
-#    BY_ITER:
-#    while ($iter) {
-#        my ($analysis) = $self->{output_analysis_model}->get($iter, 0);
-#        if ($self->{selected_analysis} && ($analysis eq $self->{selected_analysis}) ) {
-#            $selected = $iter;
-#            last BY_ITER; # break loop
-#        }
-#        $iter = $self->{output_analysis_model}->iter_next($iter);
-#    }
-#
-#    if ($selected) {
-#        $combo->set_active_iter($selected);
-#    }
-#    $self->onActiveAnalysisChanged($combo);
-#    
-#    return;
-#}
 
 
 # Generates ComboBox model with analyses
@@ -343,9 +293,6 @@ sub makeListsModel {
 
     my $lists = ('$elements_list_name');
  
-    #print "Making lists model\n";
-    #print join (" ", @lists) . "\n";
-
     # Make model for combobox
     my $model = Gtk2::ListStore->new('Glib::String');
     foreach my $x (sort @$lists) {
@@ -361,68 +308,9 @@ sub makeListsModel {
 # Misc interaction with rest of GUI
 ##################################################
 
-#  inherited
-## Make ourselves known to the Outputs tab to that it
-## can switch to this tab if the user presses "Show"
-#sub registerInOutputsModel {
-#    my $self = shift;
-#    my $output_ref = shift;
-#    my $tabref = shift; # either $self, or undef to deregister
-#    my $model = $self->{project}->getBaseDataOutputModel();
-#
-#    # Find iter
-#    my $iter;
-#    my $iter_base = $model->get_iter_first();
-#
-#    while ($iter_base) {
-#        
-#        my $iter_output = $model->iter_children($iter_base);
-#        while ($iter_output) {
-#            if ($model->get($iter_output, MODEL_OBJECT) eq $output_ref) {
-#                $iter = $iter_output;
-#                last; #FIXME: do we have to look at other iter_bases, or does this iterate over entire level?
-#            }
-#            
-#            $iter_output = $model->iter_next($iter_output);
-#        }
-#        
-#        last if $iter; # break if found it
-#        $iter_base = $model->iter_next($iter_base);
-#    }
-#
-#    if ($iter) {
-#        $model->set($iter, MODEL_TAB, $tabref);
-#        $self->{current_registration} = $output_ref;
-#    }
-#    
-#    return;
-#}
-
 sub getType {
     return "spatialmatrix";
 }
-
-#sub onClose {
-#    my $self = shift;
-#    $self->{gui}->removeTab($self);
-#    
-#    return;
-#}
-
-#sub remove {
-#    my $self = shift;
-#    # De-register if have to
-#    if (exists $self->{current_registration}) {
-#        $self->registerInOutputsModel($self->{current_registration}, undef);
-#    }
-#    my $grid = $self->{grid};
-#    $self->{grid} = undef;  #  convoluted, but we're getting reference cycles
-#    $grid->destroy() if $grid;
-#    $self->{notebook}->remove_page( $self->{page_index} );
-#    
-#    return;
-#}
-
 
 
 ##################################################
@@ -518,7 +406,7 @@ sub onGridHover {
 
         $text = defined $val
             ? sprintf (
-                '<b>%s</b> v <b>%s</b>, value: %.4f',
+                '<b>%s</b> v <b>%s</b>, value: %.4f',  #  should list the index used
                 $self->{selected_element},
                 $element,
                 $val,

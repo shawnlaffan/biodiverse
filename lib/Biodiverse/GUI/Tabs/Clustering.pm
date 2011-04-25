@@ -56,10 +56,17 @@ sub new {
     my $page  = $xml_page->get_widget('vpaneClustering');
     my $label = $xml_label->get_widget('hboxClusteringLabel');
 
+
+    my $label_text = $self->{xmlLabel}->get_widget('lblClusteringName')->get_text;
+    my $label_widget = Gtk2::Label->new ($label_text);
+    $self->{tab_menu_label} = $label_widget;
+
     # Add to notebook
     $self->{notebook} = $gui->getNotebook();
-    $self->{page_index} = $self->{notebook}->append_page($page, $label);
+    $self->{page_index} = $self->{notebook}->append_page_menu($page, $label, $label_widget);
     $gui->addTab($self);
+
+    $self->set_tab_reorderable($page);
 
     my $sp_initial1 = "sp_select_all ()\n"
                       . "#  This creates a complete matrix and is recommended "
@@ -149,6 +156,7 @@ sub new {
     # Initialise widgets
     $xml_page ->get_widget('txtClusterName')->set_text( $self->{output_name} );
     $xml_label->get_widget('lblClusteringName')->set_text($self->{output_name} );
+    $self->{tab_menu_label}->set_text($self->{output_name});
 
     $self->{title_widget} = $xml_page ->get_widget('txtClusterName');
     $self->{label_widget} = $xml_label->get_widget('lblClusteringName');
@@ -714,12 +722,6 @@ sub remove {
 
     eval {$self->{map}->destroy()};
     eval {$self->{dendrogram}->destroy()};
-    
-    # De-register if have to
-    #if (exists $self->{current_registration}) {
-    #    $self->registerInOutputsModel($self->{current_registration}, undef);
-    #}
-    #eval {$self->{notebook}->remove_page( $self->{page_index} )};
 
     $self->SUPER::remove;
     
@@ -1337,6 +1339,10 @@ sub onNameChanged {
     
     my $label_widget = $self->{xmlLabel}->get_widget('lblClusteringName');
     $label_widget->set_text($name);
+    
+    my $tab_menu_label = $self->{tab_menu_label};
+    $tab_menu_label->set_text($name);
+
     
     my $param_widget
             = $xml_page->get_widget('lbl_parameter_clustering_name');

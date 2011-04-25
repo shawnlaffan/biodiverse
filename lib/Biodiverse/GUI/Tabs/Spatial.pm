@@ -48,13 +48,17 @@ sub new {
 
     my $page  = $self->{xmlPage}->get_widget('vpaneSpatial');
     my $label = $self->{xmlLabel}->get_widget('hboxSpatialLabel');
+    my $label_text = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
+    my $label_widget = Gtk2::Label->new ($label_text);
+    $self->{tab_menu_label} = $label_widget;
 
     # Add to notebook
     $self->{notebook} = $self->{gui}->getNotebook();
-    $self->{page_index} = $self->{notebook}->append_page($page, $label);
+    $self->{page_index} = $self->{notebook}->append_page_menu($page, $label, $label_widget);
     $self->{gui}->addTab($self);
-    
-    
+
+    $self->set_tab_reorderable($page);
+
     my ($elt_count, $completed);  #  used to control display
 
     if (not defined $output_ref) {
@@ -120,10 +124,10 @@ sub new {
     # Initialise widgets
     $self->{title_widget} = $self->{xmlPage} ->get_widget('txtSpatialName');
     $self->{label_widget} = $self->{xmlLabel}->get_widget('lblSpatialName');
-    
+
     $self->{title_widget}->set_text($self->{output_name} );
     $self->{label_widget}->set_text($self->{output_name} );
-
+    $self->{tab_menu_label}->set_text($self->{output_name} );
 
     # Spatial parameters
     my ($initial_sp1, $initial_sp2);
@@ -618,16 +622,9 @@ sub getType {
 sub remove {
     my $self = shift;
 
-    #my $grid = $self->{grid};
     eval {$self->{grid}->destroy()};
     $self->{grid} = undef;  #  convoluted, but we're getting reference cycles
 
-    # De-register if have to
-    #if (exists $self->{current_registration}) {
-    #    $self->registerInOutputsModel($self->{current_registration}, undef);
-    #}
-    #$self->{notebook}->remove_page( $self->{page_index} );
-    
     $self->SUPER::remove;
     
     return;
@@ -845,10 +842,13 @@ sub onNameChanged {
     
     my $xml_page = $self->{xmlPage};
     my $name = $xml_page->get_widget('txtSpatialName')->get_text();
-    
+
     my $label_widget = $self->{xmlLabel}->get_widget('lblSpatialName');
     $label_widget->set_text($name);
-    
+
+    my $tab_menu_label = $self->{tab_menu_label};
+    $tab_menu_label->set_text($name);
+
     my $param_widget
         = $xml_page->get_widget('lbl_parameter_spatial_name');
     $param_widget->set_markup("<b>Name</b>");

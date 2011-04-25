@@ -24,9 +24,6 @@ sub get_base_ref {
 
     #  check all possibilities
     #  should really just have one
-    #return $self->{base_ref} if exists $self->{base_ref};
-    #return $self->{basedata_ref} if exists $self->{basedata_ref};
-    #return $self->{selected_basedata_ref} if exists $self->{selected_basedata_ref};
     foreach my $key (qw /base_ref basedata_ref selected_basedata_ref/) {
         if (exists $self->{$key}) {
             return $self->{$key};
@@ -53,20 +50,27 @@ sub update_name {
     #$self->{current_registration} = $new_name;
     eval {$self->{label_widget} -> set_text ($new_name)};
     eval {$self->{title_widget} -> set_text ($new_name)};
+    eval {$self->{tab_menu_label}->set_text ($new_name)};
+    return;
 }
 
-# FIXME: OBSOLETE??
-#sub remove {
-#    my $self = shift;
-#    $self->{notebook}->remove_page( $self->{page_index} );
-#}
 sub remove {
     my $self = shift;
     if (exists $self->{current_registration}) {  #  deregister if necessary
         $self->{project}->registerInOutputsModel($self->{current_registration}, undef);
     }
     $self->{notebook}->remove_page( $self->{page_index} );
-    
+
+    return;
+}
+
+sub set_tab_reorderable {
+    my $self = shift;
+    my $page = shift;
+
+    #  need to handle the page index changes before enabling this
+    #$self->{notebook}->set_tab_reorderable($page, 1);
+
     return;
 }
 

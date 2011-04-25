@@ -63,12 +63,17 @@ sub new {
 
     my $page  = $xml_page ->get_widget('vboxRandomisePage');
     my $label = $xml_label->get_widget('hboxRandomiseLabel');
-
+    my $label_text = $xml_label->get_widget('lblRandomiseName')->get_text;
+    my $label_widget = Gtk2::Label->new ($label_text);
+    $self->{tab_menu_label} = $label_widget;
+    
     # Add to notebook
     $self->{notebook} = $self->{gui}->getNotebook();
-    $self->{page_index} = $self->{notebook}->append_page($page, $label);
+    $self->{page_index} = $self->{notebook}->append_page_menu($page, $label, $label_widget);
     $self->{gui}->addTab($self);
-        
+    
+    $self->set_tab_reorderable($page);
+
     my $bd;
     my $function;
     if ($output_ref) {
@@ -131,6 +136,7 @@ sub new {
     
     $xml_label->get_widget('lblRandomiseName')->set_text($name);
     $xml_page ->get_widget('randomise_results_list_name') -> set_text ($name);
+    $self->{tab_menu_label}->set_text($name );
 
     # Connect signals
     $xml_label->get_widget('btnRandomiseClose')->signal_connect_swapped(
@@ -301,21 +307,6 @@ sub initBasedataCombo {
     return;
 }
 
-#sub onClose {
-#    my $self = shift;
-#    $self->{gui}->removeTab($self);
-#    return;
-#}
-
-#sub remove {
-#    my $self = shift;
-#    if (exists $self->{current_registration}) {  #  deregister if necessary
-#        $self->{project}->registerInOutputsModel($self->{current_registration}, undef);
-#    }
-#    $self->{notebook}->remove_page( $self->{page_index} );
-#    
-#    return;
-#}
 
 ######################################################
 ## Randomisation function combo
@@ -543,6 +534,9 @@ sub onNameChanged {
     
     my $label_widget = $self->{xmlPage}->get_widget('label_rand_list_name');
     my $label = $label_widget -> get_label;
+    
+    my $tab_menu_label = $self->{tab_menu_label};
+    $tab_menu_label->set_text($name);
     
     #  colour the label red if the list exists
     my $span_leader = '<span foreground="red">';

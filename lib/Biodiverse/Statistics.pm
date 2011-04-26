@@ -10,7 +10,7 @@ use Carp;
 use POSIX qw ( ceil );
 
 use Statistics::Descriptive;
-use base qw ( Statistics::Descriptive::Full );
+use base qw /Statistics::Descriptive::Full/;
 
 ##Create a list of fields not to remove when data is updated
 my %fields = (

@@ -31,7 +31,7 @@ our $VERSION = '0.16';
 
 my $EMPTY_STRING = q{};
 
-use base qw ( Biodiverse::Common ); #  access the common functions as methods
+use base qw /Biodiverse::Common/; #  access the common functions as methods
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';

@@ -223,23 +223,21 @@ sub closeProject {
             $dlg->destroy();
 
             # Check response
-            if ($response eq "yes") {
+            if ($response eq 'yes') {
                 # Save
-                if (not $self->doSave()) {
-                    return 0;
-                }
+                return 0 if not $self->doSave();
             }
-            elsif ($response eq "cancel" or $response ne "no") {  #  trap all signals except no
+            elsif ($response eq 'cancel' or $response ne 'no') {
                 # Stop closing
                 return 0;
-            } # otherise "no" - don't save - go on
+            } # otherwise "no" - don't save - go on
         }
 
         # Close all analysis tabs (ie: except output which is first)
         my @toRemove = @{$self->{tabs}};
         shift @toRemove;
         foreach my $tab (reverse @toRemove) {
-            #print "$tab\n";
+            next if (blessed $tab) =~ /Outputs$/;
             $self->removeTab($tab);
         }
 
@@ -536,7 +534,7 @@ sub do_transpose_basedata {
 
 sub doDeleteBasedata {
     my $self = shift;
-    
+ 
     my $bd = $self->{project}->getSelectedBaseData;
     my $name = $bd->get_param('NAME');
 
@@ -544,14 +542,14 @@ sub doDeleteBasedata {
         title => 'Confirmation dialogue',
         text  => "Delete BaseData $name?",
     });
-    
+
     return if lc ($response) ne 'yes';
-    
+
     my @tabs = @{$self->{tabs}};
-    shift @tabs; #  first is the output window
+    #shift @tabs; #  first is the output window
     my $i = 0;
     foreach my $tab (@tabs) {
-        #print $i, " ", $tab->get_base_ref, " ", $bd, "\n";
+        next if (blessed $tab) =~ /Outputs$/;
         if ($tab->get_base_ref eq $bd) {
             $tab -> onClose;
         }
@@ -588,7 +586,7 @@ sub doRenameBasedata {
         my $tab_was_open;
         foreach my $tab (@{$self->{tabs}}) {
             #  don't rename tabs which aren't label viewers
-            my $aa = (blessed $tab);
+            #my $aa = (blessed $tab);
             next if ! ((blessed $tab) =~ /Labels$/);
 
             my $reg_ref = eval {$tab->get_base_ref};
@@ -1559,10 +1557,10 @@ sub addTab {
     splice(@{$self->{tabs}}, $page, 0, $tab);
 
     # Increment page indices of tabs to the right
-    my $len = @{$self->{tabs}};
-    foreach my $i ($page + 1 .. $#{$self->{tabs}}) {
-        $self->{tabs}[$i]->setPageIndex( $i );
-    }
+    #my $len = @{$self->{tabs}};
+    #foreach my $i ($page + 1 .. $#{$self->{tabs}}) {
+    #    $self->{tabs}[$i]->setPageIndex( $i );
+    #}
 
     # Enable keyboard shortcuts (CTRL-G)
     $tab->setKeyboardHandler();
@@ -1582,11 +1580,13 @@ sub switchTab {
         $self->getNotebook->set_current_page($tab->getPageIndex);
     }
     else {
-        if ($page > $#{$self->{tabs}}) {
+        my $last_page = $self->getNotebook->get_nth_page(-1);
+        my $max_page_index = $self->getNotebook->page_num($last_page);
+        if ($page > $max_page_index) {
             $page = 0;
         }
         elsif ($page < 0) {
-            $page = -1;
+            $page = $max_page_index;
         }
         $self->getNotebook->set_current_page($page);
     }
@@ -1598,32 +1598,33 @@ sub removeTab {
     my $self = shift;
     my $tab = shift;
 
-    my $page = $tab->getPageIndex;
     $tab->removeKeyboardHandler();
     $tab->remove();
-    
-    # Remove tab from our array
-    splice(@{$self->{tabs}}, $page, 1);
 
-    # Decrement page indices of tabs to the right
-    foreach my $i ($page .. $#{$self->{tabs}} ) {
-        $self->{tabs}[$i]->setPageIndex( $i );
+    # Remove tab from our array
+    #  do we really need to store the tabs?
+    my @tabs = @{$self->{tabs}};
+    my $i = $#tabs;
+    foreach my $check (reverse @tabs) {
+        if ($tab eq $check) {
+            splice(@{$self->{tabs}}, $i, 1);
+        }
+        $i --;
     }
-    
+
     return;
 }
 
 sub onSwitchTab {
-    #print Data::Dumper::Dumper(@_);
     my $self = shift; shift;
     my $page = shift;
     
-    #if ($page > $#{$self->{tabs}}) {
-    #    $page = 0;
-    #}
-    #elsif ($page < 0) {
-    #    $page = -1;
-    #}
+    if ($page > $#{$self->{tabs}}) {
+        $page = 0;
+    }
+    elsif ($page < 0) {
+        $page = -1;
+    }
     
     my $tab = $self->{tabs}[$page];
     if ($tab) {

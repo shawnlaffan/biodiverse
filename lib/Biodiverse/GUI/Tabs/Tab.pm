@@ -162,7 +162,7 @@ sub hotkeyHandler {
     # stop recursion into onRun if shortcut triggered during processing
     #   (this happens because progress-dialogs pump events..)
 
-    if ($handler_entered == 1) { return 1; }
+    return 1 if ($handler_entered == 1);
 
     $handler_entered = 1;
 
@@ -185,7 +185,7 @@ sub hotkeyHandler {
                     $retval = 1; # stop processing
                 }
             }
-            
+
             # Change to next tab
             elsif ($keyval eq Gtk2::Gdk->keyval_from_name ('Tab')) {
                 #  switch tabs

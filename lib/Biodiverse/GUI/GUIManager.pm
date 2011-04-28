@@ -233,7 +233,7 @@ sub closeProject {
             } # otherwise "no" - don't save - go on
         }
 
-        # Close all analysis tabs (ie: except output which is first)
+        # Close all analysis tabs (ie: except output tab)
         my @toRemove = @{$self->{tabs}};
         shift @toRemove;
         foreach my $tab (reverse @toRemove) {
@@ -546,7 +546,6 @@ sub doDeleteBasedata {
     return if lc ($response) ne 'yes';
 
     my @tabs = @{$self->{tabs}};
-    #shift @tabs; #  first is the output window
     my $i = 0;
     foreach my $tab (@tabs) {
         next if (blessed $tab) =~ /Outputs$/;
@@ -592,7 +591,6 @@ sub doRenameBasedata {
             my $reg_ref = eval {$tab->get_base_ref};
 
             if (defined $reg_ref and $reg_ref eq $bd) {
-                #$tab -> update_current_registration ($object);
                 $tab -> update_name ('Labels - ' . $chosen_name);
                 $tab_was_open = 1;
                 #  we could stop checking now,
@@ -642,7 +640,6 @@ sub doRenameOutput {
             my $reg_ref = $tab->get_current_registration;
             
             if (defined $reg_ref and $reg_ref eq $object) {
-                #$tab -> update_current_registration ($object);
                 $tab -> update_name ($chosen_name);
                 $tab_was_open = 1;
                 last;  #  comment this line if we ever allow multiple tabs of the same output
@@ -664,7 +661,6 @@ sub doRenameOutput {
                 $self->{project}->updateOutputName( $object );
             }
         }
-        
     }
     $dlg->destroy;
     
@@ -672,7 +668,6 @@ sub doRenameOutput {
 }
 
 sub doRenameMatrix {
-    #return;  # TEMP
     my $self = shift;
     my $ref = $self->{project}->getSelectedMatrix();
     
@@ -1554,7 +1549,8 @@ sub addTab {
     my $page = $tab->getPageIndex;
     
     # Add tab to our array at the right position
-    splice(@{$self->{tabs}}, $page, 0, $tab);
+    #splice(@{$self->{tabs}}, $page, 0, $tab);
+    push @{$self->{tabs}}, $tab;
 
     # Increment page indices of tabs to the right
     #my $len = @{$self->{tabs}};
@@ -1616,21 +1612,24 @@ sub removeTab {
 }
 
 sub onSwitchTab {
-    my $self = shift; shift;
-    my $page = shift;
-    
-    if ($page > $#{$self->{tabs}}) {
-        $page = 0;
-    }
-    elsif ($page < 0) {
-        $page = -1;
-    }
-    
-    my $tab = $self->{tabs}[$page];
-    if ($tab) {
+    my $self = shift;
+    my $page = shift;  #  passed by Gtk, not needed here
+    my $page_index = shift;  #  passed by gtk
+
+    #if ($page_index > $#{$self->{tabs}}) {
+    #    $page_index = 0;
+    #}
+    #elsif ($page_index < 0) {
+    #    $page_index = -1;
+    #}
+
+    #my $page = $self->getNotebook->get_current_page;
+    foreach my $tab (@{$self->{tabs}}) {
+        next if $page_index != $tab->getPageIndex;
         $tab->setKeyboardHandler();
+        last;
     }
-    
+
     return;
 }
 

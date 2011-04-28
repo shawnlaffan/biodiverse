@@ -110,21 +110,21 @@ sub showNeighbourElements {
     my $newModel;
     if ($type eq 'set1') {
         # Central - filter the original model
-        print "[Cell popup] Setting elements model to filtered (set 1)\n";
+        #print "[Cell popup] Setting elements model to filtered (set 1)\n";
         $newModel = Gtk2::TreeModelFilter->new($model);
         $newModel->set_visible_column(ELEMENTS_MODEL_INNER);
         $popup->setListModel($newModel);
     }
     elsif ($type eq 'set2') {
         # Other - filter the original model
-        print "[Cell popup] Setting elements model to filtered (set 2)\n";
+        #print "[Cell popup] Setting elements model to filtered (set 2)\n";
         $newModel = Gtk2::TreeModelFilter->new($model);
         $newModel->set_visible_column(ELEMENTS_MODEL_OUTER);
         $popup->setListModel($newModel);
     }
     elsif ($type eq 'all') {
         # All - use original
-        print "[Cell popup] Setting elements model to original\n";
+        #print "[Cell popup] Setting elements model to original\n";
         $newModel = $model;
         $popup->setListModel($newModel);
     }

@@ -141,7 +141,7 @@ sub setKeyboardHandler {
     }
 
 
-    $snooper_id = Gtk2->key_snooper_install(\&hotkeyHandler, $self);    
+    $snooper_id = Gtk2->key_snooper_install(\&hotkeyHandler, $self);
     ##print "[Tab] Installed keyboard snooper $snooper_id\n";
 }
 

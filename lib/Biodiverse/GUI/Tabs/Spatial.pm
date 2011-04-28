@@ -653,6 +653,8 @@ sub onRun {
         $dlg->destroy();
         return;
     }
+    
+
     # Check spatial syntax
     return if ($self->{spatial1}->syntax_check('no_ok') ne 'ok');
     return if ($self->{spatial2}->syntax_check('no_ok') ne 'ok');

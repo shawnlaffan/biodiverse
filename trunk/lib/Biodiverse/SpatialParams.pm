@@ -482,12 +482,14 @@ sub verify {
 
         my $cellsizes = $bd->get_param ('CELL_SIZES');
 
-        my $success = $self->evaluate (
-            %eval_args,
-            cellsizes     => $cellsizes,
-            caller_object => $bd,
-            basedata      => $bd,
-        );
+        my $success = eval {
+            $self->evaluate (
+                %eval_args,
+                cellsizes     => $cellsizes,
+                caller_object => $bd,
+                basedata      => $bd,
+            );
+        };
         my $error  = $EVAL_ERROR;
 
         if ($error) {

@@ -49,5 +49,5 @@ perl BiodiverseGUI.pl &
   * You can also add the `biodiverse/bin` folder to your PATH variable to save some typing. You might also need to edit the shebang line in BiodiverseGUI.pl to point to the correct perl executable.
 
 = Troubleshooting =
-
+  *  Ubuntu 11 appears to need this before running the other installer commands:  `sudo apt-get install libgnome2-canvas-perl`
   *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

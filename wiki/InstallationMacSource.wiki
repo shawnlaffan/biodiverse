@@ -9,7 +9,7 @@ You will need Administrative privileges to run the installation.
 
 Note that this can take quite some time.  If you have not previously installed Xcode or !MacPorts then it could take several hours.  It will also download a large number of files, so make sure you have network access with good bandwidth and large download limits.
 
-You might want to consider using the windows executable version under a Windows emulation environment, albeit we have not tested this approach.
+You might want to consider using the Windows or Linux executable versions under a virtual machine environment such as [http://www.virtualbox.org/ Virtualbox].
 
 <wiki:toc max_depth="4" />
 

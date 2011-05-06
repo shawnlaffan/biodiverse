@@ -8,7 +8,7 @@ Bind: biodiverse.glade[file=bin\glade\biodiverse.glade,text,extract,mode=666]
 Bind: biodiverse.glade.bak[file=bin\glade\biodiverse.glade.bak,text,extract,mode=666]
 Bind: Biodiverse_icon.ico[file=bin\Biodiverse_icon.ico,mode=666]
 Clean: 0
-Date: 2011-03-09 13:53:31
+Date: 2011-04-26 16:38:35
 Debug: 
 Dependent: 0
 Dyndll: 0
@@ -26,7 +26,7 @@ Scan: etc\perlapp\module_list_NoGUI.pl
 Scan: etc\perlapp\module_list.pl
 Shared: private
 Tmpdir: 
-Verbose: 0
+Verbose: 1
 Version-Comments: Developed by Shawn Laffan, Eugene Lubarsky and Dan Rosauer
 Version-CompanyName: School of BEES, UNSW
 Version-FileDescription: Biodiverse is a tool for the spatial analysis of diversity
@@ -35,7 +35,7 @@ Version-InternalName:
 Version-LegalCopyright: GNU Lesser General Public License (LGPL)
 Version-LegalTrademarks: 
 Version-OriginalFilename: 
-Version-ProductName: Biodiverse beta 2011-03-09
+Version-ProductName: Biodiverse beta 2011-04-26
 Version-ProductVersion: 0.16
 Warnings: 0
 Xclude: 0

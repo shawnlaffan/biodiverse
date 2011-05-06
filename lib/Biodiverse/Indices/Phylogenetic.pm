@@ -796,17 +796,17 @@ sub get_metadata_calc_phylo_mntd {
 
     my $indices = {
         PNTD_MEAN => {
-            description    => 'Mean nearest taxon distance',
+            description    => 'Mean of nearest taxon distances',
             formula        => [
             ],
         },
         PNTD_MAX => {
-            description    => 'Maximum nearest taxon distance',
+            description    => 'Maximum of nearest taxon distances',
             formula        => [
             ],
         },
         PNTD_MIN => {
-            description    => 'Minimum nearest taxon distance',
+            description    => 'Minimum of nearest taxon distances',
             formula        => [
             ],
         },
@@ -837,17 +837,18 @@ sub get_metadata_calc_phylo_mntd {
 }
 
 
-#  this allows for a non-binary version later on
-#  with more modification we could also get at the udnerlying data
+#  this allows for a binary version later on
+#  with more modification we could also
+#  allow the user to get at the underlying data
 sub calc_phylo_mntd {
     my $self = shift;
 
-    return $self->_calc_mntd(@_);
+    return $self->_calc_phylo_mntd(@_);
 }
 
 
 #  mean nearest taxon distance
-sub _calc_mntd {
+sub _calc_phylo_mntd {
     my $self = shift;
     my %args = @_;
 
@@ -863,10 +864,9 @@ sub _calc_mntd {
 
         #  save some calcs (if ever this happens)
         next BY_LABEL if $label_count1 == 0;
-        
+
         next BY_LABEL if ! $mx->element_is_in_matrix(element => $label1);
 
-        #my $node = $tree -> get_node_ref (node => $label);
         my $min;
         my $i = 0;
 
@@ -881,8 +881,6 @@ sub _calc_mntd {
             my $label_count2 = $label_hash->{$label2};
             next LABEL2 if $label_count2 == 0;
 
-            #my $node2 = $tree->get_node_ref (node => $label2);
-
             my $path_length = $mx->get_value(element1 => $label1, element2 => $label2);
 
             $min = defined $min ? min ($path_length, $min) : $path_length;
@@ -896,12 +894,13 @@ sub _calc_mntd {
     #  allows us to generalise later on
     my $stats = $stats_package->new();
     $stats->add_data(\@min_path_lengths);
+    my $n = $stats->count;
 
     my %results = (
-        PNTD_MEAN => $stats->count ? $stats->mean : undef,
-        PNTD_MAX  => $stats->count ? $stats->max  : undef,
-        PNTD_MIN  => $stats->count ? $stats->min  : undef,
-        PNTD_SD   => $stats->count ? $stats->standard_deviation : undef,
+        PNTD_MEAN => $n ? $stats->mean : undef,
+        PNTD_MAX  => $n ? $stats->max  : undef,
+        PNTD_MIN  => $n ? $stats->min  : undef,
+        PNTD_SD   => $n ? $stats->standard_deviation : undef,
     );
 
     return wantarray ? %results : \%results;

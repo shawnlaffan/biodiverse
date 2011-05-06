@@ -182,9 +182,11 @@ sub delete_node {
 sub delete_from_node_hash {
     my $self = shift;
     my %args = @_;
-    
-    delete $self->{TREE_BY_NAME}{$args{node}} if $args{node};  #  defined $arg{node} implies single deletion
-    
+
+    if ($args{node}) {
+        delete $self->{TREE_BY_NAME}{$args{node}};  #  $arg{node} implies single deletion
+    }
+
     my $arg_nodes_ref = ref $args{nodes};
     my @list;
     if ($arg_nodes_ref =~ /HASH/) {
@@ -197,7 +199,7 @@ sub delete_from_node_hash {
         @list = $args{nodes};
     }
     delete @{$self->{TREE_BY_NAME}}{@list};
-    
+
     return;
 }
 
@@ -989,7 +991,6 @@ sub to_matrix {
     my %args = @_;
     my $class = $args{class} || 'Biodiverse::Matrix';
     my $use_internal = $args{use_internal};
-    #my $progress_bar = $args{progress};
     my $progress_bar = Biodiverse::Progress->new();
     
     my $name = $self -> get_param ('NAME');
@@ -1005,8 +1006,7 @@ sub to_matrix {
             delete $nodes{$name1} if $node1 -> is_internal_node;
         }
     }
-    
-    #my %done;
+
     my $progress;
     my $to_do = scalar keys %nodes;
     foreach my $node1 (values %nodes) {
@@ -1037,9 +1037,7 @@ sub to_matrix {
                 element2 => $name2,
                 value    => $path_length_total,
             );
-            #$done{$name1}{$name2}++;
         }
-        #print "\n";
     }
 
     return $matrix;

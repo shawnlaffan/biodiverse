@@ -1245,31 +1245,33 @@ sub do_convert_matrix_to_phylogeny {
 sub do_convert_phylogeny_to_matrix {
     my $self = shift;
     my $phylogeny = $self->{project} -> getSelectedPhylogeny;
-    
+
     if (! defined $phylogeny ) {
         Biodiverse::GUI::YesNoCancel->run(
-            {header       => 'no phylogeny selected',
-             hide_no      => 1,
-             hide_yes     => 1,
-             hide_cancel  => 1,
+            {
+                header      => 'no phylogeny selected',
+                hide_no     => 1,
+                hide_yes    => 1,
+                hide_cancel => 1,
             }
         );
         return 0;
     }
-    
+
     my $matrix_ref = $phylogeny -> get_param ('AS_MX');
     my $response = 'no';
     if (defined $matrix_ref) {
         my $mx_name = $matrix_ref -> get_param ('NAME');
         my $ph_name = $phylogeny -> get_param ('NAME');
-        $response = Biodiverse::GUI::YesNoCancel->run({
-            header  => "$ph_name has already been converted",
-            text    => "use cached tree $mx_name?"
+        $response = Biodiverse::GUI::YesNoCancel->run(
+            {
+                header  => "$ph_name has already been converted",
+                text    => "use cached tree $mx_name?"
             }
         );
         return 0 if $response eq 'cancel';
     }
-    
+
     if ($response eq 'no') {  #  get a new one
         # Show the Get Name dialog
         my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
@@ -1289,37 +1291,30 @@ sub do_convert_phylogeny_to_matrix {
         $txtName->set_text($name);
 
         $response = $dlg->run();
-        
+
         if ($response eq 'ok') {
             my $chosen_name = $txtName->get_text;
-            #my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
             $dlg->destroy;
-            
+
             eval {
                 $matrix_ref = $phylogeny -> to_matrix (
                         name => $chosen_name,
-                        #progress => $progress_bar
                 );
             };
             if ($EVAL_ERROR) {
                 $self -> report_error ($EVAL_ERROR);
-                #$dlg->destroy;
-                #$progress_bar -> destroy;
                 return;
             }
 
-            #$matrix_ref -> set_param (NAME => $chosen_name);
             if ($phylogeny -> get_param ('CACHE_TREE_AS_MATRIX')) {
                 $phylogeny -> set_param (AS_MX => $matrix_ref);
             }
 
-            #$progress_bar -> destroy;
         }
-        #$dlg -> destroy;
     }
     
     #  now we add it if it is not already in the list
-    # otherwise we select it
+    #  otherwise we select it
     my $matrices = $self->{project} -> getMatrixList;
     my $in_list = 0;
     foreach my $mx (@$matrices) {

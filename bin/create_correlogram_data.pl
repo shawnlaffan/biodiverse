@@ -11,11 +11,9 @@ use POSIX qw { fmod };
 use File::Basename;
 
 use lib File::Spec->catfile( $Bin, '..', 'lib');
-BEGIN {
-    eval {
-        use mylib;
-    };
-};
+
+eval 'use mylib';
+
 
 use Biodiverse::BaseData;
 use Biodiverse::Common;

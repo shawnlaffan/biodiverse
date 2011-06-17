@@ -18,6 +18,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Jones C. &  Laffan S.W. (2008) Lexical similarity and endemism in historical wordlists of Australian Aboriginal languages of the greater Sydney region. [http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x Transactions of the Philological Society, 106, 456-486]. 
 
+  *  Laffan, S.W. & Bickford, S.A. (2005) Using spatial randomisations to improve the utility of Geographically Weighted Regression model results. In [http://www.mssanz.org.au/modsim05/papers/laffan.pdf MODSIM 2005 International Congress on Modelling and Simulation] (eds R. Argent & A. Zerger), pp. 1396-1401. Modelling and Simulation Society of Australia and New Zealand, Melbourne, Australia.
+
   * Laffan, S.W. & Crisp, M.D. (2003) Assessing endemism at multiple spatial scales, with an example from the Australian vascular flora. [http://www3.interscience.wiley.com/journal/118882020/abstract Journal of Biogeography, 30, 511-520]. 
 
   * Rosauer, D.F., Laffan, S.W., Crisp, M.D., Donnellan, S.C. & Cook, L.G. (2009). Phylogenetic endemism: a new approach to identifying geographical concentrations of evolutionary history. [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Molecular Ecology, 18, 4061-4072]. 

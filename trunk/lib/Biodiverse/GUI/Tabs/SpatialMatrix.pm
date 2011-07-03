@@ -418,62 +418,6 @@ sub onGridHover {
     return;
 }
 
-# inherited
-## Keep name in sync with the tab label
-## and do a rename if the object exists
-#sub onNameChanged {
-#    my $self = shift;
-#    
-#    my $xml_page = $self->{xmlPage};
-#    my $name = $xml_page->get_widget('txtSpatialName')->get_text();
-#    
-#    my $label_widget = $self->{xmlLabel}->get_widget('lblSpatialName');
-#    $label_widget->set_text($name);
-#    
-#    my $param_widget
-#        = $xml_page->get_widget('lbl_parameter_spatial_name');
-#    $param_widget->set_markup("<b>Name</b>");
-#
-#    my $bd = $self->{basedata_ref};
-#
-#    my $name_in_use = $bd -> get_spatial_output_ref (name => $name);
-#    
-#    #  make things go red
-#    if ($name_in_use) {
-#        #  colour the label red if the list exists
-#        my $label = $name;
-#        my $span_leader = '<span foreground="red">';
-#        my $span_ender  = ' <b>Name exists</b></span>';
-#
-#        $label =  $span_leader . $label . $span_ender;
-#        $label_widget->set_markup ($label);
-#        
-#        $param_widget->set_markup ("$span_leader <b>Name </b>$span_ender");
-#
-#        return;
-#    }
-#
-#    # rename
-#    if ($self->{existing}) {
-#        my $object = $self->{output_ref};
-#        eval {
-#            $bd->rename_output(
-#                output   => $object,
-#                new_name => $name
-#            );
-#        };
-#        if ($EVAL_ERROR) {
-#            $self->{gui}->report_error ($EVAL_ERROR);
-#            return;
-#        }
-#
-#        $self->{project}->updateOutputName( $object );
-#        $self->{output_name} = $name;
-#    }
-#    
-#    return;
-#}
-
 
 # Called by output tab to make us show some analysis
 sub showAnalysis {
@@ -539,74 +483,11 @@ sub recolour {
     return;
 }
 
-#  inherited
-#sub onZoomIn {
-#    my $self = shift;
-#    
-#    $self->{grid}->zoomIn();
-#    
-#    return;
-#}
-#
-#sub onZoomOut {
-#    my $self = shift;
-#    
-#    $self->{grid}->zoomOut();
-#    
-#    return;
-#}
-#
-#sub onZoomFit {
-#    my $self = shift;
-#    $self->{grid}->zoomFit();
-#    
-#    return;
-#}
-#
-#sub onColoursChanged {
-#    my $self = shift;
-#    my $colours = $self->{xmlPage}->get_widget('comboColours')->get_active_text();
-#    $self->{grid}->setLegendMode($colours);
-#    $self->recolour();
-#    
-#    return;
-#}
 
 sub onNeighboursChanged {
     my $self = shift;
     return;
 }
-
-#  doesn't work under inheritance
-#  should be called onSatSet
-#sub onColourSet {
-#    my $self = shift;
-#    my $button = shift;
-#
-#    my $combo_colours_hue_choice = 1;
-#
-#    my $widget = $self->{xmlPage}->get_widget('comboColours');
-#    
-#    #  a bodge to set the active colour mode to Hue
-#    my $active = $widget->get_active;
-#    
-#    $widget->set_active($combo_colours_hue_choice);
-#    $self->{grid}->setLegendHue($button->get_color());
-#    $self->recolour();
-#    
-#    return;
-#}
-
-#  inherited
-#sub onOverlays {
-#    my $self   = shift;
-#    my $button = shift;
-#
-#    Biodiverse::GUI::Overlays::showDialog( $self->{grid} );
-#    
-#    return;
-#}
-
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::
@@ -620,7 +501,7 @@ sub AUTOLOAD {
     my $method = $AUTOLOAD;
     $method =~ s/.*://;   # strip fully-qualified portion
 
-    $method = "SUPER::" . $method;
+    $method = 'SUPER::' . $method;
     return $self->$method (@_);
 }
 

@@ -535,7 +535,7 @@ sub setPane {
 
     my $pane = $self->{xmlPage}->get_widget("vpaneSpatial");
     
-    my $maxPos = $pane->get("max-position");
+    my $maxPos = $pane->get('max-position');
     $pane->set_position( $maxPos * $pos );
     #print "[Spatial tab] Updating pane: maxPos = $maxPos, pos = $pos\n";
     
@@ -935,14 +935,6 @@ sub onActiveAnalysisChanged {
     
     # need to work out min/max for all elements over this analysis
     my ($min, $max);
-    #foreach my $lists (values %$elements_hash) {
-    #    my $val = $lists->{$list} if defined $lists;
-    #    $val = $val->{$analysis} if defined $val;
-    #    if (defined $val) {
-    #        $min = $val if ((not defined $min) || $val < $min);
-    #        $max = $val if ((not defined $max) || $val > $max);
-    #    }
-    #}
     
     ELEMENT:
     foreach my $element ($output_ref->get_element_list) {

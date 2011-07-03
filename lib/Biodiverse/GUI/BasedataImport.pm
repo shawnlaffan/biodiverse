@@ -1059,8 +1059,7 @@ sub makeColumnsDialog {
     # use row_widgets to store the radio buttons, spinboxes
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
-        my $row_label_text = sprintf "%4i: %s", $i, $header->[$i];
-        $row_label_text = $header->[$i];
+        my $row_label_text = defined $header->[$i] ? $header->[$i] : q{};
         addRow($row_widgets, $table, $i, $row_label_text, $row_options);
     }
 

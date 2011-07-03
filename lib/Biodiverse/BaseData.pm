@@ -995,12 +995,6 @@ sub import_data {  #  load a data file into the selected BaseData object.
                     
                     #  now assign the centre of the cell we are in
                     $gp_val += $half_cellsize[$i];
-                    
-                    #  -ve cells need to be negative and pushed right/up
-                    #if ($tmp < 0) {
-                    #    $gp_val *= -1;
-                    #    #$gp_val += $cell_sizes[$i];
-                    #}
 
                     #  now shift the aggregated cell back to where it should be
                     $group[$i] = $gp_val + $cell_origins[$i];

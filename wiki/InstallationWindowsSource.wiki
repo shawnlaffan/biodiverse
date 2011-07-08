@@ -16,12 +16,15 @@ There are two options you can pursue here.  Both will work, but the !CamelBox in
 
 = !ActivePerl = 
 
+
+  *  Note that, since the release of Perl 5.14, ActiveState no longer release or support a free Perl 5.8.  We are working on updated binaries for the Gtk libraries (any help is welcome).  The update option still works, though.
+
 == Installation (AS) ==
 
   * [http://code.google.com/p/biodiverse/downloads/list Download] the windows executable version for this, as it includes the Gtk binaries needed for the GUI.
   * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
   * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  Make sure the gtk path is before the system perl\bin path, as the trouchelle PPM repository adds incompatible binaries there. For an example of how to set the path, see http://www.computerhope.com/issues/ch000549.htm.
-  * Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/releases/5.8.9.827/ActivePerl-5.8.9.827-MSWin32-x86-291969.msi .  If you are on a 64 bit machine then make sure you use the 32 bit installation, as many of the libraries needed for the GUI are not yet compiled for 64 bit.
+  * (This link is no longer working).  Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/releases/5.8.9.827/ActivePerl-5.8.9.827-MSWin32-x86-291969.msi .  If you are on a 64 bit machine then make sure you use the 32 bit installation, as many of the libraries needed for the GUI are not yet compiled for 64 bit.
   
   * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse.
 {{{

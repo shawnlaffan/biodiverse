@@ -58,12 +58,6 @@ sub new {
         label        => $label,
         label_widget => $label_widget,
     );
-    #$self->{notebook}   = $self->{gui}->getNotebook();
-    ##$self->{notebook}->append_page($page, $label);
-    #$self->{notebook}->append_page_menu($page, $label, $label_widget);
-    #$self->{page}       = $page;
-    #$self->{gui}->addTab($self);
-    #$self->set_tab_reorderable($page);
 
     my ($elt_count, $completed);  #  used to control display
 
@@ -176,7 +170,7 @@ sub new {
     $self->{xmlPage}->get_widget('frameSpatialParams2')->add(
         $self->{spatial2}->get_widget
     );
-    
+
     $hide_flag = not (length $initial_def1);
     $self->{definition_query1}
         = Biodiverse::GUI::SpatialParams->new($initial_def1, $hide_flag, 'is_def_query');
@@ -184,6 +178,10 @@ sub new {
         $self->{definition_query1}->get_widget
     );
 
+    #  add the basedata ref
+    foreach my $sp (qw /spatial1 spatial2 definition_query1/) {
+        $self->{$sp}->set_param(BASEDATA_REF => $self->{basedata_ref});
+    }
 
     $self->{hover_neighbours} = 'Both';
     $self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
@@ -351,7 +349,6 @@ sub initGrid {
         }
     }
 
-    
     return;
 }
 
@@ -578,42 +575,6 @@ sub setPaneSignal {
 ##################################################
 
 
-# Make ourselves known to the Outputs tab to that it
-# can switch to this tab if the user presses "Show"
-#sub registerInOutputsModel {
-#    my $self = shift;
-#    my $output_ref = shift;
-#    my $tabref = shift; # either $self, or undef to deregister
-#    my $model = $self->{project}->getBaseDataOutputModel();
-#
-#    # Find iter
-#    my $iter;
-#    my $iter_base = $model->get_iter_first();
-#
-#    while ($iter_base) {
-#        
-#        my $iter_output = $model->iter_children($iter_base);
-#        while ($iter_output) {
-#            if ($model->get($iter_output, MODEL_OBJECT) eq $output_ref) {
-#                $iter = $iter_output;
-#                last; #FIXME: do we have to look at other iter_bases, or does this iterate over entire level?
-#            }
-#            
-#            $iter_output = $model->iter_next($iter_output);
-#        }
-#        
-#        last if $iter; # break if found it
-#        $iter_base = $model->iter_next($iter_base);
-#    }
-#
-#    if ($iter) {
-#        $model->set($iter, MODEL_TAB, $tabref);
-#        $self->{current_registration} = $output_ref;
-#    }
-#    
-#    return;
-#}
-
 sub getType {
     return "spatial";
 }
@@ -699,8 +660,7 @@ sub onRun {
 
     $self->{output_ref} = $output_ref;
     $self->{project}->addOutput($self->{basedata_ref}, $output_ref);
-    
-    #my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
+
 
     my %args = (
         spatial_conditions  => [
@@ -711,7 +671,6 @@ sub onRun {
         calculations        => \@toRun,
         matrix_ref          => $self->{project}->getSelectedMatrix,
         tree_ref            => $self->{project}->getSelectedPhylogeny,
-        #progress            => $progress_bar,
     );
 
     # Perform the analysis
@@ -723,8 +682,6 @@ sub onRun {
     if ($EVAL_ERROR) {
         $self->{gui} -> report_error ($EVAL_ERROR);
     }
-
-    #$progress_bar->destroy;
     
     if ($success) {
         $self->registerInOutputsModel($output_ref, $self);

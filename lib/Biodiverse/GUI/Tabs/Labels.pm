@@ -57,21 +57,15 @@ sub new {
 
     my $page  = $self->{xmlPage}->get_widget('vpaneLabels');
     my $label = $self->{xmlLabel}->get_widget('hboxLabelsLabel');
-    my $label_widget = Gtk2::Label->new('Labels tab');
-    $self->{tab_menu_label} = $label_widget;
+    my $tab_menu_label = Gtk2::Label->new('Labels tab');
+    $self->{tab_menu_label} = $tab_menu_label;
 
     # Add to notebook
     $self->add_to_notebook (
         page         => $page,
         label        => $label,
-        label_widget => $label_widget,
+        label_widget => $tab_menu_label,
     );
-    #$self->{notebook}   = $self->{gui}->getNotebook();
-    ##$self->{notebook}->append_page($page, $label);
-    #$self->{notebook}->append_page_menu($page, $label, $label_widget);
-    #$self->{page}       = $page;
-    #$self->{gui}->addTab($self);
-    #$self->set_tab_reorderable($page);
 
     # Get basename
     # Something has to be selected - otherwise menu item is disabled

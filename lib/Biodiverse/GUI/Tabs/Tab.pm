@@ -9,6 +9,24 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
 use Carp;
 
+
+sub add_to_notebook {
+    my $self = shift;
+    my %args = @_;
+
+    my $page = $args{page};
+    my $label = $args{label};
+    my $label_widget = $args{label_widget};
+
+    $self->{notebook}   = $self->{gui}->getNotebook();
+    $self->{notebook}->append_page_menu($page, $label, $label_widget);
+    $self->{page}       = $page;
+    $self->{gui}->addTab($self);
+    $self->set_tab_reorderable($page);
+    
+    return;
+}
+
 sub getPageIndex {
     my $self = shift;
     my $page = shift || $self->{page};

@@ -71,12 +71,6 @@ sub new {
         label        => $label,
         label_widget => $label_widget,
     );
-    #$self->{notebook}   = $self->{gui}->getNotebook();
-    ##$self->{notebook}->append_page($page, $label);
-    #$self->{notebook}->append_page_menu($page, $label, $label_widget);
-    #$self->{page}       = $page;
-    #$self->{gui}->addTab($self);
-    #$self->set_tab_reorderable($page);
 
     my ($elt_count, $completed);  #  used to control display
 

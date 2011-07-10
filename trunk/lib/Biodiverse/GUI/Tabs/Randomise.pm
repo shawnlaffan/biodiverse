@@ -69,6 +69,7 @@ sub new {
     
     # Add to notebook
     $self->{notebook}   = $self->{gui}->getNotebook();
+    #$self->{notebook}->append_page($page, $label);
     $self->{notebook}->append_page_menu($page, $label, $label_widget);
     $self->{page}       = $page;
     $self->{gui}->addTab($self);

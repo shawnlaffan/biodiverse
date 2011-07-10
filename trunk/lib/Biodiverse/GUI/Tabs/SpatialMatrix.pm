@@ -66,14 +66,18 @@ sub new {
     $self->{tab_menu_label} = $label_widget;
 
     # Add to notebook
-    $self->{notebook}   = $self->{gui}->getNotebook();
-    $self->{notebook}->append_page_menu($page, $label, $label_widget);
-    $self->{page}       = $page;
-    $self->{gui}->addTab($self);
-    
+    $self->add_to_notebook (
+        page         => $page,
+        label        => $label,
+        label_widget => $label_widget,
+    );
+    #$self->{notebook}   = $self->{gui}->getNotebook();
+    ##$self->{notebook}->append_page($page, $label);
+    #$self->{notebook}->append_page_menu($page, $label, $label_widget);
+    #$self->{page}       = $page;
+    #$self->{gui}->addTab($self);
+    #$self->set_tab_reorderable($page);
 
-    $self->set_tab_reorderable($page);
-    
     my ($elt_count, $completed);  #  used to control display
 
     croak "Only existing outputs can be displayed\n" if (not defined $groups_ref );

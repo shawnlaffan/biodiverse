@@ -119,7 +119,7 @@ sub init {
     # Notebook...
     $self->{notebook} = Gtk2::Notebook->new;
     $self->{notebook}->set_scrollable(1);
-    $self->{notebook}->popup_enable;
+    #$self->{notebook}->popup_enable;
     $self->{notebook}->signal_connect_swapped(
         'switch-page',
         \&onSwitchTab,
@@ -1544,14 +1544,7 @@ sub addTab {
     my $page = $tab->getPageIndex;
     
     # Add tab to our array at the right position
-    #splice(@{$self->{tabs}}, $page, 0, $tab);
     push @{$self->{tabs}}, $tab;
-
-    # Increment page indices of tabs to the right
-    #my $len = @{$self->{tabs}};
-    #foreach my $i ($page + 1 .. $#{$self->{tabs}}) {
-    #    $self->{tabs}[$i]->setPageIndex( $i );
-    #}
 
     # Enable keyboard shortcuts (CTRL-G)
     $tab->setKeyboardHandler();
@@ -1611,14 +1604,6 @@ sub onSwitchTab {
     my $page = shift;  #  passed by Gtk, not needed here
     my $page_index = shift;  #  passed by gtk
 
-    #if ($page_index > $#{$self->{tabs}}) {
-    #    $page_index = 0;
-    #}
-    #elsif ($page_index < 0) {
-    #    $page_index = -1;
-    #}
-
-    #my $page = $self->getNotebook->get_current_page;
     foreach my $tab (@{$self->{tabs}}) {
         next if $page_index != $tab->getPageIndex;
         $tab->setKeyboardHandler();

@@ -1017,6 +1017,50 @@ sub calc_phylo_jaccard {
             : \%results;
 }
 
+sub get_metadata_calc_phylo_s2 {
+
+    my %arguments = (
+        name           =>  'Phylo S2',
+        type           =>  'Phylogenetic Indices',
+        description    =>  "S2 phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
+        pre_calc       =>  'calc_phylo_abc',
+        uses_nbr_lists =>  2,  #  how many sets of lists it must have
+        indices        => {
+            PHYLO_S2 => {
+                cluster     =>  1,
+                formula     =>  [
+                    '= 1 - (A / (A + min (B, C)))',
+                    ' where A is the length of shared branches, '
+                    . 'and B and C are the length of branches found only in neighbour sets 1 and 2',
+                ],
+                description => 'Phylo S2 score',
+            }
+        },
+        required_args => {'tree_ref' => 1}
+    );
+
+    return wantarray ? %arguments : \%arguments;   
+}
+
+# calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+sub calc_phylo_s2 {
+    my $self = shift;
+    my %args = @_;
+
+    my ($A, $B, $C) = @args{qw /PHYLO_A PHYLO_B PHYLO_C/};  
+
+    my $val;
+    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+        $val = eval {1 - ($A / ($A + min ($B, $C)))};
+    }    
+
+    my %results = (PHYLO_S2 => $val);
+
+    return wantarray
+            ? %results
+            : \%results;
+}
+
 sub get_metadata_calc_phylo_abc {
     
     my %arguments = (

@@ -1684,15 +1684,15 @@ sub get_metadata_calc_abc_counts {
         indices         => {
             ABC_A   => {
                 description => 'Count of labels common to both neighbour sets',
-                lumper      => 0,
+                lumper      => 1,
             },
             ABC_B   => {
                 description => 'Count of labels unique to neighbour set 1',
-                lumper      => 0,
+                lumper      => 1,
             },
             ABC_C   => {
                 description => 'Count of labels unique to neighbour set 2',
-                lumper      => 0,
+                lumper      => 1,
             },
             ABC_ABC => {
                 description => 'Total label count across both neighbour sets (same as RICHNESS_ALL)',

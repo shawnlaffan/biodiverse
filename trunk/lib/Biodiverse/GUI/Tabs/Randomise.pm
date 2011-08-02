@@ -258,7 +258,7 @@ sub set_button_sensitivity {
     my @widgets = qw /
         randomise_results_list_name
         randomise_seed_value
-        comboBasedata
+        comboRandomiseBasedata
         comboFunction
     /;
     
@@ -281,8 +281,8 @@ sub set_button_sensitivity {
 sub initBasedataCombo {
     my $self = shift;
     my %args = @_;
-        
-    my $combo = $self->{xmlPage}->get_widget('comboBasedata');
+
+    my $combo = $self->{xmlPage}->get_widget('comboRandomiseBasedata');
     my $renderer = Gtk2::CellRendererText->new();
 
     $combo->pack_start($renderer, 1);
@@ -290,7 +290,7 @@ sub initBasedataCombo {
 
     $combo->set_model($self->{gui}->getProject->getBasedataModel());
     $combo->signal_connect_swapped(
-        changed => \&onBasedataChanged,
+        changed => \&onRandomiseBasedataChanged,
         $self,
     );
 
@@ -301,8 +301,10 @@ sub initBasedataCombo {
     if (defined $selected) {
         $combo -> set_active_iter($selected);
     }
+    
+    $combo->set_sensitive (0); # if 1 then re-enable signal connect above
 
-    $self -> onBasedataChanged;  #  set a few things
+    $self -> onRandomiseBasedataChanged;  #  set a few things
     
     return;
 }
@@ -429,9 +431,9 @@ sub onFunctionChanged {
 ######################################################
 ## The basedata/outputs selection
 ######################################################
-sub onBasedataChanged {
+sub onRandomiseBasedataChanged {
     my $self = shift;
-    my $combo = $self->{xmlPage}->get_widget('comboBasedata');
+    my $combo = $self->{xmlPage}->get_widget('comboRandomiseBasedata');
     my $basedata_iter = $combo->get_active_iter();
 
     # Get basedata object
@@ -445,27 +447,28 @@ sub onBasedataChanged {
     $self->{selected_basedata_ref} = $basedata_ref;
     #print "[Randomise page] Basedata ref is $basedata_ref\n";
 
-    # Set up the tree with outputs
-    my $outputs_model = $self->{outputs_model};
-    $outputs_model->clear;
-
-    my $outputs_list = $self->{gui}->getProject->getBasedataOutputs($basedata_ref);
-    if (not @{$outputs_list}) {
-        #print "[Randomise page] output_list empty\n";
-    }
-    else {
-
-        foreach my $output_ref (@{$outputs_list}) {
-            my $iter = $outputs_model->append(undef);
-            $outputs_model->set(
-                $iter,
-                OUTPUT_CHECKED, 1,
-                OUTPUT_REF,     $output_ref,
-                OUTPUT_NAME,    $output_ref->get_param('NAME')
-            );
-        }
-
-    }
+    #  NOT DOING THIS NOW
+    ## Set up the tree with outputs
+    #my $outputs_model = $self->{outputs_model};
+    #$outputs_model->clear;
+    #
+    #my $outputs_list = $self->{gui}->getProject->getBasedataOutputs($basedata_ref);
+    #if (not @{$outputs_list}) {
+    #    #print "[Randomise page] output_list empty\n";
+    #}
+    #else {
+    #
+    #    foreach my $output_ref (@{$outputs_list}) {
+    #        my $iter = $outputs_model->append(undef);
+    #        $outputs_model->set(
+    #            $iter,
+    #            OUTPUT_CHECKED, 1,
+    #            OUTPUT_REF,     $output_ref,
+    #            OUTPUT_NAME,    $output_ref->get_param('NAME')
+    #        );
+    #    }
+    #
+    #}
 
     $self->updateRandomiseButton;
     
@@ -491,27 +494,34 @@ sub onOutputToggled {
     return;
 }
 
-# Get list of outputs that have been checked
+# Get list of outputs that have been checked - (all of them these days)
 sub getSelectedOutputs {
     my $self = shift;
-    my $model = $self->{outputs_model};
-    my $iter = $model->get_iter_first;
-    my @array;
-
-    while ($iter) {
-        my ($checked, $ref) = $model->get($iter, OUTPUT_CHECKED, OUTPUT_REF);
-        if ($checked) {
-            unshift @array, $ref;
-        }
-        $iter = $model->iter_next($iter);
-    }
-    return \@array;
+    #my $model = $self->{outputs_model};
+    #my $iter = $model->get_iter_first;
+    #my @array;
+    #
+    #while ($iter) {
+    #    my ($checked, $ref) = $model->get($iter, OUTPUT_CHECKED, OUTPUT_REF);
+    #    if ($checked) {
+    #        unshift @array, $ref;
+    #    }
+    #    $iter = $model->iter_next($iter);
+    #}
+    #return \@array;
+    #
+    return $self->{gui}->getProject->getBasedataOutputs($self->{selected_basedata_ref});
 }
 
 # Disables "Randomise" button if no outputs selected
 sub updateRandomiseButton {
     my $self = shift;
-    my $selected = $self->getSelectedOutputs;
+
+    my $project = $self->{gui}->getProject;
+    return if not $project;
+
+    my $outputs_list = $project->getBasedataOutputs($self->{selected_basedata_ref});
+    my $selected     = $outputs_list;
 
     if (@{$selected}) {
         $self->{xmlPage}->get_widget('btnRandomise')->set_sensitive(1);
@@ -742,7 +752,12 @@ sub AUTOLOAD {
     return $self->$method(@_);
 }
 
-sub DESTROY {}  #  let the system handle destruction - need this for AUTOLOADER
+sub DESTROY {
+    #my $self = shift;
+    #eval {
+    #    $self->{xmlPage}->get_widget('comboRandomiseBasedata')->destroy;
+    #}
+}  #  let the system handle destruction - need this for AUTOLOADER
 
 
 1;

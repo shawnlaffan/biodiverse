@@ -1585,9 +1585,6 @@ sub removeTab {
     #  don't close the outputs tab
     return if (blessed $tab) =~ /Outputs$/;
 
-    $tab->removeKeyboardHandler();
-    $tab->remove();
-
     # Remove tab from our array
     #  do we really need to store the tabs?
     my @tabs = @{$self->{tabs}};
@@ -1598,6 +1595,10 @@ sub removeTab {
         }
         $i --;
     }
+    undef @tabs;
+
+    $tab->removeKeyboardHandler();
+    $tab->remove();
 
     return;
 }

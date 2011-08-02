@@ -1581,6 +1581,9 @@ sub switchTab {
 sub removeTab {
     my $self = shift;
     my $tab = shift;
+    
+    #  don't close the outputs tab
+    return if (blessed $tab) =~ /Outputs$/;
 
     $tab->removeKeyboardHandler();
     $tab->remove();

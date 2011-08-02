@@ -2156,7 +2156,6 @@ sub do_delete_randomisation {
     $object -> set_param (BASEDATA_REF => undef);  #  free its parent ref
     
     return;
-    
 }
 
 

@@ -669,7 +669,6 @@ sub onRun {
     my $success = eval {
         $output_ref -> run_analysis (
             %args,
-            #progress => $progress
         )
     };
     if ($EVAL_ERROR) {

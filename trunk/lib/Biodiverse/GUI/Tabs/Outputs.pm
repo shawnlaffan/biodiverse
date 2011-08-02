@@ -366,11 +366,12 @@ sub onDelete {
     
     my $basedata_ref = $selected->{basedata_ref};
     my $output_ref = $selected->{output_ref};
-    my $tab = $selected->{tab};    
+    my $tab = $selected->{tab};
     my $dialog = undef;
 
     if ($selected->{type} eq 'output') {
         $selected = undef;
+
         my $name = $output_ref->get_param('NAME');
         
         my $msg = "Delete output $name?";
@@ -388,9 +389,12 @@ sub onDelete {
             'yes-no',
             $msg
         );
+
         my $response = $dialog->run;
+        $dialog->destroy;
+
         if ($response eq 'yes') {
-            
+
             print "[Outputs tab] Deleting output $name\n";
             $self->{gui}->getProject->deleteOutput($output_ref); # delete from model
 
@@ -401,9 +405,9 @@ sub onDelete {
             if ($EVAL_ERROR) {
                 $self->{gui} -> report_error ($EVAL_ERROR);
             }
-            
-            # Close any tabs
-            if (defined $tab) {
+
+            # Close any tabs with this output
+            if (defined $tab and (blessed $tab) !~ /Outputs$/) {
                 $self->{gui}->removeTab($tab);
             }
         }
@@ -422,23 +426,21 @@ sub onDelete {
         );
         
         my $response = $dialog->run;
+        $dialog->destroy;
+
         if ($response eq 'yes') {
             
             print "[Outputs tab] Deleting basedata $name\n";
             $self->{gui}->getProject->deleteBaseData($basedata_ref);
 
-            # Close any tabs
+            # Need to close any tabs associated with this basedata - currently am not doing that
             if (defined $tab) {
                 $self->{gui}->removeTab($tab);
             }
         }
 
     }
-    
-    if (defined $dialog) {
-        $dialog->destroy;
-    }
-    
+
     return;
 }
 

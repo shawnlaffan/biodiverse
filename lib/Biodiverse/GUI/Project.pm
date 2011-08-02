@@ -287,7 +287,7 @@ sub basedataOutputModelInit {
         $self->basedataAddOutputs($basedata_ref, $basedata_iter);
     }
     
-    #return;
+    return;
 }
 
 sub basedataAddOutputs {

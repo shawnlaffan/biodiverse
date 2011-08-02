@@ -80,6 +80,7 @@ sub update_name {
 
 sub remove {
     my $self = shift;
+
     if (exists $self->{current_registration}) {  #  deregister if necessary
         $self->{project}->registerInOutputsModel($self->{current_registration}, undef);
     }

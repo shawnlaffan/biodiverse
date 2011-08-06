@@ -2096,10 +2096,13 @@ sub report_error {
         ? $error
         : split ("\n", $error, 2);
 
+    my $show_details_value = -10;
+
     my $dlg = Gtk2::Dialog->new(
         $title,
         $self->getWidget('wndMain'),
         'modal',
+        'show details' => $show_details_value,
         'gtk-ok' => 'ok',
     );
     my $text_widget = Gtk2::Label->new();
@@ -2123,7 +2126,7 @@ sub report_error {
 
     my $details_box = Gtk2::VBox->new(1, 6);
     $details_box->pack_start(Gtk2::HSeparator->new(), 0, 0, 0);
-    $details_box->pack_start($check_button, 0, 0, 0);
+    #$details_box->pack_start($check_button, 0, 0, 0);
     $details_box->pack_start($extra_text_widget, 0, 0, 0);
 
     $dlg->vbox->pack_start ($text_widget, 0, 0, 0);
@@ -2131,31 +2134,22 @@ sub report_error {
 
 
     $dlg->show_all;
+    my $details_visible = 0;
     $extra_text_widget->hide;
-    $dlg->run;
+    
+    while (1) {
+        my $response = $dlg->run;
+        last if $response ne 'apply'; #  not sure whey we're being fed 'apply' as the value
+        if ($details_visible) {  #  replace with set_visible when Gtk used is 2.18+
+            $extra_text_widget->hide;
+        }
+        else {
+            $extra_text_widget->show;
+        }
+        $details_visible = ! $details_visible;
+    }
+
     $dlg->destroy;
-
-    return;
-}
-
-sub on_report_error_show_hide {
-    my $text_widget = shift;
-    my $check_button = shift;
-    
-    
-    my $active = $check_button->get_active;
-    my $showhide = $active
-                    ? 'show'
-                    : 'hide';
-
-    $text_widget->$showhide;
-
-    if ($active) {
-        $check_button->set_label ('hide details');
-    }
-    else {
-        $check_button->set_label ('show details');
-    }
 
     return;
 }

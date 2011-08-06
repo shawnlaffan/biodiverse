@@ -153,9 +153,9 @@ sub onSyntaxCheck {
         $class->new (conditions => $expr);
     };
 
-    #  NEED TO GET THE BASEDATA ASSOCIATED WITH THIS OUTPUT
-    #my $result_hash = $spatial_params -> verify (basedata => $gui->getProject->getSelectedBaseData);  
-    my $result_hash = $spatial_params -> verify (basedata => $self->get_param ('BASEDATA_REF'));
+    #  Get the baedata associated with this output.  If none then use the selected.
+    my $bd = $self->get_param ('BASEDATA_REF') || $gui->getProject->getSelectedBaseData;
+    my $result_hash = $spatial_params -> verify (basedata => $bd);
 
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {
         my $dlg = Gtk2::MessageDialog->new(

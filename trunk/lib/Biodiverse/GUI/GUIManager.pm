@@ -2065,7 +2065,7 @@ sub do_set_working_directory {
     return $dir;
 }
 
-#  report an error using a YesNoCancel window
+#  report an error using a dialog window
 #  turning into general feedback - needs modification
 sub report_error {
     my $self  = shift;
@@ -2102,19 +2102,64 @@ sub report_error {
         'modal',
         'gtk-ok' => 'ok',
     );
-    my $text_widget = Gtk2::Label ->new();
+    my $text_widget = Gtk2::Label->new();
     #$text_widget->set_use_markup(1);
     $text_widget->set_alignment (0, 1);
     $text_widget->set_text ($error_array[0]);
     $text_widget->set_selectable (1);
+    
+    #  hbox and so forth for exra text
+    my $extra_text_widget = Gtk2::Label ->new();
+    $extra_text_widget->set_alignment (0, 1);
+    $extra_text_widget->set_text ($error_array[1] or 'There are no additional details');
+    $extra_text_widget->set_selectable (1);
+    
+    my $check_button = Gtk2::ToggleButton->new_with_label('show details');
+    $check_button->signal_connect_swapped (
+        clicked => \&on_report_error_show_hide,
+        $extra_text_widget,
+    );
+    $check_button -> set_active (0);
+
+    my $details_box = Gtk2::VBox->new(1, 6);
+    $details_box->pack_start(Gtk2::HSeparator->new(), 0, 0, 0);
+    $details_box->pack_start($check_button, 0, 0, 0);
+    $details_box->pack_start($extra_text_widget, 0, 0, 0);
+
     $dlg->vbox->pack_start ($text_widget, 0, 0, 0);
+    $dlg->vbox->pack_start ($details_box, 0, 0, 0);
+
 
     $dlg->show_all;
+    $extra_text_widget->hide;
     $dlg->run;
     $dlg->destroy;
 
     return;
 }
+
+sub on_report_error_show_hide {
+    my $text_widget = shift;
+    my $check_button = shift;
+    
+    
+    my $active = $check_button->get_active;
+    my $showhide = $active
+                    ? 'show'
+                    : 'hide';
+
+    $text_widget->$showhide;
+
+    if ($active) {
+        $check_button->set_label ('hide details');
+    }
+    else {
+        $check_button->set_label ('show details');
+    }
+
+    return;
+}
+
 
 #  warn if the user tries to run a randomisation and the basedata already has outputs
 sub warn_outputs_exist_if_randomisation_run {

@@ -2144,6 +2144,57 @@ sub get_lists {
     return \@list;
 }
 
+#  should just return the stats object
+sub get_list_value_stats {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{list}   || croak "List not specified\n";
+    my $index = $args{index} || croak "Index not specified\n";
+
+    my @data;
+    foreach my $element ($self->get_element_list) {
+        my $list_ref = $self->get_list_ref (
+            element    => $element,
+            list       => $list,
+            autovivify => 0,
+        );
+        next if ! defined $list_ref;
+        next if ! exists  $list_ref->{$index};
+        next if ! defined $list_ref->{$index};  #  skip undef values
+
+        push @data, $list_ref->{$index};
+    }
+    
+    my %stats_hash = (
+        MAX    => undef,
+        MIN    => undef,
+        MEAN   => undef,
+        SD     => undef,
+        PCT025 => undef,
+        PCT975 => undef,
+        PCT05  => undef,
+        PCT95  => undef,
+    );
+
+    if (scalar @data) {  #  don't bother if they are all undef
+        my $stats = $stats_class->new;
+        $stats -> add_data (\@data);
+        
+        %stats_hash = (
+            MAX    => $stats -> max,
+            MIN    => $stats -> min,
+            MEAN   => $stats -> mean,
+            SD     => $stats -> standard_deviation,
+            PCT025 => scalar $stats -> percentile (2.5),
+            PCT975 => scalar $stats -> percentile (97.5),
+            PCT05  => scalar $stats -> percentile (5),
+            PCT95  => scalar $stats -> percentile (95),
+        );
+    }
+    
+    return wantarray ? %stats_hash : \%stats_hash;
+}
+
 sub clear_lists_across_elements_cache {
     my $self = shift;
     $self -> set_param (LISTS_ACROSS_ELEMENTS => undef);

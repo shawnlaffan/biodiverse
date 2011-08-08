@@ -375,7 +375,11 @@ sub get_node_hash_by_depth {
     return wantarray ? %by_value : \%by_value;
 }
 
-#  get a set of stats for one of the hash lists in the tree.  
+#  get a set of stats for one of the hash lists in the tree.
+#  Should be called get_list_value_stats
+#  should just return the stats object
+#  Should also inherit from Biodiverse::BaseStruct::get_list_value_stats?
+#  It is almost identical.
 sub get_list_stats {
     my $self = shift;
     my %args = @_;
@@ -397,9 +401,13 @@ sub get_list_stats {
         MIN  => undef,
         MEAN => undef,
         SD   => undef,
+        PCT025 => undef,
+        PCT975 => undef,
+        PCT05  => undef,
+        PCT95  => undef,
     );
 
-    if (scalar @data) {  #  don't both if they are all undef
+    if (scalar @data) {  #  don't bother if they are all undef
         my $stats = $stats_class->new;
         $stats -> add_data (\@data);
         
@@ -408,6 +416,10 @@ sub get_list_stats {
             MIN  => $stats -> min,
             MEAN => $stats -> mean,
             SD   => $stats -> standard_deviation,
+            PCT025 => scalar $stats -> percentile (2.5),
+            PCT975 => scalar $stats -> percentile (97.5),
+            PCT05  => scalar $stats -> percentile (5),
+            PCT95  => scalar $stats -> percentile (9.5),
         );
     }
     

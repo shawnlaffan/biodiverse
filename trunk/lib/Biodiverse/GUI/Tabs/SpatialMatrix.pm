@@ -114,9 +114,8 @@ sub new {
         Gtk2::Gdk::Color->new(65535,0,0)  # red
     ); 
 
-    # min/max across matrix
-    $self->{max} = $matrix_ref->get_max_value;
-    $self->{min} = $matrix_ref->get_min_value;
+    $self->set_plot_min_max_values;
+
 
     eval {
         $self->initGrid();
@@ -445,6 +444,20 @@ sub onActiveAnalysisChanged {
     $self->{selected_element} = $element;
 
     $self->recolour();
+
+    return;
+}
+
+    
+sub set_plot_min_max_values {
+    my $self = shift;
+    
+    my $matrix_ref = $self->{output_ref};
+
+    my $stats = $matrix_ref->get_summary_stats;
+
+    $self->{max} = $stats->{$self->{MAX_PLOT_STAT} || 'MAX'};
+    $self->{min} = $stats->{$self->{MIN_PLOT_STAT} || 'MIN'};
 
     return;
 }

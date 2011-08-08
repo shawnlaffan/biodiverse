@@ -835,63 +835,61 @@ sub setAnalysisList {
 }
 
 
+#  NEVER CALLED??
 # Colours elements based on value in the given analysis (eg: Jaccard, REDUNDANCY,...)
-sub setAnalysis {
-    my $self = shift;
-    my $analysis = shift;
-    my $colour_none = shift;
-    my $min = shift;
-    my $max = shift;
-
-    $self->{analysis} = $analysis;
-    
-    return if ! defined $analysis;  #  don't do anything further
-    
-    #  print feedback once only
-    if (! defined $self->{last_analysis_drawn}
-        || ! ($self->{last_analysis_drawn} eq $analysis)) {
-        print "[Grid] Drawing analysis $analysis\n";
-    }
-    $self->{last_analysis_drawn} = $analysis;
-
-    my $check_min = defined $min ? 1 : 0;
-    my $check_max = defined $max ? 1 : 0;
-
-    # Find max and min values
-    #print "[Grid] Calculating min/max\n";
-    if ($check_min || $check_max) {
-        foreach my $cell (values %{$self->{cells}}) {
-            my $val = $cell->[INDEX_VALUES]{$analysis};
-
-            #my $elt = $cell->[INDEX_ELEMENT];
-            #print "\t$elt: $val\n";
-
-            # Sometimes have no value!
-            if (defined $val) {
-                $min = $val if ( $check_min && ((not defined $min) || $val < $min));
-                $max = $val if ( $check_max && ((not defined $max) || $val > $max));
-            }
-    
-            #print "\t\tMin = $min\tMax = $max\n";
-        }
-    }
-    $self->{min} = $min;
-    $self->{max} = $max;
-
-    # Set legend textbox markers
-    if ($self->{marks} and defined $min) {
-        my $marker_step = ($max - $min) / 3;
-        foreach my $i (0..3) {
-            my $text = sprintf ("%.4f", $min + $i * $marker_step); # round to 4 d.p.
-            $self->{marks}[3 - $i]->set( text => $text );
-        }
-    }
-    
-    # Colour each cell
-    $self->colourCells($colour_none);
-    
-    return;
-}
+#sub setAnalysis {
+#    my $self = shift;
+#    my $analysis = shift;
+#    my $colour_none = shift;
+#    my $min = shift;
+#    my $max = shift;
+#
+#    $self->{analysis} = $analysis;
+#    
+#    return if ! defined $analysis;  #  don't do anything further
+#    
+#    #  print feedback once only
+#    if (! defined $self->{last_analysis_drawn}
+#        || ! ($self->{last_analysis_drawn} eq $analysis)) {
+#        print "[Grid] Drawing analysis $analysis\n";
+#    }
+#    $self->{last_analysis_drawn} = $analysis;
+#
+#    my $check_min = defined $min ? 1 : 0;
+#    my $check_max = defined $max ? 1 : 0;
+#
+#    # Find max and min values
+#    #print "[Grid] Calculating min/max\n";
+#    if ($check_min || $check_max) {
+#        foreach my $cell (values %{$self->{cells}}) {
+#            my $val = $cell->[INDEX_VALUES]{$analysis};
+#        
+#            # Sometimes have no value!
+#            if (defined $val) {
+#                $min = $val if ( $check_min && ((not defined $min) || $val < $min));
+#                $max = $val if ( $check_max && ((not defined $max) || $val > $max));
+#            }
+#        
+#            #print "\t\tMin = $min\tMax = $max\n";
+#        }
+#    }
+#    $self->{min} = $min;
+#    $self->{max} = $max;
+#
+#    # Set legend textbox markers
+#    if ($self->{marks} and defined $min) {
+#        my $marker_step = ($max - $min) / 3;
+#        foreach my $i (0..3) {
+#            my $text = sprintf ("%.4f", $min + $i * $marker_step); # round to 4 d.p.
+#            $self->{marks}[3 - $i]->set( text => $text );
+#        }
+#    }
+#    
+#    # Colour each cell
+#    $self->colourCells($colour_none);
+#    
+#    return;
+#}
 
 
 ##########################################################

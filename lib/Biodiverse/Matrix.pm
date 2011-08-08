@@ -468,6 +468,58 @@ sub get_max_value {  #  get the minimum similarity value
     return $array[0];
 }
 
+#  crude summary stats.
+#  Not using Biodiverse::Statistics due to memory issues
+#  with large matrices and calculation of percentiles.
+sub get_summary_stats {
+    my $self = shift;
+    
+    my $n = $self->get_element_pair_count;
+    my ($sumx, $sumx_sqr);
+    my @percentile_targets = qw /2.5 5 95 97.5/;
+    my @percentile_target_counts;
+    foreach my $pct (@percentile_targets) {
+        push @percentile_target_counts, $n * $pct / 100;  #  should floor it?
+    }
+    my %percentile_hash;
+
+    my $count;
+
+    my $values_hash = $self->{BYVALUE};
+    BY_VALUE:
+    foreach my $value (sort numerically keys %$values_hash) {
+        my $hash = $values_hash->{$value};
+        my $sub_count = scalar keys %$hash;
+        $sumx += $value * $sub_count;
+        $sumx_sqr += ($value ** 2) * $sub_count;
+        $count += $sub_count;
+
+        FIND_PCTL:
+        foreach my $target (@percentile_target_counts) {
+            last FIND_PCTL if $count < $target;
+            my $percentile = shift @percentile_targets;
+            $percentile_hash{$percentile} = $value;
+            shift @percentile_target_counts;
+        }
+    }
+    
+    my $max = $self->get_max_value;
+    my $min = $self->get_min_value;
+
+    my %stats = (
+        MAX => $self->get_max_value,
+        MIN => $self->get_min_value,
+        MEAN   => $sumx / $n,
+        #SD     => undef,
+        PCT025 => defined $percentile_hash{'2.5'}  ? $percentile_hash{'2.5'}  : $min,
+        PCT975 => defined $percentile_hash{'97.5'} ? $percentile_hash{'97.5'} : $max,
+        PCT05  => defined $percentile_hash{'5'}    ? $percentile_hash{'5'}    : $min,
+        PCT95  => defined $percentile_hash{'95'}   ? $percentile_hash{'95'}   : $max,
+    );
+    
+    return wantarray ? %stats : \%stats;
+}
+
 sub add_element {  #  add an element pair to the object
     my $self = shift;
     my %args = @_;
@@ -475,7 +527,7 @@ sub add_element {  #  add an element pair to the object
     my $element1 = $args{element1};
     croak "Element1 not specified in call to add_element\n"
         if ! defined $element1;
-        
+
     my $element2 = $args{element2};
     croak "Element2 not specified in call to add_element\n"
         if ! defined $element2;
@@ -651,6 +703,18 @@ sub get_element_count {
     my $self = shift;
     return 0 if ! exists $self->{ELEMENTS};
     return scalar keys %{$self->{ELEMENTS}};
+}
+
+sub get_element_pair_count {
+    my $self = shift;
+
+    my $count = 0;
+    for my $value (values %{$self->{ELEMENTS}}) {
+        $count += $value;
+    }
+    $count /= 2;  #  correct for double counting
+
+    return $count;
 }
 
 sub get_elements_with_value {  #  returns a hash of the elements with $value

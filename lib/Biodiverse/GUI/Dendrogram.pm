@@ -1078,21 +1078,21 @@ sub onMapIndexComboChanged {
     if ($iter) {
 
         $analysis = $combo->get_model->get($iter, 0);
+        $self->{analysis_list_index} = $analysis;
+
         my %stats = $self->{cluster} -> get_list_stats (
             list => $self->{analysis_list_name},
             index => $analysis
         );
 
-        $self->{analysis_list_index} = $analysis;
-        $self->{analysis_min}              = $stats{MIN};
-        $self->{analysis_max}              = $stats{MAX};
+        $self->{analysis_min} = $stats{$self->{MIN_PLOT_STAT} || 'MIN'};
+        $self->{analysis_max} = $stats{$self->{MAX_PLOT_STAT} || 'MAX'};
 
         #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
         $self->{cluster_colour_mode} = 'list-values';
         $self->recolourClusterElements();
 
         $self->recolourClusterLines($self->{processed_nodes});
-
     }
     else {
         $self->{analysis_list_index} = undef;
@@ -1229,35 +1229,6 @@ sub initYCoordsInner {
     return;
 }
 
-# Returns first element equal-or-lower than target
-    # FIXME: still need to check all the corner cases
-    # ie: if 2222 333 444 searching for 2, will it start from the first 2?
-#sub binarySearch {
-#    my ($array, $target) = @_;
-#    my $last = $#{$array};
-#    my ($l, $r) = (0, $last);
-#    my ($m, $elt);
-#
-#    while ($l < $r) {
-#        $m = ceil ( ($l+$r)/2 );
-#        $elt = $array->[$m]->get_value('total_length_gui');
-#
-#        if ($elt < $target) {
-#            $l = $m + 1; # search in upper half
-#        }
-#        else {
-#            $r = $m - 1; # search in lower half
-#        }
-#        #print "$l $r $m\n";
-#    }
-#
-#    $l = $last if $l > $last;
-#
-#    # Might have landed too far above 
-#    while ($l > 0 && ($array->[$l]->get_value('total_length_gui') > $target)) { $l--; }
-#
-#    return $l;
-#}
 
 # These make an array out of the tree nodes
 # sorted based on total length up to the node

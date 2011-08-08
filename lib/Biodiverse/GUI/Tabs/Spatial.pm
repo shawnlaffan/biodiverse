@@ -188,7 +188,8 @@ sub new {
     $self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
     $self->{xmlPage}->get_widget('colourButton')    ->set_color(
         Gtk2::Gdk::Color->new(65535,0,0)  # red
-    ); 
+    );
+    
 
     $self->{analyses_model}
         = Biodiverse::GUI::Tabs::AnalysisTree::makeAnalysesModel (
@@ -882,45 +883,35 @@ sub onActiveListChanged {
     return;
 }
 
+#  should be called onActiveIndexChanged, but many such occurrences need to be edited
 sub onActiveAnalysisChanged {
     my $self = shift;
     my $combo = shift;
 
     my $iter = $combo->get_active_iter() || return;
     my ($analysis) = $self->{output_analysis_model}->get($iter, 0);
-
     $self->{selected_analysis} = $analysis;  #  should be called calculation
-    my $list = $self->{selected_list};
-    my $elements_hash = $self->{output_ref}->get_element_hash;
-    my $output_ref = $self->{output_ref};
-    
-    # need to work out min/max for all elements over this analysis
-    my ($min, $max);
-    
-    ELEMENT:
-    foreach my $element ($output_ref->get_element_list) {
-        my $list_ref = $output_ref->get_list_ref(
-            element    => $element,
-            list       => $list,
-            autovivify => 0,
-        );
-        next ELEMENT if ! defined $list_ref;
-        next ELEMENT if ! exists $list_ref->{$analysis};
-        
-        my $val = $list_ref->{$analysis};
-        next ELEMENT if ! defined $val;
-        if ((!defined $min) || $val < $min) {
-            $min = $val;
-        }
-        if ((!defined $max) || $val > $max) {
-            $max = $val;
-        }
-    }
-    
-    $self->{max} = $max;
-    $self->{min} = $min;
+
+    $self->set_plot_min_max_values;
 
     $self->recolour();
+
+    return;
+}
+
+
+sub set_plot_min_max_values {
+    my $self = shift;
+    
+    my $output_ref = $self->{output_ref};
+
+    my $stats = $output_ref->get_list_value_stats (
+        list  => $self->{selected_list},
+        index => $self->{selected_analysis},
+    );
+    
+    $self->{max} = $stats->{$self->{MAX_PLOT_STAT} || 'MAX'};
+    $self->{min} = $stats->{$self->{MIN_PLOT_STAT} || 'MIN'};
 
     return;
 }

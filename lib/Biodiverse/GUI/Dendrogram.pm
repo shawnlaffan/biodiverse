@@ -1072,21 +1072,26 @@ sub onMapIndexComboChanged {
     my $self = shift;
     my $combo = shift || $self->{map_index_combo};
 
-    my $analysis = undef;
+    my $index = undef;
     my $iter = $combo->get_active_iter;
 
     if ($iter) {
 
-        $analysis = $combo->get_model->get($iter, 0);
-        $self->{analysis_list_index} = $analysis;
+        $index = $combo->get_model->get($iter, 0);
+        
+        $self->{analysis_list_index} = $index;
+        my $list = $self->{analysis_list_name};
 
-        my %stats = $self->{cluster} -> get_list_stats (
-            list => $self->{analysis_list_name},
-            index => $analysis
-        );
+        my $stats = $self->{stats}{$list}{$index};
+        if (not $stats) {
+            $stats = $self->{cluster}->get_list_stats (
+                list  => $list,
+                index => $index,
+            );
+        }
 
-        $self->{analysis_min} = $stats{$self->{MIN_PLOT_STAT} || 'MIN'};
-        $self->{analysis_max} = $stats{$self->{MAX_PLOT_STAT} || 'MAX'};
+        $self->{analysis_min} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
+        $self->{analysis_max} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
 
         #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
         $self->{cluster_colour_mode} = 'list-values';

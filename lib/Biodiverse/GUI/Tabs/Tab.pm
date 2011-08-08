@@ -226,9 +226,26 @@ sub hotkeyHandler {
     return $retval;
 }
 
+######################################
+#  Other stuff
+
+
 sub onRun {} # default for tabs that don't implement onRun
 
 sub getRemovable { return 1; } # default - tabs removable
 
+#  codes to define percentiles etc
+sub get_display_stretch_codes {
+    my $self = shift;
+    
+    my %codes = (
+        '2.5'  => 'PCT025',
+        '97.5' => 'PCT975',
+        '5'    => 'PCT05',
+        '95'   => 'PCT95',
+    );
+
+    return wantarray ? %codes : \%codes;
+}
 
 1;

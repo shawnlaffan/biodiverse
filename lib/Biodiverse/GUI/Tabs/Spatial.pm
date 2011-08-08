@@ -102,7 +102,10 @@ sub new {
         
         $elt_count = $output_ref -> get_element_count;
         $completed = $output_ref -> get_param ('COMPLETED');
-        $completed = 1 if not defined $completed;  #  backwards compatibility - old versions did not have this flag
+        #  backwards compatibility - old versions did not have this flag
+        if (not defined $completed) {
+            $completed = 1;
+        }
 
         $self->{output_name} = $output_ref->get_param('NAME');
         $self->{basedata_ref} = $output_ref->get_param('BASEDATA_REF');
@@ -133,8 +136,6 @@ sub new {
     my ($initial_sp1, $initial_sp2);
     my $initial_def1 = $NULL_STRING;
     if ($self->{existing}) {
-        #$initial_sp1 = $output_ref->get_param("SPATIAL_PARAMS1");
-        #$initial_sp2 = $output_ref->get_param("SPATIAL_PARAMS2");
         
         my $spatial_params = $output_ref -> get_param ('SPATIAL_PARAMS');
         #  allow for empty conditions
@@ -185,6 +186,7 @@ sub new {
 
     $self->{hover_neighbours} = 'Both';
     $self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
+    $self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
     $self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
     $self->{xmlPage}->get_widget('colourButton')    ->set_color(
         Gtk2::Gdk::Color->new(65535,0,0)  # red
@@ -228,6 +230,7 @@ sub new {
     $self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&onActiveListChanged,     $self);
     $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&onColoursChanged,        $self);
     $self->{xmlPage} ->get_widget('comboNeighbours')->signal_connect_swapped(changed   => \&onNeighboursChanged,     $self);
+    $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed   => \&onStretchChanged,     $self);
 
     $self->{xmlPage} ->get_widget('btnZoomIn')      ->signal_connect_swapped(clicked   => \&onZoomIn,                $self);
     $self->{xmlPage} ->get_widget('btnZoomOut')     ->signal_connect_swapped(clicked   => \&onZoomOut,               $self);
@@ -430,7 +433,7 @@ sub updateOutputAnalysesCombo {
     BY_ITER:
     while ($iter) {
         my ($analysis) = $self->{output_analysis_model}->get($iter, 0);
-        if ($self->{selected_analysis} && ($analysis eq $self->{selected_analysis}) ) {
+        if ($self->{selected_index} && ($analysis eq $self->{selected_index}) ) {
             $selected = $iter;
             last BY_ITER; # break loop
         }
@@ -745,13 +748,13 @@ sub onGridHover {
         # Update the Value label
         my $elts = $output_ref -> get_element_hash();
 
-        my $val = $elts->{$element}{ $self->{selected_list} }{$self->{selected_analysis}};
+        my $val = $elts->{$element}{ $self->{selected_list} }{$self->{selected_index}};
 
         $text = defined $val
             ? sprintf (
                 '<b>%s, Output - %s: </b> %.4f',
                 $element,
-                $self->{selected_analysis},
+                $self->{selected_index},
                 $val
             ) # round to 4 d.p.
             : '<b>Output</b>'; 
@@ -863,7 +866,7 @@ sub showAnalysis {
     # the SPATIAL_RESULTS list (the default), and
     # selecting what we want
 
-    $self->{selected_analysis} = $name;
+    $self->{selected_index} = $name;
     $self->updateListsCombo();
     $self->updateOutputAnalysesCombo();
     
@@ -886,11 +889,12 @@ sub onActiveListChanged {
 #  should be called onActiveIndexChanged, but many such occurrences need to be edited
 sub onActiveAnalysisChanged {
     my $self = shift;
-    my $combo = shift;
+    my $combo = shift
+              ||  $self->{xmlPage}->get_widget('comboAnalyses');
 
     my $iter = $combo->get_active_iter() || return;
     my ($analysis) = $self->{output_analysis_model}->get($iter, 0);
-    $self->{selected_analysis} = $analysis;  #  should be called calculation
+    $self->{selected_index} = $analysis;  #  should be called calculation
 
     $self->set_plot_min_max_values;
 
@@ -905,13 +909,38 @@ sub set_plot_min_max_values {
     
     my $output_ref = $self->{output_ref};
 
-    my $stats = $output_ref->get_list_value_stats (
-        list  => $self->{selected_list},
-        index => $self->{selected_analysis},
-    );
+    my $list = $self->{selected_list};
+    my $index = $self->{selected_index};
     
-    $self->{max} = $stats->{$self->{MAX_PLOT_STAT} || 'MAX'};
-    $self->{min} = $stats->{$self->{MIN_PLOT_STAT} || 'MIN'};
+    my $stats = $self->{stats}{$list}{$index};
+
+    if (not $stats) {
+        $stats = $output_ref->get_list_value_stats (
+            list  => $list,
+            index => $index,
+        );
+        $self->{stats}{$list}{$index} = $stats;  #  store it
+    }
+
+    $self->{max} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
+    $self->{min} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
+
+    return;
+}
+
+
+sub onStretchChanged {
+    my $self = shift;
+    my $sel = $self->{xmlPage}->get_widget('comboSpatialStretch')->get_active_text();
+    
+    my ($min, $max) = split (/-/, uc $sel);
+    
+    my %stretch_codes = $self->get_display_stretch_codes;
+
+    $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
+    $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
+
+    $self->onActiveAnalysisChanged;
 
     return;
 }
@@ -926,11 +955,11 @@ sub recolour {
     
     my $elements_hash = $self->{output_ref}->get_element_hash;
     my $list = $self->{selected_list};
-    my $analysis = $self->{selected_analysis};
+    my $index = $self->{selected_index};
 
     my $colour_func = sub {
         my $elt = shift;
-        my $val = $elements_hash->{$elt}->{$list}->{$analysis};
+        my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
             ? $grid->getColour($val, $min, $max)
             : undef;

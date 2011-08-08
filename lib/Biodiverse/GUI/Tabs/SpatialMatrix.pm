@@ -108,6 +108,7 @@ sub new {
 
     #$self->{hover_neighbours} = 'Both';
     #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
+    $self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
     $self->{xmlPage}->get_widget('comboNeighbours') ->hide;
     $self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
     $self->{xmlPage}->get_widget('colourButton')    ->set_color(
@@ -135,6 +136,7 @@ sub new {
     $self->{xmlPage} ->get_widget('comboAnalyses')  ->signal_connect_swapped(changed   => \&onActiveAnalysisChanged, $self);
     #$self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&onActiveListChanged,     $self);
     $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&onColoursChanged,        $self);
+    $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed => \&onStretchChanged,      $self);
 
     $self->{xmlPage} ->get_widget('btnZoomIn')      ->signal_connect_swapped(clicked   => \&onZoomIn,                $self);
     $self->{xmlPage} ->get_widget('btnZoomOut')     ->signal_connect_swapped(clicked   => \&onZoomOut,               $self);
@@ -425,7 +427,7 @@ sub showAnalysis {
     # the SPATIAL_RESULTS list (the default), and
     # selecting what we want
 
-    #$self->{selected_analysis} = $name;
+    #$self->{selected_index} = $name;
     #$self->updateListsCombo();
     $self->updateOutputAnalysesCombo();
     
@@ -434,14 +436,17 @@ sub showAnalysis {
 
 sub onActiveAnalysisChanged {
     my $self  = shift;
-    my $combo = shift;
+    my $combo = shift
+              ||  $self->{xmlPage}->get_widget('comboAnalyses');
 
     my $iter = $combo->get_active_iter() || return;
     my $element = $self->{output_analysis_model}->get($iter, 0);
-    
-    my $matrix_ref = $self->{output_ref};
 
     $self->{selected_element} = $element;
+
+    #  This is redundant when only changing the element,
+    #  but doesn;t take long and makes stretch changes easier.  
+    $self->set_plot_min_max_values;  
 
     $self->recolour();
 
@@ -454,10 +459,15 @@ sub set_plot_min_max_values {
     
     my $matrix_ref = $self->{output_ref};
 
-    my $stats = $matrix_ref->get_summary_stats;
+    my $stats = $self->{stats};
 
-    $self->{max} = $stats->{$self->{MAX_PLOT_STAT} || 'MAX'};
-    $self->{min} = $stats->{$self->{MIN_PLOT_STAT} || 'MIN'};
+    if (not $stats) {
+        $stats = $matrix_ref->get_summary_stats;
+        $self->{stats} = $stats;  #  store it
+    }
+
+    $self->{max} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
+    $self->{min} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
 
     return;
 }

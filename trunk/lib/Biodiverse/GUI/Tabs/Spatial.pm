@@ -909,7 +909,7 @@ sub set_plot_min_max_values {
     
     my $output_ref = $self->{output_ref};
 
-    my $list = $self->{selected_list};
+    my $list  = $self->{selected_list};
     my $index = $self->{selected_index};
     
     my $stats = $self->{stats}{$list}{$index};
@@ -923,11 +923,37 @@ sub set_plot_min_max_values {
     }
 
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
-    $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
+    $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};    
+
+    $self->set_legend_ltgt_flags ($stats);
 
     return;
 }
 
+#sub set_legend_ltgt_flags {
+#    my $self = shift;
+#    my $stats = shift;
+#
+#    my $flag = 0;
+#    my $minstat = ($self->{PLOT_STAT_MIN} || 'MIN');
+#    eval {
+#        if ($stats->{$minstat} != $stats->{MIN}
+#            and $minstat =~ /PCT/) {
+#            $flag = 1;
+#        }
+#        $self->{grid}->set_legend_lt_flag ($flag);
+#    };
+#    $flag = 0;
+#    my $maxstat = ($self->{PLOT_STAT_MAX} || 'MAX');
+#    eval {
+#        if ($stats->{$maxstat} != $stats->{MAX}
+#            and $minstat =~ /PCT/) {
+#            $flag = 1;
+#        }
+#        $self->{grid}->set_legend_gt_flag ($flag);
+#    };
+#    return;
+#}
 
 sub onStretchChanged {
     my $self = shift;

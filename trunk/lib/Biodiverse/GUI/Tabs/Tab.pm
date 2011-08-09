@@ -256,4 +256,29 @@ sub get_plot_min_max_values {
     return wantarray ? @minmax : \@minmax;
 }
 
+sub set_legend_ltgt_flags {
+    my $self = shift;
+    my $stats = shift;
+
+    my $flag = 0;
+    my $stat_name = ($self->{PLOT_STAT_MIN} || 'MIN');
+    eval {
+        if ($stats->{$stat_name} != $stats->{MIN}
+            and $stat_name =~ /PCT/) {
+            $flag = 1;
+        }
+        $self->{grid}->set_legend_lt_flag ($flag);
+    };
+    $flag = 0;
+    $stat_name = ($self->{PLOT_STAT_MAX} || 'MAX');
+    eval {
+        if ($stats->{$stat_name} != $stats->{MAX}
+            and $stat_name =~ /PCT/) {
+            $flag = 1;
+        }
+        $self->{grid}->set_legend_gt_flag ($flag);
+    };
+    return;
+}
+
 1;

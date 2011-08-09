@@ -279,7 +279,7 @@ sub destroy {
 ##########################################################
 
 sub makeMark {
-    my $self = shift;
+    my $self   = shift;
     my $anchor = shift;
 
     my $mark = Gnome2::Canvas::Item->new (
@@ -287,7 +287,7 @@ sub makeMark {
         'Gnome2::Canvas::Text',
         text            => q{},
         anchor          => $anchor,
-        fill_color_gdk  => CELL_BLACK
+        fill_color_gdk  => CELL_BLACK,
     );
 
     $mark->raise_to_top();
@@ -804,19 +804,46 @@ sub setLegendMinMax {
                  && defined $min
                  && defined $max
                 );
-                
+
     # Set legend textbox markers
-    #if ($self->{marks} and defined $min) {
-        my $marker_step = ($max - $min) / 3;
-        foreach my $i (0..3) {
-            my $text = sprintf ("%.4f", $min + $i * $marker_step); # round to 4 d.p.
-            $self->{marks}[3 - $i]->set( text => $text );
+    my $marker_step = ($max - $min) / 3;
+    foreach my $i (0..3) {
+        my $text = sprintf ("%.4f", $min + $i * $marker_step); # round to 4 d.p.
+        if ($i == 0 and $self->{legend_lt_flag}) {
+            $text = '<=' . $text;
         }
-    #}
+        elsif ($i == 3 and $self->{legend_gt_flag}) {
+            $text = '>=' . $text;
+        }
+        elsif ($self->{legend_lt_flag} or $self->{legend_gt_flag}) {
+            $text = '  ' . $text;
+        }
+        
+        my $mark = $self->{marks}[3 - $i];
+        $mark->set( text => $text );
+        #  move the mark to right align with the legend
+        my @bounds = $mark->get_bounds;
+        my @lbounds = $self->{legend}->get_bounds;
+        my $offset = $lbounds[0] - $bounds[2];
+        $mark->move ($offset - 5, 0);
+    }
     
     return;
 }
 
+sub set_legend_gt_flag {
+    my $self = shift;
+    my $flag = shift;
+    $self->{legend_gt_flag} = $flag;
+    return;
+}
+
+sub set_legend_lt_flag {
+    my $self = shift;
+    my $flag = shift;
+    $self->{legend_lt_flag} = $flag;
+    return;
+}
 
 # Sets list to use for colouring (eg: SPATIAL_RESULTS, RAND_COMPARE, ...)
 sub setAnalysisList {

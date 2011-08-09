@@ -83,8 +83,13 @@ sub new {
     $self->{use_highlight_func} = 1;  #  should we highlight?
     $self->{ctrl_click_func}    = shift || undef; #Callback function for when users control-click on a cell
     $self->{click_func}         = shift || undef; #Callback function for when users click on a cell
+    $self->{parent_tab}         = shift;
 
-     # starting off with the "clustering" view, not a spatial analysis
+    if (defined $self->{parent_tab}) {
+        weaken $self->{parent_tab};
+    }
+
+    # starting off with the "clustering" view, not a spatial analysis
     $self->{sp_list}  = undef;
     $self->{sp_index} = undef; 
     bless $self, $class;
@@ -1078,20 +1083,13 @@ sub onMapIndexComboChanged {
     if ($iter) {
 
         $index = $combo->get_model->get($iter, 0);
-        
         $self->{analysis_list_index} = $index;
-        my $list = $self->{analysis_list_name};
 
-        my $stats = $self->{stats}{$list}{$index};
-        if (not $stats) {
-            $stats = $self->{cluster}->get_list_stats (
-                list  => $list,
-                index => $index,
-            );
-        }
+        $self->{parent_tab}->onColourModeChanged;
 
-        $self->{analysis_min} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
-        $self->{analysis_max} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
+        my @minmax = $self->get_plot_min_max_values;
+        $self->{analysis_min} = $minmax[0];
+        $self->{analysis_max} = $minmax[1];
 
         #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
         $self->{cluster_colour_mode} = 'list-values';
@@ -1107,6 +1105,31 @@ sub onMapIndexComboChanged {
 
     return;
 }
+
+sub set_plot_min_max_values {
+    my $self = shift;
+    my ($min, $max) = @_;
+
+    $self->{analysis_min} = $min;
+    $self->{analysis_max} = $max;
+
+    return;
+}
+
+sub get_plot_min_max_values {
+    my $self = shift;
+    
+    my ($min, $max) = ($self->{analysis_min}, $self->{analysis_max});
+    if (not defined $min or not defined $max) {
+        ($min, $max) = $self->{parent_tab}->get_plot_min_max_values;
+    }
+    
+    my @minmax = ($min, $max);
+    
+    return wantarray ? @minmax : \@minmax;
+}
+
+
 
 ##########################################################
 # Highlighting a path up the tree

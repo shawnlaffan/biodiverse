@@ -248,4 +248,12 @@ sub get_display_stretch_codes {
     return wantarray ? %codes : \%codes;
 }
 
+sub get_plot_min_max_values {
+    my $self = shift;
+
+    my @minmax = ($self->{plot_min_value}, $self->{plot_max_value});
+
+    return wantarray ? @minmax : \@minmax;
+}
+
 1;

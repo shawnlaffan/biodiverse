@@ -222,6 +222,8 @@ sub new {
         clicked => \&onClose,
         $self,
     );
+    
+    $self->set_colour_stretch_widgets_and_signals;
 
     my %widgets_and_signals = (
         btnCluster          => {clicked => \&onRun},
@@ -252,6 +254,7 @@ sub new {
         
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
+
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
@@ -261,12 +264,44 @@ sub new {
         );
     }
 
-    $self -> set_frame_label_widget;
+    $self->set_frame_label_widget;
+    
+    $self->onStretchChanged;
 
     print "[Clustering tab] - Loaded tab - Clustering Analysis\n";
 
     return $self;
 }
+
+sub set_colour_stretch_widgets_and_signals {
+    my $self = shift;
+    my $xml_page = $self->{xmlPage};
+
+    #  lazy - should build from menu widget
+    my $i = 1;
+    foreach my $stretch (qw /min-max 5-95 2.5-97.5 min-95 min-97.5 5-max 2.5-max/) {
+        my $widget_name = "radio_dendro_colour_stretch$i";
+        my $widget = $xml_page->get_widget($widget_name);
+
+        my $sub = sub {
+            my $self = shift;
+            my $w = shift;
+            my $active = $w -> get_active;
+            $self->onStretchChanged ($stretch);
+            return;
+        };
+
+        $widget->signal_connect_swapped(
+            activate => $sub, 
+            $self,
+        );
+        $i++;
+    }
+
+    return
+}
+
+
 
 #  change the explanation text - does nothing yet
 sub on_combo_linkage_changed {
@@ -392,6 +427,8 @@ sub initDendrogram {
         $hover_closure,
         $highlight_closure,
         $click_closure,
+        undef,
+        $self,
     );
 
     if ($self->{existing}) {
@@ -1392,31 +1429,38 @@ sub onMapZoomIn {
     my $self = shift;
     $self->{map}->zoomIn();
 }
+
 sub onMapZoomOut {
     my $self = shift;
     $self->{map}->zoomOut();
 }
+
 sub onMapZoomFit {
     my $self = shift;
     $self->{map}->zoomFit();
 }
+
 sub onClusterZoomIn {
     my $self = shift;
     $self->{dendrogram}->zoomIn();
 }
+
 sub onClusterZoomOut {
     my $self = shift;
     $self->{dendrogram}->zoomOut();
 }
+
 sub onClusterZoomFit {
     my $self = shift;
     $self->{dendrogram}->zoomFit();
 }
+
 sub onClustersChanged {
     my $self = shift;
     my $spinbutton = $self->{xmlPage}->get_widget('spinClusters');
     $self->{dendrogram}->setNumClusters($spinbutton->get_value_as_int);
 }
+
 sub onPlotModeChanged {
     my $self = shift;
     my $combo = shift;
@@ -1488,9 +1532,60 @@ sub onGroupModeChanged {
 
 sub onColourModeChanged {
     my $self = shift;
+    
+    $self->set_plot_min_max_values;
+
     my $colours = $self->{xmlPage}->get_widget('comboClusterColours')->get_active_text();
+
     $self->{map}->setLegendMode($colours);
     $self->{dendrogram}->recolour();
+
+    return;
+}
+
+sub set_plot_min_max_values {
+    my $self = shift;
+    
+    #  nasty - should handle everything via this tab, not the dendrogram
+    my $list  = $self->{dendrogram}->{analysis_list_name};
+    my $index = $self->{dendrogram}->{analysis_list_index};
+    
+    return if ! defined $list || ! defined $index;
+    
+    my $stats = $self->{stats}{$list}{$index};
+    if (not $stats) {
+        $stats = $self->{output_ref}->get_list_stats (
+            list  => $list,
+            index => $index,
+        );
+    }
+
+    $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
+    $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
+    
+    $self->{dendrogram}->set_plot_min_max_values ($self->get_plot_min_max_values);
+
+    return;
+}
+
+
+
+sub onStretchChanged {
+    my $self = shift;
+    my $sel  = shift || 'min-max';
+    
+    #if (blessed $sel) {
+    #    $sel = $sel->get_label;
+    #}
+
+    my ($min, $max) = split (/-/, uc $sel);
+
+    my %stretch_codes = $self->get_display_stretch_codes;
+
+    $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
+    $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
+
+    $self->onColourModeChanged;
 
     return;
 }

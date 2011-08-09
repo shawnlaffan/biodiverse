@@ -20,7 +20,7 @@ our $VERSION = '0.16';
 our $AUTOLOAD;
 
 use Statistics::Descriptive;
-my $stats_class = 'Statistics::Descriptive::Full';
+my $stats_class = 'Biodiverse::Statistics';
 
 use Biodiverse::Matrix;
 use Biodiverse::TreeNode;
@@ -419,7 +419,7 @@ sub get_list_stats {
             PCT025 => scalar $stats -> percentile (2.5),
             PCT975 => scalar $stats -> percentile (97.5),
             PCT05  => scalar $stats -> percentile (5),
-            PCT95  => scalar $stats -> percentile (9.5),
+            PCT95  => scalar $stats -> percentile (95),
         );
     }
     

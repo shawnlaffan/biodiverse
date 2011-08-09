@@ -2179,7 +2179,7 @@ sub get_list_value_stats {
     if (scalar @data) {  #  don't bother if they are all undef
         my $stats = $stats_class->new;
         $stats -> add_data (\@data);
-        
+
         %stats_hash = (
             MAX    => $stats -> max,
             MIN    => $stats -> min,

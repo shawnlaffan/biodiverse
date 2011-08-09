@@ -2067,7 +2067,7 @@ min-97.5
 Sat will display a single colour with saturation varying from 
 white to a maximum saturation at the selected colour.
 
-Colours are scaled using all values in the spatial output. </property>
+Colours are scaled using pecentiles defined in the chooser to the left. </property>
                                 <property name="items" translatable="yes">Hue
 Sat
 Grey</property>
@@ -4142,6 +4142,76 @@ Does not affect the slider bar.  It always groups using the plot method.</proper
                                                 <property name="label" translatable="yes">Use the slider bar to select nodes for colouring?</property>
                                                 <property name="use_underline">True</property>
                                                 <property name="active">True</property>
+                                              </widget>
+                                            </child>
+                                            <child>
+                                              <widget class="GtkMenuItem" id="menu_item_dendro_colour_stretch">
+                                                <property name="visible">True</property>
+                                                <property name="tooltip" translatable="yes">Sets the colour stretch
+for analysis results.</property>
+                                                <property name="label" translatable="yes">Colour stretch</property>
+                                                <property name="use_underline">True</property>
+                                                <child>
+                                                  <widget class="GtkMenu" id="menu_dendro_colour_stretch">
+                                                    <property name="visible">True</property>
+                                                    <child>
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch1">
+                                                        <property name="visible">True</property>
+                                                        <property name="label" translatable="yes">min-max</property>
+                                                        <property name="use_underline">True</property>
+                                                        <property name="active">True</property>
+                                                        <property name="draw_as_radio">True</property>
+                                                      </widget>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch2">
+                                                        <property name="visible">True</property>
+                                                        <property name="label" translatable="yes">5-95</property>
+                                                        <property name="use_underline">True</property>
+                                                        <property name="draw_as_radio">True</property>
+                                                      </widget>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch3">
+                                                        <property name="visible">True</property>
+                                                        <property name="label" translatable="yes">2.5-97.5</property>
+                                                        <property name="use_underline">True</property>
+                                                      </widget>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch4">
+                                                        <property name="visible">True</property>
+                                                        <property name="label" translatable="yes">min-95</property>
+                                                        <property name="use_underline">True</property>
+                                                        <property name="draw_as_radio">True</property>
+                                                      </widget>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch5">
+                                                        <property name="visible">True</property>
+                                                        <property name="label" translatable="yes">min-97.5</property>
+                                                        <property name="use_underline">True</property>
+                                                        <property name="draw_as_radio">True</property>
+                                                      </widget>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch6">
+                                                        <property name="visible">True</property>
+                                                        <property name="label" translatable="yes">5-max</property>
+                                                        <property name="use_underline">True</property>
+                                                        <property name="draw_as_radio">True</property>
+                                                      </widget>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch7">
+                                                        <property name="visible">True</property>
+                                                        <property name="label" translatable="yes">2.5-max</property>
+                                                        <property name="use_underline">True</property>
+                                                        <property name="draw_as_radio">True</property>
+                                                      </widget>
+                                                    </child>
+                                                  </widget>
+                                                </child>
                                               </widget>
                                             </child>
                                           </widget>

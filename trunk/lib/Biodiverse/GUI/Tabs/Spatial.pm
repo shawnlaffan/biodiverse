@@ -922,8 +922,8 @@ sub set_plot_min_max_values {
         $self->{stats}{$list}{$index} = $stats;  #  store it
     }
 
-    $self->{max} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
-    $self->{min} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
+    $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
+    $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
 
     return;
 }
@@ -947,7 +947,7 @@ sub onStretchChanged {
 
 sub recolour {
     my $self = shift;
-    my ($max, $min) = ($self->{max} || 0, $self->{min} || 0);
+    my ($max, $min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
     # callback function to get colour of each element
     my $grid = $self->{grid};

@@ -393,7 +393,7 @@ sub initMap {
     my $click_closure = sub { $self->onGridPopup(@_); };
     my $hover_closure = sub { $self->onGridHover(@_); };
 
-    $self->{map} = Biodiverse::GUI::Grid->new(
+    $self->{grid} = Biodiverse::GUI::Grid->new(
         $frame,
         $hscroll,
         $vscroll,
@@ -403,7 +403,7 @@ sub initMap {
         $click_closure
     );
 
-    $self->{map}->setBaseStruct($self->{basedata_ref}->get_groups_ref);
+    $self->{grid}->setBaseStruct($self->{basedata_ref}->get_groups_ref);
 
     return;
 }
@@ -428,7 +428,7 @@ sub initDendrogram {
         $graphFrame,
         $hscroll,
         $vscroll,
-        $self->{map},
+        $self->{grid},
         $list_combo,
         $index_combo,
         $hover_closure,
@@ -501,10 +501,10 @@ sub onComboMapListChanged {
     my $sensitive = 1;
     if ($list eq '<i>Cluster</i>') {
         $sensitive = 0;
-        $self->{map}->hideLegend;
+        $self->{grid}->hideLegend;
     }
     else {
-        $self->{map}->showLegend;
+        $self->{grid}->showLegend;
     }
 
     my @widgets = qw {
@@ -764,7 +764,7 @@ sub get_output_type {
 sub remove {
     my $self = shift;
 
-    eval {$self->{map}->destroy()};
+    eval {$self->{grid}->destroy()};
     eval {$self->{dendrogram}->destroy()};
 
     $self->SUPER::remove;
@@ -1079,7 +1079,7 @@ sub onDendrogramHighlight {
     my $node = shift;
 
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
-    $self->{map}->markIfExists( $terminal_elements, 'circle' );
+    $self->{grid}->markIfExists( $terminal_elements, 'circle' );
 
     #my @elts = keys %$terminal_elements;
     #print "marked: @elts\n";
@@ -1108,7 +1108,7 @@ sub onGridHover {
             $self->{dendrogram}->highlightPath($node_ref);
         }
         
-        my $analysis_name = $self->{map}{analysis};
+        my $analysis_name = $self->{grid}{analysis};
         my $coloured_node = $self -> getColouredNodeForElement($element);
         if (defined $coloured_node && defined $analysis_name) {
             #  need to get the displayed node, not the terminal node
@@ -1434,17 +1434,17 @@ sub onNameChanged {
 
 sub onMapZoomIn {
     my $self = shift;
-    $self->{map}->zoomIn();
+    $self->{grid}->zoomIn();
 }
 
 sub onMapZoomOut {
     my $self = shift;
-    $self->{map}->zoomOut();
+    $self->{grid}->zoomOut();
 }
 
 sub onMapZoomFit {
     my $self = shift;
-    $self->{map}->zoomFit();
+    $self->{grid}->zoomFit();
 }
 
 sub onClusterZoomIn {
@@ -1544,7 +1544,7 @@ sub onColourModeChanged {
 
     my $colours = $self->{xmlPage}->get_widget('comboClusterColours')->get_active_text();
 
-    $self->{map}->setLegendMode($colours);
+    $self->{grid}->setLegendMode($colours);
     $self->{dendrogram}->recolour();
 
     return;
@@ -1569,6 +1569,8 @@ sub set_plot_min_max_values {
 
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
+    
+    $self->set_legend_ltgt_flags ($stats);
     
     $self->{dendrogram}->set_plot_min_max_values ($self->get_plot_min_max_values);
 
@@ -1613,7 +1615,7 @@ sub onHueSet {
     my $active = $widget->get_active;
 
     $widget->set_active($combo_colours_hue_choice);
-    $self->{map}->setLegendHue($button->get_color());
+    $self->{grid}->setLegendHue($button->get_color());
     $self->{dendrogram}->recolour();
 
     return;
@@ -1623,7 +1625,7 @@ sub onOverlays {
     my $self = shift;
     my $button = shift;
 
-    Biodiverse::GUI::Overlays::showDialog( $self->{map} );
+    Biodiverse::GUI::Overlays::showDialog( $self->{grid} );
 
     return;
 }

@@ -4147,15 +4147,14 @@ Does not affect the slider bar.  It always groups using the plot method.</proper
                                             <child>
                                               <widget class="GtkMenuItem" id="menu_item_dendro_colour_stretch">
                                                 <property name="visible">True</property>
-                                                <property name="tooltip" translatable="yes">Sets the colour stretch
-for analysis results.</property>
+                                                <property name="tooltip" translatable="yes">Sets the colour stretch for analysis results.</property>
                                                 <property name="label" translatable="yes">Colour stretch</property>
                                                 <property name="use_underline">True</property>
                                                 <child>
                                                   <widget class="GtkMenu" id="menu_dendro_colour_stretch">
                                                     <property name="visible">True</property>
                                                     <child>
-                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch1">
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch0">
                                                         <property name="visible">True</property>
                                                         <property name="label" translatable="yes">min-max</property>
                                                         <property name="use_underline">True</property>
@@ -4164,50 +4163,56 @@ for analysis results.</property>
                                                       </widget>
                                                     </child>
                                                     <child>
-                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch2">
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch1">
                                                         <property name="visible">True</property>
                                                         <property name="label" translatable="yes">5-95</property>
                                                         <property name="use_underline">True</property>
                                                         <property name="draw_as_radio">True</property>
+                                                        <property name="group">radio_dendro_colour_stretch0</property>
+                                                      </widget>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch2">
+                                                        <property name="visible">True</property>
+                                                        <property name="label" translatable="yes">2.5-97.5</property>
+                                                        <property name="use_underline">True</property>
+                                                        <property name="group">radio_dendro_colour_stretch0</property>
                                                       </widget>
                                                     </child>
                                                     <child>
                                                       <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch3">
                                                         <property name="visible">True</property>
-                                                        <property name="label" translatable="yes">2.5-97.5</property>
+                                                        <property name="label" translatable="yes">min-95</property>
                                                         <property name="use_underline">True</property>
+                                                        <property name="draw_as_radio">True</property>
+                                                        <property name="group">radio_dendro_colour_stretch0</property>
                                                       </widget>
                                                     </child>
                                                     <child>
                                                       <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch4">
                                                         <property name="visible">True</property>
-                                                        <property name="label" translatable="yes">min-95</property>
+                                                        <property name="label" translatable="yes">min-97.5</property>
                                                         <property name="use_underline">True</property>
                                                         <property name="draw_as_radio">True</property>
+                                                        <property name="group">radio_dendro_colour_stretch0</property>
                                                       </widget>
                                                     </child>
                                                     <child>
                                                       <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch5">
                                                         <property name="visible">True</property>
-                                                        <property name="label" translatable="yes">min-97.5</property>
+                                                        <property name="label" translatable="yes">5-max</property>
                                                         <property name="use_underline">True</property>
                                                         <property name="draw_as_radio">True</property>
+                                                        <property name="group">radio_dendro_colour_stretch0</property>
                                                       </widget>
                                                     </child>
                                                     <child>
                                                       <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch6">
                                                         <property name="visible">True</property>
-                                                        <property name="label" translatable="yes">5-max</property>
-                                                        <property name="use_underline">True</property>
-                                                        <property name="draw_as_radio">True</property>
-                                                      </widget>
-                                                    </child>
-                                                    <child>
-                                                      <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch7">
-                                                        <property name="visible">True</property>
                                                         <property name="label" translatable="yes">2.5-max</property>
                                                         <property name="use_underline">True</property>
                                                         <property name="draw_as_radio">True</property>
+                                                        <property name="group">radio_dendro_colour_stretch0</property>
                                                       </widget>
                                                     </child>
                                                   </widget>
@@ -6698,8 +6703,8 @@ in existing outputs so is disabled for BaseData with outputs</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7174,8 +7179,8 @@ Merely closes the window if no file is selected.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7192,8 +7197,8 @@ Merely closes the window if no file is selected.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>

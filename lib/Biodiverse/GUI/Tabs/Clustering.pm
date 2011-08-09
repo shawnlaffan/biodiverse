@@ -254,7 +254,7 @@ sub new {
         
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
-
+        #radio_dendro_colour_stretch => {toggled => \&onStretchChanged},
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
@@ -266,28 +266,35 @@ sub new {
 
     $self->set_frame_label_widget;
     
-    $self->onStretchChanged;
+    #$self->onStretchChanged;
 
     print "[Clustering tab] - Loaded tab - Clustering Analysis\n";
 
     return $self;
 }
 
+
+#  clunky, but for some reason Gtk-perl cannot get the label from the activated widget
+#  If it could then we could just use get_label on the active widget and pass that
+#  thus avoiding the need to build the list.
 sub set_colour_stretch_widgets_and_signals {
     my $self = shift;
     my $xml_page = $self->{xmlPage};
 
     #  lazy - should build from menu widget
-    my $i = 1;
+    my $i = 0;
     foreach my $stretch (qw /min-max 5-95 2.5-97.5 min-95 min-97.5 5-max 2.5-max/) {
         my $widget_name = "radio_dendro_colour_stretch$i";
         my $widget = $xml_page->get_widget($widget_name);
 
         my $sub = sub {
             my $self = shift;
-            my $w = shift;
-            my $active = $w -> get_active;
+            my $widget = shift;
+
+            return if ! $widget->get_active;  #  don't trigger on the deselected one
+
             $self->onStretchChanged ($stretch);
+
             return;
         };
 
@@ -1574,9 +1581,12 @@ sub onStretchChanged {
     my $self = shift;
     my $sel  = shift || 'min-max';
     
-    #if (blessed $sel) {
-    #    $sel = $sel->get_label;
-    #}
+    if (blessed $sel) {
+        #$sel = $sel->get_label;
+        my $choice = $sel->get_active;
+        print $choice;
+        print;
+    }
 
     my ($min, $max) = split (/-/, uc $sel);
 

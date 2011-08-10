@@ -14,7 +14,7 @@ Main changes since the previous version (0.15) are:
     *  Users can now switch between tabs using control-tab and shift-control-tab keys. Issue #196.
     *  The colour of the shapefile overlay can be changed.  Issue #75.
     *  Outputs tab - the output type is listed next to each output.  Issue #201.
-    *  Colour stretches can be adjusted using percentile values (2.5, 5. 95, 97.5).  Issue #244.
+    *  Colour stretches can be adjusted using percentile values (2.5, 5, 95, 97.5).  Issue #244.
     *  View labels tab
       *  Element properties with a value of nodata are displayed as -99999.  Issue #189.
       *  System no longer intermittently hangs when control clicking.  Issue #194.

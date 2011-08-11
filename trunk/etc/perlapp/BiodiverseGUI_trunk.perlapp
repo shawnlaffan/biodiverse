@@ -1,6 +1,6 @@
-#!C:\Program Files (x86)\ActiveState Perl Dev Kit 9.0.1\bin\perlapp-gui.exe
+#!C:\Program Files (x86)\ActiveState Perl Dev Kit 9.1\bin\perlapp-gui.exe
 PAP-Version: 1.0
-Packer: C:\Program Files (x86)\ActiveState Perl Dev Kit 9.0.1\bin\perlapp.exe
+Packer: C:\Program Files (x86)\ActiveState Perl Dev Kit 9.1\bin\perlapp.exe
 Script: bin\BiodiverseGUI.pl
 Cwd: D:\shawn\svn\biodiverse_trunk
 Add: Object::InsideOut::
@@ -8,7 +8,7 @@ Bind: biodiverse.glade[file=bin\glade\biodiverse.glade,text,extract,mode=666]
 Bind: biodiverse.glade.bak[file=bin\glade\biodiverse.glade.bak,text,extract,mode=666]
 Bind: Biodiverse_icon.ico[file=bin\Biodiverse_icon.ico,mode=666]
 Clean: 0
-Date: 2011-04-26 16:38:35
+Date: 2011-08-10 14:10:15
 Debug: 
 Dependent: 0
 Dyndll: 0
@@ -35,7 +35,7 @@ Version-InternalName:
 Version-LegalCopyright: GNU Lesser General Public License (LGPL)
 Version-LegalTrademarks: 
 Version-OriginalFilename: 
-Version-ProductName: Biodiverse beta 2011-04-26
+Version-ProductName: Biodiverse beta 2011-08-10
 Version-ProductVersion: 0.16
 Warnings: 0
 Xclude: 0

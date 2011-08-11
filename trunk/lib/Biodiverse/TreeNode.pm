@@ -1148,15 +1148,12 @@ sub to_table_group_nodes {  #  export to table by grouping the nodes
         $bs -> add_element (element => $element);
     }
     
-    print "[TREE] Writing $num_classes clusters, grouped by ";
-    
-    if ($args{group_by_depth}) {
-        print "depth.";
+    print "[TREE] Writing $num_classes clusters, grouped by "
+          . $args{group_by_depth} ? "depth." : "length.";
+
+    if (defined $args{target_value}) {
+        print "  Target value is $args{target_value}.  " ;
     }
-    else {
-        print "length.";
-    }
-    print "  Target value is $args{target_value}.  " if defined $args{target_value};
     print "\n";
     
     my %target_nodes = $self -> group_nodes_below (

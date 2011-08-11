@@ -1232,34 +1232,8 @@ sub join_root_nodes {
 #  return the average similarity between a set of nodes
 sub link_average_unweighted {  
     my $self = shift;
-    my %args = @_;
 
-    croak "one of the nodes not specified\n"
-      if ! defined $args{node1} || ! defined $args{node2};
-
-    my $node1 = $args{node1};
-    my $node2 = $args{node2};
-    my $check_node = $args{compare_node};
-
-    my $sim_matrix = $args{matrix} || $self->get_shadow_matrix;
-
-    my ($tmp1, $tmp2);
-    if (defined $check_node) {
-        $tmp1 = $sim_matrix->get_value(
-            element1 => $check_node,
-            element2 => $node1,
-        );
-        $tmp2 = $sim_matrix->get_value(
-            element1 => $check_node,
-            element2 => $node2
-        );
-    }
-    else {
-        my $nodeRef1 = $self->get_node_ref (node => $node1);
-        my $nodeRef2 = $self->get_node_ref (node => $node2);
-        $tmp1 = $nodeRef1->get_length_below;
-        $tmp2 = $nodeRef2->get_length_below;
-    }
+    my ($tmp1, $tmp2) = $self->get_values_for_linkage(@_);
 
     my $value = ($tmp1 + $tmp2) / 2;
 
@@ -1272,109 +1246,35 @@ sub link_average {
     my $self = shift;
     my %args = @_;
 
-    croak "one of the nodes not specified\n"
+    croak "one of the nodes not specified in linkage function call\n"
       if ! defined $args{node1} || ! defined $args{node2};
 
     my $node1 = $args{node1};
     my $node2 = $args{node2};
-    my $check_node = $args{compare_node};
 
-    my $sim_matrix = $args{matrix}
-                    || $self->get_shadow_matrix
-                    || $self->get_matrix_ref(iter => 0);
     my $el1_count = scalar keys %{$self->get_terminal_elements (node => $node1)};
     my $el2_count = scalar keys %{$self->get_terminal_elements (node => $node2)};
 
-    my ($tmp1, $tmp2);
-    if (defined $args{compare_node}) {  #  three node case
-        $tmp1 =
-            $el1_count
-            * $sim_matrix->get_value (
-                element1 => $check_node,
-                element2 => $node1,
-            );
-        $tmp2 =
-            $el2_count
-            * $sim_matrix->get_value (
-                element1 => $check_node,
-                element2 => $node2,
-            );
-    }
-    else {  #  two node case
-        my $nodeRef1 = $self->get_node_ref (node => $node1);
-        my $nodeRef2 = $self->get_node_ref (node => $node2);
-        $tmp1 = $nodeRef1->get_length_below * $el1_count;
-        $tmp2 = $nodeRef2->get_length_below * $el2_count;
-    }
+    my ($tmp1, $tmp2) = $self->get_values_for_linkage (%args);
 
-    my $value  = ($tmp1 + $tmp2) / ($el1_count + $el2_count);
+    my $value  =  ($el1_count * $tmp1 + $el2_count * $tmp2)
+                / ($el1_count + $el2_count);
 
     return wantarray ? (value => $value) : {value => $value};
 }
 
 sub link_minimum {
     my $self = shift;
-    my %args = @_;
 
-    croak "one of the nodes not specified\n"
-      if ! defined $args{node1} || ! defined $args{node2};
-
-    my $node1 = $args{node1};
-    my $node2 = $args{node2};
-    my $check_node = $args{compare_node};
-
-    my $sim_matrix = $args{matrix} || $self->get_shadow_matrix;
-    my $tmp1; my $tmp2;
-    if (defined $check_node) {
-        $tmp1 = $sim_matrix->get_value (
-            element1 => $check_node,
-            element2 => $node1,
-        );
-        $tmp2 = $sim_matrix->get_value (
-            element1 => $check_node,
-            element2 => $node2,
-        );
-    }
-    else {
-        warn "link_minimum two node case\n";
-        my $nodeRef1 = $self->get_node_ref (node => $node1);
-        my $nodeRef2 = $self->get_node_ref (node => $node2);
-        $tmp1 = $nodeRef1->get_length_below;
-        $tmp2 = $nodeRef2->get_length_below;
-    }
-
-    my $value = min ($tmp1, $tmp2);
+    my $value = min ($self->get_values_for_linkage (@_));
 
     return wantarray ? (value => $value) : {value => $value};
 }
 
 sub link_maximum {
     my $self = shift;
-    my %args = @_;
 
-    croak "one of the nodes not specified\n"
-      if ! defined $args{node1} || ! defined $args{node2};
-
-    my $node1 = $args{node1};
-    my $node2 = $args{node2};
-    my $check_node = $args{compare_node};
-
-    my $sim_matrix = $args{matrix} || $self->get_shadow_matrix;
-    my ($tmp1, $tmp2);
-
-    if (defined $check_node) {
-        $tmp1 = $sim_matrix->get_value (element1 => $check_node, element2 => $node1);
-        $tmp2 = $sim_matrix->get_value (element1 => $check_node, element2 => $node2);
-    }
-    else {
-        warn "link_maximum two node case\n";
-        my $nodeRef1 = $self->get_node_ref (node => $node1);
-        my $nodeRef2 = $self->get_node_ref (node => $node2);
-        $tmp1 = $nodeRef1->get_length_below;
-        $tmp2 = $nodeRef2->get_length_below;
-    }
-
-    my $value = max ($tmp1, $tmp2);
+    my $value = max ($self->get_values_for_linkage (@_));
 
     return wantarray ? (value => $value) : {value => $value};
 }
@@ -1384,6 +1284,36 @@ sub _link_centroid {
     #  calculate the centroid of the similarities below this
     #  requires that we traverse the tree - or at least cache the values
     return;
+}
+
+sub get_values_for_linkage {
+    my $self = shift;
+    my %args = @_;
+
+    croak "one of the nodes not specified in linkage function call\n"
+      if ! defined $args{node1} || ! defined $args{node2};
+
+    my $node1 = $args{node1};
+    my $node2 = $args{node2};
+    my $check_node = $args{compare_node};
+
+    my $sim_matrix = $args{matrix}
+        || croak "argument 'matrix' not specified\n";
+    my ($tmp1, $tmp2);
+
+    if (defined $check_node) {
+        $tmp1 = $sim_matrix->get_value (element1 => $check_node, element2 => $node1);
+        $tmp2 = $sim_matrix->get_value (element1 => $check_node, element2 => $node2);
+    }
+    else {
+        warn "two node linkage case\n";
+        my $nodeRef1 = $self->get_node_ref (node => $node1);
+        my $nodeRef2 = $self->get_node_ref (node => $node2);
+        $tmp1 = $nodeRef1->get_length_below;
+        $tmp2 = $nodeRef2->get_length_below;
+    }
+
+    return wantarray ? ($tmp1, $tmp2) : [$tmp1, $tmp2];
 }
 
 #  calculate the linkages fom the ground up
@@ -1401,7 +1331,9 @@ sub link_recalculate {
     my $node2_ref = $self->get_node_ref (node => $node2);
     my $check_node_ref = $self->get_node_ref (node => $check_node);
 
-    my $sim_matrix = $args{matrix} || $self->get_shadow_matrix;
+    my $sim_matrix = $args{matrix}
+                    || $self->get_shadow_matrix
+                    || $self->get_matrix_ref(iter => 0);
 
     my $index_function
         = $args{index_function}
@@ -1517,12 +1449,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $node2 = $args{node2};
     my $new_node = $args{new_node_name};  #  don't calculate linkages to new node
 
-    #my $mx_iter;  #  iter variable
-    #my $mx;
-
     my $linkage_function = $args{linkage_function} || $PARAMS{DEFAULT_LINKAGE};
-
-    #my $merged_mx = $args{merge_track_matrix};
 
     my $shadow_matrix   = $self->get_shadow_matrix;
     my $matrix_array    = $self->get_matrices_ref;
@@ -1578,6 +1505,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             node1           => $node1,
             node2           => $node2,
             compare_node    => $check_node,
+            matrix          => $matrix_with_elements,
         );
         if ($shadow_matrix) {
             $shadow_matrix->add_element  (

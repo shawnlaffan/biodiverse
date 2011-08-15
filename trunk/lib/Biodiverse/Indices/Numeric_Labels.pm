@@ -295,7 +295,7 @@ sub get_metadata_calc_numeric_label_dissimilarity {
                 description => 'Mean absolute dissimilarity of labels in set 1 to those in set 2.',
                 cluster     => 1,
                 formula     => [
-                    '= \frac{\sum^{L1}_i \sum^{L2}_j abs (l_{1i} - l_{2j})}{n1 * n2}',
+                    '= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} abs (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}',
                     'where',
                     'L1',
                     ' and ',
@@ -311,7 +311,7 @@ sub get_metadata_calc_numeric_label_dissimilarity {
                 description => 'Mean dissimilarity of labels in set 1 to those in set 2.',
                 cluster     => 1,
                 formula     => [
-                    '= \frac{\sum^{L1}_i \sum^{L2}_j (l_{1i} - l_{2j})}{n1 * n2}',
+                    '= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}',
                     @values_as_for,
                 ],
             },
@@ -319,7 +319,7 @@ sub get_metadata_calc_numeric_label_dissimilarity {
                 description => 'Variance of the dissimilarity values, set 1 vs set 2.',
                 cluster     => 1,
                 formula     => [
-                    '= \frac{\sum^{L1}_i \sum^{L2}_j (l_{1i} - l_{2j})^2}{n1 * n2}',
+                    '= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}',
                     @values_as_for,
                 ],
             },

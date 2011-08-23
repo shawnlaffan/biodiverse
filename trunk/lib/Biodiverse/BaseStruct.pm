@@ -2456,7 +2456,7 @@ sub get_metadata_get_base_stats {
     ];
 
     my $property_keys = $self->get_element_property_keys;
-    foreach my $property (@$property_keys) {
+    foreach my $property (sort @$property_keys) {
         push @$types, {$property => 'Double'};
     }
 

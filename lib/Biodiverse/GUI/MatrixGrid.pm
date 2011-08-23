@@ -316,7 +316,7 @@ sub drawMatrix {
     
     $self->{cells_group} = $cells_group;
     $cells_group->lower_to_bottom();
-    
+
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
     my $progress = 0;
     my $progress_count = 0;
@@ -324,6 +324,7 @@ sub drawMatrix {
     # Draw left to right, top to bottom
     for (my $y = 0; $y < $side_length; $y++) {
         $progress += 1 / $side_length;
+        $progress = $self->set_precision (value => $progress, precision => '%15f');
         $progress_count ++;
         my $progress_text = "Drawing matrix, $progress_count rows";
 
@@ -379,6 +380,19 @@ sub drawMatrix {
     return;
 }
 
+
+#  need to handle locale issues in string conversions using sprintf
+sub set_precision {
+    my $self = shift;
+    my %args = @_;
+    
+    my $num = sprintf ($args{precision}, $args{value});
+    $num =~ s{,}{\.};  #  replace any comma with a decimal
+    
+    return $num;
+}
+
+
 # Gives each rectangle a value determined by a callback
 #
 # value_func : (h , v ) -> value for colouring
@@ -386,10 +400,22 @@ sub setValues {
     my $self = shift;
     my $value_func = shift;
 
+    my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
+    my $progress = 0;
+    my $progress_count = 0;
+    my $progress_text = 'Updating sorted matrix cell values';
+
     my $hash = $self->{cells};
     my $indices;
 
+    my $total_count = scalar keys %$hash;
+
     foreach my $rect (keys %$hash) {
+        $progress_count ++;
+        $progress = $progress_count / $total_count;
+
+        $progress_bar->update ($progress_text, $progress);
+
         my $data = $hash->{$rect};
 
         my $indices = $data->[INDEX_ELEMENT];
@@ -539,12 +565,25 @@ sub colourCells {
     my $self = shift;
     my $colour_none = shift || CELL_WHITE;
 
-    foreach my $cell (values %{$self->{cells}}) {
-        my $val = $cell->[INDEX_VALUES];
-        my $rect = $cell->[INDEX_RECT];
+    my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
+    my $progress = 0;
+    my $progress_count = 0;
+    my $progress_text = 'Colouring matrix cells';
+
+    my $hashref = $self->{cells};
+    my $total_count = scalar keys %$hashref;
+
+    foreach my $cell (values %$hashref) {
+        $progress_count ++;
+        $progress = $progress_count / $total_count;
+
+        $progress_bar->update ($progress_text, $progress);
+
+        my $val    = $cell->[INDEX_VALUES];
+        my $rect   = $cell->[INDEX_RECT];
         my $colour = defined $val ? $self->getColour($val, $self->{min}, $self->{max}) : $colour_none;
         my $fill_colour = defined $val ? $colour : CELL_BLACK;
-        
+
         $rect->set('fill-color-gdk' => $colour, 'outline-color-gdk' => $fill_colour);
     }
 

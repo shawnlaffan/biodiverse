@@ -287,6 +287,11 @@ sub initList {
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
+    #  set a special sort func for all cols except the labels
+    foreach my $col_id (1..$i) {
+        $wrapper_model->set_sort_func ($col_id, \&sort_by_column, [$col_id, $wrapper_model]);
+    }
+
     # Monitor selections
     $tree->get_selection->set_mode('multiple');
     $tree->get_selection->signal_connect(
@@ -300,6 +305,25 @@ sub initList {
     #);
     
     return;
+}
+
+
+#  sort by this column, then by labels column (always ascending)
+#  labels column should not be hardcoded if we allow re-ordering of columns
+sub sort_by_column {
+    my ($liststore, $itera, $iterb, $args) = @_;
+    my $col_id = $args->[0];
+    my $wrapper_model = $args->[1];
+    
+    my $label_order = 1;
+    my ($sort_column_id, $order) = $wrapper_model->get_sort_column_id;
+    if ($order eq 'descending') {
+        $label_order = -1;  #  ensure ascending order
+    }
+    
+    return
+         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
+      || $label_order * ($liststore->get($itera, 0) cmp $liststore->get($iterb, 0));
 }
 
 #sub on_interactive_search {
@@ -317,11 +341,8 @@ sub makeLabelsModel {
     my $base_ref = $self->{base_ref};
     my $labels_ref = $base_ref->get_labels_ref();
 
-    #my $basestats_indices = $labels_ref -> get_base_stats (get_args => 1);
     my $basestats_indices = $labels_ref -> get_args (sub => 'get_base_stats');
     
-    #my $properties = $base_ref->get_label_property_keys_as_args;
-
     my @column_order;
     
     #  the selection cols
@@ -333,21 +354,15 @@ sub makeLabelsModel {
     my @types = ('Glib::String');
     #my $i = 0;
     foreach my $column (@$basestats_indices, @selection_cols) {
-        #my ($key, $value) = %{$basestats_indices->[$i]};
         my ($key, $value) = %{$column};
-        #if ($value eq 'Int') {
-        #    $value = 'Uint';  #  increase the precision for the display
-        #}
         push @types, 'Glib::' . $value;
         push @column_order, $key;
-        #$i++;
     }
 
     $self->{labels_model} = Gtk2::ListStore->new(@types);
     my $model = $self->{labels_model};
 
     my @labels = $base_ref -> get_labels();
-    
 
     foreach my $label (sort @labels) {
         my $iter = $model->append();
@@ -355,7 +370,7 @@ sub makeLabelsModel {
 
         #  set the values - selection cols will be undef
         my %stats = $labels_ref -> get_base_stats (element => $label);
-#print $label . " " . Data::Dumper::Dumper(\%stats) . "\n";
+
         my $i = 1;
         foreach my $column (@column_order) {
             $model -> set ($iter, $i, defined $stats{$column} ? $stats{$column} : -99999);
@@ -609,6 +624,7 @@ sub onSorted {
     my $vmodel = $xml_page->get_widget('listLabels2')->get_model();
     my $model  = $self->{labels_model};
     my $matrix_ref = $self->{matrix_ref};
+
 
     my $values_func = sub {
         my ($h, $v) = @_; # integer indices

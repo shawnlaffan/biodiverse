@@ -102,7 +102,7 @@ sub update {
         $text = $NULL_STRING;
     }
     
-    if ($progress < 0 || $progress > 1) {
+    if ($progress < 0 or $progress > 1) {
         Biodiverse::GUI::ProgressDialog::Bounds->throw(
             message  => "ERROR [ProgressDialog] progress is $progress (not between 0 & 1)",
         );

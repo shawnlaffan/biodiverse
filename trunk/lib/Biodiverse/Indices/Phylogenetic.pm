@@ -223,7 +223,6 @@ sub get_paths_to_root_node {
     }
     
     return wantarray ? %path : \%path;
-    
 }
 
 
@@ -343,9 +342,9 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
     #create a hash of terminal nodes for the taxa present
-    my $all_nodes = $tree_ref -> get_node_hash;
+    my $all_nodes = $tree_ref->get_node_hash;
 
-    my $root_node = $tree_ref -> get_tree_ref;
+    my $root_node = $tree_ref->get_tree_ref;
 
     #  default these to undef - more meaningful than zero
     my ($PE_WE, $PE_WE_P, $PE_CWE, $PE_WE_SINGLE, $PE_WE_SINGLE_P);
@@ -476,65 +475,48 @@ sub get_metadata_get_node_range_hash {
     return wantarray ? %arguments : \%arguments;
 }
 
+#  needs a cleanup - see get_node_abundance_hash
 sub get_node_range_hash { # calculate the range occupied by each node/clade in a tree
                           # this function expects a tree reference as an argument
     my $self = shift;
     my %args = @_;
-    #my $progress_bar = $args{progress};
-    my $progress_bar = Biodiverse::Progress->new();
-    
-    #if ($args{get_args}) {
-    #  my %arguments = (pre_calc_global => ['get_trimmed_tree']);
-    #  return wantarray ? %arguments : \%arguments;
-    #}
+
+    my $progress_bar = Biodiverse::Progress->new();    
 
     print "[PD INDICES] Calculating range for each node in the tree\n";
     
-    my $tree = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
-    my $nodes = $tree -> get_node_hash;
-    #my $node;
+    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
+    my $nodes = $tree->get_node_hash;
     my %node_range;
   
-    my $toDo = $tree ->get_node_count;
-    my $count = 0; my $has_range_count = 0; my $printedProgress = -1;
+    my $toDo = scalar keys %$nodes;
+    my $count = 0;
     print "[PD INDICES] Progress (% of $toDo nodes): ";
 
-        my $progress = int (100 * $count / $toDo);
-        $progress_bar -> update(
-            "Calculating node ranges for phylogenetic endemism analysis\n($progress)",
-            $progress,
-        );
-        #if ($progress % 5 == 0) {
-        #    if ($printedProgress != $progress) {
-        #        print "$progress% ";
-        #        print "\n" if $progress == 100;
-        #        $printedProgress = $progress;
-        #    }
-        #}
-
-    #my $range;
+    my $progress = int (100 * $count / $toDo);
+    $progress_bar -> update(
+        "Calculating node ranges\n($progress)",
+        $progress,
+    );
 
     foreach my $node_name (keys %{$nodes}) {
-        my $node = $tree -> get_node_ref (node => $node_name);
-        my $range = $self -> get_node_range (%args, tree_ref => $tree, node_ref => $node);
+        my $node  = $tree->get_node_ref (node => $node_name);
+        my $range = $self->get_node_range (
+            %args,
+            node_ref => $node,
+        );
         if (defined $range) {
             $node_range{$node_name} = $range;
-            $has_range_count +=1;
         }
-      
+
         $count ++;
-        my $progress = int (100 * $count / $toDo);
-        if ($progress % 5 == 0) {
-            if ($printedProgress != $progress) {
-                print "$progress% ";
-                print "\n" if $progress == 100;
-                $printedProgress = $progress;
-            }
-        }
+        my $progress = $count / $toDo;
+        $progress_bar -> update(
+            "Calculating node ranges\n($progress)",
+            $progress,
+        );
     }
-    
-    print "[PD INDICES] $has_range_count nodes have a range \n";
-    
+
     my %results = (node_range => \%node_range);
 
     return wantarray ? %results : \%results;
@@ -544,21 +526,95 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
 sub get_node_range {
     my $self = shift;
     my %args = @_;
-    
-    my $tree     = $args{tree_ref} || croak "tree_ref arg not specified\n";
+
     my $node_ref = $args{node_ref} || croak "node_ref arg not specified\n";
+
+    my $bd = $args{basedata_ref} || $self->get_basedata_ref;
+
+    my @labels   = ($node_ref->get_name);
+    my $children =  $node_ref->get_all_children;
+
+    #  collect the set of non-internal (named) nodes
+    #  Possibly should only work with terminals
+    #  which would simplify things.
+    foreach my $name (keys %$children) {
+        next if $children->{$name}->is_internal_node;
+        push (@labels, $name);
+    }
+
+    my @range = $bd->get_range_union (labels => \@labels);
+
+    return wantarray ? @range : scalar @range;
+}
+
+
+sub get_metadata_get_node_abundance_hash {
+    my %arguments = (pre_calc_global => ['get_trimmed_tree']);
+    return wantarray ? %arguments : \%arguments;
+}
+
+
+sub get_node_abundance_hash {
+    my $self = shift;
+    my %args = @_;
+
+    my $progress_bar = Biodiverse::Progress->new();    
+
+    print "[PD INDICES] Calculating abundance for each node in the tree\n";
     
+    my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
+    my $nodes = $tree->get_node_hash;
+    my %node_hash;
+
+    my $toDo = scalar keys %$nodes;
+    my $count = 0;
+
+    my $progress = int (100 * $count / $toDo);
+    $progress_bar -> update(
+        "Calculating node abundances\n($progress)",
+        $progress,
+    );
+
+    foreach my $node_name (keys %$nodes) {
+        my $node  = $tree->get_node_ref (node => $node_name);
+        my $abundance = $self->get_node_abundance (
+            %args,
+            node_ref => $node,
+        );
+        if (defined $abundance) {
+            $node_hash{$node_name} = $abundance;
+        }
+
+        $count ++;
+        my $progress = $count / $toDo;
+        $progress_bar -> update(
+            "Calculating node abundances\n($progress)",
+            $progress,
+        );
+    }
+
+    my %results = (node_abundance_hash => \%node_hash);
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_node_abundance {
+    my $self = shift;
+    my %args = @_;
+
+    my $node_ref = $args{node_ref} || croak "node_ref arg not specified\n";
+
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
     
-    my @labels = ($node_ref -> get_name);
-    my $children = $node_ref -> get_all_children;
-    foreach my $name (keys %$children) {
-        push (@labels, $name) if not $$children{$name} -> is_internal_node;
+    my $abundance = $bd->get_label_sample_count (element => $node_ref->get_name);
+
+    my $children =  $node_ref->get_all_descendents;
+    foreach my $name (keys %$children) {  #  find all non-internal (named) nodes
+        next if $children->{$name}->is_internal_node;
+        $abundance += $bd->get_label_sample_count (element => $name);
     }
-    
-    my @range = $bd -> get_range_union (labels => \@labels);
-    
-    return wantarray ? @range : scalar @range;
+
+    return $abundance;
 }
 
 
@@ -791,26 +847,26 @@ sub _calc_taxonomic_distinctness {
 }
 
 
-sub get_metadata_calc_phylo_mntd {
+sub get_metadata_calc_phylo_mntd1 {
     my $self = shift;
 
     my $indices = {
-        PNTD_MEAN => {
+        PNTD1_MEAN => {
             description    => 'Mean of nearest taxon distances',
             formula        => [
             ],
         },
-        PNTD_MAX => {
+        PNTD1_MAX => {
             description    => 'Maximum of nearest taxon distances',
             formula        => [
             ],
         },
-        PNTD_MIN => {
+        PNTD1_MIN => {
             description    => 'Minimum of nearest taxon distances',
             formula        => [
             ],
         },
-        PNTD_SD => {
+        PNTD1_SD => {
             description    => 'Standard deviation of nearest taxon distances',
             formula        => [
             ],
@@ -821,8 +877,69 @@ sub get_metadata_calc_phylo_mntd {
 
     my %metadata = (
         description     => 'Nearest taxon distance stats from each label to '
-                         . 'all other labels acros both neighbour sets.',
-        name            => 'Nearest taxon distances',
+                         . 'all other labels across both neighbour sets. '
+                         . 'Not weighted by sample counts, so each label counts once only.',
+        name            => 'Nearest taxon distances, unweighted',
+        type            => 'Phylogenetic Indices',
+        reference       => $ref,
+        pre_calc        => ['calc_abc'],
+        pre_calc_global => ['get_trimmed_tree_as_matrix'],
+        uses_nbr_lists  => 1,
+        indices         => $indices,
+    );
+
+    return wantarray
+        ? %metadata
+        : \%metadata;
+}
+
+
+sub calc_phylo_mntd1 {
+    my $self = shift;
+
+    my %res = $self->_calc_phylo_mntd(@_);
+    my %results;
+    while (my ($key, $value) = each %res) {
+        $key =~ s/PNTD_/PNTD1_/;
+        $results{$key} = $value;
+    }
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_phylo_mntd3 {
+    my $self = shift;
+
+    my $indices = {
+        PNTD3_MEAN => {
+            description    => 'Mean of nearest taxon distances',
+            formula        => [
+            ],
+        },
+        PNTD3_MAX => {
+            description    => 'Maximum of nearest taxon distances',
+            formula        => [
+            ],
+        },
+        PNTD3_MIN => {
+            description    => 'Minimum of nearest taxon distances',
+            formula        => [
+            ],
+        },
+        PNTD3_SD => {
+            description    => 'Standard deviation of nearest taxon distances',
+            formula        => [
+            ],
+        },
+    };
+
+    my $ref = 'Webb et al. (2002) DOI NEEDED';
+
+    my %metadata = (
+        description     => 'Nearest taxon distance stats from each label to '
+                         . 'all other labels across both neighbour sets.'
+                         . 'Weighted by sample counts',
+        name            => 'Nearest taxon distances, weighted by sample counts',
         type            => 'Phylogenetic Indices',
         reference       => $ref,
         pre_calc        => ['calc_abc3'],
@@ -837,13 +954,19 @@ sub get_metadata_calc_phylo_mntd {
 }
 
 
-#  this allows for a binary version later on
 #  with more modification we could also
 #  allow the user to get at the underlying data
-sub calc_phylo_mntd {
+sub calc_phylo_mntd3 {
     my $self = shift;
 
-    return $self->_calc_phylo_mntd(@_);
+    my %res = $self->_calc_phylo_mntd(@_);
+    my %results;
+    while (my ($key, $value) = each %res) {
+        $key =~ s/PNTD_/PNTD3_/;
+        $results{$key} = $value;
+    }
+
+    return wantarray ? %results : \%results;
 }
 
 
@@ -858,8 +981,12 @@ sub _calc_phylo_mntd {
     my @labels = sort keys %$label_hash;
     my @min_path_lengths;
 
+    #  Loop over all possible pairs, as deleting as we go
+    #  does not allow for both sibs being nearest neighbours.
+    #  Deleting sib1 means it cannot be found for sib2.
     BY_LABEL:
-    while (defined (my $label1 = shift @labels)) {
+    #while (defined (my $label1 = shift @labels)) {
+    foreach my $label1 (@labels) {
         my $label_count1 = $label_hash->{$label1};
 
         #  save some calcs (if ever this happens)
@@ -887,7 +1014,7 @@ sub _calc_phylo_mntd {
             $i ++;
         }
         if ($i) {  #  only if we added something
-            push @min_path_lengths, $min;
+            push @min_path_lengths, ($min) x $label_count1;  #  prob shouldnot include label_count2 as that label gets its own weighting
         }
     }
 
@@ -1188,6 +1315,161 @@ sub _calc_phylo_abc {
             ? %results
             : \%results;
 }
+
+
+
+sub get_metadata_calc_phylo_aed {
+    my %arguments = (
+        name            =>  'Phylogenetic AED',
+        description     =>  'Calculate the evolutionary distinctiveness metrics',
+        type            =>  'Phylogenetic Indices',
+        pre_calc        => [qw /calc_abc3 get_node_abundances_local/],
+        pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash/],
+        uses_nbr_lists  =>  1,
+        #required_args   => {'tree_ref' => 1},
+        reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+        indices         => {
+            PHYLO_AED => {
+                description  =>  'Abundance weighted ED',
+                list         => 1,
+                reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+            },
+            PHYLO_ES => {
+                description  =>  'Equal splits partitioning of PD per terminal taxon',
+                list         => 1,
+                reference    => 'Redding & Mooers (2006) http://dx.doi.org/10.1111%2Fj.1523-1739.2006.00555.x',
+            },
+            PHYLO_ED => {
+                description  =>  '"Fair proportion" partitioning of PD per terminal taxon',
+                list         => 1,
+                reference    => 'Isaac et al. (2007) http://dx.doi.org/10.1371/journal.pone.0000296',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+
+sub calc_phylo_aed {
+    my $self = shift;
+    my %args = @_;
+    
+    my $label_hash = $args{label_hash_all};
+    my $global_abundance_hash = $args{node_abundance_hash};
+    my $local_abundance_hash  = $args{AED_LOCAL_NODE_ABUNDANCE};
+    my $es_wts                = $args{AED_LOCAL_NODE_ED_PRODUCTS};
+    my $tree = $args{trimmed_tree};
+
+    my $nodes_in_path = $self->get_paths_to_root_node (
+        @_,
+        labels => $label_hash,
+    );
+
+    my (%es_wt, %ed_wt, %aed_wt);
+
+    #  loop over the nodes and get their weights
+    foreach my $node (values %$nodes_in_path) {
+        my $name  = $node->get_name;
+        my $length = $node -> get_length;
+
+        my $global_abundance = $global_abundance_hash->{$name};
+        my $local_abundance  = $local_abundance_hash->{$name};
+
+        $ed_wt{$name}  = $length / $node->get_terminal_element_count;
+        $aed_wt{$name} = $ed_wt{$name} / $local_abundance;
+    }
+
+    my (%es, %ed, %aed);
+    # now loop over the terminals and tally up the weights
+    foreach my $label (keys %$label_hash) {
+        my $node_ref = $tree->get_node_ref (node => $label);
+        my $parent = $node_ref->get_parent;
+        #my $es
+        $ed{$label} = $ed_wt{$label};
+        $aed{$label} = $aed_wt{$label};
+        # sum the ES weights
+        my $es_wt_hash = $es_wts->{$label};
+        while (my ($node_name, $wt) = each %$es_wt_hash) {
+            $es{$label} += $node_ref->get_length * $wt;
+        }
+    }
+
+    my %results = (
+        es_wts    => \%es_wt,
+        ed_wts    => \%ed_wt,
+        aed_wts   => \%aed_wt,
+        PHYLO_ES  => \%es,
+        PHYLO_ED  => \%ed,
+        PHYLO_AED => \%aed,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_node_abundances_local {
+    my $self = shift;
+    
+    my %args = (
+        description     => 'A hash which the local abundance totals for each node are stored',
+        pre_calc        => 'calc_abc3',
+        pre_calc_global => 'get_trimmed_tree',
+        indices         => {
+            AED_LOCAL_NODE_ABUNDANCE => {
+                description => 'Hash of local abundance totals for each node'
+            },
+            AED_LOCAL_NODE_ED_PRODUCTS => {
+                description => 'Hash of ED product weights for each node'
+            }
+        },
+    );
+
+    return wantarray ? %args : \%args;
+}
+
+sub get_node_abundances_local {
+    my $self = shift;
+    my %args = @_;
+    
+    my $label_hash = $args{label_hash_all};
+    my $tree = $args{trimmed_tree};
+    my %aed_hash = %$label_hash;
+    my %ed_product_hash;
+    
+    while (my ($label, $count) = each %$label_hash) {
+        my $nodes_in_path = $self->get_paths_to_root_node (
+            @_,
+            labels => {$label => $count},
+        );
+        foreach my $node_name (keys %$nodes_in_path) {
+            $aed_hash{$node_name} += $count;
+        }
+
+        my $node_ref  = $tree->get_node_ref (node => $label);
+        my $node_name = $label;
+        $ed_product_hash{$node_name}{$label} = 1;  #  set up the terminal
+
+        TRAVERSE_TO_ROOT:
+        while (my $parent_ref = $node_ref->get_parent) {
+            my $parent_name = $parent_ref->get_name;
+
+            $ed_product_hash{$label}{$parent_name}
+                = $ed_product_hash{$label}{$node_name} / $parent_ref->get_child_count;
+
+            #  get the parent
+            $node_ref  = $parent_ref;
+            $node_name = $parent_name;
+        }
+    }
+
+    my %results = (
+        AED_LOCAL_NODE_ABUNDANCE   => \%aed_hash,
+        AED_LOCAL_NODE_ED_PRODUCTS => \%ed_product_hash,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 
 sub min {return $_[0] < $_[1] ? $_[0] : $_[1]}
 

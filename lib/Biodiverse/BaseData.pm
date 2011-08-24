@@ -1753,7 +1753,7 @@ sub get_label_sample_count {  #  I'm rather enjoying these cheat methods...
 sub get_group_sample_count {  #  I'm rather enjoying these cheat methods...
     my $self = shift;
 
-    return $self -> get_groups_ref -> get_sample_count(@_);
+    return $self->get_groups_ref->get_sample_count(@_);
 }
 
 #  get the range as defined by the user,
@@ -1820,13 +1820,18 @@ sub get_range_intersection {
 sub get_range_union {
     my $self = shift;
     my %args = @_;
-        
-    my $labels = $args{labels} || confess "argument labels not specified\n";
-    my $t = ref $labels;
-    ref ($labels) =~ /ARRAY|HASH/ || confess "argument labels not an array or hash ref";
-    
-    $labels = [keys %$labels] if (ref ($labels) =~ /HASH/);
-    
+
+    my $labels = $args{labels};
+    my $lref = ref $labels;
+
+    croak "argument labels not specified\n" if not $labels;
+    croak "argument labels not an array or hash ref"
+      if not $lref =~ /ARRAY|HASH/;
+
+    if ($lref =~ /HASH/) {
+        $labels = [keys %$labels];
+    }
+
     #  now loop through the labels and get the elements they occur in
     my %shared_elements;
     foreach my $label (@$labels) {

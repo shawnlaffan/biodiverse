@@ -670,7 +670,7 @@ sub get_terminal_elements { #  get all the elements in the terminal nodes
     #  need to add a cache option to reduce the amount of tree walking
     #  - use  hash for this, but return the keys
     my $self = shift;
-    my %args = ('cache' => 1, @_);  #  cache unless told otherwise
+    my %args = (cache => 1, @_);  #  cache unless told otherwise
 
     if ($self->is_terminal_node) {
         return wantarray ? ($self->get_name, 1) : {$self->get_name, 1};
@@ -693,7 +693,16 @@ sub get_terminal_elements { #  get all the elements in the terminal nodes
     if ($args{cache}) {
         $self->set_cached_value (TERMINAL_ELEMENTS => \%list);
     }
+
     return wantarray ? %list : \%list;
+}
+
+sub get_terminal_element_count {
+    my $self = shift;
+
+    my $hash = $self->get_terminal_elements (@_);
+
+    return scalar keys %$hash;
 }
 
 #  until we edit all the get_all_children calls...
@@ -706,16 +715,15 @@ sub get_all_descendents {
 sub get_all_children { #  get all the nodes (whether terminal or not) which are descendants of a node
 
     my $self = shift;
-    my %args = (cache => 1, #  cache unless told otherwise
-                @_,
-                );  
+    my %args = (
+        cache => 1, #  cache unless told otherwise
+        @_,
+    );  
 
     if ($self->is_terminal_node) {
         return wantarray ? () : {};  #  empty hash by default
-        #return {$self->get_name, 1} if ! wantarray;
-        #return ($self->get_name, 1);
     }
-    
+
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
         my $elRef = $self->get_cached_value('DESCENDENTS');
@@ -740,8 +748,7 @@ sub get_all_children { #  get all the nodes (whether terminal or not) which are 
         $self->set_cached_value(DESCENDENTS => \%list);
     }
     
-    return wantarray ? %list
-                     : \%list;
+    return wantarray ? %list : \%list;
 }
 
 #  get all the nodes along a path from self to another node,

@@ -587,6 +587,54 @@ sub escape_filename {
     return uri_escape ($string);
 }
 
+sub get_tooltip_sparse_normal {
+    my $self = shift;
+    
+    my $tool_tip =<<"END_MX_TOOLTIP"
+
+Explanation:
+
+A rectangular matrix is a row by column matrix.
+Blank entries have an undefined value (no value).
+
+Element,Axis_0,Axis_1,Label1,Label2,Label3
+1.5:1.5,1.5,1.5,5,,2
+1.5:2.5,1.5,2.5,,23,2
+2.5:2.5,2.5,2.5,3,4,10
+
+A non-symmetric one-value-per-line format is a list, and is analogous to a sparse matrix.
+Undefined entries are not given.
+
+Element,Axis_0,Axis_1,Key,Value
+1.5:1.5,1.5,1.5,Label1,5
+1.5:1.5,1.5,1.5,Label3,2
+1.5:2.5,1.5,2.5,Label2,23
+1.5:2.5,1.5,2.5,Label3,2
+2.5:2.5,2.5,2.5,Label1,3
+2.5:2.5,2.5,2.5,Label2,4
+2.5:2.5,2.5,2.5,Label3,10
+
+A symmetric one-value-per-line format has rows for the undefined values.
+
+Element,Axis_0,Axis_1,Key,Value
+1.5:1.5,1.5,1.5,Label1,5
+1.5:1.5,1.5,1.5,Label2,
+1.5:1.5,1.5,1.5,Label3,2
+
+
+A non-symmetric normal matrix is useful for array lists, but can also be used with hash lists.
+It has one row per element, with all the entries for that element listed sequentially on that line.
+
+Element,Axis_0,Axis_1,Value
+1.5:1.5,1.5,1.5,Label1,5,Label3,2
+1.5:2.5,1.5,2.5,Label2,23,Label3,2
+
+END_MX_TOOLTIP
+;
+
+    return $tool_tip;
+}
+
 
 #  handler for the available set of structures.
 #  IS THIS CALLED ANYMORE?

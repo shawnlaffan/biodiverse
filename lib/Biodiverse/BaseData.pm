@@ -528,7 +528,8 @@ sub get_metadata_import_data {
             { name       => 'binarise_counts',
               label_text => 'Convert sample counts to binary?',
               tooltip    => 'Any non-zero sample count will be '
-                          . 'converted to a value of 1',
+                          . "converted to a value of 1.  \n"
+                          . 'Applies to each record, not to groups.',
               type       => 'boolean',
               default    => 0,
             },

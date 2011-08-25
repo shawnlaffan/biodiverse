@@ -453,6 +453,8 @@ Sparse format is a list like:
 \trow2,col2,value
 END_MX_TOOLTIP
 ;
+
+    return $tool_tip;
 }
 
 

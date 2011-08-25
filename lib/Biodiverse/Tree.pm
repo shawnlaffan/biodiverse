@@ -489,6 +489,18 @@ sub get_root_node_refs {
     return wantarray ? @refs : \@refs;
 }
 
+sub get_root_node {
+    my $self = shift;
+    
+    my %root_nodes = $self->get_root_nodes;
+    croak "More than one root node\n" if scalar keys %root_nodes > 1;
+
+    my @refs = values %root_nodes;
+    my $root_node_ref = $refs[0];
+    
+    return wantarray ? %root_nodes : $root_node_ref;
+}
+
 #  get all nodes that aren't internal
 sub get_named_nodes {
     my $self = shift;

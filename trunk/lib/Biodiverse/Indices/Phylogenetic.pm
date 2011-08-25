@@ -1324,7 +1324,7 @@ sub get_metadata_calc_phylo_aed {
         description     =>  'Calculate the evolutionary distinctiveness metrics',
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /calc_abc3 get_node_abundances_local/],
-        pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash/],
+        pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash get_es_scores/],
         uses_nbr_lists  =>  1,
         #required_args   => {'tree_ref' => 1},
         reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
@@ -1335,7 +1335,8 @@ sub get_metadata_calc_phylo_aed {
                 reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
             PHYLO_ES => {
-                description  =>  'Equal splits partitioning of PD per terminal taxon',
+                description  =>  'Equal splits partitioning of PD per terminal taxon. '
+                               . 'Label values are constant for all neighbourhoods in which each label is found.',
                 list         => 1,
                 reference    => 'Redding & Mooers (2006) http://dx.doi.org/10.1111%2Fj.1523-1739.2006.00555.x',
             },
@@ -1358,7 +1359,8 @@ sub calc_phylo_aed {
     my $label_hash = $args{label_hash_all};
     my $global_abundance_hash = $args{node_abundance_hash};
     my $local_abundance_hash  = $args{AED_LOCAL_NODE_ABUNDANCE};
-    my $es_wts                = $args{AED_LOCAL_NODE_ED_PRODUCTS};
+    my $es_wts                = $args{ES_SCORES};
+    my $ed_wts                = $args{ED_SCORES};
     my $tree = $args{trimmed_tree};
 
     my $nodes_in_path = $self->get_paths_to_root_node (
@@ -1366,38 +1368,31 @@ sub calc_phylo_aed {
         labels => $label_hash,
     );
 
-    my (%es_wt, %ed_wt, %aed_wt);
+    my (%aed_wt);
 
     #  loop over the nodes and get their weights
     foreach my $node (values %$nodes_in_path) {
-        my $name  = $node->get_name;
-        my $length = $node -> get_length;
+        my $name   = $node->get_name;
+        my $length = $node->get_length;
 
         my $global_abundance = $global_abundance_hash->{$name};
         my $local_abundance  = $local_abundance_hash->{$name};
 
-        $ed_wt{$name}  = $length / $node->get_terminal_element_count;
-        $aed_wt{$name} = $ed_wt{$name} / $local_abundance;
+        $aed_wt{$name} = $ed_wts->{$name} / $local_abundance;  #  WRONG
     }
 
     my (%es, %ed, %aed);
     # now loop over the terminals and tally up the weights
     foreach my $label (keys %$label_hash) {
-        my $node_ref = $tree->get_node_ref (node => $label);
-        my $parent = $node_ref->get_parent;
-        #my $es
-        $ed{$label} = $ed_wt{$label};
+
         $aed{$label} = $aed_wt{$label};
-        # sum the ES weights
-        my $es_wt_hash = $es_wts->{$label};
-        while (my ($node_name, $wt) = each %$es_wt_hash) {
-            $es{$label} += $node_ref->get_length * $wt;
-        }
+        $ed{$label}  = $ed_wts->{$label};
+        $es{$label}  = $es_wts->{$label};
     }
 
     my %results = (
-        es_wts    => \%es_wt,
-        ed_wts    => \%ed_wt,
+        es_wts    => $es_wts,
+        ed_wts    => $ed_wts,
         aed_wts   => \%aed_wt,
         PHYLO_ES  => \%es,
         PHYLO_ED  => \%ed,
@@ -1418,9 +1413,6 @@ sub get_metadata_get_node_abundances_local {
             AED_LOCAL_NODE_ABUNDANCE => {
                 description => 'Hash of local abundance totals for each node'
             },
-            AED_LOCAL_NODE_ED_PRODUCTS => {
-                description => 'Hash of ED product weights for each node'
-            }
         },
     );
 
@@ -1444,31 +1436,87 @@ sub get_node_abundances_local {
         foreach my $node_name (keys %$nodes_in_path) {
             $aed_hash{$node_name} += $count;
         }
-
-        my $node_ref  = $tree->get_node_ref (node => $label);
-        my $node_name = $label;
-        $ed_product_hash{$node_name}{$label} = 1;  #  set up the terminal
-
-        TRAVERSE_TO_ROOT:
-        while (my $parent_ref = $node_ref->get_parent) {
-            my $parent_name = $parent_ref->get_name;
-
-            $ed_product_hash{$label}{$parent_name}
-                = $ed_product_hash{$label}{$node_name} / $parent_ref->get_child_count;
-
-            #  get the parent
-            $node_ref  = $parent_ref;
-            $node_name = $parent_name;
-        }
     }
 
     my %results = (
         AED_LOCAL_NODE_ABUNDANCE   => \%aed_hash,
-        AED_LOCAL_NODE_ED_PRODUCTS => \%ed_product_hash,
     );
 
     return wantarray ? %results : \%results;
 }
+
+sub get_metadata_get_es_scores {
+
+    my %args = (
+        description     => 'A hash of the ES, ED and AED scores for each label',
+        pre_calc        => 'calc_abc',
+        pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash/],
+        indices         => {
+            ES_SCORES => {
+                description => 'Hash of ES scores for each label'
+            },
+            ED_SCORES => {
+                description => 'Hash of ED scores for each label'
+            },
+            AED_SCORES => {
+                description => 'Hash of AED scores for each label'
+            }
+        },
+    );
+    
+    return wantarray ? %args : \%args;
+}
+
+sub get_es_scores {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree = $args{trimmed_tree};
+    my $node_abundances = $args{node_abundance_hash};
+    my (%es_wts, %ed_wts, %aed_wts);
+    my ($es_wt_sum, $ed_wt_sum, $aed_wt_sum);  #  should sum to 1
+    my $terminal_elements = $tree->get_root_node->get_terminal_elements;
+
+    foreach my $label (keys %$terminal_elements) {
+
+        my $node_ref  = $tree->get_node_ref (node => $label);
+        my $es_sum  = $node_ref->get_length;  #  set up the terminal
+        my $ed_sum  = $node_ref->get_length;  #  set up the terminal
+        my $aed_sum = $node_ref->get_length;  #  set up the terminal
+        my $es_wt  = 1;
+        my $ed_wt  = 1;
+        my $aed_wt = 1;
+
+        TRAVERSE_TO_ROOT:
+        while ($node_ref = $node_ref->get_parent) {
+            my $value = $node_ref->get_length;
+
+            $es_wt /= $node_ref->get_child_count;
+            $ed_wt = 1 / $node_ref->get_terminal_element_count;
+            $aed_wt = 1 / $node_abundances->{$node_ref->get_name};  #  CHECK
+
+            $es_sum  += $value * $es_wt;
+            $ed_sum  += $value * $ed_wt;
+            $aed_sum += $value * $aed_wt;
+        }
+
+        $es_wts{$label} = $es_sum;
+        $es_wt_sum += $es_wt;
+        $ed_wts{$label} = $ed_sum;
+        $ed_wt_sum += $ed_wt;
+        $aed_wts{$label} = $aed_sum;
+        $aed_wt_sum += $aed_wt;
+    }
+
+    my %results = (
+        ES_SCORES  => \%es_wts,
+        ED_SCORES  => \%ed_wts,
+        AED_SCORES => \%aed_wts,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 
 
 sub min {return $_[0] < $_[1] ? $_[0] : $_[1]}

@@ -203,19 +203,23 @@ sub get_table_export_metadata {
             : (',', 'tab', ';', 'space', ':');
 
     my @quote_chars = qw /" ' + $/;
-    
+
+    my $mx_explanation = $self->get_tooltip_sparse_normal;
+
     my $table_metadata_defaults = [
         {
             name       => 'symmetric',
             label_text => 'Force symmetric (matrix) format',
-            tooltip    => 'Rectangular matrix, one row per element (group)',
+            tooltip    => "Rectangular matrix, one row per element (group).\n"
+                        . $mx_explanation,
             type       => 'boolean',
             default    => 1
         },
         {
             name       => 'one_value_per_line',
             label_text => "One value per line",
-            tooltip    => 'Sparse matrix, repeats elements for each value',
+            tooltip    => "Sparse matrix, repeats elements for each value.\n"
+                        . $mx_explanation,
             type       => 'boolean',
             default    => 0
         },
@@ -256,7 +260,7 @@ sub get_metadata_export_table_delimited_text {
         format => 'Delimited text',
         parameters => [
             $self -> get_common_export_metadata(),
-            $self -> get_table_export_metadata()
+            $self -> get_table_export_metadata(),
         ],
     ); 
     

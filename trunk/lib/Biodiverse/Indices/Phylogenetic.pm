@@ -1320,11 +1320,13 @@ sub _calc_phylo_abc {
 
 sub get_metadata_calc_phylo_aed {
     my %arguments = (
-        name            =>  'Phylogenetic AED',
-        description     =>  'Calculate the evolutionary distinctiveness metrics',
+        name            =>  'Evolutionary distinctiveness',
+        description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
+                          . 'Label values are constant for all '
+                          . 'neighbourhoods in which each label is found.',
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /calc_abc/],
-        pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash get_es_scores/],
+        pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash get_aed_scores/],
         uses_nbr_lists  =>  1,
         #required_args   => {'tree_ref' => 1},
         reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
@@ -1335,8 +1337,7 @@ sub get_metadata_calc_phylo_aed {
                 reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
             PHYLO_ES => {
-                description  =>  'Equal splits partitioning of PD per terminal taxon. '
-                               . 'Label values are constant for all neighbourhoods in which each label is found.',
+                description  =>  'Equal splits partitioning of PD per terminal taxon. ',
                 list         => 1,
                 reference    => 'Redding & Mooers (2006) http://dx.doi.org/10.1111%2Fj.1523-1739.2006.00555.x',
             },
@@ -1355,18 +1356,19 @@ sub get_metadata_calc_phylo_aed {
 sub calc_phylo_aed {
     my $self = shift;
     my %args = @_;
-    
+
     my $label_hash = $args{label_hash_all};
     my $global_abundance_hash = $args{node_abundance_hash};
     my $local_abundance_hash  = $args{AED_LOCAL_NODE_ABUNDANCE};
     my $es_wts                = $args{ES_SCORES};
     my $ed_wts                = $args{ED_SCORES};
     my $aed_wts               = $args{AED_SCORES};
-    
+
     my $tree = $args{trimmed_tree};
 
     my (%es, %ed, %aed);
-    # now loop over the terminals and tally up the weights
+    # now loop over the terminals and extract the weights (would slices be faster?)
+    # Do we want the proportional values?  Divide by PD to get them.
     foreach my $label (keys %$label_hash) {
         $aed{$label} = $aed_wts->{$label};
         $ed{$label}  = $ed_wts->{$label};
@@ -1374,9 +1376,9 @@ sub calc_phylo_aed {
     }
 
     my %results = (
-        es_wts    => $es_wts,
-        ed_wts    => $ed_wts,
-        aed_wts   => $aed_wts,
+        #es_wts    => $es_wts,
+        #ed_wts    => $ed_wts,
+        #aed_wts   => $aed_wts,
         PHYLO_ES  => \%es,
         PHYLO_ED  => \%ed,
         PHYLO_AED => \%aed,
@@ -1385,9 +1387,116 @@ sub calc_phylo_aed {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_phylo_aed_proportions {
+    my %arguments = (
+        name            =>  'Evolutionary distinctiveness, proportional',
+        description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
+                          . 'Label values are constant for all '
+                          . 'neighbourhoods in which each label is found.  '
+                          . 'These vaues are expressed as proportions of PD.',
+        type            =>  'Phylogenetic Indices',
+        pre_calc        => 'calc_abc',
+        pre_calc_global => [qw /get_phylo_aed_proportions/],
+        uses_nbr_lists  =>  1,
+        indices         => {
+            PHYLO_AED_P => {
+                description  =>  'Abundance weighted ED',
+                list         => 1,
+            },
+            PHYLO_ES_P => {
+                description  =>  'Equal splits partitioning of PD per terminal taxon. ',
+                list         => 1,
+            },
+            PHYLO_ED_P => {
+                description  =>  '"Fair proportion" partitioning of PD per terminal taxon, ',
+                list         => 1,
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+
+sub calc_phylo_aed_proportions {
+    my $self = shift;
+    my %args = @_;
+
+    my $label_hash = $args{label_hash_all};
+    my $es  = $args{ES_SCORES_P};
+    my $ed  = $args{ED_SCORES_P};
+    my $aed = $args{AED_SCORES_P};
+
+    my (%es_p, %ed_p, %aed_p);
+
+    foreach my $label (keys %$label_hash) {
+        $es_p{$label}  = $es->{$label};
+        $ed_p{$label}  = $ed->{$label};
+        $aed_p{$label} = $aed->{$label};
+    }
+    
+    my %results = (
+        PHYLO_ES_P  => \%es_p,
+        PHYLO_ED_P  => \%ed_p,
+        PHYLO_AED_P => \%aed_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+
+sub get_metadata_get_phylo_aed_proportions {
+    my %arguments = (
+        name            =>  'Evolutionary distinctiveness, proportional',
+        description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
+                          . 'Label values are constant for all '
+                          . 'neighbourhoods in which each label is found.  '
+                          . 'These values are expressed as proportions of PD.',
+        type            =>  'Phylogenetic Indices',
+        pre_calc_global => [qw /get_aed_scores/],
+        uses_nbr_lists  =>  1,
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub get_phylo_aed_proportions {
+    my $self = shift;
+    my %args = @_;
+
+    my $es  = $args{ES_SCORES};
+    my $ed  = $args{ED_SCORES};
+    my $aed = $args{AED_SCORES};
+
+    #  Get the pd score.
+    #  Cannot use calc_pd since that version is locally calculated
+    my $pd = 0;
+    foreach my $value (values %$ed) {
+        $pd += $value;
+    }
+
+    my (%es_p, %ed_p, %aed_p);
+
+    foreach my $label (keys %$ed) {
+        $es_p{$label}  = $es->{$label} / $pd;
+        $ed_p{$label}  = $ed->{$label} / $pd;
+        $aed_p{$label} = $aed->{$label} / $pd;
+    }
+    
+    my %results = (
+        ES_SCORES_P  => \%es_p,
+        ED_SCORES_P  => \%ed_p,
+        AED_SCORES_P => \%aed_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+
+#  used now?
 sub get_metadata_get_node_abundances_local {
     my $self = shift;
-    
+
     my %args = (
         description     => 'A hash which the local abundance totals for each node are stored',
         pre_calc        => 'calc_abc3',
@@ -1428,7 +1537,7 @@ sub get_node_abundances_local {
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata_get_es_scores {
+sub get_metadata_get_aed_scores {
 
     my %args = (
         description     => 'A hash of the ES, ED and AED scores for each label',
@@ -1450,7 +1559,7 @@ sub get_metadata_get_es_scores {
     return wantarray ? %args : \%args;
 }
 
-sub get_es_scores {
+sub get_aed_scores {
     my $self = shift;
     my %args = @_;
 

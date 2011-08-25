@@ -1323,7 +1323,7 @@ sub get_metadata_calc_phylo_aed {
         name            =>  'Phylogenetic AED',
         description     =>  'Calculate the evolutionary distinctiveness metrics',
         type            =>  'Phylogenetic Indices',
-        pre_calc        => [qw /calc_abc3 get_node_abundances_local/],
+        pre_calc        => [qw /calc_abc/],
         pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash get_es_scores/],
         uses_nbr_lists  =>  1,
         #required_args   => {'tree_ref' => 1},
@@ -1361,31 +1361,14 @@ sub calc_phylo_aed {
     my $local_abundance_hash  = $args{AED_LOCAL_NODE_ABUNDANCE};
     my $es_wts                = $args{ES_SCORES};
     my $ed_wts                = $args{ED_SCORES};
+    my $aed_wts               = $args{AED_SCORES};
+    
     my $tree = $args{trimmed_tree};
-
-    my $nodes_in_path = $self->get_paths_to_root_node (
-        @_,
-        labels => $label_hash,
-    );
-
-    my (%aed_wt);
-
-    #  loop over the nodes and get their weights
-    foreach my $node (values %$nodes_in_path) {
-        my $name   = $node->get_name;
-        my $length = $node->get_length;
-
-        my $global_abundance = $global_abundance_hash->{$name};
-        my $local_abundance  = $local_abundance_hash->{$name};
-
-        $aed_wt{$name} = $ed_wts->{$name} / $local_abundance;  #  WRONG
-    }
 
     my (%es, %ed, %aed);
     # now loop over the terminals and tally up the weights
     foreach my $label (keys %$label_hash) {
-
-        $aed{$label} = $aed_wt{$label};
+        $aed{$label} = $aed_wts->{$label};
         $ed{$label}  = $ed_wts->{$label};
         $es{$label}  = $es_wts->{$label};
     }
@@ -1393,7 +1376,7 @@ sub calc_phylo_aed {
     my %results = (
         es_wts    => $es_wts,
         ed_wts    => $ed_wts,
-        aed_wts   => \%aed_wt,
+        aed_wts   => $aed_wts,
         PHYLO_ES  => \%es,
         PHYLO_ED  => \%ed,
         PHYLO_AED => \%aed,
@@ -1486,18 +1469,19 @@ sub get_es_scores {
         my $es_wt  = 1;
         my $ed_wt  = 1;
         my $aed_wt = 1;
+        my $aed_label_count = $node_abundances->{$label};
 
         TRAVERSE_TO_ROOT:
         while ($node_ref = $node_ref->get_parent) {
-            my $value = $node_ref->get_length;
+            my $length = $node_ref->get_length;
 
-            $es_wt /= $node_ref->get_child_count;
-            $ed_wt = 1 / $node_ref->get_terminal_element_count;
-            $aed_wt = 1 / $node_abundances->{$node_ref->get_name};  #  CHECK
+            $es_wt  /= $node_ref->get_child_count;  #  es uses a cumulative scheme
+            $ed_wt  =  1 / $node_ref->get_terminal_element_count;
+            $aed_wt =  $aed_label_count / $node_abundances->{$node_ref->get_name};
 
-            $es_sum  += $value * $es_wt;
-            $ed_sum  += $value * $ed_wt;
-            $aed_sum += $value * $aed_wt;
+            $es_sum  += $length * $es_wt;
+            $ed_sum  += $length * $ed_wt;
+            $aed_sum += $length * $aed_wt;
         }
 
         $es_wts{$label} = $es_sum;

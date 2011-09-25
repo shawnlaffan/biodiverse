@@ -209,7 +209,7 @@ sub import_nexus {
                 last TRANSLATE_BLOCK if $trans =~ /;\s*\z/;  #  semicolon marks the end
             }
         }
-        elsif ($line =~ m/\s*tree/i) {  #  tree - extract it
+        elsif ($line =~ m/^\s*tree/i) {  #  tree - extract it
 
             my $nwk = $line;
             if (not $line =~ m/;\s*$/) {  #  tree is not finished unless we end in a semi colon, maybe with some white space
@@ -244,7 +244,7 @@ sub import_nexus {
             if (my $x = $nwk =~ m/
                                 \s*
                                 tree\s+
-                                (.+)       #  capture the name of the tree into $1
+                                (.+?)       #  capture the name of the tree into $1
                                 \s*=\s*
                                 (\[..\])?  #  get the rooted unrooted bit
                                 \s*

@@ -90,7 +90,7 @@ sub import_data {
     };
     if ($EVAL_ERROR) {
         eval {
-            $self -> import_newick (%args);
+            $self -> import_phylip (%args);
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
     }
@@ -132,6 +132,51 @@ sub import_newick {
     $self -> add_tree (tree => $tree);
 
     return 1;
+}
+
+#  Import trees from the phylip format
+#  This is just a collection of semicolon separate newicks
+#  should really combine with or replace import_newick
+#  as they do almost the same thing
+sub import_phylip {
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data};
+
+    croak "Neither file nor data arg specified\n"
+      if not defined $data and not defined $args{file};
+
+    if (! defined $data) {
+        $data = $self -> read_whole_file (file => $args{file});
+    }
+
+    #  lazy split - does not allow for quoted semicolons
+    my @newicks = split /;/, $data;
+
+    my $i = 0;
+
+    foreach my $nwk (@newicks) {
+        next if $nwk =~ /^[\s\n]*$/;
+
+        my $tree_name = 'anonymous_' . $i;
+        my $tree = Biodiverse::Tree -> new (NAME => $tree_name);
+
+        my $count = 0;
+        my $node_count = \$count;
+
+        $self -> parse_newick (
+            string          => $nwk,
+            tree            => $tree,
+            node_count      => $node_count,
+        );
+
+        $self -> add_tree (tree => $tree);
+
+        $i ++;
+    }
+    
+    
 }
 
 # import the trees from a nexus file

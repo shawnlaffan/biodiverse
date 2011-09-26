@@ -29,10 +29,11 @@ sub run {
     #########
     my ($name, $nexus_filename) = Biodiverse::GUI::OpenDialog::Run (
         'Import Tree from file',
-        ['nex', 'tre'],
+        ['nex', 'tre', 'nwk', 'phy'],
         'nex',
         'tre',
         'nwk',
+        'phy',
         '*',
     );
 

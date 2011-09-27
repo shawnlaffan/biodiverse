@@ -1638,35 +1638,6 @@ sub calc_local_sample_count_lists {
         ABC3_LABELS_SET2 => $args{label_hash2},
     );
 
-    my $stats;
-    
-    # ensure undef if no samples
-
-    if (scalar keys %{$args{label_hash_all}}) {
-        $stats = $stats_class->new;
-        #my @barry = values %{$args{label_hash_all}};
-        $stats -> add_data (values %{$args{label_hash_all}});
-        $results{ABC3_MEAN_ALL} = $stats->mean;
-        $results{ABC3_SD_ALL}   = $stats->standard_deviation;
-        $results{ABC3_SUM_ALL}  = $stats->sum;
-    }
-    
-    if (scalar keys %{$args{label_hash1}}) {
-        $stats = $stats_class->new;
-        $stats->add_data (values %{$args{label_hash1}});
-        $results{ABC3_MEAN_SET1} = $stats->mean;
-        $results{ABC3_SD_SET1}   = $stats->standard_deviation;
-        $results{ABC3_SUM_SET1}  = $stats->sum;
-    }
-    
-    if (scalar keys %{$args{label_hash2}}) {
-        $stats = $stats_class->new;
-        $stats->add_data (values %{$args{label_hash2}});
-        $results{ABC3_MEAN_SET2} = $stats->mean;
-        $results{ABC3_SD_SET2}   = $stats->standard_deviation;
-        $results{ABC3_SUM_SET2}  = $stats->sum;
-    }
-    
     return wantarray
         ? %results
         : \%results;

@@ -84,6 +84,10 @@ the nodes can be negative for such linkages.  Alternately negative lengths can o
 
 Each node must have a unique name.  In the case of those that link to an [#Element element] (e.g. a [#Groups group] or [#Labels label]) this is straightforward and can use the same name.  Internal nodes are slightly different, and are assigned a unique value followed by three underscore characters (, e.g. `18___`).  This is done on the basis that it is unlikely for an element name to have three trailing underscores.  Using three trailing underscores for non-internal names will cause unpredictable behaviour as Biodiverse uses the name to determine if a node is internal or not.
 
+= Remap tables =
+
+These are element property tables.
+
 = Element property tables =
 
 As with so many objects in Biodiverse, element property tables are also special type of !BaseStruct object (making !BaseStruct a relevant name).

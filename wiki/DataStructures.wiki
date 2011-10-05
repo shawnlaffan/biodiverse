@@ -86,7 +86,7 @@ Each node must have a unique name.  In the case of those that link to an [#Eleme
 
 = Remap tables =
 
-These are element property tables.
+These are [#Element_property_tables element property tables].
 
 = Element property tables =
 

@@ -116,6 +116,31 @@ The import process is similar to that for a !BaseData set, in that one must sele
   *  *sample_count*:  This value will be used as the sample count value instead of counting the number of samples at import.  This affects the [Indices#Rarity rarity] calculations.
   *  *Use_field_name*:  A property will be set for each element that has the name of the field and the value of each row.  Use this to import additional properties for a set of labels or groups.  
 
+== The table file ==
+
+The element property (remap) table file is simply a table that has two or more columns that allow you to match the labels used in your tree or matrix to the labels used in your !BaseData (or in any of the other directions, as appropriate).  The system uses exact matches to link the !BaseData, trees and matrices so this is often a necessary step.
+
+As an example, say you have labels in your !BaseData which are made up from two axes (derived from columns for genus and species, e.g. "Pultenaea:obstreperus"), while your tree or matrix has names with only one axis (e.g. "P_obstreperus").  To make them match in Biodiverse you need to map one to the other.
+
+The first few lines of an example remap table would look like this:
+
+Genus,Species,Tree_name
+Pultenaea,obstreperus,P_obstreperus
+Pultenaea,intransigentus,P_intransigentus
+
+
+When you import the tree and choose to remap the names on the tree, select the remap table file, and then set the columns to be:
+Genus is a remapped_element
+Species is a remapped_element
+Tree_name is an input_element
+
+Note that the field names can be anything.  The fields in the header row are only used for column selection in the GUI.
+
+When remapped, the input_element column(s) are changed to the combined remapped_elements.  As noted above, you need to specify as many input_element and remapped_element columns as you are using in your respective tree and basedata (or matrix, as appropriate).  For the example above where a tree is being remapped to match the basedata, the basedata uses two axes so the remap table needs to have to remapped_element columns. The tree names are only one axis (the norm for nexus format trees) so there is only one input_element column.
+
+Take care with spaces.  Biodiverse uses an exact matching system, so any excess whitespace will cause a non-match to occur.  This is both at the remapping stage and when visualising the data. Basically, " Rhynchospora_crinipes" is not the same as "Rhynchospora_crinipes", and the same applies for " Rhynchospora crinipes" and "Rhynchospora crinipes".
+
+
 = File naming scheme =
 
 The naming system is a “b” for Biodiverse, followed by a letter for the object type, and then an “s” or “y” to denote if it is in a Storable or YAML format. The Storable version is preferred.  The YAML format requires more time to parse in and out and uses more memory.  It is deprecated and will be removed in a future release, but will be supported for export as it is sometimes useful to interrogate the internal data structure using a text editor.

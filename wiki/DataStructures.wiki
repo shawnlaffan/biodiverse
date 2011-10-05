@@ -124,10 +124,11 @@ As an example, say you have labels in your !BaseData which are made up from two 
 
 The first few lines of an example remap table would look like this:
 
+{{{
 Genus,Species,Tree_name
 Pultenaea,obstreperus,P_obstreperus
 Pultenaea,intransigentus,P_intransigentus
-
+}}}
 
 When you import the tree and choose to remap the names on the tree, select the remap table file, and then set the columns to be:
 Genus is a remapped_element

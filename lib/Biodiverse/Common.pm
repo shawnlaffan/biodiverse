@@ -1822,9 +1822,6 @@ sub initialise_rand {
         $self -> store_rand_state_init (rand_object => $rand);
     }
 
-#for (0 .. 9) {print $rand->irand . ' '};
-#print "\n";
-
     return $rand;
 }
 

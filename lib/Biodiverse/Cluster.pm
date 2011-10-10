@@ -42,8 +42,6 @@ our %PARAMS = (  #  most of these are not used
 
 my $EMPTY_STRING = q{};
 
-our $last_state_debug;
-
 
 #use Exception::Class (
 #    'Biodiverse::Cluster::MatrixExists' => {
@@ -832,24 +830,6 @@ sub cluster_matrix_elements {
     $self->set_param (LINKAGE_FUNCTION => $linkage_function);
 
     my $rand = $self->initialise_rand;
-    my @state = $rand->get_state;
-    print join " ", @state[0..9];
-    #do {  #  a bit of debug
-    #    my $different = 0;
-    #    my $state = $rand->get_state;
-    #    if ($last_state_debug) {
-    #        foreach my $i (0 .. $#$last_state_debug) {
-    #            if ($last_state_debug->[$i] != $state->[$i]) {
-    #                $different ++;
-    #            }
-    #        }
-    #    }
-    #    warn "State is not different\n" if $different == 0;
-    #    $last_state_debug = $state;
-    #};
-    #for (0 .. 9) {print $rand->irand . ' '};
-    #print "\n";
-    
 
     my $mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
     my $sim_matrix = $self->get_matrix_ref (iter => $mx_iter);
@@ -901,11 +881,9 @@ sub cluster_matrix_elements {
         my $keysRef = $sim_matrix->get_elements_with_value (value => $minValue);
         my $count1  = scalar keys %{$keysRef};
         my $keys    = $rand->shuffle ([sort keys %{$keysRef}]);
-        #my $keys    = [sort keys %{$keysRef}];
         my $node1   = $keys->[0];  # grab the first shuffled key
         my $count2  = scalar keys %{$keysRef};
         $keys       = $rand->shuffle ([sort keys %{$keysRef->{$node1}}]);
-        #$keys       = [sort keys %{$keysRef->{$node1}}];
         my $node2   = $keys->[0];  #  grab the first shuffled sub key
 
         #print "$join_number $count1, $count2\n" if $count1 > 1 and $count2 > 1;

@@ -2180,16 +2180,16 @@ sub add_output {
 
     my $class = blessed ($object) || $object;
     if ($class =~ /spatial/i) {
-        return $self -> add_spatial_output (@_);
+        return $self->add_spatial_output (@_);
     }
     elsif ($class =~ /Cluster|RegionGrower/i) {
-        return $self -> add_cluster_output (@_);
+        return $self->add_cluster_output (@_);
     }
     elsif ($class =~ /randomisation/i) {
-        return $self -> add_randomisation_output (@_);
+        return $self->add_randomisation_output (@_);
     }
     elsif ($class =~ /matrix/i) {
-        return $self -> add_matrix_output (@_);
+        return $self->add_matrix_output (@_);
     }
     
     #  if we get this far then we have problems
@@ -2245,8 +2245,6 @@ sub add_cluster_output {
 
     croak "[BASEDATA] argument 'name' not specified\n"
         if ! defined $name;
-
-
 
     croak "[BASEDATA] Cannot replace existing cluster object $name. Use a different name.\n"
         if exists $self->{CLUSTER_OUTPUTS}{$name};

@@ -665,7 +665,6 @@ sub onRun {
     $self->{output_ref} = $output_ref;
     $self->{project}->addOutput($self->{basedata_ref}, $output_ref);
 
-
     my %args = (
         spatial_conditions  => [
             $self->{spatial1}->get_text(),

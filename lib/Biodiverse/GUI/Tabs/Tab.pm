@@ -111,7 +111,7 @@ sub registerInOutputsModel {
     my $self = shift;
     my $output_ref = shift;
     my $tabref = shift; # either $self, or undef to deregister
-    my $model = $self->{project} -> getBaseDataOutputModel();
+    my $model = $self->{project}->getBaseDataOutputModel();
 
     # Find iter
     my $iter;

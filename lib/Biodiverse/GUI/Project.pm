@@ -358,7 +358,7 @@ sub outputRowAdd {
     return $iter;
 }
 
-# Add a row for each analysis that was done
+# Add a row for each index that was calculated
 sub updateAnalysesRows {
     my $self = shift;
     my $output_ref = shift;

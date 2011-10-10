@@ -244,13 +244,13 @@ sub onShow {
             return;
         }
     }
-    
+
     # Otherwise, we only care about analysis rows
     return if not defined $selected->{output_ref};
-    
-    my $output_ref = $selected->{output_ref};    
-    my $analysis   = $selected->{analysis};    
-    my $tab        = $selected->{tab};    
+
+    my $output_ref = $selected->{output_ref};
+    my $analysis   = $selected->{analysis};
+    my $tab        = $selected->{tab};
     my $iter       = $selected->{iter}; # unused
 
     # Tabs should register themselves in the model

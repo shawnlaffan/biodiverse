@@ -171,7 +171,8 @@ sub build_matrices {
     
     my $output_gdm_format = $args{output_gdm_format};  #  need to make all the fle stuff a hashref
 
-    my $bd = $self->get_param ('BASEDATA_REF') || $self;
+    #my $bd = $self->get_param ('BASEDATA_REF') || $self;
+    my $bd = $self->get_param ('BASEDATA_REF');
 
     my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $bd);
     $self->set_param (INDICES_OBJECT => $indices_object);
@@ -1027,6 +1028,7 @@ sub cluster {
                 };
                 croak $EVAL_ERROR if $EVAL_ERROR;
             }
+            $self->set_matrix_ref(matrices => \@matrices);
         }
         #  bail if first matrix could not be built (are we trapping this with prev croak now?)
         croak "[CLUSTER] Matrix could not be built\n"
@@ -1081,12 +1083,14 @@ sub cluster {
         croak $EVAL_ERROR if $EVAL_ERROR;
     }
 
-    #  run some cleanup
+    #  run some cleanup on the indices object
     my $indices_object = $self->get_param('INDICES_OBJECT');
-    eval {
-        $indices_object->run_postcalc_globals;
-        $indices_object->reset_results(global => 1);
-    };
+    if ($indices_object) {
+        eval {
+            $indices_object->run_postcalc_globals;
+            $indices_object->reset_results(global => 1);
+        };
+    }
     $self->set_param(INDICES_OBJECT => undef);
 
     my %root_nodes = $self->get_root_nodes;

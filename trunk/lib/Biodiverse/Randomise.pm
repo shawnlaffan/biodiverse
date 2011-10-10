@@ -397,18 +397,20 @@ sub run_randomisation {
             $completed = 1 if not defined $completed;
 
             next TARGET if not $completed;  # skip this one, no analyses that worked
-            
+
             my $rand_count
                 = $i + ($target -> get_param($rand_iter_param_name) || 0);
-            
+
             my $name
                 = $target -> get_param ('NAME') . " Randomise $$total_iterations";
             my $progress_text
                 = $target -> get_param ('NAME') . "\nRandomise $$total_iterations";
-            
+
             #  create a new object of the same class
             my %params = $target -> get_params_hash;
-            
+            #  hack to ensure we recreate cluster matrices
+            delete @params{qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/};  
+
             #  create the object and add it
             $rand_analysis = ref ($target) -> new (
                 %params,

@@ -142,7 +142,8 @@ sub delete_cached_values {
     delete @{$self->{_cache}}{@$keys};
     delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
     
-    warn "Problem at node " . $self -> get_name . "\n" if $EVAL_ERROR;
+    warn "Cache deletion problem at node " . $self -> get_name . "\n$EVAL_ERROR\n"
+      if $EVAL_ERROR;
     
     warn "XXXXXXX "  . $self -> get_name . "\n" if exists $self->{_cache};
     

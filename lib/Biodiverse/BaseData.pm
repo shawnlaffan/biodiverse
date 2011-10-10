@@ -110,6 +110,9 @@ sub new {
         NAME => $name . "_LABELS",
         BASEDATA_REF => $self,
     );
+    $self->{CLUSTER_OUTPUTS} = {};
+    $self->{SPATIAL_OUTPUTS} = {};
+    $self->{MATRIX_OUTPUTS}  = {};
 
     $self -> set_param (EXCLUSION_HASH => \%exclusion_hash);
     

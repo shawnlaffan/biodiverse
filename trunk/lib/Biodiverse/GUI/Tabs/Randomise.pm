@@ -673,8 +673,6 @@ sub onRun {
         $self->{output_ref} = $output_ref;
         $self->{project}->addOutput($basedata_ref, $output_ref);
     }
-    
-    #my $progress = Biodiverse::GUI::ProgressDialog -> new;
 
     my $success = eval {
         $output_ref -> run_analysis (
@@ -685,56 +683,19 @@ sub onRun {
         $self->{gui} -> report_error ($EVAL_ERROR);
     }
 
-    #$progress->destroy;
-    
     if ($success) {
         $self->{project}->registerInOutputsModel ($output_ref, $self);
     }
-    
+
     $self->update_iterations_count_label (
-        $output_ref -> get_param ('TOTAL_ITERATIONS')
+        $output_ref->get_param ('TOTAL_ITERATIONS')
     );
-    
-    $self->{project} -> setDirty;
+
+    $self->{project}->setDirty;
 
     return;
 }
 
-## Make ourselves known to the Outputs tab to that it
-## can switch to this tab if the user presses "Show"
-#sub registerInOutputsModel {
-#    my $self = shift;
-#    my $output_ref = shift;
-#    my $tabref = shift; # either $self, or undef to deregister
-#    my $model = $self->{project} -> getBaseDataOutputModel();
-#
-#    # Find iter
-#    my $iter;
-#    my $iter_base = $model->get_iter_first();
-#
-#    while ($iter_base) {
-#        
-#        my $iter_output = $model->iter_children($iter_base);
-#        while ($iter_output) {
-#            if ($model->get($iter_output, MODEL_OBJECT) eq $output_ref) {
-#                $iter = $iter_output;
-#                last; #FIXME: do we have to look at other iter_bases, or does this iterate over entire level?
-#            }
-#            
-#            $iter_output = $model->iter_next($iter_output);
-#        }
-#        
-#        last if $iter; # break if found it
-#        $iter_base = $model->iter_next($iter_base);
-#    }
-#
-#    if ($iter) {
-#        $model->set($iter, MODEL_TAB, $tabref);
-#        $self->{current_registration} = $output_ref;
-#    }
-#    
-#    return;
-#}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

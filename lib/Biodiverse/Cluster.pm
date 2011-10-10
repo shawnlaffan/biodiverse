@@ -42,6 +42,8 @@ our %PARAMS = (  #  most of these are not used
 
 my $EMPTY_STRING = q{};
 
+our $last_state_debug;
+
 
 #use Exception::Class (
 #    'Biodiverse::Cluster::MatrixExists' => {
@@ -683,7 +685,7 @@ sub infer_if_already_calculated {
           || [];
 
     NBR:
-    foreach my $nbr (@$nbrs) {
+    foreach my $nbr (sort @$nbrs) {
         next NBR if ! defined (List::Util::first {$_ eq $nbr} @$processed_elements);
         $already_calculated{$nbr} = 1;
     }
@@ -830,6 +832,24 @@ sub cluster_matrix_elements {
     $self->set_param (LINKAGE_FUNCTION => $linkage_function);
 
     my $rand = $self->initialise_rand;
+    my @state = $rand->get_state;
+    print join " ", @state[0..9];
+    #do {  #  a bit of debug
+    #    my $different = 0;
+    #    my $state = $rand->get_state;
+    #    if ($last_state_debug) {
+    #        foreach my $i (0 .. $#$last_state_debug) {
+    #            if ($last_state_debug->[$i] != $state->[$i]) {
+    #                $different ++;
+    #            }
+    #        }
+    #    }
+    #    warn "State is not different\n" if $different == 0;
+    #    $last_state_debug = $state;
+    #};
+    #for (0 .. 9) {print $rand->irand . ' '};
+    #print "\n";
+    
 
     my $mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
     my $sim_matrix = $self->get_matrix_ref (iter => $mx_iter);
@@ -852,7 +872,8 @@ sub cluster_matrix_elements {
 
     local $| = 1;  #  write to screen as we go
 
-    my $count = 0; my $printedProgress = -1;
+    my $count = 0;
+    my $printedProgress = -1;
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
@@ -880,9 +901,11 @@ sub cluster_matrix_elements {
         my $keysRef = $sim_matrix->get_elements_with_value (value => $minValue);
         my $count1  = scalar keys %{$keysRef};
         my $keys    = $rand->shuffle ([sort keys %{$keysRef}]);
+        #my $keys    = [sort keys %{$keysRef}];
         my $node1   = $keys->[0];  # grab the first shuffled key
-        $keys       = $rand->shuffle ([sort keys %{$keysRef->{$node1}}]);
         my $count2  = scalar keys %{$keysRef};
+        $keys       = $rand->shuffle ([sort keys %{$keysRef->{$node1}}]);
+        #$keys       = [sort keys %{$keysRef->{$node1}}];
         my $node2   = $keys->[0];  #  grab the first shuffled sub key
 
         #print "$join_number $count1, $count2\n" if $count1 > 1 and $count2 > 1;
@@ -890,7 +913,8 @@ sub cluster_matrix_elements {
         #  use node refs for children that are nodes
         #  use original name if not a node
         #  - this is where the name for $el1 comes from (a historical leftover)
-        my $el1; my $el2; my $lengthBelow = 0;
+        my ($el1, $el2);
+        my $lengthBelow = 0;
         my $nodeNames = $self->get_node_hash;
         if (defined $nodeNames->{$node1}) {
             $el1 = $nodeNames->{$node1};
@@ -975,6 +999,7 @@ sub cluster {
     my $start_time = time;
 
     $self->set_param (COMPLETED => 0);
+    $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
     
     my $file_handles = $args{file_handles};
 
@@ -1064,7 +1089,7 @@ sub cluster {
 
     #  loop over the shadow matrix and create nodes for each matrix element
     print "[CLUSTER] Creating terminal nodes\n";
-    foreach my $element ($matrix_for_nodes->get_elements_as_array) {
+    foreach my $element (sort $matrix_for_nodes->get_elements_as_array) {
         next if not defined $element;
         $self->add_node (name => $element);
     }

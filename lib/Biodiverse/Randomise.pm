@@ -391,7 +391,12 @@ sub run_randomisation {
             print "target: ", $target -> get_param ('NAME') || $target, "\n";
 
             next TARGET if ! defined $target;
-            next TARGET if ! $target->can('run_analysis');
+            if (! $target->can('run_analysis')) {
+                if (! $args{retain_outputs}) {
+                    $rand_bd -> delete_output (output => $rand_analysis);
+                }
+                next TARGET;
+            }
             my $completed = $target -> get_param ('COMPLETED');
             #  allow for older data sets that did not flag this
             $completed = 1 if not defined $completed;
@@ -408,8 +413,6 @@ sub run_randomisation {
 
             #  create a new object of the same class
             my %params = $target -> get_params_hash;
-            #  hack to ensure we recreate cluster matrices
-            delete @params{qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/};  
 
             #  create the object and add it
             $rand_analysis = ref ($target) -> new (
@@ -417,31 +420,34 @@ sub run_randomisation {
                 NAME => $name,
             );
 
-            my $check = $rand_bd -> add_output (
-                %params,
+            my $check = $rand_bd->add_output (
+                #%params,
                 name    => $name,
-                object  => $rand_analysis
+                object  => $rand_analysis,
             );
 
+            #  ensure we recreate cluster matrices and use the same PRNG sequence
+            #  HACK...
+            $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
+            my $rand_state = $target->get_param('RAND_INIT_STATE') || [];
+            $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
+
             eval {
-                $rand_analysis -> run_analysis (
-                    #progress        => $args{progress},
+                $rand_analysis->run_analysis (
                     progress_text   => $progress_text,
                     use_nbrs_from   => $target,
-                    #rand_object => $rand,
                 )
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
-            
+
             eval {
                 $target -> compare (
                     comparison       => $rand_analysis,
                     result_list_name => $results_list_name,
-                    #progress         => $args{progress},
                 )
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
-            
+
             #  and now remove this output to save a bit of memory
             #  unless we've been told to keep it
             #  (this has not been exposed to the GUI yet)
@@ -449,7 +455,7 @@ sub run_randomisation {
                 $rand_bd -> delete_output (output => $rand_analysis);
             }
         }
-        
+
         #$self -> find_circular_refs_in_package;
         #$self -> find_circular_refs ($rand_bd);
         #$self -> find_circular_refs_above (top_level => 5);
@@ -459,13 +465,13 @@ sub run_randomisation {
         #use Devel::FindRef;
         #print Devel::FindRef::track $rand_bd;
 
-        
+
         #  this argument is not yet exposed to the GUI
         if ($args{save_rand_bd}) {
             print "[Randomise] Saving randomised basedata\n";
             $rand_bd -> save;
         }
-        
+
         #  save incremental basedata file
         if (   defined $args{save_checkpoint}
             && $$total_iterations =~ /$args{save_checkpoint}$/
@@ -479,9 +485,8 @@ sub run_randomisation {
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
         }
-
     }
-    
+
     #  now we're done, increment the randomisation counts
     foreach my $target (@targets) {
         my $count = $target -> get_param ($rand_iter_param_name) || 0;
@@ -489,7 +494,7 @@ sub run_randomisation {
         $target -> set_param ($rand_iter_param_name => $count);
         #eval {$target -> clear_lists_across_elements_cache};
     }
-    
+
     #  and keep a track of the randomisation state,
     #  even though we are storing the object
     #  this is just in case YAML will not work with MT::Auto

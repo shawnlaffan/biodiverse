@@ -277,7 +277,7 @@ sub get_params_hash {
 
 sub set_param {
     my $self = shift;
-#croak join (" ", @_) if (scalar @_ % 2) == 1;
+croak join (" ", @_, "\n") if (scalar @_ % 2) == 1;
     my %args = @_;
 
     while (my ($param, $value) = each %args) {
@@ -1801,7 +1801,7 @@ sub get_subs_with_prefix {
 
 #  initialise the PRNG with an array of values, start from where we left off,
 #     or use default if not specified
-sub initialise_rand {  
+sub initialise_rand {
     my $self = shift;
     my %args = @_;
     my $seed  = $args{seed};
@@ -1818,9 +1818,12 @@ sub initialise_rand {
         state => $state,  #  will use this if it is defined
     );
 
-    if (! defined $self -> get_param ('RAND_INIT_STATE')) {
+    if (! defined $self->get_param ('RAND_INIT_STATE')) {
         $self -> store_rand_state_init (rand_object => $rand);
     }
+
+#for (0 .. 9) {print $rand->irand . ' '};
+#print "\n";
 
     return $rand;
 }

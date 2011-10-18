@@ -110,15 +110,16 @@ sub getRemovable { return 0; } # output tab cannot be closed
 # Get lots of information about currently selected row
 sub getSelection {
     my $self = shift;
-    my $tree    = $self->{xmlPage} -> get_widget('outputsTree');
-    my $project = $self->{gui} -> getProject;
+
+    my $tree    = $self->{xmlPage}->get_widget('outputsTree');
+    my $project = $self->{gui}->getProject;
     
     return if not defined $project;
     
     my $model = $project -> getBaseDataOutputModel();
 
     my $selection = $tree->get_selection();
-    my $iter = $selection->get_selected();
+    my $iter      = $selection->get_selected();
     return if not defined $iter;
 
     # If user clicked on an analysis subrow, we'll pass the

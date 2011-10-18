@@ -33,7 +33,7 @@ sub getType {
 sub new {
     my $class = shift;
     my $output_ref = shift; # will be undef if none specified
-        
+
     my $self = {gui => Biodiverse::GUI::GUIManager->instance};
     $self->{project} = $self->{gui}->getProject();
     bless $self, $class;
@@ -77,8 +77,8 @@ sub new {
     my $bd;
     my $function;
     if ($output_ref) {
-        $bd = $output_ref -> get_param ('BASEDATA_REF');
-        $function = $output_ref -> get_param ('FUNCTION');
+        $bd = $output_ref->get_param ('BASEDATA_REF');
+        $function = $output_ref->get_param ('FUNCTION');
     }
 
     # Initialise randomisation function combo
@@ -95,11 +95,11 @@ sub new {
 
     # Initialise the basedatas combo
     $self->initBasedataCombo (basedata_ref => $bd);
-    
+
     #  and choose the basedata (this is set by the above call)
     #  and needed if it is undef
     $bd = $self->{selected_basedata_ref};
-    
+
     # Initialise the tree
     # One column with a checkbox and the output name
     #my $tree = $self->{xmlPage}->get_widget("treeOutputs");
@@ -125,8 +125,8 @@ sub new {
     if ($output_ref) {
         #$self->{project}->registerInOutputsModel ($output_ref, $self);
         $self->registerInOutputsModel ($output_ref, $self);
-        $name = $output_ref -> get_param ('NAME');
-        $self -> onFunctionChanged;
+        $name = $output_ref->get_param ('NAME');
+        $self->onFunctionChanged;
         $self->set_button_sensitivity (0); 
     }
     else {
@@ -372,7 +372,7 @@ sub initFunctionCombo {
 sub getSelectedFunction {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget("comboFunction");
+    my $combo = $self->{xmlPage}->get_widget('comboFunction');
     my $iter = $combo->get_active_iter;
     
     return $self->{function_model}->get($iter, 0);
@@ -675,16 +675,21 @@ sub onRun {
     }
 
     my $success = eval {
-        $output_ref -> run_analysis (
+        $output_ref->run_analysis (
             %args,
         )
     };
     if ($EVAL_ERROR) {
-        $self->{gui} -> report_error ($EVAL_ERROR);
+        $self->{gui}->report_error ($EVAL_ERROR);
     }
 
-    if ($success) {
-        $self->{project}->registerInOutputsModel ($output_ref, $self);
+    #if ($success) {
+        #$self->{project}->registerInOutputsModel ($output_ref, $self);
+        $self->registerInOutputsModel ($output_ref, $self);
+    #}
+    if (not $success) {  # dropped out for some reason, eg no valid analyses.
+        $self->onClose;  #  close the tab to avoid horrible problems with multiple instances
+        return;
     }
 
     $self->update_iterations_count_label (

@@ -14,7 +14,7 @@ sub add_to_notebook {
     my $self = shift;
     my %args = @_;
 
-    my $page = $args{page};
+    my $page  = $args{page};
     my $label = $args{label};
     my $label_widget = $args{label_widget};
 
@@ -23,7 +23,7 @@ sub add_to_notebook {
     $self->{page}       = $page;
     $self->{gui}->addTab($self);
     $self->set_tab_reorderable($page);
-    
+
     return;
 }
 
@@ -31,7 +31,7 @@ sub getPageIndex {
     my $self = shift;
     my $page = shift || $self->{page};
     my $index = $self->{notebook}->page_num($page);
-    return $index;
+    return $index >= 0 ? $index : undef;
 }
 
 sub setPageIndex {
@@ -82,9 +82,13 @@ sub remove {
     my $self = shift;
 
     if (exists $self->{current_registration}) {  #  deregister if necessary
-        $self->{project}->registerInOutputsModel($self->{current_registration}, undef);
+        #$self->{project}->registerInOutputsModel($self->{current_registration}, undef);
+        $self->registerInOutputsModel($self->{current_registration}, undef);
     }
-    $self->{notebook}->remove_page( $self->getPageIndex );
+    my $index = $self->getPageIndex;
+    if (defined $index && $index > -1) {
+        $self->{notebook}->remove_page( $index );
+    }
 
     return;
 }

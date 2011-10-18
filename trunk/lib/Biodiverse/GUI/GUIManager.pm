@@ -1561,6 +1561,7 @@ sub switchTab {
     my $page = shift;
     
     if ($tab) {
+        my $index = $tab->getPageIndex;
         $self->getNotebook->set_current_page($tab->getPageIndex);
     }
     else {

@@ -88,7 +88,7 @@ sub new {
         }
 
         #  check if it has rand outputs already and warn the user
-        if (my @a = $self->{basedata_ref} -> get_randomisation_output_refs) {
+        if (my @a = $self->{basedata_ref}->get_randomisation_output_refs) {
             my $response = $gui -> warn_outputs_exist_if_randomisation_run(
                 $self->{basedata_ref} -> get_param ('NAME'),
             );
@@ -114,7 +114,7 @@ sub new {
         # Register as a tab for this output
         $self->registerInOutputsModel($cluster_ref, $self);
 
-        $self->{output_name} = $cluster_ref->get_param('NAME');
+        $self->{output_name}  = $cluster_ref->get_param('NAME');
         $self->{basedata_ref} = $cluster_ref->get_param('BASEDATA_REF');
         print "[Clustering tab] Existing spatial output - "
               . $self->{output_name}
@@ -133,7 +133,7 @@ sub new {
             $self->{existing} = 0;
         }
 
-        my $spatial_params = $cluster_ref -> get_param ('SPATIAL_PARAMS') || [];
+        my $spatial_params = $cluster_ref->get_param ('SPATIAL_PARAMS') || [];
         $sp_initial1
             = defined $spatial_params->[0]
             ? $spatial_params->[0] -> get_conditions_unparsed()
@@ -215,14 +215,14 @@ sub new {
     $xml_page->get_widget('comboClusterColours')->set_active(0);
     $xml_page->get_widget('clusterColourButton')->set_color(
         Gtk2::Gdk::Color->new(65535,0,0),  # red
-    ); 
+    );
 
     # Connect signals
     $xml_label->get_widget('btnClose')->signal_connect_swapped(
         clicked => \&onClose,
         $self,
     );
-    
+
     $self->set_colour_stretch_widgets_and_signals;
 
     my %widgets_and_signals = (
@@ -254,7 +254,6 @@ sub new {
         
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
-        #radio_dendro_colour_stretch => {toggled => \&onStretchChanged},
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
@@ -265,8 +264,6 @@ sub new {
     }
 
     $self->set_frame_label_widget;
-    
-    #$self->onStretchChanged;
 
     print "[Clustering tab] - Loaded tab - Clustering Analysis\n";
 
@@ -708,43 +705,6 @@ sub setPaneSignal {
 # Misc interaction with rest of GUI
 ##################################################
 
-# Make ourselves known to the Outputs tab to that it
-# can switch to this tab if the user presses "Show"
-
-# FIXME: roll this into project
-#sub registerInOutputsModel {
-#    my $self = shift;
-#    my $output_ref = shift;
-#    my $tabref = shift; # either $self, or undef to deregister
-#    my $model = $self->{project}->getBaseDataOutputModel();
-#
-#    # Find iter
-#    my $iter;
-#    my $iter_base = $model->get_iter_first();
-#
-#    while ($iter_base) {
-#
-#        my $iter_output = $model->iter_children($iter_base);
-#        while ($iter_output) {
-#            if ($model->get($iter_output, MODEL_OBJECT) eq $output_ref) {
-#                $iter = $iter_output;
-#                last; #FIXME: do we have to look at other iter_bases, or does this iterate over entire level?
-#            }
-#
-#            $iter_output = $model->iter_next($iter_output);
-#        }
-#
-#        last if $iter; # break if found it
-#        $iter_base = $model->iter_next($iter_base);
-#    }
-#
-#    if ($iter) {
-#        $model->set($iter, MODEL_TAB, $tabref);
-#        $self->{current_registration} = $output_ref;
-#    }
-#    
-#    return;
-#}
 
 sub getType {
     return 'Cluster';

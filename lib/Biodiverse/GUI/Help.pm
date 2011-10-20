@@ -36,6 +36,7 @@ my %subs_and_urls = (
     help_show_spatial_conditions       => $base_url . 'SpatialConditions',
     help_show_release_notes            => $base_url . 'ReleaseNotes',
     help_show_citation                 => $base_url . 'PublicationsList',
+    help_show_mailing_list             => 'http://groups.google.com/group/biodiverse-users',
 );
 
 sub _make_url_accessors {

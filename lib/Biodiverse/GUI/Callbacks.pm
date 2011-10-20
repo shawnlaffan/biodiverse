@@ -97,6 +97,9 @@ my %help_funcs = (
     on_menu_check_for_updates => {
         METHOD => 'help_show_check_for_updates',
     },
+    on_menu_mailing_list_activate => {
+        METHOD => 'help_show_mailing_list',
+    }
 );
 
 

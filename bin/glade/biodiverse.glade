@@ -612,7 +612,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                       <widget class="GtkImageMenuItem" id="help_viewer">
                         <property name="label">gtk-help</property>
                         <property name="visible">True</property>
-                        <property name="tooltip" translatable="yes">Go to the online help</property>
+                        <property name="tooltip" translatable="yes">Go to the main online help</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
                         <signal name="activate" handler="on_help_viewer_activate"/>
@@ -647,6 +647,11 @@ Assumes a dissimilarity matrix, so take care.</property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkSeparatorMenuItem" id="separatormenuitem5">
+                        <property name="visible">True</property>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkMenuItem" id="help_show_mailing_list">
                         <property name="visible">True</property>
                         <property name="tooltip" translatable="yes">Go to the Google Groups mailing list</property>
@@ -671,6 +676,11 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="label" translatable="yes">Check for updates</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menu_check_for_updates"/>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkSeparatorMenuItem" id="separatormenuitem6">
+                        <property name="visible">True</property>
                       </widget>
                     </child>
                     <child>
@@ -6712,8 +6722,8 @@ in existing outputs so is disabled for BaseData with outputs</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7188,8 +7198,8 @@ Merely closes the window if no file is selected.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7206,8 +7216,8 @@ Merely closes the window if no file is selected.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>

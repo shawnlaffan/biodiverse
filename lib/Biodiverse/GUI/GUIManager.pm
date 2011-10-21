@@ -1970,7 +1970,8 @@ sub doRunExclusions {
 
     return if not defined $basedata;
 
-    if (my @array = $basedata -> get_output_refs) {
+    my @array = $basedata->get_output_refs;
+    if (scalar @array) {
         my $text = "Cannot run exclusions on a BaseData object with existing outputs\n"
                  . "Either delete the outputs or use 'File->Duplicate without outputs'"
                  . " to create a new object\n";
@@ -1981,15 +1982,30 @@ sub doRunExclusions {
     my $exclusionsHash = $basedata->get_param('EXCLUSION_HASH');
     if (Biodiverse::GUI::Exclusions::showDialog($exclusionsHash)) {
         #print Data::Dumper::Dumper($exclusionsHash);
-        eval {$basedata->run_exclusions()};
+        my $feedback = eval {$basedata->run_exclusions()};
         if ($EVAL_ERROR) {
-            $self -> report_error ($EVAL_ERROR);
+            $self->report_error ($EVAL_ERROR);
             return;
         }
-        
+        my $dlg = Gtk2::Dialog->new(
+            'Exclusion results',
+            $self->getWidget('wndMain'),
+            'modal',
+            'gtk-ok' => 'ok',
+        );
+        my $text_widget = Gtk2::Label->new();
+        $text_widget->set_alignment (0, 1);
+        $text_widget->set_text ($feedback);
+        $text_widget->set_selectable (1);
+        $dlg->vbox->pack_start ($text_widget, 0, 0, 0);
+
+        $dlg->show_all;
+        $dlg->run;
+        $dlg->destroy;
+
         $self->{project}->setDirty();
     }
-    
+
     return;
 }
 

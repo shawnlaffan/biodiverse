@@ -22,22 +22,22 @@ use constant DLG_NAME => 'dlgRunExclusions';
 # Maps dialog widgets into fields in BaseData's exclusionHash
 #  should really build widget_map from %BaseData::exclusionHash
 my %g_widget_map = (
-                    LabelsMaxVar        => ['LABELS', 'maxVariety'   ],
-                    LabelsMinVar        => ['LABELS', 'minVariety'   ],
-                    LabelsMaxSamp       => ['LABELS', 'maxSamples'   ],
-                    LabelsMinSamp       => ['LABELS', 'minSamples'   ],
-                    LabelsMaxRedundancy => ['LABELS', 'maxRedundancy'],
-                    LabelsMinRedundancy => ['LABELS', 'minRedundancy'],
-                    LabelsMaxRange      => ['LABELS', 'max_range'    ],
-                    LabelsMinRange      => ['LABELS', 'min_range'    ],
-            
-                    GroupsMaxVar        => ['GROUPS', 'maxVariety'   ],
-                    GroupsMinVar        => ['GROUPS', 'minVariety'   ],
-                    GroupsMaxSamp       => ['GROUPS', 'maxSamples'   ],
-                    GroupsMinSamp       => ['GROUPS', 'minSamples'   ],
-                    GroupsMaxRedundancy => ['GROUPS', 'maxRedundancy'],
-                    GroupsMinRedundancy => ['GROUPS', 'minRedundancy'],
-                    );
+    LabelsMaxVar        => ['LABELS', 'maxVariety'   ],
+    LabelsMinVar        => ['LABELS', 'minVariety'   ],
+    LabelsMaxSamp       => ['LABELS', 'maxSamples'   ],
+    LabelsMinSamp       => ['LABELS', 'minSamples'   ],
+    LabelsMaxRedundancy => ['LABELS', 'maxRedundancy'],
+    LabelsMinRedundancy => ['LABELS', 'minRedundancy'],
+    LabelsMaxRange      => ['LABELS', 'max_range'    ],
+    LabelsMinRange      => ['LABELS', 'min_range'    ],
+
+    GroupsMaxVar        => ['GROUPS', 'maxVariety'   ],
+    GroupsMinVar        => ['GROUPS', 'minVariety'   ],
+    GroupsMaxSamp       => ['GROUPS', 'maxSamples'   ],
+    GroupsMinSamp       => ['GROUPS', 'minSamples'   ],
+    GroupsMaxRedundancy => ['GROUPS', 'maxRedundancy'],
+    GroupsMinRedundancy => ['GROUPS', 'minRedundancy'],
+);
 
 #my %g_widget_map2;
 #foreach my $type (qw /LABELS GROUPS/) {
@@ -82,7 +82,7 @@ sub showDialog {
     my $response = $dlg->run();
     my $ret = 0;
 
-    if ($response eq "ok") {
+    if ($response eq 'ok') {
 
         $ret = 1;
 
@@ -92,7 +92,7 @@ sub showDialog {
             my $spinbutton = $dlgxml->get_widget('spin' . $name);
 
             if ($checkbox->get_active()) {
-                
+
                 my $fields = $g_widget_map{$name};
                 my $value = $spinbutton->get_value();
                 #  round any decimals to six places to avoid floating point issues.

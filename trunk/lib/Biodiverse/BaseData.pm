@@ -1431,11 +1431,11 @@ sub run_exclusions {
     croak "Cannot run exclusions on a baseData with existing outputs\n"
       if (my @array = $self -> get_output_refs);
 
-    print  'The data fall into '
+    my $feedback = 'The data initially fall into '
           . $self->get_group_count
           . ' groups with '
           . $self->get_label_count
-          . " unique labels\n";
+          . " unique labels\n\n";
 
     my $orig_group_count = $self->get_group_count;
 
@@ -1517,23 +1517,25 @@ sub run_exclusions {
             $subCutCount += $self -> delete_element (type => $type, element => $element);
         }
 
+        my $lctype = lc ($type);
         if ($cutCount || $subCutCount) {
-            print "Cut $cutCount "
-                . lc($type)
-                . " on exclusion criteria, deleting $subCutCount "
+            $feedback .=
+                "Cut $cutCount $lctype on exclusion criteria, deleting $subCutCount "
                 . lc($other_type)
-                . " in the process\n";
-            print "The data now fall into "
+                . " in the process\n\n";
+            $feedback .=
+                "The data now fall into "
                 . $self->get_group_count .
                 " groups with "
                 . $self->get_label_count
-                . " unique labels\n";
-            
+                . " unique labels\n\n";
+
             $excluded ++;
         }
         else {
-            print "Nothing excluded when checking ", lc ($type), " criteria.\n";
+            $feedback .= "No $lctype excluded when checking $lctype criteria.\n";
         }
+        print $feedback;
     }
 
     if ($excluded) {
@@ -1553,7 +1555,7 @@ sub run_exclusions {
         $self->rebuild_spatial_index();
     }
 
-    return 1;
+    return $feedback;
 }
 
 sub get_exclusion_hash {  #  get the exclusion_hash from the PARAMS

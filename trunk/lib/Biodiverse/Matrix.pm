@@ -171,6 +171,9 @@ sub to_table {
     if ($args{type} eq 'sparse') {
         return $self -> to_table_sparse (@_);
     }
+    elsif ($args{type} eq 'gdm') {
+        return $self -> to_table_gdm (@_);
+    }
     else {
         return $self -> to_table_normal (@_);
     }
@@ -272,6 +275,60 @@ sub to_table_sparse {
     return wantarray ? @data : \@data;
 }
 
+sub to_table_gdm {
+    my $self = shift;
+    
+    my %args = (
+        symmetric => 1,
+        @_,
+    );
+    
+    my @data;
+    my @elements = sort $self->get_elements_as_array;
+    
+    #  Get csv object from the basedata to crack the elements.
+    #  Could cause trouble later on for matrices without basedata.
+    my $bd = $self->get_param ('BASEDATA_REF');
+    my $csv_object = $bd->get_csv_object (sep_char => $bd->get_param ('JOIN_CHAR'));
+    
+    push @data, [qw /x1 y1 x2 y2 Value/];  #  header line
+    
+    my $i = 0;
+    
+    E1:
+    foreach my $element1 (@elements) {
+        $i++;
+        my @element1 = $self->csv2list (string => $element1, csv_object => $csv_object);
+
+        my $j = 0;
+        E2:
+        foreach my $element2 (@elements) {
+            $j++;
+            next E1 if $args{lower_left}  and $j > $i;
+            next E2 if $args{upper_right} and $j < $i;
+            my $exists = $self -> element_pair_exists (
+                element1 => $element1,
+                element2 => $element2,
+            );
+
+            #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
+            if (($args{symmetric} and $exists) or $exists == 1) {
+                my $value = $self -> get_value (
+                    element1 => $element1,
+                    element2 => $element2,
+                );
+
+                my @element2 = $self->csv2list (string => $element1, , csv_object => $csv_object);
+                my $list = [@element1[0,1], @element2[0,1], $value];
+                push @data, $list;
+            }
+        }
+    }
+
+    return wantarray ? @data : \@data;
+}
+
+
 #  this is almost identical to that in BaseStruct - refactor needed
 sub get_metadata_export {
     my $self = shift;
@@ -357,7 +414,7 @@ sub export_delimited_text {
         $args{file} = $args{file} . '.csv';
     }
 
-    my $table = $self -> to_table (%args);
+    my $table = $self->to_table (%args);
     eval {
         $self -> write_table (
             %args,
@@ -378,7 +435,7 @@ sub get_metadata_export_delimited_text {
                     : (',', 'tab', ';', 'space', ":");
     my @quote_chars = qw /" ' + $/;
     
-    my @formats = qw /normal sparse/;
+    my @formats = qw /normal sparse gdm/;
     
 
     my %args = (
@@ -451,6 +508,17 @@ Sparse format is a list like:
 \trow1,col1,value
 \trow1,col2,value
 \trow2,col2,value
+
+GDM (Generalized Dissimilarity Modelling) format is
+a sparse matrix but with the row and column
+elements split into their component axes.  
+\tx1,y1,x2,y2,value
+\trow1_x1,row1_y1,row2_x2,row2_y2,value
+\trow2_x1,row2_y1,row3_x2,row3_y2,value
+
+Note that GDM supports only two axes (x and y) so only the
+first two axes are exported.  
+
 END_MX_TOOLTIP
 ;
 

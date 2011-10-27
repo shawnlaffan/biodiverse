@@ -1486,13 +1486,31 @@ Assumes a dissimilarity matrix, so take care.</property>
                       </packing>
                     </child>
                     <child>
+                      <widget class="GtkButton" id="btnOutputsRename">
+                        <property name="label" translatable="yes">Rename</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="can_default">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Rename selected item
+(not yet implemented for for randomisations)</property>
+                        <property name="use_underline">True</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
                       <widget class="GtkHSeparator" id="hseparator1">
                         <property name="visible">True</property>
                       </widget>
                       <packing>
                         <property name="expand">False</property>
                         <property name="fill">False</property>
-                        <property name="position">2</property>
+                        <property name="position">3</property>
                       </packing>
                     </child>
                     <child>
@@ -1503,23 +1521,6 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="can_default">True</property>
                         <property name="receives_default">False</property>
                         <property name="tooltip" translatable="yes">Delete item</property>
-                        <property name="use_underline">True</property>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">3</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkButton" id="btnOutputsRename">
-                        <property name="label" translatable="yes">Rename</property>
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="can_default">True</property>
-                        <property name="receives_default">False</property>
-                        <property name="tooltip" translatable="yes">Rename selected item
-(not yet implemented for for randomisations)</property>
                         <property name="use_underline">True</property>
                       </widget>
                       <packing>
@@ -6722,8 +6723,8 @@ in existing outputs so is disabled for BaseData with outputs</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7198,8 +7199,8 @@ Merely closes the window if no file is selected.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7216,8 +7217,8 @@ Merely closes the window if no file is selected.</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>

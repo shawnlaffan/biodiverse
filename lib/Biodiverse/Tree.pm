@@ -1021,26 +1021,28 @@ sub to_matrix {
     
     print "[TREE] Converting tree $name to matrix\n";
     
-    my $matrix = $class -> new (NAME => ($args{name} || ($name . "_AS_MX")));
+    my $matrix = $class->new (NAME => ($args{name} || ($name . "_AS_MX")));
     
-    my %nodes = $self -> get_node_hash;  #  make sure we work on a copy
+    my %nodes = $self->get_node_hash;  #  make sure we work on a copy
     
     if (! $use_internal) {  #  strip out the internal nodes
         while (my ($name1, $node1) = each %nodes) {
-            delete $nodes{$name1} if $node1 -> is_internal_node;
+            if ($node1->is_internal_node) {
+                delete $nodes{$name1};
+            }
         }
     }
 
     my $progress;
     my $to_do = scalar keys %nodes;
     foreach my $node1 (values %nodes) {
-        my $name1 = $node1 -> get_name;
+        my $name1 = $node1->get_name;
 
         $progress ++;
 
         NODE2:
         foreach my $node2 (values %nodes) {
-            my $name2 = $node2 -> get_name;
+            my $name2 = $node2->get_name;
             $progress_bar -> update(
                 "Converting tree $name to matrix\n($progress / $to_do)",
                 $progress / $to_do,
@@ -1050,12 +1052,12 @@ sub to_matrix {
 
             my $shared_ancestor = $node1 -> get_shared_ancestor (node => $node2);
             my $total_length = $shared_ancestor -> get_total_length;
-            
+
             #  should allow user to choose whether to just get length to shared ancestor?
             my $path_length1 = $total_length - $node1->get_total_length;
             my $path_length2 = $total_length - $node2->get_total_length;
             my $path_length_total = $path_length1 + $path_length2;
-            
+
             $matrix -> add_element (
                 element1 => $name1,
                 element2 => $name2,

@@ -677,7 +677,7 @@ sub get_metadata_calc_taxonomic_distinctness {
         type            => 'Phylogenetic Indices',
         reference       => $ref,
         pre_calc        => ['calc_abc3'],
-        pre_calc_global => ['get_trimmed_tree'],
+        pre_calc_global => ['get_trimmed_tree_as_matrix'],
         uses_nbr_lists  => 1,
         indices         => $indices,
     );
@@ -740,7 +740,7 @@ sub get_metadata_calc_taxonomic_distinctness_binary {
         type            => 'Phylogenetic Indices',
         reference       => $ref,
         pre_calc        => ['calc_abc'],
-        pre_calc_global => ['get_trimmed_tree'],
+        pre_calc_global => ['get_trimmed_tree_as_matrix'],
         uses_nbr_lists  => 1,
         indices         => $indices,
     );
@@ -766,6 +766,209 @@ sub calc_taxonomic_distinctness_binary {
 }
 
 sub _calc_taxonomic_distinctness {
+    my $self = shift;
+    my %args = @_;
+
+    my $label_hash = $args{label_hash_all};
+    my $mx = $args{TRIMMED_TREE_AS_MATRIX};
+    croak "Missing TRIMMED_TREE_AS_MATRIX arg\n"
+      if not defined $mx;
+
+    my $numerator;
+    my $denominator = 0;
+    my $ssq_wtd_value;
+    my @labels = sort keys %$label_hash;
+
+    #  Need to loop over each label and get the weighted contribution
+    #  for each level of the tree.
+    #  The weight for each comparison is the distance along the tree to
+    #  the shared ancestor.
+
+    #  We should use the distance from node a to b to avoid doubled comparisons
+    #  and use get_path_to_node for the full path length.
+    #  We can pop from @labels as we go to achieve this
+    #  (this is the i<j constraint from Warwick & Clarke, but used in reverse)
+    
+    #  Actually, it's simpler to loop over the list twice and get the lengths to shared ancestor
+
+    BY_LABEL:
+    foreach my $label1 (@labels) {
+        my $label_count1 = $label_hash->{$label1};
+
+        #  save some calcs (if ever this happens)
+        next BY_LABEL if $label_count1 == 0;
+
+        next BY_LABEL if ! $mx->element_is_in_matrix(element => $label1);
+
+        my $min;
+
+        LABEL2:
+        foreach my $label2 (@labels) {
+
+            #  skip same labels
+            next LABEL2 if $label1 eq $label2;
+
+            next LABEL2 if ! $mx->element_is_in_matrix(element => $label2);
+
+            my $label_count2 = $label_hash->{$label2};
+            next LABEL2 if $label_count2 == 0;
+
+            #  matrix stores path from a to b
+            my $path_length = $mx->get_value(element1 => $label1, element2 => $label2) / 2;
+
+            my $weight = $label_count1 * $label_count2;
+
+            my $wtd_value = $path_length * $weight;
+
+            $numerator     += $wtd_value;
+            $ssq_wtd_value += 2 * $wtd_value ** 2;
+            $denominator   += $weight;
+        }
+    }
+
+    my $distinctness;
+    my $variance;
+
+    {
+        no warnings 'uninitialized';
+        $distinctness  = eval {$numerator / $denominator};
+        $variance = eval {$ssq_wtd_value / $denominator - $distinctness ** 2}
+    }
+
+#print "$ssq_wtd_value $numerator $denominator $distinctness\n";
+
+    my %results = (
+        TD_DISTINCTNESS => $distinctness,
+        TD_DENOMINATOR  => $denominator,
+        TD_NUMERATOR    => $numerator,
+        TD_VARIATION    => $variance,
+    );
+
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_taxonomic_distinctness_o {
+    my $self = shift;
+
+    my $indices = {
+        TD_DISTINCTNESSO => {
+            description    => 'Taxonomic distinctness',
+            #formula        => [],
+        },
+        TD_DENOMINATORO  => {
+            description    => 'Denominator from TD_DISTINCTNESS calcs',
+        },
+        TD_NUMERATORO    => {
+            description    => 'Numerator from TD_DISTINCTNESS calcs',
+        },
+        TD_VARIATIONO    => {
+            description    => 'Variation of the taxonomic distinctness',
+            #formula        => [],
+        },
+    };
+    
+    my $ref = 'Warwick & Clarke (1995) Mar Ecol Progr Ser. '
+            . 'http://dx.doi.org/10.3354/meps129301 ; '
+            . 'Clarke & Warwick (2001) Mar Ecol Progr Ser. '
+            . 'http://dx.doi.org/10.3354/meps216265';
+    
+    my %metadata = (
+        description     => 'Taxonomic/phylogenetic distinctness and variation. '
+                         . 'THIS IS A BETA LEVEL IMPLEMENTATION.',
+        name            => 'Taxonomic/phylogenetic distinctness',
+        type            => 'Phylogenetic Indices',
+        reference       => $ref,
+        pre_calc        => ['calc_abc3'],
+        pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => $indices,
+    );
+
+    return wantarray
+        ? %metadata
+        : \%metadata;
+}
+
+#  sample count weighted version
+sub calc_taxonomic_distinctness_o {
+    my $self = shift;
+    
+    return $self->_calc_taxonomic_distinctness_o (@_);
+}
+
+
+sub get_metadata_calc_taxonomic_distinctness_binary_o {
+    my $self = shift;
+
+    my $indices = {
+        TDB_DISTINCTNESSO => {
+            description    => 'Taxonomic distinctness, binary weighted',
+            formula        => [
+                '= \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1))}',
+                'where ',
+                '\omega_{ij}',
+                'is the path length from label ',
+                'i',
+                'to the ancestor node shared with ',
+                'j',
+            ],
+        },
+        TDB_DENOMINATORO  => {
+            description    => 'Denominator from TDB_DISTINCTNESS',
+        },
+        TDB_NUMERATORO    => {
+            description    => 'Numerator from TDB_DISTINCTNESS',
+        },
+        TDB_VARIATIONO    => {
+            description    => 'Variation of the binary taxonomic distinctness',
+            formula        => [
+                '= \frac{\sum \sum_{i \neq j} \omega_{ij}^2}{s(s-1))} - \bar{\omega}^2',
+                'where ',
+                '\bar{\omega} = \frac{\sum \sum_{i \neq j} \omega_{ij}}{s(s-1))} \equiv TDB\_DISTINCTNESS',
+            ],
+        },
+    };
+
+    my $ref = 'Warwick & Clarke (1995) Mar Ecol Progr Ser. '
+            . 'http://dx.doi.org/10.3354/meps129301 ; '
+            . 'Clarke & Warwick (2001) Mar Ecol Progr Ser. '
+            . 'http://dx.doi.org/10.3354/meps216265';
+
+    my %metadata = (
+        description     => 'Taxonomic/phylogenetic distinctness and variation '
+                         . 'using presence/absence weights.  '
+                         . 'THIS IS A BETA LEVEL IMPLEMENTATION.',
+        name            => 'Taxonomic/phylogenetic distinctness, binary weighted',
+        type            => 'Phylogenetic Indices',
+        reference       => $ref,
+        pre_calc        => ['calc_abc'],
+        pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => $indices,
+    );
+
+    return wantarray
+        ? %metadata
+        : \%metadata;
+}
+
+#  sample count weighted version
+sub calc_taxonomic_distinctness_binary_o {
+    my $self = shift;
+    
+    my %results = $self->_calc_taxonomic_distinctness_o (@_);
+    my %results2;
+    foreach my $key (keys %results) {
+        my $key2 = $key;
+        $key2 =~ s/^TD_/TDB_/;
+        $results2{$key2} = $results{$key};
+    }
+    
+    return wantarray ? %results2 : \%results2;
+}
+
+sub _calc_taxonomic_distinctness_o {
     my $self = shift;
     my %args = @_;
 
@@ -834,12 +1037,13 @@ sub _calc_taxonomic_distinctness {
         $variance = eval {$ssq_wtd_value / $denominator - $distinctness ** 2}
     }
 
+#print "$ssq_wtd_value $numerator $denominator $distinctness\n";
 
     my %results = (
-        TD_DISTINCTNESS => $distinctness,
-        TD_DENOMINATOR  => $denominator,
-        TD_NUMERATOR    => $numerator,
-        TD_VARIATION    => $variance,
+        TD_DISTINCTNESSO => $distinctness,
+        TD_DENOMINATORO  => $denominator,
+        TD_NUMERATORO    => $numerator,
+        TD_VARIATIONO    => $variance,
     );
 
 
@@ -873,7 +1077,7 @@ sub get_metadata_calc_phylo_mntd1 {
         },
     };
 
-    my $ref = 'Webb et al. (2002) DOI NEEDED';
+    my $ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
 
     my %metadata = (
         description     => 'Nearest taxon distance stats from each label to '

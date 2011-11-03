@@ -707,6 +707,11 @@ sub add_matrices_to_basedata {
 sub get_orig_matrices {
     my $self = shift;
     my $matrices = $self->get_param ('ORIGINAL_MATRICES');
+    if (! $matrices) {
+        my $array = [];
+        $self->set_param (ORIGINAL_MATRICES => $array);
+        $matrices = $array;
+    }
 
     return wantarray ? @$matrices : $matrices;
 }

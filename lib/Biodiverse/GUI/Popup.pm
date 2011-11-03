@@ -379,9 +379,15 @@ sub clipboard_get_func {
     my $element  = $popup->{element};
     my $list     = $popup->{list};
     my $listname = $popup->{listname};
-    my $model    = $list->get_model()
-      || croak "Popup has been closed, lost link with copied data\n";
+    my $model    = $list->get_model();
     my $text;
+
+    if (! $model) {
+        my $gui = Biodiverse::GUI::GUIManager->instance;
+        my $e = "Unable to paste data.\nPopup has been closed so link with source data is lost\n";
+        $gui->report_error($e);
+        return;
+    }
 
     # Start off with the "element" (ie: cell coordinates)
     if ($datatype == TYPE_HTML) {
@@ -410,7 +416,11 @@ END_HTML_HEADER
     eval {
         $iter = $model->get_iter_first();
     };
-    croak $EVAL_ERROR if $EVAL_ERROR;
+    if ($EVAL_ERROR) {
+        my $gui = Biodiverse::GUI::GUIManager->instance;
+        $gui->report_error($EVAL_ERROR);
+        return;
+    }
 
     while ($iter) {
         my $name = $model->get($iter, 0);

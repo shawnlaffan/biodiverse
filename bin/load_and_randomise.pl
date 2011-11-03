@@ -47,7 +47,7 @@ foreach my $arg (@ARGV) {
     $rest_of_args{$key} = $value;
 }
 
-my $bd = Biodiverse::BaseData -> new (file => $in_file);
+my $bd = Biodiverse::BaseData->new (file => $in_file);
 if (! defined $bd) {
     warn "basedata $bd does not exist - check your path\n";
     exit;

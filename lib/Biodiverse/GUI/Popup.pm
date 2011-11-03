@@ -10,6 +10,8 @@ use Gtk2;
 
 our $VERSION = '0.16';
 
+use English qw { -no_match_vars };
+
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::PopupObject; # defined at the bottom of this file
 
@@ -348,17 +350,20 @@ sub onCopy {
 
     # Add text and HTML (spreadsheet programs can read it) data to clipboard
     # We'll be called back when someone pastes
-    $clipboard->set_with_data (
-        \&clipboard_get_func,
-        \&clipboard_clear_func,
-        $popup,
-        {target=>'STRING',        info => TYPE_TEXT},
-        {target=>'TEXT',          info => TYPE_TEXT},
-        {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
-        {target=>'UTF8_STRING',   info => TYPE_TEXT},
-        {target=>'text/plain',    info => TYPE_TEXT},
-        {target=>'text/html',     info => TYPE_HTML},
-    );
+    eval {
+        $clipboard->set_with_data (
+            \&clipboard_get_func,
+            \&clipboard_clear_func,
+            $popup,
+            {target=>'STRING',        info => TYPE_TEXT},
+            {target=>'TEXT',          info => TYPE_TEXT},
+            {target=>'COMPOUND_TEXT', info => TYPE_TEXT},
+            {target=>'UTF8_STRING',   info => TYPE_TEXT},
+            {target=>'text/plain',    info => TYPE_TEXT},
+            {target=>'text/html',     info => TYPE_HTML},
+        );
+    };
+    warn $EVAL_ERROR if $EVAL_ERROR;
     
     return;
 }
@@ -374,7 +379,8 @@ sub clipboard_get_func {
     my $element  = $popup->{element};
     my $list     = $popup->{list};
     my $listname = $popup->{listname};
-    my $model    = $list->get_model();
+    my $model    = $list->get_model()
+      || croak "Popup has been closed, lost link with copied data\n";
     my $text;
 
     # Start off with the "element" (ie: cell coordinates)
@@ -400,7 +406,12 @@ END_HTML_HEADER
     }
     
     # Generate the text
-    my $iter = $model->get_iter_first();
+    my $iter;
+    eval {
+        $iter = $model->get_iter_first();
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
     while ($iter) {
         my $name = $model->get($iter, 0);
         my $value = '';

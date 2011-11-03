@@ -694,9 +694,10 @@ sub infer_if_already_calculated {
 #  add the matrices to the basedata object
 sub add_matrices_to_basedata {
     my $self = shift;
+    my %args = @_;
 
     my $bd = $self->get_param ('BASEDATA_REF');
-    my $orig_matrices = $self->get_param ('ORIGINAL_MATRICES');
+    my $orig_matrices = $args{matrices} || $self->get_param ('ORIGINAL_MATRICES');
     foreach my $mx (@$orig_matrices) {
         $bd->add_output(object => $mx);
     }
@@ -1037,15 +1038,6 @@ sub cluster {
         croak "[CLUSTER] Matrix could not be built\n"
             if not defined $self->get_matrix_ref;  
 
-        #  save clones of the matrices for later export
-        print "[CLUSTER] Creating and storing matrix clones\n";
-
-        my $clone = eval {$self->get_shadow_matrix->clone};
-        $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
-        my $original_matrices = $self->clone (data => \@matrices);
-        $self->set_param (ORIGINAL_MATRICES => $original_matrices);
-
-        print "[CLUSTER] Done\n";
 
         #  should probably use matrix refs instead of cloning if this is set
         if ($args{file_handles}) {
@@ -1053,12 +1045,23 @@ sub cluster {
             return 3;  #  don't try to cluster and don't add anything to the basedata
         }
         elsif ($args{build_matrices_only}) {
-            $self->add_matrices_to_basedata;
+            $self->add_matrices_to_basedata (matrices => \@matrices);
             #  clear the other matrices
             $self->set_matrix_ref (matrices => []);
             $self->set_shadow_matrix(matrix => undef);
             $self->set_param(COMPLETED => 2);
             return 2;
+        }
+        else {
+            #  save clones of the matrices for later export
+            print "[CLUSTER] Creating and storing matrix clones\n";
+    
+            my $clone = eval {$self->get_shadow_matrix->clone};
+            $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
+            my $original_matrices = $self->clone (data => \@matrices);
+            $self->set_param (ORIGINAL_MATRICES => $original_matrices);
+    
+            print "[CLUSTER] Done\n";
         }
     }
 

@@ -1424,6 +1424,35 @@ sub get_label_element_as_array {
     return $self -> get_labels_ref -> get_element_name_as_array(element => $element);
 }
 
+
+#  reorder group and/or label axes
+sub reorder_element_axes {
+    my $self = shift;
+    my %args = @_;
+    
+    my $output_refs = $self->get_output_refs;
+    croak "Cannot reorder basedata with existing outputs\n"
+      if scalar @$output_refs;
+    
+    my $group_cols = $args{GROUP_COLUMNS};
+    my $label_cols = $args{LABEL_COLUMNS};
+
+    my $lb = $self->get_labels_ref;
+    eval {
+        $lb->reorder_element_axes (axes => $label_cols);
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    my $gp = $self->get_groups_ref;
+    eval {
+        $gp->reorder_element_axes (axes => $group_cols);
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return;
+}
+
+
 sub run_exclusions {
     my $self = shift;
     my %args = @_;
@@ -2201,6 +2230,7 @@ sub add_output {
 #  get refs to the spatial and cluster objects
 sub get_output_refs {
     my $self = shift;
+
     my @refs = (
         $self -> get_spatial_output_refs,
         $self -> get_cluster_output_refs,

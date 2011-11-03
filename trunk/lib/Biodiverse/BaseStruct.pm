@@ -93,6 +93,38 @@ sub rename {
     return;
 }
 
+sub get_axis_count {
+    my $self = shift;
+
+    my $elements = $self->get_element_list;
+    my $el       = $elements->[0];
+    my $axes     = $el->get_element_name_as_array;
+
+    return scalar @$axes;
+}
+
+sub reorder_element_axes {
+    my $self = shift;
+    my %args = @_;
+    
+    my $axis_count = $self->get_axis_count;
+
+    return if $axis_count == 1;
+
+    my $cols = $args{axes};
+    my $reorder_count = @$cols;
+    croak "Attempting to reorder more axes ($reorder_count) "
+        . "than are in the basestruct ($axis_count)\n"
+      if scalar $reorder_count > $axis_count;
+
+    my $min = List::Util::min(@$cols);
+    my $max = List::Util::max(@$cols);
+
+    my %reordered;
+
+    return;
+}
+
 #  metadata is bigger than the actual sub...
 sub get_metadata_export {
     my $self = shift;

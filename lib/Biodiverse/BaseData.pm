@@ -1116,16 +1116,16 @@ sub import_data {  #  load a data file into the selected BaseData object.
         LABEL_PROPS:
         foreach my $label ($label_properties->get_element_list) {
             next LABEL_PROPS
-              if ! $labels_ref -> exists_element (element => $label);
-            
+              if ! $labels_ref->exists_element (element => $label);
+
             #my $range = $label_properties -> get_element_range (element => $label);
             #my $sample_cnt = $label_properties -> get_element_sample_count (element => $label);
-            my %props = $label_properties -> get_element_properties (element => $label);
-            
+            my %props = $label_properties->get_element_properties (element => $label);
+
             #  but don't add these ones
             delete @props{qw /INCLUDE EXCLUDE/};
-            
-            $labels_ref -> add_to_lists (
+
+            $labels_ref->add_to_lists (
                 element    => $label,
                 PROPERTIES => \%props,
             );
@@ -1495,13 +1495,32 @@ sub new_with_reordered_element_axes {
         receiver => $new_bd,
         remap    => $lb_remapped,
     );
+    $self->transfer_group_properties (
+        %args,
+        receiver => $new_bd,
+        remap    => $gp_remapped,
+    );
 
     return $new_bd;
 }
 
-#  sometimes we have label properties defined like species ranges.
-#  need to copy these across
 sub transfer_label_properties {
+    my $self = shift;
+
+    return $self->transfer_element_properties(@_, type => 'labels');
+}
+
+sub transfer_group_properties {
+    my $self = shift;
+
+    return $self->transfer_element_properties(@_, type => 'groups');
+}
+
+
+#  sometimes we have element properties defined like species ranges.
+#  need to copy these across.
+#  Push system - should it be pull (although it's only a semantic difference)
+sub transfer_element_properties {
     my $self = shift;
     my %args = @_;
     
@@ -1509,23 +1528,28 @@ sub transfer_label_properties {
     my $remap = $args{remap} || {};  #  remap hash
 
     my $progress_bar = Biodiverse::Progress->new();
+    
+    my $type = $args{type};
+    croak "argument 'type => $type' is not valid (must be groups or labels)\n"
+      if not ($type eq 'groups' or $type eq 'labels');
+    my $get_ref_sub = $type eq 'groups' ? 'get_groups_ref' : 'get_labels_ref';
 
-    my $labels_ref    = $self->get_labels_ref;
-    my $to_labels_ref = $to_bd->get_labels_ref;
+    my $elements_ref    = $self->$get_ref_sub;
+    my $to_elements_ref = $to_bd->$get_ref_sub;
 
-    my $labels      = $self->get_labels;
-    my $total_to_do = scalar @$labels;
     my $name        = $self->get_param ('NAME');
     my $to_name     = $to_bd->get_param ('NAME');
-    my $text        = "Transferring label properties from $name to $to_name";
+    my $text        = "Transferring $type properties from $name to $to_name";
 
-    print "[BASEDATA] Transferring label properties for $total_to_do labels\n";
+    my $total_to_do = $elements_ref->get_element_count;
+    print "[BASEDATA] Transferring properties for $total_to_do $type\n";
 
     my $count = 0;
-    my $i = 0;
-    
-    BY_LABEL:
-    foreach my $label (@$labels) {
+    my $i = -1;
+
+    BY_ELEMENT:
+    foreach my $element ($elements_ref->get_element_list) {
+        $i++;
         my $progress = $i / $total_to_do;
         $progress_bar -> update (
             "$text\n"
@@ -1533,21 +1557,21 @@ sub transfer_label_properties {
             $progress
         );
 
-        #  remap label if needed
-        my $to_label = exists $remap->{$label} ? $remap->{$label} : $label;
+        #  remap element if needed
+        my $to_element = exists $remap->{$element} ? $remap->{$element} : $element;
 
         #  avoid working with those not in the receiver
-        next BY_LABEL if not $to_labels_ref->exists_element (element => $to_label);
+        next BY_ELEMENT if not $to_elements_ref->exists_element (element => $to_element);
 
-        my $props = $labels_ref->get_list_values (
-            element => $label,
+        my $props = $elements_ref->get_list_values (
+            element => $element,
             list => 'PROPERTIES'
         );
 
-        next BY_LABEL if ! defined $props;  #  none there
+        next BY_ELEMENT if ! defined $props;  #  none there
 
-        $to_labels_ref->add_to_lists (
-            element    => $to_label,
+        $to_elements_ref->add_to_lists (
+            element    => $to_element,
             PROPERTIES => {%$props},  #  make sure it's a copy so bad things don't happen
         );
         $count ++;

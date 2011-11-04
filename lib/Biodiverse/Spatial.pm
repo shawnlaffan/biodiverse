@@ -252,6 +252,8 @@ sub sp_calc {
     }
     
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
+    my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
+    my $no_calc_empty_groups       = $args{no_calc_empty_groups};
 
     my $spatial_params_ref  = $self->get_spatial_params_ref (%args);
     my $recyclable_nbrhoods = $self->get_recyclable_nbrhoods;
@@ -260,10 +262,11 @@ sub sp_calc {
     #  check the definition query
     my $definition_query
       = $self->get_definition_query (definition_query => $args{definition_query});
-    
+
     my $start_time = time;
 
     my $bd = $self->get_param ('BASEDATA_REF');
+    my $gps_ref = $bd->get_groups_ref;
 
     my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
@@ -277,7 +280,7 @@ sub sp_calc {
     croak "[SPATIAL] No valid analyses, dropping out\n"
         if (        $indices_object->get_valid_calculation_count == 0
             and not $args{override_valid_analysis_check});
-    
+
     #  this is for the GUI
     $self->set_param (CALCULATIONS_REQUESTED => $args{calculations});
     #  save the args, but override the calcs so we only store the valid ones
@@ -311,7 +314,7 @@ sub sp_calc {
                             || [];
     $spatial_params_ref   = $self->get_param ('SPATIAL_PARAMS')
                             || [];
-    
+
     #  get the global pre_calc results - move lower down?
     $indices_object->run_precalc_globals(%args);
 
@@ -324,12 +327,12 @@ sub sp_calc {
     #  try again if we didn't get it before, 
     #  but this time check the index
     if (! $use_nbrs_from) {
-        
+
         SPATIAL_PARAMS_LOOP:
         for my $i (0 .. $#$spatial_params_ref) {
             my $set_i = $i + 1;
             my $result_type = $spatial_params_ref->[$i]->get_result_type;
-            
+
             if ($result_type eq 'always_true') {
                 #  no point using the index if we have to get them all
                 print "[SPATIAL] All groups are neighbours.  Index will be ignored for neighbour set $set_i.\n";
@@ -343,7 +346,7 @@ sub sp_calc {
                 print "[SPATIAL] Index set to be ignored for neighbour set $set_i.\n";  #  put this feedback in the spatialparams?
                 next SPATIAL_PARAMS_LOOP;
             }
-            
+
             my $searchBlocks = $search_blocks_ref->[$i];
             
             if (defined $sp_index && ! defined $searchBlocks) {
@@ -391,7 +394,7 @@ sub sp_calc {
         my @gps = $bd->get_groups;
         @elements_to_use{@gps} = @gps;
     }
-    
+
     my @elements_to_calc;
     my @elements_to_exclude;
     if ($args{calc_only_elements_to_calc}) { #  a bit messy but should save RAM 
@@ -448,7 +451,7 @@ sub sp_calc {
     GET_ELEMENTS_TO_CALC:
     foreach my $element (@elements_to_calc) {
         $elt_count ++;
-        
+
         my $progress_so_far = $elt_count / $toDo;
         my $progress_text = "Spatial analysis $progress_text_create\n";
         $progress->update ($progress_text, $progress_so_far);
@@ -456,16 +459,23 @@ sub sp_calc {
         my $sp_res_hash = {};
         if (        $definition_query
             and not exists $pass_def_query->{$element}) {
-            
+
             if ($no_create_failed_def_query) {
-                if ($args{calc_only_elements_to_calc}) {
+                if ($calc_only_elements_to_calc) {
                     push @elements_to_exclude, $element;
                 }
                 next GET_ELEMENTS_TO_CALC;
             }
-            
+
             $sp_res_hash = $failed_def_query_sp_res_hash;
         }
+
+        if ($no_calc_empty_groups) {
+            if (not $bd->get_richness (element => $element)) {
+                push @elements_to_exclude, $element;
+            }
+        }
+
 
         $self->add_element (element => $element);
 

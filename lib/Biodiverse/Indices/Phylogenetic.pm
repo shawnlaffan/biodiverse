@@ -844,6 +844,7 @@ sub _calc_taxonomic_distinctness {
     return wantarray ? %results : \%results;
 }
 
+my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
 
 sub get_metadata_calc_phylo_mntd1 {
     my $self = shift;
@@ -871,15 +872,14 @@ sub get_metadata_calc_phylo_mntd1 {
         },
     };
 
-    my $ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
-
     my %metadata = (
-        description     => 'Nearest taxon distance stats from each label to '
+        description     => 'Distance stats from each label to the nearest label '
+                         . 'along the tree.  Compares with '
                          . 'all other labels across both neighbour sets. '
                          . 'Not weighted by sample counts, so each label counts once only.',
         name            => 'Nearest taxon distances, unweighted',
         type            => 'Phylogenetic Indices',
-        reference       => $ref,
+        reference       => $webb_et_al_ref,
         pre_calc        => ['calc_abc'],
         pre_calc_global => ['get_trimmed_tree_as_matrix'],
         uses_nbr_lists  => 1,
@@ -931,15 +931,14 @@ sub get_metadata_calc_phylo_mntd3 {
         },
     };
 
-    my $ref = 'Webb et al. (2002) DOI NEEDED';
-
     my %metadata = (
-        description     => 'Nearest taxon distance stats from each label to '
-                         . 'all other labels across both neighbour sets.'
+        description     => 'Distance stats from each label to the nearest label '
+                         . 'along the tree.  Compares with '
+                         . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts',
         name            => 'Nearest taxon distances, weighted by sample counts',
         type            => 'Phylogenetic Indices',
-        reference       => $ref,
+        reference       => $webb_et_al_ref,
         pre_calc        => ['calc_abc3'],
         pre_calc_global => ['get_trimmed_tree_as_matrix'],
         uses_nbr_lists  => 1,
@@ -983,7 +982,6 @@ sub _calc_phylo_mntd {
     #  does not allow for both sibs being nearest neighbours.
     #  Deleting sib1 means it cannot be found for sib2.
     BY_LABEL:
-    #while (defined (my $label1 = shift @labels)) {
     foreach my $label1 (@labels) {
         my $label_count1 = $label_hash->{$label1};
 
@@ -1012,7 +1010,7 @@ sub _calc_phylo_mntd {
             $i ++;
         }
         if ($i) {  #  only if we added something
-            push @min_path_lengths, ($min) x $label_count1;  #  prob shouldnot include label_count2 as that label gets its own weighting
+            push @min_path_lengths, ($min) x $label_count1;
         }
     }
 

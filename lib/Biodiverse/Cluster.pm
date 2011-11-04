@@ -335,11 +335,11 @@ sub build_matrices {
             no_create_failed_def_query    => 1,  #  only want those that pass the def query
             calc_only_elements_to_calc    => 1,
             exclude_processed_elements    => 1,
+            no_calc_empty_groups          => 1,
         );
     };
-    my $e = $EVAL_ERROR;                #  Did we complete properly?
-    #$bd->delete_output (output => $sp); #  Clear it from the basedata object.
-    croak $e if $e;                     #  Throw a hissy fit if we didn't complete properly
+    croak $EVAL_ERROR if $EVAL_ERROR;                #  Did we complete properly?
+    #croak $e if $e;                     #  Throw a hissy fit if we didn't complete properly
 
     my %cache;  #  cache the label hashes
                 # - makes a small amount of difference

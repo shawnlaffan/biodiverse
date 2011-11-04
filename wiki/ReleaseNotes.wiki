@@ -21,9 +21,9 @@ Main changes since the previous version (0.15) are:
       *  Labels list is now stable when sorting by a column with tied values.  Issue #246.
       *  Label and group axes can be re-ordered after import.  This is useful when you have forgotten to reorder them at import and, for example, your data file contains a field for latitude before longitude.  Issue #188.
   *  Analyses
+    *  New analysis type of !RegionGrower.  It is an extension to the cluster analyses that uses any scalar metric that lumps two neighbour sets together when calculated.  One can also merge those pairs that either maximise or minimise the selected index.  When used with indices like richness it is effectively a one-pass complementarity analysis.  (Its matrices can also be displayed spatially since it is just a variant on the cluster analyses - see issue #199).  Issue #204.
     *  Cluster matrices can be written to file as they are built.  These are not added to the GUI, thus saving memory and allowing extremely large matrices to be built for use in external applications.  Issue #186.
     *  More efficient cluster matrix construction and use.  Issue 185, Issue #210, Issue #230, Issue #234
-    *  New analysis type of !RegionGrower.  It is an extension to the cluster analyses that uses any scalar metric that lumps two neighbour sets together when calculated.  One can also merge those pairs that either maximise or minimise the selected index.  When used with indices like richness it is effectively a one-pass complementarity analysis.  (Its matrices can also be displayed spatially since it is just a variant on the cluster analyses - see issue #199).  Issue #204.
     *  Better handling of empty groups.  Issue #180, Issue #181, Issue #228, Issue #234.
   *  Calculations and indices
     *  NEST_RESULTANT index is now correctly calculated.  Issue #182.

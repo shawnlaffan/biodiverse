@@ -50,6 +50,7 @@ sub get_basedata_test_data {
     );
 
     my $count = $args{count} || 0;
+    my $use_rand_counts = $args{use_rand_counts};
 
     my $data;
     $data .= "label,x,y,count\n";
@@ -57,6 +58,9 @@ sub get_basedata_test_data {
         my $ii = $i * $args{x_spacing};
         foreach my $j ($args{y_min} .. $args{y_max}) {
             my $jj = $j * $args{y_spacing};
+            if ($use_rand_counts) {
+                $count = int (rand() * 1000);
+            }
             $data .= "$i"."_$j,$ii,$jj,$count\n";
         }
     }
@@ -78,6 +82,7 @@ sub get_basedata_object {
         input_files   => [$bd_f],
         group_columns => [1, 2],
         label_columns => [0],
+        sample_count_columns => [3],
     );
     
     return $bd;

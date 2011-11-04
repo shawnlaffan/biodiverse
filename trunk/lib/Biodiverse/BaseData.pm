@@ -201,6 +201,18 @@ sub clone {
         $cloneref = $self -> SUPER::clone ();
         
     }
+    elsif ($args{no_elements}) {
+        
+        #  temporarily override the groups and labels so they aren't cloned
+        local $self->{GROUPS}{ELEMENTS} = {};  # very dirty - basedata should not know about basestruct internals
+        local $self->{LABELS}{ELEMENTS} = {};
+        local $self->{SPATIAL_OUTPUTS} = {};
+        local $self->{CLUSTER_OUTPUTS} = {};
+        local $self->{RANDOMISATION_OUTPUTS} = {};
+        local $self->{MATRIX_OUTPUTS} = {};
+        $cloneref = $self -> SUPER::clone ();
+        
+    }
     else {
         $cloneref = $self -> SUPER::clone (%args);
     }
@@ -688,10 +700,10 @@ sub import_data {  #  load a data file into the selected BaseData object.
     for (my $i = 0; $i <= $#cell_sizes; $i++) {
         $half_cellsize[$i] = $cell_sizes[$i] / 2;
     }
-    
+
     my $quotes = $self -> get_param ('QUOTES');  #  for storage, not import
     my $el_sep = $self -> get_param ('JOIN_CHAR');
-    
+
     #  for parsing lines to element components
     my %line_parse_args = (
         label_columns        => \@label_columns,
@@ -1357,8 +1369,8 @@ sub add_element {  #  run some calls to the sub hashes
         $count = $count ? 1 : 0;
     }
 
-    my $gp_ref = $self -> get_groups_ref;
-    my $lb_ref = $self -> get_labels_ref;
+    my $gp_ref = $self->get_groups_ref;
+    my $lb_ref = $self->get_labels_ref;
 
     if (not defined $label) {  #  one of these will break if neither label nor group is defined
         $gp_ref -> add_element (
@@ -1426,30 +1438,59 @@ sub get_label_element_as_array {
 
 
 #  reorder group and/or label axes
-sub reorder_element_axes {
+#  Clone the basedata and add the remapped elements
+#  This avoids complexities with name clashes that an in-place
+#  re-ordering would cause
+sub new_with_reordered_element_axes {
     my $self = shift;
     my %args = @_;
-    
-    my $output_refs = $self->get_output_refs;
-    croak "Cannot reorder basedata with existing outputs\n"
-      if scalar @$output_refs;
-    
+
     my $group_cols = $args{GROUP_COLUMNS};
     my $label_cols = $args{LABEL_COLUMNS};
+    
+    my $csv_object = $self->get_csv_object (
+        quote_char => $self->get_param ('QUOTES'),
+        sep_char   => $self->get_param ('JOIN_CHAR')
+    );
 
+
+    #  get the set of reordered labels
     my $lb = $self->get_labels_ref;
-    eval {
-        $lb->reorder_element_axes (axes => $label_cols);
-    };
-    croak $EVAL_ERROR if $EVAL_ERROR;
-
+    my $lb_remapped = $lb->get_reordered_element_names (
+        reordered_axes => $label_cols,
+        csv_object     => $csv_object,
+    );
+    #  and the set of reordered groups
     my $gp = $self->get_groups_ref;
-    eval {
-        $gp->reorder_element_axes (axes => $group_cols);
-    };
-    croak $EVAL_ERROR if $EVAL_ERROR;
+    my $gp_remapped = $gp->get_reordered_element_names (
+        reordered_axes => $group_cols,
+        csv_object     => $csv_object,
+    );
 
-    return;
+    my $new_bd = $self->clone (no_elements => 1);
+
+    foreach my $group ($gp->get_element_list) {
+        my $new_group = $gp_remapped->{$group};
+        foreach my $label ($self->get_labels_in_group (group => $group)) {
+            my $new_label = $lb_remapped->{$label};
+            if (not defined $new_label) {
+                $new_label = $label;
+            }
+
+            my $count = $gp->get_subelement_count (
+                element     => $group,
+                sub_element => $label,
+            );
+
+            $new_bd->add_element (
+                group => $new_group,
+                label => $new_label,
+                count => $count,
+            );
+        }
+    }
+
+    return $new_bd;
 }
 
 
@@ -1776,16 +1817,16 @@ sub get_diversity {  #  more cheat methods
 sub get_richness {
     my $self = shift;
 
-    return $self -> get_groups_ref -> get_variety(@_);
+    return $self->get_groups_ref->get_variety(@_);
 }
 
-sub get_label_sample_count {  #  I'm rather enjoying these cheat methods...
+sub get_label_sample_count {  
     my $self = shift;
 
-    return $self -> get_labels_ref -> get_sample_count(@_);
+    return $self->get_labels_ref->get_sample_count(@_);
 }
 
-sub get_group_sample_count {  #  I'm rather enjoying these cheat methods...
+sub get_group_sample_count {
     my $self = shift;
 
     return $self->get_groups_ref->get_sample_count(@_);
@@ -1991,20 +2032,20 @@ sub get_labels_not_in_group {
 sub get_label_count {
     my $self = shift;
     
-    return $self -> get_labels_ref -> get_element_count;
+    return $self->get_labels_ref->get_element_count;
 }
 
 #  get the number of columns used to build the labels
 sub get_label_column_count {
     my $self = shift;
 
-    my $labels_ref = $self -> get_labels_ref;
-    my @labels = $labels_ref -> get_element_list;
+    my $labels_ref = $self->get_labels_ref;
+    my @labels = $labels_ref->get_element_list;
 
     return 0 if not scalar @labels;
     
     my $label_columns =
-      $labels_ref -> get_element_name_as_array (element => $labels[0]);
+      $labels_ref->get_element_name_as_array (element => $labels[0]);
     
     return scalar @$label_columns;
 }

@@ -98,31 +98,68 @@ sub get_axis_count {
 
     my $elements = $self->get_element_list;
     my $el       = $elements->[0];
-    my $axes     = $el->get_element_name_as_array;
+    my $axes     = $self->get_element_name_as_array (element => $el);
 
     return scalar @$axes;
 }
 
-sub reorder_element_axes {
+sub get_reordered_element_names {
     my $self = shift;
     my %args = @_;
     
+    my %reordered;
+    
     my $axis_count = $self->get_axis_count;
 
-    return if $axis_count == 1;
+    return wantarray ? %reordered : \%reordered
+      if $axis_count == 1;
 
-    my $cols = $args{axes};
-    my $reorder_count = @$cols;
+    my $csv_object = $args{csv_object};
+
+    my @reorder_cols = @{$args{reordered_axes}};
+    my $reorder_count = scalar @reorder_cols;
     croak "Attempting to reorder more axes ($reorder_count) "
         . "than are in the basestruct ($axis_count)\n"
       if scalar $reorder_count > $axis_count;
 
-    my $min = List::Util::min(@$cols);
-    my $max = List::Util::max(@$cols);
+    my $i = 0;
+    foreach my $col (@reorder_cols) {
+        if (not defined $col) {  #  undef cols stay where they are
+            $col = $i;
+        }
+        elsif ($col < 0) {  #  make negative subscripts positive for next check step
+            $col += $axis_count;
+        }
+        $i++;
+    }
 
-    my %reordered;
+    #  is the new order out of bounds?
+    my $max_subscript = $axis_count - 1;
+    my $min = List::Util::min(@reorder_cols);
+    my $max = List::Util::max(@reorder_cols);
+    croak "reordered axes are out of bounds ([$min..$max] does not match [0..$max_subscript])\n"
+      if $min != 0 || $max != $max_subscript;  # out of bounds
 
-    return;
+    #  if we don't have all values assigned then we have issues
+    my %tmp;
+    @tmp{@reorder_cols} = undef;
+    croak "incorrect or clashing axes\n"
+      if scalar keys %tmp != scalar @reorder_cols;
+
+    
+    foreach my $element ($self->get_element_list) {
+        my $el_array = $self->get_element_name_as_array (element => $element);
+        my @new_el_array = @$el_array[@reorder_cols];
+        
+        my $new_element = $self -> list2csv (
+            list       => \@new_el_array,
+            csv_object => $csv_object,
+        );
+        
+        $reordered{$element} = $new_element;
+    }
+
+    return wantarray ? %reordered : \%reordered;
 }
 
 #  metadata is bigger than the actual sub...
@@ -1788,16 +1825,17 @@ sub get_subelement_count {
     my $self = shift;
     
     my %args = @_;
-    my $element = $args{element};  croak "argument 'element' not defined\n" if ! defined $element;
-    my $sub_element = $args{sub_element};  croak "argument 'sub_element' not defined\n" if ! defined $sub_element;
+    my $element = $args{element};
+    croak "argument 'element' not defined\n" if ! defined $element;
+
+    my $sub_element = $args{sub_element};
+    croak "argument 'sub_element' not defined\n" if ! defined $sub_element;
     
     if (exists $self->{ELEMENTS}{$element} && exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element}) {
         return $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
     }
-    else {
-        return;
-    }
     
+    return;
 }
 
 
@@ -2460,7 +2498,10 @@ sub get_redundancy {
 
     return if ! $self -> exists_element (element => $args{element});
 
-    my $redundancy = eval {1 - $self -> get_variety (element => $element) / $self -> get_sample_count (element => $element)};
+    my $redundancy = eval {
+        1 - $self->get_variety (element => $element)
+          / $self->get_sample_count (element => $element)
+    };
     
     return $redundancy;
 }

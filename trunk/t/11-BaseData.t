@@ -125,7 +125,36 @@ my @setup = (
 }
 
 
-#  need to test multidimenional data import, including text axes
+#  need to test multidimensional data import, including text axes
+
+
+#  reordering of axes
+REORDER:
+{
+    my $bd = eval {
+            get_basedata_object (
+                x_spacing  => 1,
+                y_spacing  => 1,
+                CELL_SIZES => [1, 1],
+                x_max      => 100,
+                y_max      => 100,
+                x_min      => 0,
+                y_min      => 0,
+            );
+        };
+    
+    my $new_bd = eval {
+        $bd->new_with_reordered_element_axes (
+            GROUP_COLUMNS => [1,0],
+            LABEL_COLUMNS => [1,0],
+        );
+    };
+    my $error = $EVAL_ERROR;
+
+    ok (defined $new_bd,    "Reordered axes");
+
+    
+}
 
 
 done_testing();

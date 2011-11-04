@@ -620,7 +620,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
         }
     }
     
-    $self -> transfer_label_properties (
+    $bd->transfer_label_properties (
         %args,
         receiver => $new_bd,
     );
@@ -945,7 +945,7 @@ END_PROGRESS_TEXT
     );
 
 
-    $self -> transfer_label_properties (
+    $bd->transfer_label_properties (
         %args,
         receiver => $new_bd
     );
@@ -1279,74 +1279,6 @@ sub swap_to_reach_targets {
 
     return;
 }
-
-
-#  sometimes we have label properties defined like species ranges.
-#  need to copy these across
-sub transfer_label_properties {
-    my $self = shift;
-    my %args = @_;
-    
-    my $to_bd = $args{receiver} || croak "Missing receiver argument\n";
-    
-    #my $progress_bar = $args{progress};
-    my $progress_bar = Biodiverse::Progress->new();
-    
-    my $bd = $self -> get_param ('BASEDATA_REF') || $args{basedata_ref};
-
-    my $labels_ref = $bd -> get_labels_ref;
-    my $to_labels_ref = $to_bd -> get_labels_ref;
-    
-    my $last_update_time = [gettimeofday];
-    
-    my $labels = $bd -> get_labels;
-    my $total_to_do = scalar @$labels;
-    my $name = $bd -> get_param ('NAME');
-    my $to_name = $to_bd -> get_param ('NAME');
-    my $text = "Transferring label properties from $name to $to_name";
-    
-    print "[RANDOMISE] Transferring label properties for $total_to_do labels\n";
-    
-    my $count = 0;
-    my $i = 0;
-    
-    BY_LABEL:
-    foreach my $label (@$labels) {
-        
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
-            
-            my $progress = $i / $total_to_do;
-            $progress_bar -> update (
-                "$text\n"
-                . "(label $i of $total_to_do)",
-                $progress
-            );
-        #    $last_update_time = [gettimeofday];
-        #}
-        
-        #  avoid working with those not in the receiver
-        next BY_LABEL if not $to_labels_ref -> exists_element (element => $label);
-        
-        my $props = $labels_ref -> get_list_values (
-            element => $label,
-            list => 'PROPERTIES'
-        );
-        
-        next BY_LABEL if ! defined $props;  #  none there
-        
-        $to_labels_ref -> add_to_lists (
-            element    => $label,
-            PROPERTIES => {%$props},  #  make sure it's a copy so bad things don't happen
-        );
-        $count ++;
-    }
-    
-    #$self -> find_circular_refs;
-    
-    return $count;
-}
-
 
 
 

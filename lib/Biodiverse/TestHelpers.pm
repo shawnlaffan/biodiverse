@@ -77,6 +77,7 @@ sub get_basedata_object {
 
     my $bd = Biodiverse::BaseData->new(
         CELL_SIZES => $args{CELL_SIZES},
+        NAME       => 'Test basedata',
     );
     $bd->import_data(
         input_files   => [$bd_f],

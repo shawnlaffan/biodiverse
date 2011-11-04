@@ -499,8 +499,12 @@ sub doOpenBasedata {
     return;
 }
 
-sub do_transpose_basedata {
+sub get_new_basedata_name {
     my $self = shift;
+    my %args = @_;
+    
+    my $suffix = $args{suffix} || q{};
+
     my $bd = $self->{project}->getSelectedBaseData();
     
     # Show the Get Name dialog
@@ -511,24 +515,82 @@ sub do_transpose_basedata {
     my $txtName = $dlgxml->get_widget('txtName');
     my $name = $bd->get_param('NAME');
 
-    # If it ends with _T followed by a number then increment it
-    if ($name =~ /(.*_T)([0-9]+)$/) {
+    # If it ends with $suffix followed by a number then increment it
+    if ($name =~ /(.*$suffix)([0-9]+)$/) {
         $name = $1 . ($2 + 1)
     }
     else {
-        $name .= '_T1';
+        $name .= $suffix . 1;
     }
     $txtName->set_text($name);
 
     my $response = $dlg->run();
+    my $chosen_name;
     if ($response eq 'ok') {
-        my $chosen_name = $txtName->get_text;
-        my $t_bd = $bd->transpose;
-        $t_bd -> set_param ('NAME' => $chosen_name);
-        $self->{project}->addBaseData($t_bd);
+        $chosen_name = $txtName->get_text;
     }
     $dlg->destroy;
     
+    return $chosen_name;
+}
+
+sub do_transpose_basedata {
+    my $self = shift;
+    
+    my $new_name = $self->get_new_basedata_name (suffix => '_T');
+
+    return if not $new_name;
+
+    my $bd = $self->{project}->getSelectedBaseData();
+    my $t_bd = $bd->transpose;
+    $t_bd -> set_param ('NAME' => $new_name);
+    $self->{project}->addBaseData($t_bd);
+    
+    return;
+}
+
+sub do_basedata_reorder_axes {
+    my $self = shift;
+    
+    my $new_name = $self->get_new_basedata_name (suffix => '_R');
+    return if not $new_name;
+    
+    my $bd = $self->{project}->getSelectedBaseData();
+
+    #  construct the label and group column settings
+    my @lb_axes = 0 .. ($bd->get_labels_ref->get_axis_count - 1);
+    my @lb_array;
+    for my $i (@lb_axes) {
+        push @lb_array, {name => "axis $i", id => $i};
+    }
+
+    my @gp_axes = 0 .. ($bd->get_groups_ref->get_axis_count - 1);
+    my @gp_array;
+    for my $i (@gp_axes) {
+        push @gp_array, {name => "axis $i", id => $i};
+    }
+
+    my $column_settings = {
+        groups => \@gp_array,
+        labels => \@lb_array,
+    };
+
+    #  need to factor the reorder dialogues out of BasedataImport.pm
+    my ($dlgxml, $dlg) = Biodiverse::GUI::BasedataImport::makeReorderDialog($self, $column_settings);
+    my $response = $dlg->run();
+
+    if ($response ne 'ok') {
+        $dlg->destroy;
+        return;
+    }
+
+    my $params = Biodiverse::GUI::BasedataImport::fillParams($dlgxml);
+    $dlg->destroy;
+
+    my $new_bd = $bd->new_with_reordered_element_axes (%$params);
+    $new_bd->set_param (NAME => $new_name);
+    $self->{project}->addBaseData($new_bd);    
+
     return;
 }
 

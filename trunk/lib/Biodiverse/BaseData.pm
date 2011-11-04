@@ -1490,7 +1490,70 @@ sub new_with_reordered_element_axes {
         }
     }
 
+    $self->transfer_label_properties (
+        %args,
+        receiver => $new_bd,
+        remap    => $lb_remapped,
+    );
+
     return $new_bd;
+}
+
+#  sometimes we have label properties defined like species ranges.
+#  need to copy these across
+sub transfer_label_properties {
+    my $self = shift;
+    my %args = @_;
+    
+    my $to_bd = $args{receiver} || croak "Missing receiver argument\n";
+    my $remap = $args{remap} || {};  #  remap hash
+
+    my $progress_bar = Biodiverse::Progress->new();
+
+    my $labels_ref    = $self->get_labels_ref;
+    my $to_labels_ref = $to_bd->get_labels_ref;
+
+    my $labels      = $self->get_labels;
+    my $total_to_do = scalar @$labels;
+    my $name        = $self->get_param ('NAME');
+    my $to_name     = $to_bd->get_param ('NAME');
+    my $text        = "Transferring label properties from $name to $to_name";
+
+    print "[BASEDATA] Transferring label properties for $total_to_do labels\n";
+
+    my $count = 0;
+    my $i = 0;
+    
+    BY_LABEL:
+    foreach my $label (@$labels) {
+        my $progress = $i / $total_to_do;
+        $progress_bar -> update (
+            "$text\n"
+            . "(label $i of $total_to_do)",
+            $progress
+        );
+
+        #  remap label if needed
+        my $to_label = exists $remap->{$label} ? $remap->{$label} : $label;
+
+        #  avoid working with those not in the receiver
+        next BY_LABEL if not $to_labels_ref->exists_element (element => $to_label);
+
+        my $props = $labels_ref->get_list_values (
+            element => $label,
+            list => 'PROPERTIES'
+        );
+
+        next BY_LABEL if ! defined $props;  #  none there
+
+        $to_labels_ref->add_to_lists (
+            element    => $to_label,
+            PROPERTIES => {%$props},  #  make sure it's a copy so bad things don't happen
+        );
+        $count ++;
+    }
+
+    return $count;
 }
 
 

@@ -233,7 +233,7 @@ sub run {
     
     if (not $column_settings) {  #  clean up and drop out
         if ($use_new) {
-            $gui -> getProject -> deleteBaseData ($basedata_ref) ;
+            $gui->getProject->deleteBaseData ($basedata_ref) ;
         }
         return;
     }

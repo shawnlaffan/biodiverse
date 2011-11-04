@@ -253,7 +253,6 @@ sub sp_calc {
     
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
-    my $no_calc_empty_groups       = $args{no_calc_empty_groups};
 
     my $spatial_params_ref  = $self->get_spatial_params_ref (%args);
     my $recyclable_nbrhoods = $self->get_recyclable_nbrhoods;
@@ -468,12 +467,6 @@ sub sp_calc {
             }
 
             $sp_res_hash = $failed_def_query_sp_res_hash;
-        }
-
-        if ($no_calc_empty_groups) {
-            if (not $bd->get_richness (element => $element)) {
-                push @elements_to_exclude, $element;
-            }
         }
 
 

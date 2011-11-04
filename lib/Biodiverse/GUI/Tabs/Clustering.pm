@@ -73,7 +73,7 @@ sub new {
                       . "as the last condition for clustering purposes";
 
     my $sp_initial2 = $empty_string;  #  initial spatial params text
-    my $def_query_init1 = $empty_string;
+    my $def_query_init1 = 'sp_group_not_empty();\n# Condition is only needed if your BaseData has empty groups.';
 
     if (not defined $cluster_ref) {
         # We're being called as a NEW output

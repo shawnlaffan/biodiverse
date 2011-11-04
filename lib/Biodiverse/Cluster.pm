@@ -43,14 +43,6 @@ our %PARAMS = (  #  most of these are not used
 my $EMPTY_STRING = q{};
 
 
-#use Exception::Class (
-#    'Biodiverse::Cluster::MatrixExists' => {
-#        description => 'A matrix of this name is already in the BaseData object',
-#        fields      => [ 'name', 'object' ],
-#    },
-#);
-
-
 #  use the "new" sub from Tree.
 
 sub get_default_cluster_index {
@@ -295,20 +287,11 @@ sub build_matrices {
         $self->set_param (SPATIAL_PARAMS => $spatial_params_array)
     }
 
-    #  let the spatial object to handle the object stuff
+    #  let the spatial object handle the conditions stuff
     my $definition_query
         = $self->get_param ('DEFINITION_QUERY')
           || $args{definition_query};
-    #if (defined $definition_query) {  #  parse it if defined
-    #    if (length ($definition_query) == 0) {
-    #        $definition_query = undef ;
-    #    }
-    #    elsif (not blessed $definition_query) {
-    #        $definition_query = Biodiverse::SpatialParams::DefQuery->new (
-    #            conditions => $definition_query,
-    #        );
-    #    }
-    #}
+
     if (not defined $self->get_param ('DEFINITION_QUERY')) {
         $self->set_param (DEFINITION_QUERY => $definition_query);
     }
@@ -324,7 +307,7 @@ sub build_matrices {
 
     #  we use a spatial object as it handles all the spatial checks.
     print "[CLUSTER] Generating neighbour lists\n";
-    my $sp = $bd->add_spatial_output (name => $name . "_to_get_nbrs_for_clustering_" . time());
+    my $sp = $bd->add_spatial_output (name => $name . "_clus_nbrs_" . time());
     my $sp_success = eval {
         $sp->run_analysis (
             %args,
@@ -335,7 +318,6 @@ sub build_matrices {
             no_create_failed_def_query    => 1,  #  only want those that pass the def query
             calc_only_elements_to_calc    => 1,
             exclude_processed_elements    => 1,
-            no_calc_empty_groups          => 1,
         );
     };
     croak $EVAL_ERROR if $EVAL_ERROR;                #  Did we complete properly?

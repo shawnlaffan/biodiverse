@@ -517,11 +517,11 @@ sub export_floatgrid {
     return;
 }
 
-sub get_metadata_export_divagrid {
+sub get_metadata_export_divagis {
     my $self = shift;
 
     my %args = (
-        format => 'Divagrid raster files',
+        format => 'DIVA-GIS raster files',
         parameters => [
             $self -> get_common_export_metadata(),
             $self -> get_raster_export_metadata(),
@@ -531,13 +531,13 @@ sub get_metadata_export_divagrid {
     return wantarray ? %args : \%args;
 }
 
-sub export_divagrid {
+sub export_divagis {
     my $self = shift;
     my %args = @_;
 
     my $table = $self->to_table (%args, symmetric => 1);
 
-    $self -> write_table_divagrid (%args, data => $table);
+    $self -> write_table_divagis (%args, data => $table);
 
     return;
 }
@@ -1083,7 +1083,7 @@ sub write_table_floatgrid {
 }
 
 #  lots of overlap with write_table_floatgrid - should refactor
-sub write_table_divagrid {
+sub write_table_divagis {
     my $self = shift;
     my %args = @_;
 

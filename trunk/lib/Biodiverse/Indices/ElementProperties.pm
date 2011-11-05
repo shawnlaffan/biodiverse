@@ -1,4 +1,4 @@
-package Biodiverse::Indices::LabelProperties;
+package Biodiverse::Indices::ElementProperties;
 use strict;
 use warnings;
 
@@ -323,7 +323,7 @@ __END__
 
 =head1 NAME
 
-Biodiverse::Indices::LabelProperties
+Biodiverse::Indices::ElementProperties
 
 =head1 SYNOPSIS
 

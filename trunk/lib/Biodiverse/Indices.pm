@@ -31,7 +31,7 @@ use base qw {
     Biodiverse::Indices::Matrix_Indices
     Biodiverse::Indices::Endemism
     Biodiverse::Indices::Rarity
-    Biodiverse::Indices::LabelProperties
+    Biodiverse::Indices::ElementProperties
     Biodiverse::Indices::GroupProperties
     Biodiverse::Common
 };

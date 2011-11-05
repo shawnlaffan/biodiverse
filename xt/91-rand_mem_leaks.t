@@ -14,7 +14,7 @@ use constant HAS_LEAKTRACE => eval{ require Test::LeakTrace };
 use Test::More;
 
 #  skip until test gets faster or the root problem is fixed
-plan skip_all => "This test takes too long and the bug isn't fixed yet";
+#plan skip_all => "This test takes too long and the bug isn't fixed yet";
 
 plan HAS_LEAKTRACE ? (tests => 3) : (skip_all => 'require Test::LeakTrace');
 
@@ -42,35 +42,40 @@ print "Data dir is $data_dir\n";
 #    my $r = Biodiverse::Randomise->new;
 #};
 
+my $in_file = File::Spec->catfile( $data_dir, 'Example_site_data.csv' );
+my $bd = Biodiverse::BaseData -> new (
+    NAME => 'test',
+);
+$bd->set_param(CELL_SIZES => [500000, 500000]);
+$bd->import_data (
+    input_files   => [$in_file],
+    label_columns => [1, 2],
+    group_columns => [3, 4],
+);
+undef $in_file;
+
+
 my $descr = 'load, run, delete';
 diag ($descr);
-no_leaks_ok {
+#no_leaks_ok {
+my @leaked = leaked_info {
+    my $r = $bd->add_randomisation_output (
+        name     => 'csr',
+        FUNCTION => 'rand_nochange',
+    );
 
-        my $in_file = File::Spec->catfile( $data_dir, 'Example_site_data.csv' );
-        my $bd = Biodiverse::BaseData -> new (
-            NAME => 'test',
-        );
-        $bd->set_param(CELL_SIZES => [500000, 500000]);
-        $bd->import_data (
-            input_files   => [$in_file],
-            label_columns => [1, 2],
-            group_columns => [3, 4],
-        );
+    $r->run_analysis (iterations => 2);
 
-        my $r = $bd -> add_randomisation_output (
-            name     => 'csr',
-            FUNCTION => 'rand_structured',
-        );
+    $bd->delete_output (output => $r);
+    
+    undef $r;
+};
+#} $descr;
 
-        $r -> run_analysis;
+use Data::Dump qw {pp};
+pp (\@leaked);
 
-        $bd->delete_output (output => $r);
-        
-        undef $r;
-        undef $bd;
-        undef $in_file;
-
-} $descr;
+undef $bd;
 
 
 $descr = 'load, run, save, delete';

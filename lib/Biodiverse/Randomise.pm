@@ -34,8 +34,6 @@ sub new {
     my $class = shift;
     my %args = @_;
 
-    #my %self;
-    #my $self = {};
     my $self = bless {}, $class;
 
     if (defined $args{file}) {
@@ -52,10 +50,10 @@ sub new {
 
     #  load the defaults, with the rest of the args as params
     my %args_for = (%PARAMS, %args);
-    $self -> set_params (%args_for);
+    $self->set_params (%args_for);
 
     #  avoid memory leak probs with circular refs
-    $self -> weaken_basedata_ref;
+    $self->weaken_basedata_ref;
 
     return $self;
 }
@@ -299,7 +297,7 @@ sub run_randomisation {
                    || $args{function}
                    || croak "Randomisation function not specified\n";
     delete $args{function};  #  don't want to pass unnecessary args on to the function
-    $self -> set_param (FUNCTION => $function);  #  store it
+    $self->set_param (FUNCTION => $function);  #  store it
     
     my $iterations = $args{iterations} || 1;
     delete $args{iterations};

@@ -37,9 +37,8 @@ $| = 1;
 #
 #  perl create_correlogram_data.pl input.bds matrix.txt NESTEDNESS_RESULTANT
 
-
-my $bd_file   = $ARGV[0] || die "BaseData file not specified\n" . usage();
-my $out_file  = $ARGV[1] || die "Output file not specified\n" . usage();
+my $bd_file   = $ARGV[0] or die ("BaseData file not specified\n" . usage());
+my $out_file  = $ARGV[1] or die ("Output file not specified\n" . usage());
 my %rest;
 eval {
     %rest = @ARGV;
@@ -210,7 +209,7 @@ sub build_matrix {
 sub usage {
     my($filename, $directories, $suffix) = File::Basename::fileparse($0);
 
-    print STDERR << "END_OF_USAGE";
+    my $usage = << "END_OF_USAGE";
 Biodiverse - A spatial analysis tool for species (and other) diversity.
 
 usage: \n
@@ -229,6 +228,6 @@ usage: \n
 
 END_OF_USAGE
 
-    exit();
+    return $usage;
 }
  

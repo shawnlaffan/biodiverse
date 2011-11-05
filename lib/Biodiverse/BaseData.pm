@@ -2722,7 +2722,7 @@ sub add_randomisation_output {
     }
     else {  #  create a new object
         $object = eval {
-            $class -> new (
+            $class->new (
                 %args,
                 NAME         => $name,  #  these two always over-ride user args (NAME can be an arg)
                 BASEDATA_REF => $self,

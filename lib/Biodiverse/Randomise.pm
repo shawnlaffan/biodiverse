@@ -28,8 +28,6 @@ my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
 use base qw {Biodiverse::Common};
 
-
-
 sub new {
     my $class = shift;
     my %args = @_;
@@ -58,12 +56,11 @@ sub new {
     return $self;
 }
 
-
 sub _get_metadata_export {
     my $self = shift;
 
     #  need a list of export subs
-    my %subs = $self -> get_subs_with_prefix (prefix => 'export_');
+    my %subs = $self->get_subs_with_prefix (prefix => 'export_');
 
     #  hunt through the other export subs and collate their metadata
     my @export_sub_params;
@@ -75,11 +72,11 @@ sub _get_metadata_export {
         format  => 1,
         file    => 1,
     );
-    
+
     foreach my $sub (sort keys %subs) {
         my %sub_args = $self -> get_args (sub => $sub);
         croak "Metadata item 'format' missing\n" if not defined $sub_args{format};
-        
+
         my $params_array = $sub_args{parameters};
         foreach my $param_hash (@$params_array) {
             my $name = $param_hash->{name};
@@ -88,7 +85,7 @@ sub _get_metadata_export {
                 $done{$name} ++;
             }
         }
-        
+
         push @formats, $sub_args{format};
         $format_labels{$sub_args{format}} = $sub; 
     }
@@ -127,7 +124,7 @@ sub get_metadata_export {
 
     #  loop through subs and get their metadata
     my %params_per_sub;
-    
+
     LOOP_EXPORT_SUB:
     foreach my $sub (sort keys %subs) {
         my %sub_args = $self -> get_args (sub => $sub);
@@ -148,7 +145,7 @@ sub get_metadata_export {
 
         push @formats, $format;
     }
-    
+
     @formats = sort @formats;
     $self -> move_to_front_of_list (
         list => \@formats,
@@ -174,21 +171,21 @@ sub get_metadata_export {
 sub export {
     my $self = shift;
     my %args = @_;
-    
+
     #  get our own metadata...
     my %metadata = $self -> get_args (sub => 'export');
-    
+
     my $sub_to_use = $metadata{format_labels}{$args{format}} || croak "Argument 'format' not specified\n";
-    
+
     eval {$self -> $sub_to_use (%args)};
     croak $EVAL_ERROR if $EVAL_ERROR;
-    
+
     return;
 }
 
 sub get_metadata_export_prng_init_state {
     my $self = shift;
-    
+
     my %args = (
         format => 'Initial PRNG state',
         parameters => [{
@@ -197,30 +194,30 @@ sub get_metadata_export_prng_init_state {
             },
         ],
     );
-    
+
     return wantarray ? %args : \%args;
 }
 
 sub export_prng_init_state {
     my $self = shift;
     my %args = @_;
-    
+
     my $init_state = $self -> get_param ('RAND_INIT_STATE');
-    
+
     my $filename = $args{file};
-    
+
     open (my $fh, '>', $filename) || croak "Unable to open $filename\n";
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh -> close;
-    
+
     print "[RANDOMISE] Dumped initial PRNG state to $filename\n";
-    
+
     return;
 }
 
 sub get_metadata_export_prng_current_state {
     my $self = shift;
-    
+
     my %args = (
         format => 'Current PRNG state',
         parameters => [{
@@ -229,24 +226,24 @@ sub get_metadata_export_prng_current_state {
             },
         ],
     );
-    
+
     return wantarray ? %args : \%args;
 }
 
 sub export_prng_current_state {
     my $self = shift;
     my %args = @_;
-    
+
     my $init_state = $self -> get_param ('RAND_LAST_STATE');
-    
+
     my $filename = $args{file};
-    
+
     open (my $fh, '>', $filename) || croak "Unable to open $filename\n";
     print {$fh} Data::Dumper::Dumper ($init_state);
     $fh -> close;
-    
+
     print "[RANDOMISE] Dumped current PRNG state to $filename\n";
-    
+
     return;
 }
 
@@ -260,18 +257,16 @@ sub get_randomisations {
     my $syms = Devel::Symdump -> rnew(@$isa_tree);
 
     my %analyses;
-    
+
     foreach my $analysis (sort $syms -> functions) {
         next if $analysis !~ /^.*::rand_./;
         $analysis =~ s/(.*::)*//;
         #print "RANDOMISATION IS $analysis\n";
         $analyses{$analysis}++;
     }
-    
+
     return wantarray ? %analyses : \%analyses;
 }
-
-
 
 #####################################################################
 #
@@ -280,17 +275,17 @@ sub get_randomisations {
 
 sub run_analysis {  #  flick them straight through
     my $self = shift;
-    
+
     my $success = eval {$self -> run_randomisation  (@_)};
     croak $EVAL_ERROR if $EVAL_ERROR;
-    
+
     return $success;
 }
 
 sub run_randomisation {
     my $self = shift;
     my %args = @_;
-    
+
     my $bd = $self -> get_param ('BASEDATA_REF') || $args{basedata_ref};
 
     my $function = $self -> get_param ('FUNCTION')
@@ -298,16 +293,16 @@ sub run_randomisation {
                    || croak "Randomisation function not specified\n";
     delete $args{function};  #  don't want to pass unnecessary args on to the function
     $self->set_param (FUNCTION => $function);  #  store it
-    
+
     my $iterations = $args{iterations} || 1;
     delete $args{iterations};
-    
+
     my $max_iters = $args{max_iters};
-    
+
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
-    
+
     my $rand = $self -> initialise_rand (%args);
-    
+
     #  get a list of refs for objects that are to be compared
     #  get the lot by default
     my @targets = defined $args{targets}
@@ -316,7 +311,7 @@ sub run_randomisation {
                    $bd -> get_spatial_output_refs,
                    );
     delete $args{targets};
-    
+
     #  loop through and get all the key/value pairs that are not refs.
     #  Assume these are arguments to the randomisation
     my $single_level_args = $EMPTY_STRING;
@@ -328,7 +323,7 @@ sub run_randomisation {
         }
     }
     $single_level_args =~ s/,$//;  #  remove any trailing comma
-    
+
     my $results_list_name
         = $self -> get_param ('NAME')
         || $args{results_list_name}
@@ -344,7 +339,7 @@ sub run_randomisation {
     #  counts are stored on the outputs, as they can be different if
     #    an output is created after some randomisations have been run
     my $rand_iter_param_name = "RAND_ITER_$results_list_name";
-    
+
     my $total_iterations = $self -> get_param_as_ref ('TOTAL_ITERATIONS');
     if (! defined $total_iterations) {
         $self -> set_param (TOTAL_ITERATIONS => 0);
@@ -352,9 +347,9 @@ sub run_randomisation {
     }
 
     ##$self -> find_circular_refs ($bd);
-    
+
     my $return_success_code = 1;
-    
+
     #  do stuff here
     ITERATION:
     foreach my $i (1 .. $iterations) {
@@ -463,7 +458,6 @@ sub run_randomisation {
         #use Devel::FindRef;
         #print Devel::FindRef::track $rand_bd;
 
-
         #  this argument is not yet exposed to the GUI
         if ($args{save_rand_bd}) {
             print "[Randomise] Saving randomised basedata\n";
@@ -497,13 +491,11 @@ sub run_randomisation {
     #  even though we are storing the object
     #  this is just in case YAML will not work with MT::Auto
     $self -> store_rand_state (rand_object => $rand);
-    
+
     #  return 1 if successful and ran some iterations
     #  return 2 if successful but did not need to run anything
     return $return_success_code;
 }
-
-
 
 #####################################################################
 #
@@ -511,7 +503,7 @@ sub run_randomisation {
 
 sub get_metadata_rand_nochange {
     my $self = shift;
-    
+
     my %args = (
         Description => 'No change - just a cloned data set',
     );
@@ -523,40 +515,40 @@ sub get_metadata_rand_nochange {
 sub rand_nochange {
     my $self = shift;
     my %args = @_;
-    
+
     print "[RANDOMISE] Running 'no change' randomisation\n";
-    
+
     my $bd = $self -> get_param ('BASEDATA_REF') || $args{basedata_ref};
-    
+
     #  create a clone with no outputs
     my $new_bd = $bd -> clone (no_outputs => 1);
-    
+
     return $new_bd;
 }
 
 sub get_metadata_rand_csr_by_group {
     my $self = shift;
-    
+
     my %args = (
         Description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
     ); 
-    
+
     return wantarray ? %args : \%args;
 }
 
 sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles the subelement lists between elements
     my $self = shift;
     my %args = @_;
-        
+
     my $bd = $self -> get_param ('BASEDATA_REF') || $args{basedata_ref};
-    
+
     #my $progress_bar = $args{progress};
     #delete $args{progress};  #  the progress bar can get nasty if stored and then defrosted
     my $progress_bar = Biodiverse::Progress->new();
-    
+
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
     delete $args{rand_object};
-    
+
     #  load any predefined args - overriding user specified ones
     my $ref = $self -> get_param ('ARGS');
     if (defined $ref) {
@@ -565,13 +557,13 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     else {
         $self -> set_param (ARGS => \%args);
     }
-    
+
     my $progress_text = "rand_csr_by_group: complete spatial randomisation\n";
 
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
     $new_bd->get_groups_ref->set_param ($bd -> get_groups_ref -> get_params_hash);
     $new_bd->get_labels_ref->set_param ($bd -> get_labels_ref -> get_params_hash);
-    
+
     my @orig_groups = sort $bd -> get_groups;
     #my @tmp = @origData;  #  needed lest shuffle works on the origData in place
     #  make sure shuffle does not work on the original data
@@ -580,15 +572,15 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     print "[RANDOMISE] CSR Shuffling ".(scalar @orig_groups)." groups\n";
 
     #print join ("\n", @candidates) . "\n";
-    
+
     my $total_to_do = $#orig_groups;
     my $last_update_time = [gettimeofday];
-    
+
     foreach my $i (0 .. $#orig_groups) {
-        
+
         #if ($progress_bar
         #    and tv_interval ($last_update_time) > $progress_update_interval) {
-            
+
             my $progress = $i / $total_to_do;
             my $p_text
                 = "$progress_text\n"
@@ -602,13 +594,13 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
             );
             #$last_update_time = [gettimeofday];
         #}
-        
+
         #  create the group (this allows for empty groups with no labels)
         $new_bd -> add_element(group => $randOrder->[$i]);
-        
+
         #  get the labels from the original group and assign them to the random group
         my %tmp = $bd -> get_labels_in_group_as_hash (group => $orig_groups[$i]);
-        
+
         while (my ($label, $counts) = each %tmp) {
             $new_bd -> add_element(
                 label => $label,
@@ -617,20 +609,19 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
             );
         }
     }
-    
+
     $bd->transfer_label_properties (
         %args,
         receiver => $new_bd,
     );
 
     return $new_bd;
-    
-}
 
+}
 
 sub get_metadata_rand_structured {
     my $self = shift;
-    
+
     my $tooltip_mult =<<'END_TOOLTIP_MULT'
 The target richness of each group in the randomised
 basedata will be its original richness multiplied
@@ -666,7 +657,7 @@ END_TOOLTIP_ADDN
                        . 'but keep the richness the same or within '
                        . 'some multiplier factor.',
     );
-    
+
     return wantarray ? %args : \%args;
 }
 
@@ -674,19 +665,19 @@ END_TOOLTIP_ADDN
 sub rand_structured {
     my $self = shift;
     my %args = @_;
-    
+
     my $start_time = [gettimeofday];
-    
+
     my $bd = $self -> get_param ('BASEDATA_REF')
             || $args{basedata_ref};
-    
+
     #my $progress_bar = $args{progress};  #  can't store to output file and then recreate
     #delete $args{progress};
     my $progress_bar = Biodiverse::Progress->new();
-    
+
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
     delete $args{rand_object};
-    
+
     #  load any predefined args - overriding user specified ones
     my $ref = $self -> get_param ('ARGS');
     if (defined $ref) {
@@ -695,12 +686,12 @@ sub rand_structured {
     else {
         $self -> set_param (ARGS => \%args);
     }
-    
+
     #  need to get these from the params if available
     my $multiplier = $args{richness_multiplier} || 1;
     my $addition = $args{richness_addition} || 0;
     my $name = $self -> get_param ('NAME');
-    
+
     my $progress_text =<<"END_PROGRESS_TEXT"
 $name
 rand_structured:
@@ -708,14 +699,13 @@ rand_structured:
 \trichness addition = $addition
 END_PROGRESS_TEXT
 ;
-    
 
     my $new_bd = blessed($bd)->new ($bd -> get_params_hash);
     $new_bd -> get_groups_ref->set_param ($bd -> get_groups_ref -> get_params_hash);
     $new_bd -> get_labels_ref->set_param ($bd -> get_labels_ref -> get_params_hash);
     my $new_bd_name = $new_bd->get_param ('NAME');
     $new_bd -> rename (name => $new_bd_name . "_" . $name);
-    
+
     print "[RANDOMISE] Creating clone for destructive sampling\n";
     #if ($progress_bar) {
         $progress_bar -> update (
@@ -724,36 +714,36 @@ END_PROGRESS_TEXT
             0.1,
         );
     #}
-    
+
     #  create a clone for destructive sampling
     #  clear out the outputs - we seem to get a memory leak otherwise
     my $cloned_bd = $bd -> clone (no_outputs => 1);
-    
+
     $progress_bar->reset;
-    
+
     #  make sure we randomly select from the same set of groups each time
     my @sorted_groups = sort $bd -> get_groups;
     #  make sure shuffle does not work on the original data
     my $rand_gp_order = $rand -> shuffle ([@sorted_groups]);
-    
+
     my @sorted_labels = sort $bd -> get_labels;
     #  make sure shuffle does not work on the original data
     my $rand_label_order = $rand -> shuffle ([@sorted_labels]);
-    
+
     print "[RANDOMISE] Richness Shuffling " . scalar @sorted_labels . " labels from " . (scalar @sorted_groups) . " groups\n";
-    
+
     #  generate a hash with the target richness values
     my %target_richness;
     my $i = 0;
     my $total_to_do = scalar @sorted_groups;
     my $last_update_time = [gettimeofday];
-    
+
     foreach my $group (@sorted_groups) {
         #if ($progress_bar
         #    and tv_interval ($last_update_time) > $progress_update_interval) {
-            
+
             my $progress = $i / $total_to_do;
-            
+
             $progress_bar -> update (
                 "$progress_text\n"
                 . "Assigning richness targets\n"
@@ -789,7 +779,7 @@ END_PROGRESS_TEXT
     #  other groups that don't already contain it
     #  and that does not exceed the richness threshold factor
     #  (multiplied by the original richness)
-    
+
     my @target_groups = $bd -> get_groups;
     my %all_target_groups
         = $bd -> array_to_hash_keys (list => \@target_groups);
@@ -802,10 +792,10 @@ END_PROGRESS_TEXT
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
-        
+
         #if ($progress_bar
         #    and tv_interval ($last_update_time) > $progress_update_interval) {
-            
+
             my $progress = $i / $total_to_do;
             $progress_bar -> update (
                 "Allocating labels to groups\n"
@@ -855,7 +845,6 @@ END_PROGRESS_TEXT
             #  make sure we don't select this group again
             #  for this label this time round
             splice (@target_groups, $j, 1);
-
 
             #  drop out criterion, occurs when $richness_multiplier < 1
             last BY_GROUP if not defined $to_group;  
@@ -911,7 +900,6 @@ END_PROGRESS_TEXT
            $target_label_count,
            $target_group_count;
 
-
     #  need to fill in the missing groups with empties
     if ($bd -> get_group_count != $new_bd -> get_group_count) {
         my %target_gps;
@@ -929,7 +917,6 @@ END_PROGRESS_TEXT
 
     #$self -> find_circular_refs (label => "checker");
 
-
     $self -> swap_to_reach_targets (
         basedata_ref    => $bd,
         cloned_bd       => $cloned_bd,
@@ -942,12 +929,11 @@ END_PROGRESS_TEXT
         progress_text   => $progress_text,
     );
 
-
     $bd->transfer_label_properties (
         %args,
         receiver => $new_bd
     );
-    
+
     my $time_taken = sprintf "%d", tv_interval ($start_time);
     print "[RANDOMISE] Time taken for rand_structured: $time_taken seconds\n";
 
@@ -962,7 +948,7 @@ END_PROGRESS_TEXT
 sub swap_to_reach_targets {
     my $self = shift;
     my %args = @_;
-    
+
     my $cloned_bd       = $args{cloned_bd};
     my $new_bd          = $args{new_bd};
     my %filled_groups   = %{$args{filled_groups}};
@@ -975,10 +961,10 @@ sub swap_to_reach_targets {
     my $bd = $self -> get_param ('BASEDATA_REF')
              || $args{basedata_ref};
     my $progress_bar = Biodiverse::Progress->new();
-    
+
     #  and now we do some amazing cell swapping work to
     #  shunt labels in and out of groups until we're happy
-    
+
     #  algorithm:
     #   Select an unassigned label.
     #   Find a group that does not contain it.
@@ -987,11 +973,10 @@ sub swap_to_reach_targets {
 
     my $total_to_do =   (scalar keys %filled_groups)
                       + (scalar keys %unfilled_groups);
-    
+
     if ($total_to_do) {
         print "[RANDOMISE] Swapping labels to reach richness targets\n";
     }
-
 
     my $swap_count = 0;
     my $last_filled = $EMPTY_STRING;
@@ -1003,13 +988,13 @@ sub swap_to_reach_targets {
         #  keep a track of what's left
         #my @target_labels = $cloned_bd -> get_labels;  #  work with whatever is left
         #@target_groups = $cloned_bd -> get_groups;
-        
+
         my $target_label_count = $cloned_bd -> get_label_count;
         my $target_group_count = $cloned_bd -> get_group_count; 
 
         #if ($progress_bar
         #    and tv_interval ($last_update_time) > $progress_update_interval) {
-            
+
             my $precision = '%8d';
             my $fmt = "Total gps:\t\t\t$precision\n"
                         . "Unfilled groups:\t\t$precision\n"
@@ -1239,14 +1224,14 @@ sub swap_to_reach_targets {
                     #print "Return: Last filled $last_filled\n";
                 }
             }
-            
+
             $swap_count ++;
 
             if (($swap_count % 500) == 0) {
                 print "Swap count $swap_count\n";
             }
         }
-        
+
         #  add the new label to new_bd
         #print "A: $add_label, $target_group, $add_count\n";
         $new_bd -> add_element (
@@ -1270,7 +1255,7 @@ sub swap_to_reach_targets {
             $last_filled = $target_group;
             #print "Target: Last filled $last_filled\n";
         }
-        
+
     }
 
     print "[Randomise structured] Final swap count is $swap_count\n";
@@ -1278,10 +1263,12 @@ sub swap_to_reach_targets {
     return;
 }
 
-
+#  these appear redundant but might help with mem leaks
+our $AUTOLOAD;
+sub AUTOLOAD {}
+sub DESTROY {}
 
 1;
-
 
 __END__
 

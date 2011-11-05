@@ -108,8 +108,8 @@ sub get_metadata_calc_redundancy {
         type            => 'Lists and Counts',
         pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
-		reference       => 'Garcillan et al. (2003) J Veget. Sci. '
-						   . 'http://dx.doi.org/10.1111/j.1654-1103.2003.tb02174.x',
+        reference       => 'Garcillan et al. (2003) J Veget. Sci. '
+                         . 'http://dx.doi.org/10.1111/j.1654-1103.2003.tb02174.x',
         indices         => {
             REDUNDANCY_ALL  => {
                 description     => 'for both neighbour sets',

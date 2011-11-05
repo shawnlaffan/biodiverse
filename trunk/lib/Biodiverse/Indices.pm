@@ -88,12 +88,6 @@ sub reset_results {
 sub get_calculations {  
     my $self = shift;
 
-    #  have to build the ISA tree, as Devel::Symdump::rnew seems not to use it
-    #my $tree = "Biodiverse::Indices" . Devel::Symdump::_isa_tree ("Biodiverse::Indices");
-    #my $tree = __PACKAGE__ . Devel::Symdump::_isa_tree (__PACKAGE__);
-    #my @tree = split (/\s+/, $tree);
-    #my @tree = (__PACKAGE__, $self -> get_isa_tree_flattened (package => __PACKAGE__));
-    #my @tree = Class::ISA::self_and_super_path(blessed ($self));
     my $tree = mro::get_linear_isa(blessed ($self));
 
     my $syms = Devel::Symdump->rnew(@$tree);

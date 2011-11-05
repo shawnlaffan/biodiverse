@@ -198,7 +198,7 @@ sub clone {
         local $self->{CLUSTER_OUTPUTS} = {};
         local $self->{RANDOMISATION_OUTPUTS} = {};
         local $self->{MATRIX_OUTPUTS} = {};
-        $cloneref = $self -> SUPER::clone ();
+        $cloneref = $self->SUPER::clone ();
         
     }
     elsif ($args{no_elements}) {
@@ -210,11 +210,11 @@ sub clone {
         local $self->{CLUSTER_OUTPUTS} = {};
         local $self->{RANDOMISATION_OUTPUTS} = {};
         local $self->{MATRIX_OUTPUTS} = {};
-        $cloneref = $self -> SUPER::clone ();
+        $cloneref = $self->SUPER::clone ();
         
     }
     else {
-        $cloneref = $self -> SUPER::clone (%args);
+        $cloneref = $self->SUPER::clone (%args);
     }
     
     #my $clone2 = $cloneref;  #  for testing purposes

@@ -16,7 +16,7 @@ use Test::More;
 #  skip until test gets faster or the root problem is fixed
 #plan skip_all => "This test takes too long and the bug isn't fixed yet";
 
-plan HAS_LEAKTRACE ? (tests => 3) : (skip_all => 'require Test::LeakTrace');
+plan HAS_LEAKTRACE ? (tests => 2) : (skip_all => 'require Test::LeakTrace');
 
 
 use Test::LeakTrace;
@@ -64,18 +64,18 @@ my @leaked = leaked_info {
         FUNCTION => 'rand_nochange',
     );
 
-    $r->run_analysis (iterations => 2);
+    $r->run_analysis (iterations => 1);
 
     $bd->delete_output (output => $r);
-    
+
     undef $r;
+    undef $bd;
 };
 #} $descr;
 
 use Data::Dump qw {pp};
 pp (\@leaked);
 
-undef $bd;
 
 
 $descr = 'load, run, save, delete';

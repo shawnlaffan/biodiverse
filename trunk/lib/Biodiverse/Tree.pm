@@ -1624,7 +1624,7 @@ sub collapse_tree {
             $shorter_count ++;
             $type = 2;
         };
-        
+
         #print "$type Changed $name\n";
         #print "$length_to_tip to $new_node_lengths{$name}, length was $node_length\n";
         #print "L= $lower_bound\t U= $upper_bound\n";

@@ -49,7 +49,7 @@ sub new {
     # try to load from a file if the file arg is given
     if (defined $args{file}) {
         my $file_loaded;
-        $file_loaded = $self -> load_file (@_);
+        $file_loaded = $self->load_file (@_);
         return $file_loaded;
     }
     
@@ -92,11 +92,11 @@ sub new {
     );
 
     my %args_for = (%PARAMS, @_);
-    my $x = $self -> set_param (%args_for);
+    my $x = $self->set_param (%args_for);
     
     #  create the groups and labels
-    my %params_hash = $self -> get_params_hash;
-    my $name = $self -> get_param ('NAME');
+    my %params_hash = $self->get_params_hash;
+    my $name = $self->get_param ('NAME');
     $name = $EMPTY_STRING if not defined $name;
     $self->{GROUPS} = Biodiverse::BaseStruct->new(
         %params_hash,
@@ -114,7 +114,7 @@ sub new {
     $self->{SPATIAL_OUTPUTS} = {};
     $self->{MATRIX_OUTPUTS}  = {};
 
-    $self -> set_param (EXCLUSION_HASH => \%exclusion_hash);
+    $self->set_param (EXCLUSION_HASH => \%exclusion_hash);
     
     %params_hash = ();  #  (vainly) hunting memory leaks
 
@@ -128,10 +128,10 @@ sub rename {
     croak "[BASEDATA] rename: argument name not supplied\n"
         if not defined $args{name};
 
-    my $name = $self -> get_param ('NAME');
+    my $name = $self->get_param ('NAME');
     print "[BASEDATA] Renaming $name to $args{name}\n";
 
-    $self -> set_param (NAME => $args{name});
+    $self->set_param (NAME => $args{name});
     
     return;
 }
@@ -142,7 +142,7 @@ sub rename_output {
     
     my $object = $args{output};
     my $new_name = $args{new_name};
-    my $name = $object -> get_param ('NAME');
+    my $name = $object->get_param ('NAME');
     my $hash_ref;
     
     if ((blessed $object) =~ /Spatial/) {
@@ -176,7 +176,7 @@ sub rename_output {
         $hash_ref->{$name} = undef;
         delete $hash_ref->{$name};
         
-        $object -> rename (new_name => $new_name);
+        $object->rename (new_name => $new_name);
     }
     
     $object = undef;
@@ -238,7 +238,7 @@ sub describe {
     /;
 
     foreach my $key (@keys) {
-        my $desc = $self -> get_param ($key);
+        my $desc = $self->get_param ($key);
         if ((ref $desc) =~ /ARRAY/) {
             $desc = join q{, }, @$desc;
         }
@@ -248,12 +248,12 @@ sub describe {
         ];
     }
     
-    my $gp_count = $self -> get_group_count;    
-    my $lb_count = $self -> get_label_count;
-    my $sp_count = scalar @{$self -> get_spatial_output_refs};
-    my $cl_count = scalar @{$self -> get_cluster_output_refs};
-    my $rd_count = scalar @{$self -> get_randomisation_output_refs};
-    my $mx_count = scalar @{$self -> get_matrix_output_refs};
+    my $gp_count = $self->get_group_count;    
+    my $lb_count = $self->get_label_count;
+    my $sp_count = scalar @{$self->get_spatial_output_refs};
+    my $cl_count = scalar @{$self->get_cluster_output_refs};
+    my $rd_count = scalar @{$self->get_randomisation_output_refs};
+    my $mx_count = scalar @{$self->get_matrix_output_refs};
     
     push @description, ['Group count:', $gp_count];
     push @description, ['Label count:', $lb_count];
@@ -264,13 +264,13 @@ sub describe {
 
     push @description, [
         'Using spatial index:',
-        ($self -> get_param ('SPATIAL_INDEX') ? 'yes' : 'no'),
+        ($self->get_param ('SPATIAL_INDEX') ? 'yes' : 'no'),
     ];
 
-    my $ex_count = $self -> get_param ('EXCLUSION_COUNT') || 0;
+    my $ex_count = $self->get_param ('EXCLUSION_COUNT') || 0;
     push @description, ['Run exclusions count:', $ex_count];
 
-    my $bounds = $self -> get_coord_bounds;
+    my $bounds = $self->get_coord_bounds;
     my $bnd_max = $bounds->{MAX};
     my $bnd_min = $bounds->{MIN};
     push @description, [
@@ -297,7 +297,7 @@ sub get_coord_bounds {
     #  do we use numeric or string comparison?
     my @numeric_comp;
     my @string_comp;
-    my $cellsizes = $self -> get_param ('CELL_SIZES');
+    my $cellsizes = $self->get_param ('CELL_SIZES');
     my $i = 0;
     foreach my $size (@$cellsizes) {
         if ($size < 0) {
@@ -312,9 +312,9 @@ sub get_coord_bounds {
     my (@min, @max);
 
     my $groups = $self->get_groups;
-    my $gp = $self -> get_groups_ref;
+    my $gp = $self->get_groups_ref;
 
-    my @coord0 = $gp -> get_element_name_as_array (element => $groups->[0]);
+    my @coord0 = $gp->get_element_name_as_array (element => $groups->[0]);
     $i = 0;
     foreach my $axis (@coord0) {
         $min[$i] = $axis;
@@ -324,7 +324,7 @@ sub get_coord_bounds {
 
     foreach my $gp_name (@$groups) {
 
-        my @coord = $gp -> get_element_name_as_array (element => $gp_name);
+        my @coord = $gp->get_element_name_as_array (element => $gp_name);
 
         foreach my $j (@string_comp) {
             my $axis = $coord[$j];
@@ -354,20 +354,20 @@ sub transpose {
     my %args = @_;
 
     #  create the new object.         retain the the current params
-    my $params = $self -> clone (  #  but clone to avoid ref clash problems
+    my $params = $self->clone (  #  but clone to avoid ref clash problems
         data => scalar $self->get_params_hash
     );  
 
     my $new = Biodiverse::BaseData->new(%$params);
     my $name = defined $args{name}
         ? $args{name}
-        : $new -> get_param ('NAME') . "_T";
+        : $new->get_param ('NAME') . "_T";
 
-    $new -> set_param (NAME => $name);
+    $new->set_param (NAME => $name);
 
     #  get refs for the current object
-    my $groups = $self->get_groups_ref -> clone;
-    my $labels = $self->get_labels_ref -> clone;
+    my $groups = $self->get_groups_ref->clone;
+    my $labels = $self->get_labels_ref->clone;
 
     #  assign the transposed groups and labels
     #  no need to worry about parent refs, as they don't have any (yet)
@@ -376,8 +376,8 @@ sub transpose {
     
     #  set the correct cell sizes.
     #  The default is just in case, and may cause trouble later on
-    my $cell_sizes = $labels -> get_param ('CELL_SIZES') || [-1];
-    $new -> set_param (CELL_SIZES => [@$cell_sizes]);  #  make sure it's a copy
+    my $cell_sizes = $labels->get_param ('CELL_SIZES') || [-1];
+    $new->set_param (CELL_SIZES => [@$cell_sizes]);  #  make sure it's a copy
 
     return $new;
 }
@@ -385,14 +385,14 @@ sub transpose {
 #  create a tree object from the labels
 sub to_tree {
     my $self = shift;
-    return $self -> get_labels_ref -> to_tree (@_);
+    return $self->get_labels_ref->to_tree (@_);
 }
 
 #  get the embedded trees used in the outputs
 sub get_embedded_trees {
     my $self = shift;
     
-    my $outputs = $self -> get_output_refs;
+    my $outputs = $self->get_output_refs;
     my %tree_hash;  #  index by ref to allow for duplicates
 
     OUTPUT:
@@ -412,7 +412,7 @@ sub get_embedded_trees {
 sub get_embedded_matrices {
     my $self = shift;
     
-    my $outputs = $self -> get_output_refs;
+    my $outputs = $self->get_output_refs;
     my %mx_hash;  #  index by ref to allow for duplicates
 
     OUTPUT:
@@ -433,10 +433,10 @@ sub get_embedded_matrices {
 sub weaken_child_basedata_refs {
     my $self = shift;
     foreach my $sub_ob ($self->get_spatial_output_refs, $self->get_cluster_output_refs) {
-        $sub_ob -> weaken_basedata_ref;
+        $sub_ob->weaken_basedata_ref;
     }
     foreach my $sub_ob ($self->get_cluster_output_refs) {
-        $sub_ob -> weaken_parent_refs;  #  loop through tree and weaken the parent refs
+        $sub_ob->weaken_parent_refs;  #  loop through tree and weaken the parent refs
     }
     #print $EMPTY_STRING;
     
@@ -610,9 +610,9 @@ sub import_data {  #  load a data file into the selected BaseData object.
     my $use_label_properties = $args{use_label_properties};
     if ($use_label_properties) {  # twisted - FIXFIXFIX
         $label_properties = $args{label_properties}
-                            || $self -> get_param ('LABEL_PROPERTIES');
+                            || $self->get_param ('LABEL_PROPERTIES');
         if ($args{label_properties}) {
-            $self -> set_param (LABEL_PROPERTIES => $args{label_properties});
+            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
         }
     }
     #  then groups
@@ -620,14 +620,14 @@ sub import_data {  #  load a data file into the selected BaseData object.
     my $use_group_properties = $args{use_group_properties};
     if ($use_group_properties) {
         $group_properties = $args{group_properties}
-                            || $self -> get_param ('GROUP_PROPERTIES');
+                            || $self->get_param ('GROUP_PROPERTIES');
         if ($args{group_properties}) {
-            $self -> set_param (GROUP_PROPERTIES => $args{group_properties}) ;
+            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
         }
     }
     
-    my $labels_ref = $self -> get_labels_ref;
-    my $groups_ref = $self -> get_groups_ref;
+    my $labels_ref = $self->get_labels_ref;
+    my $groups_ref = $self->get_groups_ref;
     
     print "[BASEDATA] Loading from files "
             . join (q{ }, @{$args{input_files}})
@@ -701,8 +701,8 @@ sub import_data {  #  load a data file into the selected BaseData object.
         $half_cellsize[$i] = $cell_sizes[$i] / 2;
     }
 
-    my $quotes = $self -> get_param ('QUOTES');  #  for storage, not import
-    my $el_sep = $self -> get_param ('JOIN_CHAR');
+    my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
+    my $el_sep = $self->get_param ('JOIN_CHAR');
 
     #  for parsing lines to element components
     my %line_parse_args = (
@@ -732,17 +732,17 @@ sub import_data {  #  load a data file into the selected BaseData object.
         print "[BASEDATA] INPUT FILE: $file\n";
         my @tmp = File::Basename::fileparse ($file, $EMPTY_STRING);
         my $file_base = shift @tmp;
-        my $file_handle = IO::File -> new;
+        my $file_handle = IO::File->new;
 
         if (-e $file and -r $file) {
-            $file_handle -> open ($file, '<:via(File::BOM)');
+            $file_handle->open ($file, '<:via(File::BOM)');
         }
         else {
             croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n";
         }
 
         my $file_size_Mb
-            = $self -> set_precision (
+            = $self->set_precision (
                 precision => "%.3f",
                 value => (-s $file)
             )
@@ -760,7 +760,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
         #  although \r\n will be captured.
         #  Should really seek to end of file and then read back a few chars,
         #  assuming that's faster.
-        my $eol = $self -> guess_eol (string => $header);
+        my $eol = $self->guess_eol (string => $header);
         my $eol_char_len = length ($eol);
 
         #  for progress bar stuff
@@ -788,32 +788,32 @@ sub import_data {  #  load a data file into the selected BaseData object.
                 chop $first_10000_chars;
             }
 
-            $input_quotes = $self -> guess_quote_char (string => \$first_10000_chars);
+            $input_quotes = $self->guess_quote_char (string => \$first_10000_chars);
             #  if all else fails...
             if (! defined $input_quotes) {
-                $input_quotes = $self -> get_param ('QUOTES');
+                $input_quotes = $self->get_param ('QUOTES');
             }
         }
 
         my $sep = $args{input_sep_char};
         if (not defined $sep or $sep eq "guess") {
-            $sep = $self -> guess_field_separator (
+            $sep = $self->guess_field_separator (
                 string     => $header,
                 quote_char => $input_quotes
             );
         }
 
-        my $in_csv = $self -> get_csv_object (
+        my $in_csv = $self->get_csv_object (
             sep_char   => $sep,
             quote_char => $input_quotes,
             binary     => $input_binary,  #  NEED TO ENABLE OTHER CSV ARGS TO BE PASSED
         );
-        my $out_csv = $self -> get_csv_object (
+        my $out_csv = $self->get_csv_object (
             sep_char   => $el_sep,
             quote_char => $quotes,
         );
 
-        my $lines = $self -> get_next_line_set (
+        my $lines = $self->get_next_line_set (
             file_handle        => $file_handle,
             file_name          => $file,
             target_line_count  => $lines_to_read_per_chunk,
@@ -841,7 +841,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
                 string     => $header,
             );
             $matrix_label_col_hash
-                = $self -> get_label_columns_for_matrix_import  (
+                = $self->get_label_columns_for_matrix_import  (
                     csv_object       => $out_csv,
                     label_array      => $header_array,
                     label_start_col  => $label_start_col,
@@ -859,7 +859,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
         my $line_num = 0;
         #my $line_num_end_last_chunk = 0;
         my $chunk_count = 0;
-        #my $total_chunk_text = $self -> get_param_as_ref ('IMPORT_TOTAL_CHUNK_TEXT');
+        #my $total_chunk_text = $self->get_param_as_ref ('IMPORT_TOTAL_CHUNK_TEXT');
         my $total_chunk_text = '>0';
         
         print "[BASEDATA] Line number: 1\n";
@@ -874,7 +874,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
             #  section must be here in case we have an
             #  exclude on or near the last line of the chunk
             if (scalar @$lines == 0) {
-                $lines = $self -> get_next_line_set (
+                $lines = $self->get_next_line_set (
                     progress           => $progress_bar,
                     file_handle        => $file_handle,
                     file_name          => $file,
@@ -886,12 +886,12 @@ sub import_data {  #  load a data file into the selected BaseData object.
                 
                 $line_count += scalar @$lines;
 
-                #$chunk_count = $self -> get_param ('IMPORT_CHUNK_COUNT') || 0;
-                #$total_chunk_text = $self -> get_param ('IMPORT_TOTAL_CHUNK_TEXT');
+                #$chunk_count = $self->get_param ('IMPORT_CHUNK_COUNT') || 0;
+                #$total_chunk_text = $self->get_param ('IMPORT_TOTAL_CHUNK_TEXT');
                 #$total_chunk_text = ">$chunk_count" if not defined $$total_chunk_text;
                 $chunk_count ++;
                 $total_chunk_text
-                    = $file_handle -> eof ? $chunk_count : ">$chunk_count";
+                    = $file_handle->eof ? $chunk_count : ">$chunk_count";
             }
             
             
@@ -903,7 +903,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
                             : ">$line_count";
                     
                     #if ($progress_bar) {
-                        #my $line_num_end_prev_chunk = $self -> get_param ('IMPORT_LINE_NUM_END_PREV_CHUNK');
+                        #my $line_num_end_prev_chunk = $self->get_param ('IMPORT_LINE_NUM_END_PREV_CHUNK');
                         
                         my $frac = eval {
                             ($line_num - $line_num_end_prev_chunk) /
@@ -1034,16 +1034,16 @@ sub import_data {  #  load a data file into the selected BaseData object.
 
             #  remap it if needed
             if ($use_group_properties) {
-                my $remapped = $group_properties -> get_element_remapped (
+                my $remapped = $group_properties->get_element_remapped (
                     element => $group,
                 );
 
                 #  test exclude and include before remapping
-                next BYLINE if $group_properties -> get_element_exclude (
+                next BYLINE if $group_properties->get_element_exclude (
                     element => $group,
                 );
 
-                my $include =  $group_properties -> get_element_include (element => $group);
+                my $include =  $group_properties->get_element_include (element => $group);
                 if (defined $include and not $include) {
                     print "Skipping $group\n";
                     next BYLINE;
@@ -1057,7 +1057,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
             my %elements;
             if ($args{data_in_matrix_form}) {
                 %elements =
-                    $self -> get_labels_from_line_matrix (
+                    $self->get_labels_from_line_matrix (
                         fields_ref      => $fields_ref,
                         csv_object      => $out_csv,
                         line_num        => $line_num,
@@ -1068,7 +1068,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
             }
             else {
                 %elements =
-                    $self -> get_labels_from_line (
+                    $self->get_labels_from_line (
                         fields_ref      => $fields_ref,
                         csv_object      => $out_csv,
                         line_num        => $line_num,
@@ -1092,7 +1092,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
                     next ADD_ELEMENTS
                       if $args{data_in_matrix_form};
                 }
-                $self -> add_element (
+                $self->add_element (
                     %args,
                     label      => $el,
                     group      => $group,
@@ -1106,7 +1106,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
             $line_count_all_input_files ++;
         }
 
-        $file_handle -> close;
+        $file_handle->close;
         print "\tDONE (used $line_count_used_this_file of $line_count lines)\n";
     }
 
@@ -1118,8 +1118,8 @@ sub import_data {  #  load a data file into the selected BaseData object.
             next LABEL_PROPS
               if ! $labels_ref->exists_element (element => $label);
 
-            #my $range = $label_properties -> get_element_range (element => $label);
-            #my $sample_cnt = $label_properties -> get_element_sample_count (element => $label);
+            #my $range = $label_properties->get_element_range (element => $label);
+            #my $sample_cnt = $label_properties->get_element_sample_count (element => $label);
             my %props = $label_properties->get_element_properties (element => $label);
 
             #  but don't add these ones
@@ -1136,14 +1136,14 @@ sub import_data {  #  load a data file into the selected BaseData object.
         GROUP_PROPS:
         foreach my $group ($group_properties->get_element_list) {
             next GROUP_PROPS
-                if ! $groups_ref -> exists_element (element => $group);
+                if ! $groups_ref->exists_element (element => $group);
                 
-            my %props = $group_properties -> get_element_properties (element => $group);
+            my %props = $group_properties->get_element_properties (element => $group);
             
             #  but don't add these ones
             delete @props{qw /INCLUDE EXCLUDE/};
             
-            $groups_ref -> add_to_lists (
+            $groups_ref->add_to_lists (
                 element    => $group,
                 PROPERTIES => \%props,
             );
@@ -1152,42 +1152,42 @@ sub import_data {  #  load a data file into the selected BaseData object.
 
 
     # Set CELL_SIZE on the GROUPS BaseStruct
-    $groups_ref -> set_param (CELL_SIZES => $self->get_param('CELL_SIZES'));
+    $groups_ref->set_param (CELL_SIZES => $self->get_param('CELL_SIZES'));
     
     #  check if the labels are numeric (or still numeric)
     #  set flags and cell sizes accordingly
-    if ($self -> get_param('NUMERIC_LABELS')
+    if ($self->get_param('NUMERIC_LABELS')
         or not defined $self->get_param('NUMERIC_LABELS')
         ) {
-        $self -> set_param(      #  set a value from undef returns
-            NUMERIC_LABELS => $labels_ref -> elements_are_numeric
+        $self->set_param(      #  set a value from undef returns
+            NUMERIC_LABELS => $labels_ref->elements_are_numeric
                               || 0
         );  
     }
 
     my @label_cell_sizes;
-    if ($labels_ref -> element_arrays_are_numeric) {
+    if ($labels_ref->element_arrays_are_numeric) {
         @label_cell_sizes = (0) x scalar @label_columns;  #  numbers
     }
     else {
         @label_cell_sizes = (-1) x scalar @label_columns;  #  text
     }
-    $labels_ref -> set_param (CELL_SIZES => \@label_cell_sizes);
+    $labels_ref->set_param (CELL_SIZES => \@label_cell_sizes);
 
-    if ($labels_ref -> get_element_count) {
-        $labels_ref -> generate_element_coords;
+    if ($labels_ref->get_element_count) {
+        $labels_ref->generate_element_coords;
     }
 
-    if ($groups_ref -> get_element_count) {
-        $groups_ref -> generate_element_coords;
+    if ($groups_ref->get_element_count) {
+        $groups_ref->generate_element_coords;
     }
     
     #  clear the rtree if one exists (used for plotting)
-    $groups_ref -> delete_param ('RTREE');
+    $groups_ref->delete_param ('RTREE');
     
     #  now rebuild the index if need be
     if (    $orig_group_count != $self->get_group_count
-        and $self -> get_param ('SPATIAL_INDEX')
+        and $self->get_param ('SPATIAL_INDEX')
         ) {
         $self->rebuild_spatial_index();
     }
@@ -1218,7 +1218,7 @@ sub get_labels_from_line {
 
     #  get the label for this row  using a slice
     my @tmp = @$fields_ref[@$label_columns];
-    my $label = $self -> list2csv (
+    my $label = $self->list2csv (
         list => \@tmp,
         csv_object => $csv_object,
     );
@@ -1226,12 +1226,12 @@ sub get_labels_from_line {
     #  remap it if needed
     if ($use_label_properties) {
         my $remapped
-            = $label_properties -> get_element_remapped (element => $label);
+            = $label_properties->get_element_remapped (element => $label);
 
         #  test include and exclude before remapping
-        return if $label_properties -> get_element_exclude (element => $label);
+        return if $label_properties->get_element_exclude (element => $label);
 
-        my $include = $label_properties -> get_element_include (element => $label);    
+        my $include = $label_properties->get_element_include (element => $label);    
 
         return if defined $include and not $include;
 
@@ -1324,18 +1324,18 @@ sub get_label_columns_for_matrix_import {
 
         #  get the label for this row from the header
         my @tmp = $label_array->[$i];
-        my $label = $self -> list2csv (
+        my $label = $self->list2csv (
             list       => \@tmp,
             csv_object => $csv_object,
         );
 
         #  remap it if needed
         if ($use_label_properties) {
-            my $remapped = $label_properties -> get_element_remapped (element => $label);
+            my $remapped = $label_properties->get_element_remapped (element => $label);
             
             #  text include and exclude before remapping
-            next if $label_properties -> get_element_exclude (element => $label);
-            my $include = $label_properties -> get_element_include (element => $label);
+            next if $label_properties->get_element_exclude (element => $label);
+            my $include = $label_properties->get_element_include (element => $label);
             if (defined $include) {
                 next LABEL_COLS unless $include;
             }
@@ -1373,14 +1373,14 @@ sub add_element {  #  run some calls to the sub hashes
     my $lb_ref = $self->get_labels_ref;
 
     if (not defined $label) {  #  one of these will break if neither label nor group is defined
-        $gp_ref -> add_element (
+        $gp_ref->add_element (
             element    => $group,
             csv_object => $args{csv_object},
         );
         return;
     }
     if (not defined $group) {
-        $lb_ref -> add_element (
+        $lb_ref->add_element (
             element    => $label,
             csv_object => $args{csv_object},
         );
@@ -1390,13 +1390,13 @@ sub add_element {  #  run some calls to the sub hashes
     if ($count) {
         #  add the labels and groups as element and subelement
         #  labels is the transpose of groups
-        $gp_ref -> add_sub_element (
+        $gp_ref->add_sub_element (
             element    => $group,
             subelement => $label,
             count      => $count,
             csv_object => $args{csv_object},
         );
-        $lb_ref -> add_sub_element (
+        $lb_ref->add_sub_element (
             element    => $label,
             subelement => $group,
             count      => $count,
@@ -1405,13 +1405,13 @@ sub add_element {  #  run some calls to the sub hashes
     }
     else {
         if ($args{allow_empty_groups}) {
-            $gp_ref -> add_element (
+            $gp_ref->add_element (
                 element    => $group,
                 csv_object => $args{csv_object},
             );
         }
         if ($args{allow_empty_labels}) {
-            $lb_ref -> add_element (
+            $lb_ref->add_element (
                 element    => $label,
                 csv_object => $args{csv_object},
             );
@@ -1433,7 +1433,7 @@ sub get_label_element_as_array {
     my $self = shift;
     my %args = @_;
     my $element = $args{element} || croak "element not specified\n";
-    return $self -> get_labels_ref -> get_element_name_as_array(element => $element);
+    return $self->get_labels_ref->get_element_name_as_array(element => $element);
 }
 
 
@@ -1551,7 +1551,7 @@ sub transfer_element_properties {
     foreach my $element ($elements_ref->get_element_list) {
         $i++;
         my $progress = $i / $total_to_do;
-        $progress_bar -> update (
+        $progress_bar->update (
             "$text\n"
             . "(label $i of $total_to_do)",
             $progress
@@ -1586,7 +1586,7 @@ sub run_exclusions {
     my %args = @_;
 
     croak "Cannot run exclusions on a baseData with existing outputs\n"
-      if (my @array = $self -> get_output_refs);
+      if (my @array = $self->get_output_refs);
 
     my $feedback = 'The data initially fall into '
           . $self->get_group_count
@@ -1630,7 +1630,7 @@ sub run_exclusions {
         @deleteList = ();
         
         BY_ELEMENT:
-        foreach my $element ($base_type_ref -> get_element_list) {
+        foreach my $element ($base_type_ref->get_element_list) {
             #next if ! defined $element;  #  ALL SHOULD BE DEFINED
 
             #  IGNORE NEXT CONDITION - sometimes we get an element called ''
@@ -1654,10 +1654,10 @@ sub run_exclusions {
 
             if (not $failed_a_test and $type eq 'LABELS') {  #  label specific tests - need to generalise these
                 if ((defined $exclusion_hash{$type}{max_range}
-                    && $self -> get_range(element => $element) >= $exclusion_hash{$type}{max_range})
+                    && $self->get_range(element => $element) >= $exclusion_hash{$type}{max_range})
                     ||
                     (defined $exclusion_hash{$type}{min_range}
-                    && $self -> get_range(element => $element) <= $exclusion_hash{$type}{min_range})
+                    && $self->get_range(element => $element) <= $exclusion_hash{$type}{min_range})
                     ) {
                     
                     $failed_a_test = 1;
@@ -1671,7 +1671,7 @@ sub run_exclusions {
         }
 
         foreach my $element (@deleteList) {  #  having it out here means all are checked against the initial state
-            $subCutCount += $self -> delete_element (type => $type, element => $element);
+            $subCutCount += $self->delete_element (type => $type, element => $element);
         }
 
         my $lctype = lc ($type);
@@ -1707,7 +1707,7 @@ sub run_exclusions {
     
     #  now rebuild the index if need be
     if (    $orig_group_count != $self->get_group_count
-        and $self -> get_param ('SPATIAL_INDEX')
+        and $self->get_param ('SPATIAL_INDEX')
         ) {
         $self->rebuild_spatial_index();
     }
@@ -1718,7 +1718,7 @@ sub run_exclusions {
 sub get_exclusion_hash {  #  get the exclusion_hash from the PARAMS
     my $self = shift;
 
-    my $exclusion_hash = $self -> get_param('EXCLUSION_HASH')
+    my $exclusion_hash = $self->get_param('EXCLUSION_HASH')
                       || {};
     
     return wantarray ? %$exclusion_hash : $exclusion_hash;
@@ -1780,7 +1780,7 @@ sub trim {
         }
 
         $delete_sub_count +=
-            $self -> delete_element (
+            $self->delete_element (
                 type    => 'LABELS',
                 element => $label,
             );
@@ -1822,7 +1822,7 @@ sub delete_element {
     my $subelement_cut_count = 0;
 
     #  call the Biodiverse::BaseStruct::delete_element sub to clean the $type element
-    my @deleted_subelements = $type_ref -> delete_element (element => $element);
+    my @deleted_subelements = $type_ref->delete_element (element => $element);
     #  could use it directly in the next loop, but this is more readable
 
     #  now we adjust those $other_type elements that have been affected (eg correct Label ranges etc).
@@ -1837,7 +1837,7 @@ sub delete_element {
         if ($other_type_ref->get_variety(element => $subelement) == 0) {
             # we have wiped out all groups with this label
             # so we need to remove it from the data set
-            $other_type_ref -> delete_element(element => $subelement);
+            $other_type_ref->delete_element(element => $subelement);
             $subelement_cut_count ++;
         }
     }
@@ -1853,33 +1853,33 @@ sub delete_sub_element {
     my $label = $args{label};
     my $group = $args{group};
     
-    my $groups_ref = $self -> get_groups_ref;
-    my $labels_ref = $self -> get_labels_ref;
+    my $groups_ref = $self->get_groups_ref;
+    my $labels_ref = $self->get_labels_ref;
 
-    #my $orig_range = $labels_ref -> get_variety (element => $label);
-    #my $orig_richness = $groups_ref -> get_richness (element => $group);    
+    #my $orig_range = $labels_ref->get_variety (element => $label);
+    #my $orig_richness = $groups_ref->get_richness (element => $group);    
     
-    $labels_ref -> delete_sub_element (
+    $labels_ref->delete_sub_element (
         element    => $label,
         subelement => $group,
     );
-    $groups_ref -> delete_sub_element (
+    $groups_ref->delete_sub_element (
         element    => $group,
         subelement => $label,
     );
 
     #  clean up if labels or groups are now empty
-    #my $richness = $groups_ref -> get_richness (element => $group);
-    #my $range    = $labels_ref -> get_variety (element => $label);;
+    #my $richness = $groups_ref->get_richness (element => $group);
+    #my $range    = $labels_ref->get_variety (element => $label);;
     #
-    if ($groups_ref -> get_variety (element => $group) == 0) {
-        $self -> delete_element (
+    if ($groups_ref->get_variety (element => $group) == 0) {
+        $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($labels_ref -> get_variety (element => $label) == 0) {
-        $self -> delete_element (
+    if ($labels_ref->get_variety (element => $label) == 0) {
+        $self->delete_element (
             type => 'LABELS',
             element => $label,
         );
@@ -1892,13 +1892,13 @@ sub get_redundancy {    #  A cheat method, assumes we want group redundancy by d
                         # drops the call down to the GROUPS object
     my $self = shift;
 
-    return $self -> get_groups_ref -> get_redundancy(@_);
+    return $self->get_groups_ref->get_redundancy(@_);
 }
 
 sub get_diversity {  #  more cheat methods
     my $self = shift;
 
-    return $self -> get_groups_ref -> get_variety(@_);
+    return $self->get_groups_ref->get_variety(@_);
 }
 
 sub get_richness {
@@ -1925,15 +1925,15 @@ sub get_group_sample_count {
 sub get_range {
     my $self = shift;
     
-    my $labels_ref = $self -> get_labels_ref;
+    my $labels_ref = $self->get_labels_ref;
     
-    my $props = $labels_ref -> get_list_values (@_, list => 'PROPERTIES');
+    my $props = $labels_ref->get_list_values (@_, list => 'PROPERTIES');
     my %props;
     if ((ref $props) =~ /HASH/) {
         %props = %$props ; #  make a copy - avoid auto-viv.  break otherwise
     }
     
-    my $variety = $labels_ref -> get_variety (@_);
+    my $variety = $labels_ref->get_variety (@_);
     
     my $range = $variety;
     if (defined $props{RANGE}) {
@@ -1963,9 +1963,9 @@ sub get_range_intersection {
     #  now loop through the labels and get the groups that contain all the species
     my $elements = {};
     foreach my $label (@$labels) {
-        next if not $self -> exists_label (label => $label);  #  skip if it does not exist
-        my $res = $self -> calc_abc (label_hash1 => $elements,
-                                     label_hash2 => {$self -> get_groups_with_label_as_hash (label => $label)}
+        next if not $self->exists_label (label => $label);  #  skip if it does not exist
+        my $res = $self->calc_abc (label_hash1 => $elements,
+                                     label_hash2 => {$self->get_groups_with_label_as_hash (label => $label)}
                                     );
         #  delete those that are not shared (label_hash1 and label_hash2)
         my @tmp = delete @{$res->{label_hash_all}}{keys %{$res->{label_hash1}}};
@@ -1998,8 +1998,8 @@ sub get_range_union {
     #  now loop through the labels and get the elements they occur in
     my %shared_elements;
     foreach my $label (@$labels) {
-        next if not $self -> exists_label (label => $label);  #  skip if it does not exist
-        my $elements_now = $self -> get_groups_with_label_as_hash (label => $label);
+        next if not $self->exists_label (label => $label);  #  skip if it does not exist
+        my $elements_now = $self->get_groups_with_label_as_hash (label => $label);
         next if (scalar keys %$elements_now) == 0;  #  empty hash - must be no groups with this label
         #  add these elements as a hash slice
         @shared_elements{keys %$elements_now} = values %$elements_now;
@@ -2013,20 +2013,20 @@ sub get_range_union {
 sub get_groups {  #  get a list of the groups in the data set
     my $self = shift;
     my %args = @_;
-    return $self -> get_groups_ref -> get_element_list;
+    return $self->get_groups_ref->get_element_list;
 }
 
 sub get_labels { #  get a list of the labels in the selected BaseData
     my $self = shift;
     my %args = @_;
-    return $self -> get_labels_ref -> get_element_list;
+    return $self->get_labels_ref->get_element_list;
 }
 
 sub get_groups_with_label {  #  get a list of the groups that contain $label
     my $self = shift;
     my %args = @_;
     confess "Label not specified\n" if ! defined $args{label};
-    return $self -> get_labels_ref -> get_sub_element_list (element => $args{label});
+    return $self->get_labels_ref->get_sub_element_list (element => $args{label});
 }
 
 sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $label
@@ -2037,14 +2037,14 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
 
     if (! defined $args{use_elements}) {
         #  takes care of the wantarray stuff this way
-        return $self -> get_labels_ref -> get_sub_element_hash (element => $args{label});
+        return $self->get_labels_ref->get_sub_element_hash (element => $args{label});
     }
 
     #  Not sure why the rest is here - is it used anywhere?
     #  violates the guide'ine that subs should do one thing only
 
     #  make a copy - don't want to delete the original
-    my %results = $self -> get_labels_ref -> get_sub_element_hash (element => $args{label});
+    my %results = $self->get_labels_ref->get_sub_element_hash (element => $args{label});
 
     #  get a list of keys we don't want
     no warnings 'uninitialized';  #  in case a list containing nulls is sent through
@@ -2064,7 +2064,7 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
 sub get_groups_without_label {
     my $self = shift;
 
-    my $groups = $self -> get_groups_without_label_as_hash (@_);
+    my $groups = $self->get_groups_without_label_as_hash (@_);
 
     return wantarray ? keys %$groups : [keys %$groups];
 }
@@ -2076,9 +2076,9 @@ sub get_groups_without_label_as_hash {
     croak "Label not specified\n"
         if ! defined $args{label};
 
-    my $label_gps = $self -> get_labels_ref -> get_sub_element_hash (element => $args{label});
+    my $label_gps = $self->get_labels_ref->get_sub_element_hash (element => $args{label});
 
-    my %groups = $self -> get_groups_ref -> get_element_hash;  #  make a copy
+    my %groups = $self->get_groups_ref->get_element_hash;  #  make a copy
 
     delete @groups{keys %$label_gps};
 
@@ -2091,14 +2091,14 @@ sub get_labels_in_group {  #  get a list of the labels that occur in $group
     my $self = shift;
     my %args = @_;
     croak "Group not specified\n" if ! defined $args{group};
-    return $self -> get_groups_ref -> get_sub_element_list(element => $args{group});
+    return $self->get_groups_ref->get_sub_element_list(element => $args{group});
 }
 
 sub get_labels_in_group_as_hash {  #  get a hash of the labels that occur in $group
     my $self = shift;
     my %args = @_;
     croak "Group not specified\n" if ! defined $args{group};
-    return $self -> get_groups_ref -> get_sub_element_hash(element => $args{group});
+    return $self->get_groups_ref->get_sub_element_hash(element => $args{group});
 }
 
 #  get the complement of the labels in a group
@@ -2107,9 +2107,9 @@ sub get_labels_not_in_group {
     my $self = shift;
     my %args = @_;
     croak "Group not specified\n" if ! defined $args{group};
-    my $gp_labels = $self -> get_groups_ref -> get_sub_element_hash (element => $args{group});
+    my $gp_labels = $self->get_groups_ref->get_sub_element_hash (element => $args{group});
     
-    my %labels = $self -> get_labels_ref -> get_element_hash;  #  make a copy
+    my %labels = $self->get_labels_ref->get_element_hash;  #  make a copy
     
     delete @labels{keys %$gp_labels};
     
@@ -2140,13 +2140,13 @@ sub get_label_column_count {
 sub get_group_count {
     my $self = shift;
 
-    return $self -> get_groups_ref -> get_element_count;
+    return $self->get_groups_ref->get_element_count;
 }
 
 sub exists_group {
     my $self = shift;
     my %args = @_;
-    return $self -> get_groups_ref -> exists_element (
+    return $self->get_groups_ref->exists_element (
         element => defined $args{group} ? $args{group} : $args{element}
     );
 }
@@ -2154,7 +2154,7 @@ sub exists_group {
 sub exists_label {
     my $self = shift;
     my %args = @_;
-    return $self -> get_labels_ref -> exists_element (
+    return $self->get_labels_ref->exists_element (
         element => defined $args{label} ? $args{label} : $args{element}
     );
 }
@@ -2176,7 +2176,7 @@ sub write_sub_elements_csv {
     my %args = @_;
     croak "Type not specified\n" if ! defined $args{type};
     my $data = $self->{$args{type}} -> to_table (@_, list => 'SUBELEMENTS');
-    $self -> write_table (@_, data => $data);
+    $self->write_table (@_, data => $data);
 
     return;
 }
@@ -2196,13 +2196,13 @@ sub build_spatial_index {  #  builds GROUPS, not LABELS
 
     #  need to get a hash of all the groups and their coords.
     my %groups;
-    my $gp_object = $self -> get_groups_ref;
-    foreach my $gp ($self -> get_groups) {
-        $groups{$gp} = $gp_object -> get_element_name_as_array (element => $gp);
+    my $gp_object = $self->get_groups_ref;
+    foreach my $gp ($self->get_groups) {
+        $groups{$gp} = $gp_object->get_element_name_as_array (element => $gp);
     }
     
-    my $index = Biodiverse::Index -> new (@_, element_hash => \%groups);
-    $self -> set_param (SPATIAL_INDEX => $index);
+    my $index = Biodiverse::Index->new (@_, element_hash => \%groups);
+    $self->set_param (SPATIAL_INDEX => $index);
     
     return;
 }
@@ -2210,11 +2210,11 @@ sub build_spatial_index {  #  builds GROUPS, not LABELS
 sub delete_spatial_index {
     my $self = shift;
     
-    my $name = $self -> get_param ('NAME');
+    my $name = $self->get_param ('NAME');
 
-    if ($self -> get_param ('SPATIAL_INDEX')) {
+    if ($self->get_param ('SPATIAL_INDEX')) {
         print "[Basedata] Deleting spatial index from $name\n";
-        $self -> delete_param('SPATIAL_INDEX');
+        $self->delete_param('SPATIAL_INDEX');
         return 1;
     }
 
@@ -2226,7 +2226,7 @@ sub delete_spatial_index {
 sub rebuild_spatial_index {
     my $self = shift;
     
-    my $index = $self -> get_param ('SPATIAL_INDEX');
+    my $index = $self->get_param ('SPATIAL_INDEX');
     return if ! defined $index;
     
     my $resolutions = $index->get_param('RESOLUTIONS');
@@ -2251,7 +2251,7 @@ sub delete_output {
         delete $self->{SPATIAL_OUTPUTS}{$name};
     }
     elsif ($type =~ /Cluster|Tree|RegionGrower/) {
-        my $x = eval {$object -> delete_cached_values_below};
+        my $x = eval {$object->delete_cached_values_below};
         $self->{CLUSTER_OUTPUTS}{$name} = undef;
         delete $self->{CLUSTER_OUTPUTS}{$name};
     }
@@ -2260,7 +2260,7 @@ sub delete_output {
         delete $self->{MATRIX_OUTPUTS}{$name};
     }
     elsif ($type =~ /Randomise/) {
-        $self -> do_delete_randomisation (@_);
+        $self->do_delete_randomisation (@_);
     }
     else {
         croak "[BASEDATA] Cannot delete this type of output: ",
@@ -2269,7 +2269,7 @@ sub delete_output {
     }
     
     if (!defined $args{delete_basedata_ref} || $args{delete_basedata_ref}) {
-        $object -> set_param (BASEDATA_REF => undef);  #  free its parent ref
+        $object->set_param (BASEDATA_REF => undef);  #  free its parent ref
     }
     $object = undef;  #  clear it
 
@@ -2288,13 +2288,13 @@ sub do_delete_randomisation {
     
     #  loop over the spatial outputs and clear the lists
     BY_SPATIAL_OUTPUT:
-    foreach my $sp_output ($self -> get_spatial_output_refs) {
-        my @lists = grep {$_ =~ /^$name>>/} $sp_output -> get_lists_across_elements;
+    foreach my $sp_output ($self->get_spatial_output_refs) {
+        my @lists = grep {$_ =~ /^$name>>/} $sp_output->get_lists_across_elements;
         unshift @lists, $name; #  for backwards compatibility
 
         BY_ELEMENT:
-        foreach my $element ($sp_output -> get_element_list) {
-            $sp_output -> delete_lists (
+        foreach my $element ($sp_output->get_element_list) {
+            $sp_output->delete_lists (
                 lists   => \@lists,
                 element => $element
             );
@@ -2311,17 +2311,17 @@ sub do_delete_randomisation {
 
 
     BY_CLUSTER_OUTPUT:
-    foreach my $cl_output ($self -> get_cluster_output_refs) {
-        my @lists = grep {$_ =~ /^$name>>/} $cl_output -> get_list_names_below;
+    foreach my $cl_output ($self->get_cluster_output_refs) {
+        my @lists = grep {$_ =~ /^$name>>/} $cl_output->get_list_names_below;
         my @lists_to_delete = (@node_lists, @lists);
-        $cl_output -> delete_lists_below (lists => \@lists_to_delete);
+        $cl_output->delete_lists_below (lists => \@lists_to_delete);
     }
     
     
     $self->{RANDOMISATION_OUTPUTS}{$name} = undef;
     delete $self->{RANDOMISATION_OUTPUTS}{$name};
 
-    $object -> set_param (BASEDATA_REF => undef);  #  free its parent ref
+    $object->set_param (BASEDATA_REF => undef);  #  free its parent ref
     
     return;
 }
@@ -2360,10 +2360,10 @@ sub get_output_refs {
     my $self = shift;
 
     my @refs = (
-        $self -> get_spatial_output_refs,
-        $self -> get_cluster_output_refs,
-        $self -> get_randomisation_output_refs,
-        $self -> get_matrix_output_refs,
+        $self->get_spatial_output_refs,
+        $self->get_cluster_output_refs,
+        $self->get_randomisation_output_refs,
+        $self->get_matrix_output_refs,
     );
     
     return wantarray ? @refs : \@refs;    
@@ -2381,8 +2381,8 @@ sub get_output_refs_sorted_by_name {
 sub delete_all_outputs {
     my $self = shift;
     
-    foreach my $output ($self -> get_output_refs) {
-        $self -> delete_output (output => $output);
+    foreach my $output ($self->get_output_refs) {
+        $self->delete_output (output => $output);
     }
     
     return;
@@ -2417,11 +2417,11 @@ sub add_cluster_output {
         carp "[BASEDATA] Object is not of valid type ($class)"
             if not $class =~ /cluster|regiongrower/i;
 
-        $object -> set_param (BASEDATA_REF => $self);
-        $object -> weaken_basedata_ref;
+        $object->set_param (BASEDATA_REF => $self);
+        $object->weaken_basedata_ref;
     }
     else {  #  create a new object
-        $object = $class -> new (
+        $object = $class->new (
             QUOTES       => $self->get_param('QUOTES'),
             JOIN_CHAR    => $self->get_param('JOIN_CHAR'),
             %args,
@@ -2443,7 +2443,7 @@ sub delete_cluster_output {
         if ! defined $args{name};
 
     #delete $self->{CLUSTER_OUTPUTS}{$args{name}};
-    $self -> delete_output (
+    $self->delete_output (
         output => $self->{CLUSTER_OUTPUTS}{$args{name}},
     );
 
@@ -2482,8 +2482,8 @@ sub get_cluster_outputs {
 sub delete_cluster_output_cached_values {
     my $self = shift;
     print "[BASEDATA] Deleting cached values in cluster trees\n";
-    foreach my $cluster ($self -> get_cluster_output_refs) {
-        $cluster -> delete_cached_values_below (@_);
+    foreach my $cluster ($self->get_cluster_output_refs) {
+        $cluster->delete_cached_values_below (@_);
     }
     
     return;
@@ -2518,11 +2518,11 @@ sub add_spatial_output {
         carp "[BASEDATA] Object is not of type $class"
             if $class ne $obj_class;
         
-        $object -> set_param (BASEDATA_REF => $self);
-        $object -> weaken_basedata_ref;
+        $object->set_param (BASEDATA_REF => $self);
+        $object->weaken_basedata_ref;
     }
     else {  #  create a new object
-        $object = $class -> new (
+        $object = $class->new (
             QUOTES       => $self->get_param('QUOTES'),
             JOIN_CHAR    => $self->get_param('JOIN_CHAR'),
             %args,
@@ -2558,7 +2558,7 @@ sub delete_spatial_output {
     
     croak "parameter name not specified\n" if ! defined $args{name};
     #delete $self->{SPATIAL_OUTPUTS}{$args{name}};
-    $self -> delete_output (output => $self->{SPATIAL_OUTPUTS}{$args{name}});
+    $self->delete_output (output => $self->{SPATIAL_OUTPUTS}{$args{name}});
     
     return;    
 }
@@ -2610,8 +2610,8 @@ sub add_matrix_output {
         croak "[BASEDATA] Cannot replace existing matrix object $name.  Use a different name.\n"
             if defined $self->{MATRIX_OUTPUTS}{$name};
 
-        $object -> set_param (BASEDATA_REF => $self);
-        $object -> weaken_basedata_ref;
+        $object->set_param (BASEDATA_REF => $self);
+        $object->weaken_basedata_ref;
     }
     else {  #  create a new object
         croak "Creation of matrix new objects is not supported - they are added by the clustering system\n";
@@ -2625,7 +2625,7 @@ sub add_matrix_output {
         croak "[BASEDATA] Cannot replace existing matrix object $name.  Use a different name.\n"
             if defined $self->{MATRIX_OUTPUTS}{$name};
 
-        $object = $class -> new (
+        $object = $class->new (
             QUOTES       => $self->get_param('QUOTES'),
             JOIN_CHAR    => $self->get_param('JOIN_CHAR'),
             %args,
@@ -2660,7 +2660,7 @@ sub delete_matrix_output {
     
     croak "parameter name not specified\n" if ! defined $args{name};
     #delete $self->{MATRIX_OUTPUTS}{$args{name}};
-    $self -> delete_output (output => $self->{MATRIX_OUTPUTS}{$args{name}});
+    $self->delete_output (output => $self->{MATRIX_OUTPUTS}{$args{name}});
     
     return;    
 }
@@ -2717,8 +2717,8 @@ sub add_randomisation_output {
         carp "[BASEDATA] Object is not of type $class"
           if $class ne $obj_class;
 
-        $object -> set_param (BASEDATA_REF => $self);
-        $object -> weaken_basedata_ref;
+        $object->set_param (BASEDATA_REF => $self);
+        $object->weaken_basedata_ref;
     }
     else {  #  create a new object
         $object = eval {
@@ -2758,7 +2758,7 @@ sub delete_randomisation_output {
     my %args = @_;
     croak "parameter name not specified\n" if ! defined $args{name};
     #delete $self->{SPATIAL_OUTPUTS}{$args{name}};
-    $self -> delete_output (output => $self->{RANDOMISATION_OUTPUTS}{$args{name}});
+    $self->delete_output (output => $self->{RANDOMISATION_OUTPUTS}{$args{name}});
 
     return;
 }
@@ -2812,11 +2812,11 @@ sub get_neighbours {
     croak "argument element not specified\n" if ! defined $element1;
 
     my $spatial_params = $args{spatial_params}
-                       || $self -> get_param ('SPATIAL_PARAMS')
+                       || $self->get_param ('SPATIAL_PARAMS')
                        || croak "[BASEDATA] No spatial params\n";
     my $index = $args{index};
     my $is_def_query = $args{is_def_query};  #  some processing changes if a def query
-    my $cellsizes = $self -> get_param ('CELL_SIZES');
+    my $cellsizes = $self->get_param ('CELL_SIZES');
 
     #  skip those elements that we want to ignore - allows us to avoid including
     #  element_list1 elements in these neighbours,
@@ -2828,19 +2828,19 @@ sub get_neighbours {
     );
 
     my $centre_coord_ref =
-      $self -> get_group_element_as_array (element => $element1);
+      $self->get_group_element_as_array (element => $element1);
     
-    my $groupsRef = $self -> get_groups_ref;
+    my $groupsRef = $self->get_groups_ref;
 
     my @compare_list;  #  get the list of possible neighbours - should allow this as an arg?
     if (not defined $args{index}) {
-        @compare_list = $self -> get_groups;
+        @compare_list = $self->get_groups;
     }
     else {  #  we have a spatial index defined - get the possible list of neighbours
         my $element_array =
-          $self -> get_group_element_as_array (element => $element1);
+          $self->get_group_element_as_array (element => $element1);
 
-        my $index_coord = $index -> snap_to_index (
+        my $index_coord = $index->snap_to_index (
             element_array => $element_array,
             as_array      => 1,
         );
@@ -2848,7 +2848,7 @@ sub get_neighbours {
             #  need to get an array from the index to fit
             #  with the get_groups results
             push @compare_list,
-              $index -> get_index_elements_as_array (
+              $index->get_index_elements_as_array (
                     element => $index_coord,
                     offset  => $offset
             );
@@ -2857,7 +2857,7 @@ sub get_neighbours {
     
     #  Do we have a shortcut where we don't have to deal
     #  with all of the comparisons? (messy at the moment)
-    my $type_is_subset = $spatial_params -> get_result_type eq 'subset'
+    my $type_is_subset = $spatial_params->get_result_type eq 'subset'
                        ? 1
                        : undef;
 
@@ -2881,7 +2881,7 @@ sub get_neighbours {
 
         #  make the neighbour coord available to the spatial_params
         my @coord =
-           $self -> get_group_element_as_array (element => $element2);
+           $self->get_group_element_as_array (element => $element2);
            
         my %eval_args;
         #  Reverse some args for def queries,
@@ -2903,7 +2903,7 @@ sub get_neighbours {
             );
         }
 
-        my $success = $spatial_params -> evaluate (
+        my $success = $spatial_params->evaluate (
             %eval_args,
             cellsizes     => $cellsizes,
             caller_object => $self,  #  pass self on by default
@@ -2925,7 +2925,7 @@ sub get_neighbours {
         next NBR if not $success;
 
         # If it has survived then it must be valid.
-        #$valid_nbrs{$element2} = $spatial_params -> get_param ('LAST_DISTS');  #  store the distances for possible later use
+        #$valid_nbrs{$element2} = $spatial_params->get_param ('LAST_DISTS');  #  store the distances for possible later use
         $valid_nbrs{$element2} = 1;  #  don't store the dists - serious memory issues for large files
     }
 
@@ -2939,10 +2939,10 @@ sub get_neighbours {
 
 sub get_neighbours_as_array {
     my $self = shift;
-    return $self -> get_neighbours (@_, as_array => 1);
+    return $self->get_neighbours (@_, as_array => 1);
     
     #  commented old stuff, hopefully the new approach will save some shunting around of memory?
-    #my @array = sort keys %{$self -> get_neighbours(@_)};
+    #my @array = sort keys %{$self->get_neighbours(@_)};
     #return wantarray ? @array : \@array;  #  return reference in scalar context
 }
     
@@ -2955,8 +2955,8 @@ sub get_spatial_outputs_with_same_nbrs {
     
     my $compare = $args{compare_with} || croak "[BASEDATA] Nothing to compare with\n";
     
-    my $sp_params = $compare -> get_param ('SPATIAL_PARAMS');
-    my $def_query = $compare -> get_param ('DEFINITION_QUERY');
+    my $sp_params = $compare->get_param ('SPATIAL_PARAMS');
+    my $def_query = $compare->get_param ('DEFINITION_QUERY');
     if (defined $def_query && (length $def_query) == 0) {
         $def_query = undef;
     }
@@ -2966,16 +2966,16 @@ sub get_spatial_outputs_with_same_nbrs {
         $def_conditions = $def_query->get_conditions_unparsed();
     }
 
-    my %outputs = $self -> get_spatial_outputs;
+    my %outputs = $self->get_spatial_outputs;
     
     LOOP_SP_OUTPUTS:
     foreach my $output (values %outputs) {
         next LOOP_SP_OUTPUTS if $output eq $compare;  #  skip the one to compare
         
-        my $completed = $output -> get_param ('COMPLETED');
+        my $completed = $output->get_param ('COMPLETED');
         next LOOP_SP_OUTPUTS if defined $completed and ! $completed;
         
-        my $def_query_comp = $output -> get_param ('DEFINITION_QUERY');
+        my $def_query_comp = $output->get_param ('DEFINITION_QUERY');
         if (defined $def_query) {
             #  only check further if both have def queries
             next LOOP_SP_OUTPUTS if ! defined $def_query_comp;
@@ -2989,7 +2989,7 @@ sub get_spatial_outputs_with_same_nbrs {
             next LOOP_SP_OUTPUTS if defined $def_query_comp;
         }
         
-        my $sp_params_comp = $output -> get_param ('SPATIAL_PARAMS');
+        my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS');
         
         #  must have same number of conditions
         next LOOP_SP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;
@@ -3033,7 +3033,7 @@ sub get_cluster_outputs_with_same_index_and_nbrs {
         $def_conditions = $def_query->get_conditions_unparsed();
     }
 
-    my %outputs = $self -> get_spatial_outputs;
+    my %outputs = $self->get_spatial_outputs;
     
     LOOP_OUTPUTS:
     foreach my $output (values %outputs) {
@@ -3089,12 +3089,12 @@ sub numerically {$a <=> $b};
 #  let the system handle it most of the time
 sub DESTROY {
     my $self = shift;
-    my $name = $self -> get_param ('NAME') || $EMPTY_STRING;
+    my $name = $self->get_param ('NAME') || $EMPTY_STRING;
     #print "DESTROYING BASEDATA $name\n";
-    #$self -> delete_all_outputs;  #  delete children which refer to this object
+    #$self->delete_all_outputs;  #  delete children which refer to this object
     #print "DELETED BASEDATA $name\n";
     
-    #$self -> _delete_params_all;
+    #$self->_delete_params_all;
     
     foreach my $key (sort keys %$self) {  #  clear all the top level stuff
         #$self->{$key} = undef;

@@ -3450,6 +3450,24 @@ matrices to text files"
                                                         <property name="position">3</property>
                                                       </packing>
                                                     </child>
+                                                    <child>
+                                                      <widget class="GtkCheckButton" id="chk_keep_spatial_nbrs_output">
+                                                        <property name="label" translatable="yes">Keep spatial 
+neighbours output</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="has_tooltip">True</property>
+                                                        <property name="tooltip" translatable="yes">The spatial output is used to define the set of 
+neighbouring groups used for matrix building.
+Use this if you want to better understand how
+your results were generated.</property>
+                                                        <property name="draw_indicator">True</property>
+                                                      </widget>
+                                                      <packing>
+                                                        <property name="position">4</property>
+                                                      </packing>
+                                                    </child>
                                                   </widget>
                                                 </child>
                                                 <child>

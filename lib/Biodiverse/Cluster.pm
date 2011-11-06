@@ -161,9 +161,8 @@ sub build_matrices {
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
     
-    my $output_gdm_format = $args{output_gdm_format};  #  need to make all the fle stuff a hashref
+    my $output_gdm_format = $args{output_gdm_format};  #  need to make all the file stuff a hashref
 
-    #my $bd = $self->get_param ('BASEDATA_REF') || $self;
     my $bd = $self->get_param ('BASEDATA_REF');
 
     my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $bd);
@@ -322,6 +321,18 @@ sub build_matrices {
     };
     croak $EVAL_ERROR if $EVAL_ERROR;                #  Did we complete properly?
     #croak $e if $e;                     #  Throw a hissy fit if we didn't complete properly
+
+    if (not $args{keep_sp_nbrs_output}) {
+        #  remove it from the basedata so it isn't
+        #  added to a GUI project on next open
+        $bd->delete_output (
+            output              => $sp,
+            delete_basedata_ref => 0,
+        );
+    }
+    else {
+        $self->set_param (SP_NBRS_OUTPUT_NAME => $sp->get_param('NAME'));
+    }
 
     my %cache;  #  cache the label hashes
                 # - makes a small amount of difference

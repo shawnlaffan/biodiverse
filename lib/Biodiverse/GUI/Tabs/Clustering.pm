@@ -73,7 +73,7 @@ sub new {
                       . "as the last condition for clustering purposes";
 
     my $sp_initial2 = $empty_string;  #  initial spatial params text
-    my $def_query_init1 = 'sp_group_not_empty();\n# Condition is only needed if your BaseData has empty groups.';
+    my $def_query_init1 = "sp_group_not_empty();\n# Condition is only needed if your BaseData has empty groups.";
 
     if (not defined $cluster_ref) {
         # We're being called as a NEW output
@@ -766,6 +766,16 @@ sub get_output_gdm_format {
     return $value;
 }
 
+sub get_keep_spatial_nbrs_output {
+    my $self = shift;
+
+    my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
+    
+    my $value = $widget->get_active;
+    
+    return $value;
+}
+
 sub get_output_file_handles {
     my $self = shift;
     
@@ -894,13 +904,14 @@ sub onRunAnalysis {
     }
 
     # Load settings...
-    $self->{output_name} = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
-    my $selected_index   = $self->getSelectedMetric;
-    my $selected_linkage = $self->getSelectedLinkage;
-    my $no_cache_abc     = $self->get_no_cache_abc_value;
+    $self->{output_name}    = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
+    my $selected_index      = $self->getSelectedMetric;
+    my $selected_linkage    = $self->getSelectedLinkage;
+    my $no_cache_abc        = $self->get_no_cache_abc_value;
     my $build_matrices_only = $self->get_build_matrices_only;
-    my $file_handles     = $self->get_output_file_handles;
-    my $output_gdm_format = $self->get_output_gdm_format;
+    my $file_handles        = $self->get_output_file_handles;
+    my $output_gdm_format   = $self->get_output_gdm_format;
+    my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
 
     # Get spatial calculations to run
     my @toRun = Biodiverse::GUI::Tabs::AnalysisTree::getAnalysesToRun(
@@ -934,6 +945,7 @@ sub onRunAnalysis {
         build_matrices_only  => $build_matrices_only,
         file_handles         => $file_handles,
         output_gdm_format    => $output_gdm_format,
+        keep_sp_nbrs_output  => $keep_sp_nbrs_output,
         spatial_calculations => \@toRun,
         spatial_conditions   => [
             $self->{spatialParams1}->get_text(),
@@ -980,6 +992,12 @@ sub onRunAnalysis {
     foreach my $ref ($output_ref->get_orig_matrices) {
         next if not $ref->get_element_count;  #  don't add if empty
         $self->{project}->addOutput($self->{basedata_ref}, $ref);
+    }
+
+    if ($keep_sp_nbrs_output) {
+        my $sp_name = $output_ref->get_param('SP_NBRS_OUTPUT_NAME');
+        my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
+        $self->{project}->addOutput($self->{basedata_ref}, $sp_ref);
     }
 
     $self->registerInOutputsModel($output_ref, $self);

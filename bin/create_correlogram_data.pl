@@ -12,6 +12,8 @@ use File::Basename;
 
 use lib File::Spec->catfile( $Bin, '..', 'lib');
 
+#  add the lib folder if needed
+use lib File::Spec->catfile( $Bin, '..', 'lib');
 eval 'use mylib';
 
 

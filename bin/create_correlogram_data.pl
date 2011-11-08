@@ -11,9 +11,6 @@ use POSIX qw { fmod };
 use File::Basename;
 
 use lib File::Spec->catfile( $Bin, '..', 'lib');
-
-#  add the lib folder if needed
-use lib File::Spec->catfile( $Bin, '..', 'lib');
 eval 'use mylib';
 
 
@@ -39,13 +36,19 @@ $| = 1;
 #
 #  perl create_correlogram_data.pl input.bds matrix.txt NESTEDNESS_RESULTANT
 
-my $bd_file   = $ARGV[0] or die ("BaseData file not specified\n" . usage());
-my $out_file  = $ARGV[1] or die ("Output file not specified\n" . usage());
+my $bd_file   = $ARGV[0];
+my $out_file  = $ARGV[1];
 my %rest;
 eval {
     %rest = @ARGV;
 };
 croak $EVAL_ERROR if $EVAL_ERROR;
+
+die ("BaseData file not specified\n" . usage())
+  if not defined $bd_file;
+die ("Output file not specified\n" . usage())
+  if not defined $out_file;
+
 
 my $index     = $rest{metric}  || 'SORENSON';
 my $max_lag   = $rest{max_lag};

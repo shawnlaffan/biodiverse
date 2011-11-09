@@ -25,12 +25,11 @@ Main changes since the previous version (0.15) are:
   *  Analyses
     *  New analysis type of !RegionGrower.  It is an extension to the cluster analyses that uses any scalar metric that lumps two neighbour sets together when calculated.  One can also merge those pairs that either maximise or minimise the selected index.  When used with indices like richness it is effectively a one-pass complementarity analysis.  (Its matrices can also be displayed spatially since it is just a variant on the cluster analyses - see issue #199).  Issue #204.
     *  Cluster matrices can be written to file as they are built.  These are not added to the GUI, thus saving memory and allowing extremely large matrices to be built for use in external applications.  Issue #186.
-    *  More efficient cluster matrix construction and use.  Issue 185, Issue #210, Issue #230, Issue #234
+    *  More efficient cluster matrix construction and use.  Issue #185, Issue #210, Issue #234
     *  Better handling of empty groups.  Issue #180, Issue #181, Issue #228, Issue #234.
   *  Calculations and indices
     *  NEST_RESULTANT index is now correctly calculated.  Issue #182.
     *  Added phylogenetic nearest taxon distance indices.  Issue #225.
-    *  Added calculations to allow the summary of label and group properties, if set.  This allows the analysis of trait data.  Issue #207, Issue #212.
     *  Indices for phylogenetic dissimilarity are now available.  Issue #215.  Issue #240.
     *  Added AED, BED and related indices.  Issue #206.
     *  Added indices for numeric label dissimilarity.  Issue #223. 
@@ -40,8 +39,6 @@ Main changes since the previous version (0.15) are:
     *  sp_select_block () for block subsampling.  Issue #218.
     *  sp_point_in_polygon().  Issue #221.
     *  sp_group_not_empty() - does the group have any labels?  See Issue #234.
-    *  Users can also now access other outputs in the condition's !BaseData object.  This allows one to, for example, restrict the analysis to those groups with species richness scores exceeding some threshold.  Issue #233.
-
 
 To see the full list of issues and changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.16
 

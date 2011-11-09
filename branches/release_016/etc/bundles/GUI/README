@@ -1,0 +1,30 @@
+Bundle-Biodiverse version 0.15
+=================================
+
+Bundle to install Biodiverse dependencies.
+You should install the BiodiverseNoGUI bundle first.
+
+Version 0.15
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+None.
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2010 by Shawn Laffan
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.9 or,
+at your option, any later version of Perl 5 you may have available.
+
+

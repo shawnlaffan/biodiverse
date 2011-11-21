@@ -1314,7 +1314,7 @@ sub _calc_phylo_abc {
 
 
 
-sub get_metadata_calc_phylo_aed {
+sub get_metadata_calc_phylo_bed {
     my %arguments = (
         name            =>  'Evolutionary distinctiveness',
         description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
@@ -1327,7 +1327,7 @@ sub get_metadata_calc_phylo_aed {
         #required_args   => {'tree_ref' => 1},
         reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
-            PHYLO_AED => {
+            PHYLO_BED => {
                 description  =>  'Abundance weighted ED',
                 list         => 1,
                 reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
@@ -1349,7 +1349,7 @@ sub get_metadata_calc_phylo_aed {
 }
 
 
-sub calc_phylo_aed {
+sub calc_PHYLO_BED {
     my $self = shift;
     my %args = @_;
 
@@ -1377,13 +1377,13 @@ sub calc_phylo_aed {
         #aed_wts   => $aed_wts,
         PHYLO_ES  => \%es,
         PHYLO_ED  => \%ed,
-        PHYLO_AED => \%aed,
+        PHYLO_BED => \%aed,
     );
 
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata_calc_phylo_aed_proportions {
+sub get_metadata_calc_PHYLO_BED_proportions {
     my %arguments = (
         name            =>  'Evolutionary distinctiveness, proportional',
         description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
@@ -1392,10 +1392,10 @@ sub get_metadata_calc_phylo_aed_proportions {
                           . 'These vaues are expressed as proportions of PD.',
         type            =>  'Phylogenetic Indices',
         pre_calc        => 'calc_abc',
-        pre_calc_global => [qw /get_phylo_aed_proportions/],
+        pre_calc_global => [qw /get_PHYLO_BED_proportions/],
         uses_nbr_lists  =>  1,
         indices         => {
-            PHYLO_AED_P => {
+            PHYLO_BED_P => {
                 description  =>  'Abundance weighted ED',
                 list         => 1,
             },
@@ -1414,7 +1414,7 @@ sub get_metadata_calc_phylo_aed_proportions {
 }
 
 
-sub calc_phylo_aed_proportions {
+sub calc_PHYLO_BED_proportions {
     my $self = shift;
     my %args = @_;
 
@@ -1434,14 +1434,14 @@ sub calc_phylo_aed_proportions {
     my %results = (
         PHYLO_ES_P  => \%es_p,
         PHYLO_ED_P  => \%ed_p,
-        PHYLO_AED_P => \%aed_p,
+        PHYLO_BED_P => \%aed_p,
     );
 
     return wantarray ? %results : \%results;
 }
 
 
-sub get_metadata_get_phylo_aed_proportions {
+sub get_metadata_get_PHYLO_BED_proportions {
     my %arguments = (
         name            =>  'Evolutionary distinctiveness, proportional',
         description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
@@ -1456,7 +1456,7 @@ sub get_metadata_get_phylo_aed_proportions {
     return wantarray ? %arguments : \%arguments;
 }
 
-sub get_phylo_aed_proportions {
+sub get_PHYLO_BED_proportions {
     my $self = shift;
     my %args = @_;
 

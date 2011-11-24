@@ -1314,20 +1314,21 @@ sub _calc_phylo_abc {
 
 
 
-sub get_metadata_calc_phylo_bed {
+sub get_metadata_calc_phylo_aed{
     my %arguments = (
         name            =>  'Evolutionary distinctiveness',
-        description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
+        description     =>  "Evolutionary distinctiveness metrics (AED, BED, ED, ES)\n"
                           . 'Label values are constant for all '
                           . 'neighbourhoods in which each label is found.',
         type            =>  'Phylogenetic Indices',
-        pre_calc        => [qw /calc_abc/],
-        pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash get_aed_scores/],
+        pre_calc        => [qw /calc_abc3/],
+        #pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash get_bed_scores/],
+        pre_calc_global => [qw /get_bed_scores/],
         uses_nbr_lists  =>  1,
         #required_args   => {'tree_ref' => 1},
         reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
-            PHYLO_BED => {
+            PHYLO_BED=> {
                 description  =>  'Abundance weighted ED',
                 list         => 1,
                 reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
@@ -1349,24 +1350,24 @@ sub get_metadata_calc_phylo_bed {
 }
 
 
-sub calc_PHYLO_BED {
+sub calc_phylo_aed {
     my $self = shift;
     my %args = @_;
 
     my $label_hash = $args{label_hash_all};
-    my $global_abundance_hash = $args{node_abundance_hash};
-    my $local_abundance_hash  = $args{AED_LOCAL_NODE_ABUNDANCE};
+    #my $global_abundance_hash = $args{node_abundance_hash};
+    #my $local_abundance_hash  = $args{AED_LOCAL_NODE_ABUNDANCE};
     my $es_wts                = $args{ES_SCORES};
     my $ed_wts                = $args{ED_SCORES};
-    my $aed_wts               = $args{AED_SCORES};
+    my $bed_wts               = $args{BED_SCORES};
 
     my $tree = $args{trimmed_tree};
 
-    my (%es, %ed, %aed);
+    my (%es, %ed, %bed);
     # now loop over the terminals and extract the weights (would slices be faster?)
     # Do we want the proportional values?  Divide by PD to get them.
     foreach my $label (keys %$label_hash) {
-        $aed{$label} = $aed_wts->{$label};
+        $bed{$label} = $bed_wts->{$label};
         $ed{$label}  = $ed_wts->{$label};
         $es{$label}  = $es_wts->{$label};
     }
@@ -1377,13 +1378,13 @@ sub calc_PHYLO_BED {
         #aed_wts   => $aed_wts,
         PHYLO_ES  => \%es,
         PHYLO_ED  => \%ed,
-        PHYLO_BED => \%aed,
+        PHYLO_BED => \%bed,
     );
 
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata_calc_PHYLO_BED_proportions {
+sub get_metadata_calc_phylo_aed_proportions {
     my %arguments = (
         name            =>  'Evolutionary distinctiveness, proportional',
         description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
@@ -1392,10 +1393,10 @@ sub get_metadata_calc_PHYLO_BED_proportions {
                           . 'These vaues are expressed as proportions of PD.',
         type            =>  'Phylogenetic Indices',
         pre_calc        => 'calc_abc',
-        pre_calc_global => [qw /get_PHYLO_BED_proportions/],
+        pre_calc_global => [qw /get_phylo_aed_proportions/],
         uses_nbr_lists  =>  1,
         indices         => {
-            PHYLO_BED_P => {
+            PHYLO_AED_P => {
                 description  =>  'Abundance weighted ED',
                 list         => 1,
             },
@@ -1414,14 +1415,14 @@ sub get_metadata_calc_PHYLO_BED_proportions {
 }
 
 
-sub calc_PHYLO_BED_proportions {
+sub calc_phylo_aed_proportions {
     my $self = shift;
     my %args = @_;
 
     my $label_hash = $args{label_hash_all};
     my $es  = $args{ES_SCORES_P};
     my $ed  = $args{ED_SCORES_P};
-    my $aed = $args{AED_SCORES_P};
+    my $aed = $args{BED_SCORES_P};
 
     my (%es_p, %ed_p, %aed_p);
 
@@ -1434,35 +1435,35 @@ sub calc_PHYLO_BED_proportions {
     my %results = (
         PHYLO_ES_P  => \%es_p,
         PHYLO_ED_P  => \%ed_p,
-        PHYLO_BED_P => \%aed_p,
+        PHYLO_AED_P => \%aed_p,
     );
 
     return wantarray ? %results : \%results;
 }
 
 
-sub get_metadata_get_PHYLO_BED_proportions {
+sub get_metadata_get_phylo_aed_proportions {
     my %arguments = (
         name            =>  'Evolutionary distinctiveness, proportional',
-        description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
+        description     =>  "Evolutionary distinctiveness metrics (BED, ED, ES)\n"
                           . 'Label values are constant for all '
                           . 'neighbourhoods in which each label is found.  '
                           . 'These values are expressed as proportions of PD.',
         type            =>  'Phylogenetic Indices',
-        pre_calc_global => [qw /get_aed_scores/],
+        pre_calc_global => [qw /get_bed_scores/],
         uses_nbr_lists  =>  1,
     );
 
     return wantarray ? %arguments : \%arguments;
 }
 
-sub get_PHYLO_BED_proportions {
+sub get_phylo_aed_proportions {
     my $self = shift;
     my %args = @_;
 
     my $es  = $args{ES_SCORES};
     my $ed  = $args{ED_SCORES};
-    my $aed = $args{AED_SCORES};
+    my $bed = $args{BED_SCORES};
 
     #  Get the pd score.
     #  Cannot use calc_pd since that version is locally calculated
@@ -1471,18 +1472,18 @@ sub get_PHYLO_BED_proportions {
         $pd += $value;
     }
 
-    my (%es_p, %ed_p, %aed_p);
+    my (%es_p, %ed_p, %bed_p);
 
     foreach my $label (keys %$ed) {
-        $es_p{$label}  = $es->{$label} / $pd;
-        $ed_p{$label}  = $ed->{$label} / $pd;
-        $aed_p{$label} = $aed->{$label} / $pd;
+        $es_p{$label}  = $es->{$label}  / $pd;
+        $ed_p{$label}  = $ed->{$label}  / $pd;
+        $bed_p{$label} = $bed->{$label} / $pd;
     }
     
     my %results = (
         ES_SCORES_P  => \%es_p,
         ED_SCORES_P  => \%ed_p,
-        AED_SCORES_P => \%aed_p,
+        BED_SCORES_P => \%bed_p,
     );
 
     return wantarray ? %results : \%results;
@@ -1533,10 +1534,10 @@ sub get_node_abundances_local {
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata_get_aed_scores {
+sub get_metadata_get_bed_scores {
 
     my %args = (
-        description     => 'A hash of the ES, ED and AED scores for each label',
+        description     => 'A hash of the ES, ED and BED scores for each label',
         pre_calc        => 'calc_abc',
         pre_calc_global => [qw /get_trimmed_tree get_node_abundance_hash/],
         indices         => {
@@ -1546,8 +1547,8 @@ sub get_metadata_get_aed_scores {
             ED_SCORES => {
                 description => 'Hash of ED scores for each label'
             },
-            AED_SCORES => {
-                description => 'Hash of AED scores for each label'
+            BED_SCORES => {
+                description => 'Hash of BED scores for each label'
             }
         },
     );
@@ -1555,14 +1556,14 @@ sub get_metadata_get_aed_scores {
     return wantarray ? %args : \%args;
 }
 
-sub get_aed_scores {
+sub get_bed_scores {
     my $self = shift;
     my %args = @_;
 
     my $tree = $args{trimmed_tree};
     my $node_abundances = $args{node_abundance_hash};
-    my (%es_wts, %ed_wts, %aed_wts);
-    my ($es_wt_sum, $ed_wt_sum, $aed_wt_sum);  #  should sum to 1
+    my (%es_wts, %ed_wts, %bed_wts);
+    my ($es_wt_sum, $ed_wt_sum, $bed_wt_sum);  #  should sum to 1
     my $terminal_elements = $tree->get_root_node->get_terminal_elements;
 
     foreach my $label (keys %$terminal_elements) {
@@ -1570,11 +1571,10 @@ sub get_aed_scores {
         my $node_ref  = $tree->get_node_ref (node => $label);
         my $es_sum  = $node_ref->get_length;  #  set up the terminal
         my $ed_sum  = $node_ref->get_length;  #  set up the terminal
-        my $aed_sum = $node_ref->get_length;  #  set up the terminal
+        my $bed_sum = $node_ref->get_length / $node_abundances->{$label};
         my $es_wt  = 1;
-        my $ed_wt  = 1;
-        my $aed_wt = 1;
-        my $aed_label_count = $node_abundances->{$label};
+        my ($ed_wt, $bed_wt);
+        #my $aed_label_count = $node_abundances->{$label};
 
         TRAVERSE_TO_ROOT:
         while ($node_ref = $node_ref->get_parent) {
@@ -1582,25 +1582,25 @@ sub get_aed_scores {
 
             $es_wt  /= $node_ref->get_child_count;  #  es uses a cumulative scheme
             $ed_wt  =  1 / $node_ref->get_terminal_element_count;
-            $aed_wt =  $aed_label_count / $node_abundances->{$node_ref->get_name};
+            $bed_wt =  1 / $node_abundances->{$node_ref->get_name};
 
             $es_sum  += $length * $es_wt;
             $ed_sum  += $length * $ed_wt;
-            $aed_sum += $length * $aed_wt;
+            $bed_sum += $length * $bed_wt;
         }
 
         $es_wts{$label} = $es_sum;
         $es_wt_sum += $es_wt;
         $ed_wts{$label} = $ed_sum;
         $ed_wt_sum += $ed_wt;
-        $aed_wts{$label} = $aed_sum;
-        $aed_wt_sum += $aed_wt;
+        $bed_wts{$label} = $bed_sum;
+        $bed_wt_sum += $bed_wt;
     }
 
     my %results = (
         ES_SCORES  => \%es_wts,
         ED_SCORES  => \%ed_wts,
-        AED_SCORES => \%aed_wts,
+        BED_SCORES => \%bed_wts,
     );
 
     return wantarray ? %results : \%results;

@@ -983,6 +983,8 @@ sub get_csv_object {
         sep_char        => q{,},
         binary          => 1,
         blank_is_undef  => 1,
+        quote_space     => 0,
+        always_quote    => 0,
         #eol             => "\n",  #  comment out - use EOL on demand
         @_,
     );

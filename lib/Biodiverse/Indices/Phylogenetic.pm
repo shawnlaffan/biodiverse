@@ -1193,7 +1193,7 @@ sub get_metadata_calc_phylo_abc {
         pre_calc        =>  'calc_abc',
         pre_calc_global =>  'get_trimmed_tree',
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
-        required_args   => {'tree_ref' => 1},
+        required_args   => {tree_ref => 1},
         indices         => {
             PHYLO_A => {
                 description  =>  'Length of branches shared by labels in nbr sets 1 and 2',

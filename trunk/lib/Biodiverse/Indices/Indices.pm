@@ -522,7 +522,7 @@ END_BCN_DESCR
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         pre_calc        => [qw/calc_abc3 calc_elements_used/],
         formula     => [
-            '= \frac{2W}{A + B}',
+            '= 1 - \frac{2W}{A + B}',
             'where ',
             'A',
             ' is the sum of the sample counts in neighbour set 1 normalised '

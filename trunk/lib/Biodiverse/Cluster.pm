@@ -209,6 +209,9 @@ sub build_matrices {
         calculations    => [$index_function],
         use_list_count  => 2,
     );
+    my $valid_calcs = $indices_object->get_valid_calculations_to_run;
+    croak "Selected index $index_function cannot be calculated, check arguments like selected tree or matrix\n"
+      if not scalar keys %$valid_calcs;
 
     #  run the global pre_calcs
     $indices_object->run_precalc_globals(%args);

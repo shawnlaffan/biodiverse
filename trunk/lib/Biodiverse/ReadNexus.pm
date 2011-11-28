@@ -20,8 +20,9 @@ our $VERSION = '0.16';
 use base qw /Biodiverse::Common/;
 
 #  hunt for any decimal number format
-use Regexp::Common qw /number/;
+use Regexp::Common qw /number delimited/;
 my $RE_NUMBER = qr /$RE{num}{real}/xms;
+my $RE_QUOTED = qr /$RE{delimited}{-delim=>"'"}{-esc=>"'"}/;
 
 my $RE_TEXT_IN_QUOTES
     = qr{
@@ -237,7 +238,7 @@ sub import_nexus {
                     = $trans =~  m{  \s*     #  zero or more whitespace chars
                                     (\S+)    #  typically a number
                                      \s+     #  one or more whitespace chars
-                                    (\S+)    #  the label
+                                    ($RE_QUOTED | \S+)    #  the label
                                   }x;
                 if (defined $trans_code) {
                     #  delete trailing comma or semicolon
@@ -246,9 +247,13 @@ sub import_nexus {
                                       \z
                                     }
                                     {}xms;
-                    if (my @components = $trans_name =~ $RE_TEXT_IN_QUOTES) {
-                        $trans_name = $components[1];
-                    }
+                    #if ($trans_name =~ / ^\' /) {
+                    #if (my @components = $trans_name =~ $RE_TEXT_IN_QUOTES) {
+                        #$trans_name = $1;
+                        $trans_name =~ s/^'//;  #  strip back the quotes
+                        $trans_name =~ s/'$//;
+                        $trans_name =~ s/''/'/g;
+                    #}
                     $translate{$trans_code} = $trans_name;
                 }
                 last TRANSLATE_BLOCK if $trans =~ /;\s*\z/;  #  semicolon marks the end
@@ -310,7 +315,7 @@ sub import_nexus {
             my $count = 0;
             my $node_count = \$count;
 
-            $self -> parse_newick (
+            $self->parse_newick (
                 string          => $rest,
                 tree            => $tree,
                 node_count      => $node_count,
@@ -521,12 +526,17 @@ sub parse_newick {
         }
 
         #  we have found a quote char, match to the next quote
-        elsif ($string =~ m/ \G '/xgcs) { 
+        elsif ($string =~ m/ \G (?=') /xgcs) { 
             #print "found a quote char\n";
             #print "Position is " . (pos $string) . " of $str_len\n";
             
-            $string =~ m/\G (.*?) '/xgcs;  #  eat up to the next quote
+            #$string =~ m/\G (.*?) ' (?!')/xgcs;  
+            $string =~ m/\G ($RE_QUOTED) /xgcs;  #  eat up to the next non-escaped quote
             $name = $1;
+            $name =~ s/^'//;  #  strip ack the quotes
+            $name =~ s/'$//;
+            $name =~ s/''/'/g;
+            #print '';
         }
 
         #  next value is a length if we have a colon
@@ -539,7 +549,7 @@ sub parse_newick {
             $string =~ m/\G ( $RE_NUMBER ) /xgcs;
             #print "length value is $1\n";
             $length = $1;
-            croak "Length $length does not look like a number\n"
+            croak "Length '$length' does not look like a number\n"
                 if ! looks_like_number $length;
             $length += 0;  #  make it numeric
             my $x = $length;

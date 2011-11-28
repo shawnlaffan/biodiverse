@@ -1244,18 +1244,18 @@ sub to_nexus {
     my $self = shift;
     my %args = (@_);
     my $string;
-    my $tree_name = $args{tree_name} || $self -> get_param ('NAME') || "Biodiverse_tree";
+    my $tree_name = $args{tree_name} || $self -> get_param ('NAME') || 'Biodiverse_tree';
     
     #  first, build a hash of the label names for the taxon block, unless told not to
     my %remap;  #  create a remap table unless one is already specified in the args
     if (! defined $args{remap} && ! $args{no_remap}) {
         #  get a hash of all the nodes in the tree.
-        my %nodes = ($self -> get_name() => $self, $self -> get_all_children);
+        my %nodes = ($self->get_name() => $self, $self->get_all_children);
 
         my $i = 0;
         foreach my $node (values %nodes) {
             #  no remap for internals - TreeView does not like it
-            next if ! $args{use_internal_names} && $node -> is_internal_node;  
+            next if ! $args{use_internal_names} && $node->is_internal_node;  
             $remap{$node -> get_name} = $i;
             $i++;
         }
@@ -1264,23 +1264,30 @@ sub to_nexus {
     @reverse_remap{values %remap} = (keys %remap);
 
     my $translate_table;
+    my $quote_char = q{'};
+    my $csv_obj = $self->get_csv_object (
+        quote_char  => $quote_char,
+        escape_char => $quote_char,
+        quote_space => 1,
+    );
     my $j = 0;
     foreach my $mapped_key (sort numerically keys %reverse_remap) {
-        $translate_table .= "\t\t$mapped_key '$reverse_remap{$mapped_key}',\n";
+        my $remapped = $self->list2csv (csv_object => $csv_obj, list => [$reverse_remap{$mapped_key}]);
+        $translate_table .= "\t\t$mapped_key $remapped,\n";
         $j++;
     }
     chop $translate_table;  #  strip the last two characters - cheaper than checking for them in the loop
     chop $translate_table;
     $translate_table .= "\n\t\t;";
-    
+
     my $type = blessed $self;
-    
+
     $string .= "#NEXUS\n";
     $string .= "[ID: $tree_name]\n";
     $string .= "begin trees;\n";
     $string .= "\t[Export of a $type tree using Biodiverse::TreeNode version $VERSION]\n";
     $string .= "\tTranslate \n$translate_table\n";
-    $string .= "\tTree '$tree_name' = " . $self -> to_newick (remap => \%remap, %args) . ";\n";
+    $string .= "\tTree '$tree_name' = " . $self->to_newick (remap => \%remap, %args) . ";\n";
     $string .= "end;\n\n";
     
     #print $EMPTY_STRING;
@@ -1301,10 +1308,17 @@ sub to_newick {   #  convert the tree to a newick format.  Based on the NEXUS li
     my $name = $self->get_name;
     my $remapped = 0;
     if (defined $remap->{$name}) {
-        $name = $remap->{$name} ; #  use remap if present
+        $name = $remap->{$name}; #  use remap if present
     }
     else {
-        $name = "'$name'";  #  quote otherwise
+        my $quote_char = q{'};
+        my $csv_obj = $self->get_csv_object (
+            quote_char   => $quote_char,
+            escape_char  => $quote_char,
+            always_quote => 1,
+        );
+        $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
+        #$name = "'$name'";  #  quote otherwise
     }
     
 

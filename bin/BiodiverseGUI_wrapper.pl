@@ -12,6 +12,8 @@ our $VERSION = '0.16';
 
 local $| = 1;
 
+print "Running Biodiverse via wrapper\n";
+
 use FindBin qw ( $Bin );
 
 #  are we running as a PerlApp executable?
@@ -23,7 +25,7 @@ my @script = ('perl', $script);
 
 my $success = system (@script, @ARGV);
 if ($CHILD_ERROR) {
-    report_error();
+    report_error($CHILD_ERROR);
 }
 
 
@@ -31,6 +33,21 @@ exit;
 
 
 sub report_error {
+    my $error = shift;
+
+    if ($error == -1) {
+        $error = 'Child process failed to start';
+    }
+    elsif ($error & 127) {
+        $error = "Child process died with signal " . ($error & 127) . "\n";
+    }
+    else {
+        $error .= "\n\nIt probably ran out of memory\n"
+                . "See http://code.google.com/p/biodiverse/wiki/FAQ#I_get_an_Out_of_memory_error\n";
+    }
+
+    warn $error;
+
     #  load Gtk
     use Gtk2;    # -init;
     Gtk2->init;
@@ -41,9 +58,8 @@ sub report_error {
     };
     #croak $EVAL_ERROR if $EVAL_ERROR;
 
-    my $message = "Biodiverse has failed for some reason.\n"
-                . "It probably ran out of memory\n"
-                . "See http://code.google.com/p/biodiverse/wiki/FAQ#I_get_an_Out_of_memory_error";
+    my $message = "Biodiverse has failed with error.\n"
+                . "$error.\n";
     my $dlg = Gtk2::Dialog->new (
         'Error',
         undef,
@@ -51,6 +67,7 @@ sub report_error {
         'gtk-ok' => 'none',
     );
     my $label = Gtk2::Label->new ($message);
+    $label->set_selectable (1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);
 
     # Ensure that the dialog box is destroyed when the user responds.

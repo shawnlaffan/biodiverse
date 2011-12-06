@@ -449,19 +449,22 @@ sub run_randomisation {
             }
         }
 
-        #$self -> find_circular_refs_in_package;
-        #$self -> find_circular_refs ($rand_bd);
-        #$self -> find_circular_refs_above (top_level => 5);
+        #$self->find_circular_refs_in_package;
+        #$self->find_circular_refs ($rand_bd);
+        #$self->find_circular_refs_above (top_level => 5);
         #use Devel::Refcount qw( refcount );
         #print "REFCOUNT IS " . refcount($rand_bd) . "\n";
         #print $EMPTY_STRING;
-        #use Devel::FindRef;
-        #print Devel::FindRef::track $rand_bd;
+        ##use Devel::FindRef;
+        ##print "\n";
+        ##print Devel::FindRef::track $rand_bd;
+        ##print "\n";
+        ##print Devel::FindRef::track $bd;
 
         #  this argument is not yet exposed to the GUI
         if ($args{save_rand_bd}) {
             print "[Randomise] Saving randomised basedata\n";
-            $rand_bd -> save;
+            $rand_bd->save;
         }
 
         #  save incremental basedata file

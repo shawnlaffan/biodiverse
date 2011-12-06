@@ -966,7 +966,7 @@ sub doDuplicateBasedata {
 
     # If ends with a number increment it
     if ($name =~ /(.*)([0-9]+)$/) {
-        $name = $1 . ($2 + 1)
+        $name = $1 . ($2 + 1);
     }
     else {
         $name .= '1';

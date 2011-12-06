@@ -23,9 +23,22 @@ my $script_name = 'BiodiverseGUI.pl';
 my $script = File::Spec->catfile ($FindBin::Bin, $script_name);
 my @script = ('perl', $script);
 
-my $success = system (@script, @ARGV);
-if ($CHILD_ERROR) {
-    report_error($CHILD_ERROR);
+use IPC::Open3;
+use Symbol qw(gensym);
+use IO::File;
+my $out = gensym;
+my $catcherr = gensym;
+my $pid = open3(gensym, ">&STDOUT", $catcherr, @script, @ARGV);
+waitpid($pid, 0);
+my $err;
+if ($catcherr) {
+    seek $catcherr, 0, 0;
+    while( <$catcherr> ) {
+        $err .= $_;
+    }
+}
+if ($err) {
+    report_error($err);
 }
 
 
@@ -35,18 +48,27 @@ exit;
 sub report_error {
     my $error = shift;
 
-    if ($error == -1) {
-        $error = 'Child process failed to start';
-    }
-    elsif ($error & 127) {
-        $error = "Child process died with signal " . ($error & 127) . "\n";
-    }
-    else {
-        $error .= "\n\nIt probably ran out of memory\n"
+    #if ($error == -1) {
+    #    $error = 'Child process failed to start';
+    #}
+    #elsif ($error & 127) {
+    #    $error = "Child process died with signal " . ($error & 127) . "\n";
+    #}
+    #
+    if ($error =~ /memory/) {
+        $error .= "\n\n"
                 . "See http://code.google.com/p/biodiverse/wiki/FAQ#I_get_an_Out_of_memory_error\n";
     }
+    elsif ($error =~ /Can't locate (\S+)/) {
+        my $lib = $1;
+        $lib =~ s{/}{::};
+        $lib =~ s/\.pm$//;
+        $error .= "\n\nYou probably need to install a dependency library called $lib.\n\n";
+        $error .= "See the source code installation page for your operating system at "
+                . "http://code.google.com/p/biodiverse/wiki/Installation";
+    }
 
-    warn $error;
+    #warn $error;
 
     #  load Gtk
     use Gtk2;    # -init;
@@ -58,8 +80,8 @@ sub report_error {
     };
     #croak $EVAL_ERROR if $EVAL_ERROR;
 
-    my $message = "Biodiverse has failed with error.\n"
-                . "$error.\n";
+    my $message = "Biodiverse has failed with error.\n\n"
+                . "$error\n";
     my $dlg = Gtk2::Dialog->new (
         'Error',
         undef,
@@ -83,7 +105,8 @@ sub report_error {
 
 sub cleanup_and_exit {
     $_[0]->destroy;
-    exit;  #  nasty way of doing things, but otherwise the script never finishes properly
+    Gtk2->main_quit();
+    #exit;  #  nasty way of doing things, but otherwise the script never finishes properly
 }
 
 sub get_iconfile {

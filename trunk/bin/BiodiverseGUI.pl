@@ -25,8 +25,6 @@ my $perl_app_tool = $PerlApp::TOOL;
 use lib File::Spec->catfile( $Bin, '..', 'lib');
 eval 'use mylib';
 
-#use Blah::Blah;
-
 #  load up the user defined libs
 use Biodiverse::Config qw /use_base add_lib_paths/;
 BEGIN {

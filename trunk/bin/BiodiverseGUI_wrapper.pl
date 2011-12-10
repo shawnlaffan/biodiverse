@@ -28,19 +28,25 @@ use Symbol qw(gensym);
 use IO::File;
 my $out = gensym;
 my $catcherr = gensym;
+
+#  need to make sure that STDOUT goes to both the screen and the log file
+
 my $pid = open3(gensym, ">&STDOUT", $catcherr, @script, @ARGV);
 waitpid($pid, 0);
-my $err;
-if ($catcherr) {
-    seek $catcherr, 0, 0;
-    while( <$catcherr> ) {
-        $err .= $_;
+
+my $child_exit_status = $? >> 8;
+
+if ($child_exit_status ) {
+    my $err = "Child exit status is $child_exit_status\n\n";
+    if ($catcherr) {
+        seek $catcherr, 0, 0;
+        while( <$catcherr> ) {
+            $err .= $_;
+        }
     }
-}
-if ($err) {
+
     report_error($err);
 }
-
 
 exit;
 

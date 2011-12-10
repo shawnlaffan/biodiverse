@@ -184,11 +184,11 @@ sub build_matrices {
     my $index_order  = $index_params->{indices}{$index}{cluster};
     # cache unless told otherwise
     my $cache_abc = 1;
-    if (defined $args{no_cache_abc}) {
+    if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
         $cache_abc = not $args{no_cache_abc};
     }
-    else {
-        $cache_abc = ($index_order ne 'NO_CACHE_ABC');
+    if ($index_order eq 'NO_CACHE_ABC') {  #  index can override user
+        $cache_abc = 0;
     }
     $self->set_param (CACHE_ABC => $cache_abc);
 

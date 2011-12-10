@@ -338,7 +338,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
     my $node_ranges      = $args{node_range};
     my $results_cache    = $args{PE_RESULTS_CACHE};
     my $element_list_all = $args{element_list_all};
-    
+
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
     #create a hash of terminal nodes for the taxa present
@@ -470,6 +470,24 @@ sub get_pe_element_cache {
 }
 
 
+#  get the node ranges as lists
+sub get_metadata_get_node_range_hash_as_lists {
+    my %arguments = (pre_calc_global => ['get_trimmed_tree']);
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub get_node_range_hash_as_lists {
+    my $self = shift;
+    my %args = @_;
+
+    my $res = $self->get_node_range_hash (@_, return_lists => 1);
+    my %results = (
+        node_range_hash => $res->{node_range},
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_get_node_range_hash {
     my %arguments = (pre_calc_global => ['get_trimmed_tree']);
     return wantarray ? %arguments : \%arguments;
@@ -480,6 +498,8 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
                           # this function expects a tree reference as an argument
     my $self = shift;
     my %args = @_;
+
+    my $return_lists = $args{return_lists};
 
     my $progress_bar = Biodiverse::Progress->new();    
 
@@ -501,17 +521,27 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
 
     foreach my $node_name (keys %{$nodes}) {
         my $node  = $tree->get_node_ref (node => $node_name);
-        my $range = $self->get_node_range (
-            %args,
-            node_ref => $node,
-        );
-        if (defined $range) {
-            $node_range{$node_name} = $range;
+        if ($return_lists) {
+            my @range = $self->get_node_range (
+                %args,
+                node_ref => $node,
+            );
+            my %range_hash;
+            @range_hash{@range} = undef;
+            $node_range{$node_name} = \%range_hash;
         }
-
+        else {
+            my $range = $self->get_node_range (
+                %args,
+                node_ref => $node,
+            );
+            if (defined $range) {
+                $node_range{$node_name} = $range;
+            }
+        }
         $count ++;
         my $progress = $count / $toDo;
-        $progress_bar -> update(
+        $progress_bar->update(
             "Calculating node ranges\n($progress)",
             $progress,
         );

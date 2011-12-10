@@ -2041,7 +2041,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         B   => $b,
         C   => $c,
         ABC => $abc,
-        
+
         label_hash_all    => \%label_list_master,
         label_hash1       => \%{$label_list{1}},
         label_hash2       => \%{$label_list{2}},

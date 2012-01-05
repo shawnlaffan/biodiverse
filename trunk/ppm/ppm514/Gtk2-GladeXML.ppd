@@ -1,0 +1,12 @@
+<SOFTPKG NAME="Gtk2-GladeXML" VERSION="1.007">
+    <ABSTRACT>Create user interfaces directly from Glade XML files.</ABSTRACT>
+    <AUTHOR></AUTHOR>
+    <IMPLEMENTATION>
+        <REQUIRE NAME="ExtUtils::Depends" VERSION="0.3" />
+        <REQUIRE NAME="ExtUtils::PkgConfig" VERSION="1" />
+        <REQUIRE NAME="Glib::" VERSION="1.02" />
+        <REQUIRE NAME="Gtk2::" VERSION="1" />
+        <ARCHITECTURE NAME="MSWin32-x86-multi-thread-5.14" />
+        <CODEBASE HREF="Gtk2-GladeXML-1.007.zip" />
+    </IMPLEMENTATION>
+</SOFTPKG>

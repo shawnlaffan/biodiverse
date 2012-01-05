@@ -1,6 +1,6 @@
-rem Based on the "gtk2-perl-compiler 0.1.0 by vinocui@gmail.com"
-rem See http://code.google.com/p/gtk-perl-compiler/ for the original
-rem shawnlaffan@gmail.com 05Jan2012
+:: Based on the "gtk2-perl-compiler 0.1.0 by vinocui@gmail.com"
+:: See http://code.google.com/p/gtk-perl-compiler/ for the original
+:: shawnlaffan@gmail.com 05Jan2012
 
 rem Edit these as appropriate
 set PKG_CONFIG_PATH=.\c\lib\pkgconfig
@@ -12,7 +12,7 @@ set PATH=C:\Perl514\bin;%PATH%
 @perl modpc.pl
 
 set PATH=.\ex\bin;%PATH%
-rem @echo Add ex/bin to your path variable.
+:: @echo Add ex/bin to your path variable.
 @echo Then run: 
 @echo          perl -MCPAN -e "force install Glib"
 @echo          perl -MCPAN -e "install Gtk2"

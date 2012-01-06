@@ -3,6 +3,6 @@
     <AUTHOR></AUTHOR>
     <IMPLEMENTATION>
         <ARCHITECTURE NAME="MSWin32-x86-multi-thread-5.14" />
-        <CODEBASE HREF="" />
+        <CODEBASE HREF="Gnome2-Canvas.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

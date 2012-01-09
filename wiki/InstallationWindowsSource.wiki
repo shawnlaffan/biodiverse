@@ -89,14 +89,14 @@ C:\CamelBox\bin\perl BiodiverseGUI.pl
 C:\CamelBox\bin\perl C:\biodiverse\bin\BiodiverseGUI.pl
 }}}
 
+The full path to perl is used to ensure the !CamelBox version is used.
+
 = Other Perls =
 
-  *  It should be possibvle to run Biodiverse using other Perl implementations, for example Strawberry Perl or Cava Perl.  In these cases, download and install as instructed by the provider.  
-  *  You should then be able to follow the [InstallationLinuxSource Linux source code] instructions for all except the Gnome project modules.
+  *  It should be possible to run Biodiverse using other Perl implementations, for example Strawberry Perl or Cava Perl.  In these cases, download and install as instructed by the provider.  
+  *  You should then be able to adapt the installation steps above (the cpan bits) for all except the Gnome project modules.
   *  For the Gnome project modules (Gtk, Glib, Gnome2::Canvas etc.), see the installation scripts at http://code.google.com/p/biodiverse/source/browse/#svn%2Ftrunk%2Fetc%2Fwin32_gtk 
 
-
-The full path to perl is used to ensure the !CamelBox version is used.
 
 = Trouble shooting =
 

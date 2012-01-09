@@ -16,12 +16,14 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Crisp, M.D., Laffan, S., Linder, H.P. & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 
 
-  * Gonzalez-Orozco, C.E., Laffan, S.W., Miller, J. (2011) Spatial distribution of species richness and endemism of the genus Acacia in Australia. [http://dx.doi.org/10.1071/BT11112 Australian Journal of Botany, 59, 600-608]
+  *  Gonzalez-Orozco, C.E., Laffan, S.W., Miller, J. (2011) Spatial distribution of species richness and endemism of the genus Acacia in Australia. [http://dx.doi.org/10.1071/BT11112 Australian Journal of Botany, 59, 600-608]
 
   *  Jones C. &  Laffan S.W. (2008) Lexical similarity and endemism in historical wordlists of Australian Aboriginal languages of the greater Sydney region. [http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x Transactions of the Philological Society, 106, 456-486]. 
 
+  *  Laffan, S.W. (2011) Spatial non-stationarity, anisotropy and scale: The interactive visualisation of spatial turnover. In Proceedings of MODSIM 2011, Perth, Australia.
+  
   *  Laffan, S.W. & Bickford, S.A. (2005) Using spatial randomisations to improve the utility of Geographically Weighted Regression model results. In [http://www.mssanz.org.au/modsim05/papers/laffan.pdf MODSIM 2005 International Congress on Modelling and Simulation] (eds R. Argent & A. Zerger), pp. 1396-1401. Modelling and Simulation Society of Australia and New Zealand, Melbourne, Australia.
 
-  * Laffan, S.W. & Crisp, M.D. (2003) Assessing endemism at multiple spatial scales, with an example from the Australian vascular flora. [http://dx.doi.org/10.1046/j.1365-2699.2003.00875.x Journal of Biogeography, 30, 511-520]. 
+  *  Laffan, S.W. & Crisp, M.D. (2003) Assessing endemism at multiple spatial scales, with an example from the Australian vascular flora. [http://dx.doi.org/10.1046/j.1365-2699.2003.00875.x Journal of Biogeography, 30, 511-520]. 
 
-  * Rosauer, D.F., Laffan, S.W., Crisp, M.D., Donnellan, S.C. & Cook, L.G. (2009). Phylogenetic endemism: a new approach to identifying geographical concentrations of evolutionary history. [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Molecular Ecology, 18, 4061-4072]. 
+  *  Rosauer, D.F., Laffan, S.W., Crisp, M.D., Donnellan, S.C. & Cook, L.G. (2009). Phylogenetic endemism: a new approach to identifying geographical concentrations of evolutionary history. [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Molecular Ecology, 18, 4061-4072]. 

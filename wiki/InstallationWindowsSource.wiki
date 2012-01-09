@@ -1,7 +1,7 @@
 #summary Windows source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.15.  
+These instructions apply to version 0.15 and later.  
 
 These assume you have saved the Biodiverse source code to C:\biodiverse.  If you have not then change the `C:\biodiverse\lib` path in the following to the appropriate path.
 
@@ -9,7 +9,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 
 If you don't like the window theme it uses then you can change it using the GTK+ Preference Tool from http://gtk-win.sourceforge.net/home/index.php/Gtk2Prefs
 
-There are two options you can pursue here.  Both will work, but the !CamelBox install uses a more recent perl.
+There are two options you can pursue here.  Both will work, but the !CamelBox install uses an older version of Perl.
 
 <wiki:toc max_depth="4" />
 
@@ -17,20 +17,17 @@ There are two options you can pursue here.  Both will work, but the !CamelBox in
 = !ActivePerl = 
 
 
-  *  Note that, since the release of Perl 5.14, ActiveState no longer release or support a free Perl 5.8.  We are working on updated binaries for the Gtk libraries (any help is welcome).  The update option still works, though.
-
 == Installation (AS) ==
 
   * [http://code.google.com/p/biodiverse/downloads/list Download] the windows executable version for this, as it includes the Gtk binaries needed for the GUI.
-  * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.
+  * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.  (If you do locate it elsewhere then make sure you adjust the paths in the following to reflect that).
   * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  Make sure the gtk path is before the system perl\bin path, as the trouchelle PPM repository adds incompatible binaries there. For an example of how to set the path, see http://www.computerhope.com/issues/ch000549.htm.
-  * (This link is no longer working).  Download and install Perl 5.8.925 from http://downloads.activestate.com/ActivePerl/releases/5.8.9.827/ActivePerl-5.8.9.827-MSWin32-x86-291969.msi .  If you are on a 64 bit machine then make sure you use the 32 bit installation, as many of the libraries needed for the GUI are not yet compiled for 64 bit.
+  * Download and install Perl 5.14 (the Community Edition) from http://www.activestate.com/activeperl/downloads.  If you are on a 64 bit machine then make sure you use the 32 bit installation, as the Gnome2::Canvas library needed for the GUI is not yet compiled for 64 bit.
   
   * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse.
 {{{
-ppm repo add http://voltar.org/active/5.8
+ppm repo add http://www.sisyphusion.tk/ppm/
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
-ppm repo add http://trouchelle.com/ppm/
 ppm install Bundle-BiodiverseNoGUI
 ppm install Bundle-Biodiverse
 ppm install mylib
@@ -41,9 +38,8 @@ ppm install Gnome2-Canvas
 
   *  If you are updating an existing installation then it is for the most part a repeat the ppm steps from the installation process.
 {{{
-ppm repo add http://voltar.org/active/5.8
+ppm repo add http://www.sisyphusion.tk/ppm/
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
-ppm repo add http://trouchelle.com/ppm/
 ppm install Bundle-BiodiverseNoGUI
 ppm install Bundle-Biodiverse
 ppm install mylib
@@ -52,6 +48,7 @@ ppm install mylib
 == Running it (AS) ==
 
   *  You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat` (or `C:\Biodiverse\bin\BiodiverseGUI.pl` if your system runs Perl files when they are double clicked).
+  *  See the [#Trouble_shooting trouble shooting] section below if you encounter problems.  
 
 = !CamelBox =
 
@@ -91,6 +88,12 @@ C:\CamelBox\bin\perl BiodiverseGUI.pl
 {{{
 C:\CamelBox\bin\perl C:\biodiverse\bin\BiodiverseGUI.pl
 }}}
+
+= Other Perls =
+
+  *  It should be possibvle to run Biodiverse using other Perl implementations, for example Strawberry Perl or Cava Perl.  In these cases, download and install as instructed by the provider.  
+  *  You should then be able to follow the [InstallationLinuxSource Linux source code] instructions for all except the Gnome project modules.
+  *  For the Gnome project modules (Gtk, Glib, Gnome2::Canvas etc.), see the installation scripts at http://code.google.com/p/biodiverse/source/browse/#svn%2Ftrunk%2Fetc%2Fwin32_gtk 
 
 
 The full path to perl is used to ensure the !CamelBox version is used.

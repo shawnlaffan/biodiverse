@@ -1,8 +1,10 @@
 <SOFTPKG NAME="Gnome2-Canvas" VERSION="1.002">
-    <ABSTRACT>Perl bindings for the 2.x series of the Gnome Canvas widget</ABSTRACT>
+    <TITLE>Gnome2-Canvas</TITLE>
+	<ABSTRACT>Perl bindings for the 2.x series of the Gnome Canvas widget</ABSTRACT>
     <AUTHOR></AUTHOR>
     <IMPLEMENTATION>
+		<OS NAME="MSWin32" />
         <ARCHITECTURE NAME="MSWin32-x86-multi-thread-5.14" />
-        <CODEBASE HREF="Gnome2-Canvas.tar.gz" />
+        <CODEBASE HREF="Gnome2-Canvas-514.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

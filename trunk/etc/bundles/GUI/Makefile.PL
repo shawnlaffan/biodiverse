@@ -12,10 +12,11 @@ WriteMakefile(
         "Data::DumpXML" => "0",
         "Geo::ShapeFile" => "0",
         "Tree::R" => "0",
-        "ExtUtils::Depends" => "0",
-        "ExtUtils::PkgConfig" => "0",
+        # "ExtUtils::Depends" => "0",
+        # "ExtUtils::PkgConfig" => "0",
         "Gtk2::GladeXML" => "0",
         "Browser::Open" => "0",
-        "LWP::Simple" => "0",
+        # "LWP::Simple" => "0",
+		"LWP" => "0",
     }
 );

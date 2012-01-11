@@ -17,6 +17,6 @@ WriteMakefile(
         "Gtk2::GladeXML" => "0",
         "Browser::Open" => "0",
         # "LWP::Simple" => "0",
-		"LWP" => "0",
+        "LWP::Simple" => "0",
     }
 );

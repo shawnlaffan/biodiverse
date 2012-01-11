@@ -32,15 +32,11 @@ Geo::ShapeFile
 
 Tree::R
 
-ExtUtils::Depends
-
-ExtUtils::PkgConfig
-
 Gtk2::GladeXML
 
 Browser::Open
 
-LWP::Simple
+LWP
 
 
 =head1 DESCRIPTION

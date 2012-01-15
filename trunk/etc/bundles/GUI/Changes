@@ -1,4 +1,7 @@
 Revision history for Perl extension Geo::Converter::dms2dd.
 
+0.16 15Jan2011
+        - Update module list for 0.16 release of Biodiverse
+
 0.15  06Nov2010
         - Get ready for CPAN

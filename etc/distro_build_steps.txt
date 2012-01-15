@@ -8,9 +8,7 @@ dmake ppd
 #then:
 dmake clean
 
-#  note:  the build process will include all bundles.
-#  To include only one you must delete the others (revert back using svn).
-#  To build the NoGUI version you need to rename its makefile to Makefile.PM.
+#  note:  the build process will include all files under this folder.
 
 #  finally, edit the ppd file to refer to the tar.gz file in the codebase href field
 

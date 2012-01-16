@@ -19,7 +19,7 @@ There are two options you can pursue here.  Both will work, but the !CamelBox in
 
 == Installation (AS) ==
 
-  * [http://code.google.com/p/biodiverse/downloads/list Download] the windows executable version for this, as it includes the Gtk binaries needed for the GUI.
+  * [http://code.google.com/p/biodiverse/downloads/list Download] the Biodiverse windows executable version for this, as it includes the Gtk binaries needed for the GUI (in addition to the Biodiverse source code).
   * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.  (If you do locate it elsewhere then make sure you adjust the paths in the following to reflect that).
   * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  For an example of how to set the path, see http://www.computerhope.com/issues/ch000549.htm.
   * Download and install Perl 5.14 (the Community Edition) from http://www.activestate.com/activeperl/downloads.  If you are on a 64 bit machine then make sure you use the 32 bit installation, as the Gnome2::Canvas library needed for the GUI is not yet compiled for 64 bit.

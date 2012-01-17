@@ -21,7 +21,7 @@ These instructions apply to version 0.14 and later.
 
 = Troubleshooting and changes =
 
-  *  If you don't like the window theme it uses then you can change them using the GTK+ Preference Tool from http://gtk-win.sourceforge.net/home/index.php/Gtk2Prefs
+  *  If you don't like the window theme it uses then you can change them using the GTK+ Preference Tool from http://sourceforge.net/userapps/mediawiki/alex-sh/index.php?title=Main_Page
 
   *  The Windows executable is generated using the !ActiveState !PerlApp tool.  It will work provided you do not move or rename the Gtk folder.  If you do, then make sure a Gtk\bin folder is in your system path so it finds the appropriate binaries that it depends on.  This folder needs to also include the libgnomecanvas.dll file that comes with Biodiverse.
 

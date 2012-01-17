@@ -907,8 +907,8 @@ sub write_table_asciigrid {
           if ! $success;
 
         $fh[$i] = $fh;
-        print $fh "nrows ", int (0.5 + (($max[1] - $min[1]) / $res[1] + 1)), "\n";
-        print $fh "ncols ", int (0.5 + (($max[0] - $min[0]) / $res[0] + 1)), "\n";
+        print $fh "nrows ", sprintf "%0.f", ($max[1] - $min[1]) / $res[1], "\n";
+        print $fh "ncols ", sprintf "%0.f", ($max[0] - $min[0]) / $res[0], "\n";
         print $fh "xllcenter $min[0]\n";
         print $fh "yllcenter $min[1]\n";
         print $fh "cellsize $res[0]\n";  #  CHEATING 
@@ -1023,8 +1023,8 @@ sub write_table_floatgrid {
         $success = open (my $fh_hdr, '>', $header_file);
         croak "Cannot open $header_file\n" if ! $success;
 
-        print $fh_hdr 'nrows ', int (0.5 + (($max[1] - $min[1]) / $res[1] + 1)), "\n";
-        print $fh_hdr 'ncols ', int (0.5 + (($max[0] - $min[0]) / $res[0] + 1)), "\n";
+        print $fh_hdr 'nrows ', sprintf "%0.f", ($max[1] - $min[1]) / $res[1], "\n";
+        print $fh_hdr 'ncols ', sprintf "%0.f", ($max[0] - $min[0]) / $res[0], "\n";
         print $fh_hdr "xllcenter $min[0]\n";
         print $fh_hdr "yllcenter $min[1]\n";
         print $fh_hdr "cellsize $res[0]\n"; 
@@ -1137,8 +1137,8 @@ sub write_table_divagis {
 
         my $time = localtime;
         my $create_time = ($time->year + 1900) . ($time->mon + 1) . $time->mday;
-        my $nrows = int (0.5 + (($max[1] - $min[1]) / $res[1] + 1));
-        my $ncols = int (0.5 + (($max[0] - $min[0]) / $res[0] + 1));
+        my $nrows = sprintf "%0.f", ($max[1] - $min[1]) / $res[1];
+        my $ncols = sprintf "%0.f", ($max[0] - $min[0]) / $res[0];
         my $minx = $min[0] - $res[0] / 2;
         my $maxx = $max[0] + $res[0] / 2;
         my $miny = $min[1] - $res[1] / 2;

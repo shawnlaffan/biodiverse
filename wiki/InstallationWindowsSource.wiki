@@ -7,7 +7,7 @@ These assume you have saved the Biodiverse source code to C:\biodiverse.  If you
 
 _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file used to run the source code version.  (This has no effect on the executable file).
 
-If you don't like the window theme it uses then you can change it using the GTK+ Preference Tool from http://gtk-win.sourceforge.net/home/index.php/Gtk2Prefs
+If you don't like the window theme it uses then you can change it using the GTK+ Preference Tool from http://sourceforge.net/userapps/mediawiki/alex-sh/index.php?title=Main_Page
 
 There are two options you can pursue here.  Both will work, but the !CamelBox install uses an older version of Perl.
 

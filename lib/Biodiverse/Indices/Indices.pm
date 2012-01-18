@@ -1795,6 +1795,7 @@ sub get_metadata_calc_element_lists_used {
         indices         => {
             EL_LIST_SET1  => {
                 description    => 'List of elements in neighbour set 1',
+                type           => 'list',
             },
             EL_LIST_SET2  => {
                 description    => 'List of elements in neighbour set 2',

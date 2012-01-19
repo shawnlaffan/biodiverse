@@ -237,21 +237,6 @@ my @quantiles = qw /05 10 20 30 40 50 60 70 80 90 95/;
 sub get_metadata_calc_gpprop_stats {
     my $self = shift;
 
-    #my %indices;
-    #my %prop_hash_names = $self->_get_gpprop_stats_hash_keynames;
-    #while (my ($prop, $stat_pfx) = each %prop_hash_names) {
-    #    $stat_pfx =~ s/LIST$//;
-    #    foreach my $stat (@stats) {
-    #        my $stat_name = exists $stat_name_short{$stat}
-    #                    ? $stat_name_short{$stat}
-    #                    : $stat;
-    #        $stat_name = $stat_pfx . uc $stat_name;
-    #        $indices{$stat_name} = {
-    #            description => ucfirst $stat . ' of group property ' . $prop,
-    #        };
-    #    }
-    #}
-
     my $desc = 'Summary statistics for each group property across both neighbour sets';
 
     my %arguments = (
@@ -301,18 +286,6 @@ sub calc_gpprop_stats {
 sub get_metadata_calc_gpprop_quantiles {
     my $self = shift;
 
-    #my %indices;
-    #my %prop_hash_names = $self->_get_gpprop_stats_hash_keynames;
-    #while (my ($prop, $stat_pfx) = each %prop_hash_names) {
-    #    $stat_pfx =~ s/LIST$/Q/;
-    #    foreach my $stat (@quantiles) {
-    #        my $stat_name = $stat_pfx . $stat;
-    #        $indices{$stat_name} = {
-    #            description => $stat . 'th quantile of group property ' . $prop,
-    #        };
-    #    }
-    #}
-
     my $desc = 'Quantiles for each group property across both neighbour sets';
 
     my %arguments = (
@@ -356,14 +329,6 @@ sub calc_gpprop_quantiles {
 
 sub get_metadata_calc_gpprop_gistar {
     my $self = shift;
-
-    #my %indices;
-    #foreach my $prop ($self->_get_gpprop_names) {
-    #    my $stat_name = 'GPPROP_GISTAR_' . $prop;
-    #    $indices{$stat_name} = {
-    #        description => 'Gi* score for group property ' . $prop,
-    #    };
-    #}
 
     my $desc = 'Getis-Ord Gi* statistic for each group property across both neighbour sets';
 

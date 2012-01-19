@@ -37,7 +37,7 @@ Bind: libpng14-14.dll[file=gtk\bin\libpng14-14.dll,extract,mode=777]
 Bind: libxml2-2.dll[file=gtk\bin\libxml2-2.dll,extract,mode=777]
 Bind: zlib1.dll[file=gtk\bin\zlib1.dll,extract,mode=777]
 Clean: 0
-Date: 2012-01-16 15:19:27
+Date: 2012-01-18 15:54:57
 Debug: 
 Dependent: 0
 Dyndll: 0
@@ -66,5 +66,5 @@ Version-LegalTrademarks:
 Version-OriginalFilename: 
 Version-ProductName: Biodiverse beta 2011-08-24-1
 Version-ProductVersion: 0.16
-Warnings: 0
+Warnings: 1
 Xclude: 0

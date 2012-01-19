@@ -2366,8 +2366,10 @@ sub get_lists {
 sub get_list_value_stats {
     my $self = shift;
     my %args = @_;
-    my $list = $args{list}   || croak "List not specified\n";
-    my $index = $args{index} || croak "Index not specified\n";
+    my $list = $args{list};
+    croak "List not specified\n" if not defined $list;
+    my $index = $args{index};
+    croak "Index not specified\n" if not defined $index ;
 
     my @data;
     foreach my $element ($self->get_element_list) {

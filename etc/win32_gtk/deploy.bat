@@ -4,7 +4,7 @@
 
 rem Edit these as appropriate
 set PKG_CONFIG_PATH=.\c\lib\pkgconfig
-set PATH=C:\Perl514_x64\bin;%PATH%
+set PATH=C:\Perl\bin;%PATH%
 
 @perl download.pl
 @perl extract.pl

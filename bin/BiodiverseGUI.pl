@@ -81,7 +81,10 @@ croak $EVAL_ERROR if $EVAL_ERROR;
 
 
 my $gladefile = get_gladefile();
-my $gladexml = Gtk2::GladeXML->new( $gladefile, 'wndMain' );
+my $gladexml = eval {
+    Gtk2::GladeXML->new( $gladefile, 'wndMain' );
+};
+croak $EVAL_ERROR if $EVAL_ERROR;
 $gladexml->signal_autoconnect_from_package('Biodiverse::GUI::Callbacks');
 
 # Initialise the GUI Manager object

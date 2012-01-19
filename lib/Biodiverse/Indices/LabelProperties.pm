@@ -87,7 +87,7 @@ sub _get_lbprop_stats_hash_key {
     my $self = shift;
     my %args = @_;
     my $prop = $args{property};
-    return 'LBPROP_STATS_' . $prop . '_LIST';
+    return 'LBPROP_STATS_' . $prop . '_DATA';
 }
 
 sub _get_lbprop_stats_hash_keynames {
@@ -107,7 +107,7 @@ sub _get_lbprop_stats_hash_keynames {
 }
 
 
-sub get_metadata_calc_lbprop_lists {
+sub get_metadata_calc_lbprop_data {
     my $self = shift;
 
     my $desc = 'Lists of the labels and their property values '
@@ -117,14 +117,14 @@ sub get_metadata_calc_lbprop_lists {
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
     while (my ($prop, $list_name) = each %prop_hash_names) {
         $indices{$list_name} = {
-            $list_name => 'List of values for property ' . $prop,
+            $list_name => 'List of data for property ' . $prop,
             type       => 'list',
         };
     }
 
     my %arguments = (
         description     => $desc,
-        name            => 'Label property lists',
+        name            => 'Label property data',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects'],
         uses_nbr_lists  => 1,
@@ -134,7 +134,7 @@ sub get_metadata_calc_lbprop_lists {
     return wantarray ? %arguments : \%arguments;
 }
 
-sub calc_lbprop_lists {
+sub calc_lbprop_data {
     my $self = shift;
     my %args = @_;
 
@@ -161,7 +161,7 @@ sub get_metadata_calc_lbprop_hashes {
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
     while (my ($prop, $list_name) = each %prop_hash_names) {
-        $list_name =~ s/LIST$/HASH/;
+        $list_name =~ s/DATA$/HASH/;
         $indices{$list_name} = {
             $list_name => 'Hash of values for property ' . $prop,
             type       => 'list',
@@ -195,7 +195,7 @@ sub calc_lbprop_hashes {
     while (my ($prop, $stats_object) = each %objects) {
         my @data = $stats_object->get_data();
         my $key = $prop;
-        $key =~ s/LIST$/HASH/;
+        $key =~ s/DATA$/HASH/;
         foreach my $value (@data) {
             $results{$key}{$value} ++;
         }
@@ -209,25 +209,10 @@ my @stats     = qw /mean min max median sum standard_deviation/;
 my %stat_name_short = (
     standard_deviation => 'SD',
 );
-my @quantiles = qw /10 20 30 40 50 60 70 80 90/;
+my @quantiles = qw /05 10 20 30 40 50 60 70 80 90 95/;
 
 sub get_metadata_calc_lbprop_stats {
     my $self = shift;
-
-    my %indices;
-    my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
-    while (my ($prop, $stat_pfx) = each %prop_hash_names) {
-        $stat_pfx =~ s/LIST$//;
-        foreach my $stat (@stats) {
-            my $stat_name = exists $stat_name_short{$stat}
-                        ? $stat_name_short{$stat}
-                        : $stat;
-            $stat_name = $stat_pfx . uc $stat_name;
-            $indices{$stat_name} = {
-                description => ucfirst $stat . ' of label property ' . $prop,
-            };
-        }
-    }
 
     my $desc = 'Summary statistics for each label property across both neighbour sets';
 
@@ -237,7 +222,12 @@ sub get_metadata_calc_lbprop_stats {
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects'],
         uses_nbr_lists  => 1,
-        indices         => \%indices,
+        indices         => {
+            LBPROP_STATS => {
+                description => 'Summary statistics for the label properties',
+                type        => 'list',
+            }
+        },
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -249,19 +239,22 @@ sub calc_lbprop_stats {
 
     #  just grab the hash from the precalc results
     my %objects = %{$args{LBPROP_STATS_OBJECTS}};
-    my %results;
+    my %res;
 
     while (my ($prop, $stats_object) = each %objects) {
         my $pfx = $prop;
-        $pfx =~ s/LIST$//;
+        $pfx =~ s/DATA$//;
+        $pfx =~ s/^LBPROP_STATS_//;
         foreach my $stat (@stats) {
             my $stat_name = exists $stat_name_short{$stat}
                         ? $stat_name_short{$stat}
                         : $stat;
 
-            $results{$pfx . uc $stat_name} = eval {$stats_object->$stat};
+            $res{$pfx . uc $stat_name} = eval {$stats_object->$stat};
         }
     }
+
+    my %results = (LBPROP_STATS => \%res);
 
     return wantarray ? %results : \%results;
 }
@@ -269,18 +262,6 @@ sub calc_lbprop_stats {
 
 sub get_metadata_calc_lbprop_quantiles {
     my $self = shift;
-
-    my %indices;
-    my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
-    while (my ($prop, $stat_pfx) = each %prop_hash_names) {
-        $stat_pfx =~ s/LIST$/Q/;
-        foreach my $stat (@quantiles) {
-            my $stat_name = $stat_pfx . $stat;
-            $indices{$stat_name} = {
-                description => $stat . 'th quantile of label property ' . $prop,
-            };
-        }
-    }
 
     my $desc = 'Quantiles for each label property across both neighbour sets';
 
@@ -290,7 +271,12 @@ sub get_metadata_calc_lbprop_quantiles {
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects'],
         uses_nbr_lists  => 1,
-        indices         => \%indices,
+        indices         => {
+            LBPROP_QUANTILES => {
+                description => 'Quantiles for the label properties',
+                type        => 'list',
+            }
+        },
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -302,15 +288,18 @@ sub calc_lbprop_quantiles {
 
     #  just grab the hash from the precalc results
     my %objects = %{$args{LBPROP_STATS_OBJECTS}};
-    my %results;
+    my %res;
 
     while (my ($prop, $stats_object) = each %objects) {
         my $pfx = $prop;
-        $pfx =~ s/LIST$/Q/;
+        $pfx =~ s/DATA$/Q/;
+        $pfx =~ s/^LBPROP_STATS_//;
         foreach my $stat (@quantiles) {
-            $results{$pfx . $stat} = eval {$stats_object->percentile($stat)};
+            $res{$pfx . $stat} = eval {$stats_object->percentile($stat)};
         }
     }
+
+    my %results = (LBPROP_QUANTILES => \%res);
 
     return wantarray ? %results : \%results;
 }

@@ -205,7 +205,7 @@ sub calc_lbprop_hashes {
 }
 
 
-my @stats     = qw /mean min max median sum standard_deviation/;
+my @stats     = qw /count mean min max median sum standard_deviation/;
 my %stat_name_short = (
     standard_deviation => 'SD',
 );

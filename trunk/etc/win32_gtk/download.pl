@@ -9,10 +9,11 @@ $atk_url = "atk/1.32";
 $dep_url = "dependencies";
 $g_canvas_url = "libgnomecanvas/2.30/";
 $glib_url = "glib/2.28";
-$gtk_url = "gtk+/2.24";
+$gtk_url = "gtk+/2.22";
 $glade_url = "libglade/2.6/";
 $libart_url = "libart_lgpl/2.3/";
 $pango_url = "pango/1.29";
+$gdk_url = "gdk-pixbuf/2.24";
 
 @pkgs_url = (
     "$atk_url/atk_1.32.0-2_win32.zip",
@@ -47,14 +48,17 @@ $pango_url = "pango/1.29";
     "$glib_url/glib-dev_2.28.8-1_win32.zip",
     "$glib_url/glib_2.28.8-1_win32.zip",
 
-    "$gtk_url/gtk+-dev_2.24.8-1_win32.zip",
-    "$gtk_url/gtk+_2.24.8-1_win32.zip",
+    "$gtk_url/gtk+-dev_2.22.1-1_win32.zip",
+    "$gtk_url/gtk+_2.22.1-1_win32.zip",
 
     "$libart_url/libart-lgpl-dev_2.3.21-1_win32.zip",
     "$libart_url/libart-lgpl_2.3.21-1_win32.zip",
 
     "$pango_url/pango-dev_1.29.4-1_win32.zip",
     "$pango_url/pango_1.29.4-1_win32.zip",
+	
+	"$gdk_url/gdk-pixbuf-dev_2.24.0-1_win32.zip",
+	"$gdk_url/gdk-pixbuf_2.24.0-1_win32.zip",
 );
 
 $pkg_dir = "packages";

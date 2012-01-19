@@ -1272,7 +1272,10 @@ sub to_nexus {
     );
     my $j = 0;
     foreach my $mapped_key (sort numerically keys %reverse_remap) {
-        my $remapped = $self->list2csv (csv_object => $csv_obj, list => [$reverse_remap{$mapped_key}]);
+        my $remapped = $self->list2csv (
+            csv_object => $csv_obj,
+            list       => [$reverse_remap{$mapped_key}],
+        );
         $translate_table .= "\t\t$mapped_key $remapped,\n";
         $j++;
     }
@@ -1282,16 +1285,26 @@ sub to_nexus {
 
     my $type = blessed $self;
 
+    #  clean up quoting
+    if ($tree_name =~ /^'/ and $tree_name =~ /'$/) {
+        $tree_name =~ s/^'//;
+        $tree_name =~ s/'$//;
+    }
+    $tree_name = $self->list2csv(  #  quote tree name if needed
+        csv_object => $csv_obj,
+        list       => [$tree_name],
+    );
+
     $string .= "#NEXUS\n";
     $string .= "[ID: $tree_name]\n";
     $string .= "begin trees;\n";
     $string .= "\t[Export of a $type tree using Biodiverse::TreeNode version $VERSION]\n";
     $string .= "\tTranslate \n$translate_table\n";
-    $string .= "\tTree '$tree_name' = " . $self->to_newick (remap => \%remap, %args) . ";\n";
+    $string .= "\tTree $tree_name = " . $self->to_newick (remap => \%remap, %args) . ";\n";
     $string .= "end;\n\n";
-    
+
     #print $EMPTY_STRING;
-    
+
     return $string;
 }
 

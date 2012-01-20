@@ -923,18 +923,7 @@ sub write_table_asciigrid {
 
     for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
 
-        ##  avoid float precision issues
-        #$y = $self->set_precision (
-        #    precision => "%.$precision[1]f",
-        #    value     => $y
-        #);  
-
         for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
-
-            #$x = $self -> set_precision (
-            #    precision => "%.$precision[0]f",
-            #    value     => $x
-            #);
 
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) {
@@ -1047,18 +1036,7 @@ sub write_table_floatgrid {
 
     for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
 
-        ##  avoid float precision issues
-        #$y = $self->set_precision (
-        #    precision => "%.$precision[1]f",
-        #    value     => $y
-        #);  
-
         for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
-print;
-            #$x = $self -> set_precision (
-            #    precision => "%.$precision[0]f",
-            #    value     => $x
-            #);
 
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
@@ -1192,18 +1170,7 @@ DIVA_HDR
 
     for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
 
-        ##  avoid float precision issues
-        #$y = $self->set_precision (
-        #    precision => "%.$precision[1]f",
-        #    value     => $y
-        #);  
-
         for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
-
-            #$x = $self -> set_precision (
-            #    precision => "%.$precision[0]f",
-            #    value     => $x
-            #);
 
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
@@ -1402,103 +1369,6 @@ END_OF_ERS_HEADER_START
 
     return;
 }
-
-#  This is here for posterity and to declutter write_table_ers.
-#  It does not need to be used as any software
-#  using the file will normally calculate teh stats itself.
-#  It also needs to be interleaved with the other code if it is ever put back.
-#sub ers_stats {
-                #if (not defined $value) {
-                #    $value = $no_data;
-                #    #$stats{$band}{NumberOfNullCells} ++;
-                #}
-                #else {
-                #    $stats{$band}{sum_x} += $value;
-                #    $stats{$band}{sum_x_sqr} += $value ** 2;
-                #    $stats{$band}{NumberOfNonNullCells} ++;
-                #    $stats{$band}{MaximumValue} = defined $stats{$band}{MaximumValue}
-                #        ? max ($stats{$band}{MaximumValue}, $value)
-                #        : $value;
-                #    $stats{$band}{MinimumValue} = defined $stats{$band}{MinimumValue}
-                #        ? min ($stats{$band}{MinimumValue}, $value)
-                #        : $value;
-                #}
-
-    ###  turn off stats for now - they can be calculated by using programs
-    #  process the stats
-    #my %stats_summary;
-    #my @stats_types = qw /
-    #    NumberOfNonNullCells
-    #    NumberOfNullCells
-    #    MeanValue
-    #    MinimumValue
-    #    MaximumValue
-    #/;
-
-    #my @means = (undef) x (scalar @res + 1);  #  first cols are coord stuff
-    #foreach my $band (@band_cols) {
-    #    $stats{$band}{MeanValue} = eval {
-    #        $stats{$band}{sum_x} / $stats{$band}{NumberOfNullCells}
-    #    };
-    #    foreach my $type (@stats_types) {
-    #        $stats_summary{$type} .= "$stats{$band}{$type}\t";
-    #        if ($type eq 'MeanValue') {
-    #            push @means, $stats{$band}{$type};
-    #        }
-    #    }
-    #}
-
-        ###  turn off stats
-#    #  add the stats
-#    my $stats_leader =<<"END_OF_ERS_STATS_LEADER"
-#\t\tRegionInfo Begin
-#\t\t\tType                = Polygon
-#\t\t\tRegionName        = "All"
-#\t\t\tRGBcolour Begin
-#\t\t\t\tRed          = 65535
-#\t\t\t\tGreen        = 65535
-#\t\t\t\tBlue         = 65535
-#\t\t\tRGBcolour End
-#\t\t\tSubRegion        = {
-#\t\t\t\t0        0
-#\t\t\t\t0        $nrows
-#\t\t\t\t$ncols        $nrows
-#\t\t\t\t$ncols        0
-#\t\t\t}
-#\t\t\tStats Begin
-#\t\t\t\tSubsampleRate        = 1
-#\t\t\t\tNumberOfBands        = $n_bands
-#END_OF_ERS_STATS_LEADER
-#;
-#
-#    my @stats = ($stats_leader);
-#    
-#    foreach my $type (@stats_types) {
-#        push @stats, (
-#            "\t\t\t\t$type        = {",
-#            "\t\t\t\t\t$stats_summary{$type}",
-#            "\t\t\t\t}",
-#        );
-#    }
-#
-#    my $covariance = $self -> get_covariance_from_table (
-#        data    => $data,
-#        fields  => \@band_cols,
-#        means   => \@means,
-#        as_text => 1,
-#        prefix  => "\t\t\t\t\t",
-#    );
-#
-#    push @stats, (
-#        "\t\t\t\tCovarianceMatrix\t= {",
-#        $covariance,
-#        "\t\t\t\t}",
-#        "\t\t\tStats End",
-#        "\t\tRegionInfo End",
-#    );
-#    
-#    push @header, @stats;
-#}
 
 sub raster_export_process_args {
     my $self = shift;

@@ -1041,21 +1041,24 @@ sub write_table_floatgrid {
 
     my %coords;
     my @default_line = ($no_data x scalar @$header);
-    for (my $y = $max[1]; $y >= $min[1]; $y -= $res[1]) {  #  y then x
 
-        #$y = sprintf "%.$precision[0]f", $y;  #  avoid float precision issues
-        $y = $self->set_precision (
-            precision => "%.$precision[1]f",
-            value     => $y,
-        );
+    my $prec_fmt_y = "%.$precision[1]f";
+    my $prec_fmt_x = "%.$precision[0]f";
 
-        for (my $x = $min[0]; $x <= $max[0]; $x += $res[0]) {
+    for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
 
-            #$x = sprintf "%.$precision[0]f", $x;
-            $x = $self->set_precision (
-                precision => "%.$precision[0]f",
-                value     => $x,
-            );
+        ##  avoid float precision issues
+        #$y = $self->set_precision (
+        #    precision => "%.$precision[1]f",
+        #    value     => $y
+        #);  
+
+        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $y + $res[0])) {
+
+            #$x = $self -> set_precision (
+            #    precision => "%.$precision[0]f",
+            #    value     => $x
+            #);
 
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
@@ -1183,21 +1186,24 @@ DIVA_HDR
 
     my %coords;
     my @default_line = ($no_data x scalar @$header);
-    for (my $y = $max[1]; $y >= $min[1]; $y -= $res[1]) {  #  y then x
 
-        #$y = sprintf "%.$precision[0]f", $y;  #  avoid float precision issues
-        $y = $self -> set_precision (
-            precision => "%.$precision[1]f",
-            value     => $y,
-        );
+    my $prec_fmt_y = "%.$precision[1]f";
+    my $prec_fmt_x = "%.$precision[0]f";
 
-        for (my $x = $min[0]; $x <= $max[0]; $x += $res[0]) {
+    for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
 
-            #$x = sprintf "%.$precision[0]f", $x;
-            $x = $self -> set_precision (
-                precision => "%.$precision[0]f",
-                value     => $x,
-            );
+        ##  avoid float precision issues
+        #$y = $self->set_precision (
+        #    precision => "%.$precision[1]f",
+        #    value     => $y
+        #);  
+
+        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $y + $res[0])) {
+
+            #$x = $self -> set_precision (
+            #    precision => "%.$precision[0]f",
+            #    value     => $x
+            #);
 
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 

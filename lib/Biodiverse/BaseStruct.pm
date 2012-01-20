@@ -907,8 +907,8 @@ sub write_table_asciigrid {
           if ! $success;
 
         $fh[$i] = $fh;
-        print $fh "nrows ", (sprintf "%0.f", ($max[1] - $min[1]) / $res[1]), "\n";
-        print $fh "ncols ", (sprintf "%0.f", ($max[0] - $min[0]) / $res[0]), "\n";
+        print $fh "nrows ", 1 + (sprintf "%0.f", ($max[1] - $min[1]) / $res[1]), "\n";
+        print $fh "ncols ", 1 + (sprintf "%0.f", ($max[0] - $min[0]) / $res[0]), "\n";
         print $fh "xllcenter $min[0]\n";
         print $fh "yllcenter $min[1]\n";
         print $fh "cellsize $res[0]\n";  #  CHEATING 
@@ -1023,13 +1023,13 @@ sub write_table_floatgrid {
         $success = open (my $fh_hdr, '>', $header_file);
         croak "Cannot open $header_file\n" if ! $success;
 
-        print $fh_hdr 'nrows ', (sprintf "%0.f", ($max[1] - $min[1]) / $res[1]), "\n";
-        print $fh_hdr 'ncols ', (sprintf "%0.f", ($max[0] - $min[0]) / $res[0]), "\n";
+        print $fh_hdr 'nrows ', 1 + (sprintf "%0.f", ($max[1] - $min[1]) / $res[1]), "\n";
+        print $fh_hdr 'ncols ', 1 + (sprintf "%0.f", ($max[0] - $min[0]) / $res[0]), "\n";
         print $fh_hdr "xllcenter $min[0]\n";
         print $fh_hdr "yllcenter $min[1]\n";
         print $fh_hdr "cellsize $res[0]\n"; 
         print $fh_hdr "nodata $no_data\n";
-        print $fh_hdr 'BYTEORDER ',
+        print $fh_hdr 'byteorder ',
                       ($is_little_endian ? 'LSBFIRST' : 'MSBFIRST'),
                       "\n";
         $fh_hdr -> close;
@@ -1040,7 +1040,7 @@ sub write_table_floatgrid {
     for (my $y = $max[1]; $y >= $min[1]; $y -= $res[1]) {  #  y then x
 
         #$y = sprintf "%.$precision[0]f", $y;  #  avoid float precision issues
-        $y = $self -> set_precision (
+        $y = $self->set_precision (
             precision => "%.$precision[1]f",
             value     => $y,
         );
@@ -1048,7 +1048,7 @@ sub write_table_floatgrid {
         for (my $x = $min[0]; $x <= $max[0]; $x += $res[0]) {
 
             #$x = sprintf "%.$precision[0]f", $x;
-            $x = $self -> set_precision (
+            $x = $self->set_precision (
                 precision => "%.$precision[0]f",
                 value     => $x,
             );
@@ -1137,8 +1137,8 @@ sub write_table_divagis {
 
         my $time = localtime;
         my $create_time = ($time->year + 1900) . ($time->mon + 1) . $time->mday;
-        my $nrows = sprintf "%0.f", ($max[1] - $min[1]) / $res[1];
-        my $ncols = sprintf "%0.f", ($max[0] - $min[0]) / $res[0];
+        my $nrows = 1 + sprintf "%0.f", ($max[1] - $min[1]) / $res[1];
+        my $ncols = 1 + sprintf "%0.f", ($max[0] - $min[0]) / $res[0];
         my $minx = $min[0] - $res[0] / 2;
         my $maxx = $max[0] + $res[0] / 2;
         my $miny = $min[1] - $res[1] / 2;

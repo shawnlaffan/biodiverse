@@ -929,7 +929,7 @@ sub write_table_asciigrid {
         #    value     => $y
         #);  
 
-        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $y + $res[0])) {
+        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
 
             #$x = $self -> set_precision (
             #    precision => "%.$precision[0]f",
@@ -1053,8 +1053,8 @@ sub write_table_floatgrid {
         #    value     => $y
         #);  
 
-        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $y + $res[0])) {
-
+        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
+print;
             #$x = $self -> set_precision (
             #    precision => "%.$precision[0]f",
             #    value     => $x
@@ -1198,7 +1198,7 @@ DIVA_HDR
         #    value     => $y
         #);  
 
-        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $y + $res[0])) {
+        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
 
             #$x = $self -> set_precision (
             #    precision => "%.$precision[0]f",
@@ -1233,7 +1233,6 @@ DIVA_HDR
 
     return;
 }
-
 
 
 #  write a table out as an ER-Mapper ERS BIL file.

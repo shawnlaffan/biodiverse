@@ -11,6 +11,7 @@ our $VERSION = '0.16';
 use File::Basename;
 use Gtk2;
 use Gtk2::GladeXML;
+use Glib;
 use Text::Wrapper;
 use File::BOM qw / :subs /;
 
@@ -97,16 +98,16 @@ sub run {
 
     #  get any options
     # Get the Parameters metadata
-    my %args = $basedata_ref -> get_args (sub => 'import_data');
+    my %args = $basedata_ref->get_args (sub => 'import_data');
     my $params = $args{parameters};
 
     # Build widgets for parameters
-    my $table = $dlgxml -> get_widget ('tableImportParameters');
+    my $table = $dlgxml->get_widget ('tableImportParameters');
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
     my $extractors = Biodiverse::GUI::ParametersTable::fill ($params, $table, $dlgxml); 
     
     $dlg->show_all;
-    $response = $dlg -> run;
+    $response = $dlg->run;
     $dlg -> destroy;
     
     if ($response ne 'ok') {  #  clean up and drop out
@@ -121,8 +122,25 @@ sub run {
 
     # Get header columns
     print "[GUI] Discovering columns from $filenames[0]\n";
-    
-    my $open_success = open (my $fh, '<:via(File::BOM)', $filenames[0]);
+    my $fh;
+    my $filename_utf8 = Glib::filename_display_name $filenames[0];
+
+    #use Path::Class::Unicode;
+    #my $file = ufile("path", $filename_utf8);
+    #print $file . "\n";
+
+    # have unicode filename issues - see http://code.google.com/p/biodiverse/issues/detail?id=272
+    if (not open $fh, '<:via(File::BOM)', $filename_utf8) {
+        my $exists = -e $filename_utf8 || 0;
+        my $msg = "Unable to open $filenames[0].\n";
+        $msg .= $exists
+            ? "Check file read permissions."
+            : "If the file name contains unicode characters then please rename the file so it does not contain them.\n"
+              . "See http://code.google.com/p/biodiverse/issues/detail?id=272";
+        $msg .= "\n";
+        croak $msg;
+    }
+
     my $line = <$fh>;
     close ($fh);
 
@@ -907,7 +925,10 @@ sub onFileChanged {
     # Default name to selected filename
     if ( scalar @filenames > 0) {
         my $filename = $filenames[0];
-        if (-f $filename) {
+        #print $filename . "\n";
+        #my $filename_in_local_encoding = Glib::filename_from_unicode $filename;
+        #my $z = -f $filename_in_local_encoding;
+        if ($filename =~ /\.[^.]*/) {
             my($name, $dir, $suffix) = fileparse($filename, qr/\.[^.]*/);
             $text->set_text($name);
         }
@@ -1232,7 +1253,7 @@ sub getRemapInfo {
     print "[GUI] Discovering columns from $filename\n";
     
     open (my $input_fh, '<:via(File::BOM)', $filename)
-      || croak "Cannot open $filename\n";
+      or croak "Cannot open $filename\n";
 
     my ($line, $line_unchomped);
     while (<$input_fh>) { # get first non-blank line

@@ -184,6 +184,16 @@ sub load_yaml_file {
 
 }
 
+sub set_basedata_ref {
+    my $self = shift;
+    my %args = @_;
+
+    $self->set_param (BASEDATA_REF => $args{BASEDATA_REF});
+    $self->weaken_basedata_ref;
+
+    return;
+}
+
 sub get_basedata_ref {
     my $self = shift;
     
@@ -203,7 +213,7 @@ sub weaken_basedata_ref {
 
     #  avoid memory leak probs with circular refs
     if ($self->exists_param ('BASEDATA_REF')) {
-        $success = $self -> weaken_param ('BASEDATA_REF');
+        $success = $self->weaken_param ('BASEDATA_REF');
 
         warn "[BaseStruct] Unable to weaken basedata ref\n"
           if ! $success;

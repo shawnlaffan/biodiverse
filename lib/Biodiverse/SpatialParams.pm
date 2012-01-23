@@ -57,6 +57,8 @@ sub new {
         carp "[SPATIALPARAMS] Warning, no conditions specified\n";
         $args{conditions} = $NULL_STRING;
     }
+    
+    $self->set_basedata_ref (BASEDATA_REF => $args{basedata_ref});
 
     my $conditions = $args{conditions};
 
@@ -123,6 +125,7 @@ sub parse_distances {
 
     my %params;
     my %missing_args;
+    my %missing_opt_args;
     my %invalid_args;
     my %incorrect_args;
     my $results_types = $NULL_STRING;
@@ -297,6 +300,15 @@ sub parse_distances {
                     }
                 }
 
+                #  check which optional args are missing (but not that they are valid)
+                if ( $key eq 'optional_args' ) {
+                    foreach my $req ( @{ $res{$key} } ) {
+                        if ( not exists $hash_1{$req} ) {
+                            $missing_opt_args{$sub_name_and_args}{$req}++;
+                        }
+                    }
+                }
+
                 #  REALLY BAD CODE - does not allow for other
                 #  functions and operators
                 elsif ( $key eq 'result_type' ) {
@@ -336,6 +348,7 @@ sub parse_distances {
     $self->set_param( MISSING_ARGS   => \%missing_args );
     $self->set_param( INVALID_ARGS   => \%invalid_args );
     $self->set_param( INCORRECT_ARGS => \%incorrect_args );
+    $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES           => \%params );
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
@@ -403,29 +416,33 @@ sub verify {
     my $self = shift;
     my %args = @_;
 
-    my %hash = (
-        msg => "Syntax OK\n"
-            . "(note that this does not\n"
-            . "guarantee that it will\n"
-            . 'work as desired)',
-        type => 'info',
-        ret  => 'ok',
-    );
-
     my $msg;
     my $SPACE = q{ };    #  looks weird, but is Perl Best Practice.
 
     my $valid = 1;
 
+    #  this needs refactoring, but watch for validity flag in opt args
     my $missing = $self->get_param('MISSING_ARGS');
     if ( $missing and scalar keys %$missing ) {
-        $msg = "Subs are missing required arguments\n";
+        $msg .= "Subs are missing required arguments\n";
         foreach my $sub ( keys %$missing ) {
             my $sub_m = $missing->{$sub};
             $msg .= "$sub : " . join( ', ', keys %$sub_m ) . "\n";
         }
         $valid = 0;
+        $msg .= "\n";
     }
+
+    my $missing_opt_args = $self->get_param('MISSING_OPT_ARGS');
+    if ( $missing_opt_args and scalar keys %$missing_opt_args ) {
+        $msg .= "Unused optional arguments\n";
+        foreach my $sub ( keys %$missing_opt_args ) {
+            my $sub_m = $missing_opt_args->{$sub};
+            $msg .= "$sub : " . join( ', ', keys %$sub_m ) . "\n";
+        }
+        $msg .= "\n";
+    }
+    
     my $incorrect_args = $self->get_param('INCORRECT_ARGS');
     if ( $incorrect_args and scalar keys %$incorrect_args ) {
         $msg .= "\nSubs have incorrectly specified arguments\n";
@@ -433,7 +450,9 @@ sub verify {
             $msg .= $incorrect_args->{$sub} . "\n";
         }
         $valid = 0;
+        $msg .= "\n";
     }
+
     my $invalid_args = $self->get_param ('INVALID_ARGS');
     if ( $incorrect_args and scalar keys %$invalid_args ) {
         $msg .= "\nSubs have invalid arguments - they might not work as you hope.\n";
@@ -494,17 +513,32 @@ sub verify {
 
         if ($error) {
             $msg = "Syntax error:\n\n$EVAL_ERROR";
+            $valid = 0;
         }
 
         $self->set_param( VERIFYING => undef );
     }
 
+    my %hash = (
+        msg => "Syntax OK\n"
+            . "(note that this does not\n"
+            . "guarantee that it will\n"
+            . 'work as desired)',
+        type => 'info',
+        ret  => 'ok',
+    );
+
     if ($msg) {
-        %hash = (
-            msg  => $msg,
-            type => 'error',
-            ret  => 'error',
-        );
+        if ($valid) {  #  append optional args messages
+            $hash{msg} = $hash{msg} . "\n\n" . $msg;
+        }
+        else {         #  flag errors
+            %hash = (
+                msg  => $msg,
+                type => 'error',
+                ret  => 'error',
+            );
+        }
     }
     return wantarray ? %hash : \%hash;
 }

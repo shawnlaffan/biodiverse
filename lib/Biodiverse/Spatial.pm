@@ -963,7 +963,8 @@ sub get_spatial_params_ref {
         if (! blessed $spatial_params_ref->[$i]) {
             $spatial_params_ref->[$i]
                 = Biodiverse::SpatialParams->new (
-                    conditions => $spatial_params_ref->[$i],
+                    conditions   => $spatial_params_ref->[$i],
+                    basedata_ref => $self->get_basedata_ref,
                 );
         }
     }

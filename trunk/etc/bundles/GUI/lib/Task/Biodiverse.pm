@@ -12,7 +12,7 @@ __END__
 
 =head1 NAME
 
-Bundle::Biodiverse - Bundle to install Biodiverse dependencies.
+Task::Biodiverse - Task to install Biodiverse dependencies.
 
 
 =head1 SYNOPSIS
@@ -27,7 +27,8 @@ Bundle::Biodiverse - Bundle to install Biodiverse dependencies.
 =head1 DESCRIPTION
 
 Task to install Biodiverse dependencies across all platforms.
-This does not include the Gtk dependencies as they don't load cleanly on all platforms.
+The Gnome2::Canvas dependency doesn't load cleanly on all platforms so might
+need to be manually installed.
 
 See L<http://www.purl.org/biodiverse> for more details about Biodiverse itself.  
 

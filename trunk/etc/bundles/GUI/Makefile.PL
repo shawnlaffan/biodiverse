@@ -10,10 +10,12 @@ WriteMakefile(
         'ABSTRACT' => 'Task for Biodiverse dependencies',
         ) : (),
     PREREQ_PM => {
+        "Task::Biodiverse::NoGUI" => "0",
         "Data::DumpXML" => "0",
         "Geo::ShapeFile" => "0",
         "Tree::R" => "0",
         "Gtk2::GladeXML" => "0",
+        "Gnome2::Canvas" => "0",
         "Browser::Open" => "0",
         "LWP::Simple" => "0",
     }

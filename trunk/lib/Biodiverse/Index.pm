@@ -326,7 +326,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     #  should add it as an argument
     
     my $spatial_params = $args{spatial_params};
-    my $conditions = $spatial_params -> get_conditions_unparsed();
+    my $conditions = $spatial_params->get_conditions_unparsed();
     $self -> update_log (text => "[INDEX] PREDICTING SPATIAL INDEX NEIGHBOURS\n$conditions\n");
     
 
@@ -531,7 +531,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                     $element_ref  = $index_element_arrays{$element};
                 }
                 else {
-                    $element_ref = $self -> csv2list (
+                    $element_ref = $self->csv2list (
                         string => $element,
                         csv_object => $csv_object,
                     );
@@ -567,9 +567,11 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 #my $pass = 0;
                 #next COMPARE if ! eval ($conditions);
                 next COMPARE
-                    if not $spatial_params -> evaluate (
+                    if not $spatial_params->evaluate (
                         coord_array1 => $check_ref,
                         coord_array2 => $element_ref,
+                        coord_id1    => $check_element,
+                        coord_id2    => $element,
                         cellsizes    => $cellsizes,
                     );
 

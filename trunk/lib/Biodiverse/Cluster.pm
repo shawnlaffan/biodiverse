@@ -243,7 +243,10 @@ sub build_matrices {
     foreach my $condition (@spatial_conditions) {
         if (! defined $spatial_params_array->[$i]) {
             $spatial_params_array->[$i]
-              = Biodiverse::SpatialParams->new (conditions => $spatial_conditions[$i]);
+              = Biodiverse::SpatialParams->new (
+                    conditions   => $spatial_conditions[$i],
+                    basedata_ref => $self->get_basedata_ref,
+            );
         }
         $i++;
     }

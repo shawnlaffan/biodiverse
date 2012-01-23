@@ -163,7 +163,7 @@ sub onSyntaxCheck {
             'destroy-with-parent',
             $result_hash->{type},
             'ok',
-            $result_hash->{msg}
+            $result_hash->{msg},
         );
 
         $dlg->run();

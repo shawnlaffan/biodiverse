@@ -264,7 +264,7 @@ sub new {
     }
 
     $self->set_frame_label_widget;
-
+    
     print "[Clustering tab] - Loaded tab - Clustering Analysis\n";
 
     return $self;

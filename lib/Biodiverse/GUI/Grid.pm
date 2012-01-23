@@ -123,6 +123,8 @@ sub new {
     #$self->{use_hover_func} = 1;          #  we should use the hover func by default
     $self->{click_func}  = shift || undef; # Callback function for when users click on a cell
     $self->{select_func} = shift || undef; # Callback function for when users select a set of elements
+    my $g = 0;
+    $self->{colour_none} = Gtk2::Gdk::Color->new($g, $g, $g);
 
     # Make the canvas and hook it up
     $self->{canvas} = Gnome2::Canvas->new();
@@ -1009,7 +1011,8 @@ sub colourCells {
     my $self = shift;
     
     #  default to black if an analysis is specified, white otherwise
-    my $colour_none = shift || (defined $self->{analysis} ? CELL_BLACK : CELL_WHITE);
+    #my $colour_none = shift || (defined $self->{analysis} ? CELL_BLACK : CELL_WHITE);
+    my $colour_none = $self->get_colour_none;
 
     foreach my $cell (values %{$self->{cells}}) {
         my $val = defined $self->{analysis} ? $cell->[INDEX_VALUES]{$self->{analysis}} : undef;
@@ -1019,6 +1022,19 @@ sub colourCells {
     }
 
     return;
+}
+
+sub get_colour_none {
+    my $self = shift;
+    my $colour_none = shift;
+
+    #  default to black if an analysis is specified, white otherwise
+    my $null    = $self->{colour_none} || CELL_BLACK;
+    my $default = defined $self->{analysis} ? $null : CELL_WHITE;
+
+    $colour_none ||= $default;
+
+    return $colour_none;    
 }
 
 sub getColour {

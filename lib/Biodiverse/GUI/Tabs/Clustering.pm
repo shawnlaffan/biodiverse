@@ -1087,12 +1087,12 @@ sub onGridHover {
         }
         
         my $analysis_name = $self->{grid}{analysis};
-        my $coloured_node = $self -> getColouredNodeForElement($element);
+        my $coloured_node = $self->getColouredNodeForElement($element);
         if (defined $coloured_node && defined $analysis_name) {
             #  need to get the displayed node, not the terminal node
             my $list_ref = $coloured_node -> get_list_ref (list => 'SPATIAL_RESULTS');  #  will need changing when otehr lists can be selected
             my $value = $list_ref->{$analysis_name};
-            $string = sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node -> get_name, $analysis_name, $value);
+            $string = sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
             $string .= ", <b>Element:</b> $element";
         }
         elsif (! defined $analysis_name && defined $coloured_node) {

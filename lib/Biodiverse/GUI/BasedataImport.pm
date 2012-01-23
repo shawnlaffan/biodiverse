@@ -135,7 +135,7 @@ sub run {
         my $msg = "Unable to open $filenames[0].\n";
         $msg .= $exists
             ? "Check file read permissions."
-            : "If the file name contains unicode characters then please rename the file so it does not contain them.\n"
+            : "If the file name contains unicode characters then please rename the file so its name does not contain them.\n"
               . "See http://code.google.com/p/biodiverse/issues/detail?id=272";
         $msg .= "\n";
         croak $msg;

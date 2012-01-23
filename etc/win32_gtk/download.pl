@@ -3,6 +3,15 @@ use HTTP::Request;
 use LWP::UserAgent;
 require "lwp-download";
 
+###########
+## 
+##  To do:  
+##     1.  Use the Gtk+ bundle files for all except Glade and GnomeCanvas and their deps 
+##         (although only Glade and GnomeCanvas need strictly be done since there are good ppms at sisyphusion.tk)
+##     2.  Try for 64 builds.  Only really need to do GnomeCanvas since ppms exist for all others (sisyphusion.tk again)
+## 
+###########
+
 #$wget = "utility/bin/wget.exe";
 $base_url = "http://ftp.gnome.org/pub/gnome/binaries/win32";
 $atk_url = "atk/1.32";
@@ -14,6 +23,7 @@ $glade_url = "libglade/2.6/";
 $libart_url = "libart_lgpl/2.3/";
 $pango_url = "pango/1.29";
 $gdk_url = "gdk-pixbuf/2.24";
+$intl_url = "intltool/0.40";
 
 @pkgs_url = (
     "$atk_url/atk_1.32.0-2_win32.zip",
@@ -57,8 +67,11 @@ $gdk_url = "gdk-pixbuf/2.24";
     "$pango_url/pango-dev_1.29.4-1_win32.zip",
     "$pango_url/pango_1.29.4-1_win32.zip",
 	
-	"$gdk_url/gdk-pixbuf-dev_2.24.0-1_win32.zip",
-	"$gdk_url/gdk-pixbuf_2.24.0-1_win32.zip",
+    "$gdk_url/gdk-pixbuf-dev_2.24.0-1_win32.zip",
+    "$gdk_url/gdk-pixbuf_2.24.0-1_win32.zip",
+    
+    "$intl_url/intltool-dev_0.40.4-1_win32.zip",
+    "$intl_url/intltool_0.40.4-1_win32.zip"
 );
 
 $pkg_dir = "packages";

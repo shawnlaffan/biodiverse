@@ -60,6 +60,8 @@ sub new {
     my $map_list_combo  = shift;    # Combo for selecting how to colour the grid (based on spatial result or cluster)
     my $map_index_combo = shift;    # Combo for selecting how to colour the grid (which spatial result)
 
+    my $grey = 0.9 * 255 * 257;
+
     my $self = {
         map                 => $map,
         map_index_combo     => $map_index_combo,
@@ -76,6 +78,7 @@ sub new {
         render_height       => 0,
         graph_height_px     => 0,
         use_slider_to_select_nodes => 1,
+        colour_not_in_tree  => Gtk2::Gdk::Color->new($grey, $grey, $grey),
     };
 
     $self->{hover_func}         = shift || undef; #Callback function for when users move mouse over a cell
@@ -782,7 +785,7 @@ sub recolourClusterElements {
             }
             else {
                 # not even in the tree
-                return COLOUR_NOT_IN_TREE;
+                return $self->get_colour_not_in_tree;
             }
         }
 
@@ -816,7 +819,7 @@ sub recolourClusterElements {
             }
             else {
                 # not even in the tree
-                return COLOUR_NOT_IN_TREE;
+                return $self->get_colour_not_in_tree;
             }
         }
 
@@ -842,6 +845,16 @@ sub recolourClusterElements {
     }
 
 }
+
+
+sub get_colour_not_in_tree {
+    my $self = shift;
+    
+    my $colour = $self->{colour_not_in_tree} || COLOUR_NOT_IN_TREE;
+    
+    return $colour;
+}
+
 
 # Colours the dendrogram lines with palette colours
 sub recolourClusterLines {

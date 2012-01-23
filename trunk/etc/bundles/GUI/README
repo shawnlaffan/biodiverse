@@ -1,9 +1,9 @@
-Bundle-Biodiverse version 0.16
+Task-Biodiverse version 0.16001
 =================================
 
-Bundle to install Biodiverse dependencies for GUI use.
+Task to install Biodiverse dependencies for GUI use.
 
-Version 0.16
+Version 0.16001
 
 INSTALLATION
 
@@ -20,7 +20,7 @@ None.
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2010 by Shawn Laffan
+Copyright (C) 2012 by Shawn Laffan
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.9 or,

@@ -2,11 +2,11 @@ use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-    'NAME' => 'Bundle::BiodiverseNoGUI',
-    'VERSION_FROM' => 'lib/Bundle/BiodiverseNoGUI.pm', # finds $VERSION
+    'NAME' => 'Task::Biodiverse::NoGUI',
+    'VERSION_FROM' => 'lib/Task/Biodiverse/NoGUI.pm', # finds $VERSION
     ($] ge '5.005') ? (
         'AUTHOR' => 'Shawn Laffan (shawn.laffan@unsw.edu.au)',
-        'ABSTRACT' => 'Bundle for Biodiverse dependencies for non-GUI use',
+        'ABSTRACT' => 'Task for Biodiverse dependencies for non-GUI use',
         ) : (),
     PREREQ_PM => {
         "Data::DumpXML" => "0",

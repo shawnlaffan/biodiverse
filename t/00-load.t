@@ -17,8 +17,9 @@ our @files;
         # only operate on Perl modules
         return if $_ !~ m/\.pm$/;
         return if $File::Find::name !~ m/Biodiverse/;
-        return if $File::Find::name =~ m/Bundle/;  #  ignore bundle files
-        
+        return if $File::Find::name =~ m/Task/;    #  ignore Task files
+        return if $File::Find::name =~ m/Bundle/;  #  ignore Bundle files
+
         my $filename = $File::Find::name;
         $filename =~ s/\.pm$//;
         $filename =~ s/.+(Biodiverse.+)/$1/;

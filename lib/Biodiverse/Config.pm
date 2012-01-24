@@ -46,7 +46,6 @@ sub add_lib_paths {
     if (! defined $var) {
         $var = 'BIODIVERSE_LIB';
     }
-    print "Adding $var paths\n";
 
     my @lib_paths;
 
@@ -60,10 +59,12 @@ sub add_lib_paths {
         }
         push @lib_paths, split $sep, $ENV{$var};
     }
-    
+
+    print "Adding $var paths\n";
     print join q{ }, @lib_paths, "\n";
 
-    use lib @lib_paths;
+    #no warnings 'closure';
+    eval 'use lib @lib_paths';
 
     return;
 }

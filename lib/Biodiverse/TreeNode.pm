@@ -762,8 +762,8 @@ sub get_path_to_node {
     );  
     
     my $target = $args{node};
-    my $target_name = $target -> get_name;
-    my $from_name = $self -> get_name;
+    my $target_name = $target->get_name;
+    my $from_name = $self->get_name;
     
     #  maybe should make this a little more complex as a nested data structure?  Maybe a matrix?
     my $cache_list = 'PATH_FROM::' . $from_name . '::TO::' . $target_name;  

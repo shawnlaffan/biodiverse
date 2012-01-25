@@ -181,47 +181,50 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
             : \%results;
 }
 
+
+#  get_paths_to_root_node is not designed as a precalc, so this is essentially redundant?
+sub get_metadata_get_paths_to_root_node {
+
+    my %arguments = (
+        description    => 'Get the paths to the root node of a tree for a set of labels.',
+        uses_nbr_lists => 1,  #  how many lists it must have
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+
 #  get the paths to the root node of a tree for a set of labels
 #  saves duplication of code in PD and PE subs
 #  NEEDS TO BE MOVED INTO THE TREE PACKAGES?
 sub get_paths_to_root_node {
     my $self = shift;
     my %args = @_;
-    
-    #  not currently designed as a precalc
-    if ($args{get_args}) {
-        my %arguments = (
-            description    => 'Get the paths to the root node of a tree for a set of labels.',
-            uses_nbr_lists => 1,  #  how many lists it must have
-        );  #  add to if needed
 
-        return wantarray ? %arguments : \%arguments;
-    }
-    
     my $label_list = $args{labels};
     my $tree_ref   = $args{tree_ref}
       or croak "argument tree_ref is not defined\n";
-    
+
     #create a hash of terminal nodes for the taxa present
-    my $all_nodes = $tree_ref -> get_node_hash;
+    my $all_nodes = $tree_ref->get_node_hash;
     
-    my $root_node = $tree_ref -> get_tree_ref;  # hmmm.  confusing mix of methods and vars
+    my $root_node = $tree_ref->get_tree_ref;  # hmmm.  confusing mix of methods and vars
     #my $root_name = $root_node -> get_name;
-    
+
     #  now loop through the labels and get the path to the root node
     my %path;
     foreach my $label (sort keys %$label_list) {
         next if not exists $all_nodes->{$label};
-        
+
         my $current_node = $all_nodes->{$label};
-        my $current_name = $current_node -> get_name;
-        
+        my $current_name = $current_node->get_name;
+
         $path{$current_name} = $current_node;  #  include oneself
-        
-        my $sub_path = $current_node -> get_path_to_node (node => $root_node);
+
+        my $sub_path = $current_node->get_path_to_node (node => $root_node);
         @path{keys %$sub_path} = values %$sub_path;
     }
-    
+
     return wantarray ? %path : \%path;
 }
 
@@ -1258,80 +1261,68 @@ sub _calc_phylo_abc {
     my $self = shift;
     my %args = @_;
 
-    #  assume we are in a spatial or tree object first, or a basedata object otherwise
-    #my $bd = $self->get_basedata_ref;
-
-    croak "none of refs element_list1, element_list2, label_list1, label_list2, label_hash1, label_hash2 specified\n"
-        if (! defined $args{element_list1} && ! defined $args{element_list2} &&
-            ! defined $args{label_list1} && ! defined $args{label_list2} &&
-            ! defined $args{label_hash1} && ! defined $args{label_hash2} &&
-            !defined $args{tree_ref});
-
-    #  make copies of the label hashes so we don't mess things up with auto-vivification
-    my %l1 = %{$args{label_hash1}};
-    my %l2 = %{$args{label_hash2}};
-    my %labels = (%l1, %l2);
+    my $label_hash1 = $args{label_hash1};
+    my $label_hash2 = $args{label_hash2};
 
     my ($phylo_A, $phylo_B, $phylo_C, $phylo_ABC)= (0, 0, 0, 0);    
 
     my $tree = $args{trimmed_tree};
     
-    my $nodes_in_path1 = $self -> get_paths_to_root_node (
+    my $nodes_in_path1 = $self->get_paths_to_root_node (
         @_,
-        labels => \%l1,
+        labels   => $label_hash1,
         tree_ref => $tree
     );
     
-    my $nodes_in_path2 = $self -> get_paths_to_root_node (
+    my $nodes_in_path2 = $self->get_paths_to_root_node (
         @_,
-        labels => \%l2,
+        labels   => $label_hash2,
         tree_ref => $tree
     );
     
-    my %ABC = (%$nodes_in_path1, %$nodes_in_path2); 
-    
-    # get length of %ABC
-    foreach my $node (values %ABC) {
-        $phylo_ABC += $node->get_length;
-    };
-        
+    my %A = (%$nodes_in_path1, %$nodes_in_path2); 
+
     # create a new hash %B for nodes in label hash 1 but not 2
-    my %B = %ABC;
+    # then get length of B
+    my %B = %A;
     delete @B{keys %$nodes_in_path2};
-    
-    # get length of B = branches in label hash 1 but not 2
     foreach my $node (values %B) {
-        $phylo_B += $node ->get_length;
+        $phylo_B += $node->get_length;
     };
     
     # create a new hash %C for nodes in label hash 2 but not 1
-    my %C = %ABC;
+    # then get length of C
+    my %C = %A;
     delete @C{keys %$nodes_in_path1};
-    
-    # get length of C = branches in label hash 2 but not 1
     foreach my $node (values %C) {
-        $phylo_C += $node ->get_length;
+        $phylo_C += $node->get_length;
     };
-    
-    # get length A = shared branches
-    $phylo_A = $phylo_ABC - ($phylo_B + $phylo_C);
 
-    #  return the values but reduce the precision to avoid floating point problems later on
+    # get length of %A = branches not in %B or %C
+    delete @A{keys %B, keys %C};
+    foreach my $node (values %A) {
+        $phylo_A += $node->get_length;
+    };
+
+    $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
+
+    #  return the values but reduce the precision to avoid
+    #  floating point problems later on
     my $precision = "%.10f";
     my %results = (
-        PHYLO_A   => $self -> set_precision (
+        PHYLO_A   => $self->set_precision (
             precision => $precision,
             value     => $phylo_A,
         ),
-        PHYLO_B   => $self -> set_precision (
+        PHYLO_B   => $self->set_precision (
             precision => $precision,
             value     => $phylo_B,
         ),
-        PHYLO_C   => $self -> set_precision (
+        PHYLO_C   => $self->set_precision (
             precision => $precision,
             value     => $phylo_C,
         ),
-        PHYLO_ABC => $self -> set_precision (
+        PHYLO_ABC => $self->set_precision (
             precision => $precision,
             value     => $phylo_ABC,
         ),

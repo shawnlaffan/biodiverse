@@ -144,7 +144,7 @@ sub export_matrices {
 
 #  build the matrices required
 #  need to use $bd->get_cluster_outputs_with_same_index_and_nbrs to allow shortcuts
-sub build_matrices {  
+sub build_matrices {
     my $self = shift;
     my %args = @_;
 
@@ -162,6 +162,9 @@ sub build_matrices {
     }
     
     my $output_gdm_format = $args{output_gdm_format};  #  need to make all the file stuff a hashref
+
+    my $start_time = time;
+
 
     my $bd = $self->get_param ('BASEDATA_REF');
 
@@ -257,7 +260,7 @@ sub build_matrices {
     }
 
     #  now we loop over the conditions and initialise the matrices
-    #  kept separate frpom previous loop for cleaner default matrix generation
+    #  kept separate from previous loop for cleaner default matrix generation
     my @matrices;
     $i = 0;
     foreach my $condition (@spatial_conditions) {
@@ -273,8 +276,9 @@ sub build_matrices {
         }
 
         $matrices[$i] = Biodiverse::Matrix->new(
-            JOIN_CHAR => $bd->get_param('JOIN_CHAR'),
-            NAME      => $mx_name,
+            JOIN_CHAR    => $bd->get_param('JOIN_CHAR'),
+            NAME         => $mx_name,
+            BASEDATA_REF => $bd,
         );
         $i ++;
     }
@@ -282,7 +286,8 @@ sub build_matrices {
     my $shadow_matrix;
     if (scalar @matrices > 1) {
         $shadow_matrix = Biodiverse::Matrix->new (
-            name => $name . '_SHADOW_MATRIX'
+            name         => $name . '_SHADOW_MATRIX',
+            BASEDATA_REF => $bd,
         );
     }
     $self->set_shadow_matrix (matrix => $shadow_matrix);
@@ -454,6 +459,11 @@ sub build_matrices {
     if (defined $linkage_function and not $linkage_function =~ /recalculate/) {
         $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => undef);
     }
+    
+    my $time_taken = time - $start_time;
+    print "[CLUSTER] Matrix build took $time_taken seconds.\n";
+    $self->set_param (ANALYSIS_TIME_TAKEN_MATRIX => $time_taken);
+    $self->set_param (COMPLETED_MATRIX => 1);
 
     return wantarray ? @matrices : \@matrices;
 }
@@ -1049,6 +1059,11 @@ sub cluster {
             return 3;  #  don't try to cluster and don't add anything to the basedata
         }
         elsif ($args{build_matrices_only}) {
+            my $clone = eval {$self->get_shadow_matrix->clone};
+            $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
+            my $original_matrices = $self->clone (data => \@matrices);
+            $self->set_param (ORIGINAL_MATRICES => $original_matrices);
+
             $self->add_matrices_to_basedata (matrices => \@matrices);
             #  clear the other matrices
             $self->set_matrix_ref (matrices => []);
@@ -1059,7 +1074,7 @@ sub cluster {
         else {
             #  save clones of the matrices for later export
             print "[CLUSTER] Creating and storing matrix clones\n";
-    
+
             my $clone = eval {$self->get_shadow_matrix->clone};
             $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
             my $original_matrices = $self->clone (data => \@matrices);

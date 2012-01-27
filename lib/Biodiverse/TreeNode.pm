@@ -764,66 +764,66 @@ sub get_path_to_node {
     my $target = $args{node};
     my $target_name = $target->get_name;
     my $from_name = $self->get_name;
-    
+
+    my $return_lengths = $args{return_lengths};  #  node refs or their lengths?
+
+    my $cache_pfx = $return_lengths ? 'PATH_LENGTHS_FROM::' : 'PATH_FROM::';
+
     #  maybe should make this a little more complex as a nested data structure?  Maybe a matrix?
-    my $cache_list = 'PATH_FROM::' . $from_name . '::TO::' . $target_name;  
-    
+    my $cache_list = $cache_pfx . $from_name . '::TO::' . $target_name;  
+
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
         my $cached_path = $self -> get_cached_value ($cache_list);
         if (not defined $cached_path ) {  #  try the reverse, as they are the same
-            my $cache_list_name = 'PATH_FROM::' . $target_name . '::TO::' . $from_name;
+            my $cache_list_name = $cache_pfx . $target_name . '::TO::' . $from_name;
             $cached_path  = $self -> get_cached_value ($cache_list_name);
         }
         if (defined $cached_path ) {
             return wantarray ? %$cached_path : $cached_path;
         }
     }
-    
+
     my $path = {};
-    
+
     #  add ourselves to the path
-    $path->{$from_name} = $self;  #  we weaken this ref below
+    $path->{$from_name} = $return_lengths ? $self->get_length : $self;  #  we weaken $self ref below
 
     if ($target_name ne $from_name) {
         #  check if the target is one of our descendents
         #  if yes then get the path downwards
         #  else go up to the parent and try it from there
-        my $descendents = $self -> get_all_descendents;
+        my $descendents = $self->get_all_descendents;
         if (exists $descendents->{$target_name}) {
-            foreach my $child ($self -> get_children) {
-                my $child_name = $child -> get_name;
-                
-                #  is this child the target?
-                #if ($child_name eq $target_name) {
-                #    $path->{$child_name} = $child;
-                #}
-                #else {
-                    #  use the child or the child that is an ancestor of the target 
-                    my $ch_descendents = $child -> get_all_descendents;
-                    if ($child_name eq $target_name or exists $ch_descendents->{$target_name}) {  #  follow this one
-                        my $sub_path = $child -> get_path_to_node (@_);
-                        @$path{keys %$sub_path} = values %$sub_path;
-                        last;  #  and check no more children
-                    }
-                #}
+            foreach my $child ($self->get_children) {
+                my $child_name = $child->get_name;
+
+                #  use the child or the child that is an ancestor of the target 
+                my $ch_descendents = $child->get_all_descendents;
+                if ($child_name eq $target_name or exists $ch_descendents->{$target_name}) {  #  follow this one
+                    my $sub_path = $child->get_path_to_node (@_);
+                    @$path{keys %$sub_path} = values %$sub_path;
+                    last;  #  and check no more children
+                }
             }
         }
         else {
-            my $sub_path = $self -> get_parent -> get_path_to_node (@_);
+            my $sub_path = $self->get_parent->get_path_to_node (@_);
             @$path{keys %$sub_path} = values %$sub_path;
         }
     }
     #  make sure they are weak refs to ensure proper destruction when required
-    foreach my $value (values %$path) {
-        weaken $value if ! isweak $value;
-        #print "NOT WEAK $value\n" if ! isweak $value;
+    if (not $return_lengths) {
+        foreach my $value (values %$path) {
+            weaken $value if ! isweak $value;
+            #print "NOT WEAK $value\n" if ! isweak $value;
+        }
     }
-    
+
     if ($args{cache}) {
-        $self -> set_cached_value ($cache_list => $path);
+        $self->set_cached_value ($cache_list => $path);
     }
-    
+
     return wantarray ? %$path : $path;
 }
 

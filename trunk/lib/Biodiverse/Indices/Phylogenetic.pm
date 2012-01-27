@@ -8,6 +8,8 @@ use warnings;
 use Carp;
 use Biodiverse::Progress;
 
+use List::Util qw /sum/;
+
 our $VERSION = '0.16';
 
 use Biodiverse::Statistics;
@@ -143,27 +145,28 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
     my %args = @_;
 
     my $tree_ref = $args{tree_ref};
-    
-    my $nodes_in_path = $self -> get_paths_to_root_node (
+    my $richness = $args{ABC};
+
+    my $nodes_in_path = $self->get_paths_to_root_node (
         @_,
         labels => $args{label_hash_all},
     );
 
     my $PD_score;
-    foreach my $node (values %$nodes_in_path) {
-        $PD_score += $node -> get_length; 
-    }
-    
+    #foreach my $node (values %$nodes_in_path) {
+    #    $PD_score += $node->get_length; 
+    #}
+    $PD_score = sum values %$nodes_in_path;
+
     my %included_nodes;
     @included_nodes{keys %$nodes_in_path} = (1) x scalar keys %$nodes_in_path;
-    
+
     my ($PD_P, $PD_per_taxon, $PD_P_per_taxon);
     {
         no warnings 'uninitialized';
-        $PD_P = $PD_score / $tree_ref -> get_total_tree_length;
-    
-        my $richness = $args{ABC};
-        $PD_per_taxon = eval {$PD_score / $richness};
+        $PD_P = $PD_score / $tree_ref->get_total_tree_length;
+
+        $PD_per_taxon   = eval {$PD_score / $richness};
         $PD_P_per_taxon = eval {$PD_P / $richness};
     }
     
@@ -209,7 +212,6 @@ sub get_paths_to_root_node {
     my $all_nodes = $tree_ref->get_node_hash;
     
     my $root_node = $tree_ref->get_tree_ref;  # hmmm.  confusing mix of methods and vars
-    #my $root_name = $root_node -> get_name;
 
     #  now loop through the labels and get the path to the root node
     my %path;
@@ -219,9 +221,12 @@ sub get_paths_to_root_node {
         my $current_node = $all_nodes->{$label};
         my $current_name = $current_node->get_name;
 
-        $path{$current_name} = $current_node;  #  include oneself
+        $path{$current_name} = $current_node->get_length;  #  include oneself
 
-        my $sub_path = $current_node->get_path_to_node (node => $root_node);
+        my $sub_path = $current_node->get_path_to_node (
+            node           => $root_node,
+            return_lengths => 1,
+        );
         @path{keys %$sub_path} = values %$sub_path;
     }
 
@@ -1257,6 +1262,7 @@ sub calc_phylo_abc {
     return $self -> _calc_phylo_abc(@_);
 }
 
+
 sub _calc_phylo_abc {
     my $self = shift;
     my %args = @_;
@@ -1286,23 +1292,26 @@ sub _calc_phylo_abc {
     # then get length of B
     my %B = %A;
     delete @B{keys %$nodes_in_path2};
-    foreach my $node (values %B) {
-        $phylo_B += $node->get_length;
-    };
-    
+    #foreach my $length (values %B) {
+    #    $phylo_B += $length;
+    #};
+    $phylo_B = sum 0, values %B;
+
     # create a new hash %C for nodes in label hash 2 but not 1
     # then get length of C
     my %C = %A;
     delete @C{keys %$nodes_in_path1};
-    foreach my $node (values %C) {
-        $phylo_C += $node->get_length;
-    };
+    #foreach my $length (values %C) {
+    #    $phylo_C += $length;
+    #};
+    $phylo_C = sum 0, values %C;
 
     # get length of %A = branches not in %B or %C
     delete @A{keys %B, keys %C};
-    foreach my $node (values %A) {
-        $phylo_A += $node->get_length;
-    };
+    #foreach my $length (values %A) {
+    #    $phylo_A += $length;
+    #};
+    $phylo_A = sum 0, values %A;
 
     $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
 

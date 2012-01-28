@@ -25,8 +25,8 @@ use Biodiverse::TreeNode;
 ##########################################################
 # Rendering constants
 ##########################################################
-use constant BORDER_FRACTION => 0.025; # how much of total-length are the left/right borders (combined!)
-use constant BORDER_HT       => 0.05; #  how much of the total number of leaf nodes as a vertical border
+use constant BORDER_FRACTION => 0.05; # how much of total-length are the left/right borders (combined!)
+use constant BORDER_HT       => 0.025; #  how much of the total number of leaf nodes as a vertical border
 use constant SLIDER_WIDTH    => 3; # pixels
 use constant LEAF_SPACING    => 1; # arbitrary scale (length will be scaled to fit)
 

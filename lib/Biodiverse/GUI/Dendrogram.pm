@@ -25,24 +25,25 @@ use Biodiverse::TreeNode;
 ##########################################################
 # Rendering constants
 ##########################################################
-use constant BORDER_FRACTION => 0.05; # how much of total-length are the left/right borders (combined!)
-use constant SLIDER_WIDTH => 3; # pixels
-use constant LEAF_SPACING => 1; # arbitrary scale (length will be scaled to fit)
+use constant BORDER_FRACTION => 0.025; # how much of total-length are the left/right borders (combined!)
+use constant BORDER_HT       => 0.05; #  how much of the total number of leaf nodes as a vertical border
+use constant SLIDER_WIDTH    => 3; # pixels
+use constant LEAF_SPACING    => 1; # arbitrary scale (length will be scaled to fit)
 
 use constant HIGHLIGHT_WIDTH => 2; # width of highlighted horizontal lines (pixels)
-use constant NORMAL_WIDTH => 1;       # width of normal lines (pixels)
+use constant NORMAL_WIDTH    => 1;       # width of normal lines (pixels)
 
 use constant COLOUR_BLACK => Gtk2::Gdk::Color->new(0,0,0);
 use constant COLOUR_WHITE => Gtk2::Gdk::Color->new(255*257, 255*257, 255*257);
-use constant COLOUR_GRAY => Gtk2::Gdk::Color->new(210*257, 210*257, 210*257);
-use constant COLOUR_RED => Gtk2::Gdk::Color->new(255*257,0,0);
+use constant COLOUR_GRAY  => Gtk2::Gdk::Color->new(210*257, 210*257, 210*257);
+use constant COLOUR_RED   => Gtk2::Gdk::Color->new(255*257,0,0);
 
-use constant COLOUR_PALETTE_OVERFLOW => COLOUR_WHITE;
+use constant COLOUR_PALETTE_OVERFLOW  => COLOUR_WHITE;
 use constant COLOUR_OUTSIDE_SELECTION => COLOUR_WHITE;
-use constant COLOUR_NOT_IN_TREE => COLOUR_BLACK;
-use constant COLOUR_LIST_UNDEF => COLOUR_BLACK;
+use constant COLOUR_NOT_IN_TREE       => COLOUR_BLACK;
+use constant COLOUR_LIST_UNDEF        => COLOUR_BLACK;
 
-use constant DEFAULT_LINE_COLOUR => COLOUR_BLACK;
+use constant DEFAULT_LINE_COLOUR     => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB => "#000000";
 
 use constant HOVER_CURSOR => 'hand2';
@@ -1236,22 +1237,22 @@ sub getMaxNegativeLengthInner {
 }
 
 sub initYCoords {
-    my ($tree) = @_;
+    my ($self, $tree) = @_;
 
     # This is passed by reference
     # Will be increased as each leaf is allocated coordinates
     my $current_y = 0;
-    initYCoordsInner($tree, \$current_y);
+    $self->initYCoordsInner($tree, \$current_y);
 
     return;
 }
 
 sub initYCoordsInner {
-    my ($node, $current_y_ref) = @_;
+    my ($self, $node, $current_y_ref) = @_;
 
     if ($node->is_terminal_node) {
 
-        $node->set_value('_y', $$current_y_ref);
+        $node->set_value('_y', $$current_y_ref + $self->{border_ht});
         ${$current_y_ref} = ${$current_y_ref} + LEAF_SPACING;
 
     }
@@ -1260,7 +1261,7 @@ sub initYCoordsInner {
         my $count = 0;
 
         foreach my $child ($node->get_children) {
-            initYCoordsInner($child, $current_y_ref);
+            $self->initYCoordsInner($child, $current_y_ref);
             $y_sum += $child->get_value('_y');
             $count++;
         }
@@ -1334,7 +1335,8 @@ sub setPlotMode {
     # Work out dimensions in canvas units
     my $f = $self->{max_length_func};
     my $g = $self->{neg_length_func};
-    $self->{unscaled_height} = $self->{num_leaves} * LEAF_SPACING; 
+    my $ht = $self->{num_leaves} * LEAF_SPACING;
+    $self->{unscaled_height} = $ht + $self->{border_ht} * 2;
     $self->{max_len}         = &$f($self->{tree_node}); # this is in (unscaled) cluster-length units
     $self->{neg_len}         = &$g($self->{tree_node});
     $self->{border_len}      = 0.5 * BORDER_FRACTION * ($self->{max_len} + $self->{neg_len}) / (1 - BORDER_FRACTION);
@@ -1395,13 +1397,14 @@ sub setCluster {
     }
 
     my $terminal_nodes_ref = $cluster->get_terminal_nodes();
-    $self->{num_leaves} = scalar (keys %{$terminal_nodes_ref});
+    $self->{num_leaves}    = scalar (keys %{$terminal_nodes_ref});
+    $self->{border_ht}     = $self->{num_leaves} * BORDER_HT;
     $self->{terminal_elements} = $cluster->get_tree_ref->get_terminal_elements();
 
     $self->{num_nodes} = $cluster->get_node_count;
 
     # Initialise Y coordinates
-    initYCoords($self->{tree_node});
+    $self->initYCoords($self->{tree_node});
 
     # Make slider
     $self->makeSlider();
@@ -1450,9 +1453,7 @@ sub renderTree {
     my $self = shift;
     my $tree = $self->{tree_node};
 
-    if ($self->{render_width} == 0) {
-        return;
-    }
+    return if ($self->{render_width} == 0);
 
     # Remove any highlights. The lines highlightened are destroyed next,
     # and may cause a crash when they get unhighlighted
@@ -1467,7 +1468,7 @@ sub renderTree {
     # Make group so we can transform everything together
     my $lines_group = Gnome2::Canvas::Item->new (
         $self->{canvas}->root,
-        "Gnome2::Canvas::Group",
+        'Gnome2::Canvas::Group',
         x => 0,
         y => 0
     );
@@ -1695,7 +1696,7 @@ sub drawLine {
 
     return Gnome2::Canvas::Item->new (
         $self->{lines_group},
-        "Gnome2::Canvas::Line",
+        'Gnome2::Canvas::Line',
         points => [$x1, $y1, $x2, $y2],
         fill_color_gdk => $colour_ref,
         line_style => $line_style,

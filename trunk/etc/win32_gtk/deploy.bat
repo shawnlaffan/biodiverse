@@ -3,7 +3,8 @@
 :: shawnlaffan@gmail.com 05Jan2012
 
 rem Edit these as appropriate
-set PKG_CONFIG_PATH=.\c\lib\pkgconfig
+set batch_path=%~dp0
+set PKG_CONFIG_PATH=%batch_path%c\lib\pkgconfig
 set PATH=C:\Perl\bin;%PATH%
 
 @perl download.pl
@@ -11,8 +12,8 @@ set PATH=C:\Perl\bin;%PATH%
 @perl rename.pl
 @perl modpc.pl
 
-set PATH=.\ex\bin;%PATH%
-set PKG_CONFIG_PATH=.\ex\lib\pkgconfig
+set PATH=%batch_path%ex\bin;%PATH%
+set PKG_CONFIG_PATH=%batch_path%\ex\lib\pkgconfig
 :: @echo Add ex/bin to your path variable.
 @echo Then run: 
 @echo          perl -MCPAN -e "force install Glib"

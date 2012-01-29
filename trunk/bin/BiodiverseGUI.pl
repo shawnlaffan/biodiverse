@@ -33,8 +33,9 @@ BEGIN {
 }
 
 #  load Gtk
-use Gtk2;    # -init;
-Gtk2->init;
+#use Gtk2;    # -init;
+#Gtk2->init;
+use Gtk2 qw/-init -threads-init/;
 
 use Gtk2::GladeXML;
 use Biodiverse::GUI::GUIManager;
@@ -100,6 +101,9 @@ if ( defined $filename ) {
     $gui->open($filename);
 }
 
+my $ic = Gtk2::IconTheme->new;
+#$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
+print join "\n", $ic->get_search_path;
 
 # Go!
 Gtk2->main;

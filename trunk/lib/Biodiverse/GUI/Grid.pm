@@ -471,6 +471,7 @@ sub setBaseStruct {
     $self->{cells} = {};
     
     my ($minX, $maxX, $minY, $maxY) = $self->findMaxMin($data);
+    print join (q{ }, ($minX, $maxX, $minY, $maxY)) . "\n";
 
     my @res = $self->getCellSizes($data);  #  handles zero and text
     
@@ -534,11 +535,33 @@ sub setBaseStruct {
         y => 0,
     );
 
+##  DEBUG add a background rect - should buffer the extents by 2 cells or more
+## Make container group ("cell") for the rectangle and any marks
+#my $xx = eval {($maxX - $minX) / $cellX};
+#my $yy = eval {($maxY - $minY) / $cellY};
+#my $container_xx = Gnome2::Canvas::Item->new (
+#    $cells_group,
+#    'Gnome2::Canvas::Group',
+#    x => 0,
+#    y => 0,
+#);
+#my $rect = Gnome2::Canvas::Item->new (
+#    $container_xx,
+#    'Gnome2::Canvas::Rect',
+#    x1                  => 0,
+#    y1                  => 0,
+#    x2                  => $xx * CELL_SIZE_X,
+#    y2                  => $yy * $cell_size_y,
+#    fill_color_gdk      => CELL_WHITE,
+#    outline_color_gdk   => CELL_BLACK,
+#    width_pixels        => $width_pixels
+#);
+
     $self->{cells_group} = $cells_group;
     $cells_group->lower_to_bottom();
 
     my $i = 0;
-    my $last_update_time = [gettimeofday];
+    #my $last_update_time = [gettimeofday];
     foreach my $element (keys %$elts) {
         no warnings 'uninitialized';  #  suppress these warnings
         
@@ -649,7 +672,7 @@ sub setBaseStruct {
     $self->resizeBackgroundRect();
     
     #  show legend by default - gets hidden by caller if needed
-    $self -> showLegend;
+    $self->showLegend;
 
     # Store info needed by loadShapefile
     $self->{dataset_info} = [$minX, $minY, $maxX, $maxY, $cellX, $cellY];

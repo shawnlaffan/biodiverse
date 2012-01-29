@@ -278,7 +278,7 @@ sub set_frame_label_widget {
     my $self = shift;
     
     my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
-    $widget -> show;
+    $widget->show;
 
     my $frame = $self->{xmlPage}->get_widget('frame_spatial_parameters');
     $frame -> set_label_widget ($widget);
@@ -296,7 +296,7 @@ sub set_frame_label_widget {
 
 sub on_show_hide_parameters {
     my $self = shift;
-    
+
     my $frame = $self->{xmlPage}->get_widget('frame_spatial_parameters');
     my $widget = $frame -> get_label_widget;
     my $active = $widget -> get_active;
@@ -304,10 +304,10 @@ sub on_show_hide_parameters {
     my $table = $self->{xmlPage}->get_widget('tbl_spatial_parameters');
 
     if ($active) {
-        $table -> hide;
+        $table->hide;
     }
     else {
-        $table -> show;
+        $table->show;
     }
 
     return;

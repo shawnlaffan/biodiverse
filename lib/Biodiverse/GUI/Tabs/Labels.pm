@@ -85,7 +85,7 @@ sub new {
     if (! $self->initGrid()) {       #  close if user cancelled during display
         $self -> onClose;
         croak "User cancelled grid initialisation, closing\n";
-    }  
+    }
 
     if (! $self->initMatrixGrid()) { #  close if user cancelled during display
         $self -> onClose;
@@ -165,9 +165,9 @@ sub initGrid {
         $select_closure,
     );
 
-    eval {$self->{grid}->setBaseStruct($self->{base_ref} -> get_groups_ref)};
+    eval {$self->{grid}->setBaseStruct($self->{base_ref}->get_groups_ref)};
     if ($EVAL_ERROR) {
-        $self->{gui} -> report_error ($EVAL_ERROR);
+        $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
     

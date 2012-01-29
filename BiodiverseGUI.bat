@@ -7,7 +7,7 @@
 :: cd /d %curpath% 
 
 set batch_path=%~dp0
-set GTK_BASEPATH=%batch_path%GTK\bin
+rem set GTK_BASEPATH=%batch_path%gtk\bin
 set BIODIVERSE_BIN_PATH=%batch_path%bin
 set PATH=%GTK_BASEPATH%;%BIODIVERSE_BIN_PATH%;%PATH%
 

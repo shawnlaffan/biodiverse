@@ -206,13 +206,13 @@ sub get_length_above {
     
     no warnings qw /uninitialized/;
     
-    return $self -> get_length
-        if $self -> is_root_node
+    return $self->get_length
+        if $self->is_root_node
             || $self eq $args{target_ref}
             || $self -> get_name eq $args{target_node};    
     
-    return $self -> get_length
-            + $self -> get_parent -> get_length_above (%args);
+    return $self->get_length
+            + $self->get_parent->get_length_above (%args);
 }
 
 sub set_child_lengths {
@@ -1086,19 +1086,21 @@ sub assign_plot_coords_inner {
         $y_pos = ($y1 + $y2) / 2;
     }
 
-
-    my $end_x   = $self->get_max_total_length;
+    #  all dists relative to max length of the tree
+    #  have to compensate for get_length_above including this node
+    my $end_x   = $self->get_root_node->get_max_total_length - $self->get_length_above + $self->get_length;
     my $start_x = $end_x - $self->get_length;
 
-    my $vx = $start_x < $end_x  #  need this before the correction, but looks overcomplicated to be honest
-      ? $start_x  #  monotonic case
-      : $end_x;   #  reversal case
+    #my $vx = $start_x < $end_x  #  need this before the correction, but looks overcomplicated to be honest
+    #  ? $start_x  #  monotonic case
+    #  : $end_x;   #  reversal case
+    my $vx = $start_x;
     # kludge - need to clean up total_length calcs?
     # Or create abs_pos subs to account for negative node lengths
-    if ($self->get_length < 0) {
-        $end_x   += $self->get_length;
-        $start_x += $self->get_length;
-    }
+    #if ($self->get_length < 0) {
+    #    $end_x   += $self->get_length;
+    #    $start_x += $self->get_length;
+    #}
 
     my %coords = (
         plot_y1 => $y_pos,

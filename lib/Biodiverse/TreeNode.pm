@@ -9,6 +9,7 @@ use English ( -no_match_vars );
 use Carp;
 use Scalar::Util qw /weaken isweak blessed/;
 use Data::Dumper qw/Dumper/;
+use List::Util;
 
 use Biodiverse::BaseStruct;
 
@@ -51,7 +52,7 @@ sub new {
     }
 
     $self -> set_name(%args);
-    
+
     return $self;
 }
 
@@ -260,34 +261,33 @@ sub get_total_length {
     #  use the stored value if exists
     my $tmp = $self->get_value ('TOTAL_LENGTH');
     return $tmp if defined $tmp;
-    return $self -> get_length_below;  #  calculate total length otherwise
+    return $self->get_length_below;  #  calculate total length otherwise
 }
 
 #  get the maximum tree node position from zero
 sub get_max_total_length {
     my $self = shift;
     my %args = @_;
-    
-    return $self->get_total_length if $self -> is_terminal_node;  # no children
-    
+
+    return $self->get_total_length if $self->is_terminal_node;  # no children
+
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
-        my $cached_length = $self -> get_cached_value ('MAX_TOTAL_LENGTH');
+        my $cached_length = $self->get_cached_value ('MAX_TOTAL_LENGTH');
         return $cached_length if defined $cached_length;
     }
-    
-    my $max_length = $self -> get_total_length;
-    foreach my $child (@{$self -> get_children}) {
-        my $child_length = $child -> get_max_total_length (%args) || 0;  #  pass on the args
-        
+
+    my $max_length = $self->get_total_length;
+    foreach my $child (@{$self->get_children}) {
+        my $child_length = $child->get_max_total_length (%args) || 0;  #  pass on the args
+
         $max_length = $child_length if $child_length > $max_length;
     }
-    
+
     if ($args{cache}) {
-        $self -> set_cached_value ('MAX_TOTAL_LENGTH' => $max_length);
+        $self->set_cached_value (MAX_TOTAL_LENGTH => $max_length);
     }
-    
+
     return $max_length;
-    
 }
 
 #  includes the length of the current node, so totalLength = lengthBelow+lengthAbove-selfLength
@@ -320,7 +320,7 @@ sub get_length_below {
 
     return $length;
 }
-    
+
 
 sub set_depth {
     my $self = shift;
@@ -1024,19 +1024,113 @@ sub is_root_node {
     return defined $self->get_parent ? 0 : 1;  #  if it's undef then it's a root node
 }
 
+sub get_root_node {
+    my $self = shift;
+    
+    return $self if $self->is_root_node;
+    return $self->get_parent->get_root_node;
+}
+
+#  assign some plot coords to the nodes to allow reconstruction of
+#  the dendrogram from a table
+#  need to assign terminal y-values in order, and the parents take the average of the terminal y values.  
+sub assign_plot_coords {
+    my $self = shift;
+    my %args = @_;
+    
+    $self->get_root_node->number_terminal_nodes;
+    my $y_len = $self->get_terminal_element_count;
+    my $x_len = $self->get_max_total_length;
+    my $scale_factor =
+        $y_len < $x_len
+      ? $y_len / $x_len
+      : $x_len / $y_len;
+    my $max_y = $self->get_value('TERMINAL_NODE_LAST');
+
+    $self->assign_plot_coords_inner (
+        scale_factor => $scale_factor,
+        max_y        => $max_y,
+    );
+
+    return;
+}
+
+sub assign_plot_coords_inner {
+    my $self = shift;
+    my %args = @_;
+    my $scale_factor = $args{scale_factor} || 1;
+    my $max_y        = $args{max_y} || 0;
+
+    my ($y1, $y2, $y_pos);
+
+    if ($self->is_terminal_node) {
+        $y1 = $max_y - $self->get_value('TERMINAL_NODE_FIRST');
+        $y2 = $max_y - $self->get_value('TERMINAL_NODE_LAST');
+        $y_pos = $scale_factor * ($y1 + $y2) / 2;
+    }
+    else {
+        my @ch_y_pos;
+        foreach my $child (@{$self->get_children}) {
+            $child->assign_plot_coords_inner (%args);
+            my $coords = $child->get_list_ref (list => 'PLOT_COORDS');
+            push @ch_y_pos, $coords->{plot_y1};
+        }
+
+        $y1 = List::Util::max (@ch_y_pos);
+        $y2 = List::Util::min (@ch_y_pos);
+        $y_pos = ($y1 + $y2) / 2;
+    }
+
+
+    my $end_x   = $self->get_max_total_length;
+    my $start_x = $end_x - $self->get_length;
+
+    my $vx = $start_x < $end_x  #  need this before the correction, but looks overcomplicated to be honest
+      ? $start_x  #  monotonic case
+      : $end_x;   #  reversal case
+    # kludge - need to clean up total_length calcs?
+    # Or create abs_pos subs to account for negative node lengths
+    if ($self->get_length < 0) {
+        $end_x   += $self->get_length;
+        $start_x += $self->get_length;
+    }
+
+    my %coords = (
+        plot_y1 => $y_pos,
+        plot_y2 => $y_pos,
+        plot_x1 => $start_x,
+        plot_x2 => $end_x,
+    );
+
+    my %vert_coords = (
+        vplot_y1 => $y1,
+        vplot_y2 => $y2,
+        vplot_x1 => $vx,
+        vplot_x2 => $vx,
+    );
+
+    $self->add_to_lists(
+        PLOT_COORDS      => \%coords,
+        PLOT_COORDS_VERT => \%vert_coords,
+    );
+
+    return;    
+}
+
+
 #  number the nodes below this one based on the terminal nodes
 #  this allows us to export to CSV and retain some of the topology
 sub number_terminal_nodes {
     my $self = shift;
-    
+
     my %args = @_;
-    
+
     #  get an array of the terminal elements (this will also cache them)
     my @te = keys %{$self->get_terminal_elements};
-    
+
     my $prevChildElements = $args{count_sofar} || 1;
-    $self -> set_value (TERMINAL_NODE_FIRST => $prevChildElements);
-    $self -> set_value (TERMINAL_NODE_LAST => $prevChildElements + $#te);
+    $self->set_value (TERMINAL_NODE_FIRST => $prevChildElements);
+    $self->set_value (TERMINAL_NODE_LAST => $prevChildElements + $#te);
     foreach my $child ($self->get_children) {
         my $count = $child->number_terminal_nodes ('count_sofar' => $prevChildElements);
         $prevChildElements += $count;
@@ -1066,68 +1160,79 @@ sub to_table {
     my $treename = $args{name} || "TREE";
     
     #  assign unique ID numbers if not already done
-    defined ($self -> get_value ('NODE_NUMBER')) || $self -> number_nodes;
+    defined ($self->get_value ('NODE_NUMBER')) || $self->number_nodes;
+    
+    #  create the plot coords if requested
+    if ($args{include_plot_coords}) {
+        $self->assign_plot_coords;
+    }
     
     # create a BaseStruct object to contain the table
     my $bs = Biodiverse::BaseStruct->new (
         NAME => $treename,
-        #JOIN_CHAR => $EMPTY_STRING,
-        #QUOTES => "'",
     );  #  may need to specify some other params
 
 
     my @header = qw /TREENAME NODENUMBER PARENTNODE LENGTHTOPARENT NAME/;
 #    push @$data, \@header;
-    
+
     my ($parent_num, $taxon_name);
     
     my $max_sublist_digits = defined $args{sub_list}
                             ? length ($self -> get_max_list_length_below (list => $args{sub_list}) - 1)
                             : undef;
-    
-    
-    my %children = $self -> get_all_children;  #   all descendents below this node
+
+
+    my %children = $self->get_all_children;  #   all descendents below this node
     foreach my $node ($self, values %children) {  # maybe sort by child depth?
-        $parent_num = $node -> is_root_node
+        $parent_num = $node->is_root_node
                         ? 0
-                        : $node -> get_parent -> get_value ('NODE_NUMBER');
-        if ($node -> is_terminal_node || $args{use_internal_names}) {
+                        : $node->get_parent->get_value ('NODE_NUMBER');
+        if ($node->is_terminal_node || $args{use_internal_names}) {
             $taxon_name = $node -> get_name;
         }
         else {
             $taxon_name = $EMPTY_STRING;
         }
-        my $number = $node -> get_value ('NODE_NUMBER');
+        my $number = $node->get_value ('NODE_NUMBER');
         my %data;
         #  add to the basestruct object
-        @data{@header} = ($treename, $number, $parent_num, $node -> get_length || 0, $taxon_name);
-        
+        @data{@header} = ($treename, $number, $parent_num, $node->get_length || 0, $taxon_name);
+
         #  get the additional list data if requested
         if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
-            my $sub_list_ref = $node -> get_list_ref (list => $args{sub_list});
+            my $sub_list_ref = $node->get_list_ref (list => $args{sub_list});
             if (defined $sub_list_ref) {
                 if ((ref $sub_list_ref) =~ /ARRAY/) {
-                    $sub_list_ref = $self -> array_to_hash_values (list => $sub_list_ref,
-                                                                   prefix => $args{sub_list},
-                                                                   num_digits => $max_sublist_digits,
-                                                                   sort_array_lists => $args{sort_array_lists},
-                                                                   );
+                    $sub_list_ref = $self->array_to_hash_values (
+                        list             => $sub_list_ref,
+                        prefix           => $args{sub_list},
+                        num_digits       => $max_sublist_digits,
+                        sort_array_lists => $args{sort_array_lists},
+                    );
                 }
                 if ((ref $sub_list_ref) =~ /HASH/) {
                     @data{keys %$sub_list_ref} = (values %$sub_list_ref);
                 }
-                
             }
         }
+        if ($args{include_plot_coords}) {
+            my $plot_coords_ref = $node->get_list_ref (list => 'PLOT_COORDS');
+            @data{keys %$plot_coords_ref} = (values %$plot_coords_ref);
+            my $vert_plot_coords_ref = $node->get_list_ref (list => 'PLOT_COORDS_VERT');
+            @data{keys %$vert_plot_coords_ref} = (values %$vert_plot_coords_ref);
 
-        $bs -> add_element (element => $number);
-        $bs -> add_to_hash_list (element => $number,
-                                 list => 'data',
-                                 %data,
-                                 );
+        }
+
+        $bs->add_element (element => $number);
+        $bs->add_to_hash_list (
+            element => $number,
+            list    => 'data',
+            %data,
+        );
     }
 
-    return $bs -> to_table (%args, list => 'data');
+    return $bs->to_table (%args, list => 'data');
 }
 
 

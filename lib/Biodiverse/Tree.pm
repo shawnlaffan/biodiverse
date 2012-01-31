@@ -761,8 +761,15 @@ sub get_metadata_export_tabular_tree {
     my %args = (
         format => 'Tabular tree',
         parameters => [
-            $self -> get_lists_export_metadata(),
-            $self -> get_table_export_metadata(),
+            $self->get_lists_export_metadata(),
+            $self->get_table_export_metadata(),
+            {
+                name        => 'include_plot_coords',
+                label_text  => 'Add plot coords',
+                tooltip     => 'Allows the subsequent creation of, for example, shapefile versions of the dendrogram',
+                type        => 'boolean',
+                default     => 1,
+            },
         ],
     );
     
@@ -776,10 +783,10 @@ sub export_tabular_tree {
     
     my $name = $args{name};
     if (! defined $name) {
-        $name = $self -> get_param ('NAME');
+        $name = $self->get_param ('NAME');
     }
     
-    my $table = $self -> to_table (
+    my $table = $self->to_table (
         symmetric   => 1,
         name        => $name,
         %args,

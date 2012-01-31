@@ -1295,7 +1295,7 @@ sub makeTotalLengthArray {
 sub makeTotalLengthArrayInner {
     my ($node, $length_so_far, $array, $lf) = @_;
 
-    $node->set_value('total_length_gui', $length_so_far);
+    $node->set_value(total_length_gui => $length_so_far);
     push @{$array}, $node;
 
     # Do the children

@@ -770,6 +770,13 @@ sub get_metadata_export_tabular_tree {
                 type        => 'boolean',
                 default     => 1,
             },
+            {
+                name        => 'plot_coords_scale_factor',
+                label_text  => 'Plot coords scale factor',
+                tooltip     => 'Scales the y-axis to fit the x-axis.  Leave as 0 for default (equalises axes)',
+                type        => 'float',
+                default     => 0,
+            },
         ],
     );
     

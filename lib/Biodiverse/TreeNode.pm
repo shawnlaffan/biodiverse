@@ -1039,12 +1039,17 @@ sub assign_plot_coords {
     my %args = @_;
     
     $self->get_root_node->number_terminal_nodes;
+
     my $y_len = $self->get_terminal_element_count;
     my $x_len = $self->get_max_total_length;
-    my $scale_factor =
-        $y_len < $x_len
-      ? $y_len / $x_len
-      : $x_len / $y_len;
+    my $scale_factor = $args{plot_coords_scale_factor};
+    if (not $scale_factor or $scale_factor < 0) {
+        $scale_factor =
+            $y_len < $x_len
+          ? $y_len / $x_len
+          : $x_len / $y_len;
+    }
+
     my $max_y = $self->get_value('TERMINAL_NODE_LAST');
 
     $self->assign_plot_coords_inner (
@@ -1164,7 +1169,9 @@ sub to_table {
     
     #  create the plot coords if requested
     if ($args{include_plot_coords}) {
-        $self->assign_plot_coords;
+        $self->assign_plot_coords (
+            plot_coords_scale_factor => $args{plot_coords_scale_factor},
+        );
     }
     
     # create a BaseStruct object to contain the table

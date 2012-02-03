@@ -3,10 +3,6 @@ package Biodiverse::BaseStruct;
 #  Package to provide generic methods for the
 #  GROUPS and LABELS sub components of a Biodiverse object,
 #  and also for the SPATIAL ones
-#  These share the same structure, so should share methods.
-#  In fact, all coordinate data are stored using this format.
-#  Need to modify all the original BaseData stuff to
-#  use lists instead of values at the top.
 
 #  Need a mergeElements method
 
@@ -68,7 +64,7 @@ sub new {
 
     #  load the defaults, with the rest of the args as params
     my @args_for = (%params, @_);
-    $self -> set_params (@args_for);
+    $self->set_params (@args_for);
 
     # predeclare the ELEMENT subhash (don't strictly need to do it...)
     $self->{ELEMENTS} = {};  
@@ -88,7 +84,7 @@ sub rename {
         croak "[Basestruct] Argument 'new_name' not defined\n";
     }
 
-    $self -> set_param (NAME => $name);
+    $self->set_param (NAME => $name);
 
     return;
 }
@@ -169,7 +165,7 @@ sub get_metadata_export {
     #my @lists = $self -> get_lists_for_export;
 
     #  need a list of export subs
-    my %subs = $self -> get_subs_with_prefix (prefix => 'export_');
+    my %subs = $self->get_subs_with_prefix (prefix => 'export_');
 
     my @formats;
     my %format_labels;  #  track sub names by format label
@@ -179,7 +175,7 @@ sub get_metadata_export {
 
     LOOP_EXPORT_SUB:
     foreach my $sub (sort keys %subs) {
-        my %sub_args = $self -> get_args (sub => $sub);
+        my %sub_args = $self->get_args (sub => $sub);
 
         my $format = $sub_args{format};
 
@@ -242,7 +238,7 @@ sub get_common_export_metadata {
     my $self = shift;
 
     #  get the available lists
-    my @lists = $self -> get_lists_for_export;
+    my @lists = $self->get_lists_for_export;
 
     my $metadata = [
         {

@@ -875,13 +875,14 @@ sub export_table_grouped {
     return;
 }
 
+#  Superseded by PE_RANGELIST index.
 sub get_metadata_export_range_table {
     my $self = shift;
     my %args = @_;
 
     my $bd = $args{basedata_ref} || $self->get_param ('BASEDATA_REF');
 
-    #  hide from GUi if no $bd
+    #  hide from GUI if no $bd
     my $format = defined $bd ? 'Range table' : $EMPTY_STRING;
     $format = $EMPTY_STRING; # no, just hide from GUI for now
 
@@ -919,6 +920,41 @@ sub export_range_table {
 
     return;
 }
+
+#  Grab all the basestruct export methods and add them here.
+#  The key difference is that we now add "grouped" to the front of the methods.
+#  We also then need to add the grouping metadata to the extracted metadata.
+#  Override the additional list option to ensure we get the available lists in
+#  the object being exported.
+#  Hold that - might be simpler to create a temp basestruct and emulate the matrix kludge
+#__PACKAGE__->_make_grouped_export_accessors();
+#
+#sub _make_grouped_export_accessors {
+#    my ($pkg) = @_;
+#
+#    my $bs = Biodiverse::BaseStruct->new(
+#        NAME => 'getting_export_methods',
+#    );
+#    my $metadata = $bs->get_metadata_export;
+#    
+#    #use Data::Dump qw /pp/;
+#    #pp $metadata;
+#
+#    no strict 'refs';
+#    #while (my ($sub, $url) = each %$methods) {
+#    #    *{$pkg. '::' .$sub} =
+#    #        do {
+#    #            sub {
+#    #                my $gui = shift;
+#    #                my $link = $url;
+#    #                open_browser_and_show_url ($gui, $url);
+#    #                return;
+#    #            };
+#    #        };
+#    #}
+#
+#    return;
+#}
 
 sub get_lists_export_metadata {
     my $self = shift;

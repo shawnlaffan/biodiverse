@@ -111,6 +111,8 @@ Everything from module Statistics::Descriptive::Full but with a
 different percentile algorithm
 (the original can be called using percentile_RFC2330).
 
+The median method also returns undef when there are no records.  
+
 
 =head1 METHODS
 

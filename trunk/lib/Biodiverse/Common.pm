@@ -1568,29 +1568,15 @@ sub get_args {
     my $sub_args;
     #  use an eval to trap subs that don't allow the get_args option
     if (blessed $self) {
-        if ($self -> can ($metadata_sub)) {
+        if ($self->can ($metadata_sub)) {
             $sub_args = eval {$self -> $metadata_sub (@_)};
         }
-        elsif ($self -> can ($sub)) {  #  don't allow for error prone old system
+        elsif ($self->can ($sub)) {  #  don't allow for error prone old system
             croak "Metadata sub $metadata_sub does not exist\n";
-            #$sub_args = eval {$self -> $sub (get_args => 1, @_)};
         }
     }
-    else {  #  called in non-OO manner  - not ideal
+    else {  #  called in non-OO manner  - not ideal (old style)
         croak "get_args called in non-OO manner - this is deprecated.\n";
-        #  cope with any package context
-        #if (my ($package, $subname) = $sub =~ / ( (?:[^:]+ ::)+ ) (.+) /xms) {
-        #    $metadata_sub = $package . 'get_metadata_' . $subname;
-        #}
-        #my $fn = "$metadata_sub ( " . join (q{,}, @_) . ' )';
-        #$sub_args = eval "$fn";
-        #$sub_args = eval "$metadata_sub()";  #  ignore args for these for now - all should really be OO calls
-        #if ($EVAL_ERROR) {  #  try the old method
-        #    #  should add a warning here about using old system once new system is implemented properly
-        #    #$fn = "&$sub (undef, get_args => 1, " . join (q{,}, @_) . ')';
-        #    #$sub_args = eval "$fn";
-        #    $sub_args = eval "$sub (undef, get_args => 1)";
-        #}
     }
     my $error = $EVAL_ERROR;
     if (blessed $error) {

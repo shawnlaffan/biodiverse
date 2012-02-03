@@ -1250,6 +1250,18 @@ sub to_table_group_nodes {  #  export to table by grouping the nodes
     my $self = shift;
     my %args = @_;
     
+    #  Marginally inefficient, as we loop over the data three times this way (once here, twice in write_table).
+    #  However, write_table takes care of the output and list types (symmetric/asymmetric) and saves code duplication
+
+    my $bs = $self->to_basestruct_group_nodes(%args);
+
+    return $bs->to_table (@_, list => 'data');
+}
+
+sub to_basestruct_group_nodes {
+    my $self = shift;
+    my %args = @_;
+    
     delete $args{target_value} if ! $args{use_target_value};
     
     $self->number_nodes if ! defined $self -> get_value ('NODE_NUMBER');  #  assign unique labels to nodes if needed
@@ -1261,23 +1273,21 @@ sub to_table_group_nodes {  #  export to table by grouping the nodes
 
     # build a BaseStruct object and set it up to contain the terminal elements
     my $bs = Biodiverse::BaseStruct->new (
-        NAME        => 'TEMP',
-        #JOIN_CHAR   => $self -> get_param ('JOIN_CHAR'),
-        #QUOTES      => $self->get_param('QUOTES'),
-    );  #  may need to specify some other params
-    
+        NAME => 'TEMP',
+    );
+
     foreach my $element (keys %{$self -> get_terminal_elements}) {
         $bs -> add_element (element => $element);
     }
-    
-    print "[TREE] Writing $num_classes clusters, grouped by "
-          . $args{group_by_depth} ? "depth." : "length.";
+
+    #print "[TREE] Writing $num_classes clusters, grouped by "
+    #      . $args{group_by_depth} ? "depth." : "length.";
 
     if (defined $args{target_value}) {
         print "  Target value is $args{target_value}.  " ;
     }
     print "\n";
-    
+
     my %target_nodes = $self -> group_nodes_below (
         %args,
         num_clusters => $num_classes
@@ -1286,9 +1296,9 @@ sub to_table_group_nodes {  #  export to table by grouping the nodes
     if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
         print "[TREE] Adding values from sub list $args{sub_list} to each node\n";
     } 
-    
+
     print "[TREE] Actual number of groups identified is " . scalar (keys %target_nodes) . "\n";
-    
+
     my $max_sublist_digits
         = defined $args{sub_list}
             ? length (
@@ -1316,7 +1326,7 @@ sub to_table_group_nodes {  #  export to table by grouping the nodes
         else {
             %data = (NAME => $node->get_name);
         }
-        
+
         #  get the additional list data if requested
         #  should really allow arrays here - convert to hashes?
         if (defined $args{sub_list} && $args{sub_list} !~ /(no list)/) {
@@ -1347,10 +1357,9 @@ sub to_table_group_nodes {  #  export to table by grouping the nodes
         }
     }
 
-    #  Marginally inefficient, as we loop over the data three times this way (once here, twice in write_table).
-    #  However, write_table takes care of the output and list types (symmetric/asymmetric) and saves code duplication
-    return $bs -> to_table (@_, list => 'data');
+    return $bs;
 }
+
 
 #  print the tree out to a nexus format file.
 #  basically builds a taxon block and then passes that through to to_newick

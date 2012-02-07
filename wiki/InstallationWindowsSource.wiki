@@ -60,17 +60,17 @@ This will require some interaction when it downloads additional packages, depend
   *  Download and install !CamelBox from http://code.google.com/p/camelbox/ .  Install everything (the "Bloatware - Whole Enchilada" option).  This will install all the Gtk dependencies.
   *  Now you need to install the Biodiverse specific dependencies.  
 {{{
-C:\camelBox\bin\perl -MCPAN -e "install Bundle::BiodiverseNoGUI"
-C:\camelBox\bin\perl -MCPAN -e "install Bundle::Biodiverse"
-C:\camelBox\bin\perl -MCPAN -e "install Gnome2::Canvas"
+C:\camelbox\bin\perl -MCPAN -e "install Bundle::BiodiverseNoGUI"
+C:\camelbox\bin\perl -MCPAN -e "install Bundle::Biodiverse"
+C:\camelbox\bin\perl -MCPAN -e "install Gnome2::Canvas"
 }}}
 
 == Updating (CB) ==
 
   *  If you are updating an existing installation then repeat the cpan step from the installation process.
 {{{
-C:\camelBox\bin\perl -MCPAN -e "install Bundle::BiodiverseNoGUI"
-C:\camelBox\bin\perl -MCPAN -e "install Bundle::Biodiverse"
+C:\camelbox\bin\perl -MCPAN -e "install Bundle::BiodiverseNoGUI"
+C:\camelbox\bin\perl -MCPAN -e "install Bundle::Biodiverse"
 }}}
 
   
@@ -86,7 +86,7 @@ C:\CamelBox\bin\perl BiodiverseGUI.pl
 }}}
   *  Alternately, you could give the full path to both Perl and Biodiverse if you want to start in a particular directory (i.e. where all your files are).
 {{{
-C:\CamelBox\bin\perl C:\biodiverse\bin\BiodiverseGUI.pl
+C:\camelbox\bin\perl C:\biodiverse\bin\BiodiverseGUI.pl
 }}}
 
 The full path to perl is used to ensure the !CamelBox version is used.

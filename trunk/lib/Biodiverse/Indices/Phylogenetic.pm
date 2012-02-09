@@ -202,11 +202,13 @@ sub get_metadata_get_paths_to_root_node {
 #  NEEDS TO BE MOVED INTO THE TREE PACKAGES?
 sub get_paths_to_root_node {
     my $self = shift;
-    my %args = @_;
+    my %args = (return_lengths => 1, @_);
 
     my $label_list = $args{labels};
     my $tree_ref   = $args{tree_ref}
       or croak "argument tree_ref is not defined\n";
+
+    my $return_lengths = $args{return_lengths};
 
     #create a hash of terminal nodes for the taxa present
     my $all_nodes = $tree_ref->get_node_hash;
@@ -225,7 +227,7 @@ sub get_paths_to_root_node {
 
         my $sub_path = $current_node->get_path_to_node (
             node           => $root_node,
-            return_lengths => 1,
+            return_lengths => $return_lengths,
         );
         @path{keys %$sub_path} = values %$sub_path;
     }
@@ -370,19 +372,22 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         }
         #  else build them and cache them
         else {
-            my $labels = $bd -> get_labels_in_group_as_hash (group => $group);
-            my $nodes_in_path = $self -> get_paths_to_root_node (
+            my $labels = $bd->get_labels_in_group_as_hash (group => $group);
+            my $nodes_in_path = $self->get_paths_to_root_node (
                 @_,
-                labels => $labels,
+                labels         => $labels,
+                #return_lengths => 0,
             );
      
             my ($gp_score, %gp_wts, %gp_ranges);
             
             #  loop over the nodes and run the calcs
-            foreach my $node (values %$nodes_in_path) {
-                my $name  = $node -> get_name;
+            #foreach my $node (values %$nodes_in_path) {
+            while (my ($name, $length) = each %$nodes_in_path) {
+                #my $name  = $node->get_name;
                 my $range = $node_ranges->{$name};
-                my $wt    = eval {$node -> get_length / $range} || 0;
+                #my $wt    = eval {$node->get_length / $range} || 0;
+                my $wt    = eval {$length / $range} || 0;
                 $gp_score += $wt;
                 $gp_wts{$name} = $wt;
                 $gp_ranges{$name} = $range;
@@ -427,15 +432,15 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         
         #Phylogenetic corrected weighted endemism = (sum for all nodes of branch length / node range) / path length
         #where path length is actually PD
-        my $path_length;
-        foreach my $node (values %nodes_in_path) {  #  PE_CWE should be pulled out to its own sub, but need to fix the pre_calcs first
-            $path_length += $node -> get_length;
-        }
+        #my $path_length;
+        #foreach my $length (values %nodes_in_path) {  #  PE_CWE should be pulled out to its own sub, but need to fix the pre_calcs first
+        #    $path_length += $length;
+        #}
 
         foreach my $value (values %unweighted_wts) {
             $PE_WE_SINGLE += $value;
         }
-        $PE_WE_SINGLE_P = eval {$PE_WE_SINGLE / $args{trimmed_tree} -> get_total_tree_length};
+        $PE_WE_SINGLE_P = eval {$PE_WE_SINGLE / $args{trimmed_tree}->get_total_tree_length};
     }
     
     my %results = (

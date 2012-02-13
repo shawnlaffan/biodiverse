@@ -3,7 +3,7 @@ package Task::Biodiverse;
 use strict;
 use warnings;
 
-our $VERSION = '0.16001';
+our $VERSION = '0.16002';
 
 
 1;
@@ -18,16 +18,16 @@ Task::Biodiverse - Task to install Biodiverse dependencies.
 =head1 SYNOPSIS
 
   #  on Windows:
-  perl -MCPAN -e 'install Task::Biodiverse'
-  
+  perl -MCPAN -e "install Task::Biodiverse"
+
   #  on most other platforms:
   sudo perl -MCPAN -e 'install Task::Biodiverse'
 
 
 =head1 DESCRIPTION
 
-Task to install Biodiverse dependencies across all platforms.
-The Gnome2::Canvas dependency doesn't load cleanly on all platforms so might
+Task to install Biodiverse dependencies.
+The L<Gnome2::Canvas> dependency doesn't load cleanly on all platforms so might
 need to be manually installed.
 
 See L<http://www.purl.org/biodiverse> for more details about Biodiverse itself.  

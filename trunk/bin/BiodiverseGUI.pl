@@ -35,7 +35,7 @@ BEGIN {
 #  load Gtk
 #use Gtk2;    # -init;
 #Gtk2->init;
-use Gtk2 qw/-init -threads-init/;
+use Gtk2 qw/-init/;
 
 use Gtk2::GladeXML;
 use Biodiverse::GUI::GUIManager;

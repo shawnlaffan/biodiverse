@@ -971,13 +971,14 @@ sub csv2list {  #  return a list of values from a csv string
         }
         my $error_string = join (
             $EMPTY_STRING,
-            "csv2list parse() failed on string $string\n",
-            $csv_obj->error_input,
+            "csv2list parse() failed\n",
+            "String: $string\n",
+            $csv_obj->error_diag,
             "\nline $.\nQuote Char is ",
             $csv_obj->quote_char,
             "\nsep char is ",
             $csv_obj->sep_char,
-            "\nSkipping\n",
+            "\n",
         );
         croak $error_string;
     }
@@ -1429,22 +1430,24 @@ sub guess_field_separator {
     my $eol = $self->guess_eol(%args);
 
     my %sep_count;
-    my $i = 0;
+    #my $i = 0;
     foreach my $sep (@separators) {
 
         #  skip if does not contain the separator
         #  - no point testing in this case
         next if ! ($string =~ /$sep/);  
 
-        my @flds = $self -> csv2list (
-            %args,
-            sep_char => $sep,
-            eol      => $eol,
-        );
-        if ($#flds) {
-            $sep_count{$#flds} = $sep;  #  need two or more fields to result
+        my $flds = eval {
+            $self->csv2list (
+                %args,
+                sep_char => $sep,
+                eol      => $eol,
+            );
+        };
+        if (scalar @$flds > 1) {  #  need two or more fields to result
+            $sep_count{scalar @$flds} = $sep;
         }
-        $i++;
+        #$i++;
     }
     #  now we sort the keys, take the highest and use it as the
     #  index to use from sep_count, thus giving us the most common

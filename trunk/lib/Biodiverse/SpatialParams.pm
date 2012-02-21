@@ -1039,7 +1039,7 @@ sub sp_square {
     my $self = shift;
     my %args = @_;
 
-    my $size = $args{size};
+    my $size = $args{size} / 2;
 
     #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
@@ -1080,7 +1080,7 @@ sub sp_square_cell {
     my $self = shift;
     my %args = @_;
 
-    my $size = $args{size};
+    my $size = $args{size} / 2;
 
     #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');

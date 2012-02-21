@@ -1044,10 +1044,11 @@ sub assign_plot_coords {
     my $x_len = $self->get_max_total_length;
     my $scale_factor = $args{plot_coords_scale_factor};
     if (not $scale_factor or $scale_factor < 0) {
-        $scale_factor =
-            $y_len < $x_len
-          ? $y_len / $x_len
-          : $x_len / $y_len;
+        #$scale_factor =
+        #    $y_len < $x_len
+        #  ? $y_len / $x_len
+        #  : $x_len / $y_len;
+        $scale_factor = $x_len / $y_len;
     }
 
     my $max_y = $self->get_value('TERMINAL_NODE_LAST');

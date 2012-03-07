@@ -126,6 +126,50 @@ sub calc_pd_node_list {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_terminal_node_list {
+
+    my %arguments = (
+        description     => 'Phylogenetic diversity (PD) terminal nodes used.',
+        name            => 'Phylogenetic Diversity terminal node list',
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc        => '_calc_pd',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        required_args   => {'tree_ref' => 1},
+        indices         => {
+            PD_INCLUDED_TERMINAL_NODE_LIST => {
+                description   => 'List of tree terminal nodes included in the PD calculations',
+                type          => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pd_terminal_node_list {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree_ref = $args{tree_ref};
+
+    #  loop over nodes and just keep terminals
+    my $pd_included_node_list = $args{PD_INCLUDED_NODE_LIST};
+    my @keys = keys %$pd_included_node_list;
+    my %node_hash = %{$tree_ref->get_node_hash};
+
+    my %terminals;
+    foreach my $node_name (@keys) {
+        next if ! $tree_ref->get_node_ref(node => $node_name)->is_terminal_node;
+        $terminals{$node_name} = $pd_included_node_list->{$node_name};
+    }
+
+    my %results = (
+        PD_INCLUDED_TERMINAL_NODE_LIST => \%terminals,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata__calc_pd {
         my %arguments = (
         description     => 'Phylogenetic diversity (PD) base calcs.',
@@ -158,6 +202,7 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
     #}
     $PD_score = sum values %$nodes_in_path;
 
+    #  need to use node length instead of 1
     my %included_nodes;
     @included_nodes{keys %$nodes_in_path} = (1) x scalar keys %$nodes_in_path;
 

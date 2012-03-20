@@ -1444,6 +1444,8 @@ sub guess_field_separator {
                 eol      => $eol,
             );
         };
+        next if $EVAL_ERROR;  #  any errors mean that separator won't work
+
         if (scalar @$flds > 1) {  #  need two or more fields to result
             $sep_count{scalar @$flds} = $sep;
         }

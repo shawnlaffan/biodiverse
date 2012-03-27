@@ -85,6 +85,15 @@ sub percentile_RFC2330 {
     return $self->SUPER::percentile (@_);
 }
 
+#  inter-quartile range
+sub iqr {
+    my $self = shift;
+    my $q25 = $self->percentile(25);
+    my $q75 = $self->percentile(75);
+    
+    return $q75 - $q25;
+}
+
 1;
 
 __END__
@@ -137,6 +146,9 @@ Sorts the data and returns the value that corresponds to the
 percentile as defined in RFC2330.  This is the percentile
 method from Statistics::Descriptive::Full.
 
+=item $iqr = $stat->iqr();
+
+Calculates the inter-quartile range (q75 - q25).
 
 =back
 

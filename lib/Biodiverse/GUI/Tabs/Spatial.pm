@@ -509,7 +509,7 @@ sub makeListsModel {
     my $self = shift;
     my $output_ref = $self->{output_ref};
 
-    my $lists = $output_ref -> get_lists_across_elements (
+    my $lists = $output_ref->get_lists_across_elements (
         no_private => 1,
         max_search => undef,
     );

@@ -727,7 +727,7 @@ sub write_table_csv {
 
     eval {
         foreach my $line_ref (@$data) {
-            my $string = $self -> list2csv (  #  should pass csv object
+            my $string = $self->list2csv (  #  should pass csv object
                 list        => $line_ref,
                 sep_char    => $sep_char,
                 quote_char  => $quote_char,

@@ -222,13 +222,23 @@ sub export {
     my %args = @_;
 
     #  get our own metadata...
-    my %metadata = $self -> get_args (sub => 'export');
+    my %metadata = $self->get_args (sub => 'export');
 
     my $sub_to_use
         = $metadata{format_labels}{$args{format}}
             || croak "Argument 'format' not specified\n";
 
-    eval {$self -> $sub_to_use (%args)};
+    #  convert no_data_values if appropriate
+    if (defined $args{no_data_value}) {
+        if ($args{no_data_value} eq 'undef') {
+            $args{no_data_value} = undef;
+        }
+        elsif ($args{no_data_value} =~ /\d\*+\d/) {  #  e.g. -2**128
+            $args{no_data_value} = eval $args{no_data_value};
+        }
+    }
+
+    eval {$self->$sub_to_use (%args)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     return;
@@ -260,7 +270,7 @@ sub get_common_export_metadata {
 sub get_table_export_metadata {
     my $self = shift;
 
-    my @no_data_values = qw /undef 0 -9 -9999 -99999/;
+    my @no_data_values = $self->get_nodata_values;
     my @sep_chars
         = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
             ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
@@ -323,8 +333,8 @@ sub get_metadata_export_table_delimited_text {
     my %args = (
         format => 'Delimited text',
         parameters => [
-            $self -> get_common_export_metadata(),
-            $self -> get_table_export_metadata(),
+            $self->get_common_export_metadata(),
+            $self->get_table_export_metadata(),
         ],
     ); 
 
@@ -338,7 +348,7 @@ sub export_table_delimited_text {
 
     my $table = $self -> to_table (symmetric => 1, %args);
 
-    $self -> write_table_csv (%args, data => $table);
+    $self->write_table_csv (%args, data => $table);
 
     return;
 }
@@ -413,15 +423,20 @@ sub export_table_yaml {
 
     my $table = $self -> to_table (%args, symmetric => 1);
 
-    $self -> write_table_yaml (%args, data => $table);
+    $self->write_table_yaml (%args, data => $table);
 
     return;
+}
+
+sub get_nodata_values {
+    my @vals = qw /undef 0 -9 -9999 -99999 -2**31 -2**128 NA/;
+    return wantarray ? @vals : \@vals;
 }
 
 sub get_raster_export_metadata {
     my $self = shift;
 
-    my @no_data_values = qw /undef 0 -9 -9999 -99999/;
+    my @no_data_values = $self->get_nodata_values;
 
     my $table_metadata_defaults = [ 
         {
@@ -542,11 +557,12 @@ sub get_lists_for_export {
     my $self = shift;
 
     #  get the available lists
-    my $lists = $self -> get_lists_across_elements (no_private => 1);
+    my $lists = $self->get_lists_across_elements (no_private => 1);
+    my $array_lists = $self->get_array_lists_across_elements (no_private => 1);
 
     #  sort appropriately
     my @lists;
-    foreach my $list (sort @$lists) {
+    foreach my $list (sort (@$lists, @$array_lists)) {
         next if $list =~ /^_/;
 
         if ($list eq 'SPATIAL_RESULTS') {
@@ -629,21 +645,20 @@ sub to_table {
     if (! $as_symmetric and $is_asym) {
         print "[BASESTRUCT] Converting asymmetric data from $list "
               . "to asymmetric table\n";
-        $data = $self -> to_table_asym (%args);
+        $data = $self->to_table_asym (%args);
     }
     elsif ($as_symmetric && $is_asym) {
         print "[BASESTRUCT] Converting asymmetric data from $list "
               . "to symmetric table\n";
-        $data = $self -> to_table_asym_as_sym (%args);
+        $data = $self->to_table_asym_as_sym (%args);
     }
     else {
         print "[BASESTRUCT] Converting symmetric data from $list "
               . "to symmetric table\n";
-        $data = $self -> to_table_sym (%args);
+        $data = $self->to_table_sym (%args);
     }
 
     return wantarray ? @$data : $data;
-
 }
 
 #  write parts of the object to a CSV file
@@ -653,6 +668,7 @@ sub to_table_sym {
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not defined\n";
+    my $no_data_value = $args{no_data_value};
 
     my @data;
     my @elements = sort $self->get_element_list;
@@ -670,7 +686,7 @@ sub to_table_sym {
         my $i = 0;
         #  get the number of element columns
         my $name_array =
-          $self -> get_element_name_as_array (element => $elements[0]);
+          $self->get_element_name_as_array (element => $elements[0]);
 
         foreach my $null (@$name_array) {  
             push (@header, 'Axis_' . $i);
@@ -691,7 +707,7 @@ sub to_table_sym {
         my @basic = ($element);
         if (! $args{no_element_array}) {
             push @basic,
-              ($self -> get_element_name_as_array (element => $element));
+              ($self->get_element_name_as_array (element => $element));
         }
 
         my $listRef = $self->get_hash_list_values(
@@ -703,12 +719,26 @@ sub to_table_sym {
 
         if ($args{one_value_per_line}) {  
             #  repeat the elements, once for each value or key/value pair
-            foreach my $key (@print_order) {
-                push @data, [@basic, $key, $listRef->{$key}];
+            if (!defined $no_data_value) {
+                foreach my $key (@print_order) {
+                    push @data, [@basic, $key, $listRef->{$key}];
+                }
+            }
+            else {  #  need to change some values
+                foreach my $key (@print_order) {
+                    my $val = defined $listRef->{$key} ? $listRef->{$key} : $no_data_value;
+                    push @data, [@basic, $key, $val];
+                }
             }
         }
         else {
-            push @data, [@basic, @{$listRef}{@print_order}];
+            if (!defined $no_data_value) {
+                push @data, [@basic, @{$listRef}{@print_order}];
+            }
+            else {
+                my @vals = map {defined $_ ? $_ : $no_data_value} @{$listRef}{@print_order};
+                push @data, [@basic, @vals];
+            }
         }
     }
 
@@ -719,7 +749,8 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not specified\n";
-    my $list = $args{list}; 
+    my $list = $args{list};
+    my $no_data_value = $args{no_data_value};
 
     my @data;  #  2D array to hold the data
     my @elements = sort $self->get_element_list;
@@ -749,13 +780,16 @@ sub to_table_asym {  #  get the data as an asymmetric table
         if ($args{one_value_per_line}) {  #  repeats the elements, once for each value or key/value pair
             if ((ref $list) =~ /ARRAY/) {
                 foreach my $value (@$list) {
+                    if (!defined $value) {
+                        $value = $no_data_value;
+                    }
                     push @data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
                 }
             }
             elsif ((ref $list) =~ /HASH/) {
                 my %hash = %$list;
                 foreach my $key (sort keys %hash) {
-                    push @data, [@basic, $key, $hash{$key}];
+                    push @data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
                 }
             }
             #else {  #  we have a scale - probably undef so treat it as such
@@ -765,12 +799,13 @@ sub to_table_asym {  #  get the data as an asymmetric table
         else {
             my @line = @basic;
             if ((ref $list) =~ /ARRAY/) {
-                push @line, @$list;  #  preserve internal ordering - useful for extracting iteration based values
+                #  preserve internal ordering - useful for extracting iteration based values
+                push @line, map {defined $_ ? $_ : $no_data_value} @$list;  
             }
             elsif ((ref $list) =~ /HASH/) {
                 my %hash = %$list;
                 foreach my $key (sort keys %hash) {
-                    push @line, ($key, $hash{$key});
+                    push @line, ($key, defined $hash{$key} ? $hash{$key} : $no_data_value);
                 }
             }
             push @data, \@line;
@@ -784,7 +819,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not specified\n";
-    my $list = $args{list}; 
+    my $list = $args{list};
 
     # Get all possible indices by sampling all elements
     # - this allows for asymmetric lists
@@ -826,17 +861,19 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     push @data, \@header;
 
     #  allows us to pass text "undef"
-    my $no_data = defined $args{no_data} ? eval $args{no_data_value} : undef;  
+    my $no_data_value = $args{no_data_value};
 
     print "[BASESTRUCT] Processing elements...\n";
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
         my @basic = ($element);
-        push @basic, ($self->get_element_name_as_array (element => $element)) if ! $args{no_element_array};
+        if (! $args{no_element_array}) {
+            push @basic, ($self->get_element_name_as_array (element => $element)) ;
+        }
         my $list = $self->get_hash_list_values (element => $element, list => $list);
         my %data_hash = %indices_hash;
-        @data_hash{keys %data_hash} = ($no_data) x scalar keys %data_hash;  #  initialises with undef by default
+        @data_hash{keys %data_hash} = ($no_data_value) x scalar keys %data_hash;  #  initialises with undef by default
         if ((ref $list) =~ /ARRAY/) {
             @data_hash{@$list} = (1) x scalar @$list;
         }
@@ -1377,9 +1414,9 @@ sub raster_export_process_args {
                 ? eval $args{no_data_value}
                 : undef;
 
-    if (! defined $no_data) {
+    if (! defined $no_data or not looks_like_number $no_data ) {
         $no_data = -9999 ;
-        print "[BASESTRUCT] Overriding undefined no_data_value with -9999\n";
+        print "[BASESTRUCT] Overriding undefined or non-numeric no_data_value with $no_data\n";
     }
 
     my @res = defined $args{resolutions}
@@ -2296,6 +2333,17 @@ sub clear_lists_across_elements_cache {
     return;
 }
 
+sub get_array_lists_across_elements {
+    my $self = shift;
+    return $self->get_lists_across_elements (list_method => 'get_array_lists');
+}
+
+sub get_hash_lists_across_elements {
+    my $self = shift;
+    return $self->get_lists_across_elements (list_method => 'get_hash_lists');
+}
+
+
 #  get a list of all the lists in all the elements
 #  up to $args{max_search}
 sub get_lists_across_elements {
@@ -2304,11 +2352,12 @@ sub get_lists_across_elements {
     my $max_search = $args{max_search} || $self -> get_element_count;
     my $no_private = $args{no_private};
     my $rerun = $args{rerun};
+    my $list_method = $args{list_method} || 'get_hash_lists';
 
     croak "max_search arg is negative\n" if $max_search < 0;
 
     #  get from cache
-    my $cached_list = $self -> get_param ('LISTS_ACROSS_ELEMENTS');
+    my $cached_list = $self->get_param ('LISTS_ACROSS_ELEMENTS');
     my $cached_list_max_search
         = $self -> get_param ('LISTS_ACROSS_ELEMENTS_LAST_MAX_SEARCH');
 
@@ -2338,7 +2387,7 @@ sub get_lists_across_elements {
         return (wantarray ? @$cached_list : $cached_list);   
     }
 
-    my $elements = $self -> get_element_hash;
+    my $elements = $self->get_element_hash;
 
     my %tmp_hash;
     my $count = 0;
@@ -2346,7 +2395,7 @@ sub get_lists_across_elements {
     SEARCH_FOR_LISTS:
     foreach my $elt (keys %$elements) {
 
-        my $list = $self -> get_hash_lists (element => $elt);
+        my $list = $self->$list_method (element => $elt);
         if (scalar @$list) {
             @tmp_hash{@$list} = (1) x scalar @$list;
         }

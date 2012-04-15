@@ -225,7 +225,7 @@ sub calc_endemism_central_lists {
     my $self = shift;
     my %args = @_;
 
-    #my $hashRef = $self -> _calc_endemism(%args, end_central => 1);
+    #my $hashRef = $self->_calc_endemism(%args, end_central => 1);
 
     my %results = (
         ENDC_WTLIST     => $args{END_WTLIST},
@@ -248,7 +248,7 @@ sub get_metadata_calc_endemism_central_hier_part {
 sub calc_endemism_central_hier_part {
     my $self = shift;
 
-    return $self -> _calc_endemism_hier_part (
+    return $self->_calc_endemism_hier_part (
         @_,
         prefix        => 'ENDC_HPART_',
     );
@@ -257,7 +257,7 @@ sub calc_endemism_central_hier_part {
 sub get_metadata_calc_endemism_whole_hier_part {
     my $self = shift;
 
-    return $self -> metadata_for_calc_endemism_hier_part (
+    return $self->metadata_for_calc_endemism_hier_part (
         @_,
         prefix        => 'ENDW_HPART_',
         endemism_type => 'whole',
@@ -267,7 +267,7 @@ sub get_metadata_calc_endemism_whole_hier_part {
 sub calc_endemism_whole_hier_part {
     my $self = shift;
 
-    return $self -> _calc_endemism_hier_part (
+    return $self->_calc_endemism_hier_part (
         @_,
         prefix        => 'ENDW_HPART_',
     );
@@ -344,7 +344,7 @@ sub metadata_for_calc_endemism_hier_part {
                 . 'inferred from the label axes. (Level 0 is the highest).';
 
     my $formula;    #  skip for now
-    #my $formula = $self -> get_formula_end_hpart;
+    #my $formula = $self->get_formula_end_hpart;
     
 
     my %arguments = (
@@ -376,30 +376,30 @@ sub _calc_endemism_hier_part {
     my $prefix  = $args{prefix};
     
     #  get depth excluding the root node
-    my $depth   = $tree -> get_depth_below - 1;
+    my $depth = $tree->get_depth_below - 1;
 
     my @hash_ref_array = ();
     my @count_array    = ();
-    my $total_count = 0;
+    my $total_count    = 0;
     while (my ($label, $wt) = each %$wt_list) {
         my $contribution = $wt / $we;
         $total_count ++;
-        my $node_ref = $tree -> get_node_ref (node => $label);
+        my $node_ref = $tree->get_node_ref (node => $label);
         my $node_name = $label;
 
         #  climb the tree and add the contributions
         my $i = $depth;
-        while (! $node_ref -> is_root_node) {
+        while (! $node_ref->is_root_node) {
             $hash_ref_array[$i]{$node_name} += $contribution;
             $count_array[$i]{$node_name} ++;
-            $i --;
-            $node_ref  = $node_ref -> get_parent;
-            $node_name = $node_ref -> get_name;
+            $i--;
+            $node_ref  = $node_ref->get_parent;
+            $node_name = $node_ref->get_name;
         }
     }
 
     my %results;
-    
+
     foreach my $i (0 .. $#hash_ref_array) {
         my $observed_hash = $hash_ref_array[$i];
         my $count_hash    = $count_array[$i];
@@ -497,7 +497,7 @@ sub _calc_endemism_central {
     my $self = shift;
     my %args = @_;
 
-    return $self -> _calc_endemism(%args, end_central => 1);
+    return $self->_calc_endemism(%args, end_central => 1);
 }
 
 
@@ -634,7 +634,7 @@ sub _calc_endemism_whole {
     my $self = shift;
     my %args = @_;
 
-    return $self -> _calc_endemism(%args, end_central => 0);
+    return $self->_calc_endemism(%args, end_central => 0);
 }
 
 sub _calc_endemism { #  calculate endemism
@@ -663,7 +663,7 @@ sub _calc_endemism { #  calculate endemism
 
     my ($endemism, $rosauer, $label_count) = (0, 0, 0);
     foreach my $sub_label (keys %{$label_list}) {
-        my $range = $bd -> $function (element => $sub_label);
+        my $range = $bd->$function (element => $sub_label);
         $endemism += $local_ranges->{$sub_label} / $range;
         $wts{$sub_label} = $local_ranges->{$sub_label} / $range;
         $ranges{$sub_label} = $range;
@@ -712,7 +712,7 @@ sub get_basedata_labels_as_tree {
     my %args = @_;
 
     my $bd   = $self->get_basedata_ref;
-    my $tree = $bd -> to_tree;
+    my $tree = $bd->to_tree;
 
     my %results = (
         BASEDATA_LABEL_TREE => $tree,

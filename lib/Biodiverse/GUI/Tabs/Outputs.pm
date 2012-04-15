@@ -88,6 +88,8 @@ sub new {
     $xml_page->get_widget('btnOutputsExport')->signal_connect_swapped(clicked => \&onExport, $self);
     $xml_page->get_widget('btnOutputsDelete')->signal_connect_swapped(clicked => \&onDelete, $self);
     $xml_page->get_widget('btnOutputsRename')->signal_connect_swapped(clicked => \&onRename, $self);
+    $xml_page->get_widget('btnOutputsDescribe')->signal_connect_swapped(clicked => \&onDescribe, $self);
+    
     
     
     $tree->signal_connect_swapped('row-activated', \&onRowActivated, $self);
@@ -338,23 +340,28 @@ sub onRename {
     my $self = shift;
 
     my $selected = $self->getSelection();
-    
+
     my $gui = $self->{gui};
-    $selected->{type} = q{} if not defined $selected->{type};
+    if (not defined $selected->{type}) {
+        $selected->{type} = q{};
+    }
     if ($selected->{type} eq 'basedata') {
-        $gui -> doRenameBasedata ($selected);
+        $gui->doRenameBasedata ($selected);
     }
     elsif ($selected->{type} eq 'output') {
         my $object = $selected->{output_ref};
-        #print "[Outputs tab] Renaming output not yet implemented\n";
-        #  do something here
-        $gui -> doRenameOutput ($selected);
-        #$gui->getProject->renameOutput($object); 
-        
+        $gui->doRenameOutput ($selected);
     }
 
-    #Biodiverse::GUI::Export::Run($object);
-    
+    return;
+}
+
+sub onDescribe {
+    my $self = shift;
+
+    my $gui = $self->{gui};
+    $gui->doDescribeBasedata ();
+
     return;
 }
 

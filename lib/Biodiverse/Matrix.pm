@@ -394,9 +394,10 @@ sub export {
     #  get our own metadata...
     my %metadata = $self -> get_args (sub => 'export');
     
+    my $format = $args{format};
     my $sub_to_use
-        = $metadata{format_labels}{$args{format}}
-            || croak "Argument 'format' not specified\n";
+        = $metadata{format_labels}{$format}
+            || croak "Argument 'format => $format' not valid\n";
     
     eval {$self -> $sub_to_use (%args)};
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -602,13 +603,17 @@ sub add_element {  #  add an element pair to the object
     croak "Element2 not specified in call to add_element\n"
         if ! defined $element2;
 
-    if (! defined $args{value}) {
-        warn "[Matrix] add_element Warning: Value not defined\n";
+    my $val = $args{value};
+    if (! defined $val && ! $self->get_param('ALLOW_UNDEF')) {
+        warn "[Matrix] add_element Warning: Value not defined and ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
         return;
+    }
+    if (!defined $val) {
+        $val = q{undef};
     }
 
     $self->{BYELEMENT}{$element1}{$element2} = $args{value};
-    $self->{BYVALUE}{$args{value}}{$element1}{$element2}++;
+    $self->{BYVALUE}{$val}{$element1}{$element2}++;
     $self->{ELEMENTS}{$element1}++;  #  cache the component elements to save searching through the other lists later
     $self->{ELEMENTS}{$element2}++;  #  also keeps a count of the elements
     
@@ -988,20 +993,28 @@ sub load_data {
     }
 
     #  now we build the matrix, skipping lower left values if it is symmetric
-    my $text_allowed = $self -> get_param ('ALLOW_TEXT');
-    my $label_count = 0;
+    my $text_allowed   = $self->get_param ('ALLOW_TEXT');
+    my $undef_allowed  = $self->get_param ('ALLOW_UNDEF');
+    my $blank_as_undef = $self->get_param ('BLANK_AS_UNDEF');
+    my $label_count    = 0;
+
     foreach my $flds_ref (@data) {
-        
-        BY_FIELD:
+      BY_FIELD:
         foreach my $i (@cols_to_use) {
-            #print "Using column $i\n";
-            #  Skip if not defined.  Need the first check because these are getting assigned in csv2list
-            next BY_FIELD if ! defined $flds_ref->[$i];
-            next BY_FIELD if $flds_ref->[$i] eq $EMPTY_STRING;  
-            next BY_FIELD if ! $text_allowed && ! looks_like_number ($flds_ref->[$i]);
+            my $val = $flds_ref->[$i];
+my $a = defined $val;  #  debug - hang a break on this
+            if (defined $val && $blank_as_undef && $val eq $EMPTY_STRING) {
+                $val = undef;
+            }
+            #  Skip if not defined, is blank or non-numeric.
+            #  Need the first check because these are getting assigned in csv2list
+            next BY_FIELD if !$undef_allowed && !defined $val;
+            next BY_FIELD if defined $val && $val eq $EMPTY_STRING;  
+            next BY_FIELD if defined $val && !$text_allowed && !looks_like_number ($val);
             
             my $label = $labelList{$label_count};
             my $label2 = $labelList{$i};
+            
             next BY_FIELD  #  skip if in the matrix and already defined
                 if defined 
                     $self -> get_value (
@@ -1012,7 +1025,7 @@ sub load_data {
             $self -> add_element (
                 element1 => $label,
                 element2 => $label2,
-                value    => $flds_ref->[$i],
+                value    => $val,
             );
         }
         $label_count ++;

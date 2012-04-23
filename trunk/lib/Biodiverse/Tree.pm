@@ -765,6 +765,13 @@ sub get_metadata_export_tabular_tree {
                 type        => 'float',
                 default     => 0,
             },
+            {
+                name        => 'plot_coords_left_to_right',
+                label_text  => 'Plot tree from left to right',
+                tooltip     => 'Leave off for default (plots as per labels and cluster tabs, root node at right, tips at left)',
+                type        => 'boolean',
+                default     => 0,
+            },
         ],
     );
 

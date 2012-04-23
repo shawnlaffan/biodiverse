@@ -1056,6 +1056,7 @@ sub assign_plot_coords {
     $self->assign_plot_coords_inner (
         scale_factor => $scale_factor,
         max_y        => $max_y,
+        plot_coords_left_to_right => $args{plot_coords_left_to_right},
     );
 
     return;
@@ -1064,8 +1065,9 @@ sub assign_plot_coords {
 sub assign_plot_coords_inner {
     my $self = shift;
     my %args = @_;
-    my $scale_factor = $args{scale_factor} || 1;
-    my $max_y        = $args{max_y} || 0;
+    my $scale_factor  = $args{scale_factor} || 1;
+    my $max_y         = $args{max_y} || 0;
+    my $left_to_right = $args{plot_coords_left_to_right};
 
     my ($y1, $y2, $y_pos);
 
@@ -1102,6 +1104,11 @@ sub assign_plot_coords_inner {
     #    $end_x   += $self->get_length;
     #    $start_x += $self->get_length;
     #}
+    if ($left_to_right) {
+        $vx      *= -1;
+        $end_x   *= -1;
+        $start_x *= -1;
+    }
 
     my %coords = (
         plot_y1 => $y_pos,
@@ -1173,7 +1180,8 @@ sub to_table {
     #  create the plot coords if requested
     if ($args{include_plot_coords}) {
         $self->assign_plot_coords (
-            plot_coords_scale_factor => $args{plot_coords_scale_factor},
+            plot_coords_scale_factor  => $args{plot_coords_scale_factor},
+            plot_coords_left_to_right => $args{plot_coords_left_to_right},
         );
     }
     

@@ -9,10 +9,10 @@ no warnings 'once';
 use English qw { -no_match_vars };
 our $VERSION = '0.16';
 
-local $| = 1;
+local $OUTPUT_AUTOFLUSH = 1;
 
-use File::Spec;
-use File::Basename;
+use Path::Class ();
+#use File::Basename;
 use Cwd;
 use FindBin qw ( $Bin );
 
@@ -22,7 +22,7 @@ use Carp;
 my $perl_app_tool = $PerlApp::TOOL;
 
 #  add the lib folder if needed
-use lib File::Spec->catfile( $Bin, '..', 'lib');
+use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
 eval 'use mylib';
 
 #  load up the user defined libs
@@ -95,15 +95,13 @@ $gui->setGladeFile($gladefile);
 $gui->init();
 
 if ( defined $filename ) {
-    $filename = File::Spec->rel2abs($filename);
-    my @file_path = fileparse($filename);
-    chdir $file_path[1];
+    $filename = Path::Class::file($filename)->absolute->stringify;
     $gui->open($filename);
 }
 
 my $ic = Gtk2::IconTheme->new;
 #$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
-print join "\n", $ic->get_search_path;
+#print join "\n", $ic->get_search_path;
 
 # Go!
 Gtk2->main;
@@ -143,12 +141,12 @@ sub get_gladefile {
     }
 
     #  get the glade file from ./glade or ./bin/glade
-    $gladefile = File::Spec->catfile( $Bin, 'glade', 'biodiverse.glade' );
+    $gladefile = Path::Class::file( $Bin, 'glade', 'biodiverse.glade' )->stringify;
     if (! -e $gladefile) {
-        $gladefile = File::Spec->catfile( $Bin, 'bin', 'glade', 'biodiverse.glade' );
+        $gladefile = Path::Class::file( $Bin, 'bin', 'glade', 'biodiverse.glade' )->stringify;
     }
     if (! -e $gladefile) {  #  desperation
-        $gladefile = File::Spec->catfile( $Bin, 'biodiverse.glade' );
+        $gladefile = Path::Class::file( $Bin, 'biodiverse.glade' )->stringify;
     }
 
     croak 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
@@ -171,9 +169,9 @@ sub get_iconfile {
         return $icon;
     }
 
-    $icon = File::Spec->catfile( $Bin, 'Biodiverse_icon.ico' );
+    $icon = Path::Class::file( $Bin, 'Biodiverse_icon.ico' )->stringify;
     if (! -e $icon) {
-        $icon = File::Spec->catfile( $Bin, 'bin', 'Biodiverse_icon.ico' );
+        $icon = Path::Class::file( $Bin, 'bin', 'Biodiverse_icon.ico' )->stringify;
     }
     if ( ! -e $icon) {
         $icon = undef;

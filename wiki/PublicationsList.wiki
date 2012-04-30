@@ -16,7 +16,7 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Crisp, M.D., Laffan, S., Linder, H.P. & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 
 
-  * Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (in press) Fine scale quantification of floral and faunal breaks and their geographic correlates, with an example from south-eastern Australia. Journal of Biogeography.  Accepted 16Mar2012. 
+  * Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (in press) Fine scale quantification of floral and faunal breaks and their geographic correlates, with an example from south-eastern Australia. Journal of Biogeography.  Accepted 16Mar2012. doi:10.1111/j.1365-2699.2012.02739.x
 
   *  Gonzalez-Orozco, C.E., Laffan, S.W., Miller, J. (2011) Spatial distribution of species richness and endemism of the genus Acacia in Australia. [http://dx.doi.org/10.1071/BT11112 Australian Journal of Botany, 59, 600-608]
 

@@ -1059,10 +1059,9 @@ sub cluster {
             return 3;  #  don't try to cluster and don't add anything to the basedata
         }
         elsif ($args{build_matrices_only}) {
-            my $clone = eval {$self->get_shadow_matrix->clone};
-            $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
-            my $original_matrices = $self->clone (data => \@matrices);
-            $self->set_param (ORIGINAL_MATRICES => $original_matrices);
+            #  assign matrices to the orig slots, no need to clone
+            $self->set_param (ORIGINAL_SHADOW_MATRIX => $self->get_shadow_matrix);
+            $self->set_param (ORIGINAL_MATRICES => \@matrices);
 
             $self->add_matrices_to_basedata (matrices => \@matrices);
             #  clear the other matrices
@@ -1072,15 +1071,22 @@ sub cluster {
             return 2;
         }
         else {
-            #  save clones of the matrices for later export
-            print "[CLUSTER] Creating and storing matrix clones\n";
-
-            my $clone = eval {$self->get_shadow_matrix->clone};
-            $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
-            my $original_matrices = $self->clone (data => \@matrices);
-            $self->set_param (ORIGINAL_MATRICES => $original_matrices);
+            if ($args{no_clone_matrices}) {  # reduce memory at the cost of later exports and visualisation
+                print "[CLUSTER] Storing matrices with no cloning - be warned that these will be destroyed in clustering\n";
+                $self->set_param (ORIGINAL_SHADOW_MATRIX => $self->get_shadow_matrix);
+                $self->set_param (ORIGINAL_MATRICES => \@matrices);
+            }
+            else {
+                #  save clones of the matrices for later export
+                print "[CLUSTER] Creating and storing matrix clones\n";
     
-            print "[CLUSTER] Done\n";
+                my $clone = eval {$self->get_shadow_matrix->clone};
+                $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
+                my $original_matrices = $self->clone (data => \@matrices);
+                $self->set_param (ORIGINAL_MATRICES => $original_matrices);
+        
+                print "[CLUSTER] Done\n";
+            }
         }
     }
 

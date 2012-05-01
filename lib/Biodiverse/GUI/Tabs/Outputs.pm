@@ -188,7 +188,13 @@ sub onRowInserted {
 
 sub onRowActivated {
     my $self = shift;
-    $self->onShow();
+    
+    eval {
+        $self->onShow();
+    };
+    if ($EVAL_ERROR) {
+        $self->{gui}->report_error ($EVAL_ERROR);
+    }
     
     return;
 }
@@ -243,7 +249,7 @@ sub onShow {
     if ($selected->{type} eq 'basedata') {
         my $labels = eval {Biodiverse::GUI::Tabs::Labels->new()};
         if ($EVAL_ERROR) {
-            $self->{gui} -> report_error ($EVAL_ERROR);
+            $self->{gui}->report_error ($EVAL_ERROR);
             return;
         }
     }
@@ -266,25 +272,30 @@ sub onShow {
         print "[Outputs tab] New analysis tab\n";
         my $type = ref($output_ref);
 
-        #if ($type =~ /Spatial/) {
-        #  Spatials are a type of BaseStruct
-        if ($type =~ /Spatial/) {
-            $tab = Biodiverse::GUI::Tabs::Spatial->new($output_ref);
-        }
-        elsif ($type =~ /Cluster|Tree/) {
-            $tab = Biodiverse::GUI::Tabs::Clustering->new($output_ref);
-        }
-        elsif ($type =~ /RegionGrower/) {
-            $tab = Biodiverse::GUI::Tabs::RegionGrower->new($output_ref);
-        }
-        elsif ($type =~ /Randomis/) {
-            $tab = Biodiverse::GUI::Tabs::Randomise->new($output_ref);
-        }
-        elsif ($type =~ /Matrix/) {
-            $tab = Biodiverse::GUI::Tabs::SpatialMatrix->new($output_ref);
-        }
-        else {
-            croak 'Outputs::onShow - unsupported output type ' . $type;
+        eval {
+            #  Spatials are a type of BaseStruct
+            if ($type =~ /Spatial/) {
+                $tab = Biodiverse::GUI::Tabs::Spatial->new($output_ref);
+            }
+            elsif ($type =~ /Cluster|Tree/) {
+                $tab = Biodiverse::GUI::Tabs::Clustering->new($output_ref);
+            }
+            elsif ($type =~ /RegionGrower/) {
+                $tab = Biodiverse::GUI::Tabs::RegionGrower->new($output_ref);
+            }
+            elsif ($type =~ /Randomis/) {
+                $tab = Biodiverse::GUI::Tabs::Randomise->new($output_ref);
+            }
+            elsif ($type =~ /Matrix/) {
+                $tab = Biodiverse::GUI::Tabs::SpatialMatrix->new($output_ref);
+            }
+            else {
+                croak 'Outputs::onShow - unsupported output type ' . $type;
+            }
+        };
+        if ($EVAL_ERROR) {
+            $self->{gui}->report_error ($EVAL_ERROR);
+            return;
         }
     }
 

@@ -36,6 +36,7 @@ sub new {
     my $matrix_ref = shift; # will be undef if none specified
 
     croak "argument matrix_ref not specified\n" if !$matrix_ref;
+    croak "Unable to display.  Matrix has no elements\n" if !$matrix_ref->get_element_count;
     
     my $self = {gui => Biodiverse::GUI::GUIManager->instance()};
     $self->{project} = $self->{gui}->getProject();

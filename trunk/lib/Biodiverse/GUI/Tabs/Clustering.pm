@@ -868,6 +868,36 @@ sub onRun {
     return $self->onRunAnalysis (@_);
 }
 
+sub get_overwrite_response {
+    my ($self, $title, $text) = @_;
+    
+    my $rerun_spatial_value = -20;
+
+    my $dlg = Gtk2::Dialog->new(
+        $title,
+        $self->{gui}->getWidget('wndMain'),
+        'modal',
+        'gtk-yes' => 'ok',
+        'gtk-no'  => 'no',
+        "run/rerun\ncalculations\nper node" => $rerun_spatial_value,
+    );
+    my $label = Gtk2::Label->new($text);
+    #$label->set_use_markup(1);
+    $dlg->vbox->pack_start ($label, 0, 0, 0);
+    $dlg->show_all();
+
+    my $response = $dlg->run;
+    $dlg->destroy;
+    
+    if ($response eq 'delete-event') {
+        $response = 'cancel';
+    }
+    if ($response eq $rerun_spatial_value) {
+        $response = 'run_spatial_calculations';
+    }
+    
+    return $response;
+}
 
 sub onRunAnalysis {
     my $self   = shift;
@@ -884,25 +914,6 @@ sub onRunAnalysis {
         return;
     }
 
-    my $pre_existing = $self->{output_ref};
-    # Delete existing?
-    if (defined $self->{output_ref}) {
-        my $text = "$self->{output_name} exists.  Do you mean to overwrite it?";
-        my $completed = $self->{output_ref}->get_param('COMPLETED');
-        if ($self->{existing} and defined $completed and $completed) {
-
-            #  drop out if we don't want to overwrite
-            if (Biodiverse::GUI::YesNoCancel->run({header => 'Overwrite?', text => $text}) ne 'yes') {
-                return 0;
-            }
-        }
-
-        $self->{basedata_ref}->delete_output(output => $self->{output_ref});
-        $self->{project}->deleteOutput($self->{output_ref});
-        $self->{existing} = 0;
-
-    }
-
     # Load settings...
     $self->{output_name}    = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
     my $selected_index      = $self->getSelectedMetric;
@@ -914,25 +925,55 @@ sub onRunAnalysis {
     my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
 
     # Get spatial calculations to run
-    my @toRun = Biodiverse::GUI::Tabs::AnalysisTree::getAnalysesToRun(
+    my @calculations_to_run = Biodiverse::GUI::Tabs::AnalysisTree::getAnalysesToRun(
         $self->{analyses_model}
     );
 
-    # Add cluster output
-    my $output_ref = eval {
-        $self->{basedata_ref}->add_cluster_output(
-            name => $self->{output_name},
-            type => $self->get_output_type,
-        );
-    };
-    if ($EVAL_ERROR) {
-        $self->{gui}-> report_error ($EVAL_ERROR);
-        return;
+    my $pre_existing = $self->{output_ref};
+    my $new_analysis = 1;
+
+    # Delete existing?
+    if (defined $self->{output_ref}) {
+        my $completed = $self->{output_ref}->get_param('COMPLETED');
+
+        if ($self->{existing} and defined $completed and $completed) {
+            my $text = "$self->{output_name} exists.  \nDo you mean to overwrite it?";
+            my $response = $self->get_overwrite_response ('Overwrite?', $text);
+            #  drop out if we don't want to overwrite
+            #my $response = Biodiverse::GUI::YesNoCancel->run({header => 'Overwrite?', text => $text});
+            return 0 if ($response eq 'no' or $response eq 'cancel');
+            if ($response eq 'run_spatial_calculations') {
+                return 0 if not scalar @calculations_to_run;
+                $new_analysis = 0;
+            }
+        }
+
+        if ($new_analysis) {
+            $self->{basedata_ref}->delete_output(output => $self->{output_ref});
+            $self->{project}->deleteOutput($self->{output_ref});
+            $self->{existing} = 0;
+            $self->{output_ref} = undef;
+        }
     }
+
+    my $output_ref = $self->{output_ref};
+
+    if ($new_analysis) {
+        # Add cluster output
+        $output_ref = eval {
+            $self->{basedata_ref}->add_cluster_output(
+                name => $self->{output_name},
+                type => $self->get_output_type,
+            );
+        };
+        if ($EVAL_ERROR) {
+            $self->{gui}->report_error ($EVAL_ERROR);
+            return;
+        }
     
-    
-    $self->{output_ref} = $output_ref;
-    $self->{project}->addOutput($self->{basedata_ref}, $output_ref);
+        $self->{output_ref} = $output_ref;
+        $self->{project}->addOutput($self->{basedata_ref}, $output_ref);
+    }
 
     my %analysis_args = (
         %args,
@@ -946,7 +987,7 @@ sub onRunAnalysis {
         file_handles         => $file_handles,
         output_gdm_format    => $output_gdm_format,
         keep_sp_nbrs_output  => $keep_sp_nbrs_output,
-        spatial_calculations => \@toRun,
+        spatial_calculations => \@calculations_to_run,
         spatial_conditions   => [
             $self->{spatialParams1}->get_text(),
             $self->{spatialParams2}->get_text(),
@@ -989,15 +1030,17 @@ sub onRunAnalysis {
         return;
     }
 
-    foreach my $ref ($output_ref->get_orig_matrices) {
-        next if not $ref->get_element_count;  #  don't add if empty
-        $self->{project}->addOutput($self->{basedata_ref}, $ref);
-    }
-
     if ($keep_sp_nbrs_output) {
         my $sp_name = $output_ref->get_param('SP_NBRS_OUTPUT_NAME');
         my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
         $self->{project}->addOutput($self->{basedata_ref}, $sp_ref);
+    }
+
+    if ($new_analysis) {
+        foreach my $ref ($output_ref->get_orig_matrices) {
+            next if not $ref->get_element_count;  #  don't add if empty
+            $self->{project}->addOutput($self->{basedata_ref}, $ref);
+        }
     }
 
     $self->registerInOutputsModel($output_ref, $self);
@@ -1012,7 +1055,7 @@ sub onRunAnalysis {
 
     if (Biodiverse::GUI::YesNoCancel->run({header => 'display results?'}) eq 'yes') {
         # If just ran a new analysis, pull up the pane
-        if ($isnew) {
+        if ($isnew or not $new_analysis) {
             $self->setPane(0.01, 'vpaneClustering');
             $self->setPane(1,    'vpaneDendrogram');
         }

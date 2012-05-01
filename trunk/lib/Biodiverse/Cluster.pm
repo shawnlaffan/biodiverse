@@ -991,12 +991,10 @@ sub cluster {
 
     my $start_time = time;
 
-    $self->set_param (COMPLETED => 0);
-    $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
-    
     my $file_handles = $args{file_handles};
 
     #  override most of the arguments if the system has values set
+    my %passed_args = %args;
     if (defined $self->get_param('ANALYSIS_ARGS')) {
         %args = %{$self->get_param ('ANALYSIS_ARGS')};
     }
@@ -1012,6 +1010,23 @@ sub cluster {
         $args{spatial_calculations} = $args{spatial_analyses};
     }
     $self->set_param (CALCULATIONS_REQUESTED => $args{spatial_calculations});
+
+    #  just do/redo the spatial calcs if we have completed
+    if ($self->get_param('COMPLETED') and $passed_args{spatial_calculations}) {
+        my %args_sub = %args;  #  override the stored args
+        $args_sub{spatial_calculations} = $passed_args{spatial_calculations};
+        $self->set_param (ANALYSIS_ARGS => \%args_sub);
+        $self->set_param (CALCULATIONS_REQUESTED => $args_sub{spatial_calculations});
+
+        $self->run_spatial_calculations (%args_sub);
+
+        #$self->set_param (COMPLETED => 1);
+        return 1;
+    }
+
+    $self->set_param (COMPLETED => 0);
+    $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
+
 
     my @matrices;
     #  if we were passed a matrix in the args  
@@ -1188,13 +1203,7 @@ sub cluster {
     delete $self->{MATRIX};
 
     if ($args{spatial_calculations}) {
-        my $success = eval {
-            $self->sp_calc (
-                %args,
-                calculations => $args{spatial_calculations},
-            )
-        };
-        croak $EVAL_ERROR if $EVAL_ERROR;
+        $self->run_spatial_calculations (%args);
     }
 
     $self->add_matrices_to_basedata;
@@ -1211,6 +1220,22 @@ sub cluster {
     $self->set_param(COMPLETED => 1);
     return 1;
 }
+
+sub run_spatial_calculations {
+    my $self = shift;
+    my %args = @_;
+
+    my $success = eval {
+        $self->sp_calc (
+            %args,
+            calculations => $args{spatial_calculations},
+        )
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return $success;
+}
+
 
 #  just stick the root nodes together
 #  if we have many left from clustering

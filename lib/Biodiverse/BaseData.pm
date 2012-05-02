@@ -2667,6 +2667,7 @@ sub delete_matrix_output {
 
 sub get_matrix_output_refs {
     my $self = shift;
+    $self->_set_matrix_ouputs_hash;
     return wantarray
             ? values %{$self->{MATRIX_OUTPUTS}}
             : [values %{$self->{MATRIX_OUTPUTS}}];
@@ -2674,6 +2675,7 @@ sub get_matrix_output_refs {
 
 sub get_matrix_output_names {
     my $self = shift;
+    $self->_set_matrix_ouputs_hash;
     return wantarray
             ? keys %{$self->{MATRIX_OUTPUTS}}
             : [keys %{$self->{MATRIX_OUTPUTS}}];
@@ -2681,9 +2683,17 @@ sub get_matrix_output_names {
 
 sub get_matrix_outputs {
     my $self = shift;
+    $self->_set_matrix_ouputs_hash;
     return wantarray
             ? %{$self->{MATRIX_OUTPUTS}}
             : {%{$self->{MATRIX_OUTPUTS}}};
+}
+
+sub _set_matrix_ouputs_hash {
+    my $self = shift;
+    if (! $self->{MATRIX_OUTPUTS}) {
+        $self->{MATRIX_OUTPUTS} = {};
+    }
 }
 
 

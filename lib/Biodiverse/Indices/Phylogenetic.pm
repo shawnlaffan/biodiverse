@@ -332,8 +332,7 @@ sub calc_pe {
 sub get_metadata_calc_pe_lists {
 
     my %arguments = (
-        description     => 'Lists used in the Phylogenetic endemism (PE) '
-                            . 'calculations.',
+        description     => 'Lists used in the Phylogenetic endemism (PE) calculations.',
         name            => 'Phylogenetic Endemism lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Indices', 
@@ -341,11 +340,11 @@ sub get_metadata_calc_pe_lists {
         uses_nbr_lists  => 1,
         indices         => {
             PE_WTLIST       => {
-                description => "Node weights used in PE calculations",
+                description => 'Node weights used in PE calculations',
                 type        => 'list',
             },
             PE_RANGELIST    => {
-                description => "Node ranges used in PE calculations",
+                description => 'Node ranges used in PE calculations',
                 type        => 'list',
             },
         },
@@ -420,21 +419,17 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
             my $labels = $bd->get_labels_in_group_as_hash (group => $group);
             my $nodes_in_path = $self->get_paths_to_root_node (
                 @_,
-                labels         => $labels,
-                #return_lengths => 0,
+                labels => $labels,
             );
      
             my ($gp_score, %gp_wts, %gp_ranges);
             
             #  loop over the nodes and run the calcs
-            #foreach my $node (values %$nodes_in_path) {
             while (my ($name, $length) = each %$nodes_in_path) {
-                #my $name  = $node->get_name;
                 my $range = $node_ranges->{$name};
-                #my $wt    = eval {$node->get_length / $range} || 0;
                 my $wt    = eval {$length / $range} || 0;
                 $gp_score += $wt;
-                $gp_wts{$name} = $wt;
+                $gp_wts{$name}    = $wt;
                 $gp_ranges{$name} = $range;
             }
             
@@ -473,7 +468,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
     {
         no warnings 'uninitialized';
         #Phylogenetic endemism = sum for all nodes of: (branch length/total tree length) / node range
-        $PE_WE_P = eval {$PE_WE / $args{trimmed_tree} -> get_total_tree_length};
+        $PE_WE_P = eval {$PE_WE / $tree_ref->get_total_tree_length};
         
         #Phylogenetic corrected weighted endemism = (sum for all nodes of branch length / node range) / path length
         #where path length is actually PD
@@ -482,12 +477,13 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         #    $path_length += $length;
         #}
 
-        foreach my $value (values %unweighted_wts) {
-            $PE_WE_SINGLE += $value;
-        }
-        $PE_WE_SINGLE_P = eval {$PE_WE_SINGLE / $args{trimmed_tree}->get_total_tree_length};
+        #  NEED TO PULL THESE OUT TO THEIR OWN SUB - they are not needed for
+        #  many of the calcs that depend on this sub and slow things down
+        #  for large data sets with large trees
+        $PE_WE_SINGLE = sum (values %unweighted_wts);
+        $PE_WE_SINGLE_P = eval {$PE_WE_SINGLE / $tree_ref->get_total_tree_length};
     }
-    
+
     my %results = (
         PE_WE          => $PE_WE,
         PE_WE_SINGLE   => $PE_WE_SINGLE,

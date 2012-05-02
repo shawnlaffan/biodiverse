@@ -1378,8 +1378,10 @@ sub get_list_intersection {
     my @list2 = @{$args{list2}};
 
     my %exists;
-    @exists{@list1} = (1) x scalar @list1;
-    my @list = grep { $exists{$_} } @list2;
+    #@exists{@list1} = (1) x scalar @list1;
+    #my @list = grep { $exists{$_} } @list2;
+    @exists{@list1} = undef;
+    my @list = grep { exists $exists{$_} } @list2;
 
     return wantarray ? @list : \@list;
 }

@@ -14,6 +14,7 @@ use English ( -no_match_vars );
 use Carp;
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number/;
+use List::Util qw /min max/;
 use File::BOM qw /:subs/;
 
 my $EMPTY_STRING = q{};
@@ -529,14 +530,16 @@ END_MX_TOOLTIP
 
 sub get_min_value {  #  get the minimum similarity value
     my $self = shift;
-    my @array = sort numerically keys %{$self->{BYVALUE}};
-    return $array[0];
+    #my @array = sort numerically keys %{$self->{BYVALUE}};
+    #return $array[0];
+    return min keys %{$self->{BYVALUE}};
 }
 
 sub get_max_value {  #  get the minimum similarity value
     my $self = shift;
-    my @array = reverse sort numerically keys %{$self->{BYVALUE}};
-    return $array[0];
+    #my @array = reverse sort numerically keys %{$self->{BYVALUE}};
+    #return $array[0];
+    return max keys %{$self->{BYVALUE}};
 }
 
 #  crude summary stats.
@@ -783,11 +786,14 @@ sub get_element_count {
 sub get_element_pair_count {
     my $self = shift;
 
-    my $count = 0;
-    for my $value (values %{$self->{ELEMENTS}}) {
-        $count += $value;
-    }
+    #my $count = 0;
+    #for my $value (values %{$self->{ELEMENTS}}) {
+    #    $count += $value;
+    #}
+    my $count = sum values %{$self->{ELEMENTS}};
     $count /= 2;  #  correct for double counting
+    #  IS THIS CORRECTION VALID?  We can have symmetric and non-symmetric matrices, so a:b and b:a
+    #  It depends on how they are tracked, though.  
 
     return $count;
 }

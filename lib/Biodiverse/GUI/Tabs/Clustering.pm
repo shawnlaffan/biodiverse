@@ -776,6 +776,16 @@ sub get_keep_spatial_nbrs_output {
     return $value;
 }
 
+sub get_no_clone_matrices {
+    my $self = shift;
+
+    my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
+
+    my $value = $widget->get_active;
+
+    return $value;
+}
+
 sub get_output_file_handles {
     my $self = shift;
     
@@ -923,6 +933,7 @@ sub onRunAnalysis {
     my $file_handles        = $self->get_output_file_handles;
     my $output_gdm_format   = $self->get_output_gdm_format;
     my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
+    my $no_clone_matrices   = $self->get_no_clone_matrices;
 
     # Get spatial calculations to run
     my @calculations_to_run = Biodiverse::GUI::Tabs::AnalysisTree::getAnalysesToRun(
@@ -992,6 +1003,7 @@ sub onRunAnalysis {
             $self->{spatialParams1}->get_text(),
             $self->{spatialParams2}->get_text(),
         ],
+        no_clone_matrices   => $no_clone_matrices,
     );
 
 

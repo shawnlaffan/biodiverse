@@ -6,19 +6,22 @@ use Carp;
 use POSIX qw /fmod/;
 my $NULL_STRING = q{};
 
+use Biodiverse::Config;
+
 our $VERSION = '0.16';
 
 sub new {
     my $class = shift;
     my %args = @_;
 
+    my $report_int = $Biodiverse::Config::progress_update_interval_pct;
     my $hash_ref = {
-        gui_progress => undef,
-        last_text    => $NULL_STRING,
-        print_text   => 1,
-        last_reported_prog    => -1,
-        report_interval => 5,  #  in percent
-        gui_only        => 0,  #  only feedback via GUI
+        gui_progress       => undef,
+        last_text          => $NULL_STRING,
+        print_text         => 1,
+        last_reported_prog => -1,
+        report_interval    => $report_int,  #  in percent
+        gui_only           => 0,  #  only feedback via GUI
         %args,  #  override if user says so
     };
 

@@ -467,8 +467,10 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
 
     {
         no warnings 'uninitialized';
+        my $total_tree_length = $tree_ref->get_total_tree_length;
+        
         #Phylogenetic endemism = sum for all nodes of: (branch length/total tree length) / node range
-        $PE_WE_P = eval {$PE_WE / $tree_ref->get_total_tree_length};
+        $PE_WE_P = eval {$PE_WE / $total_tree_length};
         
         #Phylogenetic corrected weighted endemism = (sum for all nodes of branch length / node range) / path length
         #where path length is actually PD
@@ -481,7 +483,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         #  many of the calcs that depend on this sub and slow things down
         #  for large data sets with large trees
         $PE_WE_SINGLE = sum (values %unweighted_wts);
-        $PE_WE_SINGLE_P = eval {$PE_WE_SINGLE / $tree_ref->get_total_tree_length};
+        $PE_WE_SINGLE_P = eval {$PE_WE_SINGLE / $total_tree_length};
     }
 
     my %results = (

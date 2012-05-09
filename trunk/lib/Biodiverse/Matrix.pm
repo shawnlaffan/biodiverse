@@ -80,6 +80,30 @@ sub rename {
     
 }
 
+
+#  avoid needless cloning of the basedata
+sub clone {
+    my $self = shift;
+    my %args = @_;
+    
+    my $bd = $self->get_param('BASEDATA_REF');
+    $self->set_param(BASEDATA_REF => undef);
+
+    my $clone_ref = eval {
+        $self->SUPER::clone(%args);
+    };
+    if ($EVAL_ERROR) {
+        $self->set_param(BASEDATA_REF => $bd);  #  put it back
+        croak $EVAL_ERROR;
+    }
+
+    $self->set_param(BASEDATA_REF => $bd);
+    $clone_ref->set_param(BASEDATA_REF => $bd);
+    
+    return $clone_ref;
+}
+
+
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
 sub describe {
     my $self = shift;
@@ -294,12 +318,22 @@ sub to_table_gdm {
     
     push @data, [qw /x1 y1 x2 y2 Value/];  #  header line
     
+    my $progress_bar = Biodiverse::Progress->new();
+    my $to_do = scalar @elements;
+    my $progress_pfx = "Converting matrix to table \n";
+    
     my $i = 0;
     
     E1:
     foreach my $element1 (@elements) {
         $i++;
         my @element1 = $self->csv2list (string => $element1, csv_object => $csv_object);
+        
+        my $progress = $i / $to_do;
+        $progress_bar->update (
+            $progress_pfx . "(row $i / $to_do)",
+            $progress,
+        );
 
         my $j = 0;
         E2:
@@ -319,7 +353,7 @@ sub to_table_gdm {
                     element2 => $element2,
                 );
 
-                my @element2 = $self->csv2list (string => $element1, , csv_object => $csv_object);
+                my @element2 = $self->csv2list (string => $element2, csv_object => $csv_object);
                 my $list = [@element1[0,1], @element2[0,1], $value];
                 push @data, $list;
             }

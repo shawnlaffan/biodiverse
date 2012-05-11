@@ -157,7 +157,7 @@ The process described above will create a new !BaseData object in the Biodiverse
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_into_existing.png
 
-Data being appended to an existing !BaseData object should have group data in the same format as the existing !BaseData (for example, 'x' and 'y' columns of decimal degree geographic coordinates if the existing data were so), otherwise the results will be unpredictable.  Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to.
+Data being appended to an existing !BaseData object should have group data in the same coordinate system or numeric range as the existing !BaseData (for example, 'x' and 'y' columns of decimal degree geographic coordinates if the existing data were so), otherwise the results will be unpredictable.  Labels are more flexible, and can be comprised of more or fewer components (columns) than the data being appended to.
 
 You may also create a new !BaseData object as a duplicate of the currently selected !BaseData by the _Basedata->Duplicate_ menu option.  This will also duplicate any analyses performed on the !BaseData. To duplicate the !BaseData only, select _Basedata->Duplicate without outputs_.
 

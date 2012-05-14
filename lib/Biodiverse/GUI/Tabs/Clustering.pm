@@ -16,6 +16,8 @@ use Biodiverse::GUI::CellPopup;
 use Biodiverse::GUI::SpatialParams;
 use Biodiverse::GUI::Tabs::AnalysisTree;
 
+use Biodiverse::Indices;
+
 our $VERSION = '0.16';
 
 use Biodiverse::Cluster;
@@ -1246,9 +1248,9 @@ sub showList {
     my $name = shift;
 
     #my $ref = $node_ref->get_value($name);
-    my $ref = $node_ref->get_list_ref ('list' => $name);
+    my $ref = $node_ref->get_list_ref (list => $name);
 
-    my $model = Gtk2::ListStore->new("Glib::String", "Glib::String");
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     my $iter;
 
     if (ref($ref) eq 'HASH') {
@@ -1263,12 +1265,12 @@ sub showList {
         foreach my $elt (sort @$ref) {
             #print "[Dendrogram] Adding output array entry $elt\n";
             $iter = $model->append;
-            $model->set($iter,    0,$elt ,  1,'');
+            $model->set($iter, 0, $elt, 1, q{});
         }
     }
     elsif (not ref($ref)) {
         $iter = $model->append;
-        $model->set($iter,    0, $ref,  1,'');
+        $model->set($iter, 0, $ref, 1, q{});
     }
 
     $popup->setValueColumn(1);
@@ -1288,23 +1290,16 @@ sub showClusterLabelsABC2 {
 
     # Use calc_abc2 to get the labels
     my @elements = keys %{$elements};
-    my %ABC = $basedata_ref->calc_abc2('element_list1'=> \@elements);
-    #print Data::Dumper::Dumper(\%ABC);
+    #my %ABC = $basedata_ref->calc_abc2('element_list1'=> \@elements);
+    my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $basedata_ref);
+    my %ABC = $indices_object->calc_abc2(element_list1 => \@elements);
     my $total_labels = $ABC{label_hash_all};
 
-    # For each element, get its labels and put into %total_labels
-    #my %total_labels;
-    #foreach my $element (sort keys %{$elements}) {
-    #    my %labels = $basedata_ref->get_labels_in_group_as_hash(group => $element);
-    #    print Data::Dumper::Dumper(\%labels);
-    #    @total_labels{keys %labels} = undef;
-    #}
-
     # Add each label into the model
-    my $model = Gtk2::ListStore->new("Glib::String", "Glib::Int");
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
     foreach my $label (sort keys %{$total_labels}) {
         my $iter = $model->append;
-        $model->set($iter,    0,$label ,  1,$total_labels->{$label});
+        $model->set($iter, 0, $label, 1, $total_labels->{$label});
     }
 
     $popup->setListModel($model);
@@ -1324,20 +1319,13 @@ sub showClusterLabelsABC3 {
 
     # Use calc_abc2 to get the labels
     my @elements = keys %{$elements};
-    my %ABC = $basedata_ref->calc_abc3('element_list1'=> \@elements);
-    #print Data::Dumper::Dumper(\%ABC);
+    #my %ABC = $basedata_ref->calc_abc2('element_list1'=> \@elements);
+    my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $basedata_ref);
+    my %ABC = $indices_object->calc_abc3(element_list1 => \@elements);
     my $total_labels = $ABC{label_hash_all};
 
-    # For each element, get its labels and put into %total_labels
-    #my %total_labels;
-    #foreach my $element (sort keys %{$elements}) {
-    #    my %labels = $basedata_ref->get_labels_in_group_as_hash(group => $element);
-    #    print Data::Dumper::Dumper(\%labels);
-    #    @total_labels{keys %labels} = undef;
-    #}
-
     # Add each label into the model
-    my $model = Gtk2::ListStore->new("Glib::String", "Glib::Int");
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
     foreach my $label (sort keys %{$total_labels}) {
         my $iter = $model->append;
         $model->set($iter,    0,$label ,  1,$total_labels->{$label});
@@ -1367,10 +1355,10 @@ sub showClusterLabels {
     }
 
     # Add each label into the model
-    my $model = Gtk2::ListStore->new("Glib::String", "Glib::String");
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     foreach my $label (sort keys %total_labels) {
         my $iter = $model->append;
-        $model->set($iter,    0,$label ,  1, "");
+        $model->set($iter, 0, $label, 1, q{});
     }
 
     $popup->setListModel($model);
@@ -1385,7 +1373,7 @@ sub showClusterElements {
 
     print "[Clustering tab] Making cluster elements model\n";
     my $elements = $node_ref->get_terminal_elements;
-    my $model = Gtk2::ListStore->new("Glib::String", "Glib::Int");
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
     foreach my $element (sort keys %{$elements}) {
         my $count = $elements->{$element};

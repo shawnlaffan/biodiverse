@@ -364,6 +364,59 @@ sub calc_pe_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_endemism {
+
+    my %arguments = (
+        description     => 'Absolute endemism analogue of PE.  '
+                        .  'It is the sum of the branch lengths restricted '
+                        .  'to the neighbour sets.',
+        name            => 'PD-Endemism',
+        reference       => 'See Faith (2004) Cons Biol.  http://dx.doi.org/10.1111/j.1523-1739.2004.00330.x',
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc        => ['calc_pe_lists'],
+        pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PD_ENDEMISM => {
+                description => 'Phylogenetic Diversity Endemism',
+            },
+            PD_ENDEMISM_WTS => {
+                description => 'Phylogenetic Diversity Endemism weights per node found only in the neighbour set',
+            }
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pd_endemism {
+    my $self = shift;
+    my %args = @_;
+    
+    my $weights = $args{PE_WTLIST};
+    my $tree_ref = $args{trimmed_tree};
+    
+    my $pd_e;
+    my %pd_e_wts;
+
+    foreach my $label (keys %$weights) {
+        my $wt = $weights->{$label};
+        my $tree_node = $tree_ref->get_node_ref(node => $label);
+        my $length = $tree_node->get_length;
+        next if $wt != $length || $wt == 0;
+
+        $pd_e += $wt;
+        $pd_e_wts{$label} = $wt;
+    }
+
+    my %results = (
+        PD_ENDEMISM     => $pd_e,
+        PD_ENDEMISM_WTS => \%pd_e_wts,
+    );
+    
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata__calc_pe {
 
     my %arguments = (

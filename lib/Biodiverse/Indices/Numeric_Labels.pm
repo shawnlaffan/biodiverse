@@ -363,7 +363,7 @@ sub calc_numeric_label_dissimilarity {
             my $joint_count = $count1 * $count2;
 
             #  tally the stats
-            my $x = $value * $joint_count;
+            my $x      = $value * $joint_count;
             $sumX     += $x;
             $sum_absX += abs($x);
             $sumXsqr  += $value ** 2 * $joint_count;

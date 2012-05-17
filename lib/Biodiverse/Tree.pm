@@ -181,7 +181,7 @@ sub delete_from_node_hash {
     my %args = @_;
 
     if ($args{node}) {
-        delete $self->{TREE_BY_NAME}{$args{node}};  #  $arg{node} implies single deletion
+        delete $self->{TREE_BY_NAME}{$args{node}};  #  $args{node} implies single deletion
     }
 
     my $arg_nodes_ref = ref $args{nodes};

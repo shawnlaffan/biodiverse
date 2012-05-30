@@ -16,13 +16,15 @@ Spatial conditions are used both to define the neighbourhoods of the spatial ana
 
 Neighbourhoods are essential for any spatial analysis, as it is through these that one can define the set of groups to be considered in an analysis.  In the moving window analyses these determine which groups are compared with which other groups.  In the cluster analyses they determine which groups are considered candidates to be clustered together.  It is also possible to define neighbourhoods for spatially constrained randomisations (see [http://www3.interscience.wiley.com/journal/118882020/abstract Laffan and Crisp, 2003, J Biogeog]), although this is yet to be implemented (see issue #76).
 
-Before we describe the process, some definitions are needed.  The *processing group* is the group being considered in the analysis at some iteration.  Typically every group is considered in turn. A group is a member of the processing group's set of neighbours (is a *neighbouring group*) if the spatial condition evaluates to true.  
+Before we describe the process, some definitions are needed.  The *processing group* is the group being considered in the analysis at some iteration, and to which the results for that iteration are assigned.  A group is a member of the processing group's set of neighbours (is a *neighbouring group*) if the spatial condition evaluates to true.  
+
+A [AnalysisTypes#Spatial_analyses spatial analysis] progressively iterates over each group that passes the definition query, assessing every other group for membership in neighbour set 1 or 2.  The selected indices are then calculated using the groups that occur in neighbour sets 1 and 2 (and their labels and other properties as required by the [KeyConcepts#Calculations calculations]).
 
  == Definition Queries ==
 
 These differ from neighbourhoods as they assess only the processing group to determine if calculations should be run for it or not.  They use the same syntax as for neighbourhoods, but the system will commonly complain if a condition requiring a neighbouring group is used.
 
-Note that groups that fail the definition query are still considered for membership of neighbour sets of those that pass.  Use in conjunction with an appropriate neighbourhood definition if you want to exclude some groups from neighbour sets as well.  For example, you could use `sp_match_text (axis => 2, text => 'fred', type => 'proc')` for the definition query and `sp_match_text (axis => 2, text => 'fred', type => 'nbr')` for the neighbourhood.  This will restrict calculations to those groups with a third axis of 'fred', and also exclude any group without fred in the third axis from the neighbour sets of those groups processed.
+Note that groups that fail the definition query are still considered for membership of neighbour sets of those that pass.  Use a definition query in conjunction with an appropriate neighbourhood definition if you want to exclude some groups from neighbour sets as well.  For example, you could use `sp_match_text (axis => 2, text => 'fred', type => 'proc')` for the definition query and `sp_match_text (axis => 2, text => 'fred', type => 'nbr')` for the neighbourhood.  This will restrict calculations to those groups with a third axis of 'fred', and also exclude any group without fred in the third axis from the neighbour sets of those groups processed.
 
 = Some details =
 

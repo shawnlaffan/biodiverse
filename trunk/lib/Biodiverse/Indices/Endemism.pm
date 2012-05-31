@@ -721,6 +721,108 @@ sub get_basedata_labels_as_tree {
     return wantarray ? %results : \%results;
 }
 
+
+sub get_metadata_calc_endemism_absolute {
+
+    my $desc = "Absolute endemism scores.\n";
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Absolute endemism',
+        type            => 'Endemism',
+        pre_calc        => ['calc_abc2'],
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        indices => {
+            END_ABS1 => {
+                description => 'Count of labels entirely endemic to neighbour set 1',
+            },
+            END_ABS2  => {
+                description => 'Count of labels entirely endemic to neighbour set 2',
+            },
+            END_ABS_ALL => {
+                description => 'Count of labels entirely endemic to neighbour sets 1 and 2 combined',
+            },
+            END_ABS1_P => {
+                description => 'Proportion of labels entirely endemic to neighbour set 1',
+            },
+            END_ABS2_P => {
+                description => 'Proportion of labels entirely endemic to neighbour set 2',
+            },
+            END_ABS_ALL_P => {
+                description => 'Proportion of labels entirely endemic to neighbour sets 1 and 2 combined',
+            },
+            END_ABS1_LIST => {
+                description => 'List of labels entirely endemic to neighbour set 1',
+                type        => 'list',
+            },
+            END_ABS2_LIST => {
+                description => 'List of labels entirely endemic to neighbour set 1',
+                type        => 'list',
+            },
+            END_ABS_ALL_LIST => {
+                description => 'List of labels entirely endemic to neighbour sets 1 and 2 combined',
+                type        => 'list',
+            },
+        },
+    );  #  add to if needed
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_endemism_absolute {
+    my $self = shift;
+    my %args = @_;
+
+    my $bd = $self->get_basedata_ref;
+
+    my $local_ranges = $args{label_hash_all};
+    my $l_hash1 = $args{label_hash1};
+    my $l_hash2 = $args{label_hash2};
+    
+    #  allows us to use this for any other basedata get_* function
+    my $function = 'get_range';
+
+    my ($end1, $end2, $end_all) = (0, 0, 0);
+    my (%eh1, %eh2, %eh_all);
+
+    while (my ($sub_label, $local_range) = each %{$local_ranges}) {
+        my $range = $bd->$function (element => $sub_label);
+
+        next if $range > $local_range;  #  cannot be absolutely endemic
+
+        $end_all++;
+        $eh_all{$sub_label} = $local_range;
+
+        if (exists $l_hash1->{$sub_label} and $range <= $l_hash1->{$sub_label}) {
+            $end1++;
+            $eh1{$sub_label} = $local_range;
+        }
+        if (exists $l_hash2->{$sub_label} and $range <= $l_hash2->{$sub_label})  {
+            $end2++;
+            $eh2{$sub_label} = $local_range;
+        }
+    }
+
+    my $end1_p = eval {$end1 / scalar keys %$l_hash1};
+    my $end2_p = eval {$end2 / scalar keys %$l_hash2};
+    my $end_all_p = eval {$end_all / scalar keys %$local_ranges};
+
+    my %results = (
+        END_ABS1         => $end1,
+        END_ABS2         => $end2,
+        END_ABS_ALL      => $end_all,
+        END_ABS1_LIST    => \%eh1,
+        END_ABS2_LIST    => \%eh2,
+        END_ABS_ALL_LIST => \%eh_all,
+        END_ABS1_P       => $end1_p,
+        END_ABS2_P       => $end2_p,
+        END_ABS_ALL_P    => $end_all_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+
 1;
 
 __END__

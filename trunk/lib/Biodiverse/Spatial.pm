@@ -439,8 +439,10 @@ sub sp_calc {
             );
         $self->set_param (PASS_DEF_QUERY => $pass_def_query);
 
-        croak "Nothing passed the definition query\n"
-          if ! scalar keys %$pass_def_query;
+        if (! scalar keys %$pass_def_query) {
+            $self->clear_spatial_condition_caches;
+            croak "Nothing passed the definition query\n";
+        }
     }
     
     my $progress = Biodiverse::Progress->new();
@@ -626,6 +628,7 @@ sub sp_calc {
     #  run any global post_calcs
     my %post_calc_globals = $indices_object->run_postcalc_globals (%args);
 
+    $self->clear_spatial_condition_caches;
 
     #  this will cache as well
     my $lists = $self->get_lists_across_elements();

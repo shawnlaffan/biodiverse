@@ -418,6 +418,69 @@ sub set_default_params {
     return;
 }
 
+#  set any value - allows user specified additions to the core stuff
+sub set_cached_value {
+    my $self = shift;
+    my %args = @_;
+    @{$self->{_cache}}{keys %args} = values %args;
+    
+    return;
+}
+
+sub get_cached_value {
+    my $self = shift;
+    my $key = shift;
+    return if ! exists $self->{_cache};
+    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
+    return;
+}
+
+sub get_cached_value_keys {
+    my $self = shift;
+    
+    return if ! exists $self->{_cache};
+    
+    return wantarray
+        ? keys %{$self->{_cache}}
+        : [keys %{$self->{_cache}}];
+}
+
+sub delete_cached_values {
+    my $self = shift;
+    my %args = @_;
+    
+    return if ! exists $self->{_cache};
+
+    my $keys = $args{keys} || $self->get_cached_value_keys;
+    return if not defined $keys or scalar @$keys == 0;
+
+    delete @{$self->{_cache}}{@$keys};
+    delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
+
+    warn "Cache deletion problem\n$EVAL_ERROR\n"
+      if $EVAL_ERROR;
+
+    warn "XXXXXXX "  . $self -> get_name . "\n" if exists $self->{_cache};
+
+    return;
+}
+
+sub clear_spatial_condition_caches {
+    my $self = shift;
+    my %args = @_;
+
+    eval {
+        foreach my $sp (@{$self->get_param ('SPATIAL_PARAMS')}) {
+            $sp->delete_cached_values (keys => $args{keys});
+        }
+    };
+    eval {
+        my $def_query = $self->get_param('DEFINITION_QUERY');
+        $def_query->delete_cached_values (keys => $args{keys})
+    };
+    return;
+}
+
 #  print text to the log.
 #  need to add a checker to not dump yaml if not being run by gui
 #  CLUNK CLUNK CLUNK  - need to use the log4perl system

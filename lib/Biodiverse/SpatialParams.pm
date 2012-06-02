@@ -11,6 +11,7 @@ use POSIX qw /fmod floor ceil/;
 use Math::Trig;
 use Math::Trig ':pi';
 use Math::Polygon;
+use Geo::ShapeFile;
 
 use Scalar::Util qw /looks_like_number blessed/;
 
@@ -2016,6 +2017,121 @@ sub sp_point_in_poly {
     return $poly->contains($point);
 }
 
+sub _get_shp_examples {
+        my $examples = <<'END_OF_SHP_EXAMPLES'
+# Is the neighbour coord in a shapefile?
+sp_point_in_poly_shape (
+    file  => 'c:\biodiverse\data\coastline_lamberts',
+    point => \@nbrcoord,
+)
+# Is the neighbour coord in a shapefile's second polygon (counting from 1)?
+sp_point_in_poly_shape (
+    file      => 'c:\biodiverse\data\coastline_lamberts',
+    field_val => 2,
+    point     => \@nbrcoord,
+)
+# Is the neighbour coord in a polygon with value 2 in the OBJECT_ID field?
+sp_point_in_poly_shape (
+    file      => 'c:\biodiverse\data\coastline_lamberts',
+    field     => 'OBJECT_ID',
+    field_val => 2,
+    point     => \@nbrcoord,
+)
+END_OF_SHP_EXAMPLES
+  ;
+    return $examples;
+}
+
+sub get_metadata_sp_point_in_poly_shape {
+    my $self = shift;
+    
+    my %args = @_;
+    
+    my $examples = $self->_get_shp_examples;
+
+    my %metadata = (
+        description =>
+            'Select groups that occur within a polygon or polygons extracted from a shapefile',
+        required_args      => [
+            qw /file/,
+        ],
+        optional_args => [
+            qw /point field field_val/,      #  point to use, field name
+        ],
+        index_no_use => 1,
+        result_type  => 'non_overlapping',
+        example => $examples,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub sp_point_in_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $point = $args{point};
+    $point ||= eval {$self->is_def_query} ? $h->{'@coord'} : $h->{'@nbrcoord'};
+
+    my $polys = $self->get_polygons_from_shapefile (%args);
+
+    my $axes = $args{axes} || [0,1];
+    my $pointshape = Geo::ShapeFile::Point->new(X => $point->[$axes->[0]], Y => $point->[$axes->[1]]);
+
+    foreach my $poly (@$polys) {
+        return 1 if $poly->contains_point($pointshape);
+    }
+
+    return;
+}
+
+sub get_polygons_from_shapefile {
+    my $self = shift;
+    my %args = @_;
+    
+    my $file = $args{file};
+    $file =~ s/(shp|shx|dbf)$//;
+    
+    my $field = $args{field};
+
+    my $field_val = $args{field_val};
+
+    my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field || $NULL_STRING), (defined $field_val ? $field_val : $NULL_STRING);
+    my $cached = $self->get_cached_value($cache_name);
+    
+    return (wantarray ? @$cached : $cached) if $cached;
+
+    my $shapefile = Geo::ShapeFile->new($file);
+
+    my @shapes;
+    if ((!defined $field || $field eq 'FID') && defined $field_val) {
+        my $shape = $shapefile->get_shp_record($field_val);
+        push @shapes, $shape;
+    }
+    else {
+        REC:
+        for my $rec (1 .. $shapefile->shapes()) {  #  brute force search
+
+            if ((!defined $field || $field eq 'FID') && !defined $field_val) {
+                push @shapes, $shapefile->get_shp_record($rec);
+                next REC;
+            }
+            
+            my %db = $shapefile->get_dbf_record($rec);
+            my $is_num = looks_like_number ($db{$field});
+            if ($is_num ? $field_val == $db{$field} : $field_val eq $db{$field}) {
+                push @shapes, $shapefile->get_shp_record($rec);
+                last REC;
+            }
+        }
+    }
+    
+    $self->set_cached_value($cache_name => \@shapes);
+
+    return wantarray ? @shapes : \@shapes;
+}
 
 sub get_metadata_sp_group_not_empty {
     my $self = shift;
@@ -2059,6 +2175,7 @@ sub sp_group_not_empty {
 
 sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
 sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
+
 
 
 =head1 NAME

@@ -117,7 +117,7 @@ sub load_storable_file {
     croak "argument 'file' not defined\n"  if ! defined ($args{file});
 
     my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
-my $x = Path::Class::file($args{file});
+
     my $file = Path::Class::file($args{file})->absolute;
     if (! -e $file) {
         croak "[BASEDATA] File $file does not exist\n";

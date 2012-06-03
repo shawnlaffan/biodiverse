@@ -451,7 +451,7 @@ sub get_rtree {
     return $self->{rtree} if ($self->{rtree});
     
     #  otherwise build it ourselves and cache it
-    my $rtree = Tree::R -> new();
+    my $rtree = Tree::R->new();
     $self->{rtree} = $rtree;
     $self->{base_struct}->set_param (RTREE => $rtree);
     $self->{build_rtree} = 1;
@@ -621,12 +621,7 @@ sub setBaseStruct {
         #  (profiling indicates this takes most of the time in this sub)
         if (defined $self->{select_func} && $self->{build_rtree}) {
             $self->{rtree}->insert( #  Tree::R method
-            #$self->{rtree}->add (  #  Algorithm::QuadTree method
                 $element,
-                #$xcoord,  #  canvas units
-                #$ycoord,
-                #$xcoord + CELL_SIZE_X,
-                #$ycoord + $cell_size_y,
                 $x_bd - $cellX / 2,  #  basestruct units
                 $y_bd - $cellY / 2,
                 $x_bd + $cellX / 2,

@@ -12,7 +12,7 @@ use Math::Trig;
 use Math::Trig ':pi';
 use Math::Polygon;
 use Geo::ShapeFile;
-
+use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed/;
 
 use base qw /Biodiverse::Common/;
@@ -1690,7 +1690,7 @@ sub sp_select_sequence {
     $self->set_param(NBR_CACHE_PFX => 'SP_SELECT_SEQUENCE_CACHED_NBRS');
 
     #  get the offset and increment if needed
-    my $offset = $self->get_param($cache_offset_name);
+    my $offset = $self->get_cached_value($cache_offset_name);
 
     #my $start_pos;
 
@@ -1701,7 +1701,7 @@ sub sp_select_sequence {
         #$start_pos = $offset;
     }
     else {    #  should we increment the offset?
-        $last_coord_id1 = $self->get_param($cache_last_coord_id_name);
+        $last_coord_id1 = $self->get_cached_value($cache_last_coord_id_name);
         if ( defined $last_coord_id1 and $last_coord_id1 ne $coord_id1 ) {
             $offset++;
             if ( $cycle_offset and $offset >= $spacing ) {
@@ -1709,15 +1709,15 @@ sub sp_select_sequence {
             }
         }
     }
-    $self->set_param( $cache_last_coord_id_name => $coord_id1 );
-    $self->set_param( $cache_offset_name        => $offset );
+    $self->set_cached_value( $cache_last_coord_id_name => $coord_id1 );
+    $self->set_cached_value( $cache_offset_name        => $offset );
 
-    my $cached_nbrs = $self->get_param($cache_nbr_name);
+    my $cached_nbrs = $self->get_cached_value($cache_nbr_name);
     if ( not $cached_nbrs ) {
 
         #  cache this regardless - what matters is where it is used
         $cached_nbrs = {};
-        $self->set_param( $cache_nbr_name => $cached_nbrs );
+        $self->set_cached_value( $cache_nbr_name => $cached_nbrs );
     }
 
     my $nbrs;
@@ -1729,7 +1729,7 @@ sub sp_select_sequence {
     }
     else {
         my @groups;
-        my $cached_gps = $self->get_param($cache_gp_name);
+        my $cached_gps = $self->get_cached_value($cache_gp_name);
         if ( $use_cache and $cached_gps ) {
             @groups = @$cached_gps;
         }
@@ -1746,7 +1746,7 @@ sub sp_select_sequence {
             }
 
             if ( $use_cache and not $verifying ) {
-                $self->set_param( $cache_gp_name => \@groups );
+                $self->set_cached_value( $cache_gp_name => \@groups );
             }
         }
 
@@ -2073,7 +2073,14 @@ sub sp_point_in_poly_shape {
     my $h = $self->get_param('CURRENT_ARGS');
 
     my $point = $args{point};
-    $point ||= eval {$self->is_def_query} ? $h->{'@coord'} : $h->{'@nbrcoord'};
+    if (!defined $point) {  #  convoluted, but syntax highlighting plays up with ternary op
+        if (eval {$self->is_def_query}) {
+            $point = $h->{'@coord'};
+        }
+        else {
+            $point = $h->{'@nbrcoord'};
+        }
+    }
 
     my $polys = $self->get_polygons_from_shapefile (%args);
 
@@ -2090,17 +2097,17 @@ sub sp_point_in_poly_shape {
 sub get_polygons_from_shapefile {
     my $self = shift;
     my %args = @_;
-    
+
     my $file = $args{file};
     $file =~ s/(shp|shx|dbf)$//;
-    
+
     my $field = $args{field};
 
     my $field_val = $args{field_val};
 
     my $cache_name = join ':', 'SHAPEPOLYS', $file, ($field || $NULL_STRING), (defined $field_val ? $field_val : $NULL_STRING);
-    my $cached = $self->get_cached_value($cache_name);
-    
+    my $cached     = $self->get_cached_value($cache_name);
+
     return (wantarray ? @$cached : $cached) if $cached;
 
     my $shapefile = Geo::ShapeFile->new($file);
@@ -2111,23 +2118,34 @@ sub get_polygons_from_shapefile {
         push @shapes, $shape;
     }
     else {
-        REC:
-        for my $rec (1 .. $shapefile->shapes()) {  #  brute force search
+        my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
+        my $n_shapes = $shapefile->shapes();
 
+        REC:
+        for my $rec (1 .. $n_shapes) {  #  brute force search
+
+            $progress_bar->update(
+                "Processing $file\n" .
+                "Shape $rec of $n_shapes\n",
+                $rec / $n_shapes,
+            );
+
+            #  get the lot
             if ((!defined $field || $field eq 'FID') && !defined $field_val) {
                 push @shapes, $shapefile->get_shp_record($rec);
                 next REC;
             }
-            
+
+            #  get all that satisfy the condition
             my %db = $shapefile->get_dbf_record($rec);
             my $is_num = looks_like_number ($db{$field});
             if ($is_num ? $field_val == $db{$field} : $field_val eq $db{$field}) {
                 push @shapes, $shapefile->get_shp_record($rec);
-                last REC;
+                #last REC;
             }
         }
     }
-    
+
     $self->set_cached_value($cache_name => \@shapes);
 
     return wantarray ? @shapes : \@shapes;

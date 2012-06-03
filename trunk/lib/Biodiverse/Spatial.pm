@@ -430,12 +430,14 @@ sub sp_calc {
     
     if ($definition_query) {
         my $element = $elements_to_calc[0];
+        my $progress = Biodiverse::Progress->new();
 
         $pass_def_query
           = $bd->get_neighbours(
                 element        => $element,
                 spatial_params => $definition_query,
                 is_def_query   => 1,
+                progress       => $progress,
             );
         $self->set_param (PASS_DEF_QUERY => $pass_def_query);
 

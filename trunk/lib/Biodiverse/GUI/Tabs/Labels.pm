@@ -273,23 +273,30 @@ sub initList {
     my $stats_metadata = $labels_ref->get_args (sub => 'get_base_stats');
     my @columns;
     my $i = 0;
-    $self -> addColumn ($tree, 'Label', $i);
+    $self->addColumn ($tree, 'Label', $i);
     foreach my $column (@$stats_metadata) {
         $i++;
         my ($key, $value) = %$column;
         my $column_name = Glib::Markup::escape_text (ucfirst lc $key);
-        $self -> addColumn ($tree, $column_name, $i);
+        $self->addColumn ($tree, $column_name, $i);
     }
-    $self -> addColumn ($tree, $selected_list1_name, ++$i);
-    $self -> addColumn ($tree, $selected_list2_name, ++$i);
+    $self->addColumn ($tree, $selected_list1_name, ++$i);
+    $self->addColumn ($tree, $selected_list2_name, ++$i);
     
     # Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
-    #  set a special sort func for all cols except the labels
-    foreach my $col_id (1..$i) {
-        $wrapper_model->set_sort_func ($col_id, \&sort_by_column, [$col_id, $wrapper_model]);
+    my $sort_func = \&sort_by_column;
+    my $start_col = 1;
+    if ($self->{base_ref}->labels_are_numeric) {
+        $sort_func = \&sort_by_column_numeric_labels;
+        $start_col = 0;
+    }
+    
+    #  set a special sort func for all cols (except the labels if not numeric)
+    foreach my $col_id ($start_col .. $i) {
+        $wrapper_model->set_sort_func ($col_id, $sort_func, [$col_id, $wrapper_model]);
     }
 
     # Monitor selections
@@ -320,10 +327,26 @@ sub sort_by_column {
     if ($order eq 'descending') {
         $label_order = -1;  #  ensure ascending order
     }
-    
+
     return
          $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
       || $label_order * ($liststore->get($itera, 0) cmp $liststore->get($iterb, 0));
+}
+
+sub sort_by_column_numeric_labels {
+    my ($liststore, $itera, $iterb, $args) = @_;
+    my $col_id = $args->[0];
+    my $wrapper_model = $args->[1];
+    
+    my $label_order = 1;
+    my ($sort_column_id, $order) = $wrapper_model->get_sort_column_id;
+    if ($order eq 'descending') {
+        $label_order = -1;  #  ensure ascending order
+    }
+    
+    return
+         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
+      || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));    
 }
 
 #sub on_interactive_search {
@@ -341,7 +364,7 @@ sub makeLabelsModel {
     my $base_ref = $self->{base_ref};
     my $labels_ref = $base_ref->get_labels_ref();
 
-    my $basestats_indices = $labels_ref -> get_args (sub => 'get_base_stats');
+    my $basestats_indices = $labels_ref->get_args (sub => 'get_base_stats');
     
     my @column_order;
     
@@ -351,7 +374,10 @@ sub makeLabelsModel {
         {$selected_list2_name => 'Int'},
     );
     
-    my @types = ('Glib::String');
+    #my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
+    my $label_type = 'Glib::String';
+    
+    my @types = ($label_type);
     #my $i = 0;
     foreach my $column (@$basestats_indices, @selection_cols) {
         my ($key, $value) = %{$column};
@@ -473,7 +499,7 @@ sub onSelectedLabelsChanged {
     #  need to avoid changing paths due to re-sorts
     #  the run for listLabels1 is at the end.
     if ($id eq 'listLabels2') {
-        $self -> set_selected_list_cols ($selection, $rowcol);
+        $self->set_selected_list_cols ($selection, $rowcol);
     }
     
     return if $id ne 'listLabels1';
@@ -897,7 +923,7 @@ sub showList {
     my $name = shift;
 
     #my $ref = $node_ref->get_value($name);
-    my $ref = $node_ref->get_list_ref ('list' => $name);
+    my $ref = $node_ref->get_list_ref (list => $name);
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     my $iter;

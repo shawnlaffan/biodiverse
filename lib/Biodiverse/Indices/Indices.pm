@@ -757,7 +757,6 @@ sub get_metadata_calc_simpson_shannon {
             SIMPSON_D       => {
                 description => q{Simpson's D. A score of zero is more similar.},
                 formula     => ['D = 1 - \sum^n_{i=1} p_i^2'],
-                cluster     => 1,
             },
             SHANNON_H       => {
                 description => q{Shannon's H},

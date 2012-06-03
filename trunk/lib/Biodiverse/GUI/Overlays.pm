@@ -162,6 +162,8 @@ sub onAdd {
 
         my $iter = $list->get_model->append;
         $list->get_model->set($iter, 0, $filename);
+        my $sel = $list->get_selection;
+        $sel->select_iter($iter);
         
         $project->addOverlay($filename);
     }

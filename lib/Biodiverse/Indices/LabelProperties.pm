@@ -214,7 +214,8 @@ my @quantiles = qw /05 10 20 30 40 50 60 70 80 90 95/;
 sub get_metadata_calc_lbprop_stats {
     my $self = shift;
 
-    my $desc = 'Summary statistics for each label property across both neighbour sets';
+    my $desc = "List of summary statistics for each label property across both neighbour sets\n";
+    my $stats_list_text .= '(' . join (q{ }, @stats) . ')';
 
     my %arguments = (
         description     => $desc,
@@ -223,8 +224,8 @@ sub get_metadata_calc_lbprop_stats {
         pre_calc        => ['get_lbp_stats_objects'],
         uses_nbr_lists  => 1,
         indices         => {
-            LBPROP_STATS => {
-                description => 'Summary statistics for the label properties',
+            LBPROP_STATS_LIST => {
+                description => 'List of summary statistics ' . $stats_list_text,
                 type        => 'list',
             }
         },
@@ -263,7 +264,8 @@ sub calc_lbprop_stats {
 sub get_metadata_calc_lbprop_quantiles {
     my $self = shift;
 
-    my $desc = 'Quantiles for each label property across both neighbour sets';
+    my $desc = "List of quantiles for each label property across both neighbour sets\n";
+    my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
 
     my %arguments = (
         description     => $desc,
@@ -272,8 +274,8 @@ sub get_metadata_calc_lbprop_quantiles {
         pre_calc        => ['get_lbp_stats_objects'],
         uses_nbr_lists  => 1,
         indices         => {
-            LBPROP_QUANTILES => {
-                description => 'Quantiles for the label properties',
+            LBPROP_QUANTILE_LIST => {
+                description => 'List of quantiles for the label properties ' . $quantile_list_text,
                 type        => 'list',
             }
         },

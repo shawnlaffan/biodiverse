@@ -228,7 +228,7 @@ sub calc_gpprop_hashes {
 }
 
 
-my @stats     = qw /count mean min max median sum standard_deviation/;
+my @stats     = qw /count mean min max median sum standard_deviation iqr/;
 my %stat_name_short = (
     standard_deviation => 'SD',
 );
@@ -237,7 +237,8 @@ my @quantiles = qw /05 10 20 30 40 50 60 70 80 90 95/;
 sub get_metadata_calc_gpprop_stats {
     my $self = shift;
 
-    my $desc = 'Summary statistics for each group property across both neighbour sets';
+    my $desc = 'List of summary statistics for each group property across both neighbour sets';
+    my $stats_list_text .= '(' . join (q{ }, @stats) . ')';
 
     my %arguments = (
         description     => $desc,
@@ -246,8 +247,8 @@ sub get_metadata_calc_gpprop_stats {
         pre_calc        => ['get_gpp_stats_objects'],
         uses_nbr_lists  => 1,
         indices         =>  {
-            GPPROP_STATS => {
-                description => 'Summary statistics for the group properties',
+            GPPROP_STATS_LIST => {
+                description => 'List of summary statistics ' . $stats_list_text,
                 type        => 'list',
             }
         },
@@ -287,6 +288,7 @@ sub get_metadata_calc_gpprop_quantiles {
     my $self = shift;
 
     my $desc = 'Quantiles for each group property across both neighbour sets';
+    my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
 
     my %arguments = (
         description     => $desc,
@@ -295,8 +297,8 @@ sub get_metadata_calc_gpprop_quantiles {
         pre_calc        => ['get_gpp_stats_objects'],
         uses_nbr_lists  => 1,
         indices         =>  {
-            GPPROP_QUANTILES => {
-                description => 'Quantiles for the label properties',
+            GPPROP_QUANTILE_LIST => {
+                description => 'List of quantiles for the label properties ' . $quantile_list_text,
                 type        => 'list',
             }
         },

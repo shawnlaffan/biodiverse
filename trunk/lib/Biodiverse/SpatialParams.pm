@@ -12,6 +12,7 @@ use Math::Trig;
 use Math::Trig ':pi';
 use Math::Polygon;
 use Geo::ShapeFile;
+use Tree::R;
 use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed/;
 
@@ -2087,7 +2088,20 @@ sub sp_point_in_poly_shape {
     my $axes = $args{axes} || [0,1];
     my $pointshape = Geo::ShapeFile::Point->new(X => $point->[$axes->[0]], Y => $point->[$axes->[1]]);
 
-    foreach my $poly (@$polys) {
+    my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
+    my $bd = ${$h->{'$basedata'}};
+    my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
+    my @rect = (
+        $point->[$axes->[0]] - $cell_sizes[$axes->[0]] / 2,
+        $point->[$axes->[1]] - $cell_sizes[$axes->[1]] / 2,
+        $point->[$axes->[0]] + $cell_sizes[$axes->[0]] / 2,
+        $point->[$axes->[1]] + $cell_sizes[$axes->[1]] / 2,
+    );
+
+    my $rtree_polys = [];
+    $rtree->query_partly_within_rect(@rect, $rtree_polys);
+
+    foreach my $poly (@$rtree_polys) {
         return 1 if $poly->contains_point($pointshape);
     }
 
@@ -2149,6 +2163,50 @@ sub get_polygons_from_shapefile {
     $self->set_cached_value($cache_name => \@shapes);
 
     return wantarray ? @shapes : \@shapes;
+}
+
+sub get_rtree_for_polygons_from_shapefile {
+    my $self = shift;
+    my %args = @_;
+    
+    my $shapes = $args{shapes};
+
+    my $rtree_cache_name = $self->get_rtree_cache_name(%args);
+    my $rtree = $self->get_cached_value($rtree_cache_name);
+
+    if (!$rtree) {
+        #print "Building R-Tree $rtree_cache_name\n";
+        $rtree = $self->build_rtree_for_shapepolys (shapes => $shapes);
+        $self->set_cached_value($rtree_cache_name => $rtree);
+    }
+    
+    return $rtree;
+}
+
+sub get_rtree_cache_name {
+    my $self = shift;
+    my %args = @_;
+    my $cache_name = join ':',
+        'RTREE',
+        $args{file},
+        ($args{field} || $NULL_STRING),
+        (defined $args{field_val} ? $args{field_val} : $NULL_STRING);
+    return $cache_name;
+}
+
+sub build_rtree_for_shapepolys {
+    my $self = shift;
+    my %args = @_;
+
+    my $shapes = $args{shapes};
+
+    my $rtree = Tree::R->new();
+    foreach my $shape (@$shapes) {
+        my @bbox = ($shape->x_min, $shape->y_min, $shape->x_max, $shape->y_max);
+        $rtree->insert($shape, @bbox);
+    }
+
+    return $rtree;
 }
 
 sub get_metadata_sp_group_not_empty {

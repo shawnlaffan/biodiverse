@@ -11,6 +11,7 @@ use Scalar::Util qw /looks_like_number blessed reftype/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use IO::File;
 use File::BOM qw /:subs/;
+use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 
@@ -728,10 +729,10 @@ sub import_data {  #  load a data file into the selected BaseData object.
 
     #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file (@{$args{input_files}}) {
-        $file = File::Spec->rel2abs ($file);
+        $file = Path::Class::file($file)->absolute;
         print "[BASEDATA] INPUT FILE: $file\n";
-        my @tmp = File::Basename::fileparse ($file, $EMPTY_STRING);
-        my $file_base = shift @tmp;
+        my $file_base = $file->basename;
+
         my $file_handle = IO::File->new;
 
         if (-e $file and -r $file) {

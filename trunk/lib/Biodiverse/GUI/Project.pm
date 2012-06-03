@@ -77,9 +77,9 @@ sub new {
     my $tmp;
     #  we have been passed a file argument - try to load it
     if ($args{file}) {  
-        $tmp = eval {$self -> load_file (%args, ignore_suffix => 1)};
+        $tmp = eval {$self->load_file (%args, ignore_suffix => 1)};
         if ($EVAL_ERROR) {
-            $self->{gui} -> report_error ($EVAL_ERROR);
+            $self->{gui}->report_error ($EVAL_ERROR);
         }
         my $type = blessed ($tmp);
         if ($type eq blessed ($self)) {

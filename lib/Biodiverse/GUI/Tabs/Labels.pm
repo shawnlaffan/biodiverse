@@ -388,18 +388,20 @@ sub makeLabelsModel {
     $self->{labels_model} = Gtk2::ListStore->new(@types);
     my $model = $self->{labels_model};
 
-    my @labels = $base_ref -> get_labels();
+    my @labels = $base_ref->get_labels();
+    
+    my $sort_func = $base_ref->labels_are_numeric ? sub {$a <=> $b} : sub {$a cmp $b};
 
-    foreach my $label (sort @labels) {
+    foreach my $label (sort $sort_func @labels) {
         my $iter = $model->append();
         $model->set($iter, 0, $label);
 
         #  set the values - selection cols will be undef
-        my %stats = $labels_ref -> get_base_stats (element => $label);
+        my %stats = $labels_ref->get_base_stats (element => $label);
 
         my $i = 1;
         foreach my $column (@column_order) {
-            $model -> set ($iter, $i, defined $stats{$column} ? $stats{$column} : -99999);
+            $model->set ($iter, $i, defined $stats{$column} ? $stats{$column} : -99999);
             $i++;
         }
     }

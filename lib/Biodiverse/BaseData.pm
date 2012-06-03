@@ -2818,6 +2818,8 @@ sub get_neighbours {
     my $self = shift;
     my %args = @_;
     
+    my $progress = $args{progress};
+    
     my $element1 = $args{element};
     croak "argument element not specified\n" if ! defined $element1;
 
@@ -2873,9 +2875,20 @@ sub get_neighbours {
 
     #print "$element1  Evaluating ", scalar @compare_list, " nbrs\n";
 
+    my $target_comparisons = scalar @compare_list;
+    my $i = 0;
     my %valid_nbrs;
     NBR:
     foreach my $element2 (sort @compare_list) {
+        
+        if ($progress) {
+            $i ++;
+            $progress->update(
+                "Neighbour comparison $i of $target_comparisons\n",
+                $i / $target_comparisons,
+            );
+        }
+
         #  some of the elements may be undefined based
         #  on calls to get_index_elements
         next NBR if not defined $element2;

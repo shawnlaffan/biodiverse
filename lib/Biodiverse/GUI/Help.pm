@@ -8,7 +8,7 @@ use Gtk2;
 
 use Data::Dumper;
 use Browser::Open qw( open_browser );
-use File::Spec;
+#use Path::Class;
 
 use English qw { -no_match_vars };
 use LWP::Simple;

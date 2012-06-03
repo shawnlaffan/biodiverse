@@ -15,10 +15,8 @@ use English ( -no_match_vars );
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
-use File::Spec;
 use File::Basename;
-#use Time::HiRes qw /tv_interval gettimeofday/;
-#use Biodiverse::Progress;
+use Path::Class;
 use Time::localtime;
 
 our $VERSION = '0.16';
@@ -584,7 +582,7 @@ sub write_table {
     my $data = $args{data} || croak "data argument not specified\n";
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
-    $args{file} = File::Spec->rel2abs ($args{file});
+    $args{file} = Path::Class::file($args{file})->absolute;
 
     return;
 }
@@ -905,11 +903,14 @@ sub write_table_asciigrid {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (File::Spec->rel2abs($file), '.asc', '.txt');
-    $suffix = '.asc' if ! defined $suffix || $suffix eq q{};  #  clear off the trailing .asc and store it
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, '.asc', '.txt');
+
+    if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .asc and store it
+        $suffix = '.asc';
+    }
 
     #  now process the generic stuff
-    my $r = $self -> raster_export_process_args ( %args );
+    my $r = $self->raster_export_process_args ( %args );
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
@@ -930,7 +931,7 @@ sub write_table_asciigrid {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename = File::Spec->catfile ($path, $this_file);
+        my $filename = Path::Class::file($path, $this_file)->stringify;
         $filename .= $suffix;
         $file_names[$i] = $filename;
 
@@ -1005,8 +1006,10 @@ sub write_table_floatgrid {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (File::Spec->rel2abs($file), '.flt');
-    $suffix = '.flt' if ! defined $suffix || $suffix eq q{};  #  clear off the trailing .flt and store it
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, '.flt');
+    if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .flt and store it
+        $suffix = '.flt';
+    }
 
     #  now process the generic stuff
     my $r = $self -> raster_export_process_args ( %args );
@@ -1032,7 +1035,7 @@ sub write_table_floatgrid {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename = File::Spec->catfile ($path, $this_file);
+        my $filename = Path::Class::file($path, $this_file)->stringify;
         $filename .= $suffix;
         $file_names[$i] = $filename;
 
@@ -1109,8 +1112,10 @@ sub write_table_divagis {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (File::Spec->rel2abs($file), '.gri');
-    $suffix = '.gri' if ! defined $suffix || $suffix eq q{};  #  clear off the trailing .gri and store it
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->stringify, '.gri');
+    if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .gri and store it
+        $suffix = '.gri';
+    }
 
     #  now process the generic stuff
     my $r = $self -> raster_export_process_args ( %args );
@@ -1136,7 +1141,7 @@ sub write_table_divagis {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename = File::Spec->catfile ($path, $this_file);
+        my $filename = Path::Class::file($path, $this_file)->stringify;
         $filename .= $suffix;
         $file_names[$i] = $filename;
 
@@ -1245,7 +1250,7 @@ sub write_table_ers {
     my $file = $args{file} || croak "file arg not specified\n";
 
     my ($name, $path, $suffix)
-        = fileparse (File::Spec->rel2abs($file), '.ers');
+        = fileparse (Path::Class::file($file)->absolute, '.ers');
 
     #  add suffix if not specified
     if (!defined $suffix || $suffix eq q{}) {
@@ -1268,7 +1273,7 @@ sub write_table_ers {
 
     #my %stats;
 
-    my $data_file = File::Spec->catfile ($path, $name);
+    my $data_file = Path::Class::file($path, $name)->stringify;
     my $success = open (my $ofh, '>', $data_file);
     if (! $success) {
         croak "Could not open output file $data_file\n";
@@ -1387,7 +1392,7 @@ END_OF_ERS_HEADER_START
         "DatasetHeader End"
     );
 
-    my $header_file = File::Spec->catfile ($path, $name) . $suffix;
+    my $header_file = Path::Class::file($path, $name)->stringify . $suffix;
     open (my $header_fh, '>', $header_file)
       || croak "Could not open header file $header_file\n";
 

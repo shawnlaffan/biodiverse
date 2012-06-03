@@ -18,7 +18,6 @@ our @EXPORT = qw /use_base add_lib_paths/;
 
 use Carp;
 use Data::Dumper qw /Dumper/;
-use File::Spec;
 
 #  update interval for progress bars
 our $progress_update_interval     = $ENV{BIODIVERSE_PROGRESS_INTERVAL} || 0.3;

@@ -17,8 +17,8 @@ use YAML::Syck;
 use Text::CSV_XS;
 use Scalar::Util qw /weaken isweak blessed looks_like_number/;
 use Storable qw /nstore retrieve dclone/;
-use File::Spec;
 use File::Basename;
+use Path::Class;
 use POSIX;  #  make all the POSIX functions available to the spatial parameters
 use HTML::QuickTable;
 #use XBase;
@@ -117,8 +117,8 @@ sub load_storable_file {
     croak "argument 'file' not defined\n"  if ! defined ($args{file});
 
     my $suffix = $args{suffix} || $self->get_param('OUTSUFFIX') || $EMPTY_STRING;
-
-    my $file = File::Spec -> rel2abs ($args{file});
+my $x = Path::Class::file($args{file});
+    my $file = Path::Class::file($args{file})->absolute;
     if (! -e $file) {
         croak "[BASEDATA] File $file does not exist\n";
     }
@@ -569,13 +569,14 @@ sub save_to_storable {
     my $file = $args{filename};
     if (! defined $file) {
         my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
-        $file = File::Spec->rel2abs($file || ($prefix . "." . $self->get_param('OUTSUFFIX')));
+        $file = Path::Class::file($file || ($prefix . '.' . $self->get_param('OUTSUFFIX')));
     }
-    $file = File::Spec -> rel2abs ($file);
+    $file = Path::Class::file($file)->absolute;
+
     print "[COMMON] WRITING TO FILE $file\n";
 
     #local $Storable::Deparse = 1;  #  store code refs
-    $Storable::forgive_me = 1;  #  don;t croak on GLOBs, regexps etc.
+    $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
     eval { nstore $self, $file };
     croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -591,10 +592,10 @@ sub save_to_xml {
     my $file = $args{filename};
     if (! defined $file) {
         my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
-        $file = File::Spec->rel2abs($args{filename} || ($prefix . ".xml"));
-        #$file = File::Spec->rel2abs($args{filename} || ($prefix . "." . $self->get_param('OUTSUFFIX_XML')));
+        my $suffix = $self->get_param('OUTSUFFIX') || 'xml';
+        $file = Path::Class::file($file || ($prefix . '.' . $suffix));
     }
-    $file = File::Spec->rel2abs($args{filename});
+    $file = Path::Class::file($file)->absolute;
 
     print "[COMMON] WRITING TO FILE $file\n";
 
@@ -614,9 +615,10 @@ sub save_to_yaml {
     my $file = $args{filename};
     if (! defined $file) {
         my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
-        $file = File::Spec->rel2abs($file || ($prefix . "." . $self->get_param('OUTSUFFIX_YAML')));
+        $file = Path::Class::file($file || ($prefix . "." . $self->get_param('OUTSUFFIX_YAML')));
     }
-    $file = File::Spec->rel2abs($file);
+    $file = Path::Class::file($file)->absolute;
+
     print "[COMMON] WRITING TO FILE $file\n";
 
     eval {YAML::Syck::DumpFile ($file, $self)};
@@ -633,7 +635,7 @@ sub dump_to_yaml {
     my $data = $args{data};
 
     if (defined $args{filename}) {
-        my $file = File::Spec->rel2abs($args{filename});
+        my $file = Path::Class::file($args{filename})->absolute;
         print "WRITING TO FILE $file\n";
         YAML::Syck::DumpFile ($file, $data);
     }
@@ -718,12 +720,12 @@ sub write_table {
     my $data = $args{data} || croak "data argument not specified\n";
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
-    $args{file} = File::Spec->rel2abs ($args{file});
+    $args{file} = Path::Class::file($args{file})->absolute;
 
     #  now do stuff depending on what format was chosen, based on the suffix
     my ($prefix, $suffix) = lc ($args{file}) =~ /(.*?)\.(.*?)$/;
     if (! defined $suffix) {
-        $suffix = "csv";  #  does not affect the actual file name, as it is not passed onwards
+        $suffix = 'csv';  #  does not affect the actual file name, as it is not passed onwards
     }
 
     if ($suffix =~ /csv|txt/i) {
@@ -733,22 +735,22 @@ sub write_table {
     #    $self -> write_table_dbf (%args);
     #}
     elsif ($suffix =~ /htm/i) {
-        $self -> write_table_html (%args);
+        $self->write_table_html (%args);
     }
     elsif ($suffix =~ /xml/i) {
-        $self -> write_table_xml (%args);
+        $self->write_table_xml (%args);
     }
     elsif ($suffix =~ /yml/i) {
-        $self -> write_table_yaml (%args);
+        $self->write_table_yaml (%args);
     }
     #elsif ($suffix =~ /shp/) {
-    #    $self -> write_table_shapefile (%args);
+    #    $self->write_table_shapefile (%args);
     #}
     elsif ($suffix =~ /mrt/i) {
         #  some humourless souls might regard this as unnecessary...
         warn "I pity the fool who thinks Mister T is a file format.\n";
         warn "[COMMON] Not a recognised suffix $suffix, using csv/txt format\n";
-        $self -> write_table_csv (%args, data => $data);
+        $self->write_table_csv (%args, data => $data);
     }
     else {
         print "[COMMON] Not a recognised suffix $suffix, using csv/txt format\n";

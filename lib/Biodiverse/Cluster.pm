@@ -114,7 +114,8 @@ sub export_matrices {
     if ($suffix ne $EMPTY_STRING) {
         $suffix = ".$suffix";
     }
-    $file = File::Spec->catfile ($path, $name);
+
+    $file = Path::Class::file($path, $name)->absolute;
 
     foreach my $matrix (@$matrices) {
         next if ! defined $matrix;  #  allow for absent shadow matrix

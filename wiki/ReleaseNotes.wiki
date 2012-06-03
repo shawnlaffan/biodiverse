@@ -2,9 +2,32 @@
 #labels Featured
 #sidebar TOC
 
-= Version 0.16 =
+= Version 0.17 =
 
 This version is in development.  
+
+Main changes since the previous version (0.16) are:
+
+  *  GUI
+    * Shapefiles are selected as soon as they are opened.  This ensures they are plotted by default.  Issue #293
+  *  Analyses
+    *  Calculations for cluster nodes can now be done after the event.  The system no longer needs to completely rebuild the tree.  Issue #289
+  *  Calculations and indices
+    *  Added absolute endemism.  Issue #144.
+    *  Added PD Endemism (absolute phylogenetic endemism).  Issue #292.
+    *  Completed indices to summarise for label and group properties.  Issue #207, Issue #212, Issue #216. 
+  *  Spatial conditions
+    *  Added sp_point_in_poly_shape() to use polygons from a shapefile.  Issue #226
+    *  Adding support to access other outputs within a !BaseData object.  Issue #233
+  *  Exports
+    *  Users can now add plot coords to the tabular tree exports.  This allows reconstruction of the tree in, for example, a GIS.  Issue 281
+    *  NA is now an option for nodata.  This improves compatibility with R.  Issue #271
+
+To see the full list of issues and changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.17
+
+= Version 0.16 =
+
+This version was a series of beta releases.  
 
 Main changes since the previous version (0.15) are:
 

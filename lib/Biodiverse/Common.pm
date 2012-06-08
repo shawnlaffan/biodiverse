@@ -287,7 +287,7 @@ sub get_params_hash {
 
 sub set_param {
     my $self = shift;
-croak join (" ", @_, "\n") if (scalar @_ % 2) == 1;
+#croak join (" ", @_, "\n") if (scalar @_ % 2) == 1;
     my %args = @_;
 
     while (my ($param, $value) = each %args) {

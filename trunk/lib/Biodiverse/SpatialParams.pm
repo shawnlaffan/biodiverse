@@ -2057,7 +2057,7 @@ sub get_metadata_sp_point_in_poly_shape {
             qw /file/,
         ],
         optional_args => [
-            qw /point field field_val/,      #  point to use, field name
+            qw /point field_name field_val axes/,      #  point to use, field name
         ],
         index_no_use => 1,
         result_type  => 'non_overlapping',
@@ -2113,9 +2113,9 @@ sub get_polygons_from_shapefile {
     my %args = @_;
 
     my $file = $args{file};
-    $file =~ s/(shp|shx|dbf)$//;
+    $file =~ s/\.(shp|shx|dbf)$//;
 
-    my $field = $args{field};
+    my $field = $args{field_name};
 
     my $field_val = $args{field_val};
 

@@ -47,15 +47,20 @@ foreach my $arg (@ARGV) {
     $rest_of_args{$key} = $value;
 }
 
+my $tmp_bd = Biodiverse::BaseData->new();
+my $extensions = join ("|", $tmp_bd->get_param('OUTSUFFIX'), $tmp_bd->get_param('OUTSUFFIX_YAML'));
+my $re_valid = qr/($extensions)$/i;
+croak "$in_file does not have a valid BaseData extension ($extensions)\n" if not $in_file =~ $re_valid;
+
 my $bd = Biodiverse::BaseData->new (file => $in_file);
 if (! defined $bd) {
     warn "basedata $bd does not exist - check your path\n";
     exit;
 }
 
-my $rand = $bd -> get_randomisation_output_ref (name => $rand_name);
+my $rand = $bd->get_randomisation_output_ref (name => $rand_name);
 if (not $rand) {
-    $rand = $bd -> add_randomisation_output (name => $rand_name);
+    $rand = $bd->add_randomisation_output (name => $rand_name);
 }
 
 if (! defined $rest_of_args{iterations}) {
@@ -73,7 +78,7 @@ croak "Analysis not successful\n"
 #  $success==2 means nothing ran
 if ($success == 1) {
     eval {
-        $bd -> save (filename => $in_file);
+        $bd->save (filename => $in_file);
         #die "checking";
     };
     if ($EVAL_ERROR) {

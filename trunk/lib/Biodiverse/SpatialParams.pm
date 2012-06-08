@@ -2057,10 +2057,10 @@ sub get_metadata_sp_point_in_poly_shape {
             qw /file/,
         ],
         optional_args => [
-            qw /point field_name field_val axes/,      #  point to use, field name
+            qw /point field_name field_val axes no_cache/,
         ],
         index_no_use => 1,
-        result_type  => 'non_overlapping',
+        result_type  => 'complex',
         example => $examples,
     );
 
@@ -2073,6 +2073,9 @@ sub sp_point_in_poly_shape {
     my %args = @_;
     my $h = $self->get_param('CURRENT_ARGS');
 
+    my $no_cache = $args{no_cache};
+    my $axes = $args{axes} || [0,1];
+
     my $point = $args{point};
     if (!defined $point) {  #  convoluted, but syntax highlighting plays up with ternary op
         if (eval {$self->is_def_query}) {
@@ -2083,29 +2086,70 @@ sub sp_point_in_poly_shape {
         }
     }
 
+    my $x_coord = $point->[$axes->[0]];
+    my $y_coord = $point->[$axes->[1]];
+
+    my $cached_results = $self->get_cache_sp_point_in_poly_shape(%args);
+    my $point_string = join (':', $x_coord, $y_coord);
+    if (!$no_cache && exists $cached_results->{$point_string}) {
+        return $cached_results->{$point_string};
+    }
+
     my $polys = $self->get_polygons_from_shapefile (%args);
 
-    my $axes = $args{axes} || [0,1];
-    my $pointshape = Geo::ShapeFile::Point->new(X => $point->[$axes->[0]], Y => $point->[$axes->[1]]);
+    my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
     my $bd = ${$h->{'$basedata'}};
     my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
+    my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
     my @rect = (
-        $point->[$axes->[0]] - $cell_sizes[$axes->[0]] / 2,
-        $point->[$axes->[1]] - $cell_sizes[$axes->[1]] / 2,
-        $point->[$axes->[0]] + $cell_sizes[$axes->[0]] / 2,
-        $point->[$axes->[1]] + $cell_sizes[$axes->[1]] / 2,
+        $x_coord - $cell_x / 2,
+        $y_coord - $cell_y / 2,
+        $x_coord + $cell_x / 2,
+        $y_coord + $cell_y / 2,
     );
 
     my $rtree_polys = [];
     $rtree->query_partly_within_rect(@rect, $rtree_polys);
 
     foreach my $poly (@$rtree_polys) {
-        return 1 if $poly->contains_point($pointshape);
+        if ($poly->contains_point($pointshape)) {
+            if (!$no_cache) {
+                $cached_results->{$point_string} = 1;
+            }
+            return 1;
+        }
+    }
+
+    if (!$no_cache) {
+        $cached_results->{$point_string} = 0;
     }
 
     return;
+}
+
+sub get_cache_name_sp_point_in_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $cache_name = join ':',
+        'sp_point_in_poly_shape',
+        $args{file},
+        ($args{field} || $NULL_STRING),
+        (defined $args{field_val} ? $args{field_val} : $NULL_STRING);
+    return $cache_name;
+}
+
+sub get_cache_sp_point_in_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
+    my $cache = $self->get_cached_value($cache_name);
+    if (!$cache) {
+        $cache = {};
+        $self->set_cached_value($cache_name => $cache);
+    }
+    return $cache;
 }
 
 sub get_polygons_from_shapefile {
@@ -2171,7 +2215,7 @@ sub get_rtree_for_polygons_from_shapefile {
     
     my $shapes = $args{shapes};
 
-    my $rtree_cache_name = $self->get_rtree_cache_name(%args);
+    my $rtree_cache_name = $self->get_cache_name_rtree(%args);
     my $rtree = $self->get_cached_value($rtree_cache_name);
 
     if (!$rtree) {
@@ -2183,7 +2227,7 @@ sub get_rtree_for_polygons_from_shapefile {
     return $rtree;
 }
 
-sub get_rtree_cache_name {
+sub get_cache_name_rtree {
     my $self = shift;
     my %args = @_;
     my $cache_name = join ':',

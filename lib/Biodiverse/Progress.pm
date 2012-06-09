@@ -30,7 +30,7 @@ sub new {
     my $gui_progress;
     eval q{
         use Biodiverse::GUI::ProgressDialog;
-        $gui_progress = Biodiverse::GUI::ProgressDialog->new;  #  should pass on relevant args
+        $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  #  should pass on all relevant args
     };
     if (! $EVAL_ERROR and defined $gui_progress) {
         #  if we are in the GUI then we can use a GUI progress dialogue
@@ -44,7 +44,7 @@ sub new {
 sub destroy {
     my $self = shift;
     
-    eval {$self->{gui_progress} -> destroy};
+    eval {$self->{gui_progress}->destroy};
 
     $self->reset();
 
@@ -60,7 +60,7 @@ sub update {
 
     croak "No progress set\n" if not defined $progress;
 
-    eval {$self->{gui_progress} -> update ($text, $progress)};
+    eval {$self->{gui_progress}->update ($text, $progress)};
     if ( Biodiverse::GUI::ProgressDialog::Bounds->caught() ) {
         $EVAL_ERROR->rethrow;
     }
@@ -95,11 +95,11 @@ sub update {
     return if $prog_pct == $self->{last_reported_prog};
 
     $self->{last_reported_prog} = $prog_pct;
-    
+
     #  update the percent progress, use sprintf to make the string consistent length
     my $prog_text = sprintf "\b\b\b\b%3i%%", $prog_pct;
     print $prog_text;
-    
+
     return;
 }
 

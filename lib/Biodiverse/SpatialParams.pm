@@ -2113,7 +2113,15 @@ sub sp_point_in_poly_shape {
     my $rtree_polys = [];
     $rtree->query_partly_within_rect(@rect, $rtree_polys);
 
+    #  need a progress dialogue for involved searches
+    my $progress = Biodiverse::Progress->new(text => 'Point in poly search');
+    my ($i, $target) = (1, scalar @$rtree_polys);
+
     foreach my $poly (@$rtree_polys) {
+        $progress->update(
+            "Checking if point $point_string\nis in polygon\n$i of $target",
+            $i / $target,
+        );
         if ($poly->contains_point($pointshape)) {
             if (!$no_cache) {
                 $cached_results->{$point_string} = 1;

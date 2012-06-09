@@ -494,9 +494,9 @@ sub export_asciigrid {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self -> to_table (%args, symmetric => 1);
+    my $table = $self->to_table (%args, symmetric => 1);
 
-    $self -> write_table_asciigrid (%args, data => $table);
+    $self->write_table_asciigrid (%args, data => $table);
 
     return;
 }
@@ -920,6 +920,8 @@ sub write_table_asciigrid {
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
     my @res       = @{$r->{RESOLUTIONS}};
+    my $ncols     = $r->{NCOLS};
+    my $nrows     = $r->{NROWS};
 
     my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
 
@@ -941,12 +943,12 @@ sub write_table_asciigrid {
           if ! $success;
 
         $fh[$i] = $fh;
-        print $fh "nrows ", 1 + (sprintf "%0.f", ($max[1] - $min[1]) / $res[1]), "\n";
-        print $fh "ncols ", 1 + (sprintf "%0.f", ($max[0] - $min[0]) / $res[0]), "\n";
+        print $fh "nrows $nrows\n";
+        print $fh "ncols $ncols\n";
         print $fh "xllcenter $min[0]\n";
         print $fh "yllcenter $min[1]\n";
         print $fh "cellsize $res[0]\n";  #  CHEATING 
-        print $fh "nodata $no_data\n";
+        print $fh "nodata_value $no_data\n";
     }
 
     my %coords;
@@ -1012,7 +1014,7 @@ sub write_table_floatgrid {
     }
 
     #  now process the generic stuff
-    my $r = $self -> raster_export_process_args ( %args );
+    my $r = $self->raster_export_process_args ( %args );
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
@@ -1022,6 +1024,9 @@ sub write_table_floatgrid {
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
     my @res       = @{$r->{RESOLUTIONS}};
+    my $ncols     =   $r->{NCOLS};
+    my $nrows     =   $r->{NROWS};
+
 
     my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
 
@@ -1052,12 +1057,12 @@ sub write_table_floatgrid {
         $success = open (my $fh_hdr, '>', $header_file);
         croak "Cannot open $header_file\n" if ! $success;
 
-        print $fh_hdr 'nrows ', 1 + (sprintf "%0.f", ($max[1] - $min[1]) / $res[1]), "\n";
-        print $fh_hdr 'ncols ', 1 + (sprintf "%0.f", ($max[0] - $min[0]) / $res[0]), "\n";
+        print $fh_hdr "nrows $nrows\n";
+        print $fh_hdr "ncols $ncols\n";
         print $fh_hdr "xllcenter $min[0]\n";
         print $fh_hdr "yllcenter $min[1]\n";
         print $fh_hdr "cellsize $res[0]\n"; 
-        print $fh_hdr "nodata $no_data\n";
+        print $fh_hdr "nodata_value $no_data\n";
         print $fh_hdr 'byteorder ',
                       ($is_little_endian ? 'LSBFIRST' : 'MSBFIRST'),
                       "\n";
@@ -1128,6 +1133,8 @@ sub write_table_divagis {
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
     my @res       = @{$r->{RESOLUTIONS}};
+    my $ncols     =   $r->{NCOLS};
+    my $nrows     =   $r->{NROWS};
 
     my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
 
@@ -1160,8 +1167,6 @@ sub write_table_divagis {
 
         my $time = localtime;
         my $create_time = ($time->year + 1900) . ($time->mon + 1) . $time->mday;
-        my $nrows = 1 + sprintf "%0.f", ($max[1] - $min[1]) / $res[1];
-        my $ncols = 1 + sprintf "%0.f", ($max[0] - $min[0]) / $res[0];
         my $minx = $min[0] - $res[0] / 2;
         my $maxx = $max[0] + $res[0] / 2;
         my $miny = $min[1] - $res[1] / 2;
@@ -1268,6 +1273,8 @@ sub write_table_ers {
     my $header    =   $r->{HEADER};
     my $no_data   =   $r->{NODATA};
     my @res       = @{$r->{RESOLUTIONS}};
+    #my $ncols     =   $r->{NCOLS};
+    #my $nrows     =   $r->{NROWS};
 
     my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
 
@@ -1328,7 +1335,7 @@ sub write_table_ers {
 
     #  are we LSB or MSB?
     my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
-    my $LSB_or_MSB = $is_little_endian ? "LSBFIRST" : "MSBFIRST";
+    my $LSB_or_MSB = $is_little_endian ? 'LSBFIRST' : 'MSBFIRST';
     my $gm_time = (gmtime);
     $gm_time =~ s/(\d+)$/GMT $1/;  #  insert "GMT" before the year
     my $n_bands = scalar @band_cols;
@@ -1426,7 +1433,7 @@ sub raster_export_process_args {
 
     my @res = defined $args{resolutions}
             ? @{$args{resolutions}}
-            : @{$self -> get_param ('CELL_SIZES')};
+            : @{$self->get_param ('CELL_SIZES')};
 
     #  check the resolutions.
     eval {
@@ -1449,6 +1456,11 @@ sub raster_export_process_args {
         coord_cols => \@coord_cols,
         res        => \@res,
     );
+    my @max = $res->{MAX};
+    my @min = $res->{MIN};
+    my $dimensions = $res->{DIMENSIONS};
+    my $ncols = $dimensions->[0]; 
+    my $nrows = $dimensions->[1];
 
     #  add some more keys to $res
     $res->{HEADER}          = $header;
@@ -1456,6 +1468,8 @@ sub raster_export_process_args {
     $res->{NODATA}          = $no_data;
     $res->{RESOLUTIONS}     = \@res; 
     $res->{COORD_COLS_HASH} = \%coord_cols_hash;
+    $res->{NCOLS}           = $ncols;
+    $res->{NROWS}           = $nrows;
 
     return wantarray ? %$res : $res;
 }
@@ -1537,15 +1551,27 @@ sub raster_export_process_table {
     print "[BASESTRUCT] Data bounds are $min[0], $min[1], $max[0], $max[1]\n";
     print "[BASESTRUCT] Resolutions are $res[0], $res[1]\n";
     print "[BASESTRUCT] Coordinate precisions are $precision[0], $precision[1]\n";
+    
+    #  determine how many rows and columns
+    my @dimensions;
+    for my $i (0, 1) {
+        my $prec_fmt = "%.$precision[$i]f";
+        my $count = 0;
+        for (my $c = $min[$i]; $c <= $max[$i]; $c = sprintf ($prec_fmt, $c + $res[$i])) {
+            $count ++;
+        }
+        $dimensions[$i] = $count;
+    }
 
-    my %res = (
-        MIN       => \@min,
-        MAX       => \@max,
-        DATA_HASH => \%data_hash,
-        PRECISION => \@precision,
+    my %results = (
+        MIN        => \@min,
+        MAX        => \@max,
+        DATA_HASH  => \%data_hash,
+        PRECISION  => \@precision,
+        DIMENSIONS => \@dimensions,
     );
 
-    return wantarray ? %res : \%res;
+    return wantarray ? %results : \%results;
 }
 
 #  get the covariance matrix for a table of values

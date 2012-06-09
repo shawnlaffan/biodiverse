@@ -42,8 +42,10 @@ no warnings 'redefine';
 
 
 sub new {
-    my $class = shift;
-    
+    my $class    = shift;
+    my $text     = shift || $NULL_STRING;
+    my $progress = shift || 0;
+
     #  debug
     #use Devel::StackTrace;
     #my $trace = Devel::StackTrace->new;
@@ -77,7 +79,12 @@ sub new {
     
     $self->{last_update_time} = [gettimeofday];
     $self->{progress_update_interval} = $progress_update_interval;
-    
+
+    my $widget = $self->{dlgxml}->get_widget('label');
+    if ($widget) {
+        $widget->set_markup($text);
+    }
+
     return $self;
 }
 
@@ -99,7 +106,7 @@ sub update {
     return if not defined $progress;  #  should croak?
     
     if (not defined $text) {
-        $text = $NULL_STRING;
+        $text = join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
     }
     
     if ($progress < 0 or $progress > 1) {
@@ -119,7 +126,7 @@ sub update {
     # update dialog
     my $widget = $self->{dlgxml}->get_widget('label');
     if ($widget) {
-        $widget -> set_markup("<b>$text</b>");
+        $widget->set_markup("<b>$text</b>");
     }
 
     my $bar = $self->{dlgxml}->get_widget('progressbar');
@@ -132,7 +139,7 @@ sub update {
     
     $self->{pulse} = 0;
     
-    $bar -> set_fraction($progress);
+    $bar->set_fraction($progress);
 
     while (Gtk2->events_pending) { Gtk2->main_iteration(); }
 

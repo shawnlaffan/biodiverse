@@ -420,24 +420,21 @@ sub sp_calc {
     #  create all the elements and the SPATIAL_RESULTS list
     my $toDo = scalar @elements_to_calc;
     #my $timer = [gettimeofday];
-    print "[SPATIAL] Creating target groups\n";
-    
-    my $progress_text_create
-        = $progress_text . "\nCreating target groups";
     
     #  check the elements against the definition query
     my $pass_def_query;
     
     if ($definition_query) {
+        print "Running definition query\n";
         my $element = $elements_to_calc[0];
-        my $progress = Biodiverse::Progress->new();
+        my $defq_progress = Biodiverse::Progress->new(text => 'def query');
 
         $pass_def_query
           = $bd->get_neighbours(
                 element        => $element,
                 spatial_params => $definition_query,
                 is_def_query   => 1,
-                progress       => $progress,
+                progress       => $defq_progress,
             );
         $self->set_param (PASS_DEF_QUERY => $pass_def_query);
 
@@ -446,8 +443,12 @@ sub sp_calc {
             croak "Nothing passed the definition query\n";
         }
     }
+
+    print "[SPATIAL] Creating target groups\n";
     
-    my $progress = Biodiverse::Progress->new();
+    my $progress_text_create
+        = $progress_text . "\nCreating target groups";
+    my $progress = Biodiverse::Progress->new(text => $progress_text_create);
 
     my $failed_def_query_sp_res_hash = {};
     my $elt_count = -1;
@@ -483,7 +484,7 @@ sub sp_calc {
         );
 
     }
-    $progress->update (undef, 1);
+    $progress->update ($EMPTY_STRING, 1);
     $progress->reset;
 
 
@@ -505,7 +506,7 @@ sub sp_calc {
         
         my $progress_so_far = $count / $toDo;
         my $progress_text =
-              "Spatial analysis $progress_text\n"
+              "Spatial analysis\n$progress_text\n"
             . "($count / $toDo)"
             . "$using_index_text";
         $progress->update ($progress_text, $progress_so_far);

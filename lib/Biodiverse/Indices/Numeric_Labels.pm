@@ -307,14 +307,14 @@ sub get_metadata_calc_numeric_label_dissimilarity {
                     ' are the sample counts in neighbour sets 1 and 2'
                 ],
             },
-            NUMD_MEAN       => {
-                description => 'Mean dissimilarity of labels in set 1 to those in set 2.',
-                cluster     => 1,
-                formula     => [
-                    '= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}',
-                    @values_as_for,
-                ],
-            },
+            #NUMD_MEAN       => {
+            #    description => 'Mean dissimilarity of labels in set 1 to those in set 2.',
+            #    cluster     => 1,
+            #    formula     => [
+            #        '= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}',
+            #        @values_as_for,
+            #    ],
+            #},
             NUMD_VARIANCE   => {
                 description => 'Variance of the dissimilarity values, set 1 vs set 2.',
                 cluster     => 1,
@@ -364,7 +364,7 @@ sub calc_numeric_label_dissimilarity {
 
             #  tally the stats
             my $x      = $value * $joint_count;
-            $sumX     += $x;
+            #$sumX     += $x;
             $sum_absX += abs($x);
             $sumXsqr  += $value ** 2 * $joint_count;
             $count    += $joint_count;
@@ -376,7 +376,7 @@ sub calc_numeric_label_dissimilarity {
         #  suppress these warnings within this block
         no warnings qw /uninitialized numeric/;
 
-        $results{NUMD_MEAN}     = eval {$sumX / $count};
+        #$results{NUMD_MEAN}     = eval {$sumX / $count};
         $results{NUMD_ABSMEAN}  = eval {$sum_absX / $count};
         $results{NUMD_VARIANCE} = eval {$sumXsqr / $count};
         $results{NUMD_COUNT}    = $count;

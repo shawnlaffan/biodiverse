@@ -18,6 +18,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   * Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (in press) Fine scale quantification of floral and faunal breaks and their geographic correlates, with an example from south-eastern Australia. Journal of Biogeography.  Accepted 16Mar2012. doi:10.1111/j.1365-2699.2012.02739.x
 
+  *  González-Orozco, C.E., Brown, A.H.D., Knerr, N., Miller, J.T. & Doyle, J.J. (in press) Hotspots of diversity of wild Australian soybean relatives and their conservation in situ. [http://dx.doi.org/10.1007/s10592-012-0370-x Conservation Genetics].
+
   *  Gonzalez-Orozco, C.E., Laffan, S.W., Miller, J. (2011) Spatial distribution of species richness and endemism of the genus Acacia in Australia. [http://dx.doi.org/10.1071/BT11112 Australian Journal of Botany, 59, 600-608]
 
   *  Jones C. &  Laffan S.W. (2008) Lexical similarity and endemism in historical wordlists of Australian Aboriginal languages of the greater Sydney region. [http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x Transactions of the Philological Society, 106, 456-486]. 
@@ -29,3 +31,5 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
   *  Laffan, S.W. & Crisp, M.D. (2003) Assessing endemism at multiple spatial scales, with an example from the Australian vascular flora. [http://dx.doi.org/10.1046/j.1365-2699.2003.00875.x Journal of Biogeography, 30, 511-520]. 
 
   *  Rosauer, D.F., Laffan, S.W., Crisp, M.D., Donnellan, S.C. & Cook, L.G. (2009). Phylogenetic endemism: a new approach to identifying geographical concentrations of evolutionary history. [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Molecular Ecology, 18, 4061-4072]. 
+
+  *  Schmidt-Lebuhn, A.N., Knerr, N.J., González-Orozco, C.E. (in press) Distorted perception of the spatial distribution of plant diversity through uneven collecting efforts: the example of Asteraceae in Australia. Journal of Biogeography.

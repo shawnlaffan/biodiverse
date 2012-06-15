@@ -150,29 +150,28 @@ sub makeAnalysesModel {
             MODEL_SHOW_CHECKBOX,   1
         );
 
-        # Add each analysis-function (eg: Jaccard, Endemism) row
-        CALCULATION_TYPE:
-        foreach my $func (sort @{$calculations{$type}}) {
-
-            #next CALCULATION_TYPE if $type eq 'not_for_gui';
-
-            # First, get all the info by calling it with get_args
-            #my %info = $analysis_caller_ref -> get_args (sub => $func);
+        my %calc_metadata;
+        foreach my $func (@{$calculations{$type}}) {
             my %info = $indices->get_args (sub => $func);
-
             # If name unspecified then use the function name less the calc_
             my $name = $func;
             $name =~ s/^calc_//;
             $name = $info{name} || $name;
-            # don't worry about wrapping the name for now
-            #$name = $name_wrapper->wrap($name);  
+            $info{func} = $func;
+            $calc_metadata{$name} = \%info;
+        }
+
+        # Add each analysis-function (eg: Jaccard, Endemism) row
+        CALCULATION_NAME:
+        foreach my $name (sort keys %calc_metadata) {
+            my %info = %{$calc_metadata{$name}};
 
             # If description goes over one line,
             # we put the first line here and the next into a new row
             # but combine all the other lines into a single line and then rewrap.
             my $desc = $info{description} || $EMPTY_STRING;
             my ($d1, $dRest) = split(/\n/, $desc, 2);
-            
+
             #  Rewrap the descriptions.
             #  Perl works on aliases so this will change the original strings.
             foreach my $string ($d1, $dRest) {
@@ -198,6 +197,8 @@ sub makeAnalysesModel {
                 push @index_data, [$index, $description];
             }
 
+            my $func = $info{func};
+
             # Should it be checked? (yes, if it was on previous time)
             my $checked = member_of($func, $checkRef);
 
@@ -219,7 +220,6 @@ sub makeAnalysesModel {
                 $model->set(
                     $desc_iter,
                     MODEL_DESCRIPTION_COL, $dRest,
-                    #MODEL_INDEX_COL,       $dRest,
                     MODEL_SHOW_CHECKBOX,   0,
                 );
             }
@@ -229,7 +229,6 @@ sub makeAnalysesModel {
                 my $index_iter = $model->append($func_iter);
                 $model->set(
                     $index_iter,
-                    #MODEL_NAME_COL,        $index_pair->[0],
                     MODEL_INDEX_COL,       $index_pair->[0],
                     MODEL_DESCRIPTION_COL, $index_pair->[1],
                     MODEL_SHOW_CHECKBOX,   0,

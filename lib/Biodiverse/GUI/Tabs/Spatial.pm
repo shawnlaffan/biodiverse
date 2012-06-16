@@ -226,7 +226,7 @@ sub new {
     #  btnAddParam gone for now - retrieve from glade file pre svn 1206
     #$self->{xmlPage} ->get_widget('btnAddParam')    ->signal_connect_swapped(clicked   => \&onAddParam,              $self);
     $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&onNameChanged,           $self);
-    $self->{xmlPage} ->get_widget('comboCalculations')->signal_connect_swapped(changed => \&onActiveCalculationChanged, $self);
+    $self->{xmlPage} ->get_widget('comboIndices')->signal_connect_swapped(changed => \&onActiveIndexChanged, $self);
     $self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&onActiveListChanged,     $self);
     $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&onColoursChanged,        $self);
     $self->{xmlPage} ->get_widget('comboNeighbours')->signal_connect_swapped(changed   => \&onNeighboursChanged,     $self);
@@ -376,7 +376,7 @@ sub initListsCombo {
 sub initOutputCalculationsCombo {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboCalculations');
+    my $combo = $self->{xmlPage}->get_widget('comboIndices');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
@@ -422,28 +422,28 @@ sub updateOutputCalculationsCombo {
     my $self = shift;
 
     # Make the model
-    $self->{output_calculations_model} = $self->makeOutputCalculationsModel();
-    my $combo = $self->{xmlPage}->get_widget('comboCalculations');
-    $combo->set_model($self->{output_calculations_model});
+    $self->{output_indices_model} = $self->makeOutputCalculationsModel();
+    my $combo = $self->{xmlPage}->get_widget('comboIndices');
+    $combo->set_model($self->{output_indices_model});
 
     # Select the previous analysis (or the first one)
-    my $iter = $self->{output_calculations_model}->get_iter_first();
+    my $iter = $self->{output_indices_model}->get_iter_first();
     my $selected = $iter;
     
     BY_ITER:
     while ($iter) {
-        my ($analysis) = $self->{output_calculations_model}->get($iter, 0);
+        my ($analysis) = $self->{output_indices_model}->get($iter, 0);
         if ($self->{selected_index} && ($analysis eq $self->{selected_index}) ) {
             $selected = $iter;
             last BY_ITER; # break loop
         }
-        $iter = $self->{output_calculations_model}->iter_next($iter);
+        $iter = $self->{output_indices_model}->iter_next($iter);
     }
 
     if ($selected) {
         $combo->set_active_iter($selected);
     }
-    $self->onActiveCalculationChanged($combo);
+    $self->onActiveIndexChanged($combo);
     
     return;
 }
@@ -886,14 +886,14 @@ sub onActiveListChanged {
 }
 
 #  should be called onActiveIndexChanged, but many such occurrences need to be edited
-sub onActiveCalculationChanged {
+sub onActiveIndexChanged {
     my $self = shift;
     my $combo = shift
-              ||  $self->{xmlPage}->get_widget('comboCalculations');
+              ||  $self->{xmlPage}->get_widget('comboIndices');
 
     my $iter = $combo->get_active_iter() || return;
-    my ($analysis) = $self->{output_calculations_model}->get($iter, 0);
-    $self->{selected_index} = $analysis;  #  should be called calculation
+    my ($index) = $self->{output_indices_model}->get($iter, 0);
+    $self->{selected_index} = $index;  #  should be called calculation
 
     $self->set_plot_min_max_values;
 
@@ -965,7 +965,7 @@ sub onStretchChanged {
     $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
     $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
 
-    $self->onActiveCalculationChanged;
+    $self->onActiveIndexChanged;
 
     return;
 }

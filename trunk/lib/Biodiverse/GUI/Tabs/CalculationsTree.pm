@@ -9,7 +9,7 @@ analyses to perform in the Spatial and Clustering tabs
 
 =cut
 
-package Biodiverse::GUI::Tabs::AnalysisTree;
+package Biodiverse::GUI::Tabs::CalculationsTree;
 use strict;
 use warnings;
 

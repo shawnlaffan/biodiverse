@@ -14,7 +14,7 @@ use Biodiverse::GUI::Overlays;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::CellPopup;
 use Biodiverse::GUI::SpatialParams;
-use Biodiverse::GUI::Tabs::AnalysisTree;
+use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
@@ -204,11 +204,11 @@ sub new {
     $self->initMapListCombo();
 
     $self->{analyses_model}
-        = Biodiverse::GUI::Tabs::AnalysisTree::makeAnalysesModel(
+        = Biodiverse::GUI::Tabs::CalculationsTree::makeAnalysesModel(
             $self->{basedata_ref}, $cluster_ref
         );
 
-    Biodiverse::GUI::Tabs::AnalysisTree::initAnalysesTree(
+    Biodiverse::GUI::Tabs::CalculationsTree::initAnalysesTree(
         $xml_page->get_widget('treeSpatialAnalyses'),
         $self->{analyses_model}
     );
@@ -938,7 +938,7 @@ sub onRunAnalysis {
     my $no_clone_matrices   = $self->get_no_clone_matrices;
 
     # Get spatial calculations to run
-    my @calculations_to_run = Biodiverse::GUI::Tabs::AnalysisTree::getAnalysesToRun(
+    my @calculations_to_run = Biodiverse::GUI::Tabs::CalculationsTree::getAnalysesToRun(
         $self->{analyses_model}
     );
 

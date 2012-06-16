@@ -16,7 +16,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Overlays;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::SpatialParams;
-use Biodiverse::GUI::Tabs::AnalysisTree;
+use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Spatial;
 use Data::Dumper;
@@ -194,12 +194,12 @@ sub new {
     
 
     $self->{analyses_model}
-        = Biodiverse::GUI::Tabs::AnalysisTree::makeAnalysesModel (
+        = Biodiverse::GUI::Tabs::CalculationsTree::makeAnalysesModel (
             $self->{basedata_ref},
             $output_ref,
     );
 
-    Biodiverse::GUI::Tabs::AnalysisTree::initAnalysesTree(
+    Biodiverse::GUI::Tabs::CalculationsTree::initAnalysesTree(
         $self->{xmlPage}->get_widget('treeAnalyses'),
         $self->{analyses_model},
     );
@@ -608,7 +608,7 @@ sub onRun {
 
     # Get calculations to run
     my @toRun
-        = Biodiverse::GUI::Tabs::AnalysisTree::getAnalysesToRun( $self->{analyses_model} );
+        = Biodiverse::GUI::Tabs::CalculationsTree::getAnalysesToRun( $self->{analyses_model} );
 
     if (scalar @toRun == 0) {
         my $dlg = Gtk2::MessageDialog->new(

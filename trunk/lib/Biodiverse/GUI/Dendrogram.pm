@@ -992,7 +992,7 @@ sub setupMapListModel {
     my $self  = shift;
     my $lists = shift;
 
-    my $model = Gtk2::ListStore->new("Glib::String");
+    my $model = Gtk2::ListStore->new('Glib::String');
     my $iter;
 
     # Add all the analyses
@@ -1012,23 +1012,23 @@ sub setupMapListModel {
     return;
 }
 
-# Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_ROSAUER)
+# Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_SINGLE)
 sub setupMapIndexModel {
     my $self = shift;
-    my $analyses = shift;
+    my $indices = shift;
 
-    my $model = Gtk2::ListStore->new("Glib::String");
+    my $model = Gtk2::ListStore->new('Glib::String');
     $self->{map_index_combo}->set_model($model);
     my $iter;
 
     # Add all the analyses
-    if ($analyses) { # can be undef if we want to clear the list (eg: selecting "Cluster" mode)
+    if ($indices) { # can be undef if we want to clear the list (eg: selecting "Cluster" mode)
 
         # restore previously selected index for this list
-        my $selected_index = $self->{selected_list_index}{$analyses};
+        my $selected_index = $self->{selected_list_index}{$indices};
         my $selected_iter = undef;
 
-        foreach my $key (sort keys %$analyses) {
+        foreach my $key (sort keys %$indices) {
             #print "[Dendrogram] Adding map analysis $key\n";
             $iter = $model->append;
             $model->set($iter, 0, $key);

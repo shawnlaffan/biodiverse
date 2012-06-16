@@ -84,7 +84,7 @@ The scrollbars for the canvas
 =item show_legend
 
 Whether to show the legend colour-bar on the right.
-Used when spatial analyses are plotted
+Used when spatial indices are plotted
 
 =item show_value
 
@@ -866,10 +866,11 @@ sub set_legend_lt_flag {
 }
 
 # Sets list to use for colouring (eg: SPATIAL_RESULTS, RAND_COMPARE, ...)
-sub setAnalysisList {
+# Is this ever called?
+sub setCalculationList {
     my $self = shift;
     my $list_name = shift;
-    print "[Grid] Setting analysis list to $list_name\n";
+    print "[Grid] Setting calculation list to $list_name\n";
 
     my $elts = $self->{base_struct}->get_element_hash();
 

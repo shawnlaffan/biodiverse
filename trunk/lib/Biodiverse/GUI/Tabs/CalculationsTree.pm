@@ -42,7 +42,7 @@ my $DESC_COLUMN_WIDTH = 90;
 
 #use Smart::Comments;
 
-sub initAnalysesTree {
+sub initCalculationsTree {
     my $tree  = shift;
     my $model = shift;
     
@@ -50,7 +50,7 @@ sub initAnalysesTree {
     my $colName       = Gtk2::TreeViewColumn->new();
     my $checkRenderer = Gtk2::CellRendererToggle->new();
     my $nameRenderer  = Gtk2::CellRendererText->new();
-    $checkRenderer->signal_connect_swapped(toggled => \&onAnalysisToggled, $model);
+    $checkRenderer->signal_connect_swapped(toggled => \&onCalculationToggled, $model);
 
     $colName->pack_start($checkRenderer, 0);
     $colName->pack_start($nameRenderer,  1);
@@ -102,7 +102,7 @@ sub onRowCollapsed {
 }
 
 # Creates a TreeView model of available calculations
-sub makeAnalysesModel {
+sub makeCalculationsModel {
     my $base_ref   = shift;
     my $output_ref = shift;
 
@@ -254,7 +254,7 @@ sub member_of {
     return 0;
 }
 
-sub getAnalysesToRun {
+sub getCalculationsToRun {
     my $model = shift;
     my @toRun;
 
@@ -306,7 +306,7 @@ sub updateTypeCheckbox {
 }
 
 # Called when the user clicks on a checkbox
-sub onAnalysisToggled {
+sub onCalculationToggled {
     my $model = shift;
     my $path = shift;
     

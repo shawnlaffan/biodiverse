@@ -4792,7 +4792,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                           <widget class="GtkToolItem" id="toolitem16">
                             <property name="visible">True</property>
                             <child>
-                              <widget class="GtkComboBox" id="comboCalculations">
+                              <widget class="GtkComboBox" id="comboIndices">
                                 <property name="visible">True</property>
                                 <property name="add_tearoffs">True</property>
                               </widget>

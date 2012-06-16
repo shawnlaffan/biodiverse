@@ -203,14 +203,14 @@ sub new {
     $self->initMapShowCombo();
     $self->initMapListCombo();
 
-    $self->{analyses_model}
-        = Biodiverse::GUI::Tabs::CalculationsTree::makeAnalysesModel(
+    $self->{calculations_model}
+        = Biodiverse::GUI::Tabs::CalculationsTree::makeCalculationsModel(
             $self->{basedata_ref}, $cluster_ref
         );
 
-    Biodiverse::GUI::Tabs::CalculationsTree::initAnalysesTree(
-        $xml_page->get_widget('treeSpatialAnalyses'),
-        $self->{analyses_model}
+    Biodiverse::GUI::Tabs::CalculationsTree::initCalculationsTree(
+        $xml_page->get_widget('treeSpatialCalculations'),
+        $self->{calculations_model}
     );
 
     # select hue colour mode, red
@@ -938,8 +938,8 @@ sub onRunAnalysis {
     my $no_clone_matrices   = $self->get_no_clone_matrices;
 
     # Get spatial calculations to run
-    my @calculations_to_run = Biodiverse::GUI::Tabs::CalculationsTree::getAnalysesToRun(
-        $self->{analyses_model}
+    my @calculations_to_run = Biodiverse::GUI::Tabs::CalculationsTree::getCalculationsToRun(
+        $self->{calculations_model}
     );
 
     my $pre_existing = $self->{output_ref};

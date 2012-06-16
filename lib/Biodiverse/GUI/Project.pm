@@ -179,7 +179,7 @@ sub initModels {
     # Output-Basedata model for Outputs TreeView
     # BASEDATA
     #   OUTPUT
-    #     Analyses
+    #     Indices
     # (tab) (object) (basedata row?)
     #
     # stored globally so don't have to set_model everything when a new project is loaded
@@ -304,7 +304,7 @@ sub basedataAddOutputs {
 
         $self->outputRowAdd($basedata_iter, $output_ref);
         if (blessed($output_ref) =~ /Spatial/) {
-            $self->updateAnalysesRows($output_ref);
+            $self->updateIndicesRows($output_ref);
         }
     }
     
@@ -359,7 +359,7 @@ sub outputRowAdd {
 }
 
 # Add a row for each index that was calculated
-sub updateAnalysesRows {
+sub updateIndicesRows {
     my $self = shift;
     my $output_ref = shift;
     my $iter = $self->{iters}{output_iters}{$output_ref};

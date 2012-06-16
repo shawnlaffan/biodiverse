@@ -79,7 +79,7 @@ my %help_funcs = (
     on_help_viewer_activate => {
         METHOD => 'help_show_link_to_web_help',
     },
-    on_menu_list_analyses_and_indices_activate => {
+    on_menu_list_calculations_and_indices_activate => {
         METHOD => 'help_show_calculations_and_indices',
     },
     on_menu_list_spatial_conditions_activate => {
@@ -109,15 +109,22 @@ __PACKAGE__->_make_callbacks( %help_funcs );
 sub on_about_activate {
     my $dlg = Gtk2::AboutDialog->new();
     my $gui = Biodiverse::GUI::GUIManager->instance;
+
     $dlg->set(
-        authors => ['Shawn Laffan', 'Eugene Lubarsky', 'Dan Rosauer'],
+        authors  => ['Shawn Laffan', 'Eugene Lubarsky', 'Dan Rosauer'],
         comments => 'A tool for the spatial analysis of diversity.',
-        name => 'Biodiverse',
+        name     => 'Biodiverse',
         program_name => 'Biodiverse',
         version => $gui->getVersion(),
         license => $Biodiverse::Config::license,
-        website => 'http://www.purl.org/biodiverse'
+        website => 'http://www.purl.org/biodiverse',
+        #locale  => $locale_text,
     );
+
+    #  Locale stuff should go into its own section - need to add a button
+    #use POSIX qw(locale_h);
+    #my $locale_text = "\n\n(Current perl numeric locale is: " . setlocale(LC_ALL) . ")\n";
+    #$dlg->add_button ('locale' => -20);  #  this goes on the end, not what we want
     
     $dlg->signal_connect (response => sub { $_[0]->destroy; 1 });
 

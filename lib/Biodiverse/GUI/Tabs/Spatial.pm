@@ -193,15 +193,15 @@ sub new {
     );
     
 
-    $self->{analyses_model}
-        = Biodiverse::GUI::Tabs::CalculationsTree::makeAnalysesModel (
+    $self->{calculations_model}
+        = Biodiverse::GUI::Tabs::CalculationsTree::makeCalculationsModel (
             $self->{basedata_ref},
             $output_ref,
     );
 
-    Biodiverse::GUI::Tabs::CalculationsTree::initAnalysesTree(
-        $self->{xmlPage}->get_widget('treeAnalyses'),
-        $self->{analyses_model},
+    Biodiverse::GUI::Tabs::CalculationsTree::initCalculationsTree(
+        $self->{xmlPage}->get_widget('treeCalculations'),
+        $self->{calculations_model},
     );
 
     #  only set it up if it exists (we get errors otherwise)
@@ -215,10 +215,10 @@ sub new {
         }
     }
     $self->initListsCombo();
-    $self->initOutputAnalysesCombo();
+    $self->initOutputCalculationsCombo();
     
 
-    #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
+    #  NEED TO CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     # Connect signals
     $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(clicked   => \&onClose,                 $self);
     $self->{xmlPage} ->get_widget('btnSpatialRun')  ->signal_connect_swapped(clicked   => \&onRun,                   $self);
@@ -226,7 +226,7 @@ sub new {
     #  btnAddParam gone for now - retrieve from glade file pre svn 1206
     #$self->{xmlPage} ->get_widget('btnAddParam')    ->signal_connect_swapped(clicked   => \&onAddParam,              $self);
     $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&onNameChanged,           $self);
-    $self->{xmlPage} ->get_widget('comboAnalyses')  ->signal_connect_swapped(changed   => \&onActiveAnalysisChanged, $self);
+    $self->{xmlPage} ->get_widget('comboCalculations')->signal_connect_swapped(changed => \&onActiveCalculationChanged, $self);
     $self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&onActiveListChanged,     $self);
     $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&onColoursChanged,        $self);
     $self->{xmlPage} ->get_widget('comboNeighbours')->signal_connect_swapped(changed   => \&onNeighboursChanged,     $self);
@@ -373,17 +373,17 @@ sub initListsCombo {
     return;
 }
 
-sub initOutputAnalysesCombo {
+sub initOutputCalculationsCombo {
     my $self = shift;
 
-    my $combo = $self->{xmlPage}->get_widget('comboAnalyses');
+    my $combo = $self->{xmlPage}->get_widget('comboCalculations');
     my $renderer = Gtk2::CellRendererText->new();
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
 
     # Only do this if we aren't a new spatial analysis...
     if ($self->{existing}) {
-        $self->updateOutputAnalysesCombo();
+        $self->updateOutputCalculationsCombo();
     }
     
     return;
@@ -418,32 +418,32 @@ sub updateListsCombo {
     return;
 }
 
-sub updateOutputAnalysesCombo {
+sub updateOutputCalculationsCombo {
     my $self = shift;
 
     # Make the model
-    $self->{output_analysis_model} = $self->makeOutputAnalysisModel();
-    my $combo = $self->{xmlPage}->get_widget('comboAnalyses');
-    $combo->set_model($self->{output_analysis_model});
+    $self->{output_calculations_model} = $self->makeOutputCalculationsModel();
+    my $combo = $self->{xmlPage}->get_widget('comboCalculations');
+    $combo->set_model($self->{output_calculations_model});
 
     # Select the previous analysis (or the first one)
-    my $iter = $self->{output_analysis_model}->get_iter_first();
+    my $iter = $self->{output_calculations_model}->get_iter_first();
     my $selected = $iter;
     
     BY_ITER:
     while ($iter) {
-        my ($analysis) = $self->{output_analysis_model}->get($iter, 0);
+        my ($analysis) = $self->{output_calculations_model}->get($iter, 0);
         if ($self->{selected_index} && ($analysis eq $self->{selected_index}) ) {
             $selected = $iter;
             last BY_ITER; # break loop
         }
-        $iter = $self->{output_analysis_model}->iter_next($iter);
+        $iter = $self->{output_calculations_model}->iter_next($iter);
     }
 
     if ($selected) {
         $combo->set_active_iter($selected);
     }
-    $self->onActiveAnalysisChanged($combo);
+    $self->onActiveCalculationChanged($combo);
     
     return;
 }
@@ -451,7 +451,7 @@ sub updateOutputAnalysesCombo {
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub makeOutputAnalysisModel {
+sub makeOutputCalculationsModel {
     my $self = shift;
     my $list_name = $self->{selected_list};
     my $output_ref = $self->{output_ref};
@@ -608,7 +608,7 @@ sub onRun {
 
     # Get calculations to run
     my @toRun
-        = Biodiverse::GUI::Tabs::CalculationsTree::getAnalysesToRun( $self->{analyses_model} );
+        = Biodiverse::GUI::Tabs::CalculationsTree::getCalculationsToRun( $self->{calculations_model} );
 
     if (scalar @toRun == 0) {
         my $dlg = Gtk2::MessageDialog->new(
@@ -690,7 +690,7 @@ sub onRun {
         $self->registerInOutputsModel($output_ref, $self);
     }
 
-    $self->{project}->updateAnalysesRows($output_ref);
+    $self->{project}->updateIndicesRows($output_ref);
 
     if (not $success) {
         $self -> onClose;  #  close the tab to avoid horrible problems with multiple instances
@@ -856,7 +856,7 @@ sub onNameChanged {
 }
 
 
-# Called by output tab to make us show some analysis
+# Called by output tab to make us show an analysis result
 sub showAnalysis {
     my $self = shift;
     my $name = shift;
@@ -867,7 +867,7 @@ sub showAnalysis {
 
     $self->{selected_index} = $name;
     $self->updateListsCombo();
-    $self->updateOutputAnalysesCombo();
+    $self->updateOutputCalculationsCombo();
     
     return;
 }
@@ -880,19 +880,19 @@ sub onActiveListChanged {
     my ($list) = $self->{output_lists_model}->get($iter, 0);
 
     $self->{selected_list} = $list;
-    $self->updateOutputAnalysesCombo();
+    $self->updateOutputCalculationsCombo();
     
     return;
 }
 
 #  should be called onActiveIndexChanged, but many such occurrences need to be edited
-sub onActiveAnalysisChanged {
+sub onActiveCalculationChanged {
     my $self = shift;
     my $combo = shift
-              ||  $self->{xmlPage}->get_widget('comboAnalyses');
+              ||  $self->{xmlPage}->get_widget('comboCalculations');
 
     my $iter = $combo->get_active_iter() || return;
-    my ($analysis) = $self->{output_analysis_model}->get($iter, 0);
+    my ($analysis) = $self->{output_calculations_model}->get($iter, 0);
     $self->{selected_index} = $analysis;  #  should be called calculation
 
     $self->set_plot_min_max_values;
@@ -965,7 +965,7 @@ sub onStretchChanged {
     $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
     $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
 
-    $self->onActiveAnalysisChanged;
+    $self->onActiveCalculationChanged;
 
     return;
 }

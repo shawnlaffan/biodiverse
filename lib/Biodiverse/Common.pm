@@ -1858,15 +1858,15 @@ sub get_subs_with_prefix {
     my $tree = mro::get_linear_isa($args{class} or blessed ($self));
 
     my $syms = Devel::Symdump->rnew(@$tree);
-    my %analyses;
-    my @analyses_array = sort $syms -> functions;
-    foreach my $analysis (@analyses_array) {
-        next if $analysis !~ /^.*::$prefix/;
-        $analysis =~ s/(.*::)*//;  #  clear the package stuff
-        $analyses{$analysis} ++;
+    my %subs;
+    my @subs_array = sort $syms->functions;
+    foreach my $sub_name (@subs_array) {
+        next if $sub_name !~ /^.*::$prefix/;
+        $sub_name =~ s/(.*::)*//;  #  clear the package stuff
+        $subs{$sub_name} ++;
     }
 
-    return wantarray ? %analyses : \%analyses;
+    return wantarray ? %subs : \%subs;
 }
 
 #  initialise the PRNG with an array of values, start from where we left off,

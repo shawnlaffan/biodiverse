@@ -548,12 +548,12 @@ sub get_valid_calculations {
         if ! defined $use_list_count;
 
     #  get all the calculations
-    my %all_poss_analyses = $self -> get_calculations_as_flat_hash;
+    my %all_poss_calculations = $self -> get_calculations_as_flat_hash;
 
     #  flatten the requested calculations - simplifies checks lower down
-    my $analyses_to_run
-        = $self -> get_list_as_flat_hash (list => $args{calculations});
-    my %calculations_to_check = %$analyses_to_run;
+    my $calculations_to_run
+        = $self->get_list_as_flat_hash (list => $args{calculations});
+    my %calculations_to_check = %$calculations_to_run;
 
     my @types = qw /pre_calc pre_calc_global post_calc post_calc_global/;
 
@@ -635,7 +635,7 @@ sub get_valid_calculations {
     }
 
     my %uses_lists_count  #  just check the ones to run
-        = $self -> get_uses_nbr_lists_count (calculations => $analyses_to_run);  
+        = $self -> get_uses_nbr_lists_count (calculations => $calculations_to_run);  
     my %required_args     #  need to check all of them
         = $self -> get_required_args (calculations => \%calculations_to_check);  
 
@@ -651,7 +651,7 @@ sub get_valid_calculations {
                     warn "[INDICES] WARNING: $calculations missing required "
                          . "parameter $rqdArg, "
                          . "dropping calculation and any dependencies\n";
-                    delete $analyses_to_run->{$calculations};
+                    delete $calculations_to_run->{$calculations};
                     $deleted{$calculations}++;
                     next CHECK_ANALYSIS;
                 }
@@ -660,10 +660,10 @@ sub get_valid_calculations {
 
         #  check $calculations exists as a valid analysis,
         #  unless it is a pre_calc (catcher for non-GUI systems)
-        if (exists ($analyses_to_run->{$calculations})
-            and ! (exists $all_poss_analyses{$calculations})) {
+        if (exists ($calculations_to_run->{$calculations})
+            and ! (exists $all_poss_calculations{$calculations})) {
                 warn "[INDICES] WARNING: $calculations not in the valid list, dropping it\n";
-                delete $analyses_to_run->{$calculations};
+                delete $calculations_to_run->{$calculations};
                 $deleted{$calculations}++;
                 next CHECK_ANALYSIS;
         }
@@ -671,14 +671,14 @@ sub get_valid_calculations {
         #  skip analysis if there are insufficient params specified ---CHEATING---
         if ($use_list_count == 1 && exists $uses_lists_count{2}{$calculations}) {
             warn "[INDICES] WARNING: insufficient spatial params for $calculations, dropping calculation\n";
-            delete $analyses_to_run->{$calculations};
+            delete $calculations_to_run->{$calculations};
             $deleted{$calculations}++;
             next CHECK_ANALYSIS;
         }
     }
 
     #  now we go through and delete any calculations whose pre_calcs have been deleted
-    foreach my $calculations (keys %$analyses_to_run) {
+    foreach my $calculations (keys %$calculations_to_run) {
         foreach my $type (@types) {
             next if ! exists $results{$type . '_tree'}{$calculations};
             #  get the flattened list of pre_calcs for this analysis
@@ -695,7 +695,7 @@ sub get_valid_calculations {
 
             #  we need to clean things up now
             print "[INDICES] WARNING: dependency/ies for $calculations invalid, dropping calculation\n";
-            delete $analyses_to_run->{$calculations};
+            delete $calculations_to_run->{$calculations};
             $deleted{$calculations}++;
         }
     }
@@ -735,7 +735,7 @@ sub get_valid_calculations {
 
     my $indices_to_clear = $self -> get_indices_to_clear (
         %args,
-        calculations => $analyses_to_run
+        calculations => $calculations_to_run
     );
 
     if (scalar keys %$indices_to_clear) {
@@ -745,7 +745,7 @@ sub get_valid_calculations {
     }
 
     $results{required_args}    = \%required_args;
-    $results{analyses_to_run}  = $analyses_to_run;
+    $results{calculations_to_run}  = $calculations_to_run;
     $results{indices_to_clear} = $indices_to_clear;
     
     $self->set_param(VALID_CALCULATIONS => \%results);
@@ -783,7 +783,7 @@ sub get_valid_calculations_to_run {
     my $self = shift;
     
     my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    my $calcs = $valid_calcs->{analyses_to_run};
+    my $calcs = $valid_calcs->{calculations_to_run};
     
     return wantarray ? %$calcs : $calcs;
 }

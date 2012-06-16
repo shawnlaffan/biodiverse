@@ -134,7 +134,7 @@ sub new {
     $self->{xmlPage} ->get_widget('btnSpatialRun')  ->signal_connect_swapped(clicked   => \&onRun,                   $self);
     $self->{xmlPage} ->get_widget('btnOverlays')    ->signal_connect_swapped(clicked   => \&onOverlays,              $self);
     $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&onNameChanged,           $self);
-    $self->{xmlPage} ->get_widget('comboAnalyses')  ->signal_connect_swapped(changed   => \&onActiveAnalysisChanged, $self);
+    $self->{xmlPage} ->get_widget('comboCalculations')  ->signal_connect_swapped(changed   => \&onActiveCalculationChanged, $self);
     #$self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&onActiveListChanged,     $self);
     $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&onColoursChanged,        $self);
     $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed => \&onStretchChanged,      $self);
@@ -160,7 +160,7 @@ sub new {
         $self->{xmlPage}->get_widget($w_name)->hide;
     }
 
-    $self->initOutputAnalysesCombo();
+    $self->initOutputCalculationsCombo();
     
 
     $self -> set_frame_label_widget;
@@ -265,7 +265,7 @@ sub updateListsCombo {
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub makeOutputAnalysisModel {
+sub makeOutputCalculationsModel {
     my $self = shift;
     
     my $matrix_ref = $self->{output_ref};
@@ -354,27 +354,27 @@ sub on_cell_selected {
 
     $self->{selected_element} = $element;
 
-    my $combo = $self->{xmlPage}->get_widget('comboAnalyses');
-    $combo->set_model($self->{output_analysis_model});  #  already have this?
+    my $combo = $self->{xmlPage}->get_widget('comboCalculations');
+    $combo->set_model($self->{output_calculations_model});  #  already have this?
 
     # Select the previous analysis (or the first one)
-    my $iter = $self->{output_analysis_model}->get_iter_first();
+    my $iter = $self->{output_calculations_model}->get_iter_first();
     my $selected = $iter;
     
     BY_ITER:
     while ($iter) {
-        my ($analysis) = $self->{output_analysis_model}->get($iter, 0);
+        my ($analysis) = $self->{output_calculations_model}->get($iter, 0);
         if ($self->{selected_element} && ($analysis eq $self->{selected_element}) ) {
             $selected = $iter;
             last BY_ITER; # break loop
         }
-        $iter = $self->{output_analysis_model}->iter_next($iter);
+        $iter = $self->{output_calculations_model}->iter_next($iter);
     }
 
     if ($selected) {
         $combo->set_active_iter($selected);
     }
-    $self->onActiveAnalysisChanged($combo);
+    $self->onActiveCalculationChanged($combo);
 
     return;
 }
@@ -430,18 +430,18 @@ sub showAnalysis {
 
     #$self->{selected_index} = $name;
     #$self->updateListsCombo();
-    $self->updateOutputAnalysesCombo();
+    $self->updateOutputCalculationsCombo();
     
     return;
 }
 
-sub onActiveAnalysisChanged {
+sub onActiveCalculationChanged {
     my $self  = shift;
     my $combo = shift
-              ||  $self->{xmlPage}->get_widget('comboAnalyses');
+              ||  $self->{xmlPage}->get_widget('comboCalculations');
 
     my $iter = $combo->get_active_iter() || return;
-    my $element = $self->{output_analysis_model}->get($iter, 0);
+    my $element = $self->{output_calculations_model}->get($iter, 0);
 
     $self->{selected_element} = $element;
 

@@ -3530,7 +3530,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="tooltip" translatable="yes">List the available calculations and indices (uses selected BaseData) </property>
                         <property name="label" translatable="yes">List calculations and indices</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_menu_list_analyses_and_indices_activate"/>
+                        <signal name="activate" handler="on_menu_list_calculations_and_indices_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -4653,7 +4653,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                         <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
                                         <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                                         <child>
-                                          <widget class="GtkTreeView" id="treeAnalyses">
+                                          <widget class="GtkTreeView" id="treeCalculations">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                           </widget>
@@ -4792,7 +4792,7 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                           <widget class="GtkToolItem" id="toolitem16">
                             <property name="visible">True</property>
                             <child>
-                              <widget class="GtkComboBox" id="comboAnalyses">
+                              <widget class="GtkComboBox" id="comboCalculations">
                                 <property name="visible">True</property>
                                 <property name="add_tearoffs">True</property>
                               </widget>
@@ -6264,7 +6264,7 @@ set 2</property>
                                         <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
                                         <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
                                         <child>
-                                          <widget class="GtkTreeView" id="treeSpatialAnalyses">
+                                          <widget class="GtkTreeView" id="treeSpatialCalculations">
                                             <property name="visible">True</property>
                                             <property name="can_focus">True</property>
                                           </widget>

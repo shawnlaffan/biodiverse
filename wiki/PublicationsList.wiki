@@ -33,3 +33,5 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
   *  Rosauer, D.F., Laffan, S.W., Crisp, M.D., Donnellan, S.C. & Cook, L.G. (2009). Phylogenetic endemism: a new approach to identifying geographical concentrations of evolutionary history. [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Molecular Ecology, 18, 4061-4072]. 
 
   *  Schmidt-Lebuhn, A.N., Knerr, N.J., González-Orozco, C.E. (in press) Distorted perception of the spatial distribution of plant diversity through uneven collecting efforts: the example of Asteraceae in Australia. Journal of Biogeography.
+
+  *  Stevenson, L.A., González-Orozco, C.E., Knerr, N., Cargill, D.C., Miller, J.T. (2012) Species richness and endemism of Australian bryophytes.  Journal of Bryology, 34, 101-107.

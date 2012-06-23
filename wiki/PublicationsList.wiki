@@ -14,6 +14,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Bickford, S.A. & Laffan, S.W. (2006) Multi-extent analysis of the relationship between pteridophyte species richness and climate.   [http://dx.doi.org/10.1111/j.1466-8238.2006.00250.x Global Ecology and Biogeography, 15, 588-601].
 
+  *  Burley, H.M., Laffan, S.W., & Williams, K.J. (in press) Spatial non-stationarity and anisotropy of compositional turnover in eastern Australian Myrtaceae species. International Journal of Geographical Information Science.
+
   *  Crisp, M.D., Laffan, S., Linder, H.P. & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 
 
   * Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (in press) Fine scale quantification of floral and faunal breaks and their geographic correlates, with an example from south-eastern Australia. Journal of Biogeography.  Accepted 16Mar2012. doi:10.1111/j.1365-2699.2012.02739.x

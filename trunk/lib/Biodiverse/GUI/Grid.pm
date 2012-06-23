@@ -18,8 +18,6 @@ use Tree::R;
 
 use Geo::ShapeFile;
 
-use Time::HiRes qw /gettimeofday tv_interval/;
-
 our $VERSION = '0.16';
 
 use Biodiverse::GUI::GUIManager;
@@ -174,7 +172,7 @@ sub new {
     );
 
     $self->{back_rect} = $rect;
-#$self -> onSizeAllocate;
+
     #if ($show_legend) {
         $self->showLegend;
     #}
@@ -347,14 +345,14 @@ sub makeLegendPixbuf {
     my $data = pack "C*", @pixels;
 
     my $pixbuf = Gtk2::Gdk::Pixbuf->new_from_data(
-            $data,       # the data.  this will be copied.
-            'rgb',       # only currently supported colorspace
-            0,           # true, because we do have alpha channel data
-            8,           # gdk-pixbuf currently allows only 8-bit samples
-            $width,      # width in pixels
-            $height,     # height in pixels
-            $width * 3,  # rowstride -- we have RGBA data, so it's four
-            );           # bytes per pixel.
+        $data,       # the data.  this will be copied.
+        'rgb',       # only currently supported colorspace
+        0,           # true, because we do have alpha channel data
+        8,           # gdk-pixbuf currently allows only 8-bit samples
+        $width,      # width in pixels
+        $height,     # height in pixels
+        $width * 3,  # rowstride -- we have RGBA data, so it's four
+    );               # bytes per pixel.
 
     return $pixbuf;
 }
@@ -465,8 +463,6 @@ sub setBaseStruct {
     my $self = shift;
     my $data = shift;
 
-    my $time = gettimeofday();
-
     $self->{base_struct} = $data;
     $self->{cells} = {};
     
@@ -561,17 +557,13 @@ sub setBaseStruct {
     $cells_group->lower_to_bottom();
 
     my $i = 0;
-    #my $last_update_time = [gettimeofday];
     foreach my $element (keys %$elts) {
         no warnings 'uninitialized';  #  suppress these warnings
         
-        #if (tv_interval ($last_update_time) > $progress_update_interval) {
-            $progress_bar -> update (
-                "Grid loading $i of $count elements (cells)",
-                $i / $count
-            );
-            #$last_update_time = [gettimeofday];
-        #}
+        $progress_bar -> update (
+            "Grid loading $i of $count elements (cells)",
+            $i / $count
+        );
         $i++;
 
         #FIXME: ????:
@@ -671,9 +663,6 @@ sub setBaseStruct {
 
     # Store info needed by loadShapefile
     $self->{dataset_info} = [$minX, $minY, $maxX, $maxY, $cellX, $cellY];
-
-#my $timetaken = gettimeofday() - $time;
-#print "Loading took $timetaken seconds";
 
     return 1;
 }

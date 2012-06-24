@@ -88,6 +88,9 @@ sub percentile_RFC2330 {
 #  inter-quartile range
 sub iqr {
     my $self = shift;
+
+    return undef if !$self->count;
+
     my $q25 = $self->percentile(25);
     my $q75 = $self->percentile(75);
     

@@ -55,8 +55,8 @@ sub new {
         'TREE_ARRAY' => [],
     }, $class;
     
-    $self -> set_param (%PARAMS, @_);
-    $self -> set_default_params;  #  and any user overrides
+    $self->set_param (%PARAMS, @_);
+    $self->set_default_params;  #  and any user overrides
     
     return $self;
 }
@@ -64,9 +64,9 @@ sub new {
 sub add_tree {
     my $self = shift;
     my %args = @_;
-    
+
     return if ! defined $args{tree};
-    
+
     push @{$self->{TREE_ARRAY}}, $args{tree};
   
 }
@@ -83,15 +83,15 @@ sub import_data {
     my $use_element_properties = exists $args{use_element_properties}  #  just a flag of convenience
                                     ? $args{use_element_properties}
                                     : defined $element_properties;
-    $self -> set_param (ELEMENT_PROPERTIES => $element_properties);
-    $self -> set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
+    $self->set_param (ELEMENT_PROPERTIES => $element_properties);
+    $self->set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
     
     eval {
-        $self -> import_nexus (%args);
+        $self->import_nexus (%args);
     };
     if ($EVAL_ERROR) {
         eval {
-            $self -> import_phylip (%args);
+            $self->import_phylip (%args);
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
     }
@@ -113,10 +113,10 @@ sub import_newick {
         if not defined $newick and not defined $args{file};
 
     if (! defined $newick) {
-        $newick = $self -> read_whole_file (file => $args{file});
+        $newick = $self->read_whole_file (file => $args{file});
     }
 
-    my $tree = Biodiverse::Tree -> new (
+    my $tree = Biodiverse::Tree->new (
         NAME => $args{NAME}
             || 'anonymous from newick'
         );
@@ -124,13 +124,13 @@ sub import_newick {
     my $count = 0;
     my $node_count = \$count;
 
-    $self -> parse_newick (
+    $self->parse_newick (
         string          => $newick,
         tree            => $tree,
         node_count      => $node_count,
     );
     
-    $self -> add_tree (tree => $tree);
+    $self->add_tree (tree => $tree);
 
     return 1;
 }
@@ -149,7 +149,7 @@ sub import_phylip {
       if not defined $data and not defined $args{file};
 
     if (! defined $data) {
-        $data = $self -> read_whole_file (file => $args{file});
+        $data = $self->read_whole_file (file => $args{file});
     }
 
     #  lazy split - does not allow for quoted semicolons
@@ -161,18 +161,18 @@ sub import_phylip {
         next if $nwk =~ /^[\s\n]*$/;
 
         my $tree_name = 'anonymous_' . $i;
-        my $tree = Biodiverse::Tree -> new (NAME => $tree_name);
+        my $tree = Biodiverse::Tree->new (NAME => $tree_name);
 
         my $count = 0;
         my $node_count = \$count;
 
-        $self -> parse_newick (
+        $self->parse_newick (
             string          => $nwk,
             tree            => $tree,
             node_count      => $node_count,
         );
 
-        $self -> add_tree (tree => $tree);
+        $self->add_tree (tree => $tree);
 
         $i ++;
     }
@@ -191,7 +191,7 @@ sub import_nexus {
       if not defined $nexus and not defined $args{file};
 
     if (! defined $nexus) {
-        $nexus = $self -> read_whole_file (file => $args{file});
+        $nexus = $self->read_whole_file (file => $args{file});
     }
 
     my @nexus = split (/[\r\n]+/, $nexus);
@@ -279,7 +279,7 @@ sub import_nexus {
     croak "File appears not to be a nexus format or has no trees in it\n"
         if scalar @newicks == 0;
 
-    $self -> set_param (TRANSLATE_HASH => \%translate);  #  store for future use
+    $self->set_param (TRANSLATE_HASH => \%translate);  #  store for future use
 
     foreach my $nwk (@newicks) {
 
@@ -309,8 +309,8 @@ sub import_nexus {
 
             $tree_name =~ s/\s+$//;  #  trim trailing whitespace
 
-            my $tree = Biodiverse::Tree -> new (NAME => $tree_name);
-            #$tree -> set_param ()
+            my $tree = Biodiverse::Tree->new (NAME => $tree_name);
+            #$tree->set_param ()
 
             my $count = 0;
             my $node_count = \$count;
@@ -322,7 +322,7 @@ sub import_nexus {
                 translate_hash  => \%translate,
             );
 
-            $self -> add_tree (tree => $tree);
+            $self->add_tree (tree => $tree);
     }
     
     #print "";
@@ -332,7 +332,7 @@ sub import_nexus {
 
 sub process_unrooted_trees {
     my $self = shift;
-    my @trees = $self -> get_tree_array;
+    my @trees = $self->get_tree_array;
     
     BY_LOADED_TREE:
     foreach my $tree (@trees) {
@@ -345,24 +345,24 @@ sub process_unrooted_trees {
 sub process_zero_length_trees {
     my $self = shift;
     
-    my @trees = $self -> get_tree_array;
+    my @trees = $self->get_tree_array;
     
     #  now we check if the tree has all zero-length nodes.  Change these to length 1.
     BY_LOADED_TREE:
     foreach my $tree (@trees) {
-        my %nodes = $tree -> get_node_hash;
+        my %nodes = $tree->get_node_hash;
         my $len_sum = 0;
 
         LEN_SUM:
         foreach my $node (values %nodes) {
-            $len_sum += $node -> get_length;
+            $len_sum += $node->get_length;
             last LEN_SUM if $len_sum;  #  drop out if we have a non-zero length
         }
 
         if ($len_sum == 0) {
             print "[READNEXUS] All nodes are of length zero, converting all to length 1\n";
             foreach my $node (values %nodes) {
-                $node -> set_length (length => 1);
+                $node->set_length (length => 1);
             }
         }
     }
@@ -386,7 +386,7 @@ sub read_whole_file {
 
     local $/ = undef;
     my $text = <$fh>;  #  suck the whole thing in
-    $fh -> close || croak "Cannot close $file\n";
+    $fh->close || croak "Cannot close $file\n";
 
     return $text;
 }
@@ -400,17 +400,17 @@ sub parse_newick {
     my $string = $args{string};
     my $str_len = length ($string);
     my $tree = $args{tree};
-    my $tree_name = $tree -> get_param ('NAME');
+    my $tree_name = $tree->get_param ('NAME');
 
     my $node_count             = $args{node_count};
     my $translate_hash         = $args{translate_hash}
-                               || $self -> get_param ('TRANSLATE_HASH');
+                               || $self->get_param ('TRANSLATE_HASH');
     my $element_properties     = $args{element_properties}
-                               || $self -> get_param ('ELEMENT_PROPERTIES');
-    my $use_element_properties = $self -> get_param ('USE_ELEMENT_PROPERTIES');
+                               || $self->get_param ('ELEMENT_PROPERTIES');
+    my $use_element_properties = $self->get_param ('USE_ELEMENT_PROPERTIES');
 
-    my $quote_char = $self -> get_param ('QUOTES') || q{'};
-    my $csv_obj    = $self -> get_csv_object (quote_char => $quote_char);
+    my $quote_char = $self->get_param ('QUOTES') || q{'};
+    my $csv_obj    = $self->get_csv_object (quote_char => $quote_char);
 
     my $name;
 
@@ -444,7 +444,7 @@ sub parse_newick {
             #}
             #print "Position is " . (pos $string) . " of $str_len\n";
             if (not defined $name) {
-                $name = $tree -> get_free_internal_name (
+                $name = $tree->get_free_internal_name (
                     exclude => $translate_hash,
                 );
             }
@@ -454,9 +454,9 @@ sub parse_newick {
             $name =~ s{^$quote_char} {};  #  strip any bounding quotes - let the next csv line decide
             $name =~ s{$quote_char$} {};
             #  and now we need to make the name use the CSV rules used everywhere else
-            $name = $self -> list2csv (csv_object => $csv_obj, list => [$name]);
+            $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
             if ($use_element_properties) {
-                my $element = $element_properties -> get_element_remapped (
+                my $element = $element_properties->get_element_remapped (
                     element => $name,
                 );
                 
@@ -469,11 +469,11 @@ sub parse_newick {
             }
 
             #print "Adding new node to tree, name is $name, length is $length\n";
-            my $node = $tree -> add_node (name => $name, length => $length, boot => $boot_value);
+            my $node = $tree->add_node (name => $name, length => $length, boot => $boot_value);
             push @nodes_added, $node;
             #  add any relevant children
             if (scalar @children_of_current_node) {
-                $node -> add_children (children => \@children_of_current_node);
+                $node->add_children (children => \@children_of_current_node);
             }
             #  reset name, length and children
             $$node_count ++;
@@ -493,7 +493,7 @@ sub parse_newick {
                 #print "Eating to closing bracket\n";
                 #print "Position is " . (pos $string) . " of $str_len\n";
                 
-                @children_of_current_node = $self -> parse_newick (
+                @children_of_current_node = $self->parse_newick (
                     string => $sub_newick,
                     tree => $tree,
                     node_count => $node_count,
@@ -587,7 +587,7 @@ sub parse_newick {
     #  almost as many lines as the two blocks combined
     if (not defined $name) {
         #print "Tree is $tree";
-        $name = $tree -> get_free_internal_name (exclude => $translate_hash);
+        $name = $tree->get_free_internal_name (exclude => $translate_hash);
     }
     if (exists $translate_hash->{$name}) {
         $name = $translate_hash->{$name};
@@ -599,10 +599,10 @@ sub parse_newick {
     }
     
     #  and now we need to make the name use the CSV rules used everywhere else
-    $name = $self -> list2csv (csv_object => $csv_obj, list => [$name]);
+    $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
     
     if ($use_element_properties) {
-        my $element = $element_properties -> get_element_remapped (element => $name);
+        my $element = $element_properties->get_element_remapped (element => $name);
         my $original_name = $name;
         $name = $element if defined $element;
         if (defined $element) {
@@ -612,7 +612,7 @@ sub parse_newick {
     
     #print "Adding new node to tree, name is $name, length is $length\n";
     my $node = eval {
-        $tree -> add_node (
+        $tree->add_node (
             name   => $name,
             length => $length,
             boot   => $boot_value,
@@ -622,7 +622,7 @@ sub parse_newick {
     
     push @nodes_added, $node;
     #  add any relevant children
-    $node -> add_children (children => \@children_of_current_node) if scalar @children_of_current_node;
+    $node->add_children (children => \@children_of_current_node) if scalar @children_of_current_node;
     
     return wantarray ? @nodes_added : \@nodes_added;
 }

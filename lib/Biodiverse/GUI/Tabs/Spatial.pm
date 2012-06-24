@@ -215,7 +215,7 @@ sub new {
         }
     }
     $self->initListsCombo();
-    $self->initOutputCalculationsCombo();
+    $self->initOutputIndicesCombo();
     
 
     #  NEED TO CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
@@ -373,7 +373,7 @@ sub initListsCombo {
     return;
 }
 
-sub initOutputCalculationsCombo {
+sub initOutputIndicesCombo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_widget('comboIndices');

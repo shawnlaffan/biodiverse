@@ -9,31 +9,33 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
   (An alternate link for general access is http://handle.unsw.edu.au/1959.4/45539 ).
 
 
-==Publications using Biodiverse==
-  *  Bickford, S.A., Laffan, S.W., de Kok, R. & Orthia, L. (2004) Spatial analysis of taxonomic and genetic patterns and their potential for understanding evolutionary histories.   [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Journal of Biogeography, 31, 1715-1733]. 
-
-  *  Bickford, S.A. & Laffan, S.W. (2006) Multi-extent analysis of the relationship between pteridophyte species richness and climate.   [http://dx.doi.org/10.1111/j.1466-8238.2006.00250.x Global Ecology and Biogeography, 15, 588-601].
+==Publications using Biodiverse (or its ancestors)==
+  (Publications are listed in reverse chronological order).  
 
   *  Burley, H.M., Laffan, S.W., & Williams, K.J. (in press) Spatial non-stationarity and anisotropy of compositional turnover in eastern Australian Myrtaceae species. International Journal of Geographical Information Science.
 
-  *  Crisp, M.D., Laffan, S., Linder, H.P. & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 
-
-  * Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (in press) Fine scale quantification of floral and faunal breaks and their geographic correlates, with an example from south-eastern Australia. Journal of Biogeography.  Accepted 16Mar2012. doi:10.1111/j.1365-2699.2012.02739.x
+  *  Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (in press) Fine scale quantification of floral and faunal breaks and their geographic correlates, with an example from south-eastern Australia. Journal of Biogeography.  Accepted 16Mar2012. doi:10.1111/j.1365-2699.2012.02739.x
 
   *  González-Orozco, C.E., Brown, A.H.D., Knerr, N., Miller, J.T. & Doyle, J.J. (in press) Hotspots of diversity of wild Australian soybean relatives and their conservation in situ. [http://dx.doi.org/10.1007/s10592-012-0370-x Conservation Genetics].
-
-  *  Gonzalez-Orozco, C.E., Laffan, S.W., Miller, J. (2011) Spatial distribution of species richness and endemism of the genus Acacia in Australia. [http://dx.doi.org/10.1071/BT11112 Australian Journal of Botany, 59, 600-608]
-
-  *  Jones C. &  Laffan S.W. (2008) Lexical similarity and endemism in historical wordlists of Australian Aboriginal languages of the greater Sydney region. [http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x Transactions of the Philological Society, 106, 456-486]. 
-
-  *  Laffan, S.W. (2011) Spatial non-stationarity, anisotropy and scale: The interactive visualisation of spatial turnover. pp. 1652-1658 in Chan, F., Marinova, D. and Anderssen, R.S. (eds) [http://www.mssanz.org.au/modsim2011/E3/laffan.pdf MODSIM2011, 19th International Congress on Modelling and Simulation]. Modelling and Simulation Society of Australia and New Zealand, December 2011. 
-  
-  *  Laffan, S.W. & Bickford, S.A. (2005) Using spatial randomisations to improve the utility of Geographically Weighted Regression model results. In [http://www.mssanz.org.au/modsim05/papers/laffan.pdf MODSIM 2005 International Congress on Modelling and Simulation] (eds R. Argent & A. Zerger), pp. 1396-1401. Modelling and Simulation Society of Australia and New Zealand, Melbourne, Australia.
-
-  *  Laffan, S.W. & Crisp, M.D. (2003) Assessing endemism at multiple spatial scales, with an example from the Australian vascular flora. [http://dx.doi.org/10.1046/j.1365-2699.2003.00875.x Journal of Biogeography, 30, 511-520]. 
-
-  *  Rosauer, D.F., Laffan, S.W., Crisp, M.D., Donnellan, S.C. & Cook, L.G. (2009). Phylogenetic endemism: a new approach to identifying geographical concentrations of evolutionary history. [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Molecular Ecology, 18, 4061-4072]. 
 
   *  Schmidt-Lebuhn, A.N., Knerr, N.J., González-Orozco, C.E. (in press) Distorted perception of the spatial distribution of plant diversity through uneven collecting efforts: the example of Asteraceae in Australia. Journal of Biogeography.
 
   *  Stevenson, L.A., González-Orozco, C.E., Knerr, N., Cargill, D.C., Miller, J.T. (2012) Species richness and endemism of Australian bryophytes.  Journal of Bryology, 34, 101-107.
+
+  *  Gonzalez-Orozco, C.E., Laffan, S.W., Miller, J. (2011) Spatial distribution of species richness and endemism of the genus Acacia in Australia. [http://dx.doi.org/10.1071/BT11112 Australian Journal of Botany, 59, 600-608]
+
+  *  Laffan, S.W. (2011) Spatial non-stationarity, anisotropy and scale: The interactive visualisation of spatial turnover. pp. 1652-1658 in Chan, F., Marinova, D. and Anderssen, R.S. (eds) [http://www.mssanz.org.au/modsim2011/E3/laffan.pdf MODSIM2011, 19th International Congress on Modelling and Simulation]. Modelling and Simulation Society of Australia and New Zealand, December 2011. 
+  
+  *  Rosauer, D.F., Laffan, S.W., Crisp, M.D., Donnellan, S.C. & Cook, L.G. (2009). Phylogenetic endemism: a new approach to identifying geographical concentrations of evolutionary history. [http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x Molecular Ecology, 18, 4061-4072]. 
+
+  *  Jones C. &  Laffan S.W. (2008) Lexical similarity and endemism in historical wordlists of Australian Aboriginal languages of the greater Sydney region. [http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x Transactions of the Philological Society, 106, 456-486]. 
+
+  *  Bickford, S.A. & Laffan, S.W. (2006) Multi-extent analysis of the relationship between pteridophyte species richness and climate.   [http://dx.doi.org/10.1111/j.1466-8238.2006.00250.x Global Ecology and Biogeography, 15, 588-601].
+
+  *  Laffan, S.W. & Bickford, S.A. (2005) Using spatial randomisations to improve the utility of Geographically Weighted Regression model results. In [http://www.mssanz.org.au/modsim05/papers/laffan.pdf MODSIM 2005 International Congress on Modelling and Simulation] (eds R. Argent & A. Zerger), pp. 1396-1401. Modelling and Simulation Society of Australia and New Zealand, Melbourne, Australia.
+  
+  *  Bickford, S.A., Laffan, S.W., de Kok, R. & Orthia, L. (2004) Spatial analysis of taxonomic and genetic patterns and their potential for understanding evolutionary histories.   [http://dx.doi.org/10.1111/j.1365-2699.2004.01127.x Journal of Biogeography, 31, 1715-1733]. 
+
+  *  Laffan, S.W. & Crisp, M.D. (2003) Assessing endemism at multiple spatial scales, with an example from the Australian vascular flora. [http://dx.doi.org/10.1046/j.1365-2699.2003.00875.x Journal of Biogeography, 30, 511-520]. 
+
+  *  Crisp, M.D., Laffan, S., Linder, H.P. & Munro, A. (2001) Endemism in the Australian Flora.  [http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x Journal of Biogeography, 28, 183-198]. 

@@ -383,7 +383,7 @@ sub initOutputCalculationsCombo {
 
     # Only do this if we aren't a new spatial analysis...
     if ($self->{existing}) {
-        $self->updateOutputCalculationsCombo();
+        $self->updateOutputIndicesCombo();
     }
     
     return;
@@ -418,11 +418,11 @@ sub updateListsCombo {
     return;
 }
 
-sub updateOutputCalculationsCombo {
+sub updateOutputIndicesCombo {
     my $self = shift;
 
     # Make the model
-    $self->{output_indices_model} = $self->makeOutputCalculationsModel();
+    $self->{output_indices_model} = $self->makeOutputIndicesModel();
     my $combo = $self->{xmlPage}->get_widget('comboIndices');
     $combo->set_model($self->{output_indices_model});
 
@@ -451,7 +451,7 @@ sub updateOutputCalculationsCombo {
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub makeOutputCalculationsModel {
+sub makeOutputIndicesModel {
     my $self = shift;
     my $list_name = $self->{selected_list};
     my $output_ref = $self->{output_ref};
@@ -867,7 +867,7 @@ sub showAnalysis {
 
     $self->{selected_index} = $name;
     $self->updateListsCombo();
-    $self->updateOutputCalculationsCombo();
+    $self->updateOutputIndicesCombo();
     
     return;
 }
@@ -880,7 +880,7 @@ sub onActiveListChanged {
     my ($list) = $self->{output_lists_model}->get($iter, 0);
 
     $self->{selected_list} = $list;
-    $self->updateOutputCalculationsCombo();
+    $self->updateOutputIndicesCombo();
     
     return;
 }

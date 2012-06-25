@@ -325,7 +325,7 @@ sub drawMatrix {
     for (my $y = 0; $y < $side_length; $y++) {
         $progress += 1 / $side_length;
         $progress = $self->set_precision (value => $progress, precision => '%.4f');
-        if ($progress > 1) {$progress = 1};
+        if ($progress > 1) {$progress = 1};  #  should just do $progress = $y / $side_length?
         $progress_count ++;
         my $progress_text = "Drawing matrix, $progress_count rows";
 

@@ -2045,7 +2045,6 @@ END_OF_SHP_EXAMPLES
 
 sub get_metadata_sp_point_in_poly_shape {
     my $self = shift;
-    
     my %args = @_;
     
     my $examples = $self->_get_shp_examples;
@@ -2053,7 +2052,7 @@ sub get_metadata_sp_point_in_poly_shape {
     my %metadata = (
         description =>
             'Select groups that occur within a polygon or polygons extracted from a shapefile',
-        required_args      => [
+        required_args => [
             qw /file/,
         ],
         optional_args => [

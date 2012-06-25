@@ -994,14 +994,15 @@ sub get_recyclable_nbrhoods {
     my @recyclable_nbrhoods;
     my $results_are_recyclable = 0;
 
+    my %recyc_candidates = (
+        non_overlapping  => 0,     # only index 0
+        always_true      => undef, # any index
+        text_match_exact => undef, # any index
+        #always_same      => undef, # any index
+    );
+
     for my $i (0 .. $#$spatial_params_ref) {
         my $result_type = $spatial_params_ref->[$i]->get_result_type;
-
-        my %recyc_candidates = (
-            non_overlapping  => 0,     # only index 0
-            always_true      => undef, # any index
-            text_match_exact => undef, # any index
-        );
 
         my $prev_nbr_is_recyclable = 1;  #  always check first one
         if ($i > 0) {  #  only check $i if $i-1 is true
@@ -1016,8 +1017,8 @@ sub get_recyclable_nbrhoods {
             # and we allow recyc beyond first index
             my $is_valid_recyc_index =
               defined $recyc_candidates{$result_type}
-              ? $i <= $recyc_candidates{$result_type}
-              : 1;
+                ? $i <= $recyc_candidates{$result_type}
+                : 1;
 
             if ( $is_valid_recyc_index ) { 
                 $recyclable_nbrhoods[$i] = 1;
@@ -1025,7 +1026,7 @@ sub get_recyclable_nbrhoods {
             }
         }
     }
-    
+
     #  we can only recycle the results if all nbr sets are recyclable 
     if ($results_are_recyclable != scalar @$spatial_params_ref) {
         $results_are_recyclable = 0;
@@ -1039,7 +1040,6 @@ sub get_recyclable_nbrhoods {
     #  need a better name - unique to nbrhood? same_for_whole_nbrhood?
     $self->set_param( RESULTS_ARE_RECYCLABLE => $results_are_recyclable );
 
-    
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }
 

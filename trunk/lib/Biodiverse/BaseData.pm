@@ -2942,7 +2942,6 @@ sub get_neighbours {
                 $spatial_params->clear_cached_subset_nbrs(coord_id => $element1);
                 last NBR;
             }
-            
         }
 
         #  skip if not a nbr

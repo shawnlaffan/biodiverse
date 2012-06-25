@@ -23,6 +23,7 @@ Main changes since the previous version (0.16) are:
   *  Exports
     *  Users can now add plot coords to the tabular tree exports.  This allows reconstruction of the tree in, for example, a GIS.  Issue 281
     *  NA is now an option for nodata.  This improves compatibility with R.  Issue #271
+    *  Raster exports now work for all cases (was getting errors for some cell sizes).  Issue #294
   *  Imports
     *  Tree imports now work when there are duplicate node names.  Any duplicates have `__dup$n` appended to the name, where `$n` is an integer that is incremented from 1.  For a node called `node`, any duplicates are called `node__dup1`, `node__dup2`, etc.  Issue #302
 

@@ -469,7 +469,18 @@ sub parse_newick {
             }
 
             #print "Adding new node to tree, name is $name, length is $length\n";
-            my $node = $tree->add_node (name => $name, length => $length, boot => $boot_value);
+            #my $node = $tree->add_node (
+            #    name   => $name,
+            #    length => $length,
+            #    boot   => $boot_value,
+            #);
+            my $node = $self->add_node_to_tree (
+                tree   => $tree,
+                name   => $name,
+                length => $length,
+                boot   => $boot_value,
+                translate_hash => $translate_hash,
+            );
             push @nodes_added, $node;
             #  add any relevant children
             if (scalar @children_of_current_node) {
@@ -611,20 +622,67 @@ sub parse_newick {
     }
     
     #print "Adding new node to tree, name is $name, length is $length\n";
-    my $node = eval {
-        $tree->add_node (
-            name   => $name,
-            length => $length,
-            boot   => $boot_value,
-        )
-    };
-    croak $EVAL_ERROR if $EVAL_ERROR;
+    my $node = $self->add_node_to_tree (
+        tree   => $tree,
+        name   => $name,
+        length => $length,
+        boot   => $boot_value,
+        translate_hash => $translate_hash,
+    );
+  #ADD_NODE_TO_TREE:
+  #  my $node = eval {
+  #      $tree->add_node (
+  #          name   => $name,
+  #          length => $length,
+  #          boot   => $boot_value,
+  #      )
+  #  };
+  #  if (Biodiverse::Tree::NodeAlreadyExists->caught) {
+  #      my $e = $EVAL_ERROR;
+  #      my $prefix = $e->name;
+  #      $name = $tree->get_unique_name(prefix => $prefix, exclude => $translate_hash);
+  #      goto ADD_NODE_TO_TREE;
+  #  }
+  #  elsif ($EVAL_ERROR) {
+  #      croak $EVAL_ERROR;
+  #  }
     
     push @nodes_added, $node;
     #  add any relevant children
     $node->add_children (children => \@children_of_current_node) if scalar @children_of_current_node;
     
     return wantarray ? @nodes_added : \@nodes_added;
+}
+
+sub add_node_to_tree {
+    my $self= shift;
+    my %args = @_;
+    my $tree   = $args{tree};
+    my $name   = $args{name};
+    my $length = $args{length};
+    my $boot   = $args{boot};
+    my $translate_hash = $args{translate_hash};
+    
+
+  ADD_NODE_TO_TREE:
+    my $node = eval {
+        $tree->add_node (
+            name   => $name,
+            length => $length,
+            boot   => $boot,
+        )
+    };
+    if (Biodiverse::Tree::NodeAlreadyExists->caught) {
+        my $e = $EVAL_ERROR;
+        my $prefix = $e->name;
+        $name = $tree->get_unique_name(prefix => $prefix, exclude => $translate_hash);
+        goto ADD_NODE_TO_TREE;
+    }
+    elsif ($EVAL_ERROR) {
+        croak $EVAL_ERROR;
+    }
+
+    return $node;
 }
 
 

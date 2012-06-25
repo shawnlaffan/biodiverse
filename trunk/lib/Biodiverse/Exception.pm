@@ -5,6 +5,7 @@ our $VERSION = '0.16';
 
 #  Exceptions for the Biodiverse system,
 #  both GUI and non-GUI
+#  GUI should go into their own package, though
 
 use Exception::Class (
     'Biodiverse::Cluster::MatrixExists' => {
@@ -16,6 +17,10 @@ use Exception::Class (
     },
     'Biodiverse::Args::ElPropInputCols' => {
         description => 'Input columns argument is incorrect',
+    },
+    'Biodiverse::Tree::NodeAlreadyExists' => {
+        description => 'Node already exists in the tree',
+        fields      => [ 'name' ],
     },
     'Biodiverse::GUI::ProgressDialog::Cancel' => {
         description => 'User closed the progress dialog',

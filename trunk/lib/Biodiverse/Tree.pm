@@ -215,8 +215,12 @@ sub add_to_node_hash {
     my $nodeRef = $args{node_ref};
     my $name = $nodeRef->get_name;
 
-    croak "[TREE] Node $name already exists in this tree\n"
-      if $self->exists_node (@_);
+    if ($self->exists_node (@_)) {
+        Biodiverse::Tree::NodeAlreadyExists->throw(
+            message => "Node $name already exists in this tree\n",
+            name    => $name,
+        );
+    }
 
     $self->{TREE_BY_NAME}{$name} = $nodeRef;
     return $nodeRef if defined wantarray;
@@ -539,7 +543,7 @@ sub get_free_internal_name {
     #    overlaps with valid user defined names
     my %node_hash = $self->get_node_hash;
     my $highest = -1;
-    foreach my $name (keys %node_hash, %$skip) {
+    foreach my $name (keys %node_hash, %$skip) {  #  should be keys %$skip?
         if ($name =~ /^(\d+)___$/) {
             my $num = $1;
             next if not defined $num;
@@ -548,6 +552,29 @@ sub get_free_internal_name {
     }
     $highest ++;
     return $highest . '___';
+}
+
+sub get_unique_name {
+    my $self = shift;
+    my %args = @_;
+    my $prefix = $args{prefix};
+    my $suffix = $args{suffix} || q{__dup};
+    my $skip   = $args{exclude} || {};
+
+    #  iterate over the existing nodes and see if we can geberate a unique name
+    #  also check the whole translate table (keys and values) to ensure no
+    #    overlaps with valid user defined names
+    my %node_hash = $self->get_node_hash;
+
+    my $i = 1;
+    my $unique_name = $prefix . $suffix . $i;
+    my %exists = (%node_hash, %$skip);
+    while (exists $exists{$unique_name}) {
+        $i++;
+        $unique_name = $prefix . $suffix . $i;
+    }
+
+    return $unique_name;
 }
 
 ###########

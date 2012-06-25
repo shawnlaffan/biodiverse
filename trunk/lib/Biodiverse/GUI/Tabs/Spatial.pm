@@ -458,7 +458,7 @@ sub makeOutputIndicesModel {
 
     # SWL: Get possible analyses by sampling all elements - this allows for asymmetric lists
     #my $bd_ref = $output_ref -> get_param ('BASEDATA_REF') || $output_ref;
-    my $elements = $output_ref -> get_element_hash() || {};
+    my $elements = $output_ref->get_element_hash() || {};
     
     my %analyses_tmp;
     foreach my $elt (keys %$elements) {
@@ -492,7 +492,7 @@ sub makeOutputIndicesModel {
 #print join (" ", @analyses) . "\n";
     
     # Make model for combobox
-    my $model = Gtk2::ListStore->new("Glib::String");
+    my $model = Gtk2::ListStore->new('Glib::String');
     foreach my $x (@analyses) {
         my $iter = $model->append;
         #print ($model -> get($iter, 0), "\n") if defined $model -> get($iter, 0);    #debug

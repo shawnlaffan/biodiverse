@@ -698,19 +698,27 @@ sub get_nbrs_for_element {
             #  if $use_nbrs_from lacks the list, or we're finding the neighbours ourselves
             if (not defined $nbr_list[$i]) {  
                 my $list;
+                my $result_type = $spatial_params_ref->[$i]->get_result_type;
                 #  get everything
-                if ($spatial_params_ref->[$i]->get_result_type eq 'always_true') {  
+                if ($result_type eq 'always_true') {  
                     $list = $bd->get_groups;
                 }
                 #  nothing to work with
-                elsif ($spatial_params_ref->[$i]->get_result_type eq 'always_false') {  
+                elsif ($result_type eq 'always_false') {  
                     $list = [];
                 }
                 #  no nbrs, just oneself
-                elsif ($spatial_params_ref->[$i]->get_result_type eq 'self_only') {
+                elsif ($result_type eq 'self_only') {
                     $list = [$element];
                 }
-                
+                #  if nbrs are always the same
+                elsif ($result_type eq 'always_same') {
+                    my $tmp = $self->get_cached_value('NBRS_FROM_ALWAYS_SAME');
+                    if ($tmp) {
+                        $list = [keys %$tmp];
+                    }
+                }
+
                 if ($list) {
                     my %tmp;  #  remove any that should not be there
                     my $excl = [@exclude, @$elements_to_exclude];
@@ -726,16 +734,33 @@ sub get_nbrs_for_element {
                       ? $sp_index
                       : undef;
 
-                    #  go search
-                    $nbr_list[$i] = $bd->get_neighbours_as_array (
+                    my %args_for_nbr_list = (
                         element         => $element,
                         spatial_params  => $spatial_params_ref->[$i],
                         index           => $sp_index_i,
                         index_offsets   => $search_blocks_ref->[$i],
-                        exclude_list    => [@exclude, @$elements_to_exclude],
                     );
+                    my $exclude_list = [@exclude, @$elements_to_exclude];
+
+                    if ($result_type eq 'always_same') {
+                        my $tmp = $bd->get_neighbours (
+                            %args_for_nbr_list,
+                        );
+                        $self->set_cached_value(NBRS_FROM_ALWAYS_SAME => $tmp);
+                        my %tmp2 = %$tmp;
+                        delete @tmp2{@$exclude_list};
+                        $nbr_list[$i] = [keys %tmp2];
+                    }
+                    else {
+                        #  go search
+                        $nbr_list[$i] = $bd->get_neighbours_as_array (
+                            %args_for_nbr_list,
+                            exclude_list => $exclude_list,
+                        );
+                    }
+
                 }
-                
+
                 #  Add to the exclude list unless we are at the last spatial param,
                 #  in which case it is no longer needed.
                 #  Hopefully this will save meaningful memory for large neighbour sets

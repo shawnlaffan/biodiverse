@@ -1992,7 +1992,7 @@ sub get_metadata_sp_point_in_poly {
             'point',      #  point to use 
         ],
         index_no_use => 1,
-        result_type  => 'complex',  #  is it really complex?  depends on whether it is a def query or not
+        result_type  => 'always_same',
         example =>
               q{# Is the neighbour coord in a square polygon?}
             . q{sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoord)}
@@ -2059,7 +2059,7 @@ sub get_metadata_sp_point_in_poly_shape {
             qw /point field_name field_val axes no_cache/,
         ],
         index_no_use => 1,
-        result_type  => 'complex',
+        result_type  => 'always_same',
         example => $examples,
     );
 

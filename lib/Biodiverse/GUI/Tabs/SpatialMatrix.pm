@@ -160,10 +160,10 @@ sub new {
         $self->{xmlPage}->get_widget($w_name)->hide;
     }
 
-    $self->initOutputCalculationsCombo();
+    $self->initOutputIndicesCombo();
     
 
-    $self -> set_frame_label_widget;
+    $self->set_frame_label_widget;
 
     print "[SpatialMatrix tab] - Loaded tab \n";
 
@@ -265,7 +265,7 @@ sub updateListsCombo {
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub makeOutputCalculationsModel {
+sub makeOutputIndicesModel {
     my $self = shift;
     
     my $matrix_ref = $self->{output_ref};

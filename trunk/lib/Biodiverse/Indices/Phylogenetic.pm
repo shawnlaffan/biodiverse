@@ -209,7 +209,9 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
     my ($PD_P, $PD_per_taxon, $PD_P_per_taxon);
     {
         no warnings 'uninitialized';
-        $PD_P = $PD_score / $tree_ref->get_total_tree_length;
+        if ($PD_score) {  # only if we have some PD
+            $PD_P = $PD_score / $tree_ref->get_total_tree_length;
+        }
 
         $PD_per_taxon   = eval {$PD_score / $richness};
         $PD_P_per_taxon = eval {$PD_P / $richness};

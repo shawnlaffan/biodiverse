@@ -15,7 +15,7 @@ use LWP::Simple;
 
 use Biodiverse::GUI::YesNoCancel;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 ##############################################
 #  Web links.  

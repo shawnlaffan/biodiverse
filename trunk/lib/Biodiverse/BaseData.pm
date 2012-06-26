@@ -27,7 +27,7 @@ use Biodiverse::Randomise;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use base qw {Biodiverse::Common};
 

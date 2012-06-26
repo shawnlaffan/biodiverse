@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk2;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use English qw { -no_match_vars };
 

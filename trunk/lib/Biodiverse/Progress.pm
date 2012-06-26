@@ -8,7 +8,7 @@ my $NULL_STRING = q{};
 
 use Biodiverse::Config;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 sub new {
     my $class = shift;

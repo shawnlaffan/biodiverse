@@ -15,7 +15,7 @@ use File::BOM qw / :subs /;
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use base qw /Biodiverse::Common/;
 

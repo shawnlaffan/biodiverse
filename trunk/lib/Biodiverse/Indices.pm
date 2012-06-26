@@ -17,7 +17,7 @@ use MRO::Compat;
 #$Data::Dumper::Sortkeys = 1;  #  sort the keys dumped by get_args
 #$Data::Dumper::Indent = 1;    #  reduce the indentation used by Dumper in get_args
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 my $EMPTY_STRING = q{};
 

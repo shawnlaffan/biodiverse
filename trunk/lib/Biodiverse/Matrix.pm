@@ -7,7 +7,7 @@ package Biodiverse::Matrix;
 use strict;
 use warnings;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use English ( -no_match_vars );
 

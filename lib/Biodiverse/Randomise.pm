@@ -19,7 +19,7 @@ use MRO::Compat;
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 my $EMPTY_STRING = q{};
 

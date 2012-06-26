@@ -2,7 +2,7 @@ package Biodiverse::RegionGrower;
 use strict;
 use warnings;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use base qw /
     Biodiverse::Cluster

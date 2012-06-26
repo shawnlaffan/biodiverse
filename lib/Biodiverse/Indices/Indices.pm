@@ -7,7 +7,7 @@ use Carp;
 use Scalar::Util qw /blessed weaken/;
 use English ( -no_match_vars );
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use Biodiverse::Statistics;
 

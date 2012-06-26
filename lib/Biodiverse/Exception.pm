@@ -1,7 +1,7 @@
 package Biodiverse::Exception;
 use strict;
 use warnings;
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 #  Exceptions for the Biodiverse system,
 #  both GUI and non-GUI

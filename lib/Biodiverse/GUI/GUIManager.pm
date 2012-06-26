@@ -5,7 +5,7 @@ use warnings;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use Data::Dumper;
 use Data::DumpXML::Parser;

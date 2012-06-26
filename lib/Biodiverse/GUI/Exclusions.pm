@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Gtk2;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use Biodiverse::GUI::GUIManager;
 

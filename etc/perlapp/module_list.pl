@@ -23,7 +23,7 @@ use Biodiverse::GUI::PopupObject;
 use Biodiverse::GUI::ProgressDialog;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::SpatialParams;
-use Biodiverse::GUI::Tabs::AnalysisTree;
+use Biodiverse::GUI::Tabs::CalculationsTree;
 use Biodiverse::GUI::Tabs::Clustering;
 use Biodiverse::GUI::Tabs::Labels;
 use Biodiverse::GUI::Tabs::Outputs;

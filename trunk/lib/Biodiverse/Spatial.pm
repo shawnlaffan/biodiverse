@@ -56,7 +56,7 @@ sub compare {
     croak "Comparison not specified\n" if not defined $comparison;
     
     my $result_list_pfx = $args{result_list_name};
-    croak qq{Argument 'result_list_pfx' not speficied\n}
+    croak qq{Argument 'result_list_pfx' not specified\n}
         if ! defined $result_list_pfx;
 
     my $progress = Biodiverse::Progress->new();
@@ -486,6 +486,9 @@ sub sp_calc {
     }
     $progress->update ($EMPTY_STRING, 1);
     $progress->reset;
+    $progress = undef;
+    
+    $progress = Biodiverse::Progress->new();
 
 
     local $| = 1;  #  write to screen as we go
@@ -743,9 +746,12 @@ sub get_nbrs_for_element {
                     my $exclude_list = [@exclude, @$elements_to_exclude];
 
                     if ($result_type eq 'always_same') {
+                        my $progr = Biodiverse::Progress->new(text => 'Neighbour comparisons for first always_same condition');
                         my $tmp = $bd->get_neighbours (
                             %args_for_nbr_list,
+                            progress => $progr,
                         );
+                        $progr = undef;
                         $self->set_cached_value(NBRS_FROM_ALWAYS_SAME => $tmp);
                         my %tmp2 = %$tmp;
                         delete @tmp2{@$exclude_list};

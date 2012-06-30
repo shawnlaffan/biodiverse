@@ -103,6 +103,11 @@ sub getBaseDataOutputModel {
     return $self->{basedata_output_model};
 }
 
+sub set_dirty {
+    my $self = shift;
+    $self->{project}->setDirty;
+    return;
+}
 
 ##########################################################
 # Initialisation
@@ -299,11 +304,11 @@ sub doOpen {
     $dlg->destroy();
 
     if (defined $filename) {
-        my $project = $self -> open($filename);
+        my $project = $self->open($filename);
         
         #return if (blessed ($project) ne 'Biodiverse::GUI::Project');
     }
-    
+
     return;
 }
 
@@ -318,7 +323,7 @@ sub open {
         
         #  using generalised load method
         $object = $self->{project} = eval {
-            Biodiverse::GUI::Project -> new (file => $filename)
+            Biodiverse::GUI::Project->new (file => $filename)
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
         
@@ -370,7 +375,7 @@ sub doSaveAs {
 
     if (defined $filename) {
 
-        my $file = $self->{project} -> save (filename => $filename);
+        my $file = $self->{project}->save (filename => $filename);
 
         print "[GUI] Saved Biodiverse project to $file\n";
         $self->{filename} = $file;
@@ -381,7 +386,7 @@ sub doSaveAs {
                     . $file;
         $self->{gladexml}->get_widget('wndMain')->set_title($title);
 
-        $self->{project} -> clearDirty(); # Mark as having no changes
+        $self->{project}->clearDirty(); # Mark as having no changes
 
         return 1;
     }
@@ -409,7 +414,7 @@ sub doImport {
         Biodiverse::GUI::BasedataImport::run($self);
     };
     if ($EVAL_ERROR) {
-        $self -> report_error ($EVAL_ERROR);
+        $self->report_error ($EVAL_ERROR);
     }
     
     return;
@@ -422,7 +427,7 @@ sub doAddMatrix {
         Biodiverse::GUI::MatrixImport::run($self);
     };
     if ($EVAL_ERROR) {
-        $self -> report_error ($EVAL_ERROR);
+        $self->report_error ($EVAL_ERROR);
     }
     
     return;
@@ -435,7 +440,7 @@ sub doAddPhylogeny {
         Biodiverse::GUI::PhylogenyImport::run($self);
     };
     if ($EVAL_ERROR) {
-        $self -> report_error ($EVAL_ERROR);
+        $self->report_error ($EVAL_ERROR);
     }
     
     return;
@@ -453,7 +458,7 @@ sub doOpenMatrix {
 
         if (defined $filename && -f $filename) {
             $object = Biodiverse::Tree->new(file => $filename);
-            $object -> set_param (NAME => $name);  #  override the name if the user says to
+            $object->set_param (NAME => $name);  #  override the name if the user says to
         }
     }
     
@@ -474,7 +479,7 @@ sub doOpenPhylogeny {
 
         if (defined $filename && -f $filename) {
             $object = Biodiverse::Tree->new(file => $filename);
-            $object -> set_param (NAME => $name);  #  override the name if the user says to
+            $object->set_param (NAME => $name);  #  override the name if the user says to
         }
     }
     
@@ -492,7 +497,7 @@ sub doOpenBasedata {
     my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Open Object', 'bds');
     if (defined $filename && -f $filename) {
         my $object = Biodiverse::BaseData->new(file => $filename);
-        $object -> set_param (NAME => $name);  #  override the name if the user says to
+        $object->set_param (NAME => $name);  #  override the name if the user says to
         $self->{project}->addBaseData($object);
     }
     
@@ -543,7 +548,7 @@ sub do_transpose_basedata {
 
     my $bd = $self->{project}->getSelectedBaseData();
     my $t_bd = $bd->transpose;
-    $t_bd -> set_param ('NAME' => $new_name);
+    $t_bd->set_param ('NAME' => $new_name);
     $self->{project}->addBaseData($t_bd);
     
     return;
@@ -612,7 +617,7 @@ sub doDeleteBasedata {
     foreach my $tab (@tabs) {
         next if (blessed $tab) =~ /Outputs$/;
         if ($tab->get_base_ref eq $bd) {
-            $tab -> onClose;
+            $tab->onClose;
         }
         $i++;
     }
@@ -630,7 +635,7 @@ sub doRenameBasedata {
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg -> set_title ('Rename Basedata object');
+    $dlg->set_title ('Rename Basedata object');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
     my $txtName = $dlgxml->get_widget('txtName');
@@ -653,7 +658,7 @@ sub doRenameBasedata {
             my $reg_ref = eval {$tab->get_base_ref};
 
             if (defined $reg_ref and $reg_ref eq $bd) {
-                $tab -> update_name ('Labels - ' . $chosen_name);
+                $tab->update_name ('Labels - ' . $chosen_name);
                 $tab_was_open = 1;
                 #  we could stop checking now,
                 #  but this allows us to have data
@@ -677,7 +682,7 @@ sub doRenameOutput {
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg -> set_title ('Rename output');
+    $dlg->set_title ('Rename output');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
     my $txtName = $dlgxml->get_widget('txtName');
@@ -702,22 +707,22 @@ sub doRenameOutput {
             my $reg_ref = $tab->get_current_registration;
             
             if (defined $reg_ref and $reg_ref eq $object) {
-                $tab -> update_name ($chosen_name);
+                $tab->update_name ($chosen_name);
                 $tab_was_open = 1;
                 last;  #  comment this line if we ever allow multiple tabs of the same output
             }
         }
         
         if (not $tab_was_open) {
-            my $bd = $object -> get_param ('BASEDATA_REF');
+            my $bd = $object->get_param ('BASEDATA_REF');
             eval {
-                $bd -> rename_output (
+                $bd->rename_output (
                     output => $object,
                     new_name => $chosen_name,
                 );
             };
             if ($EVAL_ERROR) {
-                $self -> report_error ($EVAL_ERROR);
+                $self->report_error ($EVAL_ERROR);
             }
             else {
                 $self->{project}->updateOutputName( $object );
@@ -736,7 +741,7 @@ sub doRenameMatrix {
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg -> set_title ('Rename matrix object');
+    $dlg->set_title ('Rename matrix object');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
     my $txtName = $dlgxml->get_widget('txtName');
@@ -764,7 +769,7 @@ sub doRenamePhylogeny {
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg -> set_title ('Rename tree object');
+    $dlg->set_title ('Rename tree object');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
     my $txtName = $dlgxml->get_widget('txtName');
@@ -784,16 +789,27 @@ sub doRenamePhylogeny {
     return;
 }
 
+sub do_phylogeny_delete_cached_values {
+    my $self = shift;
+    
+    my $object = $self->{project}->getSelectedPhylogeny || return;
+    $object->get_root_node->delete_cached_values;
+
+    $self->set_dirty;
+
+    return;    
+}
+
 sub doDescribeBasedata {
     my $self = shift;
 
     my $bd = $self->{project}->getSelectedBaseData;
     
-    $self -> print_describe ($bd);
+    $self->print_describe ($bd);
     
-    my @description = $bd -> describe;
+    my @description = $bd->describe;
 
-    $self -> show_describe_dialog (\@description);
+    $self->show_describe_dialog (\@description);
 
     return;
 }
@@ -803,11 +819,11 @@ sub doDescribeMatrix {
 
     my $mx = $self->{project}->getSelectedMatrix;
     
-    $self -> print_describe ($mx);
+    $self->print_describe ($mx);
     
-    my @description = $mx -> describe;
+    my @description = $mx->describe;
 
-    $self -> show_describe_dialog (\@description);
+    $self->show_describe_dialog (\@description);
 
     return;
 }
@@ -817,11 +833,11 @@ sub doDescribePhylogeny {
 
     my $tree = $self->{project}->getSelectedPhylogeny;
     
-    $self -> print_describe ($tree);
+    $self->print_describe ($tree);
     
-    my @description = $tree -> describe;
+    my @description = $tree->describe;
 
-    $self -> show_describe_dialog (\@description);
+    $self->show_describe_dialog (\@description);
 
     return;
 }
@@ -843,15 +859,15 @@ sub show_describe_dialog {
     my $table_widget;
     if (ref $description) {
         my $row_count = scalar @$description;
-        my $table = Gtk2::Table -> new ($row_count, 2);
+        my $table = Gtk2::Table->new ($row_count, 2);
         
         my $i=0;
         foreach my $row (@$description) {
             my $j = 0;
             foreach my $col (@$row) {
                 my $label = Gtk2::Label->new;
-                $label -> set_text ($col);
-                $label -> set_selectable(1);
+                $label->set_text ($col);
+                $label->set_selectable(1);
                 $label->set_padding (10, 10);
                 $table->attach_defaults($label, $j, $j+1, $i, $i+1);
                 $j++;
@@ -874,7 +890,7 @@ sub show_describe_dialog {
             $description,
         );
 
-        $dlg -> set_title ('Description');
+        $dlg->set_title ('Description');
         
         if ($table_widget) {
             $dlg->attach ($table_widget);
@@ -978,7 +994,7 @@ sub doDuplicateBasedata {
         my $chosen_name = $txtName->get_text;
         # This uses the dclone method from Storable
         my $cloned = $object->clone (@_);  #  pass on the args
-        $cloned -> set_param (NAME => $chosen_name || $object -> get_param ('NAME') . "_CLONED");
+        $cloned->set_param (NAME => $chosen_name || $object->get_param ('NAME') . "_CLONED");
         $self->{project}->addBaseData($cloned);
     }
 
@@ -1008,7 +1024,7 @@ sub doExportLabels {
 sub do_export_matrix {
     my $self = shift;
     
-    my $object = $self->{project} -> getSelectedMatrix || return;
+    my $object = $self->{project}->getSelectedMatrix || return;
     Biodiverse::GUI::Export::Run($object);
     
     return;
@@ -1017,12 +1033,11 @@ sub do_export_matrix {
 sub do_export_phylogeny {
     my $self = shift;
     
-    my $object = $self->{project} -> getSelectedPhylogeny || return;
+    my $object = $self->{project}->getSelectedPhylogeny || return;
     Biodiverse::GUI::Export::Run($object);
     
     return;
 }
-
 
 # Saves an object in native format
 sub saveObject {
@@ -1040,9 +1055,9 @@ sub saveObject {
         if (not defined $prefix) {
             $prefix = $filename;
         }
-        $object -> set_param('OUTPFX', $prefix);
+        $object->set_param('OUTPFX', $prefix);
         
-        $object -> save (filename => $filename);
+        $object->save (filename => $filename);
     }
     
     return;
@@ -1149,7 +1164,7 @@ sub doBasedataChanged {
         defined $self->{active_basedata} and 
         $combo->get_model->get_string_from_iter($iter) ne $self->{active_basedata}
         ) {
-        $self->{project} -> selectBaseDataIter( $iter ) if not ($text eq '(none)');
+        $self->{project}->selectBaseDataIter( $iter ) if not ($text eq '(none)');
     }
     
     return;
@@ -1158,7 +1173,7 @@ sub doBasedataChanged {
 sub do_convert_labels_to_phylogeny {
     my $self = shift;
     
-    my $bd = $self->{project} -> getSelectedBaseData;
+    my $bd = $self->{project}->getSelectedBaseData;
     
     return if ! defined $bd;
     
@@ -1182,12 +1197,12 @@ sub do_convert_labels_to_phylogeny {
     my $response = $dlg->run();
     if ($response eq 'ok') {
         my $chosen_name = $txtName->get_text;
-        my $phylogeny = $bd -> to_tree (name => $chosen_name);
-        #$phylogeny -> set_param (NAME => $chosen_name);
+        my $phylogeny = $bd->to_tree (name => $chosen_name);
+        #$phylogeny->set_param (NAME => $chosen_name);
         if (defined $phylogeny) {
             #  now we add it if it is not already in the list
             # otherwise we select it
-            my $phylogenies = $self->{project} -> getPhylogenyList;
+            my $phylogenies = $self->{project}->getPhylogenyList;
             my $in_list = 0;
             foreach my $ph (@$phylogenies) {
                 if ($ph eq $phylogeny) {
@@ -1196,14 +1211,14 @@ sub do_convert_labels_to_phylogeny {
                 }
             }
             if ($in_list) {
-                $self->{project} -> selectPhylogeny ($phylogeny);
+                $self->{project}->selectPhylogeny ($phylogeny);
             }
             else {
-                $self->{project} -> addPhylogeny ($phylogeny, 0);
+                $self->{project}->addPhylogeny ($phylogeny, 0);
             }
         }
     }
-    $dlg -> destroy;
+    $dlg->destroy;
 
     return;
 }
@@ -1211,7 +1226,7 @@ sub do_convert_labels_to_phylogeny {
 sub do_convert_matrix_to_phylogeny {
     my $self = shift;
     
-    my $matrix_ref = $self->{project} -> getSelectedMatrix;
+    my $matrix_ref = $self->{project}->getSelectedMatrix;
     
     if (! defined $matrix_ref) {
         Biodiverse::GUI::YesNoCancel->run({
@@ -1223,12 +1238,12 @@ sub do_convert_matrix_to_phylogeny {
         return 0;
     }
     
-    my $phylogeny = $matrix_ref -> get_param ('AS_TREE');
+    my $phylogeny = $matrix_ref->get_param ('AS_TREE');
     
     my $response = 'no';
     if (defined $phylogeny) {
-        my $mx_name = $matrix_ref -> get_param ('NAME');
-        my $ph_name = $phylogeny -> get_param ('NAME');
+        my $mx_name = $matrix_ref->get_param ('NAME');
+        my $ph_name = $phylogeny->get_param ('NAME');
         $response = Biodiverse::GUI::YesNoCancel->run({
             header  => "$mx_name has already been converted.",
             text    => "Use cached tree $ph_name?"
@@ -1260,33 +1275,33 @@ sub do_convert_matrix_to_phylogeny {
         if ($response eq 'ok') {
             my $chosen_name = $txtName->get_text;
             my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
-            $matrix_ref -> set_param (AS_TREE => undef);  #  clear the previous version
+            $matrix_ref->set_param (AS_TREE => undef);  #  clear the previous version
 
             eval {
-                $phylogeny = $matrix_ref -> to_tree (
+                $phylogeny = $matrix_ref->to_tree (
                     linkage_function => 'link_average',
                     progress => $progress_bar,
                 );
             };
             if ($EVAL_ERROR) {
-                $self -> report_error ($EVAL_ERROR);
+                $self->report_error ($EVAL_ERROR);
                 $dlg->destroy;
-                $progress_bar -> destroy;
+                $progress_bar->destroy;
                 return;
             }
 
-            $phylogeny -> set_param (NAME => $chosen_name);
-            if ($self -> get_param ('CACHE_MATRIX_AS_TREE')) {
-                $matrix_ref -> set_param (AS_TREE => $phylogeny);
+            $phylogeny->set_param (NAME => $chosen_name);
+            if ($self->get_param ('CACHE_MATRIX_AS_TREE')) {
+                $matrix_ref->set_param (AS_TREE => $phylogeny);
             }
-            $progress_bar -> destroy;
+            $progress_bar->destroy;
         }
-        $dlg -> destroy;
+        $dlg->destroy;
     }
     
     #  now we add it if it is not already in the list
     #  otherwise we select it
-    my $phylogenies = $self->{project} -> getPhylogenyList;
+    my $phylogenies = $self->{project}->getPhylogenyList;
     my $in_list = 0;
     foreach my $mx (@$phylogenies) {
         if ($mx eq $phylogeny) {
@@ -1295,10 +1310,10 @@ sub do_convert_matrix_to_phylogeny {
         }
     }
     if ($in_list) {
-        $self->{project} -> selectPhylogeny ($phylogeny);
+        $self->{project}->selectPhylogeny ($phylogeny);
     }
     else {
-        $self->{project} -> addPhylogeny ($phylogeny, 0);
+        $self->{project}->addPhylogeny ($phylogeny, 0);
     }
 
     return;
@@ -1306,7 +1321,7 @@ sub do_convert_matrix_to_phylogeny {
 
 sub do_convert_phylogeny_to_matrix {
     my $self = shift;
-    my $phylogeny = $self->{project} -> getSelectedPhylogeny;
+    my $phylogeny = $self->{project}->getSelectedPhylogeny;
 
     if (! defined $phylogeny ) {
         Biodiverse::GUI::YesNoCancel->run(
@@ -1320,11 +1335,11 @@ sub do_convert_phylogeny_to_matrix {
         return 0;
     }
 
-    my $matrix_ref = $phylogeny -> get_param ('AS_MX');
+    my $matrix_ref = $phylogeny->get_param ('AS_MX');
     my $response = 'no';
     if (defined $matrix_ref) {
-        my $mx_name = $matrix_ref -> get_param ('NAME');
-        my $ph_name = $phylogeny -> get_param ('NAME');
+        my $mx_name = $matrix_ref->get_param ('NAME');
+        my $ph_name = $phylogeny->get_param ('NAME');
         $response = Biodiverse::GUI::YesNoCancel->run(
             {
                 header  => "$ph_name has already been converted",
@@ -1359,17 +1374,17 @@ sub do_convert_phylogeny_to_matrix {
             $dlg->destroy;
 
             eval {
-                $matrix_ref = $phylogeny -> to_matrix (
+                $matrix_ref = $phylogeny->to_matrix (
                         name => $chosen_name,
                 );
             };
             if ($EVAL_ERROR) {
-                $self -> report_error ($EVAL_ERROR);
+                $self->report_error ($EVAL_ERROR);
                 return;
             }
 
-            if ($phylogeny -> get_param ('CACHE_TREE_AS_MATRIX')) {
-                $phylogeny -> set_param (AS_MX => $matrix_ref);
+            if ($phylogeny->get_param ('CACHE_TREE_AS_MATRIX')) {
+                $phylogeny->set_param (AS_MX => $matrix_ref);
             }
 
         }
@@ -1377,7 +1392,7 @@ sub do_convert_phylogeny_to_matrix {
     
     #  now we add it if it is not already in the list
     #  otherwise we select it
-    my $matrices = $self->{project} -> getMatrixList;
+    my $matrices = $self->{project}->getMatrixList;
     my $in_list = 0;
     foreach my $mx (@$matrices) {
         if ($mx eq $matrix_ref) {
@@ -1386,10 +1401,10 @@ sub do_convert_phylogeny_to_matrix {
         }
     }
     if ($in_list) {
-        $self->{project} -> selectMatrix ($matrix_ref);
+        $self->{project}->selectMatrix ($matrix_ref);
     }
     else {
-        $self->{project} -> addMatrix ($matrix_ref, 0);
+        $self->{project}->addMatrix ($matrix_ref, 0);
     }
 
     return;
@@ -1397,8 +1412,8 @@ sub do_convert_phylogeny_to_matrix {
 
 sub do_trim_tree_to_basedata {
     my $self = shift;
-    my $phylogeny = $self->{project} -> getSelectedPhylogeny;
-    my $bd = $self->{project} -> getSelectedBaseData || return 0;
+    my $phylogeny = $self->{project}->getSelectedPhylogeny;
+    my $bd = $self->{project}->getSelectedBaseData || return 0;
     
     if (! defined $phylogeny) {
         Biodiverse::GUI::YesNoCancel->run({
@@ -1436,18 +1451,18 @@ sub do_trim_tree_to_basedata {
     if ($response eq 'ok') {
         my $chosen_name = $txtName->get_text;
         #my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
-        $new_tree = $phylogeny -> clone;
-        $new_tree -> trim (keep => scalar $bd -> get_labels);
-        $new_tree -> set_param (NAME => $chosen_name);
-        #$progress_bar -> destroy;
+        $new_tree = $phylogeny->clone;
+        $new_tree->trim (keep => scalar $bd->get_labels);
+        $new_tree->set_param (NAME => $chosen_name);
+        #$progress_bar->destroy;
     }
-    $dlg -> destroy;
+    $dlg->destroy;
 
     return if ! defined $new_tree;  #  they chickened out
     
     #  now we add it if it is not already in the list
     #  otherwise we select it
-    my $phylogenies = $self->{project} -> getPhylogenyList;
+    my $phylogenies = $self->{project}->getPhylogenyList;
     my $in_list = 0;
     foreach my $ph (@$phylogenies) {
         if ($new_tree eq $phylogeny) {
@@ -1456,10 +1471,10 @@ sub do_trim_tree_to_basedata {
         }
     }
     if ($in_list) {
-        $self->{project} -> selectPhylogeny ($new_tree);
+        $self->{project}->selectPhylogeny ($new_tree);
     }
     else {
-        $self->{project} -> addPhylogeny ($new_tree, 0);
+        $self->{project}->addPhylogeny ($new_tree, 0);
     }
 
     return;
@@ -1472,7 +1487,7 @@ sub do_basedata_extract_embedded_trees {
     
     return if !defined $bd;
     
-    my @objects = $bd -> get_embedded_trees;
+    my @objects = $bd->get_embedded_trees;
 
     foreach my $object (@objects) {
         $self->doOpenPhylogeny($object);
@@ -1488,7 +1503,7 @@ sub do_basedata_extract_embedded_matrices {
     
     return if !defined $bd;
     
-    my @objects = $bd -> get_embedded_matrices;
+    my @objects = $bd->get_embedded_matrices;
     
     foreach my $object (@objects) {
         $self->doOpenMatrix($object);
@@ -1532,29 +1547,29 @@ sub do_trim_basedata {
     my %args = @_;
     
     my %results = eval {
-        $bd -> trim ($args{option} => $data);
+        $bd->trim ($args{option} => $data);
     };
     if ($EVAL_ERROR) {
-        $self -> report_error ($EVAL_ERROR);
+        $self->report_error ($EVAL_ERROR);
         return;
     }
 
     my $label_count = $bd->get_label_count;
     my $group_count = $bd->get_group_count;
-    my $name = $bd -> get_param('NAME');
+    my $name = $bd->get_param('NAME');
 
     my $text = "Deleted $results{DELETE_COUNT} labels"
              . " from $results{DELETE_SUB_COUNT} groups. "
              . "$name has $label_count labels remaining across "
              . "$group_count groups.\n";
 
-    $self -> report_error (
+    $self->report_error (
         $text,
         'Trim results',
     );
 
     if ($results{DELETE_COUNT}) {
-        $self->{project}->setDirty();
+        $self->set_dirty();
     }
 
     return;
@@ -1689,12 +1704,12 @@ sub delete_index {
     my $bd = shift
         || $self->{project}->getSelectedBaseData;
     
-    my $result = $bd -> delete_spatial_index;
+    my $result = $bd->delete_spatial_index;
 
-    my $name = $bd -> get_param ('NAME');
+    my $name = $bd->get_param ('NAME');
 
     if ($result) {
-        $self->{project}->setDirty();
+        $self->set_dirty();
         $self->report_error (
             "BaseData $name: Spatial index deleted\n",
             q{},
@@ -1724,10 +1739,10 @@ sub showIndexDialog {
     my @cellsize_array = @$cellsizes;  #  make a copy
 
     #  get the current index
-    my $used_index = $bd -> get_param('SPATIAL_INDEX');
+    my $used_index = $bd->get_param('SPATIAL_INDEX');
     my @resolutions;
     if ($used_index) {
-        my $res_array = $used_index -> get_param('RESOLUTIONS');
+        my $res_array = $used_index->get_param('RESOLUTIONS');
         @resolutions = @$res_array;
     }
 
@@ -1737,18 +1752,18 @@ sub showIndexDialog {
     my $tooltip_group = Gtk2::Tooltips->new;
     my $table = $dlgxml->get_widget('tableImportParameters');
 
-    #my $window = Gtk2::Window -> new;
-    #$window -> set_title ('Set index sizes xxxx');
-    #$window -> set_resizable (1);
-    #$window -> set_modal (1);
-    ##$window -> set_position ('GTK_WIN_POS_CENTER_ON_PARENT');
-    #$window -> set_transient_for ( $gui->getWidget('wndMain') );
+    #my $window = Gtk2::Window->new;
+    #$window->set_title ('Set index sizes xxxx');
+    #$window->set_resizable (1);
+    #$window->set_modal (1);
+    ##$window->set_position ('GTK_WIN_POS_CENTER_ON_PARENT');
+    #$window->set_transient_for ( $gui->getWidget('wndMain') );
     #my $table = Gtk2::Table->new (1,2);
     #$table->set_col_spacings (3);
     #$table->set_row_spacings (3);
-    #$window -> add ($table);
+    #$window->add ($table);
 
-    #$table -> set_homogeneous (0);
+    #$table->set_homogeneous (0);
 
     my $dlg = $dlgxml->get_widget('dlgImportParameters');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
@@ -1856,7 +1871,7 @@ sub showIndexDialog {
         $tooltip_group->set_tip($label,  $tip_text, undef);
 
         if ($is_text_axis) {
-            $widget -> set_sensitive (0); 
+            $widget->set_sensitive (0); 
         }
 
         $label->show;
@@ -1865,11 +1880,11 @@ sub showIndexDialog {
         $i++;
     }
 
-    $incr_button -> signal_connect (
+    $incr_button->signal_connect (
         clicked => \&on_index_dlg_change_all,
         [1, undef, \@resolution_widgets],
     );
-    $decr_button -> signal_connect (
+    $decr_button->signal_connect (
         clicked => \&on_index_dlg_change_all,
         [0, undef, \@resolution_widgets],
     );
@@ -1877,7 +1892,7 @@ sub showIndexDialog {
     # Show the dialog
     $dlg->show_all();
     
-    #$window -> show_all;
+    #$window->show_all;
 
     #  a kludge until we build the window and table ourselves
     $dlgxml->get_widget('ImportParametersLabel')->hide;
@@ -1894,13 +1909,13 @@ sub showIndexDialog {
     #my $use_index = $check_box->get_active;
     #if (! $use_index) {
     #    $self->report_error ('Spatial index deleted', q{});
-    #    $bd -> delete_spatial_index;
+    #    $bd->delete_spatial_index;
     #}
     #else {
         #  need to harvest all the widget values
         my @widget_values;
         foreach my $widget (@resolution_widgets) {
-            push @widget_values, $widget -> get_value;
+            push @widget_values, $widget->get_value;
         }
 
         my $join_text = q{, };
@@ -1915,13 +1930,13 @@ sub showIndexDialog {
                 . 'new data since it was last built';
         }
         else {
-            $bd -> build_spatial_index (resolutions => [@widget_values]);
+            $bd->build_spatial_index (resolutions => [@widget_values]);
             $feedback = "Spatial index built using resolutions:\n"
                         . $new_res_text;
         }
         
         print "[GUI] $feedback\n";
-        Biodiverse::GUI::YesNoCancel -> run({
+        Biodiverse::GUI::YesNoCancel->run({
                 text  => $feedback,
                 title => 'Feedback',
                 hide_yes    => 0,
@@ -1945,7 +1960,7 @@ sub on_index_dlg_change_all {
     my $widgets     = $args_array->[2];
 
     #  activate the checkbox    
-    #$check_box -> set_active (1);
+    #$check_box->set_active (1);
     
     #  and update the spinboxes
     foreach my $widget (@$widgets) {
@@ -1954,7 +1969,7 @@ sub on_index_dlg_change_all {
         my $value = $incr
             ? $widget->get_value + $increment
             : $widget->get_value - $increment;
-        $widget -> set_value ($value);
+        $widget->set_value ($value);
     }
     
     return;
@@ -1965,29 +1980,29 @@ sub showIndexDialog_orig {
 
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgIndex');
     my $dlg = $dlgxml->get_widget('dlgIndex');
-    $dlg -> set_transient_for( $self->getWidget('wndMain') );
-    $dlg -> set_modal(1);
+    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_modal(1);
         
     # set existing settings
     my $base_ref = $self->getProject->getSelectedBaseData();
     return if not defined $base_ref;
     
-    my $cell_sizes = $base_ref -> get_param ('CELL_SIZES');
+    my $cell_sizes = $base_ref->get_param ('CELL_SIZES');
 
-    my $used_index = $base_ref -> get_param('SPATIAL_INDEX');
-    $dlgxml -> get_widget('chkIndex') -> set_active ($used_index);
-    my $spin = $dlgxml -> get_widget ('spinContains');
-    #my $step, $page) = $spin -> get_increments;
+    my $used_index = $base_ref->get_param('SPATIAL_INDEX');
+    $dlgxml->get_widget('chkIndex')->set_active ($used_index);
+    my $spin = $dlgxml->get_widget ('spinContains');
+    #my $step, $page) = $spin->get_increments;
     if ($used_index) {
-        my $resolutions = $used_index -> get_param('RESOLUTIONS');
+        my $resolutions = $used_index->get_param('RESOLUTIONS');
         $spin->set_value ($resolutions->[0]);
         $spin->set_increments ($resolutions->[0], $resolutions->[0]*10);
     }
     else {
         #  default is zero for non-numeric axes
         my $cell1 = $cell_sizes->[0];
-        $spin -> set_value ($cell1 >= 0 ? $cell1 : 0);
-        $spin -> set_increments( abs($cell1), abs($cell1*10));
+        $spin->set_value ($cell1 >= 0 ? $cell1 : 0);
+        $spin->set_increments( abs($cell1), abs($cell1*10));
     }
 
     my $response = $dlg->run();
@@ -1996,8 +2011,8 @@ sub showIndexDialog_orig {
         my $use_index = $dlgxml->get_widget('chkIndex')->get_active();
         if ($use_index) {
 
-            #my $resolution = $dlgxml->get_widget('spinContains') -> get_value_as_int;
-            my $resolution = $dlgxml->get_widget('spinContains') -> get_value;
+            #my $resolution = $dlgxml->get_widget('spinContains')->get_value_as_int;
+            my $resolution = $dlgxml->get_widget('spinContains')->get_value;
             
             #  repeat the resolution for all cell sizes until the widget has more spinners
             my @resolutions = ($resolution) x scalar @$cell_sizes;
@@ -2007,11 +2022,11 @@ sub showIndexDialog_orig {
                 $resolutions[$i] = 0 if $cell_sizes->[$i] < 0;
             }
             
-            $base_ref -> build_spatial_index (resolutions => [@resolutions]);
+            $base_ref->build_spatial_index (resolutions => [@resolutions]);
         }
         else {
             print "[GUI] Index deleted\n";
-            $base_ref -> delete_spatial_index;
+            $base_ref->delete_spatial_index;
         }
         
     }
@@ -2037,7 +2052,7 @@ sub doRunExclusions {
         my $text = "Cannot run exclusions on a BaseData object with existing outputs\n"
                  . "Either delete the outputs or use 'File->Duplicate without outputs'"
                  . " to create a new object\n";
-        $self -> report_error ($text);
+        $self->report_error ($text);
         return;
     }
 
@@ -2065,7 +2080,7 @@ sub doRunExclusions {
         $dlg->run;
         $dlg->destroy;
 
-        $self->{project}->setDirty();
+        $self->set_dirty();
     }
 
     return;
@@ -2130,8 +2145,8 @@ sub do_set_working_directory {
     my $initial_dir = shift;
     
     my $dlg = Gtk2::FileChooserDialog->new($title, undef, "open", "gtk-cancel", "cancel", "gtk-ok", 'ok');
-    $dlg -> set_action ('select-folder');
-    $dlg -> set_current_folder($initial_dir) if $initial_dir;
+    $dlg->set_action ('select-folder');
+    $dlg->set_current_folder($initial_dir) if $initial_dir;
     
     my $dir;
     if ($dlg->run() eq 'ok') {
@@ -2139,7 +2154,7 @@ sub do_set_working_directory {
         print "[GUIMANAGER] Setting working directory to be $dir\n";
         chdir ($dir);
     }
-    $dlg -> destroy;
+    $dlg->destroy;
     
     return $dir;
 }
@@ -2169,7 +2184,7 @@ sub report_error {
 
     #  and now strip out message from the error class
     if (blessed $error) {
-        $error = $error -> message;
+        $error = $error->message;
     }
     my @error_array = $use_all_text
         ? $error
@@ -2201,7 +2216,7 @@ sub report_error {
         clicked => \&on_report_error_show_hide,
         $extra_text_widget,
     );
-    $check_button -> set_active (0);
+    $check_button->set_active (0);
 
     my $details_box = Gtk2::VBox->new(1, 6);
     $details_box->pack_start(Gtk2::HSeparator->new(), 0, 0, 0);
@@ -2247,7 +2262,7 @@ sub warn_outputs_exist_if_randomisation_run {
                 . 'Continue?'
                 ;
 
-    my $response = Biodiverse::GUI::YesNoCancel -> run (
+    my $response = Biodiverse::GUI::YesNoCancel->run (
         {text        => $warning,
          header      => $header,
          title       => 'WARNING',

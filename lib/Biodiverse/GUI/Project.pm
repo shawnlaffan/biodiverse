@@ -1187,7 +1187,7 @@ sub manageEmptyModel {
 
         $model = Gtk2::ListStore->new('Glib::String');
         $iter = $model->append;
-        $model->set($iter, 0, "(none)");
+        $model->set($iter, 0, '(none)');
 
         # Select it
         eval 'Biodiverse::GUI::GUIManager->instance->set' . $func .'Model($model)';
@@ -1316,6 +1316,7 @@ sub setPhylogenyButtons {
                 menu_convert_phylogeny_to_matrix
                 menu_trim_tree_to_basedata
                 menu_phylogeny_export
+                menu_phylogeny_delete_cached_values
                 /) {
         $instance->getWidget($_)->set_sensitive($sensitive);
     }

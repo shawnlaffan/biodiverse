@@ -282,7 +282,10 @@ my %data_funcs = (
     },
     on_phylogeny_export => {
         METHOD => 'do_export_phylogeny',
-    },    
+    },
+    on_phylogeny_delete_cached_values => {
+        METHOD => 'do_phylogeny_delete_cached_values',
+    },
 );
 
 __PACKAGE__->_make_callbacks( %data_funcs );

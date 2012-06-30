@@ -191,7 +191,7 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
     my $tree_ref = $args{tree_ref};
     my $richness = $args{ABC};
 
-    my $nodes_in_path = $self->get_paths_to_root_node (
+    my $nodes_in_path = $self->get_path_lengths_to_root_node (
         @_,
         labels => $args{label_hash_all},
     );
@@ -232,11 +232,11 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
 }
 
 
-#  get_paths_to_root_node is not designed as a precalc, so this is essentially redundant?
-sub get_metadata_get_paths_to_root_node {
+#  get_path_lengths_to_root_node is not designed as a precalc, so this is essentially redundant?
+sub get_metadata_get_path_lengths_to_root_node {
 
     my %arguments = (
-        description    => 'Get the paths to the root node of a tree for a set of labels.',
+        description    => 'Get the path lengths to the root node of a tree for a set of labels.',
         uses_nbr_lists => 1,  #  how many lists it must have
     );
 
@@ -247,7 +247,7 @@ sub get_metadata_get_paths_to_root_node {
 #  get the paths to the root node of a tree for a set of labels
 #  saves duplication of code in PD and PE subs
 #  NEEDS TO BE MOVED INTO THE TREE PACKAGES?
-sub get_paths_to_root_node {
+sub get_path_lengths_to_root_node {
     my $self = shift;
     my %args = (return_lengths => 1, @_);
 
@@ -260,22 +260,14 @@ sub get_paths_to_root_node {
     #create a hash of terminal nodes for the taxa present
     my $all_nodes = $tree_ref->get_node_hash;
     
-    my $root_node = $tree_ref->get_tree_ref;  # hmmm.  confusing mix of methods and vars
-
     #  now loop through the labels and get the path to the root node
     my %path;
     foreach my $label (sort keys %$label_list) {
         next if not exists $all_nodes->{$label};
 
         my $current_node = $all_nodes->{$label};
-        my $current_name = $current_node->get_name;
 
-        $path{$current_name} = $current_node->get_length;  #  include oneself
-
-        my $sub_path = $current_node->get_path_to_node (
-            node           => $root_node,
-            return_lengths => $return_lengths,
-        );
+        my $sub_path = $current_node->get_path_lengths_to_root_node;
         @path{keys %$sub_path} = values %$sub_path;
     }
 
@@ -472,7 +464,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         #  else build them and cache them
         else {
             my $labels = $bd->get_labels_in_group_as_hash (group => $group);
-            my $nodes_in_path = $self->get_paths_to_root_node (
+            my $nodes_in_path = $self->get_path_lengths_to_root_node (
                 @_,
                 labels => $labels,
             );
@@ -625,7 +617,7 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
     print "[PD INDICES] Progress (% of $toDo nodes): ";
 
     my $progress = int (100 * $count / $toDo);
-    $progress_bar -> update(
+    $progress_bar->update(
         "Calculating node ranges\n($progress)",
         $progress,
     );
@@ -711,7 +703,7 @@ sub get_global_node_abundance_hash {
     my $count = 0;
 
     my $progress = int (100 * $count / $toDo);
-    $progress_bar -> update(
+    $progress_bar->update(
         "Calculating node abundances\n($progress)",
         $progress,
     );
@@ -728,7 +720,7 @@ sub get_global_node_abundance_hash {
 
         $count ++;
         my $progress = $count / $toDo;
-        $progress_bar -> update(
+        $progress_bar->update(
             "Calculating node abundances\n($progress)",
             $progress,
         );
@@ -775,8 +767,8 @@ sub get_trimmed_tree { # create a copy of the current tree, including only those
     my $bd = $self->get_basedata_ref;
 
     #  keep only those that match the basedata object
-    my $trimmed_tree = $args{tree_ref} -> clone;
-    $trimmed_tree -> trim (keep => scalar $bd -> get_labels);
+    my $trimmed_tree = $args{tree_ref}->clone;
+    $trimmed_tree->trim (keep => scalar $bd->get_labels);
 
     my %results = (trimmed_tree => $trimmed_tree);
 
@@ -937,7 +929,7 @@ sub _calc_taxonomic_distinctness {
         #  save some calcs (if ever this happens)
         next BY_LABEL if $label_count1 == 0;
 
-        my $node = $tree -> get_node_ref (node => $label);
+        my $node = $tree->get_node_ref (node => $label);
 
         LABEL2:
         foreach my $label2 (@labels) {
@@ -1360,12 +1352,13 @@ sub get_metadata_calc_phylo_abc {
 
 sub calc_phylo_abc {
     my $self = shift;
-        my %args = @_;
+    my %args = @_;
 
-    return $self -> _calc_phylo_abc(@_);
+    return $self->_calc_phylo_abc(@_);
 }
 
-
+#  Need to add a caching system for when it is building a matrix
+#  - should really speed things up
 sub _calc_phylo_abc {
     my $self = shift;
     my %args = @_;
@@ -1377,13 +1370,13 @@ sub _calc_phylo_abc {
 
     my $tree = $args{trimmed_tree};
     
-    my $nodes_in_path1 = $self->get_paths_to_root_node (
+    my $nodes_in_path1 = $self->get_path_lengths_to_root_node (
         @_,
         labels   => $label_hash1,
         tree_ref => $tree
     );
     
-    my $nodes_in_path2 = $self->get_paths_to_root_node (
+    my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
         @_,
         labels   => $label_hash2,
         tree_ref => $tree
@@ -1395,25 +1388,16 @@ sub _calc_phylo_abc {
     # then get length of B
     my %B = %A;
     delete @B{keys %$nodes_in_path2};
-    #foreach my $length (values %B) {
-    #    $phylo_B += $length;
-    #};
     $phylo_B = sum 0, values %B;
 
     # create a new hash %C for nodes in label hash 2 but not 1
     # then get length of C
     my %C = %A;
     delete @C{keys %$nodes_in_path1};
-    #foreach my $length (values %C) {
-    #    $phylo_C += $length;
-    #};
     $phylo_C = sum 0, values %C;
 
     # get length of %A = branches not in %B or %C
     delete @A{keys %B, keys %C};
-    #foreach my $length (values %A) {
-    #    $phylo_A += $length;
-    #};
     $phylo_A = sum 0, values %A;
 
     $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
@@ -1678,7 +1662,7 @@ sub get_node_abundances_local {
     my %ed_product_hash;
     
     while (my ($label, $count) = each %$label_hash) {
-        my $nodes_in_path = $self->get_paths_to_root_node (
+        my $nodes_in_path = $self->get_path_lengths_to_root_node (
             @_,
             labels => {$label => $count},
         );

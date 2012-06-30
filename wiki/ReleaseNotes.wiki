@@ -9,7 +9,7 @@ This version is in development.
 Main changes since the previous version (0.16) are:
 
   *  GUI
-    * Shapefiles are selected as soon as they are opened.  This ensures they are plotted by default.  Issue #293
+    * Shapefile overlays are selected as soon as they are opened.  This ensures they are plotted by default.  Issue #293
     * View labels: numeric label data sets are sorted numerically.  Issue #260 
   *  Analyses
     *  Calculations for cluster nodes can now be done after the event.  The system no longer needs to completely rebuild the tree.  Issue #289

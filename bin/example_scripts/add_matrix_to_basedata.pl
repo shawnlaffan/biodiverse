@@ -50,39 +50,48 @@ my $index     = $rest_of_args{metric}  || 'SORENSON';
 my $sp_cond_f = $rest_of_args{sp_cond};
 my $def_q_f   = $rest_of_args{def_q};
 
+use Test::LeakTrace;
 
-print "Loading basedata $bd_file\n";
-my $bd = eval {
-    Biodiverse::BaseData->new(file => $bd_file);
-};
-croak $EVAL_ERROR if $EVAL_ERROR;
+leaktrace {
+    &process();
+} -verbose;
 
-
-my ($sp_cond, $def_q);
-if ($sp_cond_f) {
-    open (my $sp_cond_fh, '<', $sp_cond_f)
-      or croak "Cannot open spatial conditions file $sp_cond_f";
-    local $/ = undef;
-    $sp_cond = <$sp_cond_fh>;
-}
-if ($def_q_f) {
-    open (my $def_q_fh, '<', $def_q_f)
-      or croak "Cannot open definition query file $def_q_f";
-    local $/ = undef;
-    $def_q = <$def_q_fh>;
-}
-
-$rest_of_args{tree_ref}   = load_tree (%rest_of_args);
-$rest_of_args{matrix_ref} = load_matrix (%rest_of_args);
-
-print "Building matrix\n";
-build_matrix($bd, $name, $sp_cond, $def_q, %rest_of_args);
-
-$bd->save (filename => $bd_file);
-
-undef $bd;
 
 exit;
+
+sub process {
+    print "...In process() sub\n";
+    print "Loading basedata $bd_file\n";
+    my $bd = eval {
+        Biodiverse::BaseData->new(file => $bd_file);
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+    
+    
+    my ($sp_cond, $def_q);
+    if ($sp_cond_f) {
+        open (my $sp_cond_fh, '<', $sp_cond_f)
+          or croak "Cannot open spatial conditions file $sp_cond_f";
+        local $/ = undef;
+        $sp_cond = <$sp_cond_fh>;
+    }
+    if ($def_q_f) {
+        open (my $def_q_fh, '<', $def_q_f)
+          or croak "Cannot open definition query file $def_q_f";
+        local $/ = undef;
+        $def_q = <$def_q_fh>;
+    }
+    
+    $rest_of_args{tree_ref}   = load_tree (%rest_of_args);
+    $rest_of_args{matrix_ref} = load_matrix (%rest_of_args);
+    
+    print "Building matrix\n";
+    build_matrix($bd, $name, $sp_cond, $def_q, %rest_of_args);
+    
+    $bd->save (filename => $bd_file);
+    
+    undef $bd;
+}
 
 
 sub build_matrix {

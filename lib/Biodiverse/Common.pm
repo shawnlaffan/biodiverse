@@ -1018,7 +1018,7 @@ sub csv2list {  #  return a list of values from a csv string
     if (! defined $csv_obj
         || (blessed $csv_obj) !~ /Text::CSV_XS/
         ) {
-        $csv_obj = $self -> get_csv_object (@_);
+        $csv_obj = $self->get_csv_object (%args);
     }
     my $string = $args{string};
     $string = $$string if ref $string;
@@ -1640,7 +1640,7 @@ sub get_args {
     #  use an eval to trap subs that don't allow the get_args option
     if (blessed $self) {
         if ($self->can ($metadata_sub)) {
-            $sub_args = eval {$self -> $metadata_sub (@_)};
+            $sub_args = eval {$self->$metadata_sub (%args)};
         }
         elsif ($self->can ($sub)) {  #  don't allow for error prone old system
             croak "Metadata sub $metadata_sub does not exist\n";

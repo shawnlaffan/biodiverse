@@ -124,7 +124,7 @@ $descr = 'load, save, load, run, delete';
 diag ($descr);
 SKIP:
 {
-    skip "skipping $descr, it takes too long", 1;
+    skip "skipping $descr, it takes too long", 1;  # need to use a smaller file
 
     no_leaks_ok {
 

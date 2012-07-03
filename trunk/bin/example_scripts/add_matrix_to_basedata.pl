@@ -10,6 +10,7 @@ use File::Spec;
 
 use File::Basename;
 
+#  fragile - does not allow for file moves
 use lib File::Spec->catfile( $Bin, '..', '..', 'lib');
 
 
@@ -49,6 +50,8 @@ my $index     = $rest_of_args{metric}  || 'SORENSON';
 my $sp_cond_f = $rest_of_args{sp_cond};
 my $def_q_f   = $rest_of_args{def_q};
 
+
+print "Loading basedata $bd_file\n";
 my $bd = eval {
     Biodiverse::BaseData->new(file => $bd_file);
 };
@@ -72,10 +75,14 @@ if ($def_q_f) {
 $rest_of_args{tree_ref}   = load_tree (%rest_of_args);
 $rest_of_args{matrix_ref} = load_matrix (%rest_of_args);
 
+print "Building matrix\n";
 build_matrix($bd, $name, $sp_cond, $def_q, %rest_of_args);
 
 $bd->save (filename => $bd_file);
 
+undef $bd;
+
+exit;
 
 
 sub build_matrix {
@@ -98,7 +105,7 @@ sub build_matrix {
     );
 
     #print {$ofh} "FROM,TO,$index\n";
-
+    print "Building matrix elements\n";
     my $matrices = eval {
         $clus->build_matrices (
             %args,

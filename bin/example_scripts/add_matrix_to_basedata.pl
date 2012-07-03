@@ -10,8 +10,8 @@ use File::Spec;
 
 use File::Basename;
 
-use lib File::Spec->catfile( $Bin, '..', 'lib');
-eval 'use mylib';
+use lib File::Spec->catfile( $Bin, '..', '..', 'lib');
+
 
 use Biodiverse::BaseData;
 use Biodiverse::Common;
@@ -99,15 +99,16 @@ sub build_matrix {
 
     #print {$ofh} "FROM,TO,$index\n";
 
-    my $success = eval {
-        $clus-> build_matrices (
+    my $matrices = eval {
+        $clus->build_matrices (
             %args,
             flatten_tree => 1,
-            no_cache_abc => $no_cache_abc,
             build_matrices_only => 1,
         );
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
+
+    $clus->add_matrices_to_basedata(matrices => $matrices);
 
     return;
 }

@@ -1585,6 +1585,7 @@ sub trim {
     }
 
     $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up
+    $self->delete_cached_values_below;
 
     return $self;
 }

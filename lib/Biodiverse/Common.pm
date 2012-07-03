@@ -98,10 +98,9 @@ sub load_file {
       if !-r $args{file};
 
     my $object;
-    #foreach my $type (qw /storable yaml xml/) {
     foreach my $type (qw /storable yaml/) {
         my $func = "load_$type\_file";
-        $object = eval {$self -> $func (%args)};
+        $object = eval {$self->$func (%args)};
         #croak $EVAL_ERROR if $EVAL_ERROR;
         #warn $@ if $@;
         last if defined $object;

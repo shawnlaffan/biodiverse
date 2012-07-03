@@ -176,7 +176,7 @@ sub set_name {
 
 sub get_name {
     my $self = shift;
-    my %args = @_;
+    #my %args = @_;
     croak "name parameter missing\n" if not exists ($self->{NODE_VALUES}{NAME});
     return $self->{NODE_VALUES}{NAME};
 }
@@ -801,10 +801,6 @@ sub get_path_lengths_to_root_node {
     }
 
     my %path_lengths;
-    #my $path_array = $self->get_path_to_root_node;  #  why call this when we can climb up ourselves?  
-    #foreach my $node (@$path_array) {
-    #    $path_lengths{$node->get_name} = $node->get_length;
-    #}
     my $node = $self;
     while ($node) {  #  undef when root node
         $path_lengths{$node->get_name} = $node->get_length;

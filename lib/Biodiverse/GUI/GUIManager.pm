@@ -320,7 +320,7 @@ sub open {
     
     if ($self->closeProject()) {
         print "[GUI] Loading Biodiverse data from $filename...\n";
-        
+
         #  using generalised load method
         $object = $self->{project} = eval {
             Biodiverse::GUI::Project->new (file => $filename)

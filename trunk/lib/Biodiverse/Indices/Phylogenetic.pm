@@ -222,7 +222,7 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
         PD_P              => $PD_P,
         PD_per_taxon      => $PD_per_taxon,
         PD_P_per_taxon    => $PD_P_per_taxon,
-        
+
         PD_INCLUDED_NODE_LIST => \%included_nodes,
     );
 
@@ -231,18 +231,37 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
             : \%results;
 }
 
+sub get_metadata_get_path_length_cache {
+    my $self = shift;
+
+    my %metadata = (
+        description     => 'Cache for path lengths.',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub get_path_length_cache {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = (path_length_cache => {});
+
+    return wantarray ? %results : \%results;
+}
 
 #  get_path_lengths_to_root_node is not designed as a precalc, so this is essentially redundant?
 sub get_metadata_get_path_lengths_to_root_node {
 
     my %arguments = (
-        description    => 'Get the path lengths to the root node of a tree for a set of labels.',
-        uses_nbr_lists => 1,  #  how many lists it must have
+        description     => 'Get the path lengths to the root node of a tree for a set of labels.',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        pre_calc_global => 'get_path_length_cache',
     );
 
     return wantarray ? %arguments : \%arguments;
 }
-
 
 #  get the paths to the root node of a tree for a set of labels
 #  saves duplication of code in PD and PE subs
@@ -251,11 +270,23 @@ sub get_path_lengths_to_root_node {
     my $self = shift;
     my %args = (return_lengths => 1, @_);
 
+    my $cache = !$args{no_cache};
+    #$cache = 0;  #  turn it off for debug
+    
+    #  have we cached it?
+    my $use_path_cache = $cache && $self->get_param('BUILDING_MATRIX');
+    if ($use_path_cache) {
+        my $cache   = $args{path_length_cache};
+        my @el_list = keys %{$args{el_list}};
+        my $path = $cache->{$el_list[0]};
+        return (wantarray ? %$path : $path) if ($path);
+    }
+
     my $label_list = $args{labels};
     my $tree_ref   = $args{tree_ref}
       or croak "argument tree_ref is not defined\n";
 
-    my $return_lengths = $args{return_lengths};
+    #my $return_lengths = $args{return_lengths};
 
     #create a hash of terminal nodes for the taxa present
     my $all_nodes = $tree_ref->get_node_hash;
@@ -267,8 +298,14 @@ sub get_path_lengths_to_root_node {
 
         my $current_node = $all_nodes->{$label};
 
-        my $sub_path = $current_node->get_path_lengths_to_root_node;
+        my $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
         @path{keys %$sub_path} = values %$sub_path;
+    }
+
+    if ($use_path_cache) {
+        my $cache_h = $args{path_length_cache};
+        my @el_list = keys %{$args{el_list}};
+        $cache_h->{$el_list[0]} = \%path;
     }
 
     return wantarray ? %path : \%path;
@@ -769,6 +806,8 @@ sub get_trimmed_tree { # create a copy of the current tree, including only those
     #  keep only those that match the basedata object
     my $trimmed_tree = $args{tree_ref}->clone;
     $trimmed_tree->trim (keep => scalar $bd->get_labels);
+    my $name = $trimmed_tree->get_param('NAME');
+    $trimmed_tree->rename(new_name => $name . ' trimmed');
 
     my %results = (trimmed_tree => $trimmed_tree);
 
@@ -1324,7 +1363,7 @@ sub get_metadata_calc_phylo_abc {
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
         type            =>  'Phylogenetic Indices',
         pre_calc        =>  'calc_abc',
-        pre_calc_global =>  'get_trimmed_tree',
+        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
         required_args   => {tree_ref => 1},
         indices         => {
@@ -1357,6 +1396,14 @@ sub calc_phylo_abc {
     return $self->_calc_phylo_abc(@_);
 }
 
+sub sum {
+    my $sum = 0;
+    foreach my $val (@_) {
+        $sum += $val;
+    }
+    return $sum;
+}
+
 #  Need to add a caching system for when it is building a matrix
 #  - should really speed things up
 sub _calc_phylo_abc {
@@ -1369,36 +1416,38 @@ sub _calc_phylo_abc {
     my ($phylo_A, $phylo_B, $phylo_C, $phylo_ABC)= (0, 0, 0, 0);    
 
     my $tree = $args{trimmed_tree};
-    
+
     my $nodes_in_path1 = $self->get_path_lengths_to_root_node (
         @_,
         labels   => $label_hash1,
-        tree_ref => $tree
+        tree_ref => $tree,
+        el_list  => $args{element_list1},
     );
-    
+
     my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
         @_,
         labels   => $label_hash2,
-        tree_ref => $tree
+        tree_ref => $tree,
+        el_list  => $args{element_list2},
     );
-    
+
     my %A = (%$nodes_in_path1, %$nodes_in_path2); 
 
     # create a new hash %B for nodes in label hash 1 but not 2
     # then get length of B
     my %B = %A;
     delete @B{keys %$nodes_in_path2};
-    $phylo_B = sum 0, values %B;
+    $phylo_B = sum (0, values %B);
 
     # create a new hash %C for nodes in label hash 2 but not 1
     # then get length of C
     my %C = %A;
     delete @C{keys %$nodes_in_path1};
-    $phylo_C = sum 0, values %C;
+    $phylo_C = sum (0, values %C);
 
     # get length of %A = branches not in %B or %C
     delete @A{keys %B, keys %C};
-    $phylo_A = sum 0, values %A;
+    $phylo_A = sum (0, values %A);
 
     $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
 

@@ -166,10 +166,12 @@ sub build_matrices {
 
     my $start_time = time;
 
-
     my $bd = $self->get_param ('BASEDATA_REF');
 
-    my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+    my $indices_object = Biodiverse::Indices->new(
+        BASEDATA_REF    => $bd,
+        BUILDING_MATRIX => 1,
+    );
     $self->set_param (INDICES_OBJECT => $indices_object);
 
     my $index = $args{index} || $self->get_default_cluster_index;

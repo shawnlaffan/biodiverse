@@ -157,8 +157,14 @@ sub delete_node {
     my $node_ref = $self->get_node_ref (node => $args{node});
     return if ! defined $node_ref;  #  node does not exist anyway
 
+    #  Clear any cached values.
+    #  We could just do the DESCENDENTS lists, but they are not the
+    #  only ones that point to now non-existent nodes.
+    #  This also circumvents circular refs from the caches.
+    $self->get_tree_ref->delete_cached_values_below;
+    
     #  get the names of all descendents 
-    my $node_hash = $node_ref->get_all_children;
+    my $node_hash = $node_ref->get_all_descendents;
     $node_hash->{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
 
     #  now we delete it from the treenode structure.  This cleans up any children in the tree.
@@ -166,11 +172,6 @@ sub delete_node {
 
     #  now we delete it and its descendents from the node hash
     $self->delete_from_node_hash (nodes => $node_hash);
-
-    #  now we had better clear any cached values
-    #  we could just do the DESCENDENTS lists, but they are not the
-    #  only ones that point to now non-existent nodes
-    $self->get_tree_ref->delete_cached_values_below;
 
     #  return a list of those deleted nodes
     return wantarray ? keys %$node_hash : [keys %$node_hash];
@@ -1519,7 +1520,7 @@ sub trim {
             next if exists $keep->{$name};
             next if $node->is_internal_node;
             next if $node->is_root_node;  #  never delete the root node
-            my %children = $node->get_all_children;  #  make sure we use a copy
+            my %children = $node->get_all_descendents;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
             #  if any were deleted then we have some children to keep.  don't add this node
@@ -1567,7 +1568,7 @@ sub trim {
             next if ! $node->is_internal_node;
             next if $node->is_root_node;
 
-            my $children = $node->get_all_children;
+            my $children = $node->get_all_descendents;
             my %named_children;
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};
@@ -1585,7 +1586,8 @@ sub trim {
     }
 
     $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up
-    $self->delete_cached_values_below;
+    $self->get_tree_ref->delete_cached_values_below;
+    $keep = undef;  #  was leaking - not sure it matters, though
 
     return $self;
 }
@@ -1748,14 +1750,24 @@ sub root_unrooted_tree {
 #  Let the system take care of most of the memory stuff.  
 sub DESTROY {
     my $self = shift;
+
+    $self->delete_cached_values;       #  clear the cache
+    if ($self->{TREE_BY_NAME}) {
+        foreach my $node ($self->get_node_refs) {
+            next if !defined $node;
+            $node->delete_cached_values;
+        }
+    }
+
     #my $name = $self->get_param ('NAME');
     #print "DELETING $name\n";
     $self->set_param (BASEDATA_REF => undef);  #  clear the ref to the parent basedata object
+    
     $self->{TREE} = undef;  # empty the ref to the tree
     $self->{TREE_BY_NAME} = undef;  #  empty the list of nodes
     #print "DELETED $name\n";
     return;
-};  
+};
 
 1;
 

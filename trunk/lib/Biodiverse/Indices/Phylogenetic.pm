@@ -702,7 +702,7 @@ sub get_node_range {
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
     my @labels   = ($node_ref->get_name);
-    my $children =  $node_ref->get_all_children;
+    my $children =  $node_ref->get_all_descendents;
 
     #  collect the set of non-internal (named) nodes
     #  Possibly should only work with terminals
@@ -1393,7 +1393,9 @@ sub calc_phylo_abc {
     my $self = shift;
     my %args = @_;
 
-    return $self->_calc_phylo_abc(@_);
+    #  seems inefficient, but might clear a memory leak
+    my %results = $self->_calc_phylo_abc(%args);
+    return wantarray ? %results : \%results;
 }
 
 #sub sum {
@@ -1403,6 +1405,8 @@ sub calc_phylo_abc {
 #    }
 #    return $sum;
 #}
+
+my $_calc_phylo_abc_precision = '%.10f';
 
 #  Need to add a caching system for when it is building a matrix
 #  - should really speed things up
@@ -1418,14 +1422,14 @@ sub _calc_phylo_abc {
     my $tree = $args{trimmed_tree};
 
     my $nodes_in_path1 = $self->get_path_lengths_to_root_node (
-        @_,
+        %args,
         labels   => $label_hash1,
         tree_ref => $tree,
         el_list  => $args{element_list1},
     );
 
     my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
-        @_,
+        %args,
         labels   => $label_hash2,
         tree_ref => $tree,
         el_list  => $args{element_list2},
@@ -1450,27 +1454,32 @@ sub _calc_phylo_abc {
     $phylo_A = sum (0, values %A);
 
     $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
+    
+    $phylo_A = $self->set_precision (
+        precision => $_calc_phylo_abc_precision,
+        value     => $phylo_A,
+    );
+    $phylo_B = $self->set_precision (
+        precision => $_calc_phylo_abc_precision,
+        value     => $phylo_B,
+    );
+    $phylo_C = $self->set_precision (
+        precision => $_calc_phylo_abc_precision,
+        value     => $phylo_C,
+    );
+    $phylo_ABC = $self->set_precision (
+        precision => $_calc_phylo_abc_precision,
+        value     => $phylo_ABC,
+    );
 
     #  return the values but reduce the precision to avoid
     #  floating point problems later on
-    my $precision = "%.10f";
+    #my $precision = "%.10f";
     my %results = (
-        PHYLO_A   => $self->set_precision (
-            precision => $precision,
-            value     => $phylo_A,
-        ),
-        PHYLO_B   => $self->set_precision (
-            precision => $precision,
-            value     => $phylo_B,
-        ),
-        PHYLO_C   => $self->set_precision (
-            precision => $precision,
-            value     => $phylo_C,
-        ),
-        PHYLO_ABC => $self->set_precision (
-            precision => $precision,
-            value     => $phylo_ABC,
-        ),
+        PHYLO_A   => $phylo_A,
+        PHYLO_B   => $phylo_B,
+        PHYLO_C   => $phylo_C,
+        PHYLO_ABC => $phylo_ABC,
     );
 
     return wantarray

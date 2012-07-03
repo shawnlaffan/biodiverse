@@ -151,16 +151,27 @@ sub delete_cached_values {
     return;
 }
 
+#  was trying to avoid memory leaks, to no avail
+#use Sub::Current;  
+#use feature 'current_sub';
+
 sub delete_cached_values_below {
     my $self = shift;
-    
-    $self->delete_cached_values (@_);
-    
-    foreach my $child ($self->get_children) {
-        $child->delete_cached_values_below (@_);
+    my %args = @_;
+
+    $self->delete_cached_values (%args);
+
+    #  trying to avoid leakage by assigning to an array and then deleting it
+    my @children = $self->get_children;
+    foreach my $child (@children) {  
+        $child->delete_cached_values_below (%args);
+        #ROUTINE->($child, %args);
+        #__SUB__->($child, %args);
     }
-    
-    return 1;
+    @children = ();
+
+    #return 1 if defined wantarray;
+    return;
 }
 
 
@@ -413,6 +424,7 @@ sub delete_child {  #  remove a child from a list.
     foreach my $child ($self->get_children) {
         if ($child eq $args{child}) {
             splice (@{$self->{_CHILDREN}}, $i, 1);
+            $child->delete_cached_values_below;
             return 1;
         }
         $i++;
@@ -424,7 +436,7 @@ sub delete_child {  #  remove a child from a list.
 sub delete_children {
     my $self = shift;
     my %args = @_;
-    confess "children argument not specified or not an array ref"
+    croak "children argument not specified or not an array ref"
         if ! defined $args{children} || ! ref ($args{children}) =~ /ARRAY/;
     my $count = 0;
     foreach my $child (@{$args{children}}) {
@@ -437,8 +449,8 @@ sub delete_children {
 sub get_children {
     my $self = shift;
     return if not defined $self->{_CHILDREN};
-    return $self->{_CHILDREN} if ! wantarray;
-    return @{$self->{_CHILDREN}};
+    my @children = @{$self->{_CHILDREN}}; #  messy, but seeing if we can avoid mem leaks
+    return wantarray ? @children : \@children;
 }
 
 sub get_child_count {
@@ -446,9 +458,12 @@ sub get_child_count {
     return $#{$self->{_CHILDREN}} + 1;
 }
     
+# should be get_terminal_node_count
+# but we already have a get_terminal_element_count - fold together?
 sub get_child_count_below {
     my $self = shift;
-
+    #  should just get the key counts and return that
+    #  return scalar keys %{};
     #  get_terminal_elements caches the requisite lists
     my $te = [keys %{$self->get_terminal_elements}];
     return $#$te + 1;
@@ -706,14 +721,14 @@ sub get_terminal_element_count {
     return scalar keys %$hash;
 }
 
-#  until we edit all the get_all_children calls...
-sub get_all_descendents {
+#  a left over - here just in case 
+sub get_all_children {
     my $self = shift;
-    return $self->get_all_children (@_);
+    return $self->get_all_descendents (@_);
 }
 
-#  should really be called get_all_descendents
-sub get_all_children { #  get all the nodes (whether terminal or not) which are descendants of a node
+
+sub get_all_descendents { #  get all the nodes (whether terminal or not) which are descendants of a node
     my $self = shift;
     my %args = (
         cache => 1, #  cache unless told otherwise
@@ -1272,7 +1287,7 @@ sub to_table {
                             : undef;
 
 
-    my %children = $self->get_all_children;  #   all descendents below this node
+    my %children = $self->get_all_descendents;  #   all descendents below this node
     foreach my $node ($self, values %children) {  # maybe sort by child depth?
         $parent_num = $node->is_root_node
                         ? 0
@@ -1453,7 +1468,7 @@ sub to_nexus {
     my %remap;  #  create a remap table unless one is already specified in the args
     if (! defined $args{remap} && ! $args{no_remap}) {
         #  get a hash of all the nodes in the tree.
-        my %nodes = ($self->get_name() => $self, $self->get_all_children);
+        my %nodes = ($self->get_name() => $self, $self->get_all_descendents);
 
         my $i = 0;
         foreach my $node (values %nodes) {

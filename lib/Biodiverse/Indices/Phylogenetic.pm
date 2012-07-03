@@ -1396,13 +1396,13 @@ sub calc_phylo_abc {
     return $self->_calc_phylo_abc(@_);
 }
 
-sub sum {
-    my $sum = 0;
-    foreach my $val (@_) {
-        $sum += $val;
-    }
-    return $sum;
-}
+#sub sum {
+#    my $sum = 0;
+#    foreach my $val (@_) {
+#        $sum += $val;
+#    }
+#    return $sum;
+#}
 
 #  Need to add a caching system for when it is building a matrix
 #  - should really speed things up

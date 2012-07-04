@@ -265,7 +265,6 @@ sub get_metadata_get_path_lengths_to_root_node {
 
 #  get the paths to the root node of a tree for a set of labels
 #  saves duplication of code in PD and PE subs
-#  NEEDS TO BE MOVED INTO THE TREE PACKAGES?
 sub get_path_lengths_to_root_node {
     my $self = shift;
     my %args = (return_lengths => 1, @_);
@@ -1233,7 +1232,7 @@ sub get_metadata_calc_phylo_sorenson {
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
         indices        => {
             PHYLO_SORENSON => {
-                cluster     =>  1,
+                cluster     =>  'NO_CACHE_ABC',
                 formula     =>  [
                     '1 - (2A / (2A + B + C))',
                     ' where A is the length of shared branches, '
@@ -1278,7 +1277,7 @@ sub get_metadata_calc_phylo_jaccard {
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
         indices        => {
             PHYLO_JACCARD => {
-                cluster     =>  1,
+                cluster     =>  'NO_CACHE_ABC',
                 formula     =>  [
                     '= 1 - (A / (A + B + C))',
                     ' where A is the length of shared branches, '
@@ -1322,7 +1321,7 @@ sub get_metadata_calc_phylo_s2 {
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
         indices        => {
             PHYLO_S2 => {
-                cluster     =>  1,
+                cluster     =>  'NO_CACHE_ABC',
                 formula     =>  [
                     '= 1 - (A / (A + min (B, C)))',
                     ' where A is the length of shared branches, '

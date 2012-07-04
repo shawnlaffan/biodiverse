@@ -267,7 +267,10 @@ sub sp_calc {
     my $bd = $self->get_param ('BASEDATA_REF');
     my $gps_ref = $bd->get_groups_ref;
 
-    my $indices_object = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+    my $indices_object = Biodiverse::Indices->new(
+        BASEDATA_REF => $bd,
+        NAME         => 'Indices for ' . $self->get_param('NAME'),
+    );
 
     my $use_list_count = scalar @$spatial_params_ref;
     $indices_object->get_valid_calculations (

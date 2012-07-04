@@ -452,7 +452,7 @@ sub get_base_stats {
     my $type = uc($args{type}) || 'GROUPS';
     $type = 'GROUPS' if ($type !~ /GROUPS|LABELS/);
     
-    return $self->{$type} -> get_base_stats (@_);
+    return $self->{$type}->get_base_stats (@_);
 }
 
 sub get_metadata_get_base_stats {
@@ -464,7 +464,7 @@ sub get_metadata_get_base_stats {
 
     $type = 'GROUPS' if ($type !~ /GROUPS|LABELS/);
     
-    return $self->{$type} -> get_metadata_get_base_stats (@_);
+    return $self->{$type}->get_metadata_get_base_stats (@_);
 }
 
 sub get_metadata_import_data {
@@ -1427,7 +1427,7 @@ sub get_group_element_as_array {
     my %args = @_;
     my $element = $args{element} || croak "element not specified\n";
     
-    return $self->{GROUPS} -> get_element_name_as_array(element => $element);
+    return $self->{GROUPS}->get_element_name_as_array(element => $element);
 }
 
 sub get_label_element_as_array {
@@ -2176,7 +2176,7 @@ sub write_sub_elements_csv {
     my $self = shift;
     my %args = @_;
     croak "Type not specified\n" if ! defined $args{type};
-    my $data = $self->{$args{type}} -> to_table (@_, list => 'SUBELEMENTS');
+    my $data = $self->{$args{type}}->to_table (@_, list => 'SUBELEMENTS');
     $self->write_table (@_, data => $data);
 
     return;

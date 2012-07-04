@@ -143,10 +143,10 @@ sub delete_cached_values {
     delete @{$self->{_cache}}{@$keys};
     delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
     
-    warn "Cache deletion problem at node " . $self->get_name . "\n$EVAL_ERROR\n"
-      if $EVAL_ERROR;
+    #warn "Cache deletion problem at node " . $self->get_name . "\n$EVAL_ERROR\n"
+    #  if $EVAL_ERROR;
     
-    warn "XXXXXXX "  . $self->get_name . "\n" if exists $self->{_cache};
+    #warn "XXXXXXX "  . $self->get_name . "\n" if exists $self->{_cache};
     
     return;
 }
@@ -159,18 +159,13 @@ sub delete_cached_values_below {
     my $self = shift;
     my %args = @_;
 
+    #  this approach seems to avoid memory leaks
+    my %descendents = $self->get_all_descendents (cache => 0);
+    foreach my $node (values %descendents) {
+        $node->delete_cached_values (%args);
+    }
     $self->delete_cached_values (%args);
 
-    #  trying to avoid leakage by assigning to an array and then deleting it
-    my @children = $self->get_children;
-    foreach my $child (@children) {  
-        $child->delete_cached_values_below (%args);
-        #ROUTINE->($child, %args);
-        #__SUB__->($child, %args);
-    }
-    @children = ();
-
-    #return 1 if defined wantarray;
     return;
 }
 
@@ -478,16 +473,16 @@ sub group_nodes_below {
     my $groups_needed = $args{num_clusters} || $self->get_child_count_below;
     my %search_hash;
     my %final_hash;
-    
+
     my $use_depth = $args{group_by_depth};  #  alternative is by length
     #  a second method by which it may be passed
     $use_depth = 1 if defined $args{type} && $args{type} eq 'depth';
     #print "[TREENODE] Grouping by ", $use_depth ? "depth" : "length", "\n";
-    
+
     my $target_value = $args{target_value};
     #$target_value = 1 if defined $target_value;  #  for debugging
     #print "[TREENODE] Target is $target_value\n" if defined $target_value;
-    
+
     $final_hash{$self->get_name} = $self;
 
     if ($self->is_terminal_node) {
@@ -496,12 +491,12 @@ sub group_nodes_below {
 
     #my @current_nodes = ($self);
     my @current_nodes;
-    
+
     my $upper_value = $use_depth ? $self->get_depth : $self->get_length_below;
     my $lower_value = $use_depth ? $self->get_depth + 1 : $self->get_length_below - $self->get_length;
     ($lower_value, $upper_value) = sort numerically ($lower_value, $upper_value) if ! $use_depth; 
     $search_hash{$lower_value}{$upper_value}{$self->get_name} = $self;
-    
+
     if (defined $target_value) {  #  check if we have all we need
         if ($use_depth && $target_value <= $lower_value && $target_value >= $upper_value) {
             return wantarray ? %final_hash : \%final_hash;
@@ -511,7 +506,7 @@ sub group_nodes_below {
         }
     }
 
-    
+
     my $group_count = 1;
     NODE_SEARCH: while ($group_count < $groups_needed) {
         @current_nodes = values %{$search_hash{$lower_value}{$upper_value}};
@@ -519,7 +514,7 @@ sub group_nodes_below {
         my $current_node_string = join ($EMPTY_STRING, sort @current_nodes);
         foreach my $current_node (@current_nodes) {
             my @children = $current_node->get_children;
-            
+
             CNODE: foreach my $child (@children) {
                 my $include_in_search = 1;  #  flag to include this child in further searching
                 my ($upper_bound, $lower_bound);
@@ -558,7 +553,7 @@ sub group_nodes_below {
                             ($lower_bound, $upper_bound) = sort numerically ($lower_bound, $upper_bound);
                         }
                     }
-                    
+
                     #  don't add to search hash if we're happy with this one
                     if (defined $target_value) {
                         if ($use_depth && $target_value <= $lower_bound && $target_value >= $upper_bound) {
@@ -569,12 +564,12 @@ sub group_nodes_below {
                         }
                     }
                 }
-                
+
                 if ($include_in_search) {
                     #  add to the values hash if it bounds the target value or it is not specified
                     $search_hash{$lower_bound}{$upper_bound}{$child->get_name} = $child;
                 }    
-                
+
                 $final_hash{$child->get_name} = $child;  #  add this child node to the tracking hashes        
                 delete $final_hash{$child->get_parent->get_name};
                 #  clear parent from length consideration
@@ -584,15 +579,15 @@ sub group_nodes_below {
             delete $search_hash{$lower_value} if ! scalar keys %{$search_hash{$lower_value}};
         }
         last if ! scalar keys %search_hash;  #  drop out - they must all be terminal nodes
-        
+
         $lower_value = (reverse sort numerically keys %search_hash)[0];
         $upper_value = (reverse sort numerically keys %{$search_hash{$lower_value}})[0];
-        
+
         #print scalar keys %final_hash, "\n";
-        
+
         $group_count = scalar keys %final_hash;
     }
-    
+
     #print scalar keys %final_hash, "\n";
     return wantarray ? %final_hash : \%final_hash;
 }
@@ -741,11 +736,12 @@ sub get_all_descendents { #  get all the nodes (whether terminal or not) which a
 
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
-        my $elRef = $self->get_cached_value('DESCENDENTS');
-        if (defined $elRef) {
-            return wantarray ? %{$elRef} : $elRef;
+        my $cached_hash = $self->get_cached_value('DESCENDENTS');
+        if ($cached_hash) {  # return copies to avoid later pollution
+            return wantarray ? %$cached_hash : {%$cached_hash};
         }
     }
+
     my @list;
     push @list, $self->get_children;
     foreach my $child (@list) {
@@ -756,14 +752,17 @@ sub get_all_descendents { #  get all the nodes (whether terminal or not) which a
     #my @hash_list;
     my %list;
     foreach my $node (@list) {
-        $list{$node->get_name} = $node;
+        my $name = $node->get_name;
+        $list{$name} = $node;
+        weaken $list{$name};
     }
 
     if ($args{cache}) {
         $self->set_cached_value(DESCENDENTS => \%list);
     }
-    
-    return wantarray ? %list : \%list;
+
+    #  make sure we return copies to avoid pollution by other subs
+    return wantarray ? %list : {%list};
 }
 
 #  should use a while loop instead of recursion

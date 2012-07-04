@@ -21,7 +21,7 @@ Main changes since the previous version (0.16) are:
     *  Added sp_point_in_poly_shape() to use polygons from a shapefile.  Issue #226
     *  Adding support to access other outputs within a !BaseData object.  Issue #233
     *  Added optimisation for conditions that always return the same result.  Issue #304
-    *  Added sp_get_spatial_output_list_value() to allow access to other outputs in the same !BaseData.  This allows one to, for example, restrict analyses to groups with an endemism score above some threshold.  
+    *  Added sp_get_spatial_output_list_value() to allow access to other outputs in the same !BaseData.  This allows one to, for example, restrict analyses to groups with an endemism score above some threshold.  Issue #233
   *  Exports
     *  Users can now add plot coords to the tabular tree exports.  This allows reconstruction of the tree in, for example, a GIS.  Issue 281
     *  NA is now an option for nodata.  This improves compatibility with R.  Issue #271

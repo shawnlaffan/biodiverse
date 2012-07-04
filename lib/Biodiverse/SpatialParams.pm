@@ -2341,7 +2341,7 @@ sub get_metadata_sp_get_spatial_output_list_value {
         index_no_use   => 1,  #  turn index off since this doesn't cooperate with the search method
         required_args  => [qw /output index/],
         optional_args  => [qw /list element/],
-        result_type    => 'complex',
+        result_type    => 'always_same',
         example        => $example,
     );
 

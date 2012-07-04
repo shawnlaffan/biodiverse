@@ -2304,6 +2304,87 @@ sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
 sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
 
 
+sub get_example_sp_get_spatial_output_list_value {
+
+    my $ex = <<"END_EXAMPLE_GSOLV"
+#  get the spatial results value for the current neighbour group
+# (or processing group if used as a def query)
+sp_get_spatial_output_list_value (
+    output  => 'sp1',
+    list    => 'SPATIAL_RESULTS',
+)
+
+#  get the spatial results value for group 128:254
+sp_get_spatial_output_list_value (
+    output  => 'sp1',
+    element => '128:254',
+    list    => 'SPATIAL_RESULTS',
+)
+END_EXAMPLE_GSOLV
+  ;
+
+    return $ex;
+}
+
+
+sub get_metadata_sp_get_spatial_output_list_value {
+    my $self = shift;
+    my %args = @_;
+
+    my $description =
+        q{Obtain a value from a list in a previously calculated spatial output.};
+
+    my $example = $self->get_example_sp_get_spatial_output_list_value;
+
+    my %args_r = (
+        description => $description,
+        index_no_use   => 1,  #  turn index off since this doesn't cooperate with the search method
+        required_args  => [qw /output index/],
+        optional_args  => [qw /list element/],
+        result_type    => 'complex',
+        example        => $example,
+    );
+
+    return wantarray ? %args_r : \%args_r;
+}
+
+#  get the value from another spatial output
+sub sp_get_spatial_output_list_value {
+    my $self = shift;
+    my %args = @_;
+
+    my $list_name = defined $args{list}? $args{list} : 'SPATIAL_RESULTS';
+    my $index     = $args{index};
+    
+    my $h           = $self->get_param('CURRENT_ARGS');
+    my $caller_args = $h->{'%args'};
+
+    my $default_element
+      = eval {$self->is_def_query}
+      ? $caller_args->{coord_id1}
+      : $caller_args->{coord_id2};
+
+    my $element = defined $args{element} ? $args{element} : $default_element;
+
+    my $bd      = eval {$self->get_basedata_ref} || $caller_args->{basedata_ref} || $caller_args->{caller_object} || $h->{'$basedata'};
+    my $sp_name = $args{output};
+    croak "Spatial output name not defined\n" if not defined $sp_name;
+
+    my $sp = $bd->get_spatial_output_ref (name => $sp_name)
+      or croak 'Spatial output $sp_name does not exist in basedata '
+                . $bd->get_param ('NAME')
+                . "\n";
+
+    croak "element $element is not in spatial output\n"
+      if not $sp->exists_element (element => $element);
+    my $list = $sp->get_list_ref (list => $list_name, element => $element);
+    return if not exists $list->{$index};
+
+    return $list->{$index};
+}
+
+
+
 
 =head1 NAME
 

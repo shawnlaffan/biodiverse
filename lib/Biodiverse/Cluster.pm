@@ -171,6 +171,7 @@ sub build_matrices {
     my $indices_object = Biodiverse::Indices->new(
         BASEDATA_REF    => $bd,
         BUILDING_MATRIX => 1,
+        NAME            => 'Indices for ' . $self->get_param ('NAME'),
     );
     $self->set_param (INDICES_OBJECT => $indices_object);
 
@@ -462,6 +463,8 @@ sub build_matrices {
     if (defined $linkage_function and not $linkage_function =~ /recalculate/) {
         $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => undef);
     }
+    
+    $indices_object->set_param(BUILDING_MATRIX => 0);  #  turn off this flag
     
     my $time_taken = time - $start_time;
     print "[CLUSTER] Matrix build took $time_taken seconds.\n";

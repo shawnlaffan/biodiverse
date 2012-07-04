@@ -164,17 +164,17 @@ sub delete_node {
     $self->get_tree_ref->delete_cached_values_below;
     
     #  get the names of all descendents 
-    my $node_hash = $node_ref->get_all_descendents;
-    $node_hash->{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
+    my %node_hash = $node_ref->get_all_descendents;
+    $node_hash{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
 
     #  now we delete it from the treenode structure.  This cleans up any children in the tree.
     $node_ref->get_parent->delete_child (child => $node_ref);
 
     #  now we delete it and its descendents from the node hash
-    $self->delete_from_node_hash (nodes => $node_hash);
+    $self->delete_from_node_hash (nodes => \%node_hash);
 
-    #  return a list of those deleted nodes
-    return wantarray ? keys %$node_hash : [keys %$node_hash];
+    #  return a list of the names of those deleted nodes
+    return wantarray ? keys %node_hash : [keys %node_hash];
 }
 
 sub delete_from_node_hash {

@@ -343,25 +343,24 @@ sub get_dependency_tree {
 
     #  convert it to a hash as needed
     my %calculations;
-    if (defined $args{calculations}) {
-        my $ref = ref $args{calculations};
+    my $calcs = $args{calculations};
+    if (defined $calcs) {
+        my $ref = ref $calcs;
         if ($ref =~ /ARRAY/) {
-            @calculations{@{$args{calculations}}} = (1) x scalar @{$args{calculations}};
+            @calculations{@$calcs} = (1) x scalar @$calcs;
         }
         elsif ($ref =~ /HASH/) {
-            %calculations = %{$args{calculations}};
+            %calculations = %$calcs;
         }
         else {
-            $calculations{$args{calculations}} = $args{calculations};
+            $calculations{$calcs} = $calcs;
         }
     }
-    #else {
-    #    %calculations = $self -> get_calculations_as_flat_hash;
-    #}
+
 
     my %pre_calc_hash;
     foreach my $calculations (keys %calculations) {
-        my $got_args = $self -> get_args (sub => $calculations);
+        my $got_args = $self->get_args (sub => $calculations);
 
         my $pc = $got_args->{$type};  # normally pre_calc or pre_calc_global
         next if ! defined $pc;
@@ -380,12 +379,12 @@ sub get_dependency_tree {
             next if ! defined $pre_c;
 
             my $next_level
-                = $self -> get_dependency_tree (%args, calculations => [$pre_c]);
+                = $self->get_dependency_tree (%args, calculations => [$pre_c]);
 
             $pre_calc_hash{$calculations}{$pre_c}
                 = defined $next_level->{$pre_c}
-                ? $next_level->{$pre_c}  #  flatten the next_level hash a little when assigning to this level
-                : 1;  #  default to a one
+                    ? $next_level->{$pre_c}  #  flatten the next_level hash a little when assigning to this level
+                    : 1;  #  default to a one
         }
     }
 
@@ -395,19 +394,19 @@ sub get_dependency_tree {
 sub get_pre_calc_global_hash_by_calculation {  # redundant?
     my $self = shift;
 
-    my $pre_calc = $self -> get_dependency_tree (@_);
-    my %calculations = $self -> get_hash_inverted (list => $pre_calc);  #  NEED CHANGING
+    my $pre_calc = $self->get_dependency_tree (@_);
+    my %calculations = $self->get_hash_inverted (list => $pre_calc);  #  NEED CHANGING
     return wantarray ? %calculations : \%calculations;
 }
 
 #  get a hash of which calculations require 1 or 2 sets of spatial paramaters or other lists
 sub get_uses_nbr_lists_count {
     my $self = shift;
-    my %list = $self -> get_calculations_as_flat_hash;
+    my %list = $self->get_calculations_as_flat_hash;
     my %list2;
 
     while ((my $calculations, my $null) = each %list) {
-        my $args = $self -> get_args (sub => $calculations);
+        my $args = $self->get_args (sub => $calculations);
         next if ! exists $args->{uses_nbr_lists};
         $list2{$args->{uses_nbr_lists}}{$calculations}++;
     }
@@ -900,13 +899,20 @@ sub _run_dependency_tree {
             $sub_results = $as_results_from->{$calc};
         }
         else {
-            my $dep_results = {};
-            if ((ref $tree->{$calc}) =~ /HASH/) {  #  run its dependencies if necessary
-                $dep_results = $self->_run_dependency_tree (
-                    %args,
-                    dependency_tree => $tree->{$calc},
-                );
-            }
+            my $run_deps = ref ($tree->{$calc}) =~ /HASH/;  #  will this avoid a mem leak?
+            #my $dep_results = {};
+            #if ($run_deps) {  #  run its dependencies if necessary
+            #    $dep_results = $self->_run_dependency_tree (
+            #        %args,
+            #        dependency_tree => $tree->{$calc},
+            #    );
+            #}
+            my $dep_results = $run_deps
+                ? $self->_run_dependency_tree (
+                      %args,
+                      dependency_tree => $tree->{$calc},
+                  )
+                : {};
 
             $sub_results = eval {
                 $self->$calc (  
@@ -986,7 +992,7 @@ sub get_args_for_calc_from_tree {
     my $as_results_from = $self->get_param('AS_RESULTS_FROM');
 
     return if    not exists $tree->{$calc}
-              or not (ref $tree->{$calc}) =~ /HASH/;
+              or not ref ($tree->{$calc}) =~ /HASH/;
 
     my $subs = $tree->{$calc};
 
@@ -1051,6 +1057,25 @@ sub run_postcalc_globals {
         dependency_tree => $self->get_post_calc_global_tree,
     );
 }
+
+#  for debugging purposes
+#our $AUTOLOAD;
+#sub AUTOLOAD {
+#    return;
+#}
+#
+#sub DESTROY {
+#    my $self = shift;
+#    #print "[INDICES] DESTROYING OBJECT " . ($self->get_param('NAME') || 'anonymous') . " $self \n";
+#    #use Devel::Cycle;
+#    
+#    #my $cycle = find_cycle($self);
+#    #if ($cycle) {
+#    #    print STDERR "Cycle found: $cycle\n";
+#    #}
+#
+#    #print $self->dump_to_yaml (data => $self);
+#}
 
 
 1;

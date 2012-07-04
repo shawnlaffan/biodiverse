@@ -277,8 +277,10 @@ sub get_path_lengths_to_root_node {
     if ($use_path_cache) {
         my $cache   = $args{path_length_cache};
         my @el_list = keys %{$args{el_list}};
-        my $path = $cache->{$el_list[0]};
-        return (wantarray ? %$path : $path) if ($path);
+        if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element
+            my $path = $cache->{$el_list[0]};
+            return (wantarray ? %$path : $path) if ($path);
+        }
     }
 
     my $label_list = $args{labels};
@@ -1393,6 +1395,7 @@ sub calc_phylo_abc {
     my %args = @_;
 
     #  seems inefficient, but might clear a memory leak
+
     my %results = $self->_calc_phylo_abc(%args);
     return wantarray ? %results : \%results;
 }

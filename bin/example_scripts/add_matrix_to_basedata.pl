@@ -50,16 +50,52 @@ my $index     = $rest_of_args{metric}  || 'SORENSON';
 my $sp_cond_f = $rest_of_args{sp_cond};
 my $def_q_f   = $rest_of_args{def_q};
 
-use Test::LeakTrace;
+my $debug = $rest_of_args{debug};
 
-leaktrace {
-    &process();
-} -verbose;
+if ($debug eq 'array') {
+    use Test::LeakTrace;
+    print "Debug is array\n";
+    my @leaks = leaked_info {
+        process_matrix();
+    };
+    process_leaks (@leaks);
+}
+elsif ($debug eq 'file') {
+    use Test::LeakTrace;
+    print "Debug is file\n";
+    leaktrace {
+        process_matrix();
+    } -verbose;
+}
+else {
+    process_matrix();
+}
 
 
 exit;
 
-sub process {
+sub process_leaks {
+    my @leaks = @_;
+
+    use Devel::Size qw(size total_size);
+    #use Devel::Cycle;
+
+    my @tn_leaks;
+    foreach my $leak (@leaks) {
+        next if not $leak->[1] =~ 'Biodiverse';
+        my $tot_size = total_size ($leak->[0]);
+        #next if $tot_size < 1650000;
+
+        print STDERR join q{ }, $tot_size, @$leak, "\n";
+        #my $cycle = find_cycle($leak->[0]);
+        #next if !$cycle;
+        #print STDERR "Cycle found: $cycle\n";
+    }
+
+    return;
+}
+
+sub process_matrix {
     print "...In process() sub\n";
     print "Loading basedata $bd_file\n";
     my $bd = eval {
@@ -91,6 +127,8 @@ sub process {
     $bd->save (filename => $bd_file);
     
     undef $bd;
+    
+    print "...process completed\n";
 }
 
 
@@ -125,6 +163,12 @@ sub build_matrix {
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     $clus->add_matrices_to_basedata(matrices => $matrices);
+    
+    #my $cycle = find_cycle($clus);
+    #if ($cycle) {
+    #    print "CYCLE IN CLUSTER ANALYSIS";
+    #    print $cycle;
+    #}
 
     return;
 }

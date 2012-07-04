@@ -624,7 +624,7 @@ sub doColourNodesBelow {
 
         # Get list of nodes to colour
         #print "[Dendrogram] Grouping...\n";
-        my %node_hash = $start_node -> group_nodes_below (
+        my %node_hash = $start_node->group_nodes_below (
             num_clusters => $num_clusters,
             type => $self->{group_mode}
         );
@@ -633,12 +633,12 @@ sub doColourNodesBelow {
 
         # FIXME: why loop instead of just grouping with num_clusters => $self->get_palette_max_colours
         #  make sure we don't exceed the maximum number of colours
-        while (scalar @colour_nodes > $self -> get_palette_max_colours) {  
+        while (scalar @colour_nodes > $self->get_palette_max_colours) {  
             $excess_flag = 1;
 
             # Group again with 1 fewer colours
             $num_clusters --;
-            my %node_hash = $start_node -> group_nodes_below (
+            my %node_hash = $start_node->group_nodes_below (
                 num_clusters => $num_clusters,
                 type => $self->{group_mode},
             );

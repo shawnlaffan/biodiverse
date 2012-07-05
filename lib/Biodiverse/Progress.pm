@@ -4,6 +4,7 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 use POSIX qw /fmod/;
+use List::Util qw /max min/;
 my $NULL_STRING = q{};
 
 use Biodiverse::Config;
@@ -60,6 +61,9 @@ sub update {
 
     croak "No progress set\n" if not defined $progress;
 
+    #  make it tolerant
+    $progress = max (0, min (1, $progress));
+
     eval {$self->{gui_progress}->update ($text, $progress)};
     if ( Biodiverse::GUI::ProgressDialog::Bounds->caught() ) {
         $EVAL_ERROR->rethrow;
@@ -76,6 +80,7 @@ sub update {
         $text = $NULL_STRING;
     }
 
+    
     croak "ERROR [Progress] progress $progress is not between 0 & 1\n"
       if ($progress < 0 || $progress > 1);
 

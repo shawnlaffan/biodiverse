@@ -47,9 +47,9 @@ The conditions are specified using some combination of pre-defined functions, pr
 
 = Functions =
 
-Functions are the easiest way to specify conditions as one does not need to wrestle with variables.  Functions also set metadata to tell the system whether, and how to, to use the spatial index.  This saves considerable processing time for large data sets as the system does not need to test many pairs of index blocks to determine which to use (see [KeyConcepts#Using_the_spatial_index]).
+Functions are the easiest way to specify conditions as one does not need to wrestle with variables.  Functions also set metadata to tell the system how to use the spatial index.  The spatial index saves considerable processing time for large data sets as the system does not need to test many pairs of index blocks to determine which to use (see [KeyConcepts#Using_the_spatial_index]).  If you use a function for which an index will produce erroneous results then the system sets a flag to ignore it.
 
-The available functions are currently:
+The available functions in version 0.17 are:
  * sp_self_only
  * sp_select_all
  * sp_circle
@@ -63,10 +63,11 @@ The available functions are currently:
  * sp_match_regex
  * sp_select_sequence
  * sp_is_left_of
-
-<wiki:comment>
-_Note: This list and appropriate metadata needs to be accessible through the GUI - see issue #14._
-</wiki:comment>
+ * sp_is_right_of
+ * sp_in_line_with
+ * sp_point_in_poly
+ * sp_point_in_poly_shape
+ 
 
  == Examples using functions ==
 
@@ -124,10 +125,10 @@ sp_select_all() and not sp_self_only()
 #  only use the processing group
 sp_self_only() 
 
-#  use any group where the first axis has value of "type1"
+#  use any group where the first axis has value of 'type1'
 sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 
-#  two ways to use any group where the first axis has value that is _not_ "type1"
+#  two ways to use any group where the first axis has value that is _not_ 'type1'
 ! sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 not sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 
@@ -138,7 +139,7 @@ sp_match_text (text => $coord[2], axis => 2, type => 'nbr')
 # Set a definition query to only use groups with 'NK' as the third axis
 sp_match_text (text => 'NK', axis => 2, type => 'proc') 
 
-#  use any neighbour where the first axis includes the text "type1"
+#  use any neighbour where the first axis includes the text 'type1'
 sp_match_regex (re => qr'type1', axis => 0, type => 'nbr')
 
 # match only when the third neighbour axis starts with
@@ -159,11 +160,59 @@ sp_select_sequence (frequency => 10, first_offset => 2)
 #  Select every tenth group, starting from the third last and working backwards
 sp_select_sequence (frequency => 10, first_offset => 2, reverse_order => 1)
 
-#  From version 0.16.
-#  Match when the neighbour is to the left of a vector radiating out
-#  from the processing group.  The angle is measured anticlockwise from east.
+
+###############################
+#  Available from version 0.16.
+
+#  Match when the neighbour is to the left of a vector radiating out from the processing group.
+#  The angle is measured anticlockwise from east.
 sp_is_left_of (vector_angle => 1.5707963267949)  #  angle in radians
 sp_is_left_of (vector_angle_deg => 90)           #  angle in degrees
+
+
+###############################
+#  Available from version 0.17.
+
+#  Match when the neighbour is to the right of a vector radiating out from the processing group
+#  from the processing group.  The angle is measured anticlockwise from east.
+sp_is_right_of (vector_angle => 1.5707963267949)  #  angle in radians
+sp_is_right_of (vector_angle_deg => 90)           #  angle in degrees
+
+#  Match when the neighbour is in line with a vector radiating from the processing group
+sp_in_line_with (vector_angle => 1.5707963267949)  #  angle in radians
+sp_in_line_with (vector_angle_deg => 90)           #  angle in degrees
+
+
+#  Is the neighbour coord in a square polygon?  (edit the coords to fit your data)
+sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoord)
+
+#  You can omit the point argument to automatically assess the neighbour when it is 
+#  in a spatial condition and the processing group in a definition query
+sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]])
+
+#  Is the coord in any polygon in a shapefile?
+sp_point_in_poly_shape (shape => '/path/to/shapefile.shp')
+
+#  Is the coord in a specific polygon in a shapefile?
+#  This is the FID field in ArcGIS, but note that the library we use counts from 1 whereas ArcGIS counts from 0.
+#  If you are using ArcGIS to find the polygon ID you need then remember to add 1.
+sp_point_in_poly_shape (shape => '/path/to/shapefile.shp', field_val => 1)
+
+#  Is the neighbour coord inside any polygon with a value of NSW for the field STATE_NAME?
+#  Make sure you give the correct name and path to the shapefile.  
+sp_point_in_poly_shape (
+    shape      => '/path/to/shapefile.shp',
+    field_name => 'STATE_NAME', 
+    field_val  => 'NSW',
+)
+
+#  Is the neighbour coord inside a specific biome (if you have the relevant shapefile)?
+#  Note that the values must match exactly.
+sp_point_in_poly_shape (
+    shape => '/path/to/biome_shapefile.shp', 
+    field_name => 'BIOME', 
+    field_val => 'Tropical and subtropical dry broadleaf forests',
+)
 
 }}}
 
@@ -279,7 +328,7 @@ Note the use of the word `my`. This is required to declare your own variables in
 
 If you wish to know if your function works with the spatial index then run a moving window analysis twice, once with and once without the spatial index, using the list indices generated by the [Indices#Element_counts Element Counts] calculations to get the lists of neighbours. Export the results to CSV and use a difference tool to compare the results.
 
-Functions available by default are those in the [http://perldoc.perl.org/POSIX.html#FUNCTIONS Perl POSIX library] (from version 0.16 this will instead be the  [http://perldoc.perl.org/Math/Trig.html Math::Trig library], plus [http://perldoc.perl.org/POSIX.html#FUNCTIONS POSIX::fmod()]). If you want more then you will need to specify additional libraries in the extensions file under the !BaseData section _(for which guidelines need to be implemented)_.
+Functions available by default are those in the [http://perldoc.perl.org/POSIX.html#FUNCTIONS Perl POSIX library] (from version 0.16 this is instead the [http://perldoc.perl.org/Math/Trig.html Math::Trig library], plus [http://perldoc.perl.org/POSIX.html#FUNCTIONS POSIX::fmod()]). If you want more then you will need to specify additional libraries in the extensions file under the !BaseData section _(for which guidelines need to be implemented)_.
 
 
 To access environment variables you have set, just use `$ENV{variable_name}`, eg `$ENV{my_default_radius}`.

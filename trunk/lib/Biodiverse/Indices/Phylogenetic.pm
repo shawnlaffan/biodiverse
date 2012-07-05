@@ -1526,11 +1526,14 @@ sub calc_phylo_aed_t {
 
 
 sub get_metadata_calc_phylo_aed {
+    my $descr = "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
+                . 'Label values are constant for all '
+                . 'neighbourhoods in which each label is found. '
+                . 'Note that this is a beta level implementation.';
+
     my %arguments = (
         name            =>  'Evolutionary distinctiveness',
-        description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES)\n"
-                          . 'Label values are constant for all '
-                          . 'neighbourhoods in which each label is found.',
+        description     =>  $descr,
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /calc_abc3 get_aed_scores/],
         #pre_calc_global => [qw /get_trimmed_tree get_global_node_abundance_hash get_aed_scores/],
@@ -1594,8 +1597,9 @@ sub calc_phylo_aed {
 sub get_metadata_calc_phylo_aed_proportional {
     my %arguments = (
         name            =>  'Evolutionary distinctiveness, proportional',
-        description     =>  "Evolutionary distinctiveness metrics (AED, ED, ES) "
-                          . 'expressed as a proportion of PD.',
+        description     =>  'Evolutionary distinctiveness metrics (AED, ED, ES) '
+                          . 'expressed as a proportion of PD. '
+                          . 'Note that this is a beta level implementation.',
         type            =>  'Phylogenetic Indices',
         pre_calc        => 'calc_abc',
         pre_calc_global => [qw /get_phylo_aed_proportions/],

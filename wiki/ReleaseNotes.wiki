@@ -29,7 +29,9 @@ Main changes since the previous version (0.16) are:
   *  Imports
     *  Tree imports now work when there are duplicate node names.  Any duplicates have `__dup$i` appended to the name, where `$i` is an integer that is incremented from 1.  For a node called `node`, any duplicates are called `node__dup1`, `node__dup2`, etc.  Issue #302
 
-To see the full list of issues and changes, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.17
+To see the full list of issues and changes in this version, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.17
+
+To see the list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
 
 = Version 0.16 =
 

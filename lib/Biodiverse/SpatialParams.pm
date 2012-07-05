@@ -2142,7 +2142,7 @@ sub get_cache_name_sp_point_in_poly_shape {
     my $cache_name = join ':',
         'sp_point_in_poly_shape',
         $args{file},
-        ($args{field} || $NULL_STRING),
+        ($args{field_name} || $NULL_STRING),
         (defined $args{field_val} ? $args{field_val} : $NULL_STRING);
     return $cache_name;
 }

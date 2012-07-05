@@ -740,7 +740,7 @@ sub onGridHover {
     my $output_ref = $self->{output_ref};
     my $text = '';
     
-    my $bd_ref = $output_ref -> get_param ('BASEDATA_REF') || $output_ref;
+    my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
 
     if ($element) {
         no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined

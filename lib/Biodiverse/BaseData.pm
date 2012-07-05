@@ -1161,8 +1161,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
         or not defined $self->get_param('NUMERIC_LABELS')
         ) {
         $self->set_param(      #  set a value from undef returns
-            NUMERIC_LABELS => $labels_ref->elements_are_numeric
-                              || 0
+            NUMERIC_LABELS => ($labels_ref->elements_are_numeric || 0)
         );  
     }
 

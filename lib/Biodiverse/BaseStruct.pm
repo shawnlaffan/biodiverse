@@ -41,7 +41,7 @@ sub new {
     # do we have a file to load from?
     my $file_loaded;
     if ( defined $args{file} ) {
-        $self -> load_file( @_ );
+        $self->load_file( @_ );
     };
     return $file_loaded if defined $file_loaded;
 
@@ -68,7 +68,7 @@ sub new {
     $self->{ELEMENTS} = {};  
 
     #  avoid memory leak probs with circular refs
-    $self -> weaken_basedata_ref;
+    $self->weaken_basedata_ref;
 
     return $self;
 }
@@ -144,7 +144,7 @@ sub get_reordered_element_names {
         my $el_array = $self->get_element_name_as_array (element => $element);
         my @new_el_array = @$el_array[@reorder_cols];
 
-        my $new_element = $self -> list2csv (
+        my $new_element = $self->list2csv (
             list       => \@new_el_array,
             csv_object => $csv_object,
         );
@@ -160,7 +160,7 @@ sub get_metadata_export {
     my $self = shift;
 
     #  get the available lists
-    #my @lists = $self -> get_lists_for_export;
+    #my @lists = $self->get_lists_for_export;
 
     #  need a list of export subs
     my %subs = $self->get_subs_with_prefix (prefix => 'export_');
@@ -193,7 +193,7 @@ sub get_metadata_export {
     }
 
     @formats = sort @formats;
-    $self -> move_to_front_of_list (
+    $self->move_to_front_of_list (
         list => \@formats,
         item => 'Delimited text'
     );
@@ -344,7 +344,7 @@ sub export_table_delimited_text {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self -> to_table (symmetric => 1, %args);
+    my $table = $self->to_table (symmetric => 1, %args);
 
     $self->write_table_csv (%args, data => $table);
 
@@ -357,8 +357,8 @@ sub get_metadata_export_table_html {
     my %args = (
         format => 'HTML table',
         parameters => [
-            $self -> get_common_export_metadata(),
-            $self -> get_table_export_metadata()
+            $self->get_common_export_metadata(),
+            $self->get_table_export_metadata()
         ],
     ); 
 
@@ -369,9 +369,9 @@ sub export_table_html {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self -> to_table (%args, symmetric => 1);
+    my $table = $self->to_table (%args, symmetric => 1);
 
-    $self -> write_table_html (%args, data => $table);
+    $self->write_table_html (%args, data => $table);
 
     return;
 }
@@ -382,8 +382,8 @@ sub get_metadata_export_table_xml {
     my %args = (
         format => 'XML table',
         parameters => [
-            $self -> get_common_export_metadata(),
-            $self -> get_table_export_metadata()
+            $self->get_common_export_metadata(),
+            $self->get_table_export_metadata()
         ],
     ); 
 
@@ -394,9 +394,9 @@ sub export_table_xml {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self -> to_table (%args, symmetric => 1);
+    my $table = $self->to_table (%args, symmetric => 1);
 
-    $self -> write_table_xml (%args, data => $table);
+    $self->write_table_xml (%args, data => $table);
 
     return;
 }
@@ -407,8 +407,8 @@ sub get_metadata_export_table_yaml {
     my %args = (
         format => 'YAML table',
         parameters => [
-            $self -> get_common_export_metadata(),
-            $self -> get_table_export_metadata()
+            $self->get_common_export_metadata(),
+            $self->get_table_export_metadata()
         ],
     ); 
 
@@ -419,7 +419,7 @@ sub export_table_yaml {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self -> to_table (%args, symmetric => 1);
+    my $table = $self->to_table (%args, symmetric => 1);
 
     $self->write_table_yaml (%args, data => $table);
 
@@ -457,8 +457,8 @@ sub get_metadata_export_ers {
     my %args = (
         format => 'ER-Mapper BIL file',
         parameters => [
-            $self -> get_common_export_metadata(),
-            $self -> get_raster_export_metadata(),
+            $self->get_common_export_metadata(),
+            $self->get_raster_export_metadata(),
         ],
     ); 
 
@@ -469,9 +469,9 @@ sub export_ers {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self -> to_table (%args, symmetric => 1);
+    my $table = $self->to_table (%args, symmetric => 1);
 
-    $self -> write_table_ers (%args, data => $table);
+    $self->write_table_ers (%args, data => $table);
 
     return;
 }
@@ -482,8 +482,8 @@ sub get_metadata_export_asciigrid {
     my %args = (
         format => 'ArcInfo asciigrid files',
         parameters => [
-            $self -> get_common_export_metadata(),
-            $self -> get_raster_export_metadata(),
+            $self->get_common_export_metadata(),
+            $self->get_raster_export_metadata(),
         ],
     ); 
 
@@ -507,8 +507,8 @@ sub get_metadata_export_floatgrid {
     my %args = (
         format => 'ArcInfo floatgrid files',
         parameters => [
-            $self -> get_common_export_metadata(),
-            $self -> get_raster_export_metadata(),
+            $self->get_common_export_metadata(),
+            $self->get_raster_export_metadata(),
         ],
     ); 
 
@@ -521,7 +521,7 @@ sub export_floatgrid {
 
     my $table = $self->to_table (%args, symmetric => 1);
 
-    $self -> write_table_floatgrid (%args, data => $table);
+    $self->write_table_floatgrid (%args, data => $table);
 
     return;
 }
@@ -532,8 +532,8 @@ sub get_metadata_export_divagis {
     my %args = (
         format => 'DIVA-GIS raster files',
         parameters => [
-            $self -> get_common_export_metadata(),
-            $self -> get_raster_export_metadata(),
+            $self->get_common_export_metadata(),
+            $self->get_raster_export_metadata(),
         ],
     ); 
 
@@ -546,7 +546,7 @@ sub export_divagis {
 
     my $table = $self->to_table (%args, symmetric => 1);
 
-    $self -> write_table_divagis (%args, data => $table);
+    $self->write_table_divagis (%args, data => $table);
 
     return;
 }
@@ -600,7 +600,7 @@ sub to_table {
 
     my $list = $args{list};
 
-    my $checkElements = $self -> get_element_list;
+    my $checkElements = $self->get_element_list;
 
     #  check if the file is symmetric or not.  Check the list type as well.
     my $last_contents_count = -1;
@@ -614,7 +614,7 @@ sub to_table {
         my $checkElement = $checkElements->[$i];
         last CHECK_ELEMENTS if ! defined $checkElement;
 
-        my $values = $self -> get_list_values (element => $checkElement, list => $list);
+        my $values = $self->get_list_values (element => $checkElement, list => $list);
         if ((ref $values) =~ /HASH/) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
                 $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
@@ -756,7 +756,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
     push my @header, "ELEMENT";  #  need the number of element components for the header
     if (! $args{no_element_array}) {
         my $i = 0;
-        foreach my $null (@{$self -> get_element_name_as_array (element => $elements[0])}) {  #  get the number of element columns
+        foreach my $null (@{$self->get_element_name_as_array (element => $elements[0])}) {  #  get the number of element columns
             push (@header, "Axis_$i");
             $i++;
         }
@@ -774,7 +774,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
         my @basic = ($element);
         push @basic, ($self->get_element_name_as_array (element => $element)) if ! $args{no_element_array};
         #  get_list_values returns a list reference in scalar context - could be a hash or an array
-        my $list =  $self -> get_list_values (element => $element, list => $list);
+        my $list =  $self->get_list_values (element => $element, list => $list);
         if ($args{one_value_per_line}) {  #  repeats the elements, once for each value or key/value pair
             if ((ref $list) =~ /ARRAY/) {
                 foreach my $value (@$list) {
@@ -821,7 +821,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
 
     # Get all possible indices by sampling all elements
     # - this allows for asymmetric lists
-    my $elements = $self -> get_element_hash();
+    my $elements = $self->get_element_hash();
     my %indices_hash;
 
     print "[BASESTRUCT] Getting keys...\n";
@@ -1066,7 +1066,7 @@ sub write_table_floatgrid {
         print $fh_hdr 'byteorder ',
                       ($is_little_endian ? 'LSBFIRST' : 'MSBFIRST'),
                       "\n";
-        $fh_hdr -> close;
+        $fh_hdr->close;
     }
 
     my %coords;
@@ -1123,7 +1123,7 @@ sub write_table_divagis {
     }
 
     #  now process the generic stuff
-    my $r = $self -> raster_export_process_args ( %args );
+    my $r = $self->raster_export_process_args ( %args );
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
@@ -1202,7 +1202,7 @@ Transparent=1
 DIVA_HDR
   ;
         print $fh_hdr $diva_hdr;
-        $fh_hdr -> close;
+        $fh_hdr->close;
     }
 
     my %coords;
@@ -1263,7 +1263,7 @@ sub write_table_ers {
     }
 
     #  now process the generic stuff
-    my $r = $self -> raster_export_process_args ( %args );
+    my $r = $self->raster_export_process_args ( %args );
 
     my @min       = @{$r->{MIN}};
     my @max       = @{$r->{MAX}};
@@ -1290,7 +1290,7 @@ sub write_table_ers {
     my ($ncols, $nrows) = (0, 0);
     for (my $y = $max[1]; $y >= $min[1]; $y -= $res[1]) {
 
-        $y = $self -> set_precision (
+        $y = $self->set_precision (
             precision => "%.$precision[1]f",
             value     => $y,
         );
@@ -1302,7 +1302,7 @@ sub write_table_ers {
             for (my $x = $min[0]; $x <= $max[0]; $x += $res[0]) {
 
                 #$x = sprintf "%.$precision[0]f", $x;
-                $x = $self -> set_precision (
+                $x = $self->set_precision (
                     precision => "%.$precision[0]f",
                     value     => $x,
                 );
@@ -1643,48 +1643,48 @@ sub to_tree {
 
     my $name = $args{name};
     if (not defined $name) {
-        $name = $self -> get_param ('NAME') . "_AS_TREE";
+        $name = $self->get_param ('NAME') . "_AS_TREE";
     }
-    my $tree = Biodiverse::Tree -> new (NAME => $name);
+    my $tree = Biodiverse::Tree->new (NAME => $name);
 
-    my $elements = $self -> get_element_hash;
+    my $elements = $self->get_element_hash;
 
-    my $quotes = $self -> get_param ('QUOTES');  #  for storage, not import
-    my $el_sep = $self -> get_param ('JOIN_CHAR');
-    my $csv_obj = $self -> get_csv_object (
+    my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
+    my $el_sep = $self->get_param ('JOIN_CHAR');
+    my $csv_obj = $self->get_csv_object (
         sep_char   => $el_sep,
         quote_char => $quotes,
     );
 
     foreach my $element (keys %$elements) {
-        my @components = $self -> get_element_name_as_array (element => $element);
+        my @components = $self->get_element_name_as_array (element => $element);
         #my @so_far;
         my @prev_names = ();
         #for (my $i = 0; $i <= $#components; $i++) {
         foreach my $i (0 .. $#components) {
             #$so_far[$i] = $components[$i];
-            my $node_name = $self -> list2csv (
+            my $node_name = $self->list2csv (
                 csv_object  => $csv_obj,
                 list        => [@components[0..$i]],
             );
 
             my $parent_name = $i ? $prev_names[$i-1] : undef;  #  no parent if at highest level
 
-            if (not $tree -> node_is_in_tree (node => $node_name)) {
-                my $node = $tree -> add_node (
+            if (not $tree->node_is_in_tree (node => $node_name)) {
+                my $node = $tree->add_node (
                     name   => $node_name,
                     length => 1,
                 );
 
                 if ($parent_name) {
-                    my $parent_node = $tree -> get_node_ref (node => $parent_name);
+                    my $parent_node = $tree->get_node_ref (node => $parent_name);
                     #  create the parent if need be - SHOULD NOT HAPPEN
                     #if (not defined $parent_node) {
-                    #    $parent_node = $tree -> add_node (name => $parent_name, length => 1);
+                    #    $parent_node = $tree->add_node (name => $parent_name, length => 1);
                     #}
                     #  now add the child with the element as the name so we can link properly to the basedata in labels tab
-                    $node -> set_parent (parent => $parent_node);
-                    $parent_node -> add_children (children => [$node]);
+                    $node->set_parent (parent => $parent_node);
+                    $parent_node->add_children (children => [$node]);
                 }
             }
             #push @so_far, $node_name;
@@ -1694,16 +1694,16 @@ sub to_tree {
 
     #  set a master root node of length zero if we have more than one.
     #  All the current root nodes will be its children
-    my $root_nodes = $tree -> get_root_node_refs;
+    my $root_nodes = $tree->get_root_node_refs;
     #if (scalar @$root_nodes > 1) {
-        my $root_node = $tree -> add_node (name => '0___', length => 0);
-        $root_node -> add_children (children => [@$root_nodes]);
+        my $root_node = $tree->add_node (name => '0___', length => 0);
+        $root_node->add_children (children => [@$root_nodes]);
         foreach my $node (@$root_nodes) {
-            $node -> set_parent (parent => $root_node);
+            $node->set_parent (parent => $root_node);
         }
     #}
 
-    $tree -> set_parents_below;  #  run a clean up just in case
+    $tree->set_parents_below;  #  run a clean up just in case
     return $tree;
 }
 
@@ -1725,7 +1725,7 @@ sub sort_by_axes {
     my $a = shift;
     my $b = shift;
 
-    my $axes = $self -> get_param ('CELL_SIZES');
+    my $axes = $self->get_param ('CELL_SIZES');
     my $res = 0;
     my $a_array = $self->get_element_name_as_array (element => $a);
     my $b_array = $self->get_element_name_as_array (element => $b);
@@ -1745,8 +1745,8 @@ sub get_element_list_sorted {
     my $self = shift;
     my %args = @_;
 
-    my @list = $args{list} ? @{$args{list}} : $self -> get_element_list;
-    my @array = sort {$self -> sort_by_axes ($a, $b)} @list;
+    my @list = $args{list} ? @{$args{list}} : $self->get_element_list;
+    my @array = sort {$self->sort_by_axes ($a, $b)} @list;
 
     return wantarray ? @array : \@array;
 }
@@ -1768,7 +1768,7 @@ sub get_element_name_as_array {
 
     my $element = $args{element};
 
-    return $self -> get_array_list_values (
+    return $self->get_array_list_values (
         element => $element,
         list    => '_ELEMENT_ARRAY',
     );
@@ -1786,7 +1786,7 @@ sub get_unique_element_axis_values {
     my %values;
 
     ELEMENT:
-    foreach my $element ($self -> get_element_list) {
+    foreach my $element ($self->get_element_list) {
         my $coord_array
           = $self->get_element_name_as_array (element => $element);
 
@@ -1806,11 +1806,11 @@ sub get_element_name_coord {
     defined $args{element} || croak "element not specified\n";
     my $element = $args{element};
 
-    my $values = $self -> get_array_list_values (element => $element, list => '_ELEMENT_COORD');
+    my $values = $self->get_array_list_values (element => $element, list => '_ELEMENT_COORD');
 
     if (! defined $values) {  #  doesn't exist, so generate it 
-        $self -> generate_element_coords;
-        $values = $self -> get_element_name_coord (element => $element);
+        $self->generate_element_coords;
+        $values = $self->get_element_name_coord (element => $element);
     }
 
     return wantarray ? @$values : $values;
@@ -1820,20 +1820,20 @@ sub get_element_name_coord {
 sub generate_element_coords {
     my $self = shift;
 
-    $self -> delete_param ('AXIS_LIST_ORDER');  #  force recalculation for first one
+    $self->delete_param ('AXIS_LIST_ORDER');  #  force recalculation for first one
 
     my @is_text;
-    foreach my $element ($self -> get_element_list) {
+    foreach my $element ($self->get_element_list) {
         my $element_coord = [];  #  make a copy
-        my $cell_sizes = $self -> get_param ('CELL_SIZES');
-        my $element_array = $self -> get_array_list_values (element => $element, list => '_ELEMENT_ARRAY');
+        my $cell_sizes = $self->get_param ('CELL_SIZES');
+        my $element_array = $self->get_array_list_values (element => $element, list => '_ELEMENT_ARRAY');
 
         foreach my $i (0 .. $#$cell_sizes) {
             if ($cell_sizes->[$i] >= 0) {
                 $element_coord->[$i] = $element_array->[$i];
             }
             else {
-                $element_coord->[$i] = $self -> get_text_axis_as_coord (axis => $i, text => $element_array->[$i]);
+                $element_coord->[$i] = $self->get_text_axis_as_coord (axis => $i, text => $element_array->[$i]);
             }
         }
         $self->{ELEMENTS}{$element}{_ELEMENT_COORD} = $element_coord;
@@ -1849,7 +1849,7 @@ sub get_text_axis_as_coord {
     my $text = $args{text};
 
     #  store the axes as an array of hashes with value being the coord
-    my $lists = $self -> get_param ('AXIS_LIST_ORDER') || [];
+    my $lists = $self->get_param ('AXIS_LIST_ORDER') || [];
 
     if (! $args{recalculate} and defined $lists->[$axis]) {  #  we've already done it, so return what we have
         return $lists->[$axis]{$text};
@@ -1857,15 +1857,15 @@ sub get_text_axis_as_coord {
 
     my %this_axis;
     #  go through and get a list of all the axis text
-    foreach my $element (sort $self -> get_element_list) {
-        my $axes = $self -> get_element_name_as_array (element => $element);
+    foreach my $element (sort $self->get_element_list) {
+        my $axes = $self->get_element_name_as_array (element => $element);
             $this_axis{$axes->[$axis]}++;
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
     @this_axis{reverse sort keys %this_axis} = (0 .. scalar keys %this_axis);
     $lists->[$axis] = \%this_axis;
 
-    $self -> set_param (AXIS_LIST_ORDER => $lists);
+    $self->set_param (AXIS_LIST_ORDER => $lists);
 
     return $lists->[$axis]{$text};
 }
@@ -1937,7 +1937,7 @@ sub add_element {
 
     croak "element not specified\n" if ! defined $args{element};
 
-    return if $self -> exists_element (@_);  #  don't re-create
+    return if $self->exists_element (@_);  #  don't re-create
 
     my $element = $args{element};
     my $quote_char = $self->get_param('QUOTES');
@@ -1969,7 +1969,7 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     my $subElement = $args{subelement};
 
     if (! exists $self->{ELEMENTS}{$element}) {
-        $self -> add_element (
+        $self->add_element (
             element    => $element,
             csv_object => $args{csv_object},
         );
@@ -2045,7 +2045,7 @@ sub exists_element {
 sub exists_sub_element {
     my $self = shift;
 
-    return if ! $self -> exists_element (@_);  #  no point going further if element doesn't exist
+    return if ! $self->exists_element (@_);  #  no point going further if element doesn't exist
 
     my %args = @_;
 
@@ -2341,17 +2341,17 @@ sub get_list_value_stats {
 
     if (scalar @data) {  #  don't bother if they are all undef
         my $stats = $stats_class->new;
-        $stats -> add_data (\@data);
+        $stats->add_data (\@data);
 
         %stats_hash = (
-            MAX    => $stats -> max,
-            MIN    => $stats -> min,
-            MEAN   => $stats -> mean,
-            SD     => $stats -> standard_deviation,
-            PCT025 => scalar $stats -> percentile (2.5),
-            PCT975 => scalar $stats -> percentile (97.5),
-            PCT05  => scalar $stats -> percentile (5),
-            PCT95  => scalar $stats -> percentile (95),
+            MAX    => $stats->max,
+            MIN    => $stats->min,
+            MEAN   => $stats->mean,
+            SD     => $stats->standard_deviation,
+            PCT025 => scalar $stats->percentile (2.5),
+            PCT975 => scalar $stats->percentile (97.5),
+            PCT05  => scalar $stats->percentile (5),
+            PCT95  => scalar $stats->percentile (95),
         );
     }
 
@@ -2360,7 +2360,7 @@ sub get_list_value_stats {
 
 sub clear_lists_across_elements_cache {
     my $self = shift;
-    $self -> set_param (LISTS_ACROSS_ELEMENTS => undef);
+    $self->set_param (LISTS_ACROSS_ELEMENTS => undef);
     return;
 }
 
@@ -2380,7 +2380,7 @@ sub get_hash_lists_across_elements {
 sub get_lists_across_elements {
     my $self = shift;
     my %args = @_;
-    my $max_search = $args{max_search} || $self -> get_element_count;
+    my $max_search = $args{max_search} || $self->get_element_count;
     my $no_private = $args{no_private};
     my $rerun = $args{rerun};
     my $list_method = $args{list_method} || 'get_hash_lists';
@@ -2390,16 +2390,16 @@ sub get_lists_across_elements {
     #  get from cache
     my $cached_list = $self->get_param ('LISTS_ACROSS_ELEMENTS');
     my $cached_list_max_search
-        = $self -> get_param ('LISTS_ACROSS_ELEMENTS_LAST_MAX_SEARCH');
+        = $self->get_param ('LISTS_ACROSS_ELEMENTS_LAST_MAX_SEARCH');
 
-    my $last_update_time = $self -> get_last_update_time;
+    my $last_update_time = $self->get_last_update_time;
 
     if (!defined $last_update_time) {  #  store for next time
         $self->set_last_update_time (time - 10); # ensure older given time precision
     }
 
     my $last_cache_time
-        = $self -> get_param ('LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME')
+        = $self->get_param ('LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME')
           || time;
 
     my $time_diff = defined $last_update_time
@@ -2464,7 +2464,7 @@ sub get_numeric_hash_lists {
 
     my %lists;
     LIST:
-    foreach my $list ($self -> get_hash_lists (element => $element)) {
+    foreach my $list ($self->get_hash_lists (element => $element)) {
         $lists{$list} = 1;
         foreach my $value (values %{$self->get_list_values(element => $element, list => $list)}) {
             next if ! defined $value ;
@@ -2487,7 +2487,7 @@ sub get_array_lists {
     my $element = $args{element};
 
     #  this will blow up anything expecting a list that is requesting non-existent elements - for debugging reasons
-    return if ! $self -> exists_element (element => $args{element});
+    return if ! $self->exists_element (element => $args{element});
 
     my @list;
     foreach my $tmp (keys %{$self->{ELEMENTS}{$element}}) {
@@ -2504,8 +2504,8 @@ sub get_hash_lists {
     my $element = $args{element}; 
     my @list;
 
-    croak "Element does not exist, cannot get hash list\n" if ! $self -> exists_element (element => $element);
-    #if ($self -> exists_element (element => $element)) {
+    croak "Element does not exist, cannot get hash list\n" if ! $self->exists_element (element => $element);
+    #if ($self->exists_element (element => $element)) {
         foreach my $tmp (keys %{$self->{ELEMENTS}{$element}}) {
             push @list, $tmp if ref($self->{ELEMENTS}{$element}{$tmp}) =~ /HASH/;
         }
@@ -2552,7 +2552,7 @@ sub get_list_ref {  #  return a reference to the specified list - allows for dir
     croak "Argument 'element' not defined\n" if ! defined $args{element};
 
     croak "Element $args{element} does not exist"
-      if ! $self -> exists_element (element => $args{element});
+      if ! $self->exists_element (element => $args{element});
 
     my $el = $self->{ELEMENTS}{$args{element}};
     if (! exists $el->{$args{list}}) {
@@ -2568,7 +2568,7 @@ sub get_sample_count {
     croak "element not specified\n" if not defined $args{element};
     my $element = $args{element};
 
-    return if ! $self -> exists_element (element => $args{element});
+    return if ! $self->exists_element (element => $args{element});
 
     my $count = 0;
     foreach my $subElement ($self->get_sub_element_list(element => $element)) {
@@ -2584,7 +2584,7 @@ sub get_variety {
     croak "element not specified\n" if not defined $args{element};
     my $element = $args{element};
 
-    return if not $self -> exists_element (element => $args{element});
+    return if not $self->exists_element (element => $args{element});
     #my $el = $self->{ELEMENTS}{$element};  #  for debug
     return scalar keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}};
 }
@@ -2595,7 +2595,7 @@ sub get_redundancy {
     croak "element not specified\n" if not defined $args{element};
     my $element = $args{element};
 
-    return if ! $self -> exists_element (element => $args{element});
+    return if ! $self->exists_element (element => $args{element});
 
     my $redundancy = eval {
         1 - $self->get_variety (element => $element)
@@ -2647,9 +2647,9 @@ sub get_base_stats {  #  calculate basestats for a single element
     my $element = $args{element};
 
     my %stats = (
-        VARIETY    => $self -> get_variety      (element => $element),
-        SAMPLES    => $self -> get_sample_count (element => $element),
-        REDUNDANCY => $self -> get_redundancy   (element => $element),
+        VARIETY    => $self->get_variety      (element => $element),
+        SAMPLES    => $self->get_sample_count (element => $element),
+        REDUNDANCY => $self->get_redundancy   (element => $element),
     );
 
     #  get all the user defined properties
@@ -2754,7 +2754,7 @@ sub elements_are_numeric {
 sub element_arrays_are_numeric {
     my $self = shift;
     foreach my $element ($self->get_element_list) {
-        my $array = $self -> get_element_name_as_array (element => $element);
+        my $array = $self->get_element_name_as_array (element => $element);
         foreach my $iter (@$array) {
             return 0 if ! looks_like_number($iter);
         }
@@ -2772,12 +2772,12 @@ sub max {
 
 sub DESTROY {
     my $self = shift;
-    #my $name = $self -> get_param ('NAME');
+    #my $name = $self->get_param ('NAME');
     #print "DESTROYING BASESTRUCT $name\n";
     #undef $name;
-    my $success = $self -> set_param (BASEDATA_REF => undef);
+    my $success = $self->set_param (BASEDATA_REF => undef);
 
-    #$self -> _delete_params_all;
+    #$self->_delete_params_all;
 
     foreach my $key (sort keys %$self) {  #  clear all the top level stuff
         #print "Deleting BS $key\n";

@@ -35,5 +35,7 @@ WriteMakefile(
         "Math::Polygon" => "0",
         "Path::Class" => "0",
         "Tree:R" => "0",
+        "Geo::ShapeFile" => "0",
+        "List::MoreUtils" => "0",
     }
 );

@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Thu Jul  5 05:40:24 2012 using build_indices_table.pl, Biodiverse version 0.17._
+_Generated GMT Thu Jul  5 05:58:40 2012 using build_indices_table.pl, Biodiverse version 0.17._
 
 
 This is a listing of the indices available in Biodiverse,

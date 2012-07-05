@@ -521,7 +521,7 @@ sub getMaskRects {
     my $sel_rows = shift;
     my $sel_cols = shift;
 
-    my $total_lines = $self->{total_x};
+    my $total_lines = $self->{total_x} || 0;
     my $side_length = $total_lines * CELL_SIZE + CELL_SIZE;
     my $whole_matrix = Gtk2::Gdk::Rectangle->new(0, 0, $side_length, $side_length);
 
@@ -918,6 +918,8 @@ sub onBackgroundEvent {
 
 sub setupScrollbars {
     my $self = shift;
+    return if !defined $self->{width_units} || !defined $self->{height_units};
+
     my ($total_width, $total_height) = $self->{canvas}->w2c($self->{width_units}, $self->{height_units});
 
     $self->{hadjust}->upper( $total_width );

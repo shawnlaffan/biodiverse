@@ -47,7 +47,7 @@ sub new {
     $self->{project} = $self->{gui}->getProject();
     bless $self, $class;
     
-    $self -> set_default_params;
+    $self->set_default_params;
 
 
     # Load _new_ widgets from glade 
@@ -83,12 +83,12 @@ sub new {
     $self->initList('listLabels2');
 
     if (! $self->initGrid()) {       #  close if user cancelled during display
-        $self -> onClose;
+        $self->onClose;
         croak "User cancelled grid initialisation, closing\n";
     }
 
     if (! $self->initMatrixGrid()) { #  close if user cancelled during display
-        $self -> onClose;
+        $self->onClose;
         croak "User cancelled matrix initialisation, closing\n";
     }
     # Register callbacks when selected matrix is changed
@@ -230,7 +230,7 @@ sub initDendrogram {
     );
     
     #  cannot colour more than one in a phylogeny
-    $self->{dendrogram} -> setNumClusters (1);
+    $self->{dendrogram}->setNumClusters (1);
     
     return 1;
 }
@@ -419,14 +419,16 @@ sub onSelectedPhylogenyChanged {
     my $phylogeny = $self->{project}->getSelectedPhylogeny;
 
     my $plot_menu = $self->{xmlPage}->get_widget('menubar_phylogeny_plot_mode');
-    $self->{dendrogram} -> clear;
+    $self->{dendrogram}->clear;
     if ($phylogeny) {
-        $self->{dendrogram} -> setCluster($phylogeny, 'length');  #  now storing tree objects directly
+        $self->{dendrogram}->setCluster($phylogeny, 'length');  #  now storing tree objects directly
         $plot_menu->set_sensitive(1);
     }
     else {
-        #$self->{dendrogram} -> clear;
+        #$self->{dendrogram}->clear;
         $plot_menu->set_sensitive(0);
+        my $str = '<i>No selected tree</i>';
+        $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);
     }
 
     return;
@@ -434,7 +436,7 @@ sub onSelectedPhylogenyChanged {
 
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
-    $self->{dendrogram} -> set_use_highlight_func;
+    $self->{dendrogram}->set_use_highlight_func;
     
     return;
 }
@@ -452,17 +454,19 @@ sub onSelectedMatrixChanged {
     my $list_window = $xml_page->get_widget('scrolledwindow_labels2');
     
     my $list = $xml_page->get_widget('listLabels1');
-    my $col  = $list -> get_column ($labels_model_list2_sel_col);
+    my $col  = $list->get_column ($labels_model_list2_sel_col);
     
     if (! defined $matrix_ref) {
-        $list_window -> hide;     #  hide the second list
-        $col -> set_visible (0);  #  hide the list 2 selection
-                                  #    col from list 1
+        $list_window->hide;     #  hide the second list
+        $col->set_visible (0);  #  hide the list 2 selection
+                                #    col from list 1
     }
     else {
-        $list_window -> show;
-        $col -> set_visible (1);
+        $list_window->show;
+        $col->set_visible (1);
     }
+    
+    $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
     # matrix
     $self->onSorted(); # (this reloads the whole matrix anyway)    
@@ -530,7 +534,7 @@ sub onSelectedLabelsChanged {
         if (defined $tree) {
             #  not all will match
             eval {
-                my $node_ref = $tree -> get_node_ref (node => $label);
+                my $node_ref = $tree->get_node_ref (node => $label);
                 if (defined $node_ref) {
                     push @phylogeny_colour_nodes, $node_ref;
                 }
@@ -540,7 +544,7 @@ sub onSelectedLabelsChanged {
         #FIXME: This copies the hash (???recheck???) - not very fast...
         #my %hash = $self->{base_ref}->get_groups_with_label_as_hash(label => $label);
         #  SWL - just use a ref.  Unless Eugene was thinking of what the sub does...
-        my $hash = $bd -> get_groups_with_label_as_hash (label => $label);
+        my $hash = $bd->get_groups_with_label_as_hash (label => $label);
 
         # groups contains count of how many different labels occur in it
         foreach my $group (keys %$hash) {
@@ -570,7 +574,7 @@ sub onSelectedLabelsChanged {
 
     # have to run this after everything else is updated
     # otherwise incorrect nodes are selected.
-    $self -> set_selected_list_cols ($selection, $rowcol);
+    $self->set_selected_list_cols ($selection, $rowcol);
     
     return;
 }
@@ -616,7 +620,7 @@ sub set_selected_list_cols {
         my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
         my $orig_value = $global_model->get($iter1, $change_col);
     
-        my $value = $selection -> iter_is_selected ($iter) || 0;
+        my $value = $selection->iter_is_selected ($iter) || 0;
         
         if ($value != $orig_value) {
             #print "[Labels] $rowcol : ",
@@ -675,30 +679,59 @@ sub onSorted {
         );
     };
 
+    my $label_widget = $self->{xmlPage}->get_widget('lblMatrix');
+    my $drawable = $self->{matrix_drawable};
     if ($matrix_ref) {
-        if ($self->{matrix_drawn} == 0) {
-            my $num_values
-                = $self->{base_ref}->get_labels_ref->get_element_count;
-            $self->{matrix_grid}->drawMatrix( $num_values );
-            $self->{matrix_drawn} = 1;
+        if ($drawable) {
+            if (! $self->{matrix_drawn}) {
+                my $num_values
+                    = $self->{base_ref}->get_labels_ref->get_element_count;
+                $self->{matrix_grid}->drawMatrix( $num_values );
+                $self->{matrix_drawn} = 1;
+            }
+            $self->{matrix_grid}->setValues($values_func);
+            $self->{matrix_grid}->setColouring(
+                $matrix_ref->get_min_value,
+                $matrix_ref->get_max_value,
+            );
         }
-        $self->{matrix_grid}->setValues($values_func);
-        $self->{matrix_grid}->setColouring(
-            $matrix_ref->get_min_value,
-            $matrix_ref->get_max_value,
-        );
+        else {
+            my $str = '<i>No matrix elements in basedata</i>';
+            $label_widget->set_markup($str);
+        }
     }
     else {
         # clear matrix
         $self->{matrix_grid}->drawMatrix( 0 );
         $self->{matrix_drawn} = 0;
+        $self->{matrix_drawable} = 0;
+        my $str = '<i>No selected matrix</i>';
+        $label_widget->set_markup($str);
+    }
 
+    if (!$drawable) {
         $self->{matrix_grid}->setValues( sub { return undef; } );
         $self->{matrix_grid}->setColouring(0, 0);
         $self->{matrix_grid}->highlight(undef, undef);
     }
     
     return;
+}
+
+#  how many labels are in the matrix?  We don't draw it if there are none.
+sub get_label_count_in_matrix {
+    my $self = shift;
+    
+    return if !$self->{matrix_ref};
+    
+    #  should probably use List::MoreUtils::any 
+    my %labels      = $self->{base_ref}->get_labels_ref->get_element_hash;
+    my %mx_elements = $self->{matrix_ref}->get_elements;
+    my $mx_count    = scalar keys %mx_elements;
+    delete @mx_elements{keys %labels};
+    
+    #  if the counts differ then we have commonality
+    return $mx_count != scalar keys %mx_elements;
 }
 
 ##################################################
@@ -709,13 +742,16 @@ sub onGridHover {
     my $self = shift;
     my $group = shift;
 
+    my $text = defined $group? "Group: $group" : '<b>Groups</b>';
+    $self->{xmlPage}->get_widget('label_VL_grid')->set_markup($text);
+
     my $tree = $self->{project}->getSelectedPhylogeny;
-    return if not defined $tree;
+    return if ! defined $tree;
 
     $self->{dendrogram}->clearHighlights;
-    
-    return undef if ! defined $group;
-    
+
+    return if ! defined $group;
+
     # get labels in the group
     my $bd = $self->{base_ref};
     my $labels = $bd->get_labels_in_group_as_hash(group => $group);
@@ -724,14 +760,12 @@ sub onGridHover {
     foreach my $label (keys %$labels) {
         # Might not match some or all nodes
         eval {
-            my $node_ref = $tree -> get_node_ref (node => $label);
+            my $node_ref = $tree->get_node_ref (node => $label);
             if ($self->{use_highlight_path}) {
                 $self->{dendrogram}->highlightPath($node_ref) ;
             }
         }
     }
-    my $text = "Group: $group";
-    $self->{xmlPage}->get_widget('label_VL_grid')->set_markup($text);
     
     return;
 }
@@ -1131,7 +1165,7 @@ sub onOverlays {
 # Managing that vertical pane
 ##################################################
 
-# Sets the vertical pane's position (0 -> all the way down | 1 -> fully up)
+# Sets the vertical pane's position (0->all the way down | 1->fully up)
 sub setPane {
     my $self = shift;
     my $pos = shift;

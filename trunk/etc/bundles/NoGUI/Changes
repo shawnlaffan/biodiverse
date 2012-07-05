@@ -1,5 +1,8 @@
 Revision history for Perl bundle Task::Biodiverse::NoGUI
 
+0.17 05Jul2012
+        - Add Geo::ShapeFile, Tree:R and Path::Class
+
 0.16001 23Jan2012
         - Move from Bundle to Task namespace
 	- Subdivide second part of name (was BiodiverseNoGUI)

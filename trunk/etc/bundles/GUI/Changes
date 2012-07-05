@@ -1,5 +1,8 @@
 Revision history for Task::Biodiverse
 
+0.17 05Jul2012
+        - Geo::ShapeFile and Tree:R are now in Task::Biodiverse::NoGUI
+
 0.16001 23Jan2012
         - Move from Bundle to Task namespace
 

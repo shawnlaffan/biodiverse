@@ -332,7 +332,8 @@ sub calc_gpprop_quantiles {
 sub get_metadata_calc_gpprop_gistar {
     my $self = shift;
 
-    my $desc = 'Getis-Ord Gi* statistic for each group property across both neighbour sets';
+    my $desc = 'List of Getis-Ord Gi* statistics for each group property across both neighbour sets';
+    my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
     my %arguments = (
         description     => $desc,
@@ -341,13 +342,13 @@ sub get_metadata_calc_gpprop_gistar {
         pre_calc        => ['get_gpp_stats_objects'],
         pre_calc_global => [qw /_get_gpprop_global_summary_stats/],
         uses_nbr_lists  => 1,
+        reference       => $ref,
         indices         => {
             GPPROP_GISTAR_LIST => {
                 description => 'List of Gi* scores',
                 type        => 'list',
             },
         },
-        reference       => 'need to add',
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -366,33 +367,47 @@ sub calc_gpprop_gistar {
         #  bodgy - need generic method
         my $local_data = $local_objects{'GPPROP_STATS_' . $prop . '_DATA'};
 
-        my $n  = $global_data->{count};  #  these are hash values
-        my $W  = $local_data->count;     #  these are objects
-        my $S1 = $W;  #  binary weights here
-        my $sum = $local_data->sum;
-        my $expected = $W * $global_data->{mean};
-
-        my $numerator = $sum - $expected;
-
-        my $denominator = $W
-            ? $global_data->{standard_deviation}
-                * sqrt (
-                    (($n * $S1) - $W ** 2)
-                    / ($n - 1)
-                )
-            : undef;
-        
-        my $res;
-        if ($W) {
-            $res = $denominator ? $numerator / $denominator : 0;
-        }
-
-        $res{$prop} = $res;
+        $res{$prop} = $self->_get_gistar_score(
+            global_data => $global_data,
+            local_data  => $local_data,
+        );
     }
 
     my %results = (GPPROP_GISTAR_LIST => \%res);
 
     return wantarray ? %results : \%results;
+}
+
+#  run the actual Gi* calculation
+sub _get_gistar_score {
+    my $self = shift;
+    my %args = @_;
+
+    my $global_data = $args{global_data};
+    my $local_data  = $args{local_data};
+
+    my $n  = $global_data->{count};  #  these are hash values
+    my $W  = $local_data->count;     #  these are objects
+    my $S1 = $W;  #  binary weights here
+    my $sum = $local_data->sum;
+    my $expected = $W * $global_data->{mean};
+
+    my $numerator = $sum - $expected;
+
+    my $denominator = $W
+        ? $global_data->{standard_deviation}
+            * sqrt (
+                (($n * $S1) - $W ** 2)
+                / ($n - 1)
+            )
+        : undef;
+
+    my $res;
+    if ($W) {
+        $res = $denominator ? $numerator / $denominator : 0;
+    }
+
+    return $res;
 }
 
 sub get_metadata__get_gpprop_global_summary_stats {

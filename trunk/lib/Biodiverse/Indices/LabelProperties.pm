@@ -306,6 +306,89 @@ sub calc_lbprop_quantiles {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_lbprop_gistar {
+    my $self = shift;
+
+    my $desc = 'List of Getis-Ord Gi* statistic for each label property across both neighbour sets';
+    my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Label property Gi* statistics',
+        type            => 'Element Properties',
+        pre_calc        => ['get_lbp_stats_objects'],
+        pre_calc_global => [qw /_get_lbprop_global_summary_stats/],
+        uses_nbr_lists  => 1,
+        reference       => $ref,
+        indices         => {
+            LBPROP_GISTAR_LIST => {
+                description => 'List of Gi* scores',
+                type        => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_lbprop_gistar {
+    my $self = shift;
+    my %args = @_;
+
+    my %res;
+
+    my $global_hash   = $args{LBPROP_GLOBAL_SUMMARY_STATS};
+    my %local_objects = %{$args{LBPROP_STATS_OBJECTS}};
+
+    while (my ($prop, $global_data) = each %$global_hash) {
+        #  bodgy - need generic method
+        my $local_data = $local_objects{'LBPROP_STATS_' . $prop . '_DATA'};
+
+        $res{$prop} = $self->_get_gistar_score(
+            global_data => $global_data,
+            local_data  => $local_data,
+        );
+    }
+
+    my %results = (LBPROP_GISTAR_LIST => \%res);
+
+    return wantarray ? %results : \%results;
+}
+
+
+sub get_metadata__get_lbprop_global_summary_stats {
+    my $self = shift;
+    
+    my $descr = 'Global summary stats for label properties';
+
+    my %arguments = (
+        description     => $descr,
+        name            => $descr,
+        type            => 'Element Properties',
+        indices         => {
+            GPPROP_GLOBAL_SUMMARY_STATS => {
+                description => $descr,
+            }
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub _get_lbprop_global_summary_stats {
+    my $self = shift;
+
+    my $bd = $self->get_basedata_ref;
+    my $lb = $bd->get_labels_ref;
+    my $hash = $lb->get_element_properties_summary_stats;
+
+    my %results = (
+        LBPROP_GLOBAL_SUMMARY_STATS => $hash,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 
 1;
 

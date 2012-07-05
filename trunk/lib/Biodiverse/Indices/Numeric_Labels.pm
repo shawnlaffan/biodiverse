@@ -38,7 +38,7 @@ sub get_numeric_label_stats_object {
     my $self = shift;
     my %args = @_;
 
-    if (! $self->get_param ('BASEDATA_REF')->labels_are_numeric) {
+    if (! $self->get_basedata_ref->labels_are_numeric) {
         my %results = (numeric_label_stats_object => undef);
         return wantarray ? %results : \%results;
     }
@@ -392,6 +392,103 @@ sub _get_metadata_calc_numeric_label_rao_qe {
 sub _calc_numeric_label_rao_qe {
     return;
 }
+
+sub get_metadata__get_num_label_global_summary_stats {
+    my $descr = 'Global summary stats for numeric labels';
+
+    my %arguments = (
+        description     => $descr,
+        name            => $descr,
+        type            => 'Numeric Labels',
+        indices         => {
+            NUM_LABELS_GLOBAL_SUMMARY_STATS => {
+                description => $descr,
+            }
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub _get_num_label_global_summary_stats {
+    my $self = shift;
+    my %args = @_;
+
+    my $bd = $self->get_basedata_ref;
+
+    if (! $self->get_basedata_ref->labels_are_numeric) {
+        my %results = (NUM_LABELS_GLOBAL_SUMMARY_STATS => undef);
+        return wantarray ? %results : \%results;
+    }
+
+    my $lb = $bd->get_labels_ref;
+
+    my $labels = $bd->get_labels;
+
+    my @data;
+    foreach my $label (@$labels) {
+        my $count = $lb->get_sample_count (element => $label);
+        push @data, ($label) x $count;  # add as many as there are samples
+    }
+
+    my $stats_object = $stats_package->new;
+    $stats_object->add_data (\@data);
+
+    #$stats_object->sort_data;
+    
+    my %stats_hash;
+    foreach my $stat (qw /mean sum standard_deviation count/) { 
+        $stats_hash{$stat} = $stats_object->$stat;
+    }
+
+    my %results = (NUM_LABELS_GLOBAL_SUMMARY_STATS => \%stats_hash);
+    return wantarray ? %results : \%results;
+}
+
+
+sub get_metadata_calc_num_labels_gistar {
+    my $self = shift;
+
+    my $desc = 'Getis-Ord Gi* statistic for numeric labels across both neighbour sets';
+    my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Numeric labels Gi* statistic',
+        type            => 'Numeric Labels',
+        pre_calc        => ['get_numeric_label_stats_object'],
+        pre_calc_global => [qw /_get_num_label_global_summary_stats/],
+        uses_nbr_lists  => 1,
+        reference       => $ref,
+        indices         => {
+            NUM_GISTAR => {
+                description => 'List of Gi* scores',
+                lumper      => 1,
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_num_labels_gistar {
+    my $self = shift;
+    my %args = @_;
+
+    my $global_hash   = $args{NUM_LABELS_GLOBAL_SUMMARY_STATS};
+    my $local_object = $args{numeric_label_stats_object};
+
+    my $res = $self->_get_gistar_score(
+        global_data => $global_hash,
+        local_data  => $local_object,
+    );
+
+    my %results = (NUM_GISTAR => $res);
+
+    return wantarray ? %results : \%results;
+}
+
+
 
 #sub numerically {$a <=> $b};
 

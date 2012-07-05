@@ -1,3 +1,16 @@
+#  for a basic cpan distro:
+
+perl Makefile.PL
+dmake
+dmake manifest
+dmake dist
+
+#  the last line won't work on Windows unless tar is installed, but one can always use cygwin
+# substitute make for dmake
+
+######
+#  some other stuff
+
 perl Makefile.PL
 dmake test
 dmake
@@ -12,10 +25,3 @@ dmake clean
 
 #  finally, edit the ppd file to refer to the tar.gz file in the codebase href field
 
-#  for a basic cpan distro:
-
-perl Makefile.PL
-dmake manifest
-dmake tardist
-
-#  the last line won't work on Windows unless tar is installed, but one can always use cygwin

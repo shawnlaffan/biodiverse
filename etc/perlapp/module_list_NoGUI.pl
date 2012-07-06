@@ -7,6 +7,7 @@ use Biodiverse::BaseData;
 use Biodiverse::BaseStruct;
 use Biodiverse::Cluster;
 use Biodiverse::Common;
+use Biodiverse::RegionGrower;
 use Biodiverse::Config;
 use Biodiverse::ElementProperties;
 use Biodiverse::Exception;

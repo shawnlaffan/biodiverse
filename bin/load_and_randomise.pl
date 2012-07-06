@@ -7,10 +7,9 @@ use File::Spec;
 use FindBin qw { $Bin };
 use Carp;
 use English qw { -no_match_vars };
+use Path::Class;
 
-BEGIN {
-    eval 'use mylib';
-};
+use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
 
 local $| = 1;
 

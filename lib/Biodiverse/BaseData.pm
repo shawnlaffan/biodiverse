@@ -22,6 +22,7 @@ use English qw { -no_match_vars };
 use Biodiverse::BaseStruct;  #  main output goes to a Biodiverse::BaseStruct object
 use Biodiverse::Cluster;  #  we use methods to control the cluster objects
 use Biodiverse::Spatial;
+use Biodiverse::RegionGrower;
 use Biodiverse::Index;
 use Biodiverse::Randomise;
 use Biodiverse::Progress;

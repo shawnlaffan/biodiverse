@@ -5,12 +5,15 @@
 
 use strict;
 use warnings;
-use FindBin;
+use FindBin qw { $Bin };
 use English qw { -no_match_vars };
 use Carp;
 use File::Spec;
 
-use mylib;
+use Path::Class;
+
+use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
+
 
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;

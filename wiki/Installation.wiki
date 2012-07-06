@@ -8,7 +8,7 @@ Installation instructions.
     *  Executable:  InstallationWindowsBinary
     *  Source code:  InstallationWindowsSource
   *  Macintosh
-    *  Binary:  The binary version is still in development.
+    *  Binary:  InstallationMacBinary
     *  Source code:  InstallationMacSource
   *  Linux
     *  Binary:  InstallationLinuxBinary

@@ -1,8 +1,7 @@
 #summary Windows binary executable install instructions
 #sidebar Installation
 
-These instructions apply to version 0.14 and later.
-
+*These instructions apply to version 0.17 and later.*
 *Note that this executable will not work on Windows 2000 and earlier.*
 
 = Installation =
@@ -12,17 +11,17 @@ These instructions apply to version 0.14 and later.
 
 = Running it =
 
-  *  Biodiverse can be run by double clicking on `C:\biodiverse\BiodiverseGUI_win.exe`.
-    *  Do not use the `BiodiverseGUI.bat` file.  It is used for the source code version.  
+  *  Biodiverse can be run by double clicking on `C:\biodiverse\BiodiverseGUI.exe`.
+    *  Do not use the `BiodiverseGUI.bat` file.  It is used for the source code version.
   *  If you want to keep the command log visible after you close Biodiverse then run it from a command prompt.
     *  Under `Start Menu -> Run` type `cmd`.  
-    *  In the resulting command window, type `C:\biodiverse\BiodiverseGUI_win.exe`.
+    *  In the resulting command window, type `C:\biodiverse\BiodiverseGUI.exe`.
 
 
 = Troubleshooting and changes =
 
   *  If you don't like the window theme it uses then you can change them using the GTK+ Preference Tool from http://sourceforge.net/userapps/mediawiki/alex-sh/index.php?title=Main_Page
 
-  *  The Windows executable is generated using the !ActiveState !PerlApp tool.  It will work provided you do not move or rename the Gtk folder.  If you do, then make sure a Gtk\bin folder is in your system path so it finds the appropriate binaries that it depends on.  This folder needs to also include the libgnomecanvas.dll file that comes with Biodiverse.
+  *  The Windows executable is generated using the !ActiveState !PerlApp tool.  It will work provided you do not move or rename the Gtk folder.  If you do, then make sure the `gtk\bin` folder is in your system path so it finds the appropriate binaries that it depends on.  For an example of how to set the path, see http://www.computerhope.com/issues/ch000549.htm.
 
   *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

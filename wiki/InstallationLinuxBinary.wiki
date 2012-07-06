@@ -1,7 +1,7 @@
 #summary Linux binary executable install instructions
 #sidebar Installation
 
-These instructions apply to version 0.15 and later.
+These instructions apply to version 0.17.
 
 = Installation =
 
@@ -12,8 +12,8 @@ These instructions apply to version 0.15 and later.
 
   *  Biodiverse can be run by double clicking on `BiodiverseGUI_linux`.
   *  For the 0.14 release you will need to set the file to be executable (issue #134). `chmod +x $HOME/biodiverse/BiodiverseGUI_linux`
-  *  If you want to keep the command log visible after you close Biodiverse then run it from an xterm.
-    *  In the xterm, type `$HOME/biodiverse/BiodiverseGUI_linux`.
+  *  If you want to keep the command log visible after you close Biodiverse then run it from a terminal.
+    *  In the terminal, type `$HOME/biodiverse/BiodiverseGUI_linux`.
   *  If you want to avoid all the typing then edit your profile to add the biodiverse directory to your $PATH environment variable.
 
 = Troubleshooting and changes =
@@ -21,7 +21,5 @@ These instructions apply to version 0.15 and later.
   *  Ensure that you have installed the latest `GTK+`, `Glade` and `GnomeCanvas` packages.
 
   *  If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).  You can download and install more themes from http://art.gnome.org/themes/gtk2
-
-  *  The Linux executable is generated using the !ActiveState !PerlApp tool and does not use the accompanying source code.  
   
   *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

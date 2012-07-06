@@ -18,7 +18,7 @@ $bd->add_element (
     group => '1:1',
     count => 1,
 );
-my $lb_ref = $bd -> get_labels_ref;
+my $lb_ref = $bd->get_labels_ref;
 $lb_ref->set_param (CELL_SIZES => [-1,-1]);
 
 my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);

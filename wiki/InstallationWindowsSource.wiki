@@ -1,7 +1,7 @@
 #summary Windows source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.15 and later.  
+These instructions apply to version 0.17.  
 
 These assume you have saved the Biodiverse source code to C:\biodiverse.  If you have not then change the `C:\biodiverse\lib` path in the following to the appropriate path.
 
@@ -19,17 +19,17 @@ There are two options you can pursue here.  Both will work, but the !CamelBox in
 
 == Installation (AS) ==
 
-  * [http://code.google.com/p/biodiverse/downloads/list Download] the Biodiverse windows executable version for this, as it includes the Gtk binaries needed for the GUI (in addition to the Biodiverse source code).
+  * [http://code.google.com/p/biodiverse/downloads/list Download] the Biodiverse windows executable version for this, as it includes the Gtk binaries needed for the GUI.
   * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.  (If you do locate it elsewhere then make sure you adjust the paths in the following to reflect that).
   * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  For an example of how to set the path, see http://www.computerhope.com/issues/ch000549.htm.
-  * Download and install Perl 5.14 (the Community Edition) from http://www.activestate.com/activeperl/downloads.  If you are on a 64 bit machine then make sure you use the 32 bit installation, as the Gnome2::Canvas library needed for the GUI is not yet compiled for 64 bit.
-  
+  * Download and install Perl 5.14 (the Community Edition, *NOT 5.16 YET*) from http://www.activestate.com/activeperl/downloads.  If you are on a 64 bit machine then make sure you use the 32 bit installation, as the Gnome2::Canvas library needed for the GUI is not yet compiled for 64 bit.
+
   * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse.
 {{{
 ppm repo add http://www.sisyphusion.tk/ppm/
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
-ppm install Bundle-BiodiverseNoGUI
-ppm install Bundle-Biodiverse
+ppm install Task-Biodiverse-NoGUI
+ppm install Task-Biodiverse
 ppm install mylib
 ppm install Gnome2-Canvas
 }}}
@@ -40,9 +40,8 @@ ppm install Gnome2-Canvas
 {{{
 ppm repo add http://www.sisyphusion.tk/ppm/
 ppm repo add http://www.biodiverse.unsw.edu.au/ppm
-ppm install Bundle-BiodiverseNoGUI
-ppm install Bundle-Biodiverse
-ppm install mylib
+ppm update Task-Biodiverse-NoGUI
+ppm update Task-Biodiverse
 }}}
 
 == Running it (AS) ==
@@ -60,8 +59,8 @@ This will require some interaction when it downloads additional packages, depend
   *  Download and install !CamelBox from http://code.google.com/p/camelbox/ .  Install everything (the "Bloatware - Whole Enchilada" option).  This will install all the Gtk dependencies.
   *  Now you need to install the Biodiverse specific dependencies.  
 {{{
-C:\camelbox\bin\perl -MCPAN -e "install Bundle::BiodiverseNoGUI"
-C:\camelbox\bin\perl -MCPAN -e "install Bundle::Biodiverse"
+C:\camelbox\bin\perl -MCPAN -e "install Task::Biodiverse::NoGUI"
+C:\camelbox\bin\perl -MCPAN -e "install Task::Biodiverse"
 C:\camelbox\bin\perl -MCPAN -e "install Gnome2::Canvas"
 }}}
 
@@ -69,8 +68,8 @@ C:\camelbox\bin\perl -MCPAN -e "install Gnome2::Canvas"
 
   *  If you are updating an existing installation then repeat the cpan step from the installation process.
 {{{
-C:\camelbox\bin\perl -MCPAN -e "install Bundle::BiodiverseNoGUI"
-C:\camelbox\bin\perl -MCPAN -e "install Bundle::Biodiverse"
+C:\camelbox\bin\perl -MCPAN -e "upgrade Task::BiodiverseNoGUI"
+C:\camelbox\bin\perl -MCPAN -e "upgrade Task::Biodiverse"
 }}}
 
   

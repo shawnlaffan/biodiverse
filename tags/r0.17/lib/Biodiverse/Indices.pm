@@ -359,8 +359,8 @@ sub get_dependency_tree {
 
 
     my %pre_calc_hash;
-    foreach my $calculations (keys %calculations) {
-        my $got_args = $self->get_args (sub => $calculations);
+    foreach my $calculation (keys %calculations) {
+        my $got_args = $self->get_args (sub => $calculation);
 
         my $pc = $got_args->{$type};  # normally pre_calc or pre_calc_global
         next if ! defined $pc;
@@ -381,7 +381,7 @@ sub get_dependency_tree {
             my $next_level
                 = $self->get_dependency_tree (%args, calculations => [$pre_c]);
 
-            $pre_calc_hash{$calculations}{$pre_c}
+            $pre_calc_hash{$calculation}{$pre_c}
                 = defined $next_level->{$pre_c}
                     ? $next_level->{$pre_c}  #  flatten the next_level hash a little when assigning to this level
                     : 1;  #  default to a one

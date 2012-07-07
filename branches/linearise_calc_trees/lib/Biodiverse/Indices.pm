@@ -49,8 +49,8 @@ sub new {
         OUTSUFFIX       => 'bis',
         OUTSUFFIX_YAML  => 'biy',
     );
-    $self -> set_params (%PARAMS, %args);
-    $self -> set_default_params;  #  load any user overrides
+    $self->set_params (%PARAMS, %args);
+    $self->set_default_params;  #  load any user overrides
 
     $self->reset_results(global => 1);
 
@@ -92,14 +92,14 @@ sub get_calculations {
 
     my $syms = Devel::Symdump->rnew(@$tree);
     my %calculations;
-    my @list = sort $syms -> functions;
+    my @list = sort $syms->functions;
     foreach my $calculations (@list) {
         next if $calculations !~ /^.*::calc_/;
         next if $calculations =~ /calc_abc\d?$/;
         my ($source_module, $sub_name) = $calculations =~ /((?:.*::)*)(.+)/;
         $source_module =~ s/::$//;
         #print "ANALYSIS IS $calculations\n";
-        my $ref = $self -> get_args (sub => $sub_name);
+        my $ref = $self->get_args (sub => $sub_name);
         #$ref->{source_module} = $source_module;
         push @{$calculations{$ref->{type}}}, $sub_name;
         print Data::Dumper::Dump ($ref) if ! defined $ref->{type};
@@ -110,15 +110,15 @@ sub get_calculations {
 
 sub get_calculations_as_flat_hash {
     my $self = shift;
-    my $list = $self -> get_calculations;
-    return $self -> get_list_as_flat_hash (list => $list);
+    my $list = $self->get_calculations;
+    return $self->get_list_as_flat_hash (list => $list);
 }
 
 #  needed for GUI help and so forth
 sub get_calculation_metadata_as_wiki {
     my $self = shift;
 
-    my %calculations = $self -> get_calculations (@_);
+    my %calculations = $self->get_calculations (@_);
 
     #  the html version
     my @header = (  
@@ -146,7 +146,7 @@ sub get_calculation_metadata_as_wiki {
     my %calculation_hash;
     foreach my $type (sort keys %calculations) {
         foreach my $calculations (@{$calculations{$type}}) {
-            my $ref = $self -> get_args (sub => $calculations);
+            my $ref = $self->get_args (sub => $calculations);
             $ref->{analysis} = $calculations;
             $calculation_hash{$type}{$calculations} = $ref;
         }
@@ -391,14 +391,6 @@ sub get_dependency_tree {
     return wantarray ? %pre_calc_hash : \%pre_calc_hash;
 }
 
-sub get_pre_calc_global_hash_by_calculation {  # redundant?
-    my $self = shift;
-
-    my $pre_calc = $self->get_dependency_tree (@_);
-    my %calculations = $self->get_hash_inverted (list => $pre_calc);  #  NEED CHANGING
-    return wantarray ? %calculations : \%calculations;
-}
-
 #  get a hash of which calculations require 1 or 2 sets of spatial paramaters or other lists
 sub get_uses_nbr_lists_count {
     my $self = shift;
@@ -418,12 +410,12 @@ sub get_indices_uses_lists_count {
     my $self = shift;
     my %args = @_;
 
-    my $list = $args{calculations} || $self -> get_calculations;
-    my %list = $self -> get_list_as_flat_hash (list => $list);
+    my $list = $args{calculations} || $self->get_calculations;
+    my %list = $self->get_list_as_flat_hash (list => $list);
 
     my %indices;
     foreach my $calculations (keys %list) {
-        my $ref = $self -> get_args (sub => $calculations);
+        my $ref = $self->get_args (sub => $calculations);
         foreach my $index (keys %{$ref->{indices}}) {
             $indices{$index} = $ref->{indices}{$index}{uses_nbr_lists};
         }
@@ -436,7 +428,7 @@ sub get_indices_uses_lists_count {
 sub get_indices {
     my $self = shift;
 
-    return $self -> get_index_source_hash (@_);    
+    return $self->get_index_source_hash (@_);    
 }
 
 sub get_index_source {  #  return the source sub for an index
@@ -444,7 +436,7 @@ sub get_index_source {  #  return the source sub for an index
     my %args = @_;
     return undef if ! defined $args{index};
 
-    my $source = $self -> get_index_source_hash;
+    my $source = $self->get_index_source_hash;
     my @tmp = %{$source->{$args{index}}}; 
     return $tmp[0];  #  the hash key is the first value.  Messy, but it works.
 }
@@ -454,11 +446,11 @@ sub get_index_source {  #  return the source sub for an index
 sub get_index_source_hash { 
     my $self = shift;
     my %args = @_;
-    my $list = $args{calculations} || $self -> get_calculations_as_flat_hash;
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
     my %list2;
 
     foreach my $calculations (keys %$list) {
-        my $args = $self -> get_args (sub => $calculations);
+        my $args = $self->get_args (sub => $calculations);
         foreach my $index (keys %{$args->{indices}}) {
             $list2{$index}{$calculations}++;
         }
@@ -470,16 +462,17 @@ sub get_index_source_hash {
 sub get_required_args {  #  return a hash of those methods that require a parameter be specified
     my $self = shift;
     my %args = @_;
-    my $list = $args{calculations} || $self -> get_calculations_as_flat_hash;
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
     my %params;
 
     foreach my $calculations (keys %$list) {
-        my $ref = $self -> get_args (sub => $calculations);
+        my $ref = $self->get_args (sub => $calculations);
         if (exists $ref->{required_args}) {  #  make it a hash if it not already
-            if ((ref $ref->{required_args}) =~ /ARRAY/) {
-                $ref->{required_args} = $self -> array_to_hash_keys (
-                    list => $ref->{required_args},
-                );
+            my $reqd_ags = $ref->{required_args};
+            if ((ref $reqd_ags) =~ /ARRAY/) {
+                my %hash;
+                @hash{@$reqd_ags} = (1) x scalar @$reqd_ags;
+                $ref->{required_args} = \%hash;
             }
             elsif (not ref $ref->{required_args}) {
                 $ref->{required_args} = {$ref->{required_args} => 1};
@@ -494,11 +487,11 @@ sub get_required_args {  #  return a hash of those methods that require a parame
 sub get_valid_cluster_indices {
     my $self = shift;
     my %args = @_;
-    my $list = $args{calculations} || $self -> get_calculations_as_flat_hash;
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
 
     my %indices;
     foreach my $calculations (keys %$list) {
-        my $ref = $self -> get_args (sub => $calculations);
+        my $ref = $self->get_args (sub => $calculations);
         foreach my $index (keys %{$ref->{indices}}) {
             if ($ref->{indices}{$index}{cluster}) {
                 my $description = $ref->{indices}{$index}{description};
@@ -513,11 +506,11 @@ sub get_valid_cluster_indices {
 sub get_valid_region_grower_indices {
     my $self = shift;
     my %args = @_;
-    my $list = $args{calculations} || $self -> get_calculations_as_flat_hash;
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
 
     my %indices;
     foreach my $calculations (keys %$list) {
-        my $ref = $self -> get_args (sub => $calculations);
+        my $ref = $self->get_args (sub => $calculations);
         INDEX:
         foreach my $index (keys %{$ref->{indices}}) {
             my $hash_ref = $ref->{indices}{$index};
@@ -547,7 +540,7 @@ sub get_valid_calculations {
         if ! defined $use_list_count;
 
     #  get all the calculations
-    my %all_poss_calculations = $self -> get_calculations_as_flat_hash;
+    my %all_poss_calculations = $self->get_calculations_as_flat_hash;
 
     #  flatten the requested calculations - simplifies checks lower down
     my $calculations_to_run
@@ -574,7 +567,7 @@ sub get_valid_calculations {
 
             next ANALYSIS_IN_TREE if ! scalar keys %{$tree->{$calculations}};
 
-            my %hash = $self -> get_list_as_flat_hash (
+            my %hash = $self->get_list_as_flat_hash (
                 list          => $tree->{$calculations},
                 keep_branches => 1,
             );
@@ -584,7 +577,7 @@ sub get_valid_calculations {
 
         #  now we get rid of the 1st level branches
         #  - they are the calculations, not the pre_calcs
-        my $flattened = $self -> get_list_as_flat_hash (
+        my $flattened = $self->get_list_as_flat_hash (
             list => \%pre_calc_hash,
         );
         $results{$type . '_to_run'} = $flattened;
@@ -602,7 +595,7 @@ sub get_valid_calculations {
         #  skip the globals themselves
         next if $calc_type eq 'pre_calc_global';
 
-        my $sub_tree = $self -> get_dependency_tree (
+        my $sub_tree = $self->get_dependency_tree (
             calculations => $results{$calc_type . '_to_run'},
             type         => 'pre_calc_global'
         );
@@ -613,7 +606,7 @@ sub get_valid_calculations {
         my %pre_calc_hash;
         foreach my $pc (keys %$tree) {    #  need to keep the branches here
             next if ! scalar keys %{$tree->{$pc}};
-            my %hash = $self -> get_list_as_flat_hash (
+            my %hash = $self->get_list_as_flat_hash (
                 list          => $tree->{$pc},
                 keep_branches => 1,
             );
@@ -624,7 +617,7 @@ sub get_valid_calculations {
         #  now we get rid of the 1st level branches
         #  - they are the pre_calcs which are already registered
         #  in the pre_calc section
-        my $flattened = $self -> get_list_as_flat_hash (
+        my $flattened = $self->get_list_as_flat_hash (
             list => \%pre_calc_hash,
         );
         @{$results{pre_calc_global_to_run}}{keys %$flattened}
@@ -634,9 +627,9 @@ sub get_valid_calculations {
     }
 
     my %uses_lists_count  #  just check the ones to run
-        = $self -> get_uses_nbr_lists_count (calculations => $calculations_to_run);  
+        = $self->get_uses_nbr_lists_count (calculations => $calculations_to_run);  
     my %required_args     #  need to check all of them
-        = $self -> get_required_args (calculations => \%calculations_to_check);  
+        = $self->get_required_args (calculations => \%calculations_to_check);  
 
     print "[INDICES] CHECKING ANALYSES\n";
     my %deleted;
@@ -681,7 +674,7 @@ sub get_valid_calculations {
         foreach my $type (@types) {
             next if ! exists $results{$type . '_tree'}{$calculations};
             #  get the flattened list of pre_calcs for this analysis
-            my %pre_c = $self -> get_list_as_flat_hash (
+            my %pre_c = $self->get_list_as_flat_hash (
                 list => $results{$type . '_tree'}{$calculations},
                 keep_branches => 1,
             );
@@ -732,7 +725,7 @@ sub get_valid_calculations {
         #print "";
     }
 
-    my $indices_to_clear = $self -> get_indices_to_clear (
+    my $indices_to_clear = $self->get_indices_to_clear (
         %args,
         calculations => $calculations_to_run
     );
@@ -850,7 +843,7 @@ sub get_indices_to_clear {  #  should really accept a list of calculations as an
     my %args = @_;
     my $use_list_count = $args{use_list_count} || croak "use_list_count argument not specified\n";
 
-    my %hash = $self -> get_indices_uses_lists_count (%args);
+    my %hash = $self->get_indices_uses_lists_count (%args);
 
     foreach my $index (keys %hash) {
         delete $hash{$index} if ! defined $hash{$index} || $hash{$index} <= $use_list_count;
@@ -900,13 +893,6 @@ sub _run_dependency_tree {
         }
         else {
             my $run_deps = ref ($tree->{$calc}) =~ /HASH/;  #  will this avoid a mem leak?
-            #my $dep_results = {};
-            #if ($run_deps) {  #  run its dependencies if necessary
-            #    $dep_results = $self->_run_dependency_tree (
-            #        %args,
-            #        dependency_tree => $tree->{$calc},
-            #    );
-            #}
             my $dep_results = $run_deps
                 ? $self->_run_dependency_tree (
                       %args,
@@ -1007,8 +993,6 @@ sub get_args_for_calc_from_tree {
 }
 
 #  Run the global precalcs.
-#  Should we use a caching system to call at first use of local?
-#  Probably better to require an explicit call before running locals.
 sub run_precalc_globals {
     my $self = shift;
     my %args = @_;
@@ -1018,8 +1002,6 @@ sub run_precalc_globals {
         dependency_tree => $self->get_pre_calc_global_tree,
     );
 
-    #$self->set_param(PRE_CALC_GLOBALS => $results);
-
     return wantarray ? %$results : $results;
 }
 
@@ -1027,10 +1009,8 @@ sub run_precalc_globals {
 sub run_precalc_locals {
     my $self = shift;
     my %args = @_;
-    
-    #my $pre_calc_globals = $self->get_param('PRE_CALC_GLOBALS');
-    
-    return $self->run_dependency_tree(
+
+    return $self->run_dependency_tree (
         %args,
         dependency_tree => $self->get_pre_calc_local_tree,
     );
@@ -1051,7 +1031,7 @@ sub run_postcalc_locals {
 sub run_postcalc_globals {
     my $self = shift;
     my %args = @_;
-    
+
     return $self->run_dependency_tree(
         %args,
         dependency_tree => $self->get_post_calc_global_tree,

@@ -15,7 +15,7 @@ use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
 use YAML::Syck;
 use Text::CSV_XS;
-use Scalar::Util qw /weaken isweak blessed looks_like_number/;
+use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
 use Path::Class;
@@ -1790,29 +1790,35 @@ sub get_list_as_flat_hash {
     my $list = $args{list} || croak "[Common] Argument 'list' not specified\n";
     delete $args{list};  #  saves passing it onwards
 
+    #  check the first one
+    my $list_reftype = reftype ($list);
+    croak 'list arg must be a hash or array ref, not ' . ($list_reftype || 'undef') . "\n"
+      if not (defined $list_reftype or $list_reftype =~/ARRAY|HASH/);
+
+    my @refs = ($list);  #  start with this
     my %flat_hash;
-    my $ref = ref $list;
-    if ($ref =~ /ARRAY/) {
-        @flat_hash{@$list} = (1) x scalar @$list;
-    }
-    elsif ($ref =~ /HASH/) {
-        foreach my $elt (keys %{$list}) {
-            if (not ref $list->{$elt}) {  #  not a ref, so must be a single level hash list
-                $flat_hash{$elt} = $list->{$elt};
-            }
-            else {  #  drill into this list
-                my %local_hash = $self->get_list_as_flat_hash (%args, list => $list->{$elt});
-                @flat_hash{keys %local_hash} = values %local_hash;  #  add to this slice
-                #  keep this branch element if needed
-                $flat_hash{$elt} = $args{default_value} if $args{keep_branches};
-                if ($args{keep_refs}) {
-                    $flat_hash{$elt} = $list->{$elt};
+
+    foreach my $ref (@refs) {
+        my $reftype = reftype $ref;
+        if ($reftype eq 'ARRAY') {
+            @flat_hash{@$ref} = (1) x scalar @$ref;
+        }
+        elsif ($reftype eq 'HASH') {
+            foreach my $key (keys %$ref) {
+                my $reftype2 = reftype ($ref->{$key});
+                if (not $reftype2) {  #  not a ref, so must be a single level hash list
+                    $flat_hash{$key} = $ref->{$key};
+                }
+                else {
+                    #  push this ref onto the stack
+                    push @refs, $ref->{$key};
+                    #  keep this branch key if needed
+                    if ($args{keep_branches}) {
+                        $flat_hash{$key} = $args{default_value};
+                    }
                 }
             }
         }
-    }
-    else {  #  must be a scalar
-        croak "list arg must be a list, not a scalar\n";
     }
 
     return wantarray ? %flat_hash : \%flat_hash;

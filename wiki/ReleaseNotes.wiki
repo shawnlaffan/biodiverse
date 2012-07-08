@@ -4,7 +4,7 @@
 
 = Version 0.17 =
 
-This version is in development.  
+This version was released on 06Jul2012.
 
 Main changes since the previous version (0.16) are:
 

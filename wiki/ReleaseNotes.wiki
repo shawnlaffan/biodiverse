@@ -16,10 +16,9 @@ Main changes since the previous version (0.16) are:
   *  Calculations and indices
     *  Added absolute endemism.  Issue #144.
     *  Added PD Endemism (absolute phylogenetic endemism).  Issue #292.
-    *  Completed indices to summarise for label and group properties.  Issue #207, Issue #212, Issue #216. 
+    *  Completed indices to summarise label and group properties.  Issue #207, Issue #212, Issue #216. 
   *  Spatial conditions
     *  Added sp_point_in_poly_shape() to use polygons from a shapefile.  Issue #226
-    *  Adding support to access other outputs within a !BaseData object.  Issue #233
     *  Added optimisation for conditions that always return the same result.  Issue #304
     *  Added sp_get_spatial_output_list_value() to allow access to other outputs in the same !BaseData.  This allows one to, for example, restrict analyses to groups with an endemism score above some threshold.  Issue #233
   *  Exports

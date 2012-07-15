@@ -1,21 +1,18 @@
 package Biodiverse::Indices;
 
-#  package containing the various indices calculated from a Biodiverse::BaseData object
+#  package to run the calculations for a Biodiverse analysis 
 #  generally they are called from a Biodiverse::Spatial or Biodiverse::Cluster object
 
 use Carp;
 use strict;
 use warnings;
-#use diagnostics;
 use Devel::Symdump;
 use Data::Dumper;
-use Scalar::Util qw /blessed weaken/;
+use Scalar::Util qw /blessed weaken reftype/;
+use List::MoreUtils qw /uniq/;
 use English ( -no_match_vars );
-#use Class::ISA;
 use MRO::Compat;
 
-#$Data::Dumper::Sortkeys = 1;  #  sort the keys dumped by get_args
-#$Data::Dumper::Indent = 1;    #  reduce the indentation used by Dumper in get_args
 
 our $VERSION = '0.17';
 
@@ -40,10 +37,9 @@ use base qw {
 sub new {
     my $class = shift;
     my %args = @_;
-    
+
     my $self = bless {}, $class;
-    
-    
+
     my %PARAMS = (  #  default params
         TYPE            => 'INDICES',
         OUTSUFFIX       => 'bis',
@@ -57,7 +53,7 @@ sub new {
     #  avoid memory leak probs with circular refs to parents
     #  ensures children are destroyed when parent is destroyed
     $self->weaken_basedata_ref;  
-    
+
     return $self;
 }
 
@@ -66,7 +62,7 @@ sub reset_results {
     my %args = @_;
     
     if ($args{global}) {
-        $self ->set_param (AS_RESULTS_FROM => {});
+        $self->set_param (AS_RESULTS_FROM => {});
     }
     else {
         #  need to loop through the precalc hash and delete any locals in it
@@ -85,7 +81,7 @@ sub reset_results {
 #   Methods to get valid calculations depending on conditions
 
 #  get a list of the all the publicly available calculations.
-sub get_calculations {  
+sub get_calculations {
     my $self = shift;
 
     my $tree = mro::get_linear_isa(blessed ($self));
@@ -333,6 +329,164 @@ sub get_calculation_metadata_as_wiki {
     return $html;
 }
 
+sub _convert_to_hash {
+    my $self = shift;
+    my %args = @_;
+    
+    my $input = $args{input};
+    
+    croak "Input undefined\n" if !defined $input;
+
+    my %hash;
+
+    if (defined $input) {
+        my $reftype = reftype $input;
+        if ($reftype eq 'ARRAY') {
+            @hash{@$input} = (1) x scalar @$input;
+        }
+        elsif ($reftype eq 'HASH') {
+            %hash = %$input;
+        }
+        else {
+            $hash{$input} = $input;
+        }
+    }
+
+    return wantarray ? %hash : \%hash;
+}
+
+sub _convert_to_array {
+    my $self = shift;
+    my %args = @_;
+    
+    my $input = $args{input};
+    
+    return if !defined $input;
+
+    my @array;
+
+    if (defined $input) {
+        my $reftype = reftype $input;
+        if (!defined $reftype) {
+            @array = ($input);
+        }
+        elsif ($reftype eq 'ARRAY') {
+            @array = @$input;  #  makes a copy
+        }
+        elsif ($reftype eq 'HASH') {
+            @array = keys %$input;
+        }
+        #  anything else is not returned
+    }
+
+    return wantarray ? @array : \@array;
+}
+
+#  NEED TO HANDLE THE pre_calc_global vals for all of these
+sub parse_dependencies {
+    my $self = shift;
+    my %args = @_;
+
+    my $type  = $args{type};
+    my $calcs = $self->_convert_to_hash (input => $args{calculations});
+    $calcs    = [sort keys %$calcs];  #  Alpha sort for consistent order of eval.
+
+    #  Types of calculation.
+    #  Order is important.
+    #  pre_calc can depend on any other type,
+    #  post_calc and post_calc_global can only depend on themselves and pre_calc_global,
+    #  post_calc_global can only depend on itself and pre_calc_global
+    my @types     = qw /pre_calc post_calc post_calc_global pre_calc_global/;
+    my @type_list = @types;
+
+    my %calcs_by_type;
+    foreach my $type (@types) {
+        $calcs_by_type{$type} = [];
+    }
+    #  Start with the ones we want results for.
+    $calcs_by_type{pre_calc} = $calcs;
+
+    #  hash of dependencies per calculation, and the reverse
+    my %deps_by_type;
+    my %reverse_deps;
+
+    #  Iterate over each type, adding to the lists for
+    #  itself and each subsequent type
+    #  (hence the unusual while condition and the shifting at the end)
+    while (defined ($type = $type_list[0])) {
+        my $list = $calcs_by_type{$type};
+        foreach my $calc (@$list) {
+            my $metadata = $self->get_args (sub => $calc);
+
+            foreach my $secondary_type (@types) {
+                #  $pc is the secondary pre or post calc (global or not)
+                my $pc = $metadata->{$secondary_type};
+                next if ! defined $pc;
+                $pc = $self->_convert_to_array (input => $pc);
+                my $secondary_list = $calcs_by_type{$secondary_type};
+                push @$secondary_list, @$pc;
+
+                $deps_by_type{$secondary_type}{$calc} = $pc;
+                foreach my $c (@$pc) {
+                    $reverse_deps{$c}{$calc}++;
+                }
+            }
+        }
+        shift @type_list;
+    }
+
+    #  now we reverse the pre_calc and pre_calc_global lists
+    #  and clear any dups 
+    foreach my $type (@types) {
+        my $list = $calcs_by_type{$type};
+        my @u_list = uniq ($type =~ /^post/ ? @$list : reverse @$list);
+        $calcs_by_type{$type} = \@u_list;
+    }
+
+    my %results = (
+        calcs_by_type         => \%calcs_by_type,
+        deps_by_type_per_calc => \%deps_by_type,
+        reverse_deps          => \%reverse_deps,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_dependency_tree2 {
+    my $self = shift;
+    my %args = @_;
+    my $type = $args{type};
+    croak "Argument 'type' not specified\n" if not defined $type;
+
+    #  convert it to a hash as needed
+    my %calculations;
+    my $calcs = $args{calculations};
+    if (defined $calcs) {
+        my $reftype = reftype $calcs;
+        if ($reftype eq 'ARRAY') {
+            @calculations{@$calcs} = (1) x scalar @$calcs;
+        }
+        elsif ($reftype eq 'HASH') {
+            %calculations = %$calcs;
+        }
+        else {
+            $calculations{$calcs} = $calcs;
+        }
+    }
+
+    my %pre_calc_hash;
+    my @deps;
+    foreach my $calculation (keys %calculations) {
+        my $deps = $self->parse_dependency_tree (
+            calculation => $calculation,
+            type        => $type,
+        );
+        print "";
+    }
+
+    return wantarray ? %pre_calc_hash : \%pre_calc_hash;
+}
+
 sub get_dependency_tree { 
     my $self = shift;
     my %args = @_;
@@ -356,7 +510,6 @@ sub get_dependency_tree {
             $calculations{$calcs} = $calcs;
         }
     }
-
 
     my %pre_calc_hash;
     foreach my $calculation (keys %calculations) {
@@ -748,7 +901,7 @@ sub get_valid_calculations {
 sub add_to_sub_hashes {
     my $self = shift;
     my %args = @_;
-    
+
     my $hash   = $args{hash};
     my $key    = $args{key};
     my $values = $args{values};
@@ -756,7 +909,7 @@ sub add_to_sub_hashes {
     while (my ($this_key, $this_value) = each %$hash) {
         my $reftype = ref($this_value);
         next if not $reftype =~ /HASH/;
-        
+
         if ($this_key eq $key) {    
             @$this_value{keys %$values} = values %$values;
         }

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use Test::More tests => 4;
+use Test::More tests => 5;
 use Test::Exception;
 
 local $| = 1;
@@ -25,6 +25,8 @@ use Scalar::Util qw /blessed/;
     my $bd = get_basedata_object(
 	x_spacing  => $res[0],
 	y_spacing  => $res[1],
+	x_max      => $res[0],
+	y_max      => $res[1],
 	CELL_SIZES => \@res,
     );
 
@@ -37,18 +39,29 @@ use Scalar::Util qw /blessed/;
     diag $e->message if blessed $e;
     $is_error = $EVAL_ERROR ? 1 : 0;
     is ($is_error, 0, 'Get calculations without error');
-    
+
     my %indices_to_calc = eval {$indices->get_indices};
     $e = $EVAL_ERROR;
     diag $e->message if blessed $e;
     $is_error = $EVAL_ERROR ? 1 : 0;
     is ($is_error, 0, 'Get indices without error');
-    
+
     my %required_args = eval {$indices->get_required_args};
     $e = $EVAL_ERROR;
     diag $e->message if blessed $e;
     $is_error = $EVAL_ERROR ? 1 : 0;
-    is ($is_error, 0, 'Get required args without error');    
+    is ($is_error, 0, 'Get required args without error');
     
+    my @calc_array = qw /calc_pe calc_endemism_central calc_endemism_whole/;
+    my $calcs = $indices->get_calculations_as_flat_hash;
+    my %dep_tree = eval {
+	$indices->parse_dependencies (
+	    calculations => $calcs,
+	)
+    };
+    $e = $EVAL_ERROR;
+    diag $e->message if blessed $e;
+    $is_error = $EVAL_ERROR ? 1 : 0;
+    is ($is_error, 0, 'Parsed dependency tree without error');
 }
 

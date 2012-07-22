@@ -249,13 +249,15 @@ sub new {
             {toggled => \&on_menu_use_slider_to_select_nodes},
 
         clusterColourButton => {color_set => \&onHueSet},
-
+    
         comboClusterColours => {changed => \&onColourModeChanged},
         comboMapList        => {changed => \&onComboMapListChanged},
         txtClusterName      => {changed => \&onNameChanged},
         
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
+        
+        menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
@@ -1536,6 +1538,13 @@ sub on_menu_use_slider_to_select_nodes {
     #  should also really register as a dendrogram callback
     $self->{dendrogram}->toggle_use_slider_to_select_nodes;
 
+    return;
+}
+
+sub on_set_cell_outline_colour {
+    my $self = shift;
+    my $menu_item = shift;
+    $self->{grid}->set_cell_outline_colour (@_);
     return;
 }
 

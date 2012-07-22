@@ -805,6 +805,47 @@ sub colour {
     return;
 }
 
+sub set_cell_outline_colour {
+    my $self = shift;
+    my $colour = shift;
+    
+    if (! $colour) {  #  should fire up a colour selector
+        #$colour = Gtk2::Gdk::Color->parse('red');
+        $colour = $self->get_colour_from_chooser;
+    }
+
+    #  if still no colour chosen
+    return if !$colour;
+
+    foreach my $cell (values %{$self->{cells}}) {
+        my $rect = $cell->[INDEX_RECT];
+        $rect->set('outline_color_gdk', $colour);
+    }
+
+    return;
+}
+
+sub get_colour_from_chooser {
+    my $self = shift;
+    
+    my $dialog = Gtk2::ColorSelectionDialog->new ('Select a color');
+    my $c;
+    if ('ok' eq $dialog->run) {
+        $c = $dialog->colorsel->get_current_color;
+    }
+    $dialog->destroy;
+    
+    #if ($c) {
+    #    my %colours = (
+    #        red => $c->red,
+    #        green => $c->green,
+    #        blue => $c->blue,
+    #    );
+    #    print %colours; 
+    #}
+    return $c;
+}
+
 # Sets the values of the textboxes next to the legend */
 sub setLegendMinMax {
     my ($self, $min, $max) = @_;

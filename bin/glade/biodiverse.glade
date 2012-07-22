@@ -1005,8 +1005,8 @@
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1023,8 +1023,8 @@
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -2190,8 +2190,8 @@ in existing outputs so is disabled for BaseData with outputs</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -5244,7 +5244,7 @@ Colours are currently taken from the outer ring.</property>
                               <widget class="GtkLabel" id="label_spatial_neighbours_combo">
                                 <property name="visible">True</property>
                                 <property name="xpad">5</property>
-                                <property name="label" translatable="yes">Options</property>
+                                <property name="label" translatable="yes">Nbrs</property>
                               </widget>
                             </child>
                           </widget>
@@ -5261,8 +5261,7 @@ Colours are currently taken from the outer ring.</property>
                                 <property name="items" translatable="yes">Off
 Set1
 Set2
-Both
-Set cell outline colour</property>
+Both</property>
                               </widget>
                             </child>
                           </widget>

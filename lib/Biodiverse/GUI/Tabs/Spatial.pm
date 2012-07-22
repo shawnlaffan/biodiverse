@@ -1041,6 +1041,11 @@ sub onNeighboursChanged {
         $self->{grid}->markIfExists({}, 'circle');
     }
     
+    #  this is a dirty bodge for the testing purposes
+    if ($sel =~ /colour/) {
+        $self->{grid}->set_cell_outline_colour;
+    }
+    
     return;
 }
 

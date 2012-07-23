@@ -659,6 +659,21 @@ sub to_table {
     return wantarray ? @$data : $data;
 }
 
+#  sometimes we have names of unequal length
+sub get_longest_name_array_length {
+    my $self = shift;
+
+    my $longest = -1;
+    foreach my $element ($self->get_element_list) {
+        my $array = $self->get_element_name_as_array (element => $element);
+        my $len = scalar @$array;
+        if ($len > $longest) {
+            $longest = $len;
+        }
+    }
+    return $longest;
+}
+
 #  write parts of the object to a CSV file
 #  assumes these are always hashes, which may blow
 #  up in our faces later.  We'll fix it then
@@ -676,6 +691,8 @@ sub to_table_sym {
         list    => $args{list},
     );
     my @print_order = sort keys %$listHashRef;
+    
+    my $max_element_array_len;  #  used in some sections, set below if needed
 
     #  need the number of element components for the header
     my @header = ('Element');  
@@ -683,10 +700,9 @@ sub to_table_sym {
     if (! $args{no_element_array}) {
         my $i = 0;
         #  get the number of element columns
-        my $name_array =
-          $self->get_element_name_as_array (element => $elements[0]);
+        $max_element_array_len = $self->get_longest_name_array_length - 1;
 
-        foreach my $null (@$name_array) {  
+        foreach my $null (0 .. $max_element_array_len) {
             push (@header, 'Axis_' . $i);
             $i++;
         }
@@ -704,8 +720,11 @@ sub to_table_sym {
     foreach my $element (@elements) {
         my @basic = ($element);
         if (! $args{no_element_array}) {
-            push @basic,
-              ($self->get_element_name_as_array (element => $element));
+            my @array = $self->get_element_name_as_array (element => $element);
+            if ($#array < $max_element_array_len) {  #  pad if needed
+                push @array, (undef) x ($max_element_array_len - $#array);
+            }
+            push @basic, @array;
         }
 
         my $listRef = $self->get_hash_list_values(

@@ -884,6 +884,12 @@ sub get_metadata_export_table_grouped {
                 type        => 'boolean',
                 default     => 1,
             },
+            {
+                name        => 'terminals_only',
+                label_text  => 'Export data for terminal nodes only',
+                type        => 'boolean',
+                default     => 1,
+            },
             $self->get_table_export_metadata(),
         ],
     );

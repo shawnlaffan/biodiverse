@@ -1253,7 +1253,7 @@ sub number_nodes {
     return $number;
 }
 
-#  convert the entire tree to a table structure, using a basestruuct object as an intermediate
+#  convert the entire tree to a table structure, using a basestruct object as an intermediate
 sub to_table {
     my $self = shift;
     my %args = @_;
@@ -1276,7 +1276,7 @@ sub to_table {
     );  #  may need to specify some other params
 
 
-    my @header = qw /TREENAME NODENUMBER PARENTNODE LENGTHTOPARENT NAME/;
+    my @header = qw /TREENAME NODE_NUMBER PARENTNODE LENGTHTOPARENT NAME/;
 #    push @$data, \@header;
 
     my ($parent_num, $taxon_name);
@@ -1324,7 +1324,6 @@ sub to_table {
             @data{keys %$plot_coords_ref} = (values %$plot_coords_ref);
             my $vert_plot_coords_ref = $node->get_list_ref (list => 'PLOT_COORDS_VERT');
             @data{keys %$vert_plot_coords_ref} = (values %$vert_plot_coords_ref);
-
         }
 
         $bs->add_element (element => $number);
@@ -1343,7 +1342,7 @@ sub to_table {
 sub to_table_group_nodes {  #  export to table by grouping the nodes
     my $self = shift;
     my %args = @_;
-    
+
     #  Marginally inefficient, as we loop over the data three times this way (once here, twice in write_table).
     #  However, write_table takes care of the output and list types (symmetric/asymmetric) and saves code duplication
 
@@ -1370,7 +1369,9 @@ sub to_basestruct_group_nodes {
         NAME => 'TEMP',
     );
 
-    foreach my $element (keys %{$self->get_terminal_elements}) {
+    my $get_node_method = $args{terminals_only} ? 'get_terminal_elements' : 'get_all_descendents';
+
+    foreach my $element (sort keys %{$self->$get_node_method}) {
         $bs->add_element (element => $element);
     }
 
@@ -1404,10 +1405,9 @@ sub to_basestruct_group_nodes {
 
     # we have what we need, so flesh out the BaseStruct object
     foreach my $node (values %target_nodes) {
-        my %data;
+        my %data = (NAME => $node->get_name);
         if ($args{include_node_data}) {
-            %data = (
-                NAME               => $node->get_name,
+            my %node_data = (
                 LENGTH             => $node->get_length,
                 LENGTH_TOTAL       => $node->get_length_below,
                 DEPTH              => $node->get_depth,
@@ -1416,9 +1416,7 @@ sub to_basestruct_group_nodes {
                 TNODE_FIRST        => $node->get_value('TERMINAL_NODE_FIRST'),
                 TNODE_LAST         => $node->get_value('TERMINAL_NODE_LAST'),
             );
-        }
-        else {
-            %data = (NAME => $node->get_name);
+            @data{keys %node_data} = values %node_data;
         }
 
         #  get the additional list data if requested
@@ -1442,7 +1440,7 @@ sub to_basestruct_group_nodes {
         }
 
         #  loop through all the terminal elements in this cluster and assign the values
-        foreach my $element (keys %{$node->get_terminal_elements}) {
+        foreach my $element (sort keys %{$node->$get_node_method}) {
             $bs->add_to_hash_list (
                 element => $element,
                 list    => 'data',

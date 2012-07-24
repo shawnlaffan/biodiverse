@@ -716,6 +716,22 @@ sub get_terminal_element_count {
     return scalar keys %$hash;
 }
 
+sub get_all_descendents_and_self {
+    my $self = shift;
+
+    my %descendents = $self->get_all_descendents(@_);
+    my $name = $self->get_name;
+    $descendents{$name} = $self;
+    
+    foreach my $node_name (keys %descendents) {
+        if (! isweak $descendents{$node_name}) {
+            weaken $descendents{$node_name};
+        }
+    }
+    
+    return wantarray ? %descendents : \%descendents;
+}
+
 #  a left over - here just in case 
 sub get_all_children {
     my $self = shift;
@@ -1369,7 +1385,7 @@ sub to_basestruct_group_nodes {
         NAME => 'TEMP',
     );
 
-    my $get_node_method = $args{terminals_only} ? 'get_terminal_elements' : 'get_all_descendents';
+    my $get_node_method = $args{terminals_only} ? 'get_terminal_elements' : 'get_all_descendents_and_self';
 
     foreach my $element (sort keys %{$self->$get_node_method}) {
         $bs->add_element (element => $element);
@@ -1440,7 +1456,8 @@ sub to_basestruct_group_nodes {
         }
 
         #  loop through all the terminal elements in this cluster and assign the values
-        foreach my $element (sort keys %{$node->$get_node_method}) {
+        my @elements = keys %{$node->$get_node_method};
+        foreach my $element (sort @elements) {
             $bs->add_to_hash_list (
                 element => $element,
                 list    => 'data',

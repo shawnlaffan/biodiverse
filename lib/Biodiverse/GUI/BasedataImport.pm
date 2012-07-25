@@ -273,7 +273,7 @@ sub run {
 
     if ($response ne 'ok') {  #  clean up and drop out
         if ($use_new) {
-            $gui -> getProject -> deleteBaseData ($basedata_ref);
+            $gui->getProject->deleteBaseData ($basedata_ref);
         }
         return;
     }
@@ -303,8 +303,8 @@ sub run {
             my $remap;
             if ($remap_data{file}) {
                 #my $file = $remap_data{file};
-                $remap = Biodiverse::ElementProperties -> new;
-                $remap -> import_data (%remap_data);
+                $remap = Biodiverse::ElementProperties->new;
+                $remap->import_data (%remap_data);
             }
             $import_params{"$type\_properties"} = $remap;
             if (not defined $remap) {
@@ -1223,18 +1223,18 @@ sub getRemapInfo {
         return wantarray ? () : {}
     };
     
-    my $remap = Biodiverse::ElementProperties -> new;
-    my %args = $remap -> get_args (sub => 'import_data');
+    my $remap = Biodiverse::ElementProperties->new;
+    my %args = $remap->get_args (sub => 'import_data');
     my $params = $args{parameters};
     
     #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
     my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgImportParameters');
     my $dlg = $dlgxml->get_widget('dlgImportParameters');
-    $dlg -> set_title(ucfirst "$type property file options");
+    $dlg->set_title(ucfirst "$type property file options");
 
     # Build widgets for parameters
     my $table_name = 'tableImportParameters';
-    my $table = $dlgxml -> get_widget ($table_name );
+    my $table = $dlgxml->get_widget ($table_name );
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
     my $extractors = Biodiverse::GUI::ParametersTable::fill ($params, $table, $dlgxml); 
     
@@ -1297,7 +1297,7 @@ sub getRemapInfo {
     );
     
     my $column_settings = {};
-    $dlg -> set_title(ucfirst "$type property column types");
+    $dlg->set_title(ucfirst "$type property column types");
 
     RUN_DLG:
     while (1) {
@@ -1377,7 +1377,16 @@ sub getRemapInfo {
             $results{lc($t)} = $i->{id};  #  take the last one selected
         }
     }
-    
+
+    if ($sep ne 'guess') {
+        $results{input_sep_char} = $sep;
+    }
+    if ($quotes ne 'guess') {
+        $results{input_quote_char} = $quotes;
+    }
+    #if ($eol ne 'guess') {
+    #    $results{eol} = $eol;
+    #}
 
     return wantarray ? %results : \%results;
 }

@@ -135,7 +135,7 @@ sub import_data {
     my $header = <$fh1>;
     
     do {
-        local $/ = undef;  #  slurp whole file
+        local $/ = undef;  #  slurp whole file - not a good idea in the long term, but these tables hsould be small enough
         $whole_file = <$fh1>;
         #close $fh;
     };
@@ -154,14 +154,14 @@ sub import_data {
     }
 
     if (not defined $sep or $sep eq 'guess') {
-        $sep = $self -> guess_field_separator (
+        $sep = $self->guess_field_separator (
             string => $header,
             quote_char => $input_quotes
         );
     }
-    my $eol = $self -> guess_eol (string => $header);
+    my $eol = $self->guess_eol (string => $header);
     
-    my $csv_in  = $self -> get_csv_object (
+    my $csv_in  = $self->get_csv_object (
         sep_char => $sep,
         quote_char => $input_quotes,
         eol => $eol,

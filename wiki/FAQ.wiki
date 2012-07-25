@@ -46,6 +46,10 @@ These are the label version of the empty groups.  They allow the system to consi
 
 = Data import =
 
+== I imported my data and it only has one cell ==
+
+Make sure your cell size is appropriate for your data.  It needs to be in the same units, as Biodiverse knows nothing about where your data come from and cannot compensate.  For example, if you are using latitude/longitude data then the default cell size of 100,000 will wrap around the planet many times.  Use a size of 0.25, for example, to produce quarter degree cells.  If you are using data in a projected coordinate system with metres as the units, then use 25000 to obtain a 25 km cell size.  If your data are in millimetres, e.g. from a petri dish, then a cell size of 10 will result in each cell being one square centimetre.
+
 == My species list has been provided as a site by species matrix.  How do I import it? ==
 
 Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [SampleSession#BaseData].

@@ -12,6 +12,10 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 ==Publications using Biodiverse (or its ancestors)==
   (Publications are listed in reverse chronological order).  
 
+  *  Amboni, M. & Laffan, S.W. (in press) The effect of species range estimation methods on richness and phylogenetic diversity estimates: A comparison of four methods using Australian marsupials. International Journal of Geographical Information Science, Accepted 25Jul2012.
+
+  *  Laffan, S.W., Ramp, D. & Roger, E. (in press) Assessing reserve representation using endemism – the family Myrtaceae in the Greater Blue Mountains World Heritage Area. Journal of Biogeography, Accepted 25Jul2012
+
   *  Burley, H.M., Laffan, S.W., & Williams, K.J. (in press) Spatial non-stationarity and anisotropy of compositional turnover in eastern Australian Myrtaceae species. International Journal of Geographical Information Science.
 
   *  Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (in press) Fine scale quantification of floral and faunal breaks and their geographic correlates, with an example from south-eastern Australia. [http://dx.doi.org/10.1111/j.1365-2699.2012.02739.x Journal of Biogeography].

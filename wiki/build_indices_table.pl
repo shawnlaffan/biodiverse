@@ -53,7 +53,7 @@ $wiki_leader
 This is a listing of the indices available in Biodiverse,
 ordered by the calculations used to generate them.
 It is generated from the system metadata and contains all the 
-information visible in the GUI, plus some addtional details.
+information visible in the GUI, plus some additional details.
 
 Most of the headings are self-explanatory.  For the others:
   * The *Subroutine* is the name of the subroutine used to call the function if you are using Biodiverse through a script.  

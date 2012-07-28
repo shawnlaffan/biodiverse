@@ -10,7 +10,7 @@ WriteMakefile(
         ) : (),
     PREREQ_PM => {
         "Data::DumpXML" => "0",
-        "Math::Random::MT::Auto" => "0",
+        "Math::Random::MT::Auto" => "6.19",
         "Devel::Symdump" => "0",
         "Text::CSV_XS" => "0.60",
         "DBD::XBase" => "0",

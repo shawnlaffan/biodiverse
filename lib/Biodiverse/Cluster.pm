@@ -850,7 +850,10 @@ sub cluster_matrix_elements {
                             || $self->get_default_linkage;
     $self->set_param (LINKAGE_FUNCTION => $linkage_function);
 
-    my $rand = $self->initialise_rand (seed => $args{seed});
+    my $rand = $self->initialise_rand (
+        seed  => $args{prng_seed},
+        state => $args{prng_state},
+    );
 
     my $mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
     my $sim_matrix = $self->get_matrix_ref (iter => $mx_iter);

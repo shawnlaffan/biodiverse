@@ -538,7 +538,7 @@ sub build_matrix_elements {
         next ELEMENTS if $already_calculated{$element2};
 
         if ($pass_def_query) {  #  poss redundant check now
-            my $null = undef;  #  debug
+            #my $null = undef;  #  debug
             next ELEMENTS
               if (not exists $pass_def_query->{$element2});
         }
@@ -582,8 +582,8 @@ sub build_matrix_elements {
                     value    => $value,
                 )
             }
+            next ELEMENTS;
         }
-        next ELEMENTS if $exists;
 
         #  use elements if no cached labels
         #  set to undef if we have a cached label_hash
@@ -850,7 +850,7 @@ sub cluster_matrix_elements {
                             || $self->get_default_linkage;
     $self->set_param (LINKAGE_FUNCTION => $linkage_function);
 
-    my $rand = $self->initialise_rand;
+    my $rand = $self->initialise_rand (seed => $args{seed});
 
     my $mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
     my $sim_matrix = $self->get_matrix_ref (iter => $mx_iter);
@@ -1506,6 +1506,12 @@ sub link_recalculate {
     return wantarray ? %r : \%r;
 }
 
+#  THIS IS CURRENTLY ARSE ABOUT
+#  Need to generate the linkage value for the shadow matrix and then assign
+#  to the relevant matrices.  This will avoid pollution and shifting of values.
+#  We want non-overlapping neighbour sets to not interact outside their boundaries.
+#  Currently we get shenanigans with non-overlapping and a second nbr set.
+#  And also stop calling them nbr_matrices?  No longer relevant to the approach?
 sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $self = shift;
     my %args = @_;
@@ -1568,16 +1574,16 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
         );  
 
         my %values = $self->$linkage_function (
-            node1           => $node1,
-            node2           => $node2,
-            compare_node    => $check_node,
-            matrix          => $matrix_with_elements,
+            node1        => $node1,
+            node2        => $node2,
+            compare_node => $check_node,
+            matrix       => $matrix_with_elements,
         );
         if ($shadow_matrix) {
             $shadow_matrix->add_element  (
-                element1    => $new_node,
-                element2    => $check_node,
-                value       => $values{value},
+                element1 => $new_node,
+                element2 => $check_node,
+                value    => $values{value},
             );
         }
 

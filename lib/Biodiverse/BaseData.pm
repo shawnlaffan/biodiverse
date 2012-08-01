@@ -772,7 +772,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
               . "(it is still working if the progress bar is not moving)" 
             : $EMPTY_STRING;
 
-        my $input_quotes = $args{input_quotes};
+        my $input_quotes = $args{input_quote_char};
         #  guess the quotes character?
         if (not defined $input_quotes or $input_quotes eq 'guess') {  
             #  read in a chunk of the file

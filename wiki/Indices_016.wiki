@@ -1,5 +1,5 @@
 #summary Table of available indices
-#labels Featured
+#sidebar TOC
 
 = Indices available in Biodiverse =
 _Generated GMT Tue Jan 17 04:51:03 2012 using build_indices_table.pl, Biodiverse version 0.16._

@@ -11,8 +11,9 @@ use POSIX qw { fmod };
 use File::Basename;
 
 use lib File::Spec->catfile( $Bin, '..', 'lib');
-eval 'use mylib';
+#eval 'use mylib';
 
+use Data::Dumper;
 
 use Biodiverse::BaseData;
 use Biodiverse::Common;
@@ -49,6 +50,7 @@ die ("BaseData file not specified\n" . usage())
 die ("Output file not specified\n" . usage())
   if not defined $out_file;
 
+print 'Args are: ' . Dumper \%rest;
 
 my $index     = $rest{metric}  || 'SORENSON';
 my $max_lag   = $rest{max_lag};

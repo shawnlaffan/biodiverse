@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use Test::More tests => 5;
+use Test::More tests => 10;
 use Test::Exception;
 
 local $| = 1;
@@ -51,17 +51,47 @@ use Scalar::Util qw /blessed/;
     diag $e->message if blessed $e;
     $is_error = $EVAL_ERROR ? 1 : 0;
     is ($is_error, 0, 'Get required args without error');
+
+    my @calc_array =
+        qw /calc_sorenson
+            calc_elements_used
+            calc_pe
+            calc_endemism_central
+            calc_endemism_whole
+        /;
+    my %calc_hash;
+    @calc_hash{@calc_array} = (0) x scalar @calc_array;
+    $calc_hash{calc_sorenson} = 1;  #  1 if we should get an exception
+
+    my $calc_args = {tree_ref => 'a'};
+
+    foreach my $calc (sort keys %calc_hash) {
+	my %dep_tree = eval {
+	    $indices->parse_dependencies_for_calc (
+		calculation    => $calc,
+		nbr_list_count => 1,
+		calc_args      => $calc_args,
+	    )
+	};
+	$e = $EVAL_ERROR;
+	#diag $e->message if blessed $e;
+	$is_error = $EVAL_ERROR ? 1 : 0;
+	my $with_or_without = $calc_hash{$calc} ? 'with' : 'without';
+	is ($is_error, $calc_hash{$calc}, "Parsed dependency tree for $with_or_without error ($calc)");
+    }
     
-    my @calc_array = qw /calc_pe calc_endemism_central calc_endemism_whole/;
-    my $calcs = $indices->get_calculations_as_flat_hash;
-    my %dep_tree = eval {
-	$indices->parse_dependencies (
-	    calculations => $calcs,
-	)
+    $calc_args = {};
+    my $valid_calcs = eval {
+	$indices->get_valid_calculations (
+	    calculations   => \%calc_hash,
+	    nbr_list_count => 1,
+            calc_args      => $calc_args,
+	);
     };
     $e = $EVAL_ERROR;
     diag $e->message if blessed $e;
     $is_error = $EVAL_ERROR ? 1 : 0;
-    is ($is_error, 0, 'Parsed dependency tree without error');
+    is ($is_error, 0, "Obtained valid calcs without error");
+    
 }
 

@@ -13,6 +13,7 @@ use List::MoreUtils qw /uniq/;
 use English ( -no_match_vars );
 use MRO::Compat;
 
+use Biodiverse::Exception;
 
 our $VERSION = '0.17';
 
@@ -341,14 +342,14 @@ sub _convert_to_hash {
 
     if (defined $input) {
         my $reftype = reftype $input;
-        if ($reftype eq 'ARRAY') {
+        if (!defined $reftype) {
+            $hash{$input} = $input;
+        }
+        elsif ($reftype eq 'ARRAY') {
             @hash{@$input} = (1) x scalar @$input;
         }
         elsif ($reftype eq 'HASH') {
             %hash = %$input;
-        }
-        else {
-            $hash{$input} = $input;
         }
     }
 
@@ -382,14 +383,15 @@ sub _convert_to_array {
     return wantarray ? @array : \@array;
 }
 
-#  NEED TO HANDLE THE pre_calc_global vals for all of these
-sub parse_dependencies {
+#  NEED TO HANDLE THE pre_calc_global vals for all of these (Still?)
+sub parse_dependencies_for_calc {
     my $self = shift;
     my %args = @_;
 
-    my $type  = $args{type};
-    my $calcs = $self->_convert_to_hash (input => $args{calculations});
-    $calcs    = [sort keys %$calcs];  #  Alpha sort for consistent order of eval.
+    my $calcs = [$args{calculation}];  # array is a leftover - need to correct it
+    
+    my $nbr_list_count = $args{nbr_list_count};
+    my $calc_args      = $args{calc_args} || {};
 
     #  Types of calculation.
     #  Order is important.
@@ -409,14 +411,54 @@ sub parse_dependencies {
     #  hash of dependencies per calculation, and the reverse
     my %deps_by_type;
     my %reverse_deps;
+    my %metadata_hash;
+    my %indices_to_clear;
 
     #  Iterate over each type, adding to the lists for
     #  itself and each subsequent type
     #  (hence the unusual while condition and the shifting at the end)
-    while (defined ($type = $type_list[0])) {
+    while (defined (my $type = $type_list[0])) {
         my $list = $calcs_by_type{$type};
         foreach my $calc (@$list) {
-            my $metadata = $self->get_args (sub => $calc);
+            my $metadata;
+            if ($metadata_hash{$calc}) {
+                $metadata = $metadata_hash{$calc};
+            }
+            else {
+                $metadata = $self->get_args (sub => $calc);
+                $metadata_hash{$calc} = $metadata;
+            }
+
+            #  run some validity checks
+            my $uses_nbr_lists = $metadata->{uses_nbr_lists};
+            if (defined $uses_nbr_lists) {
+                if ($uses_nbr_lists > $nbr_list_count) {
+                    Biodiverse::Indices::InsufficientElementLists->throw (
+                        error => "[INDICES] WARNING: Insufficient neighbour lists for $calc. "
+                                . "Need $uses_nbr_lists but only $nbr_list_count available.\n",
+                    );
+                }
+            }
+            #  check the indices have sufficient nbr sets
+            while (my ($index, $index_meta) = each %{$metadata->{indices}}) {
+                my $index_uses_nbr_lists = $index_meta->{uses_nbr_lists} || 1;
+                if ($index_uses_nbr_lists > $nbr_list_count) {
+                    $indices_to_clear{$index} ++;
+                }
+            }
+            if ($metadata->{required_args}) {
+                my $reqd_args_h = $self->_convert_to_hash (input => $metadata->{required_args});
+                foreach my $required_arg (keys %$reqd_args_h) {
+                    if (! defined $calc_args->{$required_arg}) {
+                        Biodiverse::Indices::MissingRequiredArguments->throw (
+                            error => "[INDICES] WARNING: $calc missing required "
+                                    . "parameter $required_arg, "
+                                    . "dropping it and any calc that depends on it\n",
+                        );
+                        
+                    }
+                }
+            }
 
             foreach my $secondary_type (@types) {
                 #  $pc is the secondary pre or post calc (global or not)
@@ -447,116 +489,55 @@ sub parse_dependencies {
         calcs_by_type         => \%calcs_by_type,
         deps_by_type_per_calc => \%deps_by_type,
         reverse_deps          => \%reverse_deps,
+        indices_to_clear      => \%indices_to_clear,
     );
 
     return wantarray ? %results : \%results;
 }
 
-sub get_dependency_tree2 {
+my @valid_calc_exceptions = qw /
+    Biodiverse::Indices::MissingRequiredArguments
+    Biodiverse::Indices::InsufficientElementLists
+/;
+
+sub get_valid_calculations {
     my $self = shift;
     my %args = @_;
-    my $type = $args{type};
-    croak "Argument 'type' not specified\n" if not defined $type;
 
-    #  convert it to a hash as needed
-    my %calculations;
-    my $calcs = $args{calculations};
-    if (defined $calcs) {
-        my $reftype = reftype $calcs;
-        if ($reftype eq 'ARRAY') {
-            @calculations{@$calcs} = (1) x scalar @$calcs;
+    my $calcs = $self->_convert_to_hash (input => $args{calculations});
+    $calcs    = [sort keys %$calcs];  #  Alpha sort for consistent order of eval.
+
+    my %valid_calcs;
+    my @removed;
+
+  CALC:
+    foreach my $calc (@$calcs) {
+        #print "$calc\n";
+        my $deps = eval {
+            $self->parse_dependencies_for_calc (
+                calculation => $calc,
+                %args,
+            );
+        };
+        my $e = $EVAL_ERROR;
+        if ($e) {
+            for my $exception (@valid_calc_exceptions) {
+                if ($exception->caught) {
+                    print $e;
+                    push @removed, $calc;
+                    next CALC;
+                }
+            }
+            croak $EVAL_ERROR;
         }
-        elsif ($reftype eq 'HASH') {
-            %calculations = %$calcs;
-        }
-        else {
-            $calculations{$calcs} = $calcs;
-        }
+
+        $valid_calcs{$calc} = $deps;
     }
+    
+    print "[INDICES] The following calcs are not valid and have been removed:\n"
+        . join q{ }, @removed, "\n";
 
-    my %pre_calc_hash;
-    my @deps;
-    foreach my $calculation (keys %calculations) {
-        my $deps = $self->parse_dependency_tree (
-            calculation => $calculation,
-            type        => $type,
-        );
-        print "";
-    }
-
-    return wantarray ? %pre_calc_hash : \%pre_calc_hash;
-}
-
-sub get_dependency_tree { 
-    my $self = shift;
-    my %args = @_;
-    my $type = $args{type};
-    croak "Argument 'type' not specified\n" if not defined $type;
-    #croak "Argument 'calculations' not specified\n"
-    #    if not defined $args{calculations};
-
-    #  convert it to a hash as needed
-    my %calculations;
-    my $calcs = $args{calculations};
-    if (defined $calcs) {
-        my $ref = ref $calcs;
-        if ($ref =~ /ARRAY/) {
-            @calculations{@$calcs} = (1) x scalar @$calcs;
-        }
-        elsif ($ref =~ /HASH/) {
-            %calculations = %$calcs;
-        }
-        else {
-            $calculations{$calcs} = $calcs;
-        }
-    }
-
-    my %pre_calc_hash;
-    foreach my $calculation (keys %calculations) {
-        my $got_args = $self->get_args (sub => $calculation);
-
-        my $pc = $got_args->{$type};  # normally pre_calc or pre_calc_global
-        next if ! defined $pc;
-
-        my $ref = ref $pc;
-        if (! $ref) {
-            $pc = [$pc];
-        }
-        elsif ($ref =~ /HASH/) {
-            $pc = [keys %$pc] ;
-        }
-
-        next if ! scalar @$pc;   #  skip if nothing there - redundant?
-
-        foreach my $pre_c (@$pc) {
-            next if ! defined $pre_c;
-
-            my $next_level
-                = $self->get_dependency_tree (%args, calculations => [$pre_c]);
-
-            $pre_calc_hash{$calculation}{$pre_c}
-                = defined $next_level->{$pre_c}
-                    ? $next_level->{$pre_c}  #  flatten the next_level hash a little when assigning to this level
-                    : 1;  #  default to a one
-        }
-    }
-
-    return wantarray ? %pre_calc_hash : \%pre_calc_hash;
-}
-
-#  get a hash of which calculations require 1 or 2 sets of spatial paramaters or other lists
-sub get_uses_nbr_lists_count {
-    my $self = shift;
-    my %list = $self->get_calculations_as_flat_hash;
-    my %list2;
-
-    while ((my $calculations, my $null) = each %list) {
-        my $args = $self->get_args (sub => $calculations);
-        next if ! exists $args->{uses_nbr_lists};
-        $list2{$args->{uses_nbr_lists}}{$calculations}++;
-    }
-
-    return wantarray ? %list2 : \%list2;
+    return wantarray ? %valid_calcs : \%valid_calcs;
 }
 
 sub get_indices_uses_lists_count {
@@ -683,246 +664,6 @@ sub get_valid_region_grower_indices {
     return wantarray ? %indices : \%indices;
 }
 
-#  collect all the pre-reqs and so forth for a selected set of calculations
-sub get_valid_calculations {
-    my $self = shift;
-    my %args = @_;
-    my $use_list_count = $args{use_list_count};
-
-    croak "use_list_count argument not specified\n"
-        if ! defined $use_list_count;
-
-    #  get all the calculations
-    my %all_poss_calculations = $self->get_calculations_as_flat_hash;
-
-    #  flatten the requested calculations - simplifies checks lower down
-    my $calculations_to_run
-        = $self->get_list_as_flat_hash (list => $args{calculations});
-    my %calculations_to_check = %$calculations_to_run;
-
-    my @types = qw /pre_calc pre_calc_global post_calc post_calc_global/;
-
-    my %results;
-    foreach my $type (@types) {  #  get the pre_calc stuff
-        #  using %calculations_to_check in the dependency tree means
-        #  we get the global precalcs for any local precalcs
-        my $tree = $self->get_dependency_tree (
-            calculations => \%calculations_to_check,
-            type         => $type,
-        );
-
-        next if ! keys %$tree;
-
-        my %pre_calc_hash;
-
-        ANALYSIS_IN_TREE:
-        foreach my $calculations (keys %$tree) {  #  need to keep the branches here
-
-            next ANALYSIS_IN_TREE if ! scalar keys %{$tree->{$calculations}};
-
-            my %hash = $self->get_list_as_flat_hash (
-                list          => $tree->{$calculations},
-                keep_branches => 1,
-            );
-            @{$pre_calc_hash{$calculations}}{keys %hash} = values %hash;
-        }
-        $results{$type . '_tree'} = $tree;
-
-        #  now we get rid of the 1st level branches
-        #  - they are the calculations, not the pre_calcs
-        my $flattened = $self->get_list_as_flat_hash (
-            list => \%pre_calc_hash,
-        );
-        $results{$type . '_to_run'} = $flattened;
-        #  add these to the list to check
-        @calculations_to_check{keys %$flattened} = values %$flattened;  
-    }
-
-    #  Now we go through the calc types and get any of their globals,
-    #  adding them to the pre_calc_global checks.
-    #  We only do pre_calc_global checks as 
-    #  globals should not depend on locals
-    #  and post_calcs should not depend on local pre_calcs.
-    my $tree = {};
-    foreach my $calc_type (@types) {
-        #  skip the globals themselves
-        next if $calc_type eq 'pre_calc_global';
-
-        my $sub_tree = $self->get_dependency_tree (
-            calculations => $results{$calc_type . '_to_run'},
-            type         => 'pre_calc_global'
-        );
-        @{$tree}{keys %$sub_tree} = values %$sub_tree;
-    }
-
-    if (keys %$tree) {
-        my %pre_calc_hash;
-        foreach my $pc (keys %$tree) {    #  need to keep the branches here
-            next if ! scalar keys %{$tree->{$pc}};
-            my %hash = $self->get_list_as_flat_hash (
-                list          => $tree->{$pc},
-                keep_branches => 1,
-            );
-            @{$pre_calc_hash{$pc}}{keys %hash} = values %hash;
-        }
-        #  add these as a slice
-        @{$results{pre_calc_global_tree}}{keys %$tree} = values %$tree;  
-        #  now we get rid of the 1st level branches
-        #  - they are the pre_calcs which are already registered
-        #  in the pre_calc section
-        my $flattened = $self->get_list_as_flat_hash (
-            list => \%pre_calc_hash,
-        );
-        @{$results{pre_calc_global_to_run}}{keys %$flattened}
-            = values %$flattened;
-        @calculations_to_check{keys %$flattened}
-            = values %$flattened;  #  add these to the list to check
-    }
-
-    my %uses_lists_count  #  just check the ones to run
-        = $self->get_uses_nbr_lists_count (calculations => $calculations_to_run);  
-    my %required_args     #  need to check all of them
-        = $self->get_required_args (calculations => \%calculations_to_check);  
-
-    print "[INDICES] CHECKING ANALYSES\n";
-    my %deleted;
-
-    CHECK_ANALYSIS:
-    foreach my $calculations (keys %calculations_to_check) {
-        #  if $calculations has a required arg, check if it has been specified
-        if (exists $required_args{$calculations}) {
-            foreach my $rqdArg (keys %{$required_args{$calculations}}) {
-                if (! defined $args{$rqdArg}) {
-                    warn "[INDICES] WARNING: $calculations missing required "
-                         . "parameter $rqdArg, "
-                         . "dropping calculation and any dependencies\n";
-                    delete $calculations_to_run->{$calculations};
-                    $deleted{$calculations}++;
-                    next CHECK_ANALYSIS;
-                }
-            }
-        }
-
-        #  check $calculations exists as a valid analysis,
-        #  unless it is a pre_calc (catcher for non-GUI systems)
-        if (exists ($calculations_to_run->{$calculations})
-            and ! (exists $all_poss_calculations{$calculations})) {
-                warn "[INDICES] WARNING: $calculations not in the valid list, dropping it\n";
-                delete $calculations_to_run->{$calculations};
-                $deleted{$calculations}++;
-                next CHECK_ANALYSIS;
-        }
-
-        #  skip analysis if there are insufficient params specified ---CHEATING---
-        if ($use_list_count == 1 && exists $uses_lists_count{2}{$calculations}) {
-            warn "[INDICES] WARNING: insufficient spatial params for $calculations, dropping calculation\n";
-            delete $calculations_to_run->{$calculations};
-            $deleted{$calculations}++;
-            next CHECK_ANALYSIS;
-        }
-    }
-
-    #  now we go through and delete any calculations whose pre_calcs have been deleted
-    foreach my $calculations (keys %$calculations_to_run) {
-        foreach my $type (@types) {
-            next if ! exists $results{$type . '_tree'}{$calculations};
-            #  get the flattened list of pre_calcs for this analysis
-            my %pre_c = $self->get_list_as_flat_hash (
-                list => $results{$type . '_tree'}{$calculations},
-                keep_branches => 1,
-            );
-
-            my $length = scalar keys %pre_c;
-            delete @pre_c{keys %deleted};
-
-            #  next if none of the pre_calcs were deleted
-            next if $length == scalar keys %pre_c;  
-
-            #  we need to clean things up now
-            print "[INDICES] WARNING: dependency/ies for $calculations invalid, dropping calculation\n";
-            delete $calculations_to_run->{$calculations};
-            $deleted{$calculations}++;
-        }
-    }
-
-    #  cleanup the redundant calc hashes - these are still indexed by their calculations
-    foreach my $type (@types) {
-        delete @{$results{$type . '_to_run'}}{keys %deleted};
-        delete @{$results{$type . '_tree'}}{keys %deleted};
-    }
-
-    #  now loop over the calcs (local pre&post, global post)
-    #  and add their globals to their dependency tree
-    foreach my $calc_type (@types) {
-        #  skip the globals themselves
-        next if $calc_type eq 'pre_calc_global';
-
-        my $tree          = $results{$calc_type . '_tree'}     || {};
-        my $to_run        = $results{$calc_type . '_to_run'}   || {};
-        my $global_tree   = $results{'pre_calc_global_tree'}        || {};
-        my $global_to_run = $results{'pre_calc_global_to_run'} ||{};
-        my %locals  = (%$tree, %$to_run);
-        my %globals = (%$global_to_run, %$global_tree);
-        
-
-        foreach my $calc (keys %locals) {
-            next if not exists $globals{$calc};
-            while (my ($dep_calc, $dep_hash) = each %{$global_tree->{$calc}}) {
-                $self->add_to_sub_hashes(
-                    hash   => $tree,
-                    key    => $calc,
-                    values => {$dep_calc, $dep_hash},
-                );
-            }
-        }
-        #print "";
-    }
-
-    my $indices_to_clear = $self->get_indices_to_clear (
-        %args,
-        calculations => $calculations_to_run
-    );
-
-    if (scalar keys %$indices_to_clear) {
-        print '[INDICES] The following indices will not appear in the '
-              . 'results due to insufficient spatial parameters: ';
-        print join (q{ }, sort keys %$indices_to_clear) . "\n";
-    }
-
-    $results{required_args}    = \%required_args;
-    $results{calculations_to_run}  = $calculations_to_run;
-    $results{indices_to_clear} = $indices_to_clear;
-    
-    $self->set_param(VALID_CALCULATIONS => \%results);
-
-    return wantarray ? %results : \%results;
-}
-
-sub add_to_sub_hashes {
-    my $self = shift;
-    my %args = @_;
-
-    my $hash   = $args{hash};
-    my $key    = $args{key};
-    my $values = $args{values};
-
-    while (my ($this_key, $this_value) = each %$hash) {
-        my $reftype = ref($this_value);
-        next if not $reftype =~ /HASH/;
-
-        if ($this_key eq $key) {    
-            @$this_value{keys %$values} = values %$values;
-        }
-        else {  #  recurse
-            $self->add_to_sub_hashes(
-                %args,
-                hash => $this_value,
-            );
-        }
-    }
-
-    return;
-}
 
 sub get_valid_calculations_to_run {
     my $self = shift;

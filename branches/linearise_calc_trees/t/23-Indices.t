@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use Test::Exception;
 
 local $| = 1;
@@ -93,5 +93,18 @@ use Scalar::Util qw /blessed/;
     $is_error = $EVAL_ERROR ? 1 : 0;
     is ($is_error, 0, "Obtained valid calcs without error");
     
+    my $calcs_to_run = $indices->get_valid_calculations_to_run;
+    $e = $EVAL_ERROR;
+    diag $e->message if blessed $e;
+    $is_error = $EVAL_ERROR ? 1 : 0;
+    is ($is_error, 0, "Obtained valid calcs to run without error");
+    
+    #  need a basedata object for these next few
+    my %elements;
+    #  run the global pre_calcs
+    $indices->run_precalc_globals(%$calc_args);
+    my %sp_calc_values = $indices->run_calculations(%$calc_args, %elements);
+    $indices->run_postcalc_globals (%$calc_args);
+
 }
 

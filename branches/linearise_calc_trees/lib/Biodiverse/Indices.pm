@@ -389,8 +389,8 @@ sub parse_dependencies_for_calc {
     my %args = @_;
 
     my $calcs = [$args{calculation}];  # array is a leftover - need to correct it
-    
-    my $nbr_list_count = $args{nbr_list_count};
+
+    my $nbr_list_count = $args{nbr_list_count} || $self->get_param ('NBR_LIST_COUNT');
     my $calc_args      = $args{calc_args} || {};
 
     #  Types of calculation.
@@ -536,8 +536,13 @@ sub get_valid_calculations {
     
     print "[INDICES] The following calcs are not valid and have been removed:\n"
         . join q{ }, @removed, "\n";
+    
+    #calculations_to_run
+    my %results = (calculations_to_run => \%valid_calcs);
 
-    return wantarray ? %valid_calcs : \%valid_calcs;
+    $self->set_param (VALID_CALCULATIONS => \%results);
+
+    return wantarray ? %results : \%results;
 }
 
 sub get_indices_uses_lists_count {
@@ -670,7 +675,7 @@ sub get_valid_calculations_to_run {
     
     my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
     my $calcs = $valid_calcs->{calculations_to_run};
-    
+
     return wantarray ? %$calcs : $calcs;
 }
 

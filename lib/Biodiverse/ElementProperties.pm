@@ -156,14 +156,14 @@ sub import_data {
     if (not defined $sep or $sep eq 'guess') {
         $sep = $self->guess_field_separator (
             string => $header,
-            quote_char => $input_quotes
+            quote_char => $input_quote_char,
         );
     }
     my $eol = $self->guess_eol (string => $header);
     
     my $csv_in  = $self->get_csv_object (
         sep_char => $sep,
-        quote_char => $input_quotes,
+        quote_char => $input_quote_char,
         eol => $eol,
     );
     my $csv_out = $self -> get_csv_object (

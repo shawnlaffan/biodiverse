@@ -772,9 +772,9 @@ sub import_data {  #  load a data file into the selected BaseData object.
               . "(it is still working if the progress bar is not moving)" 
             : $EMPTY_STRING;
 
-        my $input_quotes = $args{input_quote_char};
+        my $input_quote_char = $args{input_quote_char};
         #  guess the quotes character?
-        if (not defined $input_quotes or $input_quotes eq 'guess') {  
+        if (not defined $input_quote_char or $input_quote_char eq 'guess') {  
             #  read in a chunk of the file
             my $first_10000_chars;
 
@@ -790,24 +790,24 @@ sub import_data {  #  load a data file into the selected BaseData object.
                 chop $first_10000_chars;
             }
 
-            $input_quotes = $self->guess_quote_char (string => \$first_10000_chars);
+            $input_quote_char = $self->guess_quote_char (string => \$first_10000_chars);
             #  if all else fails...
-            if (! defined $input_quotes) {
-                $input_quotes = $self->get_param ('QUOTES');
+            if (! defined $input_quote_char) {
+                $input_quote_char = $self->get_param ('QUOTES');
             }
         }
 
         my $sep = $args{input_sep_char};
-        if (not defined $sep or $sep eq "guess") {
+        if (not defined $sep or $sep eq 'guess') {
             $sep = $self->guess_field_separator (
                 string     => $header,
-                quote_char => $input_quotes
+                quote_char => $input_quote_char,
             );
         }
 
         my $in_csv = $self->get_csv_object (
             sep_char   => $sep,
-            quote_char => $input_quotes,
+            quote_char => $input_quote_char,
             binary     => $input_binary,  #  NEED TO ENABLE OTHER CSV ARGS TO BE PASSED
         );
         my $out_csv = $self->get_csv_object (

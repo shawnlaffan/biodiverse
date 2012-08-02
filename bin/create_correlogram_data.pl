@@ -31,11 +31,8 @@ $| = 1;
 
 
 #  Create a sparse matrix from which correlograms can be derived.
-#  Prints the matrix out as it goes to avoid memory limits.  
-#  Arguments are the name of the input basedata file (this must already exist)
-#  and the outut file name.  e.g.:
-#
-#  perl create_correlogram_data.pl input.bds matrix.txt NESTEDNESS_RESULTANT
+#  Prints the matrix out as it goes to avoid memory limits.
+#  See the usage sub for how to call it with arguments
 
 my $bd_file   = $ARGV[0];
 my $out_file  = $ARGV[1];

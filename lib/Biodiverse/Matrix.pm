@@ -932,11 +932,11 @@ sub load_data {
     };
     $fh2->close();  #  go back to the beginning
 
-    my $input_quotes = $args{input_quotes};
-    if (! defined $input_quotes) {  #  guess the quotes character
-        $input_quotes = $self -> guess_quote_char (string => \$whole_file);
+    my $input_quote_char = $args{input_quote_char};
+    if (! defined $input_quote_char) {  #  guess the quotes character
+        $input_quote_char = $self -> guess_quote_char (string => \$whole_file);
         #  if all else fails...
-        $input_quotes = $self -> get_param ('QUOTES') if ! defined $input_quotes;
+        $input_quote_char = $self -> get_param ('QUOTES') if ! defined $input_quote_char;
     }
 
     my $IDcount = 0;
@@ -947,11 +947,11 @@ sub load_data {
     
     my $in_csv = $self -> get_csv_object (
         sep_char    => $in_sep_char,
-        quote_char  => $input_quotes
+        quote_char  => $input_quote_char,
     );
     my $out_csv = $self -> get_csv_object (
         sep_char    => $out_sep_char,
-        quote_char  => $out_quote_char
+        quote_char  => $out_quote_char,
     );
     
     my $lines_to_read_per_chunk = 50000;  #  needs to be a big matrix to go further than this

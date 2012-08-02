@@ -66,7 +66,7 @@ sub import_data {
     #return wantarray ? () : {} if not defined $args{file};
     
     my $file         = $args{file};
-    my $input_quotes = $args{input_quote_char};
+    my $input_quote_char = $args{input_quote_char};
     my $sep          = $args{input_sep_char};    
     
     my $in_cols      = $args{input_element_cols};
@@ -144,12 +144,12 @@ sub import_data {
     my $quotes = $self -> get_param ('QUOTES');  #  for storage, not import
     my $el_sep = $self -> get_param ('JOIN_CHAR');
 
-    if (not defined $input_quotes or $input_quotes eq 'guess') {
+    if (not defined $input_quote_char or $input_quote_char eq 'guess') {
         #  guess the quotes character
-        $input_quotes = $self->guess_quote_char (string => \$whole_file);
+        $input_quote_char = $self->guess_quote_char (string => \$whole_file);
         #  if all else fails...
-        if (not defined $input_quotes) {
-            $input_quotes = $self->get_param ('QUOTES');
+        if (not defined $input_quote_char) {
+            $input_quote_char = $self->get_param ('QUOTES');
         }
     }
 

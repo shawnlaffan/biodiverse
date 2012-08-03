@@ -383,7 +383,7 @@ sub _convert_to_array {
     return wantarray ? @array : \@array;
 }
 
-#  NEED TO HANDLE THE pre_calc_global vals for all of these (Still?)
+
 sub parse_dependencies_for_calc {
     my $self = shift;
     my %args = @_;
@@ -536,13 +536,79 @@ sub get_valid_calculations {
     
     print "[INDICES] The following calcs are not valid and have been removed:\n"
         . join q{ }, @removed, "\n";
+
+    my %aggregated_calc_lists = $self->aggregate_calc_lists_by_type (
+        calc_hash => \%valid_calcs,
+    );
     
+    my %aggregated_deps_per_calc = $self->get_deps_per_calc_by_type (
+        calc_hash => \%valid_calcs,
+    );
+
     #calculations_to_run
-    my %results = (calculations_to_run => \%valid_calcs);
+    my %results = (
+        calculations_to_run => \%valid_calcs,
+        calc_lists_by_type  => \%aggregated_calc_lists,
+        calc_deps_by_type   => \%aggregated_deps_per_calc,
+    );
 
     $self->set_param (VALID_CALCULATIONS => \%results);
 
     return wantarray ? %results : \%results;
+}
+
+sub get_deps_per_calc_by_type {
+    my $self = shift;
+    my %args = @_;
+    
+    my $calc_hash = $args{calc_hash};
+    
+    my @types = qw /pre_calc_global pre_calc post_calc post_calc_global/;
+    my %aggregated;
+    foreach my $type (@types) {
+        $aggregated{$type} = {};
+    }
+    
+    while (my ($calc, $sub_hash) = each %$calc_hash) {
+        my $calcs_by_type = $sub_hash->{deps_by_type_per_calc};
+        while (my ($type, $hash) = each %$calcs_by_type) {
+            while (my ($dep_calc, $array) = each %$hash) {
+                $aggregated{$type}{$dep_calc} = $array;
+            }
+        }
+    }
+
+    return wantarray ? %aggregated : \%aggregated;    
+}
+
+sub aggregate_calc_lists_by_type {
+    my $self = shift;
+    my %args = @_;
+
+    my $calc_hash = $args{calc_hash};
+    
+    my @types = qw /pre_calc_global pre_calc post_calc post_calc_global/;
+    my %aggregated;
+    foreach my $type (@types) {
+        $aggregated{$type} = [];
+    }
+    
+    while (my ($calc, $sub_hash) = each %$calc_hash) {
+        my $calcs_by_type = $sub_hash->{calcs_by_type};
+        while (my ($type, $array) = each %$calcs_by_type) {
+            my $agg_array = $aggregated{$type};
+            push @$agg_array, @$array;
+        }
+    }
+    
+    #  now uniquify
+    foreach my $type (@types) {
+        my $array = $aggregated{$type};
+        my @u_array = uniq @$array;
+        $aggregated{$type} = \@u_array;
+    }
+
+    return wantarray ? %aggregated : \%aggregated;
 }
 
 sub get_indices_uses_lists_count {
@@ -751,6 +817,47 @@ sub get_indices_to_clear {  #  should really accept a list of calculations as an
     return wantarray ? %hash : \%hash;
 }
 
+
+sub run_dependencies {
+    my $self = shift;
+    my %args = @_;
+
+    my $tmp = $self->get_param('AS_RESULTS_FROM_GLOBAL') || {};
+    my %as_results_from = %$tmp;  #  make a copy
+my $dep_list = [];
+    #  Now we run the calculations at this level.
+    #  We also keep track of what has been run
+    #  to avoid repetition through multiple dependencies.
+    my %results;
+    foreach my $calc (@$dep_list) {
+        #my $sub_results = {};
+        #if (exists $as_results_from{$calc}) {  #  already cached, so just grab it
+        #    $sub_results = $as_results_from{$calc};
+        #}
+        #else {
+        #    my $dep_results = $run_deps
+        #        ? $self->_run_dependency_tree (
+        #              %args,
+        #              dependency_tree => $tree->{$calc},
+        #          )
+        #        : {};
+        #
+        #    $sub_results = eval {
+        #        $self->$calc (  
+        #            %args,
+        #            %$dep_results,
+        #        );
+        #    };
+        #    croak $EVAL_ERROR if $EVAL_ERROR;
+        #    $as_results_from->{$calc} = $sub_results;
+        #}
+        #@results{keys %$sub_results} = values %$sub_results;
+    }
+
+    return wantarray ? %results : \%results;
+}
+
+
 #  Run the dependency tree,
 #  but don't do the top level as it's the local calc in all cases
 sub run_dependency_tree {
@@ -896,9 +1003,10 @@ sub run_precalc_globals {
     my $self = shift;
     my %args = @_;
 
-    my $results = $self->run_dependency_tree(
+    my $results = $self->run_dependencies (
         %args,
-        dependency_tree => $self->get_pre_calc_global_tree,
+        type => 'pre_calc_global',
+        #dependency_list => {},
     );
 
     return wantarray ? %$results : $results;

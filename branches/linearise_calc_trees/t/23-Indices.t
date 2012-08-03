@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use English qw { -no_match_vars };
+use Carp;
 
 use Test::More tests => 11;
 use Test::Exception;
@@ -12,7 +13,7 @@ use mylib;
 
 use Biodiverse::BaseData;
 use Biodiverse::Indices;
-use Biodiverse::TestHelpers qw {:basedata};
+use Biodiverse::TestHelpers qw {:basedata :tree};
 
 use Scalar::Util qw /blessed/;
 
@@ -63,7 +64,7 @@ use Scalar::Util qw /blessed/;
     @calc_hash{@calc_array} = (0) x scalar @calc_array;
     $calc_hash{calc_sorenson} = 1;  #  1 if we should get an exception
 
-    my $calc_args = {tree_ref => 'a'};
+    my $calc_args = {tree_ref => get_tree_object};
 
     foreach my $calc (sort keys %calc_hash) {
 	my %dep_tree = eval {
@@ -80,7 +81,7 @@ use Scalar::Util qw /blessed/;
 	is ($is_error, $calc_hash{$calc}, "Parsed dependency tree for $with_or_without error ($calc)");
     }
     
-    $calc_args = {};
+    #$calc_args = {};
     my $valid_calcs = eval {
 	$indices->get_valid_calculations (
 	    calculations   => \%calc_hash,
@@ -102,9 +103,15 @@ use Scalar::Util qw /blessed/;
     #  need a basedata object for these next few
     my %elements;
     #  run the global pre_calcs
-    $indices->run_precalc_globals(%$calc_args);
-    my %sp_calc_values = $indices->run_calculations(%$calc_args, %elements);
-    $indices->run_postcalc_globals (%$calc_args);
+    eval {$indices->run_precalc_globals(%$calc_args)};
+    croak $EVAL_ERROR if $EVAL_ERROR;
+    
+    my %sp_calc_values = eval {$indices->run_calculations(%$calc_args, %elements)};
+    croak $EVAL_ERROR if $EVAL_ERROR;
+    
+    eval {$indices->run_postcalc_globals (%$calc_args)};
+    croak $EVAL_ERROR if $EVAL_ERROR;
+    
 
 }
 

@@ -272,10 +272,10 @@ sub sp_calc {
         NAME         => 'Indices for ' . $self->get_param('NAME'),
     );
 
-    my $use_list_count = scalar @$spatial_params_ref;
+    my $nbr_list_count = scalar @$spatial_params_ref;
     $indices_object->get_valid_calculations (
         %args,
-        use_list_count => $use_list_count,
+        nbr_list_count => $nbr_list_count,
     );
 
     #  drop out if we have none to do and we don't have an override flag

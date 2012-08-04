@@ -63,15 +63,15 @@ sub reset_results {
     my %args = @_;
     
     if ($args{global}) {
-        $self->set_param (AS_RESULTS_FROM => {});
+        $self->set_param (AS_RESULTS_FROM_GLOBAL => {});
     }
-    else {
+    #else {  #  old style - delete?  
         #  need to loop through the precalc hash and delete any locals in it
-        my $valids = $self->get_param('VALID_CALCULATIONS');
-        my $pre_calcs = $valids->{pre_calc_to_run};
-        my $as_args_from = $self->get_param('AS_RESULTS_FROM');
-        delete @{$as_args_from}{keys %$pre_calcs};
-    }
+        #my $valids = $self->get_param('VALID_CALCULATIONS');
+        #my $pre_calcs = $valids->{pre_calc_to_run};
+        #my $as_args_from = $self->get_param('AS_RESULTS_FROM');
+        #delete @{$as_args_from}{keys %$pre_calcs};
+    #}
 
     return;
 }
@@ -391,7 +391,7 @@ sub parse_dependencies_for_calc {
     my $calcs = [$args{calculation}];  # array is a leftover - need to correct it
 
     my $nbr_list_count = $args{nbr_list_count} || $self->get_param ('NBR_LIST_COUNT');
-    my $calc_args      = $args{calc_args} || {};
+    my $calc_args      = $args{calc_args} || \%args;
 
     #  Types of calculation.
     #  Order is important.
@@ -544,6 +544,10 @@ sub get_valid_calculations {
     my %aggregated_deps_per_calc = $self->get_deps_per_calc_by_type (
         calc_hash => \%valid_calcs,
     );
+    
+    #my %aggregated_indices_to_clear = $self->get_indices_to_clear_by_type (
+    #    calc_hash => \%valid_calcs,
+    #);
 
     #calculations_to_run
     my %results = (
@@ -751,67 +755,29 @@ sub get_valid_calculation_count {
     return scalar keys %$calcs;
 }
 
-sub get_indices_to_clear_for_calcs {
-    my $self = shift;
-
-    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    my $indices_to_clear = $valid_calcs->{indices_to_clear};
-
-    return wantarray ? %$indices_to_clear : $indices_to_clear;
-}
 
 sub get_required_args_for_calcs {
     my $self = shift;
-    
+#  still needed?    
     my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
     
     return $valid_calcs->{required_args};
 }
 
-sub get_pre_calc_global_tree {
-    my $self = shift;
-    
-    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    
-    return $valid_calcs->{pre_calc_global_tree};
-}
-
-sub get_post_calc_global_tree {
-    my $self = shift;
-    
-    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    
-    return $valid_calcs->{post_calc_global_tree};
-}
-
-sub get_pre_calc_local_tree {
-    my $self = shift;
-    
-    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    
-    return $valid_calcs->{pre_calc_tree};
-}
-
-sub get_post_calc_local_tree {
-    my $self = shift;
-    
-    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    
-    return $valid_calcs->{post_calc_tree};
-}
 
 #  indices where we don't have enough lists, but where the rest of the analysis can still run
 #  these can be cleared from any results
 #  need to rename sub
 sub get_indices_to_clear {  #  should really accept a list of calculations as an arg
     my $self = shift;
+croak "deprecated\n";
     my %args = @_;
-    my $use_list_count = $args{use_list_count} || croak "use_list_count argument not specified\n";
+    my $nbr_list_count = $args{nbr_list_count} || croak "nbr_list_count argument not specified\n";
 
     my %hash = $self->get_indices_uses_lists_count (%args);
 
     foreach my $index (keys %hash) {
-        delete $hash{$index} if ! defined $hash{$index} || $hash{$index} <= $use_list_count;
+        delete $hash{$index} if ! defined $hash{$index} || $hash{$index} <= $nbr_list_count;
     }
 
     return wantarray ? %hash : \%hash;
@@ -822,183 +788,99 @@ sub run_dependencies {
     my $self = shift;
     my %args = @_;
 
+    my $type = $args{type};
+
     my $tmp = $self->get_param('AS_RESULTS_FROM_GLOBAL') || {};
-    my %as_results_from = %$tmp;  #  make a copy
-my $dep_list = [];
-    #  Now we run the calculations at this level.
-    #  We also keep track of what has been run
-    #  to avoid repetition through multiple dependencies.
-    my %results;
-    foreach my $calc (@$dep_list) {
-        #my $sub_results = {};
-        #if (exists $as_results_from{$calc}) {  #  already cached, so just grab it
-        #    $sub_results = $as_results_from{$calc};
-        #}
-        #else {
-        #    my $dep_results = $run_deps
-        #        ? $self->_run_dependency_tree (
-        #              %args,
-        #              dependency_tree => $tree->{$calc},
-        #          )
-        #        : {};
-        #
-        #    $sub_results = eval {
-        #        $self->$calc (  
-        #            %args,
-        #            %$dep_results,
-        #        );
-        #    };
-        #    croak $EVAL_ERROR if $EVAL_ERROR;
-        #    $as_results_from->{$calc} = $sub_results;
-        #}
-        #@results{keys %$sub_results} = values %$sub_results;
-    }
+    my %as_results_from_global = %$tmp;  #  make a copy
 
-    return wantarray ? %results : \%results;
-}
-
-
-#  Run the dependency tree,
-#  but don't do the top level as it's the local calc in all cases
-sub run_dependency_tree {
-    my $self = shift;
-    my %args = @_;
-
-    my $tree = $args{dependency_tree};
-
-    my %results;
-
-    foreach my $calc (keys %$tree) {
-        my $sub_results = $self->_run_dependency_tree(
-            %args,
-            dependency_tree => $tree->{$calc},
-        );
-        @results{keys %$sub_results} = values %$sub_results; # do we need this?
-    }
-
-    return wantarray ? %results : \%results;
-}
-
-#  run a series of dependent calculations, starting from the bottom.
-sub _run_dependency_tree {   
-    my $self = shift;
-    my %args = @_;
-
-    my $tree = $args{dependency_tree} || {};
-    delete $args{dependency_tree};
-    my $as_results_from = $self->get_param('AS_RESULTS_FROM');
+    my $validated_calcs = $self->get_param ('VALID_CALCULATIONS');
+    my $calc_list = $validated_calcs->{calc_lists_by_type}{$type};
+    my $dep_list  = $validated_calcs->{calc_deps_by_type}{$type};
+    my $dep_list_global = $validated_calcs->{calc_deps_by_type}{pre_calc_global};
 
     #  Now we run the calculations at this level.
     #  We also keep track of what has been run
     #  to avoid repetition through multiple dependencies.
     my %results;
-    foreach my $calc (keys %$tree) {
-        my $sub_results = {};
-        if (exists $as_results_from->{$calc}) {  #  already cached, so just grab it
-            $sub_results = $as_results_from->{$calc};
+    my %as_results_from;
+    foreach my $calc (@$calc_list) {
+        my $calc_results;
+        #  if already cached then just grab it - should never happen now?
+        if (exists $as_results_from{$calc}) {
+            $calc_results = $as_results_from{$calc};
         }
         else {
-            my $run_deps = ref ($tree->{$calc}) =~ /HASH/;  #  will this avoid a mem leak?
-            my $dep_results = $run_deps
-                ? $self->_run_dependency_tree (
-                      %args,
-                      dependency_tree => $tree->{$calc},
-                  )
-                : {};
+            my %dep_results;
+            if (exists $dep_list->{$calc}) {
+                my $deps = $dep_list->{$calc} || [];
+                foreach my $dep (@$deps) {
+                    my $dep_res = exists $as_results_from{$dep}
+                        ? $as_results_from{$dep}
+                        : {};
+                    @dep_results{keys %$dep_res} = values %$dep_res;
+                }
+            }
+            if (exists $dep_list_global->{$calc}) {
+                my $deps = $dep_list_global->{$calc} || [];
+                foreach my $dep (@$deps) {
+                    my $dep_res = exists $as_results_from_global{$dep}
+                        ? $as_results_from_global{$dep}
+                        : {};
+                    @dep_results{keys %$dep_res} = values %$dep_res;
+                }
+            }
 
-            $sub_results = eval {
+            $calc_results = eval {
                 $self->$calc (  
                     %args,
-                    %$dep_results,
+                    %dep_results,
                 );
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
-            $as_results_from->{$calc} = $sub_results;
+            $as_results_from{$calc} = $calc_results;
+            if ($type eq 'pre_calc_global') {
+                $as_results_from_global{$calc} = $calc_results;
+            }
         }
-        @results{keys %$sub_results} = values %$sub_results;
+        $results{$calc} = $calc_results;
     }
 
-    #  return results for this sub
-    return wantarray ? %results : \%results;  
+    if ($type eq 'pre_calc_global') {
+        $self->set_param (AS_RESULTS_FROM_GLOBAL => \%as_results_from_global);
+    }
+
+    return wantarray ? %results : \%results;
 }
+
 
 sub run_calculations {
     my $self = shift;
     my %args = @_;
-    
-    $self->reset_results;  #  clear any previous local results
 
-    my $pre_calc_locals  = $self->run_precalc_locals (%args);
-    
-    my $pre_calc_local_tree  = $self->get_pre_calc_local_tree;
-    my $pre_calc_global_tree = $self->get_pre_calc_global_tree;
-    
-    my $as_results_from  = $self->get_param('AS_RESULTS_FROM');
-    
+    $self->reset_results;  #  clear any previous local results - poss redundant now
+
+    my $pre_calc_local_results = $self->run_precalc_locals (%args);
+
     my %calcs_to_run = $self->get_valid_calculations_to_run;
-    
+
     my %results;  #  stores the results
     foreach my $calc (keys %calcs_to_run) {
-        my %calc_results;
-        #  Access any results done as a pre_calc.
-        if (exists $as_results_from->{$calc}) {
-            %calc_results = %{$as_results_from->{$calc}};
-        }
-        else {
-            #print "ANALYSIS IS $analysis\n";
-            my %pre_calc_local_args_to_use = 
-                $self->get_args_for_calc_from_tree(
-                    calculation => $calc,
-                    dependency_tree => $pre_calc_local_tree,
-                );
-            my %pre_calc_global_args_to_use = 
-                $self->get_args_for_calc_from_tree(
-                    calculation => $calc,
-                    dependency_tree => $pre_calc_global_tree,
-                );
+        my $calc_results = $pre_calc_local_results->{$calc};
 
-            %calc_results = $self->$calc (
-                %args,
-                %pre_calc_local_args_to_use,
-                %pre_calc_global_args_to_use,
-            );
+        #  remove those that are invalid
+        my $indices_to_clear = $calcs_to_run{$calc}{indices_to_clear};
+        if ($indices_to_clear) {
+            delete @{$calc_results}{keys %$indices_to_clear};
         }
-        @results{keys %calc_results} = values %calc_results;
+
+        @results{keys %$calc_results} = values %$calc_results;
     }
 
     $self->run_postcalc_locals (%args);
 
-    #  remove those that are invalid
-    my $indices_to_clear = $self->get_indices_to_clear_for_calcs;
-    delete @results{keys %$indices_to_clear};
-
     return wantarray ? %results : \%results;
 }
 
-#  get the args for a calculation using its dependency tree
-sub get_args_for_calc_from_tree {
-    my $self = shift;
-    my %args = @_;
-    my $tree = $args{dependency_tree};
-    my $calc = $args{calculation};
-    my $as_results_from = $self->get_param('AS_RESULTS_FROM');
-
-    return if    not exists $tree->{$calc}
-              or not ref ($tree->{$calc}) =~ /HASH/;
-
-    my $subs = $tree->{$calc};
-
-    my %results;
-    foreach my $sub_calc (keys %$subs) {
-        my $sub_results = $as_results_from->{$sub_calc};
-        @results{keys %$sub_results}
-          = values %$sub_results;
-    }
-
-    return wantarray ? %results : \%results;
-}
-
-#  Run the global precalcs.
 sub run_precalc_globals {
     my $self = shift;
     my %args = @_;
@@ -1006,42 +888,39 @@ sub run_precalc_globals {
     my $results = $self->run_dependencies (
         %args,
         type => 'pre_calc_global',
-        #dependency_list => {},
     );
 
     return wantarray ? %$results : $results;
 }
 
-#  run the local precalcs
 sub run_precalc_locals {
     my $self = shift;
     my %args = @_;
 
-    return $self->run_dependency_tree (
+    return $self->run_dependencies (
         %args,
-        dependency_tree => $self->get_pre_calc_local_tree,
+        type => 'pre_calc',
     );
 }
 
-#  run the local precalcs
 sub run_postcalc_locals {
     my $self = shift;
     my %args = @_;
     
-    return $self->run_dependency_tree(
+    return $self->run_dependencies (
         %args,
-        dependency_tree => $self->get_post_calc_local_tree,
+        type => 'post_calc',
     );
 }
 
-#  run the local precalcs
+
 sub run_postcalc_globals {
     my $self = shift;
     my %args = @_;
 
-    return $self->run_dependency_tree(
+    return $self->run_dependencies (
         %args,
-        dependency_tree => $self->get_post_calc_global_tree,
+        type => 'post_calc_global',
     );
 }
 

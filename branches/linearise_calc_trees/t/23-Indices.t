@@ -100,8 +100,14 @@ use Scalar::Util qw /blessed/;
     $is_error = $EVAL_ERROR ? 1 : 0;
     is ($is_error, 0, "Obtained valid calcs to run without error");
     
-    #  need a basedata object for these next few
-    my %elements;
+    #  need to us the basedata object for these next few
+    my @el_list1 = qw /10_1 10_2/;
+    #my @el_list2 = qw /10_3 10_4/;
+    my %elements = (
+        element_list1 => \@el_list1,
+        #element_list2 => \@el_list2,
+    );
+
     #  run the global pre_calcs
     eval {$indices->run_precalc_globals(%$calc_args)};
     croak $EVAL_ERROR if $EVAL_ERROR;

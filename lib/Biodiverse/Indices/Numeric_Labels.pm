@@ -478,10 +478,13 @@ sub calc_num_labels_gistar {
     my $global_hash   = $args{NUM_LABELS_GLOBAL_SUMMARY_STATS};
     my $local_object = $args{numeric_label_stats_object};
 
-    my $res = $self->_get_gistar_score(
-        global_data => $global_hash,
-        local_data  => $local_object,
-    );
+    my $res;
+    if ($local_object) {
+        $res = $self->_get_gistar_score(
+            global_data => $global_hash,
+            local_data  => $local_object,
+        );
+    }
 
     my %results = (NUM_GISTAR => $res);
 

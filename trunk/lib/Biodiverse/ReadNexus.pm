@@ -38,6 +38,8 @@ my $EMPTY_STRING = q{};
 #$text_in_brackets = qr / ( [^()] )* /x; #  from page 328, but doesn't work here
 my $re_text_in_brackets;  #  straight from Friedl, page 330.  Could be overkill, but works
 $re_text_in_brackets = qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* /xo;
+#  poss alternative for perl 5.10 and later:  qr /(\\((?:[^()]++|(?-1))*+\\))/xo
+#  from http://blogs.perl.org/users/jeffrey_kegler/2012/08/marpa-v-perl-regexes-a-rematch.html
 
 my $re_text_in_square_brackets;  #  modified from Friedl, page 330.
 $re_text_in_square_brackets = qr / (?> [^[]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo;

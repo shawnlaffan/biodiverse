@@ -936,22 +936,22 @@ sub get_path_length_to_node {
         cache => 1, #  cache unless told otherwise
         @_,
     );
-    
+
     my $target = $args{node};
     my $target_name = $target->get_name;
     my $from_name = $self->get_name;
-    
+
     #  maybe should make this a little more complex as a nested data structure?  Maybe a matrix?
     my $cache_list = 'LENGTH_TO_' . $target_name;  
-    
+
     my $length;
-    
+
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
         $length = $self->get_cached_value ($cache_list);
         return $length if defined $length;
     }
-    
+
     my $path = $self->get_path_to_node (@_);
 
     foreach my $node (values %$path) {
@@ -961,8 +961,45 @@ sub get_path_length_to_node {
     if ($args{cache}) {
         $self->set_cached_value ($cache_list => $length);
     }
-    
+
     return $length;
+}
+
+sub get_path_lengths_to_ancestral_node {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+
+    my $ancestor = $args{ancestral_node} or croak "ancestral_node not defined\n";
+    
+    if ($self->is_root_node) {
+        my %result = ($self->get_name, $self->get_length);
+        return wantarray ? %result : \%result;
+    }
+
+    #  don't cache internals
+    my $use_cache = $self->is_internal_node ? 0 : $args{cache};
+
+    my $cache_name;
+
+    if ($use_cache) {
+        $cache_name = 'PATH_LENGTHS_TO_ANCESTRAL_NODE:' . $ancestor->get_name;
+        my $path = $self->get_cached_value($cache_name);
+        return (wantarray ? %$path : $path) if $path;
+    }
+
+    my %path_lengths;
+    my $node = $self;
+    while ($node) {  #  undef when root node
+        $path_lengths{$node->get_name} = $node->get_length;
+        last if $node eq $ancestor;
+        $node = $node->get_parent;
+    }
+
+    if ($use_cache) {
+        $self->set_cached_value ($cache_name => \%path_lengths);
+    }
+
+    return wantarray ? %path_lengths : \%path_lengths;
 }
 
 

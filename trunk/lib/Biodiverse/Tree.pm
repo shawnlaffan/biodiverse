@@ -11,6 +11,7 @@ use Devel::Symdump;
 use Scalar::Util;
 #use Scalar::Util qw /looks_like_number/;
 use Time::HiRes qw /tv_interval gettimeofday/;
+use List::MoreUtils qw /first_index/;
 
 use English qw ( -no_match_vars );
 
@@ -1311,6 +1312,53 @@ sub find_list_indices_across_nodes {
     }
 
     return wantarray ? %index_hash : \%index_hash;    
+}
+
+#  run a section search from the top of the tree to find the highest node
+#  which contains all the terminals
+#  Will return the root node if any nodes are not on the tree
+sub get_last_shared_ancestor_for_nodes {
+    my $self = shift;
+    my %args = @_;
+
+    my @node_names = keys %{$args{node_names}};
+    
+    return if !scalar @node_names;
+
+    #my $node = $self->get_root_node;
+    my $first_name = shift @node_names;
+    my $first_node = $self->get_node_ref (node => $first_name);
+    
+    return $first_node if !scalar @node_names;
+
+    my @reference_path = $first_node->get_path_to_root_node;
+    
+  PATH:
+    while (my $node_name = shift @node_names) {
+        last PATH if scalar @reference_path == 1;   #  must be just the root node left, so drop out
+
+        my $node_ref = $self->get_node_ref (node => $node_name);
+        my @path = $node_ref->get_path_to_root_node;
+
+      PATH_NODE_REF:
+        foreach my $path_node_ref (@path) {
+            my $node_name_path = $path_node_ref->get_name; #  for debug
+            my $idx = first_index { $_ eq $path_node_ref } @reference_path;
+
+            next PATH_NODE_REF if $idx < 0;  #  not in path, try the next node
+            
+            if ($idx) {
+                #  reduce length of reference_path to reduce comparisons in next iter
+                splice @reference_path, 0, $idx;
+            }
+            next PATH;
+        }
+    }
+
+    my $node = $reference_path[0];
+    my $ancestor_name = $node->get_name;
+
+    return $node;
 }
 
 ########################################################

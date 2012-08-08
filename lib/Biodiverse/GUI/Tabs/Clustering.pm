@@ -961,6 +961,9 @@ sub onRunAnalysis {
                 return 0 if not scalar @calculations_to_run;
                 $new_analysis = 0;
             }
+            #  Should really check if the analysis
+            #  ran properly before setting this
+            $self->{project}->setDirty;  
         }
 
         if ($new_analysis) {

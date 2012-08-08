@@ -23,7 +23,7 @@ my $perl_app_tool = $PerlApp::TOOL;
 
 #  add the lib folder if needed
 use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
-eval 'use mylib';
+#eval 'use mylib';
 
 #  load up the user defined libs
 use Biodiverse::Config qw /use_base add_lib_paths/;
@@ -99,7 +99,7 @@ if ( defined $filename ) {
     $gui->open($filename);
 }
 
-my $ic = Gtk2::IconTheme->new;
+#my $ic = Gtk2::IconTheme->new;
 #$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
 #print join "\n", $ic->get_search_path;
 

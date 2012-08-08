@@ -141,8 +141,8 @@ sub import_data {
     };
     $fh1->close;
     
-    my $quotes = $self -> get_param ('QUOTES');  #  for storage, not import
-    my $el_sep = $self -> get_param ('JOIN_CHAR');
+    my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
+    my $el_sep = $self->get_param ('JOIN_CHAR');
 
     if (not defined $input_quote_char or $input_quote_char eq 'guess') {
         #  guess the quotes character
@@ -166,7 +166,7 @@ sub import_data {
         quote_char => $input_quote_char,
         eol => $eol,
     );
-    my $csv_out = $self -> get_csv_object (
+    my $csv_out = $self->get_csv_object (
         sep_char => $el_sep,
         quote_char => $quotes,
     );
@@ -175,7 +175,7 @@ sub import_data {
 
     open (my $fh, '<:via(File::BOM)', $file) || croak "Cannot open file $file\n";
     
-    my $lines = $self -> get_next_line_set (
+    my $lines = $self->get_next_line_set (
         progress            => $args{progress_bar},
         file_handle         => $fh,
         target_line_count   => $lines_to_read_per_chunk,
@@ -190,7 +190,7 @@ sub import_data {
     while (my $FldsRef = shift @$lines) {
 
         if (scalar @$lines == 0) {
-            $lines = $self -> get_next_line_set (
+            $lines = $self->get_next_line_set (
                 progress           => $args{progress_bar},
                 file_handle        => $fh,
                 file_name          => $file,
@@ -199,7 +199,7 @@ sub import_data {
             );
         }
 
-        my $element = $self -> list2csv (
+        my $element = $self->list2csv (
             list       => [@$FldsRef[@$in_cols]],
             csv_object => $csv_out,
         );
@@ -207,9 +207,9 @@ sub import_data {
         my $hash;  #  list to store the properties
 
         #  create the element if needed
-        my $element_existed = $self -> exists_element (element => $element);
+        my $element_existed = $self->exists_element (element => $element);
         if (not $element_existed) {
-            $self -> add_element (
+            $self->add_element (
                 element    => $element,
                 csv_object => $csv_out,
             );
@@ -217,7 +217,7 @@ sub import_data {
         }
         else {
             #  work with the existing poperties hash - this will override any set values
-            $hash = $self -> get_list_ref (
+            $hash = $self->get_list_ref (
                 element => $element,
                 list    => 'PROPERTIES',
             );
@@ -225,7 +225,7 @@ sub import_data {
 
         my @remap = @$FldsRef[@$out_cols];
         my $remapped = scalar @remap
-                    ? $self -> list2csv (
+                    ? $self->list2csv (
                         list       => \@remap,
                         csv_object => $csv_out,
                     )
@@ -285,16 +285,16 @@ sub import_data {
         #  unless it was already there and we've already worked
         #  on it directly, or there are no props
         if (not $element_existed and scalar keys %$hash) {
-            $self -> add_to_lists (element => $element, PROPERTIES => $hash);
+            $self->add_to_lists (element => $element, PROPERTIES => $hash);
         }
     }
     
     #  go through and cleanup any multiple node links
     #  (eg remap to remap to remap)
-    foreach my $element ($self -> get_element_list) {
+    foreach my $element ($self->get_element_list) {
         my @remap_history;
         my %r_hash;
-        my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
+        my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
 
         my $props_orig = $props;
         my $element_orig = $element;
@@ -346,15 +346,15 @@ sub get_element_properties {
     my $element = $args{element};
     
     #  return an empty list if nothing there
-    if (not $self -> exists_element (element => $element)) {
+    if (not $self->exists_element (element => $element)) {
         return wantarray ? () : {};
     }
 
     #  remap the element name if need be
-    my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
-    my $remap = $self -> get_element_remapped (@_);
+    my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
+    my $remap = $self->get_element_remapped (@_);
     if (defined $remap) {
-        $props = $self -> get_list_ref (element => $remap, list => 'PROPERTIES');
+        $props = $self->get_list_ref (element => $remap, list => 'PROPERTIES');
     }
     
     return wantarray ? %$props : $props;
@@ -368,12 +368,12 @@ sub get_element_remapped {
     
     my $element = $args{element};
     
-    #my $x = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
+    #my $x = $self->get_list_ref (element => $element, list => 'PROPERTIES');
     #  return an empty list if nothing there
-    return if not $self -> exists_element (element => $element);
+    return if not $self->exists_element (element => $element);
 
     #  get the properties
-    my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
+    my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
     return $props->{REMAP} if exists $props->{REMAP} and defined $props->{REMAP};
     
     return;  #  get get this far then it must be undef
@@ -388,10 +388,10 @@ sub get_element_exclude {
     my $element = $args{element};
     
     #  return an empty list if nothing there
-    return if not $self -> exists_element (element => $element);
+    return if not $self->exists_element (element => $element);
 
     #  get the properties
-    my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
+    my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
     return $props->{EXCLUDE} if exists $props->{EXCLUDE} and defined $props->{EXCLUDE};
     
     return;  #  get get this far then it must be undef
@@ -411,10 +411,10 @@ sub get_element_include {
     my $element = $args{element};
     
     #  return an empty list if nothing there
-    return if not $self -> exists_element (element => $element);
+    return if not $self->exists_element (element => $element);
 
     #  get the properties
-    my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
+    my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
     return $props->{INCLUDE} if exists $props->{INCLUDE} and defined $props->{INCLUDE};
     
     return;  #  get this far then it must be undef
@@ -429,10 +429,10 @@ sub get_element_sample_count {
     my $element = $args{element};
     
     #  return an empty list if nothing there
-    return if not $self -> exists_element (element => $element);
+    return if not $self->exists_element (element => $element);
 
     #  get the properties
-    my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
+    my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
     return $props->{SAMPLE_COUNT} if exists $props->{SAMPLE_COUNT} and defined $props->{SAMPLE_COUNT};
     
     return;  #  get get this far then it must be undef
@@ -445,10 +445,10 @@ sub get_element_range {
     my $element = $args{element};
     
     #  return an empty list if nothing there
-    return if not $self -> exists_element (element => $element);
+    return if not $self->exists_element (element => $element);
 
     #  get the properties
-    my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
+    my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
     return $props->{RANGE} if exists $props->{RANGE} and defined $props->{RANGE};
     
     return;  #  get get this far then it must be undef
@@ -465,10 +465,10 @@ sub get_element_property {
     croak "argument 'property' not defined\n" if not defined $property;
     
     #  return an empty list if nothing there
-    return if not $self -> exists_element (element => $element);
+    return if not $self->exists_element (element => $element);
 
     #  get the properties
-    my $props = $self -> get_list_ref (element => $element, list => 'PROPERTIES');
+    my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
     return $props->{$property} if exists $props->{$property} and defined $props->{$property};
     
     return;  #  get this far then it must be undef
@@ -479,7 +479,7 @@ sub get_element_property {
 
 sub to_table {
     my $self = shift;
-    $self -> SUPER::to_table (list => 'PROPERTIES', @_);
+    $self->SUPER::to_table (list => 'PROPERTIES', @_);
 }
 
 1;
@@ -532,7 +532,7 @@ and that it will stop evaluating if it encounters circular paths.
 Load hash keys and their values from a file.
 Later values in the file will override the earlier values, so beware...
 
-    $self -> import_data (
+    $self->import_data (
         file => 'filename',
         input_quote_char => q{'},
         input_sep_char => q{,},
@@ -543,14 +543,14 @@ Later values in the file will override the earlier values, so beware...
 
 =head2 to_table
 
-    my $table = $self -> to_table();
+    my $table = $self->to_table();
 
 Convert the whole file to a table. 
 Just calls Biodiverse::BaseStruct::to_table using the C<PROPERTIES> lists.
 
 =head2 get_element_properties
 
-    my $props = $self -> get_element_properties (element => 'barry');
+    my $props = $self->get_element_properties (element => 'barry');
 
 Get the properties for an element. 
 It will return the remapped properties if a remap is set.
@@ -558,28 +558,28 @@ It will return the remapped properties if a remap is set.
 
 =head2 get_element_remapped
 
-    my $remapped = $self -> get_element_remapped (element => 'barry');
+    my $remapped = $self->get_element_remapped (element => 'barry');
 
 Get the value of the remap field for an element. 
 Returns C<undef> if none is set.
 
 =head2 get_element_exclude
 
-    my $exclude = $self -> get_element_exclude (element => 'barry');
+    my $exclude = $self->get_element_exclude (element => 'barry');
 
 Get the value of the exclude field for an element. 
 Returns C<undef> if none is set.
 
 =head2 get_element_range
 
-    my $range = $self -> get_element_range (element => 'barry');
+    my $range = $self->get_element_range (element => 'barry');
 
 Get the value of an element property, identified by argument "property".
 Returns C<undef> if it is not set.
 
 =head2 get_element_sample_count
 
-    my $count = $self -> get_element_sample_count (element => 'barry');
+    my $count = $self->get_element_sample_count (element => 'barry');
 
 Get the value of the sample count field for an element. 
 Returns C<undef> if none is set.

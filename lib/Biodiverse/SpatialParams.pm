@@ -2377,6 +2377,7 @@ sub sp_get_spatial_output_list_value {
 
     croak "element $element is not in spatial output\n"
       if not $sp->exists_element (element => $element);
+
     my $list = $sp->get_list_ref (list => $list_name, element => $element);
     return if not exists $list->{$index};
 

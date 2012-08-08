@@ -239,6 +239,10 @@ sub new {
     
 
     $self -> set_frame_label_widget;
+    
+    #my $options_menu = $self->{xmlPage}->get_widget('menu_spatial_grid_options');
+    #$options_menu->set_menu ($self->get_options_menu);
+    
 
     print "[Spatial tab] - Loaded tab - Spatial Analysis\n";
     
@@ -1041,10 +1045,10 @@ sub onNeighboursChanged {
         $self->{grid}->markIfExists({}, 'circle');
     }
     
-    #  this is a dirty bodge for the testing purposes
-    if ($sel =~ /colour/) {
-        $self->{grid}->set_cell_outline_colour;
-    }
+    ##  this is a dirty bodge for testing purposes
+    #if ($sel =~ /colour/) {
+    #    $self->{grid}->set_cell_outline_colour;
+    #}
     
     return;
 }
@@ -1109,6 +1113,20 @@ sub onAddParam {
     $combo->prepend_text("Max Richness");
 
     return;
+}
+
+sub get_options_menu {
+    my $self = shift;
+
+    my $menu = Gtk2::Menu->new();
+
+    $menu->append(Gtk2::MenuItem->new('_Cut'));
+    $menu->append(Gtk2::MenuItem->new('C_opy'));
+    $menu->append(Gtk2::MenuItem->new('_Paste'));
+
+    $menu->show_all();	
+
+    return $menu;
 }
 
 #  methods aren't inherited when called as GTK callbacks

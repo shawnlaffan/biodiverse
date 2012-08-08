@@ -66,7 +66,7 @@ if (! defined $rest_of_args{iterations}) {
     $rest_of_args{iterations} = 10;
 }
 
-my $success = $rand -> run_analysis (
+my $success = $rand->run_analysis (
     save_checkpoint => 99,
     %rest_of_args,
 );

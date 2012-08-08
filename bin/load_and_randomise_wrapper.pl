@@ -67,7 +67,7 @@ if ($perl_app_tool eq 'PerlApp') {
 #  if the script is a perl file then use perl,
 #  otherwise it is probably an exe
 my $cmd_pfx = ($script =~ /pl$/)
-                ? 'perl '
+                ? 'perl'
                 : q{};
 
 my $success = 0;
@@ -77,13 +77,12 @@ foreach my $i (1 .. $runs) {
     
     my $target_file = qq{"$in_file"};
     
-    my $command = $cmd_pfx
-                  . "$script $target_file $rand_name "
-                  . join (q{ }, @rest_of_args);
+    my @command = ($cmd_pfx, $script, $target_file, $rand_name, @rest_of_args);
+    shift @command if !$cmd_pfx;
 
-    print "$command\n";
+    print "@command\n";
 
-    my $status = system ($command);
+    my $status = system (@command);
     
     if (! $status) {
         warn "Child process failed\n";

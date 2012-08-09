@@ -175,7 +175,7 @@ sub get_metadata__calc_pd {
         description     => 'Phylogenetic diversity (PD) base calcs.',
         name            => 'Phylogenetic Diversity base calcs',
         type            => 'Phylogenetic Indices',
-        pre_calc        => 'calc_abc',
+        pre_calc        => 'calc_labels_on_tree',
         uses_nbr_lists  => 1,  #  how many lists it must have
         required_args   => {'tree_ref' => 1},
     );
@@ -189,18 +189,15 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
     my %args = @_;
 
     my $tree_ref = $args{tree_ref};
-    my $richness = $args{ABC};
+    my $label_list = $args{PHYLO_LABELS_ON_TREE};
+    my $richness = scalar keys %$label_list;
 
     my $nodes_in_path = $self->get_path_lengths_to_root_node (
         @_,
-        labels => $args{label_hash_all},
+        labels => $label_list,
     );
 
-    my $PD_score;
-    #foreach my $node (values %$nodes_in_path) {
-    #    $PD_score += $node->get_length; 
-    #}
-    $PD_score = sum values %$nodes_in_path;
+    my $PD_score = sum values %$nodes_in_path;
 
     #  need to use node length instead of 1
     my %included_nodes;

@@ -200,8 +200,9 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
     my $PD_score = sum values %$nodes_in_path;
 
     #  need to use node length instead of 1
-    my %included_nodes;
-    @included_nodes{keys %$nodes_in_path} = (1) x scalar keys %$nodes_in_path;
+    #my %included_nodes;
+    #@included_nodes{keys %$nodes_in_path} = (1) x scalar keys %$nodes_in_path;
+    my %included_nodes = %$nodes_in_path;
 
     my ($PD_P, $PD_per_taxon, $PD_P_per_taxon);
     {

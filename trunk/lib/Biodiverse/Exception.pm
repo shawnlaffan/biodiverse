@@ -22,6 +22,10 @@ use Exception::Class (
         description => 'Node already exists in the tree',
         fields      => [ 'name' ],
     },
+    'Biodiverse::ReadNexus::IncorrectFormat' => {
+        description => 'Not in valid format',
+        fields      => [ 'type' ],
+    },
     'Biodiverse::GUI::ProgressDialog::Cancel' => {
         description => 'User closed the progress dialog',
         #message     => 'Progress bar closed, operation cancelled',

@@ -14,6 +14,7 @@ use File::BOM qw / :subs /;
 
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
+use Biodiverse::Exception;
 
 our $VERSION = '0.17';
 
@@ -70,7 +71,8 @@ sub add_tree {
     return if ! defined $args{tree};
 
     push @{$self->{TREE_ARRAY}}, $args{tree};
-  
+
+    return;
 }
 
 
@@ -88,14 +90,34 @@ sub import_data {
     $self->set_param (ELEMENT_PROPERTIES => $element_properties);
     $self->set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
     
-    eval {
-        $self->import_nexus (%args);
-    };
-    if ($EVAL_ERROR) {
+    my @import_methods = qw /import_nexus import_phylip import_tabular_tree/;
+    my $success;
+    
+  IMPORT_METHOD:
+    foreach my $method (@import_methods) {
         eval {
-            $self->import_phylip (%args);
+            $self->$method (%args);
         };
-        croak $EVAL_ERROR if $EVAL_ERROR;
+        if ($EVAL_ERROR) {
+            if (Biodiverse::ReadNexus::IncorrectFormat->caught) {
+                next IMPORT_METHOD;
+            }
+            else {
+                Biodiverse::ReadNexus::IncorrectFormat->throw (
+                    message => "Unable to import data",
+                    type    => 'generic',
+                );
+            }
+        }
+        $success = 1;
+        last IMPORT_METHOD;
+    }
+
+    if (!$success) {
+        Biodiverse::ReadNexus::IncorrectFormat->throw (
+            message => "Unable to import data",
+            type    => 'generic',
+        );
     }
 
     $self->process_zero_length_trees;
@@ -168,11 +190,19 @@ sub import_phylip {
         my $count = 0;
         my $node_count = \$count;
 
-        $self->parse_newick (
-            string          => $nwk,
-            tree            => $tree,
-            node_count      => $node_count,
-        );
+        eval {
+            $self->parse_newick (
+                string          => $nwk,
+                tree            => $tree,
+                node_count      => $node_count,
+            );
+        };
+        if ($EVAL_ERROR) {  #  not sure this will work
+            Biodiverse::ReadNexus::IncorrectFormat->throw (
+                message => 'Data has no trees in it, or is not Nexus format',
+                type    => 'phylip',
+            );
+        }
 
         $self->add_tree (tree => $tree);
 
@@ -278,8 +308,12 @@ sub import_nexus {
         }
     }
 
-    croak "File appears not to be a nexus format or has no trees in it\n"
-        if scalar @newicks == 0;
+    if (scalar @newicks == 0) {
+        Biodiverse::ReadNexus::IncorrectFormat->throw (
+            message => 'Data has no trees in it, or is not Nexus format',
+            type    => 'nexus',
+        );
+    }
 
     $self->set_param (TRANSLATE_HASH => \%translate);  #  store for future use
 
@@ -330,6 +364,13 @@ sub import_nexus {
     #print "";
     
     return 1;
+}
+
+sub import_tabular_tree {
+    my $self = shift;
+    my %args = @_;
+    
+    croak "NOT YET IMPLEMENTED";
 }
 
 sub process_unrooted_trees {

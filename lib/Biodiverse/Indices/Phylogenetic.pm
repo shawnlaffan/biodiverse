@@ -226,9 +226,7 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
         PD_INCLUDED_NODE_LIST => \%included_nodes,
     );
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_get_path_length_cache {
@@ -528,7 +526,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
             $results_cache->{$group} = $results;
         }
         
-        $PE_WE += $$results{PE_WE} || 0;
+        $PE_WE += $results->{PE_WE} || 0;
         
         my $hash_ref;
         
@@ -580,9 +578,41 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         PE_RANGELIST   => \%ranges,
     );
 
-    return wantarray
-        ? %results
-        : \%results;
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_labels_on_tree {
+    my $self = shift;
+
+    my %arguments = (
+        description     => 'Create a hash of the labels that are on the tree',
+        name            => 'Labels on tree',
+        indices         => {
+            PHYLO_LABELS_ON_TREE => {
+                description => 'A hash of labels that are found on the tree, across both neighbour sets',
+            },  #  should poss also do nbr sets 1 and 2
+        },
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc_global => [qw /get_labels_not_on_tree/],
+        pre_calc        => ['calc_abc'],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        required_args   => ['tree_ref'],
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_labels_on_tree {
+    my $self = shift;
+    my %args = @_;
+    
+    my %labels = %{$args{label_hash_all}};
+    my $not_on_tree = $args{labels_not_on_tree};
+    delete @labels{keys %$not_on_tree};
+    
+    my %results = (PHYLO_LABELS_ON_TREE => \%labels);
+    
+    return wantarray ? %results : \%results;
 }
 
 
@@ -596,7 +626,7 @@ sub get_metadata_get_pe_element_cache {
             },
         },
     );
-    
+
     return wantarray ? %arguments : \%arguments;
 }
 
@@ -812,9 +842,34 @@ sub get_trimmed_tree { # create a copy of the current tree, including only those
 
     my %results = (trimmed_tree => $trimmed_tree);
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_labels_not_on_tree {
+    my $self = shift;
+
+    my %arguments = (required_args => 'tree_ref');
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub get_labels_not_on_tree {
+    my $self = shift;
+    my %args = @_;                          
+
+    my $bd   = $self->get_basedata_ref;
+    my $tree = $args{tree_ref};
+    
+    my $labels = $bd->get_labels;
+    
+    my @not_in_tree = grep { !$tree->exists_node (name => $_) } @$labels;
+
+    my %hash;
+    @hash{@not_in_tree} = (1) x scalar @not_in_tree;
+
+    my %results = (labels_not_on_tree => \%hash);
+
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_taxonomic_distinctness {
@@ -854,9 +909,7 @@ sub get_metadata_calc_taxonomic_distinctness {
         indices         => $indices,
     );
 
-    return wantarray
-        ? %metadata
-        : \%metadata;
+    return wantarray ? %metadata : \%metadata;
 }
 
 #  sample count weighted version
@@ -917,9 +970,7 @@ sub get_metadata_calc_taxonomic_distinctness_binary {
         indices         => $indices,
     );
 
-    return wantarray
-        ? %metadata
-        : \%metadata;
+    return wantarray ? %metadata : \%metadata;
 }
 
 #  sample count weighted version
@@ -1059,9 +1110,7 @@ sub get_metadata_calc_phylo_mntd1 {
         indices         => $indices,
     );
 
-    return wantarray
-        ? %metadata
-        : \%metadata;
+    return wantarray ? %metadata : \%metadata;
 }
 
 
@@ -1109,7 +1158,7 @@ sub get_metadata_calc_phylo_mntd3 {
                          . 'along the tree.  Compares with '
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts',
-        name            => 'Nearest taxon distances, weighted by sample counts',
+        name            => 'Nearest taxon distances, weighted',
         type            => 'Phylogenetic Indices',
         reference       => $webb_et_al_ref,
         pre_calc        => ['calc_abc3'],
@@ -1118,9 +1167,7 @@ sub get_metadata_calc_phylo_mntd3 {
         indices         => $indices,
     );
 
-    return wantarray
-        ? %metadata
-        : \%metadata;
+    return wantarray ? %metadata : \%metadata;
 }
 
 
@@ -1264,9 +1311,7 @@ sub calc_phylo_sorenson {
 
     my %results = (PHYLO_SORENSON => $val);
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_phylo_jaccard {
@@ -1308,9 +1353,7 @@ sub calc_phylo_jaccard {
 
     my %results = (PHYLO_JACCARD => $val);
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_phylo_s2 {
@@ -1352,9 +1395,7 @@ sub calc_phylo_s2 {
 
     my %results = (PHYLO_S2 => $val);
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_phylo_abc {
@@ -1484,9 +1525,7 @@ sub _calc_phylo_abc {
         PHYLO_ABC => $phylo_ABC,
     );
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 

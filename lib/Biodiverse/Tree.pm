@@ -233,11 +233,13 @@ sub exists_node {
     my $self = shift;
     my %args = @_;
     my $name = $args{name};
-    if (not defined $name and defined $args{node_ref}) {
-        $name = $args{node_ref}->get_name;
-    }
-    else {
-        return;
+    if (not defined $name) {
+        if (defined $args{node_ref}) {
+            $name = $args{node_ref}->get_name;
+        }
+        else {
+            return;  #  should we croak instead?  
+        }
     }
     return exists $self->{TREE_BY_NAME}{$name};
 }

@@ -523,15 +523,17 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
             
             $results_cache->{$group} = $results;
         }
-        
-        $PE_WE += $results->{PE_WE} || 0;
-        
+
+        if (defined $results->{PE_WE}) {
+            $PE_WE += $results->{PE_WE};
+        }
+
         my $hash_ref;
-        
+
         # ranges are invariant, so can be crashed together
         $hash_ref = $results->{ranges};
         @ranges{keys %$hash_ref} = values %$hash_ref;
-        
+
         # nodes are also invariant
         $hash_ref = $results->{nodes_in_path};
         @nodes_in_path{keys %$hash_ref} =  values %$hash_ref;
@@ -549,10 +551,10 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
     {
         no warnings 'uninitialized';
         my $total_tree_length = $tree_ref->get_total_tree_length;
-        
+
         #Phylogenetic endemism = sum for all nodes of: (branch length/total tree length) / node range
         $PE_WE_P = eval {$PE_WE / $total_tree_length};
-        
+
         #Phylogenetic corrected weighted endemism = (sum for all nodes of branch length / node range) / path length
         #where path length is actually PD
         #my $path_length;

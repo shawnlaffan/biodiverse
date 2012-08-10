@@ -405,10 +405,10 @@ sub onGridHover {
 
         $text = defined $val
             ? sprintf (
-                '<b>%s</b> v <b>%s</b>, value: %.4f',  #  should list the index used
+                '<b>%s</b> v <b>%s</b>, value: %s',  #  should list the index used
                 $self->{selected_element},
                 $element,
-                $val,
+                $self->format_number_for_display (number => $val),
             ) # round to 4 d.p.
             : '<b>Selected element: ' . $self->{selected_element} . '</b>'; 
         $self->{xmlPage}->get_widget('lblOutput')->set_markup($text);

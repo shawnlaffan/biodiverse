@@ -753,14 +753,13 @@ sub onGridHover {
 
         my $val = $elts->{$element}{ $self->{selected_list} }{$self->{selected_index}};
 
-        $text = defined $val
-            ? sprintf (
-                '<b>%s, Output - %s: </b> %.4f',
-                $element,
-                $self->{selected_index},
-                $val
-            ) # round to 4 d.p.
-            : '<b>Output</b>'; 
+        $text = sprintf '<b>%s, Output - %s: </b>',
+            $element,
+            $self->{selected_index};
+        $text .= defined $val
+            ? $self->format_number_for_display (number => $val)
+            : 'value is undefined';
+
         $self->{xmlPage}->get_widget('lblOutput')->set_markup($text);
 
         # Mark out neighbours

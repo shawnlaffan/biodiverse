@@ -260,6 +260,21 @@ sub get_plot_min_max_values {
     return wantarray ? @minmax : \@minmax;
 }
 
+sub format_number_for_display {
+    my $self = shift;
+    my %args = @_;
+    my $val = $args{number};
+
+    my $text = sprintf ('%.4f', $val); # round to 4 d.p.
+    if ($text == 0) {
+        $text = sprintf ('%.2e', $val);
+    }
+    if ($text == 0) {
+        $text = 0;  #  make sure it is 0 and not 0.00e+000
+    };
+    return $text;
+}
+
 sub set_legend_ltgt_flags {
     my $self = shift;
     my $stats = shift;

@@ -858,7 +858,8 @@ sub setLegendMinMax {
     # Set legend textbox markers
     my $marker_step = ($max - $min) / 3;
     foreach my $i (0..3) {
-        my $text = sprintf ("%.4f", $min + $i * $marker_step); # round to 4 d.p.
+        my $val = $min + $i * $marker_step;
+        my $text = $self->format_number_for_display (number => $val);
         if ($i == 0 and $self->{legend_lt_flag}) {
             $text = '<=' . $text;
         }
@@ -875,10 +876,32 @@ sub setLegendMinMax {
         my @bounds = $mark->get_bounds;
         my @lbounds = $self->{legend}->get_bounds;
         my $offset = $lbounds[0] - $bounds[2];
-        $mark->move ($offset - 5, 0);
+        if ($text != 0) {
+            $mark->move ($offset - length ($text), 0);
+        }
+        else {
+            $mark->move ($offset - length ($text) - 0.5, 0);
+        }
     }
     
     return;
+}
+
+
+#  dup from Tab.pm - need to inherit from single source
+sub format_number_for_display {
+    my $self = shift;
+    my %args = @_;
+    my $val = $args{number};
+
+    my $text = sprintf ('%.4f', $val); # round to 4 d.p.
+    if ($text == 0) {
+        $text = sprintf ('%.2e', $val);
+    }
+    if ($text == 0) {
+        $text = 0;  #  make sure it is 0 and not 0.00e+000
+    };
+    return $text;
 }
 
 sub set_legend_gt_flag {
@@ -1352,8 +1375,8 @@ sub getCellSizes {
 sub onEvent {
     my ($self, $event, $cell) = @_;
 
-my $type = $event->type;
-my $state = $event->state;
+#my $type = $event->type;
+#my $state = $event->state;
 #if ($state) {
 #    print "Event is $type, state is $state \n";
 #}

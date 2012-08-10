@@ -860,6 +860,7 @@ sub setLegendMinMax {
     foreach my $i (0..3) {
         my $val = $min + $i * $marker_step;
         my $text = $self->format_number_for_display (number => $val);
+        my $text_num = $text;  #  need to not have '<=' and '>=' in comparison lower down
         if ($i == 0 and $self->{legend_lt_flag}) {
             $text = '<=' . $text;
         }
@@ -876,7 +877,7 @@ sub setLegendMinMax {
         my @bounds = $mark->get_bounds;
         my @lbounds = $self->{legend}->get_bounds;
         my $offset = $lbounds[0] - $bounds[2];
-        if ($text != 0) {
+        if (($text_num + 0) != 0) {
             $mark->move ($offset - length ($text), 0);
         }
         else {

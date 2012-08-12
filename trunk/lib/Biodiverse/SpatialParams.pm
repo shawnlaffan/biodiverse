@@ -1343,9 +1343,10 @@ END_SP_MT_EX
         #required_args => ['axis'],
         required_args => [
             'text',  #  the match text
-            'axis',  #  which axis from nbrcoord to use in the match
+
         ],
         optional_args => [
+            'axis',  #  which axis from nbrcoord to use in the match
             'type',  #  nbr or proc to control use of nbr or processing groups
         ],
         index_no_use => 1,                   #  turn the index off
@@ -1363,23 +1364,9 @@ sub sp_match_text {
     my $type = $args{type};
     $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
 
-    my $h = $self->get_param('CURRENT_ARGS');
-
-    my $compcoord;
-    if ( $type eq 'proc' ) {
-        $compcoord = $h->{'@coord'};
-    }
-    elsif ( $type eq 'nbr' ) {
-        $compcoord = $h->{'@nbrcoord'};
-    }
-
-    #  (currently does not check negative offsets)
-    croak ("axis argument $args{axis} beyond array bounds, comparing with "
-        . join (q{ }, @$compcoord)
-        )
-      if $args{axis} > $#$compcoord;
-
-    return $args{text} eq $compcoord->[ $args{axis} ];
+    my $comparator = $self->get_comparator_for_text_matching (%args);
+    
+    return $args{text} eq $comparator;
 }
 
 sub get_metadata_sp_match_regex {
@@ -1406,13 +1393,12 @@ END_RE_EXAMPLE
         description        => $description,
         index_max_dist => undef,
 
-        #required_args => ['axis'],
         required_args => [
             're',    #  the regex
-            'axis',  #  which axis from nbrcoord to use in the match
         ],
         optional_args => [
             'type',  #  nbr or proc to control use of nbr or processing groups
+            'axis',  #  which axis from nbrcoord to use in the match
         ],
         index_no_use => 1,                   #  turn the index off
         result_type  => 'non_overlapping',
@@ -1429,27 +1415,50 @@ sub sp_match_regex {
     my $type = $args{type};
     $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
 
-    # get a hash of the $D etc from the level above
-    my $h = $self->get_param('CURRENT_ARGS');
+    my $comparator = $self->get_comparator_for_text_matching (%args);
 
-    #my $coord = $h->{'@coord'};
-    my $compcoord;
-    if ( $type eq 'proc' ) {
-        $compcoord = $h->{'@coord'};
-    }
-    elsif ( $type eq 'nbr' ) {
-        $compcoord = $h->{'@nbrcoord'};
-    }
-
-    #  (currently does not check negative offsets)
-    croak ("axis argument $args{axis} beyond array bounds, comparing with "
-        . join (q{ }, @$compcoord)
-        )
-      if $args{axis} > $#$compcoord;
-
-    return $compcoord->[ $args{axis} ] =~ $args{re};
+    return $comparator =~ $args{re};
 }
 
+#  get the relevant string for the text match subs
+sub get_comparator_for_text_matching {
+    my $self = shift;
+    my %args = @_;
+
+    my $type = $args{type};
+    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $axis = $args{axis};
+    my $compcoord;
+    
+    if (defined $axis) { #  check against one axis
+
+        if ( $type eq 'proc' ) {
+            $compcoord = $h->{'@coord'};
+        }
+        elsif ( $type eq 'nbr' ) {
+            $compcoord = $h->{'@nbrcoord'};
+        }
+
+        croak ("axis argument $args{axis} beyond array bounds, comparing with "
+            . join (q{ }, @$compcoord)
+            )
+          if abs ($axis) > $#$compcoord;
+    
+        return $compcoord->[ $axis ];
+    }
+
+    if ( $type eq 'proc' ) {
+        $compcoord = $h->{'$coord_id1'};
+    }
+    elsif ( $type eq 'nbr' ) {
+        $compcoord = $h->{'$coord_id2'};
+    }
+    
+    return $$compcoord;  #  deref scalar reference
+}
 
 sub get_metadata_sp_is_left_of {
     my $self = shift;

@@ -1320,6 +1320,46 @@ sub sp_self_only {
     return $caller_args->{coord_id1} eq $caller_args->{coord_id2};
 }
 
+sub get_metadata_sp_select_element {
+    my $self = shift;
+
+    my $example =<<'END_SP_SELECT_ELEMENT'
+# match where the whole coordinate ID (element name)
+# is 'Biome1:savannah forest'
+sp_select_element (element => 'Biome1:savannah forest')
+END_SP_SELECT_ELEMENT
+  ;
+
+    my %args_r = (
+        description => 'Select a specific element.  Basically the same as sp_match_text, but with optimisations enabled',
+        index_max_dist => undef,
+
+        required_args => [
+            'element',  #  the element name
+        ],
+        optional_args => [
+            'type',  #  nbr or proc to control use of nbr or processing groups
+        ],
+        index_no_use => 1,
+        result_type  => 'always_same',
+        example => $example,
+    );
+
+    return wantarray ? %args_r : \%args_r;
+}
+
+sub sp_select_element {
+    my $self = shift;
+    my %args = @_;
+
+    delete $args{axes};  #  remove the axes arg if set
+
+    my $comparator = $self->get_comparator_for_text_matching (%args);
+
+    return $args{element} eq $comparator;
+}
+
+
 sub get_metadata_sp_match_text {
     my $self = shift;
 
@@ -1330,6 +1370,10 @@ sp_match_text (text => 'type1', axis => 0, type => 'nbr')
 # match only when the third neighbour axis is the same
 #   as the processing group's second axis
 sp_match_text (text => $coord[2], axis => 2, type => 'nbr')
+
+# match where the whole coordinate ID (element name)
+# is 'Biome1:savannah forest'
+sp_match_text (text => 'Biome1:savannah forest')
 
 # Set a definition query to only use groups with 'NK' in the third axis
 sp_match_text (text => 'NK', axis => 2, type => 'proc')
@@ -1361,9 +1405,6 @@ sub sp_match_text {
     my $self = shift;
     my %args = @_;
 
-    my $type = $args{type};
-    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
-
     my $comparator = $self->get_comparator_for_text_matching (%args);
     
     return $args{text} eq $comparator;
@@ -1380,9 +1421,14 @@ sp_match_regex (re => qr'type1', axis => 0, type => 'nbr')
 # the processing group's second axis
 sp_match_regex (re => qr/^$coord[2]/, axis => 2, type => 'nbr')
 
+# match the whole coordinate ID (element name)
+# where Biome can be 1 or 2 and the rest of the name contains "dry"
+sp_match_regex (re => qr/^Biome[12]:.+dry/)
+
 # Set a definition query to only use groups where the
 # third axis ends in 'park' (case insensitive)
 sp_match_regex (text => qr{park$}i, axis => 2, type => 'proc')
+
 END_RE_EXAMPLE
     ;
 
@@ -1411,9 +1457,6 @@ END_RE_EXAMPLE
 sub sp_match_regex {
     my $self = shift;
     my %args = @_;
-
-    my $type = $args{type};
-    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
 
     my $comparator = $self->get_comparator_for_text_matching (%args);
 

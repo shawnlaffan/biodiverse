@@ -248,6 +248,10 @@ sub addColumn {
     
     my $col = Gtk2::TreeViewColumn->new();
     my $renderer = Gtk2::CellRendererText->new();
+    $title = Glib::Markup::escape_text($title);
+    #  Double the underscores so they display without acting as hints.
+    #  Need to find out how to disable that hint setting.
+    $title =~ s/_/__/g;  
     $col->set_title($title);
     my $a = $col->get_title;
     #$col->set_sizing('fixed');

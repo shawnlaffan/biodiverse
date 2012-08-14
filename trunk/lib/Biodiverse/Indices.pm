@@ -756,32 +756,32 @@ sub get_valid_calculation_count {
 }
 
 
-sub get_required_args_for_calcs {
-    my $self = shift;
-#  still needed?    
-    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-    
-    return $valid_calcs->{required_args};
-}
+#sub get_required_args_for_calcs {
+#    my $self = shift;
+##  still needed?    
+#    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
+#    
+#    return $valid_calcs->{required_args};
+#}
 
 
 #  indices where we don't have enough lists, but where the rest of the analysis can still run
 #  these can be cleared from any results
 #  need to rename sub
-sub get_indices_to_clear {  #  should really accept a list of calculations as an arg
-    my $self = shift;
-croak "deprecated\n";
-    my %args = @_;
-    my $nbr_list_count = $args{nbr_list_count} || croak "nbr_list_count argument not specified\n";
-
-    my %hash = $self->get_indices_uses_lists_count (%args);
-
-    foreach my $index (keys %hash) {
-        delete $hash{$index} if ! defined $hash{$index} || $hash{$index} <= $nbr_list_count;
-    }
-
-    return wantarray ? %hash : \%hash;
-}
+#sub get_indices_to_clear {  #  should really accept a list of calculations as an arg
+#    my $self = shift;
+#croak "deprecated\n";
+#    my %args = @_;
+#    my $nbr_list_count = $args{nbr_list_count} || croak "nbr_list_count argument not specified\n";
+#
+#    my %hash = $self->get_indices_uses_lists_count (%args);
+#
+#    foreach my $index (keys %hash) {
+#        delete $hash{$index} if ! defined $hash{$index} || $hash{$index} <= $nbr_list_count;
+#    }
+#
+#    return wantarray ? %hash : \%hash;
+#}
 
 
 sub run_dependencies {

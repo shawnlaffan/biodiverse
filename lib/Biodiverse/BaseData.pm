@@ -1115,43 +1115,18 @@ sub import_data {  #  load a data file into the selected BaseData object.
     #  add the range and sample_count to the label properties
     #  (actually it sets whatever properties are in the table)
     if ($use_label_properties) {
-        LABEL_PROPS:
-        foreach my $label ($label_properties->get_element_list) {
-            next LABEL_PROPS
-              if ! $labels_ref->exists_element (element => $label);
-
-            #my $range = $label_properties->get_element_range (element => $label);
-            #my $sample_cnt = $label_properties->get_element_sample_count (element => $label);
-            my %props = $label_properties->get_element_properties (element => $label);
-
-            #  but don't add these ones
-            delete @props{qw /INCLUDE EXCLUDE/};
-
-            $labels_ref->add_to_lists (
-                element    => $label,
-                PROPERTIES => \%props,
-            );
-        }
+        $self->assign_element_properties (
+            type              => 'labels',
+            properties_object => $label_properties,
+        );
     }
     #  add the group properties
     if ($use_group_properties) {
-        GROUP_PROPS:
-        foreach my $group ($group_properties->get_element_list) {
-            next GROUP_PROPS
-                if ! $groups_ref->exists_element (element => $group);
-                
-            my %props = $group_properties->get_element_properties (element => $group);
-            
-            #  but don't add these ones
-            delete @props{qw /INCLUDE EXCLUDE/};
-            
-            $groups_ref->add_to_lists (
-                element    => $group,
-                PROPERTIES => \%props,
-            );
-        }
+        $self->assign_element_properties (
+            type              => 'groups',
+            properties_object => $group_properties,
+        );
     }
-
 
     # Set CELL_SIZE on the GROUPS BaseStruct
     $groups_ref->set_param (CELL_SIZES => $self->get_param('CELL_SIZES'));
@@ -1197,7 +1172,36 @@ sub import_data {  #  load a data file into the selected BaseData object.
     return 1;  #  success
 }
 
+sub assign_element_properties {
+    my $self = shift;
+    my %args = @_;
+    
+    my $type = $args{type}
+      or croak 'argument "type" not specified';
+    my $prop_obj = $args{properties_object}
+      or croak 'argument properties_object not given';
 
+    my $method = 'get_' . $type . '_ref';
+    my $gp_lb_ref = $self->$method;
+    
+  ELEMENT_PROPS:
+    foreach my $element ($prop_obj->get_element_list) {
+        next ELEMENT_PROPS
+          if ! $gp_lb_ref->exists_element (element => $element);
+
+        my %props = $prop_obj->get_element_properties (element => $element);
+
+        #  but don't add these ones
+        delete @props{qw /INCLUDE EXCLUDE/};
+
+        $gp_lb_ref->add_to_lists (
+            element    => $element,
+            PROPERTIES => \%props,
+        );
+    }
+
+    return;
+}
 
 sub get_labels_from_line {
     my $self = shift;

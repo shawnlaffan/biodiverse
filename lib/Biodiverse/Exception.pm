@@ -36,6 +36,12 @@ use Exception::Class (
     'Biodiverse::GUI::ProgressDialog::NotInGUI' => {
         description => 'Not running under the GUI',
     },
+    'Biodiverse::Indices::MissingRequiredArguments' => {
+        description => 'Missing one or more required arguments',
+    },
+    'Biodiverse::Indices::InsufficientElementLists' => {
+        description => 'Too few eleent lists specified',
+    },
 );
 
 

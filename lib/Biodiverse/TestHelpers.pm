@@ -6,6 +6,11 @@ use warnings;
 
 our $VERSION = '0.17';
 
+use Biodiverse::BaseData;
+use Biodiverse::Tree;
+use Biodiverse::TreeNode;
+use Biodiverse::ReadNexus;
+
 use File::Temp;
 
 use Exporter::Easy (
@@ -22,6 +27,7 @@ use Exporter::Easy (
                 get_element_properties_test_data
             )
         ],
+        tree => [qw (get_tree_object)],
     ],
 );
 
@@ -102,6 +108,22 @@ END_DATA
 
 }
 
+
+sub get_tree_object {
+    my $self = shift;
+
+    my $tree = Biodiverse::Tree->new();
+    
+    my $newick = '(((a,b),c),d)';
+    my $read_nex = Biodiverse::ReadNexus->new;
+    my $nodes = $read_nex->parse_newick(
+        string => $newick,
+        tree   => $tree,
+    );
+    print $nodes;
+    
+    return $tree;
+}
 
 
 __END__

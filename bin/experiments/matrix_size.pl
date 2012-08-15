@@ -51,3 +51,4 @@ foreach my $max (100, 1000, 3000, 5000) {
         printf "\tratio is %10.3f\n", $sz_bmx / $sz_hash;
     }
 }
+

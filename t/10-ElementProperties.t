@@ -8,7 +8,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use mylib;
+#use mylib;
 
 use Biodiverse::TestHelpers qw /:element_properties/;
 

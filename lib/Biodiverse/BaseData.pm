@@ -1180,6 +1180,9 @@ sub assign_element_properties {
       or croak 'argument "type" not specified';
     my $prop_obj = $args{properties_object}
       or croak 'argument properties_object not given';
+    
+    croak "Cannot assign properties to a basedata with existing outputs"
+      if $self->get_output_ref_count;
 
     my $method = 'get_' . $type . '_ref';
     my $gp_lb_ref = $self->$method;
@@ -1429,7 +1432,10 @@ sub add_element {  #  run some calls to the sub hashes
 sub get_group_element_as_array {
     my $self = shift;
     my %args = @_;
-    my $element = $args{element} || croak "element not specified\n";
+
+    my $element = $args{element};
+    croak "element not specified\n"
+      if !defined $element;
     
     return $self->{GROUPS}->get_element_name_as_array(element => $element);
 }
@@ -1437,7 +1443,11 @@ sub get_group_element_as_array {
 sub get_label_element_as_array {
     my $self = shift;
     my %args = @_;
-    my $element = $args{element} || croak "element not specified\n";
+
+    my $element = $args{element};
+    croak "element not specified\n"
+      if !defined $element;
+
     return $self->get_labels_ref->get_element_name_as_array(element => $element);
 }
 
@@ -2370,8 +2380,16 @@ sub get_output_refs {
         $self->get_randomisation_output_refs,
         $self->get_matrix_output_refs,
     );
-    
+
     return wantarray ? @refs : \@refs;    
+}
+
+sub get_output_ref_count {
+    my $self = shift;
+
+    my $refs = $self->get_output_refs;
+
+    return scalar @$refs;
 }
 
 sub get_output_refs_sorted_by_name {

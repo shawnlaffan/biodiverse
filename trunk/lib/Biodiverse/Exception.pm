@@ -15,6 +15,14 @@ use Exception::Class (
     'Biodiverse::MissingBasedataRef' => {
         description => 'Caller object is missing the basedata ref',
     },
+    'Biodiverse::MissingArgument' => {
+        description => 'Call to method is missing required argument',
+        fields => [qw /method argument/],
+    },
+    'Biodiverse::NoMethod' => {
+        description => 'Cannot call method via autoloader',
+        fields => [qw /method in_autoloader/],
+    },
     'Biodiverse::Args::ElPropInputCols' => {
         description => 'Input columns argument is incorrect',
     },
@@ -40,7 +48,7 @@ use Exception::Class (
         description => 'Missing one or more required arguments',
     },
     'Biodiverse::Indices::InsufficientElementLists' => {
-        description => 'Too few eleent lists specified',
+        description => 'Too few element lists specified',
     },
 );
 

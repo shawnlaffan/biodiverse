@@ -26,6 +26,7 @@ use Biodiverse::Matrix;
 use Biodiverse::TreeNode;
 use Biodiverse::BaseStruct;
 use Biodiverse::Progress;
+use Biodiverse::Exception;
 
 use base qw /
     Biodiverse::Common
@@ -1673,8 +1674,9 @@ sub AUTOLOAD {
         return $root_node->$method (@_);
     }
     else {
-        croak "[$type (TREE)] No root node and/or cannot access method $method, "
-            . "tried AUTOLOADER and failed\n";
+        Biodiverse::NoMethod->throw (method => $method);
+        #croak "[$type (TREE)] No root node and/or cannot access method $method, "
+        #    . "tried AUTOLOADER and failed\n";
     }
 
     return;

@@ -28,6 +28,8 @@ use Exporter::Easy (
             )
         ],
         tree => [qw (get_tree_object)],
+        matrix => [qw (get_matrix_object)],
+        utils  => [qw (write_data_to_temp_file)],
     ],
 );
 
@@ -123,6 +125,23 @@ sub get_tree_object {
     print $nodes;
     
     return $tree;
+}
+
+
+sub get_matrix_object {  #  incomplete
+    return;
+}
+
+
+sub write_data_to_temp_file {
+    my $data = shift;
+
+    my $tmp_obj = File::Temp->new;
+    my $fname = $tmp_obj->filename;
+    print $tmp_obj $data;
+    $tmp_obj->close;
+
+    return $tmp_obj;
 }
 
 

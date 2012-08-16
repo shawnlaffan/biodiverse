@@ -12,6 +12,7 @@ use Scalar::Util;
 #use Scalar::Util qw /looks_like_number/;
 use Time::HiRes qw /tv_interval gettimeofday/;
 use List::MoreUtils qw /first_index/;
+use List::Util qw /sum/;
 
 use English qw ( -no_match_vars );
 
@@ -1127,20 +1128,45 @@ sub to_matrix {
                 $progress / $to_do,
             );
 
-            next NODE2 if $matrix->element_pair_exists(element1 => $name1, element2 => $name2);
-
-            my $shared_ancestor = $node1->get_shared_ancestor (node => $node2);
-            my $total_length = $shared_ancestor->get_total_length;
-
-            #  should allow user to choose whether to just get length to shared ancestor?
-            my $path_length1 = $total_length - $node1->get_total_length;
-            my $path_length2 = $total_length - $node2->get_total_length;
-            my $path_length_total = $path_length1 + $path_length2;
-
-            $matrix->add_element (
+            next NODE2 if $node1 eq $node2;
+            next NODE2 if $matrix->element_pair_exists(
                 element1 => $name1,
                 element2 => $name2,
-                value    => $path_length_total,
+            );
+
+            #my $shared_ancestor = $node1->get_shared_ancestor (node => $node2);
+            #my $total_length = $shared_ancestor->get_total_length;
+            #
+            ##  should allow user to choose whether to just get length to shared ancestor?
+            #my $path_length1 = $total_length - $node1->get_total_length;
+            #my $path_length2 = $total_length - $node2->get_total_length;
+            #my $path_length_total = $path_length1 + $path_length2;
+            #
+            #$matrix->add_element (
+            #    element1 => $name1,
+            #    element2 => $name2,
+            #    value    => $path_length_total,
+            #);
+
+            my $last_ancestor = $self->get_last_shared_ancestor_for_nodes (
+                node_names => {$name1 => 1, $name2 => 1},
+            );
+
+            my %path;
+            foreach my $node_name ($name1, $name2) {
+                my $node_ref = $self->get_node_ref (node => $node_name);
+                my $sub_path = $node_ref->get_path_lengths_to_ancestral_node (
+                    ancestral_node => $last_ancestor,
+                    %args,
+                );
+                @path{keys %$sub_path} = values %$sub_path;
+            }
+            delete $path{$last_ancestor->get_name()};
+            my $path_length = sum values %path;
+            $matrix->set_value(
+                element1 => $name1,
+                element2 => $name2,
+                value    => $path_length,
             );
         }
     }

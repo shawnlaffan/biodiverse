@@ -12,6 +12,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 ==Publications using Biodiverse (or its ancestors)==
   (Publications are listed in reverse chronological order).  
 
+  *  Ribeiro, P.L., Rapini, A, Silva, U.C.S., Konno, T.U.P., Damascena, L.S & van den Berg, C. (in press) Spatial analyses of the phylogenetic diversity of _Minaria_ (Apocynaceae): assessing priority areas for conservation in the Espinhaço Range, Brazil.  [http://dx.doi.org/10.1080/14772000.2012.705356 Systematics and Biodiversity].
+
   *  Amboni, M. & Laffan, S.W. (in press) The effect of species range estimation methods on richness and phylogenetic diversity estimates: A comparison of four methods using Australian marsupials. International Journal of Geographical Information Science, Accepted 25Jul2012.
 
   *  Laffan, S.W., Ramp, D. & Roger, E. (in press) Assessing reserve representation using endemism – the family Myrtaceae in the Greater Blue Mountains World Heritage Area. Journal of Biogeography, Accepted 25Jul2012

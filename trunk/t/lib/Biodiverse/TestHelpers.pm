@@ -36,7 +36,7 @@ use Exporter::Easy (
         tree => [
             qw (
                 get_tree_object
-                get_nex_tree_data
+                get_nexus_tree_data
                 get_newick_tree_data
                 get_tabular_tree_data
                 get_tree_object_from_sample_data

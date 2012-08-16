@@ -5,9 +5,12 @@ use warnings;
 use FindBin qw/$Bin/;
 use lib "$Bin/lib";
 
+use Test::More tests => 23;
+
 use Data::Section::Simple qw(get_data_section);
 
-use Test::More tests => 23;
+use Biodiverse::TestHelpers qw /:tree/;
+
 
 local $| = 1;
 
@@ -33,7 +36,7 @@ my $tol = 1E-13;
 
 #  clean read of 'neat' nexus file
 {
-    my $nex_tree = get_nex_tree();
+    my $nex_tree = get_nexus_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
     my $result = eval {
@@ -54,7 +57,7 @@ my $tol = 1E-13;
 
 #  clean read of working newick file
 {
-    my $data = get_newick_tree();
+    my $data = get_newick_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
     my $result = eval {
@@ -73,7 +76,7 @@ my $tol = 1E-13;
 }
 
 {
-    my $data = get_tabular_tree();
+    my $data = get_tabular_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
     my $result = eval {
@@ -97,7 +100,7 @@ my $tol = 1E-13;
 SKIP:
 {
     skip 'No system parses nexus trees with no newlines', 2;
-    my $data = get_nex_tree();
+    my $data = get_nexus_tree_data();
 
     #  eradicate newlines
     $data =~ s/[\r\n]+//gs;

@@ -1,14 +1,15 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use Data::Section::Simple qw(get_data_section);
 
+use FindBin qw/$Bin/;
+use lib "$Bin/lib";
+
+use Data::Section::Simple qw(get_data_section);
 
 use Test::More tests => 23;
 
 local $| = 1;
-
-use mylib;
 
 use Biodiverse::ReadNexus;
 use Biodiverse::Tree;

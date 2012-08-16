@@ -3,18 +3,19 @@ use strict;
 use warnings;
 use English qw / -no_match_vars /;
 
+use FindBin qw/$Bin/;
+use lib "$Bin/lib";
+
 use Data::Section::Simple qw(get_data_section);
 
 use Test::More; # tests => 2;
 use Test::Exception;
 
-#use mylib;
 
 use Biodiverse::TestHelpers qw /:element_properties/;
 
 local $| = 1;
 
-#use mylib;
 
 use Biodiverse::ElementProperties;
 use Data::Dumper;

@@ -8,12 +8,15 @@ use warnings;
 use Carp;
 use Biodiverse::Progress;
 
-use List::Util qw /sum/;
+use List::Util qw /sum min/;
 
 our $VERSION = '0.17';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
+
+use Biodiverse::Matrix::LowMem;
+my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';
 
 
 sub get_metadata_calc_pd {
@@ -247,7 +250,6 @@ sub get_path_length_cache {
     return wantarray ? %results : \%results;
 }
 
-#  get_path_lengths_to_root_node is not designed as a precalc, so this is essentially redundant?
 sub get_metadata_get_path_lengths_to_root_node {
 
     my %arguments = (
@@ -838,6 +840,7 @@ sub get_trimmed_tree { # create a copy of the current tree, including only those
     my $trimmed_tree = $args{tree_ref}->clone;
     $trimmed_tree->trim (keep => scalar $bd->get_labels);
     my $name = $trimmed_tree->get_param('NAME');
+    if (!defined $name) {$name = 'noname'};
     $trimmed_tree->rename(new_name => $name . ' trimmed');
 
     my %results = (trimmed_tree => $trimmed_tree);
@@ -1094,6 +1097,12 @@ sub get_metadata_calc_phylo_mntd1 {
             formula        => [
             ],
         },
+        PNTD_SD => {
+            description    => 'Count of nearest taxon distances',
+            formula        => [
+            ],
+        },
+        
     };
 
     my %metadata = (
@@ -1104,7 +1113,7 @@ sub get_metadata_calc_phylo_mntd1 {
         name            => 'Nearest taxon distances, unweighted',
         type            => 'Phylogenetic Indices',
         reference       => $webb_et_al_ref,
-        pre_calc        => ['calc_abc'],
+        pre_calc        => [qw /calc_abc calc_labels_on_tree/],
         pre_calc_global => ['get_trimmed_tree_as_matrix'],
         uses_nbr_lists  => 1,
         indices         => $indices,
@@ -1151,6 +1160,11 @@ sub get_metadata_calc_phylo_mntd3 {
             formula        => [
             ],
         },
+        PNTD3_N => {
+            description    => 'Count of nearest taxon distances',
+            formula        => [
+            ],
+        },
     };
 
     my %metadata = (
@@ -1161,7 +1175,7 @@ sub get_metadata_calc_phylo_mntd3 {
         name            => 'Nearest taxon distances, weighted',
         type            => 'Phylogenetic Indices',
         reference       => $webb_et_al_ref,
-        pre_calc        => ['calc_abc3'],
+        pre_calc        => [qw /calc_abc3 calc_labels_on_tree/],
         pre_calc_global => ['get_trimmed_tree_as_matrix'],
         uses_nbr_lists  => 1,
         indices         => $indices,
@@ -1194,23 +1208,22 @@ sub _calc_phylo_mntd {
 
     my $label_hash = $args{label_hash_all};
     my $mx = $args{TRIMMED_TREE_AS_MATRIX};
+    my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
 
-    my @labels = sort keys %$label_hash;
+    my @labels = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash;
+    
     my @min_path_lengths;
 
-    #  Loop over all possible pairs, as deleting as we go
-    #  does not allow for both sibs being nearest neighbours.
-    #  Deleting sib1 means it cannot be found for sib2.
+    #  Loop over all possible pairs, 
     BY_LABEL:
     foreach my $label1 (@labels) {
         my $label_count1 = $label_hash->{$label1};
-
+        
         #  save some calcs (if ever this happens)
         next BY_LABEL if $label_count1 == 0;
 
-        next BY_LABEL if ! $mx->element_is_in_matrix(element => $label1);
-
-        my $min;
+        #my $min;
+        my @path_lengths;
         my $i = 0;
 
         LABEL2:
@@ -1219,17 +1232,19 @@ sub _calc_phylo_mntd {
             #  skip same labels
             next LABEL2 if $label1 eq $label2;
 
-            next LABEL2 if ! $mx->element_is_in_matrix(element => $label2);
-
             my $label_count2 = $label_hash->{$label2};
             next LABEL2 if $label_count2 == 0;
 
-            my $path_length = $mx->get_value(element1 => $label1, element2 => $label2);
+            my $path_length = $mx->get_value(
+                element1 => $label1,
+                element2 => $label2,
+            );
+            push @path_lengths, $path_length;
 
-            $min = defined $min ? min ($path_length, $min) : $path_length;
             $i ++;
         }
         if ($i) {  #  only if we added something
+            my $min = min (@path_lengths);
             push @min_path_lengths, ($min) x $label_count1;
         }
     }
@@ -1239,12 +1254,16 @@ sub _calc_phylo_mntd {
     $stats->add_data(\@min_path_lengths);
     my $n = $stats->count;
 
-    my %results = (
-        PNTD_MEAN => $n ? $stats->mean : undef,
-        PNTD_MAX  => $n ? $stats->max  : undef,
-        PNTD_MIN  => $n ? $stats->min  : undef,
-        PNTD_SD   => $n ? $stats->standard_deviation : undef,
-    );
+    my %results = (PNTD_N => $n);
+    @results{qw /PNTD_MEAN PNTD_MAX PNTD_MIN PNTD_SD/} = undef;
+    if ($n) {
+        @results{qw /PNTD_MEAN PNTD_MAX PNTD_MIN PNTD_SD/} = (
+            $stats->mean,
+            $stats->max,
+            $stats->min,
+            $stats->standard_deviation,
+        );
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -1263,7 +1282,7 @@ sub get_trimmed_tree_as_matrix {
     my $self = shift;
     my %args = @_;
 
-    my $mx = $args{trimmed_tree}->to_matrix;
+    my $mx = $args{trimmed_tree}->to_matrix (class => $mx_class_for_trees);
 
     my %results = (TRIMMED_TREE_AS_MATRIX => $mx);
 
@@ -1858,7 +1877,7 @@ sub get_aed_scores {
 
 
 
-sub min {return $_[0] < $_[1] ? $_[0] : $_[1]}
+#sub min {return $_[0] < $_[1] ? $_[0] : $_[1]}
 
 1;
 

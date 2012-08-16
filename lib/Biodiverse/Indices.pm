@@ -534,8 +534,10 @@ sub get_valid_calculations {
         $valid_calcs{$calc} = $deps;
     }
     
-    print "[INDICES] The following calcs are not valid and have been removed:\n"
-        . join q{ }, @removed, "\n";
+    if (scalar @removed) {
+        print "[INDICES] The following calcs are not valid and have been removed:\n"
+            . join q{ }, @removed, "\n";
+    }
 
     my %aggregated_calc_lists = $self->aggregate_calc_lists_by_type (
         calc_hash => \%valid_calcs,

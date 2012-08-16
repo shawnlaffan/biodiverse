@@ -4,7 +4,7 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-use Test::More tests => 11;
+use Test::More tests => 14;
 use Test::Exception;
 
 local $| = 1;
@@ -37,21 +37,15 @@ use Scalar::Util qw /blessed/;
 
     my %calculations = eval {$indices->get_calculations};
     $e = $EVAL_ERROR;
-    diag $e->message if blessed $e;
-    $is_error = $EVAL_ERROR ? 1 : 0;
-    is ($is_error, 0, 'Get calculations without error');
+    ok (!$e, 'Get calculations without eval error');
 
     my %indices_to_calc = eval {$indices->get_indices};
     $e = $EVAL_ERROR;
-    diag $e->message if blessed $e;
-    $is_error = $EVAL_ERROR ? 1 : 0;
-    is ($is_error, 0, 'Get indices without error');
+    ok (!$e, 'Get indices without eval error');
 
     my %required_args = eval {$indices->get_required_args};
     $e = $EVAL_ERROR;
-    diag $e->message if blessed $e;
-    $is_error = $EVAL_ERROR ? 1 : 0;
-    is ($is_error, 0, 'Get required args without error');
+    ok (!$e, 'Get required args without eval error');
 
     my @calc_array =
         qw /calc_sorenson
@@ -64,7 +58,7 @@ use Scalar::Util qw /blessed/;
     @calc_hash{@calc_array} = (0) x scalar @calc_array;
     $calc_hash{calc_sorenson} = 1;  #  1 if we should get an exception
 
-    my $calc_args = {tree_ref => get_tree_object};
+    my $calc_args = {tree_ref => get_tree_object()};
 
     foreach my $calc (sort keys %calc_hash) {
 	my %dep_tree = eval {
@@ -75,10 +69,10 @@ use Scalar::Util qw /blessed/;
 	    )
 	};
 	$e = $EVAL_ERROR;
-	#diag $e->message if blessed $e;
-	$is_error = $EVAL_ERROR ? 1 : 0;
 	my $with_or_without = $calc_hash{$calc} ? 'with' : 'without';
-	is ($is_error, $calc_hash{$calc}, "Parsed dependency tree for $with_or_without error ($calc)");
+	$is_error = $e ? 1 : 0;
+	my $expected_error = $calc_hash{$calc} ? 1 : 0;
+	is ($is_error, $expected_error, "Parsed dependency tree $with_or_without error being raised ($calc)");
     }
     
     #$calc_args = {};
@@ -110,14 +104,15 @@ use Scalar::Util qw /blessed/;
 
     #  run the global pre_calcs
     eval {$indices->run_precalc_globals(%$calc_args)};
-    croak $EVAL_ERROR if $EVAL_ERROR;
+    $e = $EVAL_ERROR;
+    ok (!$e, 'pre_calc_globals had no eval errors');
     
     my %sp_calc_values = eval {$indices->run_calculations(%$calc_args, %elements)};
-    croak $EVAL_ERROR if $EVAL_ERROR;
-    
-    eval {$indices->run_postcalc_globals (%$calc_args)};
-    croak $EVAL_ERROR if $EVAL_ERROR;
-    
+    $e = $EVAL_ERROR;
+    ok (!$e, 'run_calculations had no eval errors');
 
+    eval {$indices->run_postcalc_globals (%$calc_args)};
+    $e = $EVAL_ERROR;
+    ok (!$e, 'run_postcalc_globals had no eval errors');
 }
 

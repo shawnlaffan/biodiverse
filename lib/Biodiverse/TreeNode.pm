@@ -1016,7 +1016,7 @@ sub get_shared_ancestor {
     my $compare = $args{node};
     
     my $cache_name = 'SHARED_ANCESTOR::' . $self . '::TO::' . $compare;
-    if ($args{cache}) {
+    if (1) {  #  always use the cache if it is available
         my $cached_ancestor = $self->get_cached_value ($cache_name);
         if (not defined $cached_ancestor) {  #  try the reverse, as they are the same
             my $cache_name2  = 'SHARED_ANCESTOR::' . $compare . '::TO::' . $self;

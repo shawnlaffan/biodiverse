@@ -24,6 +24,12 @@ sub element_is_in_matrix {
     return;
 }
 
+#  syntactic sugar
+sub set_value {
+    my $self = shift;
+    return $self->add_element (@_);
+}
+
 sub get_value {  #  return the value of a pair of elements. argument checking is done by element_pair_exists.
     my $self = shift;
     my %args = @_;
@@ -31,7 +37,7 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
     my ($element1, $element2);
     my $exists = $self -> element_pair_exists (@_);
     if (! $exists) {
-        if ($args{element1} eq $args{element2} and $self -> element_is_in_matrix (element => $args{element1})) {
+        if ($args{element1} eq $args{element2} and $self->element_is_in_matrix (element => $args{element1})) {
             return $self -> get_param ('SELF_SIMILARITY');  #  defaults to undef
         }
         else {

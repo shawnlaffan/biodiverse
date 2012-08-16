@@ -1114,7 +1114,8 @@ sub get_metadata_calc_phylo_mntd1 {
         type            => 'Phylogenetic Indices',
         reference       => $webb_et_al_ref,
         pre_calc        => [qw /calc_abc calc_labels_on_tree/],
-        pre_calc_global => ['get_trimmed_tree_as_matrix'],
+        pre_calc_global => ['get_phylo_mntd_matrix'],
+        required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
         indices         => $indices,
     );
@@ -1176,7 +1177,8 @@ sub get_metadata_calc_phylo_mntd3 {
         type            => 'Phylogenetic Indices',
         reference       => $webb_et_al_ref,
         pre_calc        => [qw /calc_abc3 calc_labels_on_tree/],
-        pre_calc_global => ['get_trimmed_tree_as_matrix'],
+        pre_calc_global => ['get_phylo_mntd_matrix'],
+        required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
         indices         => $indices,
     );
@@ -1207,8 +1209,9 @@ sub _calc_phylo_mntd {
     my %args = @_;
 
     my $label_hash = $args{label_hash_all};
-    my $mx = $args{TRIMMED_TREE_AS_MATRIX};
+    my $mx         = $args{PHYLO_MNTD_MATRIX};
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
+    my $tree_ref   = $args{tree_ref};
 
     my @labels = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash;
     
@@ -1239,6 +1242,27 @@ sub _calc_phylo_mntd {
                 element1 => $label1,
                 element2 => $label2,
             );
+            if (!defined $path_length) {  #  need to calculate it
+                my $last_ancestor = $tree_ref->get_last_shared_ancestor_for_nodes (
+                    node_names => {$label1 => 1, $label2 => 1},
+                );
+
+                my %path;
+                foreach my $node_name ($label1, $label2) {
+                    my $node_ref = $tree_ref->get_node_ref (node => $node_name);
+                    my $sub_path = $node_ref->get_path_lengths_to_ancestral_node (
+                        ancestral_node => $last_ancestor,
+                        %args,
+                    );
+                    @path{keys %$sub_path} = values %$sub_path;
+                }
+                $path_length = sum values %path;
+                $mx->set_value(
+                    element1 => $label1,
+                    element2 => $label2,
+                    value    => $path_length,
+                );
+            }
             push @path_lengths, $path_length;
 
             $i ++;
@@ -1265,6 +1289,28 @@ sub _calc_phylo_mntd {
         );
     }
 
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_phylo_mntd_matrix {
+    my $self = shift;
+
+    my %metadata = (
+        #required_args => 'tree_ref',
+        #pre_calc_global => ['get_trimmed_tree'],  #  need to work with whole tree, so comment out
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub get_phylo_mntd_matrix {
+    my $self = shift;
+
+    my $mx = Biodiverse::Matrix::LowMem->new (NAME => 'mntd_matrix');
+    
+    my %results = (PHYLO_MNTD_MATRIX => $mx);
+    
     return wantarray ? %results : \%results;
 }
 

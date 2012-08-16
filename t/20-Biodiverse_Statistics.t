@@ -3,7 +3,8 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use mylib;
+use FindBin qw/$Bin/;
+use lib "$Bin/lib";
 
 use Test::More;
 

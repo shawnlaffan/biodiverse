@@ -6,12 +6,12 @@
 
 use strict;
 use warnings;
-
 use English qw { -no_match_vars };
 
-local $| = 1;
+use FindBin qw/$Bin/;
+use lib "$Bin/lib";
 
-use mylib;
+local $| = 1;
 
 #use Test::More tests => 5;
 use Test::More;

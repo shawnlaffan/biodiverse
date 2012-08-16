@@ -4,9 +4,10 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
+use FindBin qw /$Bin/;
+use lib "$Bin/lib";
+
 use Test::More;
-#use Test::Exception;
-#use Test::Deep;
 
 use Data::Section::Simple qw(get_data_section);
 

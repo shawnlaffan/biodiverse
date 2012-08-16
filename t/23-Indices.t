@@ -4,12 +4,13 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
+use FindBin qw/$Bin/;
+use lib "$Bin/lib";
+
 use Test::More tests => 14;
 use Test::Exception;
 
 local $| = 1;
-
-use mylib;
 
 use Biodiverse::BaseData;
 use Biodiverse::Indices;

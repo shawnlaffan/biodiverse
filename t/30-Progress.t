@@ -1,15 +1,15 @@
 #!/usr/bin/perl -w
 use strict;
-
 use warnings;
 use English qw / -no_match_vars /;
+
+use FindBin qw/$Bin/;
+use lib "$Bin/lib";
 
 use Test::More tests => 1;
 use Test::Exception;
 
 local $| = 1;
-
-use mylib;
 
 use Biodiverse::Progress;
 

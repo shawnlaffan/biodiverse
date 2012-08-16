@@ -719,7 +719,7 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
             || warn "ISSUES $element2\n";
     }
     
-    return ($self -> element_pair_exists(@_)) ? undef : 1;  #  for debug
+    #return ($self -> element_pair_exists(@_)) ? undef : 1;  #  for debug
     return 1;  # return success if we get this far
 }
 

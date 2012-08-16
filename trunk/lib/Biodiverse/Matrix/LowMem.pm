@@ -139,48 +139,19 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
     #  decrement the ELEMENTS counts, deleting entry if now zero, as there are no more entries with this element
     $self->{ELEMENTS}{$element1}--;
     if ($self->{ELEMENTS}{$element1} == 0) {
-        #undef $self->{ELEMENTS}{$element1};
         defined (delete $self->{ELEMENTS}{$element1})
             || warn "ISSUES $element1\n";
     }
     $self->{ELEMENTS}{$element2}--;
     if ($self->{ELEMENTS}{$element2} == 0) {
-        #undef $self->{ELEMENTS}{$element2};
         defined (delete $self->{ELEMENTS}{$element2})
             || warn "ISSUES $element2\n";
     }
     
-    return ($self->element_pair_exists(@_)) ? undef : 1;  #  for debug
+    #return ($self->element_pair_exists(@_)) ? undef : 1;  #  for debug
     return 1;  # return success if we get this far
 }
 
-#  bodgy method of subclassing Biodiverse::Matrix
-#  - need to fix it by abstracting the common methods to their own class
-#  done now - Biodiverse::Marix::Base
-#our $AUTOLOAD;
-#my @go_to_bmx = ();
-#my %permitted_go_to_bmx;
-#@permitted_go_to_bmx{@go_to_bmx} = (1) x scalar @go_to_bmx;
-#my $bmx_pfx = 'Biodiverse::Matrix::';
-#
-#sub AUTOLOAD {
-#    my $self = shift;
-#
-#    my $method = $AUTOLOAD;
-#    $method =~ s/.*://;   # strip fully-qualified portion
-#
-#    Biodiverse::NoMethod->throw (
-#        error         => "Cannot load $method via autoloader",
-#        method        => $method,
-#        in_autoloader => 1,
-#    ) if !exists $permitted_go_to_bmx{$method};
-#
-#    $method = $bmx_pfx . $method;
-#
-#    return $self->$method (@_);
-#}
-#
-#sub DESTROY {};
 
 1;
 

@@ -1256,6 +1256,7 @@ sub _calc_phylo_mntd {
                     );
                     @path{keys %$sub_path} = values %$sub_path;
                 }
+                delete $path{$last_ancestor->get_name()};
                 $path_length = sum values %path;
                 $mx->set_value(
                     element1 => $label1,

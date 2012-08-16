@@ -15,7 +15,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:matrix :utils/;
+use Biodiverse::TestHelpers qw /:matrix/;
 
 
 use Biodiverse::Matrix;
@@ -45,7 +45,7 @@ sub run_main_tests {
     $e = $EVAL_ERROR;
     diag $e if $e;
 
-    ok (!$e, 'created object without error');
+    ok (!$e, "created $class object without error");
 
     eval {
         $mx->import_data (

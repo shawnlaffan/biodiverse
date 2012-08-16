@@ -112,7 +112,7 @@ sub compare_hash_vals {
     foreach my $key (sort keys %$hash1) {
 	my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
 	my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});
-	is ($val1, $val2, "Got same value for $key");
+	is ($val1, $val2, "Got expected value for $key");
     }
 
     return;

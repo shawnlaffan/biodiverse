@@ -1093,8 +1093,14 @@ sub get_metadata_calc_phylo_mntd1 {
 
 sub calc_phylo_mntd1 {
     my $self = shift;
+        my %args = @_;
 
-    my %res = $self->_calc_phylo_mntd(@_);
+    my %res = $self->_calc_phylo_mntd(
+        %args,
+        label_hash1 => $args{label_hash_all},
+        label_hash2 => $args{label_hash_all},
+    );
+    
     my %results;
     while (my ($key, $value) = each %res) {
         $key =~ s/PNTD_/PNTD1_/;
@@ -1126,8 +1132,14 @@ sub get_metadata_calc_phylo_mntd2 {
 
 sub calc_phylo_mntd2 {
     my $self = shift;
+    my %args = @_;
 
-    my %res = $self->_calc_phylo_mntd(@_);
+    my %res = $self->_calc_phylo_mntd(
+        %args,
+        label_hash1 => $args{label_hash_all},
+        label_hash2 => $args{label_hash_all},
+    );
+
     my %results;
     while (my ($key, $value) = each %res) {
         $key =~ s/PNTD_/PNTD2_/;
@@ -1159,8 +1171,14 @@ sub get_metadata_calc_phylo_mntd3 {
 #  allow the user to get at the underlying data
 sub calc_phylo_mntd3 {
     my $self = shift;
+    my %args = @_;
 
-    my %res = $self->_calc_phylo_mntd(@_);
+    my %res = $self->_calc_phylo_mntd(
+        %args,
+        label_hash1 => $args{label_hash_all},
+        label_hash2 => $args{label_hash_all},
+    );
+
     my %results;
     while (my ($key, $value) = each %res) {
         $key =~ s/PNTD_/PNTD3_/;
@@ -1242,19 +1260,21 @@ sub _calc_phylo_mntd {
     my $self = shift;
     my %args = @_;
 
-    my $label_hash = $args{label_hash_all};
+    my $label_hash1 = $args{label_hash1};
+    my $label_hash2 = $args{label_hash2};
     my $mx         = $args{PHYLO_MNTD_MATRIX};
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
     my $tree_ref   = $args{tree_ref};
 
-    my @labels = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash;
-    
+    my @labels1 = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash1;
+    my @labels2 = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash2;
+
     my @min_path_lengths;
 
     #  Loop over all possible pairs, 
     BY_LABEL:
-    foreach my $label1 (@labels) {
-        my $label_count1 = $label_hash->{$label1};
+    foreach my $label1 (@labels1) {
+        my $label_count1 = $label_hash1->{$label1};
         
         #  save some calcs (if ever this happens)
         next BY_LABEL if $label_count1 == 0;
@@ -1264,12 +1284,12 @@ sub _calc_phylo_mntd {
         my $i = 0;
 
         LABEL2:
-        foreach my $label2 (@labels) {
+        foreach my $label2 (@labels2) {
 
             #  skip same labels
             next LABEL2 if $label1 eq $label2;
 
-            my $label_count2 = $label_hash->{$label2};
+            my $label_count2 = $label_hash2->{$label2};
             next LABEL2 if $label_count2 == 0;
 
             my $path_length = $mx->get_value(

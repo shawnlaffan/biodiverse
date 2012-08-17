@@ -1076,34 +1076,7 @@ my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatic
 sub get_metadata_calc_phylo_mntd1 {
     my $self = shift;
 
-    my $indices = {
-        PNTD1_MEAN => {
-            description    => 'Mean of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        PNTD1_MAX => {
-            description    => 'Maximum of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        PNTD1_MIN => {
-            description    => 'Minimum of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        PNTD1_SD => {
-            description    => 'Standard deviation of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        PNTD_SD => {
-            description    => 'Count of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        
-    };
+    my %submeta = $self->get_pmntd_metadata (abc_sub => 'calc_abc');
 
     my %metadata = (
         description     => 'Distance stats from each label to the nearest label '
@@ -1111,13 +1084,7 @@ sub get_metadata_calc_phylo_mntd1 {
                          . 'all other labels across both neighbour sets. '
                          . 'Not weighted by sample counts, so each label counts once only.',
         name            => 'Nearest taxon distances, unweighted',
-        type            => 'Phylogenetic Indices',
-        reference       => $webb_et_al_ref,
-        pre_calc        => [qw /calc_abc calc_labels_on_tree/],
-        pre_calc_global => ['get_phylo_mntd_matrix'],
-        required_args   => 'tree_ref',
-        uses_nbr_lists  => 1,
-        indices         => $indices,
+        %submeta,
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -1137,50 +1104,51 @@ sub calc_phylo_mntd1 {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_phylo_mntd2 {
+    my $self = shift;
+
+    my %submeta = $self->get_pmntd_metadata (abc_sub => 'calc_abc2');
+
+    my %metadata = (
+        description     => 'Distance stats from each label to the nearest label '
+                         . 'along the tree.  Compares with '
+                         . 'all other labels across both neighbour sets. '
+                         . 'Weighted by local ranges, so each label counts '
+                         . 'as many times as the groups it occurs in within '
+                         . 'the neighbour sets.',
+        name            => 'Nearest taxon distances, local range weighted',
+        %submeta,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub calc_phylo_mntd2 {
+    my $self = shift;
+
+    my %res = $self->_calc_phylo_mntd(@_);
+    my %results;
+    while (my ($key, $value) = each %res) {
+        $key =~ s/PNTD_/PNTD2_/;
+        $results{$key} = $value;
+    }
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_phylo_mntd3 {
     my $self = shift;
 
-    my $indices = {
-        PNTD3_MEAN => {
-            description    => 'Mean of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        PNTD3_MAX => {
-            description    => 'Maximum of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        PNTD3_MIN => {
-            description    => 'Minimum of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        PNTD3_SD => {
-            description    => 'Standard deviation of nearest taxon distances',
-            formula        => [
-            ],
-        },
-        PNTD3_N => {
-            description    => 'Count of nearest taxon distances',
-            formula        => [
-            ],
-        },
-    };
+    my %submeta = $self->get_pmntd_metadata (abc_sub => 'calc_abc3');
 
     my %metadata = (
         description     => 'Distance stats from each label to the nearest label '
                          . 'along the tree.  Compares with '
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts',
-        name            => 'Nearest taxon distances, weighted',
-        type            => 'Phylogenetic Indices',
-        reference       => $webb_et_al_ref,
-        pre_calc        => [qw /calc_abc3 calc_labels_on_tree/],
-        pre_calc_global => ['get_phylo_mntd_matrix'],
-        required_args   => 'tree_ref',
-        uses_nbr_lists  => 1,
-        indices         => $indices,
+        name            => 'Nearest taxon distances, abundance weighted',
+        %submeta,
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -1202,6 +1170,72 @@ sub calc_phylo_mntd3 {
     return wantarray ? %results : \%results;
 }
 
+
+sub get_pmntd_metadata {
+    my $self = shift;
+    my %args = @_;
+    
+    my $abc_sub = $args{abc_sub} || 'calc_abc';
+    my $pfx = $args{index_pfx} || 'PNTD';
+
+    my $num = 1;
+    if ($abc_sub =~ /(\d)$/) {
+        $num = $1;
+    }
+
+    my $indices = {
+        MEAN => {
+            description    => 'Mean of nearest taxon distances',
+            formula        => [
+            ],
+        },
+        MAX => {
+            description    => 'Maximum of nearest taxon distances',
+            formula        => [
+            ],
+        },
+        MIN => {
+            description    => 'Minimum of nearest taxon distances',
+            formula        => [
+            ],
+        },
+        SD => {
+            description    => 'Standard deviation of nearest taxon distances',
+            formula        => [
+            ],
+        },
+        N => {
+            description    => 'Count of nearest taxon distances',
+            formula        => [
+            ],
+        },
+    };
+
+    my %renamed_indices;
+    foreach my $index (keys %$indices) {
+        my $new_index = $pfx . $num . '_' . $index;
+        $renamed_indices{$new_index} = $indices->{$index};
+    }
+
+    my $pre_calc = [$abc_sub, 'calc_labels_on_tree'];
+
+    my %metadata = (
+        #description     => 'Distance stats from each label to the nearest label '
+        #                 . 'along the tree.  Compares with '
+        #                 . 'all other labels across both neighbour sets. '
+        #                 . 'Weighted by sample counts',
+        #name            => 'Nearest taxon distances, abundance weighted',
+        type            => 'Phylogenetic Indices',
+        reference       => $webb_et_al_ref,
+        pre_calc        => $pre_calc,
+        pre_calc_global => ['get_phylo_mntd_matrix'],
+        required_args   => 'tree_ref',
+        uses_nbr_lists  => 1,
+        indices         => \%renamed_indices,
+    );
+
+    return wantarray ? %metadata : \%metadata;    
+}
 
 #  mean nearest taxon distance
 sub _calc_phylo_mntd {

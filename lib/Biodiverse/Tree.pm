@@ -516,7 +516,7 @@ sub get_named_nodes {
     return wantarray ? %node_list : \%node_list;
 }
 
-#  get all the nodes that aren't terminal nodes
+#  get all the nodes that aren't named nodes
 sub get_branch_nodes {
     my $self = shift;
     my %node_list;

@@ -9,6 +9,7 @@ use Carp;
 use Biodiverse::Progress;
 
 use List::Util qw /sum min/;
+use Math::BigInt;
 
 our $VERSION = '0.17';
 
@@ -617,6 +618,43 @@ sub calc_labels_on_tree {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_labels_not_on_tree {
+    my $self = shift;
+
+    my %arguments = (
+        description     => 'Create a hash of the labels that are not on the tree',
+        name            => 'Labels not on tree',
+        indices         => {
+            PHYLO_LABELS_NOT_ON_TREE => {
+                description => 'A hash of labels that are not found on the tree, across both neighbour sets',
+            },  #  should poss also do nbr sets 1 and 2
+        },
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc_global => [qw /get_labels_not_on_tree/],
+        pre_calc        => ['calc_abc'],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        required_args   => ['tree_ref'],
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_labels_not_on_tree {
+    my $self = shift;
+    my %args = @_;
+
+    my $not_on_tree = $args{labels_not_on_tree};
+
+    my %labels1 = %{$args{label_hash_all}};
+    delete @labels1{keys %$not_on_tree};
+
+    my %labels2 = %{$args{label_hash_all}};
+    delete @labels2{keys %labels1};
+    
+    my %results = (PHYLO_LABELS_NOT_ON_TREE => \%labels2);
+    
+    return wantarray ? %results : \%results;
+}
 
 sub get_metadata_get_pe_element_cache {
     
@@ -1381,7 +1419,8 @@ sub _calc_phylo_mntd {
 
     my $label_hash1 = $args{label_hash1};
     my $label_hash2 = $args{label_hash2};
-    my $mx         = $args{PHYLO_MNTD_MATRIX};
+    my $mx         = $args{PHYLO_MNTD_MATRIX}
+      || croak "Argument PHYLO_MNTD_MATRIX not defined\n";
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
     my $tree_ref   = $args{tree_ref};
     my $do_mpd    = $args{do_mpd};  #  are we doing MPD or MNTD?
@@ -2106,9 +2145,6 @@ sub get_aed_scores {
     return wantarray ? %results : \%results;
 }
 
-
-
-#sub min {return $_[0] < $_[1] ? $_[0] : $_[1]}
 
 1;
 

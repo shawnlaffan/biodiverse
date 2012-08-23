@@ -336,7 +336,8 @@ sub _convert_to_hash {
     
     my $input = $args{input};
     
-    croak "Input undefined\n" if !defined $input;
+    Biodiverse::MissingArgument->throw ('Input undefined in _convert_to_hash')
+      if !defined $input;
 
     my %hash;
 

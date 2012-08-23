@@ -17,8 +17,8 @@ my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
 our $VERSION = '0.17';
 
-my $TRUE  = 'TRUE';
-my $FALSE = 'FALSE';
+my $TRUE  = 1;
+my $FALSE = 0;
 my $NULL_STRING = q{};
 
 use Biodiverse::GUI::GUIManager;
@@ -26,53 +26,76 @@ use Biodiverse::Exception;
 
 no warnings 'redefine';
 
+##########################################################
+# Construction
+##########################################################
+my $singleton;
+BEGIN {
+    $singleton = {
+        dlg  => undef,
+        bars => [],
+    };
+    bless $singleton, 'Biodiverse::GUI::ProgressDialog::Instance';
+}
+
+sub instance {
+    return $singleton;
+}
+
+##########################################################
+# Getters / Setters
+##########################################################
 
 sub new {
     my $class    = shift;
     my $text     = shift || $NULL_STRING;
     my $progress = shift || 0;
 
-    #  debug
-    #use Devel::StackTrace;
-    #my $trace = Devel::StackTrace->new;
-    #print $trace->as_string; # like carp
+    my $instance = __PACKAGE__->instance;
+    my ($widget, $label, $bar);
 
+    my $dlg = $instance->{dlg};
+    if (!$dlg) {
+        my $gui = Biodiverse::GUI::GUIManager->instance;
     
-    my $gui = Biodiverse::GUI::GUIManager->instance;
+        # Load the widgets from Glade's XML
+        my $glade_file = $gui->getGladeFile;
+        Biodiverse::GUI::ProgressDialog::NotInGUI->throw
+            if ! $glade_file;
 
-    # Load the widgets from Glade's XML
-    my $glade_file = $gui->getGladeFile;
-    Biodiverse::GUI::ProgressDialog::NotInGUI->throw
-        if ! $glade_file;
+        my $dlgxml = Gtk2::GladeXML->new($glade_file, 'wndProgress');
+        my $dlg = $dlgxml->get_widget('wndProgress');
+        $dlg->set_transient_for( $gui->getWidget('wndMain') );
+        $widget = $dlgxml->get_widget('label');
+        if ($widget) {
+            $widget->set_markup($text);
+        }
 
-    my $dlgxml = Gtk2::GladeXML->new($glade_file, 'wndProgress');
-    my $dlg = $dlgxml->get_widget('wndProgress');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
-    
-    $dlg->set_position('GTK_WIN_POS_MOUSE');
+        $label = $dlgxml->get_widget('label');
+        $bar   = $dlgxml->get_widget('progressbar');
+    }
 
     # Show the dialog
-    #$dlg->set_modal(1);
     $dlg->show_all();
-    #$dlg->present();  #  raise to top
 
     # Make object
-    my $self = { dlgxml => $dlgxml, dlg => $dlg };
+    my $self = {
+        dlg    => $dlg,
+        widget => $widget,
+        label  => $label,
+        bar    => $bar,
+    };
     bless $self, $class;
-    
+
     #$dlg->signal_connect (
     #    'stop_pulsing'   => \&pulsate_stop,
     #    $self,
     #);
-    
+
     $self->{last_update_time} = [gettimeofday];
     $self->{progress_update_interval} = $progress_update_interval;
 
-    my $widget = $self->{dlgxml}->get_widget('label');
-    if ($widget) {
-        $widget->set_markup($text);
-    }
-    $self->update ($text, 0);
+    $self->update ($text, $progress);
 
     return $self;
 }
@@ -97,7 +120,7 @@ sub update {
     if (not defined $text) {
         $text = join "\n", scalar caller(), scalar caller(1), scalar caller(2), scalar caller(3);
     }
-    
+
     if ($progress < 0 or $progress > 1) {
         Biodiverse::GUI::ProgressDialog::Bounds->throw(
             message  => "ERROR [ProgressDialog] progress is $progress (not between 0 & 1)",
@@ -110,24 +133,21 @@ sub update {
     
     $self->{last_update_time} = [gettimeofday];
 
-    #$self->{dlg}->present;  #  raise to top
-
     # update dialog
-    my $widget = $self->{dlgxml}->get_widget('label');
+    my $widget = $self->{label};
     if ($widget) {
         $widget->set_markup("<b>$text</b>");
     }
 
-    my $bar = $self->{dlgxml}->get_widget('progressbar');
-    
+    my $bar = $self->{bar};
     if (not defined $bar) {
         Biodiverse::GUI::ProgressDialog::Cancel->throw(
             message  => "Progress bar closed, operation cancelled",
         );
     }
-    
+
     $self->{pulse} = 0;
-    
+
     $bar->set_fraction($progress);
 
     while (Gtk2->events_pending) { Gtk2->main_iteration(); }
@@ -142,11 +162,11 @@ sub pulsate {
     my $text = shift; 
     my $progress = shift || 0.1; # fraction 0 .. 1
     return if not defined $progress;
-    
+
     if (not defined $text) {
         $text = $NULL_STRING;
     }
-    
+
     #$self -> update ($text, $progress);  #  We are avoiding pulsation for the moment...
     #return;
 
@@ -157,13 +177,13 @@ sub pulsate {
     }
     else {
         # update dialog
-        my $widget = $self->{dlgxml}->get_widget('label');
-        $widget -> set_markup("<b>$text</b>") if $widget;
+        my $widget = $self->{label};
+        $widget->set_markup("<b>$text</b>") if $widget;
         
-        my $bar = $self->{dlgxml}->get_widget('progressbar');
-        $bar -> set_pulse_step ($progress);
+        my $bar = $self->{bar};
+        $bar->set_pulse_step ($progress);
         #$bar -> pulse;
-        
+
         if (not $self->{pulse}) {  #  only set this if we aren't already pulsing
             print "Starting pulse\n";
             $self->{pulse} = 1;
@@ -205,14 +225,13 @@ sub pulse_progress_bar {
     if ($self->{pulse} and defined $p_bar) {
         #print "     PULSING\n";
         #$p_bar -> set_pulse_step (0.1);
-        $p_bar -> pulse;
+        $p_bar->pulse;
         return TRUE;  #  keep going
     }
-    
+
     #print "[PROGRESS BAR] Stop pulsing\n";
     
-    return FALSE;
-    
+    return FALSE;    
 }
 
 1;

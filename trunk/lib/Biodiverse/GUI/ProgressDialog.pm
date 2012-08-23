@@ -27,20 +27,6 @@ use Biodiverse::Exception;
 no warnings 'redefine';
 
 
-#use Exception::Class (
-#    'Biodiverse::GUI::ProgressDialog::Cancel' => {
-#        description => 'User closed the progress dialog',
-#        #message     => 'Progress bar closed, operation cancelled',
-#    },
-#    'Biodiverse::GUI::ProgressDialog::Bounds' => {
-#        description => 'Progress value is out of bounds',
-#    },
-#    'Biodiverse::GUI::ProgressDialog::NotInGUI' => {
-#        description => 'Not running under the GUI',
-#    },
-#);
-
-
 sub new {
     my $class    = shift;
     my $text     = shift || $NULL_STRING;
@@ -62,6 +48,8 @@ sub new {
     my $dlgxml = Gtk2::GladeXML->new($glade_file, 'wndProgress');
     my $dlg = $dlgxml->get_widget('wndProgress');
     $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    
+    $dlg->set_position('GTK_WIN_POS_MOUSE');
 
     # Show the dialog
     #$dlg->set_modal(1);
@@ -72,7 +60,7 @@ sub new {
     my $self = { dlgxml => $dlgxml, dlg => $dlg };
     bless $self, $class;
     
-    #$dlg -> signal_connect (
+    #$dlg->signal_connect (
     #    'stop_pulsing'   => \&pulsate_stop,
     #    $self,
     #);
@@ -84,6 +72,7 @@ sub new {
     if ($widget) {
         $widget->set_markup($text);
     }
+    $self->update ($text, 0);
 
     return $self;
 }

@@ -14,10 +14,18 @@ use Biodiverse::TreeNode;
 use Biodiverse::ReadNexus;
 
 use File::Temp;
+use Scalar::Util qw /looks_like_number/;
+use Test::More;
 
 use Exporter::Easy (
     TAGS => [
-        utils  => [qw (write_data_to_temp_file)],
+        utils  => [
+	    qw (
+		write_data_to_temp_file
+		snap_to_precision
+		compare_hash_vals
+	    )
+	],
         basedata => [
             qw(
                 get_basedata_import_data_file
@@ -56,6 +64,35 @@ use Exporter::Easy (
         ],
     ],
 );
+
+
+sub snap_to_precision {
+    my %args = @_;
+    my $value = $args{value};
+    my $precision = defined $args{precision} ? $args{precision} : '%.13f';
+    
+    return defined $value && looks_like_number $value
+        ? sprintf ($precision, $value)
+        : $value;
+}
+
+sub compare_hash_vals {
+    my %args = @_;
+
+    my $hash1 = $args{hash_got};
+    my $hash2 = $args{hash_exp};
+    
+    is (scalar keys %$hash1, scalar keys %$hash2, 'hashes are same size');
+
+    foreach my $key (sort keys %$hash2) {
+	my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
+	my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});
+	is ($val1, $val2, "Got expected value for $key");
+    }
+
+    return;
+}
+
 
 
 sub get_basedata_import_data_file {

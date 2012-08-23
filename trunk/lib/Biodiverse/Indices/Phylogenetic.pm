@@ -1111,12 +1111,11 @@ sub _calc_taxonomic_distinctness {
 
 my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
 
-sub get_pmntd_metadata {
+sub get_mpd_mntd_metadata {
     my $self = shift;
     my %args = @_;
-    
+
     my $abc_sub = $args{abc_sub} || 'calc_abc';
-    my $pfx = $args{index_pfx} || 'PNTD';
 
     my $num = 1;
     if ($abc_sub =~ /(\d)$/) {
@@ -1124,311 +1123,183 @@ sub get_pmntd_metadata {
     }
 
     my $indices = {
-        MEAN => {
+        PNTD_MEAN => {
             description    => 'Mean of nearest taxon distances',
-            formula        => [
-            ],
         },
-        MAX => {
+        PNTD_MAX => {
             description    => 'Maximum of nearest taxon distances',
-            formula        => [
-            ],
         },
-        MIN => {
+        PNTD_MIN => {
             description    => 'Minimum of nearest taxon distances',
-            formula        => [
-            ],
         },
-        SD => {
+        PNTD_SD => {
             description    => 'Standard deviation of nearest taxon distances',
-            formula        => [
-            ],
         },
-        N => {
+        PNTD_N => {
             description    => 'Count of nearest taxon distances',
-            formula        => [
-            ],
+        },
+        PMPD_MEAN => {
+            description    => 'Mean of pairwise phylogenetic distances',
+        },
+        PMPD_MAX => {
+            description    => 'Maximum of pairwise phylogenetic distances',
+        },
+        PMPD_MIN => {
+            description    => 'Minimum of pairwise phylogenetic distances',
+        },
+        PMPD_SD => {
+            description    => 'Standard deviation of pairwise phylogenetic distances',
+        },
+        PMPD_N => {
+            description    => 'Count of pairwise phylogenetic distances',
         },
     };
 
-    my %renamed_indices;
-    foreach my $index (keys %$indices) {
-        my $new_index = $pfx . $num . '_' . $index;
-        $renamed_indices{$new_index} = $indices->{$index};
+    my $pre_calc = [$abc_sub, 'calc_labels_on_tree'];
+    
+    my $indices_filtered = {};
+    my $pfx_re = qr /(PNTD|PMPD)/;
+    foreach my $key (keys %$indices) {
+        next if not $key =~ /$pfx_re/;  #  next prob redundant, but need $1 from re
+        my $pfx = $1;
+        my $new_key = $key;
+        $new_key =~ s/$pfx/$pfx$num/;
+        $indices_filtered->{$new_key} = $indices->{$key};
     }
 
-    my $pre_calc = [$abc_sub, 'calc_labels_on_tree'];
-
     my %metadata = (
-        type            => 'Phylogenetic Indices',
+        type            => 'PhyloCom Indices',
         reference       => $webb_et_al_ref,
         pre_calc        => $pre_calc,
-        pre_calc_global => ['get_phylo_mntd_matrix'],
+        pre_calc_global => [qw /get_phylo_mpd_mntd_matrix/],
         required_args   => 'tree_ref',
         uses_nbr_lists  => 1,
-        indices         => \%renamed_indices,
+        indices         => $indices_filtered,
     );
 
     return wantarray ? %metadata : \%metadata;    
 }
 
-sub get_metadata_calc_phylo_mpd1 {
-    my $self = shift;
 
-    my %submeta = $self->get_pmntd_metadata (
-        abc_sub   => 'calc_abc',
-        index_pfx => 'MPD',
-    );
-
-    my %metadata = (
-        description     => 'Distance stats from each label to all other labels '
-                         . 'along the tree.  Compares with '
-                         . 'all other labels across both neighbour sets. '
-                         . 'Not weighted by sample counts, so each label counts once only.',
-        name            => 'Mean (and other stats) phylogenetic distances, unweighted',
-        %submeta,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-
-sub calc_phylo_mpd1 {
-    my $self = shift;
-        my %args = @_;
-
-    my %res = $self->_calc_phylo_mntd(
-        %args,
-        do_mpd => 1,
-        label_hash1 => $args{label_hash_all},
-        label_hash2 => $args{label_hash_all},
-    );
-    
-    my %results;
-    while (my ($key, $value) = each %res) {
-        $key =~ s/PNTD_/PMPD1_/;
-        $results{$key} = $value;
-    }
-
-    return wantarray ? %results : \%results;
-}
-
-sub get_metadata_calc_phylo_mpd2 {
-    my $self = shift;
-
-    my %submeta = $self->get_pmntd_metadata (
-        abc_sub   => 'calc_abc2',
-        index_pfx => 'MPD',
-    );
-
-    my %metadata = (
-        description     => 'Distance stats from each label to all other labels '
-                         . 'along the tree.  Compares with '
-                         . 'all other labels across both neighbour sets. '
-                         . 'Weighted by local ranges.',
-        name            => 'Mean (and other stats) phylogenetic distances, weighted by local ranges',
-        %submeta,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-
-sub calc_phylo_mpd2 {
-    my $self = shift;
-        my %args = @_;
-
-    my %res = $self->_calc_phylo_mntd(
-        %args,
-        do_mpd => 1,
-        label_hash1 => $args{label_hash_all},
-        label_hash2 => $args{label_hash_all},
-    );
-    
-    my %results;
-    while (my ($key, $value) = each %res) {
-        $key =~ s/PNTD_/PMPD2_/;
-        $results{$key} = $value;
-    }
-
-    return wantarray ? %results : \%results;
-}
-
-sub get_metadata_calc_phylo_mpd3 {
-    my $self = shift;
-
-    my %submeta = $self->get_pmntd_metadata (
-        abc_sub   => 'calc_abc3',
-        index_pfx => 'MPD',
-    );
-
-    my %metadata = (
-        description     => 'Distance stats from each label to all other labels '
-                         . 'along the tree.  Compares with '
-                         . 'all other labels across both neighbour sets. '
-                         . 'Weighted by sample counts.',
-        name            => 'Mean (and other stats) phylogenetic distances, abundance weighted',
-        %submeta,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-
-sub calc_phylo_mpd3 {
-    my $self = shift;
-        my %args = @_;
-
-    my %res = $self->_calc_phylo_mntd(
-        %args,
-        do_mpd => 1,
-        label_hash1 => $args{label_hash_all},
-        label_hash2 => $args{label_hash_all},
-    );
-    
-    my %results;
-    while (my ($key, $value) = each %res) {
-        $key =~ s/PNTD_/PMPD3_/;
-        $results{$key} = $value;
-    }
-
-    return wantarray ? %results : \%results;
-}
-
-
-sub get_metadata_calc_phylo_mntd1 {
-    my $self = shift;
-
-    my %submeta = $self->get_pmntd_metadata (abc_sub => 'calc_abc');
-
-    my %metadata = (
-        description     => 'Distance stats from each label to the nearest label '
-                         . 'along the tree.  Compares with '
-                         . 'all other labels across both neighbour sets. '
-                         . 'Not weighted by sample counts, so each label counts once only.',
-        name            => 'Nearest taxon distances, unweighted',
-        %submeta,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-
-sub calc_phylo_mntd1 {
-    my $self = shift;
-        my %args = @_;
-
-    my %res = $self->_calc_phylo_mntd(
-        %args,
-        label_hash1 => $args{label_hash_all},
-        label_hash2 => $args{label_hash_all},
-    );
-    
-    my %results;
-    while (my ($key, $value) = each %res) {
-        $key =~ s/PNTD_/PNTD1_/;
-        $results{$key} = $value;
-    }
-
-    return wantarray ? %results : \%results;
-}
-
-sub get_metadata_calc_phylo_mntd2 {
-    my $self = shift;
-
-    my %submeta = $self->get_pmntd_metadata (abc_sub => 'calc_abc2');
-
-    my %metadata = (
-        description     => 'Distance stats from each label to the nearest label '
-                         . 'along the tree.  Compares with '
-                         . 'all other labels across both neighbour sets. '
-                         . 'Weighted by local ranges, so each label counts '
-                         . 'as many times as the groups it occurs in within '
-                         . 'the neighbour sets.',
-        name            => 'Nearest taxon distances, local range weighted',
-        %submeta,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-
-sub calc_phylo_mntd2 {
+sub get_metadata_calc_phylo_mpd_mntd1 {
     my $self = shift;
     my %args = @_;
 
-    my %res = $self->_calc_phylo_mntd(
+    my %submeta = $self->get_mpd_mntd_metadata (
+        abc_sub => 'calc_abc',
+    );
+
+    my %metadata = (
+        description     => 'Distance stats from each label to the nearest label '
+                         . 'along the tree.  Compares with '
+                         . 'all other labels across both neighbour sets. ',
+        name            => 'Phylogenetic and Nearest taxon distances, unweighted',
+        %submeta,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub calc_phylo_mpd_mntd1 {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = $self->_calc_phylo_mpd_mntd (
         %args,
         label_hash1 => $args{label_hash_all},
         label_hash2 => $args{label_hash_all},
+        abc_num     => 1,
     );
-
-    my %results;
-    while (my ($key, $value) = each %res) {
-        $key =~ s/PNTD_/PNTD2_/;
-        $results{$key} = $value;
-    }
 
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata_calc_phylo_mntd3 {
+sub get_metadata_calc_phylo_mpd_mntd2 {
     my $self = shift;
+    my %args = @_;
 
-    my %submeta = $self->get_pmntd_metadata (abc_sub => 'calc_abc3');
+    my %submeta = $self->get_mpd_mntd_metadata (
+        abc_sub => 'calc_abc2',
+    );
 
     my %metadata = (
         description     => 'Distance stats from each label to the nearest label '
                          . 'along the tree.  Compares with '
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts',
-        name            => 'Nearest taxon distances, abundance weighted',
+        name            => 'Phylogenetic and Nearest taxon distances, local range weighted',
         %submeta,
     );
 
     return wantarray ? %metadata : \%metadata;
 }
 
-
-#  with more modification we could also
-#  allow the user to get at the underlying data
-sub calc_phylo_mntd3 {
+sub calc_phylo_mpd_mntd2 {
     my $self = shift;
     my %args = @_;
 
-    my %res = $self->_calc_phylo_mntd(
+    my %results = $self->_calc_phylo_mpd_mntd (
         %args,
         label_hash1 => $args{label_hash_all},
         label_hash2 => $args{label_hash_all},
+        abc_num     => 2,
     );
-
-    my %results;
-    while (my ($key, $value) = each %res) {
-        $key =~ s/PNTD_/PNTD3_/;
-        $results{$key} = $value;
-    }
 
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_phylo_mpd_mntd3 {
+    my $self = shift;
+    my %args = @_;
 
-#  mean nearest taxon distance
-sub _calc_phylo_mntd {
+    my %submeta = $self->get_mpd_mntd_metadata (
+        abc_sub => 'calc_abc3',
+    );
+
+    my %metadata = (
+        description     => 'Distance stats from each label to the nearest label '
+                         . 'along the tree.  Compares with '
+                         . 'all other labels across both neighbour sets. '
+                         . 'Weighted by sample counts',
+        name            => 'Phylogenetic and Nearest taxon distances, abundance weighted',
+        %submeta,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub calc_phylo_mpd_mntd3 {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = $self->_calc_phylo_mpd_mntd (
+        %args,
+        label_hash1 => $args{label_hash_all},
+        label_hash2 => $args{label_hash_all},
+        abc_num     => 3,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+#  mean nearest taxon distance and mean phylogenetic distance
+sub _calc_phylo_mpd_mntd {
     my $self = shift;
     my %args = @_;
 
     my $label_hash1 = $args{label_hash1};
     my $label_hash2 = $args{label_hash2};
-    my $mx         = $args{PHYLO_MNTD_MATRIX}
-      || croak "Argument PHYLO_MNTD_MATRIX not defined\n";
+    my $mx         = $args{PHYLO_MPD_MNTD_MATRIX}
+      || croak "Argument PHYLO_MPD_MNTD_MATRIX not defined\n";
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
     my $tree_ref   = $args{tree_ref};
-    my $do_mpd    = $args{do_mpd};  #  are we doing MPD or MNTD?
+    #my $do_mpd    = $args{do_mpd};  #  are we doing MPD or MNTD?
+    my $abc_num = $args{abc_num} || 1;
 
     my @labels1 = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash1;
     my @labels2 = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash2;
 
-    my @path_lengths;
+    my (@mpd_path_lengths, @mntd_path_lengths);
 
     #  Loop over all possible pairs, 
     BY_LABEL:
@@ -1439,7 +1310,8 @@ sub _calc_phylo_mntd {
         next BY_LABEL if $label_count1 == 0;
 
         #my $min;
-        my @path_lengths_this_node;
+        my @mpd_path_lengths_this_node;
+        my @mntd_path_lengths_this_node;
         my $i = 0;
 
         LABEL2:
@@ -1477,46 +1349,51 @@ sub _calc_phylo_mntd {
                     value    => $path_length,
                 );
             }
-            if ($do_mpd) {  #  mpd case needs to weight by labelcount2
-                push @path_lengths_this_node, ($path_length) x $label_count2;
-            }
-            else {          #  mntd case takes the min, so don't bother weighting?
-                push @path_lengths_this_node, $path_length;  
-            }
+            #if ($do_mpd) {  #  mpd case needs to weight by labelcount2
+                push @mpd_path_lengths_this_node, ($path_length) x $label_count2;
+            #}
+            #else {          #  mntd case takes the min, so don't bother weighting?
+                push @mntd_path_lengths_this_node, $path_length;  
+            #}
 
             $i ++;
         }
         if ($i) {  #  only if we added something
-            if ($do_mpd) {
-                push @path_lengths, (@path_lengths_this_node) x $label_count1;
-            }
-            else {
-                my $min = min (@path_lengths_this_node);
-                push @path_lengths, ($min) x $label_count1;
-            }
+            #if ($do_mpd) {
+                push @mpd_path_lengths, (@mpd_path_lengths_this_node) x $label_count1;
+            #}
+            #else {
+                my $min = min (@mntd_path_lengths_this_node);
+                push @mntd_path_lengths, ($min) x $label_count1;
+            #}
         }
     }
 
-    #  allows us to generalise later on
-    my $stats = $stats_package->new();
-    $stats->add_data(\@path_lengths);
-    my $n = $stats->count;
+    my %results;
 
-    my %results = (PNTD_N => $n);
-    @results{qw /PNTD_MEAN PNTD_MAX PNTD_MIN PNTD_SD/} = undef;
-    if ($n) {
-        @results{qw /PNTD_MEAN PNTD_MAX PNTD_MIN PNTD_SD/} = (
-            $stats->mean,
-            $stats->max,
-            $stats->min,
-            $stats->standard_deviation,
-        );
+    my @paths = (\@mntd_path_lengths, \@mpd_path_lengths);
+    my @pfxs  = qw /PNTD PMPD/;
+    my $i = 0;
+    foreach my $path (@paths) {
+        #  allows us to generalise later on
+        my $stats = $stats_package->new();
+        $stats->add_data($path);
+        my $n = $stats->count;
+        my $pfx = $pfxs[$i] . $abc_num;
+
+        $results{$pfx . '_N'}    = $n;
+        $results{$pfx . '_MEAN'} = $stats->mean;
+        $results{$pfx . '_MIN'}  = $stats->min;
+        $results{$pfx . '_MAX'}  = $stats->max;
+        $results{$pfx . '_SD'}   = $stats->standard_deviation;
+    
+        $i++;
     }
 
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata_get_phylo_mntd_matrix {
+sub get_metadata_get_phylo_mpd_mntd_matrix {
     my $self = shift;
 
     my %metadata = (
@@ -1528,12 +1405,12 @@ sub get_metadata_get_phylo_mntd_matrix {
 }
 
 
-sub get_phylo_mntd_matrix {
+sub get_phylo_mpd_mntd_matrix {
     my $self = shift;
 
     my $mx = Biodiverse::Matrix::LowMem->new (NAME => 'mntd_matrix');
     
-    my %results = (PHYLO_MNTD_MATRIX => $mx);
+    my %results = (PHYLO_MPD_MNTD_MATRIX => $mx);
     
     return wantarray ? %results : \%results;
 }
@@ -1729,14 +1606,6 @@ sub calc_phylo_abc {
     my %results = $self->_calc_phylo_abc(%args);
     return wantarray ? %results : \%results;
 }
-
-#sub sum {
-#    my $sum = 0;
-#    foreach my $val (@_) {
-#        $sum += $val;
-#    }
-#    return $sum;
-#}
 
 my $_calc_phylo_abc_precision = '%.10f';
 

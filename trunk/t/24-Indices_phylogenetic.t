@@ -17,14 +17,13 @@ use Biodiverse::BaseData;
 use Biodiverse::Indices;
 use Biodiverse::TestHelpers qw {:basedata :tree};
 
-use Scalar::Util qw /looks_like_number/;
-
 #  start with a subset
 my @phylo_calcs_to_test = qw /
     calc_pd
     calc_pe
-    calc_phylo_mntd1
-    calc_phylo_mntd3
+    calc_phylo_mpd_mntd1
+    calc_phylo_mpd_mntd2
+    calc_phylo_mpd_mntd3
 /;
 
 
@@ -95,40 +94,14 @@ my @phylo_calcs_to_test = qw /
 	my %expected = get_expected_results(nbr_list_count => $nbr_list_count);
 	my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
 	subtest $subtest_name => sub {
-	    compare_hash_vals (hash1 => \%results, hash2 => \%expected)
+	    compare_hash_vals (hash_got => \%results, hash_exp => \%expected)
 	};
     }
 }
 
 done_testing();
 
-sub compare_hash_vals {
-    my %args = @_;
 
-    my $hash1 = $args{hash1};
-    my $hash2 = $args{hash2};
-    
-    is (scalar keys %$hash1, scalar keys %$hash2, 'hashes are same size');
-
-    foreach my $key (sort keys %$hash1) {
-	my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
-	my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});
-	is ($val1, $val2, "Got expected value for $key");
-    }
-
-    return;
-}
-
-
-sub snap_to_precision {
-    my %args = @_;
-    my $value = $args{value};
-    my $precision = defined $args{precision} ? $args{precision} : '%.13f';
-    
-    return defined $value && looks_like_number $value
-        ? sprintf ($precision, $value)
-        : $value;
-}
 
 sub get_expected_results {
     my %args = @_;
@@ -147,6 +120,9 @@ sub get_expected_results {
 
     $data =~ s/\n+$//s;
     my %expected = split (/\s+/, $data);
+    #  handle data that are copied and pasted from Biodiverse popup
+    delete $expected{SPATIAL_RESULTS};  
+
     return wantarray ? %expected : \%expected;
 }
 
@@ -156,6 +132,7 @@ sub get_expected_results {
 __DATA__
 
 @@ RESULTS_1_NBR_LISTS
+SPATIAL_RESULTS	3350000:850000
 PD	1.49276923076923
 PD_P	0.07047267380194
 PD_P_per_taxon	0.03523633690097
@@ -164,11 +141,31 @@ PE_WE	0.261858249294739
 PE_WE_P	0.0123621592705162
 PE_WE_SINGLE	0.261858249294739
 PE_WE_SINGLE_P	0.0123621592705162
+PMPD1_MAX	1
+PMPD1_MEAN	1
+PMPD1_MIN	1
+PMPD1_N	2
+PMPD1_SD	0
+PMPD2_MAX	1
+PMPD2_MEAN	1
+PMPD2_MIN	1
+PMPD2_N	2
+PMPD2_SD	0
+PMPD3_MAX	1
+PMPD3_MEAN	1
+PMPD3_MIN	1
+PMPD3_N	16
+PMPD3_SD	0
 PNTD1_MAX	1
 PNTD1_MEAN	1
 PNTD1_MIN	1
 PNTD1_N	2
 PNTD1_SD	0
+PNTD2_MAX	1
+PNTD2_MEAN	1
+PNTD2_MIN	1
+PNTD2_N	2
+PNTD2_SD	0
 PNTD3_MAX	1
 PNTD3_MEAN	1
 PNTD3_MIN	1
@@ -176,6 +173,7 @@ PNTD3_N	6
 PNTD3_SD	0
 
 @@ RESULTS_2_NBR_LISTS
+SPATIAL_RESULTS	3350000:850000
 PD	9.55665348225732
 PD_P	0.451163454880595
 PD_P_per_taxon	0.0322259610628996
@@ -184,11 +182,31 @@ PE_WE	1.58308662511342
 PE_WE_P	0.0747364998100494
 PE_WE_SINGLE	1.02058686362188
 PE_WE_SINGLE_P	0.0481812484100488
+PMPD1_MAX	1.95985532713474
+PMPD1_MEAN	1.70275738232872
+PMPD1_MIN	0.5
+PMPD1_N	182
+PMPD1_SD	0.293830234111311
+PMPD2_MAX	1.95985532713474
+PMPD2_MEAN	1.68065889601647
+PMPD2_MIN	0.5
+PMPD2_N	440
+PMPD2_SD	0.272218460873199
+PMPD3_MAX	1.95985532713474
+PMPD3_MEAN	1.65678662960988
+PMPD3_MIN	0.5
+PMPD3_N	6086
+PMPD3_SD	0.219080210645172
 PNTD1_MAX	1.86377675442101
 PNTD1_MEAN	1.09027062122407
 PNTD1_MIN	0.5
 PNTD1_N	14
 PNTD1_SD	0.368844918238016
+PNTD2_MAX	1.86377675442101
+PNTD2_MEAN	1.08197443720832
+PNTD2_MIN	0.5
+PNTD2_N	22
+PNTD2_SD	0.296713670467583
 PNTD3_MAX	1.86377675442101
 PNTD3_MEAN	1.17079993908642
 PNTD3_MIN	0.5

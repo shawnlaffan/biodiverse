@@ -130,16 +130,13 @@ Pultenaea,obstreperus,P_obstreperus
 Pultenaea,intransigentus,P_intransigentus
 }}}
 
-When you import the tree and choose to remap the names on the tree, select the remap table file, and then set the columns to be:
-Genus is a remapped_element
-Species is a remapped_element
-Tree_name is an input_element
+When you import the tree and choose to remap the names on the tree, select the remap table file, and then set the columns such that Genus is a remapped_element, Species is a remapped_element, Tree_name is an input_element.
 
 Note that the field names can be anything.  The fields in the header row are only used for column selection in the GUI.
 
 When remapped, the input_element column(s) are changed to the combined remapped_elements.  As noted above, you need to specify as many input_element and remapped_element columns as you are using in your respective tree and basedata (or matrix, as appropriate).  For the example above where a tree is being remapped to match the basedata, the basedata uses two axes so the remap table needs to have to remapped_element columns. The tree names are only one axis (the norm for nexus format trees) so there is only one input_element column.
 
-Take care with spaces.  Biodiverse uses an exact matching system, so any excess whitespace will cause a non-match to occur.  This is both at the remapping stage and when visualising the data. Basically, " Rhynchospora_crinipes" is not the same as "Rhynchospora_crinipes", and the same applies for " Rhynchospora crinipes" and "Rhynchospora crinipes".
+Take care with spaces.  Biodiverse uses an exact matching system, so any excess whitespace will cause a non-match to occur.  This is both at the remapping stage and when visualising the data. Basically, " Rhynchospora_crinipes" is not the same as "Rhynchospora_crinipes", and the same applies for " Rhynchospora crinipes" and "Rhynchospora crinipes".  Both case have a space at the start of the first of the pair.  
 
 
 = File naming scheme =

@@ -18,12 +18,12 @@ use Test::More;
 
 plan HAS_LEAKTRACE ? (tests => 2) : (skip_all => 'require Test::LeakTrace');
 
-
 use Test::LeakTrace;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/;
 use FindBin qw { $Bin };
 
+use Biodiverse::Config;
 require Biodiverse::BaseData;
 require Biodiverse::Randomise;
 

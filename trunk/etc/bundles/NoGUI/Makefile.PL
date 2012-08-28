@@ -11,7 +11,7 @@ WriteMakefile(
     PREREQ_PM => {
         "Data::DumpXML" => "0",
         "Math::Random::MT::Auto" => "6.21",
-        "Devel::Symdump" => "0",
+        "Devel::Symdump" => "0",  #  redundant from 0.18003
         "Text::CSV_XS" => "0.60",
         "DBD::XBase" => "0",
         "HTML::QuickTable" => "0",
@@ -19,7 +19,7 @@ WriteMakefile(
         "PadWalker" => "0",
         "Clone" => "0",
         "Regexp::Common" => "0",
-        "lib" => "0",
+        "rlib" => "0",
         "mylib" => "0",
         "parent" => "0",
         "Readonly" => "0",
@@ -30,12 +30,13 @@ WriteMakefile(
         "Exporter::Easy" => "0",
         "Exception::Class" => "0",
         "Math::Polygon" => "0",
-        "MRO::Compat" => "0",
+        "MRO::Compat" => "0",  #  redundant from 0.18003
         "File::BOM" => "0",
         "Math::Polygon" => "0",
         "Path::Class" => "0",
         "Tree::R" => "0",
         "Geo::ShapeFile" => "0",
         "List::MoreUtils" => "0",
+        "Class::Inspector" => "0",
     }
 );

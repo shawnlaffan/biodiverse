@@ -6,12 +6,13 @@ package Biodiverse::Indices;
 use Carp;
 use strict;
 use warnings;
-use Devel::Symdump;
+#use Devel::Symdump;
 use Data::Dumper;
 use Scalar::Util qw /blessed weaken reftype/;
 use List::MoreUtils qw /uniq/;
 use English ( -no_match_vars );
-use MRO::Compat;
+#use MRO::Compat;
+use Class::Inspector;
 
 use Biodiverse::Exception;
 
@@ -85,21 +86,18 @@ sub reset_results {
 sub get_calculations {
     my $self = shift;
 
-    my $tree = mro::get_linear_isa(blessed ($self));
+    #my $tree = mro::get_linear_isa(blessed ($self));
 
-    my $syms = Devel::Symdump->rnew(@$tree);
+    #my $syms = Devel::Symdump->rnew(@$tree);
     my %calculations;
-    my @list = sort $syms->functions;
-    foreach my $calculations (@list) {
-        next if $calculations !~ /^.*::calc_/;
-        next if $calculations =~ /calc_abc\d?$/;
-        my ($source_module, $sub_name) = $calculations =~ /((?:.*::)*)(.+)/;
-        $source_module =~ s/::$//;
-        #print "ANALYSIS IS $calculations\n";
-        my $ref = $self->get_args (sub => $sub_name);
-        #$ref->{source_module} = $source_module;
-        push @{$calculations{$ref->{type}}}, $sub_name;
-        print Data::Dumper::Dump ($ref) if ! defined $ref->{type};
+    #my @list = sort $syms->functions;
+    my $list = Class::Inspector->methods (blessed $self);
+    foreach my $method (@$list) {
+        next if $method !~ /^calc_/;
+        next if $method =~ /calc_abc\d?$/;
+        my $ref = $self->get_args (sub => $method);
+        push @{$calculations{$ref->{type}}}, $method;
+        #print Data::Dumper::Dump ($ref) if ! defined $ref->{type};
     }
 
     return wantarray ? %calculations : \%calculations;

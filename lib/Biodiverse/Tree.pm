@@ -7,7 +7,7 @@ use Carp;
 use strict;
 use warnings;
 use Data::Dumper;
-use Devel::Symdump;
+#use Devel::Symdump;
 use Scalar::Util;
 #use Scalar::Util qw /looks_like_number/;
 use Time::HiRes qw /tv_interval gettimeofday/;

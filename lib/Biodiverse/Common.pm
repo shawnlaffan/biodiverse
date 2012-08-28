@@ -22,7 +22,8 @@ use Path::Class;
 use POSIX;  #  make all the POSIX functions available to the spatial parameters
 use HTML::QuickTable;
 #use XBase;
-use MRO::Compat;
+#use MRO::Compat;
+use Class::Inspector;
 
 use Math::Random::MT::Auto;  
 
@@ -1658,7 +1659,7 @@ sub get_shared_hash_keys {
 
 
 #  get a list of available subs (analyses) with a specified prefix
-#sub get_analyses {
+#sub get_analyses {  ### CHANGE TO USE Class::Inspector::methods
 sub get_subs_with_prefix {
     my $self = shift;
     my %args = @_;
@@ -1666,16 +1667,22 @@ sub get_subs_with_prefix {
     my $prefix = $args{prefix};
     croak "prefix not defined\n" if not defined $prefix;
 
-    my $tree = mro::get_linear_isa($args{class} or blessed ($self));
-
-    my $syms = Devel::Symdump->rnew(@$tree);
-    my %subs;
-    my @subs_array = sort $syms->functions;
-    foreach my $sub_name (@subs_array) {
-        next if $sub_name !~ /^.*::$prefix/;
-        $sub_name =~ s/(.*::)*//;  #  clear the package stuff
-        $subs{$sub_name} ++;
-    }
+    #my $tree = mro::get_linear_isa($args{class} or blessed ($self));
+    #
+    #my $syms = Devel::Symdump->rnew(@$tree);
+    #my %subs;
+    #my @subs_array = sort $syms->functions;
+    #foreach my $sub_name (@subs_array) {
+    #    next if $sub_name !~ /^.*::$prefix/;
+    #    $sub_name =~ s/(.*::)*//;  #  clear the package stuff
+    #    $subs{$sub_name} ++;
+    #}
+    
+    my $methods   = Class::Inspector->methods ($args{class} or blessed ($self));
+    #my @sub_names = grep {$_ =~ /^$prefix/} @$methods;
+    #my %subs;
+    #@subs{@sub_names} = (1) x scalar @sub_names;
+    my %subs = map {$_ => 1} grep {$_ =~ /^$prefix/} @$methods;
 
     return wantarray ? %subs : \%subs;
 }

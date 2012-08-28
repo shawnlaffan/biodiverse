@@ -8,7 +8,7 @@ use warnings;
 use English ( -no_match_vars );
 
 use Data::Dumper;
-use Devel::Symdump;
+#use Devel::Symdump;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use List::Util;
@@ -1692,15 +1692,12 @@ sub delete_links_from_matrix {
 sub get_linkage_functions {
     my $self = shift;
 
-    my $tree = mro::get_linear_isa(blessed ($self) || __PACKAGE__);
-    my $syms = Devel::Symdump->rnew(@$tree);
+    my $methods = Class::Inspector->methods (blessed ($self) || __PACKAGE__);
 
     my @linkages;
 
-    foreach my $linkage (sort $syms->functions) {
-        next if $linkage !~ /^.*::link_/;
-        $linkage =~ s/(.*::)*//;  #  get the function name without package context -these are called using inheritance
-        #print "LINKAGE IS $linkage\n";
+    foreach my $linkage (@$methods) {
+        next if $linkage !~ /^link_/;
         push @linkages, $linkage;
     }
 

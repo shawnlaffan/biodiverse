@@ -5,31 +5,30 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-use FindBin qw { $Bin };
-use File::Spec;
+#use FindBin qw { $Bin };
+#use File::Spec;
 
-use File::Basename;
+#use File::Basename;
 
 #  fragile - does not allow for file moves
-use lib File::Spec->catfile( $Bin, '..', '..', 'lib');
-
+#use lib File::Spec->catfile( $Bin, '..', '..', 'lib');
+use rlib;
 
 use Biodiverse::BaseData;
 use Biodiverse::Common;
-use Biodiverse::Cluster;
-use Biodiverse::Tree;
-use Biodiverse::Matrix;
+#use Biodiverse::Cluster;
+#use Biodiverse::Tree;
+#use Biodiverse::Matrix;
 
 #  load up the user defined libs
-use Biodiverse::Config qw /use_base add_lib_paths/;
-BEGIN {
-    add_lib_paths();
-    use_base();
-}
+#use Biodiverse::Config qw /use_base add_lib_paths/;
+#BEGIN {
+#    add_lib_paths();
+#    use_base();
+#}
+use Biodiverse::Config;
 
 local $| = 1;
-
-
 
 #  Add a matrix to a basedata file
 #

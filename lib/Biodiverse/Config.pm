@@ -125,6 +125,10 @@ sub use_base {
     return;
 }
 
+add_lib_paths();
+use_base();
+
+
 1;
 
 

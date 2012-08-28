@@ -22,15 +22,17 @@ use Carp;
 my $perl_app_tool = $PerlApp::TOOL;
 
 #  add the lib folder if needed
-use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
+#use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
 #eval 'use mylib';
+use rlib;
 
 #  load up the user defined libs
-use Biodiverse::Config qw /use_base add_lib_paths/;
-BEGIN {
-    add_lib_paths();
-    use_base();
-}
+#use Biodiverse::Config qw /use_base add_lib_paths/;
+#BEGIN {
+    #add_lib_paths();
+    #use_base();
+#}
+use Biodiverse::Config;
 
 #  load Gtk
 #use Gtk2;    # -init;

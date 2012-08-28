@@ -12,8 +12,8 @@ use File::Spec;
 
 use Path::Class;
 
-use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
-
+#use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
+use rlib;
 
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;

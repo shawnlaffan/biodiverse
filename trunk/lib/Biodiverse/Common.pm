@@ -4,12 +4,8 @@ package Biodiverse::Common;
 
 use strict;
 use warnings;
-
-use English ( -no_match_vars );
-
 use Carp;
-
-use Readonly;
+use English ( -no_match_vars );
 
 use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
@@ -19,7 +15,7 @@ use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
 use Path::Class;
-use POSIX;  #  make all the POSIX functions available to the spatial parameters
+#use POSIX;  #  make all the POSIX functions available to the spatial parameters - do we still need this here?
 use HTML::QuickTable;
 #use XBase;
 #use MRO::Compat;
@@ -27,7 +23,7 @@ use Class::Inspector;
 
 use Math::Random::MT::Auto;  
 
-use Regexp::Common qw /number/;
+#use Regexp::Common qw /number/;
 
 use Biodiverse::Progress;
 use Biodiverse::Exception;

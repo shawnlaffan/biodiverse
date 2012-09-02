@@ -215,6 +215,8 @@ sub build_matrices {
         %args,
         calculations    => [$index_function],
         nbr_list_count  => 2,
+        element_list1   => [], #  dummy values for validity checks
+        element_list2   => [],
     );
     my $valid_calcs = $indices_object->get_valid_calculations_to_run;
     croak "Selected index $index_function cannot be calculated, check arguments like selected tree or matrix\n"
@@ -1730,6 +1732,7 @@ sub sp_calc {
     $indices_object->get_valid_calculations (
         %args,
         nbr_list_count => $nbr_list_count,
+        element_list1  => [],
     );
 
     #  drop out if we have none to do

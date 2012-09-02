@@ -9,7 +9,7 @@ use warnings;
 #use Devel::Symdump;
 use Data::Dumper;
 use Scalar::Util qw /blessed weaken reftype/;
-use List::MoreUtils qw /uniq/;
+use List::MoreUtils qw /uniq any/;
 use English ( -no_match_vars );
 #use MRO::Compat;
 use Class::Inspector;
@@ -66,13 +66,6 @@ sub reset_results {
     if ($args{global}) {
         $self->set_param (AS_RESULTS_FROM_GLOBAL => {});
     }
-    #else {  #  old style - delete?  
-        #  need to loop through the precalc hash and delete any locals in it
-        #my $valids = $self->get_param('VALID_CALCULATIONS');
-        #my $pre_calcs = $valids->{pre_calc_to_run};
-        #my $as_args_from = $self->get_param('AS_RESULTS_FROM');
-        #delete @{$as_args_from}{keys %$pre_calcs};
-    #}
 
     return;
 }
@@ -86,18 +79,15 @@ sub reset_results {
 sub get_calculations {
     my $self = shift;
 
-    #my $tree = mro::get_linear_isa(blessed ($self));
-
-    #my $syms = Devel::Symdump->rnew(@$tree);
     my %calculations;
-    #my @list = sort $syms->functions;
+
     my $list = Class::Inspector->methods (blessed $self);
+
     foreach my $method (@$list) {
         next if $method !~ /^calc_/;
         next if $method =~ /calc_abc\d?$/;
         my $ref = $self->get_args (sub => $method);
         push @{$calculations{$ref->{type}}}, $method;
-        #print Data::Dumper::Dump ($ref) if ! defined $ref->{type};
     }
 
     return wantarray ? %calculations : \%calculations;
@@ -446,9 +436,24 @@ sub parse_dependencies_for_calc {
                 }
             }
             if ($metadata->{required_args}) {
+                #  don't really need to convert to hash here, but do need a list form
                 my $reqd_args_h = $self->_convert_to_hash (input => $metadata->{required_args});
-                foreach my $required_arg (keys %$reqd_args_h) {
-                    if (! defined $calc_args->{$required_arg}) {
+                my $reqd_args_a = $self->_convert_to_array (input => $metadata->{required_args});
+                
+                foreach my $required_arg (sort @$reqd_args_a) {
+                    my $re = qr /^($required_arg)$/;
+                    my $is_defined;
+                    CALC_ARG:
+                    foreach my $calc_arg (sort grep {$_ =~ $re} keys %$calc_args) {
+                        #if ($calc_arg =~ $re) {
+                            #my $match = $1;
+                            if (defined $calc_args->{$calc_arg}) {
+                                $is_defined ++;
+                            }
+                        #}
+                    }
+
+                    if (! $is_defined) {
                         Biodiverse::Indices::MissingRequiredArguments->throw (
                             error => "[INDICES] WARNING: $calc missing required "
                                     . "parameter $required_arg, "
@@ -545,12 +550,7 @@ sub get_valid_calculations {
     my %aggregated_deps_per_calc = $self->get_deps_per_calc_by_type (
         calc_hash => \%valid_calcs,
     );
-    
-    #my %aggregated_indices_to_clear = $self->get_indices_to_clear_by_type (
-    #    calc_hash => \%valid_calcs,
-    #);
 
-    #calculations_to_run
     my %results = (
         calculations_to_run => \%valid_calcs,
         calc_lists_by_type  => \%aggregated_calc_lists,

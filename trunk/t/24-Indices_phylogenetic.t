@@ -4,8 +4,9 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-use FindBin qw /$Bin/;
-use lib "$Bin/lib";
+#use FindBin qw /$Bin/;
+#use lib "$Bin/lib";
+use rlib;
 
 use Test::More;
 
@@ -52,11 +53,16 @@ my @phylo_calcs_to_test = qw /
 	    delete $elements{element_list2};
 	}
 
+	my $calc_args_for_validity_check = {
+	    %$calc_args,
+	    %elements,
+	};
+
 	my $valid_calcs = eval {
 	    $indices->get_valid_calculations (
 		calculations   => \@phylo_calcs_to_test,
 		nbr_list_count => $nbr_list_count,
-		calc_args      => $calc_args,
+		calc_args      => $calc_args_for_validity_check,
 	    );
 	};
 	$e = $EVAL_ERROR;

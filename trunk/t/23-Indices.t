@@ -59,7 +59,10 @@ use Scalar::Util qw /blessed/;
     @calc_hash{@calc_array} = (0) x scalar @calc_array;
     $calc_hash{calc_sorenson} = 1;  #  1 if we should get an exception
 
-    my $calc_args = {tree_ref => get_tree_object()};
+    my $calc_args = {
+	tree_ref      => get_tree_object(),
+	element_list1 => [],
+    };
 
     foreach my $calc (sort keys %calc_hash) {
 	my %dep_tree = eval {

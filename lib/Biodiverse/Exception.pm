@@ -50,6 +50,9 @@ use Exception::Class (
     'Biodiverse::Indices::InsufficientElementLists' => {
         description => 'Too few element lists specified',
     },
+    'Biodiverse::Indices::FailedPreCondition' => {
+        description => 'Failed a precondition',
+    },
 );
 
 

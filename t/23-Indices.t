@@ -4,10 +4,11 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-use FindBin qw/$Bin/;
-use lib "$Bin/lib";
+#use FindBin qw/$Bin/;
+#use lib "$Bin/lib";
+use rlib;
 
-use Test::More tests => 14;
+use Test::More tests => 15;
 use Test::Exception;
 
 local $| = 1;
@@ -54,10 +55,12 @@ use Scalar::Util qw /blessed/;
             calc_pe
             calc_endemism_central
             calc_endemism_whole
+	    calc_numeric_label_stats
         /;
     my %calc_hash;
     @calc_hash{@calc_array} = (0) x scalar @calc_array;
     $calc_hash{calc_sorenson} = 1;  #  1 if we should get an exception
+    $calc_hash{calc_numeric_label_stats} = 1;
 
     my $calc_args = {
 	tree_ref      => get_tree_object(),

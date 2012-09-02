@@ -9,7 +9,7 @@ use warnings;
 #use Devel::Symdump;
 use Data::Dumper;
 use Scalar::Util qw /blessed weaken reftype/;
-use List::MoreUtils qw /uniq any/;
+use List::MoreUtils qw /uniq/;
 use English ( -no_match_vars );
 #use MRO::Compat;
 use Class::Inspector;
@@ -437,7 +437,7 @@ sub parse_dependencies_for_calc {
             }
             if ($metadata->{required_args}) {
                 #  don't really need to convert to hash here, but do need a list form
-                my $reqd_args_h = $self->_convert_to_hash (input => $metadata->{required_args});
+                #my $reqd_args_h = $self->_convert_to_hash (input => $metadata->{required_args});
                 my $reqd_args_a = $self->_convert_to_array (input => $metadata->{required_args});
                 
                 foreach my $required_arg (sort @$reqd_args_a) {
@@ -460,6 +460,19 @@ sub parse_dependencies_for_calc {
                                     . "dropping it and any calc that depends on it\n",
                         );
                         
+                    }
+                }
+            }
+            if ($metadata->{pre_conditions}) {
+                my $pre_cond_a = $self->_convert_to_array (input => $metadata->{pre_conditions});
+                
+                foreach my $pre_cond (sort @$pre_cond_a) {
+                    my $check = $self->$pre_cond (%$calc_args);
+                    if (! $check) {
+                        Biodiverse::Indices::FailedPreCondition->throw (
+                            error => "[INDICES] WARNING: $calc failed precondition. "
+                                    . "Dropping it and any calc that depends on it\n",
+                        );
                     }
                 }
             }
@@ -502,6 +515,7 @@ sub parse_dependencies_for_calc {
 my @valid_calc_exceptions = qw /
     Biodiverse::Indices::MissingRequiredArguments
     Biodiverse::Indices::InsufficientElementLists
+    Biodiverse::Indices::FailedPreCondition
 /;
 
 sub get_valid_calculations {
@@ -756,35 +770,6 @@ sub get_valid_calculation_count {
     return scalar keys %$calcs;
 }
 
-
-#sub get_required_args_for_calcs {
-#    my $self = shift;
-##  still needed?    
-#    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-#    
-#    return $valid_calcs->{required_args};
-#}
-
-
-#  indices where we don't have enough lists, but where the rest of the analysis can still run
-#  these can be cleared from any results
-#  need to rename sub
-#sub get_indices_to_clear {  #  should really accept a list of calculations as an arg
-#    my $self = shift;
-#croak "deprecated\n";
-#    my %args = @_;
-#    my $nbr_list_count = $args{nbr_list_count} || croak "nbr_list_count argument not specified\n";
-#
-#    my %hash = $self->get_indices_uses_lists_count (%args);
-#
-#    foreach my $index (keys %hash) {
-#        delete $hash{$index} if ! defined $hash{$index} || $hash{$index} <= $nbr_list_count;
-#    }
-#
-#    return wantarray ? %hash : \%hash;
-#}
-
-
 sub run_dependencies {
     my $self = shift;
     my %args = @_;
@@ -924,25 +909,6 @@ sub run_postcalc_globals {
         type => 'post_calc_global',
     );
 }
-
-#  for debugging purposes
-#our $AUTOLOAD;
-#sub AUTOLOAD {
-#    return;
-#}
-#
-#sub DESTROY {
-#    my $self = shift;
-#    #print "[INDICES] DESTROYING OBJECT " . ($self->get_param('NAME') || 'anonymous') . " $self \n";
-#    #use Devel::Cycle;
-#    
-#    #my $cycle = find_cycle($self);
-#    #if ($cycle) {
-#    #    print STDERR "Cycle found: $cycle\n";
-#    #}
-#
-#    #print $self->dump_to_yaml (data => $self);
-#}
 
 
 1;

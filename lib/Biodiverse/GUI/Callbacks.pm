@@ -301,7 +301,7 @@ sub _make_tab_callbacks {
     no strict 'refs';
     while (my ($callback, $class) = each %args) {
 
-        *{$pkg."::".$callback} =
+        *{$pkg.'::'.$callback} =
             do {
                 sub {
                     eval {

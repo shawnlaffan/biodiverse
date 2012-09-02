@@ -34,6 +34,7 @@ sub get_metadata_get_numeric_label_stats_object {
         description    => "Generate a summary statistics object from a set of numeric labels\n"
                         . 'Accounts for multiple occurrences by using calc_abc3.',
         pre_calc       => [qw /calc_abc3/],
+        pre_conditions => ['labels_are_numeric'],
         uses_nbr_lists => 1,  #  how many sets of lists it must have
     );
 
@@ -73,7 +74,6 @@ sub get_metadata_calc_numeric_label_stats {
         type => 'Numeric Labels',
         pre_calc => [qw /get_numeric_label_stats_object/],
         uses_nbr_lists => 1,  #  how many sets of lists it must have
-        pre_conditions => ['labels_are_numeric'],
         indices => {
             NUM_SD      => {description => 'Standard deviation',},
             NUM_MEAN    => {description => 'Mean',},
@@ -206,13 +206,13 @@ sub get_metadata_calc_numeric_label_quantiles {
     }
 
     my %arguments = (
-        name            => 'Numeric label quantiles',
-        description     => "Calculate quantiles from a set of numeric labels.\n"
-                         . "Weights by samples so multiple occurrences are accounted for.\n",
-        type            => 'Numeric Labels',
-        pre_calc        => [qw /get_numeric_label_stats_object/],
-        uses_nbr_lists  => 1,  #  how many sets of lists it must have
-        indices         => \%Q,
+        name           => 'Numeric label quantiles',
+        description    => "Calculate quantiles from a set of numeric labels.\n"
+                        . "Weights by samples so multiple occurrences are accounted for.\n",
+        type           => 'Numeric Labels',
+        pre_calc       => [qw /get_numeric_label_stats_object/],
+        uses_nbr_lists => 1,  #  how many sets of lists it must have
+        indices        => \%Q,
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -292,12 +292,13 @@ sub get_metadata_calc_numeric_label_dissimilarity {
     );
 
     my %arguments = (
-        name            => 'Numeric label dissimilarity',
-        description     => q{Compare the set of numeric labels in one neighbour set with those in another. },
-        type            => 'Numeric Labels',
-        pre_calc        => 'calc_abc3',
-        uses_nbr_lists  => 2,  #  how many sets of lists it must have
-        indices => {
+        name           => 'Numeric label dissimilarity',
+        description    => q{Compare the set of numeric labels in one neighbour set with those in another. },
+        type           => 'Numeric Labels',
+        pre_calc       => 'calc_abc3',
+        uses_nbr_lists => 2,  #  how many sets of lists it must have
+        pre_conditions => ['labels_are_numeric'],
+        indices        => {
             NUMD_ABSMEAN       => {
                 description => 'Mean absolute dissimilarity of labels in set 1 to those in set 2.',
                 cluster     => 1,
@@ -314,14 +315,6 @@ sub get_metadata_calc_numeric_label_dissimilarity {
                     ' are the sample counts in neighbour sets 1 and 2'
                 ],
             },
-            #NUMD_MEAN       => {
-            #    description => 'Mean dissimilarity of labels in set 1 to those in set 2.',
-            #    cluster     => 1,
-            #    formula     => [
-            #        '= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}',
-            #        @values_as_for,
-            #    ],
-            #},
             NUMD_VARIANCE   => {
                 description => 'Variance of the dissimilarity values, set 1 vs set 2.',
                 cluster     => 1,

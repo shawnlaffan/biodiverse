@@ -897,32 +897,29 @@ sub import_data {  #  load a data file into the selected BaseData object.
             }
             
             
-            if ($line_num % 200 == 0) { # progress information
+            if ($line_num % 1000 == 0) { # progress information
 
-                    my $line_count_text
-                        = eof ($file_handle)
-                            ? " $line_count"
-                            : ">$line_count";
-                    
-                    #if ($progress_bar) {
-                        #my $line_num_end_prev_chunk = $self->get_param ('IMPORT_LINE_NUM_END_PREV_CHUNK');
-                        
-                        my $frac = eval {
-                            ($line_num - $line_num_end_prev_chunk) /
-                            ($line_count - $line_num_end_prev_chunk)
-                        };
-                        $progress_bar->update(
-                            "Loading $file_base\n" .
-                            "Line $line_num of $line_count_text\n" .
-                            "Chunk #$chunk_count",
-                            $frac
-                        );
-                    #}
-                    if ($line_num % 10000 == 0) {
-                        print "Loading $file_base line "
-                              . "$line_num of $line_count_text, "
-                              . "chunk $chunk_count\n" ;
-                    }
+                my $line_count_text
+                    = eof ($file_handle)
+                        ? " $line_count"
+                        : ">$line_count";
+
+                my $frac = eval {
+                    ($line_num   - $line_num_end_prev_chunk) /
+                    ($line_count - $line_num_end_prev_chunk)
+                };
+                $progress_bar->update(
+                    "Loading $file_base\n" .
+                    "Line $line_num of $line_count_text\n" .
+                    "Chunk #$chunk_count",
+                    $frac
+                );
+
+                if ($line_num % 10000 == 0) {
+                    print "Loading $file_base line "
+                          . "$line_num of $line_count_text, "
+                          . "chunk $chunk_count\n" ;
+                }
             }
 
             my $fields_ref = shift @$lines;
@@ -947,7 +944,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
                         $incl = 1;
                     }
                     #  check no more if we get a true value
-                    last CHECK_INCLUDE_COLS if $incl;  
+                    last CHECK_INCLUDE_COLS if $incl;
                 }
                 #print "not including \n$line" if ! $incl;
                 next BYLINE if not $incl;  #  skip if none are to be kept

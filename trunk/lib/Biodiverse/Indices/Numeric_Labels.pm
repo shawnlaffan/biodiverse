@@ -18,6 +18,12 @@ my $stats_package = 'Biodiverse::Statistics';
 #  routines to calculate statistics from numeric labels
 #
 
+sub labels_are_numeric {
+    my $self = shift;
+    my $bd = $self->get_basedata_ref;
+    return $bd->labels_are_numeric;
+}
+
 #  get a statistics::descriptive2 object from the numeric labels.
 #  used in two or more subs, so this will save extra calcs
 
@@ -67,6 +73,7 @@ sub get_metadata_calc_numeric_label_stats {
         type => 'Numeric Labels',
         pre_calc => [qw /get_numeric_label_stats_object/],
         uses_nbr_lists => 1,  #  how many sets of lists it must have
+        pre_conditions => ['labels_are_numeric'],
         indices => {
             NUM_SD      => {description => 'Standard deviation',},
             NUM_MEAN    => {description => 'Mean',},

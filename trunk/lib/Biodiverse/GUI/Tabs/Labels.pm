@@ -12,7 +12,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use base qw {
     Biodiverse::GUI::Tabs::Tab

@@ -75,7 +75,11 @@ my $tol = 1E-13;
     run_tests ($tree);
 }
 
+TODO:
 {
+    local $TODO = 
+        'Issue 322 - http://code.google.com/p/biodiverse/issues/detail?id=322';
+
     my $data = get_tabular_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;

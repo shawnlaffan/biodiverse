@@ -14,7 +14,7 @@ use Time::HiRes qw /gettimeofday tv_interval/;
 use List::Util;
 #use Math::Random::MT::Auto qw /rand shuffle get_state/;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 #use Biodiverse::Common;
 use Biodiverse::Matrix;

@@ -16,7 +16,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 my $EMPTY_STRING = q{};
 
@@ -379,7 +379,7 @@ sub parse_dependencies_for_calc {
 
     my $calcs = [$args{calculation}];  # array is a leftover - need to correct it
 
-    my $nbr_list_count = $args{nbr_list_count} || $self->get_param ('NBR_LIST_COUNT');
+    my $nbr_list_count = $args{nbr_list_count} || $self->get_param ('NBR_LIST_COUNT') || 1;
     my $calc_args      = $args{calc_args} || \%args;
 
     #  Types of calculation.

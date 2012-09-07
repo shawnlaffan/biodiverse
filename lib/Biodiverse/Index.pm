@@ -24,7 +24,7 @@ use Biodiverse::Progress;
 
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 #use List::Util;
 use POSIX qw /fmod ceil/;

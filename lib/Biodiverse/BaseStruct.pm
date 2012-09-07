@@ -19,7 +19,7 @@ use File::Basename;
 use Path::Class;
 use Time::localtime;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 #require Biodiverse::Config;
 #my $progress_update_interval = $Biodiverse::Config::progress_update_interval;

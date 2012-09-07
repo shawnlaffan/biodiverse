@@ -22,7 +22,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 #use Time::HiRes qw /tv_interval gettimeofday/;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use Biodiverse::SpatialParams;
 use Biodiverse::SpatialParams::DefQuery;

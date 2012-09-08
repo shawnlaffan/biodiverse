@@ -123,7 +123,7 @@ sub reset {
     $self->{print_text}         =  1;
     $self->{last_reported_prog} = -1;
 
-    print "\n";
+    #print "\n";
 
     return;
 }

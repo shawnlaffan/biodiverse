@@ -40,10 +40,11 @@ my $selected_list2_name = 'Col selected';
 sub new {
     my $class = shift;
     
-    my $self = {gui           => Biodiverse::GUI::GUIManager->instance(),
-                selected_rows => [],
-                selected_cols => [],
-                };
+    my $self = {
+        gui           => Biodiverse::GUI::GUIManager->instance(),
+        selected_rows => [],
+        selected_cols => [],
+    };
     $self->{project} = $self->{gui}->getProject();
     bless $self, $class;
     
@@ -92,7 +93,7 @@ sub new {
         croak "User cancelled matrix initialisation, closing\n";
     }
     # Register callbacks when selected matrix is changed
-    $self->{matrix_callback}    = sub { $self->onSelectedMatrixChanged();    };
+    $self->{matrix_callback}    = sub { $self->onSelectedMatrixChanged(); };
     $self->{project}->registerSelectionCallback(
         'matrix',
         $self->{matrix_callback},

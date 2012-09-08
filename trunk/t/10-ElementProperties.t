@@ -149,17 +149,6 @@ sub get_basedata_data {
     return get_data_section('BASEDATA');
 }
 
-sub write_data_to_temp_file {
-    my $data = shift;
-
-    my $tmp_obj = File::Temp->new;
-    my $fname = $tmp_obj->filename;
-    print $tmp_obj $data;
-    $tmp_obj->close;
-
-    return $tmp_obj;
-}
-
 __DATA__
 
 

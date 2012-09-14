@@ -50,7 +50,7 @@ use Scalar::Util qw /blessed/;
     ok (!$e, 'Get required args without eval error');
 
     my @calc_array =
-        qw /calc_sorenson
+        qw/calc_sorenson
             calc_elements_used
             calc_pe
             calc_endemism_central

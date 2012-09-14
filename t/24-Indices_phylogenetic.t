@@ -16,14 +16,14 @@ use Biodiverse::TestHelpers qw{
 };
     
 # start with a subset
-my @phylo_calcs_to_test = qw/
+my $phylo_calcs_to_test = [qw/
     calc_pd
     calc_pe
     calc_phylo_mpd_mntd1
     calc_phylo_mpd_mntd2
     calc_phylo_mpd_mntd3
-/;
-run_indices_phylogenetic \@phylo_calcs_to_test;
+/];
+run_indices_phylogenetic $phylo_calcs_to_test;
 done_testing();
 1;
 

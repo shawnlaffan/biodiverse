@@ -264,7 +264,7 @@ sub run_indices_phylogenetic {
     my $caller_data = Data::Section::Simple->new(scalar caller);
     my $get_expected_results = sub {
         my %args = @_;
-    
+        
         my $data;
         
         if ($args{nbr_list_count} == 1) {
@@ -276,17 +276,16 @@ sub run_indices_phylogenetic {
         else {
             croak 'Invalid value for argument nbr_list_count';
         }
-    
+        
         $data =~ s/\n+$//s;
         my %expected = split (/\s+/, $data);
         #  handle data that are copied and pasted from Biodiverse popup
         delete $expected{SPATIAL_RESULTS};  
-    
+        
         return wantarray ? %expected : \%expected;
     };
     
     my ($phylo_calcs_to_test, ) = @_;
-    my @phylo_calcs_to_test = @$phylo_calcs_to_test;
     my ($e, $is_error, %results);
 
     my $bd   = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
@@ -317,8 +316,8 @@ sub run_indices_phylogenetic {
         };
 
         my $valid_calcs = eval {
-            $indices->get_valid_calculations (
-                calculations   => \@phylo_calcs_to_test,
+            $indices->get_valid_calculations(
+                calculations   => $phylo_calcs_to_test,
                 nbr_list_count => $nbr_list_count,
                 calc_args      => $calc_args_for_validity_check,
             );

@@ -264,14 +264,11 @@ sub run_indices_phylogenetic {
     my $caller_data = Data::Section::Simple->new(scalar caller);
     my $get_expected_results = sub {
         my %args = @_;
+        my $nbr_list_count = $args{nbr_list_count};
         
         my $data;
-        
-        if ($args{nbr_list_count} == 1) {
-            $data = $caller_data->get_data_section('RESULTS_1_NBR_LISTS');
-        }
-        elsif ($args{nbr_list_count} == 2) {
-            $data = $caller_data->get_data_section('RESULTS_2_NBR_LISTS');
+        if ($nbr_list_count >= 1 && $nbr_list_count <= 2) {
+            $data = $caller_data->get_data_section('RESULTS_'.$nbr_list_count.'_NBR_LISTS');
         }
         else {
             croak 'Invalid value for argument nbr_list_count';
@@ -342,6 +339,7 @@ sub run_indices_phylogenetic {
         %results = eval {
             $indices->run_calculations(%$calc_args, %elements);
         };
+        
         $e = $EVAL_ERROR;
         note $e if $e;
         ok (!$e, "Ran calculations without eval error");
@@ -351,7 +349,7 @@ sub run_indices_phylogenetic {
         };
         $e = $EVAL_ERROR;
         note $e if $e;
-        ok (!$e, "Ran global postalcs without eval error");
+        ok (!$e, "Ran global postcalcs without eval error");
 
         #  now we need to check the results
         print "";

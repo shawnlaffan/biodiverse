@@ -110,7 +110,7 @@ use Scalar::Util qw /blessed/;
     );
 
     #  run the global pre_calcs
-    eval {$indices->run_precalc_globals(%$calc_args)};
+    eval {$indices->run_precalc_globals(%$calc_args); print "\n"};
     $e = $EVAL_ERROR;
     ok (!$e, 'pre_calc_globals had no eval errors');
     

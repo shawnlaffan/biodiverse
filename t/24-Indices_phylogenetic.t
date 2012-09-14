@@ -1,140 +1,31 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
-use English qw { -no_match_vars };
-use Carp;
 
-#use FindBin qw /$Bin/;
-#use lib "$Bin/lib";
 use rlib;
-
 use Test::More;
-
-use Data::Section::Simple qw(get_data_section);
 
 local $| = 1;
 
 use Biodiverse::BaseData;
 use Biodiverse::Indices;
-use Biodiverse::TestHelpers qw {:basedata :tree};
-
-#  start with a subset
-my @phylo_calcs_to_test = qw /
+use Biodiverse::TestHelpers qw{
+    :basedata
+    :runners
+    :tree
+};
+    
+# start with a subset
+my @phylo_calcs_to_test = qw/
     calc_pd
     calc_pe
     calc_phylo_mpd_mntd1
     calc_phylo_mpd_mntd2
     calc_phylo_mpd_mntd3
 /;
-
-
-{
-    my ($e, $is_error, %results);
-
-    my $bd   = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-    my $tree = get_tree_object_from_sample_data();
-
-    my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
-
-    my %elements = (
-        element_list1 => ['3350000:850000'],
-        element_list2 => [qw /
-            3250000:850000
-            3350000:750000
-            3350000:950000
-            3450000:850000
-        /],
-    );
-
-    my $calc_args = {tree_ref => $tree};
-
-    foreach my $nbr_list_count (2, 1) {
-        if ($nbr_list_count == 1) {
-            delete $elements{element_list2};
-        }
-
-        my $calc_args_for_validity_check = {
-            %$calc_args,
-            %elements,
-        };
-
-        my $valid_calcs = eval {
-            $indices->get_valid_calculations (
-                calculations   => \@phylo_calcs_to_test,
-                nbr_list_count => $nbr_list_count,
-                calc_args      => $calc_args_for_validity_check,
-            );
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Obtained valid calcs without eval error");
-    
-        eval {
-            $indices->run_precalc_globals(%$calc_args);
-            print "\n";
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran global precalcs without eval error");
-
-        %results = eval {$indices->run_calculations(%$calc_args)};
-        $e = $EVAL_ERROR;
-        #note $e if $e;
-        ok ($e, "Ran calculations without elements and got eval error");
-
-        %results = eval {
-            $indices->run_calculations(%$calc_args, %elements);
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran calculations without eval error");
-
-        eval {
-            $indices->run_postcalc_globals(%$calc_args);
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran global postalcs without eval error");
-
-        #  now we need to check the results
-        print "";
-        my %expected = get_expected_results(nbr_list_count => $nbr_list_count);
-        my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
-        subtest $subtest_name => sub {
-            compare_hash_vals (hash_got => \%results, hash_exp => \%expected)
-        };
-    }
-}
-
+run_indices_phylogenetic \@phylo_calcs_to_test;
 done_testing();
-
-
-
-sub get_expected_results {
-    my %args = @_;
-
-    my $data;
-    
-    if ($args{nbr_list_count} == 1) {
-        $data = get_data_section ('RESULTS_1_NBR_LISTS');
-    }
-    elsif ($args{nbr_list_count} == 2) {
-        $data = get_data_section ('RESULTS_2_NBR_LISTS');
-    }
-    else {
-        croak 'Invalid value for argument nbr_list_count';
-    }
-
-    $data =~ s/\n+$//s;
-    my %expected = split (/\s+/, $data);
-    #  handle data that are copied and pasted from Biodiverse popup
-    delete $expected{SPATIAL_RESULTS};  
-
-    return wantarray ? %expected : \%expected;
-}
-
 1;
-
 
 __DATA__
 

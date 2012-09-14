@@ -3,6 +3,8 @@ package Biodiverse::TestHelpers;
 
 use strict;
 use warnings;
+use English qw { -no_match_vars };
+use Carp;
 
 our $VERSION = '0.17';
 
@@ -20,12 +22,12 @@ use Test::More;
 use Exporter::Easy (
     TAGS => [
         utils  => [
-	    qw (
-		write_data_to_temp_file
-		snap_to_precision
-		compare_hash_vals
-	    )
-	],
+            qw(
+                write_data_to_temp_file
+                snap_to_precision
+                compare_hash_vals
+            ),
+        ],
         basedata => [
             qw(
                 get_basedata_import_data_file
@@ -36,35 +38,40 @@ use Exporter::Easy (
             ),
         ],
         element_properties => [
-            qw (
+            qw(
                 get_element_properties_test_data
                 :utils
-            )
+            ),
         ],
         tree => [
-            qw (
+            qw(
                 get_tree_object
                 get_nexus_tree_data
                 get_newick_tree_data
                 get_tabular_tree_data
                 get_tree_object_from_sample_data
                 :utils
-            )
+            ),
         ],
         matrix => [
-            qw (
+            qw(
                 get_matrix_object
                 :utils
-            )
+            ),
+        ],
+        runners => [
+            qw(
+                run_indices_phylogenetic
+                :utils
+            ),
         ],
         all => [
-            qw (
-                :basedata :element_properties :tree :matrix
-            )
+            qw(
+                :basedata :element_properties :runners :tree :matrix
+            ),
         ],
     ],
 );
-
 
 sub snap_to_precision {
     my %args = @_;
@@ -85,9 +92,9 @@ sub compare_hash_vals {
     is (scalar keys %$hash1, scalar keys %$hash2, 'hashes are same size');
 
     foreach my $key (sort keys %$hash2) {
-	my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
-	my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});
-	is ($val1, $val2, "Got expected value for $key");
+        my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
+        my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});
+        is ($val1, $val2, "Got expected value for $key");
     }
 
     return;
@@ -253,6 +260,109 @@ sub get_basedata_site_data {
     return get_data_section('BASEDATA_SITE_DATA')
 }
 
+sub run_indices_phylogenetic {
+    my $caller_data = Data::Section::Simple->new(scalar caller);
+    my $get_expected_results = sub {
+        my %args = @_;
+    
+        my $data;
+        
+        if ($args{nbr_list_count} == 1) {
+            $data = $caller_data->get_data_section('RESULTS_1_NBR_LISTS');
+        }
+        elsif ($args{nbr_list_count} == 2) {
+            $data = $caller_data->get_data_section('RESULTS_2_NBR_LISTS');
+        }
+        else {
+            croak 'Invalid value for argument nbr_list_count';
+        }
+    
+        $data =~ s/\n+$//s;
+        my %expected = split (/\s+/, $data);
+        #  handle data that are copied and pasted from Biodiverse popup
+        delete $expected{SPATIAL_RESULTS};  
+    
+        return wantarray ? %expected : \%expected;
+    };
+    
+    my ($phylo_calcs_to_test, ) = @_;
+    my @phylo_calcs_to_test = @$phylo_calcs_to_test;
+    my ($e, $is_error, %results);
+
+    my $bd   = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $tree = get_tree_object_from_sample_data();
+
+    my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+
+    my %elements = (
+        element_list1 => ['3350000:850000'],
+        element_list2 => [qw /
+            3250000:850000
+            3350000:750000
+            3350000:950000
+            3450000:850000
+        /],
+    );
+
+    my $calc_args = {tree_ref => $tree};
+
+    foreach my $nbr_list_count (2, 1) {
+        if ($nbr_list_count == 1) {
+            delete $elements{element_list2};
+        }
+
+        my $calc_args_for_validity_check = {
+            %$calc_args,
+            %elements,
+        };
+
+        my $valid_calcs = eval {
+            $indices->get_valid_calculations (
+                calculations   => \@phylo_calcs_to_test,
+                nbr_list_count => $nbr_list_count,
+                calc_args      => $calc_args_for_validity_check,
+            );
+        };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, "Obtained valid calcs without eval error");
+    
+        eval {
+            $indices->run_precalc_globals(%$calc_args);
+            print "\n";
+        };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, "Ran global precalcs without eval error");
+
+        %results = eval {$indices->run_calculations(%$calc_args)};
+        $e = $EVAL_ERROR;
+        #note $e if $e;
+        ok ($e, "Ran calculations without elements and got eval error");
+
+        %results = eval {
+            $indices->run_calculations(%$calc_args, %elements);
+        };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, "Ran calculations without eval error");
+
+        eval {
+            $indices->run_postcalc_globals(%$calc_args);
+        };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, "Ran global postalcs without eval error");
+
+        #  now we need to check the results
+        print "";
+        my %expected = $get_expected_results->(nbr_list_count => $nbr_list_count);
+        my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
+        subtest $subtest_name => sub {
+            compare_hash_vals (hash_got => \%results, hash_exp => \%expected)
+        };
+    }
+}
 
 __DATA__
 

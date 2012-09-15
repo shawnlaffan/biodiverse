@@ -40,16 +40,11 @@ my $phylo_calcs_to_test = [qw/
     calc_phylo_mpd_mntd2
     calc_phylo_mpd_mntd3
 /];
-run_indices_phylogenetic($phylo_calcs_to_test, \&verify_results);
+run_indices_phylogenetic (
+    phylo_calcs_to_test  => $phylo_calcs_to_test,
+    get_expected_results => \&get_expected_results
+);
 done_testing();
-
-sub verify_results {
-    my %args = @_;
-    compare_hash_vals(
-        hash_got => $args{results},
-        hash_exp => scalar get_expected_results (nbr_list_count => $args{nbr_list_count})
-    );
-}
 
 sub get_expected_results {
     my %args = @_;
@@ -68,7 +63,7 @@ sub get_expected_results {
     #  handle data that are copied and pasted from Biodiverse popup
     delete $expected{SPATIAL_RESULTS};  
     
-    return wantarray ? %expected : \%expected;
+    return \%expected;
 }
 
 1;

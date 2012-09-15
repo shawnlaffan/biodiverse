@@ -18,6 +18,7 @@ use Biodiverse::ReadNexus;
 use File::Temp;
 use Scalar::Util qw /looks_like_number/;
 use Test::More;
+use Data::Dumper;
 
 use Exporter::Easy (
     TAGS => [
@@ -84,6 +85,8 @@ sub snap_to_precision {
 }
 
 sub compare_hash_vals {
+    print Dumper (\@_, );
+    
     my %args = @_;
 
     my $hash1 = $args{hash_got};
@@ -266,8 +269,9 @@ sub get_basedata_site_data {
 }
 
 sub run_indices_phylogenetic {
-    my $caller_data = Data::Section::Simple->new(scalar caller);
-    my ($phylo_calcs_to_test, $verify_results) = @_;
+    my %args = @_;
+    my $phylo_calcs_to_test = $args{phylo_calcs_to_test};
+    my $get_expected_results = $args{get_expected_results};
     my ($e, $is_error, %results);
 
     my $bd   = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
@@ -340,10 +344,10 @@ sub run_indices_phylogenetic {
         print "";
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
         subtest $subtest_name => sub {
-            $verify_results->(
-                nbr_list_count => $nbr_list_count,
-                results => \%results
-            );            
+            compare_hash_vals (
+                hash_got => \%results,
+                hash_exp => $get_expected_results->(nbr_list_count => $nbr_list_count)
+            );
         };
     }
 }

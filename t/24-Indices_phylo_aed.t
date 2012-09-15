@@ -22,17 +22,11 @@ use Biodiverse::TestHelpers qw{
 my $phylo_calcs_to_test = [qw/
     calc_phylo_aed
 /];
-
-run_indices_phylogenetic ($phylo_calcs_to_test, \&verify_results);
+run_indices_phylogenetic (
+    phylo_calcs_to_test  => $phylo_calcs_to_test,
+    get_expected_results => \&get_expected_results
+);
 done_testing;
-
-sub verify_results {
-    my %args = @_;
-    compare_hash_vals (
-        hash_got => $args{results},
-        hash_exp => get_expected_results (nbr_list_count => $args{nbr_list_count})
-    );
-}
 
 sub get_expected_results {
     my %args = @_;

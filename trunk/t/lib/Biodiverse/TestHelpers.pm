@@ -92,15 +92,18 @@ sub compare_hash_vals {
     is (scalar keys %$hash1, scalar keys %$hash2, 'hashes are same size');
 
     foreach my $key (sort keys %$hash2) {
-        my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
-        my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});
-        is ($val1, $val2, "Got expected value for $key");
+        if (ref $hash2->{$key} eq 'HASH') {
+            subtest '' => sub { compare_hash_vals (hash_got => $hash1->{$key}, hash_exp => $hash2->{$key}); }
+        }
+        else {
+            my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
+            my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});
+            is ($val1, $val2, "Got expected value for $key");
+        }
     }
 
     return;
 }
-
-
 
 sub get_basedata_import_data_file {
     my %args = @_;

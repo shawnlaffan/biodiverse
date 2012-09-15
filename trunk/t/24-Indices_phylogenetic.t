@@ -47,7 +47,7 @@ sub verify_results {
     my %args = @_;
     compare_hash_vals(
         hash_got => $args{results},
-        hash_exp => scalar get_expected_results(nbr_list_count => $args{nbr_list_count})
+        hash_exp => scalar get_expected_results (nbr_list_count => $args{nbr_list_count})
     );
 }
 

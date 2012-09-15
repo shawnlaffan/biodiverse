@@ -1,9 +1,13 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
+use Carp;
 
 use rlib;
 use Test::More;
+use Data::Section::Simple qw{
+    get_data_section
+};
 
 local $| = 1;
 
@@ -36,8 +40,37 @@ my $phylo_calcs_to_test = [qw/
     calc_phylo_mpd_mntd2
     calc_phylo_mpd_mntd3
 /];
-run_indices_phylogenetic $phylo_calcs_to_test;
+run_indices_phylogenetic($phylo_calcs_to_test, \&verify_results);
 done_testing();
+
+sub verify_results {
+    my %args = @_;
+    compare_hash_vals(
+        hash_got => $args{results},
+        hash_exp => scalar get_expected_results(nbr_list_count => $args{nbr_list_count})
+    );
+}
+
+sub get_expected_results {
+    my %args = @_;
+    my $nbr_list_count = $args{nbr_list_count};
+    
+    my $data;
+    if ($nbr_list_count >= 1 && $nbr_list_count <= 2) {
+        $data = get_data_section('RESULTS_'.$nbr_list_count.'_NBR_LISTS');
+    }
+    else {
+        croak 'Invalid value for argument nbr_list_count';
+    }
+    
+    $data =~ s/\n+$//s;
+    my %expected = split (/\s+/, $data);
+    #  handle data that are copied and pasted from Biodiverse popup
+    delete $expected{SPATIAL_RESULTS};  
+    
+    return wantarray ? %expected : \%expected;
+}
+
 1;
 
 __DATA__

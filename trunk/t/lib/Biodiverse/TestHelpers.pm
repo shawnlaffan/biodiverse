@@ -93,7 +93,9 @@ sub compare_hash_vals {
 
     foreach my $key (sort keys %$hash2) {
         if (ref $hash2->{$key} eq 'HASH') {
-            subtest '' => sub { compare_hash_vals (hash_got => $hash1->{$key}, hash_exp => $hash2->{$key}); }
+            subtest "Got expected hash for $key" => sub {
+                compare_hash_vals (hash_got => $hash1->{$key}, hash_exp => $hash2->{$key});
+            }
         }
         else {
             my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});

@@ -32,6 +32,7 @@ my $phylo_calcs_to_test = [qw/
     calc_phylo_jaccard
     calc_phylo_s2
     calc_phylo_sorenson
+    calc_phylo_abc
     calc_pd
     calc_pe
     calc_taxonomic_distinctness
@@ -130,7 +131,11 @@ PE_WE	1.58308662511342
 PE_WE_P	0.0747364998100494
 PE_WE_SINGLE	1.02058686362188
 PE_WE_SINGLE_P	0.0481812484100488
+PHYLO_A	1.4927692308
+PHYLO_ABC 9.5566534823
 PHYLO_AED_T	2.46207976811201
+PHYLO_B	0
+PHYLO_C	8.0638842515
 PHYLO_JACCARD	0.8437979117308
 PHYLO_S2	0
 PHYLO_SORENSON	0.7298014078093

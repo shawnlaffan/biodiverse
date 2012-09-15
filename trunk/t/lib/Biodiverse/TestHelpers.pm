@@ -18,7 +18,6 @@ use Biodiverse::ReadNexus;
 use File::Temp;
 use Scalar::Util qw /looks_like_number/;
 use Test::More;
-use Data::Dumper;
 
 use Exporter::Easy (
     TAGS => [
@@ -85,8 +84,6 @@ sub snap_to_precision {
 }
 
 sub compare_hash_vals {
-    print Dumper (\@_, );
-    
     my %args = @_;
 
     my $hash1 = $args{hash_got};

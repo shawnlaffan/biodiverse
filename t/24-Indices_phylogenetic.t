@@ -27,6 +27,7 @@ use Biodiverse::TestHelpers qw{
     calc_pd_endemism
 =cut
 
+#  SWL - generalise this to use $indices->get_calculations to ensure we test all available indices
 my $phylo_calcs_to_test = [qw/
     calc_phylo_aed_t
     calc_phylo_jaccard
@@ -41,6 +42,8 @@ my $phylo_calcs_to_test = [qw/
     calc_phylo_mpd_mntd2
     calc_phylo_mpd_mntd3
 /];
+
+
 run_indices_phylogenetic (
     phylo_calcs_to_test  => $phylo_calcs_to_test,
     get_expected_results => \&get_expected_results

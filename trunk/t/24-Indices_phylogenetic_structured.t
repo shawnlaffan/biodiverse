@@ -23,42 +23,51 @@ my $phylo_calcs_to_test = [qw/
     calc_phylo_aed
     calc_pd_node_list
 /];
+
 run_indices_phylogenetic (
     phylo_calcs_to_test  => $phylo_calcs_to_test,
     get_expected_results => \&get_expected_results
 );
+
 done_testing;
 
 sub get_expected_results {
     my %args = @_;
+
     my $nbr_list_count = $args{nbr_list_count};
-    if ($nbr_list_count == 1) { return {
-        'PD_INCLUDED_NODE_LIST' => {
-            '49___'      => '0.020427284632173',
-            '34___'      => '0.341398923434153',
-            '50___'      => '0.00121523842637206',
-            'Genus:sp20' => '0.5',
-            'Genus:sp26' => '0.5',
-            '42___'      => '0.057495084175743',
-            '35___'      => '0.03299436960061',
-            '45___'      => '0.026396763298318',
-            '59___'      => 0,
-            '52___'      => '0.00291112550535999',
-            '58___'      => '0.00993044169650192'
-        },
-        'PHYLO_ED_LIST'  => {
-            'Genus:sp26' => '0.682552763166875',
-            'Genus:sp20' => '0.682552763166875'
-        },
-        'PHYLO_AED_LIST' => {
-            'Genus:sp26' => '0.207128205128205',
-            'Genus:sp20' => '0.144628205128205'
-        },
-        'PHYLO_ES_LIST'  => {
-            'Genus:sp26' => '0.688503612046397',
-            'Genus:sp20' => '0.688503612046397'
-        },
-    }; }
+    
+    croak "Invalid nbr list count\n"
+      if $nbr_list_count != 1 && $nbr_list_count != 2;
+
+    if ($nbr_list_count == 1) {
+        return {
+            'PD_INCLUDED_NODE_LIST' => {
+                '49___'      => '0.020427284632173',
+                '34___'      => '0.341398923434153',
+                '50___'      => '0.00121523842637206',
+                'Genus:sp20' => '0.5',
+                'Genus:sp26' => '0.5',
+                '42___'      => '0.057495084175743',
+                '35___'      => '0.03299436960061',
+                '45___'      => '0.026396763298318',
+                '59___'      => 0,
+                '52___'      => '0.00291112550535999',
+                '58___'      => '0.00993044169650192'
+            },
+            'PHYLO_ED_LIST'  => {
+                'Genus:sp26' => '0.682552763166875',
+                'Genus:sp20' => '0.682552763166875'
+            },
+            'PHYLO_AED_LIST' => {
+                'Genus:sp26' => '0.207128205128205',
+                'Genus:sp20' => '0.144628205128205'
+            },
+            'PHYLO_ES_LIST'  => {
+                'Genus:sp26' => '0.688503612046397',
+                'Genus:sp20' => '0.688503612046397'
+            },
+        };
+    }
     elsif ($nbr_list_count == 2) { return {
         'PD_INCLUDED_NODE_LIST' => {
             'Genus:sp23' => '0.434782608695652',
@@ -145,9 +154,6 @@ sub get_expected_results {
             'Genus:sp1'  => '0.66656052363853'
         },
     }; }
-    else {
-        croak 'Invalid nbr_list_count';
-    }
 }
 
 1;

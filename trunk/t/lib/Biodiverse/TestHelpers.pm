@@ -68,7 +68,7 @@ use Exporter::Easy (
         ],
         runners => [
             qw(
-                run_indices_phylogenetic
+                run_indices_test1
                 :utils
             ),
         ],
@@ -309,11 +309,12 @@ sub get_all_calculations {
     )->get_calculations;
 }
 
-sub run_indices_phylogenetic {
+sub run_indices_test1 {
     my %args = @_;
     my $calcs_to_test = $args{calcs_to_test};
     my $calc_topic_to_test = $args{calc_topic_to_test};
-    my $get_expected_results = $args{get_expected_results};
+
+    my $dss = Data::Section::Simple->new(caller);
 
     my ($e, $is_error, %results);
 
@@ -396,12 +397,12 @@ sub run_indices_phylogenetic {
         #print Dumper(\%results);
 
         #  now we need to check the results
-        print "";
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
         subtest $subtest_name => sub {
             compare_hash_vals (
                 hash_got => \%results,
-                hash_exp => $get_expected_results->(nbr_list_count => $nbr_list_count)
+                hash_exp => \%{eval $dss->get_data_section(
+                    "RESULTS_${nbr_list_count}_NBR_LISTS")}
             );
         };
     }

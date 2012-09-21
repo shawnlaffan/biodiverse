@@ -1,63 +1,42 @@
 #!/usr/bin/perl -w
+
 use strict;
 use warnings;
 
 local $| = 1;
 
-use Carp;
 use rlib;
 use Test::More;
-use Data::Dumper;
-use Data::Section::Simple qw{
-    get_data_section
-};
 
-use Biodiverse::BaseData;
-use Biodiverse::Indices;
 use Biodiverse::TestHelpers qw{
-    :basedata
     :runners
-    :tree
 };
 
-my $phylo_calcs_to_test = [qw/
-    calc_phylo_aed
-    calc_phylo_aed_t
-    calc_phylo_aed_proportional
-    calc_labels_not_on_tree
-    calc_labels_on_tree
-    calc_pd_endemism
-    calc_phylo_jaccard
-    calc_phylo_s2
-    calc_phylo_sorenson
-    calc_phylo_abc
-    calc_pd
-    calc_pd_node_list
-    calc_pd_terminal_node_list
-    calc_pe
-    calc_pe_lists
-    calc_taxonomic_distinctness
-    calc_taxonomic_distinctness_binary
-/];
-
-run_indices_phylogenetic (
-    calcs_to_test  => $phylo_calcs_to_test,
+run_indices_test1 (
+    calcs_to_test  => [qw/
+        calc_phylo_aed
+        calc_phylo_aed_t
+        calc_phylo_aed_proportional
+        calc_labels_not_on_tree
+        calc_labels_on_tree
+        calc_pd_endemism
+        calc_phylo_jaccard
+        calc_phylo_s2
+        calc_phylo_sorenson
+        calc_phylo_abc
+        calc_pd
+        calc_pd_node_list
+        calc_pd_terminal_node_list
+        calc_pe
+        calc_pe_lists
+        calc_taxonomic_distinctness
+        calc_taxonomic_distinctness_binary
+    /],
     calc_topic_to_test => 'Phylogenetic Indices',
     get_expected_results => \&get_expected_results
 );
 
 done_testing;
-
-sub get_expected_results {
-    my %args = @_;
-
-    my $nbr_list_count = $args{nbr_list_count};
-    
-    croak "Invalid nbr list count\n"
-      if $nbr_list_count != 1 && $nbr_list_count != 2;
-
-    return \%{eval get_data_section("RESULTS_${nbr_list_count}_NBR_LISTS")};
-}
 
 1;
 

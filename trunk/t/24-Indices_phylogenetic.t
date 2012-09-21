@@ -33,7 +33,6 @@ run_indices_test1 (
         calc_taxonomic_distinctness_binary
     /],
     calc_topic_to_test => 'Phylogenetic Indices',
-    get_expected_results => \&get_expected_results
 );
 
 done_testing;

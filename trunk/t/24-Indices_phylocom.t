@@ -26,12 +26,9 @@ my $calcs_to_test = [qw/
     calc_phylo_mpd_mntd1
 /];
 
-my $indices = Biodiverse::Indices->new(BASEDATA_REF => {});
-
-is @$calcs_to_test, @{get_all_calculations()->{'PhyloCom Indices'}}, 'Right number of phylogenetic calculations tested';
-
 run_indices_phylogenetic (
-    phylo_calcs_to_test  => $calcs_to_test,
+    calcs_to_test  => $calcs_to_test,
+    calc_topic_to_test => 'PhyloCom Indices',
     get_expected_results => \&get_expected_results
 );
 

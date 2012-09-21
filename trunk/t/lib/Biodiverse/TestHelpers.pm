@@ -114,6 +114,37 @@ sub compare_hash_vals {
     return;
 }
 
+=item compare_arr_vals
+
+Checks that arr_got and arr_exp contain the same elements.
+Order or duplication is not important.
+
+=cut
+
+sub compare_arr_vals {
+    my %args = @_;
+
+    my $arr_got = $args{arr_got};
+    my $arr_exp = $args{arr_exp};
+
+    my (%got, %exp);
+
+    foreach my $keyg (@$arr_got) {
+        undef $got{$keyg};
+    }
+    foreach my $keye (@$arr_exp) {
+        undef $exp{$keye};
+    }
+
+    is (scalar keys %got, scalar keys %exp, 'arrays are same size');
+
+    foreach my $key (keys %exp) {
+        ok (exists $got{$key}, "Contains $key");
+    }
+
+    return;
+}
+
 sub get_basedata_import_data_file {
     my %args = @_;
 
@@ -280,14 +311,25 @@ sub get_all_calculations {
 
 sub run_indices_phylogenetic {
     my %args = @_;
-    my $phylo_calcs_to_test = $args{phylo_calcs_to_test};
+    my $calcs_to_test = $args{calcs_to_test};
+    my $calc_topic_to_test = $args{calc_topic_to_test};
     my $get_expected_results = $args{get_expected_results};
+
     my ($e, $is_error, %results);
 
     my $bd   = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
     my $tree = get_tree_object_from_sample_data();
 
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+
+    my $expected_calcs_to_test = get_all_calculations()->{$calc_topic_to_test};
+
+    subtest 'Right calculations are being tested' => sub {
+        compare_arr_vals (
+            arr_got => $calcs_to_test,
+            arr_exp => $expected_calcs_to_test
+        )
+    };
 
     my %elements = (
         element_list1 => ['3350000:850000'],
@@ -313,7 +355,7 @@ sub run_indices_phylogenetic {
 
         my $valid_calcs = eval {
             $indices->get_valid_calculations(
-                calculations   => $phylo_calcs_to_test,
+                calculations   => $calcs_to_test,
                 nbr_list_count => $nbr_list_count,
                 calc_args      => $calc_args_for_validity_check,
             );

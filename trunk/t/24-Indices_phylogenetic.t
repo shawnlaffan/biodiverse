@@ -40,12 +40,9 @@ my $phylo_calcs_to_test = [qw/
     calc_taxonomic_distinctness_binary
 /];
 
-my $indices = Biodiverse::Indices->new(BASEDATA_REF => {});
-
-is @$phylo_calcs_to_test, @{get_all_calculations()->{'Phylogenetic Indices'}}, 'Right number of phylogenetic calculations tested';
-
 run_indices_phylogenetic (
-    phylo_calcs_to_test  => $phylo_calcs_to_test,
+    calcs_to_test  => $phylo_calcs_to_test,
+    calc_topic_to_test => 'Phylogenetic Indices',
     get_expected_results => \&get_expected_results
 );
 

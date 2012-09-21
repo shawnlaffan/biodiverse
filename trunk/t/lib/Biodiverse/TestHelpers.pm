@@ -32,6 +32,7 @@ use Exporter::Easy (
                 write_data_to_temp_file
                 snap_to_precision
                 compare_hash_vals
+                get_all_calculations
             ),
         ],
         basedata => [
@@ -52,7 +53,7 @@ use Exporter::Easy (
         tree => [
             qw(
                 get_tree_object
-               # get_nexus_tree_data
+                get_nexus_tree_data
                 get_newick_tree_data
                 get_tabular_tree_data
                 get_tree_object_from_sample_data
@@ -269,6 +270,12 @@ sub get_tabular_tree_data {
 
 sub get_basedata_site_data {
     return get_data_section('BASEDATA_SITE_DATA')
+}
+
+sub get_all_calculations {
+    return Biodiverse::Indices->new(BASEDATA_REF =>
+        get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000])
+    )->get_calculations;
 }
 
 sub run_indices_phylogenetic {

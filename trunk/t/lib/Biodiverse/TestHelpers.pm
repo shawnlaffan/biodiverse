@@ -19,6 +19,12 @@ use File::Temp;
 use Scalar::Util qw /looks_like_number/;
 use Test::More;
 
+# Used for acquiring sample results
+#use Data::Dumper;
+#$Data::Dumper::Purity = 1;
+#$Data::Dumper::Terse = 1;
+#$Data::Dumper::Sortkeys = 1;
+
 use Exporter::Easy (
     TAGS => [
         utils  => [
@@ -46,7 +52,7 @@ use Exporter::Easy (
         tree => [
             qw(
                 get_tree_object
-                get_nexus_tree_data
+               # get_nexus_tree_data
                 get_newick_tree_data
                 get_tabular_tree_data
                 get_tree_object_from_sample_data
@@ -77,7 +83,7 @@ sub snap_to_precision {
     my %args = @_;
     my $value = $args{value};
     my $precision = defined $args{precision} ? $args{precision} : '%.13f';
-    
+
     return defined $value && looks_like_number $value
         ? sprintf ($precision, $value)
         : $value;
@@ -88,7 +94,7 @@ sub compare_hash_vals {
 
     my $hash1 = $args{hash_got};
     my $hash2 = $args{hash_exp};
-    
+
     is (scalar keys %$hash1, scalar keys %$hash2, 'hashes are same size');
 
     foreach my $key (sort keys %$hash2) {
@@ -166,15 +172,15 @@ sub get_basedata_object {
         label_columns => [0],
         sample_count_columns => [3],
     );
-    
+
     return $bd;
 }
 
 sub get_basedata_object_from_site_data {
     my %args = @_;
-    
+
     my $file = write_data_to_temp_file(get_basedata_site_data());
-    
+
     print "Temp file is $file\n";
 
     my $bd = Biodiverse::BaseData->new(
@@ -187,8 +193,8 @@ sub get_basedata_object_from_site_data {
         label_columns => [1, 2],
         skip_lines_with_undef_groups => 1,
     );
-    
-    return $bd;    
+
+    return $bd;
 }
 
 sub get_element_properties_test_data {
@@ -206,7 +212,7 @@ END_DATA
 
 sub get_tree_object {
     my $self = shift;
-    
+
     my $tree = Biodiverse::Tree->new;
     my $newick = '(((a,b),c),d)';
     my $read_nex = Biodiverse::ReadNexus->new;
@@ -226,7 +232,7 @@ sub get_tree_object_from_sample_data {
     my $result = eval {
         $trees->import_data (data => $data);
     };
-    my @tree_array = $trees->get_tree_array;    
+    my @tree_array = $trees->get_tree_array;
     my $tree = $tree_array[0];
 
     return $tree;
@@ -308,7 +314,7 @@ sub run_indices_phylogenetic {
         $e = $EVAL_ERROR;
         note $e if $e;
         ok (!$e, "Obtained valid calcs without eval error");
-    
+
         eval {
             $indices->run_precalc_globals(%$calc_args);
             print "\n";
@@ -325,7 +331,7 @@ sub run_indices_phylogenetic {
         %results = eval {
             $indices->run_calculations(%$calc_args, %elements);
         };
-        
+
         $e = $EVAL_ERROR;
         note $e if $e;
         ok (!$e, "Ran calculations without eval error");
@@ -336,6 +342,9 @@ sub run_indices_phylogenetic {
         $e = $EVAL_ERROR;
         note $e if $e;
         ok (!$e, "Ran global postcalcs without eval error");
+
+        # Used for acquiring sample results
+        #print Dumper(\%results);
 
         #  now we need to check the results
         print "";
@@ -359,7 +368,7 @@ __DATA__
 [ID: blah blah]
 begin trees;
 	[this is a comment with a semicolon ; ]
-	Translate 
+	Translate
 		0 'Genus:sp9',
 		1 'Genus:sp23',
 		2 'Genus:sp13',

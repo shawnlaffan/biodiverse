@@ -19,7 +19,6 @@ run_indices_test1 (
         calc_phylo_mpd_mntd1
     /],
     calc_topic_to_test => 'PhyloCom Indices',
-    get_expected_results => \&get_expected_results
 );
 
 done_testing;

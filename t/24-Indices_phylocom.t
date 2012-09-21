@@ -1,50 +1,28 @@
 #!/usr/bin/perl -w
+
 use strict;
 use warnings;
 
 local $| = 1;
 
-use Carp;
 use rlib;
 use Test::More;
-use Data::Dumper;
-use Data::Section::Simple qw{
-    get_data_section
-};
 
-use Biodiverse::BaseData;
-use Biodiverse::Indices;
 use Biodiverse::TestHelpers qw{
-    :basedata
     :runners
-    :tree
 };
 
-my $calcs_to_test = [qw/
-    calc_phylo_mpd_mntd3
-    calc_phylo_mpd_mntd2
-    calc_phylo_mpd_mntd1
-/];
-
-run_indices_phylogenetic (
-    calcs_to_test  => $calcs_to_test,
+run_indices_test1 (
+    calcs_to_test  => [qw/
+        calc_phylo_mpd_mntd3
+        calc_phylo_mpd_mntd2
+        calc_phylo_mpd_mntd1
+    /],
     calc_topic_to_test => 'PhyloCom Indices',
     get_expected_results => \&get_expected_results
 );
 
 done_testing;
-
-# TODO: factor out
-sub get_expected_results {
-    my %args = @_;
-
-    my $nbr_list_count = $args{nbr_list_count};
-
-    croak "Invalid nbr list count\n"
-        if $nbr_list_count != 1 && $nbr_list_count != 2;
-
-    return \%{eval get_data_section("RESULTS_${nbr_list_count}_NBR_LISTS")};
-}
 
 1;
 

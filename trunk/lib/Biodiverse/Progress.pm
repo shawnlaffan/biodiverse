@@ -112,6 +112,9 @@ sub update {
 sub close_off {
     my $self = shift;
     $self->reset;
+    if (!$self->{gui_only}) {
+        print "\n";
+    }
     return;
 }
 
@@ -154,10 +157,11 @@ sub pulse_progress_bar {
 
 sub DESTROY {
     my $self = shift;
-    $self->reset;
+    $self->close_off;
     if ($self->{gui_progress}) {  #  can't use an eval here as it resets $EVAL_ERROR
         $self->{gui_progress}->destroy;  #  take care of any GUI progress
-    };
+    }
+    
     delete @$self{keys %$self};             #  clean out all keys, prob not needed
 }
 

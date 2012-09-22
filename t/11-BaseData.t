@@ -71,12 +71,12 @@ my @setup = (
         $string =~ s/;$//;
 
         my $message  = $this_run->{message} || $string;
-        
+
         my $bd = eval {
             get_basedata_object ( %$args, );
         };
         my $error = $EVAL_ERROR;
-        print "\n";
+
         if ($expected eq 'fail') {
             ok (defined $error, "Trapped error: $message");
         }
@@ -150,7 +150,6 @@ REORDER:
         );
     };
     my $error = $EVAL_ERROR;
-    print "\n";  #  for TAP parsing
 
     ok (defined $new_bd,    "Reordered axes");
 

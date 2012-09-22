@@ -57,7 +57,6 @@ REORDER:
     };
     my $error = $EVAL_ERROR;
     warn $error if $error;
-    print "\n"; #  needed for TAP parsing
 
     ok (defined $new_bd, 'Reordered axes');
 

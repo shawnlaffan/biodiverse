@@ -7,6 +7,9 @@ use Carp;
 
 #  need to consider Class::Inspector for the method hunting
 
+## is it possible the increase is due to hash keys being assigned when clone methods track refs they have already traversed???
+# see also last post in http://www.perlmonks.org/?node_id=226251
+
 use Data::Section::Simple qw(get_data_section);
 
 use FindBin qw /$Bin/;

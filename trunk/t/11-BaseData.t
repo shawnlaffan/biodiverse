@@ -8,8 +8,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use FindBin qw/$Bin/;
-use lib "$Bin/lib";
+use rlib; 
 
 local $| = 1;
 
@@ -77,6 +76,7 @@ my @setup = (
             get_basedata_object ( %$args, );
         };
         my $error = $EVAL_ERROR;
+        print "\n";
         if ($expected eq 'fail') {
             ok (defined $error, "Trapped error: $message");
         }
@@ -150,6 +150,7 @@ REORDER:
         );
     };
     my $error = $EVAL_ERROR;
+    print "\n";  #  for TAP parsing
 
     ok (defined $new_bd,    "Reordered axes");
 

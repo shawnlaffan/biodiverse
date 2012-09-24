@@ -19,7 +19,9 @@ run_indices_test1 (
     calc_topic_to_test => 'Hierarchical Labels',
 );
 
-ok(0, 'Is this enough data for this test?');
+#ok(0, 'Is this enough data for this test?');
+#  Yes, for now.
+#  We could later expand to using more levels in the hierarchy though.
 
 done_testing;
 

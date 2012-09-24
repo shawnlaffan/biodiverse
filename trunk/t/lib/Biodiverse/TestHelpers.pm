@@ -379,8 +379,11 @@ sub run_indices_test1 {
 
         %results = eval {$indices->run_calculations(%$calc_args)};
         $e = $EVAL_ERROR;
-        #note $e if $e;
-        ok ($e, "Ran calculations without elements and got eval error");
+
+	#  sometimes none are left to run
+	if ($indices->get_valid_calculation_count) {  
+            ok ($e, "Ran calculations without elements and got eval error");
+	}
 
         %results = eval {
             $indices->run_calculations(%$calc_args, %elements);

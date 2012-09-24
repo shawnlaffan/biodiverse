@@ -598,8 +598,12 @@ sub parse_newick {
             $string =~ m/\G ( $RE_NUMBER ) /xgcs;
             #print "length value is $1\n";
             $length = $1;
-            croak "Length '$length' does not look like a number\n"
-                if ! looks_like_number $length;
+            if (! looks_like_number $length) {
+                if (!defined $length) {
+                    $length = q{};
+                }
+                croak "Length '$length' does not look like a number\n";
+            }
             $length += 0;  #  make it numeric
             my $x = $length;
         }

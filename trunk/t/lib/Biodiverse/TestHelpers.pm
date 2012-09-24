@@ -372,7 +372,6 @@ sub run_indices_test1 {
 
         eval {
             $indices->run_precalc_globals(%$calc_args);
-            #print "\n";
         };
         $e = $EVAL_ERROR;
         note $e if $e;

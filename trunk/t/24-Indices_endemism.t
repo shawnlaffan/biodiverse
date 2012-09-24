@@ -37,7 +37,7 @@ __DATA__
 {
   'ENDC_CWE'      => '0.555555555555556',
   'ENDC_CWE_NORM' => '0.111111111111111',
-  'ENDC_HPART_0' => {
+  'ENDC_HPART_0'  => {
                       'Genus' => 1
                     },
   'ENDC_HPART_1' => {
@@ -73,13 +73,13 @@ __DATA__
   'ENDC_SINGLE'   => '0.444444444444444',
   'ENDC_WE'       => '1.11111111111111',
   'ENDC_WE_NORM'  => '0.222222222222222',
-  'ENDC_WTLIST' => {
+  'ENDC_WTLIST'   => {
                      'Genus:sp20' => '0.444444444444444',
                      'Genus:sp26' => '0.666666666666667'
                    },
   'ENDW_CWE'      => '0.177227343568255',
   'ENDW_CWE_NORM' => '0.0354454687136509',
-  'ENDW_HPART_0' => {
+  'ENDW_HPART_0'  => {
                       'Genus' => 1
                     },
   'ENDW_HPART_1' => {
@@ -172,10 +172,10 @@ __DATA__
                         'Genus:sp5'  => 10
                       },
   'ENDW_RICHNESS' => 14,
-  'ENDW_SINGLE' => '1.64948029386667',
-  'ENDW_WE' => '2.48118280995557',
-  'ENDW_WE_NORM' => '0.496236561991113',
-  'ENDW_WTLIST' => {
+  'ENDW_SINGLE'   => '1.64948029386667',
+  'ENDW_WE'       => '2.48118280995557',
+  'ENDW_WE_NORM'  => '0.496236561991113',
+  'ENDW_WTLIST'   => {
                      'Genus:sp1'  => '0.0869565217391304',
                      'Genus:sp10' => '0.0357142857142857',
                      'Genus:sp11' => '0.0408163265306122',
@@ -206,7 +206,7 @@ __DATA__
 {
   'ENDC_CWE'      => '0.222222222222222',
   'ENDC_CWE_NORM' => '0.222222222222222',
-  'ENDC_HPART_0' => {
+  'ENDC_HPART_0'  => {
                       'Genus' => 1
                     },
   'ENDC_HPART_1' => {
@@ -242,13 +242,13 @@ __DATA__
   'ENDC_SINGLE'   => '0.444444444444444',
   'ENDC_WE'       => '0.444444444444444',
   'ENDC_WE_NORM'  => '0.444444444444444',
-  'ENDC_WTLIST' => {
+  'ENDC_WTLIST'   => {
                      'Genus:sp20' => '0.111111111111111',
                      'Genus:sp26' => '0.333333333333333'
                    },
   'ENDW_CWE'      => '0.222222222222222',
   'ENDW_CWE_NORM' => '0.222222222222222',
-  'ENDW_HPART_0' => {
+  'ENDW_HPART_0'  => {
                       'Genus' => 1
                     },
   'ENDW_HPART_1' => {
@@ -284,7 +284,7 @@ __DATA__
   'ENDW_SINGLE'   => '0.444444444444444',
   'ENDW_WE'       => '0.444444444444444',
   'ENDW_WE_NORM'  => '0.444444444444444',
-  'ENDW_WTLIST' => {
+  'ENDW_WTLIST'   => {
                      'Genus:sp20' => '0.111111111111111',
                      'Genus:sp26' => '0.333333333333333'
                    },

@@ -104,6 +104,11 @@ sub compare_hash_vals {
                 compare_hash_vals (hash_got => $hash1->{$key}, hash_exp => $hash2->{$key});
             }
         }
+        elsif (ref $hash2->{$key} eq 'ARRAY') {
+            subtest "Got expected array for $key" => sub {
+                compare_arr_vals (arr_got => $hash1->{$key}, arr_exp => $hash2->{$key});
+            }
+        }
         else {
             my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
             my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});

@@ -22,6 +22,7 @@ run_indices_test1 (
         calc_num_labels_gistar
     /],
     calc_topic_to_test => 'Numeric Labels',
+    use_numeric_labels => 1,
 );
 
 ok(0, 'Needs real data');

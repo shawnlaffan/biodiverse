@@ -369,18 +369,6 @@ sub get_numeric_labels_basedata_site_data {
     return get_data_section('NUMERIC_LABEL_SITE_DATA');
 }
 
-#sub get_all_calculations {
-#    my %args = @_;
-#
-#    my $bd = $args{basedata_ref};
-#    
-#    my $indices = Biodiverse::Indices->new(
-#	BASEDATA_REF => $bd,
-#    );
-#    my %calcs = $indices->get_calculations;
-#
-#    return wantarray ? %calcs : \%calcs;
-#}
 
 sub run_indices_test1 {
     my %args = @_;
@@ -388,12 +376,16 @@ sub run_indices_test1 {
     my $calc_topic_to_test = $args{calc_topic_to_test};
     my $cell_sizes         = $args{cell_sizes} || [100000, 100000];
     my $use_numeric_labels = $args{use_numeric_labels};
-    my $element_list2      = $args{element_list2} || [qw/
-        3250000:850000
-        3350000:750000
-        3350000:950000
-        3450000:850000
-    /];
+
+    my $element_list1 = $args{element_list1} || ['3350000:850000'];
+    my $element_list2
+      = $args{element_list2}
+        || [qw/
+            3250000:850000
+            3350000:750000
+            3350000:950000
+            3450000:850000
+        /];
 
     my $dss = Data::Section::Simple->new(caller);
 
@@ -425,7 +417,7 @@ sub run_indices_test1 {
     }
 
     my %elements = (
-        element_list1 => ['3350000:850000'],
+        element_list1 => $element_list1,
         element_list2 => $element_list2,
     );
 

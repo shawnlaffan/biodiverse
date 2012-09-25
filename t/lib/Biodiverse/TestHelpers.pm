@@ -243,12 +243,13 @@ sub get_numeric_labels_basedata_object_from_site_data {
 
     my $bd = Biodiverse::BaseData->new(
         CELL_SIZES => $args{CELL_SIZES},
-        NAME       => 'Test basedata site data',
+        NAME       => 'Test basedata site data, numeric labels',
     );
     $bd->import_data(
         input_files   => [$file],
-        group_columns => [3, 4],
-        label_columns => [1, 2],
+        group_columns => [0, 1],
+        label_columns => [2],
+	sample_count_columns         => [3],
         skip_lines_with_undef_groups => 1,
     );
 
@@ -333,32 +334,45 @@ sub get_numeric_labels_basedata_site_data {
     return get_data_section('NUMERIC_LABEL_SITE_DATA');
 }
 
-sub get_all_calculations {
-    my $indices = Biodiverse::Indices->new(
-	BASEDATA_REF => get_basedata_object_from_site_data(
-	    CELL_SIZES => [100000, 100000],
-	),
-    );
-    my %calcs = $indices->get_calculations;
-
-    return wantarray ? %calcs : \%calcs;
-}
+#sub get_all_calculations {
+#    my %args = @_;
+#
+#    my $bd = $args{basedata_ref};
+#    
+#    my $indices = Biodiverse::Indices->new(
+#	BASEDATA_REF => $bd,
+#    );
+#    my %calcs = $indices->get_calculations;
+#
+#    return wantarray ? %calcs : \%calcs;
+#}
 
 sub run_indices_test1 {
     my %args = @_;
-    my $calcs_to_test = $args{calcs_to_test};
+    my $calcs_to_test      = $args{calcs_to_test};
     my $calc_topic_to_test = $args{calc_topic_to_test};
+    my $cell_sizes         = $args{cell_sizes} || [100000, 100000];
+    my $use_numeric_labels = $args{use_numeric_labels};
 
     my $dss = Data::Section::Simple->new(caller);
 
     my ($e, $is_error, %results);
 
-    my $bd   = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my %bd_args = (%args, CELL_SIZES => $cell_sizes);
+
+    my $bd = $use_numeric_labels
+      ? get_numeric_labels_basedata_object_from_site_data (
+	    %bd_args,
+	)
+      : get_basedata_object_from_site_data (
+	    %bd_args,
+	);
+
     my $tree = get_tree_object_from_sample_data();
 
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
-    my $expected_calcs_to_test = get_all_calculations()->{$calc_topic_to_test};
+    my $expected_calcs_to_test = $indices->get_calculations->{$calc_topic_to_test};
 
     subtest 'Right calculations are being tested' => sub {
         compare_arr_vals (

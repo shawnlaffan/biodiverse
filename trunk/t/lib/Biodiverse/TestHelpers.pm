@@ -234,6 +234,27 @@ sub get_basedata_object_from_site_data {
     return $bd;
 }
 
+sub get_numeric_labels_basedata_object_from_site_data {
+    my %args = @_;
+
+    my $file = write_data_to_temp_file(get_numeric_labels_basedata_site_data());
+
+    print "Temp file is $file\n";
+
+    my $bd = Biodiverse::BaseData->new(
+        CELL_SIZES => $args{CELL_SIZES},
+        NAME       => 'Test basedata site data',
+    );
+    $bd->import_data(
+        input_files   => [$file],
+        group_columns => [3, 4],
+        label_columns => [1, 2],
+        skip_lines_with_undef_groups => 1,
+    );
+
+    return $bd;
+}
+
 sub get_element_properties_test_data {
 
     my $data = <<'END_DATA'
@@ -305,13 +326,22 @@ sub get_tabular_tree_data {
 }
 
 sub get_basedata_site_data {
-    return get_data_section('BASEDATA_SITE_DATA')
+    return get_data_section('BASEDATA_SITE_DATA');
+}
+
+sub get_numeric_labels_basedata_site_data {
+    return get_data_section('NUMERIC_LABEL_SITE_DATA');
 }
 
 sub get_all_calculations {
-    return Biodiverse::Indices->new(BASEDATA_REF =>
-        get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000])
-    )->get_calculations;
+    my $indices = Biodiverse::Indices->new(
+	BASEDATA_REF => get_basedata_object_from_site_data(
+	    CELL_SIZES => [100000, 100000],
+	),
+    );
+    my %calcs = $indices->get_calculations;
+
+    return wantarray ? %calcs : \%calcs;
 }
 
 sub run_indices_test1 {

@@ -20,7 +20,7 @@ use Scalar::Util qw /looks_like_number/;
 use Test::More;
 
 # Used for acquiring sample results
-my $generate_result_sets = 1;
+my $generate_result_sets = 0;
 if ($generate_result_sets) {
     use Data::Dumper;
     $Data::Dumper::Purity   = 1;

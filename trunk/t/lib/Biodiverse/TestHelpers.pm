@@ -414,7 +414,7 @@ sub run_indices_test1 {
 
     my %elements = (
         element_list1 => ['3350000:850000'],
-        element_list2 => [qw /
+        element_list2 => [qw/
             3250000:850000
             3350000:750000
             3350000:950000
@@ -454,9 +454,9 @@ sub run_indices_test1 {
 
         %results = eval {$indices->run_calculations(%$calc_args)};
         $e = $EVAL_ERROR;
-	note $e if $e;
+        note $e if $e;
 
-        #  sometimes none are left to run
+        # sometimes none are left to run
         if ($indices->get_valid_calculation_count) {
             ok ($e, "Ran calculations without elements and got eval error");
         }
@@ -477,7 +477,7 @@ sub run_indices_test1 {
         ok (!$e, "Ran global postcalcs without eval error");
 
         # Used for acquiring sample results
-        #print Dumper(\%results);
+        print Dumper(\%results);
 
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";

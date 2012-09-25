@@ -497,6 +497,8 @@ sub run_indices_test1 {
     }
 }
 
+1;
+
 __DATA__
 
 @@ NEWICK_TREE

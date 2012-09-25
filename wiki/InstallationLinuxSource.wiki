@@ -18,13 +18,13 @@ These also assume you have [http://code.google.com/p/biodiverse/downloads/list d
 
 
 {{{
-#  get the glade, canvas and gtk-perl packages (this will also get the Gtk, Glib etc.)
-sudo apt-get install libgnomecanvas2-0
-sudo apt-get install glade
-sudo apt-get install libgtk2-gladexml-perl
+# Assuming you are currently in the base biodiverse directory.
+sudo apt-get install libcairo2-dev libpango1.0-dev libgtk+2.0-dev libgnomecanvas2-dev libglade2-dev
 
-sudo perl -MCPAN -e 'install Task::Biodiverse::NoGUI'
-sudo perl -MCPAN -e 'install Task::Biodiverse'
+cd etc/bundles/NoGUI
+cpan -i .
+cd ../GUI
+cpan -i .
 }}}
 
 If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).

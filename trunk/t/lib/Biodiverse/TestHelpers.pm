@@ -477,7 +477,7 @@ sub run_indices_test1 {
         ok (!$e, "Ran global postcalcs without eval error");
 
         # Used for acquiring sample results
-        print Dumper(\%results);
+        #print Dumper(\%results);
 
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";

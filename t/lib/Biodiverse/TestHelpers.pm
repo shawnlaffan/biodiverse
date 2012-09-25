@@ -6,7 +6,7 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use Data::Section::Simple qw(get_data_section);
 

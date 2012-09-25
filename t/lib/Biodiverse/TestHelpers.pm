@@ -388,6 +388,12 @@ sub run_indices_test1 {
     my $calc_topic_to_test = $args{calc_topic_to_test};
     my $cell_sizes         = $args{cell_sizes} || [100000, 100000];
     my $use_numeric_labels = $args{use_numeric_labels};
+    my $element_list2      = $args{element_list2} || [qw/
+        3250000:850000
+        3350000:750000
+        3350000:950000
+        3450000:850000
+    /];
 
     my $dss = Data::Section::Simple->new(caller);
 
@@ -407,23 +413,20 @@ sub run_indices_test1 {
 
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
-    my $expected_calcs_to_test = $indices->get_calculations->{$calc_topic_to_test};
+    if ($calc_topic_to_test) {
+        my $expected_calcs_to_test = $indices->get_calculations->{$calc_topic_to_test};
 
-    subtest 'Right calculations are being tested' => sub {
-        compare_arr_vals (
-            arr_got => $calcs_to_test,
-            arr_exp => $expected_calcs_to_test
-        )
-    };
+        subtest 'Right calculations are being tested' => sub {
+            compare_arr_vals (
+                arr_got => $calcs_to_test,
+                arr_exp => $expected_calcs_to_test
+            )
+        };
+    }
 
     my %elements = (
         element_list1 => ['3350000:850000'],
-        element_list2 => [qw/
-            3250000:850000
-            3350000:750000
-            3350000:950000
-            3450000:850000
-        /],
+        element_list2 => $element_list2,
     );
 
     my $calc_args = {tree_ref => $tree};

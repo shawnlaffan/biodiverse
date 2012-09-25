@@ -93,26 +93,31 @@ sub snap_to_precision {
 sub compare_hash_vals {
     my %args = @_;
 
-    my $hash1 = $args{hash_got};
-    my $hash2 = $args{hash_exp};
+    my $hash_got  = $args{hash_got};
+    my $hash_exp  = $args{hash_exp};
+    my $precision = $args{precision};
 
-    is (scalar keys %$hash1, scalar keys %$hash2, 'hashes are same size');
+    is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
 
-    foreach my $key (sort keys %$hash2) {
-        if (ref $hash2->{$key} eq 'HASH') {
+    foreach my $key (sort keys %$hash_exp) {
+        if (ref $hash_exp->{$key} eq 'HASH') {
             subtest "Got expected hash for $key" => sub {
-                compare_hash_vals (hash_got => $hash1->{$key}, hash_exp => $hash2->{$key});
+                compare_hash_vals (hash_got => $hash_got->{$key},
+                                   hash_exp => $hash_exp->{$key});
             }
         }
-        elsif (ref $hash2->{$key} eq 'ARRAY') {
+        elsif (ref $hash_exp->{$key} eq 'ARRAY') {
             subtest "Got expected array for $key" => sub {
-                compare_arr_vals (arr_got => $hash1->{$key}, arr_exp => $hash2->{$key});
+                compare_arr (arr_got => $hash_got->{$key},
+                             arr_exp => $hash_exp->{$key});
             }
         }
         else {
-            my $val1 = snap_to_precision (value => $hash1->{$key}, precision => $args{precision});
-            my $val2 = snap_to_precision (value => $hash2->{$key}, precision => $args{precision});
-            is ($val1, $val2, "Got expected value for $key");
+            my $val_got = snap_to_precision (value => $hash_got->{$key},
+                                             precision => $precision);
+            my $val_exp = snap_to_precision (value => $hash_exp->{$key},
+                                             precision => $precision);
+            is ($val_got, $val_exp, "Got expected value for $key");
         }
     }
 
@@ -123,6 +128,8 @@ sub compare_hash_vals {
 
 Checks that arr_got and arr_exp contain the same elements.
 Order or duplication is not important.
+
+Currently doesn't use snap_to_precision because it is intended for strings.
 
 =cut
 
@@ -141,10 +148,34 @@ sub compare_arr_vals {
         undef $exp{$keye};
     }
 
-    is (scalar keys %got, scalar keys %exp, 'arrays are same size');
+    is (scalar keys %got, scalar keys %exp, 'Arrays are same size');
 
     foreach my $key (keys %exp) {
         ok (exists $got{$key}, "Contains $key");
+    }
+
+    return;
+}
+
+=item compare_arr
+
+Checks that arr_got and arr_exp contain the same elements in the same order.
+
+=cut
+
+sub compare_arr {
+    my %args = @_;
+
+    my $arr_got = $args{arr_got};
+    my $arr_exp = $args{arr_exp};
+    my $precision = $args{precision};
+
+    is (scalar @$arr_got, scalar @$arr_exp, 'Arrays are same size');
+
+    for (my $i = 0; $i != @$arr_exp; ++$i) {
+        my $val_got = snap_to_precision (value => $arr_got->[$i], precision => $precision);
+        my $val_exp = snap_to_precision (value => $arr_exp->[$i], precision => $precision);
+        is ($val_got, $val_exp, "Got expected value for [$i]");
     }
 
     return;
@@ -246,10 +277,10 @@ sub get_numeric_labels_basedata_object_from_site_data {
         NAME       => 'Test basedata site data, numeric labels',
     );
     $bd->import_data(
-        input_files   => [$file],
-        group_columns => [0, 1],
-        label_columns => [2],
-	sample_count_columns         => [3],
+        input_files                  => [$file],
+        group_columns                => [0, 1],
+        label_columns                => [2],
+        sample_count_columns         => [3],
         skip_lines_with_undef_groups => 1,
     );
 
@@ -362,11 +393,11 @@ sub run_indices_test1 {
 
     my $bd = $use_numeric_labels
       ? get_numeric_labels_basedata_object_from_site_data (
-	    %bd_args,
-	)
+            %bd_args,
+        )
       : get_basedata_object_from_site_data (
-	    %bd_args,
-	);
+            %bd_args,
+        );
 
     my $tree = get_tree_object_from_sample_data();
 
@@ -424,10 +455,10 @@ sub run_indices_test1 {
         %results = eval {$indices->run_calculations(%$calc_args)};
         $e = $EVAL_ERROR;
 
-	#  sometimes none are left to run
-	if ($indices->get_valid_calculation_count) {  
+        #  sometimes none are left to run
+        if ($indices->get_valid_calculation_count) {
             ok ($e, "Ran calculations without elements and got eval error");
-	}
+        }
 
         %results = eval {
             $indices->run_calculations(%$calc_args, %elements);

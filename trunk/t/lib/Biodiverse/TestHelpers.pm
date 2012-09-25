@@ -20,10 +20,14 @@ use Scalar::Util qw /looks_like_number/;
 use Test::More;
 
 # Used for acquiring sample results
-#use Data::Dumper;
-#$Data::Dumper::Purity = 1;
-#$Data::Dumper::Terse = 1;
-#$Data::Dumper::Sortkeys = 1;
+my $generate_result_sets = 0;
+if ($generate_result_sets) {
+    use Data::Dumper;
+    $Data::Dumper::Purity   = 1;
+    $Data::Dumper::Terse    = 1;
+    $Data::Dumper::Sortkeys = 1;
+}
+
 
 use Exporter::Easy (
     TAGS => [
@@ -477,7 +481,9 @@ sub run_indices_test1 {
         ok (!$e, "Ran global postcalcs without eval error");
 
         # Used for acquiring sample results
-        #print Dumper(\%results);
+        if ($generate_result_sets) {
+            print Dumper(\%results);
+        }
 
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";

@@ -19,16 +19,6 @@ use File::Temp;
 use Scalar::Util qw /looks_like_number/;
 use Test::More;
 
-# Used for acquiring sample results
-my $generate_result_sets = 0;
-if ($generate_result_sets) {
-    use Data::Dumper;
-    $Data::Dumper::Purity   = 1;
-    $Data::Dumper::Terse    = 1;
-    $Data::Dumper::Sortkeys = 1;
-}
-
-
 use Exporter::Easy (
     TAGS => [
         utils  => [
@@ -395,6 +385,10 @@ sub run_indices_test1 {
     my $cell_sizes         = $args{cell_sizes} || [100000, 100000];
     my $use_numeric_labels = $args{use_numeric_labels};
 
+    # Used for acquiring sample results
+    my $generate_result_sets = $args{generate_result_sets};
+
+
     my $element_list1 = $args{element_list1} || ['3350000:850000'];
     my $element_list2
       = $args{element_list2}
@@ -497,6 +491,10 @@ sub run_indices_test1 {
 
         # Used for acquiring sample results
         if ($generate_result_sets) {
+            use Data::Dumper;
+            $Data::Dumper::Purity   = 1;
+            $Data::Dumper::Terse    = 1;
+            $Data::Dumper::Sortkeys = 1;
             print Dumper(\%results);
         }
 

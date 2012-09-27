@@ -1290,7 +1290,7 @@ sub guess_field_separator {
     my %sep_count;
     #my $i = 0;
     foreach my $sep (@separators) {
-
+        next if ! length $string;
         #  skip if does not contain the separator
         #  - no point testing in this case
         next if ! ($string =~ /$sep/);  

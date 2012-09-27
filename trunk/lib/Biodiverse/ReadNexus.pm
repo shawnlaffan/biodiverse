@@ -91,6 +91,9 @@ sub import_data {
     $self->set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
     
     my @import_methods = qw /import_nexus import_phylip import_tabular_tree/;
+    if (defined $args{file} && $args{file} =~ /(txt|csv)$/) {  #  dirty hack
+        @import_methods = ('import_tabular_tree');
+    }
     my $success;
     
   IMPORT_METHOD:
@@ -372,6 +375,10 @@ sub import_tabular_tree {
     my %args = @_;
 
     my $data = $args{data};
+    if (! defined $data) {
+        $data = $self->read_whole_file (file => $args{file});
+    }
+
     my @data = split ($/, $data);
     my $header = shift @data;
 
@@ -399,7 +406,7 @@ sub import_tabular_tree {
         my %line_hash;
         @line_hash{@header} = @line_array;
 
-        if ($tree_name ne $line_hash{TREENAME}) {  # we have started a new tree
+        if (defined $line_h{TREENAME} && $tree_name ne $line_hash{TREENAME}) {  # we have started a new tree
             #  clean up the previous tree
             $self->assign_parents_for_tabular_tree_import (
                 tree_ref  => $tree,

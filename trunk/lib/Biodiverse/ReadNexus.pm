@@ -380,13 +380,15 @@ sub import_tabular_tree {
     my @header = $csv->fields;
     $csv->column_names (@header);
 
-    my %node_hash;
+    my $node_hash = {};
 
     my @trees;
 
     $csv->parse ($data[0]);
     my @line_arr = $csv->fields;
-    my $tree_name = $args{NAME} || $line_arr[-1] || 'TABULAR_TREE';
+    my %line_h;
+    @line_h{@header} = @line_arr;
+    my $tree_name = $args{NAME} || $line_h{TREENAME} || 'TABULAR_TREE';
     my $tree = Biodiverse::Tree->new (NAME => $tree_name);
     push @trees, $tree;
 
@@ -394,23 +396,22 @@ sub import_tabular_tree {
     foreach my $line (@data) {
         $csv->parse ($line);
         my @line_array = $csv->fields;
+        my %line_hash;
+        @line_hash{@header} = @line_array;
 
-        if ($tree_name ne $line_array[-1]) {  # we have started a new tree
+        if ($tree_name ne $line_hash{TREENAME}) {  # we have started a new tree
             #  clean up the previous tree
             $self->assign_parents_for_tabular_tree_import (
                 tree_ref  => $tree,
-                node_hash => \%node_hash,
+                node_hash => $node_hash,
             );
 
             #  and start afresh
-            $tree_name = $line_array[-1];
+            $tree_name = $line_hash{TREENAME};
             $tree = Biodiverse::Tree->new (NAME => $tree_name);
             push @trees, $tree;
-            %node_hash = ();
+            $node_hash = {};
         }
-
-        my %line_hash;
-        @line_hash{@header} = @line_array;
 
         my $node_name = $line_hash{NAME};
         if (!defined $node_name) {
@@ -424,12 +425,12 @@ sub import_tabular_tree {
         );
 
         my $node_number = $line_hash{NODE_NUMBER};
-        $node_hash{$node_number} = \%line_hash;
+        $node_hash->{$node_number} = \%line_hash;
     }
 
     $self->assign_parents_for_tabular_tree_import (
         tree_ref  => $tree,
-        node_hash => \%node_hash,
+        node_hash => $node_hash,
     );
 
     foreach my $tree_ref (@trees) {

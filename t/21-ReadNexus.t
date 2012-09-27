@@ -1,6 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use warnings;
+use English qw { -no_match_vars };
 
 use FindBin qw/$Bin/;
 use lib "$Bin/lib";
@@ -32,7 +33,7 @@ sub is_between
 }
 
 
-my $tol = 1E-13;
+our $tol = 1E-13;
 
 #  clean read of 'neat' nexus file
 {
@@ -75,17 +76,14 @@ my $tol = 1E-13;
     run_tests ($tree);
 }
 
-TODO:
 {
-    local $TODO = 
-        'Issue 322 - http://code.google.com/p/biodiverse/issues/detail?id=322';
-
     my $data = get_tabular_tree_data();
 
     my $trees = Biodiverse::ReadNexus->new;
     my $result = eval {
         $trees->import_data (data => $data);
     };
+    note $EVAL_ERROR if $EVAL_ERROR;
 
     is ($result, 1, 'import clean tabular tree, no remap');
 
@@ -95,9 +93,29 @@ TODO:
 
     my $tree = $trees[0];
 
+    #local $tol = 1E-8;
     run_tests ($tree);
 }
 
+{
+    my $data = get_tabular_tree_data_x2();
+
+    my $trees = Biodiverse::ReadNexus->new;
+    my $result = eval {
+        $trees->import_data (data => $data);
+    };
+    note $EVAL_ERROR if $EVAL_ERROR;
+
+    is ($result, 1, 'import clean tabular trees, no remap');
+
+    my @trees = $trees->get_tree_array;
+
+    is (scalar @trees, 2, 'two trees extracted');
+
+    foreach my $tree (@trees) {
+        run_tests ($tree);
+    }
+}
 
 
 #  read of a 'messy' nexus file with no newlines
@@ -111,7 +129,7 @@ SKIP:
     #print $data;
   TODO:
     {
-        local $TODO = 'issue 149';
+        local $TODO = 'issue 149 - http://code.google.com/p/biodiverse/issues/detail?id=149';
 
         my $trees = Biodiverse::ReadNexus->new;
         my $result = eval {
@@ -148,7 +166,7 @@ sub run_tests {
         my $sub   = $test->{sub};
         my $upper = $test->{ex} + $tol;
         my $lower = $test->{ex} - $tol;
-        my $msg = "$sub expected $test->{ex}";
+        my $msg = "$sub expected $test->{ex} +/- $tol";
 
         #my $val = $tree->$sub;
         #warn "$msg, $val\n";

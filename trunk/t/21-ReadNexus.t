@@ -6,7 +6,7 @@ use English qw { -no_match_vars };
 use FindBin qw/$Bin/;
 use lib "$Bin/lib";
 
-use Test::More tests => 23;
+use Test::More tests => 35;
 
 use Data::Section::Simple qw(get_data_section);
 
@@ -89,7 +89,7 @@ our $tol = 1E-13;
 
     my @trees = $trees->get_tree_array;
 
-    is (scalar @trees, 1, 'one tree extracted');
+    is (scalar @trees, 1, 'one tree extracted from tabular tree data');
 
     my $tree = $trees[0];
 
@@ -110,7 +110,7 @@ our $tol = 1E-13;
 
     my @trees = $trees->get_tree_array;
 
-    is (scalar @trees, 2, 'two trees extracted');
+    is (scalar @trees, 2, 'two trees extracted from tabular tree data');
 
     foreach my $tree (@trees) {
         run_tests ($tree);

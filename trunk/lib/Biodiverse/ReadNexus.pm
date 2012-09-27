@@ -382,16 +382,33 @@ sub import_tabular_tree {
 
     my %node_hash;
 
+    my @trees;
+
     $csv->parse ($data[0]);
     my @line_arr = $csv->fields;
     my $tree_name = $args{NAME} || $line_arr[-1] || 'TABULAR_TREE';
-
     my $tree = Biodiverse::Tree->new (NAME => $tree_name);
+    push @trees, $tree;
 
     #  process the data and generate the nodes
     foreach my $line (@data) {
         $csv->parse ($line);
         my @line_array = $csv->fields;
+
+        if ($tree_name ne $line_array[-1]) {  # we have started a new tree
+            #  clean up the previous tree
+            $self->assign_parents_for_tabular_tree_import (
+                tree_ref  => $tree,
+                node_hash => \%node_hash,
+            );
+
+            #  and start afresh
+            $tree_name = $line_array[-1];
+            $tree = Biodiverse::Tree->new (NAME => $tree_name);
+            push @trees, $tree;
+            %node_hash = ();
+        }
+
         my %line_hash;
         @line_hash{@header} = @line_array;
 
@@ -405,28 +422,45 @@ sub import_tabular_tree {
             name   => $node_name,
             length => $line_hash{LENGTHTOPARENT},
         );
-        
+
         my $node_number = $line_hash{NODE_NUMBER};
         $node_hash{$node_number} = \%line_hash;
     }
 
+    $self->assign_parents_for_tabular_tree_import (
+        tree_ref  => $tree,
+        node_hash => \%node_hash,
+    );
+
+    foreach my $tree_ref (@trees) {
+        $self->add_tree (tree => $tree_ref);
+    }
+
+    return 1;
+}
+
+sub assign_parents_for_tabular_tree_import {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree = $args{tree_ref};
+    my $node_hash = $args{node_hash};
+    
     #  now pass over the data again and assign parents
-    foreach my $node_number (sort keys %node_hash) {
-        my $node_name = $node_hash{$node_number}{NAME};
+    foreach my $node_number (sort keys %$node_hash) {
+        my $node_name = $node_hash->{$node_number}{NAME};
         my $node_ref  = $tree->get_node_ref (node => $node_name);
 
-        my $parent_number = $node_hash{$node_number}{PARENTNODE};
-        my $parent_name   = $node_hash{$parent_number}{NAME};
+        my $parent_number = $node_hash->{$node_number}{PARENTNODE};
+        my $parent_name   = $node_hash->{$parent_number}{NAME};
 
         if (defined $parent_name) {
             my $parent_ref = $tree->get_node_ref (node => $parent_name);
             $parent_ref->add_children(children => [$node_ref]);
         }
     }
-
-    $self->add_tree (tree => $tree);
-
-    return 1;
+    
+    return;
 }
 
 sub get_csv_object_for_tabular_tree_import {

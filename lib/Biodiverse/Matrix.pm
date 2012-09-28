@@ -31,7 +31,7 @@ sub new {
 
     # try to load from a file if the file arg is given
     my $file_loaded;
-    $file_loaded = $self -> load_file (@_) if defined $args{file};
+    $file_loaded = $self->load_file (@_) if defined $args{file};
     return $file_loaded if defined $file_loaded;
 
 
@@ -47,17 +47,17 @@ sub new {
         CACHE_MATRIX_AS_TREE => 1,
     );
     
-    $self -> set_params (%PARAMS, @_);  #  load the defaults, with the rest of the args as params
-    $self -> set_default_params;  #  and any user overrides
+    $self->set_params (%PARAMS, @_);  #  load the defaults, with the rest of the args as params
+    $self->set_default_params;  #  and any user overrides
 
     
     $self->{BYELEMENT} = undef;  #  values indexed by elements
     $self->{BYVALUE} = undef;    #  elements indexed by value
     
-    $self -> set_param (NAME => $args{name}) if defined $args{name};
+    $self->set_param (NAME => $args{name}) if defined $args{name};
 
     warn "[MATRIX] WARNING: Matrix name not specified\n"
-        if ! defined $self -> get_param('NAME');
+        if ! defined $self->get_param('NAME');
 
     return $self;
 }
@@ -72,11 +72,11 @@ sub rename {
     }
 
     #  first tell the basedata object - No, leave that to the basedata object
-    #my $bd = $self -> get_param ('BASEDATA_REF');
-    #$bd -> rename_output (object => $self, new_name => $name);
+    #my $bd = $self->get_param ('BASEDATA_REF');
+    #$bd->rename_output (object => $self, new_name => $name);
 
     # and now change ourselves   
-    $self -> set_param (NAME => $name);
+    $self->set_param (NAME => $name);
     
 }
 
@@ -119,7 +119,7 @@ sub describe {
     /;
 
     foreach my $key (@keys) {
-        my $desc = $self -> get_param ($key);
+        my $desc = $self->get_param ($key);
         if ((ref $desc) =~ /ARRAY/) {
             $desc = join q{, }, @$desc;
         }
@@ -129,20 +129,20 @@ sub describe {
 
     push @description, [
         'Element count: ',
-        $self -> get_element_count,
+        $self->get_element_count,
     ];
 
     push @description, [
         'Max value: ',
-        $self -> get_max_value,
+        $self->get_max_value,
     ];
     push @description, [
         'Min value: ',
-        $self -> get_min_value,
+        $self->get_min_value,
     ];
     push @description, [
         'Symmetric: ',
-        ($self -> is_symmetric ? 'yes' : 'no'),
+        ($self->is_symmetric ? 'yes' : 'no'),
     ];
 
     
@@ -162,27 +162,27 @@ sub to_tree {
     my %args = @_;
     $args{linkage_function} = $args{linkage_function} || 'link_average';
     
-    if ($self -> get_param ('AS_TREE')) {  #  don't recalculate 
-        return $self -> get_param ('AS_TREE');
+    if ($self->get_param ('AS_TREE')) {  #  don't recalculate 
+        return $self->get_param ('AS_TREE');
     }
     
-    my $tree = Biodiverse::Cluster -> new;
-    $tree -> set_param (
+    my $tree = Biodiverse::Cluster->new;
+    $tree->set_param (
         'NAME' => ($args{name}
-        || $self -> get_param ('NAME') . "_AS_TREE"
+        || $self->get_param ('NAME') . "_AS_TREE"
         )
     );
     
     eval {
-        $tree -> cluster (
+        $tree->cluster (
             %args,
             #  need to work on a clone, as it is a destructive approach
-            cluster_matrix => $self -> clone, 
+            cluster_matrix => $self->clone, 
         );
     };
     croak $EVAL_ERROR if $EVAL_ERROR;
     
-    $self -> set_param (AS_TREE => $tree);
+    $self->set_param (AS_TREE => $tree);
     
     return $tree;
 }
@@ -194,13 +194,13 @@ sub to_table {
     my %args = @_;
     
     if ($args{type} eq 'sparse') {
-        return $self -> to_table_sparse (@_);
+        return $self->to_table_sparse (@_);
     }
     elsif ($args{type} eq 'gdm') {
-        return $self -> to_table_gdm (@_);
+        return $self->to_table_gdm (@_);
     }
     else {
-        return $self -> to_table_normal (@_);
+        return $self->to_table_normal (@_);
     }
 }
 
@@ -213,7 +213,7 @@ sub to_table_normal {
     );
     
     my @data;
-    my @elements = sort $self -> get_elements_as_array;
+    my @elements = sort $self->get_elements_as_array;
     
     $data[0] = [q{}, @elements];  #  header line with blank leader
     my $i = 0;
@@ -233,18 +233,18 @@ sub to_table_normal {
             $j++;
             next E1 if $ll_only and $j > $i;
             next E2 if $ur_only and $j < $i;
-            my $exists = $self -> element_pair_exists (
+            my $exists = $self->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2,
             );
             if (! $args{symmetric} && $exists == 1) {
-                $data[$i][$j] = $self -> get_value (
+                $data[$i][$j] = $self->get_value (
                     element1 => $element1,
                     element2 => $element2,
                 );
             }
             else {
-                $data[$i][$j] = $self -> get_value (
+                $data[$i][$j] = $self->get_value (
                     element1 => $element1,
                     element2 => $element2,
                 );
@@ -264,7 +264,7 @@ sub to_table_sparse {
     );
     
     my @data;
-    my @elements = sort $self -> get_elements_as_array;
+    my @elements = sort $self->get_elements_as_array;
     
     push @data, [qw /Row Column Value/];  #  header line
     
@@ -280,14 +280,14 @@ sub to_table_sparse {
             $j++;
             next E1 if $args{lower_left}  and $j > $i;
             next E2 if $args{upper_right} and $j < $i;
-            my $exists = $self -> element_pair_exists (
+            my $exists = $self->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2,
             );
             
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
             if (($args{symmetric} and $exists) or $exists == 1) {
-                my $value = $self -> get_value (
+                my $value = $self->get_value (
                     element1 => $element1,
                     element2 => $element2,
                 );
@@ -341,14 +341,14 @@ sub to_table_gdm {
             $j++;
             next E1 if $args{lower_left}  and $j > $i;
             next E2 if $args{upper_right} and $j < $i;
-            my $exists = $self -> element_pair_exists (
+            my $exists = $self->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2,
             );
 
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
             if (($args{symmetric} and $exists) or $exists == 1) {
-                my $value = $self -> get_value (
+                my $value = $self->get_value (
                     element1 => $element1,
                     element2 => $element2,
                 );
@@ -369,7 +369,7 @@ sub get_metadata_export {
     my $self = shift;
 
     #  need a list of export subs
-    my %subs = $self -> get_subs_with_prefix (prefix => 'export_');
+    my %subs = $self->get_subs_with_prefix (prefix => 'export_');
 
     #  hunt through the other export subs and collate their metadata
     #  (not anymore)
@@ -381,7 +381,7 @@ sub get_metadata_export {
     
     LOOP_EXPORT_SUB:
     foreach my $sub (sort keys %subs) {
-        my %sub_args = $self -> get_args (sub => $sub);
+        my %sub_args = $self->get_args (sub => $sub);
 
         my $format = $sub_args{format};
 
@@ -401,7 +401,7 @@ sub get_metadata_export {
     }
     
     @formats = sort @formats;
-    $self -> move_to_front_of_list (
+    $self->move_to_front_of_list (
         list => \@formats,
         item => 'Delimited text'
     );
@@ -427,14 +427,14 @@ sub export {
     my %args = @_;
     
     #  get our own metadata...
-    my %metadata = $self -> get_args (sub => 'export');
+    my %metadata = $self->get_args (sub => 'export');
     
     my $format = $args{format};
     my $sub_to_use
         = $metadata{format_labels}{$format}
             || croak "Argument 'format => $format' not valid\n";
     
-    eval {$self -> $sub_to_use (%args)};
+    eval {$self->$sub_to_use (%args)};
     croak $EVAL_ERROR if $EVAL_ERROR;
     
     return;
@@ -452,7 +452,7 @@ sub export_delimited_text {
 
     my $table = $self->to_table (%args);
     eval {
-        $self -> write_table (
+        $self->write_table (
             %args,
             data => $table
         )
@@ -485,7 +485,7 @@ sub get_metadata_export_delimited_text {
                 name       => 'type',
                 label_text => 'output format',
                 type       => 'choice',
-                tooltip    => $self -> get_tooltip_sparse_normal,
+                tooltip    => $self->get_tooltip_sparse_normal,
                 choices    => \@formats,
                 default    => 0
             },
@@ -666,7 +666,7 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
 
     my $element1 = $args{element1};
     my $element2 = $args{element2};
-    my $exists = $self -> element_pair_exists (@_);
+    my $exists = $self->element_pair_exists (@_);
 
     if (! $exists) {
         #print "WARNING: element combination does not exist\n";
@@ -677,7 +677,7 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
         $element1 = $args{element2};
         $element2 = $args{element1};
     }
-    my $value = $self -> get_value (
+    my $value = $self->get_value (
         element1 => $element1,
         element2 => $element2,
     );
@@ -719,7 +719,7 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
             || warn "ISSUES $element2\n";
     }
     
-    #return ($self -> element_pair_exists(@_)) ? undef : 1;  #  for debug
+    #return ($self->element_pair_exists(@_)) ? undef : 1;  #  for debug
     return 1;  # return success if we get this far
 }
 
@@ -794,15 +794,15 @@ sub get_element_values {  #  get all values associated with one element
     my %args = @_;
     
     croak "element not specified (matrix)\n"  if ! defined $args{element};
-    croak "matrix element does not exist\n" if ! $self -> element_is_in_matrix (element => $args{element});
+    croak "matrix element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
     
     
-    my @elements = $self -> get_elements_as_array;
+    my @elements = $self->get_elements_as_array;
     
     my %values;
     foreach my $el (@elements) {
-        if ($self -> element_pair_exists (element1 => $el, element2 => $args{element})) {
-            $values{$el} = $self -> get_value (element1 => $el, element2 => $args{element});
+        if ($self->element_pair_exists (element1 => $el, element2 => $args{element})) {
+            $values{$el} = $self->get_value (element1 => $el, element2 => $args{element});
         }
     }
     
@@ -816,16 +816,16 @@ sub delete_all_pairs_with_element {
     my %args = @_;
     
     croak "element not specified\n" if ! defined $args{element};
-    croak "element does not exist\n" if ! $self -> element_is_in_matrix (element => $args{element});
+    croak "element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
     
-    my @elements = $self -> get_elements_as_array;
+    my @elements = $self->get_elements_as_array;
     foreach my $el (@elements) {
-        if ($self -> element_pair_exists (
+        if ($self->element_pair_exists (
                 element1 => $el,
                 element2 => $args{element})
             ) {
 
-            $self -> delete_element (
+            $self->delete_element (
                 element1 => $el,
                 element2 => $args{element},
             );

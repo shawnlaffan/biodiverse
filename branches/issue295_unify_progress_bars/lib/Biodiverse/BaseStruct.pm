@@ -19,7 +19,7 @@ use File::Basename;
 use Path::Class;
 use Time::localtime;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 #require Biodiverse::Config;
 #my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -231,7 +231,7 @@ sub export {
         if ($args{no_data_value} eq 'undef') {
             $args{no_data_value} = undef;
         }
-        elsif ($args{no_data_value} =~ /\d\*+\d/) {  #  e.g. -2**128
+        elsif ($args{no_data_value} =~ /^[-+]?\d+\*\*\d+$/) {  #  e.g. -2**128
             $args{no_data_value} = eval $args{no_data_value};
         }
     }

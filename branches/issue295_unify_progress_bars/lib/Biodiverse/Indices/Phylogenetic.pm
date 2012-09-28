@@ -11,7 +11,7 @@ use Biodiverse::Progress;
 use List::Util qw /sum min/;
 use Math::BigInt;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -79,7 +79,7 @@ sub get_metadata_calc_pd {
                 description   => 'Phylogenetic diversity per taxon as a proportion of total tree length',
                 formula       => [
                     '= \frac { PD\_P }{ RICHNESS\_ALL }',
-                ]
+                ],
             },
         },
     );
@@ -1736,7 +1736,7 @@ sub get_metadata_calc_phylo_aed {
         #pre_calc_global => [qw /get_trimmed_tree get_global_node_abundance_hash get_aed_scores/],
         #pre_calc_global => [qw /get_aed_scores/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
             PHYLO_AED_LIST => {
                 description  =>  'Abundance weighted ED per terminal label',

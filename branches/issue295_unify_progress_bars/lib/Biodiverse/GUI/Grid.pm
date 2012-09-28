@@ -18,7 +18,7 @@ use Tree::R;
 
 use Geo::ShapeFile;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;

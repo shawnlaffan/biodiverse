@@ -19,7 +19,7 @@ use warnings;
 
 use English qw { -no_match_vars };
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use Glib;
 use Gtk2;

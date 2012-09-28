@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;
@@ -301,7 +301,7 @@ sub _make_tab_callbacks {
     no strict 'refs';
     while (my ($callback, $class) = each %args) {
 
-        *{$pkg."::".$callback} =
+        *{$pkg.'::'.$callback} =
             do {
                 sub {
                     eval {

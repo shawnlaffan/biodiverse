@@ -10,8 +10,9 @@ use File::Spec;
 use POSIX qw { fmod };
 use File::Basename;
 
-use lib File::Spec->catfile( $Bin, '..', 'lib');
+#use lib File::Spec->catfile( $Bin, '..', 'lib');
 #eval 'use mylib';
+use rlib;
 
 use Data::Dumper;
 

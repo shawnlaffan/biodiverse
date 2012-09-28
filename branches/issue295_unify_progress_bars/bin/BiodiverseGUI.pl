@@ -7,7 +7,7 @@ use warnings;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -22,19 +22,12 @@ use Carp;
 my $perl_app_tool = $PerlApp::TOOL;
 
 #  add the lib folder if needed
-use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
-#eval 'use mylib';
+use rlib;
 
-#  load up the user defined libs
-use Biodiverse::Config qw /use_base add_lib_paths/;
-BEGIN {
-    add_lib_paths();
-    use_base();
-}
+#  load up the user defined libs and settings
+use Biodiverse::Config;
 
 #  load Gtk
-#use Gtk2;    # -init;
-#Gtk2->init;
 use Gtk2 qw/-init/;
 
 use Gtk2::GladeXML;
@@ -51,12 +44,11 @@ if ( $numargs == 1 ) {
     $filename = $ARGV[0];
     if ( $filename eq '--help' || $filename eq '-h' || $filename eq '/?' ) {
         usage();
+        exit;
     }
     elsif ( not( -e $filename and -r $filename ) ) {
         warn "  Error: Cannot read $filename\n";
         $filename = undef;
-
-        #exit();
     }
 }
 elsif ( $numargs > 1 ) {

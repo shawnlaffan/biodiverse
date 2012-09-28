@@ -8,8 +8,7 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use FindBin qw/$Bin/;
-use lib "$Bin/lib";
+use rlib; 
 
 local $| = 1;
 
@@ -72,11 +71,12 @@ my @setup = (
         $string =~ s/;$//;
 
         my $message  = $this_run->{message} || $string;
-        
+
         my $bd = eval {
             get_basedata_object ( %$args, );
         };
         my $error = $EVAL_ERROR;
+
         if ($expected eq 'fail') {
             ok (defined $error, "Trapped error: $message");
         }

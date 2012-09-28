@@ -9,16 +9,18 @@ use Carp;
 use English qw { -no_match_vars };
 use Path::Class;
 
-use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
+#use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
+use rlib;
 
 local $| = 1;
 
 #  load up the user defined libs
-use Biodiverse::Config qw /use_base add_lib_paths/;
-BEGIN {
-    add_lib_paths();
-    use_base();
-}
+#use Biodiverse::Config qw /use_base add_lib_paths/;
+#BEGIN {
+#    add_lib_paths();
+#    use_base();
+#}
+use Biodiverse::Config;
 
 use Biodiverse::BaseData;
 use Biodiverse::Common;

@@ -16,7 +16,7 @@ use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use base qw /Biodiverse::Common/;
 
@@ -91,6 +91,9 @@ sub import_data {
     $self->set_param (USE_ELEMENT_PROPERTIES => $use_element_properties);
     
     my @import_methods = qw /import_nexus import_phylip import_tabular_tree/;
+    if (defined $args{file} && $args{file} =~ /(txt|csv)$/) {  #  dirty hack
+        @import_methods = ('import_tabular_tree');
+    }
     my $success;
     
   IMPORT_METHOD:
@@ -104,7 +107,7 @@ sub import_data {
             }
             else {
                 Biodiverse::ReadNexus::IncorrectFormat->throw (
-                    message => "Unable to import data",
+                    message => "Unable to import data:\n" . $EVAL_ERROR,
                     type    => 'generic',
                 );
             }
@@ -366,11 +369,145 @@ sub import_nexus {
     return 1;
 }
 
+#  rough and ready - assumes a set structure
 sub import_tabular_tree {
     my $self = shift;
     my %args = @_;
+
+    my $data = $args{data};
+    if (! defined $data) {
+        $data = $self->read_whole_file (file => $args{file});
+    }
+
+    my @data = split ($/, $data);
+    my $header = shift @data;
+
+    my $csv = $self->get_csv_object_for_tabular_tree_import (%args);
+    $csv->parse($header);
+    my @header = $csv->fields;
+    $csv->column_names (@header);
+
+    my $node_hash = {};
+
+    my @trees;
+
+    $csv->parse ($data[0]);
+    my @line_arr = $csv->fields;
+    my %line_h;
+    @line_h{@header} = @line_arr;
+    my $tree_name = $args{NAME} || $line_h{TREENAME} || 'TABULAR_TREE';
+    my $tree = Biodiverse::Tree->new (NAME => $tree_name);
+    push @trees, $tree;
+
+    #  process the data and generate the nodes
+    foreach my $line (@data) {
+        $csv->parse ($line);
+        my @line_array = $csv->fields;
+        my %line_hash;
+        @line_hash{@header} = @line_array;
+
+        if (defined $line_h{TREENAME} && $tree_name ne $line_hash{TREENAME}) {  # we have started a new tree
+            #  clean up the previous tree
+            $self->assign_parents_for_tabular_tree_import (
+                tree_ref  => $tree,
+                node_hash => $node_hash,
+            );
+
+            #  and start afresh
+            $tree_name = $line_hash{TREENAME};
+            $tree = Biodiverse::Tree->new (NAME => $tree_name);
+            push @trees, $tree;
+            $node_hash = {};
+        }
+
+        my $node_name = $line_hash{NAME};
+        if (!defined $node_name) {
+            $node_name = $tree->get_free_internal_name;
+            $line_hash{NAME} = $node_name;
+        }
+
+        $tree->add_node (
+            name   => $node_name,
+            length => $line_hash{LENGTHTOPARENT},
+        );
+
+        my $node_number = $line_hash{NODE_NUMBER};
+        $node_hash->{$node_number} = \%line_hash;
+    }
+
+    $self->assign_parents_for_tabular_tree_import (
+        tree_ref  => $tree,
+        node_hash => $node_hash,
+    );
+
+    foreach my $tree_ref (@trees) {
+        $self->add_tree (tree => $tree_ref);
+    }
+
+    return 1;
+}
+
+sub assign_parents_for_tabular_tree_import {
+    my $self = shift;
+    my %args = @_;
     
-    croak "NOT YET IMPLEMENTED";
+    my $tree = $args{tree_ref};
+    my $node_hash = $args{node_hash};
+    
+    #  now pass over the data again and assign parents
+    foreach my $node_number (sort keys %$node_hash) {
+        my $node_name = $node_hash->{$node_number}{NAME};
+        my $node_ref  = $tree->get_node_ref (node => $node_name);
+
+        my $parent_number = $node_hash->{$node_number}{PARENTNODE};
+        my $parent_name   = $node_hash->{$parent_number}{NAME};
+
+        if (defined $parent_name) {
+            my $parent_ref = $tree->get_node_ref (node => $parent_name);
+            $parent_ref->add_children(children => [$node_ref]);
+        }
+    }
+    
+    return;
+}
+
+sub get_csv_object_for_tabular_tree_import {
+    my $self = shift;
+    my %args = @_;
+    
+        my $data = $args{data};
+    my @data = split ("\n", $data, 2);
+    my $header = $data[0];
+
+    #  need to get the csv params
+    my $input_quote_char = $args{input_quote_char};
+    my $sep              = $args{input_sep_char};    
+
+    #  boilerplate - refactor
+    if (not defined $input_quote_char or $input_quote_char eq 'guess') {
+        #  guess the quotes character
+        $input_quote_char = $self->guess_quote_char (string => $data);
+        #  if all else fails...
+        if (not defined $input_quote_char) {
+            $input_quote_char = $self->get_param ('QUOTES');
+        }
+    }
+
+    if (not defined $sep or $sep eq 'guess') {
+        $sep = $self->guess_field_separator (
+            string     => $header,
+            quote_char => $input_quote_char,
+        );
+    }
+    my $eol = $self->guess_eol (string => $header);
+    
+    my $csv_in = $self->get_csv_object (
+        sep_char => $sep,
+        quote_char => $input_quote_char,
+        eol => $eol,
+    );
+    
+    return $csv_in;
 }
 
 sub process_unrooted_trees {
@@ -598,8 +735,12 @@ sub parse_newick {
             $string =~ m/\G ( $RE_NUMBER ) /xgcs;
             #print "length value is $1\n";
             $length = $1;
-            croak "Length '$length' does not look like a number\n"
-                if ! looks_like_number $length;
+            if (! looks_like_number $length) {
+                if (!defined $length) {
+                    $length = q{};
+                }
+                croak "Length '$length' does not look like a number\n";
+            }
             $length += 0;  #  make it numeric
             my $x = $length;
         }

@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -124,6 +124,10 @@ sub use_base {
 
     return;
 }
+
+add_lib_paths();
+use_base();
+
 
 1;
 

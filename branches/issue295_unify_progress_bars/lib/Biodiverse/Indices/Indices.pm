@@ -6,13 +6,14 @@ use Carp;
 
 use Scalar::Util qw /blessed weaken/;
 use English ( -no_match_vars );
+use Readonly;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use Biodiverse::Statistics;
-
 my $stats_class = 'Biodiverse::Statistics';
 
+Readonly my $RE_ABC_REQUIRED_ARGS => qr /(?:element_list|(?:label_)(?:hash|list))[12]/;
 
 ###########################################
 #  test/debug methods
@@ -1829,6 +1830,7 @@ sub calc_element_lists_used {
 
 }
 
+
 sub get_metadata_calc_abc {
 
     my %arguments = (
@@ -1836,6 +1838,7 @@ sub get_metadata_calc_abc {
         type            => 'not_for_gui',
         indices         => {},
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -1845,7 +1848,7 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
     my $self = shift;
     #my %args = @_;
 
-    return $self -> _calc_abc(
+    return $self -> _calc_abc (
         @_,
         count_labels  => 0,
         count_samples => 0,
@@ -1859,6 +1862,7 @@ sub get_metadata_calc_abc2 {
         type            => 'not_for_gui',  #  why not???
         indices         => {},
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -1879,6 +1883,7 @@ sub get_metadata_calc_abc3 {
         type            => 'not_for_gui',  #  why not?
         indices         => {},
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -1899,7 +1904,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 
     croak "none of refs element_list1, element_list2, label_list1, "
           . "label_list2, label_hash1, label_hash2 specified\n"
-        if (! defined $args{element_list1}
+        if (   ! defined $args{element_list1}
             && ! defined $args{element_list2}
             && ! defined $args{label_list1}
             && ! defined $args{label_list2}

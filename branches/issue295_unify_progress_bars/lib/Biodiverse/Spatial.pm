@@ -22,7 +22,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 #use Time::HiRes qw /tv_interval gettimeofday/;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use Biodiverse::SpatialParams;
 use Biodiverse::SpatialParams::DefQuery;
@@ -276,6 +276,8 @@ sub sp_calc {
     $indices_object->get_valid_calculations (
         %args,
         nbr_list_count => $nbr_list_count,
+        element_list1 => [],  #  for validity checking only
+        element_list2 => $nbr_list_count == 2 ? [] : undef,
     );
 
     #  drop out if we have none to do and we don't have an override flag
@@ -493,10 +495,9 @@ sub sp_calc {
     
     $progress = Biodiverse::Progress->new();
 
-
     local $| = 1;  #  write to screen as we go
     my $using_index_text = defined $sp_index ? $EMPTY_STRING : "\nNot using spatial index";
-
+    
     my ($count, $printedProgress) = (0, -1);
     print "[SPATIAL] Progress (% of $toDo elements):     ";
     #$timer = [gettimeofday];    # to use with progress bar
@@ -514,7 +515,7 @@ sub sp_calc {
         my $progress_text =
               "Spatial analysis\n$progress_text\n"
             . "($count / $toDo)"
-            . "$using_index_text";
+            . $using_index_text;
         $progress->update ($progress_text, $progress_so_far);
 
         #  don't calculate unless in the list

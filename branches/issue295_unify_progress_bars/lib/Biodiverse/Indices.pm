@@ -6,16 +6,17 @@ package Biodiverse::Indices;
 use Carp;
 use strict;
 use warnings;
-use Devel::Symdump;
+#use Devel::Symdump;
 use Data::Dumper;
 use Scalar::Util qw /blessed weaken reftype/;
 use List::MoreUtils qw /uniq/;
 use English ( -no_match_vars );
-use MRO::Compat;
+#use MRO::Compat;
+use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 my $EMPTY_STRING = q{};
 
@@ -65,13 +66,6 @@ sub reset_results {
     if ($args{global}) {
         $self->set_param (AS_RESULTS_FROM_GLOBAL => {});
     }
-    #else {  #  old style - delete?  
-        #  need to loop through the precalc hash and delete any locals in it
-        #my $valids = $self->get_param('VALID_CALCULATIONS');
-        #my $pre_calcs = $valids->{pre_calc_to_run};
-        #my $as_args_from = $self->get_param('AS_RESULTS_FROM');
-        #delete @{$as_args_from}{keys %$pre_calcs};
-    #}
 
     return;
 }
@@ -85,21 +79,15 @@ sub reset_results {
 sub get_calculations {
     my $self = shift;
 
-    my $tree = mro::get_linear_isa(blessed ($self));
-
-    my $syms = Devel::Symdump->rnew(@$tree);
     my %calculations;
-    my @list = sort $syms->functions;
-    foreach my $calculations (@list) {
-        next if $calculations !~ /^.*::calc_/;
-        next if $calculations =~ /calc_abc\d?$/;
-        my ($source_module, $sub_name) = $calculations =~ /((?:.*::)*)(.+)/;
-        $source_module =~ s/::$//;
-        #print "ANALYSIS IS $calculations\n";
-        my $ref = $self->get_args (sub => $sub_name);
-        #$ref->{source_module} = $source_module;
-        push @{$calculations{$ref->{type}}}, $sub_name;
-        print Data::Dumper::Dump ($ref) if ! defined $ref->{type};
+
+    my $list = Class::Inspector->methods (blessed $self);
+
+    foreach my $method (@$list) {
+        next if $method !~ /^calc_/;
+        next if $method =~ /calc_abc\d?$/;
+        my $ref = $self->get_args (sub => $method);
+        push @{$calculations{$ref->{type}}}, $method;
     }
 
     return wantarray ? %calculations : \%calculations;
@@ -391,7 +379,7 @@ sub parse_dependencies_for_calc {
 
     my $calcs = [$args{calculation}];  # array is a leftover - need to correct it
 
-    my $nbr_list_count = $args{nbr_list_count} || $self->get_param ('NBR_LIST_COUNT');
+    my $nbr_list_count = $args{nbr_list_count} || $self->get_param ('NBR_LIST_COUNT') || 1;
     my $calc_args      = $args{calc_args} || \%args;
 
     #  Types of calculation.
@@ -448,15 +436,43 @@ sub parse_dependencies_for_calc {
                 }
             }
             if ($metadata->{required_args}) {
-                my $reqd_args_h = $self->_convert_to_hash (input => $metadata->{required_args});
-                foreach my $required_arg (keys %$reqd_args_h) {
-                    if (! defined $calc_args->{$required_arg}) {
+                #  don't really need to convert to hash here, but do need a list form
+                #my $reqd_args_h = $self->_convert_to_hash (input => $metadata->{required_args});
+                my $reqd_args_a = $self->_convert_to_array (input => $metadata->{required_args});
+                
+                foreach my $required_arg (sort @$reqd_args_a) {
+                    my $re = qr /^($required_arg)$/;
+                    my $is_defined;
+                    CALC_ARG:
+                    foreach my $calc_arg (sort grep {$_ =~ $re} keys %$calc_args) {
+                        #if ($calc_arg =~ $re) {
+                            #my $match = $1;
+                            if (defined $calc_args->{$calc_arg}) {
+                                $is_defined ++;
+                            }
+                        #}
+                    }
+
+                    if (! $is_defined) {
                         Biodiverse::Indices::MissingRequiredArguments->throw (
                             error => "[INDICES] WARNING: $calc missing required "
                                     . "parameter $required_arg, "
                                     . "dropping it and any calc that depends on it\n",
                         );
                         
+                    }
+                }
+            }
+            if ($metadata->{pre_conditions}) {
+                my $pre_cond_a = $self->_convert_to_array (input => $metadata->{pre_conditions});
+                
+                foreach my $pre_cond (sort @$pre_cond_a) {
+                    my $check = $self->$pre_cond (%$calc_args);
+                    if (! $check) {
+                        Biodiverse::Indices::FailedPreCondition->throw (
+                            error => "[INDICES] WARNING: $calc failed precondition. "
+                                    . "Dropping it and any calc that depends on it\n",
+                        );
                     }
                 }
             }
@@ -499,6 +515,7 @@ sub parse_dependencies_for_calc {
 my @valid_calc_exceptions = qw /
     Biodiverse::Indices::MissingRequiredArguments
     Biodiverse::Indices::InsufficientElementLists
+    Biodiverse::Indices::FailedPreCondition
 /;
 
 sub get_valid_calculations {
@@ -547,12 +564,7 @@ sub get_valid_calculations {
     my %aggregated_deps_per_calc = $self->get_deps_per_calc_by_type (
         calc_hash => \%valid_calcs,
     );
-    
-    #my %aggregated_indices_to_clear = $self->get_indices_to_clear_by_type (
-    #    calc_hash => \%valid_calcs,
-    #);
 
-    #calculations_to_run
     my %results = (
         calculations_to_run => \%valid_calcs,
         calc_lists_by_type  => \%aggregated_calc_lists,
@@ -758,35 +770,6 @@ sub get_valid_calculation_count {
     return scalar keys %$calcs;
 }
 
-
-#sub get_required_args_for_calcs {
-#    my $self = shift;
-##  still needed?    
-#    my $valid_calcs = $self->get_param('VALID_CALCULATIONS');
-#    
-#    return $valid_calcs->{required_args};
-#}
-
-
-#  indices where we don't have enough lists, but where the rest of the analysis can still run
-#  these can be cleared from any results
-#  need to rename sub
-#sub get_indices_to_clear {  #  should really accept a list of calculations as an arg
-#    my $self = shift;
-#croak "deprecated\n";
-#    my %args = @_;
-#    my $nbr_list_count = $args{nbr_list_count} || croak "nbr_list_count argument not specified\n";
-#
-#    my %hash = $self->get_indices_uses_lists_count (%args);
-#
-#    foreach my $index (keys %hash) {
-#        delete $hash{$index} if ! defined $hash{$index} || $hash{$index} <= $nbr_list_count;
-#    }
-#
-#    return wantarray ? %hash : \%hash;
-#}
-
-
 sub run_dependencies {
     my $self = shift;
     my %args = @_;
@@ -926,25 +909,6 @@ sub run_postcalc_globals {
         type => 'post_calc_global',
     );
 }
-
-#  for debugging purposes
-#our $AUTOLOAD;
-#sub AUTOLOAD {
-#    return;
-#}
-#
-#sub DESTROY {
-#    my $self = shift;
-#    #print "[INDICES] DESTROYING OBJECT " . ($self->get_param('NAME') || 'anonymous') . " $self \n";
-#    #use Devel::Cycle;
-#    
-#    #my $cycle = find_cycle($self);
-#    #if ($cycle) {
-#    #    print STDERR "Cycle found: $cycle\n";
-#    #}
-#
-#    #print $self->dump_to_yaml (data => $self);
-#}
 
 
 1;

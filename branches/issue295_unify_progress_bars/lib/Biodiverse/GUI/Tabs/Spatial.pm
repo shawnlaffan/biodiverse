@@ -4,7 +4,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 use Gtk2;
 use Carp;
@@ -568,7 +568,7 @@ sub queueSetPane {
 }
 
 sub setPaneSignal {
-    my $self = shift; shift;
+    my $self = shift; shift;  #  FIXME FIXME - check why double shift, assign vars directly from list my ($self, undef, $pane) = @_;
     my $pane = shift;
     $self->setPane( $self->{setPanePos} );
     $pane->signal_handler_disconnect( $self->{setPaneSignalID} );

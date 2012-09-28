@@ -8,13 +8,13 @@ use warnings;
 use English ( -no_match_vars );
 
 use Data::Dumper;
-use Devel::Symdump;
+#use Devel::Symdump;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use List::Util;
 #use Math::Random::MT::Auto qw /rand shuffle get_state/;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 #use Biodiverse::Common;
 use Biodiverse::Matrix;
@@ -215,6 +215,8 @@ sub build_matrices {
         %args,
         calculations    => [$index_function],
         nbr_list_count  => 2,
+        element_list1   => [], #  dummy values for validity checks
+        element_list2   => [],
     );
     my $valid_calcs = $indices_object->get_valid_calculations_to_run;
     croak "Selected index $index_function cannot be calculated, check arguments like selected tree or matrix\n"
@@ -1692,15 +1694,12 @@ sub delete_links_from_matrix {
 sub get_linkage_functions {
     my $self = shift;
 
-    my $tree = mro::get_linear_isa(blessed ($self) || __PACKAGE__);
-    my $syms = Devel::Symdump->rnew(@$tree);
+    my $methods = Class::Inspector->methods (blessed ($self) || __PACKAGE__);
 
     my @linkages;
 
-    foreach my $linkage (sort $syms->functions) {
-        next if $linkage !~ /^.*::link_/;
-        $linkage =~ s/(.*::)*//;  #  get the function name without package context -these are called using inheritance
-        #print "LINKAGE IS $linkage\n";
+    foreach my $linkage (@$methods) {
+        next if $linkage !~ /^link_/;
         push @linkages, $linkage;
     }
 
@@ -1733,6 +1732,7 @@ sub sp_calc {
     $indices_object->get_valid_calculations (
         %args,
         nbr_list_count => $nbr_list_count,
+        element_list1  => [],
     );
 
     #  drop out if we have none to do

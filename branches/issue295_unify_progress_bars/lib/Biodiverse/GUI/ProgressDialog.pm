@@ -15,7 +15,7 @@ use Time::HiRes qw /tv_interval gettimeofday/;
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 my $TRUE  = 1;
 my $FALSE = 0;

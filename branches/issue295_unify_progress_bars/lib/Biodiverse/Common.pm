@@ -4,12 +4,8 @@ package Biodiverse::Common;
 
 use strict;
 use warnings;
-
-use English ( -no_match_vars );
-
 use Carp;
-
-use Readonly;
+use English ( -no_match_vars );
 
 use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
@@ -19,21 +15,22 @@ use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
 use Path::Class;
-use POSIX;  #  make all the POSIX functions available to the spatial parameters
+#use POSIX;  #  make all the POSIX functions available to the spatial parameters - do we still need this here?
 use HTML::QuickTable;
 #use XBase;
-use MRO::Compat;
+#use MRO::Compat;
+use Class::Inspector;
 
 use Math::Random::MT::Auto;  
 
-use Regexp::Common qw /number/;
+#use Regexp::Common qw /number/;
 
 use Biodiverse::Progress;
 use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18003';
 
 my $EMPTY_STRING = q{};
 
@@ -255,9 +252,9 @@ sub get_param_as_ref {
     my $self = shift;
     my $param = shift;
 
-    return if ! $self -> exists_param ($param);
+    return if ! $self->exists_param ($param);
 
-    my $value = $self -> get_param ($param);
+    my $value = $self->get_param ($param);
     my $test_value = $value;  #  for debug
     if (not ref $value) {
         $value = \$self->{PARAMS}{$param};  #  create a ref if it is not one already
@@ -271,7 +268,8 @@ sub get_param_as_ref {
 #  sometimes we only care if it exists, as opposed to its being undefined
 sub exists_param {
     my $self = shift;
-    my $param = shift || croak "param not specified\n";
+    my $param = shift;
+    croak "param not specified\n" if !defined $param;
     
     my $x = exists $self->{PARAMS}{$param};
     return $x;
@@ -299,11 +297,15 @@ sub set_param {
     return scalar keys %args;
 }
 
-*set_params = \&set_param;
+#*set_params = \&set_param;
+sub set_params {
+    my $self = shift;
+    return $self->set_param(@_);
+}
 
 sub delete_param {  #  just passes everything through to delete_params
     my $self = shift;
-    $self -> delete_params(@_);
+    $self->delete_params(@_);
 
     return;
 }
@@ -1101,216 +1103,6 @@ sub get_csv_object {
 }
 
 #############################################################
-##  some stuff to handle coords in degrees 
-#  MOVED TO Geo::Converter::dms2dd
-
-#  some regexes
-#Readonly my $RE_REAL => qr /$RE{num}{real}/xms;
-#Readonly my $RE_INT  => qr /$RE{num}{int} /xms;
-#Readonly my $RE_HEMI => qr {      #  the hemisphere if given as text
-#                                \s*
-#                                [NESWnesw]
-#                                \s*
-#                        }xms;
-
-#  a few constants
-#Readonly my $MAX_VALID_DD  => 360;
-#Readonly my $MAX_VALID_LAT => 90;
-#Readonly my $MAX_VALID_LON => 180;
-#
-#Readonly my $INVALID_CHAR_CONTEXT => 3;
-#
-##  how many numbers we can have in a DMS string
-#Readonly my $MAX_DMS_NUM_COUNT => 3;
-
-#  convert degrees minutes seconds coords into decimal degrees
-#  e.g.;
-#  S23°32'09.567"  = -23.5359908333333
-#  149°23'18.009"E = 149.388335833333
-#sub dms2dd {
-#    my $self = shift;
-#    my %args = @_;
-#    my $coord = $args{coord} || croak "Argument 'coord' not supplied\n";
-#    #my $is_lat = $args{is_lat}; #  these are passed onwards
-#    #my $is_lon = $args{is_lon};
-#
-#    my $msg_pfx = 'Coord error: ';
-#
-#    my $first_char_invalid;
-#    if (not $coord =~ m/ \A [\s0-9NEWSnews+-] /xms) {
-#        $first_char_invalid = substr $coord, 0, $INVALID_CHAR_CONTEXT;
-#    }
-#
-#    croak $msg_pfx . "Invalid string at start of coord: $coord\n"
-#        if defined $first_char_invalid;
-#
-#    my @nums = eval {
-#        $self -> _dms2dd_extract_nums ( coord => $coord );
-#    };
-#    croak $EVAL_ERROR if ($EVAL_ERROR);
-#
-#    my $deg = $nums[0];
-#    my $min = $nums[1];
-#    my $sec = $nums[2];
-#
-#    my $hemi = eval {
-#        $self -> _dms2dd_extract_hemisphere (
-#            coord => $coord,
-#        );
-#    };
-#    croak $EVAL_ERROR if $EVAL_ERROR;
-#
-#    my $multiplier = 1;
-#    if ($hemi =~ / [SsWw-] /xms) {
-#        $multiplier = -1;
-#    }
-#
-#    #  now apply the defaults
-#    #  $deg is +ve, as hemispheres are handled separately
-#    $deg = abs ($deg) || 0;
-#    $min = $min || 0;
-#    $sec = $sec || 0;
-#
-#    my $dd = $multiplier
-#            * ( $deg
-#                + $min / 60
-#                + $sec / 3600
-#              );
-#
-#    my $valid = eval {
-#        $self -> _dms2dd_validate_dd_coord (
-#            %args,
-#            coord       => $dd,
-#            hemisphere  => $hemi,
-#        );
-#    };
-#    croak $EVAL_ERROR if $EVAL_ERROR;
-#
-#    #my $res = join (q{ }, $coord, $dd, $multiplier, $hemi, @nums) . "\n";
-#
-#    return $dd;
-#}
-#
-##  are the numbers we extracted OK?
-##  must find three or fewer of which only the last can be decimal 
-#sub _dms2dd_extract_nums {
-#    my $self = shift;
-#    my %args = @_;
-#
-#    my $coord = $args{coord};
-#
-#    my @nums = $coord =~ m/$RE_REAL/gxms;
-#    my $deg = $nums[0];
-#    my $min = $nums[1];
-#    my $sec = $nums[2];
-#
-#    #  some verification
-#    my $msg;
-#
-#    if (! defined $deg) {
-#        $msg = 'No numeric values in string';
-#    }
-#    elsif (scalar @nums > $MAX_DMS_NUM_COUNT) {
-#        $msg = 'Too many numbers in string';
-#    }
-#
-#    if (defined $sec) {
-#        if ($min !~ / \A $RE_INT \z/xms) {
-#            $msg = 'Seconds value given, but minutes value is floating point';
-#        }
-#        elsif ($sec < 0 || $sec > 60) {
-#            $msg = 'Seconds value is out of range';
-#        }
-#    }
-#    
-#    if (defined $min) {
-#        if ($deg !~ / \A $RE_INT \z/xms) {
-#            $msg = 'Minutes value given, but degrees value is floating point';
-#        }
-#        elsif ($min < 0 || $min > 60) {
-#            $msg = 'Minutes value is out of range';
-#        }
-#    }
-#
-#    #  the valid degrees values depend on the hemisphere,
-#    #  so are trapped elsewhere
-#
-#    my $msg_pfx     = 'DMS coord error: ';
-#    my $msg_suffix  = qq{: '$coord'\n};
-#
-#    croak $msg_pfx . $msg . $msg_suffix
-#        if $msg;
-#
-#    return wantarray ? @nums : \@nums;
-#}
-#
-#sub _dms2dd_validate_dd_coord {
-#    my $self = shift;
-#    my %args = @_;
-#
-#    my $is_lat = $args{is_lat};
-#    my $is_lon = $args{is_lon};
-#
-#    my $dd   = $args{coord};
-#    my $hemi = $args{hemisphere};
-#
-#    my $msg_pfx = 'Coord error: ';
-#    my $msg;
-#
-#    #  if we know the hemisphere then check it is in bounds,
-#    #  otherwise it must be in the interval [-180,360]
-#    if ($is_lat || $hemi =~ / [SsNn] /xms) {
-#        if ($is_lon) {
-#            $msg = "Longitude specified, but latitude found\n"
-#        }
-#        elsif (abs ($dd) > $MAX_VALID_LAT) {
-#            $msg = "Latitude out of bounds: $dd\n"
-#        }
-#    }
-#    elsif ($is_lon || $hemi =~ / [EeWw] /xms) {
-#        if ($is_lat) {
-#            $msg = "Latitude specified, but longitude found\n"
-#        }
-#        elsif (abs ($dd) > $MAX_VALID_LON) {
-#            $msg = "Longitude out of bounds: $dd\n"
-#        }
-#    }
-#    elsif ($dd < -180 || $dd > $MAX_VALID_DD) {
-#        croak "Coord out of bounds\n";
-#    }
-#    croak "$msg_pfx $msg" if $msg;
-#
-#    return 1;
-#}
-#
-#sub _dms2dd_extract_hemisphere {
-#    my $self = shift;
-#    my %args = @_;
-#
-#    my $coord = $args{coord};
-#
-#    my $hemi;
-#    #  can start with [NESWnesw-]
-#    if ($coord =~ m/ \A ( $RE_HEMI | [-] )/xms) {
-#        $hemi = $1;
-#    }
-#    #  cannot end with [-]
-#    if ($coord =~ m/ ( $RE_HEMI ) \z /xms) {
-#        my $hemi_end = $1;
-#
-#        croak "Cannot define hemisphere twice: $coord\n"
-#            if (defined $hemi && defined $hemi_end);
-#
-#        $hemi = $hemi_end;
-#    }
-#    if (! defined $hemi) {
-#        $hemi = q{};
-#    }
-#
-#    return $hemi;
-#}
-
-#############################################################
 ## 
 
 #  convert an array to a hash, where the array values are keys and all the values are the same
@@ -1498,7 +1290,7 @@ sub guess_field_separator {
     my %sep_count;
     #my $i = 0;
     foreach my $sep (@separators) {
-
+        next if ! length $string;
         #  skip if does not contain the separator
         #  - no point testing in this case
         next if ! ($string =~ /$sep/);  
@@ -1595,31 +1387,32 @@ sub get_next_line_set {
     my $size_comment        = $args{size_comment} || $EMPTY_STRING;
     my $csv                 = $args{csv_object};
 
-    #if ($progress_bar) {
-        $progress_bar -> update (
-            "Loading next $target_line_count lines \n"
-            . "of $file_name into memory\n"
-            . $size_comment,
-              0
-        );
-    #}
+    my $progress_pfx = "Loading next $target_line_count lines \n"
+                    . "of $file_name into memory\n"
+                    . $size_comment;
+
+    $progress_bar->update ($progress_pfx, 0);
 
     #  now we read the lines
     my @lines;
     while (scalar @lines < $target_line_count) {
-        my $line = $csv -> getline ($file_handle);
-        if (not $csv -> error_diag) {
+        my $line = $csv->getline ($file_handle);
+        if (not $csv->error_diag) {
             push @lines, $line;
         }
-        elsif (not $csv -> eof) {
-            print $csv -> error_diag;
-            $csv -> SetDiag (0);
+        elsif (not $csv->eof) {
+            print $csv->error_diag;
+            $csv->SetDiag (0);
         }
-        if ($csv -> eof) {
+        if ($csv->eof) {
             #$self -> set_param (IMPORT_TOTAL_CHUNK_TEXT => $$chunk_count);
             #pop @lines if not defined $line;  #  undef returned for last line in some cases
             last;
         }
+        $progress_bar->update (
+            $progress_pfx,
+            (scalar @lines / $target_line_count),
+        );
     }
 
     return wantarray ? @lines : \@lines;
@@ -1734,12 +1527,13 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
     if ($depth < $#$minima) {
         my $nextDepth = $depth + 1;
-        $soFar = $self -> get_poss_elements (%args,
-                                             sep_char => $sep_char,
-                                             precision => $precision,
-                                             depth => $nextDepth,
-                                             soFar => $soFar
-                                             );
+        $soFar = $self -> get_poss_elements (
+            %args,
+            sep_char  => $sep_char,
+            precision => $precision,
+            depth     => $nextDepth,
+            soFar     => $soFar
+        );
     }
 
     return $soFar;
@@ -1754,9 +1548,9 @@ sub get_surrounding_elements {  #  generate a list of values around a single poi
     my $sep_char = $args{sep_char} || $self -> get_param('JOIN_CHAR') || $self -> get_param('JOIN_CHAR');
     my $distance = $args{distance} || 1; #  number of cells distance to check
 
-    my @minima; my @maxima;
+    my (@minima, @maxima);
     #  precision snap them to make comparisons easier
-    my $precision = $args{precision} || [("%.10f") x scalar @$coordRef];
+    my $precision = $args{precision} || [('%.10f') x scalar @$coordRef];
 
     foreach my $i (0..$#{$coordRef}) {
         #$minima[$i] = sprintf ($precision->[$i], $coordRef->[$i] - ($resolutions->[$i] * $distance)) + 0;
@@ -1776,9 +1570,9 @@ sub get_surrounding_elements {  #  generate a list of values around a single poi
 
     return $self->get_poss_elements (
         %args,
-        minima      =>\@minima,
+        minima      => \@minima,
         maxima      => \@maxima,
-        resolutions =>$resolutions,
+        resolutions => $resolutions,
         sep_char    => $sep_char,
     );
 }
@@ -1793,7 +1587,7 @@ sub get_list_as_flat_hash {
     #  check the first one
     my $list_reftype = reftype ($list);
     croak 'list arg must be a hash or array ref, not ' . ($list_reftype || 'undef') . "\n"
-      if not (defined $list_reftype or $list_reftype =~/ARRAY|HASH/);
+      if not (defined $list_reftype or $list_reftype =~ /ARRAY|HASH/);
 
     my @refs = ($list);  #  start with this
     my %flat_hash;
@@ -1861,7 +1655,7 @@ sub get_shared_hash_keys {
 
 
 #  get a list of available subs (analyses) with a specified prefix
-#sub get_analyses {
+#sub get_analyses {  ### CHANGE TO USE Class::Inspector::methods
 sub get_subs_with_prefix {
     my $self = shift;
     my %args = @_;
@@ -1869,16 +1663,22 @@ sub get_subs_with_prefix {
     my $prefix = $args{prefix};
     croak "prefix not defined\n" if not defined $prefix;
 
-    my $tree = mro::get_linear_isa($args{class} or blessed ($self));
-
-    my $syms = Devel::Symdump->rnew(@$tree);
-    my %subs;
-    my @subs_array = sort $syms->functions;
-    foreach my $sub_name (@subs_array) {
-        next if $sub_name !~ /^.*::$prefix/;
-        $sub_name =~ s/(.*::)*//;  #  clear the package stuff
-        $subs{$sub_name} ++;
-    }
+    #my $tree = mro::get_linear_isa($args{class} or blessed ($self));
+    #
+    #my $syms = Devel::Symdump->rnew(@$tree);
+    #my %subs;
+    #my @subs_array = sort $syms->functions;
+    #foreach my $sub_name (@subs_array) {
+    #    next if $sub_name !~ /^.*::$prefix/;
+    #    $sub_name =~ s/(.*::)*//;  #  clear the package stuff
+    #    $subs{$sub_name} ++;
+    #}
+    
+    my $methods   = Class::Inspector->methods ($args{class} or blessed ($self));
+    #my @sub_names = grep {$_ =~ /^$prefix/} @$methods;
+    #my %subs;
+    #@subs{@sub_names} = (1) x scalar @sub_names;
+    my %subs = map {$_ => 1} grep {$_ =~ /^$prefix/} @$methods;
 
     return wantarray ? %subs : \%subs;
 }
@@ -2042,17 +1842,20 @@ sub compare_lists_by_item {
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
         #  should really make the precision an option in the metadata
-        my $base = $self -> set_precision (
+        my $base = $self->set_precision (
             precision => '%.10f',
             value     => $base_ref->{$index},
         );
-        my $comp = $self -> set_precision (
+        my $comp = $self->set_precision (
             precision => '%.10f',
             value     => $comp_ref->{$index},
         );
 
         #  make sure it gets a value of 0 if false
-        my $increment = eval {$base > $comp} || 0;  
+        my $increment = 0;
+        if (eval {$base > $comp}) {
+            $increment = 1;
+        }
 
         #  for debug, but leave just in case
         #carp "$element, $op\n$comp\n$base  " . ($comp - $base) if $increment;  
@@ -2062,10 +1865,10 @@ sub compare_lists_by_item {
         #   P is the percentile rank amongst the valid comparisons,
         #      and has a range of [0,1]
         $results->{"C_$index"} += $increment;    
-        $results->{"Q_$index"} ++;               
+        $results->{"Q_$index"} ++;
         $results->{"P_$index"} =   $results->{"C_$index"}
                                  / $results->{"Q_$index"};
-        
+
         #  track the number of ties
         if ($base == $comp) {
             $results->{"T_$index"} ++;

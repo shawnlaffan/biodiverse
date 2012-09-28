@@ -1,15 +1,12 @@
 #!/usr/bin/perl -w
 
-#  Tests for basedata import
-#  Need to add tests for the number of elements returned,
-#  amongst the myriad of other things that a basedata object does.
+#  Tests for basedata re-ordering of label axes
 
 use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use FindBin qw/$Bin/;
-use lib "$Bin/lib";
+use rlib;
 
 local $| = 1;
 

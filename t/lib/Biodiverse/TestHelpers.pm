@@ -78,7 +78,7 @@ use Exporter::Easy (
 sub snap_to_precision {
     my %args = @_;
     my $value = $args{value};
-    my $precision = defined $args{precision} ? $args{precision} : '%.12f';
+    my $precision = defined $args{precision} ? $args{precision} : '%.11f';
 
     return defined $value && looks_like_number $value
         ? sprintf ($precision, $value)

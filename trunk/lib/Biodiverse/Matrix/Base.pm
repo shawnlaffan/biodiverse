@@ -38,7 +38,7 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
     my $exists = $self -> element_pair_exists (@_);
     if (! $exists) {
         if ($args{element1} eq $args{element2} and $self->element_is_in_matrix (element => $args{element1})) {
-            return $self -> get_param ('SELF_SIMILARITY');  #  defaults to undef
+            return $self->get_param ('SELF_SIMILARITY');  #  defaults to undef
         }
         else {
             return; #  combination does not exist - cannot get the value
@@ -235,7 +235,7 @@ sub load_data {
       BY_FIELD:
         foreach my $i (@cols_to_use) {
             my $val = $flds_ref->[$i];
-my $a = defined $val;  #  debug - hang a break on this
+#my $a = defined $val;  #  debug - hang a break on this
             if (defined $val && $blank_as_undef && $val eq $EMPTY_STRING) {
                 $val = undef;
             }

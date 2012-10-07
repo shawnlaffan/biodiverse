@@ -13,21 +13,18 @@
 use strict;
 use warnings;
 use Carp;  #  warnings and dropouts
-
-use BdPD::GDM_Input_standard;
-
-$| = 1;
-
-use FindBin qw ($Bin);
-use File::Spec;
-use Cwd;
-use File::Basename;
+use English qw { -no_match_vars };
 
 #  add the lib folder if needed
 use rlib;
 
+use BdPD::GDM_Input_standard;
+
 #  load up the user defined libs and settings
 use Biodiverse::Config;
+
+#  don't buffer text output - output to screen as we go
+local $OUTPUT_AUTOFLUSH = 1;
 
 
 # the parameters for this sub are passed as a hash with the following items:
@@ -222,6 +219,7 @@ my %dist_args;
 );
 
 print "\n\nStarting phylo distance analysis\n";
+
 BdPD::GDM_Input_standard::generate_distance_table(%dist_args);
 
 print "\n Script finished.\n";

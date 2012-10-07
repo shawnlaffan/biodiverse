@@ -89,8 +89,8 @@ sub calc_neo_endemism {
     #create a hash of terminal nodes for the taxa present
     my $all_nodes = $tree_ref -> get_node_hash;
     
-    my ($NEO_END, $NEO_END_L, $NEO_END_P, $NEO_TAXA, $NEO_TAXA_L, $MEAN_AGE, $terminal_length, $node, $valid_taxon_count);
-    ($NEO_END, $NEO_END_L, $NEO_END_P, $NEO_TAXA, $NEO_TAXA_L, $node, $valid_taxon_count) = (0,0,0,0,0,0,0);
+    my ($MEAN_AGE, $terminal_length);
+    my ($NEO_END, $NEO_END_L, $NEO_END_P, $NEO_TAXA, $NEO_TAXA_L, $node, $valid_taxon_count) = (0,0,0,0,0,0,0);
 
     #  loop over the nodes and run the calcs
     foreach my $name (keys %$label_list) {
@@ -101,22 +101,22 @@ sub calc_neo_endemism {
             $terminal_length = $node -> get_length;
             $valid_taxon_count ++;
         }
-        
+
         #my $range_length = $terminal_length * $range;
         if ($terminal_length and $range) {
-            $NEO_END += eval {1 / ($terminal_length * $range)} || 0;
-            $NEO_END_L += eval {$local_range / ($terminal_length * $range)} || 0;            
-            $NEO_TAXA += eval{1 / $terminal_length} || 0;
+            $NEO_END    += eval {1 / ($terminal_length * $range)} || 0;
+            $NEO_END_L  += eval {$local_range / ($terminal_length * $range)} || 0;            
+            $NEO_TAXA   += eval {1 / $terminal_length} || 0;
             $NEO_TAXA_L += eval {$local_range / $terminal_length} || 0;
-            $MEAN_AGE += eval{$terminal_length};
+            $MEAN_AGE   += eval {$terminal_length};
         }
     }
-    
+
     $NEO_END_P = eval {$NEO_END * $args{trimmed_tree} -> get_total_tree_length};
     if ($valid_taxon_count) {
         $MEAN_AGE = eval{$MEAN_AGE / $valid_taxon_count};
     } else{ $MEAN_AGE = undef};
-    
+
     #Neo endemism   = sum for all taxa of: 1 / (terminal branch length * taxon range size)
     #Neo endemism_P = sum for all taxa of: 1 / (terminal branch length * taxon range size)
     #                  where branch length is expressed as a proportion of the total tree length,
@@ -124,18 +124,17 @@ sub calc_neo_endemism {
     #Neo taxa       = sum for all taxa of: 1 / terminal branch length
     #                 in other words, the neo without the endemism
     #Mean age       = mean of terminal branch length
-    
-    my %results =   (NEO_END => $NEO_END,
-                    NEO_END_L => $NEO_END_L,
-                    NEO_END_P => $NEO_END_P,
-                    NEO_TAXA => $NEO_TAXA,
-                    NEO_TAXA_L => $NEO_TAXA_L,
-                    MEAN_AGE => $MEAN_AGE
-                    );
 
-    return wantarray
-            ? %results
-            : \%results;
+    my %results = (
+        NEO_END    => $NEO_END,
+        NEO_END_L  => $NEO_END_L,
+        NEO_END_P  => $NEO_END_P,
+        NEO_TAXA   => $NEO_TAXA,
+        NEO_TAXA_L => $NEO_TAXA_L,
+        MEAN_AGE   => $MEAN_AGE,
+    );
+
+    return wantarray ? %results : \%results;
 }
 
 

@@ -1,24 +1,27 @@
 #!/usr/bin/perl -w
+
 use strict;
 use warnings;
-use English qw / -no_match_vars /;
-
-use FindBin qw/$Bin/;
-use lib "$Bin/lib";
-
-use Data::Section::Simple qw(get_data_section);
-
-use Test::More; # tests => 2;
-use Test::Exception;
-
-
-use Biodiverse::TestHelpers qw /:element_properties/;
 
 local $| = 1;
 
+use rlib;
 
-use Biodiverse::ElementProperties;
+use Test::More;
+use Test::Exception;
+
+use English qw(
+    -no_match_vars
+);
+
+use Data::Section::Simple qw(
+    get_data_section
+);
 use Data::Dumper;
+
+use Biodiverse::TestHelpers qw /:element_properties/;
+use Biodiverse::ElementProperties;
+
 
 {
     my %remap_data = (
@@ -30,15 +33,17 @@ use Data::Dumper;
     $string =~ s/[\s\n\r]//g;
     $string =~ s/^\$VAR1=//;
     $string =~ s/;$//;
-    
+
     my $tmp_obj = get_import_data();
     my $ep_f = $tmp_obj->filename;
     my $remap = Biodiverse::ElementProperties->new;
-    my $success = eval { $remap->import_data(%remap_data, file => $ep_f) };    
+    my $success = eval { $remap->import_data(%remap_data, file => $ep_f) };
     diag $EVAL_ERROR if $EVAL_ERROR;
-    
+
     is ($success, 1, $string);
-    
+
+    print Dumper ($remap);
+
     #  need to add tests for get methods
 }
 

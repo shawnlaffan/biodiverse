@@ -1,4 +1,4 @@
-package BdPD::GDM_Input;
+package BdPD::GDM_Input_standard;
 use strict;
 
 #  This package generates a table of dissimilarity scores between pairs of groups (sites)

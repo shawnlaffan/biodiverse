@@ -342,7 +342,6 @@ sub get_matrix_object_from_sample_data {
     return $matrix;
 }
 
-
 sub write_data_to_temp_file {
     my $data = shift;
 
@@ -382,17 +381,24 @@ sub get_matrix_site_data {
     return get_data_section('MATRIX_SITE_DATA');
 }
 
+sub get_label_properties_site_data {
+    return get_data_section('LABEL_PROPERTIES_DATA');
+}
+
+sub get_group_properties_site_data {
+    return get_data_section('GROUP_PROPERTIES_DATA');
+}
 
 sub run_indices_test1 {
     my %args = @_;
-    my $calcs_to_test      = $args{calcs_to_test};
-    my $calc_topic_to_test = $args{calc_topic_to_test};
-    my $cell_sizes         = $args{cell_sizes} || [100000, 100000];
-    my $use_numeric_labels = $args{use_numeric_labels};
+    my $calcs_to_test          = $args{calcs_to_test};
+    my $calc_topic_to_test     = $args{calc_topic_to_test};
+    my $cell_sizes             = $args{cell_sizes} || [100000, 100000];
+    my $use_numeric_labels     = $args{use_numeric_labels};
+    my $use_element_properties = $args{use_element_properties}; # 'group' or 'label'
 
     # Used for acquiring sample results
     my $generate_result_sets = $args{generate_result_sets};
-
 
     my $element_list1 = $args{element_list1} || ['3350000:850000'];
     my $element_list2
@@ -421,6 +427,49 @@ sub run_indices_test1 {
     my $tree = get_tree_object_from_sample_data();
 
     my $matrix = get_matrix_object_from_sample_data();
+
+    if ($use_element_properties) {
+        my $element_properties_data;
+
+        if ($use_element_properties eq 'label') {
+            $element_properties_data = get_label_properties_site_data();
+        }
+        elsif ($use_element_properties eq 'group') {
+            $element_properties_data = get_group_properties_site_data();
+        }
+        else {
+            croak 'Invalid value for use_element_properties';
+        }
+
+        my $element_properties_file = write_data_to_temp_file($element_properties_data);
+        my $element_properties = Biodiverse::ElementProperties->new;
+
+        # Get property column names and positions. First is 3.
+        # Results in something like:
+        # (LBPROP1 => 3, LBPROP2 => 4, ...)
+        my $i = 3;
+        $element_properties_data =~ m/^(.*)$/m;
+        my @prop_names = split ',', $1;
+        my %prop_cols = map { $_ => $i++; } @prop_names[3..$#prop_names];
+
+        my $success = eval { $element_properties->import_data (
+            input_element_cols    => [1..2],
+            file                  => $element_properties_file,
+            %prop_cols, # Tell import_data which columns contain which properties
+        ) };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, 'Loaded element properties without eval error');
+        ok ($success eq 1, 'Element properties successfully loaded');
+
+        eval { $bd->assign_element_properties (
+            type              => $use_element_properties.'s',
+            properties_object => $element_properties,
+        ) };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, 'Element properties assigned without eval error');
+    }
 
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
@@ -470,7 +519,7 @@ sub run_indices_test1 {
         note $e if $e;
         ok (!$e, "Ran global precalcs without eval error");
 
-        %results = eval {$indices->run_calculations(%$calc_args)};
+        %results = eval { $indices->run_calculations(%$calc_args) };
         $e = $EVAL_ERROR;
         note $e if $e;
 

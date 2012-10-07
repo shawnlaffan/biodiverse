@@ -14,7 +14,7 @@ use strict;
 use warnings;
 use Carp;  #  warnings and dropouts
 
-use BdPD::GDM_Input;
+use BdPD::GDM_Input_standard;
 
 $| = 1;
 
@@ -23,26 +23,12 @@ use File::Spec;
 use Cwd;
 use File::Basename;
 
-BEGIN {
-    my @lib_paths;
+#  add the lib folder if needed
+use rlib;
 
-    #  set user defined libs not collected by the perl interpreter,
-    #  eg when using the perlapp exe file
-    if ( defined $ENV{BIODIVERSE_LIB} ) {
-        push @lib_paths, split( ";", $ENV{BIODIVERSE_LIB} );
-    }
+#  load up the user defined libs and settings
+use Biodiverse::Config;
 
-    #  add the biodiverse lib path if not there already
-    push @lib_paths, File::Spec->catfile( 'C:/biodiverse_dev/', 'lib' );
-    push @lib_paths, File::Spec->catfile( 'C:/biodiverse_dev/lib/BdPD/');
-
-    print "Adding paths:\n" . join ("\n", @lib_paths) . "\n";
-    use lib @lib_paths;
-}
-
-#  load up the user defined libs
-use Biodiverse::use_base qw/use_base/;
-use_base();
 
 # the parameters for this sub are passed as a hash with the following items:
 #
@@ -236,6 +222,6 @@ my %dist_args;
 );
 
 print "\n\nStarting phylo distance analysis\n";
-BdPD::GDM_Input::generate_distance_table(%dist_args);
+BdPD::GDM_Input_standard::generate_distance_table(%dist_args);
 
 print "\n Script finished.\n";

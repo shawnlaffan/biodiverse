@@ -17,6 +17,9 @@ use Biodiverse::TestHelpers qw{
     compare_arr_vals
 };
 
+use Data::Section::Simple qw{
+    get_data_section
+};
 use Data::Dumper;
 $Data::Dumper::Purity   = 1;
 $Data::Dumper::Terse    = 1;
@@ -64,6 +67,7 @@ sub test_case {
     );
 }
 
+=for comment
 test_case (
     res         => [100000, 100000],
     bottom_left => [-200000, -200000],
@@ -71,7 +75,61 @@ test_case (
     cond        => 'sp_circle (radius => 100000)',
     expected    => [qw/-50000:50000 150000:50000 50000:-50000 50000:150000 50000:50000/],
 );
+=cut
+
+my $data = get_data_section;
+
+my $re1 = join '\\s+', ('([-0-9.,]+)',) x 3;
+
+for my $k (sort keys %$data) {
+    my $v = $data->{$k};
+
+    if (not ($v =~ s/^\s*$re1\s*$//m)) {
+        croak "Malformed first line in test case $k";
+    }
+
+    my ($res, $bottom_left, $top_right) = map {[split ',', $_]} ($1, $2, $3);
+
+    if (not ($v =~ s/^(.*?)$^\s*;\s*$//ms)) {
+        croak "Malformed condition it test case $k";
+    }
+
+    my $cond = $1;
+
+    $v =~ s/^\s+//s; # Strip leading and trailing spaces
+    $v =~ s/\s+$//s; # to prevent blank strings in expected.
+    my $expected = [split /\s+/, $v];
+
+    subtest "Passed test case $k" => sub { test_case (
+        res         => $res,
+        bottom_left => $bottom_left,
+        top_right   => $top_right,
+        cond        => $cond,
+        expected    => $expected,
+    ) };
+}
 
 done_testing;
 
 1;
+
+# res_x,res_y bottom_left_x,bottom_left_y top_right_x,top_right_y
+# cond
+# ;
+# expected
+__DATA__
+
+@@ CASE1
+100000,100000 -200000,-200000 200000,200000
+
+sp_circle (
+    radius => 100000
+)
+;
+
+-50000:50000
+150000:50000
+50000:-50000
+50000:150000
+50000:50000
+

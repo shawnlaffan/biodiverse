@@ -389,6 +389,32 @@ sub get_group_properties_site_data {
     return get_data_section('GROUP_PROPERTIES_DATA');
 }
 
+sub element_properties_from_string {
+    my ($data, ) = @_;
+    my $file = write_data_to_temp_file($data);
+    my $props = Biodiverse::ElementProperties->new;
+
+    # Get property column names and positions. First is 3.
+    # Results in something like:
+    # (LBPROP1 => 3, LBPROP2 => 4, ...)
+    my $i = 3;
+    $data =~ m/^(.*)$/m;
+    my @prop_names = split ',', $1;
+    my %prop_cols = map { $_ => $i++; } @prop_names[3..$#prop_names];
+
+    my $success = eval { $props->import_data (
+        input_element_cols    => [1..2],
+        file                  => $file,
+        %prop_cols, # Tell import_data which columns contain which properties
+    ) };
+    my $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, 'Loaded element properties without eval error');
+    ok ($success eq 1, 'Element properties successfully loaded');
+
+    return $props;
+}
+
 sub run_indices_test1 {
     my %args = @_;
     my $calcs_to_test          = $args{calcs_to_test};
@@ -429,42 +455,23 @@ sub run_indices_test1 {
     my $matrix = get_matrix_object_from_sample_data();
 
     if ($use_element_properties) {
-        my $element_properties_data;
+        my $data;
 
         if ($use_element_properties eq 'label') {
-            $element_properties_data = get_label_properties_site_data();
+            $data = get_label_properties_site_data();
         }
         elsif ($use_element_properties eq 'group') {
-            $element_properties_data = get_group_properties_site_data();
+            $data = get_group_properties_site_data();
         }
         else {
             croak 'Invalid value for use_element_properties';
         }
 
-        my $element_properties_file = write_data_to_temp_file($element_properties_data);
-        my $element_properties = Biodiverse::ElementProperties->new;
-
-        # Get property column names and positions. First is 3.
-        # Results in something like:
-        # (LBPROP1 => 3, LBPROP2 => 4, ...)
-        my $i = 3;
-        $element_properties_data =~ m/^(.*)$/m;
-        my @prop_names = split ',', $1;
-        my %prop_cols = map { $_ => $i++; } @prop_names[3..$#prop_names];
-
-        my $success = eval { $element_properties->import_data (
-            input_element_cols    => [1..2],
-            file                  => $element_properties_file,
-            %prop_cols, # Tell import_data which columns contain which properties
-        ) };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, 'Loaded element properties without eval error');
-        ok ($success eq 1, 'Element properties successfully loaded');
+        my $props = element_properties_from_string($data);
 
         eval { $bd->assign_element_properties (
-            type              => $use_element_properties.'s',
-            properties_object => $element_properties,
+            type              => $use_element_properties.'s', # plural
+            properties_object => $props,
         ) };
         $e = $EVAL_ERROR;
         note $e if $e;

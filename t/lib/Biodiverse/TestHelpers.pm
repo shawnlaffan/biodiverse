@@ -26,6 +26,7 @@ use Exporter::Easy (
                 write_data_to_temp_file
                 snap_to_precision
                 compare_hash_vals
+                compare_arr_vals
                 get_all_calculations
             ),
         ],

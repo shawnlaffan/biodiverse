@@ -14,6 +14,7 @@ use strict;
 use warnings;
 use Carp;  #  warnings and dropouts
 use File::Spec;  #  for the cat_file sub 
+use Scalar::Util qw /reftype/;
 
 our $VERSION = '0.15';
 
@@ -789,6 +790,14 @@ sub load_data {
         ###  read in the trees from the nexus file
         
         #  but first specify the remap (element properties) table to use to match the tree names to the basedata object
+        #  make sure we're using array refs for the columns
+        if (not (reftype $$self{remap_input}) eq 'SCALAR') {
+            $$self{remap_input} = [$$self{remap_input}];
+        }
+        if (not (reftype $$self{remap_output}) eq 'SCALAR') {
+            $$self{remap_output} = [$$self{remap_output}];
+        }
+        
         my $remap = Biodiverse::ElementProperties -> new;
         $remap -> import_data (file => $$self{nexus_remap},
                     input_sep_char => "guess",

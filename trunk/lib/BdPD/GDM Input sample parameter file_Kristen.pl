@@ -18,7 +18,8 @@ use English qw { -no_match_vars };
 #  add the lib folder if needed
 use rlib;
 
-use BdPD::GDM_Input_standard;
+#use BdPD::GDM_Input_standard;
+use BdPD::GDM_Input;
 
 #  load up the user defined libs and settings
 use Biodiverse::Config;
@@ -197,12 +198,12 @@ my %dist_args;
 %dist_args = (
     dist_measure => {
             sorenson      =>  1},   # the value (eg 1) can be anything, as long as the item exists
-    directory               =>  'C:\Working\Study_Taxa\Herps\Hylidae',  # working directory
+    directory               =>  'C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae',  # working directory
     basedata_file           =>  "Hylids_Feb10_001deg_5000_IBRA", # don't include suffix (eg .bds)
-    output_file_prefix      =>  "species&phylo_",
+    output_file_prefix      =>  "species_",
     sample_count            =>  200000,
     min_group_richness      =>  2,
-    min_group_samples       =>  2,
+    min_group_samples       =>  4,
     bins_count              =>  0,
     one_quota               =>  0,
     oversample_ratio        =>  1,
@@ -220,6 +221,7 @@ my %dist_args;
 
 print "\n\nStarting phylo distance analysis\n";
 
-BdPD::GDM_Input_standard::generate_distance_table(%dist_args);
+#BdPD::GDM_Input_standard::generate_distance_table(%dist_args);
+BdPD::GDM_Input::generate_distance_table(%dist_args);
 
 print "\n Script finished.\n";

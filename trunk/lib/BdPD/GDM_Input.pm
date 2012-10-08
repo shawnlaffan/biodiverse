@@ -791,10 +791,10 @@ sub load_data {
         
         #  but first specify the remap (element properties) table to use to match the tree names to the basedata object
         #  make sure we're using array refs for the columns
-        if (not (reftype $$self{remap_input}) eq 'SCALAR') {
+        if ((reftype $$self{remap_input}) eq 'SCALAR') {
             $$self{remap_input} = [$$self{remap_input}];
         }
-        if (not (reftype $$self{remap_output}) eq 'SCALAR') {
+        if ((reftype $$self{remap_output}) eq 'SCALAR') {
             $$self{remap_output} = [$$self{remap_output}];
         }
         

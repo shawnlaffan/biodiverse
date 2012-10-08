@@ -196,10 +196,15 @@ my %dist_args;
 
 %dist_args = (
     dist_measure => {
-            sorenson      =>  1},   # the value (eg 1) can be anything, as long as the item exists
+            sorenson        =>  1,
+            phylo_sorenson  => 1},   # the value (eg 1) can be anything, as long as the item exists
     directory               =>  'C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae',  # working directory
     basedata_file           =>  "Hylids_Feb10_001deg_5000_IBRA", # don't include suffix (eg .bds)
-    output_file_prefix      =>  "species_",
+    output_file_prefix      =>  "species_phylo_",
+    nexus_file              =>  "hylid_relaxed alltaxa 27apr09.nex",
+    nexus_remap             =>  "Translate_Hylid_Names_aug08.csv",
+    remap_input             =>  1,
+    remap_output            =>  3,    
     sample_count            =>  200000,
     min_group_richness      =>  2,
     min_group_samples       =>  5,
@@ -218,7 +223,7 @@ my %dist_args;
     feedback_suffix         =>  "_fb"
 );
 
-print "\n\nStarting phylo distance analysis\n";
+print "\n\nStarting site pair process\n";
 
 #BdPD::GDM_Input_standard::generate_distance_table(%dist_args);
 BdPD::GDM_Input::generate_distance_table(%dist_args);

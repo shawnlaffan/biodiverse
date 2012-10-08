@@ -15,12 +15,16 @@ use warnings;
 use Carp;  #  warnings and dropouts
 use File::Spec;  #  for the cat_file sub 
 
+our $VERSION = '0.15';
+
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;  #  for remaps
 use Biodiverse::ReadNexus;
 use Biodiverse::Tree;
+use Biodiverse::Indices;
 use BdPD::PD_Indices;
 use Math::Random::MT::Auto qw(rand irand shuffle gaussian);
+
 
 sub generate_distance_table {
     
@@ -187,20 +191,29 @@ sub generate_distance_table {
 #                   - text to add to the filename for feedback
 
     my %args = @_;
-
+    
     my $SPM = new(); # make a new Site Pair Maker object
-
+            
     #############################################
     ######       SET PARAMETERS HERE       ######
 
-    $SPM->set_param(%args);    
+    $SPM -> set_param(%args);    
 
     # Default values for optional parameters are set in the sub initalise
 
     ### FILE IMPORT & EXPORT PARAMETERS
 
-    if ($args{dist_measure} eq "phylo_sorenson") {
-        $SPM->set_param("use_phylogeny", 1)
+    # for backwards compatability convert a text value of 'dist_measure to a hash element
+    #which is the format now used, to allow for multiple distance measures
+    my %dist_measures;
+    if (!((ref $args{dist_measure}) =~ /HASH/)) {
+        %dist_measures = ($args{dist_measure} => 1);
+        $$SPM{dist_measure} = \%dist_measures;
+        $args{dist_measure} = \%dist_measures;
+    }
+
+    if (exists($args{dist_measure}{phylo_sorenson})) {
+        $SPM -> set_param("use_phylogeny", 1)
     };
     
     if ($$SPM{use_phylogeny}) { # get all the phylogeny related paramters if required
@@ -211,7 +224,7 @@ sub generate_distance_table {
 
     $SPM -> set_param("basedata_filename" => $$SPM{basedata_file}. $$SPM{basedata_suffix});
     $SPM -> set_param("basedata_filepath" => File::Spec -> catfile ($$SPM{directory}, $$SPM{basedata_filename}));
-
+    
     # assign the default output prefix for the selected distance measure, if none was provided
     if (!exists $$SPM{output_file_prefix}) {
         if (exists($args{dist_measure}{phylo_sorenson})) {
@@ -251,21 +264,23 @@ sub generate_distance_table {
     if (exists $$SPM{geographic_distance}) {
         $SPM -> set_param("do_geog_dist",($$SPM{geographic_distance}>0));
     };
-
+    
     #regions
     if (exists $$SPM{regions}) {
         $SPM -> set_param("do_output_regions",($$SPM{regions}>0))
     };
-
+   
     ######        END OF PARAMETERS        ######
     #############################################
 
+    
     # load basedata (and phylogeny) from file
     $SPM -> load_data();
 
     #############################################
     ######         RUN THE ANALYSES        ######
-
+    
+    
     ###### SITE PAIR ANALYSES
     ###  add a site pair analysis for each tree, using the same spatial params for each
     ###  if not using trees, create a single dummy to proceed with the loop
@@ -302,6 +317,7 @@ sub generate_distance_table {
         #####################################################
         
         my %grouplists;
+        
         
         if (!$$SPM{subset_for_testing}) {       # if no test dataset requested
             $grouplists{training} = \@grouplist;
@@ -363,14 +379,12 @@ sub generate_distance_table {
             }            
     
             # prepare dissimilarity bins
-            $SPM->set_param (
-                bins_min_val      => 0,  #setting bin parameters - the remaining parameters are already in the object
-                bins_max_val      => 1,
-                bins_max_class    => 1,
-                bins_sample_count => $$SPM{sample_count_current},
-            );
-            my @bins_all = $SPM->make_bins('bins_all');
-
+            $SPM -> set_param (bins_min_val => 0,  #setting bin parameters - the remaining parameters are already in the object
+                               bins_max_val => 1,
+                               bins_max_class => 1,
+                               bins_sample_count => $$SPM{sample_count_current});
+            my @bins_all = $SPM -> make_bins("bins_all");
+            
             if ($$SPM{bins_count} > 1) {
                 print "\nNumber dissimilarity of bins: $$SPM{bins_count}\n";
                 print "Oversample ratio to get enough samples to meet quotas: $$SPM{oversample_ratio}\n";
@@ -409,7 +423,6 @@ sub generate_distance_table {
             
             # print the header row to the site pair file
             print $result_file_handle "x0,y0,x1,y1,".$dist_header.$geog_dist_output.$regions_output."\n";
-
             
             # CALL THE MAIN SAMPLING LOOP #
             $SPM -> do_sampling();        #
@@ -426,6 +439,7 @@ sub generate_distance_table {
     };
     
     print "\nBiodiverse  GDM module finished.\n";
+    
 };
 
 sub make_bins {
@@ -498,6 +512,7 @@ sub make_bins {
     }
     
     return @bins;
+
 };
 
 sub get_region_stats {
@@ -522,6 +537,7 @@ sub get_region_stats {
     } else {
         print "\nNow calculating statistics for the whole dataset in preparation for sampling.\n";
     };
+    
     
     #Loop through all the groups and create a list of regions and of groups, species in each region
     for my $i (0.. $group_count-1) {
@@ -570,6 +586,8 @@ sub get_region_quotas {
   
     my $self = shift;
     #my %args = @_;
+    
+    my $indices = Biodiverse::Indices->new (BASEDATA_REF => $self->{bd});
     
     my $region_stats = $$self{region_stats};
     my %region_stats = %$region_stats;
@@ -635,9 +653,7 @@ sub get_region_quotas {
             $region_quotas{$region_pair}{fully_used} = 0;
             
             #calculate the species shared between the 2 regions
-            my %abc = $$self{bd} -> calc_abc(
-                                            group_list1 => $region_stats{$region1}{group_list},
-                                            group_list2 => $region_stats{$region2}{group_list},
+            my %abc = $indices -> calc_abc(
                                             label_hash1 => $region_stats{$region1}{label_list},
                                             label_hash2 => $region_stats{$region2}{label_list});
             $region_quotas{$region_pair}{labels_shared} = $abc{A};
@@ -867,14 +883,10 @@ sub prepare_regions {
         
     $self -> set_param (region_pair_count => $region_quotas{summary}{region_pair_count});
     $self -> set_param (total_quota => $region_quotas{summary}{total_quota});
-     $self -> set_param(regions_output => $regions_output);
+    $self -> set_param(regions_output => $regions_output);
      
-    if ($$self{sample_by_regions}) {
-        print "\nReady to sample $$self{region_pair_count}"
-            . " region pairs and "
-            . $self->{total_quota}
-            . " site pairs.\n";
-    };
+    if ($$self{sample_by_regions}) {print "\nReady to sample $$self{region_pair_count}" . " region pairs and ". $$self{total_quota} . " site pairs.\n";};
+    
 }
 
 sub get_grouplist {
@@ -936,6 +948,7 @@ sub do_sampling {
     
     my $self = shift;
     my $bd = $$self{bd};
+    my $indices = Biodiverse::Indices->new (BASEDATA_REF => $self->{bd});
     my $region_quotas = $$self{region_quotas};
     my %region_quotas = %$region_quotas;
     my $region_stats = $$self{region_stats};
@@ -948,20 +961,20 @@ sub do_sampling {
     my $bin_count = $$self{bins_count};
     my $groups_ref = $$self{groups_ref};
     my $dist_measure = $$self{dist_measure};
-    my $measure; #converting to an integer in the hope that removing the string comparison
-    #from the central loop which may run may millions of times, saves non-trivial time
-    if ($dist_measure eq "sorenson") {
-        $measure = 1;
-    }
-    elsif ($dist_measure eq "phylo_sorenson") {
-        $measure = 2;  
-    };
+    my $quota_dist_measure = $$self{quota_dist_measure};
     my ($geog_dist, $geog_dist_output, $regions_output, $output_row, $all_sitepairs_done, $frequency);
     my ($all_sitepairs_kept,$regions_done);
     my ($one_quota,$one_count, $skip) = ($$self{one_quota},0, 0);
     my $result_file_handle = $$self{result_file_handle};
     my ($printedProgress_all, $storedProgress_all) = (0,0);
     my $dist_output;
+    
+    my $single_dist_measure;
+    my $calc_two = (exists($$dist_measure{sorenson}) and exists($$dist_measure{phylo_sorenson}));
+    if (! $calc_two) {
+        $single_dist_measure = (keys($dist_measure))[0];
+    }
+    
     
     # start a feedback table, if requested
     if ($$self{feedback_table}) {
@@ -1095,7 +1108,7 @@ sub do_sampling {
                 # calculate the phylo Sørensen distance
                 if (exists($$dist_measure{phylo_sorenson})) {  # phylo_sorenson
                     $dist_result{phylo_sorenson} = -1;      # an undefined distance result is given as -1
-                    %phylo_abc = $bd -> calc_phylo_abc(group_list1 => \%gl1,
+                    %phylo_abc = $indices -> calc_phylo_abc(group_list1 => \%gl1,
                                                     group_list2 => \%gl2,
                                                     label_hash1 => $label_hash1,
                                                     label_hash2 => $label_hash2,
@@ -1109,7 +1122,7 @@ sub do_sampling {
                 # calculate the Sørensen distance                                    
                 if (exists($$dist_measure{sorenson})) {  # sorenson
                     $dist_result{sorenson} = -1;      # an undefined distance result is given as -1
-                    %abc = $bd -> calc_abc(group_list1 => \%gl1,
+                    %abc = $indices -> calc_abc(group_list1 => \%gl1,
                                         group_list2 => \%gl2,
                                         label_hash1 => $label_hash1,
                                         label_hash2 => $label_hash2);
@@ -1119,13 +1132,14 @@ sub do_sampling {
                     };   
                 };
                 
-                if ($dist_result{phylo_sorenson} != -1) { # if either distance measure has a valid result  ############# THIS LINE MUST BE FIXED TO DETECT NO RESULT FOR ANY MEASURE
+                # if either distance measure has a valid result
+                if ( (exists($$dist_measure{sorenson}) and ($dist_result{sorenson} != -1)) or (exists($$dist_measure{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1)) ) {
                     
                     # format the distance result(s)
                     if ($calc_two) {
                         $dist_output = $dist_result{phylo_sorenson}.",".$dist_result{sorenson};
                     } else {
-                        $dist_output = $dist_result{$quota_dist_measure};
+                        $dist_output = $dist_result{$single_dist_measure};
                     };
                     #if ($$self{do_geog_dist} or $$self{do_output_regions}) {$dist_output = $dist_output.",";}
                     
@@ -1402,6 +1416,7 @@ sub DESTROY {
     my $self = shift;
     
     foreach my $key (keys %$self) {  #  clear all the top level stuff
+
         delete $$self{$key};        
     }
 }

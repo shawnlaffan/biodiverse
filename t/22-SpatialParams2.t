@@ -90,7 +90,7 @@ for my $k (sort keys %$data) {
 
     my ($res, $bottom_left, $top_right) = map {[split ',', $_]} ($1, $2, $3);
 
-    if (not ($v =~ s/^(.*?)$^\s*;\s*$//ms)) {
+    if (not ($v =~ s/^(.*?)^\s*;\s*$//ms)) {
         croak "Malformed condition it test case $k";
     }
 

@@ -185,8 +185,6 @@ sub run_case_transformed {
             $cond =~ s/YY$from/$to/;
         }
 
-        print "Condition is $cond\n";
-
         if (not ($v =~ s/^\s*(.*?)^\s*;\s*$//ms)) {
             croak "Malformed expected in test case $k.$i";
         }
@@ -201,7 +199,7 @@ sub run_case_transformed {
             element       => $element,
             cond          => $cond,
             expected      => $expected,
-            print_results => 1,
+            print_results => 0,
         ) };
     }
 
@@ -211,9 +209,9 @@ sub run_case_transformed {
 my $data = get_data_section;
 
 my @transforms = (
-    [0,0 , 1,1], # [x_translate,y_translate , x_scale,y_scale]
-    [0,0 , .0000001,.0000001],
-    [-200000,-200000 , 1,1],
+    [0,0 , 1,1],               # id. [x_translate,y_translate , x_scale,y_scale]
+    [0,0 , .0000001,.0000001], # scaled to values < 1
+    [-200000,-200000 , 1,1],   # negative centre
 );
 
 for my $k (sort keys %$data) {

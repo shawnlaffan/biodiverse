@@ -5,7 +5,8 @@ use Carp;
 use English qw { -no_match_vars };
 
 use FindBin qw/$Bin/;
-use lib "$Bin/lib";
+
+use rlib;
 
 #use Test::More tests => 255;
 use Test::More;

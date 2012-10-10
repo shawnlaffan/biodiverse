@@ -7,38 +7,37 @@ use FindBin qw { $Bin };
 use File::Spec;
 use File::Find;
 
-use mylib;
+use rlib;
 
 #  list of files
 our @files;
 
-#BEGIN {
-    sub Wanted {
-        # only operate on Perl modules
-        return if $_ !~ m/\.pm$/;
-        return if $File::Find::name !~ m/Biodiverse/;
-        return if $File::Find::name =~ m/Task/;    #  ignore Task files
-        return if $File::Find::name =~ m/Bundle/;  #  ignore Bundle files
+sub Wanted {
+    # only operate on Perl modules
+    return if $_ !~ m/\.pm$/;
+    return if $File::Find::name !~ m/Biodiverse/;
+    return if $File::Find::name =~ m/Task/;    #  ignore Task files
+    return if $File::Find::name =~ m/Bundle/;  #  ignore Bundle files
 
-        my $filename = $File::Find::name;
-        $filename =~ s/\.pm$//;
-        $filename =~ s/.+(Biodiverse.+)/$1/;
-        $filename =~ s{/}{::}g;
-        push @files, $filename;
-    };
-    
-    #my @files;
-    my $lib_dir = File::Spec->catfile( $Bin, '..' );
-    find ( \&Wanted,  $lib_dir );
-    #print join q{ }, @files;
-#}
-    use Biodiverse::Config;
-    diag( "Testing Biodiverse $Biodiverse::Config::VERSION, Perl $], $^X" );
+    my $filename = $File::Find::name;
+    $filename =~ s/\.pm$//;
+    $filename =~ s/.+(Biodiverse.+)/$1/;
+    $filename =~ s{/}{::}g;
+    push @files, $filename;
+};
 
-    foreach my $file (@files) {
-        use_ok ( $file );
-    }
-#}
+
+my $lib_dir = File::Spec->catfile( $Bin, '..', 'lib' );
+find ( \&Wanted,  $lib_dir );
+
+
+use Biodiverse::Config;
+note ( "Testing Biodiverse $Biodiverse::Config::VERSION, Perl $], $^X" );
+
+foreach my $file (@files) {
+    use_ok ( $file );
+}
+
 
 
 done_testing();

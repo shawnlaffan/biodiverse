@@ -38,7 +38,7 @@ my $f1 = shift @files;
 eval qq { require $f1 };
 my $version = eval '$' . $f1 . q{::VERSION};
 
-diag( "Testing Biodiverse $version, Perl $], $^X" );
+note ( "Testing Biodiverse $version, Perl $], $^X" );
 
 while (my $file = shift @files) {
     eval qq{ require $file };

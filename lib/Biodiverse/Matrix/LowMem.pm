@@ -5,6 +5,8 @@ use warnings;
 
 use Carp;
 
+our $VERSION = '0.18003';
+
 use Biodiverse::Matrix;
 use Biodiverse::Exception;
 
@@ -177,8 +179,6 @@ does not maintain extra lists
 to track the values across the matrix elements, nor which elements
 are in the matrix.  These must be derived from the data structure each time.
 
-=back
-
 =head1 REPORTING ERRORS
 
 http://code.google.com/p/biodiverse/issues/list
@@ -196,8 +196,5 @@ Copyright (c) 2006-2012 Shawn Laffan. All rights reserved.  This
 program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
-
-
-=back
 
 =cut

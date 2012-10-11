@@ -1,4 +1,4 @@
-#Test page for help ideas
+#Summary Test page for help planning
 <wiki:comment>this is not a draft page, it is a test for wiki syntax.  please ignore for now</wiki:comment>
 = HELP HELP =
 

@@ -1,0 +1,10 @@
+#Test page for help ideas
+<wiki:comment>this is not a draft page, it is a test for wiki syntax.  please ignore for now</wiki:comment>
+= HELP HELP =
+
+Take me to the SampleSession immediately
+
+
+= Details =
+
+None as such.

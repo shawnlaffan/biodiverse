@@ -109,7 +109,7 @@ sub compare_hash_vals {
                     hash_exp => $hash_exp->{$key},
                     no_strict_match => $args{no_strict_match},
                 );
-            }
+            };
         }
         elsif (ref $hash_exp->{$key} eq 'ARRAY') {
             subtest "Got expected array for $key" => sub {
@@ -118,7 +118,7 @@ sub compare_hash_vals {
                     arr_exp => $hash_exp->{$key},
                     #  add no_strict_match option??
                 );
-            }
+            };
         }
         else {
             my $val_got = snap_to_precision (
@@ -596,6 +596,7 @@ sub run_indices_test1 {
         my $expected = eval $dss->get_data_section(
             "RESULTS_${nbr_list_count}_NBR_LISTS"
         );
+
         subtest $subtest_name => sub {
             compare_hash_vals (
                 no_strict_match => $args{no_strict_match},

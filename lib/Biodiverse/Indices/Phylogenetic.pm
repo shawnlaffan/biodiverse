@@ -4,7 +4,7 @@
 package Biodiverse::Indices::Phylogenetic;
 use strict;
 use warnings;
-
+use English qw /-no_match_vars/;
 use Carp;
 use Biodiverse::Progress;
 
@@ -1981,7 +1981,11 @@ sub get_aed_scores {
         my $node_ref = eval {
             $tree->get_node_ref (node => $label);
         };
-        next LABEL if !$node_ref;
+        if (my $e = $EVAL_ERROR) {
+            next LABEL if Biodiverse::Tree::NotExistsNode->caught;
+            #next LABEL if !$node_ref;
+            croak $e;
+        }
 
         my $es_sum  = $node_ref->get_length;  #  set up the terminal
         my $ed_sum  = $node_ref->get_length;  #  set up the terminal

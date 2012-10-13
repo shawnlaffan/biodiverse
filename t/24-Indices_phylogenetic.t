@@ -5,6 +5,9 @@ use warnings;
 
 local $| = 1;
 
+#  don't test plugins
+local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+
 use rlib;
 use Test::More;
 
@@ -55,7 +58,7 @@ my @calcs = qw/
 
     my @calcs_to_test = qw/calc_phylo_aed/;
     run_indices_test1 (
-        calcs_to_test   => [@calcs_to_test],
+        calcs_to_test   => \@calcs_to_test,
         callbacks       => [$cb],
         no_strict_match => 1,
     );

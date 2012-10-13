@@ -89,30 +89,46 @@ sub snap_to_precision {
 sub compare_hash_vals {
     my %args = @_;
 
-    my $hash_got  = $args{hash_got};
-    my $hash_exp  = $args{hash_exp};
-    my $precision = $args{precision};
+    my $hash_got   = $args{hash_got};
+    my $hash_exp   = $args{hash_exp};
+    my $precision  = $args{precision};
+    my $not_strict = $args{no_strict_match};
 
-    is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
+    if (!$not_strict) {
+        is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
+    };
 
+    BY_KEY:
     foreach my $key (sort keys %$hash_exp) {
+        next BY_KEY if $not_strict && !exists $hash_got->{$key};
+
         if (ref $hash_exp->{$key} eq 'HASH') {
             subtest "Got expected hash for $key" => sub {
-                compare_hash_vals (hash_got => $hash_got->{$key},
-                                   hash_exp => $hash_exp->{$key});
+                compare_hash_vals (
+                    hash_got => $hash_got->{$key},
+                    hash_exp => $hash_exp->{$key},
+                    no_strict_match => $args{no_strict_match},
+                );
             }
         }
         elsif (ref $hash_exp->{$key} eq 'ARRAY') {
             subtest "Got expected array for $key" => sub {
-                compare_arr (arr_got => $hash_got->{$key},
-                             arr_exp => $hash_exp->{$key});
+                compare_arr (
+                    arr_got => $hash_got->{$key},
+                    arr_exp => $hash_exp->{$key},
+                    #  add no_strict_match option??
+                );
             }
         }
         else {
-            my $val_got = snap_to_precision (value => $hash_got->{$key},
-                                             precision => $precision);
-            my $val_exp = snap_to_precision (value => $hash_exp->{$key},
-                                             precision => $precision);
+            my $val_got = snap_to_precision (
+                value     => $hash_got->{$key},
+                precision => $precision,
+            );
+            my $val_exp = snap_to_precision (
+                value     => $hash_exp->{$key},
+                precision => $precision,
+            );
             is ($val_got, $val_exp, "Got expected value for $key");
         }
     }
@@ -423,6 +439,8 @@ sub run_indices_test1 {
     my $cell_sizes             = $args{cell_sizes} || [100000, 100000];
     my $use_numeric_labels     = $args{use_numeric_labels};
     my $use_element_properties = $args{use_element_properties}; # 'group' or 'label'
+    my $callbacks              = $args{callbacks};
+    delete $args{callbacks};
 
     # Used for acquiring sample results
     my $generate_result_sets = $args{generate_result_sets};
@@ -477,6 +495,19 @@ sub run_indices_test1 {
         $e = $EVAL_ERROR;
         note $e if $e;
         ok (!$e, 'Element properties assigned without eval error');
+    }
+    
+    foreach my $callback (@$callbacks) {
+        eval {
+            &$callback(
+                %args,
+                element_list1 => $element_list1,
+                element_list2 => $element_list2,
+                basedata_ref  => $bd,
+                tree_ref      => $tree,
+            );
+        };
+        croak $EVAL_ERROR if $EVAL_ERROR;
     }
 
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
@@ -562,11 +593,14 @@ sub run_indices_test1 {
 
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
+        my $expected = eval $dss->get_data_section(
+            "RESULTS_${nbr_list_count}_NBR_LISTS"
+        );
         subtest $subtest_name => sub {
             compare_hash_vals (
+                no_strict_match => $args{no_strict_match},
                 hash_got => \%results,
-                hash_exp => \%{eval $dss->get_data_section(
-                    "RESULTS_${nbr_list_count}_NBR_LISTS")}
+                hash_exp => \%{$expected},
             );
         };
     }

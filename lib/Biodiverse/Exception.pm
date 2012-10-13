@@ -53,6 +53,9 @@ use Exception::Class (
     'Biodiverse::Indices::FailedPreCondition' => {
         description => 'Failed a precondition',
     },
+    'Biodiverse::Tree::NotExistsNode' => {
+        description => 'Specified node does not exist',
+    },
 );
 
 

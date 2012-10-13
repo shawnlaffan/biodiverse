@@ -94,12 +94,23 @@ sub compare_hash_vals {
     my $precision  = $args{precision};
     my $not_strict = $args{no_strict_match};
 
+    #  check union of the two hashes
+    my %targets = (%$hash_exp, %$hash_got);
+
     if (!$not_strict) {
         is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
-    };
+        
+        my %h1 = %$hash_got;
+        delete @h1{keys %$hash_exp};
+        is (scalar keys %h1, 0, 'No extra keys');
 
+        my %h2 = %$hash_exp;
+        delete @h2{keys %$hash_got};
+        is (scalar keys %h2, 0, 'No missing keys');        
+    };
+    
     BY_KEY:
-    foreach my $key (sort keys %$hash_exp) {
+    foreach my $key (sort keys %targets) {
         next BY_KEY if $not_strict && !exists $hash_got->{$key};
 
         if (ref $hash_exp->{$key} eq 'HASH') {

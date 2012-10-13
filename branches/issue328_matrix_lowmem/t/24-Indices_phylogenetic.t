@@ -5,6 +5,9 @@ use warnings;
 
 local $| = 1;
 
+#  don't test plugins
+local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+
 use rlib;
 use Test::More;
 
@@ -12,28 +15,55 @@ use Biodiverse::TestHelpers qw{
     :runners
 };
 
-run_indices_test1 (
-    calcs_to_test  => [qw/
-        calc_phylo_aed
-        calc_phylo_aed_t
-        calc_phylo_aed_proportional
-        calc_labels_not_on_tree
-        calc_labels_on_tree
-        calc_pd_endemism
-        calc_phylo_jaccard
-        calc_phylo_s2
-        calc_phylo_sorenson
-        calc_phylo_abc
-        calc_pd
-        calc_pd_node_list
-        calc_pd_terminal_node_list
-        calc_pe
-        calc_pe_lists
-        calc_taxonomic_distinctness
-        calc_taxonomic_distinctness_binary
-    /],
-    calc_topic_to_test => 'Phylogenetic Indices',
-);
+my @calcs = qw/
+            calc_phylo_aed
+            calc_phylo_aed_t
+            calc_phylo_aed_proportional
+            calc_labels_not_on_tree
+            calc_labels_on_tree
+            calc_pd_endemism
+            calc_phylo_jaccard
+            calc_phylo_s2
+            calc_phylo_sorenson
+            calc_phylo_abc
+            calc_pd
+            calc_pd_node_list
+            calc_pd_terminal_node_list
+            calc_pe
+            calc_pe_lists
+            calc_taxonomic_distinctness
+            calc_taxonomic_distinctness_binary
+        /;
+
+{
+    run_indices_test1 (
+        calcs_to_test      => [@calcs],
+        calc_topic_to_test => 'Phylogenetic Indices',
+    );
+}
+
+#  now try with extra labels that aren't on the tree
+{
+    my $cb = sub {
+        my %args = @_;
+        my $bd = $args{basedata_ref};
+        my $el_list1 = $args{element_list1};
+        my $group = $el_list1->[0];
+        
+        $bd->add_element (
+            group => $group,
+            label => 'namenotontree:atall',
+        );
+    };
+
+    my @calcs_to_test = qw/calc_phylo_aed/;
+    run_indices_test1 (
+        calcs_to_test   => \@calcs_to_test,
+        callbacks       => [$cb],
+        no_strict_match => 1,
+    );
+    
+}
 
 done_testing;
 

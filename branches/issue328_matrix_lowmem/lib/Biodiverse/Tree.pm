@@ -301,12 +301,11 @@ sub get_node_ref {
     my $self = shift;
     my %args = @_;
     croak "node not specified\n" if ! defined $args{node};
-    if (exists $self->{TREE_BY_NAME}{$args{node}}) {
-        return $self->{TREE_BY_NAME}{$args{node}};
-    }
-    else {
-        croak "[Tree] Cannot find node $args{node}\n";
-    }
+
+    Biodiverse::Tree::NotExistsNode->throw ("[Tree] $args{node} does not exist")
+      if !exists $self->{TREE_BY_NAME}{$args{node}};
+
+    return $self->{TREE_BY_NAME}{$args{node}};    
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.

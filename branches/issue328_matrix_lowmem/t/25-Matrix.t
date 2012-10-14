@@ -138,6 +138,24 @@ sub run_main_tests {
     #  get the element count
     my $expected = 11;
     is ($mx->get_element_pair_count, $expected, "Got correct element pair count");
+    
+    my $check_val = 3;
+    my %pairs = $mx->get_element_pairs_with_value (value => $check_val);
+
+    my %expected_pairs = (
+        c => {
+            b => 1,
+        },
+        e => {
+            c => 1,
+        },
+    );
+    is_deeply (
+        \%pairs,
+        \%expected_pairs,
+        "Got expected element pairs with value $check_val, $class"
+    );
+
 }
 
 
@@ -165,6 +183,24 @@ sub run_with_site_data {
     
     is ($mx->get_min_value, $expected_min, "Got correct min value, $class");
     is ($mx->get_max_value, $expected_max, "Got correct max value, $class");
+    
+    my %pairs = $mx->get_element_pairs_with_value (value => $expected_min);
+
+    my %expected_pairs = (
+        'Genus:sp68' => {
+            'Genus:sp11' => 1,
+        },
+    );
+    is_deeply (
+        \%pairs,
+        \%expected_pairs,
+        "Got expected element pairs with value $expected_min, $class"
+    );
+
+    $mx->delete_element (element1 => 'Genus:sp68', element2 => 'Genus:sp11');
+
+    $expected_min = 0.00065;
+    is ($mx->get_min_value, $expected_min, "Got correct min value, $class");    
 }
 
 done_testing();

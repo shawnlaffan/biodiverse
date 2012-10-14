@@ -565,6 +565,31 @@ END_MX_TOOLTIP
 my $ludicrously_extreme_pos_val = 10 ** 20;
 my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
+sub get_element_pairs_with_value {
+    my $self = shift;
+    my %args = @_;
+    
+    my $val = $args{value};
+    my $val_key = $val;
+    if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
+        $val_key = sprintf $prec, $val;
+    }
+
+    my %results;
+
+    my $val_hash = $self->{BYVALUE};
+    my $element_hash = $val_hash->{$val_key};
+    
+    while (my ($el1, $hash_ref) = each %$element_hash) {
+        foreach my $el2 (keys %$hash_ref) {
+            my $value = $self->get_value (element1 => $el1, element2 => $el2);
+            next if $val ne $value;
+            $results{$el1}{$el2} ++;
+        }
+    }
+
+    return wantarray ? %results : \%results;    
+}
 
 sub get_min_value {  #  get the minimum similarity value
     my $self = shift;
@@ -728,14 +753,18 @@ sub delete_element {
         defined (delete $self->{BYELEMENT}{$element1})
             || warn "ISSUES BYELEMENT $element1 $element2\n";
     }
-    delete $self->{BYVALUE}{$value}{$element1}{$element2}; # if exists $self->{BYVALUE}{$value}{$element1}{$element2};
-    if (scalar keys %{$self->{BYVALUE}{$value}{$element1}} == 0) {
+    my $index_val = $value;
+    if (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
+        $index_val = sprintf $prec, $value;
+    }
+    delete $self->{BYVALUE}{$index_val}{$element1}{$element2}; # if exists $self->{BYVALUE}{$value}{$element1}{$element2};
+    if (scalar keys %{$self->{BYVALUE}{$index_val}{$element1}} == 0) {
         #undef $self->{BYVALUE}{$value}{$element1};
-        delete $self->{BYVALUE}{$value}{$element1};
-        if (scalar keys %{$self->{BYVALUE}{$value}} == 0) {
+        delete $self->{BYVALUE}{$index_val}{$element1};
+        if (scalar keys %{$self->{BYVALUE}{$index_val}} == 0) {
             #undef $self->{BYVALUE}{$value};
-            defined (delete $self->{BYVALUE}{$value})
-                || warn "ISSUES BYVALUE $value $element1 $element2\n";
+            defined (delete $self->{BYVALUE}{$index_val})
+                || warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
         }
     }
     #  decrement the ELEMENTS counts, deleting entry if now zero, as there are no more entries with this element

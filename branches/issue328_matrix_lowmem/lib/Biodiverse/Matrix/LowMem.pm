@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Carp;
+use List::Util qw /min max/;
 
 our $VERSION = '0.18003';
 
@@ -32,6 +33,7 @@ sub new {
         TYPE                 => undef,
         QUOTES               => q{'},
         JOIN_CHAR            => q{:},  #  used for labels
+        ELEMENT_COLUMNS      => [1,2],
         PARAM_CHANGE_WARN    => undef,
         CACHE_MATRIX_AS_TREE => 1,
     );
@@ -154,6 +156,65 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
     return 1;  # return success if we get this far
 }
 
+my $ludicrously_large_pos_value = 10 ** 20;
+my $ludicrously_large_neg_value = -$ludicrously_large_pos_value;
+
+sub get_min_value {
+    my $self = shift;
+
+    my $min = $ludicrously_large_pos_value;
+    my $elements = $self->{BYELEMENT};
+    foreach my $hash (values %$elements) {
+        $min = min ($min, values %$hash);
+    }
+    
+    return $min;
+}
+
+
+sub get_max_value {
+    my $self = shift;
+
+    my $max = $ludicrously_large_neg_value;
+    my $elements = $self->{BYELEMENT};
+    foreach my $hash (values %$elements) {
+        $max = max ($max, values %$hash);
+    }
+    
+    return $max;
+}
+
+sub get_element_pair_count {
+    my $self = shift;
+
+    return 0 if ! exists $self->{BYELEMENT};
+
+    my $count = 0;
+    my $elements = $self->{BYELEMENT};
+    foreach my $hash (values %$elements) {
+        $count += scalar keys %$hash;
+    }
+
+    return $count;
+}
+
+#  will not work well in all cases
+sub get_element_count {
+    my $self = shift;
+
+    return 0 if ! exists $self->{BYELEMENT};
+
+    my %el_hash;
+    
+    my $elements = $self->{BYELEMENT};
+    @el_hash{keys %$elements} = undef;
+
+    foreach my $hash (values %$elements) {
+        @el_hash{keys %$hash} = undef;
+    }
+
+    return scalar keys %el_hash;
+}
 
 1;
 

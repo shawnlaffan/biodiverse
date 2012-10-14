@@ -24,16 +24,20 @@ use Biodiverse::TestHelpers qw /:matrix/;
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
 
+my @classes = qw /Biodiverse::Matrix Biodiverse::Matrix::LowMem/;
 
-foreach my $class (qw /Biodiverse::Matrix Biodiverse::Matrix::LowMem/) {
+foreach my $class (@classes) {
     run_main_tests($class);
 }
 
+foreach my $class (@classes) {
+    run_with_complex_data ($class);
+}
 
 sub run_main_tests {
     my $class = shift;
 
-    print "\nUsing class $class\n\n";
+    note "\nUsing class $class\n\n";
 
     my $e;  #  for errors
 
@@ -112,8 +116,47 @@ sub run_main_tests {
         }
     }
     
+    #  check the extreme values
+    my $expected_min = 1;
+    my $expected_max = 6;
+    is ($mx->get_min_value, $expected_min, "Got correct min value, $class");
+    is ($mx->get_max_value, $expected_max, "Got correct max value, $class");
+
+    #  get the element count
+    my $expected_el_count = 6;
+    is ($mx->get_element_count, $expected_el_count, "Got correct element count");
+
+    #  get the element count
+    my $expected = 11;
+    is ($mx->get_element_pair_count, $expected, "Got correct element pair count");
+}
+
+
+sub run_with_complex_data {
+    my $class = shift;
+
+    note "\nUsing class $class\n\n";
+
+    my $e;  #  for errors
+
+    my $mx = get_matrix_object_from_sample_data($class);
+    ok (defined $mx, "created $class object");
     
+    #  get the element count
+    my $expected = 68;
+    is ($mx->get_element_count, $expected, "Got correct element count, $class");
+
+    #  get the element pair count
+    $expected = 2346;
+    is ($mx->get_element_pair_count, $expected, "Got correct element pair count, $class");    
     
+    #  check the extreme values
+    my $expected_min = 0.00063;
+    my $expected_max = 0.0762;
+    
+    is ($mx->get_min_value, $expected_min, "Got correct min value, $class");
+    is ($mx->get_max_value, $expected_max, "Got correct max value, $class");
+
 }
 
 done_testing();

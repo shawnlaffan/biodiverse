@@ -59,6 +59,7 @@ use Exporter::Easy (
         matrix => [
             qw(
                 get_matrix_object
+                get_matrix_object_from_sample_data
                 :utils
             ),
         ],
@@ -353,9 +354,9 @@ sub get_tree_object_from_sample_data {
 
 
 sub get_matrix_object_from_sample_data {
-    my $self = shift;
+    my $class = shift || 'Biodiverse::Matrix';
 
-    my $matrix = Biodiverse::Matrix->new (
+    my $matrix = $class->new (
         NAME => 'Matrix for testing purposes',
     );
 
@@ -366,6 +367,7 @@ sub get_matrix_object_from_sample_data {
     my $result = eval {
         $matrix->import_data (file => $file);
     };
+    croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $matrix;
 }

@@ -565,32 +565,6 @@ END_MX_TOOLTIP
 my $ludicrously_extreme_pos_val = 10 ** 20;
 my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
-sub get_element_pairs_with_value {
-    my $self = shift;
-    my %args = @_;
-    
-    my $val = $args{value};
-    my $val_key = $val;
-    if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
-        $val_key = sprintf $prec, $val;
-    }
-
-    my %results;
-
-    my $val_hash = $self->{BYVALUE};
-    my $element_hash = $val_hash->{$val_key};
-    
-    while (my ($el1, $hash_ref) = each %$element_hash) {
-        foreach my $el2 (keys %$hash_ref) {
-            my $value = $self->get_value (element1 => $el1, element2 => $el2);
-            next if $val ne $value;
-            $results{$el1}{$el2} ++;
-        }
-    }
-
-    return wantarray ? %results : \%results;    
-}
-
 sub get_min_value {  #  get the minimum similarity value
     my $self = shift;
 
@@ -837,18 +811,45 @@ sub get_element_pair_count {
     return $count;
 }
 
-sub get_elements_with_value {  #  returns a hash of the elements with $value
+##  superceded by get_element_pairs_with_value - yes
+#sub get_elements_with_value {  #  returns a hash of the elements with $value
+#    my $self = shift;
+#    my %args = @_;
+#    
+#    croak "Value not specified in call to get_elements_with_value\n"
+#        if ! defined $args{value};
+#    
+#    my $value = $args{value};
+#
+#    return if ! exists $self->{BYVALUE}{$value};
+#    return $self->{BYVALUE}{$value} if ! wantarray;
+#    return %{$self->{BYVALUE}{$value}};
+#}
+
+sub get_element_pairs_with_value {
     my $self = shift;
     my %args = @_;
-    
-    croak "Value not specified in call to get_elements_with_value\n"
-        if ! defined $args{value};
-    
-    my $value = $args{value};
 
-    return if ! exists $self->{BYVALUE}{$value};
-    return $self->{BYVALUE}{$value} if ! wantarray;
-    return %{$self->{BYVALUE}{$value}};
+    my $val = $args{value};
+    my $val_key = $val;
+    if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
+        $val_key = sprintf $prec, $val;
+    }
+
+    my %results;
+
+    my $val_hash = $self->{BYVALUE};
+    my $element_hash = $val_hash->{$val_key};
+
+    while (my ($el1, $hash_ref) = each %$element_hash) {
+        foreach my $el2 (keys %$hash_ref) {
+            my $value = $self->get_value (element1 => $el1, element2 => $el2);
+            next if $val ne $value;
+            $results{$el1}{$el2} ++;
+        }
+    }
+
+    return wantarray ? %results : \%results;    
 }
 
 sub get_element_values {  #  get all values associated with one element
@@ -857,8 +858,7 @@ sub get_element_values {  #  get all values associated with one element
     
     croak "element not specified (matrix)\n"  if ! defined $args{element};
     croak "matrix element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
-    
-    
+
     my @elements = $self->get_elements_as_array;
     
     my %values;

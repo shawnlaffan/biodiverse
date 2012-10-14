@@ -112,13 +112,7 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
         $element1 = $args{element2};
         $element2 = $args{element1};
     }
-    my $value = $self->get_value (
-        element1 => $element1,
-        element2 => $element2,
-    );
     
-    #print "DELETING $element1 $element2\n";
-        
     #  now we get to the cleanup, including the containing hashes if they are now empty
     #  all the undef - delete pairs are to ensure they get deleted properly
     #  the hash ref must be empty (undef) or it won't be deleted
@@ -130,29 +124,7 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
         defined (delete $self->{BYELEMENT}{$element1})
             || warn "ISSUES BYELEMENT $element1 $element2\n";
     }
-    delete $self->{BYVALUE}{$value}{$element1}{$element2}; # if exists $self->{BYVALUE}{$value}{$element1}{$element2};
-    if (scalar keys %{$self->{BYVALUE}{$value}{$element1}} == 0) {
-        #undef $self->{BYVALUE}{$value}{$element1};
-        delete $self->{BYVALUE}{$value}{$element1};
-        if (scalar keys %{$self->{BYVALUE}{$value}} == 0) {
-            #undef $self->{BYVALUE}{$value};
-            defined (delete $self->{BYVALUE}{$value})
-                || warn "ISSUES BYVALUE $value $element1 $element2\n";
-        }
-    }
-    #  decrement the ELEMENTS counts, deleting entry if now zero, as there are no more entries with this element
-    $self->{ELEMENTS}{$element1}--;
-    if ($self->{ELEMENTS}{$element1} == 0) {
-        defined (delete $self->{ELEMENTS}{$element1})
-            || warn "ISSUES $element1\n";
-    }
-    $self->{ELEMENTS}{$element2}--;
-    if ($self->{ELEMENTS}{$element2} == 0) {
-        defined (delete $self->{ELEMENTS}{$element2})
-            || warn "ISSUES $element2\n";
-    }
-    
-    #return ($self->element_pair_exists(@_)) ? undef : 1;  #  for debug
+
     return 1;  # return success if we get this far
 }
 
@@ -183,6 +155,7 @@ sub get_max_value {
     
     return $max;
 }
+
 
 #  very inefficient
 sub get_element_pairs_with_value {

@@ -82,6 +82,12 @@ sub element_pair_exists {
     return 0;
 }
 
+#  pass-through method
+sub get_elements_with_value {
+    my $self = shift;
+    return $self->get_element_pairs_with_value (@_);
+}
+
 sub import_data {
     my $self = shift;
     return $self->load_data (@_);

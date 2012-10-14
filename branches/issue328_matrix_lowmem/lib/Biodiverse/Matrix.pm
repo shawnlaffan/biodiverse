@@ -36,7 +36,7 @@ sub new {
 
 
     my %PARAMS = (
-        OUTPFX               =>  'BIODIVERSE',
+        OUTPFX               => 'BIODIVERSE',
         OUTSUFFIX            => 'bms',
         OUTSUFFIX_YAML       => 'bmy',
         TYPE                 => undef,
@@ -45,15 +45,16 @@ sub new {
         ELEMENT_COLUMNS      => [1,2],  #  default columns in input file to define the names (eg genus,species).  Should not be used as a list here.
         PARAM_CHANGE_WARN    => undef,
         CACHE_MATRIX_AS_TREE => 1,
+        VAL_INDEX_PRECISION  => '%.4g',
     );
-    
+
     $self->set_params (%PARAMS, @_);  #  load the defaults, with the rest of the args as params
     $self->set_default_params;  #  and any user overrides
 
     
     $self->{BYELEMENT} = undef;  #  values indexed by elements
-    $self->{BYVALUE} = undef;    #  elements indexed by value
-    
+    $self->{BYVALUE}   = undef;  #  elements indexed by value
+
     $self->set_param (NAME => $args{name}) if defined $args{name};
 
     warn "[MATRIX] WARNING: Matrix name not specified\n"
@@ -561,19 +562,44 @@ END_MX_TOOLTIP
     return $tool_tip;
 }
 
+my $ludicrously_extreme_pos_val = 10 ** 20;
+my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
+
 
 sub get_min_value {  #  get the minimum similarity value
     my $self = shift;
-    #my @array = sort numerically keys %{$self->{BYVALUE}};
-    #return $array[0];
-    return min keys %{$self->{BYVALUE}};
+
+    my $val_hash = $self->{BYVALUE};    
+    my $min_key  = min keys %$val_hash;
+    my $min      = $ludicrously_extreme_pos_val;
+    
+    my $element_hash = $val_hash->{$min_key};
+    while (my ($el1, $hash_ref) = each %$element_hash) {
+        foreach my $el2 (keys %$hash_ref) {
+            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+            $min = min ($min, $val);
+        }
+    }
+
+    return $min;
 }
 
 sub get_max_value {  #  get the minimum similarity value
     my $self = shift;
-    #my @array = reverse sort numerically keys %{$self->{BYVALUE}};
-    #return $array[0];
-    return max keys %{$self->{BYVALUE}};
+
+    my $val_hash = $self->{BYVALUE};    
+    my $max_key  = max keys %$val_hash;
+    my $max      = $ludicrously_extreme_neg_val;
+
+    my $element_hash = $val_hash->{$max_key};
+    while (my ($el1, $hash_ref) = each %$element_hash) {
+        foreach my $el2 (keys %$hash_ref) {
+            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+            $max = max ($max, $val);
+        }
+    }
+
+    return $max;
 }
 
 #  crude summary stats.
@@ -642,27 +668,34 @@ sub add_element {  #  add an element pair to the object
 
     my $val = $args{value};
     if (! defined $val && ! $self->get_param('ALLOW_UNDEF')) {
-        warn "[Matrix] add_element Warning: Value not defined and ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
+        warn "[Matrix] add_element Warning: Value not defined and "
+            . "ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
         return;
     }
-    if (!defined $val) {
-        $val = q{undef};
+
+    my $index_val = $val;
+    if (!defined $index_val) {
+        $index_val = q{undef};
+    }
+    elsif (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
+        $index_val = sprintf $prec, $val;
     }
 
-    $self->{BYELEMENT}{$element1}{$element2} = $args{value};
-    $self->{BYVALUE}{$val}{$element1}{$element2}++;
+    $self->{BYELEMENT}{$element1}{$element2} = $val;
+    $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
     $self->{ELEMENTS}{$element1}++;  #  cache the component elements to save searching through the other lists later
     $self->{ELEMENTS}{$element2}++;  #  also keeps a count of the elements
     
     return;
 }
 
-sub delete_element {  #  should be called delete_element_pair, but need to find where it's used first
+#  should be called delete_element_pair, but need to find where it's used first
+sub delete_element {
     my $self = shift;
     my %args = @_;
     croak "element1 or element2 not defined\n"
-        if ! defined $args{element1}
-            || ! defined $args{element2};
+        if   ! defined $args{element1}
+          || ! defined $args{element2};
 
     my $element1 = $args{element1};
     my $element2 = $args{element2};

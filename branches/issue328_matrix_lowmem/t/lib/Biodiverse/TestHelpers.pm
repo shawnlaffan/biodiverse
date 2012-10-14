@@ -355,9 +355,11 @@ sub get_tree_object_from_sample_data {
 
 sub get_matrix_object_from_sample_data {
     my $class = shift || 'Biodiverse::Matrix';
+    my %args  = @_;
 
     my $matrix = $class->new (
         NAME => 'Matrix for testing purposes',
+        %args,
     );
 
     my $file = write_data_to_temp_file(get_matrix_site_data());

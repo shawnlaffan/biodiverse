@@ -31,8 +31,17 @@ foreach my $class (@classes) {
 }
 
 foreach my $class (@classes) {
-    run_with_complex_data ($class);
+    run_with_site_data ($class);
 }
+
+#  now check with lower precision
+{
+    my $class = 'Biodiverse::Matrix';
+    my $precision = '%.1f';
+    run_with_site_data ($class, VAL_INDEX_PRECISION => $precision);
+}
+
+#  NEED TO TEST EFFECT OF DELETIONS
 
 sub run_main_tests {
     my $class = shift;
@@ -132,14 +141,14 @@ sub run_main_tests {
 }
 
 
-sub run_with_complex_data {
-    my $class = shift;
+sub run_with_site_data {
+    my ($class, %args) = @_;
 
     note "\nUsing class $class\n\n";
 
     my $e;  #  for errors
 
-    my $mx = get_matrix_object_from_sample_data($class);
+    my $mx = get_matrix_object_from_sample_data($class, %args);
     ok (defined $mx, "created $class object");
     
     #  get the element count
@@ -156,7 +165,6 @@ sub run_with_complex_data {
     
     is ($mx->get_min_value, $expected_min, "Got correct min value, $class");
     is ($mx->get_max_value, $expected_max, "Got correct max value, $class");
-
 }
 
 done_testing();

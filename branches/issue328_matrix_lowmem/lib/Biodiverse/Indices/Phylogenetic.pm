@@ -1983,7 +1983,6 @@ sub get_aed_scores {
         };
         if (my $e = $EVAL_ERROR) {
             next LABEL if Biodiverse::Tree::NotExistsNode->caught;
-            #next LABEL if !$node_ref;
             croak $e;
         }
 

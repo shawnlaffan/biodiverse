@@ -1081,10 +1081,13 @@ sub cluster {
 
         #  should probably use matrix refs instead of cloning if this is set
         if ($args{file_handles}) {
+            $self->run_indices_object_cleanup;
             $self->set_param(COMPLETED => 3);
             return 3;  #  don't try to cluster and don't add anything to the basedata
         }
         elsif ($args{build_matrices_only}) {
+            $self->run_indices_object_cleanup;
+
             #  assign matrices to the orig slots, no need to clone
             $self->set_param (ORIGINAL_SHADOW_MATRIX => $self->get_shadow_matrix);
             $self->set_param (ORIGINAL_MATRICES => \@matrices);
@@ -1140,15 +1143,7 @@ sub cluster {
         croak $EVAL_ERROR if $EVAL_ERROR;
     }
 
-    #  run some cleanup on the indices object
-    my $indices_object = $self->get_param('INDICES_OBJECT');
-    if ($indices_object) {
-        eval {
-            $indices_object->run_postcalc_globals;
-            $indices_object->reset_results(global => 1);
-        };
-    }
-    $self->set_param(INDICES_OBJECT => undef);
+    $self->run_indices_object_cleanup;
 
     my %root_nodes = $self->get_root_nodes;
 
@@ -1247,6 +1242,21 @@ sub run_spatial_calculations {
     return $success;
 }
 
+sub run_indices_object_cleanup {
+    my $self = shift;
+    
+    #  run some cleanup on the indices object
+    my $indices_object = $self->get_param('INDICES_OBJECT');
+    if ($indices_object) {
+        eval {
+            $indices_object->run_postcalc_globals;
+            $indices_object->reset_results(global => 1);
+        };
+    }
+    $self->set_param(INDICES_OBJECT => undef);
+
+    return;
+}
 
 #  just stick the root nodes together
 #  if we have many left from clustering

@@ -1,0 +1,23 @@
+--- gnome-canvas-shape.c.orig	2010-04-17 05:25:39.000000000 +1000
++++ gnome-canvas-shape.c	2012-10-15 13:27:28.111486900 +1100
+@@ -782,6 +782,10 @@
+ 			TRUE,
+ 			0, 0,
+ 			width, height);
++			
++		/* Unset the clipping mask to free GDI region object */
++		
++		gdk_gc_set_clip_mask (gdk->fill_gc, NULL);
+ 	}
+ 
+ 	if (priv->outline_set) {
+@@ -1441,6 +1445,9 @@
+ 		ctx->mask = gdk_pixmap_new (window, width, height, 1);
+ 		ctx->clip = NULL;
+ 
++		ctx->width = width;
++		ctx->height = height;
++
+ 		ctx->clear_gc = gdk_gc_new (ctx->mask);
+ 		gdk_gc_set_function (ctx->clear_gc, GDK_CLEAR);
+ 

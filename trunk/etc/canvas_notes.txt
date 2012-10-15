@@ -1,0 +1,870 @@
+symbol-file c:\\strawberry\\c\\bin\\libgnomecanvas-2-0.dll.debug
+dir C:\\Users\\michaelz\\Desktop\\libgnomecanvas-2.30.2\\libgnomecanvas
+
+
+CreateCompatibleDC 0x7fd3fe32760
+
+(gdb) disas gnome_canvas_shape_draw
+Dump of assembler code for function gnome_canvas_shape_draw:
+   0x0000000065241fc0 <+0>:     push   r15
+   0x0000000065241fc2 <+2>:     push   r14
+   0x0000000065241fc4 <+4>:     push   r13
+   0x0000000065241fc6 <+6>:     push   r12
+   0x0000000065241fc8 <+8>:     push   rbp
+   0x0000000065241fc9 <+9>:     push   rdi
+   0x0000000065241fca <+10>:    push   rsi
+   0x0000000065241fcb <+11>:    push   rbx
+   0x0000000065241fcc <+12>:    sub    rsp,0x58
+   0x0000000065241fd0 <+16>:    mov    r12d,DWORD PTR [rsp+0xc0]
+   0x0000000065241fd8 <+24>:    mov    rsi,rcx
+   0x0000000065241fdb <+27>:    mov    rbp,rdx
+   0x0000000065241fde <+30>:    mov    r13d,r8d
+   0x0000000065241fe1 <+33>:    mov    r14d,r9d
+   0x0000000065241fe4 <+36>:    call   0x65241b30 <gnome_canvas_shape_get_type>
+   0x0000000065241fe9 <+41>:    mov    rcx,rsi
+   0x0000000065241fec <+44>:    mov    rdx,rax
+   0x0000000065241fef <+47>:    call   0x6525f3c8 <g_type_check_instance_cast>
+   0x0000000065241ff4 <+52>:    mov    rbx,QWORD PTR [rax+0x58]
+   0x0000000065241ff8 <+56>:    mov    r15,rax
+   0x0000000065241ffb <+59>:    mov    rdi,QWORD PTR [rbx+0x68]
+   0x0000000065241fff <+63>:    test   rdi,rdi
+   0x0000000065242002 <+66>:    je     0x652422f0 <gnome_canvas_shape_draw+816>
+   0x0000000065242008 <+72>:    mov    rcx,QWORD PTR [rip+0x2e011]        # 0x65270020 <dpoints.5016
+5>
+   0x000000006524200f <+79>:    test   rcx,rcx
+   0x0000000065242012 <+82>:    je     0x65242320 <gnome_canvas_shape_draw+864>
+   0x0000000065242018 <+88>:    movsxd rdx,DWORD PTR [rdi+0x2c]
+   0x000000006524201c <+92>:    cmp    edx,DWORD PTR [rip+0x2e006]        # 0x65270028 <num_dpoints.
+50166>
+   0x0000000065242022 <+98>:    jg     0x65242110 <gnome_canvas_shape_draw+336>
+   0x0000000065242028 <+104>:   test   edx,edx
+   0x000000006524202a <+106>:   jle    0x65242061 <gnome_canvas_shape_draw+161>
+   0x000000006524202c <+108>:   mov    rcx,QWORD PTR [rip+0x2dfed]        # 0x65270020 <dpoints.5016
+5>
+   0x0000000065242033 <+115>:   mov    rax,QWORD PTR [rdi+0x30]
+   0x0000000065242037 <+119>:   xor    r10d,r10d
+   0x000000006524203a <+122>:   nop    WORD PTR [rax+rax*1+0x0]
+   0x0000000065242040 <+128>:   mov    r11d,DWORD PTR [rax+r10*8]
+   0x0000000065242044 <+132>:   sub    r11d,r13d
+   0x0000000065242047 <+135>:   mov    DWORD PTR [rcx+r10*8],r11d
+   0x000000006524204b <+139>:   mov    r11d,DWORD PTR [rax+r10*8+0x4]
+   0x0000000065242050 <+144>:   sub    r11d,r14d
+   0x0000000065242053 <+147>:   mov    DWORD PTR [rcx+r10*8+0x4],r11d
+   0x0000000065242058 <+152>:   add    r10,0x1
+   0x000000006524205c <+156>:   cmp    edx,r10d
+   0x000000006524205f <+159>:   jg     0x65242040 <gnome_canvas_shape_draw+128>
+   0x0000000065242061 <+161>:   movzx  eax,BYTE PTR [rbx+0x10]
+   0x0000000065242065 <+165>:   test   al,0x1
+   0x0000000065242067 <+167>:   jne    0x65242130 <gnome_canvas_shape_draw+368>
+   0x000000006524206d <+173>:   test   al,0x2
+   0x000000006524206f <+175>:   je     0x652420fc <gnome_canvas_shape_draw+316>
+   0x0000000065242075 <+181>:   cmp    QWORD PTR [rdi+0x10],0x0
+   0x000000006524207a <+186>:   je     0x65242089 <gnome_canvas_shape_draw+201>
+   0x000000006524207c <+188>:   mov    rdx,QWORD PTR [rdi+0x20]
+   0x0000000065242080 <+192>:   mov    rcx,QWORD PTR [rsi+0x20]
+   0x0000000065242084 <+196>:   call   0x6525b990 <gnome_canvas_set_stipple_origin>
+   0x0000000065242089 <+201>:   mov    rsi,QWORD PTR [rdi+0x38]
+   0x000000006524208d <+205>:   xor    ebx,ebx
+   0x000000006524208f <+207>:   test   rsi,rsi
+   0x0000000065242092 <+210>:   je     0x652420c7 <gnome_canvas_shape_draw+263>
+   0x0000000065242094 <+212>:   mov    rax,QWORD PTR [rsi]
+   0x0000000065242097 <+215>:   mov    rdx,QWORD PTR [rdi+0x20]
+   0x000000006524209b <+219>:   movsxd rcx,ebx
+   0x000000006524209e <+222>:   xor    r8d,r8d
+   0x00000000652420a1 <+225>:   mov    r12d,eax
+   0x00000000652420a4 <+228>:   mov    DWORD PTR [rsp+0x20],eax
+   0x00000000652420a8 <+232>:   mov    rax,QWORD PTR [rip+0x2df71]        # 0x65270020 <dpoints.5016
+5>
+   0x00000000652420af <+239>:   add    ebx,r12d
+   0x00000000652420b2 <+242>:   lea    r9,[rax+rcx*8]
+   0x00000000652420b6 <+246>:   mov    rcx,rbp
+   0x00000000652420b9 <+249>:   call   0x6525ee68 <gdk_draw_polygon>
+   0x00000000652420be <+254>:   mov    rsi,QWORD PTR [rsi+0x8]
+   0x00000000652420c2 <+258>:   test   rsi,rsi
+   0x00000000652420c5 <+261>:   jne    0x65242094 <gnome_canvas_shape_draw+212>
+   0x00000000652420c7 <+263>:   mov    rsi,QWORD PTR [rdi+0x40]
+   0x00000000652420cb <+267>:   test   rsi,rsi
+   0x00000000652420ce <+270>:   je     0x652420fc <gnome_canvas_shape_draw+316>
+   0x00000000652420d0 <+272>:   mov    rax,QWORD PTR [rip+0x2df49]        # 0x65270020 <dpoints.5016
+5>
+   0x00000000652420d7 <+279>:   mov    r9,QWORD PTR [rsi]
+   0x00000000652420da <+282>:   movsxd rcx,ebx
+   0x00000000652420dd <+285>:   mov    rdx,QWORD PTR [rdi+0x20]
+   0x00000000652420e1 <+289>:   lea    r8,[rax+rcx*8]
+   0x00000000652420e5 <+293>:   mov    rcx,rbp
+   0x00000000652420e8 <+296>:   mov    r12d,r9d
+   0x00000000652420eb <+299>:   add    ebx,r12d
+   0x00000000652420ee <+302>:   call   0x6525ee70 <gdk_draw_lines>
+   0x00000000652420f3 <+307>:   mov    rsi,QWORD PTR [rsi+0x8]
+   0x00000000652420f7 <+311>:   test   rsi,rsi
+   0x00000000652420fa <+314>:   jne    0x652420d0 <gnome_canvas_shape_draw+272>
+   0x00000000652420fc <+316>:   add    rsp,0x58
+   0x0000000065242100 <+320>:   pop    rbx
+   0x0000000065242101 <+321>:   pop    rsi
+   0x0000000065242102 <+322>:   pop    rdi
+   0x0000000065242103 <+323>:   pop    rbp
+   0x0000000065242104 <+324>:   pop    r12
+   0x0000000065242106 <+326>:   pop    r13
+   0x0000000065242108 <+328>:   pop    r14
+   0x000000006524210a <+330>:   pop    r15
+   0x000000006524210c <+332>:   ret
+   0x000000006524210d <+333>:   nop    DWORD PTR [rax]
+   0x0000000065242110 <+336>:   mov    r8d,0x8
+   0x0000000065242116 <+342>:   call   0x6525f588 <g_realloc_n>
+   0x000000006524211b <+347>:   mov    edx,DWORD PTR [rdi+0x2c]
+   0x000000006524211e <+350>:   mov    QWORD PTR [rip+0x2defb],rax        # 0x65270020 <dpoints.5016
+5>
+   0x0000000065242125 <+357>:   mov    DWORD PTR [rip+0x2defd],edx        # 0x65270028 <num_dpoints.
+50166>
+   0x000000006524212b <+363>:   jmp    0x65242028 <gnome_canvas_shape_draw+104>
+   0x0000000065242130 <+368>:   mov    rax,QWORD PTR [r15+0x58]
+   0x0000000065242134 <+372>:   mov    r14,QWORD PTR [rax+0x68]
+   0x0000000065242138 <+376>:   test   r14,r14
+   0x000000006524213b <+379>:   je     0x65242343 <gnome_canvas_shape_draw+899>
+   0x0000000065242141 <+385>:   mov    r13,QWORD PTR [r14+0x48]
+   0x0000000065242145 <+389>:   test   r13,r13
+   0x0000000065242148 <+392>:   je     0x6524236f <gnome_canvas_shape_draw+943>
+   0x000000006524214e <+398>:   cmp    r12d,DWORD PTR [r13+0x10]
+   0x0000000065242152 <+402>:   jle    0x652422d0 <gnome_canvas_shape_draw+784>
+   0x0000000065242158 <+408>:   mov    rcx,QWORD PTR [r13+0x28]
+   0x000000006524215c <+412>:   mov    rax,QWORD PTR [r15+0x20]
+   0x0000000065242160 <+416>:   test   rcx,rcx
+   0x0000000065242163 <+419>:   mov    r14,QWORD PTR [rax+0x50]
+   0x0000000065242167 <+423>:   je     0x6524216e <gnome_canvas_shape_draw+430>
+   0x0000000065242169 <+425>:   call   0x6525f3b8 <g_object_unref>
+   0x000000006524216e <+430>:   mov    rcx,QWORD PTR [r13+0x30]
+   0x0000000065242172 <+434>:   test   rcx,rcx
+   0x0000000065242175 <+437>:   je     0x6524217c <gnome_canvas_shape_draw+444>
+   0x0000000065242177 <+439>:   call   0x6525f3b8 <g_object_unref>
+   0x000000006524217c <+444>:   mov    rcx,QWORD PTR [r13+0x18]
+   0x0000000065242180 <+448>:   test   rcx,rcx
+   0x0000000065242183 <+451>:   je     0x6524218a <gnome_canvas_shape_draw+458>
+   0x0000000065242185 <+453>:   call   0x6525f3b8 <g_object_unref>
+   0x000000006524218a <+458>:   mov    rcx,QWORD PTR [r13+0x20]
+   0x000000006524218e <+462>:   test   rcx,rcx
+   0x0000000065242191 <+465>:   je     0x65242198 <gnome_canvas_shape_draw+472>
+   0x0000000065242193 <+467>:   call   0x6525f3b8 <g_object_unref>
+   0x0000000065242198 <+472>:   mov    r8d,DWORD PTR [rsp+0xc8]
+   0x00000000652421a0 <+480>:   mov    r9d,0x1
+   0x00000000652421a6 <+486>:   mov    edx,r12d
+   0x00000000652421a9 <+489>:   mov    rcx,r14
+   0x00000000652421ac <+492>:   call   0x6525ee78 <gdk_pixmap_new>
+   0x00000000652421b1 <+497>:   mov    QWORD PTR [r13+0x20],0x0
+   0x00000000652421b9 <+505>:   mov    rcx,rax
+   0x00000000652421bc <+508>:   mov    QWORD PTR [r13+0x18],rax
+   0x00000000652421c0 <+512>:   call   0x6525ee80 <gdk_gc_new>
+   0x00000000652421c5 <+517>:   mov    edx,0x3
+   0x00000000652421ca <+522>:   mov    rcx,rax
+   0x00000000652421cd <+525>:   mov    QWORD PTR [r13+0x28],rax
+   0x00000000652421d1 <+529>:   call   0x6525ee88 <gdk_gc_set_function>
+   0x00000000652421d6 <+534>:   mov    rcx,QWORD PTR [r13+0x18]
+   0x00000000652421da <+538>:   call   0x6525ee80 <gdk_gc_new>
+   0x00000000652421df <+543>:   mov    edx,0x1
+   0x00000000652421e4 <+548>:   mov    QWORD PTR [r13+0x30],rax
+   0x00000000652421e8 <+552>:   mov    rcx,rax
+   0x00000000652421eb <+555>:   call   0x6525ee88 <gdk_gc_set_function>
+   0x00000000652421f0 <+560>:   mov    rax,QWORD PTR [rdi+0x48]
+   0x00000000652421f4 <+564>:   xor    r9d,r9d
+   0x00000000652421f7 <+567>:   mov    r8d,0x1
+   0x00000000652421fd <+573>:   mov    rdx,QWORD PTR [rax+0x28]
+   0x0000000065242201 <+577>:   mov    rcx,QWORD PTR [rax+0x18]
+   0x0000000065242205 <+581>:   mov    eax,DWORD PTR [rsp+0xc8]
+   0x000000006524220c <+588>:   mov    DWORD PTR [rsp+0x28],r12d
+   0x0000000065242211 <+593>:   mov    DWORD PTR [rsp+0x20],0x0
+   0x0000000065242219 <+601>:   mov    DWORD PTR [rsp+0x30],eax
+   0x000000006524221d <+605>:   call   0x6525ee90 <gdk_draw_rectangle>
+   0x0000000065242222 <+610>:   mov    r13,QWORD PTR [rdi+0x38]
+   0x0000000065242226 <+614>:   test   r13,r13
+   0x0000000065242229 <+617>:   je     0x6524226c <gnome_canvas_shape_draw+684>
+   0x000000006524222b <+619>:   xor    r14d,r14d
+   0x000000006524222e <+622>:   xchg   ax,ax
+   0x0000000065242230 <+624>:   mov    rax,QWORD PTR [r13+0x0]
+   0x0000000065242234 <+628>:   mov    rcx,QWORD PTR [rdi+0x48]
+   0x0000000065242238 <+632>:   movsxd r8,r14d
+   0x000000006524223b <+635>:   mov    rdx,QWORD PTR [rcx+0x30]
+   0x000000006524223f <+639>:   mov    r15d,eax
+   0x0000000065242242 <+642>:   mov    rcx,QWORD PTR [rcx+0x18]
+   0x0000000065242246 <+646>:   mov    DWORD PTR [rsp+0x20],eax
+   0x000000006524224a <+650>:   mov    rax,QWORD PTR [rip+0x2ddcf]        # 0x65270020 <dpoints.5016
+5>
+   0x0000000065242251 <+657>:   add    r14d,r15d
+   0x0000000065242254 <+660>:   lea    r9,[rax+r8*8]
+   0x0000000065242258 <+664>:   mov    r8d,0x1
+   0x000000006524225e <+670>:   call   0x6525ee68 <gdk_draw_polygon>
+   0x0000000065242263 <+675>:   mov    r13,QWORD PTR [r13+0x8]
+   0x0000000065242267 <+679>:   test   r13,r13
+   0x000000006524226a <+682>:   jne    0x65242230 <gnome_canvas_shape_draw+624>
+   0x000000006524226c <+684>:   mov    rax,QWORD PTR [rdi+0x48]
+   0x0000000065242270 <+688>:   mov    rcx,QWORD PTR [rdi+0x18]
+   0x0000000065242274 <+692>:   mov    rdx,QWORD PTR [rax+0x18]
+   0x0000000065242278 <+696>:   call   0x6525ee98 <gdk_gc_set_clip_mask>
+   0x000000006524227d <+701>:   cmp    QWORD PTR [rdi+0x8],0x0
+   0x0000000065242282 <+706>:   je     0x65242291 <gnome_canvas_shape_draw+721>
+   0x0000000065242284 <+708>:   mov    rdx,QWORD PTR [rdi+0x18]
+   0x0000000065242288 <+712>:   mov    rcx,QWORD PTR [rsi+0x20]
+   0x000000006524228c <+716>:   call   0x6525b990 <gnome_canvas_set_stipple_origin>
+   0x0000000065242291 <+721>:   mov    eax,DWORD PTR [rsp+0xc8]
+   0x0000000065242298 <+728>:   mov    rdx,QWORD PTR [rdi+0x18]
+   0x000000006524229c <+732>:   xor    r9d,r9d
+   0x000000006524229f <+735>:   mov    DWORD PTR [rsp+0x28],r12d
+   0x00000000652422a4 <+740>:   mov    DWORD PTR [rsp+0x20],0x0
+   0x00000000652422ac <+748>:   mov    r8d,0x1
+   0x00000000652422b2 <+754>:   mov    rcx,rbp
+   0x00000000652422b5 <+757>:   mov    DWORD PTR [rsp+0x30],eax
+   0x00000000652422b9 <+761>:   call   0x6525ee90 <gdk_draw_rectangle>
+   0x00000000652422be <+766>:   movzx  eax,BYTE PTR [rbx+0x10]
+   0x00000000652422c2 <+770>:   jmp    0x6524206d <gnome_canvas_shape_draw+173>
+   0x00000000652422c7 <+775>:   nop    WORD PTR [rax+rax*1+0x0]
+   0x00000000652422d0 <+784>:   mov    eax,DWORD PTR [rsp+0xc8]
+   0x00000000652422d7 <+791>:   cmp    eax,DWORD PTR [r13+0x14]
+   0x00000000652422db <+795>:   jg     0x65242158 <gnome_canvas_shape_draw+408>
+   0x00000000652422e1 <+801>:   jmp    0x652421f0 <gnome_canvas_shape_draw+560>
+   0x00000000652422e6 <+806>:   nop    WORD PTR cs:[rax+rax*1+0x0]
+   0x00000000652422f0 <+816>:   lea    rax,[rip+0x24e40]        # 0x65267137
+   0x00000000652422f7 <+823>:   lea    r9,[rip+0x25022]        # 0x65267320 <__PRETTY_FUNCTION__.501
+76>
+   0x00000000652422fe <+830>:   lea    rdx,[rip+0x24db8]        # 0x652670bd
+   0x0000000065242305 <+837>:   lea    rcx,[rip+0x24dc6]        # 0x652670d2
+   0x000000006524230c <+844>:   mov    r8d,0x2d3
+   0x0000000065242312 <+850>:   mov    QWORD PTR [rsp+0x20],rax
+   0x0000000065242317 <+855>:   call   0x6525f590 <g_assertion_message_expr>
+   0x000000006524231c <+860>:   nop    DWORD PTR [rax+0x0]
+   0x0000000065242320 <+864>:   movsxd rcx,DWORD PTR [rdi+0x2c]
+   0x0000000065242324 <+868>:   mov    edx,0x8
+   0x0000000065242329 <+873>:   call   0x6525f598 <g_malloc_n>
+   0x000000006524232e <+878>:   mov    edx,DWORD PTR [rdi+0x2c]
+   0x0000000065242331 <+881>:   mov    QWORD PTR [rip+0x2dce8],rax        # 0x65270020 <dpoints.5016
+5>
+   0x0000000065242338 <+888>:   mov    DWORD PTR [rip+0x2dcea],edx        # 0x65270028 <num_dpoints.
+50166>
+   0x000000006524233e <+894>:   jmp    0x65242028 <gnome_canvas_shape_draw+104>
+   0x0000000065242343 <+899>:   lea    rax,[rip+0x24ded]        # 0x65267137
+   0x000000006524234a <+906>:   lea    r9,[rip+0x24fef]        # 0x65267340 <__PRETTY_FUNCTION__.503
+63>
+   0x0000000065242351 <+913>:   lea    rdx,[rip+0x24d65]        # 0x652670bd
+   0x0000000065242358 <+920>:   lea    rcx,[rip+0x24d73]        # 0x652670d2
+   0x000000006524235f <+927>:   mov    r8d,0x56d
+   0x0000000065242365 <+933>:   mov    QWORD PTR [rsp+0x20],rax
+   0x000000006524236a <+938>:   call   0x6525f590 <g_assertion_message_expr>
+   0x000000006524236f <+943>:   call   0x652556a0 <gnome_canvas_item_get_type>
+   0x0000000065242374 <+948>:   mov    rcx,r15
+   0x0000000065242377 <+951>:   mov    rdx,rax
+   0x000000006524237a <+954>:   call   0x6525f3c8 <g_type_check_instance_cast>
+   0x000000006524237f <+959>:   mov    rax,QWORD PTR [rax+0x20]
+   0x0000000065242383 <+963>:   mov    edx,0x50
+   0x0000000065242388 <+968>:   mov    rcx,rax
+   0x000000006524238b <+971>:   mov    QWORD PTR [rsp+0x48],rax
+   0x0000000065242390 <+976>:   call   0x6525f3c8 <g_type_check_instance_cast>
+   0x0000000065242395 <+981>:   lea    rdx,[rip+0x24d8e]        # 0x6526712a
+   0x000000006524239c <+988>:   mov    rcx,rax
+   0x000000006524239f <+991>:   call   0x6525f3e0 <g_object_get_data>
+   0x00000000652423a4 <+996>:   test   rax,rax
+   0x00000000652423a7 <+999>:   mov    r13,rax
+   0x00000000652423aa <+1002>:  je     0x652423b8 <gnome_canvas_shape_draw+1016>
+   0x00000000652423ac <+1004>:  add    DWORD PTR [rax],0x1
+   0x00000000652423af <+1007>:  mov    QWORD PTR [r14+0x48],r13
+   0x00000000652423b3 <+1011>:  jmp    0x6524214e <gnome_canvas_shape_draw+398>
+   0x00000000652423b8 <+1016>:  mov    ecx,0x38
+   0x00000000652423bd <+1021>:  call   0x6525f580 <g_malloc>
+   0x00000000652423c2 <+1026>:  mov    r13,rax
+   0x00000000652423c5 <+1029>:  mov    DWORD PTR [rax],0x1
+   0x00000000652423cb <+1035>:  mov    rax,QWORD PTR [rsp+0x48]
+   0x00000000652423d0 <+1040>:  mov    DWORD PTR [r13+0x10],0x0
+   0x00000000652423d8 <+1048>:  mov    DWORD PTR [r13+0x14],0x0
+   0x00000000652423e0 <+1056>:  mov    edx,0x50
+   0x00000000652423e5 <+1061>:  mov    QWORD PTR [r13+0x18],0x0
+   0x00000000652423ed <+1069>:  mov    QWORD PTR [r13+0x20],0x0
+   0x00000000652423f5 <+1077>:  mov    QWORD PTR [r13+0x8],rax
+   0x00000000652423f9 <+1081>:  mov    QWORD PTR [r13+0x28],0x0
+   0x0000000065242401 <+1089>:  mov    rcx,rax
+   0x0000000065242404 <+1092>:  mov    QWORD PTR [r13+0x30],0x0
+   0x000000006524240c <+1100>:  call   0x6525f3c8 <g_type_check_instance_cast>
+   0x0000000065242411 <+1105>:  lea    rdx,[rip+0x24d12]        # 0x6526712a
+   0x0000000065242418 <+1112>:  mov    r8,r13
+   0x000000006524241b <+1115>:  mov    rcx,rax
+   0x000000006524241e <+1118>:  call   0x6525f3e8 <g_object_set_data>
+   0x0000000065242423 <+1123>:  jmp    0x652423af <gnome_canvas_shape_draw+1007>
+End of assembler dump.
+
+
+(gdb) disas gnome_canvas_group_draw
+Dump of assembler code for function gnome_canvas_group_draw:
+   0x0000000065256ef0 <+0>:     push   r15
+   0x0000000065256ef2 <+2>:     push   r14
+   0x0000000065256ef4 <+4>:     push   r13
+   0x0000000065256ef6 <+6>:     push   r12
+   0x0000000065256ef8 <+8>:     push   rbp
+   0x0000000065256ef9 <+9>:     push   rdi
+   0x0000000065256efa <+10>:    push   rsi
+   0x0000000065256efb <+11>:    push   rbx
+   0x0000000065256efc <+12>:    sub    rsp,0x38
+   0x0000000065256f00 <+16>:    mov    r14d,DWORD PTR [rsp+0xa0]
+   0x0000000065256f08 <+24>:    mov    rbx,rcx
+   0x0000000065256f0b <+27>:    mov    ebp,r8d
+   0x0000000065256f0e <+30>:    mov    r12d,r9d
+   0x0000000065256f11 <+33>:    mov    r15,rdx
+   0x0000000065256f14 <+36>:    call   0x652568a0 <gnome_canvas_group_get_type>
+   0x0000000065256f19 <+41>:    mov    rcx,rbx
+   0x0000000065256f1c <+44>:    mov    rdx,rax
+   0x0000000065256f1f <+47>:    lea    esi,[rbp+r14*1+0x0]
+   0x0000000065256f24 <+52>:    call   0x6525f3c8 <g_type_check_instance_cast>
+   0x0000000065256f29 <+57>:    mov    edi,DWORD PTR [rsp+0xa8]
+   0x0000000065256f30 <+64>:    mov    r13,QWORD PTR [rax+0x58]
+   0x0000000065256f34 <+68>:    add    edi,r12d
+   0x0000000065256f37 <+71>:    test   r13,r13
+   0x0000000065256f3a <+74>:    je     0x65257010 <gnome_canvas_group_draw+288>
+   0x0000000065256f40 <+80>:    mov    rbx,QWORD PTR [r13+0x0]
+   0x0000000065256f44 <+84>:    test   BYTE PTR [rbx+0x18],0x80
+   0x0000000065256f48 <+88>:    je     0x65256f80 <gnome_canvas_group_draw+144>
+   0x0000000065256f4a <+90>:    cvtsi2sd xmm0,esi
+   0x0000000065256f4e <+94>:    ucomisd xmm0,QWORD PTR [rbx+0x38]
+   0x0000000065256f53 <+99>:    jbe    0x65256f80 <gnome_canvas_group_draw+144>
+   0x0000000065256f55 <+101>:   cvtsi2sd xmm0,edi
+   0x0000000065256f59 <+105>:   ucomisd xmm0,QWORD PTR [rbx+0x40]
+   0x0000000065256f5e <+110>:   jbe    0x65256f80 <gnome_canvas_group_draw+144>
+   0x0000000065256f60 <+112>:   cvtsi2sd xmm0,ebp
+   0x0000000065256f64 <+116>:   movsd  xmm1,QWORD PTR [rbx+0x48]
+   0x0000000065256f69 <+121>:   ucomisd xmm1,xmm0
+   0x0000000065256f6d <+125>:   jbe    0x65256f80 <gnome_canvas_group_draw+144>
+   0x0000000065256f6f <+127>:   cvtsi2sd xmm0,r12d
+   0x0000000065256f74 <+132>:   movsd  xmm1,QWORD PTR [rbx+0x50]
+   0x0000000065256f79 <+137>:   ucomisd xmm1,xmm0
+   0x0000000065256f7d <+141>:   ja     0x65256fd6 <gnome_canvas_group_draw+230>
+   0x0000000065256f7f <+143>:   nop
+   0x0000000065256f80 <+144>:   call   0x6525eb10 <gtk_object_get_type>
+   0x0000000065256f85 <+149>:   mov    rcx,rbx
+   0x0000000065256f88 <+152>:   mov    rdx,rax
+   0x0000000065256f8b <+155>:   call   0x6525f3c8 <g_type_check_instance_cast>
+   0x0000000065256f90 <+160>:   test   BYTE PTR [rax+0x18],0x40
+   0x0000000065256f94 <+164>:   je     0x65257003 <gnome_canvas_group_draw+275>
+   0x0000000065256f96 <+166>:   mov    rax,QWORD PTR [rbx+0x20]
+   0x0000000065256f9a <+170>:   cvtsi2sd xmm0,DWORD PTR [rax+0x170]
+   0x0000000065256fa2 <+178>:   ucomisd xmm0,QWORD PTR [rbx+0x38]
+   0x0000000065256fa7 <+183>:   jbe    0x65257003 <gnome_canvas_group_draw+275>
+   0x0000000065256fa9 <+185>:   cvtsi2sd xmm0,DWORD PTR [rax+0x174]
+   0x0000000065256fb1 <+193>:   ucomisd xmm0,QWORD PTR [rbx+0x40]
+   0x0000000065256fb6 <+198>:   jbe    0x65257003 <gnome_canvas_group_draw+275>
+   0x0000000065256fb8 <+200>:   movsd  xmm2,QWORD PTR [rbx+0x48]
+   0x0000000065256fbd <+205>:   cvtsi2sd xmm1,DWORD PTR [rax+0x168]
+   0x0000000065256fc5 <+213>:   ucomisd xmm2,xmm1
+   0x0000000065256fc9 <+217>:   jbe    0x65257003 <gnome_canvas_group_draw+275>
+   0x0000000065256fcb <+219>:   movsd  xmm1,QWORD PTR [rbx+0x50]
+   0x0000000065256fd0 <+224>:   ucomisd xmm1,xmm0
+   0x0000000065256fd4 <+228>:   jbe    0x65257003 <gnome_canvas_group_draw+275>
+   0x0000000065256fd6 <+230>:   mov    rax,QWORD PTR [rbx]
+   0x0000000065256fd9 <+233>:   mov    rax,QWORD PTR [rax+0xd0]
+   0x0000000065256fe0 <+240>:   test   rax,rax
+   0x0000000065256fe3 <+243>:   je     0x65257003 <gnome_canvas_group_draw+275>
+   0x0000000065256fe5 <+245>:   mov    edx,DWORD PTR [rsp+0xa8]
+   0x0000000065256fec <+252>:   mov    DWORD PTR [rsp+0x20],r14d
+   0x0000000065256ff1 <+257>:   mov    r9d,r12d
+   0x0000000065256ff4 <+260>:   mov    r8d,ebp
+   0x0000000065256ff7 <+263>:   mov    rcx,rbx
+   0x0000000065256ffa <+266>:   mov    DWORD PTR [rsp+0x28],edx
+   0x0000000065256ffe <+270>:   mov    rdx,r15
+   0x0000000065257001 <+273>:   call   rax
+   0x0000000065257003 <+275>:   mov    r13,QWORD PTR [r13+0x8]
+   0x0000000065257007 <+279>:   test   r13,r13
+   0x000000006525700a <+282>:   jne    0x65256f40 <gnome_canvas_group_draw+80>
+   0x0000000065257010 <+288>:   add    rsp,0x38
+   0x0000000065257014 <+292>:   pop    rbx
+   0x0000000065257015 <+293>:   pop    rsi
+   0x0000000065257016 <+294>:   pop    rdi
+   0x0000000065257017 <+295>:   pop    rbp
+   0x0000000065257018 <+296>:   pop    r12
+   0x000000006525701a <+298>:   pop    r13
+   0x000000006525701c <+300>:   pop    r14
+   0x000000006525701e <+302>:   pop    r15
+   0x0000000065257020 <+304>:   ret
+End of assembler dump.
+
+
+
+
+CreateDIBSection 0x7fd3fe33910
+
+gdkcursor-win32.c:
+  create_color_bitmap, create_alpha_bitmap
+  create_color_bitmap:
+    pixbuf_to_hbitmaps_alpha_winxp
+    pixbuf_to_hbitmaps_normal
+  pixbuf_to_hbitmaps_normal:
+    pixbuf_to_hicon
+    
+gdkpixmap-win32.c:
+  _gdk_pixmap_new
+    gnome-canvas-shape.c:gcbp_ensure_mask
+      gnome_canvas_shape_draw
+      
+      
+      
+CreateRectRgn 0x7fd3fe31770
+
+(gdb) bt full
+#0  0x000007fd3fe31770 in GDI32!D3DKMTCheckVidPnExclusiveOwnership ()
+   from C:\Windows\system32\gdi32.dll
+No symbol table info available.
+#1  0x000000006c37e811 in _gdk_win32_bitmap_to_hrgn (pixmap=<optimized out>)
+    at gdkgc-win32.c:1093
+        hRgn = 0x0
+        h = <optimized out>
+        maxRects = 100
+        pData = 0xb9c7da0
+        bits = <optimized out>
+        width = 471
+        height = 166
+        bpl = 60
+        p = <optimized out>
+        x = <optimized out>
+        y = 166
+        __PRETTY_FUNCTION__ = "_gdk_win32_bitmap_to_hrgn"
+#2  0x000000006c37e9d5 in gdk_win32_gc_values_to_win32values (
+    values=0x23e820, mask=GDK_GC_CLIP_MASK, win32_gc=0x94f0c50)
+    at gdkgc-win32.c:330
+No locals.
+#3  0x000000006c349b48 in gdk_gc_set_clip_mask (gc=0x94f0c50, mask=0xd4bf810)
+    at gdkgc.c:632
+        values = {foreground = {pixel = 0, red = 0, green = 0, blue = 51632},
+          background = {pixel = 0, red = 166, green = 0, blue = 0},
+          font = 0xd4c0f50, function = 223043392, fill = GDK_SOLID,
+          tile = 0x1, stipple = 0x99accf0, clip_mask = 0xd4bf810,
+          subwindow_mode = 93, ts_x_origin = 16, ts_y_origin = 3,
+          clip_x_origin = 3, clip_y_origin = 82723488,
+          graphics_exposures = 0, line_width = 156169632,
+          line_style = GDK_LINE_SOLID, cap_style = 151402656,
+          join_style = GDK_JOIN_MITER}
+#4  0x000000006524227d in gnome_canvas_shape_draw (item=0x94ef5a0,
+    drawable=0xd4b2bd0, x=<optimized out>, y=<optimized out>, width=471,
+    height=166) at gnome-canvas-shape.c:772
+        dpoints = 0x9ad2eb0
+        num_dpoints = 5
+        shape = <optimized out>
+        priv = 0x4ee42a0
+        gdk = 0x90638a0
+        i = <optimized out>
+        pos = <optimized out>
+        len = <optimized out>
+        l = 0x0
+        __PRETTY_FUNCTION__ = "gnome_canvas_shape_draw"
+#5  0x0000000065257003 in gnome_canvas_group_draw (item=<optimized out>,
+    drawable=0xd4b2bd0, x=0, y=0, width=471, height=166)
+    at gnome-canvas.c:1676
+        group = <optimized out>
+        list = 0x94eb3a0
+        child = 0x94ef5a0
+#6  0x0000000065257003 in gnome_canvas_group_draw (item=<optimized out>,
+    drawable=0xd4b2bd0, x=0, y=0, width=471, height=166)
+    at gnome-canvas.c:1676
+        group = <optimized out>
+        list = 0x94eb380
+        child = 0x94ed7e0
+#7  0x0000000065257003 in gnome_canvas_group_draw (item=<optimized out>,
+    drawable=0xd4b2bd0, x=0, y=0, width=471, height=166)
+    at gnome-canvas.c:1676
+        group = <optimized out>
+        list = 0x94bde60
+        child = 0x954d230
+#8  0x0000000065258fd0 in gnome_canvas_paint_rect (y1=<optimized out>,
+    x1=<optimized out>, y0=<optimized out>, x0=<optimized out>,
+    canvas=0x6182240) at gnome-canvas.c:2998
+        pixmap = 0xd4b2bd0
+        widget = 0x6182240
+        draw_y1 = 0
+        draw_x2 = <optimized out>
+        draw_x1 = 0
+        draw_y2 = <optimized out>
+        draw_width = <optimized out>
+        draw_height = <optimized out>
+#9  gnome_canvas_expose (widget=0x6182240, event=0x23f210)
+    at gnome-canvas.c:3053
+        rect = {x0 = 0, y0 = 0, x1 = 471, y1 = 166}
+        canvas = 0x6182240
+        rects = 0xd6695e0
+        n_rects = 1
+        i = <optimized out>
+#10 0x00000000618463b7 in ?? ()
+   from C:\strawberry\c\bin\libgtk-win32-2.0-0.dll
+No symbol table info available.
+#11 0x0000000000000000 in ?? ()
+No symbol table info available.
+(gdb)
+
+(gdb) finish
+Run till exit from #0  0x000007fd3fe31770 in GDI32!D3DKMTCheckVidPnExclusiveOwnership () from C:\Win
+dows\system32\gdi32.dll
+_gdk_win32_bitmap_to_hrgn (pixmap=<optimized out>) at gdkgc-win32.c:1095
+1095    gdkgc-win32.c: No such file or directory.
+        in gdkgc-win32.c
+(gdb)
+Run till exit from #0  _gdk_win32_bitmap_to_hrgn (pixmap=<optimized out>)
+    at gdkgc-win32.c:1095
+gdk_win32_gc_values_to_win32values (values=0x23e820, mask=GDK_GC_CLIP_MASK,
+    win32_gc=0x94f0c50) at gdkgc-win32.c:331
+331     in gdkgc-win32.c
+Value returned is $4 = (struct HRGN__ *) 0x39043b9a
+(gdb)
+Run till exit from #0  gdk_win32_gc_values_to_win32values (values=0x23e820,
+    mask=GDK_GC_CLIP_MASK, win32_gc=0x94f0c50) at gdkgc-win32.c:331
+0x000000006c349b48 in gdk_gc_set_clip_mask (gc=0x94f0c50, mask=0xd4bf810)
+    at gdkgc.c:632
+632     gdkgc.c: No such file or directory.
+        in gdkgc.c
+(gdb)
+Run till exit from #0  0x000000006c349b48 in gdk_gc_set_clip_mask (
+    gc=0x94f0c50, mask=0xd4bf810) at gdkgc.c:632
+gnome_canvas_shape_draw (item=0x94ef5a0, drawable=0xd4b2bd0,
+    x=<optimized out>, y=<optimized out>, width=471, height=166)
+    at gnome-canvas-shape.c:776
+776     gnome-canvas-shape.c: No such file or directory.
+        in gnome-canvas-shape.c
+(gdb) s
+780     in gnome-canvas-shape.c
+(gdb)
+787     in gnome-canvas-shape.c
+(gdb)
+791     in gnome-canvas-shape.c
+(gdb) show directories
+Source directories searched: $cdir;$cwd
+(gdb) dir C:\\Users\\michaelz\\Desktop\\libgnomecanvas-2.30.2\\libgnomecanvas
+Source directories searched: C:\Users\michaelz\Desktop\libgnomecanvas-2.30.2\libgnomecanvas;$cdir;$cwd
+(gdb) s
+warning: Source file is more recent than executable.
+796                     for (l = gdk->closed_paths; l != NULL; l = l->next) {
+(gdb)
+797                             len = GPOINTER_TO_INT (l->data);
+(gdb)
+799                             gdk_draw_polygon (drawable,
+(gdb)
+797                             len = GPOINTER_TO_INT (l->data);
+(gdb)
+799                             gdk_draw_polygon (drawable,
+(gdb)
+805                             pos += len;
+(gdb)
+799                             gdk_draw_polygon (drawable,
+(gdb)
+796                     for (l = gdk->closed_paths; l != NULL; l = l->next) {
+(gdb)
+808                     for (l = gdk->open_paths; l != NULL; l = l->next) {
+(gdb)
+819     }
+(gdb)
+gnome_canvas_group_draw (item=<optimized out>, drawable=0xd4b2bd0, x=0, y=0,
+    width=471, height=166) at gnome-canvas.c:1662
+1662            for (list = group->item_list; list; list = list->next) {
+(gdb)
+1679    }
+(gdb)
+gnome_canvas_group_draw (item=<optimized out>, drawable=0xd4b2bd0, x=0, y=0,
+    width=471, height=166) at gnome-canvas.c:1662
+1662            for (list = group->item_list; list; list = list->next) {
+(gdb)
+1663                    child = list->data;
+(gdb)
+1665                    if (((child->object.flags & GNOME_CANVAS_ITEM_VISIBLE)
+(gdb)
+1666                         && ((child->x1 < (x + width))
+(gdb)
+1667                             && (child->y1 < (y + height))
+(gdb)
+1668                             && (child->x2 > x)
+(gdb)
+1669                             && (child->y2 > y)))
+(gdb)
+1675                            if (GNOME_CANVAS_ITEM_GET_CLASS (child)->draw)
+(gdb)
+1676                                    (* GNOME_CANVAS_ITEM_GET_CLASS (child)->draw) (
+(gdb)
+gnome_canvas_group_draw (item=0x94ed850, drawable=0xd4b2bd0, x=0, y=0,
+    width=471, height=166) at gnome-canvas.c:1655
+1655    {
+(gdb)
+1660            group = GNOME_CANVAS_GROUP (item);
+(gdb)
+gnome_canvas_group_get_type () at gnome-canvas.c:1356
+1356    {
+(gdb)
+1359            if (!canvas_group_type) {
+(gdb)
+1378    }
+(gdb)
+gnome_canvas_group_draw (item=0x94ed850, drawable=0xd4b2bd0, x=0, y=0,
+    width=471, height=166) at gnome-canvas.c:1666
+1666                         && ((child->x1 < (x + width))
+(gdb)
+1660            group = GNOME_CANVAS_GROUP (item);
+(gdb)
+1667                             && (child->y1 < (y + height))
+(gdb)
+1662            for (list = group->item_list; list; list = list->next) {
+(gdb)
+1667                             && (child->y1 < (y + height))
+(gdb)
+1662            for (list = group->item_list; list; list = list->next) {
+(gdb)
+1663                    child = list->data;
+(gdb)
+1665                    if (((child->object.flags & GNOME_CANVAS_ITEM_VISIBLE)
+(gdb)
+1666                         && ((child->x1 < (x + width))
+(gdb)
+1667                             && (child->y1 < (y + height))
+(gdb)
+1668                             && (child->x2 > x)
+(gdb)
+1669                             && (child->y2 > y)))
+(gdb)
+1675                            if (GNOME_CANVAS_ITEM_GET_CLASS (child)->draw)
+(gdb)
+1676                                    (* GNOME_CANVAS_ITEM_GET_CLASS (child)->draw) (
+(gdb)
+gnome_canvas_shape_draw (item=0x94ef630, drawable=0xd4b2bd0, x=0, y=0,
+    width=471, height=166) at gnome-canvas-shape.c:707
+707     {
+(gdb)
+717             shape = GNOME_CANVAS_SHAPE (item);
+(gdb)
+gnome_canvas_shape_get_type () at gnome-canvas-shape.c:99
+99      {
+(gdb)
+102             if (!shape_type) {
+(gdb)
+121     }
+(gdb)
+gnome_canvas_shape_draw (item=0x94ef630, drawable=0xd4b2bd0, x=0, y=0,
+    width=471, height=166) at gnome-canvas-shape.c:718
+718             priv = shape->priv;
+(gdb)
+717             shape = GNOME_CANVAS_SHAPE (item);
+(gdb)
+722             gdk = shape->priv->gdk;
+(gdb)
+723             g_assert (gdk != NULL);
+(gdb)
+727             if (dpoints == NULL) {
+(gdb)
+730             } else if (num_dpoints < gdk->num_points) {
+(gdb)
+735             for (i = 0; i < gdk->num_points; i++) {
+(gdb)
+736                     dpoints[i].x = gdk->points[i].x - x;
+(gdb)
+737                     dpoints[i].y = gdk->points[i].y - y;
+(gdb)
+735             for (i = 0; i < gdk->num_points; i++) {
+(gdb)
+736                     dpoints[i].x = gdk->points[i].x - x;
+(gdb)
+737                     dpoints[i].y = gdk->points[i].y - y;
+(gdb)
+735             for (i = 0; i < gdk->num_points; i++) {
+(gdb)
+736                     dpoints[i].x = gdk->points[i].x - x;
+(gdb)
+737                     dpoints[i].y = gdk->points[i].y - y;
+(gdb)
+735             for (i = 0; i < gdk->num_points; i++) {
+(gdb)
+736                     dpoints[i].x = gdk->points[i].x - x;
+(gdb)
+737                     dpoints[i].y = gdk->points[i].y - y;
+(gdb)
+735             for (i = 0; i < gdk->num_points; i++) {
+(gdb)
+736                     dpoints[i].x = gdk->points[i].x - x;
+(gdb)
+737                     dpoints[i].y = gdk->points[i].y - y;
+(gdb)
+735             for (i = 0; i < gdk->num_points; i++) {
+(gdb)
+740             if (priv->fill_set) {
+(gdb)
+744                     gcbp_ensure_mask (shape, width, height);
+(gdb)
+gcbp_ensure_mask (height=166, width=471, shape=0x94ef630)
+    at gnome-canvas-shape.c:1388
+1388            gdk = shape->priv->gdk;
+(gdb)
+1389            g_assert (gdk != NULL);
+(gdb)
+1390            ctx = gdk->ctx;
+(gdb)
+1392            if (!ctx) {
+(gdb)
+1397                    canvas = GNOME_CANVAS_ITEM (shape)->canvas;
+(gdb)
+gnome_canvas_item_get_type () at gnome-canvas.c:143
+143     {
+(gdb)
+146             if (!canvas_item_type) {
+(gdb)
+165     }
+(gdb)
+gcbp_ensure_mask (height=166, width=471, shape=0x94ef630)
+    at gnome-canvas-shape.c:1399
+1399                    ctx = g_object_get_data (G_OBJECT (canvas), "BpathDrawCtx");
+(gdb)
+1397                    canvas = GNOME_CANVAS_ITEM (shape)->canvas;
+(gdb)
+1399                    ctx = g_object_get_data (G_OBJECT (canvas), "BpathDrawCtx");
+(gdb)
+1401                    if (!ctx) {
+(gdb)
+1399                    ctx = g_object_get_data (G_OBJECT (canvas), "BpathDrawCtx");
+(gdb)
+1401                    if (!ctx) {
+(gdb)
+1420                            ctx->refcount++;
+(gdb)
+1423                    gdk->ctx = ctx;
+(gdb)
+1429            if ((width > ctx->width) || (height > ctx->height)) {
+(gdb)
+1436                    if (ctx->clear_gc) g_object_unref (ctx->clear_gc);
+(gdb)
+1434                    window = ((GtkWidget *) (((GnomeCanvasItem *) shape)->canvas))->window;
+(gdb)
+1436                    if (ctx->clear_gc) g_object_unref (ctx->clear_gc);
+(gdb)
+1434                    window = ((GtkWidget *) (((GnomeCanvasItem *) shape)->canvas))->window;
+(gdb)
+1436                    if (ctx->clear_gc) g_object_unref (ctx->clear_gc);
+(gdb)
+1437                    if (ctx->xor_gc) g_object_unref (ctx->xor_gc);
+(gdb)
+1438                    if (ctx->mask) g_object_unref (ctx->mask);
+(gdb)
+1439                    if (ctx->clip) g_object_unref (ctx->clip);
+(gdb)
+1441                    ctx->mask = gdk_pixmap_new (window, width, height, 1);
+(gdb)
+
+Breakpoint 1, 0x000007fd3fe32760 in GDI32!CreateFontIndirectA ()
+   from C:\Windows\system32\gdi32.dll
+(gdb)
+Single stepping until exit from function GDI32!CreateFontIndirectA,
+which has no line number information.
+0x000007fd3fe32740 in SetColorSpace () from C:\Windows\system32\gdi32.dll
+(gdb) finish
+Run till exit from #0  0x000007fd3fe32740 in SetColorSpace ()
+   from C:\Windows\system32\gdi32.dll
+0x000007fd3fe32772 in GDI32!CreateFontIndirectA ()
+   from C:\Windows\system32\gdi32.dll
+(gdb) s
+Single stepping until exit from function GDI32!CreateFontIndirectA,
+which has no line number information.
+
+Breakpoint 5, 0x000007fd3fe33910 in GDI32!CreateHalftonePalette ()
+   from C:\Windows\system32\gdi32.dll
+(gdb)
+
+
+
+
+Breakpoint 10, gcbp_ensure_mask (height=166, width=471, shape=0x94ef6c0)
+    at gnome-canvas-shape.c:1429
+1429            if ((width > ctx->width) || (height > ctx->height)) {
+(gdb) p *ctx
+$5 = {refcount = 88, canvas = 0x6182240, width = 0, height = 0,
+  mask = 0xd4bf840, clip = 0x0, clear_gc = 0xd00cab0, xor_gc = 0xd00c9c0}
+(gdb) s
+1436                    if (ctx->clear_gc) g_object_unref (ctx->clear_gc);
+(gdb)
+1434                    window = ((GtkWidget *) (((GnomeCanvasItem *) shape)->canvas))->window;
+(gdb)
+1436                    if (ctx->clear_gc) g_object_unref (ctx->clear_gc);
+(gdb)
+1434                    window = ((GtkWidget *) (((GnomeCanvasItem *) shape)->canvas))->window;
+(gdb)
+1436                    if (ctx->clear_gc) g_object_unref (ctx->clear_gc);
+(gdb)
+1437                    if (ctx->xor_gc) g_object_unref (ctx->xor_gc);
+(gdb)
+1438                    if (ctx->mask) g_object_unref (ctx->mask);
+(gdb)
+1439                    if (ctx->clip) g_object_unref (ctx->clip);
+(gdb)
+1441                    ctx->mask = gdk_pixmap_new (window, width, height, 1);
+(gdb) p ctx
+$6 = (GCBPDrawCtx *) 0x9b0b720
+(gdb) s
+
+Breakpoint 1, 0x000007fd3fe32760 in GDI32!CreateFontIndirectA ()
+   from C:\Windows\system32\gdi32.dll
+(gdb) break gnome-canvas-shope.c:1442
+No source file named gnome-canvas-shope.c.
+Make breakpoint pending on future shared library load? (y or [n]) n
+(gdb) break gnome-canvas-shape.c:1442
+Breakpoint 11 at 0x652421b1: file gnome-canvas-shape.c, line 1442.
+(gdb) cont
+Continuing.
+
+Breakpoint 5, 0x000007fd3fe33910 in GDI32!CreateHalftonePalette ()
+   from C:\Windows\system32\gdi32.dll
+(gdb)
+Continuing.
+
+Breakpoint 11, gcbp_ensure_mask (height=166, width=471, shape=0x94ef6c0)
+    at gnome-canvas-shape.c:1442
+1442                    ctx->clip = NULL;
+(gdb) p ctx
+$7 = (GCBPDrawCtx *) 0x9b0b720
+
+
+
+Breakpoint 11, gcbp_ensure_mask (height=166, width=471, shape=0x94ef750) at gnome-canvas-shape.c:1442
+1442                    ctx->clip = NULL;
+$10 = (GCBPDrawCtx *) 0x9b0b720
+$11 = {refcount = 89, canvas = 0x6182240, width = 0, height = 0, mask = 0xd4bf870, clip = 0x0, clear_gc = 0xd4
+b87f0, xor_gc = 0xd00c9c0}
+(gdb)
+
+Breakpoint 10, gcbp_ensure_mask (height=166, width=471, shape=0x94ef7e0) at gnome-canvas-shape.c:1429
+1429            if ((width > ctx->width) || (height > ctx->height)) {
+$12 = (GCBPDrawCtx *) 0x9b0b720
+$13 = {refcount = 90, canvas = 0x6182240, width = 0, height = 0, mask = 0xd4bf8a0, clip = 0x0, clear_gc = 0xd0
+0cab0, xor_gc = 0xd00c9c0}
+(gdb)
+
+Breakpoint 11, gcbp_ensure_mask (height=166, width=471, shape=0x94ef7e0) at gnome-canvas-shape.c:1442
+1442                    ctx->clip = NULL;
+$14 = (GCBPDrawCtx *) 0x9b0b720
+$15 = {refcount = 90, canvas = 0x6182240, width = 0, height = 0, mask = 0xd4bf8a0, clip = 0x0, clear_gc = 0xd0
+0cab0, xor_gc = 0xd00c9c0}
+(gdb)
+
+Breakpoint 10, gcbp_ensure_mask (height=166, width=471, shape=0x94ef870) at gnome-canvas-shape.c:1429
+1429            if ((width > ctx->width) || (height > ctx->height)) {
+$16 = (GCBPDrawCtx *) 0x9b0b720
+$17 = {refcount = 91, canvas = 0x6182240, width = 0, height = 0, mask = 0xd4bf8d0, clip = 0x0, clear_gc = 0xd4
+b87f0, xor_gc = 0xd00c9c0}
+(gdb)
+
+Breakpoint 11, gcbp_ensure_mask (height=166, width=471, shape=0x94ef870) at gnome-canvas-shape.c:1442
+1442                    ctx->clip = NULL;
+$18 = (GCBPDrawCtx *) 0x9b0b720
+$19 = {refcount = 91, canvas = 0x6182240, width = 0, height = 0, mask = 0xd4bf8d0, clip = 0x0, clear_gc = 0xd4
+b87f0, xor_gc = 0xd00c9c0}
+(gdb)
+
+Breakpoint 10, gcbp_ensure_mask (height=166, width=471, shape=0x94ef900) at gnome-canvas-shape.c:1429
+1429            if ((width > ctx->width) || (height > ctx->height)) {
+$20 = (GCBPDrawCtx *) 0x9b0b720
+$21 = {refcount = 92, canvas = 0x6182240, width = 0, height = 0, mask = 0xd4bf900, clip = 0x0, clear_gc = 0xd0
+0cab0, xor_gc = 0xd00c9c0}
+(gdb)
+
+Breakpoint 11, gcbp_ensure_mask (height=166, width=471, shape=0x94ef900) at gnome-canvas-shape.c:1442
+1442                    ctx->clip = NULL;
+$22 = (GCBPDrawCtx *) 0x9b0b720
+$23 = {refcount = 92, canvas = 0x6182240, width = 0, height = 0, mask = 0xd4bf900, clip = 0x0, clear_gc = 0xd0
+0cab0, xor_gc = 0xd00c9c0}
+
+
+Looks like ctx->width and ctx->height not being updated, causing mask to be repeatedly reallocated.
+
+The gdk_pixmap_new call causes 2 GDI objects to be allocated.
+
+
+
+Order: CreateCompatibleDC, CreateDIBSection, CreateRectRgn

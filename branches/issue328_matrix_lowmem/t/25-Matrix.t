@@ -54,7 +54,7 @@ sub run_main_tests {
     my $fname = $tmp_mx_file->filename;
     my $mx = eval {
         $class->new (
-            NAME       => "test matrix $class",
+            NAME            => "test matrix $class",
             ELEMENT_COLUMNS => [0],
         );
      };    
@@ -204,7 +204,9 @@ sub run_with_site_data {
     $mx->delete_element (element1 => 'Genus:sp68', element2 => 'Genus:sp11');
 
     $expected_min = 0.00065;
-    is ($mx->get_min_value, $expected_min, "Got correct min value, $class");    
+    is ($mx->get_min_value, $expected_min, "Got correct min value, $class");
+    
+    #$mx->save_to_yaml (filename => $mx =~ /LowMem/ ? 'xx_LowMem.bmy' : 'xx_normal.bmy');
 }
 
 done_testing();

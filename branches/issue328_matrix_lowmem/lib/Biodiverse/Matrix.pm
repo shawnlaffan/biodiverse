@@ -45,7 +45,7 @@ sub new {
         ELEMENT_COLUMNS      => [1,2],  #  default columns in input file to define the names (eg genus,species).  Should not be used as a list here.
         PARAM_CHANGE_WARN    => undef,
         CACHE_MATRIX_AS_TREE => 1,
-        VAL_INDEX_PRECISION  => '%.4g',
+        VAL_INDEX_PRECISION  => '%.2g',
     );
 
     $self->set_params (%PARAMS, @_);  #  load the defaults, with the rest of the args as params

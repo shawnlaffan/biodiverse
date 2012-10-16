@@ -23,7 +23,6 @@ use Biodiverse::ElementProperties;  #  for remaps
 use Biodiverse::ReadNexus;
 use Biodiverse::Tree;
 use Biodiverse::Indices;
-use BdPD::PD_Indices;
 use Math::Random::MT::Auto qw(rand irand shuffle gaussian);
 
 
@@ -402,7 +401,8 @@ sub generate_distance_table {
             print "\nAbout to send $dist_measure_text results to: $$SPM{directory}\\$$SPM{output_file_name} \n";
 
             # set up geographic distance output
-            if ($$SPM{do_geog_dist}) {
+            $geog_dist_output = "";
+	    if ($$SPM{do_geog_dist}) {
                 $geog_dist_output = ",geog_dist";    
                 print "\nGeographic distance included in output.\n";
             };
@@ -1164,7 +1164,9 @@ sub do_sampling {
                     # set the region names output
                     if ($$self{do_output_regions}) {
                         $regions_output = ",".$region1.",".$region2;
-                    };
+                    } else {
+			$regions_output = "";
+		    }
                     
                     # set the region codes output
                     if ($$self{region_codes}) {

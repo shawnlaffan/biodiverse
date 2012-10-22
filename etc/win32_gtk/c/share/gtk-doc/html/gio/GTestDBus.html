@@ -1,0 +1,330 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>GTestDBus</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<link rel="home" href="index.html" title="GIO Reference Manual">
+<link rel="up" href="testing.html" title="GIO Testing">
+<link rel="prev" href="testing.html" title="GIO Testing">
+<link rel="next" href="migrating.html" title="Part III. Migrating to GIO">
+<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="testing.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="testing.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">GIO Reference Manual</th>
+<td><a accesskey="n" href="migrating.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#GTestDBus.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#GTestDBus.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#GTestDBus.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#GTestDBus.properties" class="shortcut">Properties</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="GTestDBus"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="GTestDBus.top_of_page"></a>GTestDBus</span></h2>
+<p>GTestDBus — D-Bus testing helper</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="GTestDBus.synopsis"></a><h2>Synopsis</h2>
+<a name="GTestDBusFlags"></a><pre class="synopsis">
+#include &lt;gio/gio.h&gt;
+
+                    <a class="link" href="GTestDBus.html#GTestDBus-struct" title="GTestDBus">GTestDBus</a>;
+enum                <a class="link" href="GTestDBus.html#GTestDBusFlags-enum" title="enum GTestDBusFlags">GTestDBusFlags</a>;
+<a class="link" href="GTestDBus.html" title="GTestDBus"><span class="returnvalue">GTestDBus</span></a> *         <a class="link" href="GTestDBus.html#g-test-dbus-new" title="g_test_dbus_new ()">g_test_dbus_new</a>                     (<em class="parameter"><code><a class="link" href="GTestDBus.html#GTestDBusFlags"><span class="type">GTestDBusFlags</span></a> flags</code></em>);
+<a class="link" href="GTestDBus.html#GTestDBusFlags"><span class="returnvalue">GTestDBusFlags</span></a>      <a class="link" href="GTestDBus.html#g-test-dbus-get-flags" title="g_test_dbus_get_flags ()">g_test_dbus_get_flags</a>               (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);
+const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GTestDBus.html#g-test-dbus-get-bus-address" title="g_test_dbus_get_bus_address ()">g_test_dbus_get_bus_address</a>         (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="GTestDBus.html#g-test-dbus-add-service-dir" title="g_test_dbus_add_service_dir ()">g_test_dbus_add_service_dir</a>         (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>,
+                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="GTestDBus.html#g-test-dbus-up" title="g_test_dbus_up ()">g_test_dbus_up</a>                      (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="GTestDBus.html#g-test-dbus-stop" title="g_test_dbus_stop ()">g_test_dbus_stop</a>                    (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="GTestDBus.html#g-test-dbus-down" title="g_test_dbus_down ()">g_test_dbus_down</a>                    (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="GTestDBus.html#g-test-dbus-unset" title="g_test_dbus_unset ()">g_test_dbus_unset</a>                   (<em class="parameter"><code><span class="type">void</span></code></em>);
+</pre>
+</div>
+<div class="refsect1">
+<a name="GTestDBus.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----GTestDBus
+</pre>
+<pre class="synopsis">
+  GFlags
+   +----GTestDBusFlags
+</pre>
+</div>
+<div class="refsect1">
+<a name="GTestDBus.properties"></a><h2>Properties</h2>
+<pre class="synopsis">
+  "<a class="link" href="GTestDBus.html#GTestDBus--flags" title='The "flags" property'>flags</a>"                    <a class="link" href="GTestDBus.html#GTestDBusFlags"><span class="type">GTestDBusFlags</span></a>        : Read / Write / Construct Only
+</pre>
+</div>
+<div class="refsect1">
+<a name="GTestDBus.description"></a><h2>Description</h2>
+<p>
+Helper to test D-Bus code wihtout messing up with user' session bus.
+</p>
+</div>
+<div class="refsect1">
+<a name="GTestDBus.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="GTestDBus-struct"></a><h3>GTestDBus</h3>
+<pre class="programlisting">typedef struct _GTestDBus GTestDBus;</pre>
+<p>
+The <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> structure contains only private data and
+should only be accessed using the provided API.
+</p>
+<p class="since">Since 2.34</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="GTestDBusFlags-enum"></a><h3>enum GTestDBusFlags</h3>
+<pre class="programlisting">typedef enum {
+  G_TEST_DBUS_NONE = 0
+} GTestDBusFlags;
+</pre>
+<p>
+Flags to define future <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> behaviour.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><a name="G-TEST-DBUS-NONE:CAPS"></a><span class="term"><code class="literal">G_TEST_DBUS_NONE</code></span></p></td>
+<td>No flags.
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.34</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-dbus-new"></a><h3>g_test_dbus_new ()</h3>
+<pre class="programlisting"><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="returnvalue">GTestDBus</span></a> *         g_test_dbus_new                     (<em class="parameter"><code><a class="link" href="GTestDBus.html#GTestDBusFlags"><span class="type">GTestDBusFlags</span></a> flags</code></em>);</pre>
+<p>
+Create a new <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> object.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>flags</code></em> :</span></p></td>
+<td>a <a class="link" href="GTestDBus.html#GTestDBusFlags"><span class="type">GTestDBusFlags</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-dbus-get-flags"></a><h3>g_test_dbus_get_flags ()</h3>
+<pre class="programlisting"><a class="link" href="GTestDBus.html#GTestDBusFlags"><span class="returnvalue">GTestDBusFlags</span></a>      g_test_dbus_get_flags               (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);</pre>
+<p>
+Gets the flags of the <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> object.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the value of <a class="link" href="GTestDBus.html#GTestDBus--flags" title='The "flags" property'><span class="type">"flags"</span></a> property</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-dbus-get-bus-address"></a><h3>g_test_dbus_get_bus_address ()</h3>
+<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_test_dbus_get_bus_address         (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);</pre>
+<p>
+Get the address on which dbus-daemon is running. if <a class="link" href="GTestDBus.html#g-test-dbus-up" title="g_test_dbus_up ()"><code class="function">g_test_dbus_up()</code></a> has not
+been called yet, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned. This can be used with
+<a class="link" href="GDBusConnection.html#g-dbus-connection-new-for-address" title="g_dbus_connection_new_for_address ()"><code class="function">g_dbus_connection_new_for_address()</code></a>
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the address of the bus, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-dbus-add-service-dir"></a><h3>g_test_dbus_add_service_dir ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_test_dbus_add_service_dir         (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>,
+                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>);</pre>
+<p>
+Add a path where dbus-daemon will lookup for .services files. This can't be
+called after <a class="link" href="GTestDBus.html#g-test-dbus-up" title="g_test_dbus_up ()"><code class="function">g_test_dbus_up()</code></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>path</code></em> :</span></p></td>
+<td>path to a directory containing .service files</td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-dbus-up"></a><h3>g_test_dbus_up ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_test_dbus_up                      (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);</pre>
+<p>
+Start a dbus-daemon instance and set DBUS_SESSION_BUS_ADDRESS. After this
+call, it is safe for unit tests to start sending messages on the session bug.
+</p>
+<p>
+If this function is called from setup callback of <a href="./../glib/glib/glib-Testing.html#g-test-add"><code class="function">g_test_add()</code></a>,
+<a class="link" href="GTestDBus.html#g-test-dbus-down" title="g_test_dbus_down ()"><code class="function">g_test_dbus_down()</code></a> must be called in its teardown callback.
+</p>
+<p>
+If this function is called from unit test's <code class="function">main()</code>, then <a class="link" href="GTestDBus.html#g-test-dbus-down" title="g_test_dbus_down ()"><code class="function">g_test_dbus_down()</code></a>
+must be called after <a href="./../glib/glib/glib-Testing.html#g-test-run"><code class="function">g_test_run()</code></a>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-dbus-stop"></a><h3>g_test_dbus_stop ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_test_dbus_stop                    (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);</pre>
+<p>
+Stop the session bus started by <a class="link" href="GTestDBus.html#g-test-dbus-up" title="g_test_dbus_up ()"><code class="function">g_test_dbus_up()</code></a>.
+</p>
+<p>
+Unlike <a class="link" href="GTestDBus.html#g-test-dbus-down" title="g_test_dbus_down ()"><code class="function">g_test_dbus_down()</code></a>, this won't verify the <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a>
+singleton returned by <a class="link" href="GDBusConnection.html#g-bus-get" title="g_bus_get ()"><code class="function">g_bus_get()</code></a> or <a class="link" href="GDBusConnection.html#g-bus-get-sync" title="g_bus_get_sync ()"><code class="function">g_bus_get_sync()</code></a> is destroyed. Unit
+tests wanting to verify behaviour after the session bus has been stopped
+can use this function but should still call <a class="link" href="GTestDBus.html#g-test-dbus-down" title="g_test_dbus_down ()"><code class="function">g_test_dbus_down()</code></a> when done.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-dbus-down"></a><h3>g_test_dbus_down ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_test_dbus_down                    (<em class="parameter"><code><a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a> *self</code></em>);</pre>
+<p>
+Stop the session bus started by <a class="link" href="GTestDBus.html#g-test-dbus-up" title="g_test_dbus_up ()"><code class="function">g_test_dbus_up()</code></a>.
+</p>
+<p>
+This will wait for the singleton returned by <a class="link" href="GDBusConnection.html#g-bus-get" title="g_bus_get ()"><code class="function">g_bus_get()</code></a> or <a class="link" href="GDBusConnection.html#g-bus-get-sync" title="g_bus_get_sync ()"><code class="function">g_bus_get_sync()</code></a>
+is destroyed. This is done to ensure that the next unit test won't get a
+leaked singleton from this test.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>self</code></em> :</span></p></td>
+<td>a <a class="link" href="GTestDBus.html" title="GTestDBus"><span class="type">GTestDBus</span></a>
+</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-dbus-unset"></a><h3>g_test_dbus_unset ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_test_dbus_unset                   (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Unset DISPLAY and DBUS_SESSION_BUS_ADDRESS env variables to ensure the test
+won't use user's session bus.
+</p>
+<p>
+This is useful for unit tests that want to verify behaviour when no session
+bus is running. It is not necessary to call this if unit test already calls
+<a class="link" href="GTestDBus.html#g-test-dbus-up" title="g_test_dbus_up ()"><code class="function">g_test_dbus_up()</code></a> before acquiring the session bus.
+</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="GTestDBus.property-details"></a><h2>Property Details</h2>
+<div class="refsect2">
+<a name="GTestDBus--flags"></a><h3>The <code class="literal">"flags"</code> property</h3>
+<pre class="programlisting">  "flags"                    <a class="link" href="GTestDBus.html#GTestDBusFlags"><span class="type">GTestDBusFlags</span></a>        : Read / Write / Construct Only</pre>
+<p>
+<a class="link" href="GTestDBus.html#GTestDBusFlags"><span class="type">GTestDBusFlags</span></a> specifying the behaviour of the dbus session
+</p>
+<p class="since">Since 2.34</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18.1</div>
+</body>
+</html>

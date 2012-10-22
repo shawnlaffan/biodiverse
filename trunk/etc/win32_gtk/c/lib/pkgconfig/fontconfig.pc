@@ -1,0 +1,16 @@
+prefix=/usr/i686-w64-mingw32/sys-root/mingw
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+sysconfdir=${prefix}/etc
+localstatedir=${prefix}/var
+PACKAGE=fontconfig
+confdir=${sysconfdir}/fonts
+cachedir=WINDOWSTEMPDIR_FONTCONFIG_CACHE
+
+Name: Fontconfig
+Description: Font configuration and customization library
+Version: 2.10.1
+Libs: -L${libdir} -lfontconfig
+Libs.private: -L${libdir} -lxml2    -L${libdir} -lfreetype   
+Cflags: -I${includedir}

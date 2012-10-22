@@ -25,6 +25,7 @@ use Exporter::Easy (
             qw(
                 write_data_to_temp_file
                 snap_to_precision
+                verify_set_contents
                 compare_hash_vals
                 compare_arr_vals
                 get_all_calculations
@@ -86,6 +87,32 @@ sub snap_to_precision {
         : $value;
 }
 
+=item verify_set_contents
+
+set      => hash reference whose keys make up the set
+included => array reference of keys that should be in the set
+excluded => array reference of keys that should not be in the set
+
+=cut
+
+sub verify_set_contents {
+    my %args = @_;
+
+    my $set      = $args{set};
+    my $included = $args{included};
+    my $excluded = $args{excluded};
+
+    for my $elt (@$included) {
+        ok exists $set->{$elt}, "$elt exists in set";
+    }
+
+    for my $elt (@$excluded) {
+        ok !(exists $set->{$elt}), "$elt does not exist in set";
+    }
+
+    return;
+}
+
 sub compare_hash_vals {
     my %args = @_;
 
@@ -99,16 +126,16 @@ sub compare_hash_vals {
 
     if (!$not_strict) {
         is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
-        
+
         my %h1 = %$hash_got;
         delete @h1{keys %$hash_exp};
         is (scalar keys %h1, 0, 'No extra keys');
 
         my %h2 = %$hash_exp;
         delete @h2{keys %$hash_got};
-        is (scalar keys %h2, 0, 'No missing keys');        
+        is (scalar keys %h2, 0, 'No missing keys');
     };
-    
+
     BY_KEY:
     foreach my $key (sort keys %targets) {
         next BY_KEY if $not_strict && !exists $hash_got->{$key};

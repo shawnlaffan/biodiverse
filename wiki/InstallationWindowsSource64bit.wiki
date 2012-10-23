@@ -49,7 +49,7 @@ If you don't like the window theme it uses then you can change it using the GTK+
 {{{
   set BDV_PPM=%BDV_PATH%\etc\ppm\ppm516_x64
   cd %BDV_PPM%
-  ppm install Cairo.ppdGlib.ppdGnome2-Canvas.ppdGtk2-GladeXML.ppdGtk2.ppdPango.ppdPAR-Packer.ppd
+  ppm install Cairo.ppd Glib.ppd Gnome2-Canvas.ppd Gtk2-GladeXML.ppd Gtk2.ppd Pango.ppd PAR-Packer.ppd
 
   cpan rlib
   cpan Task::Biodiverse::NoGUI
@@ -67,8 +67,6 @@ If you don't like the window theme it uses then you can change it using the GTK+
 
   * If you get the dreaded missing module errors then you can run the cpan command to install them.
   * If you get errors about not finding gnome-canvas, glib and friends then check that the `%GTK_PATH%\c\bin` directory exists and is correct.
-
-
 
   *  To start a new session you need to re-run steps 4, 6 and 8 in a command prompt (or put them all in a batch script).  This, of course, assumes it all works.  You can also add environment variables to the system if you want this to be your defaults.  Then you just need to run step 8. 
   *  See the [#Trouble_shooting trouble shooting] section below if you encounter problems.  

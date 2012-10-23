@@ -1,0 +1,75 @@
+#summary Windows source code install instructions
+#sidebar Installation
+
+These instructions apply to version 0.18 *AND ARE EXPERIMENTAL*.  
+
+These assume you have saved the Biodiverse source code to C:\biodiverse.  If you have not then change the `C:\biodiverse\lib` path in the following to the appropriate path.
+
+_DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file used to run the source code version.  (This has no effect on the executable file).
+
+If you don't like the window theme it uses then you can change it using the GTK+ Preference Tool from http://sourceforge.net/userapps/mediawiki/alex-sh/index.php?title=Main_Page
+
+<wiki:toc max_depth="4" />
+
+
+= !StrawberryPerl = 
+
+
+== Installation (64bit) ==
+
+
+1.  Install Strawberry Perl 5.16.1, 64 bit.  The rest of these instructions assume you have used C:\strawberry as the install folder.
+
+2.  [Optional] Run an svn update to get the latest Biodiverse code.
+
+3.  Open a command prompt.  The rest of these instructions assume you are at the prompt.
+
+4.  Run these commands, editing the paths as needed to match your system.
+
+set BDV_PATH=c:\biodiverse
+set STRAWPATH=c:\strawberry
+set GTK_PATH=c:\win64_gtk
+
+5.  Download the win64_gtk components using an svn checkout. TortoiseSVN is the easiest way, but this command line should work.
+
+svn co https://biodiverse.googlecode.com/svn/branches/gtk_win_builds/etc/win64_gtk %GTK_PATH%
+
+6.  Add the relevant directories to the PATH
+
+set PATH=%GTK_PATH%\c\bin;%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%PATH%
+
+7.  Now we need to install some files using PPM and then cpan.  In the same command prompt, run the ppm install command for all ppd files:
+
+set BDV_PPM=%BDV_PATH%\etc\ppm\ppm516_x64
+cd %BDV_PPM%
+ppm install Cairo.ppdGlib.ppdGnome2-Canvas.ppdGtk2-GladeXML.ppdGtk2.ppdPango.ppdPAR-Packer.ppd
+
+cpan rlib
+cpan Task::Biodiverse::NoGUI
+cpan Task::Biodiverse
+
+
+8.  The above process *should* install all the relevant files, so we can now run it:
+
+perl %BDV_PATH%\bin\BiodiverseGUI.pl
+
+If you get the dreaded missing module errors then you can run the cpan command to install them.
+If you get errors about not finding gnome-canvas, glib and friends then check that the%GTK_PATH%\c\bindirectory exists and is correct.
+
+
+
+To start a new session you need to re-run steps 4, 6 and 8 in a command prompt (or put them all in a batch script).  This, of course, assumes it all works.  You can also add environment variables to the system if you want this to be your defaults.  Then you just need to run step 8. 
+
+
+== Running it (64bit) ==
+
+  *  You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat` (or `C:\Biodiverse\bin\BiodiverseGUI.pl` if your system runs Perl files when they are double clicked).
+  *  See the [#Trouble_shooting trouble shooting] section below if you encounter problems.  
+
+
+= Trouble shooting =
+
+  *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively using cpan. The complaint will contain text like `Can't locate Fred/Fred.pm in @INC (@INC contains:...)`  In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate). E.g.: `cpan Fred::Fred` . This can happen if one or more of the modules listed in the bundle failed to install.
+
+  *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]
+  

@@ -103,7 +103,7 @@ sub test_case {
         }
 
         print Dumper {
-            count    => scalar keys $neighbours,
+            count    => scalar keys %$neighbours,
             includes => [sort keys %gen_includes],
             excludes => [sort keys %gen_excludes]
         };

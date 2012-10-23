@@ -49,7 +49,7 @@ If you don't like the window theme it uses then you can change it using the GTK+
 {{{
   set BDV_PPM=%BDV_PATH%\etc\ppm\ppm516_x64
   cd %BDV_PPM%
-  ppm install Cairo.ppd Glib.ppd Gnome2-Canvas.ppd Gtk2-GladeXML.ppd Gtk2.ppd Pango.ppd PAR-Packer.ppd
+  ppm install Cairo.ppd Glib.ppd Gnome2-Canvas.ppd Gtk2-GladeXML.ppd Gtk2.ppd Pango.ppd
 
   cpan rlib
   cpan Task::Biodiverse::NoGUI

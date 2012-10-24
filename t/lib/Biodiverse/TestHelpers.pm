@@ -99,14 +99,14 @@ sub verify_set_contents {
     my %args = @_;
 
     my $set      = $args{set};
-    my $included = $args{included};
-    my $excluded = $args{excluded};
+    my $includes = $args{includes};
+    my $excludes = $args{excludes};
 
-    for my $elt (@$included) {
+    for my $elt (@$includes) {
         ok exists $set->{$elt}, "$elt exists in set";
     }
 
-    for my $elt (@$excluded) {
+    for my $elt (@$excludes) {
         ok !(exists $set->{$elt}), "$elt does not exist in set";
     }
 

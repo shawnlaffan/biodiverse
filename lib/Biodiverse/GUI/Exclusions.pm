@@ -77,6 +77,47 @@ sub showDialog {
         $checkbox->signal_connect(toggled => \&onToggled, $spinbutton);
 
     }
+    
+    #  and the text matching
+    my $label_filter_checkbox = $dlgxml->get_widget('chk_enable_label_exclusion_regex');
+    my @label_filter_widget_names = qw /
+        Entry_label_exclusion_regex
+        chk_label_exclusion_regex
+        Entry_label_exclusion_regex_modifiers
+    /;
+
+    foreach my $widget_name (@label_filter_widget_names) {
+        my $widget = $dlgxml->get_widget($widget_name);
+
+        $widget->set_sensitive(0);
+
+        my $callback = sub {
+            my ($checkbox, $option_widget) = @_;
+            $option_widget->set_sensitive( $checkbox->get_active );
+        };
+
+        $label_filter_checkbox->signal_connect(toggled => $callback, $widget);
+    }
+
+    #  and the file list
+    my $file_list_checkbox = $dlgxml->get_widget('chk_label_exclude_use_file');
+    my @file_list_filter_widget_names = qw /
+        chk_label_exclusion_label_file
+    /;
+
+    foreach my $widget_name (@file_list_filter_widget_names ) {
+        my $widget = $dlgxml->get_widget($widget_name);
+
+        $widget->set_sensitive(0);
+
+        my $callback = sub {
+            my ($checkbox, $option_widget) = @_;
+            $option_widget->set_sensitive( $checkbox->get_active );
+        };
+
+        $file_list_checkbox->signal_connect(toggled => $callback, $widget);
+    }
+    
 
     # Show the dialog
     my $response = $dlg->run();
@@ -104,8 +145,8 @@ sub showDialog {
         
         my $regex_widget = $dlgxml->get_widget('Entry_label_exclusion_regex');
         my $regex        = $regex_widget->get_text;
-        if (length $regex) {
-            
+        if ($label_filter_checkbox->get_active && length $regex) {
+
             my $regex_negate_widget = $dlgxml->get_widget('chk_label_exclusion_regex');
             my $regex_negate        = $regex_negate_widget->get_active;
 
@@ -115,14 +156,12 @@ sub showDialog {
             $exclusionsHash->{LABELS}{regex}{regex}  = $regex;
             $exclusionsHash->{LABELS}{regex}{negate} = $regex_negate;
         }
-        
-        my $file_widget = $dlgxml->get_widget('chk_label_exclude_use_file');
 
-        if ($file_widget->get_active) {
+        if ($file_list_checkbox->get_active) {
             print "";
             my $negate_widget = $dlgxml->get_widget('chk_label_exclusion_label_file');
             my $negate        = $negate_widget->get_active;
-            
+
             my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
                 $gui,
                 undef,
@@ -136,7 +175,7 @@ sub showDialog {
                 #my $file = $options{file};
                 my $check_list = Biodiverse::ElementProperties->new;
                 $check_list->import_data (%options);
-                $check_list = {'Genus:sp1' => 1};  # DEBUG
+                #$check_list = {'Genus:sp1' => 1};  # DEBUG
                 $exclusionsHash->{LABELS}{element_check_list}{list}   = $check_list;
                 $exclusionsHash->{LABELS}{element_check_list}{negate} = $negate;
             }

@@ -1210,12 +1210,15 @@ sub onTypeComboChanged {
 # Asks user whether remap is required
 #   returns (filename, in column, out column)
 sub getRemapInfo {
-    my $gui = shift;
-    my $data_filename = shift;
-    my $type = shift || "";
+    my $gui              = shift;
+    my $data_filename    = shift;
+    my $type             = shift || "";
     my $other_properties = shift || [];
+    my $input_el_only    = shift;
     
-    my ($_file, $data_dir, $_suffixes) = fileparse($data_filename);
+    my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
+        ? fileparse($data_filename)
+        : ();
 
     # Get filename for the name-translation file
     my $filename = $gui->showOpenDialog("Select $type properties file", '*', $data_dir);
@@ -1240,7 +1243,7 @@ sub getRemapInfo {
     
     $dlg->show_all;
     my $response = $dlg -> run;
-    $dlg -> destroy;
+    $dlg->destroy;
     
     if ($response ne 'ok') {  #  drop out
         return wantarray ? () : {};
@@ -1293,7 +1296,8 @@ sub getRemapInfo {
     ($dlg, my $col_widgets) = makeRemapColumnsDialog (
         \@headers,
         $gui->getWidget('wndMain'),
-        $other_properties
+        $other_properties,
+        $input_el_only,
     );
     
     my $column_settings = {};
@@ -1391,14 +1395,13 @@ sub getRemapInfo {
     return wantarray ? %results : \%results;
 }
 
-
+# We have to dynamically generate the choose columns dialog since
+# the number of columns is unknown
 sub makeRemapColumnsDialog {
-    # We have to dynamically generate the choose columns dialog since
-    # the number of columns is unknown
-
-    my $header = shift; # ref to column header array
-    my $wndMain = shift;
-    my $other_props = shift || [];
+    my $header        = shift; # ref to column header array
+    my $wndMain       = shift;
+    my $other_props   = shift || [];
+    my $input_el_only = shift;
 
     my $num_columns = @$header;
     print "[GUI] Generating make columns dialog for $num_columns columns\n";
@@ -1451,7 +1454,7 @@ sub makeRemapColumnsDialog {
     # use row_widgets to store the radio buttons, spinboxes
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
-        addRemapRow($row_widgets, $table, $i, $header->[$i], $other_props);
+        addRemapRow($row_widgets, $table, $i, $header->[$i], $other_props, $input_el_only);
     }
 
     $dlg->set_resizable(1);
@@ -1486,7 +1489,7 @@ sub getRemapColumnSettings {
 }
 
 sub addRemapRow {
-    my ($row_widgets, $table, $colId, $header, $other_props) = @_;
+    my ($row_widgets, $table, $colId, $header, $other_props, $input_el_only) = @_;
 
     #  column number
     my $i_label = Gtk2::Label->new($colId);
@@ -1499,8 +1502,11 @@ sub addRemapRow {
 
     # Type combo box
     my $combo = Gtk2::ComboBox->new_text;
+    my @options = $input_el_only
+        ? qw /Ignore Input_element/
+        : (qw /Ignore Input_element Remapped_element Include Exclude Property/, @$other_props);
     #foreach (qw /Ignore Input_element Remapped_element Range Sample_count Include Exclude Use_field_name/) {
-    foreach (qw /Ignore Input_element Remapped_element Include Exclude Property/, @$other_props) {
+    foreach (@options) {
         $combo->append_text($_);
     }
     $combo -> set_active(0);

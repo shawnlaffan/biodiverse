@@ -1629,6 +1629,22 @@ sub run_exclusions {
         $label_regex_negate = $exclusion_hash{LABELS}{regex}{negate};
     }
 
+    my ($element_check_list, $element_check_list_negate);
+    if (my $check_list = $exclusion_hash{LABELS}{element_check_list}{list}) {
+        $element_check_list = {};
+        $element_check_list_negate = $exclusion_hash{LABELS}{element_check_list}{negate};
+        if (blessed $check_list) {  #  we have an object with a get_element_list method
+            my $list = $check_list->get_element_list;
+            @{$element_check_list}{@$list} = (1) x scalar @$list;
+        }
+        elsif (reftype $check_list eq 'ARRAY') {
+            @{$element_check_list}{@$check_list} = (1) x scalar @$check_list;
+        }
+        else {
+            $element_check_list = $check_list;
+        }
+    }
+
     #  check the labels first, then the groups
     #  equivalent to range then richness
     my @deleteList;
@@ -1685,6 +1701,12 @@ sub run_exclusions {
                 if (!$failed_a_test && $label_regex) {
                     $failed_a_test = $element =~ $label_regex;
                     if ($label_regex_negate) {
+                        $failed_a_test = !$failed_a_test;
+                    }
+                }
+                if (!$failed_a_test && $element_check_list) {
+                    $failed_a_test = exists $element_check_list->{$element};
+                    if ($element_check_list_negate) {
                         $failed_a_test = !$failed_a_test;
                     }
                 }

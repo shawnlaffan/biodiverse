@@ -115,6 +115,32 @@ sub showDialog {
             $exclusionsHash->{LABELS}{regex}{regex}  = $regex;
             $exclusionsHash->{LABELS}{regex}{negate} = $regex_negate;
         }
+        
+        my $file_widget = $dlgxml->get_widget('chk_label_exclude_use_file');
+
+        if ($file_widget->get_active) {
+            print "";
+            my $negate_widget = $dlgxml->get_widget('chk_label_exclusion_label_file');
+            my $negate        = $negate_widget->get_active;
+            
+            my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+                $gui,
+                undef,
+                undef,
+                undef,
+                1,
+            );
+
+            ##  now do something with them...
+            if ($options{file}) {
+                #my $file = $options{file};
+                my $check_list = Biodiverse::ElementProperties->new;
+                $check_list->import_data (%options);
+                $check_list = {'Genus:sp1' => 1};  # DEBUG
+                $exclusionsHash->{LABELS}{element_check_list}{list}   = $check_list;
+                $exclusionsHash->{LABELS}{element_check_list}{negate} = $negate;
+            }
+        }
     }
 
     $dlg->destroy();

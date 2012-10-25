@@ -1620,6 +1620,14 @@ sub run_exclusions {
         maxRedundancy => '$base_type_ref->get_redundancy(element => $element) >= ',
     );
 
+    my ($label_regex, $label_regex_negate);
+    if ($exclusion_hash{LABELS}{regex}) {
+        my $re_text = $exclusion_hash{LABELS}{regex}{regex};
+        my $re_modifiers = $exclusion_hash{LABELS}{regex}{modifiers};
+
+        $label_regex = eval qq{ qr /$re_text/$re_modifiers };
+        $label_regex_negate = $exclusion_hash{LABELS}{regex}{negate};
+    }
 
     #  check the labels first, then the groups
     #  equivalent to range then richness
@@ -1673,6 +1681,12 @@ sub run_exclusions {
                     ) {
                     
                     $failed_a_test = 1;
+                }
+                if (!$failed_a_test && $label_regex) {
+                    $failed_a_test = $element =~ $label_regex;
+                    if ($label_regex_negate) {
+                        $failed_a_test = !$failed_a_test;
+                    }
                 }
             }
 

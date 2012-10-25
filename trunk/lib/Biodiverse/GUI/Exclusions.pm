@@ -101,6 +101,20 @@ sub showDialog {
                 $exclusionsHash->{$fields->[0]}{$fields->[1]} = $value;
             }
         }
+        
+        my $regex_widget = $dlgxml->get_widget('Entry_label_exclusion_regex');
+        my $regex        = $regex_widget->get_text;
+        if (length $regex) {
+            
+            my $regex_negate_widget = $dlgxml->get_widget('chk_label_exclusion_regex');
+            my $regex_negate        = $regex_negate_widget->get_active;
+
+            my $regex_modifiers_widget = $dlgxml->get_widget('Entry_label_exclusion_regex_modifiers');
+            my $regex_modifiers        = $regex_modifiers_widget->get_text;
+
+            $exclusionsHash->{LABELS}{regex}{regex}  = $regex;
+            $exclusionsHash->{LABELS}{regex}{negate} = $regex_negate;
+        }
     }
 
     $dlg->destroy();

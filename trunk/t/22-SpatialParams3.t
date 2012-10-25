@@ -242,8 +242,8 @@ my $data = get_data_section;
 
 my @transforms = (
     #[0,0 , 1,1],               # id. [x_translate,y_translate , x_scale,y_scale]
-    [0,0 , '.0000001','.0000001'], # scaled to values < 1
-    #[-200000,-200000 , 1,1],   # negative centre
+    #[0,0 , '0.0000001','0.0000001'], # scaled to values < 1
+    [-200000,-200000 , 1,1],   # negative centre
 );
 
 for my $transform (@transforms) {
@@ -499,7 +499,7 @@ __DATA__
                   '50000:450000'
                 ]
 },
-        'sp_circle (radius => XX500000)' =>
+        'sp_circle (radius => sprintf "%.2f", XX500000) # hack for floating point problems' =>
 {
   'count' => 81,
   'excludes' => [

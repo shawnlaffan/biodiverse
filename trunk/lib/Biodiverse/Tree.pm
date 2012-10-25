@@ -863,7 +863,7 @@ sub get_metadata_export_table_grouped {
             {
                 name        => 'group_by_depth',
                 label_text  => "Group clusters by depth\n(default is by length)",
-                tooltip     => 'Use depth to define the groupings.  When a cutoff is used, it will be in units of node depth.'
+                tooltip     => 'Use depth to define the groupings.  When a cutoff is used, it will be in units of node depth.',
                 type        => 'boolean',
                 default     => 0,
             },

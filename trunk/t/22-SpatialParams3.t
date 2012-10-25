@@ -196,12 +196,25 @@ sub run_case_transformed {
         transform => $tf,
     );
 
+    print "Centre element is: $element\n";
+
     my @conds = @{$v{conds}};
 
     ok (@conds, "Test case $k actually contained conditions");
 
     while (my ($cond, $v1ref) = splice @conds, 0, 2) {
         my %v1 = %$v1ref;
+
+        #while ($cond =~ /XX([-.0-9]+)/g) {
+        #    my $from = $1;
+        #    my $to   = $tf->[2] * $from;
+        #    $cond =~ s/XX$from/$to/;
+        #}
+        #while ($cond =~ /YY([-.0-9]+)/g) {
+        #    my $from = $1;
+        #    my $to   = $tf->[3] * $from;
+        #    $cond =~ s/YY$from/$to/;
+        #}
 
         $cond =~ s/XX/$tf->[2] * /g;
         $cond =~ s/YY/$tf->[3] * /g;
@@ -228,8 +241,8 @@ sub run_case_transformed {
 my $data = get_data_section;
 
 my @transforms = (
-    [0,0 , 1,1],               # id. [x_translate,y_translate , x_scale,y_scale]
-    #[0,0 , '.0000001','.0000001'], # scaled to values < 1
+    #[0,0 , 1,1],               # id. [x_translate,y_translate , x_scale,y_scale]
+    [0,0 , '.0000001','.0000001'], # scaled to values < 1
     #[-200000,-200000 , 1,1],   # negative centre
 );
 

@@ -1214,7 +1214,7 @@ sub getRemapInfo {
     my $data_filename    = shift;
     my $type             = shift || "";
     my $other_properties = shift || [];
-    my $input_el_only    = shift;
+    my $column_overrides = shift;
     
     my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
         ? fileparse($data_filename)
@@ -1297,7 +1297,7 @@ sub getRemapInfo {
         \@headers,
         $gui->getWidget('wndMain'),
         $other_properties,
-        $input_el_only,
+        $column_overrides,
     );
     
     my $column_settings = {};
@@ -1398,10 +1398,10 @@ sub getRemapInfo {
 # We have to dynamically generate the choose columns dialog since
 # the number of columns is unknown
 sub makeRemapColumnsDialog {
-    my $header        = shift; # ref to column header array
-    my $wndMain       = shift;
-    my $other_props   = shift || [];
-    my $input_el_only = shift;
+    my $header           = shift; # ref to column header array
+    my $wndMain          = shift;
+    my $other_props      = shift || [];
+    my $column_overrides = shift;
 
     my $num_columns = @$header;
     print "[GUI] Generating make columns dialog for $num_columns columns\n";
@@ -1454,7 +1454,7 @@ sub makeRemapColumnsDialog {
     # use row_widgets to store the radio buttons, spinboxes
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
-        addRemapRow($row_widgets, $table, $i, $header->[$i], $other_props, $input_el_only);
+        addRemapRow($row_widgets, $table, $i, $header->[$i], $other_props, $column_overrides);
     }
 
     $dlg->set_resizable(1);
@@ -1489,7 +1489,7 @@ sub getRemapColumnSettings {
 }
 
 sub addRemapRow {
-    my ($row_widgets, $table, $colId, $header, $other_props, $input_el_only) = @_;
+    my ($row_widgets, $table, $colId, $header, $other_props, $column_overrides) = @_;
 
     #  column number
     my $i_label = Gtk2::Label->new($colId);
@@ -1502,10 +1502,11 @@ sub addRemapRow {
 
     # Type combo box
     my $combo = Gtk2::ComboBox->new_text;
-    my @options = $input_el_only
-        ? qw /Ignore Input_element/
-        : (qw /Ignore Input_element Remapped_element Include Exclude Property/, @$other_props);
-    #foreach (qw /Ignore Input_element Remapped_element Range Sample_count Include Exclude Use_field_name/) {
+    my @options = $column_overrides
+        ? @$column_overrides
+        : (qw /Input_element Remapped_element Include Exclude Property/, @$other_props);
+    unshift @options, 'Ignore';
+
     foreach (@options) {
         $combo->append_text($_);
     }

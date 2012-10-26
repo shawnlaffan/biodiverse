@@ -167,15 +167,15 @@ sub showDialog {
                 undef,
                 undef,
                 undef,
-                1,
+                ['Input_element_column'],
             );
 
             ##  now do something with them...
             if ($options{file}) {
-                #my $file = $options{file};
+
                 my $check_list = Biodiverse::ElementProperties->new;
                 $check_list->import_data (%options);
-                #$check_list = {'Genus:sp1' => 1};  # DEBUG
+
                 $exclusionsHash->{LABELS}{element_check_list}{list}   = $check_list;
                 $exclusionsHash->{LABELS}{element_check_list}{negate} = $negate;
             }

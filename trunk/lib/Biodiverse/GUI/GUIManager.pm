@@ -1003,6 +1003,30 @@ sub doDuplicateBasedata {
     return;
 }
 
+sub do_rename_basedata_labels {
+    my $self = shift;
+    
+    my $bd = $self->{project}->getSelectedBaseData();
+    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+        $self,
+        undef,
+        undef,
+        undef,
+        #1,
+    );
+    
+    ##  now do something with them...
+    if ($options{file}) {
+        #my $file = $options{file};
+        my $check_list = Biodiverse::ElementProperties->new;
+        $check_list->import_data (%options);
+        $bd->rename_labels (remap => $check_list);
+    }
+
+    
+    return;
+}
+
 sub doExportGroups {
     my $self = shift;
     

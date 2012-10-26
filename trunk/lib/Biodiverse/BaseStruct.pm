@@ -2004,6 +2004,52 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     return;
 }
 
+sub rename_element {
+    my $self = shift;
+    my %args = @_;
+    
+    my $element = $args{element};
+    my $new_name = $args{new_name};
+
+    croak "element does not exist\n"
+      if !$self->exists_element (element => $element);
+    croak "argument 'new_name' is undefined\n"
+      if !defined $new_name;
+
+    my @sub_elements =
+        $self->get_sub_element_list (element => $element);
+
+    my $el_hash = $self->{ELEMENTS};
+    $el_hash->{$new_name} = $el_hash->{$element};
+    delete $el_hash->{$element};
+    delete $el_hash->{$new_name}{_ELEMENT_ARRAY};
+    delete $el_hash->{$new_name}{_ELEMENT_COORD};
+
+    return wantarray ? @sub_elements : \@sub_elements;
+}
+
+sub rename_subelement {
+    my $self = shift;
+    my %args = @_;
+    
+    my $element     = $args{element};
+    my $sub_element = $args{sub_element};
+    my $new_name    = $args{new_name};
+    
+    croak "element does not exist\n"
+      if ! exists $self->{ELEMENTS}{$element};
+
+    my $sub_el_hash = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+
+    croak "sub_element does not exist\n"
+      if !exists $sub_el_hash->{$sub_element};
+
+    $sub_el_hash->{$new_name} = $sub_el_hash->{$sub_element};
+    delete $sub_el_hash->{$sub_element};
+
+    return;
+}
+
 #  delete the element, return a list of fully cleansed elements
 sub delete_element {  
     my $self = shift;

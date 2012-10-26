@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Fri Oct 26 09:48:58 2012 -->
+<!--Generated with glade3 3.4.3 on Fri Oct 26 11:35:44 2012 -->
 <glade-interface>
   <widget class="GtkDialog" id="dlgClose">
     <property name="visible">True</property>
@@ -3308,6 +3308,15 @@ This will create a new basedata with the corrected axis orders. </property>
                         <property name="label" translatable="yes">Transpose</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_transpose_basedata"/>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="menu_rename_basedata_labels">
+                        <property name="visible">True</property>
+                        <property name="tooltip" translatable="yes">Rename basedata labels.  WIll not work if basedata has existing outputs. </property>
+                        <property name="label" translatable="yes">Rename labels</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_rename_basedata_labels"/>
                       </widget>
                     </child>
                     <child>

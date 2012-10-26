@@ -210,6 +210,9 @@ my %data_funcs = (
     on_basedata_export_groups => {
         METHOD => 'doExportGroups',
     },
+    on_rename_basedata_labels => {
+        METHOD => 'do_rename_basedata_labels',
+    },
     on_basedata_export_labels => {
         METHOD => 'doExportLabels',
     },

@@ -1247,7 +1247,7 @@ sub rename_label {
             new_name    => $new_name,
         );
     }
-    
+
     print "[BASEDATA] Renamed $label to $new_name\n";
 
     return;

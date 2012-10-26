@@ -8,7 +8,11 @@ use strict;
 use warnings;
 use English qw { -no_match_vars };
 
-use rlib; 
+use rlib;
+
+use Data::Section::Simple qw(
+    get_data_section
+);
 
 local $| = 1;
 
@@ -126,7 +130,87 @@ my @setup = (
 
 
 #  need to test multidimensional data import, including text axes
+TODO:
+{
+    local $TODO = 'need to test multidimensional data import, including text axes';
 
+    is (0, 1, 'need to test multidimensional data import, including text axes');
+}
+
+#  rename labels
+{
+    my $bd = get_basedata_object_from_site_data(
+        CELL_SIZES => [100000, 100000],
+    );
+    
+    my $tmp_remap_file = write_data_to_temp_file (get_label_properties_data());
+    my $fname = $tmp_remap_file->filename;
+    my %lbprops_args = (
+        input_element_cols    => [1,2],
+        remapped_element_cols => [3,4],
+    );
+
+    my $lb_props = Biodiverse::ElementProperties->new;
+    my $success = eval { $lb_props->import_data(%lbprops_args, file => $fname) };    
+    diag $EVAL_ERROR if $EVAL_ERROR;
+    
+    ok ($success == 1, 'import label remap without error');
+
+    my $lb = $bd->get_labels_ref;
+    my %lb_expected_counts = (
+        'Genus:sp1' => undef,
+        'nominal_new_name:' => $lb->get_sample_count (element => 'Genus:sp11'),
+    );
+
+    my %expected_groups_with_labels = (
+        'Genus:sp2' => {},
+        'nominal_new_name:' => {$bd->get_groups_with_label_as_hash (label => 'Genus:sp11')},
+    );
+
+    foreach my $label (qw /Genus:sp1 Genus:sp2 Genus:sp18/) {
+        $lb_expected_counts{'Genus:sp2'} += $lb->get_sample_count (element => $label);
+
+        my %gps_with_label = $bd->get_groups_with_label_as_hash (label => $label);
+        my $hashref = $expected_groups_with_labels{'Genus:sp2'};
+        while (my ($gp, $count) = each %gps_with_label) {
+            $hashref->{$gp} += $count;
+        }
+    }
+
+    my $gp = $bd->get_groups_ref;
+    my %gp_expected;
+    foreach my $group ($gp->get_element_list) {
+        $gp_expected{$group} = $gp->get_sample_count (element => $group);
+    }
+    
+    eval {
+        $bd->rename_labels (
+            remap => $lb_props,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    isnt ($e, undef, 'no eval errors assigning label properties');
+
+
+    foreach my $label (sort keys %lb_expected_counts) {
+        my $count = $lb->get_sample_count (element => $label);
+        is ($count, $lb_expected_counts{$label}, "Got expected count for $label");
+    }
+
+    subtest 'Group counts are not affected by label rename' => sub {
+        foreach my $group (keys %gp_expected) {
+            is ($gp_expected{$group}, $gp->get_sample_count (element => $group), $group);
+        }
+    };
+    
+    subtest 'Renamed labels are in expected groups' => sub {
+        while (my ($label, $hash) = each %expected_groups_with_labels) {
+            my %observed_hash = $bd->get_groups_with_label_as_hash (label => $label);
+            is_deeply ($hash, \%observed_hash, $label);
+        }
+    }
+    
+}
 
 #  reordering of axes
 REORDER:
@@ -158,3 +242,19 @@ REORDER:
 
 
 done_testing();
+
+
+sub get_label_properties_data {
+    return get_data_section('LABEL_PROPERTIES');
+}
+
+1;
+
+__DATA__
+
+@@ LABEL_PROPERTIES
+id,gen_name_in,sp_name_in,gen_name_out,sp_name_out
+1,Genus,sp1,Genus,sp2
+10,Genus,sp18,Genus,sp2
+2000,Genus,sp2,,
+1,Genus,sp11,nominal_new_name,

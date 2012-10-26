@@ -1012,7 +1012,7 @@ sub do_rename_basedata_labels {
         undef,
         undef,
         undef,
-        #1,
+        [qw /Input_element Remapped_element/],
     );
     
     ##  now do something with them...
@@ -1023,7 +1023,6 @@ sub do_rename_basedata_labels {
         $bd->rename_labels (remap => $check_list);
     }
 
-    
     return;
 }
 
@@ -1046,7 +1045,6 @@ sub do_add_basedata_label_properties {
         );
     }
 
-    
     return;
 }
 

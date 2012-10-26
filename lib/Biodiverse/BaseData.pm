@@ -1203,6 +1203,57 @@ sub assign_element_properties {
     return;
 }
 
+sub rename_labels {
+    my $self = shift;
+    my %args = @_;
+    
+    croak "Cannot rename labels when basedata has existing outputs\n"
+      if $self->get_output_ref_count;
+
+    my $remap = $args{remap};
+
+    LABEL:
+    foreach my $label ($remap->get_element_list) {
+        my $remapped
+            = $remap->get_element_remapped (element => $label);
+
+        next LABEL if !defined $remapped;
+
+        $self->rename_label (label => $label, new_name => $remapped);
+    }
+
+    return;
+}
+
+sub rename_label {
+    my $self = shift;
+    my %args = @_;
+
+    croak "Argument 'label' not specified\n"
+      if !defined $args{label};
+    croak "Argument 'new_name' not specified\n"
+      if !defined $args{new_name};
+
+    my $lb = $self->get_labels_ref;
+    my $gp = $self->get_groups_ref;
+    my $label = $args{label};
+    my $new_name = $args{new_name};
+
+    my @sub_elements = $lb->rename_element (element => $label, new_name => $new_name);
+    foreach my $group (@sub_elements) {
+        $gp->rename_subelement (
+            element     => $group,
+            sub_element => $label,
+            new_name    => $new_name,
+        );
+    }
+    
+    print "[BASEDATA] Renamed $label to $new_name\n";
+
+    return;
+}
+
+
 sub get_labels_from_line {
     my $self = shift;
     my %args = @_;

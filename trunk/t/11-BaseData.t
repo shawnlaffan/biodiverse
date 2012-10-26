@@ -143,7 +143,7 @@ TODO:
         CELL_SIZES => [100000, 100000],
     );
     
-    my $tmp_remap_file = write_data_to_temp_file (get_label_properties_data());
+    my $tmp_remap_file = write_data_to_temp_file (get_label_remap_data());
     my $fname = $tmp_remap_file->filename;
     my %lbprops_args = (
         input_element_cols    => [1,2],
@@ -244,15 +244,15 @@ REORDER:
 done_testing();
 
 
-sub get_label_properties_data {
-    return get_data_section('LABEL_PROPERTIES');
+sub get_label_remap_data {
+    return get_data_section('LABEL_REMAP');
 }
 
 1;
 
 __DATA__
 
-@@ LABEL_PROPERTIES
+@@ LABEL_REMAP
 id,gen_name_in,sp_name_in,gen_name_out,sp_name_out
 1,Genus,sp1,Genus,sp2
 10,Genus,sp18,Genus,sp2

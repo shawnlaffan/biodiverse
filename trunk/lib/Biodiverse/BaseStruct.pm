@@ -1901,9 +1901,9 @@ sub get_sub_element_list {
     return if ! exists $self->{ELEMENTS}{$element};
     return if ! exists $self->{ELEMENTS}{$element}{SUBELEMENTS};
 
-    return wantarray ?  keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}
-                     : [keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}]
-                     ;
+    return wantarray
+        ?  keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}
+        : [keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}];
 }
 
 sub get_sub_element_hash {
@@ -2008,7 +2008,7 @@ sub rename_element {
     my $self = shift;
     my %args = @_;
     
-    my $element = $args{element};
+    my $element  = $args{element};
     my $new_name = $args{new_name};
 
     croak "element does not exist\n"
@@ -2020,10 +2020,24 @@ sub rename_element {
         $self->get_sub_element_list (element => $element);
 
     my $el_hash = $self->{ELEMENTS};
-    $el_hash->{$new_name} = $el_hash->{$element};
+    
+    #  increment the subelements
+    if ($self->exists_element (element => $new_name)) {
+        my $sub_el_hash_target = $self->{ELEMENTS}{$new_name}{SUBELEMENTS};
+        my $sub_el_hash_source = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+        foreach my $sub_element (keys %$sub_el_hash_source) {
+            #if (exists $sub_el_hash_target->{$sub_element} {
+                $sub_el_hash_target->{$sub_element} += $sub_el_hash_source->{$sub_element};
+            #}
+        }
+    }
+    else {
+        $self->add_element (element => $new_name);
+        $el_hash->{$new_name} = $el_hash->{$element};
+        delete $el_hash->{$new_name}{_ELEMENT_ARRAY};
+        delete $el_hash->{$new_name}{_ELEMENT_COORD};
+    }
     delete $el_hash->{$element};
-    delete $el_hash->{$new_name}{_ELEMENT_ARRAY};
-    delete $el_hash->{$new_name}{_ELEMENT_COORD};
 
     return wantarray ? @sub_elements : \@sub_elements;
 }
@@ -2044,7 +2058,7 @@ sub rename_subelement {
     croak "sub_element does not exist\n"
       if !exists $sub_el_hash->{$sub_element};
 
-    $sub_el_hash->{$new_name} = $sub_el_hash->{$sub_element};
+    $sub_el_hash->{$new_name} += $sub_el_hash->{$sub_element};
     delete $sub_el_hash->{$sub_element};
 
     return;

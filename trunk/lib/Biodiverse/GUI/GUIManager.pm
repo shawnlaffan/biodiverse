@@ -1027,6 +1027,51 @@ sub do_rename_basedata_labels {
     return;
 }
 
+sub do_add_basedata_label_properties {
+    my $self = shift;
+    
+    my $bd = $self->{project}->getSelectedBaseData();
+    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+        $self,
+    );
+
+    ##  now do something with them...
+    if ($options{file}) {
+        #my $file = $options{file};
+        my $check_list = Biodiverse::ElementProperties->new;
+        $check_list->import_data (%options);
+        $bd->assign_element_properties (
+            type              => 'labels',
+            properties_object => $check_list,
+        );
+    }
+
+    
+    return;
+}
+
+sub do_add_basedata_group_properties {
+    my $self = shift;
+    
+    my $bd = $self->{project}->getSelectedBaseData();
+    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+        $self,
+    );
+
+    ##  now do something with them...
+    if ($options{file}) {
+        #my $file = $options{file};
+        my $check_list = Biodiverse::ElementProperties->new;
+        $check_list->import_data (%options);
+        $bd->assign_element_properties (
+            type              => 'groups',
+            properties_object => $check_list,
+        );
+    }
+
+    return;
+}
+
 sub doExportGroups {
     my $self = shift;
     

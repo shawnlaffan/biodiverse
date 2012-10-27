@@ -339,14 +339,22 @@ sub get_metadata_export_table_delimited_text {
     return wantarray ? %args : \%args;
 }
 
-#  generic - should be factored out
+#  generic - should be factored out to Biodiverse::Common?
 sub export_table_delimited_text {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self->to_table (symmetric => 1, %args);
+    my $filename = $args{file} || croak "file arg not specified\n";
+    my $fh;
+    if (!$args{_no_fh}) {  #  allow control of $fh for test purposes
+        open $fh, '>', $filename or croak "Could not open $filename\n";
+    }
 
-    $self->write_table_csv (%args, data => $table);
+    my $table = $self->to_table (symmetric => 1, %args, file_handle => $fh);
+
+    if (scalar @$table) {  #  won;t ned this once issue #350 is fixed
+        $self->write_table_csv (%args, data => $table);
+    }
 
     return;
 }
@@ -608,7 +616,7 @@ sub to_table {
     my %list_keys;
     my $prev_list_keys;
 
-    print "[BASESTRUCT] Checking elements for list contents\n";
+    #print "[BASESTRUCT] Checking elements for list contents\n";
     CHECK_ELEMENTS:
     foreach my $i (0 .. $#$checkElements) {  # sample the lot
         my $checkElement = $checkElements->[$i];
@@ -674,14 +682,17 @@ sub get_longest_name_array_length {
     return $longest;
 }
 
-#  write parts of the object to a CSV file
-#  assumes these are always hashes, which may blow
+#  Write parts of the object to a CSV file
+#  Assumes these are always hashes, which may blow
 #  up in our faces later.  We'll fix it then
 sub to_table_sym {  
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not defined\n";
     my $no_data_value = $args{no_data_value};
+
+    my $fh = $args{file_handle};
+    my $csv_obj;
 
     my @data;
     my @elements = sort $self->get_element_list;
@@ -691,7 +702,7 @@ sub to_table_sym {
         list    => $args{list},
     );
     my @print_order = sort keys %$listHashRef;
-    
+
     my $max_element_array_len;  #  used in some sections, set below if needed
 
     #  need the number of element components for the header
@@ -715,6 +726,18 @@ sub to_table_sym {
         push @header, @print_order;
     }
     push @data, \@header;
+    
+    if ($fh) {
+        #  print to file, clear @data
+        $csv_obj = $self->get_csv_object_for_export (%args);
+        my $list_data = shift @data;
+        my $string = $self->list2csv (
+            csv_object => $csv_obj,
+            list       => $list_data,
+        );
+        print { $fh } $string . "\n";
+    }
+
 
     #  now add the data to the array
     foreach my $element (@elements) {
@@ -757,6 +780,16 @@ sub to_table_sym {
                 push @data, [@basic, @vals];
             }
         }
+
+        if ($fh) {
+            #  print to file, clear @data
+            my $list_data = shift @data;
+            my $string = $self->list2csv (
+                csv_object => $csv_obj,
+                list       => $list_data,
+            );
+            print { $fh } $string . "\n";
+        }
     }
 
     return wantarray ? @data : \@data;
@@ -768,6 +801,9 @@ sub to_table_asym {  #  get the data as an asymmetric table
     defined $args{list} || croak "list not specified\n";
     my $list = $args{list};
     my $no_data_value = $args{no_data_value};
+
+    my $fh = $args{file_handle};
+    my $csv_obj;
 
     my @data;  #  2D array to hold the data
     my @elements = sort $self->get_element_list;
@@ -788,6 +824,18 @@ sub to_table_asym {  #  get the data as an asymmetric table
         push @header, "Value";
     }
     push @data, \@header;
+
+    if ($fh) {
+        #  print to file, clear @data
+        $csv_obj = $self->get_csv_object_for_export (%args);
+        my $list_data = shift @data;
+        my $string = $self->list2csv (
+            csv_object => $csv_obj,
+            list       => $list_data,
+        );
+        print { $fh } $string . "\n";
+    }
+
 
     foreach my $element (@elements) {
         my @basic = ($element);
@@ -827,6 +875,16 @@ sub to_table_asym {  #  get the data as an asymmetric table
             }
             push @data, \@line;
         }
+
+        if ($fh) {
+            #  print to file, clear @data
+            my $list_data = shift @data;
+            my $string = $self->list2csv (
+                csv_object => $csv_obj,
+                list       => $list_data,
+            );
+            print { $fh } $string . "\n";
+        }
     }
 
     return wantarray ? @data : \@data;
@@ -837,6 +895,9 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my %args = @_;
     defined $args{list} || croak "list not specified\n";
     my $list = $args{list};
+
+    my $fh = $args{file_handle};
+    my $csv_obj;
 
     # Get all possible indices by sampling all elements
     # - this allows for asymmetric lists
@@ -876,6 +937,17 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         push @header, @print_order;
     }
     push @data, \@header;
+    
+    if ($fh) {
+        #  print to file, clear @data
+        $csv_obj = $self->get_csv_object_for_export (%args);
+        my $list_data = shift @data;
+        my $string = $self->list2csv (
+            csv_object => $csv_obj,
+            list       => $list_data,
+        );
+        print { $fh } $string . "\n";
+    }
 
     #  allows us to pass text "undef"
     my $no_data_value = $args{no_data_value};
@@ -906,6 +978,16 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         }
         else {
             push @data, [@basic, @data_hash{@print_order}];
+        }
+
+        if ($fh) {
+            #  print to file, clear @data
+            my $list_data = shift @data;
+            my $string = $self->list2csv (
+                csv_object => $csv_obj,
+                list       => $list_data,
+            );
+            print { $fh } $string . "\n";
         }
     }
 

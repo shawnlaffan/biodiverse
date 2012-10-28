@@ -40,6 +40,6 @@ WriteMakefile(
         "Class::Inspector" => "0",
     },
     BUILD_REQUIRES => {
-    	"Data::Section::Simple" => "0",
+        "Data::Section::Simple" => "0",
     },
 );

@@ -51,37 +51,6 @@ sub artificial_base_data {
     );
 }
 
-=item sorted_arrays_eq
-Checks that all given sorted arrays contain the same elements.
-
-Takes in a list of array references.
-=cut
-
-sub sorted_arrays_eq {
-    if (!@_) {
-        return undef;
-    }
-
-    my $len = @{$_[0]};
-
-    for my $a (@_) {
-        if (@$a != $len) {
-            return undef;
-        }
-    }
-
-    for (my $i = 0; $i != $len; ++$i) {
-        my $val = $_[0]->[$i];
-        for my $a (@_) {
-            if ($a->[$i] ne $val) {
-                return undef;
-            }
-        }
-    }
-
-    return 1;
-}
-
 sub test_case_real {
     my %args = @_;
 
@@ -110,11 +79,19 @@ sub test_case_real {
         $neighbour_map{$element} = [sort keys %$nbrs];
     }
 
-    while (my ($element, $neighbours) = each %neighbour_map) {
-        ok (sorted_arrays_eq (@neighbour_map{@$neighbours}),
-            "$element has the correct neighbours");
+    my %checked;
 
-        delete @neighbour_map{@$neighbours};
+    while (my ($element, $neighbours) = each %neighbour_map) {
+        if (exists $checked{$element}) {
+            next;
+        }
+
+        # Check that each array of neighbours is the same as the first array.
+        is_deeply [($neighbours, ) x @$neighbours],
+                  [@neighbour_map{@$neighbours}],
+                  "$element has the correct neighbours";
+
+        undef @checked{@$neighbours};
     }
 }
 

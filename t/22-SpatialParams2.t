@@ -92,18 +92,22 @@ sub test_case_real {
         conditions => $cond,
     );
 
-    my @elements = keys $bd->{GROUPS}->{ELEMENTS};
+    my $gp = $bd->get_groups_ref;
+    my @elements = $gp->get_element_list;
     my %neighbour_map;
 
     for my $element (@elements) {
-        $neighbour_map{$element} = [sort keys eval {
+        my $nbrs = eval {
             $bd->get_neighbours (
                 element        => $element,
                 spatial_params => $spatial_params,
             );
-        }];
+        };
+        my $e = $EVAL_ERROR;
 
         ok !$EVAL_ERROR, "Got neighbours for $element without eval error";
+
+        $neighbour_map{$element} = [sort keys %$nbrs];
     }
 
     while (my ($element, $neighbours) = each %neighbour_map) {

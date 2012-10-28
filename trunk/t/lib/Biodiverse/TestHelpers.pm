@@ -29,6 +29,7 @@ use Exporter::Easy (
                 compare_hash_vals
                 compare_arr_vals
                 get_all_calculations
+                transform_element
             ),
         ],
         basedata => [
@@ -76,6 +77,43 @@ use Exporter::Easy (
         ],
     ],
 );
+
+=item transform_element
+
+Takes in a colon or comma (or any punctuation) separated pair of x and y values
+(element) and scales them by the array ref of
+[x_translate, y_translate, x_scale, y_scale] passed in as transform.
+
+Returns separated pair of x and y.
+
+element   =>
+transfrom =>
+
+=cut
+
+sub transform_element {
+    my %args = @_;
+
+    my $element   = $args{element};
+    my $transform = $args{transform};
+
+    if (not ($element =~ m/^([-.0-9]+)([^-.0-9]+)([-.0-9]+)$/)) {
+        croak "Invalid element '$element' given to transform_element.";
+    }
+
+    my ($x, $sep, $y)           = ($1, $2, $3);
+    my ($x_t, $y_t, $x_s, $y_s) = @$transform;
+
+    return join $sep, $x_s * ($x + $x_t),
+                      $y_s * ($y + $y_t);
+}
+
+=item snap_to_precision
+
+value     => decimal value
+precision => desired amount of digits after decimal point
+
+=cut
 
 sub snap_to_precision {
     my %args = @_;

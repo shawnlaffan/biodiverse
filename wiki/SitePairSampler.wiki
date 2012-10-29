@@ -1,4 +1,4 @@
-#summary An add-on script for biodiverse, to sample compositional dissimilarity between pair of sites.  Designed for use with Generalised Dissimilarity Modelling (GDM) or other models of compositional turnover.
+An add-on script for biodiverse, to sample compositional dissimilarity between pair of sites.  Designed for use with Generalised Dissimilarity Modelling (GDM) or other models of compositional turnover.
 
 = Introduction =
 

@@ -40,6 +40,8 @@ use Biodiverse::TestHelpers qw /:basedata/;
         calculations       => ['calc_richness'],
     );
 
+    #  need to test array lists
+    
     foreach my $symmetric (0, 1) {
         foreach my $one_value_per_line (0, 1) {
             foreach my $no_element_array (0, 1) {
@@ -49,6 +51,7 @@ use Biodiverse::TestHelpers qw /:basedata/;
                     list       => 'SUBELEMENTS',
                     symmetric  => $symmetric,
                     one_value_per_line => $one_value_per_line,
+                    no_element_array   => $no_element_array,
                 );
                 #  symmetric list
                 run_basestruct_export_to_table (
@@ -56,6 +59,7 @@ use Biodiverse::TestHelpers qw /:basedata/;
                     list       => 'SPATIAL_RESULTS',
                     symmetric  => $symmetric,
                     one_value_per_line => $one_value_per_line,
+                    no_element_array   => $no_element_array,
                 );
             }
         }
@@ -130,6 +134,15 @@ sub run_basestruct_export_to_table {
         my $file2 = <$fh2>;
         
         is ($file1, $file2, 'Exported files match');
+        
+        if (0) {
+            print STDERR "\n\n$feedback_text\n";
+            foreach my $string ($file1, $file2) {
+                my @array = split "\n", $file2, 4;
+                pop @array;
+                print STDERR "\n\n---\n" . join ("\n", @array) . "\n\n---\n";
+            }
+        }
     }
 }
 

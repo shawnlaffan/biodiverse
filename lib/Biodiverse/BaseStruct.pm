@@ -695,7 +695,7 @@ sub to_table_sym {
     my $no_element_array   = $args{no_element_array};
 
     my $fh = $args{file_handle};
-    my $csv_obj;
+    my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     my @data;
     my @elements = sort $self->get_element_list;
@@ -730,21 +730,8 @@ sub to_table_sym {
     }
     push @data, \@header;
     
-    if ($fh) {
-        #  print to file, clear @data
-        $csv_obj = $self->get_csv_object_for_export (%args);
-        my $list_data = shift @data;
-        my $string = $self->list2csv (
-            csv_object => $csv_obj,
-            list       => $list_data,
-        );
-        print { $fh } $string . "\n";
-    }
-
-
     #  now add the data to the array
     foreach my $element (@elements) {
-        my @these_data;
 
         my @basic = ($element);
         if (! $no_element_array) {
@@ -764,38 +751,35 @@ sub to_table_sym {
             #  repeat the elements, once for each value or key/value pair
             if (!defined $no_data_value) {
                 foreach my $key (@print_order) {
-                    push @these_data, [@basic, $key, $listRef->{$key}];
+                    push @data, [@basic, $key, $listRef->{$key}];
                 }
             }
             else {  #  need to change some values
                 foreach my $key (@print_order) {
                     my $val = defined $listRef->{$key} ? $listRef->{$key} : $no_data_value;
-                    push @these_data, [@basic, $key, $val];
+                    push @data, [@basic, $key, $val];
                 }
             }
         }
         else {
             if (!defined $no_data_value) {
-                push @these_data, [@basic, @{$listRef}{@print_order}];
+                push @data, [@basic, @{$listRef}{@print_order}];
             }
             else {
                 my @vals = map {defined $_ ? $_ : $no_data_value} @{$listRef}{@print_order};
-                push @these_data, [@basic, @vals];
+                push @data, [@basic, @vals];
             }
         }
 
         if ($fh) {
-            #  print to file, clear @data
-            foreach my $list_data (@these_data) {
+            #  print to file, clear @data - gets header on first run
+            while (my $list_data = shift @data) {
                 my $string = $self->list2csv (
                     csv_object => $csv_obj,
                     list       => $list_data,
                 );
                 print { $fh } $string . "\n";
             }
-        }
-        else {
-            push @data, @these_data;
         }
     }
 
@@ -813,18 +797,17 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $one_value_per_line = $args{one_value_per_line};
     my $no_element_array   = $args{no_element_array};
 
-    
-
     my $fh = $args{file_handle};
-    my $csv_obj;
+    my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     my @data;  #  2D array to hold the data
     my @elements = sort $self->get_element_list;
 
-    push my @header, "ELEMENT";  #  need the number of element components for the header
-    if (! $no_element_array) {
+    push my @header, 'Element';  
+    if (! $no_element_array) {  #  need the number of element components for the header
         my $i = 0;
-        foreach my $null (@{$self->get_element_name_as_array (element => $elements[0])}) {  #  get the number of element columns
+        #  get the number of element columns
+        foreach my $null (@{$self->get_element_name_as_array (element => $elements[0])}) {  
             push (@header, "Axis_$i");
             $i++;
         }
@@ -838,20 +821,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
     }
     push @data, \@header;
 
-    if ($fh) {
-        #  print to file, clear @data
-        $csv_obj = $self->get_csv_object_for_export (%args);
-        my $list_data = shift @data;
-        my $string = $self->list2csv (
-            csv_object => $csv_obj,
-            list       => $list_data,
-        );
-        print { $fh } $string . "\n";
-    }
-
-
     foreach my $element (@elements) {
-        my @these_data;
 
         my @basic = ($element);
         if (! $no_element_array) {
@@ -865,13 +835,13 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     if (!defined $value) {
                         $value = $no_data_value;
                     }
-                    push @these_data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
+                    push @data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
                 }
             }
             elsif ((ref $list) =~ /HASH/) {
                 my %hash = %$list;
                 foreach my $key (sort keys %hash) {
-                    push @these_data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
+                    push @data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
                 }
             }
             #else {  #  we have a scale - probably undef so treat it as such
@@ -890,21 +860,18 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     push @line, ($key, defined $hash{$key} ? $hash{$key} : $no_data_value);
                 }
             }
-            push @these_data, \@line;
+            push @data, \@line;
         }
 
         if ($fh) {
-            #  print to file, clear @data
-            foreach my $list_data (@these_data) {
+            #  print to file, clear @data - gets header on first run
+            while (my $list_data = shift @data) {
                 my $string = $self->list2csv (
                     csv_object => $csv_obj,
                     list       => $list_data,
                 );
                 print { $fh } $string . "\n";
             }
-        }
-        else {
-            push @data, @these_data;
         }
     }
 
@@ -923,7 +890,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $no_element_array   = $args{no_element_array};
 
     my $fh = $args{file_handle};
-    my $csv_obj;
+    my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     # Get all possible indices by sampling all elements
     # - this allows for asymmetric lists
@@ -955,7 +922,6 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         }
     }
 
-    #push (@header, @print_order);
     if ($one_value_per_line) {
         push @header, qw /Key Value/;
     }
@@ -964,23 +930,10 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     }
     push @data, \@header;
     
-    if ($fh) {
-        #  print to file, clear @data
-        $csv_obj = $self->get_csv_object_for_export (%args);
-        my $list_data = shift @data;
-        my $string = $self->list2csv (
-            csv_object => $csv_obj,
-            list       => $list_data,
-        );
-        print { $fh } $string . "\n";
-    }
-
-
     print "[BASESTRUCT] Processing elements...\n";
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
-        my @these_data;
 
         my @basic = ($element);
         if (! $no_element_array) {
@@ -999,25 +952,22 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         #  we've built the hash, now print it out
         if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
             foreach my $key (@print_order) {
-                push @these_data, [@basic, $key, $data_hash{$key}];
+                push @data, [@basic, $key, $data_hash{$key}];
             }
         }
         else {
-            push @these_data, [@basic, @data_hash{@print_order}];
+            push @data, [@basic, @data_hash{@print_order}];
         }
 
         if ($fh) {
-            #  print to file, clear @data
-            foreach my $list_data (@these_data) {
+            #  print to file, clear @data - gets header on first run
+            while (my $list_data = shift @data) {
                 my $string = $self->list2csv (
                     csv_object => $csv_obj,
                     list       => $list_data,
                 );
                 print { $fh } $string . "\n";
             }
-        }
-        else {
-            push @data, @these_data;
         }
     }
 

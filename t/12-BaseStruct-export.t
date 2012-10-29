@@ -31,17 +31,6 @@ use Biodiverse::TestHelpers qw /:basedata/;
 
     my $gp = $bd->get_groups_ref;
     
-    foreach my $symmetric (0, 1) {
-        foreach my $one_value_per_line (0, 1) {
-            run_basestruct_export_to_table (
-                basestruct => $gp,
-                list       => 'SUBELEMENTS',
-                symmetric  => $symmetric,
-                one_value_per_line => $one_value_per_line,
-            );
-        }
-    }
-
     #  now make a basestruct with a symmetric list to export
     my $sp = $bd->add_spatial_output (
         name => 'Blahblah',
@@ -50,14 +39,28 @@ use Biodiverse::TestHelpers qw /:basedata/;
         spatial_conditions => ['sp_self_only()'],
         calculations       => ['calc_richness'],
     );
-    foreach my $one_value_per_line (0, 1) {
-        run_basestruct_export_to_table (
-            basestruct => $sp,
-            list       => 'SPATIAL_RESULTS',
-            symmetric  => 1,
-            one_value_per_line => $one_value_per_line,
-        );
+
+    foreach my $symmetric (0, 1) {
+        foreach my $one_value_per_line (0, 1) {
+            foreach my $no_element_array (0, 1) {
+                #  asymmetric list
+                run_basestruct_export_to_table (
+                    basestruct => $gp,
+                    list       => 'SUBELEMENTS',
+                    symmetric  => $symmetric,
+                    one_value_per_line => $one_value_per_line,
+                );
+                #  symmetric list
+                run_basestruct_export_to_table (
+                    basestruct => $sp,
+                    list       => 'SPATIAL_RESULTS',
+                    symmetric  => $symmetric,
+                    one_value_per_line => $one_value_per_line,
+                );
+            }
+        }
     }
+
 
 
 }

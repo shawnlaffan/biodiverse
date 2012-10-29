@@ -689,7 +689,10 @@ sub to_table_sym {
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not defined\n";
-    my $no_data_value = $args{no_data_value};
+
+    my $no_data_value      = $args{no_data_value};
+    my $one_value_per_line = $args{one_value_per_line};
+    my $no_element_array   = $args{no_element_array};
 
     my $fh = $args{file_handle};
     my $csv_obj;
@@ -708,7 +711,7 @@ sub to_table_sym {
     #  need the number of element components for the header
     my @header = ('Element');  
 
-    if (! $args{no_element_array}) {
+    if (! $no_element_array) {
         my $i = 0;
         #  get the number of element columns
         $max_element_array_len = $self->get_longest_name_array_length - 1;
@@ -719,7 +722,7 @@ sub to_table_sym {
         }
     }
 
-    if ($args{one_value_per_line}) {
+    if ($one_value_per_line) {
         push @header, qw /Key Value/;
     }
     else {
@@ -741,8 +744,10 @@ sub to_table_sym {
 
     #  now add the data to the array
     foreach my $element (@elements) {
+        my @these_data;
+
         my @basic = ($element);
-        if (! $args{no_element_array}) {
+        if (! $no_element_array) {
             my @array = $self->get_element_name_as_array (element => $element);
             if ($#array < $max_element_array_len) {  #  pad if needed
                 push @array, (undef) x ($max_element_array_len - $#array);
@@ -755,36 +760,33 @@ sub to_table_sym {
             list    => $args{list},
         );
 
-        #  we've built the hash, now print it out
-        #my $list_data;
-
-        if ($args{one_value_per_line}) {  
+        if ($one_value_per_line) {  
             #  repeat the elements, once for each value or key/value pair
             if (!defined $no_data_value) {
                 foreach my $key (@print_order) {
-                    push @data, [@basic, $key, $listRef->{$key}];
+                    push @these_data, [@basic, $key, $listRef->{$key}];
                 }
             }
             else {  #  need to change some values
                 foreach my $key (@print_order) {
                     my $val = defined $listRef->{$key} ? $listRef->{$key} : $no_data_value;
-                    push @data, [@basic, $key, $val];
+                    push @these_data, [@basic, $key, $val];
                 }
             }
         }
         else {
             if (!defined $no_data_value) {
-                push @data, [@basic, @{$listRef}{@print_order}];
+                push @these_data, [@basic, @{$listRef}{@print_order}];
             }
             else {
                 my @vals = map {defined $_ ? $_ : $no_data_value} @{$listRef}{@print_order};
-                push @data, [@basic, @vals];
+                push @these_data, [@basic, @vals];
             }
         }
 
         if ($fh) {
             #  print to file, clear @data
-            while (my $list_data = shift @data) {
+            foreach my $list_data (@these_data) {
                 my $string = $self->list2csv (
                     csv_object => $csv_obj,
                     list       => $list_data,
@@ -792,9 +794,9 @@ sub to_table_sym {
                 print { $fh } $string . "\n";
             }
         }
-        #else {
-        #    push @data, $list_data;
-        #}
+        else {
+            push @data, @these_data;
+        }
     }
 
     return wantarray ? @data : \@data;
@@ -804,8 +806,14 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not specified\n";
+
     my $list = $args{list};
-    my $no_data_value = $args{no_data_value};
+
+    my $no_data_value      = $args{no_data_value};
+    my $one_value_per_line = $args{one_value_per_line};
+    my $no_element_array   = $args{no_element_array};
+
+    
 
     my $fh = $args{file_handle};
     my $csv_obj;
@@ -814,7 +822,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my @elements = sort $self->get_element_list;
 
     push my @header, "ELEMENT";  #  need the number of element components for the header
-    if (! $args{no_element_array}) {
+    if (! $no_element_array) {
         my $i = 0;
         foreach my $null (@{$self->get_element_name_as_array (element => $elements[0])}) {  #  get the number of element columns
             push (@header, "Axis_$i");
@@ -822,7 +830,7 @@ sub to_table_asym {  #  get the data as an asymmetric table
         }
     }
 
-    if ($args{one_value_per_line}) {
+    if ($one_value_per_line) {
         push @header, qw /Key Value/;
     }
     else {
@@ -843,23 +851,27 @@ sub to_table_asym {  #  get the data as an asymmetric table
 
 
     foreach my $element (@elements) {
+        my @these_data;
+
         my @basic = ($element);
-        push @basic, ($self->get_element_name_as_array (element => $element)) if ! $args{no_element_array};
+        if (! $no_element_array) {
+            push @basic, ($self->get_element_name_as_array (element => $element));
+        }
         #  get_list_values returns a list reference in scalar context - could be a hash or an array
         my $list =  $self->get_list_values (element => $element, list => $list);
-        if ($args{one_value_per_line}) {  #  repeats the elements, once for each value or key/value pair
+        if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
             if ((ref $list) =~ /ARRAY/) {
                 foreach my $value (@$list) {
                     if (!defined $value) {
                         $value = $no_data_value;
                     }
-                    push @data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
+                    push @these_data, [@basic, $value];  #  preserve internal ordering - useful for extracting iteration based values
                 }
             }
             elsif ((ref $list) =~ /HASH/) {
                 my %hash = %$list;
                 foreach my $key (sort keys %hash) {
-                    push @data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
+                    push @these_data, [@basic, $key, defined $hash{$key} ? $hash{$key} : $no_data_value];
                 }
             }
             #else {  #  we have a scale - probably undef so treat it as such
@@ -878,18 +890,21 @@ sub to_table_asym {  #  get the data as an asymmetric table
                     push @line, ($key, defined $hash{$key} ? $hash{$key} : $no_data_value);
                 }
             }
-            push @data, \@line;
+            push @these_data, \@line;
         }
 
         if ($fh) {
             #  print to file, clear @data
-            while (my $list_data = shift @data) {
+            foreach my $list_data (@these_data) {
                 my $string = $self->list2csv (
                     csv_object => $csv_obj,
                     list       => $list_data,
                 );
                 print { $fh } $string . "\n";
             }
+        }
+        else {
+            push @data, @these_data;
         }
     }
 
@@ -900,7 +915,12 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not specified\n";
+
     my $list = $args{list};
+
+    my $no_data_value      = $args{no_data_value};
+    my $one_value_per_line = $args{one_value_per_line};
+    my $no_element_array   = $args{no_element_array};
 
     my $fh = $args{file_handle};
     my $csv_obj;
@@ -927,7 +947,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my @elements = sort keys %$elements;
 
     push my @header, "ELEMENT";  #  need the number of element components for the header
-    if (! $args{no_element_array}) {
+    if (! $no_element_array) {
         my $i = 0;
         foreach my $null (@{$self->get_element_name_as_array(element => $elements[0])}) {  #  get the number of element columns
             push (@header, "Axis_$i");
@@ -936,7 +956,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     }
 
     #push (@header, @print_order);
-    if ($args{one_value_per_line}) {
+    if ($one_value_per_line) {
         push @header, qw /Key Value/;
     }
     else {
@@ -955,15 +975,15 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         print { $fh } $string . "\n";
     }
 
-    #  allows us to pass text "undef"
-    my $no_data_value = $args{no_data_value};
 
     print "[BASESTRUCT] Processing elements...\n";
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
+        my @these_data;
+
         my @basic = ($element);
-        if (! $args{no_element_array}) {
+        if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element)) ;
         }
         my $list = $self->get_hash_list_values (element => $element, list => $list);
@@ -977,24 +997,27 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         }
 
         #  we've built the hash, now print it out
-        if ($args{one_value_per_line}) {  #  repeats the elements, once for each value or key/value pair
+        if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
             foreach my $key (@print_order) {
-                push @data, [@basic, $key, $data_hash{$key}];
+                push @these_data, [@basic, $key, $data_hash{$key}];
             }
         }
         else {
-            push @data, [@basic, @data_hash{@print_order}];
+            push @these_data, [@basic, @data_hash{@print_order}];
         }
 
         if ($fh) {
             #  print to file, clear @data
-            while (my $list_data = shift @data) {
+            foreach my $list_data (@these_data) {
                 my $string = $self->list2csv (
                     csv_object => $csv_obj,
                     list       => $list_data,
                 );
                 print { $fh } $string . "\n";
             }
+        }
+        else {
+            push @data, @these_data;
         }
     }
 

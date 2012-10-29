@@ -25,7 +25,7 @@ http://code.google.com/p/biodiverse/source/browse/#svn%2Ftrunk%2Fetc%2Fsite_pair
   *  To run it, open a command prompt and type the following, editing the paths as appropriate:
 
 {{{
-  cd c:\site_pair_sample\bin
+  cd c:\site_pair_sampler\bin
   perl GDM_Input_sample_params_basic.pl
 }}}
   When run, it calls GD_Modeller.pm and other components of _Biodiverse_.

@@ -32,11 +32,14 @@ use Biodiverse::TestHelpers qw /:basedata/;
     my $gp = $bd->get_groups_ref;
     
     foreach my $symmetric (0, 1) {
-        run_basestruct_export_to_table (
-            basestruct => $gp,
-            symmetric  => $symmetric,
-            list       => 'SUBELEMENTS',
-        );
+        foreach my $one_value_per_line (0, 1) {
+            run_basestruct_export_to_table (
+                basestruct => $gp,
+                list       => 'SUBELEMENTS',
+                symmetric  => $symmetric,
+                one_value_per_line => $one_value_per_line,
+            );
+        }
     }
 
     #  now make a basestruct with a symmetric list to export
@@ -47,11 +50,14 @@ use Biodiverse::TestHelpers qw /:basedata/;
         spatial_conditions => ['sp_self_only()'],
         calculations       => ['calc_richness'],
     );
-    run_basestruct_export_to_table (
-        basestruct => $sp,
-        list       => 'SPATIAL_RESULTS',
-        symmetric  => 1,
-    );
+    foreach my $one_value_per_line (0, 1) {
+        run_basestruct_export_to_table (
+            basestruct => $sp,
+            list       => 'SPATIAL_RESULTS',
+            symmetric  => 1,
+            one_value_per_line => $one_value_per_line,
+        );
+    }
 
 
 }
@@ -64,6 +70,15 @@ sub run_basestruct_export_to_table {
     my $e;
 
     my $symmetric_feedback = $args{symmetric} ? "symmetric" : "non-symmetric";
+    my %feedback = %args;
+    delete @feedback{qw /basestruct list/};
+    my $feedback_text;
+    foreach my $key (sort keys %feedback) {
+        my $val = $feedback{$key};
+        $feedback_text .= "$key => $val, ";
+    }
+    $feedback_text =~ s/, $//;
+    
 
     my %file_temp_args = (
         TEMPLATE => 'export_test_XXXXX',
@@ -84,7 +99,7 @@ sub run_basestruct_export_to_table {
     $e = $EVAL_ERROR;
     note $e if $e;
 
-    ok (!$e, "Exported to $symmetric_feedback file without raising exception, using file handle");
+    ok (!$e, "Exported file without raising exception, using file handle, $feedback_text");
     
     my $tmp_obj2  = File::Temp->new (%file_temp_args);
     my $filename2 = $tmp_obj2->filename;
@@ -100,7 +115,7 @@ sub run_basestruct_export_to_table {
     $e = $EVAL_ERROR;
     note $e if $e;
 
-    ok (!$e, "Exported to $symmetric_feedback file without raising exception, not using file handle");
+    ok (!$e, "Exported to file without raising exception, not using file handle, $feedback_text");
 
     #  now compare the two files
     {

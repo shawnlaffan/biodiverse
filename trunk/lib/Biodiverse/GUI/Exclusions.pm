@@ -132,14 +132,16 @@ sub showDialog {
             my $checkbox = $dlgxml->get_widget('chk' . $name);
             my $spinbutton = $dlgxml->get_widget('spin' . $name);
 
+            my $fields = $g_widget_map{$name};
             if ($checkbox->get_active()) {
-
-                my $fields = $g_widget_map{$name};
                 my $value = $spinbutton->get_value();
                 #  round any decimals to six places to avoid floating point issues.
                 #  could cause trouble later on, but the GUI only allows two decimals now anyway...
                 $value = sprintf ("%.6f", $value) if $value =~ /\./;  
                 $exclusionsHash->{$fields->[0]}{$fields->[1]} = $value;
+            }
+            else {
+                delete $exclusionsHash->{$fields->[0]}{$fields->[1]};
             }
         }
         
@@ -167,7 +169,7 @@ sub showDialog {
                 undef,
                 undef,
                 undef,
-                ['Input_element_column'],
+                ['Input_element'],
             );
 
             ##  now do something with them...

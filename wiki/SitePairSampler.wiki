@@ -22,12 +22,12 @@ http://code.google.com/p/biodiverse/source/browse/#svn%2Ftrunk%2Fetc%2Fsite_pair
 
   *  If you save your version of the script to a different folder then you will need to add the site_pair_sampler/lib folder to your PERL5LIB environment variable, or add it as an argument every time you run the script.
 
-  *  To run it, open a command prompt and type the following, editing the paths as appropriate:
+  *  To run it, open a command prompt and type the following, editing the path and script name to match what you are using:
 
 {{{
-  cd c:\site_pair_sampler\bin
-  perl GDM_Input_sample_params_basic.pl
+  perl c:\site_pair_sampler\bin\GDM_Input_sample_params_basic.pl
 }}}
+
   When run, it calls GD_Modeller.pm and other components of _Biodiverse_.
 
   *  The output files will be wherever you told the system to put them.

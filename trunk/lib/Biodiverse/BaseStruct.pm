@@ -756,6 +756,7 @@ sub to_table_sym {
         );
 
         #  we've built the hash, now print it out
+        #my $list_data;
 
         if ($args{one_value_per_line}) {  
             #  repeat the elements, once for each value or key/value pair
@@ -783,13 +784,17 @@ sub to_table_sym {
 
         if ($fh) {
             #  print to file, clear @data
-            my $list_data = shift @data;
-            my $string = $self->list2csv (
-                csv_object => $csv_obj,
-                list       => $list_data,
-            );
-            print { $fh } $string . "\n";
+            while (my $list_data = shift @data) {
+                my $string = $self->list2csv (
+                    csv_object => $csv_obj,
+                    list       => $list_data,
+                );
+                print { $fh } $string . "\n";
+            }
         }
+        #else {
+        #    push @data, $list_data;
+        #}
     }
 
     return wantarray ? @data : \@data;
@@ -878,12 +883,13 @@ sub to_table_asym {  #  get the data as an asymmetric table
 
         if ($fh) {
             #  print to file, clear @data
-            my $list_data = shift @data;
-            my $string = $self->list2csv (
-                csv_object => $csv_obj,
-                list       => $list_data,
-            );
-            print { $fh } $string . "\n";
+            while (my $list_data = shift @data) {
+                my $string = $self->list2csv (
+                    csv_object => $csv_obj,
+                    list       => $list_data,
+                );
+                print { $fh } $string . "\n";
+            }
         }
     }
 
@@ -982,12 +988,13 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
 
         if ($fh) {
             #  print to file, clear @data
-            my $list_data = shift @data;
-            my $string = $self->list2csv (
-                csv_object => $csv_obj,
-                list       => $list_data,
-            );
-            print { $fh } $string . "\n";
+            while (my $list_data = shift @data) {
+                my $string = $self->list2csv (
+                    csv_object => $csv_obj,
+                    list       => $list_data,
+                );
+                print { $fh } $string . "\n";
+            }
         }
     }
 

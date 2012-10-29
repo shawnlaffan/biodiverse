@@ -412,8 +412,13 @@ sub generate_distance_table {
                 };
             };
             
+            my $shared_header="";
+            if ($$SPM{shared_species} == 1) {
+                $shared_header = ",shared_species";
+            }
+            
             # print the header row to the site pair file
-            print $result_file_handle "x0,y0,x1,y1,".$dist_header.$regions_output."\n";
+            print $result_file_handle "x0,y0,x1,y1,".$dist_header.$regions_output.$shared_header."\n";
             
             # CALL THE MAIN SAMPLING LOOP #
             $SPM -> do_sampling();        #
@@ -468,6 +473,16 @@ sub make_bins {
         $max_class = 0;
     }
     
+    # if a distance limit has been set for sampling (presumably for geographic distance)
+    # don't have a top class of a single value (1).  Such a class only makes sense for compositional dissimilarity
+    my $dist_limit;
+    if(exists($$self{dist_limit})) {
+        $dist_limit = $$self{dist_limit};
+        if ($dist_limit > 1) {
+            $max_class = 0;
+        };
+    };
+    
     #create header
     my %bins_header = ("minimum" => $min_val,
                        "maximum" => $max_val,
@@ -501,6 +516,8 @@ sub make_bins {
     if ($args[0]) {
         $self -> set_param($args[0],\@bins);
     }
+    
+    $self -> set_param(max_class => $max_class);
     
     return @bins;
 
@@ -707,7 +724,9 @@ sub get_region_quotas {
             };
         };
         
-        print "Regions under quota: $under_quota \n"; #remove once working
+        if ($$self{sample_by_regions}) {
+            print "Regions under quota: $under_quota \n"; #remove once working
+        }
     };
 
     $region_quotas{summary}{region_pair_count} = $region_pair_count;
@@ -750,6 +769,8 @@ sub initialise {    # add essential parameters to the object hash and set defaul
     $$self{one_quota} = 0;
     $$self{subset_for_testing} = 0;
     $$self{test_sample_ratio} = 1;
+    $$self{shared_species} = 0;
+    $$self{bins_max_class} = 1;
     
     return $self;
 }
@@ -822,7 +843,7 @@ sub load_data {
                               trees => \@trees);
         }
         
-        print "\n$tree_count trees parsed from $$self{nexus_file}\nNames are: ";
+        print "\n$tree_count trees parsed from $$self{nexus_file}\nTree names are: ";
         my @names;
         foreach my $tree (@trees) {
                 push @names, $tree -> get_param ('NAME');
@@ -978,6 +999,13 @@ sub do_sampling {
         $single_dist_measure = (keys($dist_measure))[0];
     };
     
+    #set up to report species shared, optional extra to use as a weighting factor
+    my $species_shared = 0;
+    my $shared = 0;
+    if (exists($$self{species_shared})) {
+        $species_shared = $$self{species_shared};
+    }
+    
     # start a feedback table, if requested
     if ($$self{feedback_table}) {
         $self -> feedback_table(open => 1);
@@ -1016,7 +1044,8 @@ sub do_sampling {
         # set bins for this region pair
         $self -> set_param(bins_sample_count => $region_pair_quota);
         my @bins = $self -> make_bins();
-        my $bins_max = $bins[0]{maximum};          
+        my $bins_max = $bins[0]{maximum};
+        my $max_class = $$self{max_class};
         
         ###  calculate sampling frequency for this region pair
         my $all_comparisons = $region_pair{all_pairs};
@@ -1113,10 +1142,13 @@ sub do_sampling {
                  # calculate the geographic distance
                 if (exists($$dist_measure{geographic})) {  # geographic
                     $dist_result{geographic} = sprintf("%.3f", sqrt( ($coords1[0]-$coords2[0]) ** 2 + ($coords1[1]-$coords2[1]) ** 2 ));
-                    print $dist_result{geographic},"\n";   #DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
                 };
                 
                 # check for results beyond the distance threshold
+                # NOTE this check is performed before the beta diversity measures are calculated so it only works for geographic distance.
+                # This means no time is wasted on biological measures where the sites are too geographically distant
+                # but if a limit was wanted where the quota_dist_measure was not geographic, this check would need to be placed after those
+                # measures.
                 if ($dist_limit) {
                     if (exists($dist_result{$quota_dist_measure})) {
                         if ($dist_result{$quota_dist_measure} > $dist_limit) {
@@ -1150,7 +1182,10 @@ sub do_sampling {
         
                         if (($abc{A} + $abc{B}) and ($abc{A} + $abc{C})) {  #  sum of each side must be non-zero
                             $dist_result{sorenson} = sprintf("%.6f", eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))});
-                        };   
+                        };
+                        
+                        # an optional extra feature, calculates the number of species shared
+                        $shared = ",".$abc{A};
                     };
                     
                     # if any distance measure has a valid result
@@ -1170,7 +1205,6 @@ sub do_sampling {
                         } else {
                             $dist_output = $dist_result{$single_dist_measure};
                         };
-                        #substr($dist_output,0,1,"");  # ensure no leading comma - surely a more elegant way to do this
                         
                         # set the region names output
                         if ($$self{do_output_regions}) {
@@ -1197,8 +1231,7 @@ sub do_sampling {
                                 };
                             };
                         } elsif (@bins and $bin_count > 1) { #2nd of two alternative methods for managing the spread of distance values
-                            
-                            if ($dist_result{$quota_dist_measure} == $bins_max){  #check if the distance value is 1 (the top bin)
+                            if ($max_class and $dist_result{$quota_dist_measure} == $bins_max){  #check if the distance value is within a separate single-value top bin (normally value 1)
                                 if (!$bins[$bin_count][3]){ #if quota not previously reached
                                     $bins[$bin_count][2] ++;
                                     if ($bins[$bin_count][1] <= $bins[$bin_count][2]) {
@@ -1212,8 +1245,8 @@ sub do_sampling {
                                 } else {
                                     $skip = 1;
                                 };
-                            } else { #for all values < 1
-                                for my $bin_number (1..($bin_count-1)) {
+                            } else { #for all values except a separate single-value top bin (normally value 1)
+                                for my $bin_number (1..($bin_count-$max_class)) {
                                     if ($dist_result{$quota_dist_measure} < $bins[$bin_number][0]) {
                                         if (!$bins[$bin_number][3]){    #if quota not previously reached
                                             $bins[$bin_number][2] ++;
@@ -1242,11 +1275,11 @@ sub do_sampling {
                         }
             
                         if (!$skip) { 
-                            $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$regions_output."\n";
+                            $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$regions_output.$shared."\n";
                             print $result_file_handle "$output_row";
                             $count++;
-                        } else {
-                            print "undefined result for $coords1[0],$coords1[1] and $coords2[0],$coords2[1], $regions_output\n";;
+                        #} else {
+                        #    print "undefined result for $coords1[0],$coords1[1] and $coords2[0],$coords2[1], $regions_output\n";;
                         };
                     };
                             
@@ -1257,13 +1290,14 @@ sub do_sampling {
                 $loops++;
                 $dist_output = "";
                 $dist_exceeded = 0;
+                $shared= "";
                 
                 if ($$self{verbosity} == 3) {
                     $progress = int (100 * $loops / $toDo);
                     if (($progress % 5 == 0) or (($diss_quotas_reached == $bin_count) and $bin_count>1)) {
                         if ($printedProgress != $progress) {
                             $storedProgress = int (100 * $count / $region_pair_quota);
-                            print "Done: $progress%       $loops      Stored: $storedProgress%     $count\n";
+                            print "Sampled: $progress%       $loops      Stored: $storedProgress%     $count\n";
                             $printedProgress = $progress;
                         };
                     };

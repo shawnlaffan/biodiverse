@@ -2,18 +2,12 @@ Site pair sampler comments
 
 * make it work generically for any Biodiverse distance measures
 
-* ability to bin by geographic distance
-* ability to limit geog distance
+DONE * ability to bin by geographic distance
+DONE * ability to limit geog distance
 
 * get it to run from a separate parameter file
 
 * include .bds in parameter basedata_file
-
-* need rlib and class::inspector packages
-
-* need to set PERL5LIB variables to point to:
-c:\biodiverse\lib
-C:\biodiverse\etc\site_pair_sampler\lib
 
 * do we need an extra column for weight
 
@@ -23,6 +17,3 @@ C:\biodiverse\etc\site_pair_sampler\lib
 ********************************
 
 * dissimilarity bins
-* 
-
-C:\Perl\site\bin;C:\Perl\bin;C:\Program Files (x86)\TRIM Context\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Program Files (x86)\Microsoft Application Virtualization Client;C:\Program Files\WIDCOMM\Bluetooth Software\;C:\Program Files\WIDCOMM\Bluetooth Software\syswow64;C:\Program Files (x86)\openModeller 1.2.0;C:\arcgis\arcexe10x\bin;C:\Biodiverse\bin;C:\Biodiverse\gtk\bin;C:\Program Files\TortoiseSVN\bin;C:\biodiverse\etc\site_pair_sampler

@@ -33,10 +33,10 @@ sub generate_distance_table {
 #   FILE PARAMETERS
 #
 #   dist_measure
-#                   - the name of the distance measure to use. Accepted options so far are:
+#                   - the name of the distance measure to use. Accepted options so far are single items or a list from:
 #                       "phylo_sorenson"
 #                       "sorenson"
-#                       "sorenson and phylo_sorenson"
+#                       "geographic"
 #                   - required
 #
 #   directory       - the working directory
@@ -113,6 +113,9 @@ sub generate_distance_table {
 #                       - more than one dist_measure is being used
 #                       - defaults to the only, or first distance measure.  Because key order is unreliable, with multiple
 #                           distance measures it is important to set this parameter explicitly
+#   dist_limit
+#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple diagonal, with no adjustment for curvature etc
+#                   - site pairs beyond the limit will not be used
 #
 #   oversample_ratio
 #                   - a multiplier to increase the total number of site pairs to sample, to find enough
@@ -156,13 +159,8 @@ sub generate_distance_table {
 #                       means that the frequency with which each site is sampled in the test site pairs is greater.
 #                   - optional - defaults to 1
 #
-#   OUTPUT PARAMETERS
 #
-#   geographic_distance
-#                   - if geographic_distance > 0, then an additional column for geographic distance between site pairs
-#                     is added to the end of each output line
-#                   - the distance is calcuted as a simple euclidean distance in the map units of the X and Y coordiantes
-#                   - optional - defaults to 0
+#   OUTPUT PARAMETERS
 #
 #   regions
 #                   - if regions > 0, then two additional columns are added , giving the region for site 1 and site 2
@@ -250,20 +248,15 @@ sub generate_distance_table {
     }
 
     my $measures = $args{dist_measure};
-    my @dist_measures = keys %$measures;
+    my @dist_measures = sort keys %$measures;
     my $measure_count = scalar @dist_measures;
+    $SPM -> set_param(measure_count => $measure_count);
     
     if (!exists($$SPM{quota_dist_measure})) {
         $SPM -> set_param(quota_dist_measure => $dist_measures[0]);
     }
     
     ### OUTPUT PARAMETERS
-
-    #geographic distance
-    my $geog_dist_output = "";
-    if (exists $$SPM{geographic_distance}) {
-        $SPM -> set_param("do_geog_dist",($$SPM{geographic_distance}>0));
-    };
     
     #regions
     if (exists $$SPM{regions}) {
@@ -317,7 +310,6 @@ sub generate_distance_table {
         #####################################################
         
         my %grouplists;
-        
         
         if (!$$SPM{subset_for_testing}) {       # if no test dataset requested
             $grouplists{training} = \@grouplist;
@@ -378,9 +370,14 @@ sub generate_distance_table {
                 $SPM -> set_param (sample_count_current => $$SPM{sample_count});  
             }            
     
+            my $bins_max_val = 1;
+            if (exists($$SPM{dist_limit})) {
+                $bins_max_val = $$SPM{dist_limit};
+            };
+            
             # prepare dissimilarity bins
             $SPM -> set_param (bins_min_val => 0,  #setting bin parameters - the remaining parameters are already in the object
-                               bins_max_val => 1,
+                               bins_max_val => $bins_max_val,
                                bins_max_class => 1,
                                bins_sample_count => $$SPM{sample_count_current});
             my @bins_all = $SPM -> make_bins("bins_all");
@@ -399,13 +396,6 @@ sub generate_distance_table {
             };
             
             print "\nAbout to send $dist_measure_text results to: $$SPM{directory}\\$$SPM{output_file_name} \n";
-
-            # set up geographic distance output
-            $geog_dist_output = "";
-	    if ($$SPM{do_geog_dist}) {
-                $geog_dist_output = ",geog_dist";    
-                print "\nGeographic distance included in output.\n";
-            };
             
             # set up regions
             $SPM -> prepare_regions();        
@@ -423,7 +413,7 @@ sub generate_distance_table {
             };
             
             # print the header row to the site pair file
-            print $result_file_handle "x0,y0,x1,y1,".$dist_header.$geog_dist_output.$regions_output."\n";
+            print $result_file_handle "x0,y0,x1,y1,".$dist_header.$regions_output."\n";
             
             # CALL THE MAIN SAMPLING LOOP #
             $SPM -> do_sampling();        #
@@ -753,7 +743,6 @@ sub initialise {    # add essential parameters to the object hash and set defaul
     $$self{sample_by_regions} = 1;
     $$self{region_quota_strategy} = 'equal';
     $$self{within_region_ratio} = 1;
-    $$self{do_geog_dist}=1;
     $$self{do_output_regions}=0;
     $$self{region_header} = 'region';
     $$self{verbosity} = 1;
@@ -980,13 +969,14 @@ sub do_sampling {
     my $result_file_handle = $$self{result_file_handle};
     my ($printedProgress_all, $storedProgress_all) = (0,0);
     my $dist_output;
+    my $measure_count = $$self{measure_count};
+    my $dist_exceeded;
+    my $dist_limit = $$self{dist_limit};
     
     my $single_dist_measure;
-    my $calc_two = (exists($$dist_measure{sorenson}) and exists($$dist_measure{phylo_sorenson}));
-    if (! $calc_two) {
+    if ($measure_count == 1) {
         $single_dist_measure = (keys($dist_measure))[0];
-    }
-    
+    };
     
     # start a feedback table, if requested
     if ($$self{feedback_table}) {
@@ -1026,9 +1016,10 @@ sub do_sampling {
         # set bins for this region pair
         $self -> set_param(bins_sample_count => $region_pair_quota);
         my @bins = $self -> make_bins();
+        my $bins_max = $bins[0]{maximum};          
         
         ###  calculate sampling frequency for this region pair
-        my $all_comparisons = $region_pair{all_pairs};;
+        my $all_comparisons = $region_pair{all_pairs};
         
         if ($all_comparisons > $total_samples) {
             $frequency = $all_comparisons / $total_samples;
@@ -1067,6 +1058,8 @@ sub do_sampling {
 
         my (%dist_result,$j, @groups2);
         my $previous_j = 0;
+        
+        
         
         ###############################
         #  the main loop starts here  #  
@@ -1113,148 +1106,168 @@ sub do_sampling {
                 #@coords2 = $groups_ref -> get_element_name_as_array(element => $group2);          #
                 ####################################################################################
                 
-                 $label_hash2 = $groups_ref -> get_sub_element_hash(element => $group2);
+                $label_hash2 = $groups_ref -> get_sub_element_hash(element => $group2);
                 
                 %gl2 = ($group2 => 0);
                 
-                # calculate the phylo Sørensen distance
-                if (exists($$dist_measure{phylo_sorenson})) {  # phylo_sorenson
-                    $dist_result{phylo_sorenson} = -1;      # an undefined distance result is given as -1
-                    %phylo_abc = $indices -> calc_phylo_abc(group_list1 => \%gl1,
-                                                    group_list2 => \%gl2,
-                                                    label_hash1 => $label_hash1,
-                                                    label_hash2 => $label_hash2,
-                                                    trimmed_tree => $$self{trimmed_tree});
-        
-                    if (($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_B}) and ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_C})) {  #  sum of each side must be non-zero
-                        $dist_result{phylo_sorenson} = sprintf("%.6f", eval {1 - (2 * $phylo_abc{PHYLO_A} / ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_ABC}))});
-                    };
-                }
-                
-                # calculate the Sørensen distance                                    
-                if (exists($$dist_measure{sorenson})) {  # sorenson
-                    $dist_result{sorenson} = -1;      # an undefined distance result is given as -1
-                    %abc = $indices -> calc_abc(group_list1 => \%gl1,
-                                        group_list2 => \%gl2,
-                                        label_hash1 => $label_hash1,
-                                        label_hash2 => $label_hash2);
-
-                    if (($abc{A} + $abc{B}) and ($abc{A} + $abc{C})) {  #  sum of each side must be non-zero
-                        $dist_result{sorenson} = sprintf("%.6f", eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))});
-                    };   
+                 # calculate the geographic distance
+                if (exists($$dist_measure{geographic})) {  # geographic
+                    $dist_result{geographic} = sprintf("%.3f", sqrt( ($coords1[0]-$coords2[0]) ** 2 + ($coords1[1]-$coords2[1]) ** 2 ));
+                    print $dist_result{geographic},"\n";   #DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG DEBUG
                 };
                 
-                # if either distance measure has a valid result
-                if ( (exists($$dist_measure{sorenson}) and ($dist_result{sorenson} != -1)) or (exists($$dist_measure{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1)) ) {
-                    
-                    # format the distance result(s)
-                    if ($calc_two) {
-                        $dist_output = $dist_result{phylo_sorenson}.",".$dist_result{sorenson};
-                    } else {
-                        $dist_output = $dist_result{$single_dist_measure};
-                    };
-                    #if ($$self{do_geog_dist} or $$self{do_output_regions}) {$dist_output = $dist_output.",";}
-                    
-                    # calculate the geographic distance
-                    if ($$self{do_geog_dist}) {
-                        $geog_dist = sprintf("%.3f", sqrt( ($coords1[0]-$coords2[0]) ** 2 + ($coords1[1]-$coords2[1]) ** 2 ));
-                        $geog_dist_output = ",$geog_dist";
-                    };
-                    
-                    # set the region names output
-                    if ($$self{do_output_regions}) {
-                        $regions_output = ",".$region1.",".$region2;
-                    } else {
-			$regions_output = "";
-		    }
-                    
-                    # set the region codes output
-                    if ($$self{region_codes}) {
-                        $regions_output .= ",".$region_stats{$region1}{code}.",".$region_stats{$region2}{code};
-                    };
-      
-                    if ($one_quota_region) { #1st of two alternative methods for managing the spread of distance values
-                        if ($dist_result{$quota_dist_measure} == 1){
-                            $one_count ++;
-                            if ($one_count >= $one_quota_region) {
-                                $skip =1;
-                                if ($one_count == $one_quota_region) {
-                                    if ($$self{verbosity} >= 2) {
-                                        print "Quota of $one_quota_region scores of 1 reached after $count iterations \n";
-                                    };
-                                };
-                            };
-                        };
-                    } elsif (@bins and $bin_count > 1) { #2nd of two alternative methods for managing the spread of distance values
-                        
-                        #1st check if the distance value is 1 (the top bin)
-                        if ($dist_result{$quota_dist_measure} == 1){    
-                            if (!$bins[$bin_count][3]){ #if quota not previously reached
-                                $bins[$bin_count][2] ++;
-                                if ($bins[$bin_count][1] <= $bins[$bin_count][2]) {
-                                    if ($$self{verbosity} >=2) {
-                                        print "   Quota of $bins[$bin_count][2] scores of 1 reached from " . ($loops + 1) ." site pairs \n";
-                                    };
-                                    $bins[$bin_count][3] = 1; # quota reached so set full = true
-                                    $bins[$bin_count][4] = $loops+1;  # record the number of site pairs needed to fill this bin
-                                    $diss_quotas_reached ++;
-                                };
-                            } else {
-                                $skip = 1;
-                            };
-                        } else { #for all values < 1
-                            for my $bin_number (1..($bin_count-1)) {
-                                if ($dist_result{$quota_dist_measure} < $bins[$bin_number][0]) {
-                                    if (!$bins[$bin_number][3]){    #if quota not previously reached
-                                        $bins[$bin_number][2] ++;
-                                        if ($bins[$bin_number][1] <= $bins[$bin_number][2]) {
-                                            my $bin_min = 0;
-                                            if ($bin_number > 1) {$bin_min = $bins[$bin_number-1][0]};
-                                            if ($$self{verbosity} >=2) {
-                                                print "   Quota of $bins[$bin_number][2] scores of " . sprintf("%.3f", $bin_min) . " to < " . sprintf("%.3f",$bins[$bin_number][0]) . " reached from $loops site pairs \n";
-                                            };
-                                            $bins[$bin_number][3] = 1; #quota reached so set full = true
-                                            $bins[$bin_number][4] = $loops+1;  # record the number of site pairs needed to fill this bin
-                                            $diss_quotas_reached ++;
-                                            
-                                        };
-                                    } else {
-                                        $skip = 1;
-                                    };
-                                    last;
-                                };
-                            };
+                # check for results beyond the distance threshold
+                if ($dist_limit) {
+                    if (exists($dist_result{$quota_dist_measure})) {
+                        if ($dist_result{$quota_dist_measure} > $dist_limit) {
+                            $dist_exceeded = 1;
                         };
                     };
-                    
-                    if (($diss_quotas_reached > 0 and $diss_quotas_reached >= $bin_count) or ($count >= $region_pair_quota)) {
-                        $region_completed = 1;
+                };
+                
+                if (! $dist_exceeded) {    
+                    # calculate the phylo Sørensen distance
+                    if (exists($$dist_measure{phylo_sorenson})) {  # phylo_sorenson
+                        $dist_result{phylo_sorenson} = -1;      # an undefined distance result is given as -1
+                        %phylo_abc = $indices -> calc_phylo_abc(group_list1 => \%gl1,
+                                                        group_list2 => \%gl2,
+                                                        label_hash1 => $label_hash1,
+                                                        label_hash2 => $label_hash2,
+                                                        trimmed_tree => $$self{trimmed_tree});
+            
+                        if (($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_B}) and ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_C})) {  #  sum of each side must be non-zero
+                            $dist_result{phylo_sorenson} = sprintf("%.6f", eval {1 - (2 * $phylo_abc{PHYLO_A} / ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_ABC}))});
+                        };
                     }
+                    
+                    # calculate the Sørensen distance                                    
+                    if (exists($$dist_measure{sorenson})) {  # sorenson
+                        $dist_result{sorenson} = -1;      # an undefined distance result is given as -1
+                        %abc = $indices -> calc_abc(group_list1 => \%gl1,
+                                            group_list2 => \%gl2,
+                                            label_hash1 => $label_hash1,
+                                            label_hash2 => $label_hash2);
         
-                    if (!$skip) { 
-                        $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$geog_dist_output.$regions_output."\n";
-                        print $result_file_handle "$output_row";
-                        $count++;
+                        if (($abc{A} + $abc{B}) and ($abc{A} + $abc{C})) {  #  sum of each side must be non-zero
+                            $dist_result{sorenson} = sprintf("%.6f", eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))});
+                        };   
                     };
-
-                } else {
-                    print "undefined result for $coords1[0],$coords1[1] and $coords2[0],$coords2[1], $regions_output\n";
+                    
+                    # if any distance measure has a valid result
+                    if ( (exists($$dist_measure{sorenson}) and ($dist_result{sorenson} != -1))
+                            or (exists($$dist_measure{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1))
+                            or (exists($$dist_measure{geographic}) and $dist_result{geographic} >= 0)) {
+        
+                        #format the distance result(s)
+                        if ($measure_count > 1) {
+                            foreach my $result (sort keys(%dist_result)) {
+                                if ($dist_output) {
+                                    $dist_output = $dist_output. "," .$dist_result{$result};
+                                } else {
+                                    $dist_output = $dist_result{$result};
+                                };
+                            };
+                        } else {
+                            $dist_output = $dist_result{$single_dist_measure};
+                        };
+                        #substr($dist_output,0,1,"");  # ensure no leading comma - surely a more elegant way to do this
+                        
+                        # set the region names output
+                        if ($$self{do_output_regions}) {
+                            $regions_output = ",".$region1.",".$region2;
+                        } else {
+                            $regions_output = "";
+                        }
+                        
+                        # set the region codes output
+                        if ($$self{region_codes}) {
+                            $regions_output .= ",".$region_stats{$region1}{code}.",".$region_stats{$region2}{code};
+                        };
+          
+                        if ($one_quota_region) { #1st of two alternative methods for managing the spread of distance values
+                            if ($dist_result{$quota_dist_measure} == 1) {
+                                $one_count ++;
+                                if ($one_count >= $one_quota_region) {
+                                    $skip =1;
+                                    if ($one_count == $one_quota_region) {
+                                        if ($$self{verbosity} >= 2) {
+                                            print "Quota of $one_quota_region scores of 1 reached after $count iterations \n";
+                                        };
+                                    };
+                                };
+                            };
+                        } elsif (@bins and $bin_count > 1) { #2nd of two alternative methods for managing the spread of distance values
+                            
+                            if ($dist_result{$quota_dist_measure} == $bins_max){  #check if the distance value is 1 (the top bin)
+                                if (!$bins[$bin_count][3]){ #if quota not previously reached
+                                    $bins[$bin_count][2] ++;
+                                    if ($bins[$bin_count][1] <= $bins[$bin_count][2]) {
+                                        if ($$self{verbosity} >=2) {
+                                            print "   Quota of $bins[$bin_count][2] scores of 1 reached from " . ($loops + 1) ." site pairs \n";
+                                        };
+                                        $bins[$bin_count][3] = 1; # quota reached so set full = true
+                                        $bins[$bin_count][4] = $loops+1;  # record the number of site pairs needed to fill this bin
+                                        $diss_quotas_reached ++;
+                                    };
+                                } else {
+                                    $skip = 1;
+                                };
+                            } else { #for all values < 1
+                                for my $bin_number (1..($bin_count-1)) {
+                                    if ($dist_result{$quota_dist_measure} < $bins[$bin_number][0]) {
+                                        if (!$bins[$bin_number][3]){    #if quota not previously reached
+                                            $bins[$bin_number][2] ++;
+                                            if ($bins[$bin_number][1] <= $bins[$bin_number][2]) {
+                                                my $bin_min = 0;
+                                                if ($bin_number > 1) {$bin_min = $bins[$bin_number-1][0]};
+                                                if ($$self{verbosity} >=2) {
+                                                    print "   Quota of $bins[$bin_number][2] scores of " . sprintf("%.3f", $bin_min) . " to < " . sprintf("%.3f",$bins[$bin_number][0]) . " reached from $loops site pairs \n";
+                                                };
+                                                $bins[$bin_number][3] = 1; #quota reached so set full = true
+                                                $bins[$bin_number][4] = $loops+1;  # record the number of site pairs needed to fill this bin
+                                                $diss_quotas_reached ++;
+                                                
+                                            };
+                                        } else {
+                                            $skip = 1;
+                                        };
+                                        last;
+                                    };
+                                };
+                            };
+                        };
+                        
+                        if (($diss_quotas_reached > 0 and $diss_quotas_reached >= $bin_count) or ($count >= $region_pair_quota)) {
+                            $region_completed = 1;
+                        }
+            
+                        if (!$skip) { 
+                            $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$regions_output."\n";
+                            print $result_file_handle "$output_row";
+                            $count++;
+                        } else {
+                            print "undefined result for $coords1[0],$coords1[1] and $coords2[0],$coords2[1], $regions_output\n";;
+                        };
+                    };
+                            
                 };
                 
                 $j++;
                 $skip = 0;
                 $loops++;
+                $dist_output = "";
+                $dist_exceeded = 0;
                 
-                if ($$self{verbosity} ==3) {
+                if ($$self{verbosity} == 3) {
                     $progress = int (100 * $loops / $toDo);
-                    if (($progress % 10 == 0) or (($diss_quotas_reached == $bin_count) and $bin_count>1)) {
+                    if (($progress % 5 == 0) or (($diss_quotas_reached == $bin_count) and $bin_count>1)) {
                         if ($printedProgress != $progress) {
                             $storedProgress = int (100 * $count / $region_pair_quota);
                             print "Done: $progress%       $loops      Stored: $storedProgress%     $count\n";
                             $printedProgress = $progress;
                         };
                     };
-                print "\n" if $count == $toDo;    
+                    print "\n" if $count == $toDo;    
                 };
             };
         };

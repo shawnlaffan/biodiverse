@@ -32,10 +32,10 @@ local $OUTPUT_AUTOFLUSH = 1;
 #   FILE PARAMETERS
 #
 #   dist_measure
-#                   - the name of the distance measure to use. Accepted options so far are:
+#                   - the name of the distance measure to use. Accepted options so far are single items or a list from:
 #                       "phylo_sorenson"
 #                       "sorenson"
-#                       "sorenson and phylo_sorenson"
+#                       "geographic"
 #                   - required
 #
 #   directory       - the working directory
@@ -113,6 +113,10 @@ local $OUTPUT_AUTOFLUSH = 1;
 #                       - defaults to the only, or first distance measure.  Because key order is unreliable, with multiple
 #                           distance measures it is important to set this parameter explicitly
 #
+#   dist_limit
+#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple diagonal, with no adjustment for curvature etc
+#                   - site pairs beyond the limit will not be used
+#
 #   oversample_ratio
 #                   - a multiplier to increase the total number of site pairs to sample, to find enough
 #                     pairs to meet the conditions specified by one_quota and bins.
@@ -157,12 +161,6 @@ local $OUTPUT_AUTOFLUSH = 1;
 #
 #   OUTPUT PARAMETERS
 #
-#   geographic_distance
-#                   - if geographic_distance > 0, then an additional column for geographic distance between site pairs
-#                     is added to the end of each output line
-#                   - the distance is calcuted as a simple euclidean distance in the map units of the X and Y coordiantes
-#                   - optional - defaults to 0
-#
 #   regions
 #                   - if regions > 0, then two additional columns are added , giving the region for site 1 and site 2
 #                   - the basedata must contain a 3rd parameter for each group, after X and Y, which defines the region.
@@ -181,7 +179,7 @@ local $OUTPUT_AUTOFLUSH = 1;
 #                   - 0 give only global progress - % to completion, total numbers of site pair comparisons tried, stored to file
 #                   - 1 list numbers of site pairs to do, done
 #                   - 2 summarise sampling parameters and outcome for each region pair
-#                   - 3 give full progress for each region pair - this could be appropriate for no regions ro a small number, or for debugging
+#                   - 3 give full progress for each region pair - this could be appropriate for no regions or a small number, or for debugging
 #                   - optional - defaults to 1
 #
 #   feedback_table  - if > 0, then a table with a row of stats on sampling for each region pair, is produced
@@ -197,10 +195,11 @@ my %dist_args;
 %dist_args = (
     dist_measure => {
             sorenson        =>  1,
-            phylo_sorenson  => 1},   # the value (eg 1) can be anything, as long as the item exists
+            phylo_sorenson  =>  1,   # the value (eg 1) can be anything, as long as the item exists
+            geographic      =>  1},
     directory               =>  'C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae',  # working directory
     basedata_file           =>  "Hylids_Feb10_001deg_5000_IBRA", # don't include suffix (eg .bds)
-    output_file_prefix      =>  "species_phylo_",
+    output_file_prefix      =>  "devel_",
     nexus_file              =>  "hylid_relaxed alltaxa 27apr09.nex",
     nexus_remap             =>  "Translate_Hylid_Names_aug08.csv",
     remap_input             =>  3,
@@ -208,18 +207,19 @@ my %dist_args;
     sample_count            =>  200000,
     min_group_richness      =>  2,
     min_group_samples       =>  5,
-    bins_count              =>  0,
+    bins_count              =>  5,
     one_quota               =>  0,
-    oversample_ratio        =>  1,
-    geographic_distance     =>  1,
-    regions                 =>  1,
+    oversample_ratio        =>  10,
+    quota_dist_measure      =>  "geographic",
+    dist_limit              =>  4,
+    regions                 =>  0,
     region_header           =>  "IBRA",
-    sample_by_regions       =>  1,
+    sample_by_regions       =>  0,
     region_quota_strategy   =>  "log_richness",
     within_region_ratio     =>  10,
     region_codes            =>  0,
-    verbosity               =>  1,
-    feedback_table          =>  0,
+    verbosity               =>  3,
+    feedback_table          =>  1,
     feedback_suffix         =>  "_fb"
 );
 

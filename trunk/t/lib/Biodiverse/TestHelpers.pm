@@ -38,6 +38,7 @@ use Exporter::Easy (
                 get_basedata_test_data
                 get_basedata_object
                 get_basedata_object_from_site_data
+                get_numeric_labels_basedata_object_from_site_data
                 :utils
             ),
         ],
@@ -294,6 +295,7 @@ sub get_basedata_test_data {
 
     my $count = $args{count} || 0;
     my $use_rand_counts = $args{use_rand_counts};
+    my $numeric_labels  = $args{numeric_labels};
 
     my $data;
     $data .= "label,x,y,count\n";
@@ -304,7 +306,8 @@ sub get_basedata_test_data {
             if ($use_rand_counts) {
                 $count = int (rand() * 1000);
             }
-            $data .= "$i"."_$j,$ii,$jj,$count\n";
+            my $label = $numeric_labels ? $i : join '_', $i, $j;
+            $data .= "$label,$ii,$jj,$count\n";
         }
     }
 

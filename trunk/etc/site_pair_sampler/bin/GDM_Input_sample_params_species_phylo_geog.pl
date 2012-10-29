@@ -198,7 +198,8 @@ my %dist_args;
     dist_measure => {
             sorenson        =>  1,
             phylo_sorenson  =>  1,   # the value (eg 1) can be anything, as long as the item exists
-            geographic      =>  1},
+            geographic      =>  1,
+    },
     directory               =>  'C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae',  # working directory
     basedata_file           =>  "Hylids_Feb10_001deg_5000_IBRA", # don't include suffix (eg .bds)
     output_file_prefix      =>  "devel_",

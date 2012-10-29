@@ -32,42 +32,65 @@ use Biodiverse::TestHelpers qw /:basedata/;
     my $gp = $bd->get_groups_ref;
     
     #  now make a basestruct with a symmetric list to export
-    my $sp = $bd->add_spatial_output (
-        name => 'Blahblah',
-    );
+    my $sp = $bd->add_spatial_output (name => 'Blahblah');
     $sp->run_analysis (
         spatial_conditions => ['sp_self_only()'],
         calculations       => ['calc_richness'],
     );
 
-    #  need to test array lists
+    #  need to test array lists - need numeric labels data set for those
+    my $num_bd = get_basedata_object (
+        CELL_SIZES => [2, 2],
+        x_spacing => 1,
+        y_spacing => 1,
+        x_max     => 10,
+        y_max     => 10,
+        x_min     => 0,
+        y_min     => 1,
+        numeric_labels => 1,
+    );
+    my $num_sp = $num_bd->add_spatial_output (name => 'Numeric blah blah');
+    $num_sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => ['calc_numeric_label_data'],
+    );
     
+    my @arg_combinations;
     foreach my $symmetric (0, 1) {
         foreach my $one_value_per_line (0, 1) {
             foreach my $no_element_array (0, 1) {
-                #  asymmetric list
-                run_basestruct_export_to_table (
-                    basestruct => $gp,
-                    list       => 'SUBELEMENTS',
-                    symmetric  => $symmetric,
-                    one_value_per_line => $one_value_per_line,
-                    no_element_array   => $no_element_array,
-                );
-                #  symmetric list
-                run_basestruct_export_to_table (
-                    basestruct => $sp,
-                    list       => 'SPATIAL_RESULTS',
-                    symmetric  => $symmetric,
-                    one_value_per_line => $one_value_per_line,
-                    no_element_array   => $no_element_array,
-                );
+                push @arg_combinations,
+                    {
+                        symmetric          => $symmetric,
+                        one_value_per_line => $one_value_per_line,
+                        no_element_array   => $no_element_array,
+                    };
             }
         }
     }
-
-
-
+    
+    foreach my $args_hash (@arg_combinations) {
+        #  asymmetric list
+        run_basestruct_export_to_table (
+            basestruct => $gp,
+            list       => 'SUBELEMENTS',
+            %$args_hash,
+        );
+        #  symmetric list
+        run_basestruct_export_to_table (
+            basestruct => $sp,
+            list       => 'SPATIAL_RESULTS',
+            %$args_hash,
+        );
+        run_basestruct_export_to_table (
+            basestruct => $num_sp,
+            list       => 'NUM_DATA_ARRAY',
+            %$args_hash,
+        );
+    }
 }
+
+
 
 sub run_basestruct_export_to_table {
     my %args = @_;
@@ -76,9 +99,9 @@ sub run_basestruct_export_to_table {
 
     my $e;
 
-    my $symmetric_feedback = $args{symmetric} ? "symmetric" : "non-symmetric";
+    my $symmetric_feedback = $args{symmetric} ? 'symmetric' : 'non-symmetric';
     my %feedback = %args;
-    delete @feedback{qw /basestruct list/};
+    delete @feedback{qw /basestruct/};
     my $feedback_text;
     foreach my $key (sort keys %feedback) {
         my $val = $feedback{$key};

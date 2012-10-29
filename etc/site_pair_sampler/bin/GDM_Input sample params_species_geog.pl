@@ -173,6 +173,8 @@ local $OUTPUT_AUTOFLUSH = 1;
 #                   - which have groups in them
 #                   - optional - defaults to 0
 #
+#   shared_species  - if shared_species = 1 then an extra column contains the number of species shared (as distinct from Sorenson which is based on the percentage)
+#
 #   FEEDBACK PARAMETERS
 #    
 #   verbosity       - sets the amount of text output reporting progress to the text window or log file 
@@ -194,30 +196,27 @@ my %dist_args;
 
 %dist_args = (
     dist_measure => {
-            sorenson        =>  1,
-            phylo_sorenson  =>  1,   # the value (eg 1) can be anything, as long as the item exists
+            sorenson        =>  1,   # the value (eg 1) can be anything, as long as the item exists
             geographic      =>  1},
     directory               =>  'C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae',  # working directory
     basedata_file           =>  "Hylids_Feb10_001deg_5000_IBRA", # don't include suffix (eg .bds)
-    output_file_prefix      =>  "devel_",
-    nexus_file              =>  "hylid_relaxed alltaxa 27apr09.nex",
-    nexus_remap             =>  "Translate_Hylid_Names_aug08.csv",
-    remap_input             =>  3,
-    remap_output            =>  1,    
-    sample_count            =>  200000,
+    output_file_prefix      =>  "",
+    sample_count            =>  100000,
     min_group_richness      =>  2,
     min_group_samples       =>  5,
     bins_count              =>  5,
     one_quota               =>  0,
     oversample_ratio        =>  10,
     quota_dist_measure      =>  "geographic",
-    dist_limit              =>  4,
+    dist_limit              =>  5,
     regions                 =>  0,
     region_header           =>  "IBRA",
     sample_by_regions       =>  0,
     region_quota_strategy   =>  "log_richness",
     within_region_ratio     =>  10,
     region_codes            =>  0,
+    shared_species          =>  1,
+    subset_for_testing      =>  0,
     verbosity               =>  3,
     feedback_table          =>  1,
     feedback_suffix         =>  "_fb"

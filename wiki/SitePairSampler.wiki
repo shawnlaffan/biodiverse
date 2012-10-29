@@ -7,19 +7,12 @@
 It was written by Dan Rosauer to implement analyses in:
 Dan F. Rosauer, Simon Ferrier, Kristen J. Williams, Glenn Manion, J. Scott Keogh and Shawn W. Laffan. _Phylogenetic generalised dissimilarity modelling: a new approach to analysing and predicting spatial turnover in the phylogenetic composition of communities_; which is currently in review with the journal _Ecography_.
 
-Dan F. Rosauer1,2*, Simon Ferrier3, Kristen J. Williams3, Glenn Manion4, J. Scott Keogh5 and Shawn W. Laffan1
-
-
+= Details =
 It is found in the source code version of _Biodiverse_ in:
 /biodiverse/etc/site_pair_sampler
 
-= Details =
 Edit a parameter script like the examples found in /biodiverse/etc/site_pair_sampler/bin/
 
 When run, it calls GD_Modeller.pm and other components of _Biodiverse_.
 
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+Further detail on the functions of Site Pair Sampler and how to use them, coming soon.

@@ -56,12 +56,27 @@ my @calcs = qw/
         );
     };
     
-    my %expected_results_overlay = (
+    my $overlay1 = {
         'PHYLO_LABELS_NOT_ON_TREE_N' => 1,
         'PHYLO_LABELS_NOT_ON_TREE_P' => (1/3),
+        'PHYLO_LABELS_NOT_ON_TREE' => {
+            'namenotontree:atall' => 1,
+        },
+    };
+    my $overlay2 = {
+        'PHYLO_LABELS_NOT_ON_TREE_N' => 1,
+        'PHYLO_LABELS_NOT_ON_TREE_P' => (1/15),
+        'PHYLO_LABELS_NOT_ON_TREE' => {
+            'namenotontree:atall' => 1,
+        },
+    };
+
+    my %expected_results_overlay = (
+        1 => $overlay1,
+        2 => $overlay2,
     );
 
-    my @calcs_to_test = qw/calc_phylo_aed/;
+    my @calcs_to_test = qw/calc_phylo_aed calc_labels_not_on_tree/;
     run_indices_test1 (
         calcs_to_test   => \@calcs_to_test,
         callbacks       => [$cb],

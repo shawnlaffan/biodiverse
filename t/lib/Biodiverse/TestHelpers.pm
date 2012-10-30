@@ -677,8 +677,8 @@ sub run_indices_test1 {
             "RESULTS_${nbr_list_count}_NBR_LISTS"
         );
         if ($expected_results_overlay) {
-            @$expected{keys %$expected_results_overlay}
-              = values %$expected_results_overlay;
+            my $hash = $expected_results_overlay->{$nbr_list_count};
+            @$expected{keys %$hash} = values %$hash;
         }
 
         subtest $subtest_name => sub {

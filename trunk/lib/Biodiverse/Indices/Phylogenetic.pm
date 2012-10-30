@@ -627,7 +627,16 @@ sub get_metadata_calc_labels_not_on_tree {
         indices         => {
             PHYLO_LABELS_NOT_ON_TREE => {
                 description => 'A hash of labels that are not found on the tree, across both neighbour sets',
+                type        => 'list',
             },  #  should poss also do nbr sets 1 and 2
+            PHYLO_LABELS_NOT_ON_TREE_N => {
+                description => 'Number of labels not on the tree',
+                
+            },
+            PHYLO_LABELS_NOT_ON_TREE_P => {
+                description => 'Proportion of labels not on the tree',
+                
+            },
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_labels_not_on_tree/],
@@ -646,12 +655,25 @@ sub calc_labels_not_on_tree {
     my $not_on_tree = $args{labels_not_on_tree};
 
     my %labels1 = %{$args{label_hash_all}};
+    my $richness = scalar keys %labels1;
     delete @labels1{keys %$not_on_tree};
 
     my %labels2 = %{$args{label_hash_all}};
+    my $pd_richness = scalar keys %labels2;
     delete @labels2{keys %labels1};
     
-    my %results = (PHYLO_LABELS_NOT_ON_TREE => \%labels2);
+    my ($count_not_on_tree, $p_not_on_tree);
+    {
+        no warnings 'numeric';
+        $count_not_on_tree = $richness - $pd_richness;
+        $p_not_on_tree     = eval { $count_not_on_tree / $richness } || 0;
+    }
+    
+    my %results = (
+        PHYLO_LABELS_NOT_ON_TREE   => \%labels2,
+        PHYLO_LABELS_NOT_ON_TREE_N => $count_not_on_tree,
+        PHYLO_LABELS_NOT_ON_TREE_P => $p_not_on_tree,
+    );
     
     return wantarray ? %results : \%results;
 }

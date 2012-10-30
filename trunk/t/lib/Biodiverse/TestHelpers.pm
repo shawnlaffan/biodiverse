@@ -519,6 +519,7 @@ sub run_indices_test1 {
     my $use_numeric_labels     = $args{use_numeric_labels};
     my $use_element_properties = $args{use_element_properties}; # 'group' or 'label'
     my $callbacks              = $args{callbacks};
+    my $expected_results_overlay = $args{expected_results_overlay};
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -675,6 +676,10 @@ sub run_indices_test1 {
         my $expected = eval $dss->get_data_section(
             "RESULTS_${nbr_list_count}_NBR_LISTS"
         );
+        if ($expected_results_overlay) {
+            @$expected{keys %$expected_results_overlay}
+              = values %$expected_results_overlay;
+        }
 
         subtest $subtest_name => sub {
             compare_hash_vals (

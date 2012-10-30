@@ -55,12 +55,18 @@ my @calcs = qw/
             label => 'namenotontree:atall',
         );
     };
+    
+    my %expected_results_overlay = (
+        'PHYLO_LABELS_NOT_ON_TREE_N' => 1,
+        'PHYLO_LABELS_NOT_ON_TREE_P' => (1/3),
+    );
 
     my @calcs_to_test = qw/calc_phylo_aed/;
     run_indices_test1 (
         calcs_to_test   => \@calcs_to_test,
         callbacks       => [$cb],
         no_strict_match => 1,
+        expected_results_overlay => \%expected_results_overlay,
     );
     
 }
@@ -326,6 +332,8 @@ __DATA__
                             'Genus:sp30' => 1,
                             'Genus:sp5'  => 1
                           },
+'PHYLO_LABELS_NOT_ON_TREE_N' => 0,
+'PHYLO_LABELS_NOT_ON_TREE_P' => 0,
 'PHYLO_S2'         => 0,
 'PHYLO_SORENSON'   => '0.729801407809261',
 'TDB_DENOMINATOR'  => 182,
@@ -419,6 +427,8 @@ __DATA__
                   'Genus:sp26' => undef
                 },
 'PHYLO_LABELS_NOT_ON_TREE' => {},
+'PHYLO_LABELS_NOT_ON_TREE_N' => 0,
+'PHYLO_LABELS_NOT_ON_TREE_P' => 0,
 'PHYLO_LABELS_ON_TREE' => {
                             'Genus:sp20' => 1,
                             'Genus:sp26' => 1

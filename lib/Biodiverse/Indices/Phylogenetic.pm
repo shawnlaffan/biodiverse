@@ -659,22 +659,22 @@ sub calc_labels_not_on_tree {
     delete @labels1{keys %$not_on_tree};
 
     my %labels2 = %{$args{label_hash_all}};
-    my $pd_richness = scalar keys %labels2;
     delete @labels2{keys %labels1};
-    
-    my ($count_not_on_tree, $p_not_on_tree);
+
+    my $count_not_on_tree = scalar keys %labels2;
+    my $p_not_on_tree;
     {
         no warnings 'numeric';
-        $count_not_on_tree = $richness - $pd_richness;
-        $p_not_on_tree     = eval { $count_not_on_tree / $richness } || 0;
+        my $richness   = scalar keys %{$args{label_hash_all}};
+        $p_not_on_tree = eval { $count_not_on_tree / $richness } || 0;
     }
-    
+
     my %results = (
         PHYLO_LABELS_NOT_ON_TREE   => \%labels2,
         PHYLO_LABELS_NOT_ON_TREE_N => $count_not_on_tree,
         PHYLO_LABELS_NOT_ON_TREE_P => $p_not_on_tree,
     );
-    
+
     return wantarray ? %results : \%results;
 }
 

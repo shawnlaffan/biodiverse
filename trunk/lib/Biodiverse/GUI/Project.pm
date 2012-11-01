@@ -1242,6 +1242,9 @@ sub manageEmptyBasedatas {
             menu_trim_basedata_to_match_matrix
             menu_trim_basedata_using_tree
             menu_trim_basedata_using_matrix
+            menu_rename_basedata_labels
+            menu_attach_basedata_properties
+            menu_basedata_reorder_axes
          /],
         'Basedata'
     );

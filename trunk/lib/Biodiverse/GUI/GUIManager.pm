@@ -594,7 +594,56 @@ sub do_basedata_reorder_axes {
 
     my $new_bd = $bd->new_with_reordered_element_axes (%$params);
     $new_bd->set_param (NAME => $new_name);
-    $self->{project}->addBaseData($new_bd);    
+    $self->{project}->addBaseData($new_bd);
+
+    $self->set_dirty();
+
+    return;
+}
+
+sub do_basedata_attach_properties {
+    my $self = shift;
+
+    my $bd = $self->{project}->getSelectedBaseData();
+    croak "Cannot add proerties to Basedata with existing outputs\n"
+        . "Use the Duplicate Without Outputs option to create a copy without deleting the outputs.\n"
+      if $bd->get_output_ref_count;
+
+    # are we attaching groups or labels?
+    my $gui = $self;  #  copied code from elsewhere
+    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgGroupsLabels');
+    my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
+    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_modal(1);
+    my $label = $dlgxml->get_widget('label_dlg_groups_labels');
+    $label->set_text ('Group or label properties?');
+    $dlg->set_title('Attach properties');
+    my $response = $dlg->run();
+    $dlg->destroy();
+
+    return if not $response =~ /^(yes|no)$/;
+
+    my $type = $response eq 'yes' ? 'labels' : 'groups';
+
+    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo(
+        $self,
+        undef,
+        $type,
+        undef,
+        [qw /Input_element Property/],
+    );
+    
+    return if ! defined $options{file};
+    
+    my $props = Biodiverse::ElementProperties->new (name => 'assigning properties');
+    $props->import_data (%options);
+
+    $bd->assign_element_properties (
+        properties_object => $props,
+        type              => $type,
+    );
+    
+    $self->set_dirty();
 
     return;
 }

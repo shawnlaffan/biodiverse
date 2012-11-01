@@ -238,6 +238,9 @@ my %data_funcs = (
         METHOD => 'do_basedata_trim_to_matrix',
         ARGS   => {option => 'trim'},
     },
+    on_basedata_attach_properties => {
+        METHOD => 'do_basedata_attach_properties',
+    },
     on_matrix_save => {
         METHOD => 'doSaveMatrix',
     },

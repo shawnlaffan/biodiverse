@@ -24,3 +24,4 @@ glade/biodiverse.glade
 glade/biodiverse.gladep
 
 Of course, the win_gtk_builds\etc\win(32|64)\c tree also needs to be included.
+The include directory can be omitted.

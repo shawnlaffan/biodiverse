@@ -1,0 +1,20 @@
+<SOFTPKG NAME="PAR-Packer" VERSION="1.013">
+    <ABSTRACT>PAR Packager</ABSTRACT>
+    <AUTHOR>Audrey Tang &lt;cpan@audreyt.org&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <PERLCORE VERSION="5,008001,0,0" />
+        <REQUIRE NAME="Archive::Zip" VERSION="1" />
+        <REQUIRE NAME="Compress::Zlib" VERSION="1.16" />
+        <REQUIRE NAME="File::Temp" VERSION="0.05" />
+        <REQUIRE NAME="Getopt::ArgvFile" VERSION="1.07" />
+        <REQUIRE NAME="IO::Compress::Gzip" />
+        <REQUIRE NAME="Module::ScanDeps" VERSION="1.05" />
+        <REQUIRE NAME="PAR::" VERSION="1.005" />
+        <REQUIRE NAME="PAR::Dist" VERSION="0.22" />
+        <REQUIRE NAME="Parse::Binary" VERSION="0.04" />
+        <REQUIRE NAME="Win32::Exe" VERSION="0.17" />
+        <REQUIRE NAME="Win32::Process" />
+        <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.16" />
+        <CODEBASE HREF="PAR-Packer-516.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>

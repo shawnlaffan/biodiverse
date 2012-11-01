@@ -16,7 +16,7 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Laffan, S.W., Ramp, D. & Roger, E. (in press) Assessing reserve representation using endemism – the family Myrtaceae in the Greater Blue Mountains World Heritage Area. Journal of Biogeography.
 
-  *  Burley, H.M., Laffan, S.W., & Williams, K.J. (in press) Spatial non-stationarity and anisotropy of compositional turnover in eastern Australian Myrtaceae species. International Journal of Geographical Information Science.
+  *  Burley, H.M., Laffan, S.W., & Williams, K.J. (in press) Spatial non-stationarity and anisotropy of compositional turnover in eastern Australian Myrtaceae species. [http://dx.doi.org/10.1080/13658816.2012.692371 International Journal of Geographical Information Science].
 
   *  Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (2012) Fine scale quantification of floral and faunal breaks and their geographic correlates, with an example from south-eastern Australia. [http://dx.doi.org/10.1111/j.1365-2699.2012.02739.x Journal of Biogeography, 39, 1862-1876].
 

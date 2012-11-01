@@ -587,7 +587,8 @@ sub get_lists_for_export {
 sub write_table {
     my $self = shift;
     my %args = @_;
-    defined $args{file} || croak "file argument not specified\n";
+    croak "file argument not specified\n"
+      if !defined $args{file};
     my $data = $args{data} || croak "data argument not specified\n";
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 

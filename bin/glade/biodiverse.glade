@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Fri Oct 26 11:35:44 2012 -->
+<!--Generated with glade3 3.4.3 on Fri Nov 02 10:57:41 2012 -->
 <glade-interface>
   <widget class="GtkDialog" id="dlgClose">
     <property name="visible">True</property>
@@ -471,7 +471,7 @@
               </packing>
             </child>
             <child>
-              <widget class="GtkLabel" id="label140">
+              <widget class="GtkLabel" id="label_dlg_groups_labels">
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">What to export?</property>
                 <property name="use_markup">True</property>
@@ -3317,6 +3317,18 @@ This will create a new basedata with the corrected axis orders. </property>
                         <property name="label" translatable="yes">Rename labels</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_rename_basedata_labels"/>
+                      </widget>
+                    </child>
+                    <child>
+                      <widget class="GtkMenuItem" id="menu_attach_basedata_properties">
+                        <property name="visible">True</property>
+                        <property name="tooltip" translatable="yes">Attach properties (e.g. species traits) to the groups or labels.  
+It wIll only work if your basedata has no analysis outputs, 
+and these might have used existing properties.
+If that is the case then randomisations will be invalidated for those analyses.  </property>
+                        <property name="label" translatable="yes">Attach group or label properties</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_basedata_attach_properties"/>
                       </widget>
                     </child>
                     <child>

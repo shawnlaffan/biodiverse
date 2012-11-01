@@ -96,20 +96,27 @@ sub use_base {
             if ! $success;
 
         $x = eval (<$fh>);
-        carp $EVAL_ERROR if $EVAL_ERROR;;
+        my $e = $EVAL_ERROR;
+        if ($e) {
+            warn "[USE_BASE] Problems with environment variable BIODIVERSE_EXTENSIONS - check the filename or syntax\n";
+            warn $EVAL_ERROR;
+            warn "$ENV{BIODIVERSE_EXTENSIONS}\n";
+        }
         close ($fh);
     }
     elsif ($use_envt_var) {
-        print " directly from environment variable\n";
-        $x = eval "$ENV{BIODIVERSE_EXTENSIONS}";
+        warn "Loading extensions directly from environment variable is deprecated\n";
+        warn "Nothing loaded\n";
+        #print " directly from environment variable\n";
+        #$x = eval "$ENV{BIODIVERSE_EXTENSIONS}";
         #warn $EVAL_ERROR if $EVAL_ERROR;;
     }
-    if ($EVAL_ERROR) {
-        warn "[USE_BASE] Problems with environment variable BIODIVERSE_EXTENSIONS - check the filename or syntax\n";
-        warn $EVAL_ERROR;
-        warn "$ENV{BIODIVERSE_EXTENSIONS}\n";
-        return;
-    }
+    #if ($EVAL_ERROR) {
+    #    warn "[USE_BASE] Problems with environment variable BIODIVERSE_EXTENSIONS - check the filename or syntax\n";
+    #    warn $EVAL_ERROR;
+    #    warn "$ENV{BIODIVERSE_EXTENSIONS}\n";
+    #    return;
+    #}
     @check_packages{keys %$x} = values %$x if (ref $x) =~ /HASH/;
 
     foreach my $package (keys %check_packages) {
@@ -117,7 +124,7 @@ sub use_base {
         my $pack_list = join (q{ }, @packs);
         my $cmd = "package $package;\n"
                 . "use base qw/$pack_list/;";
-        #print "$cmd\n";
+        print "$cmd\n";
         eval $cmd;
         warn $EVAL_ERROR if $EVAL_ERROR;
     }

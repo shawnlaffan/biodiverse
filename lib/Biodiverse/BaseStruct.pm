@@ -15,6 +15,7 @@ use English ( -no_match_vars );
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
+use List::Util qw /min max/;
 use File::Basename;
 use Path::Class;
 use Time::localtime;
@@ -2754,7 +2755,7 @@ sub get_base_stats_all {
     foreach my $element ($self->get_element_list) {
         $self->add_lists (
             element =>$element,
-            BASE_STATS => $self->calc_base_stats(element =>$element)
+            BASE_STATS => $self->calc_base_stats(element => $element)
         );
     }
 
@@ -2802,8 +2803,6 @@ sub get_base_stats {  #  calculate basestats for a single element
 
     PROP:
     foreach my $prop (keys %$props) {
-        #next PROP if $prop eq 'INCLUDE';
-        #next PROP if $prop eq 'EXCLUDE';
         $stats{$prop} = $props->{$prop};
     }
 
@@ -2813,19 +2812,7 @@ sub get_base_stats {  #  calculate basestats for a single element
 sub get_element_property_keys {
     my $self = shift;
 
-    my $res = [];
-
-    #my $elements = $self->get_element_list;
-    #
-    #return wantarray ? @$res : $res
-    #    if ! scalar @$elements;
-
-    #  cheat a bit and assume all have the same props (they should)    
-    #my %p = $self->get_element_properties(element => $elements->[0]);
-    #
-    #my @keys = keys %p;
-
-    my @keys = $self->get_hash_list_keys_across_elements(list => 'PROPERTIES');
+    my @keys = $self->get_hash_list_keys_across_elements (list => 'PROPERTIES');
 
     return wantarray ? @keys : \@keys;
 }
@@ -2903,13 +2890,13 @@ sub element_arrays_are_numeric {
     return 1;  # if we get this far then they must all be numbers
 }
 
-sub min {
-    return $_[0] < $_[1] ? $_[0] : $_[1];
-}
-
-sub max {
-    return $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub min {
+#    return $_[0] < $_[1] ? $_[0] : $_[1];
+#}
+#
+#sub max {
+#    return $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
 sub DESTROY {
     my $self = shift;

@@ -121,7 +121,7 @@ sub test_case {
 
 =item run_case_transformed
 
-Takes in name of the test (name), the test data as a string (datastr) and a
+Takes in name of the test (name), the test data as a hashref (data) and a
 transform as a 4 element array ref (transform).
 
 The transform is in the order
@@ -138,8 +138,6 @@ e.g.
 sp_ellipse (major_radius => XX400000, minor_radius => YY200000)
 
 =cut
-
-my $re1 = join qr'\s+', ('([-0-9.,]+)',) x 3;
 
 sub run_case_transformed {
     my %args = @_;
@@ -1629,8 +1627,8 @@ __DATA__
         'sp_select_block (size => XX500000, count => 2, prng_seed => 9001)' =>
 {
   'count' => 2,
-  # TODO: Separate tests for this, since it doesn't play well with transforms
   'excludes' => [
+# Can't test due to PRNG differences between 32- and 64- bit.
                   #'-50000:150000',
                   #'-50000:250000',
                   #'-50000:50000',
@@ -1657,23 +1655,23 @@ __DATA__
 {
   'count' => 3,
   'excludes' => [
-                  '150000:-50000',
-                  '150000:350000',
-                  '250000:-50000',
-                  '250000:150000',
-                  '250000:250000',
-                  '250000:350000',
-                  '250000:50000',
-                  '50000:-50000',
-                  '50000:150000',
-                  '50000:250000',
-                  '50000:350000',
-                  '50000:50000'
+                  #'150000:-50000',
+                  #'150000:350000',
+                  #'250000:-50000',
+                  #'250000:150000',
+                  #'250000:250000',
+                  #'250000:350000',
+                  #'250000:50000',
+                  #'50000:-50000',
+                  #'50000:150000',
+                  #'50000:250000',
+                  #'50000:350000',
+                  #'50000:50000'
                 ],
   'includes' => [
-                  '150000:150000',
-                  '150000:250000',
-                  '150000:50000'
+                  #'150000:150000',
+                  #'150000:250000',
+                  #'150000:50000'
                 ]
 },
         'sp_is_left_of ()' =>

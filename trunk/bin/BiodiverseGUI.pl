@@ -131,6 +131,16 @@ sub get_gladefile {
         print "Using perlapp glade file\n";
         return $gladefile;
     }
+    elsif ($ENV{PAR_0}) {  #  we are running under PAR
+        $gladefile = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'glade', 'biodiverse.glade')->stringify;
+        if (-e $gladefile) {
+            print "Using PAR glade file $gladefile\n";
+            return $gladefile;
+        }
+        else {
+            print "Cannot locate $gladefile\n";
+        }
+    }
 
     #  get the glade file from ./glade or ./bin/glade
     $gladefile = Path::Class::file( $Bin, 'glade', 'biodiverse.glade' )->stringify;

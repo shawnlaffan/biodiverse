@@ -3,6 +3,7 @@
 
 use strict;
 use warnings;
+use Carp;
 
 #no warnings 'redefine';
 no warnings 'once';
@@ -11,12 +12,31 @@ our $VERSION = '0.18003';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
-use Path::Class ();
 #use File::Basename;
 use Cwd;
 use FindBin qw ( $Bin );
+use Path::Class ();
 
-use Carp;
+
+BEGIN {  #  add the gtk libs if under PAR - should perhaps do this regardless? 
+    if ($ENV{PAR_PROGNAME}) {
+        print "PAR_PROGNAME: $ENV{PAR_PROGNAME}\n";
+        my $origin_dir = Path::Class::file($ENV{PAR_PROGNAME})->dir;
+        my $sep = $OSNAME eq 'MSWin32' ? ';' : ':';
+
+        my @paths;
+        foreach my $gtk_path (
+          Path::Class::dir($origin_dir, 'gtk', 'bin'),
+          Path::Class::dir($origin_dir->parent, 'gtk', 'bin'))
+          {
+            if (-d $gtk_path) {
+                push @paths, $gtk_path;
+            }
+        }
+        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
+        print "Path is:\n", $ENV{PATH}, "\n";
+    }
+}
 
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;

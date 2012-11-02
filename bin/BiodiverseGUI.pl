@@ -66,7 +66,7 @@ my $icon = get_iconfile();
 my $eval_result = eval {
     Gtk2::Window->set_default_icon_from_file($icon)
 };
-croak $EVAL_ERROR if $EVAL_ERROR;
+#croak $EVAL_ERROR if $EVAL_ERROR;
 
 
 ###########################
@@ -169,6 +169,16 @@ sub get_iconfile {
         print "Using perlapp icon file\n";
 
         return $icon;
+    }
+    elsif ($ENV{PAR_0}) {  #  we are running under PAR
+        $icon = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico')->stringify;
+        if (-e $icon) {
+            print "Using PAR icon file $icon\n";
+            return $icon;
+        }
+        else {
+            print "Cannot locate $icon\n";
+        }
     }
 
     $icon = Path::Class::file( $Bin, 'Biodiverse_icon.ico' )->stringify;

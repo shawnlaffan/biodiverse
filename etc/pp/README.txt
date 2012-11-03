@@ -12,16 +12,19 @@ NOTE: The order is important. PAR-Packer needs to be (re)built/installed
       after Heavy.pm has been modified, since it gets embedded in some
       binaries.
 
+= The above is only relevant if you are not using the PPMs in ..\ppm\ppm516*
+
+Run "..\etc\pp\build.bat" when you are in the bin directory to generate
+BiodiverseGUI.exe.
+
 The following DLLs from Strawberry Perl need
 to be distributed with BiodiverseGUI.exe:
 
 libstdc++-6.dll
 libexpat-1__.dll
 
-These files from the Biodiverse bin directory need to be included:
-Biodiverse_icon.ico
-glade/biodiverse.glade
-glade/biodiverse.gladep
+On 32-bit, libgcc_s_sjlj-1.dll, additionally needs to be distributed.
 
-Of course, the win_gtk_builds\etc\win(32|64)\c tree also needs to be included.
-The include directory can be omitted.
+The win_gtk_builds\etc\win(32|64)\c tree also needs to be distributed as
+"gtk".
+The "include" directory can be omitted.

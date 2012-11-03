@@ -9,9 +9,11 @@ rem call parl -B -OBiodiverseGUI.exe BiodiverseGUI.par
 
 
 rem ======== 1 step procedure
-call pp -vvv -B -z 9 -i Biodiverse_icon.ico -a glade -a Biodiverse_icon.ico -x -o BiodiverseGUI.exe BiodiverseGUI.pl
-
 rem === To ensure all the libs are loaded, make sure to import some data.  
 rem === This exercises the via(File::BOM) mechanism which is otherwise not included in the exe file.
 rem === Then run a spatial analysis, cluster analysis and randomisation.
-rem === Then add a shapefile to one of the plots.  
+rem === Then add a shapefile to one of the plots.
+
+set BIODIVERSE_EXTENSIONS_IGNORE=1
+call pp -vvv -B -z 9 -i Biodiverse_icon.ico -a glade -a Biodiverse_icon.ico -x -o BiodiverseGUI.exe BiodiverseGUI.pl
+

@@ -14,7 +14,7 @@
         <REQUIRE NAME="Parse::Binary" VERSION="0.04" />
         <REQUIRE NAME="Win32::Exe" VERSION="0.17" />
         <REQUIRE NAME="Win32::Process" />
-        <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.16" />
+        <ARCHITECTURE NAME="MSWin32-x86-multi-thread-5.16" />
         <CODEBASE HREF="PAR-Packer-516.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

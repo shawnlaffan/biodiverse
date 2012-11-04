@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 
-use mylib;
+use rlib;
 
 use File::Temp;
 

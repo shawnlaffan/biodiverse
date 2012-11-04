@@ -4,7 +4,7 @@ use Test::More;
 
 local $| = 1;
 
-use mylib;
+use rlib;
 
 use English qw ( -no_match_vars );
 

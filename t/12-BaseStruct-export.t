@@ -24,19 +24,6 @@ use Biodiverse::TestHelpers qw /:basedata/;
 # delimited text
 {
     my $e;  #  for eval errors;
-    #  a dirty way of getting a basestruct - the groups object from a basedata
-    my $bd = get_basedata_object_from_site_data (
-        CELL_SIZES => [100000, 100000],
-    );
-
-    my $gp = $bd->get_groups_ref;
-    
-    #  now make a basestruct with a symmetric list to export
-    my $sp = $bd->add_spatial_output (name => 'Blahblah');
-    $sp->run_analysis (
-        spatial_conditions => ['sp_self_only()'],
-        calculations       => ['calc_richness'],
-    );
 
     #  need to test array lists - need numeric labels data set for those
     my $num_bd = get_basedata_object (
@@ -54,6 +41,16 @@ use Biodiverse::TestHelpers qw /:basedata/;
         spatial_conditions => ['sp_self_only()'],
         calculations       => ['calc_numeric_label_data'],
     );
+    
+    my $gp = $num_bd->get_groups_ref;
+    
+    #  now make a basestruct with a symmetric list to export
+    my $sp = $num_bd->add_spatial_output (name => 'Blahblah');
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations       => ['calc_richness'],
+    );
+    
     
     my @arg_combinations;
     foreach my $symmetric (0, 1) {
@@ -111,7 +108,7 @@ sub run_basestruct_export_to_table {
     
 
     my %file_temp_args = (
-        TEMPLATE => 'export_test_XXXXX',
+        TEMPLATE => "export_test_XXXXX",
         SUFFIX   => '.csv',
         UNLINK   => 0,
     );
@@ -147,7 +144,7 @@ sub run_basestruct_export_to_table {
 
     ok (!$e, "Exported to file without raising exception, not using file handle, $feedback_text");
 
-    #  now compare the two files
+    #  Now compare the two files.  They should be identical.  
     {
         local $/ = undef;  #  slurp mode
         open my $fh1, '<', $filename1 or croak "Could not open $filename1";
@@ -167,6 +164,10 @@ sub run_basestruct_export_to_table {
             }
         }
     }
+
+    #  now clean up
+    eval {unlink $filename1};
+    eval {unlink $filename2};
 }
 
 done_testing();

@@ -926,7 +926,7 @@ sub get_grouplist {
         if ($$self{min_group_samples} > 1) {
             $samples_message = ' unless they have at least '.$$self{min_group_samples}.' records';
         }
-        print "\nRemoving sites with less than $$self{min_group_richness} species".$samples_message."\n";
+        print "\nRemoving sites with less than ".$$self{min_group_richness}." species".$samples_message."\n";
         my (@label_list, @grouplist_new, $remove_count, $label_count);
         my $keep_count = 0;
         my %subelement_hash;

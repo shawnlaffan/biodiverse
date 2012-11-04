@@ -5,6 +5,8 @@ use strict;
 use warnings;
 use Carp;
 
+use 5.010;
+
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
@@ -18,10 +20,12 @@ use FindBin qw ( $Bin );
 use Path::Class ();
 
 
-BEGIN {  #  add the gtk libs if using PAR on windows - should perhaps do this regardless? 
-    if ($OSNAME eq 'MSWin32' && $ENV{PAR_PROGNAME}) {
-        print "PAR_PROGNAME: $ENV{PAR_PROGNAME}\n";
-        my $origin_dir = Path::Class::file($ENV{PAR_PROGNAME})->dir;
+BEGIN {  #  add the gtk libs if using windows - brittle? 
+    if ($OSNAME eq 'MSWin32') {
+        #print "PAR_PROGNAME: $ENV{PAR_PROGNAME}\n";
+        my $origin_dir = $ENV{PAR_PROGNAME}
+          ? Path::Class::file($ENV{PAR_PROGNAME})->dir
+          : Path::Class::file($Bin)->dir;
 
         my $sep = ';';
 

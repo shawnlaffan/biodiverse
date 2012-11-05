@@ -412,13 +412,13 @@ sub generate_distance_table {
                 };
             };
             
-            my $shared_header="";
-            if ($$SPM{shared_species} == 1) {
-                $shared_header = ",shared_species";
+            my $sum_header="";
+            if ($$SPM{species_sum} == 1) {
+                $sum_header = ",species_sum";
             }
             
             # print the header row to the site pair file
-            print $result_file_handle "x0,y0,x1,y1,".$dist_header.$regions_output.$shared_header."\n";
+            print $result_file_handle "x0,y0,x1,y1,".$dist_header.$regions_output.$sum_header."\n";
             
             # CALL THE MAIN SAMPLING LOOP #
             $SPM -> do_sampling();        #
@@ -999,11 +999,11 @@ sub do_sampling {
         $single_dist_measure = (keys($dist_measure))[0];
     };
     
-    #set up to report species shared, optional extra to use as a weighting factor
-    my $species_shared = 0;
-    my $shared = 0;
-    if (exists($$self{species_shared})) {
-        $species_shared = $$self{species_shared};
+    #set up to report the total sum of the number of species at both sites, optional extra to use as a weighting factor
+    my $species_sum = 0;
+    my $sum = 0;
+    if (exists($$self{species_sum})) {
+        $species_sum = $$self{species_sum};
     }
     
     # start a feedback table, if requested
@@ -1184,8 +1184,8 @@ sub do_sampling {
                             $dist_result{sorenson} = sprintf("%.6f", eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))});
                         };
                         
-                        # an optional extra feature, calculates the number of species shared
-                        $shared = ",".$abc{A};
+                        # an optional extra feature, calculates the sum of species across the two sites (ignoring whether they are shared)
+                        $sum = ",".$abc{ABC};
                     };
                     
                     # if any distance measure has a valid result
@@ -1275,7 +1275,7 @@ sub do_sampling {
                         }
             
                         if (!$skip) { 
-                            $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$regions_output.$shared."\n";
+                            $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$regions_output.$sum."\n";
                             print $result_file_handle "$output_row";
                             $count++;
                         #} else {
@@ -1290,7 +1290,7 @@ sub do_sampling {
                 $loops++;
                 $dist_output = "";
                 $dist_exceeded = 0;
-                $shared= "";
+                $sum= "";
                 
                 if ($$self{verbosity} == 3) {
                     $progress = int (100 * $loops / $toDo);

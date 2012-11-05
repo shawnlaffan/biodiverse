@@ -123,7 +123,7 @@ use Biodiverse::ElementProperties;
         my $i = 0;
         foreach my $fld_name (@flds) {
             my $expval = $expected{$label}->[$i];
-            my $expstr = defined $expval ? $expval : 'undef';
+            my $expstr = $expval // 'undef';
             is ($list->{$fld_name}, $expval, "$label $fld_name is $expstr");
             $i ++;
         }

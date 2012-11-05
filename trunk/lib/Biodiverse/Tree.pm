@@ -1485,9 +1485,8 @@ sub compare {
         COMP:
         foreach my $compare_node_name (keys %compare_nodes) {
             next if $found_perfect_match{$compare_node_name};
-            my $sorenson = defined $done{$compare_node_name}{$base_node_name}
-                                    ? $done{$compare_node_name}{$base_node_name}
-                                    : $done{$base_node_name}{$compare_node_name};
+            my $sorenson = $done{$compare_node_name}{$base_node_name}
+                        // $done{$base_node_name}{$compare_node_name};
 
             if (! defined $sorenson) { #  if still not defined then it needs to be calculated
                 my %comp_elements = $compare_nodes{$compare_node_name}->get_terminal_elements;

@@ -1,6 +1,7 @@
 #  helper functions for testing
 package Biodiverse::TestHelpers;
 
+use 5.010;
 use strict;
 use warnings;
 use English qw { -no_match_vars };
@@ -9,6 +10,10 @@ use Carp;
 our $VERSION = '0.18003';
 
 use Data::Section::Simple qw(get_data_section);
+
+BEGIN {
+    $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+}
 
 use Biodiverse::BaseData;
 use Biodiverse::Tree;
@@ -119,7 +124,7 @@ precision => desired amount of digits after decimal point
 sub snap_to_precision {
     my %args = @_;
     my $value = $args{value};
-    my $precision = defined $args{precision} ? $args{precision} : '%.11f';
+    my $precision = $args{precision} // '%.11f';
 
     return defined $value && looks_like_number $value
         ? sprintf ($precision, $value)

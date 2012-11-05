@@ -758,7 +758,7 @@ sub to_table_sym {
             }
             else {  #  need to change some values
                 foreach my $key (@print_order) {
-                    my $val = defined $listRef->{$key} ? $listRef->{$key} : $no_data_value;
+                    my $val = $listRef->{$key} // $no_data_value;
                     push @data, [@basic, $key, $val];
                 }
             }
@@ -1047,9 +1047,7 @@ sub write_table_asciigrid {
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) {
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
-                my $value = defined $data_hash{$coord_name}[$i]
-                          ? $data_hash{$coord_name}[$i]
-                          : $no_data;
+                my $value = $data_hash{$coord_name}[$i] // $no_data;
                 my $ofh = $fh[$i];
                 print $ofh "$value ";
             }
@@ -1165,9 +1163,7 @@ sub write_table_floatgrid {
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
-                my $value = defined $data_hash{$coord_name}[$i]
-                          ? $data_hash{$coord_name}[$i]
-                          : $no_data;
+                my $value = $data_hash{$coord_name}[$i] // $no_data;
                 my $fh = $fh[$i];
                 print $fh pack ('f', $value);
             }
@@ -1301,9 +1297,7 @@ DIVA_HDR
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
-                my $value = defined $data_hash{$coord_name}[$i]
-                          ? $data_hash{$coord_name}[$i]
-                          : $no_data;
+                my $value = $data_hash{$coord_name}[$i] // $no_data;
                 my $fh = $fh[$i];
                 print $fh pack ('f', $value);
             }

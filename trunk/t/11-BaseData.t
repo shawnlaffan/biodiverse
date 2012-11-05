@@ -237,7 +237,6 @@ REORDER:
 
     ok (defined $new_bd,    "Reordered axes");
 
-    
 }
 
 

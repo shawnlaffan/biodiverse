@@ -2,6 +2,7 @@
 #
 #  tests for both normal and lowmem matrices, where they overlap in methods
 
+require 5.010;
 use strict;
 use warnings;
 
@@ -102,7 +103,7 @@ sub run_main_tests {
             }
             ok ($val, "element pair existence: $el1 => $el2");
 
-            my $exp_txt = defined $exp_val ? $exp_val : 'undef';
+            my $exp_txt = $exp_val // 'undef';
             $val = $mx->get_value (element1 => $el1, element2 => $el2);
             is ($val, $exp_val, "got $exp_txt for pair $el1 => $el2");
             

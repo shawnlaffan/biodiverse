@@ -1222,7 +1222,7 @@ sub array_to_hash_values {
     croak "Argument 'list' is not an array ref - it is a scalar\n" if ! ref ($list_ref);
     $list_ref = [values %$list_ref] if (ref $list_ref) =~ /HASH/;
 
-    my $prefix = defined $args{prefix} ? $args{prefix} : "data";
+    my $prefix = $args{prefix} // "data";
 
     my %hash;
     my $start = "0" x ($args{num_digits} || length $#$list_ref);  #  make sure it has as many chars as the end val

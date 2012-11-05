@@ -361,9 +361,7 @@ sub transpose {
     );  
 
     my $new = Biodiverse::BaseData->new(%$params);
-    my $name = defined $args{name}
-        ? $args{name}
-        : $new->get_param ('NAME') . "_T";
+    my $name = $args{name} // ($new->get_param ('NAME') . "_T");
 
     $new->set_param (NAME => $name);
 
@@ -1418,7 +1416,7 @@ sub add_element {  #  run some calls to the sub hashes
 
     my $label = $args{label};
     my $group = $args{group};
-    my $count = defined $args{count} ? $args{count} : 1;
+    my $count = $args{count} // 1;
     
     #  make count binary if asked to
     if ($args{binarise_counts}) {

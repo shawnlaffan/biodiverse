@@ -54,7 +54,7 @@ use Biodiverse::Statistics;
     );
 
     while (my ($key, $val) = each %pctls) {
-        my $text = defined $val ? $val : 'undef';
+        my $text = $val // 'undef';
         is ($stat->percentile_RFC2330 ($key),
             $val,
             "Percentile RFC2330 $key is $text",

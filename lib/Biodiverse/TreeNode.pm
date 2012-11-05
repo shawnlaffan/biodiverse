@@ -191,10 +191,8 @@ sub set_length {
     my $self = shift;
     my %args = @_;
     #croak 'length argument missing' if not exists ($args{length});
-    $self->{NODE_VALUES}{LENGTH} = defined $args{length}
-        ? $args{length}
-        : $default_length;
-    
+    $self->{NODE_VALUES}{LENGTH} = $args{length} // $default_length;
+
     return;
 }
 

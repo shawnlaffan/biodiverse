@@ -138,11 +138,11 @@ sub new {
         my $spatial_params = $cluster_ref->get_param ('SPATIAL_PARAMS') || [];
         $sp_initial1
             = defined $spatial_params->[0]
-            ? $spatial_params->[0] -> get_conditions_unparsed()
+            ? $spatial_params->[0]->get_conditions_unparsed()
             : $NULL_STRING;
         $sp_initial2
             = defined $spatial_params->[1]
-            ? $spatial_params->[1] -> get_conditions_unparsed()
+            ? $spatial_params->[1]->get_conditions_unparsed()
             : $NULL_STRING;
 
         $def_query_init1 = $cluster_ref -> get_param ('DEFINITION_QUERY');

@@ -126,7 +126,7 @@ sub calc_iei_stats {
     # supppress divide by zero and other undef value warnings
     no warnings qw /uninitialized numeric/;
     
-    my $n = $stats -> count;
+    my $n = $stats->count;
     
     if ($n) {
         my $sd    = eval {$stats -> standard_deviation};

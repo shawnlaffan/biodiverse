@@ -1,6 +1,9 @@
 use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
+
+require 5.010;
+
 WriteMakefile(
     'NAME' => 'Task::Biodiverse::NoGUI',
     'VERSION_FROM' => 'lib/Task/Biodiverse/NoGUI.pm', # finds $VERSION

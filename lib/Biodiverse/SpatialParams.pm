@@ -1616,7 +1616,7 @@ sub _sp_side {
     my $self = shift;
     my %args = @_;
 
-    my $axes = defined $args{axes} ? $args{axes} : [0,1];
+    my $axes = $args{axes} // [0,1];
     if ( defined $axes ) {
         croak "_sp_side:  axes arg is not an array ref\n"
             if ( ref $axes ) !~ /ARRAY/;
@@ -1646,7 +1646,7 @@ sub _sp_side {
         $vector_angle = deg2rad ( $args{vector_angle_deg} );
     }
     else {
-        $vector_angle = defined $args{vector_angle} ? $args{vector_angle} : 0
+        $vector_angle = $args{vector_angle} // 0;
     }
 
     #  get the direction and rotate it so vector_angle is zero
@@ -1726,8 +1726,8 @@ sub sp_select_sequence {
     my $verifying = $self->get_param('VERIFYING');
 
     my $spacing      = $args{frequency};
-    my $cycle_offset = defined $args{cycle_offset} ? $args{cycle_offset} : 1;
-    my $use_cache    = defined $args{use_cache} ? $args{use_cache} : 1;
+    my $cycle_offset = $args{cycle_offset} // 1;
+    my $use_cache    = $args{use_cache} // 1;
 
     if ($args{clear_cache}) {
         $self->set_param(SP_SELECT_SEQUENCE_CLEAR_CACHE => 1);
@@ -1931,11 +1931,11 @@ sub sp_select_block {
 
     my $verifying = $self->get_param('VERIFYING');
 
-    my $frequency    = defined $args{count} ? $args{count} : 1;
+    my $frequency    = $args{count} // 1;
     my $size         = $args{size}; #  should be a function of cellsizes
     my $prng_seed    = $args{prng_seed};
-    my $random       = defined $args{random} ? $args{random} : 1;
-    my $use_cache    = defined $args{use_cache} ? $args{use_cache} : 1;
+    my $random       = $args{random} // 1;
+    my $use_cache    = $args{use_cache} // 1;
 
     if ($args{clear_cache}) {
         $self->set_param(SP_SELECT_BLOCK_CLEAR_CACHE => 1);
@@ -2405,7 +2405,7 @@ sub sp_get_spatial_output_list_value {
     my $self = shift;
     my %args = @_;
 
-    my $list_name = defined $args{list}? $args{list} : 'SPATIAL_RESULTS';
+    my $list_name = $args{list} // 'SPATIAL_RESULTS';
     my $index     = $args{index};
     
     my $h           = $self->get_param('CURRENT_ARGS');
@@ -2416,7 +2416,7 @@ sub sp_get_spatial_output_list_value {
       ? $caller_args->{coord_id1}
       : $caller_args->{coord_id2};
 
-    my $element = defined $args{element} ? $args{element} : $default_element;
+    my $element = $args{element} // $default_element;
 
     my $bd      = eval {$self->get_basedata_ref} || $caller_args->{basedata_ref} || $caller_args->{caller_object} || $h->{'$basedata'};
     my $sp_name = $args{output};

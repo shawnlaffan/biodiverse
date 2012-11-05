@@ -45,6 +45,7 @@ BEGIN {  #  add the gtk libs if using windows - brittle?
     }
 }
 
+
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;
 
@@ -223,33 +224,19 @@ sub get_iconfile {
 
 #  Need to do some stuff when building pp files.
 #  Otherwise several modules aren't packaged.
+#  Has to be here or the pp don't work.
+#  (Won't work in BEGIN block or outside sub).
 sub run_pp_build_stuff {
     #return;  #  turn it off for now
     if ($ENV{BDV_PP_BUILDING}) {
         use Unicode::UCD;
-        #use feature 'unicode_strings';
-        #say "Building pp file";
-        #use Geo::ShapeFile;
-        #use Gnome2::Canvas;
-        #my $root = Path::Class::file($Bin)->dir;
-        #my $file = Path::Class::file($root, 'data', 'coastline_lamberts.shp');
-        #say "Shapefile is $file, and it does", (-e $file ? ' ' : ' not '), 'exist';
-        #my $shapefile = Geo::ShapeFile->new($file);
-        #my $shape = $shapefile->get_shp_record(1);
-        #my $shx   = $shapefile->get_shx_record(1);
-        #my @segs  = $shape->get_segments(1);
-        #say join q{ }, $shape, $shx, @segs;
-        #
-        #my $bd = Biodiverse::BaseData->new(
-        #    NAME       => 'building',
-        #    CELL_SIZES => [100000, 100000],
-        #);
-        #my $data_file = Path::Class::file($root, 'data', 'Example_site_data.csv');
-        #$bd->import_data (
-        #    input_files   => [$data_file],
-        #    label_columns => [1, 2],
-        #    group_columns => [3, 4],
-        #);
+        #use Unicode::Collate;    #  does not do the job
+        #use Unicode::Normalize;  #  does not do the job
+        #use feature 'unicode_strings';  #  ibid
+        use File::BOM qw / :subs /;          #  we need File::BOM too.
+        open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
+          or croak "Cannot open $Bin via File::BOM\n";
+        $fh->close;
     }
 }
 

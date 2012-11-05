@@ -173,7 +173,7 @@ local $OUTPUT_AUTOFLUSH = 1;
 #                   - which have groups in them
 #                   - optional - defaults to 0
 #
-#   shared_species  - if shared_species = 1 then an extra column contains the number of species shared (as distinct from Sorenson which is based on the percentage)
+#   species_sum     - if species_sum = 1 then an extra column contains the number sum of the number of species at the two sites, regardless of number shared.
 #
 #   FEEDBACK PARAMETERS
 #    
@@ -206,7 +206,6 @@ my %dist_args;
     min_group_richness      =>  2,
     min_group_samples       =>  5,
     sample_by_regions       =>  0,
-    shared_species          =>  1,
     subset_for_testing      =>  0.2,
     verbosity               =>  3,
     feedback_table          =>  1,

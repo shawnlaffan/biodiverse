@@ -22,10 +22,9 @@ use Path::Class ();
 
 BEGIN {  #  add the gtk libs if using windows - brittle? 
     if ($OSNAME eq 'MSWin32') {
-        #print "PAR_PROGNAME: $ENV{PAR_PROGNAME}\n";
-        my $origin_dir = $ENV{PAR_PROGNAME}
-          ? Path::Class::file($ENV{PAR_PROGNAME})->dir
-          : Path::Class::file($Bin)->dir;
+        #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
+        my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
+        my $origin_dir = Path::Class::file($prog_name)->dir;
 
         my $sep = ';';
 
@@ -42,7 +41,7 @@ BEGIN {  #  add the gtk libs if using windows - brittle?
             }
         }
         $ENV{PATH} = join $sep, @paths, $ENV{PATH};
-        print "Path is:\n", $ENV{PATH}, "\n";
+        say "Path is:\n", $ENV{PATH};
     }
 }
 
@@ -95,6 +94,8 @@ my $eval_result = eval {
     Gtk2::Window->set_default_icon_from_file($icon)
 };
 #croak $EVAL_ERROR if $EVAL_ERROR;
+
+run_pp_build_stuff();
 
 
 ###########################
@@ -218,6 +219,38 @@ sub get_iconfile {
     }
 
     return $icon;
+}
+
+#  Need to do some stuff when building pp files.
+#  Otherwise several modules aren't packaged.
+sub run_pp_build_stuff {
+    #return;  #  turn it off for now
+    if ($ENV{BDV_PP_BUILDING}) {
+        use Unicode::UCD;
+        #use feature 'unicode_strings';
+        #say "Building pp file";
+        #use Geo::ShapeFile;
+        #use Gnome2::Canvas;
+        #my $root = Path::Class::file($Bin)->dir;
+        #my $file = Path::Class::file($root, 'data', 'coastline_lamberts.shp');
+        #say "Shapefile is $file, and it does", (-e $file ? ' ' : ' not '), 'exist';
+        #my $shapefile = Geo::ShapeFile->new($file);
+        #my $shape = $shapefile->get_shp_record(1);
+        #my $shx   = $shapefile->get_shx_record(1);
+        #my @segs  = $shape->get_segments(1);
+        #say join q{ }, $shape, $shx, @segs;
+        #
+        #my $bd = Biodiverse::BaseData->new(
+        #    NAME       => 'building',
+        #    CELL_SIZES => [100000, 100000],
+        #);
+        #my $data_file = Path::Class::file($root, 'data', 'Example_site_data.csv');
+        #$bd->import_data (
+        #    input_files   => [$data_file],
+        #    label_columns => [1, 2],
+        #    group_columns => [3, 4],
+        #);
+    }
 }
 
 __END__

@@ -44,7 +44,9 @@ copy "%perl_c_path%\%lib_expat%"
 :: === Then run a spatial analysis, cluster analysis and randomisation.
 :: === Then add a shapefile to one of the plots.
 
+set BDV_PP_BUILDING=1
 set BIODIVERSE_EXTENSIONS_IGNORE=1
 set verbosity=-v
 call pp %verbosity% -B -z 9 -i Biodiverse_icon.ico -a glade -a Biodiverse_icon.ico -x -o BiodiverseGUI_x%bits%.exe BiodiverseGUI.pl
 
+set BDV_PP_BUILDING=0

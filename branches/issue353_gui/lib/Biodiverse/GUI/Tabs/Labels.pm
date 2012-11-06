@@ -4,6 +4,8 @@ use warnings;
 
 use English ( -no_match_vars );
 
+use Data::Dumper;
+
 use Gtk2;
 use Carp;
 use Biodiverse::GUI::GUIManager;
@@ -53,10 +55,10 @@ sub new {
 
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'vpaneLabels');
+    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'hboxLabelsPage');
     $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'hboxLabelsLabel');
 
-    my $page  = $self->{xmlPage}->get_widget('vpaneLabels');
+    my $page  = $self->{xmlPage}->get_widget('hboxLabelsPage');
     my $label = $self->{xmlLabel}->get_widget('hboxLabelsLabel');
     my $tab_menu_label = Gtk2::Label->new('Labels tab');
     $self->{tab_menu_label} = $tab_menu_label;
@@ -119,8 +121,17 @@ sub new {
 
     # Connect signals
     $self->{xmlLabel}->get_widget('btnLabelsClose')->signal_connect_swapped(clicked => \&onClose, $self);
-    
-    
+
+    # Connect signals for new side tool chooser
+    my $sig_clicked = sub {
+        my ($widget, $f) = @_;
+        $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
+            clicked => $f, $self);
+    };
+
+    $sig_clicked->('btnZoomTool', \&onZoomTool);
+    $sig_clicked->('btnSelectTool', \&onSelectTool);
+
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     $self->{xmlPage}->get_widget('btnZoomInVL')->signal_connect_swapped(clicked => \&onZoomIn, $self->{grid});
     $self->{xmlPage}->get_widget('btnZoomOutVL')->signal_connect_swapped(clicked => \&onZoomOut, $self->{grid});
@@ -1134,6 +1145,34 @@ sub remove {
     $self->{project}->deleteSelectionCallback('phylogeny', $self->{phylogeny_callback});
     
     return;
+}
+
+sub choose_tool {
+    my $self = shift;
+    my ($tool, ) = @_;
+
+    my $old_tool = $self->{tool};
+
+    if ($old_tool) {
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}Tool");
+        $self->{ignore_tool_click} = 1;
+        $widget->set_active($old_tool eq $tool);
+        $self->{ignore_tool_click} = 0;
+    }
+
+    $self->{tool} = $tool;
+}
+
+sub onSelectTool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Select');
+}
+
+sub onZoomTool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Zoom');
 }
 
 sub onZoomIn {

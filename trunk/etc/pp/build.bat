@@ -19,7 +19,8 @@ exit /B
 
 :32bit
 echo "using 32 bit"
-set perl_c_path=C:\strawberry_51611_x32\c\bin
+set perl_path=C:\strawberry_51611_x32
+set perl_c_path=%perl_path%\c\bin
 set lib_expat=libexpat-1_.dll
 set bits=32
 
@@ -27,7 +28,8 @@ goto :copy_files
 
 :64bit
 echo "using 64 bit"
-set perl_c_path=C:\strawberry51611\c\bin
+set perl_path=C:\strawberry51611
+set perl_c_path=%perl_path%\c\bin
 set lib_expat=libexpat-1__.dll
 set bits=64
 
@@ -37,6 +39,9 @@ copy "%perl_c_path%\libgcc_s_sjlj-1.dll"
 copy "%perl_c_path%\libstdc++-6.dll"
 copy "%perl_c_path%\%lib_expat%"
 
+:: set the path to ensure we're using the correct perl
+
+call %perl_path%\set_paths.bat
 
 :: ======== 1 step procedure
 :: === To ensure all the libs are loaded, make sure to import some data.  

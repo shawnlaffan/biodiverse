@@ -45,6 +45,14 @@ BEGIN {  #  add the gtk libs if using windows - brittle?
     }
 }
 
+#  need this for the pp build to work
+if ($ENV{BDV_PP_BUILDING}) {
+    say 'Building pp file';
+    use File::BOM qw / :subs /;          #  we need File::BOM.
+    open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
+      or croak "Cannot open $Bin via File::BOM\n";
+    $fh->close;
+}
 
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;
@@ -95,8 +103,6 @@ my $eval_result = eval {
     Gtk2::Window->set_default_icon_from_file($icon)
 };
 #croak $EVAL_ERROR if $EVAL_ERROR;
-
-run_pp_build_stuff();
 
 
 ###########################
@@ -222,23 +228,6 @@ sub get_iconfile {
     return $icon;
 }
 
-#  Need to do some stuff when building pp files.
-#  Otherwise several modules aren't packaged.
-#  Has to be here or the pp don't work.
-#  (Won't work in BEGIN block or outside sub).
-sub run_pp_build_stuff {
-    #return;  #  turn it off for now
-    if ($ENV{BDV_PP_BUILDING}) {
-        use Unicode::UCD;
-        #use Unicode::Collate;    #  does not do the job
-        #use Unicode::Normalize;  #  does not do the job
-        #use feature 'unicode_strings';  #  ibid
-        use File::BOM qw / :subs /;          #  we need File::BOM too.
-        open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
-          or croak "Cannot open $Bin via File::BOM\n";
-        $fh->close;
-    }
-}
 
 __END__
 

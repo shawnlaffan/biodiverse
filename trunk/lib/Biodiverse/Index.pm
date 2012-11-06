@@ -230,22 +230,19 @@ sub element_exists {
 sub get_index_elements {
     my $self = shift;
     my %args = @_;
-    if (! defined $args{element}) {
-        croak "Argument 'element' not defined in call to get_index_elements\n";
-    }
-    if (defined $args{offset}) {  #  we have been given an index element with an offset, so return the elements from the offset
-        #my $sep = $self -> get_param('JOIN_CHAR');
-        #my $quotes = $self -> get_param('QUOTES');
-        #
-        #my $csv_object = $self -> get_csv_object (sep_char => $sep, quote_char => $quotes);
-        
+
+    my $element = $args{element};
+
+    croak "Argument 'element' not defined in call to get_index_elements\n"
+      if ! defined $element;
+
+    my $offset = $args{offset};
+
+    if (defined $offset) {  #  we have been given an index element with an offset, so return the elements from the offset
+
         my $csv_object = $self->get_param ('CSV_OBJECT');
-        #local $Data::Dumper::Sortkeys = 1;
-        #say Data::Dumper->Dump ([$csv_object]);
-        #$csv_object = undef;  #  for DEBUG PURPOSES
         #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
-        my $refresh_csv = !defined $csv_object->{quote_binary};
-        if (!defined $csv_object || $refresh_csv) {  #  second condition is dirty and underhanded
+        if (!defined $csv_object || !exists $csv_object->{quote_binary}) {  #  second condition is dirty and underhanded
             my $sep = $self->get_param('JOIN_CHAR');
             my $quotes = $self->get_param('QUOTES');
             $csv_object = $self->get_csv_object (
@@ -254,31 +251,31 @@ sub get_index_elements {
             );
             $self->set_param (CSV_OBJECT => $csv_object);
         }
-        #say Data::Dumper->Dump ([$csv_object]);
 
-        my $reftype_el = reftype $args{element} // q{};
-        my $reftype_of = reftype $args{offset} // q{};
+        my $reftype_el = reftype $element // q{};
+        my $reftype_of = reftype $offset  // q{};
 
         my @elements = ($reftype_el eq 'ARRAY')  #  is it an array already?
-                        ? @{$args{element}}
-                        : $self->csv2list (string => $args{element}, csv_object => $csv_object)
-                        ;
+            ? @$element
+            : $self->csv2list (string => $element, csv_object => $csv_object);
+
         my @offsets = ($reftype_of eq 'ARRAY')  #  is it also an array already?
-                        ? @{$args{offset}}
-                        : $self->csv2list (string => $args{offset}, csv_object => $csv_object)
-                        ;
-        for (my $i = 0; $i <= $#elements; $i++) {
+            ? @$offset
+            : $self->csv2list (string => $offset, csv_object => $csv_object);
+
+        foreach my $i ( 0 .. $#elements) {
             $elements[$i] += $offsets[$i];
         }
-        $args{element} = $self->list2csv(list => \@elements, csv_object => $csv_object);
+
+        $element = $self->list2csv(list => \@elements, csv_object => $csv_object);
     }
-    
-    if (! $self->element_exists (element => $args{element})) {  #  check after any offset is applied
-        return wantarray ? () : {}
-    }
+
+    return wantarray ? () : {}  #  check this after any offset is applied
+      if !$self->element_exists (element => $element);
+
     return wantarray
-            ? %{$self->{ELEMENTS}{$args{element}}}
-            : $self->{ELEMENTS}{$args{element}};
+        ? %{$self->{ELEMENTS}{$element}}
+        :   $self->{ELEMENTS}{$element};
 }
 
 sub get_index_elements_as_array {

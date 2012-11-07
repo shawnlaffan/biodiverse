@@ -1158,6 +1158,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
 
     #  clear this also
     $labels_ref->delete_param ('SAMPLE_COUNTS_ARE_FLOATS');
+    $groups_ref->delete_param ('SAMPLE_COUNTS_ARE_FLOATS');
 
     #  now rebuild the index if need be
     if (    $orig_group_count != $self->get_group_count

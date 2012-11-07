@@ -18,6 +18,7 @@ use Scalar::Util qw/looks_like_number/;
 use List::Util qw /min max/;
 use File::Basename;
 use Path::Class;
+use POSIX qw /fmod/;
 use Time::localtime;
 
 our $VERSION = '0.18003';
@@ -2757,13 +2758,41 @@ sub get_base_stats_all {
     return;
 }
 
+#  are the sample counts floats or ints?  
+sub sample_counts_are_floats {
+    my $self = shift;
+
+    my $cached_val = $self->get_param('SAMPLE_COUNTS_ARE_FLOATS');
+    return $cached_val if defined $cached_val;
+    
+    foreach my $element ($self->get_element_list) {
+        my $count = $self->get_sample_count (element => $element);
+
+        next if !(fmod ($count, 1));
+
+        $cached_val = 1;
+        $self->set_param (SAMPLE_COUNTS_ARE_FLOATS => 1);
+
+        return $cached_val;
+    }
+
+    $self->set_param(SAMPLE_COUNTS_ARE_FLOATS => 0);
+
+    return $cached_val;
+}
+
+
 sub get_metadata_get_base_stats {
     my $self = shift;
 
     #  types are for GUI's benefit - should really add a guessing routine instead
+    my $sample_type = eval {$self->sample_counts_are_floats} 
+        ? 'Double'
+        : 'Uint';
+
     my $types = [
         {VARIETY       => 'Int'},
-        {SAMPLES       => 'Uint'},
+        {SAMPLES       => $sample_type},
         {REDUNDANCY    => 'Double'},
     ];
 

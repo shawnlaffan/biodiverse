@@ -1152,10 +1152,13 @@ sub import_data {  #  load a data file into the selected BaseData object.
     if ($groups_ref->get_element_count) {
         $groups_ref->generate_element_coords;
     }
-    
+
     #  clear the rtree if one exists (used for plotting)
     $groups_ref->delete_param ('RTREE');
-    
+
+    #  clear this also
+    $labels_ref->delete_param ('SAMPLE_COUNTS_ARE_FLOATS');
+
     #  now rebuild the index if need be
     if (    $orig_group_count != $self->get_group_count
         and $self->get_param ('SPATIAL_INDEX')
@@ -1408,6 +1411,15 @@ sub get_label_columns_for_matrix_import {
 sub labels_are_numeric {
     my $self = shift;
     return $self->get_param('NUMERIC_LABELS');
+}
+
+#  are the sample counts floats or ints?  
+sub sample_counts_are_floats {
+    my $self = shift;
+
+    my $lb = $self->get_labels_ref;
+
+    return $lb->sample_counts_are_floats;
 }
 
 sub add_element {  #  run some calls to the sub hashes

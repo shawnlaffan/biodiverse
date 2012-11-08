@@ -152,7 +152,12 @@ sub new {
         elsif (blessed $def_query_init1) { #  get the text if already an object 
             $def_query_init1 = $def_query_init1 -> get_conditions_unparsed();
         }
+        if (my $prng_seed = $cluster_ref->get_prng_seed_argument()) {
+            my $spin_widget = $xml_page->get_widget('spinbutton_cluster_prng_seed');
+            $spin_widget->set_value ($prng_seed);
+        }
     }
+
     $self->{output_ref} = $cluster_ref;
 
     # Initialise widgets
@@ -790,6 +795,17 @@ sub get_no_clone_matrices {
     return $value;
 }
 
+sub get_prng_seed {
+    my $self = shift;
+
+    my $widget = $self->{xmlPage}->get_widget('spinbutton_cluster_prng_seed');
+
+    my $value = $widget->get_value;
+
+    return $value;
+}
+
+
 sub get_output_file_handles {
     my $self = shift;
     
@@ -918,15 +934,9 @@ sub onRunAnalysis {
     my %args = @_;
 
     # Check spatial syntax
-    if ($self->{spatialParams1}->syntax_check('no_ok') ne 'ok') {
-        return;
-    }
-    if ($self->{spatialParams2}->syntax_check('no_ok') ne 'ok') {
-        return;
-    }
-    if ($self->{definition_query1}->syntax_check('no_ok') ne 'ok') {
-        return;
-    }
+    return if ($self->{spatialParams1}->syntax_check('no_ok')    ne 'ok');
+    return if ($self->{spatialParams2}->syntax_check('no_ok')    ne 'ok');
+    return if ($self->{definition_query1}->syntax_check('no_ok') ne 'ok');
 
     # Load settings...
     $self->{output_name}    = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
@@ -938,6 +948,7 @@ sub onRunAnalysis {
     my $output_gdm_format   = $self->get_output_gdm_format;
     my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
     my $no_clone_matrices   = $self->get_no_clone_matrices;
+    my $prng_seed           = $self->get_prng_seed;
 
     # Get spatial calculations to run
     my @calculations_to_run = Biodiverse::GUI::Tabs::CalculationsTree::getCalculationsToRun(
@@ -1011,6 +1022,7 @@ sub onRunAnalysis {
             $self->{spatialParams2}->get_text(),
         ],
         no_clone_matrices   => $no_clone_matrices,
+        prng_seed           => $prng_seed,
     );
 
 

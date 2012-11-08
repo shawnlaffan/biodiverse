@@ -638,12 +638,27 @@ sub do_basedata_attach_properties {
     my $props = Biodiverse::ElementProperties->new (name => 'assigning properties');
     $props->import_data (%options);
 
-    $bd->assign_element_properties (
+    my $count = $bd->assign_element_properties (
         properties_object => $props,
         type              => $type,
     );
+
+    if ($count) {
+        $self->set_dirty();
+    }
     
-    $self->set_dirty();
+    my $summary_text = "Assigned properties to $count ${type}";
+    my $summary_dlg = Gtk2::MessageDialog->new (
+        $self->{gui},
+        'destroy-with-parent',
+        'info', # message type
+        'ok', # which set of buttons?
+        $summary_text,
+    );
+    $summary_dlg->set_title ('Assigned properties');
+    
+    $summary_dlg->run;
+    $summary_dlg->destroy;
 
     return;
 }

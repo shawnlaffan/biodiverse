@@ -1186,6 +1186,8 @@ sub assign_element_properties {
     my $method = 'get_' . $type . '_ref';
     my $gp_lb_ref = $self->$method;
     
+    my $count = 0;
+    
   ELEMENT_PROPS:
     foreach my $element ($prop_obj->get_element_list) {
         next ELEMENT_PROPS
@@ -1200,9 +1202,11 @@ sub assign_element_properties {
             element    => $element,
             PROPERTIES => \%props,
         );
+
+        $count ++;
     }
 
-    return;
+    return $count;
 }
 
 sub rename_labels {

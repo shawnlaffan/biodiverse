@@ -853,7 +853,7 @@ sub cluster_matrix_elements {
     $self->set_param (LINKAGE_FUNCTION => $linkage_function);
 
     my $rand = $self->initialise_rand (
-        seed  => $args{prng_seed},
+        seed  => $args{prng_seed} || undef,
         state => $args{prng_state},
     );
 
@@ -1797,6 +1797,18 @@ sub sp_calc {
     $indices_object->run_postcalc_globals (%args);
 
     return 1;
+}
+
+sub get_prng_seed_argument {
+    my $self = shift;
+
+    my $arguments = $self->get_param('ANALYSIS_ARGS');
+
+    return if !$arguments;
+
+    no autovivification;
+    
+    return $arguments->{prng_seed};
 }
 
 sub get_embedded_tree {

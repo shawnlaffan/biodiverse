@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Thu Nov 08 19:04:56 2012 -->
+<!--Generated with glade3 3.4.3 on Thu Nov 08 21:13:55 2012 -->
 <glade-interface>
   <widget class="GtkDialog" id="dlgClose">
     <property name="visible">True</property>
@@ -6476,6 +6476,7 @@ than one pair of elements can be merged.   </property>
                                                   <widget class="GtkSpinButton" id="spinbutton_cluster_prng_seed">
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
+                                                    <property name="tooltip" translatable="yes">The system default will be used if the value is zero.</property>
                                                     <property name="invisible_char">●</property>
                                                     <property name="width_chars">10</property>
                                                     <property name="adjustment">0 0 1000000000 1 0 0</property>

@@ -280,7 +280,7 @@ sub get_basedata_import_data_file {
 
     my $tmp_obj = File::Temp->new;
     my $ep_f = $tmp_obj->filename;
-    print $tmp_obj get_basedata_test_data(@_);
+    print $tmp_obj $args{data} || get_basedata_test_data(@_);
     $tmp_obj -> close;
 
     return $tmp_obj;

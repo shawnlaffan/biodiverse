@@ -319,9 +319,6 @@ sub sp_calc {
     $spatial_params_ref   = $self->get_param ('SPATIAL_PARAMS')
                             || [];
 
-    #  get the global pre_calc results - move lower down?
-    $indices_object->run_precalc_globals(%args);
-
     if (! $use_nbrs_from) {
         #  first look for a sibling with the same spatial parameters
         $use_nbrs_from = eval {
@@ -447,7 +444,14 @@ sub sp_calc {
             $self->clear_spatial_condition_caches;
             croak "Nothing passed the definition query\n";
         }
+        else {
+            my $pass_count = scalar keys %$pass_def_query;
+            print "$pass_count groups passed the definition query\n";
+        }
     }
+    
+    #  get the global pre_calc results
+    $indices_object->run_precalc_globals(%args);
 
     print "[SPATIAL] Creating target groups\n";
     

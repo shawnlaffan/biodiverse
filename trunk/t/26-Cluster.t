@@ -64,7 +64,6 @@ sub check_order_is_same_given_same_prng {
     
     is   ($newick1, $newick2, 'trees are the same');
     isnt ($newick1, $newick3, 'trees are not the same');
-    
 }
 
 

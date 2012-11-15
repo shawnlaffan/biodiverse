@@ -8,6 +8,7 @@ use Data::Dumper;
 
 use Gtk2;
 use Carp;
+use List::Util qw/min max/;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::MatrixGrid;
 use Biodiverse::GUI::Grid;
@@ -47,6 +48,7 @@ sub new {
         selected_rows => [],
         selected_cols => [],
     };
+    $self->{tool} = 'Select';
     $self->{project} = $self->{gui}->getProject();
     bless $self, $class;
     
@@ -790,43 +792,76 @@ sub onGridSelect {
     my $self = shift;
     my $groups = shift;
     my $ignore_change = shift;
-    
+    my $rect = shift; # [x1, y1, x2, y2]
 
-    # convert groups into a hash of labels that are in them
-    my %hash;
-    my $bd = $self->{base_ref};
-    foreach my $group (@$groups) {
-        my $hashref = $bd->get_labels_in_group_as_hash(group => $group);
-        @hash{ keys %$hashref } = ();
-    }
+    print 'Rect: ';
+    print Dumper $rect;
 
-    # Select all terminal labels
-    my $xml_page = $self->{xmlPage};
-    my $model = $self->{labels_model};
-    my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
-    my $hselection = $xml_page ->get_widget('listLabels1')->get_selection();
-
-    $hselection->unselect_all();
-    my $iter = $hmodel->get_iter_first();
-    my $elt;
-
-    
-    $self->{ignore_selected_change} = 'listLabels1';
-    while ($iter) {
-        my $hi = $hmodel->convert_iter_to_child_iter($iter);
-        $elt = $model->get($hi, 0);
-
-        if (exists $hash{ $elt } ) {
-            $hselection->select_iter($iter);
+    if ($self->{tool} eq 'Select') {
+        # convert groups into a hash of labels that are in them
+        my %hash;
+        my $bd = $self->{base_ref};
+        foreach my $group (@$groups) {
+            my $hashref = $bd->get_labels_in_group_as_hash(group => $group);
+            @hash{ keys %$hashref } = ();
         }
 
-        $iter = $hmodel->iter_next($iter);
+        # Select all terminal labels
+        my $xml_page = $self->{xmlPage};
+        my $model = $self->{labels_model};
+        my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
+        my $hselection = $xml_page ->get_widget('listLabels1')->get_selection();
+
+        $hselection->unselect_all();
+        my $iter = $hmodel->get_iter_first();
+        my $elt;
+
+
+        $self->{ignore_selected_change} = 'listLabels1';
+        while ($iter) {
+            my $hi = $hmodel->convert_iter_to_child_iter($iter);
+            $elt = $model->get($hi, 0);
+
+            if (exists $hash{ $elt } ) {
+                $hselection->select_iter($iter);
+            }
+
+            $iter = $hmodel->iter_next($iter);
+        }
+        if (not $ignore_change) {
+            delete $self->{ignore_selected_change};
+        }
+        onSelectedLabelsChanged($hselection, [$self, 'listLabels1']);
+    } elsif ($self->{tool} eq 'Zoom') {
+        # zoom such that the entirety of the dragged box is visible
+
+        my $grid = $self->{grid};
+        my $canvas = $grid->{canvas};
+
+        # Scale
+        my $width_px  = $grid->{width_px}; # Viewport/window size
+        my $height_px = $grid->{height_px};
+        my ($x1, $y1) = $canvas->world_to_window($rect->[0], $rect->[1]);
+        my ($x2, $y2) = $canvas->world_to_window($rect->[2], $rect->[3]);
+        my $width_s   = max (abs ($x2 - $x1), 1); # Selected box width
+        my $height_s  = max (abs ($y2 - $y1), 1); # Avoid div by 0
+
+        my $oppu = $canvas->get_pixels_per_unit;
+        print "Old PPU: $oppu\n";
+        my $ppu = $oppu * min ($width_px / $width_s, $height_px / $height_s);
+        print "New PPU: $ppu\n";
+        $canvas->set_pixels_per_unit($ppu);
+
+        # Calculate size of selection compared to current viewport size.
+
+        $grid->postZoom;
+
+        # Pan
+        $canvas->scroll_to($canvas->w2c(min ($rect->[0], $rect->[2]),
+                                        min ($rect->[1], $rect->[3])));
+        $grid->updateScrollbars;
     }
-    if (not $ignore_change) {
-        delete $self->{ignore_selected_change};
-    }
-    onSelectedLabelsChanged($hselection, [$self, 'listLabels1']);
-    
+
     return;
 }
 

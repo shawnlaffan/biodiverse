@@ -1806,7 +1806,8 @@ sub get_prng_seed_argument {
 
     return if !$arguments;
 
-    no autovivification;
+    #no autovivification;
+    return if !exists $arguments->{prng_seed};
     
     return $arguments->{prng_seed};
 }

@@ -1138,10 +1138,10 @@ sub addRow {
 
     # Cell sizes/snaps
     my $adj1  = Gtk2::Adjustment -> new (100000, 0, 10000000, 100, 10000, 0);
-    my $spin1 = Gtk2::SpinButton -> new ($adj1, 100, 4);
+    my $spin1 = Gtk2::SpinButton -> new ($adj1, 100, 7);
 
     my $adj2  = Gtk2::Adjustment -> new (0, -1000000, 1000000, 100, 10000, 0);
-    my $spin2 = Gtk2::SpinButton -> new ($adj2, 100, 4);
+    my $spin2 = Gtk2::SpinButton -> new ($adj2, 100, 7);
 
     $spin1->hide(); # By default, columns are "ignored" so cell sizes don't apply
     $spin2->hide();

@@ -174,6 +174,9 @@ sub generate_distance_table {
 #                   - which have groups in them
 #                   - optional - defaults to 0
 #
+#   species_sum     - if species_sum = 1 then an extra column contains the number sum of the number of species at the two sites, regardless of number shared.
+#                   - optional - defaults to 0
+#
 #   FEEDBACK PARAMETERS
 #    
 #   verbosity       - sets the amount of text output reporting progress to the text window or log file 
@@ -771,6 +774,7 @@ sub initialise {    # add essential parameters to the object hash and set defaul
     $$self{test_sample_ratio} = 1;
     $$self{shared_species} = 0;
     $$self{bins_max_class} = 1;
+    $$self{species_sum} = 0;    
     
     return $self;
 }

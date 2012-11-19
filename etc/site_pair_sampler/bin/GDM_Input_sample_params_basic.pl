@@ -174,6 +174,7 @@ local $OUTPUT_AUTOFLUSH = 1;
 #                   - optional - defaults to 0
 #
 #   species_sum     - if species_sum = 1 then an extra column contains the number sum of the number of species at the two sites, regardless of number shared.
+#                   - optional - defaults to 0
 #
 #   FEEDBACK PARAMETERS
 #    

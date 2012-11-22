@@ -91,6 +91,37 @@ my @setup = (
     }
 }
 
+
+{
+    # testing mins and maxes
+
+    # the cells are indexed using their centroids, so the min bound for x_min being 1 will be 1.5
+
+
+    my $bd = eval {
+        get_basedata_object (
+            x_spacing   => 1,
+            y_spacing   => 1,
+            CELL_SIZES  => [1, 1],
+            x_max       => 100,
+            y_max       => 100,
+            x_min       => 1,
+            y_min       => 1,
+        );
+    };
+
+    $bd->save (filename => "bd_test_1.bds");
+
+    my $bounds = $bd->get_coord_bounds;
+    my $min_bounds = $bounds->{MIN};
+    my $max_bounds = $bounds->{MAX};
+
+    ok (@$min_bounds[0] == @$min_bounds[1], "min x and y are the same");
+    ok (@$min_bounds[0] == 1.5, "min is correctly 1.5");
+    ok (@$max_bounds[0] == @$max_bounds[1], "max bounds for x and y are the same");
+    ok (@$max_bounds[0] == 100.5, "max is correctly 100.5");
+}
+
 {
     #  check values near zero are imported correctly
     #    - was getting issues with negative values one cell left/lower than
@@ -109,7 +140,7 @@ my @setup = (
             );
         };
         
-        #$bd->save (filename => "bd_test_$min.bds");
+        $bd->save (filename => "bd_test_$min.bds");
     
         #  clunky...
         #my @groups = ('0.5:0.5', '-0.5:0.5', '0.5:-0.5', '-0.5:-0.5', '-1.5:-1.5');
@@ -125,6 +156,25 @@ my @setup = (
         }
         
         #  should also text the extents of the data set, min & max on each axis
+
+        my $bounds = $bd->get_coord_bounds;
+        my $min_bounds = $bounds->{MIN};
+        my $max_bounds = $bounds->{MAX};
+
+        # the cells are indexed by their centroids, so for both of these cases
+        # the centroids of the x and y min will be -48.5
+
+        # for -49, the max will be 51.5 
+        # but for -49.5, the max will be 50.5
+
+        my $correct_min = -48.5;
+        my $correct_max = int($min+100)+0.5;
+
+        ok (@$min_bounds[0] == $correct_min, "x_min is $correct_min");
+        ok (@$min_bounds[1] == $correct_min, "y_min is $correct_min");
+
+        ok (@$max_bounds[0] == $correct_max, "x_max is $correct_max");
+        ok (@$max_bounds[1] == $correct_max, "y_max is $correct_max");
     }
     
 }

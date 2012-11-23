@@ -1003,20 +1003,9 @@ sub get_most_similar_pair {
         $node2      = $keys2->[0];  #  grab the first shuffled sub key
     }
     else {
-        #  hard coding - clunky - need to refactor once working
-        #my $indices_object = $args{indices_object} || $self->get_param('INDICES_OBJECT') || croak "no indices object\n";
-        my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $self->get_basedata_ref);
-        my $analysis_args = $self->get_param('ANALYSIS_ARGS');
+        my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
+        my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
 
-        $indices_object->run_precalc_globals (%$analysis_args);
-        $indices_object->get_valid_calculations (
-            %args,
-            calculations   => ['calc_endemism_whole'],
-            nbr_list_count => 2,
-            element_list1  => [],  #  for validity checking only
-            element_list2  => [],
-        );
-    
         #  need to get all the pairs
         my @pairs;
         foreach my $name1 (sort keys %$keys_ref) {
@@ -1026,7 +1015,7 @@ sub get_most_similar_pair {
             }
         }
         if (scalar @pairs == 1) {
-            return wantarray ? @{$pairs[0]} : $pairs[0];
+            return wantarray ? @{$pairs[0]} : $pairs[1];
         }
 
         my $current_pair;
@@ -1059,6 +1048,41 @@ sub get_most_similar_pair {
     
     
     return wantarray ? ($node1, $node2) : [$node1, $node2];
+}
+
+sub setup_tie_breaker {
+    my $self = shift;
+    my %args = @_;
+    my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
+
+    return if !$tie_breaker;  #  old school clusters did not have one
+
+    my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $self->get_basedata_ref);
+    my $analysis_args = $self->get_param('ANALYSIS_ARGS');
+
+    my $it = natatime 2, @$tie_breaker;
+    my @calc_subs;
+    while (my ($breaker, $optimisation) = $it->()) {
+        next if $breaker eq 'random';  #  special handling for this - should change approach?
+        croak "$breaker is not a valid tie breaker\n"
+            if   !$indices_object->is_cluster_index (index => $breaker)
+              && !$indices_object->is_region_grower_index (index => $breaker);
+        my $calc = $indices_object->get_index_source (index => $breaker);
+        croak "no calc sub for $breaker\n" if !defined $calc;
+        push @calc_subs, $calc;
+    }
+
+    $indices_object->get_valid_calculations (
+        %args,
+        calculations   => \@calc_subs,
+        nbr_list_count => 2,
+        element_list1  => [],  #  for validity checking only
+        element_list2  => [],
+    );
+
+    $indices_object->run_precalc_globals (%$analysis_args);
+    
+    $self->set_param (CLUSTER_TIE_BREAKER_INDICES_OBJECT => $indices_object);
 }
 
 sub run_tie_breaker {
@@ -1231,6 +1255,8 @@ sub cluster {
         next if not defined $element;
         $self->add_node (name => $element);
     }
+    
+    $self->setup_tie_breaker;
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?
@@ -1247,6 +1273,7 @@ sub cluster {
     }
 
     $self->run_indices_object_cleanup;
+    $self->run_tiebreaker_indices_object_cleanup;
 
     my %root_nodes = $self->get_root_nodes;
 
@@ -1357,6 +1384,22 @@ sub run_indices_object_cleanup {
         };
     }
     $self->set_param(INDICES_OBJECT => undef);
+
+    return;
+}
+
+sub run_tiebreaker_indices_object_cleanup {
+    my $self = shift;
+    
+    #  run some cleanup on the indices object
+    my $indices_object = $self->get_param('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
+    if ($indices_object) {
+        eval {
+            $indices_object->run_postcalc_globals;
+            $indices_object->reset_results(global => 1);
+        };
+    }
+    $self->set_param(CLUSTER_TIE_BREAKER_INDICES_OBJECT => undef);
 
     return;
 }
@@ -1891,9 +1934,6 @@ sub sp_calc {
             }
         }
         $node->add_to_lists (SPATIAL_RESULTS => \%sp_calc_values);
-
-        #  run any local post_calcs - no these are done in run_calculations
-        #$indices_object->run_postcalc_locals (%args);
     }
 
     #  run any global post_calcs

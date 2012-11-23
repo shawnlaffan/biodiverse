@@ -348,6 +348,8 @@ sub import_nexus {
 
             $tree_name =~ s/\s+$//;  #  trim trailing whitespace
 
+            print "[ReadNexus] Processing tree $tree_name\n";
+
             my $tree = Biodiverse::Tree->new (NAME => $tree_name);
             #$tree->set_param ()
 

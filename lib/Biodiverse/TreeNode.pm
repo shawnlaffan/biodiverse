@@ -381,6 +381,7 @@ sub add_children {
 
     CHILD:
     foreach my $child (@{$args{children}}) {
+        next if $self->has_child (node_ref => $child);  #  don't re-add our own child
         if ($self->is_tree_node(node => $child)) {
             if (defined $child->get_parent) {  #  too many parents - this is a single parent system
                 if ($args{warn}) {
@@ -407,6 +408,20 @@ sub add_children {
         $child->set_parent(parent => $self);
     }
     
+    return;
+}
+
+sub has_child {
+    my $self = shift;
+    my %args = @_;
+    my $node_ref = $args{node_ref} || croak "missing node_ref argument\n";
+
+    my @children = $self->get_children;
+
+    foreach my $child (@children) {
+        return 1 if $child eq $node_ref;
+    }
+
     return;
 }
 
@@ -673,6 +688,21 @@ sub raise_zerolength_children {
     
     return %results if wantarray;
     return \%results;
+}
+
+#  a bit inefficient, but should work
+sub get_terminal_node_refs {
+    my $self = shift;
+    
+    my %descendents = $self->get_all_descendents;
+
+    my %terminals;
+    while (my ($name, $node_ref) = each %descendents) {
+        next if ! $node_ref->is_terminal_node;
+        $terminals{$name} = $node_ref;
+    }
+
+    return wantarray ? %terminals : \%terminals;
 }
 
 sub get_terminal_elements { #  get all the elements in the terminal nodes

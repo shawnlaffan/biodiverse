@@ -1815,6 +1815,33 @@ sub collapse_tree {
     return $self;
 }
 
+#  collapse all nodes below a cutoff so they form a set of polytomies
+sub collapse_tree_below {
+    my $self = shift;
+    my %args = @_;
+    
+    my $target_hash = $self->group_nodes_below (%args);
+    
+    foreach my $node (values %$target_hash) {
+        my %terminals = $node->get_terminal_node_refs;
+        my @children = $node->get_children;
+        foreach my $desc_node (@children) {
+            next if $desc_node->is_terminal_node;
+            eval {
+                $self->delete_node (node => $desc_node->get_name);
+            };
+        }
+        $node->add_children (children => [values %terminals]);  #  still need to ensure they are in the node hash
+
+        print "";
+    }
+    
+    
+    return 1;
+}
+
+
+
 #  root an unrooted tree using a zero length node.
 sub root_unrooted_tree {
     my $self = shift;

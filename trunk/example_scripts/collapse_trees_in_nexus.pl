@@ -21,40 +21,35 @@ croak "no basedata file specified" if !defined $in_file;
 
 open my $fh, '<', $in_file or croak "Cannot open $in_file";
 
-my @lines;
-my @trees;
+my $fname = $out_file;
+open my $ofh, '>', $fname
+  or croak "cannot open $fname";
+
+
 LINE:
 while (defined (my $line = <$fh>)) {
-    if (not $line =~ /^tree/i) {  #  grab this line and store it
-        push @lines, $line;
-        next LINE;
+    if ($line =~ /^tree\s+(\w+)\s*=\s*(.+)/) {
+        my ($tree_name, $newick) = ($1, $2);
+        
+        say $tree_name;
+    
+        my $tree = Biodiverse::Tree->new (NAME => $tree_name);
+        my $count = 0;
+        my $node_count = \$count;
+    
+        $read_nexus->parse_newick (
+            string          => $newick,
+            tree            => $tree,
+            node_count      => $node_count,
+        );
+        
+        $tree->collapse_tree_below (target_value => $threshold);
+        
+        
+        my $newick_trimmed = $tree->to_newick;
+        $line = "tree $tree_name = $newick_trimmed;\n";
     }
-    $line =~ /^tree\s+(\w+)\s*=\s*(.+)/;
-    my ($tree_name, $newick) = ($1, $2);
-    
-    say $tree_name;
 
-    my $tree = Biodiverse::Tree->new (NAME => $tree_name);
-    my $count = 0;
-    my $node_count = \$count;
-
-    $read_nexus->parse_newick (
-        string          => $newick,
-        tree            => $tree,
-        node_count      => $node_count,
-    );
-    
-    $tree->collapse_tree_below (target_value => $threshold);
-    
-    
-    my $newick_trimmed = $tree->to_newick;
-    push @lines, "tree $tree_name = $newick_trimmed;\n";
-}
-
-
-my $fname = $out_file;
-open my $ofh, '>', $fname or croak "cannot open $fname";
-
-foreach my $line (@lines) {
     print { $ofh } $line;
 }
+

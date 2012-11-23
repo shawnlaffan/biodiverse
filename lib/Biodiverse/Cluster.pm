@@ -8,15 +8,13 @@ use warnings;
 use English ( -no_match_vars );
 
 use Data::Dumper;
-#use Devel::Symdump;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval/;
-use List::Util;
-#use Math::Random::MT::Auto qw /rand shuffle get_state/;
+use List::Util qw /first reduce/;
+use List::MoreUtils qw /natatime/;
 
 our $VERSION = '0.18003';
 
-#use Biodiverse::Common;
 use Biodiverse::Matrix;
 use Biodiverse::TreeNode;
 use Biodiverse::SpatialParams;
@@ -701,7 +699,7 @@ sub infer_if_already_calculated {
 
     NBR:
     foreach my $nbr (sort @$nbrs) {
-        next NBR if ! defined (List::Util::first {$_ eq $nbr} @$processed_elements);
+        next NBR if ! defined (first {$_ eq $nbr} @$processed_elements);
         $already_calculated{$nbr} = 1;
     }
 
@@ -868,7 +866,7 @@ sub cluster_matrix_elements {
             "\n";
 
     my $new_node;
-    my $minValue;
+    my $min_value;
     #  track the number of joins - use as element name for merged nodes
     my $join_number = $self->get_param ('JOIN_NUMBER') || -1;  
     my $total = $sim_matrix->get_element_count;
@@ -884,13 +882,12 @@ sub cluster_matrix_elements {
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
     print "[CLUSTER] Progress (% of $total elements):     ";
-    my $last_update_time = [gettimeofday];
 
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
         #print "Remaining $remaining\n";
 
         #  get the most similar two candidates
-        $minValue = $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+        $min_value = $self->get_most_similar_matrix_value (matrix => $sim_matrix);
 
         $join_number ++;
 
@@ -898,19 +895,17 @@ sub cluster_matrix_elements {
                  . "$progress_text\n("
                  . ($remaining - 1)
                  . " remaining)\nMost similar value is "
-                 . sprintf ("%.3f", $minValue);
+                 . sprintf ("%.3f", $min_value);
 
         $progress_bar->update ($text, 1 - $remaining / $total);
 
         $count ++;
 
-        my $keysRef = $sim_matrix->get_elements_with_value (value => $minValue);
-        my $count1  = scalar keys %{$keysRef};
-        my $keys    = $rand->shuffle ([sort keys %{$keysRef}]);
-        my $node1   = $keys->[0];  # grab the first shuffled key
-        my $count2  = scalar keys %{$keysRef};
-        $keys       = $rand->shuffle ([sort keys %{$keysRef->{$node1}}]);
-        my $node2   = $keys->[0];  #  grab the first shuffled sub key
+        my ($node1, $node2) = $self->get_most_similar_pair (
+            sim_matrix  => $sim_matrix,
+            value       => $min_value,
+            rand_object => $rand,
+        );
 
         #print "$join_number $count1, $count2\n" if $count1 > 1 and $count2 > 1;
 
@@ -933,8 +928,8 @@ sub cluster_matrix_elements {
             $el2 = $node2;
         }
 
-        #print "cluster $join_number $minValue $el1 $el2\n";
-        #print "Cluster $join_number :: $minValue :: $node1 :: $node2\n";
+        #print "cluster $join_number $min_value $el1 $el2\n";
+        #print "Cluster $join_number :: $min_value :: $node1 :: $node2\n";
 
         my $new_node_name = $join_number . "___";
 
@@ -948,7 +943,7 @@ sub cluster_matrix_elements {
             MATRIX_ITER_USED => $mx_iter,
             JOIN_NUMBER      => $join_number,
         );
-        $new_node->set_child_lengths (total_length => $minValue);
+        $new_node->set_child_lengths (total_length => $min_value);
 
         #  add children to the node hash if they are terminals
         foreach my $child ($new_node->get_children) {
@@ -980,11 +975,119 @@ sub cluster_matrix_elements {
     $progress_bar->update (undef, 1);
 
     $self->set_param(JOIN_NUMBER => $join_number);
-    $self->set_param(MIN_VALUE   => $minValue);
+    $self->set_param(MIN_VALUE   => $min_value);
 
     $self->store_rand_state (rand_object => $rand);
 
     return;
+}
+
+sub get_most_similar_pair {
+    my $self= shift;
+    my %args = @_;
+    
+    my $rand = $args{rand_object} // croak "rand_object argument not passed\n";
+    my $sim_matrix = $args{sim_matrix} // croak "sim_matrix argument not passed\n";
+    my $min_value = $args{min_value} // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+    my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
+
+    my $keys_ref = $sim_matrix->get_elements_with_value (value => $min_value);
+    my ($node1, $node2);
+
+    if (!$tie_breaker)  {  #  the old way
+        my $count1  = scalar keys %$keys_ref;
+        my $keys1   = $rand->shuffle ([sort keys %{$keys_ref}]);
+        $node1      = $keys1->[0];  # grab the first shuffled key
+        my $count2  = scalar keys %{$keys_ref};
+        my $keys2   = $rand->shuffle ([sort keys %{$keys_ref->{$node1}}]);
+        $node2      = $keys2->[0];  #  grab the first shuffled sub key
+    }
+    else {
+        #  hard coding - clunky - need to refactor once working
+        #my $indices_object = $args{indices_object} || $self->get_param('INDICES_OBJECT') || croak "no indices object\n";
+        my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $self->get_basedata_ref);
+        my $analysis_args = $self->get_param('ANALYSIS_ARGS');
+
+        $indices_object->run_precalc_globals (%$analysis_args);
+        $indices_object->get_valid_calculations (
+            %args,
+            calculations   => ['calc_endemism_whole'],
+            nbr_list_count => 2,
+            element_list1  => [],  #  for validity checking only
+            element_list2  => [],
+        );
+    
+        #  need to get all the pairs
+        my @pairs;
+        foreach my $name1 (sort keys %$keys_ref) {
+            my $ref = $keys_ref->{$name1};
+            foreach my $name2 (sort keys %$ref) {
+                push @pairs, [$name1, $name2];  #  need to use terminal names - allows to link_recalculate
+            }
+        }
+        if (scalar @pairs == 1) {
+            return wantarray ? @{$pairs[0]} : $pairs[0];
+        }
+
+        my $current_pair;
+
+        foreach my $pair (@pairs) {
+            my %calc_res = $indices_object->run_calculations(
+                %$analysis_args,
+                element_list1 => [$pair->[0]],
+                element_list2 => [$pair->[1]],
+            );
+            $calc_res{random} = $rand->rand;
+
+            my $itx = natatime 2, @$tie_breaker;
+            my $sub_res = [];
+            while (my ($breaker, $optimisation) = $itx->()) {
+                push @$sub_res, $calc_res{$breaker};
+            }
+            push @$sub_res, $pair;
+
+            $current_pair = $self->run_tie_breaker (
+                tie_breaker => $tie_breaker,
+                pair1       => $current_pair,
+                pair2       => $sub_res,
+            );
+        }
+
+        my $chosen_pair = $current_pair->[-1];
+        ($node1, $node2) = @$chosen_pair;
+    }
+    
+    
+    return wantarray ? ($node1, $node2) : [$node1, $node2];
+}
+
+sub run_tie_breaker {
+    my $self = shift;
+    my %args = @_;
+    my $breaker = $args{tie_breaker};
+    my $pair1 = $args{pair1};
+    my $pair2 = $args{pair2};
+
+    return $pair1 if !$pair2;
+    return $pair2 if !$pair1;
+
+    my $it = natatime 2, @$breaker;
+    my $i = -1;
+    COMP:
+    while (my ($breaker, $optimisation) = $it->()) {
+        $i ++;
+        my @comps = ($pair1->[$i], $pair2->[$i]);
+        if ($optimisation eq 'maximum') {
+            @comps = reverse @comps;
+        }
+        my $comp_result = $comps[0] <=> $comps[1];
+
+        next COMP if !$comp_result;
+        return $pair1 if $comp_result < 0;
+        return $pair2;
+    }
+
+    return;  #  should not get this far
 }
 
 sub run_analysis {

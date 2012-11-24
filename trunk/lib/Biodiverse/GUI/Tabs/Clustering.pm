@@ -323,7 +323,7 @@ sub setup_tie_breaker_widgets {
             $l ++;
         }
 
-        $index_combo->set_active($use_iter || 0);
+        $index_combo->set_active($use_iter // 1);  #  random by default
 
         my $combo_minmax = Gtk2::ComboBox->new_text;
         $combo_minmax->append_text ('maximise');

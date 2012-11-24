@@ -150,7 +150,7 @@ sub new {
             $def_query_init1 = $empty_string;
         }
         elsif (blessed $def_query_init1) { #  get the text if already an object 
-            $def_query_init1 = $def_query_init1 -> get_conditions_unparsed();
+            $def_query_init1 = $def_query_init1->get_conditions_unparsed();
         }
         if (my $prng_seed = $cluster_ref->get_prng_seed_argument()) {
             my $spin_widget = $xml_page->get_widget('spinbutton_cluster_prng_seed');
@@ -159,6 +159,8 @@ sub new {
     }
 
     $self->{output_ref} = $cluster_ref;
+
+    $self->setup_tie_breaker_widgets($cluster_ref);
 
     # Initialise widgets
     $xml_page ->get_widget('txtClusterName')->set_text( $self->{output_name} );
@@ -279,6 +281,33 @@ sub new {
     return $self;
 }
 
+
+sub setup_tie_breaker_widgets {
+    my $self     = shift;
+    my $existing = shift;
+
+    my $xml_page = $self->{xmlPage};
+    my $hbox_name = 'hbox_cluster_tie_breakers';
+    my $hbox = $xml_page->get_widget($hbox_name);
+
+    my ($tie_breakers, $bd);
+    if ($existing) {
+        $tie_breakers = $existing->get_param ('CLUSTER_TIE_BREAKER');
+        $bd = $existing->get_basedata_ref;
+    }
+    else {
+        $bd = $self->{project}->getSelectedBaseData;
+    }
+    $tie_breakers //= [];  #  param is not always set
+
+    my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
+    my %valid_indices = $indices_object->get_valid_region_grower_indices;
+    my %tmp = $indices_object->get_valid_cluster_indices;
+    @valid_indices{keys %tmp} = values %tmp;
+    
+    
+    return;
+}
 
 #  clunky, but for some reason Gtk-perl cannot get the label from the activated widget
 #  If it could then we could just use get_label on the active widget and pass that

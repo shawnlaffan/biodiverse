@@ -906,6 +906,7 @@ sub cluster_matrix_elements {
             value       => $min_value,
             rand_object => $rand,
         );
+        #print "\nNodes: $node1, $node2\n";
 
         #print "$join_number $count1, $count2\n" if $count1 > 1 and $count2 > 1;
 
@@ -1021,10 +1022,24 @@ sub get_most_similar_pair {
         my $current_pair;
 
         foreach my $pair (@pairs) {
+            my @el_lists;
+            foreach my $j (0, 1) {
+                my $node = $pair->[$j];
+                my $node_ref = $self->get_node_ref (node => $node);
+                my $el_list;
+                if ($node_ref->is_internal_node) {
+                    my $terminals = $node_ref->get_terminal_elements;
+                    $el_list = [keys %$terminals];
+                }
+                else {
+                    $el_list = [$node];
+                }
+                push @el_lists, $el_list;
+            }
             my %calc_res = $indices_object->run_calculations(
                 %$analysis_args,
-                element_list1 => [$pair->[0]],
-                element_list2 => [$pair->[1]],
+                element_list1 => $el_lists[0],
+                element_list2 => $el_lists[1],
             );
             $calc_res{random} = $rand->rand;
 
@@ -1033,6 +1048,7 @@ sub get_most_similar_pair {
             while (my ($breaker, $optimisation) = $itx->()) {
                 push @$sub_res, $calc_res{$breaker};
             }
+            #print "\n@$pair : @$sub_res";
             push @$sub_res, $pair;
 
             $current_pair = $self->run_tie_breaker (
@@ -1044,9 +1060,9 @@ sub get_most_similar_pair {
 
         my $chosen_pair = $current_pair->[-1];
         ($node1, $node2) = @$chosen_pair;
+        #print "\nChosen = $node1, $node2\n";
     }
-    
-    
+
     return wantarray ? ($node1, $node2) : [$node1, $node2];
 }
 

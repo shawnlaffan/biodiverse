@@ -1041,7 +1041,8 @@ sub get_most_similar_pair {
                 element_list1 => $el_lists[0],
                 element_list2 => $el_lists[1],
             );
-            $calc_res{random} = $rand->rand;
+            $calc_res{random} = $rand->rand;  #  add values for non-index options
+            $calc_res{none}   = 0;
 
             my $itx = natatime 2, @$tie_breaker;
             my $sub_res = [];
@@ -1080,6 +1081,8 @@ sub setup_tie_breaker {
     my @calc_subs;
     while (my ($breaker, $optimisation) = $it->()) {
         next if $breaker eq 'random';  #  special handling for this - should change approach?
+        next if $breaker eq 'none';
+        next if !defined $breaker;
         croak "$breaker is not a valid tie breaker\n"
             if   !$indices_object->is_cluster_index (index => $breaker)
               && !$indices_object->is_region_grower_index (index => $breaker);
@@ -1117,7 +1120,7 @@ sub run_tie_breaker {
     while (my ($breaker, $optimisation) = $it->()) {
         $i ++;
         my @comps = ($pair1->[$i], $pair2->[$i]);
-        if ($optimisation eq 'maximum') {
+        if ($optimisation =~ '^max') {
             @comps = reverse @comps;
         }
         my $comp_result = $comps[0] <=> $comps[1];
@@ -1127,7 +1130,7 @@ sub run_tie_breaker {
         return $pair2;
     }
 
-    return;  #  should not get this far
+    return $pair1;  #  we only had ties
 }
 
 sub run_analysis {

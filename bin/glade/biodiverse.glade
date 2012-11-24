@@ -6139,7 +6139,7 @@ Both</property>
                                               <widget class="GtkLabel" id="label7">
                                                 <property name="visible">True</property>
                                                 <property name="tooltip" translatable="yes">(Optional)
-Select a set of indices to determine the rodering of clustering when there is more than one pair to choose from.  </property>
+Select a set of indices to determine the ordering of clustering when there is more than one pair to choose from.  </property>
                                                 <property name="label" translatable="yes">Tie breakers</property>
                                                 <property name="xalign">0</property>
                                               </widget>

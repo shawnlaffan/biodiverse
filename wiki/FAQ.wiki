@@ -56,7 +56,7 @@ Turn on the checkbox next to _Data are in matrix form?_ when importing.  See [Sa
 
 == Can I skip a subset of species when importing data? ==
 
-Yes.  Use an Element Property table for this purpose, specifying one or more exclude and/or include columns.  See [DataStructures#Element_property_tables].
+Yes.  Use an Element Property table for this purpose, specifying one or more exclude and/or include columns.  See [DataStructures#Element_property_tables].  From version 0.18003 you can also exclude (delete) some labels after you have imported them.
 
 == Where is the menu option to load an element properties table? ==
 
@@ -97,6 +97,10 @@ One benefit of this approach is if one has an axis that represents a region.  On
 
 In most cases one would set the second condition to use all pairs (`sp_select_all()`), which is the same as reverting to a non-spatial clustering.  However, sometimes one might wish to use to increasing spatial lag distances.  The GUI currently only supports two conditions but any number can be specified through a script.  
 
+
+== Why do I get different randomisation results on a 64 and 32 bit machines?  ==
+
+This is due to the pseudo-random number generator (PRNG) library the system uses.  For a given seed value it generates a vector of integers as the starting state for the PRNG sequence.  On 32 bit machines these are 32 bit vectors, while on 64 bit machines these are 64 bit integers, thus differing between architectures.  To avoid confusion, the system will throw an exception if you try to continue a randomisation analysis on one architecture which you started on the other architecture.
 
 
 == I want to analyse environmental data ==

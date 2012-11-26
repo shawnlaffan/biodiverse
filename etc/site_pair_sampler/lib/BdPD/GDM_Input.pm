@@ -16,7 +16,7 @@ use Carp;  #  warnings and dropouts
 use File::Spec;  #  for the cat_file sub 
 use Scalar::Util qw /reftype/;
 
-our $VERSION = '0.15';
+our $VERSION = '0.18003';
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;  #  for remaps
@@ -26,7 +26,8 @@ use Biodiverse::Indices;
 use Math::Random::MT::Auto qw(rand irand shuffle gaussian);
 
 
-sub generate_distance_table {
+#  sub has been moved to BdPD::GenerateDistanceTable to isolate it from the objects
+sub generate_distance_tablexx {
     
 # the parameters for this sub are passed as a hash with the following items:
 #
@@ -198,7 +199,7 @@ sub generate_distance_table {
     #############################################
     ######       SET PARAMETERS HERE       ######
 
-    $SPM -> set_param(%args);    
+    $SPM->set_param(%args);    
 
     # Default values for optional parameters are set in the sub initalise
 
@@ -209,61 +210,61 @@ sub generate_distance_table {
     my %dist_measures;
     if (!((ref $args{dist_measure}) =~ /HASH/)) {
         %dist_measures = ($args{dist_measure} => 1);
-        $$SPM{dist_measure} = \%dist_measures;
+        $SPM->{dist_measure} = \%dist_measures;
         $args{dist_measure} = \%dist_measures;
     }
 
     if (exists($args{dist_measure}{phylo_sorenson})) {
-        $SPM -> set_param("use_phylogeny", 1)
+        $SPM->set_param("use_phylogeny", 1)
     };
     
-    if ($$SPM{use_phylogeny}) { # get all the phylogeny related paramters if required
-        if (exists $$SPM{nexus_remap}) {
-            $$SPM{nexus_remap} = File::Spec -> catfile ($$SPM{directory}, $$SPM{nexus_remap});
+    if ($SPM->{use_phylogeny}) { # get all the phylogeny related paramters if required
+        if (exists $SPM->{nexus_remap}) {
+            $SPM->{nexus_remap} = File::Spec->catfile ($SPM->{directory}, $SPM->{nexus_remap});
         };
     };
 
-    $SPM -> set_param("basedata_filename" => $$SPM{basedata_file}. $$SPM{basedata_suffix});
-    $SPM -> set_param("basedata_filepath" => File::Spec -> catfile ($$SPM{directory}, $$SPM{basedata_filename}));
+    $SPM->set_param("basedata_filename" => $SPM->{basedata_file}. $SPM->{basedata_suffix});
+    $SPM->set_param("basedata_filepath" => File::Spec->catfile ($SPM->{directory}, $SPM->{basedata_filename}));
     
     # assign the default output prefix for the selected distance measure, if none was provided
-    if (!exists $$SPM{output_file_prefix}) {
+    if (!exists $SPM->{output_file_prefix}) {
         if (exists($args{dist_measure}{phylo_sorenson})) {
-            $SPM -> set_param ("output_file_prefix",'phylo_dist_');
+            $SPM->set_param ("output_file_prefix",'phylo_dist_');
         }
         elsif (exists($args{dist_measure}{sorenson}))  {
-            $SPM -> set_param ("output_file_prefix",'dist_');
+            $SPM->set_param ("output_file_prefix",'dist_');
         };
     };
     
     ### SAMPLING PARAMETERS
     
-    if ($$SPM{bins_count} > 0) {
-        $SPM -> set_param(one_quota => 0);
+    if ($SPM->{bins_count} > 0) {
+        $SPM->set_param(one_quota => 0);
     };
     
-    if ($$SPM{subset_for_testing} >=1 or $$SPM{subset_for_testing} < 0) {
-        $SPM -> set_param(subset_for_testing => 0);
+    if ($SPM->{subset_for_testing} >=1 or $SPM->{subset_for_testing} < 0) {
+        $SPM->set_param(subset_for_testing => 0);
     }
     
-    if ($$SPM{test_sample_ratio} <=0) {
-        $SPM -> set_param(test_sample_ratio => 1);
+    if ($SPM->{test_sample_ratio} <=0) {
+        $SPM->set_param(test_sample_ratio => 1);
     }
 
     my $measures = $args{dist_measure};
     my @dist_measures = sort keys %$measures;
     my $measure_count = scalar @dist_measures;
-    $SPM -> set_param(measure_count => $measure_count);
+    $SPM->set_param(measure_count => $measure_count);
     
-    if (!exists($$SPM{quota_dist_measure})) {
-        $SPM -> set_param(quota_dist_measure => $dist_measures[0]);
+    if (!exists($SPM->{quota_dist_measure})) {
+        $SPM->set_param(quota_dist_measure => $dist_measures[0]);
     }
     
     ### OUTPUT PARAMETERS
     
     #regions
-    if (exists $$SPM{regions}) {
-        $SPM -> set_param("do_output_regions",($$SPM{regions}>0))
+    if (exists $SPM->{regions}) {
+        $SPM->set_param("do_output_regions",($SPM->{regions}>0))
     };
    
     ######        END OF PARAMETERS        ######
@@ -271,7 +272,7 @@ sub generate_distance_table {
 
     
     # load basedata (and phylogeny) from file
-    $SPM -> load_data();
+    $SPM->load_data();
 
     #############################################
     ######         RUN THE ANALYSES        ######
@@ -282,31 +283,31 @@ sub generate_distance_table {
     ###  if not using trees, create a single dummy to proceed with the loop
     my $start_time = time();
     
-    my $bd = $$SPM{bd};
-    my $groups_ref = $$SPM{groups_ref};
+    my $bd = $SPM->{bd};
+    my $groups_ref = $SPM->{groups_ref};
     
-    my $trees = $$SPM{trees};
-    my $tree_count = $$SPM{tree_count};
+    my $trees = $SPM->{trees};
+    my $tree_count = $SPM->{tree_count};
     $tree_count = 1 if !($tree_count);
     
     foreach my $tree_iterate (0 .. ($tree_count -1)) {
         my $tree_ref = $$trees[$tree_iterate];
         my $name_part;
-        if ($$SPM{use_phylogeny}) {
-            $name_part = $tree_ref -> get_param ('NAME') }
+        if ($SPM->{use_phylogeny}) {
+            $name_part = $tree_ref->get_param ('NAME') }
         else {
-            $name_part = $$SPM{basedata_file};
+            $name_part = $SPM->{basedata_file};
         };
         
-        if ($$SPM{use_phylogeny}) {
-            my %trimmed_tree_ref = $$SPM{indices} -> get_trimmed_tree (tree_ref => $tree_ref);
-            $SPM -> set_param(trimmed_tree => $trimmed_tree_ref {trimmed_tree});
+        if ($SPM->{use_phylogeny}) {
+            my %trimmed_tree_ref = $SPM->{indices}->get_trimmed_tree (tree_ref => $tree_ref);
+            $SPM->set_param(trimmed_tree => $trimmed_tree_ref {trimmed_tree});
         };
         
         # Get groups for analysis
-        my @grouplist = $SPM -> get_grouplist(); # gets an array of the groups to use for the analysis, applying any sampling
+        my @grouplist = $SPM->get_grouplist(); # gets an array of the groups to use for the analysis, applying any sampling
         # rules that affect the group (site) selection
-        $SPM -> set_param (grouplist => \@grouplist);
+        $SPM->set_param (grouplist => \@grouplist);
         
         #####################################################        
         # Set up training and test group lists as requested #
@@ -314,14 +315,14 @@ sub generate_distance_table {
         
         my %grouplists;
         
-        if (!$$SPM{subset_for_testing}) {       # if no test dataset requested
+        if (!$SPM->{subset_for_testing}) {       # if no test dataset requested
             $grouplists{training} = \@grouplist;
         
         } else {                                # if training and test datasets requested
             
             shuffle @grouplist;
             my $group_count = (@grouplist + 0);
-            my $test_count = int($group_count * $$SPM{subset_for_testing});
+            my $test_count = int($group_count * $SPM->{subset_for_testing});
             my ($group, @temp_grouplist, $train_count);
             $train_count = $group_count-$test_count;
             for my $group_iter (1..$test_count) {
@@ -344,7 +345,7 @@ sub generate_distance_table {
             #     define a file handle with the appropriate prefix
             #     do the whole site pair process for each groupset
             
-            $SPM -> set_param(grouplist => $grouplists{$group_sets});
+            $SPM->set_param(grouplist => $grouplists{$group_sets});
             
             my $file_suffix = "";
             if (exists ($grouplists{test})) {
@@ -352,42 +353,42 @@ sub generate_distance_table {
             };
     
             # Open output file
-            $SPM -> set_param(output_file_name => $$SPM{output_file_prefix} . $name_part.$file_suffix.'.csv');
+            $SPM->set_param(output_file_name => $SPM->{output_file_prefix} . $name_part.$file_suffix.'.csv');
             my $result_file_handle;
-            open($result_file_handle, "> $$SPM{output_file_name} ") or die "Can't write $$SPM{directory}\\$$SPM{output_file_name}: $!";
+            open($result_file_handle, "> $SPM->{output_file_name} ") or die "Can't write $SPM->{directory}\\$SPM->{output_file_name}: $!";
             if ($result_file_handle) {
-                $SPM -> set_param(result_file_handle => $result_file_handle);
+                $SPM->set_param(result_file_handle => $result_file_handle);
             }
             
             # adjust the requested number of site pairs for training or test data
             # for approximately test_sample_ratio times frequency use of each group in the test data
-            my $test_ratio = ($$SPM{subset_for_testing} / (1-$$SPM{subset_for_testing})) * ($$SPM{subset_for_testing} / (1-$$SPM{subset_for_testing})) * $$SPM{test_sample_ratio};
-            my $test_sample_count = $$SPM{sample_count} * $test_ratio;
-            if ($test_sample_count > $$SPM{sample_count}) {
-                $test_sample_count = $$SPM{sample_count};
+            my $test_ratio = ($SPM->{subset_for_testing} / (1-$SPM->{subset_for_testing})) * ($SPM->{subset_for_testing} / (1-$SPM->{subset_for_testing})) * $SPM->{test_sample_ratio};
+            my $test_sample_count = $SPM->{sample_count} * $test_ratio;
+            if ($test_sample_count > $SPM->{sample_count}) {
+                $test_sample_count = $SPM->{sample_count};
             };
                         
             if ($group_sets eq "test") {
-                $SPM -> set_param (sample_count_current => $test_sample_count);   
+                $SPM->set_param (sample_count_current => $test_sample_count);   
             } else {
-                $SPM -> set_param (sample_count_current => $$SPM{sample_count});  
+                $SPM->set_param (sample_count_current => $SPM->{sample_count});  
             }            
     
             my $bins_max_val = 1;
-            if (exists($$SPM{dist_limit})) {
-                $bins_max_val = $$SPM{dist_limit};
+            if (exists($SPM->{dist_limit})) {
+                $bins_max_val = $SPM->{dist_limit};
             };
             
             # prepare dissimilarity bins
-            $SPM -> set_param (bins_min_val => 0,  #setting bin parameters - the remaining parameters are already in the object
+            $SPM->set_param (bins_min_val => 0,  #setting bin parameters - the remaining parameters are already in the object
                                bins_max_val => $bins_max_val,
                                bins_max_class => 1,
-                               bins_sample_count => $$SPM{sample_count_current});
-            my @bins_all = $SPM -> make_bins("bins_all");
+                               bins_sample_count => $SPM->{sample_count_current});
+            my @bins_all = $SPM->make_bins("bins_all");
             
-            if ($$SPM{bins_count} > 1) {
-                print "\nNumber dissimilarity of bins: $$SPM{bins_count}\n";
-                print "Oversample ratio to get enough samples to meet quotas: $$SPM{oversample_ratio}\n";
+            if ($SPM->{bins_count} > 1) {
+                print "\nNumber dissimilarity of bins: $SPM->{bins_count}\n";
+                print "Oversample ratio to get enough samples to meet quotas: $SPM->{oversample_ratio}\n";
             };
     
             # get distance measure list as a text string
@@ -398,11 +399,11 @@ sub generate_distance_table {
                         } else {$dist_measure_text = $dist_measure_text." and ".$dist_measures[$i]}
             };
             
-            print "\nAbout to send $dist_measure_text results to: $$SPM{directory}\\$$SPM{output_file_name} \n";
+            print "\nAbout to send $dist_measure_text results to: $SPM->{directory}\\$SPM->{output_file_name} \n";
             
             # set up regions
-            $SPM -> prepare_regions();        
-            my $regions_output = $$SPM{regions_output};
+            $SPM->prepare_regions();        
+            my $regions_output = $SPM->{regions_output};
             print "\n";
             
             my $dist_header;
@@ -416,7 +417,7 @@ sub generate_distance_table {
             };
             
             my $sum_header="";
-            if ($$SPM{species_sum} == 1) {
+            if ($SPM->{species_sum} == 1) {
                 $sum_header = ",species_sum";
             }
             
@@ -424,13 +425,13 @@ sub generate_distance_table {
             print $result_file_handle "x0,y0,x1,y1,".$dist_header.$regions_output.$sum_header."\n";
             
             # CALL THE MAIN SAMPLING LOOP #
-            $SPM -> do_sampling();        #
+            $SPM->do_sampling();        #
             ###############################
     
             my $closed_ok = close($result_file_handle);
             
             print "\n\u$group_sets data created.";
-            print "\n$$SPM{all_sitepairs_kept} result rows saved to $$SPM{directory}\\$$SPM{output_file_name} from $$SPM{all_sitepairs_done} sitepairs sampled.\n" if $closed_ok;
+            print "\n$SPM->{all_sitepairs_kept} result rows saved to $SPM->{directory}\\$SPM->{output_file_name} from $SPM->{all_sitepairs_done} sitepairs sampled.\n" if $closed_ok;
             my $elapsed_time = time()-$start_time;
             print "elapsed time: $elapsed_time seconds\n\n";
         };
@@ -440,6 +441,57 @@ sub generate_distance_table {
     print "\nBiodiverse  GDM module finished.\n";
     
 };
+
+
+
+sub new {
+    my $self = {};
+    bless $self;
+    
+    $self->initialise();
+    
+    return $self;
+}
+
+# add essential parameters to the object hash and set defaults
+# this is a work in progress, and is not guaranteed to include
+# all required values
+sub initialise {    
+    my $self = shift;
+
+    my %params = (
+        bins_count => 0,
+        basedata_suffix => '.bds',
+        min_group_samples => 0,
+        min_group_richness => 0,
+        use_phylogeny => 0,
+        frequency => 0,
+        oversample_ratio => 1,
+        sample_by_regions => 1,
+        region_quota_strategy => 'equal',
+        within_region_ratio => 1,
+        do_output_regions => 0,
+        region_header => 'region',
+        verbosity => 1,
+        sample_count => 100000,
+        one_quota => 0,
+        subset_for_testing => 0,
+        test_sample_ratio => 1,
+        shared_species => 0,
+        bins_max_class => 1,
+        species_sum => 0,  
+    );
+    
+    return $self;
+}
+
+sub set_param {
+    my $self = shift;
+    my %args = @_;
+    for my $param (keys %args) {
+        $self->{$param} = $args{$param};    
+    };
+}
 
 sub make_bins {
     
@@ -464,11 +516,11 @@ sub make_bins {
     my $self = shift;
     my @args = @_;
 
-    my $bin_count = $$self{bins_count};
-    my $min_val = $$self{bins_min_val};
-    my $max_val = $$self{bins_max_val};
-    my $max_class = $$self{bins_max_class}; # if 1, the last class contains only the maximum value.
-    my $total_target = $$self{bins_sample_count};
+    my $bin_count = $self->{bins_count};
+    my $min_val = $self->{bins_min_val};
+    my $max_val = $self->{bins_max_val};
+    my $max_class = $self->{bins_max_class}; # if 1, the last class contains only the maximum value.
+    my $total_target = $self->{bins_sample_count};
     my @bins;
     
     if ($bin_count < 1) {
@@ -479,8 +531,8 @@ sub make_bins {
     # if a distance limit has been set for sampling (presumably for geographic distance)
     # don't have a top class of a single value (1).  Such a class only makes sense for compositional dissimilarity
     my $dist_limit;
-    if(exists($$self{dist_limit})) {
-        $dist_limit = $$self{dist_limit};
+    if(exists($self->{dist_limit})) {
+        $dist_limit = $self->{dist_limit};
         if ($dist_limit > 1) {
             $max_class = 0;
         };
@@ -517,10 +569,10 @@ sub make_bins {
     # if a name is provided as an argument for make_bins, then attach the bins array
     # to the object
     if ($args[0]) {
-        $self -> set_param($args[0],\@bins);
+        $self->set_param($args[0],\@bins);
     }
     
-    $self -> set_param(max_class => $max_class);
+    $self->set_param(max_class => $max_class);
     
     return @bins;
 
@@ -528,14 +580,14 @@ sub make_bins {
 
 sub get_region_stats {
     my $self = shift;
-    #my %args = $$self{region_stats};
+    #my %args = $self->{region_stats};
     
-    my $region_column = $$self{region_column};
-    my $group_list = $$self{grouplist};
+    my $region_column = $self->{region_column};
+    my $group_list = $self->{grouplist};
     my @group_list = @$group_list;
-    my $groups_ref = $$self{groups_ref};
-    #my $bd =  $$self{bd};
-    my $sample_by_regions = $$self{sample_by_regions};   
+    my $groups_ref = $self->{groups_ref};
+    #my $bd =  $self->{bd};
+    my $sample_by_regions = $self->{sample_by_regions};   
     # the reason for the use_regions parameter is to allow the region sampling data structures and code
     # to work in the case where no regions were provided or the user does not want to sample by regions
     # in those cases, the whole dataset is defined as a single region.
@@ -553,7 +605,7 @@ sub get_region_stats {
     #Loop through all the groups and create a list of regions and of groups, species in each region
     for my $i (0.. $group_count-1) {
         #@element_columns = split /:/,$group_list[$i];
-        @element_columns = $groups_ref -> get_element_name_as_array(element => $group_list[$i]);
+        @element_columns = $groups_ref->get_element_name_as_array(element => $group_list[$i]);
         if ($sample_by_regions) {
             $current_region = $element_columns[$region_column-1];
         } else {
@@ -564,7 +616,7 @@ sub get_region_stats {
         };
 
         $regions{$current_region}{sample_count_current} ++;
-        $label_hash = $groups_ref -> get_sub_element_hash(element => $group_list[$i]);
+        $label_hash = $groups_ref->get_sub_element_hash(element => $group_list[$i]);
         for my $label (keys %$label_hash) {
             $regions{$current_region}{label_list}{$label} ++;
         };
@@ -587,7 +639,7 @@ sub get_region_stats {
     
     if ($sample_by_regions) {print "Statistics generated for ". (scalar keys %regions) . " regions.\n";}
     
-    $self -> set_param(region_stats => \%regions);    
+    $self->set_param(region_stats => \%regions);    
     
     return %regions;
     
@@ -598,12 +650,12 @@ sub get_region_quotas {
     my $self = shift;
     #my %args = @_;
     
-    my $indices = $$self{indices};
+    my $indices = $self->{indices};
     
-    my $region_stats = $$self{region_stats};
+    my $region_stats = $self->{region_stats};
     my %region_stats = %$region_stats;
-    my $region_quota_strategy = $$self{region_quota_strategy};
-    my $within_region_ratio = $$self{within_region_ratio};
+    my $region_quota_strategy = $self->{region_quota_strategy};
+    my $within_region_ratio = $self->{within_region_ratio};
     
     delete $region_stats{NO_REGION}; #don't use sites with no region
 
@@ -664,7 +716,7 @@ sub get_region_quotas {
             $region_quotas{$region_pair}{fully_used} = 0;
             
             #calculate the species shared between the 2 regions
-            my %abc = $indices -> calc_abc(
+            my %abc = $indices->calc_abc(
                                             label_hash1 => $region_stats{$region1}{label_list},
                                             label_hash2 => $region_stats{$region2}{label_list});
             $region_quotas{$region_pair}{labels_shared} = $abc{A};
@@ -681,7 +733,7 @@ sub get_region_quotas {
     # then allow for region pairs which don't have enough sites to meet the
     # quota by increasing the quota for the rest.
     my ($fixed_total, $unfixed_rel_quota) = (0,0);
-    my $sample_ratio = ($$self{sample_count_current} / $total_rel_quota);
+    my $sample_ratio = ($self->{sample_count_current} / $total_rel_quota);
     for $region_pair (keys %region_quotas) {
         $current_quota = sprintf("%.0f",($region_quotas{$region_pair}{relative_quota} * $sample_ratio));
         
@@ -700,7 +752,7 @@ sub get_region_quotas {
     
     until ($under_quota == 0) {
     
-        my $remaining_count = $$self{sample_count_current} - $fixed_total;
+        my $remaining_count = $self->{sample_count_current} - $fixed_total;
         my $unfixed_rel = $unfixed_rel_quota;
         $unfixed_rel_quota = 0;
         $total_quota = $fixed_total;
@@ -727,7 +779,7 @@ sub get_region_quotas {
             };
         };
         
-        if ($$self{sample_by_regions}) {
+        if ($self->{sample_by_regions}) {
             print "Regions under quota: $under_quota \n"; #remove once working
         }
     };
@@ -735,57 +787,13 @@ sub get_region_quotas {
     $region_quotas{summary}{region_pair_count} = $region_pair_count;
     $region_quotas{summary}{total_quota} = $total_quota;
     
-    $self -> set_param(region_stats => \%region_stats);
-    $self -> set_param(region_quotas => \%region_quotas);
+    $self->set_param(region_stats => \%region_stats);
+    $self->set_param(region_quotas => \%region_quotas);
     
     return %region_quotas;
 }
 
-sub new {
-    my $self = {};
-    bless $self;
-    
-    $self -> initialise();
-    
-    return $self;
-}
 
-sub initialise {    # add essential parameters to the object hash and set defaults
-                    # this is a work in progress, and is not guaranteed to include
-                    # all required values
-    my $self = shift;
-    
-    $$self{bins_count} = 0;
-    $$self{basedata_suffix} = ".bds";
-    $$self{min_group_samples} = 0;
-    $$self{min_group_richness} = 0;
-    $$self{use_phylogeny} = 0;
-    $$self{frequency} = 0;
-    $$self{oversample_ratio} = 1;
-    $$self{sample_by_regions} = 1;
-    $$self{region_quota_strategy} = 'equal';
-    $$self{within_region_ratio} = 1;
-    $$self{do_output_regions}=0;
-    $$self{region_header} = 'region';
-    $$self{verbosity} = 1;
-    $$self{sample_count} = 100000;
-    $$self{one_quota} = 0;
-    $$self{subset_for_testing} = 0;
-    $$self{test_sample_ratio} = 1;
-    $$self{shared_species} = 0;
-    $$self{bins_max_class} = 1;
-    $$self{species_sum} = 0;    
-    
-    return $self;
-}
-
-sub set_param {
-    my $self = shift;
-    my %args = @_;
-    for my $param (keys %args) {
-        $$self{$param} = $args{$param};    
-    };
-}
     
 sub load_data {    
     
@@ -794,74 +802,74 @@ sub load_data {
 
     my $self = shift;
     
-    chdir ($$self{directory});
+    chdir ($self->{directory});
    
     # load phylogeny related data if required
     my @trees = [""];
     
-    if ($$self{use_phylogeny}) {
+    if ($self->{use_phylogeny}) {
         
         ###  read in the trees from the nexus file
         
         #  but first specify the remap (element properties) table to use to match the tree names to the basedata object
         #  make sure we're using array refs for the columns
-        if (not reftype $$self{remap_input}) {
-            $$self{remap_input} = [$$self{remap_input}];
+        if (not reftype $self->{remap_input}) {
+            $self->{remap_input} = [$self->{remap_input}];
         }
-        if (not reftype $$self{remap_output}) {
-            $$self{remap_output} = [$$self{remap_output}];
+        if (not reftype $self->{remap_output}) {
+            $self->{remap_output} = [$self->{remap_output}];
         }
         
-        my $remap = Biodiverse::ElementProperties -> new;
-        $remap -> import_data (file => $$self{nexus_remap},
+        my $remap = Biodiverse::ElementProperties->new;
+        $remap->import_data (file => $self->{nexus_remap},
                     input_sep_char => "guess",
                     input_quote_char => "guess",
-                    input_element_cols => $$self{remap_input},
-                    remapped_element_cols => $$self{remap_output},
+                    input_element_cols => $self->{remap_input},
+                    remapped_element_cols => $self->{remap_output},
                     );
-        my $use_remap = exists($$remap{ELEMENTS});
-        my $nex = Biodiverse::ReadNexus -> new;
+        my $use_remap = exists($remap->{ELEMENTS});
+        my $nex = Biodiverse::ReadNexus->new;
 
-        my $nexus_file = File::Spec -> catfile ($$self{directory}, $$self{nexus_file});
-        $nex -> import_data (file => $nexus_file,
+        my $nexus_file = File::Spec->catfile ($self->{directory}, $self->{nexus_file});
+        $nex->import_data (file => $nexus_file,
                              use_element_properties => $use_remap,
                              element_properties => $remap);
 
-        my @trees = $nex -> get_tree_array;
+        my @trees = $nex->get_tree_array;
         
-        #my $use_remap = exists($$remap{ELEMENTS});
+        #my $use_remap = exists($remap->{ELEMENTS});
         ## read the nexus file
-        #my $read_nex = Biodiverse::ReadNexus -> new;
-        #$read_nex -> import_data (  file => $$self{nexus_file},
+        #my $read_nex = Biodiverse::ReadNexus->new;
+        #$read_nex->import_data (  file => $self->{nexus_file},
         #                            use_element_properties => $use_remap,
         #                            element_properties => $remap,
         #                            );
         #
         #  get an array of the trees contained in the nexus file
-        #@trees = $read_nex -> get_tree_array;
+        #@trees = $read_nex->get_tree_array;
         
         #  just a little feedback
         my $tree_count = scalar @trees;
         if ($tree_count) {
-            $self -> set_param(tree_count => $tree_count,
+            $self->set_param(tree_count => $tree_count,
                               trees => \@trees);
         }
         
-        print "\n$tree_count trees parsed from $$self{nexus_file}\nTree names are: ";
+        print "\n$tree_count trees parsed from $self->{nexus_file}\nTree names are: ";
         my @names;
         foreach my $tree (@trees) {
-                push @names, $tree -> get_param ('NAME');
+                push @names, $tree->get_param ('NAME');
         }
         print "\n  " . join ("\n  ", @names), "\n";
     };
         
     ###  read in the basedata object
-    my $bd = Biodiverse::BaseData -> new (file => $$self{basedata_filepath});
-    $self -> set_param(bd => $bd);
-    $self -> set_param(groups_ref => $bd -> get_groups_ref);
+    my $bd = Biodiverse::BaseData->new (file => $self->{basedata_filepath});
+    $self->set_param(bd => $bd);
+    $self->set_param(groups_ref => $bd->get_groups_ref);
     
     my $indices = Biodiverse::Indices->new (BASEDATA_REF => $self->{bd});
-    $$self{indices} = $indices;
+    $self->{indices} = $indices;
 };
 
 sub prepare_regions {
@@ -872,84 +880,84 @@ sub prepare_regions {
     
     my $self = shift;
     
-    my $bin_count = $$self{bins_count};
+    my $bin_count = $self->{bins_count};
     my $regions_output="";
-    my $grouplist = $$self{grouplist};
+    my $grouplist = $self->{grouplist};
     my @grouplist = @$grouplist;
 
     # check if regions for each group are available in the basedata
-    if ($$self{do_output_regions} or $$self{sample_by_regions}) {
+    if ($self->{do_output_regions} or $self->{sample_by_regions}) {
         my @element_test = split /:/, $grouplist[0];
         if (!$element_test[2]) { # if there is no 3rd component to define each group, after x,y
-            $self -> set_param(do_output_regions => 0,
+            $self->set_param(do_output_regions => 0,
                               sample_by_regions => 0,
                               region_codes => 0);
-            print "\nCan't use regions (".$$self{region_header}.") because this information was not stored in the Biodiverse basedata.\n";
+            print "\nCan't use regions (".$self->{region_header}.") because this information was not stored in the Biodiverse basedata.\n";
         } else {
-            print "Regions (".$$self{region_header}.") included in output.\n";
+            print "Regions (".$self->{region_header}.") included in output.\n";
         };
     };
     
     # add extra columns to the .csv file header for region names or codes if needed
-    if ($$self{do_output_regions}) {
-        $regions_output = ",".$$self{region_header}."1,".$$self{region_header}."2";    
+    if ($self->{do_output_regions}) {
+        $regions_output = ",".$self->{region_header}."1,".$self->{region_header}."2";    
     };
     
-    if ($$self{region_codes}) {
-        $regions_output .= ",".$$self{region_header}."_code1,".$$self{region_header}."_code2";    
+    if ($self->{region_codes}) {
+        $regions_output .= ",".$self->{region_header}."_code1,".$self->{region_header}."_code2";    
     };
 
     # more detailed output is appropriate where not sampling by regions
-    if (!$$self{sample_by_regions}) {$self -> set_param(verbosity => 3);}
+    if (!$self->{sample_by_regions}) {$self->set_param(verbosity => 3);}
         
-    $self -> set_param(region_column => 3); #sets which column has the region code.  Set by parameter once working
+    $self->set_param(region_column => 3); #sets which column has the region code.  Set by parameter once working
             
-    my %region_stats = $self -> get_region_stats();
-    my %region_quotas = $self -> get_region_quotas;
+    my %region_stats = $self->get_region_stats();
+    my %region_quotas = $self->get_region_quotas;
         
-    $self -> set_param (region_pair_count => $region_quotas{summary}{region_pair_count});
-    $self -> set_param (total_quota => $region_quotas{summary}{total_quota});
-    $self -> set_param(regions_output => $regions_output);
+    $self->set_param (region_pair_count => $region_quotas{summary}{region_pair_count});
+    $self->set_param (total_quota => $region_quotas{summary}{total_quota});
+    $self->set_param(regions_output => $regions_output);
      
-    if ($$self{sample_by_regions}) {print "\nReady to sample $$self{region_pair_count}" . " region pairs and ". $$self{total_quota} . " site pairs.\n";};
+    if ($self->{sample_by_regions}) {print "\nReady to sample $self->{region_pair_count}" . " region pairs and ". $self->{total_quota} . " site pairs.\n";};
     
 }
 
 sub get_grouplist {
     my $self = shift;
     
-    my @grouplist = $$self{bd} -> get_groups;
-    my $groups_ref = $$self{bd} -> get_groups_ref;
+    my @grouplist = $self->{bd}->get_groups;
+    my $groups_ref = $self->{bd}->get_groups_ref;
     my $i; # $i is the pointer for the current group
     my $group1;
     my $group_count = scalar @grouplist;
     
     ###  apply site richness limit
-    if ($$self{min_group_richness} > 1) {
+    if ($self->{min_group_richness} > 1) {
         my $samples_message;
-        if ($$self{min_group_samples} > 1) {
-            $samples_message = ' unless they have at least '.$$self{min_group_samples}.' records';
+        if ($self->{min_group_samples} > 1) {
+            $samples_message = ' unless they have at least '.$self->{min_group_samples}.' records';
         }
-        print "\nRemoving sites with less than ".$$self{min_group_richness}." species".$samples_message."\n";
+        print "\nRemoving sites with less than ".$self->{min_group_richness}." species".$samples_message."\n";
         my (@label_list, @grouplist_new, $remove_count, $label_count);
         my $keep_count = 0;
         my %subelement_hash;
         
         foreach $i (0..$group_count-1) {
             $group1 = $grouplist[$i];
-            %subelement_hash = $groups_ref -> get_sub_element_hash(element => $group1);
+            %subelement_hash = $groups_ref->get_sub_element_hash(element => $group1);
             $label_count = keys %subelement_hash;
-            if ($label_count >= $$self{min_group_richness}) {
+            if ($label_count >= $self->{min_group_richness}) {
                 $grouplist_new[$keep_count] = $group1;
                 $keep_count++;
             }
-            elsif ($$self{min_group_samples} > 1) { # the number of species is less than min_group_richness
+            elsif ($self->{min_group_samples} > 1) { # the number of species is less than min_group_richness
                 # but do they have enough samples to include anyway
                 my $sample_count=0;
                 foreach my $samples (values %subelement_hash) {
                     $sample_count = $sample_count + $samples;
                 };
-                if ($sample_count >= $$self{min_group_samples}) {
+                if ($sample_count >= $self->{min_group_samples}) {
                     $grouplist_new[$keep_count] = $group1;
                     $keep_count++;
                 } else {
@@ -962,7 +970,7 @@ sub get_grouplist {
         };
         
         @grouplist = @grouplist_new;
-        print "\n$remove_count groups with less than $$self{min_group_richness} species were removed\n";
+        print "\n$remove_count groups with less than $self->{min_group_richness} species were removed\n";
         $group_count = $#grouplist;
         print "$group_count groups remaining\n";
     };
@@ -973,30 +981,30 @@ sub get_grouplist {
 sub do_sampling {
     
     my $self = shift;
-    my $bd = $$self{bd};
-    my $indices = $$self{indices};
-    my $region_quotas = $$self{region_quotas};
+    my $bd = $self->{bd};
+    my $indices = $self->{indices};
+    my $region_quotas = $self->{region_quotas};
     my %region_quotas = %$region_quotas;
-    my $region_stats = $$self{region_stats};
+    my $region_stats = $self->{region_stats};
     my %region_stats = %$region_stats;
     my $region_pair_count = $region_quotas{summary}{region_pair_count};
-    my $n = $$self{sample_count_current};
+    my $n = $self->{sample_count_current};
     my ($group1, $group2, $label_hash1, $label_hash2, $group_count);
     my (%gl1,%gl2,%phylo_abc, $phylo_sorenson, %abc, $sorenson);
     my (@coords1,@coords2);
-    my $bin_count = $$self{bins_count};
-    my $groups_ref = $$self{groups_ref};
-    my $dist_measure = $$self{dist_measure};
-    my $quota_dist_measure = $$self{quota_dist_measure};
+    my $bin_count = $self->{bins_count};
+    my $groups_ref = $self->{groups_ref};
+    my $dist_measure = $self->{dist_measure};
+    my $quota_dist_measure = $self->{quota_dist_measure};
     my ($geog_dist, $geog_dist_output, $regions_output, $output_row, $all_sitepairs_done, $frequency);
     my ($all_sitepairs_kept,$regions_done);
-    my ($one_quota,$one_count, $skip) = ($$self{one_quota},0, 0);
-    my $result_file_handle = $$self{result_file_handle};
+    my ($one_quota,$one_count, $skip) = ($self->{one_quota},0, 0);
+    my $result_file_handle = $self->{result_file_handle};
     my ($printedProgress_all, $storedProgress_all) = (0,0);
     my $dist_output;
-    my $measure_count = $$self{measure_count};
+    my $measure_count = $self->{measure_count};
     my $dist_exceeded;
-    my $dist_limit = $$self{dist_limit};
+    my $dist_limit = $self->{dist_limit};
     
     my $single_dist_measure;
     if ($measure_count == 1) {
@@ -1006,13 +1014,13 @@ sub do_sampling {
     #set up to report the total sum of the number of species at both sites, optional extra to use as a weighting factor
     my $species_sum = 0;
     my $sum = 0;
-    if (exists($$self{species_sum})) {
-        $species_sum = $$self{species_sum};
+    if (exists($self->{species_sum})) {
+        $species_sum = $self->{species_sum};
     }
     
     # start a feedback table, if requested
-    if ($$self{feedback_table}) {
-        $self -> feedback_table(open => 1);
+    if ($self->{feedback_table}) {
+        $self->feedback_table(open => 1);
     }
     
     #######################################################
@@ -1041,15 +1049,15 @@ sub do_sampling {
         shuffle (\@grouplist1);
         
         my $region_pair_quota = $region_pair{quota};
-        my $total_samples = $region_pair_quota * $$self{oversample_ratio};
+        my $total_samples = $region_pair_quota * $self->{oversample_ratio};
         my $one_quota_region = int($one_quota * $region_pair_quota);
         $one_count = 0;
         
         # set bins for this region pair
-        $self -> set_param(bins_sample_count => $region_pair_quota);
-        my @bins = $self -> make_bins();
+        $self->set_param(bins_sample_count => $region_pair_quota);
+        my @bins = $self->make_bins();
         my $bins_max = $bins[0]{maximum};
-        my $max_class = $$self{max_class};
+        my $max_class = $self->{max_class};
         
         ###  calculate sampling frequency for this region pair
         my $all_comparisons = $region_pair{all_pairs};
@@ -1066,9 +1074,9 @@ sub do_sampling {
 
         $toDo = int($all_comparisons / $frequency);
         
-        if ($$self{verbosity} >=2) {
+        if ($self->{verbosity} >=2) {
             if ($region1 eq $region2) {
-                if ($$self{sample_by_regions}) {
+                if ($self->{sample_by_regions}) {
                     print "\nSeeking ". $region_pair_quota . " site pairs within region " . $region1.".\n";
                     print "Groups in region: $groupcount1\n";
                 } else {
@@ -1106,8 +1114,8 @@ sub do_sampling {
             $group1 = pop @grouplist1;
             %gl1 = ($group1 => 0);    
             #@coords1 = split /:/, $group1;
-            @coords1 = $groups_ref -> get_element_name_as_array(element => $group1);
-            $label_hash1 = $groups_ref -> get_sub_element_hash(element => $group1);
+            @coords1 = $groups_ref->get_element_name_as_array(element => $group1);
+            $label_hash1 = $groups_ref->get_sub_element_hash(element => $group1);
                 
             if ($region1 eq $region2) {@grouplist2 = @grouplist1};
             # for a within region sample, this ensures that only half the matrix is sampled
@@ -1136,15 +1144,15 @@ sub do_sampling {
                 # it is not being used as it alone adds 30% to program runtime                     #
                 # however, it can be reverted to if changes to the basedata data structure result  #
                 # in the preceding line not working                                                #
-                #@coords2 = $groups_ref -> get_element_name_as_array(element => $group2);          #
+                #@coords2 = $groups_ref->get_element_name_as_array(element => $group2);          #
                 ####################################################################################
                 
-                $label_hash2 = $groups_ref -> get_sub_element_hash(element => $group2);
+                $label_hash2 = $groups_ref->get_sub_element_hash(element => $group2);
                 
                 %gl2 = ($group2 => 0);
                 
                  # calculate the geographic distance
-                if (exists($$dist_measure{geographic})) {  # geographic
+                if (exists($dist_measure->{geographic})) {  # geographic
                     $dist_result{geographic} = sprintf("%.3f", sqrt( ($coords1[0]-$coords2[0]) ** 2 + ($coords1[1]-$coords2[1]) ** 2 ));
                 };
                 
@@ -1163,13 +1171,13 @@ sub do_sampling {
                 
                 if (! $dist_exceeded) {    
                     # calculate the phylo Sørensen distance
-                    if (exists($$dist_measure{phylo_sorenson})) {  # phylo_sorenson
+                    if (exists($dist_measure->{phylo_sorenson})) {  # phylo_sorenson
                         $dist_result{phylo_sorenson} = -1;      # an undefined distance result is given as -1
-                        %phylo_abc = $indices -> calc_phylo_abc(group_list1 => \%gl1,
+                        %phylo_abc = $indices->calc_phylo_abc(group_list1 => \%gl1,
                                                         group_list2 => \%gl2,
                                                         label_hash1 => $label_hash1,
                                                         label_hash2 => $label_hash2,
-                                                        trimmed_tree => $$self{trimmed_tree});
+                                                        trimmed_tree => $self->{trimmed_tree});
             
                         if (($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_B}) and ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_C})) {  #  sum of each side must be non-zero
                             $dist_result{phylo_sorenson} = sprintf("%.6f", eval {1 - (2 * $phylo_abc{PHYLO_A} / ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_ABC}))});
@@ -1177,9 +1185,9 @@ sub do_sampling {
                     }
                     
                     # calculate the Sørensen distance                                    
-                    if (exists($$dist_measure{sorenson})) {  # sorenson
+                    if (exists($dist_measure->{sorenson})) {  # sorenson
                         $dist_result{sorenson} = -1;      # an undefined distance result is given as -1
-                        %abc = $indices -> calc_abc(group_list1 => \%gl1,
+                        %abc = $indices->calc_abc(group_list1 => \%gl1,
                                             group_list2 => \%gl2,
                                             label_hash1 => $label_hash1,
                                             label_hash2 => $label_hash2);
@@ -1193,9 +1201,9 @@ sub do_sampling {
                     };
                     
                     # if any distance measure has a valid result
-                    if ( (exists($$dist_measure{sorenson}) and ($dist_result{sorenson} != -1))
-                            or (exists($$dist_measure{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1))
-                            or (exists($$dist_measure{geographic}) and $dist_result{geographic} >= 0)) {
+                    if ( (exists($dist_measure->{sorenson}) and ($dist_result{sorenson} != -1))
+                            or (exists($dist_measure->{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1))
+                            or (exists($dist_measure->{geographic}) and $dist_result{geographic} >= 0)) {
         
                         #format the distance result(s)
                         if ($measure_count > 1) {
@@ -1211,14 +1219,14 @@ sub do_sampling {
                         };
                         
                         # set the region names output
-                        if ($$self{do_output_regions}) {
+                        if ($self->{do_output_regions}) {
                             $regions_output = ",".$region1.",".$region2;
                         } else {
                             $regions_output = "";
                         }
                         
                         # set the region codes output
-                        if ($$self{region_codes}) {
+                        if ($self->{region_codes}) {
                             $regions_output .= ",".$region_stats{$region1}{code}.",".$region_stats{$region2}{code};
                         };
           
@@ -1228,7 +1236,7 @@ sub do_sampling {
                                 if ($one_count >= $one_quota_region) {
                                     $skip =1;
                                     if ($one_count == $one_quota_region) {
-                                        if ($$self{verbosity} >= 2) {
+                                        if ($self->{verbosity} >= 2) {
                                             print "Quota of $one_quota_region scores of 1 reached after $count iterations \n";
                                         };
                                     };
@@ -1239,7 +1247,7 @@ sub do_sampling {
                                 if (!$bins[$bin_count][3]){ #if quota not previously reached
                                     $bins[$bin_count][2] ++;
                                     if ($bins[$bin_count][1] <= $bins[$bin_count][2]) {
-                                        if ($$self{verbosity} >=2) {
+                                        if ($self->{verbosity} >=2) {
                                             print "   Quota of $bins[$bin_count][2] scores of 1 reached from " . ($loops + 1) ." site pairs \n";
                                         };
                                         $bins[$bin_count][3] = 1; # quota reached so set full = true
@@ -1257,7 +1265,7 @@ sub do_sampling {
                                             if ($bins[$bin_number][1] <= $bins[$bin_number][2]) {
                                                 my $bin_min = 0;
                                                 if ($bin_number > 1) {$bin_min = $bins[$bin_number-1][0]};
-                                                if ($$self{verbosity} >=2) {
+                                                if ($self->{verbosity} >=2) {
                                                     print "   Quota of $bins[$bin_number][2] scores of " . sprintf("%.3f", $bin_min) . " to < " . sprintf("%.3f",$bins[$bin_number][0]) . " reached from $loops site pairs \n";
                                                 };
                                                 $bins[$bin_number][3] = 1; #quota reached so set full = true
@@ -1296,7 +1304,7 @@ sub do_sampling {
                 $dist_exceeded = 0;
                 $sum= "";
                 
-                if ($$self{verbosity} == 3) {
+                if ($self->{verbosity} == 3) {
                     $progress = int (100 * $loops / $toDo);
                     if (($progress % 5 == 0) or (($diss_quotas_reached == $bin_count) and $bin_count>1)) {
                         if ($printedProgress != $progress) {
@@ -1311,7 +1319,7 @@ sub do_sampling {
         };
 
         #give feedback for bins where quota was not filled
-        if ($$self{verbosity} >=2) {
+        if ($self->{verbosity} >=2) {
             if ($diss_quotas_reached < $bin_count) {
                 print "\nQuotas not met after $loops site pairs:\n";                
                 for my $bin_number (1..($bin_count)) {
@@ -1334,7 +1342,7 @@ sub do_sampling {
         $region_pair{sitepairs_done} = $loops;
         $region_pair{sitepairs_kept} = $count;
         
-        my $bins_all = $$self{bins_all};
+        my $bins_all = $self->{bins_all};
         my @bins_all = $bins_all;
         for my $class (1 .. (scalar @bins_all - 1)) {
             #add the total for each class in this region to create a global total
@@ -1344,14 +1352,14 @@ sub do_sampling {
         }
              
         my $progress_all;
-        if ($$self{sample_by_regions}) {
+        if ($self->{sample_by_regions}) {
             $progress_all = int (100 * $regions_done / $region_pair_count);
         } else {
             $progress_all = int (100 * $all_sitepairs_done / $toDo);
         }
                     
         # Feedback on completed region after each region
-        if ($$self{verbosity} == 1) {
+        if ($self->{verbosity} == 1) {
             print "$progress_all%  Region";
             if ($region1 eq $region2) {
                 print " $region1.  "
@@ -1376,12 +1384,12 @@ sub do_sampling {
         }
 
         # Feedback on global progress after each region
-        if ($$self{verbosity} ==0 or ($regions_done == $region_pair_count)) {
+        if ($self->{verbosity} ==0 or ($regions_done == $region_pair_count)) {
             if (($progress_all % 5 == 0) or ($regions_done == $region_pair_count)) {
                 if ($printedProgress_all != $progress_all) {
                     $storedProgress_all = int (100 * $regions_done / $region_pair_count);
                     print "Done: $progress_all%      Sites pairs done: $all_sitepairs_done   Site pairs stored: $all_sitepairs_kept";
-                    if ($$self{sample_by_regions}) {
+                    if ($self->{sample_by_regions}) {
                         print "     Region pairs: $regions_done\n";
                     } else {
                         print "\n";
@@ -1392,8 +1400,8 @@ sub do_sampling {
         };
         
         # send feedback for the completed region to the feedback table
-        if ($$self{feedback_table}) {
-            $self -> feedback_table(one_region_pair => 1,
+        if ($self->{feedback_table}) {
+            $self->feedback_table(one_region_pair => 1,
                                     region1 => $region1,
                                     region2 => $region2,
                                     region_pair_hash => \%region_pair,
@@ -1404,10 +1412,10 @@ sub do_sampling {
     };
     
     # close the feedback table
-    if ($$self{feedback_table}) {$self -> feedback_table(close => 1);}
+    if ($self->{feedback_table}) {$self->feedback_table(close => 1);}
     
-    $self -> set_param(all_sitepairs_done => $all_sitepairs_done);
-    $self -> set_param(all_sitepairs_kept => $all_sitepairs_kept);
+    $self->set_param(all_sitepairs_done => $all_sitepairs_done);
+    $self->set_param(all_sitepairs_kept => $all_sitepairs_kept);
 };
 
 sub feedback_table {
@@ -1416,54 +1424,54 @@ sub feedback_table {
 
     my $self = shift;
     my %args = @_;
-    my $feedback_file_handle = $$self{feedback_file_handle};
+    my $feedback_file_handle = $self->{feedback_file_handle};
     
     if ($args{open}) {
-        my @filename = split /.csv/,$$self{output_file_name};
-        my $feedback_filename = $filename[0] . $$self{feedback_suffix} . ".csv";
-        $self -> set_param(feedback_file_name => $feedback_filename);
-        open($feedback_file_handle, "> $feedback_filename ") or die "Can't write $$self{directory}\\$feedback_filename: $!";
+        my @filename = split /.csv/,$self->{output_file_name};
+        my $feedback_filename = $filename[0] . $self->{feedback_suffix} . ".csv";
+        $self->set_param(feedback_file_name => $feedback_filename);
+        open($feedback_file_handle, "> $feedback_filename ") or die "Can't write $self->{directory}\\$feedback_filename: $!";
         if ($feedback_file_handle) {
-            $self -> set_param(feedback_file_handle => $feedback_file_handle);
+            $self->set_param(feedback_file_handle => $feedback_file_handle);
             print "\nFeedback table will be written to $feedback_filename\n";
         }
     } elsif ($args{close}) {
         my $success = close($feedback_file_handle);
         if ($success) {
-            print "\nFinished writing feedback table $$self{feedback_file_name}\n";
+            print "\nFinished writing feedback table $self->{feedback_file_name}\n";
         } else {
-            print "\nNote: feedback table $$self{feedback_file_name} was not closed successfully\n";
+            print "\nNote: feedback table $self->{feedback_file_name} was not closed successfully\n";
         }
         
     } elsif ($args{one_region_pair}) {
-        my $feedback_header_done = $$self{feedback_header_done};
+        my $feedback_header_done = $self->{feedback_header_done};
         
         # write the header line if not yet written
         if (! $feedback_header_done) {
             my $header_text = "Region1,Region2,GroupCount1,GroupCount2,Species count1,Species count2,Species shared,AllPairs,Region pair quota,Frequency,Site pairs searched,Site pair output,Bins quota";
-            for my $bindex (1..$$self{bins_count}) {
+            for my $bindex (1..$self->{bins_count}) {
                 $header_text .= ",Bin".$bindex.",Quota $bindex reached after";
             }
             print $feedback_file_handle "$header_text\n";
-            $self -> set_param(feedback_header_done => 1);
+            $self->set_param(feedback_header_done => 1);
         }
         
         # collect all of the values to be reported
         my ($region1, $region2) = ($args{region1},$args{region2});
         my $region_pair = $args{region_pair_hash};
         
-        my $region1_stats = $$self{region_stats}{$region1};
-        my $region2_stats = $$self{region_stats}{$region2};
+        my $region1_stats = $self->{region_stats}{$region1};
+        my $region2_stats = $self->{region_stats}{$region2};
         my $bins = $args{region_bins};
         
-        my $shared = $$region_pair{labels_shared};
+        my $shared = $region_pair->{labels_shared};
         
         # build the row of output for this region pair as a string
-        my $round_freq = sprintf("%.3f",  $$region_pair{frequency});
-        my $row_text = "$region1,$region2,$$region1_stats{group_count},$$region2_stats{group_count},$$region1_stats{label_count},$$region2_stats{label_count},";
-        $row_text .= "$shared,$$region_pair{all_pairs},$$region_pair{quota},$round_freq,$$region_pair{sitepairs_done},$$region_pair{sitepairs_kept},$$bins[1][1]";
+        my $round_freq = sprintf("%.3f",  $region_pair->{frequency});
+        my $row_text = "$region1,$region2,$region1_stats->{group_count},$region2_stats->{group_count},$region1_stats->{label_count},$region2_stats->{label_count},";
+        $row_text .= "$shared,$region_pair->{all_pairs},$region_pair->{quota},$round_freq,$region_pair->{sitepairs_done},$region_pair->{sitepairs_kept},$$bins[1][1]";
         
-        for my $bindex (1..$$self{bins_count}) {
+        for my $bindex (1..$self->{bins_count}) {
             $row_text .= ",$$bins[$bindex][2],$$bins[$bindex][4]";
         }
         
@@ -1482,7 +1490,7 @@ sub DESTROY {
     
     foreach my $key (keys %$self) {  #  clear all the top level stuff
 
-        delete $$self{$key};        
+        delete $self->{$key};        
     }
 }
 

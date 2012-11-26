@@ -233,7 +233,7 @@ Table of contents:
 
 *Subroutine:*   calc_endemism_central_hier_part
 
-*Reference:*   Laffan et al. (in press) J Biogeog.
+*Reference:*   Laffan et al. (in press) J Biogeog. http://dx.doi.org/10.1111/jbi.12001.
  
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||

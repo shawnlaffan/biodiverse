@@ -131,19 +131,30 @@ sub rebuild_value_index {
 
             my $val = $self->get_value (element1 => $el1, element2 => $el2);
 
-            my $index_val = $val;  #  should make this a method
-            if (!defined $index_val) {
-                $index_val = q{undef};
-            }
-            elsif (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
-                $index_val = sprintf $prec, $val;
-            }
+            my $index_val = $self->get_value_index_key (value => $val);
 
             $self->{BYVALUE}{$index_val}{$el1}{$el2}++;
         }
     }
 
     return $self;
+}
+
+sub get_value_index_key {
+    my $self = shift;
+    my %args = @_;
+    
+    my $val = $args{value};
+    
+    my $index_val = $val;  #  should make this a method
+    if (!defined $index_val) {
+        $index_val = q{undef};
+    }
+    elsif (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
+        $index_val = sprintf $prec, $val;
+    }
+    
+    return $index_val;
 }
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
@@ -713,13 +724,7 @@ sub add_element {  #  add an element pair to the object
         return;
     }
 
-    my $index_val = $val;
-    if (!defined $index_val) {
-        $index_val = q{undef};
-    }
-    elsif (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
-        $index_val = sprintf $prec, $val;
-    }
+    my $index_val = $self->get_value_index_key (value => $val);
 
     $self->{BYELEMENT}{$element1}{$element2} = $val;
     $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
@@ -768,10 +773,9 @@ sub delete_element {
         defined (delete $self->{BYELEMENT}{$element1})
             || warn "ISSUES BYELEMENT $element1 $element2\n";
     }
-    my $index_val = $value;
-    if (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
-        $index_val = sprintf $prec, $value;
-    }
+
+    my $index_val = $self->get_value_index_key (value => $value);
+
     delete $self->{BYVALUE}{$index_val}{$element1}{$element2}; # if exists $self->{BYVALUE}{$value}{$element1}{$element2};
     if (scalar keys %{$self->{BYVALUE}{$index_val}{$element1}} == 0) {
         #undef $self->{BYVALUE}{$value}{$element1};

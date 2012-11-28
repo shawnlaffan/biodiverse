@@ -104,6 +104,47 @@ sub clone {
     return $clone_ref;
 }
 
+sub delete_value_index {
+    my $self = shift;
+
+    undef $self->{BYVALUE};
+    delete $self->{BYVALUE};
+
+    return $self;
+}
+
+sub rebuild_value_index {
+    my $self = shift;
+    
+    #$self->delete_value_index;
+    $self->{BYVALUE} = {};
+    
+    my @elements = $self->get_elements_as_array;
+    
+    EL1:
+    foreach my $el1 (@elements) {
+        EL2:
+        foreach my $el2 (@elements) {
+            #  we want pairs in their stored order
+            next EL2
+              if 1 != $self->element_pair_exists(element1 => $el1, element2 => $el2);
+
+            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+
+            my $index_val = $val;  #  should make this a method
+            if (!defined $index_val) {
+                $index_val = q{undef};
+            }
+            elsif (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
+                $index_val = sprintf $prec, $val;
+            }
+
+            $self->{BYVALUE}{$index_val}{$el1}{$el2}++;
+        }
+    }
+
+    return $self;
+}
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
 sub describe {

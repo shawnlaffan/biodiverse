@@ -1,12 +1,13 @@
 #!/usr/bin/perl -w
 #
 #  tests for both normal and lowmem matrices, where they overlap in methods
-
+use 5.010;
 use strict;
 use warnings;
 
 use FindBin qw/$Bin/;
 use rlib;
+use Scalar::Util qw /blessed/;
 
 use Test::More;
 
@@ -24,7 +25,10 @@ use Biodiverse::TestHelpers qw /:matrix/;
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
 
-my @classes = qw /Biodiverse::Matrix Biodiverse::Matrix::LowMem/;
+my @classes = qw /
+    Biodiverse::Matrix
+    Biodiverse::Matrix::LowMem
+/;
 
 foreach my $class (@classes) {
     run_main_tests($class);
@@ -41,35 +45,44 @@ foreach my $class (@classes) {
     run_with_site_data ($class, VAL_INDEX_PRECISION => $precision);
 }
 
+#  can one substitute for the other?
+{
+    my $normal_class = 'Biodiverse::Matrix';
+    my $lowmem_class = 'Biodiverse::Matrix::LowMem';
+
+    my $mx = create_matrix_object ($normal_class);
+    
+    $mx->to_lowmem;
+
+    is (blessed ($mx), $lowmem_class, "class is now $lowmem_class");
+
+    run_main_tests (undef, $mx);
+    
+    $mx->to_normal;
+    
+    is (blessed ($mx), $normal_class, "class is now $normal_class");
+
+    run_main_tests (undef, $mx);
+    
+}
+
+
 #  NEED TO TEST EFFECT OF DELETIONS
 
+
+done_testing();
+
+
 sub run_main_tests {
-    my $class = shift;
+    my ($class, $mx) = @_;
+    
+    $class //= blessed $mx;
 
     note "\nUsing class $class\n\n";
 
     my $e;  #  for errors
 
-    my $tmp_mx_file = write_data_to_temp_file (get_matrix_data());
-    my $fname = $tmp_mx_file->filename;
-    my $mx = eval {
-        $class->new (
-            NAME            => "test matrix $class",
-            ELEMENT_COLUMNS => [0],
-        );
-     };    
-    $e = $EVAL_ERROR;
-    diag $e if $e;
-
-    ok (!$e, "created $class object without error");
-
-    eval {
-        $mx->import_data (
-            file => $fname,
-        );
-    };
-    $e = $EVAL_ERROR;
-    diag $e if $e;
+    $mx //= create_matrix_object ($class);
 
     ok (!$e, 'imported data');
     
@@ -209,7 +222,37 @@ sub run_with_site_data {
     #$mx->save_to_yaml (filename => $mx =~ /LowMem/ ? 'xx_LowMem.bmy' : 'xx_normal.bmy');
 }
 
-done_testing();
+
+
+sub create_matrix_object {
+    my $class = shift // 'Biodiverse::Matrix';
+
+    my $e;
+
+    my $tmp_mx_file = write_data_to_temp_file (get_matrix_data());
+    my $fname = $tmp_mx_file->filename;
+    my $mx = eval {
+        $class->new (
+            NAME            => "test matrix $class",
+            ELEMENT_COLUMNS => [0],
+        );
+     };    
+    $e = $EVAL_ERROR;
+    diag $e if $e;
+
+    ok (!$e, "created $class object without error");
+    
+    eval {
+        $mx->import_data (
+            file => $fname,
+        );
+    };
+    $e = $EVAL_ERROR;
+    diag $e if $e;
+
+    return $mx;
+}
+
 
 
 ######################################

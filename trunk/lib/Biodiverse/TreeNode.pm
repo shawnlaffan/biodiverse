@@ -1372,7 +1372,7 @@ sub to_table {
         $parent_num = $node->is_root_node
                         ? 0
                         : $node->get_parent->get_value ('NODE_NUMBER');
-        if ($node->is_terminal_node || $args{use_internal_names}) {
+        if (!$node->is_internal_node || $args{use_internal_names}) {
             $taxon_name = $node->get_name;
         }
         else {

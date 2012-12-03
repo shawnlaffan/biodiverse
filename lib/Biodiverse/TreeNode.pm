@@ -812,7 +812,7 @@ sub get_all_descendents { #  get all the nodes (whether terminal or not) which a
 #  should use a while loop instead of recursion
 sub get_path_to_root_node {
     my $self = shift;
-    my %args = @_;
+    my %args = (cache => 1, @_);  #  cache unless told not to
 
     return wantarray ? ($self) : [$self] if $self->is_root_node;
 
@@ -823,7 +823,9 @@ sub get_path_to_root_node {
 
     if ($use_cache) {
         $path = $self->get_cached_value('PATH_TO_ROOT_NODE');
-        return wantarray ? @$path : $path;
+        #print ("using cache for " . $self->get_name . "\n") if $path;
+        return wantarray ? @$path : $path
+          if $path;
     }
 
     #$path = $self->get_parent->get_path_to_root_node (@_);

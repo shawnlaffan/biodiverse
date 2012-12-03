@@ -1375,7 +1375,7 @@ sub get_last_shared_ancestor_for_nodes {
 
       PATH_NODE_REF:
         foreach my $path_node_ref (@path) {
-            my $node_name_path = $path_node_ref->get_name; #  for debug
+            #my $node_name_path = $path_node_ref->get_name; #  for debug
             my $idx = first_index { $_ eq $path_node_ref } @reference_path;
 
             next PATH_NODE_REF if $idx < 0;  #  not in path, try the next node

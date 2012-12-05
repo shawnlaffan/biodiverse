@@ -480,6 +480,7 @@ sub parse_args_file {
               // croak "Unbalanced parentheses in value for $keyword: $val2" ;
         }
         $value =~ s/#.*$//;
+        next LINE if !length $keyword;  #  skip empties
         
         if (not $keyword =~ /dist_measure/) {
             $args{$keyword} = $value;

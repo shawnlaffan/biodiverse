@@ -1,0 +1,19 @@
+#  File of argument for the site pair sampler.
+#  Anything after a # is a comment and is ignored.
+#  if your argument comntains a # then put it inside quotes.
+#  Blank lines are also ignored.
+
+
+dist_measure        sorenson
+dist_measure        geographic 
+directory           'C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae'  # working directory
+basedata_file       "Hylids_Feb10_001deg_5000_IBRA" # don't include suffix (eg .bds)
+output_file_prefix  "basic_"
+sample_count        100000
+min_group_richness  2
+min_group_samples   5
+sample_by_regions   0
+subset_for_testing  0.2
+verbosity           3
+feedback_table      1
+feedback_suffix     "_fb"

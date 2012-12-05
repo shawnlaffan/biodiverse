@@ -11,15 +11,10 @@ our $VERSION = '0.18003';
 
 use BdPD::GDM_Input;
 
-#use Biodiverse::BaseData;
-#use Biodiverse::ElementProperties;  #  for remaps
-#use Biodiverse::ReadNexus;
-#use Biodiverse::Tree;
-#use Biodiverse::Indices;
 use Math::Random::MT::Auto qw(rand irand shuffle gaussian);
 
 use Exporter::Easy (
-    TAGS => [all => ['generate_distance_table']],
+    TAGS => [all => [qw /generate_distance_table parse_args_file/]],
 );
 
 
@@ -206,11 +201,11 @@ sub generate_distance_table {
     if (!((ref $args{dist_measure}) =~ /HASH/)) {
         %dist_measures = ($args{dist_measure} => 1);
         $SPM->{dist_measure} = \%dist_measures;
-        $args{dist_measure} = \%dist_measures;
+        $args{dist_measure}  = \%dist_measures;
     }
 
     if (exists($args{dist_measure}{phylo_sorenson})) {
-        $SPM->set_param("use_phylogeny", 1)
+        $SPM->set_param(use_phylogeny => 1)
     };
     
     if ($SPM->{use_phylogeny}) { # get all the phylogeny related paramters if required
@@ -219,16 +214,16 @@ sub generate_distance_table {
         };
     };
 
-    $SPM->set_param("basedata_filename" => $SPM->{basedata_file}. $SPM->{basedata_suffix});
-    $SPM->set_param("basedata_filepath" => File::Spec->catfile ($SPM->{directory}, $SPM->{basedata_filename}));
+    $SPM->set_param(basedata_filename => $SPM->{basedata_file} . $SPM->{basedata_suffix});
+    $SPM->set_param(basedata_filepath => File::Spec->catfile ($SPM->{directory}, $SPM->{basedata_filename}));
     
     # assign the default output prefix for the selected distance measure, if none was provided
     if (!exists $SPM->{output_file_prefix}) {
         if (exists($args{dist_measure}{phylo_sorenson})) {
-            $SPM->set_param ("output_file_prefix",'phylo_dist_');
+            $SPM->set_param (output_file_prefix => 'phylo_dist_');
         }
         elsif (exists($args{dist_measure}{sorenson}))  {
-            $SPM->set_param ("output_file_prefix",'dist_');
+            $SPM->set_param (output_file_prefix => 'dist_');
         };
     };
     
@@ -458,5 +453,43 @@ sub generate_distance_table {
 
     print "\nBiodiverse GDM module completed.\n";
 };
+
+#  should probably find a module on CPAN for this
+sub parse_args_file {
+    my $file = shift // croak "file arg is undefined";
+    
+    open my $fh, '<', $file or croak "Unable to open $file";
+    
+    my %args = (dist_measure => {});
+    
+    LINE:
+    while (defined (my $line = <$fh>)) {
+        next LINE if $line =~ /^\s*#/;
+        $line =~ s/^\s+//;
+        chomp $line;
+        $line =~ s/\s$//;
+        
+        my @parts   = split /\s+/, $line, 2;
+        my $keyword = $parts[0];
+        my $value   = $parts[1];
+        if ($value =~ /^(['"])/) {
+            my $quotes = $1;
+            my $val2 = $value;
+            $val2 =~ /^$quotes(.+)$quotes/;
+            $value = $1
+              // croak "Unbalanced parentheses in value for $keyword: $val2" ;
+        }
+        $value =~ s/#.*$//;
+        
+        if (not $keyword =~ /dist_measure/) {
+            $args{$keyword} = $value;
+        }
+        else {  #  special handling
+            $args{dist_measure}{$value} = 1;
+        }
+    }
+    
+    return wantarray ? %args : \%args;
+}
 
 1;

@@ -1,6 +1,6 @@
 #  File of argument for the site pair sampler.
 #  Anything after a # is a comment and is ignored.
-#  if your argument comntains a # then put it inside quotes.
+#  if your argument contains a # then put it inside quotes.
 #  Blank lines are also ignored.
 
 

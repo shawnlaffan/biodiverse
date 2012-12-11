@@ -17,9 +17,8 @@ use English qw { -no_match_vars };
 
 #  add the lib folder if needed
 use rlib;
+use lib '../../../lib';  #  until we move the site pair sampler to the main bin/lib folders
 
-#use BdPD::GDM_Input_standard;
-#use BdPD::GDM_Input;
 use BdPD::GenerateDistanceTable qw /:all/;
 
 #  load up the user defined libs and settings

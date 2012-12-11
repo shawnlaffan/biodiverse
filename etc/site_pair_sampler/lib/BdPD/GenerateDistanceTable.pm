@@ -471,7 +471,7 @@ sub parse_args_file {
         
         my @parts   = split /\s+/, $line, 2;
         my $keyword = $parts[0];
-        my $value   = $parts[1];
+        my $value   = $parts[1] // q{};
         if ($value =~ /^(['"])/) {
             my $quotes = $1;
             my $val2 = $value;

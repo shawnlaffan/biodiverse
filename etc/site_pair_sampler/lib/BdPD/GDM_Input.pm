@@ -396,16 +396,24 @@ sub load_data {
         if (not reftype $self->{remap_output}) {
             $self->{remap_output} = [$self->{remap_output}];
         }
+        
+        my ($remap, $use_remap);
 
-        my $remap = Biodiverse::ElementProperties->new;
-        $remap->import_data (
-            file                  => $self->{nexus_remap},
-            input_sep_char        => "guess",
-            input_quote_char      => "guess",
-            input_element_cols    => $self->{remap_input},
-            remapped_element_cols => $self->{remap_output},
-        );
-        my $use_remap = exists($remap->{ELEMENTS});
+        if (!defined $self->{nexus_remap}) {
+            warn "using phylogeny, but nexus_remap arg not specified\n"
+        }
+        else {
+            $remap = Biodiverse::ElementProperties->new;
+            $remap->import_data (
+                file                  => $self->{nexus_remap},
+                input_sep_char        => "guess",
+                input_quote_char      => "guess",
+                input_element_cols    => $self->{remap_input},
+                remapped_element_cols => $self->{remap_output},
+            );
+            $use_remap = exists($remap->{ELEMENTS});
+        }
+
         my $nex = Biodiverse::ReadNexus->new;
 
         my $nexus_file = File::Spec->catfile ($self->{directory}, $self->{nexus_file});

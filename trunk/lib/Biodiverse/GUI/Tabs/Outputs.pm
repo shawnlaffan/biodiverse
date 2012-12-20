@@ -295,7 +295,9 @@ sub onShow {
         };
         if ($EVAL_ERROR) {
             $self->{gui}->report_error ($EVAL_ERROR);
-            $tab->onClose;
+            if ($tab) {
+                $tab->onClose;
+            }
             return;
         }
     }

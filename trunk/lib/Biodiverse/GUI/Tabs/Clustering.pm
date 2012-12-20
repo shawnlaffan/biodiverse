@@ -206,7 +206,14 @@ sub new {
     $self->initIndicesCombo();
     $self->initLinkageCombo();
     $self->initMap();
-    $self->initDendrogram();
+    eval {
+        $self->initDendrogram();
+    };
+    if (my $e = $EVAL_ERROR) {
+        $self->{gui}->report_error($e);
+        $self->onClose;
+        return;
+    }
     $self->initMapShowCombo();
     $self->initMapListCombo();
 

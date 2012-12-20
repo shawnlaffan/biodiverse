@@ -484,7 +484,7 @@ sub setBaseStruct {
     if ($sizes[0] == 0
         || ! defined $sizes[1]
         || $sizes[1] == 0 ) {
-        $width_pixels = 2
+        $width_pixels = 1
     }
 
 #    my ($cellX, $cellY, $width_pixels) = $self->getCellSizes($data);

@@ -240,7 +240,13 @@ sub generate_distance_table {
     if ($SPM->{test_sample_ratio} <= 0) {
         $SPM->set_param(test_sample_ratio => 1);
     }
-
+    
+    if ($SPM->{oversample_ratio} < 1) {
+        print "\nOversample ratio requested was ", $SPM->{oversample_ratio};
+        $SPM->set_param(oversample_ratio => 1);
+        print ", but was set to 1, the minimum valid value.";
+    }
+    
     my $measures = $args{dist_measure};
     my @dist_measures = sort keys %$measures;
     my $measure_count = scalar @dist_measures;
@@ -387,6 +393,7 @@ sub generate_distance_table {
                 print "\nNumber dissimilarity of bins: $SPM->{bins_count}\n";
                 print "Oversample ratio to get enough samples to meet quotas: $SPM->{oversample_ratio}\n";
             };
+            
     
             # get distance measure list as a text string
             my $dist_measure_text = q{};

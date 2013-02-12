@@ -34,8 +34,10 @@ BEGIN {  #  add the gtk libs if using windows - brittle?
 
         foreach my $gtk_path (
           Path::Class::dir($origin_dir, $gtk_dir, 'bin'),
-          Path::Class::dir($origin_dir->parent, $gtk_dir, 'bin'))
-          {
+          Path::Class::dir($origin_dir, $gtk_dir, 'c', 'bin'),
+          Path::Class::dir($origin_dir->parent, $gtk_dir, 'bin'),
+          Path::Class::dir($origin_dir->parent, $gtk_dir, 'c', 'bin'),
+          ) {
             if (-d $gtk_path) {
                 push @paths, $gtk_path;
             }

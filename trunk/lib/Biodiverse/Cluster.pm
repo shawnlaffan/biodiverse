@@ -16,6 +16,7 @@ use List::MoreUtils qw /natatime/;
 our $VERSION = '0.18003';
 
 use Biodiverse::Matrix;
+use Biodiverse::Matrix::LowMem;
 use Biodiverse::TreeNode;
 use Biodiverse::SpatialParams;
 use Biodiverse::Progress;
@@ -39,6 +40,8 @@ our %PARAMS = (  #  most of these are not used
 );
 
 my $EMPTY_STRING = q{};
+my $mx_class        = 'Biodiverse::Matrix';
+my $mx_class_lowmem = 'Biodiverse::Matrix::LowMem';
 
 
 #  use the "new" sub from Tree.
@@ -279,7 +282,7 @@ sub build_matrices {
             );
         }
 
-        $matrices[$i] = Biodiverse::Matrix->new(
+        $matrices[$i] = $mx_class->new(
             JOIN_CHAR    => $bd->get_param('JOIN_CHAR'),
             NAME         => $mx_name,
             BASEDATA_REF => $bd,
@@ -289,7 +292,7 @@ sub build_matrices {
 
     my $shadow_matrix;
     if (scalar @matrices > 1) {
-        $shadow_matrix = Biodiverse::Matrix->new (
+        $shadow_matrix = $mx_class->new (
             name         => $name . '_SHADOW_MATRIX',
             BASEDATA_REF => $bd,
         );
@@ -987,9 +990,9 @@ sub get_most_similar_pair {
     my $self= shift;
     my %args = @_;
     
-    my $rand = $args{rand_object} // croak "rand_object argument not passed\n";
-    my $sim_matrix = $args{sim_matrix} // croak "sim_matrix argument not passed\n";
-    my $min_value = $args{min_value} // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+    my $rand        = $args{rand_object} // croak "rand_object argument not passed\n";
+    my $sim_matrix  = $args{sim_matrix}  // croak "sim_matrix argument not passed\n";
+    my $min_value   = $args{min_value}   // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
     my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
 
     my $keys_ref = $sim_matrix->get_elements_with_value (value => $min_value);
@@ -1005,44 +1008,70 @@ sub get_most_similar_pair {
     }
     else {
         my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
-        my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
+        my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
+        my $cache_matrices = $self->get_cached_value ('TIEBREAKER_CACHES');
+        if (!$cache_matrices) {
+            #  generate one matrix per tie breaker and cache them
+            #my $itx = natatime 2, @$tie_breaker;
+            #while (my ($breaker, $optimisation) = $itx->()) {
+                #my $cache_mx = $mx_class_lowmem->new();
+                #$cache_matrices->{$breaker} = $cache_mx;
+            #}
+            $cache_matrices = {};
+            $self->set_cached_value (TIEBREAKER_CACHES => $cache_matrices);
+        }
 
         #  need to get all the pairs
         my @pairs;
-        foreach my $name1 (sort keys %$keys_ref) {
+        foreach my $name1 (keys %$keys_ref) {
             my $ref = $keys_ref->{$name1};
-            foreach my $name2 (sort keys %$ref) {
+            foreach my $name2 (keys %$ref) {
                 push @pairs, [$name1, $name2];  #  need to use terminal names - allows to link_recalculate
             }
         }
-        if (scalar @pairs == 1) {
-            return wantarray ? @{$pairs[0]} : $pairs[1];
-        }
+        return (wantarray ? @{$pairs[0]} : $pairs[0])
+          if scalar @pairs == 1;
 
         my $current_pair;
+        my %tmp = @$tie_breaker;
+        my @tie_keys = keys %tmp;
 
-        foreach my $pair (@pairs) {
-            my @el_lists;
-            foreach my $j (0, 1) {
-                my $node = $pair->[$j];
-                my $node_ref = $self->get_node_ref (node => $node);
-                my $el_list;
-                if ($node_ref->is_internal_node) {
-                    my $terminals = $node_ref->get_terminal_elements;
-                    $el_list = [keys %$terminals];
+        foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { #  ensures same order each time, thus stabilising random results
+            no autovivification;
+
+            my $calc_results = $cache_matrices->{$pair->[0]}{$pair->[1]} || $cache_matrices->{$pair->[1]}{$pair->[0]};
+
+            if (!defined $calc_results) {
+                my @el_lists;
+                foreach my $j (0, 1) {
+                    my $node = $pair->[$j];
+                    my $node_ref = $self->get_node_ref (node => $node);
+                    my $el_list;
+                    if ($node_ref->is_internal_node) {
+                        my $terminals = $node_ref->get_terminal_elements;
+                        $el_list = [keys %$terminals];
+                    }
+                    else {
+                        $el_list = [$node];
+                    }
+                    push @el_lists, $el_list;
                 }
-                else {
-                    $el_list = [$node];
-                }
-                push @el_lists, $el_list;
+                my %results = $indices_object->run_calculations(
+                    %$analysis_args,
+                    element_list1 => $el_lists[0],
+                    element_list2 => $el_lists[1],
+                );
+                $calc_results->{random} = $rand->rand;  #  add values for non-index options, keep them consistet across all runs
+                $calc_results->{none}   = 0;
+
+                #  remove any keys we won't use for tie breakers
+                my %tmp = %results;
+                delete @tmp{@tie_keys};
+                delete @results{keys %tmp};
+                $calc_results = \%results;
+                $cache_matrices->{$pair->[0]}{$pair->[1]} = $calc_results;
             }
-            my %calc_res = $indices_object->run_calculations(
-                %$analysis_args,
-                element_list1 => $el_lists[0],
-                element_list2 => $el_lists[1],
-            );
-            $calc_res{random} = $rand->rand;  #  add values for non-index options
-            $calc_res{none}   = 0;
+            my %calc_res = %$calc_results;
 
             my $itx = natatime 2, @$tie_breaker;
             my $sub_res = [];
@@ -1059,7 +1088,7 @@ sub get_most_similar_pair {
             );
         }
 
-        my $chosen_pair = $current_pair->[-1];
+        my $chosen_pair = $current_pair->[-1];  #  last item in array is the pair
         ($node1, $node2) = @$chosen_pair;
         #print "\nChosen = $node1, $node2\n";
     }

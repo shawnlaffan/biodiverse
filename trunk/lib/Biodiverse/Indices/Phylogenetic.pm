@@ -280,6 +280,9 @@ sub get_path_lengths_to_root_node {
             my $path = $cache->{$el_list[0]};
             return (wantarray ? %$path : $path) if ($path);
         }
+        else {
+            $use_path_cache = undef;  #  skip caching below
+        }
     }
 
     my $label_list = $args{labels};

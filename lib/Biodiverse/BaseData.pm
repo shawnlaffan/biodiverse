@@ -3193,7 +3193,7 @@ sub get_outputs_with_same_conditions {
     my $cluster_index = $compare->get_param ('CLUSTER_INDEX');
 
     my @outputs = $self->get_output_refs_of_class (class => $compare);
-    
+
     LOOP_OUTPUTS:
     foreach my $output (@outputs) {
         next LOOP_OUTPUTS if $output eq $compare;  #  skip the one to compare
@@ -3207,8 +3207,9 @@ sub get_outputs_with_same_conditions {
             next LOOP_OUTPUTS if ! defined $def_query_comp;
 
             #  check their def queries match
-            my $def_conditions_comp = $def_query_comp->get_conditions_unparsed();
-            next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions;
+            my $def_conditions_comp = eval {$def_query_comp->get_conditions_unparsed()} // $def_query_comp;
+            my $def_conditions_text = eval {$def_query->get_conditions_unparsed()}      // $def_query;
+            next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions_text;
         }
         else {
             #  skip if one is defined but the other is not

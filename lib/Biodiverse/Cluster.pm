@@ -1268,23 +1268,9 @@ sub cluster {
                     || eval {$other_original_matrices->[0]->get_element_count}) {
 
                     print "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name, "\n";
-
-                    #  don't wrestle with no_clone_matrices here - system lower down does the relevant cloning
-                    ##  The no_clone_matrices argument tells the system to destroy the matrix when clustering.
-                    ##  This will cause problems in this case, as we will destroy another object's matrix.
-                    ##  We need to clone here if we are being destructive.
-                    #my $need_to_clone = $args{no_clone_matrices};
-                    #if ($need_to_clone) {
-                    #    print "[CLUSTER] Cloning recyced matrices\n";
-                    #    $other_original_matrices = scalar $self->clone (data => $other_original_matrices);
-                    #    $other_orig_shadow_mx    = eval {$other_orig_shadow_mx->clone};
-                    #}
                     $self->set_param (ORIGINAL_MATRICES      => $other_original_matrices);
                     $self->set_param (ORIGINAL_SHADOW_MATRIX => $other_orig_shadow_mx);
                     $matrices_recycled = 1;
-                    say 'Other one';
-                    say $other_orig_shadow_mx;
-                    say $_ foreach @$other_original_matrices;
                 }
             }
 
@@ -1298,9 +1284,6 @@ sub cluster {
                 eval {
                     $self->set_shadow_matrix (matrix => $orig_shadow_mx->clone);
                 };
-                say 'This one';
-                say $orig_shadow_mx;
-                say $_ foreach @$original_matrices;
             }
             else {  #  build them
                 @matrices = eval {

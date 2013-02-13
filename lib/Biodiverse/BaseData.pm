@@ -2500,6 +2500,22 @@ sub get_output_refs_sorted_by_name {
     return wantarray ? @sorted : \@sorted;
 }
 
+sub get_output_refs_of_class {
+    my $self = shift;
+    my %args = @_;
+    
+    my $class = blessed $args{class} // $args{class}
+      or croak "argument class not specified\n";
+
+    my @outputs;
+    foreach my $ref ($self->get_output_refs) {
+        next if ! (blessed ($ref) eq $class);
+        push @outputs, $ref;
+    };
+    
+    return wantarray ? @outputs : \@outputs;
+}
+
 sub delete_all_outputs {
     my $self = shift;
     
@@ -3091,9 +3107,73 @@ sub get_neighbours_as_array {
 }
     
     
-#  get a list of spatial outputs with the same spatial params
-#  Useful for faster nbr searching
-sub get_spatial_outputs_with_same_nbrs {
+##  get a list of spatial outputs with the same spatial params
+##  Useful for faster nbr searching
+#sub get_spatial_outputs_with_same_nbrs {
+#    my $self = shift;
+#    my %args = @_;
+#    
+#    my $compare = $args{compare_with} || croak "[BASEDATA] Nothing to compare with\n";
+#    
+#    my $sp_params = $compare->get_param ('SPATIAL_PARAMS');
+#    my $def_query = $compare->get_param ('DEFINITION_QUERY');
+#    if (defined $def_query && (length $def_query) == 0) {
+#        $def_query = undef;
+#    }
+#    
+#    my $def_conditions;
+#    if (blessed $def_query) {
+#        $def_conditions = $def_query->get_conditions_unparsed();
+#    }
+#
+#    my %outputs = $self->get_spatial_outputs;
+#    
+#    LOOP_SP_OUTPUTS:
+#    foreach my $output (values %outputs) {
+#        next LOOP_SP_OUTPUTS if $output eq $compare;  #  skip the one to compare
+#        
+#        my $completed = $output->get_param ('COMPLETED');
+#        next LOOP_SP_OUTPUTS if defined $completed and ! $completed;
+#        
+#        my $def_query_comp = $output->get_param ('DEFINITION_QUERY');
+#        if (defined $def_query) {
+#            #  only check further if both have def queries
+#            next LOOP_SP_OUTPUTS if ! defined $def_query_comp;
+#            
+#            #  check their def queries match
+#            my $def_conditions_comp = $def_query_comp->get_conditions_unparsed();
+#            next LOOP_SP_OUTPUTS if $def_conditions_comp ne $def_conditions;
+#        }
+#        else {
+#            #  skip if one is defined but the other is not
+#            next LOOP_SP_OUTPUTS if defined $def_query_comp;
+#        }
+#        
+#        my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS');
+#        
+#        #  must have same number of conditions
+#        next LOOP_SP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;
+#        
+#        my $i = 0;
+#        LOOP_SP_CONDITIONS:
+#        foreach my $sp_obj (@$sp_params_comp) {
+#            if ($sp_params->[$i]->get_param ('CONDITIONS') ne $sp_obj->get_conditions_unparsed()) {
+#                next LOOP_SP_OUTPUTS;
+#            }
+#            $i++;
+#        }
+#
+#        #  if we get this far then we have a match
+#        return $output;  #  we want to keep this one
+#    }
+#    
+#    return;
+#}
+
+#  Modified version of get_spatial_outputs_with_same_nbrs.
+#  Useful for faster nbr searching for spatial analyses, and matrix building for cluster analyses
+#  It can eventually supplant that sub.
+sub get_outputs_with_same_conditions {
     my $self = shift;
     my %args = @_;
     
@@ -3109,50 +3189,52 @@ sub get_spatial_outputs_with_same_nbrs {
     if (blessed $def_query) {
         $def_conditions = $def_query->get_conditions_unparsed();
     }
-
-    my %outputs = $self->get_spatial_outputs;
     
-    LOOP_SP_OUTPUTS:
-    foreach my $output (values %outputs) {
-        next LOOP_SP_OUTPUTS if $output eq $compare;  #  skip the one to compare
+    my $cluster_index = $compare->get_param ('CLUSTER_INDEX');
+
+    my @outputs = $self->get_output_refs_of_class (class => $compare);
+    
+    LOOP_OUTPUTS:
+    foreach my $output (@outputs) {
+        next LOOP_OUTPUTS if $output eq $compare;  #  skip the one to compare
         
         my $completed = $output->get_param ('COMPLETED');
-        next LOOP_SP_OUTPUTS if defined $completed and ! $completed;
+        next LOOP_OUTPUTS if defined $completed and ! $completed;
         
         my $def_query_comp = $output->get_param ('DEFINITION_QUERY');
         if (defined $def_query) {
             #  only check further if both have def queries
-            next LOOP_SP_OUTPUTS if ! defined $def_query_comp;
-            
+            next LOOP_OUTPUTS if ! defined $def_query_comp;
+
             #  check their def queries match
             my $def_conditions_comp = $def_query_comp->get_conditions_unparsed();
-            next LOOP_SP_OUTPUTS if $def_conditions_comp ne $def_conditions;
+            next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions;
         }
         else {
             #  skip if one is defined but the other is not
-            next LOOP_SP_OUTPUTS if defined $def_query_comp;
+            next LOOP_OUTPUTS if defined $def_query_comp;
         }
-        
+
         my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS');
-        
+
         #  must have same number of conditions
-        next LOOP_SP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;
-        
+        next LOOP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;
+
         my $i = 0;
-        LOOP_SP_CONDITIONS:
         foreach my $sp_obj (@$sp_params_comp) {
-            if ($sp_params->[$i]->get_param ('CONDITIONS') ne $sp_obj->get_conditions_unparsed()) {
-                next LOOP_SP_OUTPUTS;
-            }
+            next LOOP_OUTPUTS
+              if ($sp_params->[$i]->get_param ('CONDITIONS') ne $sp_obj->get_conditions_unparsed());
             $i++;
         }
+
+        #  if we are a cluster (or output with a cluster index, like a RegionGrower)
+        next LOOP_OUTPUTS if defined $cluster_index && $cluster_index ne $output->get_param ('CLUSTER_INDEX');
 
         #  if we get this far then we have a match
         return $output;  #  we want to keep this one
     }
-    
+
     return;
-    
 }
 
 

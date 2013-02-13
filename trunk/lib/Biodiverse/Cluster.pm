@@ -1009,16 +1009,10 @@ sub get_most_similar_pair {
     else {
         my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
         my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
-        my $cache_matrices = $self->get_cached_value ('TIEBREAKER_CACHES');
-        if (!$cache_matrices) {
-            #  generate one matrix per tie breaker and cache them
-            #my $itx = natatime 2, @$tie_breaker;
-            #while (my ($breaker, $optimisation) = $itx->()) {
-                #my $cache_mx = $mx_class_lowmem->new();
-                #$cache_matrices->{$breaker} = $cache_mx;
-            #}
-            $cache_matrices = {};
-            $self->set_cached_value (TIEBREAKER_CACHES => $cache_matrices);
+        my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHES');
+        if (!$tie_breaker_cache) {
+            $tie_breaker_cache = {};
+            $self->set_cached_value (TIEBREAKER_CACHES => $tie_breaker_cache);
         }
 
         #  need to get all the pairs
@@ -1039,7 +1033,8 @@ sub get_most_similar_pair {
         foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { #  ensures same order each time, thus stabilising random results
             no autovivification;
 
-            my $calc_results = $cache_matrices->{$pair->[0]}{$pair->[1]} || $cache_matrices->{$pair->[1]}{$pair->[0]};
+            my $calc_results = $tie_breaker_cache->{$pair->[0]}{$pair->[1]}
+                            || $tie_breaker_cache->{$pair->[1]}{$pair->[0]};
 
             if (!defined $calc_results) {
                 my @el_lists;
@@ -1069,7 +1064,7 @@ sub get_most_similar_pair {
                 delete @tmp{@tie_keys};
                 delete @results{keys %tmp};
                 $calc_results = \%results;
-                $cache_matrices->{$pair->[0]}{$pair->[1]} = $calc_results;
+                $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $calc_results;
             }
             my %calc_res = %$calc_results;
 
@@ -1091,6 +1086,17 @@ sub get_most_similar_pair {
         my $chosen_pair = $current_pair->[-1];  #  last item in array is the pair
         ($node1, $node2) = @$chosen_pair;
         #print "\nChosen = $node1, $node2\n";
+        if ($tie_breaker_cache) {  #  cleanup
+            no autovivification;
+            do {      delete $tie_breaker_cache->{$node1}{$node2}   #  delete our chosen pair
+                      && !$tie_breaker_cache->{$node1}              #  and, if parent is empty
+                      && delete $tie_breaker_cache->{$node1}}       #  then delete that too
+                //
+                do {  delete $tie_breaker_cache->{$node2}{$node1}   #  also the reverse
+                      && !$tie_breaker_cache->{$node2}
+                      && delete $tie_breaker_cache->{$node2}
+                };
+        }
     }
 
     return wantarray ? ($node1, $node2) : [$node1, $node2];

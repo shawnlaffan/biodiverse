@@ -3177,7 +3177,7 @@ sub get_outputs_with_same_conditions {
     my $self = shift;
     my %args = @_;
     
-    my $compare = $args{compare_with} || croak "[BASEDATA] Nothing to compare with\n";
+    my $compare = $args{compare_with} || croak "[BASEDATA] compare_with argument not specified\n";
     
     my $sp_params = $compare->get_param ('SPATIAL_PARAMS');
     my $def_query = $compare->get_param ('DEFINITION_QUERY');
@@ -3189,7 +3189,7 @@ sub get_outputs_with_same_conditions {
     if (blessed $def_query) {
         $def_conditions = $def_query->get_conditions_unparsed();
     }
-    
+
     my $cluster_index = $compare->get_param ('CLUSTER_INDEX');
 
     my @outputs = $self->get_output_refs_of_class (class => $compare);
@@ -3215,7 +3215,7 @@ sub get_outputs_with_same_conditions {
             next LOOP_OUTPUTS if defined $def_query_comp;
         }
 
-        my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS');
+        my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS') || [];
 
         #  must have same number of conditions
         next LOOP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;

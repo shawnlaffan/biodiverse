@@ -11,7 +11,7 @@ use Data::Dumper;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use List::Util qw /first reduce/;
-use List::MoreUtils qw /natatime/;
+use List::MoreUtils qw /any natatime/;
 
 our $VERSION = '0.18003';
 
@@ -144,8 +144,66 @@ sub export_matrices {
     return;
 }
 
+sub process_spatial_conditions_and_def_query {
+    my $self = shift;
+    my %args = @_;
+    
+        #  we work with any number of spatial conditions, but default to consider everything
+    if (! defined $args{spatial_conditions}) {
+        $args{spatial_conditions} = ['sp_select_all ()'];
+    }
+
+    my @spatial_conditions = @{$args{spatial_conditions}};
+    #  and we remove any undefined or empty conditions
+    for my $i (reverse 0 .. $#spatial_conditions) {
+
+        if (    defined $spatial_conditions[$i]
+            and length $spatial_conditions[$i] == 0) {
+            $spatial_conditions[$i] = undef;
+        }
+        if (not defined $spatial_conditions[$i]) {
+            splice (@spatial_conditions, $i);
+            next;
+        }
+    }
+
+    #  now generate the spatial_params
+    my $spatial_params_array = [];
+    my $i = 0;
+    foreach my $condition (@spatial_conditions) {
+        if (! defined $spatial_params_array->[$i]) {
+            $spatial_params_array->[$i]
+              = Biodiverse::SpatialParams->new (
+                    conditions   => $spatial_conditions[$i],
+                    basedata_ref => $self->get_basedata_ref,
+            );
+        }
+        $i++;
+    }
+    #  add true condition if needed, and always add it if user doesn't specify
+    if (scalar @$spatial_params_array == 0) {  
+        push (@$spatial_params_array, Biodiverse::SpatialParams->new (conditions => 1));
+        push (@spatial_conditions, 1);
+    }
+
+    #  store for later
+    if (not defined $self->get_param ('SPATIAL_PARAMS')) {
+        $self->set_param (SPATIAL_PARAMS => $spatial_params_array)
+    }
+
+    #  let the spatial object handle the conditions stuff
+    my $definition_query
+        = $self->get_param ('DEFINITION_QUERY')
+          || $args{definition_query};
+
+    if (not defined $self->get_param ('DEFINITION_QUERY')) {
+        $self->set_param (DEFINITION_QUERY => $definition_query);
+    }
+
+    return;
+}
+
 #  build the matrices required
-#  need to use $bd->get_cluster_outputs_with_same_index_and_nbrs to allow shortcuts
 sub build_matrices {
     my $self = shift;
     my %args = @_;
@@ -176,7 +234,8 @@ sub build_matrices {
     );
     $self->set_param (INDICES_OBJECT => $indices_object);
 
-    my $index = $args{index} || $self->get_default_cluster_index;
+    #  not sure why we are setting this here
+    my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
     $self->set_param (CLUSTER_INDEX => $index);
     delete $args{index};  # saves passing it on in the index function args
     croak "[CLUSTER] $index not a valid clustering similarity index\n"
@@ -228,48 +287,14 @@ sub build_matrices {
 
     my $name = $args{name} || $self->get_param ('NAME') || "CLUSTERMATRIX_$index";
 
-    #  we work with any number of spatial conditions, but default to consider everything
-    if (! defined $args{spatial_conditions}) {
-        $args{spatial_conditions} = ['sp_select_all ()'];
-    }
-
-    my @spatial_conditions = @{$args{spatial_conditions}};
-    #  and we remove any undefined or empty conditions
-    for my $i (reverse 0 .. $#spatial_conditions) {
-
-        if (    defined $spatial_conditions[$i]
-            and length $spatial_conditions[$i] == 0) {
-            $spatial_conditions[$i] = undef;
-        }
-        if (not defined $spatial_conditions[$i]) {
-            splice (@spatial_conditions, $i);
-            next;
-        }
-    }
-
-    #  now generate the spatial_params
-    my $spatial_params_array = [];
-    my $i = 0;
-    foreach my $condition (@spatial_conditions) {
-        if (! defined $spatial_params_array->[$i]) {
-            $spatial_params_array->[$i]
-              = Biodiverse::SpatialParams->new (
-                    conditions   => $spatial_conditions[$i],
-                    basedata_ref => $self->get_basedata_ref,
-            );
-        }
-        $i++;
-    }
-    #  add true condition if needed, and always add it if user doesn't specify
-    if (scalar @$spatial_params_array == 0) {  
-        push (@$spatial_params_array, Biodiverse::SpatialParams->new (conditions => 1));
-        push (@spatial_conditions, 1);
-    }
+    my @spatial_conditions = @{$self->get_param ('SPATIAL_PARAMS')};
+    my $definition_query = $self->get_param ('DEFINITION_QUERY');
+    
 
     #  now we loop over the conditions and initialise the matrices
     #  kept separate from previous loop for cleaner default matrix generation
     my @matrices;
-    $i = 0;
+    my $i = 0;
     foreach my $condition (@spatial_conditions) {
         my $mx_name = $name . " Matrix_$i";
 
@@ -298,20 +323,6 @@ sub build_matrices {
         );
     }
     $self->set_shadow_matrix (matrix => $shadow_matrix);
-
-    #  store for later
-    if (not defined $self->get_param ('SPATIAL_PARAMS')) {
-        $self->set_param (SPATIAL_PARAMS => $spatial_params_array)
-    }
-
-    #  let the spatial object handle the conditions stuff
-    my $definition_query
-        = $self->get_param ('DEFINITION_QUERY')
-          || $args{definition_query};
-
-    if (not defined $self->get_param ('DEFINITION_QUERY')) {
-        $self->set_param (DEFINITION_QUERY => $definition_query);
-    }
 
     print "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING\n";
 
@@ -715,10 +726,15 @@ sub add_matrices_to_basedata {
     my %args = @_;
 
     my $bd = $self->get_param ('BASEDATA_REF');
+    my %existing_outputs = $bd->get_matrix_outputs;
+
     my $orig_matrices = $args{matrices} || $self->get_param ('ORIGINAL_MATRICES');
+
     foreach my $mx (@$orig_matrices) {
+        next if exists $existing_outputs{$mx->get_name} || any { $mx eq $_ } values %existing_outputs;
         $bd->add_output(object => $mx);
     }
+
     return;
 }
 
@@ -1219,6 +1235,12 @@ sub cluster {
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
 
+    $self->process_spatial_conditions_and_def_query (%args);
+
+    my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
+    croak "[CLUSTER] $index not a valid clustering similarity index\n"
+        if ! exists ${$self->get_valid_indices}{$index};
+    $self->set_param (CLUSTER_INDEX => $index);
 
     my @matrices;
     #  if we were passed a matrix in the args  
@@ -1234,9 +1256,29 @@ sub cluster {
     else {
         #  try to build the matrices.
         if (not $self->get_matrix_count) {
-            #  Can we get them from the originals?
-            #  Need to generalise to get them from another
-            #  cluster/regiongrower output if available.
+            #  can we get them from another output?
+            my $bd = $self->get_basedata_ref;
+            if (my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self)) {
+                my $other_original_matrices = $ref->get_param('ORIGINAL_MATRICES');
+                my $other_orig_shadow_mx    = $self->get_param('ORIGINAL_SHADOW_MATRIX');
+                #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
+                if (   eval {$other_orig_shadow_mx->get_element_count}
+                    || eval {$other_original_matrices->[0]->get_element_count}) {
+                    #  The no_clone argument tells the system to destroy the matrix when clustering.
+                    #  This will cause problems in this case, as we will destroy another object's matrix.
+                    #  We need to clone here if we are being destructive.
+                    print "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name, "\n";
+                    my $need_to_clone = !$args{no_clone};
+                    if ($need_to_clone) {
+                        $other_original_matrices = scalar $self->clone (data => $other_original_matrices);
+                        $other_orig_shadow_mx    = eval {$other_orig_shadow_mx->clone};
+                    }
+                    $self->set_param (ORIGINAL_MATRICES      => $other_original_matrices);
+                    $self->set_param (ORIGINAL_SHADOW_MATRIX => $other_orig_shadow_mx);
+                }
+            }
+
+            #  Do we already have some we can work on? 
             my $original_matrices = $self->get_param('ORIGINAL_MATRICES');
             if ($original_matrices) {
                 foreach my $mx (@$original_matrices) {

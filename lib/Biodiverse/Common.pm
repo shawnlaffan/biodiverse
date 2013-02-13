@@ -218,6 +218,13 @@ sub weaken_basedata_ref {
     return $success;
 }
 
+
+sub get_name {
+    my $self = shift;
+    return $self->get_param ('NAME');
+}
+
+
 sub load_params {  # read in the parameters file, set the PARAMS subhash.
     my $self = shift;
     my %args = @_;

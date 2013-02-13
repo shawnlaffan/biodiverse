@@ -322,7 +322,7 @@ sub sp_calc {
     if (! $use_nbrs_from) {
         #  first look for a sibling with the same spatial parameters
         $use_nbrs_from = eval {
-            $bd->get_spatial_outputs_with_same_nbrs (compare_with => $self);
+            $bd->get_outputs_with_same_conditions (compare_with => $self);
         };
     }
     #  try again if we didn't get it before, 

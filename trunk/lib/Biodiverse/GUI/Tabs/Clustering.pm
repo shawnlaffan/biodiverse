@@ -1157,6 +1157,7 @@ sub onRunAnalysis {
         $self->{project}->addOutput($self->{basedata_ref}, $sp_ref);
     }
 
+    #  add the matrices to the outputs tab
     if ($new_analysis) {
         foreach my $ref ($output_ref->get_orig_matrices) {
             next if not $ref->get_element_count;  #  don't add if empty

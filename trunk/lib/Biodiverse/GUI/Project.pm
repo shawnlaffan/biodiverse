@@ -2,6 +2,7 @@ package Biodiverse::GUI::Project;
 
 use strict;
 use warnings;
+use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
@@ -297,7 +298,7 @@ sub basedataAddOutputs {
     
     foreach my $output_ref ( $basedata_ref->get_output_refs_sorted_by_name() ) {
         # shouldn't have to do this, but sometimes do
-        if (! defined $output_ref -> get_param ('BASEDATA_REF')) {
+        if (! defined $output_ref->get_param ('BASEDATA_REF')) {
             $output_ref->set_param(BASEDATA_REF => $basedata_ref);
         }
         $output_ref->weaken_basedata_ref;  #  just in case
@@ -335,9 +336,10 @@ sub basedataRowAdd {
 
 # Add top-level row for an output
 sub outputRowAdd {
-    my $self = shift;
+    my $self          = shift;
     my $basedata_iter = shift;
-    my $output_ref = shift;
+    my $output_ref    = shift;
+
     my $model = $self->{models}{basedata_output_model};
     my $name = $output_ref->get_param('NAME');
     my $output_type = blessed $output_ref;
@@ -501,16 +503,20 @@ sub phylogenyRowAdd {
 
 # Merely update the model
 sub addOutput {
-    my $self = shift;
+    my $self         = shift;
     my $basedata_ref = shift;
-    my $output_ref = shift;
+    my $output_ref   = shift;
 
     # Add a row to the outputs model
     my $basedata_iter = $self->{iters}{basedata_iters}{$basedata_ref};
-    $self->outputRowAdd($basedata_iter, $output_ref);
+    #my $x = "$output_ref";
+    #say "Adding output $x";
+    my $iter = $self->getOutputIter ($output_ref);
+    if (! defined $iter) {  #  don't re-add it
+        $self->outputRowAdd($basedata_iter, $output_ref);
+        $self->setDirty();
+    }
 
-    $self->setDirty();
-    
     return;
 }
 
@@ -1377,7 +1383,7 @@ sub getBasedataOutputs {
         $child_iter = $model->iter_next($child_iter);
     }
 
-    return \@array;
+    return wantarray ? @array : \@array;
 }
 
 ####################################################

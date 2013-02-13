@@ -34,19 +34,8 @@ my @linkages = qw /
 
 #  do we get a stable cluster result?
 {
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-    foreach my $linkage (@linkages) {
-        my $cl = $bd->add_cluster_output (name => $linkage);
-        $cl->run_analysis (
-            prng_seed => $default_prng_seed,
-            linkage   => $linkage,
-        );
-    
-        my $nwk = $cl->to_newick;
-        my $comp_nwk = get_site_data_newick_tree();
-
-        is ($nwk, $comp_nwk, "Generated correct cluster tree using $linkage");
-    }
+    run_linkages (delete_outputs => 1);
+    run_linkages (delete_outputs => 0);
 }
 
 
@@ -59,10 +48,32 @@ my @linkages = qw /
     
     my $site_bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
     check_order_is_same_given_same_prng (basedata_ref => $site_bd);
-    
 }
 
 
+sub run_linkages {
+    my %args = @_;
+ 
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    foreach my $linkage (@linkages) {
+        my $cl = $bd->add_cluster_output (name => $linkage);
+        $cl->run_analysis (
+            prng_seed => $default_prng_seed,
+            linkage   => $linkage,
+        );
+    
+        my $nwk = $cl->to_newick;
+        my $comp_nwk = get_site_data_newick_tree();
+
+        is ($nwk, $comp_nwk, "Generated correct cluster tree using $linkage");
+        
+        if ($args{delete_outputs}) {
+            $bd->delete_all_outputs;
+        }
+    }    
+}
+
+#  need to add tie breaker
 sub check_order_is_same_given_same_prng {
     my %args = @_;
     my $bd = $args{basedata_ref};

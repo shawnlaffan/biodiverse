@@ -1,0 +1,26 @@
+#This page explains the steps involved in importing Base Data into Biodiverse.#
+
+= Importing Base Data  =
+Biodiverse can import BaseData in one of two data formats, spreadsheet format or matrix format.  Examples of each format are provided in the data folder included with the Biodiverse download.
+
+*Standard or spreadsheet format* is the more common data format.  An example is a dataset with one observation per row made up of columns for species and coordinates.  See Example_site_data.csv.
+
+*Matrix format* is a matrix of data, with coordinates as the rows and species as the columns.  For example in a site by species matrix the value of each field is the count of observations for that site/species (group/label) pair.  See Example_site_data_matrix_form.csv. 
+
+Most of the import process is common for both data formats, but the specification of groups and labels differs. 
+
+*N.B.*  The Biodiverse sample data will be used throughout this tutorial.
+
+== Importing a new BaseData object ==
+This process will create a new Basedata object in the Biodiverse session.  To extend an existing dataset, see *Adding to an existing dataset.*
+
+*Step 1*  Open Biodiverse.  Got to the Basedata menu or use the icons in the Basedata toolbar at the top of the screen.  Select ‘Import’ from the menu or the ‘add’ symbol from the ribbon.  The Import Data dialogue window will appear.  Select the file or files you wish to import.  The text box at the top right of the window allows you to name the BaseData object that will be produced (as opposed to the default file name). 
+
+Once you are finished, click *Next*.
+
+
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages

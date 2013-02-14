@@ -204,38 +204,27 @@ sub process_spatial_conditions_and_def_query {
     return;
 }
 
-#  build the matrices required
-sub build_matrices {
+
+sub get_indices_object_for_matrix_and_clustering {
     my $self = shift;
     my %args = @_;
 
-    #  any file handles to output
-    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
-    delete $args{file_handles};
-
-    #  override any args if we are a re-run
-    if (defined $self->get_param('ANALYSIS_ARGS')) {  
-        %args = %{$self->get_param ('ANALYSIS_ARGS')};
-    }
-    else {  #  store them for future use
-        my %args_sub = %args;
-        $self->set_param (ANALYSIS_ARGS => \%args_sub);
-    }
+    my $indices_object;
     
-    my $output_gdm_format = $args{output_gdm_format};  #  need to make all the file stuff a hashref
-
-    my $start_time = time;
-
+    #  return cached version if we have one
+    return $indices_object
+      if $indices_object = $self->get_param ('INDICES_OBJECT');
+    
     my $bd = $self->get_param ('BASEDATA_REF');
 
-    my $indices_object = Biodiverse::Indices->new(
+    $indices_object = Biodiverse::Indices->new(
         BASEDATA_REF    => $bd,
         BUILDING_MATRIX => 1,
         NAME            => 'Indices for ' . $self->get_param ('NAME'),
     );
     $self->set_param (INDICES_OBJECT => $indices_object);
 
-    #  not sure why we are setting this here
+    #  not sure why we are setting this here  - OK now?  was in build_matrices
     my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
     $self->set_param (CLUSTER_INDEX => $index);
     delete $args{index};  # saves passing it on in the index function args
@@ -285,12 +274,44 @@ sub build_matrices {
 
     #  run the global pre_calcs
     $indices_object->run_precalc_globals(%args);
+    
+    return $indices_object;
+}
+
+#  build the matrices required
+sub build_matrices {
+    my $self = shift;
+    my %args = @_;
+
+    #  any file handles to output
+    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
+    delete $args{file_handles};
+
+    #  override any args if we are a re-run
+    if (defined $self->get_param('ANALYSIS_ARGS')) {  
+        %args = %{$self->get_param ('ANALYSIS_ARGS')};
+    }
+    else {  #  store them for future use
+        my %args_sub = %args;
+        $self->set_param (ANALYSIS_ARGS => \%args_sub);
+    }
+    
+    my $output_gdm_format = $args{output_gdm_format};  #  need to make all the file stuff a hashref
+
+    my $start_time = time;
+
+    my $indices_object = $self->get_indices_object_for_matrix_and_clustering (%args);
+
+    my $index          = $self->get_param ('CLUSTER_INDEX');
+    my $index_function = $self->get_param ('CLUSTER_INDEX_SUB');
+    my $cache_abc      = $self->get_param ('CACHE_ABC');
 
     my $name = $args{name} || $self->get_param ('NAME') || "CLUSTERMATRIX_$index";
 
     my @spatial_conditions = @{$self->get_param ('SPATIAL_PARAMS')};
     my $definition_query = $self->get_param ('DEFINITION_QUERY');
     
+    my $bd = $self->get_basedata_ref;
 
     #  now we loop over the conditions and initialise the matrices
     #  kept separate from previous loop for cleaner default matrix generation
@@ -1277,6 +1298,7 @@ sub cluster {
             #  Do we already have some we can work on? 
             my $original_matrices = $self->get_param('ORIGINAL_MATRICES');
             if ($original_matrices) {  #  need to handle no_clone_matrices
+                say '[CLUSTER] Cloning matrices prior to destructive processing';
                 foreach my $mx (@$original_matrices) {
                     push @matrices, $mx->clone;
                 }
@@ -1667,9 +1689,7 @@ sub link_recalculate {
         = $args{cache_abc}
         || $self->get_param ('CACHE_ABC');
 
-    my $indices_object
-        = $args{indices_object}
-        || $self->get_param('INDICES_OBJECT');
+    my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
 
     #  for the dependency analyses,
     #  we treat node1 and node2 as one element set,
@@ -1689,7 +1709,7 @@ sub link_recalculate {
     elsif ($node2_ref) {
         $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name);
     }
-    #  if no cahced value then merge the lists of terminal elements
+    #  if no cached value then merge the lists of terminal elements
     if (not $label_hash1) {
         $el1_list = [];
         #  only need to do the check until all terminal nodes
@@ -1753,9 +1773,6 @@ sub link_recalculate {
     }
 
     my %r = (value => $results->{$index});
-
-    #  run any local post_calcs - no these are done in run_calculations
-    #$indices_object->run_postcalc_locals;
 
     return wantarray ? %r : \%r;
 }

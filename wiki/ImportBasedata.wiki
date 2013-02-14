@@ -1,4 +1,4 @@
-#This page explains the steps involved in importing Base Data into Biodiverse.#
+#This page explains the steps involved in importing Base Data into Biodiverse.
 
 = Importing Base Data  =
 Biodiverse can import BaseData in one of two data formats, spreadsheet format or matrix format.  Examples of each format are provided in the data folder included with the Biodiverse download.
@@ -18,9 +18,32 @@ This process will create a new Basedata object in the Biodiverse session.  To ex
 
 Once you are finished, click *Next*.
 
+http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step1.png
 
+*N.B.*  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files with different column orders then import each one separately into the same BaseData. If your data were generated in R using the write.table() function then the system will detect this and allow for the missing column header for the row names (see issue #20).
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+*Step 2* The Import options dialogue window will then appear.
+
+http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step2.png
+
+*Set label/group properties and remap:*  Allows you to specify properties for the labels and groups (see DataStructures#Element_property_tables).  If you specify that remapping will be used, you will be able to select your remapping file(s) after you set the parameters for the main Basedata import. 
+
+*Allow labels with no groups:*  Permits the inclusion of labels in the analyses which are not assigned to a group. An example might be where you wish to include species that occur outside your study area when comparing a local region with a broader region. 
+
+*Allow empty groups:*  Permits groups that are considered for analysis, but that have no labels themselves. This is useful when you wish to have moving window analyses extend beyond the sampled data to give a smoother result (it is up to the user to ensure such smoothness is valid), or you want a randomisation to assign labels to more groups than just those containing labels. (see  issue #180 ). 
+
+Both the 'empty groups' and 'labels with no groups' options are implemented by setting a sample_count column in the input file, with the appropriate records given a value of 0. If no such column is given or the value is blank then a count of 1 is assumed, rendering these options redundant (and the imported data set possibly erroneous). It is probably easiest to import these as separate files rather than "pollute" your sample data (See Adding_to_an_existing_data_set for details of how to do this). 
+
+*Data are in matrix form:*  Used if the data are not in standard format.  *The process of importing data differs if this box is checked* (See *Import Matrix Basedata*).
+
+*Skip lines with undef groups:*  Allows you to ignore records (lines) where a group field is either undefined or non-numeric. This can occur where you do not know the coordinates for a sample, if you choose the wrong column to use for the groups, or if you have a series of lines with no data at the end of a file (a common issue with exporting from spreadsheet programs).  If this option is not selected and such a line is encountered the import will fail when it reaches that line.  The alternative is to remove these lines from the input file before importing, a sometimes tedious and involved task. This issue does not affect text groups, as an undefined value is treated as a zero length string.
+
+*Convert sample counts to binary:*  Converts any non-zero sample count value to a 1.  This is per record, not per group.
+
+Once you have made your selections, click *Next*.
+
+The next dialogue window allows you to specify how the columns in your file will be treated.  The available options depend on if you selected the 'Data are in matrix form' checkbox.
+
+If your data are in spreadsheet format go to *Import Standard Basedata*. 
+
+If your data are in matrix format go to *Import Matrix Basedata*.

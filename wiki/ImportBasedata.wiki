@@ -1,4 +1,4 @@
-#This page explains the steps involved in importing Base Data into Biodiverse.
+#summary This page explains the steps involved in importing Base Data into Biodiverse.
 
 = Importing Base Data  =
 Biodiverse can import BaseData in one of two data formats, spreadsheet format or matrix format.  Examples of each format are provided in the data folder included with the Biodiverse download.

@@ -1387,7 +1387,6 @@ END_SP_MT_EX
         #required_args => ['axis'],
         required_args => [
             'text',  #  the match text
-
         ],
         optional_args => [
             'axis',  #  which axis from nbrcoord to use in the match
@@ -2351,6 +2350,58 @@ sub sp_group_not_empty {
 
     return $bd->get_richness (element => $element) ? 1 : 0;
 }
+
+sub get_metadata_sp_in_label_range {
+    my $self = shift;
+
+    my %args = @_;
+
+    my %metadata = (
+        description   => "Is a label within a group's range?",
+        required_args => ['label'],
+        optional_args => [
+            'type',  #  nbr or proc to control use of nbr or processing groups
+        ],
+        result_type   => 'always_same',
+        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
+        example       =>
+              q{# Are we in the range of label called Genus:Sp1?}
+            . q{sp_in_label_range(label => 'Genus:Sp1')}
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub sp_in_label_range {
+    my $self = shift;
+    my %args = @_;
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $label = $args{label} // croak "argument label not defined\n";
+
+    my $type = $args{type};
+    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
+
+    my $group;
+    if ( $type eq 'proc' ) {
+        $group = ${$h->{'$coord_id1'}};
+    }
+    elsif ( $type eq 'nbr' ) {
+        $group = ${$h->{'$coord_id2'}};
+    }
+
+    my $bd  = ${$h->{'$basedata'}};
+
+    my $labels_in_group = $bd->get_labels_in_group_as_hash (group => $group);
+
+    my $exists = exists $labels_in_group->{$label};
+
+    return $exists;
+}
+
+
 
 sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
 sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }

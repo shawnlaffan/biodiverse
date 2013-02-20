@@ -19,7 +19,7 @@ my $bd = Biodiverse::BaseData->new(file => $bd_in_file);
 # calc_gpprop_gistar assumes the basedata has group properties.
 my $calculations = ['calc_gpprop_gistar', 'calc_endemism_central', 'calc_endemism_central_lists'];
 
-#  we want to get at the values for one of the lists.
+#  we want to get at the values for one of the lists => should be an argument defaulting to SPATIAL_RESULTS
 #my $list_to_collate = 'GPPROP_GISTAR_LIST';
 my $list_to_collate = 'ENDC_WTLIST';
 my @list_of_results;  # a list of results hashes

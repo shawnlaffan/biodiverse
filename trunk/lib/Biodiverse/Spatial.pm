@@ -278,6 +278,7 @@ sub sp_calc {
         nbr_list_count => $nbr_list_count,
         element_list1 => [],  #  for validity checking only
         element_list2 => $nbr_list_count == 2 ? [] : undef,
+        processing_element => 'x',
     );
 
     #  drop out if we have none to do and we don't have an override flag
@@ -554,7 +555,11 @@ sub sp_calc {
         );
 
         #  this is the meat of it all
-        my %sp_calc_values = $indices_object->run_calculations(%args, %elements);
+        my %sp_calc_values = $indices_object->run_calculations(
+            %args,
+            %elements,
+            processing_element => $element,
+        );
 
         my $recycle_lists = {};
 

@@ -257,7 +257,7 @@ sub get_metadata_calc_numeric_label_data {
                 description => 'Numeric label data in array form.  '
                                . 'Multiple occurrences are repeated '
                                . 'based on their sample counts.',
-                TYPE        => 'list',
+                type        => 'list',
             },
         },
     );

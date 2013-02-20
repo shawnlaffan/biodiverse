@@ -23,6 +23,7 @@ my $calculations = ['calc_gpprop_gistar', 'calc_endemism_central', 'calc_endemis
 #my $list_to_collate = 'GPPROP_GISTAR_LIST';
 my $list_to_collate = 'ENDC_WTLIST';
 my @list_of_results;  # a list of results hashes
+my %list_keys;        #  collate the keys across all spatial outputs
 
 
 #  Analyse in order of range size.
@@ -46,6 +47,7 @@ foreach my $label (reverse @labels) {
     my $group = $groups_in_range->[0];
     my $list_vals = $sp->get_list_values (element => $group, list => $list_to_collate);
     push @list_of_results, {$label => $list_vals};
+    @list_keys{keys %$list_vals} = undef;
 
     print "";  #  for debugger
 }
@@ -55,10 +57,8 @@ $bd->save_to (filename => $bd_out_file);
 
 #  convert @list_of_results into a html table
 my @table;
-my $first_row  = $list_of_results[0];
-my ($null, $first_list) = each %$first_row;
 
-my @header = sort keys %$first_list;
+my @header = sort keys %list_keys;
 push @table, ['label', map {"$list_to_collate ($_)"} @header];
 
 foreach my $this_hash (@list_of_results) {

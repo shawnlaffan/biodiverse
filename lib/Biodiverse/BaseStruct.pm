@@ -2237,17 +2237,19 @@ sub get_list_values {
     croak "Element $element does not exist in BaseStruct\n"
       if ! $self->exists_element(element => $element);
 
-    return if ! exists $self->{ELEMENTS}{$element}{$list};
+    my $element_ref = $self->{ELEMENTS}{$element};
 
-    return $self->{ELEMENTS}{$element}{$list} if ! wantarray;
+    return if ! exists $element_ref->{$list};
+
+    return $element_ref->{$list} if ! wantarray;
 
     #  need to return correct type in list context
-    return %{$self->{ELEMENTS}{$element}{$list}}
-      if ref($self->{ELEMENTS}{$element}{$list}) =~ /HASH/;
+    return %{$element_ref->{$list}}
+      if ref ($element_ref->{$list}) =~ /HASH/;
 
-    if (ref($self->{ELEMENTS}{$element}{$list}) =~ /ARRAY/) {
+    if (ref($element_ref->{$list}) =~ /ARRAY/) {
         #  SWL 15Feb2011: should this always sort?
-        my @list = sort @{$self->{ELEMENTS}{$element}{$list}};
+        my @list = sort @{$element_ref->{$list}};
         return @list;
     }
 

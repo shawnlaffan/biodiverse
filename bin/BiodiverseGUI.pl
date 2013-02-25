@@ -26,8 +26,6 @@ BEGIN {  #  add the gtk libs if using windows - brittle?
         my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
         my $origin_dir = Path::Class::file($prog_name)->dir;
 
-        my $sep = ';';
-
         my @paths;
         use Config;
         my $gtk_dir = $Config{archname} =~ /x86/ ? 'gtk_win32' : 'gtk_win64';
@@ -42,6 +40,8 @@ BEGIN {  #  add the gtk libs if using windows - brittle?
                 push @paths, $gtk_path;
             }
         }
+
+        my $sep = ';';
         $ENV{PATH} = join $sep, @paths, $ENV{PATH};
         say "Path is:\n", $ENV{PATH};
     }

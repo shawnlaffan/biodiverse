@@ -191,17 +191,17 @@ sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]], point => \@nbrcoor
 sp_point_in_poly (polygon => [[0,0],[0,1],[1,1],[1,0],[0,0]])
 
 #  Is the coord in any polygon in a shapefile?
-sp_point_in_poly_shape (shape => '/path/to/shapefile.shp')
+sp_point_in_poly_shape (file => '/path/to/shapefile.shp')
 
 #  Is the coord in a specific polygon in a shapefile?
 #  This is the FID field in ArcGIS, but note that the library we use counts from 1 whereas ArcGIS counts from 0.
 #  If you are using ArcGIS to find the polygon ID you need then remember to add 1.
-sp_point_in_poly_shape (shape => '/path/to/shapefile.shp', field_val => 1)
+sp_point_in_poly_shape (file => '/path/to/shapefile.shp', field_val => 1)
 
 #  Is the neighbour coord inside any polygon with a value of NSW for the field STATE_NAME?
 #  Make sure you give the correct name and path to the shapefile.  
 sp_point_in_poly_shape (
-    shape      => '/path/to/shapefile.shp',
+    file       => '/path/to/shapefile.shp',
     field_name => 'STATE_NAME', 
     field_val  => 'NSW',
 )
@@ -209,9 +209,9 @@ sp_point_in_poly_shape (
 #  Is the neighbour coord inside a specific biome (if you have the relevant shapefile)?
 #  Note that the values must match exactly.
 sp_point_in_poly_shape (
-    shape => '/path/to/biome_shapefile.shp', 
+    shape      => '/path/to/biome_shapefile.shp', 
     field_name => 'BIOME', 
-    field_val => 'Tropical and subtropical dry broadleaf forests',
+    field_val  => 'Tropical and subtropical dry broadleaf forests',
 )
 
 }}}

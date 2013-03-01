@@ -15,6 +15,8 @@ use File::Find;
 
 use rlib;
 
+use Biodiverse::BaseData;
+
 #  list of files
 our @files;
 
@@ -26,25 +28,32 @@ my $wanted = sub {
 
     my $filename = $File::Find::name;
     $filename =~ s/\.pm$//;
-    $filename =~ s/.+(Biodiverse.+)/$1/;
+    if ($filename =~ /((?:App\/)?Biodiverse.*)$/) {
+        $filename = $1;
+    }
     $filename =~ s{/}{::}g;
     push @files, $filename;
 };
 
 my $lib_dir = File::Spec->catfile( $Bin, '..', 'lib' );
-find ( $wanted,  $lib_dir );    
+find ( $wanted,  $lib_dir );
 
-my $f1 = shift @files;
-eval qq { require $f1 };
-my $version = eval '$' . $f1 . q{::VERSION};
+my $version = $Biodiverse::BaseData::VERSION;
 
 note ( "Testing Biodiverse $version, Perl $], $^X" );
 
+require App::Biodiverse;
+my $blah = $App::Biodiverse::VERSION;
+
 while (my $file = shift @files) {
-    eval qq{ require $file };
+    my $loaded = eval qq{ require $file };
+    my $msg_extra = q{};
+    if (!$loaded) {
+        $msg_extra = " (Unable to load $file).";
+    }
     my $this_version = eval '$' . $file . q{::VERSION};
-    my $msg = "$file is $version";
-    is ( $version, $this_version, $msg );
+    my $msg = "$file is $version." . $msg_extra;
+    is ( $this_version, $version, $msg );
 }
 
 done_testing();

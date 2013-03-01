@@ -8,7 +8,8 @@ This page follows on from step 2 of importing Basedata
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step3_matrix_format.png
 
-At least one column must be set to "Group" using the Type drop-down menu.  When a Group column is selected you then have the option to select its cell size (in the same units as the group data is stored) and origin. These default to 100,000.00 and 0.00, respectively and can be adjusted if they are not appropriate to your data.  The origin option allows you to align your imported data with a non-zero origin when necessary, (e.g. you are using some coarse resolution climate data in a related analysis and you wish to ensure the resulting cell boundaries align exactly between data sets). 
+At least one column must be set to "Group" using the Type drop-down menu. Selection of a Group column gives the option to define cell size (in the same units as the group data is stored) and origin. Please note that the default cell size is 100,000.00 and default origin is 0.00, these values may need to be adjusted to suit the data being imported.  The origin option allows alignment of the imported data with a non-zero origin when necessary (e.g. when using coarse resolution climate data in a related analysis to ensure the resulting cell boundaries align exactly between data sets). 
+
 
 = Details =
 

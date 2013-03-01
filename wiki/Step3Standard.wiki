@@ -6,7 +6,7 @@ This Page follows on from the Import data Page *(Check Name)*
 
 *Step 3*  If you specified that your data *were not* in matrix format in step 2, the following Choose columns dialogue box will appear.
 
-
+http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step3.png
 
 
 = Details =

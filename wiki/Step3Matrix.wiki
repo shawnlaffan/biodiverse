@@ -37,7 +37,7 @@ Columns marked as “ignore” but between a label_start_col and label_end_col w
  
 Remember that the values for each row of a matrix are the sample counts To view presence/absence data per group ensure that you have selected the “Convert sample counts to binary” option on the preceding Import options window.
 
-Finally, use a [http://code.google.com/p/biodiverse/wiki/DataStructures#Element_property_tables]label remap/property table to change the column names, for example to separate genus and species into separate axes for analysis. 
+Finally, use a *[http://code.google.com/p/biodiverse/wiki/DataStructures#Element_property_tables]label remap/property table* to change the column names, for example to separate genus and species into separate axes for analysis. 
 
 Click OK.
 

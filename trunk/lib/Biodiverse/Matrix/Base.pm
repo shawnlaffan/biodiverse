@@ -7,7 +7,7 @@ use Scalar::Util qw /looks_like_number/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Biodiverse::Exception;
 

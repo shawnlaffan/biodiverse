@@ -29,9 +29,16 @@ If more than one start and/or end column is specified then the system will use t
  
 If one or more "label" columns precede the group column/sthe file will need to be edited and the column moved so it is after the Groups.  The system currently only allows one option per column so it cannot be both start and end.
 
-= Details =
+The Type drop-down menu also allows filtering of data rows by assigning the column types "Include_columns" and "Exclude_columns". There is no limit on the number of these column types that can be assigned. If one or more inclusion column is specified, only those data rows with non-zero values in at least one of these columns will be imported. If one or more exclusion column is specified, only those data rows with a value of zero in all of these columns will be imported (ie. any non-zero value will trigger a row to be excluded). 
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+Take care not to specify a column in the Label range as “include” or “exclude” as it may negatively impact on your results (although it is a valid selection in some circumstances, for example if presence of a species should be used to exclude a sample row).  
+
+Columns marked as “ignore” but between a label_start_col and label_end_col will be imported (“ignore” is the default setting).  To skip columns between the label start and end columns it is recommended that an exclude column be set in a label remap file.
+ 
+Remember that the values for each row of a matrix are the sample counts To view presence/absence data per group ensure that you have selected the “Convert sample counts to binary” option on the preceding Import options window.
+
+Finally, use a [http://code.google.com/p/biodiverse/wiki/DataStructures#Element_property_tables]label remap/property table to change the column names, for example to separate genus and species into separate axes for analysis. 
+
+Click OK.
+
+*Next Page – Step 4 Click here to go to the next Import Basedata page*

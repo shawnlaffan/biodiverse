@@ -10,6 +10,23 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step3_matr
 
 At least one column must be set to "Group" using the Type drop-down menu. Selection of a Group column gives the option to define cell size (in the same units as the group data is stored) and origin. Please note that the default cell size is 100,000.00 and default origin is 0.00, these values may need to be adjusted to suit the data being imported.  The origin option allows alignment of the imported data with a non-zero origin when necessary (e.g. when using coarse resolution climate data in a related analysis to ensure the resulting cell boundaries align exactly between data sets). 
 
+The "Data in degrees?" combo box allows the importation of data in degrees minutes seconds formats, as well as determining if the values are in the valid range (the latter works for both DMS and decimal degrees formats). Specify is_lat for latitude and is_lon for longitude. Examples of valid formats are: 
+{{{
+Latitude,Longitude
+S23°32'09.567", E149°23'18.009"
+23°32'09.567"S, 149°23'18.009"E
+-23 32 9.567, +149 23 18.009
+-23.535991, 149.388336
+}}}
+
+Matrix import differs from the standard import process in that there is no Label option in the drop-down menu.  Instead the options "Label_start_col" and "Label_end_col" denote which column headers to use for the Labels.
+
+*Label_start_col* must be assigned to at least one column.
+
+*Label_end_col* is optional. If not specified then the system will use all columns after the "label_start_col". 
+
+If more than one start and/or end column is specified then the system will use the first start_col and last end_col (see issue #164). 
+If you have one or more label columns before the groups are specified then you will need to edit the file so it is after the Groups.  The system currently only allows one option per column so it cannot be both start and end.
 
 = Details =
 

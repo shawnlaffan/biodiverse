@@ -8,6 +8,14 @@ This Page follows on from the Import data Page *(Check Name)*
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step3.png
 
+At least one Group and one Label column must be set from the "Type" drop-down menu, but more than one of each may be chosen where appropriate.  For example:
+
+  * Both a "species" column and a "genus" column (if separated in your file) may be set as one combined label for your data points; or
+  * In order to specify a Cartesian grid both the x-coordinate and y-coordinate columns in a file need to be set as "Group" (specifying only an "x" column or "y" column as the Group would result in a one-dimensional analysis of the data across that group's domain). 
+
+When a Group column is selected you them have the option to select its cell size (in the same units as the group data is stored) and origin. These default to 100,000.00 and 0.00, *respectively so make sure these values are appropriate to your data or adjust them accordingly (FIX)*.  The origin option allows you to align your imported data with a non-zero origin when necessary, (e.g. you are using some coarse resolution climate data in a related analysis and you wish to ensure the resulting cell boundaries align exactly between data sets). 
+
+
 
 = Details =
 

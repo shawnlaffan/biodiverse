@@ -12,7 +12,7 @@ use Data::Dumper;
 use Carp;
 use POSIX;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Gtk2;
 use Gnome2::Canvas;

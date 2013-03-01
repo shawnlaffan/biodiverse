@@ -9,7 +9,7 @@ my $NULL_STRING = q{};
 
 require Biodiverse::Config;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 sub new {
     my $class = shift;

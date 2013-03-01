@@ -42,10 +42,9 @@ while (defined (my $line = <$fh>)) {
             tree            => $tree,
             node_count      => $node_count,
         );
-        
+
         $tree->collapse_tree_below (target_value => $threshold);
-        
-        
+
         my $newick_trimmed = $tree->to_newick;
         $line = "tree $tree_name = $newick_trimmed;\n";
     }

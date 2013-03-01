@@ -1,8 +1,12 @@
 #summary <<DRAFT PAGE>> This page explains step 3 in importing base data in standard format.
 
-= Introduction =
+= Standard Basedata Import (continued) =
 
-Add your content here.
+This Page follows on from the Import data Page *(Check Name)*
+
+*Step 3*  If you specified that your data *were not* in matrix format in step 2, the following Choose columns dialogue box will appear.
+
+
 
 
 = Details =

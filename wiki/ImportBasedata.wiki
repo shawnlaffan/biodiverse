@@ -1,7 +1,7 @@
 #summary <<DRAFT DOCUMENT>> This page explains the steps involved in importing Base Data into Biodiverse (up to step 2).
 
 = Importing Base Data  =
-Biodiverse can import BaseData in one of two data formats, spreadsheet format or matrix format.  Examples of each format are provided in the data folder included with the Biodiverse download.
+Biodiverse can import !BaseData in one of two data formats, spreadsheet format or matrix format.  Examples of each format are provided in the data folder included with the Biodiverse download.
 
 *Standard or spreadsheet format* is the more common data format.  An example is a dataset with one observation per row made up of columns for species and coordinates.  See Example_site_data.csv.
 
@@ -11,16 +11,16 @@ Most of the import process is common for both data formats, but the specificatio
 
 *N.B.*  The Biodiverse sample data will be used throughout this tutorial.
 
-== Importing a new BaseData object ==
+== Importing a new !BaseData object ==
 This process will create a new Basedata object in the Biodiverse session.  To extend an existing dataset, see *Adding to an existing dataset.*
 
-*Step 1*  Open Biodiverse.  Got to the Basedata menu or use the icons in the Basedata toolbar at the top of the screen.  Select ‘Import’ from the menu or the ‘add’ symbol from the ribbon.  The Import Data dialogue window will appear.  Select the file or files to be imported.  The text box at the top right of the window allows you to name the BaseData object that will be produced (as opposed to the default file name). 
+*Step 1*  Open Biodiverse.  Got to the Basedata menu or use the icons in the Basedata toolbar at the top of the screen.  Select ‘Import’ from the menu or the ‘add’ symbol from the ribbon.  The Import Data dialogue window will appear.  Select the file or files to be imported.  The text box at the top right of the window allows you to name the !BaseData object that will be produced (as opposed to the default file name). 
 
 Once you are finished, click *Next*.
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step1.png
 
-*N.B.*  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files with different column orders then import each one separately into the same BaseData. If the data *were/was?* generated in R using the write.table() function then the system will detect this and allow for the missing column header for the row names.
+*N.B.*  Multiple files can be imported in the one process so long as they all share the same column order and meaning (the column names do not matter, only the contents).  If you have several files with different column orders then import each one separately into the same !BaseData. If the data *were/was?* generated in R using the write.table() function then the system will detect this and allow for the missing column header for the row names.
 
 *Step 2* The Import options dialogue window will then appear.
 

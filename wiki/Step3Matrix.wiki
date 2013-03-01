@@ -1,0 +1,17 @@
+#summary <<DRAFT PAGE>> This page explains step 3 to import matrix format basedata.
+
+= Step 3 - Importing Matrix Format Basedata  =
+
+This page follows on from step 2 of importing Basedata
+
+*Step 3*  If you specified that your data *were* in matrix format, the following dialogue window will appear.
+
+
+
+
+= Details =
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages

@@ -25,8 +25,9 @@ Matrix import differs from the standard import process in that there is no Label
 
 *Label_end_col* is optional. If not specified then the system will use all columns after the "label_start_col". 
 
-If more than one start and/or end column is specified then the system will use the first start_col and last end_col (see issue #164). 
-If you have one or more label columns before the groups are specified then you will need to edit the file so it is after the Groups.  The system currently only allows one option per column so it cannot be both start and end.
+If more than one start and/or end column is specified then the system will use the first start_col and last end_col (see issue #164).
+ 
+If one or more "label" columns precede the group column/sthe file will need to be edited and the column moved so it is after the Groups.  The system currently only allows one option per column so it cannot be both start and end.
 
 = Details =
 

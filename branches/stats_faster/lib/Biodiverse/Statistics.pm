@@ -176,6 +176,72 @@ sub iqr {
     return $q75 - $q25;
 }
 
+
+sub skewness {
+    my $self = shift;
+
+    if (!defined($self->_skewness()))
+    {
+        my $n    = $self->count();
+        my $sd   = $self->standard_deviation();
+        
+        my $skew;
+        
+        #  skip if insufficient records
+        if ( $sd && $n > 2) {
+            
+            my $mean = $self->mean();
+            
+            my $sum_pow3;
+            
+            foreach my $rec ( $self->get_data ) {
+                my $value  = (($rec - $mean) / $sd);
+                $sum_pow3 +=  $value ** 3;
+            }
+            
+            my $correction = $n / ( ($n-1) * ($n-2) );
+            
+            $skew = $correction * $sum_pow3;
+        }
+
+        $self->_skewness($skew);
+    }
+
+    return $self->_skewness();
+}
+
+sub kurtosis {
+    my $self = shift;
+
+    if (!defined($self->_kurtosis()))
+    {
+        my $kurt;
+        
+        my $n  = $self->count();
+        my $sd   = $self->standard_deviation();
+        
+        if ( $sd && $n > 3) {
+
+            my $mean = $self->mean();
+            
+            my $sum_pow4;
+            foreach my $rec ( $self->get_data ) {
+                $sum_pow4 += ( ($rec - $mean ) / $sd ) ** 4;
+            }
+            
+            my $correction1 = ( $n * ($n+1) ) / ( ($n-1) * ($n-2) * ($n-3) );
+            my $correction2 = ( 3  * ($n-1) ** 2) / ( ($n-2) * ($n-3) );
+            
+            $kurt = ( $correction1 * $sum_pow4 ) - $correction2;
+        }
+        
+        $self->_kurtosis($kurt);
+    }
+
+    return $self->_kurtosis();
+}
+
+
 1;
 
 __END__

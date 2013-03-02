@@ -346,8 +346,8 @@ sub calc_numeric_label_dissimilarity {
         return wantarray ? %results : \%results;
     }
 
-    my $label_list1     = $args{label_hash1};
-    my $label_list2     = $args{label_hash2};
+    my $label_list1 = $args{label_hash1};
+    my $label_list2 = $args{label_hash2};
 
     my ($sumX, $sum_absX, $sumXsqr, $count) = (undef, undef, undef, 0);
 
@@ -363,9 +363,7 @@ sub calc_numeric_label_dissimilarity {
             my $joint_count = $count1 * $count2;
 
             #  tally the stats
-            my $x      = $value * $joint_count;
-            #$sumX     += $x;
-            $sum_absX += abs($x);
+            $sum_absX += abs($value * $joint_count);
             $sumXsqr  += $value ** 2 * $joint_count;
             $count    += $joint_count;
         }

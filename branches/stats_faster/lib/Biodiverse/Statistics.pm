@@ -107,10 +107,10 @@ sub add_data {
     
     push @{ $self->_data() }, @{ $aref };
 
-    $maxdex =  List::MoreUtils::first_index {$_ == $max} $self->get_data;
-    $mindex =  List::MoreUtils::first_index {$_ == $min} $self->get_data;
-    $self->maxdex($maxdex);
-    $self->mindex($mindex);
+    #$maxdex =  List::MoreUtils::first_index {$_ == $max} $self->get_data;
+    #$mindex =  List::MoreUtils::first_index {$_ == $min} $self->get_data;
+    #$self->maxdex($maxdex);
+    #$self->mindex($mindex);
 
     ##Clear the presorted flag
     $self->presorted(0);
@@ -118,6 +118,49 @@ sub add_data {
     $self->_delete_all_cached_keys();
   
     return 1;
+}
+
+
+sub maxdex {
+    my $self = shift;
+
+    return undef if !$self->count;
+    #my $maxdex = $self->{maxdex};
+    #return $maxdex if defined $maxdex;
+    my $maxdex;
+
+    if ($self->presorted) {
+        $maxdex = $self->count - 1;
+    }
+    else {
+        my $max = $self->max;
+        $maxdex =  List::MoreUtils::first_index {$_ == $max} $self->get_data;
+    }
+
+    $self->{maxdex} = $maxdex;
+
+    return $maxdex;
+}
+
+sub mindex {
+    my $self = shift;
+
+    return undef if !$self->count;
+    #my $maxdex = $self->{maxdex};
+    #return $maxdex if defined $maxdex;
+    my $mindex;
+
+    if ($self->presorted) {
+        $mindex = 0;
+    }
+    else {
+        my $min = $self->min;
+        $mindex =  List::MoreUtils::first_index {$_ == $min} $self->get_data;
+    }
+
+    $self->{mindex} = $mindex;
+
+    return $mindex;
 }
 
 
@@ -184,23 +227,19 @@ sub skewness {
     {
         my $n    = $self->count();
         my $sd   = $self->standard_deviation();
-        
+
         my $skew;
-        
+
         #  skip if insufficient records
         if ( $sd && $n > 2) {
             
             my $mean = $self->mean();
-            
-            my $sum_pow3;
-            
-            foreach my $rec ( $self->get_data ) {
-                my $value  = (($rec - $mean) / $sd);
-                $sum_pow3 +=  $value ** 3;
-            }
-            
+
+            my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 3 } $self->get_data();
+            my $sum_pow3 = List::Util::sum @tmp;
+
             my $correction = $n / ( ($n-1) * ($n-2) );
-            
+
             $skew = $correction * $sum_pow3;
         }
 
@@ -223,12 +262,10 @@ sub kurtosis {
         if ( $sd && $n > 3) {
 
             my $mean = $self->mean();
-            
-            my $sum_pow4;
-            foreach my $rec ( $self->get_data ) {
-                $sum_pow4 += ( ($rec - $mean ) / $sd ) ** 4;
-            }
-            
+
+            my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 4 } $self->get_data();
+            my $sum_pow4 = List::Util::sum @tmp;
+
             my $correction1 = ( $n * ($n+1) ) / ( ($n-1) * ($n-2) * ($n-3) );
             my $correction2 = ( 3  * ($n-1) ** 2) / ( ($n-2) * ($n-3) );
             

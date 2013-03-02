@@ -66,21 +66,28 @@ sub add_data {
 
     ##Take care of appending to an existing data set
     
-    if (!defined($min = $self->min())) {
-        $mindex = 0;
-        $min = $aref->[$mindex];
+    $min = $self->min();
+    if (!defined $min) {
+        $min = $aref->[0];
     }
-    else {
-        $mindex = $self->mindex();
+    #if (!defined($min = $self->min())) {
+    #    $mindex = 0;
+    #    $min = $aref->[$mindex];
+    #}
+    #else {
+    #    $mindex = $self->mindex();
+    #}
+    $max = $self->max();
+    if (!defined $max) {
+        $max = $aref->[0];
     }
-  
-    if (!defined($max = $self->max())) {
-        $maxdex = 0;
-        $max = $aref->[$maxdex];
-    }
-    else {
-        $maxdex = $self->maxdex();
-    }
+    #if (!defined($max = $self->max())) {
+    #    $maxdex = 0;
+    #    $max = $aref->[$maxdex];
+    #}
+    #else {
+    #    $maxdex = $self->maxdex();
+    #}
   
     $sum = $self->sum() || 0;
     $sumsq = $self->sumsq() || 0;

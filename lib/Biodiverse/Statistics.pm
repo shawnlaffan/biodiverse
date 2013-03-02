@@ -8,6 +8,8 @@ our $VERSION = '0.18_004';
 use Carp;
 
 use POSIX qw ( ceil );
+use List::Util;
+use List::MoreUtils;
 
 use Statistics::Descriptive;
 use base qw /Statistics::Descriptive::Full/;
@@ -41,6 +43,133 @@ sub new {
     $self->_clear_fields();
     return $self;
 }
+
+#  override the Stats::Descriptive::Full method to use List::Util and List::MoreUtils functions
+sub add_data {
+    my $self = shift;  ##Myself
+  
+    my $aref;
+
+    if (ref $_[0] eq 'ARRAY') {
+      $aref = $_[0];
+    }
+    else {
+      $aref = \@_;
+    }
+  
+    ##If we were given no data, we do nothing.
+    return 1 if (!@{ $aref });
+  
+    my $oldmean;
+    my ($min,$mindex,$max,$maxdex,$sum,$sumsq,$count);
+    
+
+    ##Take care of appending to an existing data set
+    
+    $min = $self->min();
+    if (!defined $min) {
+        $min = $aref->[0];
+    }
+    #if (!defined($min = $self->min())) {
+    #    $mindex = 0;
+    #    $min = $aref->[$mindex];
+    #}
+    #else {
+    #    $mindex = $self->mindex();
+    #}
+    $max = $self->max();
+    if (!defined $max) {
+        $max = $aref->[0];
+    }
+    #if (!defined($max = $self->max())) {
+    #    $maxdex = 0;
+    #    $max = $aref->[$maxdex];
+    #}
+    #else {
+    #    $maxdex = $self->maxdex();
+    #}
+  
+    $sum = $self->sum() || 0;
+    $sumsq = $self->sumsq() || 0;
+    $count = $self->count() || 0;
+
+    #  need to allow for already having data
+    $sum    += List::Util::sum (@$aref);
+    $sumsq  += List::Util::sum (List::MoreUtils::apply {$_ **= 2} @$aref);
+    $max    =  List::Util::max ($max, @$aref);
+    $min    =  List::Util::min ($min, @$aref);
+    $count  +=  scalar @$aref;
+  
+    $self->min($min);
+    
+    $self->max($max);
+    $self->sample_range($max - $min);
+    $self->sum($sum);
+    $self->sumsq($sumsq);
+    $self->mean($sum / $count);
+    $self->count($count);
+    ##indicator the value is not cached.  Variance isn't commonly enough
+    ##used to recompute every single data add.
+    $self->_variance(undef);
+    
+    push @{ $self->_data() }, @{ $aref };
+
+    #$maxdex =  List::MoreUtils::first_index {$_ == $max} $self->get_data;
+    #$mindex =  List::MoreUtils::first_index {$_ == $min} $self->get_data;
+    #$self->maxdex($maxdex);
+    #$self->mindex($mindex);
+
+    ##Clear the presorted flag
+    $self->presorted(0);
+  
+    $self->_delete_all_cached_keys();
+  
+    return 1;
+}
+
+
+sub maxdex {
+    my $self = shift;
+
+    return undef if !$self->count;
+    #my $maxdex = $self->{maxdex};
+    #return $maxdex if defined $maxdex;
+    my $maxdex;
+
+    if ($self->presorted) {
+        $maxdex = $self->count - 1;
+    }
+    else {
+        my $max = $self->max;
+        $maxdex =  List::MoreUtils::first_index {$_ == $max} $self->get_data;
+    }
+
+    $self->{maxdex} = $maxdex;
+
+    return $maxdex;
+}
+
+sub mindex {
+    my $self = shift;
+
+    return undef if !$self->count;
+    #my $maxdex = $self->{maxdex};
+    #return $maxdex if defined $maxdex;
+    my $mindex;
+
+    if ($self->presorted) {
+        $mindex = 0;
+    }
+    else {
+        my $min = $self->min;
+        $mindex =  List::MoreUtils::first_index {$_ == $min} $self->get_data;
+    }
+
+    $self->{mindex} = $mindex;
+
+    return $mindex;
+}
+
 
 sub median {
     my $self = shift;
@@ -96,6 +225,66 @@ sub iqr {
     
     return $q75 - $q25;
 }
+
+
+sub skewness {
+    my $self = shift;
+
+    if (!defined($self->_skewness()))
+    {
+        my $n    = $self->count();
+        my $sd   = $self->standard_deviation();
+
+        my $skew;
+
+        #  skip if insufficient records
+        if ( $sd && $n > 2) {
+            
+            my $mean = $self->mean();
+
+            my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 3 } $self->get_data();
+            my $sum_pow3 = List::Util::sum @tmp;
+
+            my $correction = $n / ( ($n-1) * ($n-2) );
+
+            $skew = $correction * $sum_pow3;
+        }
+
+        $self->_skewness($skew);
+    }
+
+    return $self->_skewness();
+}
+
+sub kurtosis {
+    my $self = shift;
+
+    if (!defined($self->_kurtosis()))
+    {
+        my $kurt;
+        
+        my $n  = $self->count();
+        my $sd   = $self->standard_deviation();
+        
+        if ( $sd && $n > 3) {
+
+            my $mean = $self->mean();
+
+            my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 4 } $self->get_data();
+            my $sum_pow4 = List::Util::sum @tmp;
+
+            my $correction1 = ( $n * ($n+1) ) / ( ($n-1) * ($n-2) * ($n-3) );
+            my $correction2 = ( 3  * ($n-1) ** 2) / ( ($n-2) * ($n-3) );
+            
+            $kurt = ( $correction1 * $sum_pow4 ) - $correction2;
+        }
+        
+        $self->_kurtosis($kurt);
+    }
+
+    return $self->_kurtosis();
+}
+
 
 1;
 

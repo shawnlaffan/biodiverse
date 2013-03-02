@@ -8,6 +8,8 @@ our $VERSION = '0.18_004';
 use Carp;
 
 use POSIX qw ( ceil );
+use List::Util;
+use List::MoreUtils;
 
 use Statistics::Descriptive;
 use base qw /Statistics::Descriptive::Full/;
@@ -41,6 +43,83 @@ sub new {
     $self->_clear_fields();
     return $self;
 }
+
+#  override the Stats::Descriptive::Full method to use List::Util and List::MoreUtils functions
+sub add_data {
+    my $self = shift;  ##Myself
+  
+    my $aref;
+
+    if (ref $_[0] eq 'ARRAY') {
+      $aref = $_[0];
+    }
+    else {
+      $aref = \@_;
+    }
+  
+    ##If we were given no data, we do nothing.
+    return 1 if (!@{ $aref });
+  
+    my $oldmean;
+    my ($min,$mindex,$max,$maxdex,$sum,$sumsq,$count);
+    
+
+    ##Take care of appending to an existing data set
+    
+    if (!defined($min = $self->min())) {
+        $mindex = 0;
+        $min = $aref->[$mindex];
+    }
+    else {
+        $mindex = $self->mindex();
+    }
+  
+    if (!defined($max = $self->max())) {
+        $maxdex = 0;
+        $max = $aref->[$maxdex];
+    }
+    else {
+        $maxdex = $self->maxdex();
+    }
+  
+    $sum = $self->sum() || 0;
+    $sumsq = $self->sumsq() || 0;
+    $count = $self->count() || 0;
+
+    #  need to allow for already having data
+    $sum    += List::Util::sum (@$aref);
+    $sumsq  += List::Util::sum (List::MoreUtils::apply {$_ **= 2} @$aref);
+    $max    =  List::Util::max ($max, @$aref);
+    $min    =  List::Util::min ($min, @$aref);
+    $count  +=  scalar @$aref;
+  
+    $self->min($min);
+    
+    $self->max($max);
+    $self->sample_range($max - $min);
+    $self->sum($sum);
+    $self->sumsq($sumsq);
+    $self->mean($sum / $count);
+    $self->count($count);
+    ##indicator the value is not cached.  Variance isn't commonly enough
+    ##used to recompute every single data add.
+    $self->_variance(undef);
+    
+    push @{ $self->_data() }, @{ $aref };
+
+    $maxdex =  List::MoreUtils::first_index {$_ == $max} $self->get_data;
+    $mindex =  List::MoreUtils::first_index {$_ == $min} $self->get_data;
+    $self->maxdex($maxdex);
+    $self->mindex($mindex);
+
+    ##Clear the presorted flag
+    $self->presorted(0);
+  
+    $self->_delete_all_cached_keys();
+  
+    return 1;
+}
+
 
 sub median {
     my $self = shift;

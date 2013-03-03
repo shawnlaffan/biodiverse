@@ -5,8 +5,8 @@ package Biodiverse::Indices::Numeric_Labels;
 use strict;
 use warnings;
 
-use List::Util;
-use List::MoreUtils;
+use List::Util qw /sum/;
+use List::MoreUtils qw /apply pairwise/;
 
 use Carp;
 
@@ -367,15 +367,15 @@ sub calc_numeric_label_dissimilarity {
     BY_LABEL1:
     while (my ($label1, $count1) = each %label_list1) {
 
-        my @abs_diff_list  = List::MoreUtils::apply { $_ = abs($_ - $label1) } keys %label_list2;
-        my @ssq_list       = List::MoreUtils::apply { $_ **= 2 } @abs_diff_list;
-        my @joint_count    = List::MoreUtils::apply { $_ *= $count1 } values %label_list2;
-        my @wtd_adiff_list = List::MoreUtils::pairwise {$a * $b} @abs_diff_list, @joint_count;
-        my @wtd_ssq_list   = List::MoreUtils::pairwise {$a * $b} @ssq_list, @joint_count;
+        my @abs_diff_list  = apply { $_ = abs($_ - $label1) } keys %label_list2;
+        my @ssq_list       = apply { $_ **= 2 } @abs_diff_list;
+        my @joint_count    = apply { $_ *= $count1 } values %label_list2;
+        my @wtd_adiff_list = pairwise {$a * $b} @abs_diff_list, @joint_count;
+        my @wtd_ssq_list   = pairwise {$a * $b} @ssq_list, @joint_count;
 
-        $sum_absX += List::Util::sum @wtd_adiff_list;
-        $sumXsqr  += List::Util::sum @wtd_ssq_list;
-        $count    += List::Util::sum @joint_count;
+        $sum_absX += sum @wtd_adiff_list;
+        $sumXsqr  += sum @wtd_ssq_list;
+        $count    += sum @joint_count;
     }
 
     my %results;

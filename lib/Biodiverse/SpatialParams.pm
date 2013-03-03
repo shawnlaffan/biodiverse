@@ -2187,6 +2187,120 @@ sub sp_point_in_poly_shape {
     return;
 }
 
+
+
+sub get_metadata_sp_points_in_same_poly_shape {
+    my $self = shift;
+    my %args = @_;
+
+    my $examples = 'NEED SOME EXAMPLES';
+
+    my %metadata = (
+        description =>
+            'Returns true when two points are within the same shapefile polygon',
+        required_args => [
+            qw /file/,
+        ],
+        optional_args => [
+            qw /point1 point2 axes no_cache/,
+        ],
+        index_no_use => 1,
+        #result_type  => 'always_same',
+        example => $examples,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub sp_points_in_same_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $no_cache = $args{no_cache};
+    my $axes = $args{axes} || [0,1];
+
+    my $point1 = $args{point1} // $h->{'@coord'};
+    my $point2 = $args{point2} // $h->{'@nbrcoord'};
+
+    my $x_coord1 = $point1->[$axes->[0]];
+    my $y_coord1 = $point1->[$axes->[1]];
+    my $x_coord2 = $point2->[$axes->[0]];
+    my $y_coord2 = $point2->[$axes->[1]];
+
+    my $cached_results = $self->get_cache_sp_points_in_same_poly_shape(%args);
+
+    my $point_string1 = join (':', $x_coord1, $y_coord1, $x_coord2, $y_coord2);
+    my $point_string2 = join (':', $x_coord2, $y_coord2, $x_coord1, $y_coord1);    
+    if (!$no_cache) {
+        for my $point_string ($point_string1, $point_string2) {
+            return $cached_results->{$point_string}
+              if (exists $cached_results->{$point_string});
+        }
+    }
+
+    my $polys = $self->get_polygons_from_shapefile (%args);
+
+    my $pointshape1 = Geo::ShapeFile::Point->new(X => $x_coord1, Y => $y_coord1);
+    my $pointshape2 = Geo::ShapeFile::Point->new(X => $x_coord2, Y => $y_coord2);
+
+    my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
+    my $bd = ${$h->{'$basedata'}};
+    my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
+    my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
+    
+    my @rect1 = (
+        $x_coord1 - $cell_x / 2,
+        $y_coord1 - $cell_y / 2,
+        $x_coord1 + $cell_x / 2,
+        $y_coord1 + $cell_y / 2,
+    );
+    my $rtree_polys1 = [];
+    $rtree->query_partly_within_rect(@rect1, $rtree_polys1);
+
+    my @rect2 = (
+        $x_coord2 - $cell_x / 2,
+        $y_coord2 - $cell_y / 2,
+        $x_coord2 + $cell_x / 2,
+        $y_coord2 + $cell_y / 2,
+    );
+    my $rtree_polys2 = [];
+    $rtree->query_partly_within_rect(@rect2, $rtree_polys2);
+    
+    #  get the list of common polys
+    my @rtree_polys_common = grep {
+        my $check = $_;
+        List::MoreUtils::any {$_ eq $check} @$rtree_polys2
+    } @$rtree_polys1;
+
+    #  need a progress dialogue for involved searches
+    #my $progress = Biodiverse::Progress->new(text => 'Point in poly search');
+    my ($i, $target) = (1, scalar @$rtree_polys1);
+
+    foreach my $poly (@rtree_polys_common) {
+        #$progress->update(
+        #    "Checking if point $point_string\nis in polygon\n$i of $target",
+        #    $i / $target,
+        #);
+        my $pt1_in_poly = $poly->contains_point($pointshape1);
+        my $pt2_in_poly = $poly->contains_point($pointshape2);
+        if ($pt1_in_poly || $pt2_in_poly) {
+            my $result = $pt1_in_poly && $pt2_in_poly;
+            if (!$no_cache) {
+                $cached_results->{$point_string1} = $result;
+            }
+            return $result;
+        }
+    }
+
+    if (!$no_cache) {
+        $cached_results->{$point_string1} = 0;
+    }
+
+    return;
+}
+
 sub get_cache_name_sp_point_in_poly_shape {
     my $self = shift;
     my %args = @_;
@@ -2198,10 +2312,31 @@ sub get_cache_name_sp_point_in_poly_shape {
     return $cache_name;
 }
 
+sub get_cache_name_sp_points_in_same_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $cache_name = join ':',
+        'sp_points_in_same_poly_shape',
+        $args{file};
+    return $cache_name;
+}
+
 sub get_cache_sp_point_in_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
+    my $cache = $self->get_cached_value($cache_name);
+    if (!$cache) {
+        $cache = {};
+        $self->set_cached_value($cache_name => $cache);
+    }
+    return $cache;
+}
+
+sub get_cache_sp_points_in_same_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $cache_name = $self->get_cache_name_sp_points_in_same_poly_shape(%args);
     my $cache = $self->get_cached_value($cache_name);
     if (!$cache) {
         $cache = {};

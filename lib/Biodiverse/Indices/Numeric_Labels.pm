@@ -5,6 +5,9 @@ package Biodiverse::Indices::Numeric_Labels;
 use strict;
 use warnings;
 
+use List::Util;
+use List::MoreUtils;
+
 use Carp;
 
 our $VERSION = '0.18_004';
@@ -346,27 +349,33 @@ sub calc_numeric_label_dissimilarity {
         return wantarray ? %results : \%results;
     }
 
-    my $label_list1 = $args{label_hash1};
-    my $label_list2 = $args{label_hash2};
+    my $list1 = $args{label_hash1};
+    my $list2 = $args{label_hash2};
+    #  make %$l1 the shorter, as it is used in the while loop
+    if (scalar keys %$list1 > scalar keys %$list2) {  
+        $list1 = $args{label_hash2};
+        $list2 = $args{label_hash1};
+    }
 
-    my ($sumX, $sum_absX, $sumXsqr, $count) = (undef, undef, undef, 0);
+    #  use copies in case the two refs are to the same hash
+    my %label_list1 = %$list1;
+    my %label_list2 = %$list2;
 
-    #  should look into using PDL to handle this, as it will be much, much faster
-    #  (but it will use more memory, which will be bad for large label lists)
+    my ($sum_absX, $sumXsqr, $count) = (undef, undef, 0);
+
+
     BY_LABEL1:
-    while (my ($label1, $count1) = each %{$label_list1}) {
+    while (my ($label1, $count1) = each %label_list1) {
 
-        BY_LABEL2:
-        while (my ($label2, $count2) = each %{$label_list2}) {
+        my @abs_diff_list  = List::MoreUtils::apply { $_ = abs($_ - $label1) } keys %label_list2;
+        my @ssq_list       = List::MoreUtils::apply { $_ **= 2 } @abs_diff_list;
+        my @joint_count    = List::MoreUtils::apply { $_ *= $count1 } values %label_list2;
+        my @wtd_adiff_list = List::MoreUtils::pairwise {$a * $b} @abs_diff_list, @joint_count;
+        my @wtd_ssq_list   = List::MoreUtils::pairwise {$a * $b} @ssq_list, @joint_count;
 
-            my $value = $label1 - $label2;
-            my $joint_count = $count1 * $count2;
-
-            #  tally the stats
-            $sum_absX += abs($value * $joint_count);
-            $sumXsqr  += $value ** 2 * $joint_count;
-            $count    += $joint_count;
-        }
+        $sum_absX += List::Util::sum @wtd_adiff_list;
+        $sumXsqr  += List::Util::sum @wtd_ssq_list;
+        $count    += List::Util::sum @joint_count;
     }
 
     my %results;
@@ -374,7 +383,6 @@ sub calc_numeric_label_dissimilarity {
         #  suppress these warnings within this block
         no warnings qw /uninitialized numeric/;
 
-        #$results{NUMD_MEAN}     = eval {$sumX / $count};
         $results{NUMD_ABSMEAN}  = eval {$sum_absX / $count};
         $results{NUMD_VARIANCE} = eval {$sumXsqr / $count};
         $results{NUMD_COUNT}    = $count;

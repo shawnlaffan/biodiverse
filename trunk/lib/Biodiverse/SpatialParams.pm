@@ -2229,7 +2229,8 @@ sub sp_points_in_same_poly_shape {
     my $x_coord2 = $point2->[$axes->[0]];
     my $y_coord2 = $point2->[$axes->[1]];
 
-    my $cached_results = $self->get_cache_sp_points_in_same_poly_shape(%args);
+    my $cached_results     = $self->get_cache_sp_points_in_same_poly_shape(%args);
+    my $cached_pts_in_poly = $self->get_cache_points_in_shapepoly(%args);
 
     my $point_string1 = join (':', $x_coord1, $y_coord1, $x_coord2, $y_coord2);
     my $point_string2 = join (':', $x_coord2, $y_coord2, $x_coord1, $y_coord1);    
@@ -2274,17 +2275,26 @@ sub sp_points_in_same_poly_shape {
         List::MoreUtils::any {$_ eq $check} @$rtree_polys2
     } @$rtree_polys1;
 
-    #  need a progress dialogue for involved searches
-    #my $progress = Biodiverse::Progress->new(text => 'Point in poly search');
     my ($i, $target) = (1, scalar @$rtree_polys1);
+    my $point1_str = join ':', $x_coord1, $y_coord1;
+    my $point2_str = join ':', $x_coord2, $y_coord2;
+    
 
     foreach my $poly (@rtree_polys_common) {
-        #$progress->update(
-        #    "Checking if point $point_string\nis in polygon\n$i of $target",
-        #    $i / $target,
-        #);
-        my $pt1_in_poly = $poly->contains_point($pointshape1);
-        my $pt2_in_poly = $poly->contains_point($pointshape2);
+        my $poly_id     = $poly->shape_id();
+
+        my $pt1_in_poly = $cached_pts_in_poly->{$poly_id}{$point1_str};
+        if (!defined $pt1_in_poly) {
+            $pt1_in_poly = $poly->contains_point($pointshape1);
+            $cached_pts_in_poly->{$poly_id}{$point1_str} = $pt1_in_poly ? 1 : 0;
+        }
+
+        my $pt2_in_poly = $cached_pts_in_poly->{$poly_id}{$point2_str};
+        if (!defined $pt2_in_poly) {
+            $pt2_in_poly = $poly->contains_point($pointshape2);
+            $cached_pts_in_poly->{$poly_id}{$point2_str} = $pt2_in_poly ? 1 : 0;
+        }
+
         if ($pt1_in_poly || $pt2_in_poly) {
             my $result = $pt1_in_poly && $pt2_in_poly;
             if (!$no_cache) {
@@ -2319,6 +2329,19 @@ sub get_cache_name_sp_points_in_same_poly_shape {
         'sp_points_in_same_poly_shape',
         $args{file};
     return $cache_name;
+}
+
+sub get_cache_points_in_shapepoly {
+    my $self = shift;
+    my %args = @_;
+
+    my $cache_name = 'cache_' . $args{file};
+    my $cache = $self->get_cached_value($cache_name);
+    if (!$cache) {
+        $cache = {};
+        $self->set_cached_value($cache_name => $cache);
+    }
+    return $cache;
 }
 
 sub get_cache_sp_point_in_poly_shape {

@@ -37,7 +37,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 5.  Download the win64_gtk components using an svn checkout. TortoiseSVN is the easiest way, but this command line will work if you installed the shell options with TortoiseSVN (or you have a different svn client).
 
 {{{
-  svn co https://biodiverse.googlecode.com/svn/branches/gtk_win_builds/etc/win64_gtk %GTK_PATH%
+  svn co https://biodiverse.googlecode.com/svn/branches/gtk_win_builds/etc/gtk_win64 %GTK_PATH%
 }}}
 
 

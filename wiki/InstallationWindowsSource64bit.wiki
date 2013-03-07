@@ -49,6 +49,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   ppm install Cairo.ppd Glib.ppd Gnome2-Canvas.ppd Gtk2-GladeXML.ppd Gtk2.ppd Pango.ppd
 
   cpan rlib
+  cpan autovivification
   cpan Task::Biodiverse::NoGUI
   cpan Task::Biodiverse
 }}}

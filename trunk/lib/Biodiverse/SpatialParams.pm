@@ -406,7 +406,7 @@ sub get_invalid_args_for_sub_call {
         delete @called_args_hash{@$list};
     }
 
-    my @invalid = keys %called_args_hash;
+    my @invalid = sort keys %called_args_hash;
 
     return wantarray ? @invalid : \@invalid;
 }
@@ -438,7 +438,7 @@ sub verify {
     my $missing_opt_args = $self->get_param('MISSING_OPT_ARGS');
     if ( $missing_opt_args and scalar keys %$missing_opt_args ) {
         $msg .= "Unused optional arguments\n";
-        foreach my $sub ( keys %$missing_opt_args ) {
+        foreach my $sub ( sort keys %$missing_opt_args ) {
             my $sub_m = $missing_opt_args->{$sub};
             $msg .= "$sub : " . join( ', ', keys %$sub_m ) . "\n";
         }
@@ -448,7 +448,7 @@ sub verify {
     my $incorrect_args = $self->get_param('INCORRECT_ARGS');
     if ( $incorrect_args and scalar keys %$incorrect_args ) {
         $msg .= "\nSubs have incorrectly specified arguments\n";
-        foreach my $sub ( keys %$incorrect_args ) {
+        foreach my $sub ( sort keys %$incorrect_args ) {
             $msg .= $incorrect_args->{$sub} . "\n";
         }
         $valid = 0;
@@ -458,7 +458,7 @@ sub verify {
     my $invalid_args = $self->get_param ('INVALID_ARGS');
     if ( $incorrect_args and scalar keys %$invalid_args ) {
         $msg .= "\nSubs have invalid arguments - they might not work as you hope.\n";
-        foreach my $sub ( keys %$invalid_args ) {
+        foreach my $sub ( sort keys %$invalid_args ) {
             my $sub_m = $invalid_args->{$sub};
             $msg .= "$sub : " . join( ', ', @$sub_m ) . "\n";
         }

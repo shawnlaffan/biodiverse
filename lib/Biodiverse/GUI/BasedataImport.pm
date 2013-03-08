@@ -73,7 +73,7 @@ sub run {
 
     # Get selected filenames
     my @filenames = $dlgxml->get_widget($filechooserInput)->get_filenames();
-    my @file_names_tmp = @filenames
+    my @file_names_tmp = @filenames;
     if (scalar @filenames > 5) {
         @file_names_tmp = @filenames[0..5];
         push @file_names_tmp, '... plus ' . (scalar @filenames - 5) . ' others';

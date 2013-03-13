@@ -1,16 +1,5 @@
 package Biodiverse::Spatial;
 
-## This block of comments is out of date...
-#  Package containing methods to analyse a Biodiverse::BaseStruct object using spatial arrangements
-#  These are just a set of methods linked directly into a Biodiverse object,
-#  putting the output into a BaseStruct object.
-#  Many of the methods call Biodiverse::Indices methods, these are handled by
-#  the Biodiverse::BaseStruct @ISA list.
-#  Generally this will consist of creating surfaces of index values based on a set of groups
-#  These group elements do not need to be the same as in the GROUPS sub-object,
-#  so we keep them in a separate hash
-#  Note that we have yet to define methods to load a seperate set of coords.
-
 use strict;
 use warnings;
 
@@ -425,32 +414,11 @@ sub sp_calc {
     #my $timer = [gettimeofday];
     
     #  check the elements against the definition query
-    my $pass_def_query;
-    
-    if ($definition_query) {
-        print "Running definition query\n";
-        my $element = $elements_to_calc[0];
-        my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+    my $pass_def_query = $self->get_elements_that_pass_def_query (
+        def_query        => $definition_query,
+        elements_to_calc => \@elements_to_calc,
+    );
 
-        $pass_def_query
-          = $bd->get_neighbours(
-                element        => $element,
-                spatial_params => $definition_query,
-                is_def_query   => 1,
-                progress       => $defq_progress,
-            );
-        $self->set_param (PASS_DEF_QUERY => $pass_def_query);
-
-        if (! scalar keys %$pass_def_query) {
-            $self->clear_spatial_condition_caches;
-            croak "Nothing passed the definition query\n";
-        }
-        else {
-            my $pass_count = scalar keys %$pass_def_query;
-            print "$pass_count groups passed the definition query\n";
-        }
-    }
-    
     #  get the global pre_calc results
     $indices_object->run_precalc_globals(%args);
 
@@ -653,7 +621,7 @@ sub sp_calc {
     my $lists = $self->get_lists_across_elements();
 
     my $time_taken = time - $start_time;
-    print "[SPATIAL] Analysis took $time_taken seconds.\n";
+    print "\n[SPATIAL] Analysis took $time_taken seconds.\n";
     $self->set_param (ANALYSIS_TIME_TAKEN => $time_taken);
 
     #  sometimes we crash out but the object still exists
@@ -1087,12 +1055,48 @@ sub get_recyclable_nbrhoods {
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }
 
+sub get_elements_that_pass_def_query {
+    my $self = shift;
+    my %args = @_;
 
+    my $definition_query = $self->get_definition_query (%args);
+    my $passed = $self->get_param('PASS_DEF_QUERY') || {};
+    
+    return wantarray ? %$passed : $passed
+      if $self->exists_param('PASS_DEF_QUERY') || !$definition_query;
+
+    my $bd = $self->get_basedata_ref;
+
+    print "Running definition query\n";
+    my $elements_to_calc = $args{elements_to_calc};
+    my $element = $elements_to_calc->[0];
+    my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+
+    $passed
+      = $bd->get_neighbours(
+            element        => $element,
+            spatial_params => $definition_query,
+            is_def_query   => 1,
+            progress       => $defq_progress,
+        );
+    $self->set_param (PASS_DEF_QUERY => $passed);
+
+    if (! scalar keys %$passed) {
+        $self->clear_spatial_condition_caches;
+        croak "Nothing passed the definition query\n";
+    }
+
+    my $pass_count = scalar keys %$passed;
+    print "$pass_count groups passed the definition query\n";
+
+
+    return wantarray ? %$passed : $passed;
+}
 
 #sub numerically {$a <=> $b};
-sub max {
-    return $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub max {
+#    return $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
 1;
 

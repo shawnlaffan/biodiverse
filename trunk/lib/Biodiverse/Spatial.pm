@@ -414,7 +414,7 @@ sub sp_calc {
     #my $timer = [gettimeofday];
     
     #  check the elements against the definition query
-    my $pass_def_query = $self->get_elements_that_pass_def_query (
+    my $pass_def_query = $self->get_groups_that_pass_def_query (
         def_query        => $definition_query,
         elements_to_calc => \@elements_to_calc,
     );
@@ -1055,7 +1055,7 @@ sub get_recyclable_nbrhoods {
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }
 
-sub get_elements_that_pass_def_query {
+sub get_groups_that_pass_def_query {
     my $self = shift;
     my %args = @_;
 

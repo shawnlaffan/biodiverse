@@ -655,6 +655,27 @@ sub dump_to_yaml {
     return $args{filename};
 }
 
+sub dump_to_xml {
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data};
+
+    my $file = $args{filename};
+    if (defined $file) {
+        $file = Path::Class::file($args{filename})->absolute;
+        print "WRITING TO FILE $file\n";
+        open (my $fh, '>', $file);
+        print $fh dump_xml ($data);
+        $fh->close;
+    }
+    else {
+        print dump_xml ($data);
+    }
+
+    return $file;
+}
+
 #  escape any special characters in a file name
 #  just a wrapper around URI::Escape::XS::escape_uri
 sub escape_filename {

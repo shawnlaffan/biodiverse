@@ -19,6 +19,8 @@ use Biodiverse::BaseData;
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::ReadNexus;
+use Biodiverse::ElementProperties;
+
 
 use File::Temp;
 use Scalar::Util qw /looks_like_number/;

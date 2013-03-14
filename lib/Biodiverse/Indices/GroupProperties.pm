@@ -228,9 +228,9 @@ sub calc_gpprop_hashes {
 }
 
 
-my @stats     = qw /count mean min max median sum standard_deviation iqr/;
+my @stats     = qw /count mean min max median sum sd iqr/;
 my %stat_name_short = (
-    standard_deviation => 'SD',
+    #standard_deviation => 'SD',
 );
 my @quantiles = qw /05 10 20 30 40 50 60 70 80 90 95/;
 
@@ -270,9 +270,10 @@ sub calc_gpprop_stats {
         $pfx =~ s/DATA$//;
         $pfx =~ s/^GPPROP_STATS_//;
         foreach my $stat (@stats) {
-            my $stat_name = exists $stat_name_short{$stat}
-                        ? $stat_name_short{$stat}
-                        : $stat;
+            #my $stat_name = exists $stat_name_short{$stat}
+            #            ? $stat_name_short{$stat}
+            #            : $stat;
+            my $stat_name = $stat;
 
             $res{$pfx . uc $stat_name} = eval {$stats_object->$stat};
         }

@@ -185,6 +185,17 @@ sub median {
 #    return $self->SUPER::mean;
 #}
 
+sub sd {
+    my $self = shift;
+    return $self->SUPER::standard_deviation (@_);
+}
+
+sub stdev {
+    my $self = shift;
+    return $self->SUPER::standard_deviation (@_);
+}
+
+
 #  Snaps percentiles to range 1..100,
 #  does not return undef if percentile is < bin size
 sub percentile {  

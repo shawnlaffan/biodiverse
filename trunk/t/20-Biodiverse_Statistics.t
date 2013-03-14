@@ -62,5 +62,17 @@ use Biodiverse::Statistics;
     }
 }
 
+#  check sd and stdev are same as standard_deviation
+{
+    my $stat = Biodiverse::Statistics->new();
+
+    $stat->add_data (1 .. 100);
+
+    foreach my $shortname (qw /sd stdev/) {
+        is ($stat->standard_deviation, $stat->$shortname, "$shortname is same as standard_deviation");
+    }
+    
+}
+
 
 done_testing();

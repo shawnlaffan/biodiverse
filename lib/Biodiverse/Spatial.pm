@@ -288,7 +288,7 @@ sub sp_calc {
     #  don't pass these onwards when we call the calcs
     delete @args{qw /calculations analyses/};  
 
-    print "[SPATIAL] sp_calc running analyses "
+    print "[SPATIAL] running calculations "
           . (join (q{ }, sort keys %{$indices_object->get_valid_calculations_to_run}))
           . "\n";
 

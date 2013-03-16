@@ -1342,7 +1342,7 @@ sub _calc_phylo_mpd_mntd {
         LABEL2:
         foreach my $label2 (@labels2) {
 
-            #  skip same labels
+            #  skip same labels (FIXME: but not if used as dissim measure)
             next LABEL2 if $label1 eq $label2;
 
             my $label_count2 = $label_hash2->{$label2};
@@ -1374,23 +1374,18 @@ sub _calc_phylo_mpd_mntd {
                     value    => $path_length,
                 );
             }
-            #if ($do_mpd) {  #  mpd case needs to weight by labelcount2
-                push @mpd_path_lengths_this_node, ($path_length) x $label_count2;
-            #}
-            #else {          #  mntd case takes the min, so don't bother weighting?
-                push @mntd_path_lengths_this_node, $path_length;  
-            #}
+
+            push @mpd_path_lengths_this_node, ($path_length) x $label_count2;
+            push @mntd_path_lengths_this_node, $path_length;
 
             $i ++;
         }
+
         if ($i) {  #  only if we added something
-            #if ($do_mpd) {
-                push @mpd_path_lengths, (@mpd_path_lengths_this_node) x $label_count1;
-            #}
-            #else {
-                my $min = min (@mntd_path_lengths_this_node);
-                push @mntd_path_lengths, ($min) x $label_count1;
-            #}
+            #  weighting scheme won't work with non-integer wts - need to use weighted stats
+            push @mpd_path_lengths, (@mpd_path_lengths_this_node) x $label_count1;
+            my $min = min (@mntd_path_lengths_this_node);
+            push @mntd_path_lengths, ($min) x $label_count1;  
         }
     }
 

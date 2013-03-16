@@ -166,6 +166,7 @@ sub compare_hash_vals {
     my $hash_exp   = $args{hash_exp};
     my $precision  = $args{precision};
     my $not_strict = $args{no_strict_match};
+    my $descr_suffix = $args{descr_suffix} // q{};
 
     #  check union of the two hashes
     my %targets = (%$hash_exp, %$hash_got);
@@ -213,7 +214,7 @@ sub compare_hash_vals {
                 value     => $hash_exp->{$key},
                 precision => $precision,
             );
-            is ($val_got, $val_exp, "Got expected value for $key");
+            is ($val_got, $val_exp, "Got expected value for $key, $descr_suffix");
         }
     }
 
@@ -576,7 +577,7 @@ sub run_indices_test1 {
         my $props = element_properties_from_string($data);
 
         eval { $bd->assign_element_properties (
-            type              => $use_element_properties.'s', # plural
+            type              => $use_element_properties . q{s}, # plural
             properties_object => $props,
         ) };
         $e = $EVAL_ERROR;
@@ -647,7 +648,7 @@ sub run_indices_test1 {
 
         %results = eval { $indices->run_calculations(%$calc_args) };
         $e = $EVAL_ERROR;
-        note $e if $e;
+        #note $e if $e;
 
         # sometimes none are left to run
         if ($indices->get_valid_calculation_count) {
@@ -683,6 +684,7 @@ sub run_indices_test1 {
         my $expected = eval $dss->get_data_section(
             "RESULTS_${nbr_list_count}_NBR_LISTS"
         );
+        diag "Problem with data section: $EVAL_ERROR" if $EVAL_ERROR;
         if ($expected_results_overlay) {
             my $hash = $expected_results_overlay->{$nbr_list_count};
             @$expected{keys %$hash} = values %$hash;
@@ -693,6 +695,7 @@ sub run_indices_test1 {
                 no_strict_match => $args{no_strict_match},
                 hash_got => \%results,
                 hash_exp => \%{$expected},
+                descr_suffix => "$nbr_list_count nbr sets",
             );
         };
     }

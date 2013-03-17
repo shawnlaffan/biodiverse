@@ -919,6 +919,7 @@ sub cluster_matrix_elements {
 
     my $count = 0;
     my $printedProgress = -1;
+    
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
@@ -947,31 +948,14 @@ sub cluster_matrix_elements {
             value       => $min_value,
             rand_object => $rand,
         );
-        #print "\nNodes: $node1, $node2\n";
-
-        #print "$join_number $count1, $count2\n" if $count1 > 1 and $count2 > 1;
 
         #  use node refs for children that are nodes
         #  use original name if not a node
         #  - this is where the name for $el1 comes from (a historical leftover)
-        my ($el1, $el2);
         my $lengthBelow = 0;
         my $nodeNames = $self->get_node_hash;
-        if (defined $nodeNames->{$node1}) {
-            $el1 = $nodeNames->{$node1};
-        }
-        else {
-            $el1 = $node1;
-        }
-        if (defined $nodeNames->{$node2}) {
-            $el2 = $nodeNames->{$node2};
-        }
-        else {
-            $el2 = $node2;
-        }
-
-        #print "cluster $join_number $min_value $el1 $el2\n";
-        #print "Cluster $join_number :: $min_value :: $node1 :: $node2\n";
+        my $el1 = defined $nodeNames->{$node1} ? $nodeNames->{$node1} : $node1;
+        my $el2 = defined $nodeNames->{$node2} ? $nodeNames->{$node2} : $node2;
 
         my $new_node_name = $join_number . "___";
 
@@ -1000,6 +984,11 @@ sub cluster_matrix_elements {
                 );
             }
         }
+        
+        #if ($new_node->get_length < 0) {
+        #    printf "[CLUSTER] Node %s has negative length of %f\n", $new_node->get_name, $new_node->get_length;
+        #}
+        #printf "[CLUSTER] Node %s has length of %f\n", $new_node->get_name, $new_node->get_length;
 
         ###  now we rebuild the similarity matrix to include the new linkages and destroy the old ones
         #  possibly we should return a list of other matrix elements where the length
@@ -1687,7 +1676,7 @@ sub link_recalculate {
 
     my $cache_abc
         = $args{cache_abc}
-        || $self->get_param ('CACHE_ABC');
+        // $self->get_param ('CACHE_ABC');
 
     my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
 

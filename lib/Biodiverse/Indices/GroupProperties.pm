@@ -393,6 +393,8 @@ sub _get_gistar_score {
     my $sum = $local_data->sum;
     my $expected = $W * $global_data->{mean};
 
+    return if !defined $sum;
+
     my $numerator = $sum - $expected;
 
     my $denominator = $W

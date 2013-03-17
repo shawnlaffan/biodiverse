@@ -2205,7 +2205,7 @@ sub get_metadata_sp_points_in_same_poly_shape {
             qw /point1 point2 axes no_cache/,
         ],
         index_no_use => 1,
-        #result_type  => 'always_same',
+        result_type  => 'non_overlapping',
         example => $examples,
     );
 

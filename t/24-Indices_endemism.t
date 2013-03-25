@@ -15,6 +15,7 @@ use Biodiverse::TestHelpers qw{
 run_indices_test1 (
     calcs_to_test  => [qw/
         calc_endemism_absolute
+        calc_endemism_absolute_lists
         calc_endemism_central
         calc_endemism_central_hier_part
         calc_endemism_central_lists

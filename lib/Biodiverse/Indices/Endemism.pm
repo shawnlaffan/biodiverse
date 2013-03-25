@@ -722,6 +722,47 @@ sub get_basedata_labels_as_tree {
 }
 
 
+sub get_metadata_calc_endemism_absolute_lists {
+
+    my $desc = "Lists underlying the absolute endemism scores.\n";
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Absolute endemism',
+        type            => 'Endemism',
+        pre_calc        => ['_calc_endemism_absolute'],
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        indices => {
+            END_ABS1_LIST => {
+                description => 'List of labels entirely endemic to neighbour set 1',
+                type        => 'list',
+            },
+            END_ABS2_LIST => {
+                description => 'List of labels entirely endemic to neighbour set 1',
+                type        => 'list',
+            },
+            END_ABS_ALL_LIST => {
+                description => 'List of labels entirely endemic to neighbour sets 1 and 2 combined',
+                type        => 'list',
+            },
+        },
+    );  #  add to if needed
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_endemism_absolute_lists {
+    my $self = shift;
+    my %args = @_;
+    
+    my @keys = qw /END_ABS1_LIST END_ABS2_LIST END_ABS_ALL_LIST/;
+    my %results;
+    @results{@keys} = @args{@keys};
+
+    return wantarray ? %results : \%results;
+}
+
+
 sub get_metadata_calc_endemism_absolute {
 
     my $desc = "Absolute endemism scores.\n";
@@ -730,7 +771,7 @@ sub get_metadata_calc_endemism_absolute {
         description     => $desc,
         name            => 'Absolute endemism',
         type            => 'Endemism',
-        pre_calc        => ['calc_abc2'],
+        pre_calc        => ['_calc_endemism_absolute'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             END_ABS1 => {
@@ -751,18 +792,6 @@ sub get_metadata_calc_endemism_absolute {
             END_ABS_ALL_P => {
                 description => 'Proportion of labels entirely endemic to neighbour sets 1 and 2 combined',
             },
-            END_ABS1_LIST => {
-                description => 'List of labels entirely endemic to neighbour set 1',
-                type        => 'list',
-            },
-            END_ABS2_LIST => {
-                description => 'List of labels entirely endemic to neighbour set 1',
-                type        => 'list',
-            },
-            END_ABS_ALL_LIST => {
-                description => 'List of labels entirely endemic to neighbour sets 1 and 2 combined',
-                type        => 'list',
-            },
         },
     );  #  add to if needed
 
@@ -770,6 +799,33 @@ sub get_metadata_calc_endemism_absolute {
 }
 
 sub calc_endemism_absolute {
+    my $self = shift;
+    my %args = @_;
+    
+    my @keys = qw /END_ABS1 END_ABS2 END_ABS_ALL END_ABS1_P END_ABS2_P END_ABS_ALL_P/;
+    my %results;
+    @results{@keys} = @args{@keys};
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata__calc_endemism_absolute {
+
+    my $desc = "Internal calcs for absolute endemism.\n";
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Absolute endemism, internals',
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        pre_calc        => ['calc_abc2'],
+    );  #  add to if needed
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+
+
+sub _calc_endemism_absolute {
     my $self = shift;
     my %args = @_;
 

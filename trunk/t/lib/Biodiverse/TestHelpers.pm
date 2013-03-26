@@ -489,6 +489,10 @@ sub get_label_properties_site_data {
     return get_data_section('LABEL_PROPERTIES_DATA');
 }
 
+sub get_label_properties_site_data_extra {
+    return get_data_section('LABEL_PROPERTIES_DATA_EXTRA');
+}
+
 sub get_group_properties_site_data {
     return get_data_section('GROUP_PROPERTIES_DATA');
 }
@@ -526,6 +530,7 @@ sub run_indices_test1 {
     my $cell_sizes             = $args{cell_sizes} || [100000, 100000];
     my $use_numeric_labels     = $args{use_numeric_labels};
     my $use_element_properties = $args{use_element_properties}; # 'group' or 'label'
+    my $use_label_properties_extra = $args{use_label_properties_extra};  #  boolean
     my $callbacks              = $args{callbacks};
     my $expected_results_overlay = $args{expected_results_overlay};
     delete $args{callbacks};
@@ -564,7 +569,7 @@ sub run_indices_test1 {
     if ($use_element_properties) {
         my $data;
 
-        if ($use_element_properties eq 'label') {
+        if ($use_element_properties =~ /label/) {
             $data = get_label_properties_site_data();
         }
         elsif ($use_element_properties eq 'group') {
@@ -583,6 +588,20 @@ sub run_indices_test1 {
         $e = $EVAL_ERROR;
         note $e if $e;
         ok (!$e, 'Element properties assigned without eval error');
+    }
+
+    if ($use_label_properties_extra) {
+        my $data = get_label_properties_site_data_extra();
+
+        my $props = element_properties_from_string($data);
+
+        eval { $bd->assign_element_properties (
+            type              => 'labels',
+            properties_object => $props,
+        ) };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, 'Extra label properties assigned without eval error');
     }
     
     foreach my $callback (@$callbacks) {
@@ -616,7 +635,11 @@ sub run_indices_test1 {
         element_list2 => $element_list2,
     );
 
-    my $calc_args = {tree_ref => $tree, matrix_ref => $matrix};
+    my $calc_args = {
+        tree_ref   => $tree,
+        matrix_ref => $matrix,
+        prng_seed  => $args{prng_seed},  #  FIXME: NEED TO PASS ANY NECESSARY ARGS
+    };
 
     foreach my $nbr_list_count (2, 1) {
         if ($nbr_list_count == 1) {
@@ -2802,6 +2825,24 @@ Genus:sp6,Genus,sp6,0.454545454545455,0.454545454545455,6,6
 Genus:sp7,Genus,sp7,0.25,0.25,6,6
 Genus:sp8,Genus,sp8,0.6,0.6,4,4
 Genus:sp9,Genus,sp9,0.736842105263158,0.736842105263158,15,15
+
+@@ LABEL_PROPERTIES_DATA_EXTRA
+Element,Axis_0,Axis_1,xLBPROP1,xLBPROP2,xLBPROP3,xLBPROP4
+Genus:sp1,Genus,sp1,0.640625,0.640625,23,23
+Genus:sp10,Genus,sp10,0.816993464052288,0.816993464052288,28,28
+Genus:sp11,Genus,sp11,0.850609756097561,0.850609756097561,49,49
+Genus:sp12,Genus,sp12,0.80794701986755,0.80794701986755,29,29
+Genus:sp13,Genus,sp13,0.888888888888889,0.888888888888889,3,3
+Genus:sp14,Genus,sp14,0.571428571428571,0.571428571428571,3,3
+Genus:sp15,Genus,sp15,0.722222222222222,0.722222222222222,15,15
+Genus:sp16,Genus,sp16,0.9,0.9,2,2
+Genus:sp17,Genus,sp17,0.611111111111111,0.611111111111111,7,7
+Genus:sp18,Genus,sp18,0.759493670886076,0.759493670886076,19,19
+Genus:sp19,Genus,sp19,0.878048780487805,0.878048780487805,5,5
+Genus:sp2,Genus,sp2,0.676470588235294,0.676470588235294,11,11
+Genus:sp20,Genus,sp20,0.709677419354839,0.709677419354839,9,9
+Genus:sp21,Genus,sp21,0.861111111111111,0.861111111111111,25,25
+Genus:sp22,Genus,sp22,0.95,0.95,1,1
 
 
 @@ GROUP_PROPERTIES_DATA

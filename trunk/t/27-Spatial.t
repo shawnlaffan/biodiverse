@@ -61,7 +61,7 @@ use Biodiverse::Spatial;
 
         my $sp = run_analysis (%options);
 
-        my $passed_defq = $sp->get_elements_that_pass_def_query;
+        my $passed_defq = $sp->get_groups_that_pass_def_query;
 
         is (
             scalar keys %$passed_defq,

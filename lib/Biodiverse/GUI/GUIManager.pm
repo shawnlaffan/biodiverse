@@ -2190,7 +2190,8 @@ sub doRunExclusions {
     my $exclusionsHash = $basedata->get_param('EXCLUSION_HASH');
     if (Biodiverse::GUI::Exclusions::showDialog($exclusionsHash)) {
         #print Data::Dumper::Dumper($exclusionsHash);
-        my $feedback = eval {$basedata->run_exclusions()};
+        my $tally = eval {$basedata->run_exclusions()};
+        my $feedback = $tally->{feedback};
         if ($EVAL_ERROR) {
             $self->report_error ($EVAL_ERROR);
             return;

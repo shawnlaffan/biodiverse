@@ -2,7 +2,7 @@
 #labels Featured
 #sidebar TOC
 
-= Version 0.18003 = 
+= Version 0.18005 = 
 
 This is a development version and has not yet been released.  
 
@@ -23,7 +23,9 @@ Main changes since previous version (0.17) are:
   *  GUI
     *  Label and group properties can now be attached after the data are imported.  Issue #327
     *  Labels can be renamed after import.  Issue #349
-    *  Labels can be deleted using a list from a file (issue #348) or using a text match (issue #347).  These are accessed through the run exclusions dialogue.
+    *  The run exclusions dialogue now supports additional exclusions criteria.  These include:
+      *  Labels can be deleted using a list from a file (issue #348) or using a text match (issue #347).  
+      *  Groups can be excluded using a definition query, using the same syntax as for a spatial analysis (issue #370).
   *  Exports
     *  Delimited text exports now write directly to file, avoiding large memory usage.  Issue #350 
     *  All tree nodes can now be optionally exported when using the Table Grouped type.  Issue #312

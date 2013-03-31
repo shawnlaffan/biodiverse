@@ -646,52 +646,20 @@ sub run_indices_test1 {
             delete $elements{element_list2};
         }
 
-        my $calc_args_for_validity_check = {
-            %$calc_args,
-            %elements,
-        };
+        my %indices_args = (
+            calcs_to_test  => $calcs_to_test,
+            calc_args      => $calc_args,
+            elements       => \%elements,
+            nbr_list_count => $nbr_list_count,
+            basedata_ref   => $bd,
+        );
 
-        my $valid_calcs = eval {
-            $indices->get_valid_calculations(
-                calculations   => $calcs_to_test,
-                nbr_list_count => $nbr_list_count,
-                calc_args      => $calc_args_for_validity_check,
-            );
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Obtained valid calcs without eval error");
+        my %results = run_indices_test1_inner (%indices_args);
 
-        eval {
-            $indices->run_precalc_globals(%$calc_args);
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran global precalcs without eval error");
-
-        %results = eval { $indices->run_calculations(%$calc_args) };
-        $e = $EVAL_ERROR;
-        #note $e if $e;
-
-        # sometimes none are left to run
-        if ($indices->get_valid_calculation_count) {
-            ok ($e, "Ran calculations without elements and got eval error");
+        #  sometimes we want to check for the effects of caching
+        if ($args{run_indices_twice}) {
+            %results = run_indices_test1_inner (%indices_args);
         }
-
-        %results = eval {
-            $indices->run_calculations(%$calc_args, %elements);
-        };
-
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran calculations without eval error");
-
-        eval {
-            $indices->run_postcalc_globals(%$calc_args);
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran global postcalcs without eval error");
 
         # Used for acquiring sample results
         if ($generate_result_sets) {
@@ -722,6 +690,68 @@ sub run_indices_test1 {
             );
         };
     }
+}
+
+sub run_indices_test1_inner {
+    my %args = @_;
+    
+    my $calcs_to_test  = $args{calcs_to_test};
+    my $calc_args      = $args{calc_args};
+    my %elements       = %{$args{elements}};
+    my $nbr_list_count = $args{nbr_list_count};
+    my $bd             = $args{basedata_ref};
+
+    my $calc_args_for_validity_check = {
+        %$calc_args,
+        %elements,
+    };
+    
+    my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+    my $e;
+
+    my $valid_calcs = eval {
+        $indices->get_valid_calculations(
+            calculations   => $calcs_to_test,
+            nbr_list_count => $nbr_list_count,
+            calc_args      => $calc_args_for_validity_check,
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "Obtained valid calcs without eval error");
+
+    eval {
+        $indices->run_precalc_globals(%$calc_args);
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "Ran global precalcs without eval error");
+
+    my %results = eval { $indices->run_calculations(%$calc_args) };
+    $e = $EVAL_ERROR;
+    #note $e if $e;
+
+    # sometimes none are left to run
+    if ($indices->get_valid_calculation_count) {
+        ok ($e, "Ran calculations without elements and got eval error");
+    }
+
+    %results = eval {
+        $indices->run_calculations(%$calc_args, %elements);
+    };
+
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "Ran calculations without eval error");
+
+    eval {
+        $indices->run_postcalc_globals(%$calc_args);
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "Ran global postcalcs without eval error");
+    
+    return wantarray ? %results : \%results;
 }
 
 1;

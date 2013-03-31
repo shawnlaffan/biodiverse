@@ -276,7 +276,7 @@ sub get_metadata_calc_lbprop_quantiles {
         uses_nbr_lists  => 1,
         indices         => {
             LBPROP_QUANTILE_LIST => {
-                description => 'List of quantiles for the label properties ' . $quantile_list_text,
+                description => 'List of quantiles for the label properties: ' . $quantile_list_text,
                 type        => 'list',
             }
         },

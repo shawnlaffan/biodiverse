@@ -654,10 +654,9 @@ sub run_indices_test1 {
             basedata_ref   => $bd,
         );
 
-        my %results = run_indices_test1_inner (%indices_args);
-
+        my %results;
         #  sometimes we want to check for the effects of caching
-        if ($args{run_indices_twice}) {
+        foreach my $repetition ($args{repetitions} // 1) {
             %results = run_indices_test1_inner (%indices_args);
         }
 

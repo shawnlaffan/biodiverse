@@ -367,9 +367,9 @@ sub calc_numeric_label_dissimilarity {
     BY_LABEL1:
     while (my ($label1, $count1) = each %label_list1) {
 
-        my @abs_diff_list  = apply { $_ = abs($_ - $label1) } keys %label_list2;
-        my @ssq_list       = apply { $_ **= 2 } @abs_diff_list;
-        my @joint_count    = apply { $_ *= $count1 } values %label_list2;
+        my @abs_diff_list  = map { abs($_ - $label1) } keys %label_list2;
+        my @ssq_list       = map { $_ ** 2 } @abs_diff_list;
+        my @joint_count    = map { $_ * $count1 } values %label_list2;
         my @wtd_adiff_list = pairwise {$a * $b} @abs_diff_list, @joint_count;
         my @wtd_ssq_list   = pairwise {$a * $b} @ssq_list, @joint_count;
 

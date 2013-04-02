@@ -70,24 +70,10 @@ sub add_data {
     if (!defined $min) {
         $min = $aref->[0];
     }
-    #if (!defined($min = $self->min())) {
-    #    $mindex = 0;
-    #    $min = $aref->[$mindex];
-    #}
-    #else {
-    #    $mindex = $self->mindex();
-    #}
     $max = $self->max();
     if (!defined $max) {
         $max = $aref->[0];
     }
-    #if (!defined($max = $self->max())) {
-    #    $maxdex = 0;
-    #    $max = $aref->[$maxdex];
-    #}
-    #else {
-    #    $maxdex = $self->maxdex();
-    #}
   
     $sum = $self->sum() || 0;
     $sumsq = $self->sumsq() || 0;
@@ -95,7 +81,7 @@ sub add_data {
 
     #  need to allow for already having data
     $sum    += List::Util::sum (@$aref);
-    $sumsq  += List::Util::sum (List::MoreUtils::apply {$_ **= 2} @$aref);
+    $sumsq  += List::Util::sum (map {$_ ** 2} @$aref);
     $max    =  List::Util::max ($max, @$aref);
     $min    =  List::Util::min ($min, @$aref);
     $count  +=  scalar @$aref;
@@ -114,11 +100,6 @@ sub add_data {
     
     push @{ $self->_data() }, @{ $aref };
 
-    #$maxdex =  List::MoreUtils::first_index {$_ == $max} $self->get_data;
-    #$mindex =  List::MoreUtils::first_index {$_ == $min} $self->get_data;
-    #$self->maxdex($maxdex);
-    #$self->mindex($mindex);
-
     ##Clear the presorted flag
     $self->presorted(0);
   
@@ -132,8 +113,6 @@ sub maxdex {
     my $self = shift;
 
     return undef if !$self->count;
-    #my $maxdex = $self->{maxdex};
-    #return $maxdex if defined $maxdex;
     my $maxdex;
 
     if ($self->presorted) {

@@ -469,12 +469,13 @@ sub sp_calc {
     local $| = 1;  #  write to screen as we go
     my $using_index_text = defined $sp_index ? $EMPTY_STRING : "\nNot using spatial index";
 
-    $progress = Biodiverse::Progress->new();
     my $progress_text =
               "Spatial analysis\n$progress_text_base\n"
             . "(0 / $toDo)"
             . $using_index_text;
-    $progress->update ($progress_text, 0);
+    $progress = Biodiverse::Progress->new(text => $progress_text);
+    
+    #$progress->update ($progress_text, 0);
 
     my ($count, $printedProgress) = (0, -1);
     print "[SPATIAL] Progress (% of $toDo elements):     ";

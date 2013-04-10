@@ -64,15 +64,16 @@ sub new {
     #    'stop_pulsing'   => \&pulsate_stop,
     #    $self,
     #);
-    
-    $self->{last_update_time} = [gettimeofday];
+
     $self->{progress_update_interval} = $progress_update_interval;
 
     my $widget = $self->{dlgxml}->get_widget('label');
     if ($widget) {
         $widget->set_markup($text);
     }
-    $self->update ($text, 0);
+    $self->update ($text, 0, 1);
+
+    #$self->{last_update_time} = [gettimeofday];
 
     return $self;
 }
@@ -88,9 +89,7 @@ sub destroy {
 }
 
 sub update {  
-    my $self = shift;
-    my $text = shift;
-    my $progress = shift; # fraction 0 .. 1
+    my ($self, $text, $progress) = @_;
     
     return if not defined $progress;  #  should croak?
     
@@ -104,10 +103,11 @@ sub update {
         );
     }
     
-    return if not (  tv_interval ($self->{last_update_time})
-                   > $self->{progress_update_interval}
+    return if $self->{last_update_time}
+              && !(  tv_interval ($self->{last_update_time})
+                    > $self->{progress_update_interval}
                    );
-    
+
     $self->{last_update_time} = [gettimeofday];
 
     #$self->{dlg}->present;  #  raise to top

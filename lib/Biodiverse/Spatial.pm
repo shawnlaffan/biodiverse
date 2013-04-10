@@ -407,7 +407,7 @@ sub sp_calc {
         $self->set_param (CELL_SIZES => $bd->get_param('CELL_SIZES'));
     }
     my $name = $self->get_param ('NAME');
-    my $progress_text = $args{progress_text} || $name;
+    my $progress_text_base = $args{progress_text} || $name;
     
     #  create all the elements and the SPATIAL_RESULTS list
     my $toDo = scalar @elements_to_calc;
@@ -425,7 +425,7 @@ sub sp_calc {
     print "[SPATIAL] Creating target groups\n";
     
     my $progress_text_create
-        = $progress_text . "\nCreating target groups";
+        = $progress_text_base . "\nCreating target groups";
     my $progress = Biodiverse::Progress->new(text => $progress_text_create);
 
     my $failed_def_query_sp_res_hash = {};
@@ -466,11 +466,16 @@ sub sp_calc {
     $progress->reset;
     $progress = undef;
     
-    $progress = Biodiverse::Progress->new();
-
     local $| = 1;  #  write to screen as we go
     my $using_index_text = defined $sp_index ? $EMPTY_STRING : "\nNot using spatial index";
-    
+
+    $progress = Biodiverse::Progress->new();
+    my $progress_text =
+              "Spatial analysis\n$progress_text_base\n"
+            . "(0 / $toDo)"
+            . $using_index_text;
+    $progress->update ($progress_text, 0);
+
     my ($count, $printedProgress) = (0, -1);
     print "[SPATIAL] Progress (% of $toDo elements):     ";
     #$timer = [gettimeofday];    # to use with progress bar
@@ -486,7 +491,7 @@ sub sp_calc {
         
         my $progress_so_far = $count / $toDo;
         my $progress_text =
-              "Spatial analysis\n$progress_text\n"
+              "Spatial analysis\n$progress_text_base\n"
             . "($count / $toDo)"
             . $using_index_text;
         $progress->update ($progress_text, $progress_so_far);

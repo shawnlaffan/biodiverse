@@ -477,7 +477,7 @@ sub verify {
         #  Get the first two elements
         my $elements = $bd->get_groups;
         my $element1 = $elements->[0];
-        my $element2 = $elements->[1];
+        my $element2 = scalar @$elements > 1 ? $elements->[1] : $elements->[0];
 
         my $coord_array1 =
            $bd->get_group_element_as_array (element => $element1);

@@ -490,7 +490,7 @@ SKIP: {
     is_deeply (
         $stat1,
         $stat2,
-        'stats consistent after adding new data',
+        'stats objects consistent after adding new data',
     );
     
 }

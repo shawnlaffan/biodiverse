@@ -639,6 +639,7 @@ sub run_indices_test1 {
         tree_ref   => $tree,
         matrix_ref => $matrix,
         prng_seed  => $args{prng_seed},  #  FIXME: NEED TO PASS ANY NECESSARY ARGS
+        nri_nti_iterations => $args{nri_nti_iterations},
     };
 
     foreach my $nbr_list_count (2, 1) {

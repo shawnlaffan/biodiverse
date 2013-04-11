@@ -179,6 +179,7 @@ sub variance {
             #  Commented code is a left-over from early version.
             #  Assume it was to allow for biased method variance,
             #  but docs do not list it so assume it is unnecessary
+            #  Actually, it is trapped by the $count == 1 condition above, so shouldn't be needed
             #my $div = scalar @_ ? 0 : 1;  
             #$variance /= $count - $div;
             $variance /= $count - 1;

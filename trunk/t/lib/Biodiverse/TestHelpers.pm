@@ -7,6 +7,8 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
+$| = 1;
+
 our $VERSION = '0.18003';
 
 use Data::Section::Simple qw(get_data_section);
@@ -193,6 +195,7 @@ sub compare_hash_vals {
                     hash_got => $hash_got->{$key},
                     hash_exp => $hash_exp->{$key},
                     no_strict_match => $args{no_strict_match},
+                    descr_suffix    => "in $key",
                 );
             };
         }
@@ -660,6 +663,7 @@ sub run_indices_test1 {
         matrix_ref => $matrix,
         prng_seed  => $args{prng_seed},  #  FIXME: NEED TO PASS ANY NECESSARY ARGS
         nri_nti_iterations => $args{nri_nti_iterations},
+        mpd_mntd_use_binomial => $args{mpd_mntd_use_binomial},
     };
 
     foreach my $nbr_list_count (2, 1) {

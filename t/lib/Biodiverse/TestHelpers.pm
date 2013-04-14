@@ -493,6 +493,10 @@ sub get_label_properties_site_data_extra {
     return get_data_section('LABEL_PROPERTIES_DATA_EXTRA');
 }
 
+sub get_label_properties_site_data_binomial {
+    return get_data_section('LABEL_PROPERTIES_DATA_BINOMIAL');
+}
+
 sub get_group_properties_site_data {
     return get_data_section('GROUP_PROPERTIES_DATA');
 }
@@ -531,6 +535,7 @@ sub run_indices_test1 {
     my $use_numeric_labels     = $args{use_numeric_labels};
     my $use_element_properties = $args{use_element_properties}; # 'group' or 'label'
     my $use_label_properties_extra = $args{use_label_properties_extra};  #  boolean
+    my $use_label_properties_binomial = $args{use_label_properties_binomial};  # boolean
     my $callbacks              = $args{callbacks};
     my $expected_results_overlay = $args{expected_results_overlay};
     delete $args{callbacks};
@@ -604,6 +609,21 @@ sub run_indices_test1 {
         ok (!$e, 'Extra label properties assigned without eval error');
     }
     
+    if ($use_label_properties_binomial) {
+        my $data = get_label_properties_site_data_binomial();
+
+        my $props = element_properties_from_string($data);
+
+        eval { $bd->assign_element_properties (
+            type              => 'labels',
+            properties_object => $props,
+        ) };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, 'Binomial label properties assigned without eval error');
+    }
+    
+    
     foreach my $callback (@$callbacks) {
         eval {
             &$callback(
@@ -667,7 +687,9 @@ sub run_indices_test1 {
             $Data::Dumper::Purity   = 1;
             $Data::Dumper::Terse    = 1;
             $Data::Dumper::Sortkeys = 1;
-            print Dumper(\%results);
+            say '#' x 20;
+            say Dumper(\%results);
+            say '#' x 20;
         }
 
         #  now we need to check the results
@@ -2873,6 +2895,38 @@ Genus:sp2,Genus,sp2,0.676470588235294,0.676470588235294,11,11
 Genus:sp20,Genus,sp20,0.709677419354839,0.709677419354839,9,9
 Genus:sp21,Genus,sp21,0.861111111111111,0.861111111111111,25,25
 Genus:sp22,Genus,sp22,0.95,0.95,1,1
+
+@@ LABEL_PROPERTIES_DATA_BINOMIAL
+Element,Axis_0,Axis_1,bLBPROP1,bLBPROP2,bLBPROP3,bLBPROP4,bLBPROP5
+Genus:sp1,Genus,sp1,0,10,1,10,1
+Genus:sp10,Genus,sp10,1,12,1,10,1
+Genus:sp11,Genus,sp11,1,12,1,10,1
+Genus:sp12,Genus,sp12,1,12,1,10,1
+Genus:sp13,Genus,sp13,1,12,0,12,1
+Genus:sp14,Genus,sp14,0,10,0,12,1
+Genus:sp15,Genus,sp15,1,12,1,10,1
+Genus:sp16,Genus,sp16,1,12,0,12,1
+Genus:sp17,Genus,sp17,0,10,0,12,1
+Genus:sp18,Genus,sp18,1,12,1,10,1
+Genus:sp19,Genus,sp19,1,12,0,12,1
+Genus:sp2,Genus,sp2,0,10,1,10,1
+Genus:sp20,Genus,sp20,1,12,0,12,1
+Genus:sp21,Genus,sp21,1,12,1,10,1
+Genus:sp22,Genus,sp22,1,12,0,12,1
+Genus:sp23,Genus,sp23,1,12,1,10,1
+Genus:sp24,Genus,sp24,1,12,0,12,1
+Genus:sp25,Genus,sp25,0,10,0,12,1
+Genus:sp26,Genus,sp26,0,10,0,12,1
+Genus:sp27,Genus,sp27,1,12,0,12,1
+Genus:sp28,Genus,sp28,1,12,0,12,1
+Genus:sp29,Genus,sp29,1,12,1,10,1
+Genus:sp3,Genus,sp3,0,10,1,10,1
+Genus:sp30,Genus,sp30,1,12,1,10,1
+Genus:sp31,Genus,sp31,1,12,0,12,1
+Genus:sp4,Genus,sp4,0,10,0,12,1
+Genus:sp5,Genus,sp5,1,12,0,12,1
+Genus:sp6,Genus,sp6,0,10,0,12,1
+Genus:sp7,Genus,sp7,0,10,0,12,1
 
 
 @@ GROUP_PROPERTIES_DATA

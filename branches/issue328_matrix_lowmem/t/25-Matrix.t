@@ -46,7 +46,7 @@ foreach my $class (@classes) {
     run_with_site_data ($class, VAL_INDEX_PRECISION => $precision);
 }
 
-#  can one substitute for the other?
+#  can one class substitute for the other?
 {
     my $normal_class = 'Biodiverse::Matrix';
     my $lowmem_class = 'Biodiverse::Matrix::LowMem';
@@ -58,21 +58,83 @@ foreach my $class (@classes) {
     is (blessed ($mx), $lowmem_class, "class is now $lowmem_class");
 
     run_main_tests (undef, $mx);
-    
+
     $mx->to_normal;
-    
+
     is (blessed ($mx), $normal_class, "class is now $normal_class");
 
     run_main_tests (undef, $mx);
-    
+
 }
 
 
 #  NEED TO TEST EFFECT OF DELETIONS
+foreach my $class (@classes) {
+    run_deletions($class);
+}
 
 
 done_testing();
 
+sub run_deletions {
+    my ($class, $mx) = @_;
+    
+    $class //= blessed $mx;
+
+    note "\nUsing class $class\n\n";
+
+    my $e;  #  for errors
+
+    $mx //= create_matrix_object ($class);
+
+    ok (!$e, 'imported data');
+    
+    my $element_pair_count = $mx->get_element_pair_count;
+    
+    my $success;
+    
+    $success = eval {
+        $mx->delete_element (element1 => undef, element2 => undef);
+    };
+    ok (defined $@, "exception on attempted deletion of non-existant pair, $class");
+    
+    $success = eval {
+        $mx->delete_element (element1 => 'barry', element2 => 'the wonder dog');
+    };
+    ok (!$success, "non-deletion of non-existant pair, $class");
+
+    $success = eval {
+        $mx->delete_element (element1 => 'b', element2 => 'c');
+    };
+    ok ($success, "successful deletion of element pair, $class");
+    
+    my $expected = $element_pair_count - 1;
+    is ($mx->get_element_pair_count, $expected, 'matrix element pair count decreased by 1');
+    
+    my $min_val = $mx->get_min_value;
+    
+    #  now delete the lowest three values
+    eval {
+        $mx->delete_element (element1 => 'b', element2 => 'a');
+        $mx->delete_element (element1 => 'e', element2 => 'a');
+        $mx->delete_element (element1 => 'f', element2 => 'a');
+    };
+
+    $expected = $element_pair_count - 4;
+    is ($mx->get_element_pair_count, $expected, 'matrix element pair count decreased by 3');
+    my $new_min_val = $mx->get_min_value;
+    isnt ($min_val, $new_min_val, 'min value changed');
+    is ($new_min_val, 2, 'min value correct');
+    
+    #  now add a value that will be snapped
+    my $new_val_with_zeroes = 1.0000000001;
+    $mx->add_element (element1 => 'aa', element2 => 'bb', value => $new_val_with_zeroes);
+    $new_min_val = $mx->get_min_value;
+    is ($new_min_val, $new_val_with_zeroes, 'got expected new min value');
+    $mx->delete_element (element1 => 'aa', element2 => 'bb');
+    $new_min_val = $mx->get_min_value;
+    is ($new_min_val, 2, 'got expected new min value');
+}
 
 sub run_main_tests {
     my ($class, $mx) = @_;
@@ -253,6 +315,7 @@ sub create_matrix_object {
 
     return $mx;
 }
+
 
 
 

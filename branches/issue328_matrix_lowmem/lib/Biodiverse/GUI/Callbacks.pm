@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;
@@ -210,6 +210,9 @@ my %data_funcs = (
     on_basedata_export_groups => {
         METHOD => 'doExportGroups',
     },
+    on_rename_basedata_labels => {
+        METHOD => 'do_rename_basedata_labels',
+    },
     on_basedata_export_labels => {
         METHOD => 'doExportLabels',
     },
@@ -234,6 +237,9 @@ my %data_funcs = (
     on_basedata_trim_using_matrix => {
         METHOD => 'do_basedata_trim_to_matrix',
         ARGS   => {option => 'trim'},
+    },
+    on_basedata_attach_properties => {
+        METHOD => 'do_basedata_attach_properties',
     },
     on_matrix_save => {
         METHOD => 'doSaveMatrix',

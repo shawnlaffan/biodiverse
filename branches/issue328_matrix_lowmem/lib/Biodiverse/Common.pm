@@ -30,7 +30,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 my $EMPTY_STRING = q{};
 
@@ -217,6 +217,13 @@ sub weaken_basedata_ref {
     
     return $success;
 }
+
+
+sub get_name {
+    my $self = shift;
+    return $self->get_param ('NAME');
+}
+
 
 sub load_params {  # read in the parameters file, set the PARAMS subhash.
     my $self = shift;
@@ -648,6 +655,27 @@ sub dump_to_yaml {
     return $args{filename};
 }
 
+sub dump_to_xml {
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data};
+
+    my $file = $args{filename};
+    if (defined $file) {
+        $file = Path::Class::file($args{filename})->absolute;
+        print "WRITING TO FILE $file\n";
+        open (my $fh, '>', $file);
+        print $fh dump_xml ($data);
+        $fh->close;
+    }
+    else {
+        print dump_xml ($data);
+    }
+
+    return $file;
+}
+
 #  escape any special characters in a file name
 #  just a wrapper around URI::Escape::XS::escape_uri
 sub escape_filename {
@@ -759,19 +787,16 @@ sub write_table {
     }
 }
 
-sub write_table_csv {
+sub get_csv_object_for_export {
     my $self = shift;
     my %args = @_;
-    my $data = $args{data} || croak "data arg not specified\n";
-    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
-    my $file = $args{file} || croak "file arg not specified\n";
-
+    
     my $sep_char = $args{sep_char}
-                    || $self -> get_param ('OUTPUT_SEP_CHAR')
+                    || $self->get_param ('OUTPUT_SEP_CHAR')
                     || q{,};
 
     my $quote_char = $args{quote_char}
-                    || $self -> get_param ('OUTPUT_QUOTE_CHAR')
+                    || $self->get_param ('OUTPUT_QUOTE_CHAR')
                     || q{"};
 
     if ($quote_char =~ /space/) {
@@ -787,6 +812,23 @@ sub write_table_csv {
     elsif ($sep_char =~ /tab/) {
         $sep_char = "\t";
     }
+    
+    my $csv_obj = $self->get_csv_object (
+        sep_char => $sep_char,
+        quote_char => $quote_char,
+    );
+
+    return $csv_obj;
+}
+
+sub write_table_csv {
+    my $self = shift;
+    my %args = @_;
+    my $data = $args{data} || croak "data arg not specified\n";
+    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+    my $file = $args{file} || croak "file arg not specified\n";
+
+    my $csv_obj = $self->get_csv_object_for_export (%args);
 
     open (my $fh, '>', $file)
         || croak "Could not open $file for writing\n";
@@ -794,9 +836,8 @@ sub write_table_csv {
     eval {
         foreach my $line_ref (@$data) {
             my $string = $self->list2csv (  #  should pass csv object
-                list        => $line_ref,
-                sep_char    => $sep_char,
-                quote_char  => $quote_char,
+                list       => $line_ref,
+                csv_object => $csv_obj,
             );
             print {$fh} $string . "\n";
         }
@@ -991,13 +1032,15 @@ sub write_table_html {
 
 sub list2csv {  #  return a csv string from a list of values
     my $self = shift;
-    my %args = (quote_char => q{'},
-                sep_char   => q{,},
-                @_);
+    my %args = (
+        quote_char => q{'},
+        sep_char   => q{,},
+        @_,
+    );
 
     my $csvLine = $args{csv_object};
     if (not defined $csvLine or (blessed $csvLine) !~ /Text::CSV_XS/) {
-        $csvLine = $self -> get_csv_object (@_);
+        $csvLine = $self->get_csv_object (@_);
     }
 
     if ($csvLine->combine(@{$args{list}})) {
@@ -1207,7 +1250,7 @@ sub array_to_hash_values {
     croak "Argument 'list' is not an array ref - it is a scalar\n" if ! ref ($list_ref);
     $list_ref = [values %$list_ref] if (ref $list_ref) =~ /HASH/;
 
-    my $prefix = defined $args{prefix} ? $args{prefix} : "data";
+    my $prefix = $args{prefix} // "data";
 
     my %hash;
     my $start = "0" x ($args{num_digits} || length $#$list_ref);  #  make sure it has as many chars as the end val

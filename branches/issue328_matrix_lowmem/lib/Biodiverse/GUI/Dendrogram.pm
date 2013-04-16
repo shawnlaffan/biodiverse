@@ -15,7 +15,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Scalar::Util qw /blessed/;
 
@@ -1385,6 +1385,7 @@ sub setCluster {
     return if defined $completed and $completed != 1;
 
     $self->{tree_node} = $cluster->get_tree_ref;
+    croak "No valid tree to plot\n" if !$self->{tree_node};
     $self->{element_to_cluster} = {};
     $self->{selected_list_index} = {};
     $self->{cluster_colour_mode} = 'palette';

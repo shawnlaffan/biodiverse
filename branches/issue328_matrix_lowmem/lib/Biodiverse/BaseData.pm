@@ -28,7 +28,7 @@ use Biodiverse::Randomise;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use base qw {Biodiverse::Common};
 
@@ -361,9 +361,7 @@ sub transpose {
     );  
 
     my $new = Biodiverse::BaseData->new(%$params);
-    my $name = defined $args{name}
-        ? $args{name}
-        : $new->get_param ('NAME') . "_T";
+    my $name = $args{name} // ($new->get_param ('NAME') . "_T");
 
     $new->set_param (NAME => $name);
 
@@ -1154,10 +1152,14 @@ sub import_data {  #  load a data file into the selected BaseData object.
     if ($groups_ref->get_element_count) {
         $groups_ref->generate_element_coords;
     }
-    
+
     #  clear the rtree if one exists (used for plotting)
     $groups_ref->delete_param ('RTREE');
-    
+
+    #  clear this also
+    $labels_ref->delete_param ('SAMPLE_COUNTS_ARE_FLOATS');
+    $groups_ref->delete_param ('SAMPLE_COUNTS_ARE_FLOATS');
+
     #  now rebuild the index if need be
     if (    $orig_group_count != $self->get_group_count
         and $self->get_param ('SPATIAL_INDEX')
@@ -1184,6 +1186,8 @@ sub assign_element_properties {
     my $method = 'get_' . $type . '_ref';
     my $gp_lb_ref = $self->$method;
     
+    my $count = 0;
+    
   ELEMENT_PROPS:
     foreach my $element ($prop_obj->get_element_list) {
         next ELEMENT_PROPS
@@ -1198,10 +1202,63 @@ sub assign_element_properties {
             element    => $element,
             PROPERTIES => \%props,
         );
+
+        $count ++;
+    }
+
+    return $count;
+}
+
+sub rename_labels {
+    my $self = shift;
+    my %args = @_;
+    
+    croak "Cannot rename labels when basedata has existing outputs\n"
+      if $self->get_output_ref_count;
+
+    my $remap = $args{remap};
+
+    LABEL:
+    foreach my $label ($remap->get_element_list) {
+        my $remapped
+            = $remap->get_element_remapped (element => $label);
+
+        next LABEL if !defined $remapped;
+
+        $self->rename_label (label => $label, new_name => $remapped);
     }
 
     return;
 }
+
+sub rename_label {
+    my $self = shift;
+    my %args = @_;
+
+    croak "Argument 'label' not specified\n"
+      if !defined $args{label};
+    croak "Argument 'new_name' not specified\n"
+      if !defined $args{new_name};
+
+    my $lb = $self->get_labels_ref;
+    my $gp = $self->get_groups_ref;
+    my $label = $args{label};
+    my $new_name = $args{new_name};
+
+    my @sub_elements = $lb->rename_element (element => $label, new_name => $new_name);
+    foreach my $group (@sub_elements) {
+        $gp->rename_subelement (
+            element     => $group,
+            sub_element => $label,
+            new_name    => $new_name,
+        );
+    }
+
+    print "[BASEDATA] Renamed $label to $new_name\n";
+
+    return;
+}
+
 
 sub get_labels_from_line {
     my $self = shift;
@@ -1361,13 +1418,22 @@ sub labels_are_numeric {
     return $self->get_param('NUMERIC_LABELS');
 }
 
+#  are the sample counts floats or ints?  
+sub sample_counts_are_floats {
+    my $self = shift;
+
+    my $lb = $self->get_labels_ref;
+
+    return $lb->sample_counts_are_floats;
+}
+
 sub add_element {  #  run some calls to the sub hashes
     my $self = shift;
     my %args = @_;
 
     my $label = $args{label};
     my $group = $args{group};
-    my $count = defined $args{count} ? $args{count} : 1;
+    my $count = $args{count} // 1;
     
     #  make count binary if asked to
     if ($args{binarise_counts}) {
@@ -1609,7 +1675,7 @@ sub run_exclusions {
     my $orig_group_count = $self->get_group_count;
 
     #  now we go through and delete any of the groups that are beyond our stated exclusion values
-    my %exclusion_hash = $self->get_exclusion_hash;  #  generate the exclusion hash
+    my %exclusion_hash = $self->get_exclusion_hash (%args);  #  generate the exclusion hash
 
     my %test_funcs = (
         minVariety    => '$base_type_ref->get_variety(element => $element) <= ',
@@ -1620,12 +1686,56 @@ sub run_exclusions {
         maxRedundancy => '$base_type_ref->get_redundancy(element => $element) >= ',
     );
 
+    my ($label_regex, $label_regex_negate);
+    if ($exclusion_hash{LABELS}{regex}) {
+        my $re_text = $exclusion_hash{LABELS}{regex}{regex};
+        my $re_modifiers = $exclusion_hash{LABELS}{regex}{modifiers};
+
+        $label_regex = eval qq{ qr /$re_text/$re_modifiers };
+        $label_regex_negate = $exclusion_hash{LABELS}{regex}{negate};
+    }
+
+    my ($label_check_list, $label_check_list_negate);
+    if (my $check_list = $exclusion_hash{LABELS}{element_check_list}{list}) {
+        $label_check_list = {};
+        $label_check_list_negate = $exclusion_hash{LABELS}{element_check_list}{negate};
+        if (blessed $check_list) {  #  we have an object with a get_element_list method
+            my $list = $check_list->get_element_list;
+            @{$label_check_list}{@$list} = (1) x scalar @$list;
+        }
+        elsif (reftype $check_list eq 'ARRAY') {
+            @{$label_check_list}{@$check_list} = (1) x scalar @$check_list;
+        }
+        else {
+            $label_check_list = $check_list;
+        }
+    }
+    
+    my $group_check_list;
+    if (my $definition_query = $exclusion_hash{GROUPS}{definition_query}) {
+        if (!blessed $definition_query) {
+            $definition_query = Biodiverse::SpatialParams::DefQuery->new (
+                conditions => $definition_query,
+            );
+        }
+        my $groups = $self->get_groups;
+        my $element = $groups->[0];
+        my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+        $group_check_list
+            = $self->get_neighbours(
+                  element        => $element,
+                  spatial_params => $definition_query,
+                  is_def_query   => 1,
+                  progress       => $defq_progress,
+              );
+    }
 
     #  check the labels first, then the groups
     #  equivalent to range then richness
     my @deleteList;
     
     my $excluded = 0;
+    my %tally;
     
     BY_TYPE:
     foreach my $type ('LABELS', 'GROUPS') {
@@ -1674,6 +1784,22 @@ sub run_exclusions {
                     
                     $failed_a_test = 1;
                 }
+                if (!$failed_a_test && $label_regex) {
+                    $failed_a_test = $element =~ $label_regex;
+                    if ($label_regex_negate) {
+                        $failed_a_test = !$failed_a_test;
+                    }
+                }
+                if (!$failed_a_test && $label_check_list) {
+                    $failed_a_test = exists $label_check_list->{$element};
+                    if ($label_check_list_negate) {
+                        $failed_a_test = !$failed_a_test;
+                    }
+                }
+            }
+            
+            if (!$failed_a_test && $type eq 'GROUPS' && $group_check_list) {
+                $failed_a_test = exists $group_check_list->{$element};
             }
 
             next BY_ELEMENT if not $failed_a_test;  #  no fails, so check next element
@@ -1698,7 +1824,8 @@ sub run_exclusions {
                 " groups with "
                 . $self->get_label_count
                 . " unique labels\n\n";
-
+            $tally{$type . '_count'} += $cutCount;
+            $tally{$other_type . '_count'} += $subCutCount;
             $excluded ++;
         }
         else {
@@ -1724,13 +1851,16 @@ sub run_exclusions {
         $self->rebuild_spatial_index();
     }
 
-    return $feedback;
+    $tally{feedback} = $feedback;
+    return wantarray ? %tally : \%tally;
 }
 
 sub get_exclusion_hash {  #  get the exclusion_hash from the PARAMS
     my $self = shift;
+    my %args = @_;
 
-    my $exclusion_hash = $self->get_param('EXCLUSION_HASH')
+    my $exclusion_hash = $args{exclusion_hash}
+                      || $self->get_param('EXCLUSION_HASH')
                       || {};
     
     return wantarray ? %$exclusion_hash : $exclusion_hash;
@@ -1807,7 +1937,48 @@ sub trim {
     return wantarray ? %results : \%results;
 }
 
-#  delete all occurrences of this label from the LABELS and GROUPS sub hashes
+
+sub delete_labels {
+    my $self = shift;
+    my %args = @_;
+
+    croak "Cannot delete labels when basedata has outputs\n"
+      if $self->get_output_ref_count;
+
+    my $elements = $args{labels};
+    if (reftype $elements eq 'HASH') {
+        $elements = [keys %$elements];
+    }
+
+    foreach my $element (@$elements) {
+        $self->delete_element (type => 'LABEL', element => $element);
+    }
+
+    return;
+}
+
+sub delete_groups {
+    my $self = shift;
+    my %args = @_;
+
+    croak "Cannot delete groups when basedata has outputs\n"
+      if $self->get_output_ref_count;
+
+    my $elements = $args{groups};
+    if (reftype $elements eq 'HASH') {
+        $elements = [keys %$elements];
+    }
+
+    foreach my $element (@$elements) {
+        $self->delete_element (type => 'GROUP', element => $element);
+    }
+
+    return;
+}
+
+
+
+#  delete all occurrences of this label (or group) from the LABELS and GROUPS sub hashes
 sub delete_element {  
     my $self = shift;
     my %args = @_;
@@ -2396,6 +2567,22 @@ sub get_output_refs_sorted_by_name {
         $self->get_output_refs();
     
     return wantarray ? @sorted : \@sorted;
+}
+
+sub get_output_refs_of_class {
+    my $self = shift;
+    my %args = @_;
+    
+    my $class = blessed $args{class} // $args{class}
+      or croak "argument class not specified\n";
+
+    my @outputs;
+    foreach my $ref ($self->get_output_refs) {
+        next if ! (blessed ($ref) eq $class);
+        push @outputs, $ref;
+    };
+    
+    return wantarray ? @outputs : \@outputs;
 }
 
 sub delete_all_outputs {
@@ -2988,14 +3175,15 @@ sub get_neighbours_as_array {
     #return wantarray ? @array : \@array;  #  return reference in scalar context
 }
     
-    
-#  get a list of spatial outputs with the same spatial params
-#  Useful for faster nbr searching
-sub get_spatial_outputs_with_same_nbrs {
+
+#  Modified version of get_spatial_outputs_with_same_nbrs.
+#  Useful for faster nbr searching for spatial analyses, and matrix building for cluster analyses
+#  It can eventually supplant that sub.
+sub get_outputs_with_same_conditions {
     my $self = shift;
     my %args = @_;
     
-    my $compare = $args{compare_with} || croak "[BASEDATA] Nothing to compare with\n";
+    my $compare = $args{compare_with} || croak "[BASEDATA] compare_with argument not specified\n";
     
     my $sp_params = $compare->get_param ('SPATIAL_PARAMS');
     my $def_query = $compare->get_param ('DEFINITION_QUERY');
@@ -3008,121 +3196,54 @@ sub get_spatial_outputs_with_same_nbrs {
         $def_conditions = $def_query->get_conditions_unparsed();
     }
 
-    my %outputs = $self->get_spatial_outputs;
-    
-    LOOP_SP_OUTPUTS:
-    foreach my $output (values %outputs) {
-        next LOOP_SP_OUTPUTS if $output eq $compare;  #  skip the one to compare
-        
+    my $cluster_index = $compare->get_param ('CLUSTER_INDEX');
+
+    my @outputs = $self->get_output_refs_of_class (class => $compare);
+
+    LOOP_OUTPUTS:
+    foreach my $output (@outputs) {
+        next LOOP_OUTPUTS if $output eq $compare;  #  skip the one to compare
+
         my $completed = $output->get_param ('COMPLETED');
-        next LOOP_SP_OUTPUTS if defined $completed and ! $completed;
+        next LOOP_OUTPUTS if defined $completed and ! $completed;
         
         my $def_query_comp = $output->get_param ('DEFINITION_QUERY');
         if (defined $def_query) {
             #  only check further if both have def queries
-            next LOOP_SP_OUTPUTS if ! defined $def_query_comp;
-            
-            #  check their def queries match
-            my $def_conditions_comp = $def_query_comp->get_conditions_unparsed();
-            next LOOP_SP_OUTPUTS if $def_conditions_comp ne $def_conditions;
-        }
-        else {
-            #  skip if one is defined but the other is not
-            next LOOP_SP_OUTPUTS if defined $def_query_comp;
-        }
-        
-        my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS');
-        
-        #  must have same number of conditions
-        next LOOP_SP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;
-        
-        my $i = 0;
-        LOOP_SP_CONDITIONS:
-        foreach my $sp_obj (@$sp_params_comp) {
-            if ($sp_params->[$i]->get_param ('CONDITIONS') ne $sp_obj->get_conditions_unparsed()) {
-                next LOOP_SP_OUTPUTS;
-            }
-            $i++;
-        }
-
-        #  if we get this far then we have a match
-        return $output;  #  we want to keep this one
-    }
-    
-    return;
-    
-}
-
-
-#  Get a list of cluster outputs with the same spatial params
-#  and index parameters.
-#  Useful for faster cluster building.
-sub get_cluster_outputs_with_same_index_and_nbrs {
-    my $self = shift;
-    my %args = @_;
-
-    my $compare = $args{compare_with} || croak "[BASEDATA] Nothing to compare with\n";
-
-    my $index     = $compare->get_param('CLUSTER_INDEX');
-    my $sp_params = $compare->get_param('SPATIAL_PARAMS');
-    my $def_query = $compare->get_param('DEFINITION_QUERY');
-    if (defined $def_query && (length $def_query) == 0) {
-        $def_query = undef;
-    }
-    
-    my $def_conditions;
-    if (blessed $def_query) {
-        $def_conditions = $def_query->get_conditions_unparsed();
-    }
-
-    my %outputs = $self->get_spatial_outputs;
-    
-    LOOP_OUTPUTS:
-    foreach my $output (values %outputs) {
-        next LOOP_OUTPUTS if $output eq $compare;  #  skip the one to compare
-
-        my $completed = $output->get_param ('COMPLETED');
-        next LOOP_OUTPUTS if defined $completed and not $completed;
-        next LOOP_OUTPUTS if $completed == 3;  #  matrix was dumped to file
-
-        my $index_comp = $output->get_param('CLUSTER_INDEX');
-        next LOOP_OUTPUTS if $index ne $index_comp;
-
-        my $def_query_comp = $output->get_param('DEFINITION_QUERY');
-        if (defined $def_query) {
-            #  only check further if both have def queries
             next LOOP_OUTPUTS if ! defined $def_query_comp;
-            
+
             #  check their def queries match
-            my $def_conditions_comp = $def_query_comp->get_conditions_unparsed();
-            next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions;
+            my $def_conditions_comp = eval {$def_query_comp->get_conditions_unparsed()} // $def_query_comp;
+            my $def_conditions_text = eval {$def_query->get_conditions_unparsed()}      // $def_query;
+            next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions_text;
         }
         else {
             #  skip if one is defined but the other is not
             next LOOP_OUTPUTS if defined $def_query_comp;
         }
 
-        my $sp_params_comp = $output->get_param('SPATIAL_PARAMS');
+        my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS') || [];
 
         #  must have same number of conditions
         next LOOP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;
 
         my $i = 0;
-        LOOP_SP_CONDITIONS:
         foreach my $sp_obj (@$sp_params_comp) {
-            if ($sp_params->[$i]->get_param('CONDITIONS') ne $sp_obj->get_conditions_unparsed()) {
-                next LOOP_SP_OUTPUTS;
-            }
+            next LOOP_OUTPUTS
+              if ($sp_params->[$i]->get_param ('CONDITIONS') ne $sp_obj->get_conditions_unparsed());
             $i++;
         }
+
+        #  if we are a cluster (or output with a cluster index, like a RegionGrower)
+        next LOOP_OUTPUTS if defined $cluster_index && $cluster_index ne $output->get_param ('CLUSTER_INDEX');
 
         #  if we get this far then we have a match
         return $output;  #  we want to keep this one
     }
 
     return;
-    
 }
+
 
 
 sub numerically {$a <=> $b};

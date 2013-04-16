@@ -16,7 +16,7 @@ use List::Util qw /sum/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 our $AUTOLOAD;
 
@@ -846,20 +846,24 @@ sub get_metadata_export_table_grouped {
             },
             {
                 name        => 'use_target_value',
-                label_text  => 'Define groups by length or depth',
-                tooltip     => 'Overrides the "Number of groups" setting',
+                label_text  => "Set number of groups\nusing a cutoff value",
+                tooltip     => 'Overrides the "Number of groups" setting.  Uses length by default.',
                 type        => 'boolean',
                 default     => 0,
             },
             {
                 name        => 'target_value',
-                label_text  => 'Value for length/depth',
+                label_text  => 'Value for cutoff',
+                tooltip     => 'Group the nodes using some threshold value.  '
+                             . 'This is analogous to the grouping when using '
+                             . 'the slider bar on the dendrogram plots.',
                 type        => 'float',
                 default     => 0,
             },
             {
                 name        => 'group_by_depth',
                 label_text  => "Group clusters by depth\n(default is by length)",
+                tooltip     => 'Use depth to define the groupings.  When a cutoff is used, it will be in units of node depth.',
                 type        => 'boolean',
                 default     => 0,
             },
@@ -885,6 +889,7 @@ sub get_metadata_export_table_grouped {
             {
                 name        => 'sort_array_lists',
                 label_text  => 'Sort array lists',
+                tooltip     => 'Should any array list results be sorted before exprting?  Turn this off if the original order is important.',
                 type        => 'boolean',
                 default     => 1,
             },
@@ -1370,7 +1375,7 @@ sub get_last_shared_ancestor_for_nodes {
 
       PATH_NODE_REF:
         foreach my $path_node_ref (@path) {
-            my $node_name_path = $path_node_ref->get_name; #  for debug
+            #my $node_name_path = $path_node_ref->get_name; #  for debug
             my $idx = first_index { $_ eq $path_node_ref } @reference_path;
 
             next PATH_NODE_REF if $idx < 0;  #  not in path, try the next node
@@ -1480,9 +1485,8 @@ sub compare {
         COMP:
         foreach my $compare_node_name (keys %compare_nodes) {
             next if $found_perfect_match{$compare_node_name};
-            my $sorenson = defined $done{$compare_node_name}{$base_node_name}
-                                    ? $done{$compare_node_name}{$base_node_name}
-                                    : $done{$base_node_name}{$compare_node_name};
+            my $sorenson = $done{$compare_node_name}{$base_node_name}
+                        // $done{$base_node_name}{$compare_node_name};
 
             if (! defined $sorenson) { #  if still not defined then it needs to be calculated
                 my %comp_elements = $compare_nodes{$compare_node_name}->get_terminal_elements;
@@ -1810,6 +1814,33 @@ sub collapse_tree {
 
     return $self;
 }
+
+#  collapse all nodes below a cutoff so they form a set of polytomies
+sub collapse_tree_below {
+    my $self = shift;
+    my %args = @_;
+    
+    my $target_hash = $self->group_nodes_below (%args);
+    
+    foreach my $node (values %$target_hash) {
+        my %terminals = $node->get_terminal_node_refs;
+        my @children = $node->get_children;
+        foreach my $desc_node (@children) {
+            next if $desc_node->is_terminal_node;
+            eval {
+                $self->delete_node (node => $desc_node->get_name);
+            };
+        }
+        $node->add_children (children => [values %terminals]);  #  still need to ensure they are in the node hash
+
+        print "";
+    }
+    
+    
+    return 1;
+}
+
+
 
 #  root an unrooted tree using a zero length node.
 sub root_unrooted_tree {

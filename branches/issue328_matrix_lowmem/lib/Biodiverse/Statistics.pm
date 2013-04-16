@@ -3,11 +3,13 @@ package Biodiverse::Statistics;
 use strict;
 use warnings;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Carp;
 
 use POSIX qw ( ceil );
+use List::Util;
+use List::MoreUtils;
 
 use Statistics::Descriptive;
 use base qw /Statistics::Descriptive::Full/;
@@ -18,6 +20,7 @@ my %fields = (
     data       => undef,  ##Our data
     presorted  => undef,  ##Flag to indicate the data is already sorted
     _reserved  => undef,  ##Place holder for this lookup hash
+    #standard_deviation => undef,
 );
 
 #__PACKAGE__->_make_private_accessors(
@@ -35,12 +38,203 @@ my %fields = (
 sub new {
     my $proto = shift;
     my $class = ref($proto) || $proto;
-    # Create my self re SUPER
+    # Create my self via SUPER
     my $self = $class->SUPER::new();  
     bless ($self, $class);  #Re-anneal the object
-    $self->_clear_fields();
+    #$self->_clear_fields();
     return $self;
 }
+
+#  override the Stats::Descriptive::Full method to use List::Util and List::MoreUtils functions
+sub add_data {
+    my $self = shift;  ##Myself
+  
+    my $aref;
+
+    if (ref $_[0] eq 'ARRAY') {
+      $aref = $_[0];
+    }
+    else {
+      $aref = \@_;
+    }
+  
+    ##If we were given no data, we do nothing.
+    return 1 if (!@{ $aref });
+  
+    my $oldmean;
+    my ($min, $max, $sum, $sumsq);
+    my $count = $self->count;
+
+    #  $count is modified lower down, but we need this flag after that
+    my $has_existing_data = $count;  
+
+    # Take care of appending to an existing data set
+    if ($has_existing_data) {
+        $min   = $self->min();
+        $max   = $self->max();
+        $sum   = $self->sum();
+        $sumsq = $self->sumsq();
+    }
+    else {
+        $min   = $aref->[0];
+        $max   = $aref->[0];
+        $sum   = 0;
+        $sumsq = 0;
+    }
+
+    #  need to allow for already having data
+    $sum    += List::Util::sum (@$aref);
+    $sumsq  += List::Util::sum (map {$_ ** 2} @$aref);
+    $max    =  List::Util::max ($max, @$aref);
+    $min    =  List::Util::min ($min, @$aref);
+    $count  +=  scalar @$aref;
+    my $mean = $sum / $count;
+
+    #$self->min($min);
+    #$self->max($max);
+    #$self->sample_range($max - $min);
+    #$self->sum($sum);
+    #$self->sumsq($sumsq);
+    #$self->mean($mean);
+    #$self->count($count);
+
+    #  dirty approach since it stops any abstraction, but faster
+    #  - should access via a "fast_data_add" object flag
+    #  saves 50% of the call time (= 4s for ~55k calls), so will scale for monster jobs
+    $self->{sum}   = $sum;
+    $self->{sumsq} = $sumsq;
+    $self->{mean}  = $mean;
+    $self->{count} = $count;
+    $self->{min}   = $min;
+    $self->{max}   = $max;
+    $self->{sample_range} = $max - $min;
+    
+    
+    ##Variance isn't commonly enough
+    ##used to recompute every single data add, so just clear its cache.
+    #$self->_variance(undef);
+    $self->{variance} = undef;  #  Dirty approach, as above
+    
+    push @{ $self->_data() }, @{ $aref };
+
+    #  no need to clear keys if we are newly populated object,
+    #  and profiling shows it takes a long time when creating
+    #  and populating many stats objects
+    if ($has_existing_data) {
+        ##Clear the presorted flag
+        $self->presorted(0);
+        $self->_delete_all_cached_keys();
+    }
+  
+    return 1;
+}
+
+sub _delete_all_cached_keys
+{
+    my $self = shift;
+    
+    my %keys = %{ $self };
+
+    # If it's a reserved key for this class, don't delete it
+    delete @keys{keys %{$self->_reserved}};
+    delete @keys{keys %{$self->_permitted}};
+    delete $keys{_trimmed_mean_cache};
+
+    KEYS_LOOP:
+    foreach my $key (keys %keys) { # Check each key in the object
+        ## If it's a reserved key for this class, keep it
+        #if ($self->_is_reserved($key) || $self->_is_permitted($key))
+        #{
+        #    next KEYS_LOOP;
+        #}
+        delete $self->{$key};  # Delete any out of date cached key
+    }
+    $self->{_trimmed_mean_cache} = {};
+    return;
+}
+
+##Return variance; if needed, compute and cache it.
+sub variance {
+    my $self = shift;  ##Myself
+  
+    my $count = $self->count();
+  
+    return undef if !$count;
+  
+    return 0 if $count == 1;
+
+    if (!defined($self->_variance())) {
+        my $variance = ($self->sumsq()- $count * $self->mean()**2);
+
+        # Sometimes due to rounding errors we get a number below 0.
+        # This makes sure this is handled as gracefully as possible.
+        #
+        # See:
+        #
+        # https://rt.cpan.org/Public/Bug/Display.html?id=46026
+        if ($variance < 0) {
+            $variance = 0;
+        }
+        else {
+            #  Commented code is a left-over from early version.
+            #  Assume it was to allow for biased method variance,
+            #  but docs do not list it so assume it is unnecessary
+            #  Actually, it is trapped by the $count == 1 condition above, so shouldn't be needed
+            #my $div = scalar @_ ? 0 : 1;  
+            #$variance /= $count - $div;
+            $variance /= $count - 1;
+        }
+
+        $self->_variance($variance);
+
+        #  return now to avoid sub re-entry (and therefore time when many objects are used)
+        return $variance;  
+    }
+
+    return $self->_variance();
+}
+
+
+sub maxdex {
+    my $self = shift;
+
+    return undef if !$self->count;
+    my $maxdex;
+
+    if ($self->presorted) {
+        $maxdex = $self->count - 1;
+    }
+    else {
+        my $max = $self->max;
+        $maxdex =  List::MoreUtils::first_index {$_ == $max} $self->get_data;
+    }
+
+    $self->{maxdex} = $maxdex;
+
+    return $maxdex;
+}
+
+sub mindex {
+    my $self = shift;
+
+    return undef if !$self->count;
+    #my $maxdex = $self->{maxdex};
+    #return $maxdex if defined $maxdex;
+    my $mindex;
+
+    if ($self->presorted) {
+        $mindex = 0;
+    }
+    else {
+        my $min = $self->min;
+        $mindex =  List::MoreUtils::first_index {$_ == $min} $self->get_data;
+    }
+
+    $self->{mindex} = $mindex;
+
+    return $mindex;
+}
+
 
 sub median {
     my $self = shift;
@@ -55,6 +249,23 @@ sub median {
 #    
 #    return $self->SUPER::mean;
 #}
+
+sub sd {
+    my $self = shift;
+    return $self->standard_deviation (@_);
+}
+
+sub stdev {
+    my $self = shift;
+    return $self->standard_deviation (@_);
+}
+
+sub standard_deviation {
+  my $self = shift;  ##Myself
+  #  $self->variance checks for count==0, so don't double up
+  my $variance = $self->variance();
+  return defined $variance ? sqrt $variance : undef;
+}
 
 #  Snaps percentiles to range 1..100,
 #  does not return undef if percentile is < bin size
@@ -96,6 +307,66 @@ sub iqr {
     
     return $q75 - $q25;
 }
+
+
+sub skewness {
+    my $self = shift;
+
+    if (!defined($self->_skewness()))
+    {
+        my $n    = $self->count();
+        my $sd   = $self->standard_deviation();
+
+        my $skew;
+
+        #  skip if insufficient records
+        if ( $sd && $n > 2) {
+            
+            my $mean = $self->mean();
+
+            my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 3 } $self->get_data();
+            my $sum_pow3 = List::Util::sum @tmp;
+
+            my $correction = $n / ( ($n-1) * ($n-2) );
+
+            $skew = $correction * $sum_pow3;
+        }
+
+        $self->_skewness($skew);
+    }
+
+    return $self->_skewness();
+}
+
+sub kurtosis {
+    my $self = shift;
+
+    if (!defined($self->_kurtosis()))
+    {
+        my $kurt;
+        
+        my $n  = $self->count();
+        my $sd   = $self->standard_deviation();
+        
+        if ( $sd && $n > 3) {
+
+            my $mean = $self->mean();
+
+            my @tmp = List::MoreUtils::apply { $_ = (($_ - $mean) / $sd) ** 4 } $self->get_data();
+            my $sum_pow4 = List::Util::sum @tmp;
+
+            my $correction1 = ( $n * ($n+1) ) / ( ($n-1) * ($n-2) * ($n-3) );
+            my $correction2 = ( 3  * ($n-1) ** 2) / ( ($n-2) * ($n-3) );
+            
+            $kurt = ( $correction1 * $sum_pow4 ) - $correction2;
+        }
+        
+        $self->_kurtosis($kurt);
+    }
+
+    return $self->_kurtosis();
+}
+
 
 1;
 

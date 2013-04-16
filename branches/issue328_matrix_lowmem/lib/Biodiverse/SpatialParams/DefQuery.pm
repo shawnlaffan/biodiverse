@@ -9,7 +9,7 @@ use Carp;
 
 use base qw /Biodiverse::SpatialParams Biodiverse::Common/;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 our $NULL_STRING = q{};
 

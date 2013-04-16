@@ -1,19 +1,28 @@
 #  helper functions for testing
 package Biodiverse::TestHelpers;
 
+use 5.010;
 use strict;
 use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
+$| = 1;
+
 our $VERSION = '0.18003';
 
 use Data::Section::Simple qw(get_data_section);
+
+BEGIN {
+    $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+}
 
 use Biodiverse::BaseData;
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::ReadNexus;
+use Biodiverse::ElementProperties;
+
 
 use File::Temp;
 use Scalar::Util qw /looks_like_number/;
@@ -25,9 +34,11 @@ use Exporter::Easy (
             qw(
                 write_data_to_temp_file
                 snap_to_precision
+                verify_set_contents
                 compare_hash_vals
                 compare_arr_vals
                 get_all_calculations
+                transform_element
             ),
         ],
         basedata => [
@@ -36,6 +47,7 @@ use Exporter::Easy (
                 get_basedata_test_data
                 get_basedata_object
                 get_basedata_object_from_site_data
+                get_numeric_labels_basedata_object_from_site_data
                 :utils
             ),
         ],
@@ -77,14 +89,77 @@ use Exporter::Easy (
     ],
 );
 
+=item transform_element
+
+Takes in a colon or comma (or any punctuation) separated pair of x and y values
+(element) and scales them by the array ref of
+[x_translate, y_translate, x_scale, y_scale] passed in as transform.
+
+Returns separated pair of x and y.
+
+element   =>
+transfrom =>
+
+=cut
+
+sub transform_element {
+    my %args = @_;
+
+    my $element   = $args{element};
+    my $transform = $args{transform};
+
+    if (not ($element =~ m/^([-.0-9]+)([^-.0-9]+)([-.0-9]+)$/)) {
+        croak "Invalid element '$element' given to transform_element.";
+    }
+
+    my ($x, $sep, $y)           = ($1, $2, $3);
+    my ($x_t, $y_t, $x_s, $y_s) = @$transform;
+
+    return join $sep, $x_s * ($x + $x_t),
+                      $y_s * ($y + $y_t);
+}
+
+=item snap_to_precision
+
+value     => decimal value
+precision => desired amount of digits after decimal point
+
+=cut
+
 sub snap_to_precision {
     my %args = @_;
     my $value = $args{value};
-    my $precision = defined $args{precision} ? $args{precision} : '%.11f';
+    my $precision = $args{precision} // '%.11f';
 
     return defined $value && looks_like_number $value
         ? sprintf ($precision, $value)
         : $value;
+}
+
+=item verify_set_contents
+
+set      => hash reference whose keys make up the set
+included => array reference of keys that should be in the set
+excluded => array reference of keys that should not be in the set
+
+=cut
+
+sub verify_set_contents {
+    my %args = @_;
+
+    my $set      = $args{set};
+    my $includes = $args{includes};
+    my $excludes = $args{excludes};
+
+    for my $elt (@$includes) {
+        ok exists $set->{$elt}, "$elt exists in set";
+    }
+
+    for my $elt (@$excludes) {
+        ok !(exists $set->{$elt}), "$elt does not exist in set";
+    }
+
+    return;
 }
 
 sub compare_hash_vals {
@@ -94,22 +169,23 @@ sub compare_hash_vals {
     my $hash_exp   = $args{hash_exp};
     my $precision  = $args{precision};
     my $not_strict = $args{no_strict_match};
+    my $descr_suffix = $args{descr_suffix} // q{};
 
     #  check union of the two hashes
     my %targets = (%$hash_exp, %$hash_got);
 
     if (!$not_strict) {
         is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
-        
+
         my %h1 = %$hash_got;
         delete @h1{keys %$hash_exp};
         is (scalar keys %h1, 0, 'No extra keys');
 
         my %h2 = %$hash_exp;
         delete @h2{keys %$hash_got};
-        is (scalar keys %h2, 0, 'No missing keys');        
+        is (scalar keys %h2, 0, 'No missing keys');
     };
-    
+
     BY_KEY:
     foreach my $key (sort keys %targets) {
         next BY_KEY if $not_strict && !exists $hash_got->{$key};
@@ -120,6 +196,7 @@ sub compare_hash_vals {
                     hash_got => $hash_got->{$key},
                     hash_exp => $hash_exp->{$key},
                     no_strict_match => $args{no_strict_match},
+                    descr_suffix    => "in $key",
                 );
             };
         }
@@ -141,7 +218,7 @@ sub compare_hash_vals {
                 value     => $hash_exp->{$key},
                 precision => $precision,
             );
-            is ($val_got, $val_exp, "Got expected value for $key");
+            is ($val_got, $val_exp, "Got expected value for $key, $descr_suffix");
         }
     }
 
@@ -210,7 +287,7 @@ sub get_basedata_import_data_file {
 
     my $tmp_obj = File::Temp->new;
     my $ep_f = $tmp_obj->filename;
-    print $tmp_obj get_basedata_test_data(@_);
+    print $tmp_obj $args{data} || get_basedata_test_data(@_);
     $tmp_obj -> close;
 
     return $tmp_obj;
@@ -230,6 +307,7 @@ sub get_basedata_test_data {
 
     my $count = $args{count} || 0;
     my $use_rand_counts = $args{use_rand_counts};
+    my $numeric_labels  = $args{numeric_labels};
 
     my $data;
     $data .= "label,x,y,count\n";
@@ -240,7 +318,8 @@ sub get_basedata_test_data {
             if ($use_rand_counts) {
                 $count = int (rand() * 1000);
             }
-            $data .= "$i"."_$j,$ii,$jj,$count\n";
+            my $label = $numeric_labels ? $i : join '_', $i, $j;
+            $data .= "$label,$ii,$jj,$count\n";
         }
     }
 
@@ -417,6 +496,14 @@ sub get_label_properties_site_data {
     return get_data_section('LABEL_PROPERTIES_DATA');
 }
 
+sub get_label_properties_site_data_extra {
+    return get_data_section('LABEL_PROPERTIES_DATA_EXTRA');
+}
+
+sub get_label_properties_site_data_binomial {
+    return get_data_section('LABEL_PROPERTIES_DATA_BINOMIAL');
+}
+
 sub get_group_properties_site_data {
     return get_data_section('GROUP_PROPERTIES_DATA');
 }
@@ -454,7 +541,10 @@ sub run_indices_test1 {
     my $cell_sizes             = $args{cell_sizes} || [100000, 100000];
     my $use_numeric_labels     = $args{use_numeric_labels};
     my $use_element_properties = $args{use_element_properties}; # 'group' or 'label'
+    my $use_label_properties_extra = $args{use_label_properties_extra};  #  boolean
+    my $use_label_properties_binomial = $args{use_label_properties_binomial};  # boolean
     my $callbacks              = $args{callbacks};
+    my $expected_results_overlay = $args{expected_results_overlay};
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -491,7 +581,7 @@ sub run_indices_test1 {
     if ($use_element_properties) {
         my $data;
 
-        if ($use_element_properties eq 'label') {
+        if ($use_element_properties =~ /label/) {
             $data = get_label_properties_site_data();
         }
         elsif ($use_element_properties eq 'group') {
@@ -504,13 +594,42 @@ sub run_indices_test1 {
         my $props = element_properties_from_string($data);
 
         eval { $bd->assign_element_properties (
-            type              => $use_element_properties.'s', # plural
+            type              => $use_element_properties . q{s}, # plural
             properties_object => $props,
         ) };
         $e = $EVAL_ERROR;
         note $e if $e;
         ok (!$e, 'Element properties assigned without eval error');
     }
+
+    if ($use_label_properties_extra) {
+        my $data = get_label_properties_site_data_extra();
+
+        my $props = element_properties_from_string($data);
+
+        eval { $bd->assign_element_properties (
+            type              => 'labels',
+            properties_object => $props,
+        ) };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, 'Extra label properties assigned without eval error');
+    }
+    
+    if ($use_label_properties_binomial) {
+        my $data = get_label_properties_site_data_binomial();
+
+        my $props = element_properties_from_string($data);
+
+        eval { $bd->assign_element_properties (
+            type              => 'labels',
+            properties_object => $props,
+        ) };
+        $e = $EVAL_ERROR;
+        note $e if $e;
+        ok (!$e, 'Binomial label properties assigned without eval error');
+    }
+    
     
     foreach my $callback (@$callbacks) {
         eval {
@@ -543,59 +662,32 @@ sub run_indices_test1 {
         element_list2 => $element_list2,
     );
 
-    my $calc_args = {tree_ref => $tree, matrix_ref => $matrix};
+    my $calc_args = {
+        tree_ref   => $tree,
+        matrix_ref => $matrix,
+        prng_seed  => $args{prng_seed},  #  FIXME: NEED TO PASS ANY NECESSARY ARGS
+        nri_nti_iterations => $args{nri_nti_iterations},
+        mpd_mntd_use_binomial => $args{mpd_mntd_use_binomial},
+    };
 
     foreach my $nbr_list_count (2, 1) {
         if ($nbr_list_count == 1) {
             delete $elements{element_list2};
         }
 
-        my $calc_args_for_validity_check = {
-            %$calc_args,
-            %elements,
-        };
+        my %indices_args = (
+            calcs_to_test  => $calcs_to_test,
+            calc_args      => $calc_args,
+            elements       => \%elements,
+            nbr_list_count => $nbr_list_count,
+            basedata_ref   => $bd,
+        );
 
-        my $valid_calcs = eval {
-            $indices->get_valid_calculations(
-                calculations   => $calcs_to_test,
-                nbr_list_count => $nbr_list_count,
-                calc_args      => $calc_args_for_validity_check,
-            );
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Obtained valid calcs without eval error");
-
-        eval {
-            $indices->run_precalc_globals(%$calc_args);
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran global precalcs without eval error");
-
-        %results = eval { $indices->run_calculations(%$calc_args) };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-
-        # sometimes none are left to run
-        if ($indices->get_valid_calculation_count) {
-            ok ($e, "Ran calculations without elements and got eval error");
+        my %results;
+        #  sometimes we want to check for the effects of caching
+        foreach my $repetition ($args{repetitions} // 1) {
+            %results = run_indices_test1_inner (%indices_args);
         }
-
-        %results = eval {
-            $indices->run_calculations(%$calc_args, %elements);
-        };
-
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran calculations without eval error");
-
-        eval {
-            $indices->run_postcalc_globals(%$calc_args);
-        };
-        $e = $EVAL_ERROR;
-        note $e if $e;
-        ok (!$e, "Ran global postcalcs without eval error");
 
         # Used for acquiring sample results
         if ($generate_result_sets) {
@@ -603,7 +695,9 @@ sub run_indices_test1 {
             $Data::Dumper::Purity   = 1;
             $Data::Dumper::Terse    = 1;
             $Data::Dumper::Sortkeys = 1;
-            print Dumper(\%results);
+            say '#' x 20;
+            say Dumper(\%results);
+            say '#' x 20;
         }
 
         #  now we need to check the results
@@ -611,15 +705,83 @@ sub run_indices_test1 {
         my $expected = eval $dss->get_data_section(
             "RESULTS_${nbr_list_count}_NBR_LISTS"
         );
+        diag "Problem with data section: $EVAL_ERROR" if $EVAL_ERROR;
+        if ($expected_results_overlay) {
+            my $hash = $expected_results_overlay->{$nbr_list_count};
+            @$expected{keys %$hash} = values %$hash;
+        }
 
         subtest $subtest_name => sub {
             compare_hash_vals (
                 no_strict_match => $args{no_strict_match},
                 hash_got => \%results,
                 hash_exp => \%{$expected},
+                descr_suffix => "$nbr_list_count nbr sets",
             );
         };
     }
+}
+
+sub run_indices_test1_inner {
+    my %args = @_;
+    
+    my $calcs_to_test  = $args{calcs_to_test};
+    my $calc_args      = $args{calc_args};
+    my %elements       = %{$args{elements}};
+    my $nbr_list_count = $args{nbr_list_count};
+    my $bd             = $args{basedata_ref};
+
+    my $calc_args_for_validity_check = {
+        %$calc_args,
+        %elements,
+    };
+    
+    my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
+    my $e;
+
+    my $valid_calcs = eval {
+        $indices->get_valid_calculations(
+            calculations   => $calcs_to_test,
+            nbr_list_count => $nbr_list_count,
+            calc_args      => $calc_args_for_validity_check,
+        );
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "Obtained valid calcs without eval error");
+
+    eval {
+        $indices->run_precalc_globals(%$calc_args);
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "Ran global precalcs without eval error");
+
+    my %results = eval { $indices->run_calculations(%$calc_args) };
+    $e = $EVAL_ERROR;
+    #note $e if $e;
+
+    # sometimes none are left to run
+    if ($indices->get_valid_calculation_count) {
+        ok ($e, "Ran calculations without elements and got eval error");
+    }
+
+    %results = eval {
+        $indices->run_calculations(%$calc_args, %elements);
+    };
+
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "Ran calculations without eval error");
+
+    eval {
+        $indices->run_postcalc_globals(%$calc_args);
+    };
+    $e = $EVAL_ERROR;
+    note $e if $e;
+    ok (!$e, "Ran global postcalcs without eval error");
+    
+    return wantarray ? %results : \%results;
 }
 
 1;
@@ -2723,6 +2885,56 @@ Genus:sp6,Genus,sp6,0.454545454545455,0.454545454545455,6,6
 Genus:sp7,Genus,sp7,0.25,0.25,6,6
 Genus:sp8,Genus,sp8,0.6,0.6,4,4
 Genus:sp9,Genus,sp9,0.736842105263158,0.736842105263158,15,15
+
+@@ LABEL_PROPERTIES_DATA_EXTRA
+Element,Axis_0,Axis_1,xLBPROP1,xLBPROP2,xLBPROP3,xLBPROP4
+Genus:sp1,Genus,sp1,0.640625,0.640625,23,23
+Genus:sp10,Genus,sp10,0.816993464052288,0.816993464052288,28,28
+Genus:sp11,Genus,sp11,0.850609756097561,0.850609756097561,49,49
+Genus:sp12,Genus,sp12,0.80794701986755,0.80794701986755,29,29
+Genus:sp13,Genus,sp13,0.888888888888889,0.888888888888889,3,3
+Genus:sp14,Genus,sp14,0.571428571428571,0.571428571428571,3,3
+Genus:sp15,Genus,sp15,0.722222222222222,0.722222222222222,15,15
+Genus:sp16,Genus,sp16,0.9,0.9,2,2
+Genus:sp17,Genus,sp17,0.611111111111111,0.611111111111111,7,7
+Genus:sp18,Genus,sp18,0.759493670886076,0.759493670886076,19,19
+Genus:sp19,Genus,sp19,0.878048780487805,0.878048780487805,5,5
+Genus:sp2,Genus,sp2,0.676470588235294,0.676470588235294,11,11
+Genus:sp20,Genus,sp20,0.709677419354839,0.709677419354839,9,9
+Genus:sp21,Genus,sp21,0.861111111111111,0.861111111111111,25,25
+Genus:sp22,Genus,sp22,0.95,0.95,1,1
+
+@@ LABEL_PROPERTIES_DATA_BINOMIAL
+Element,Axis_0,Axis_1,bLBPROP1,bLBPROP2,bLBPROP3,bLBPROP4,bLBPROP5
+Genus:sp1,Genus,sp1,0,10,1,10,1
+Genus:sp10,Genus,sp10,1,12,1,10,1
+Genus:sp11,Genus,sp11,1,12,1,10,1
+Genus:sp12,Genus,sp12,1,12,1,10,1
+Genus:sp13,Genus,sp13,1,12,0,12,1
+Genus:sp14,Genus,sp14,0,10,0,12,1
+Genus:sp15,Genus,sp15,1,12,1,10,1
+Genus:sp16,Genus,sp16,1,12,0,12,1
+Genus:sp17,Genus,sp17,0,10,0,12,1
+Genus:sp18,Genus,sp18,1,12,1,10,1
+Genus:sp19,Genus,sp19,1,12,0,12,1
+Genus:sp2,Genus,sp2,0,10,1,10,1
+Genus:sp20,Genus,sp20,1,12,0,12,1
+Genus:sp21,Genus,sp21,1,12,1,10,1
+Genus:sp22,Genus,sp22,1,12,0,12,1
+Genus:sp23,Genus,sp23,1,12,1,10,1
+Genus:sp24,Genus,sp24,1,12,0,12,1
+Genus:sp25,Genus,sp25,0,10,0,12,1
+Genus:sp26,Genus,sp26,0,10,0,12,1
+Genus:sp27,Genus,sp27,1,12,0,12,1
+Genus:sp28,Genus,sp28,1,12,0,12,1
+Genus:sp29,Genus,sp29,1,12,1,10,1
+Genus:sp3,Genus,sp3,0,10,1,10,1
+Genus:sp30,Genus,sp30,1,12,1,10,1
+Genus:sp31,Genus,sp31,1,12,0,12,1
+Genus:sp4,Genus,sp4,0,10,0,12,1
+Genus:sp5,Genus,sp5,1,12,0,12,1
+Genus:sp6,Genus,sp6,0,10,0,12,1
+Genus:sp7,Genus,sp7,0,10,0,12,1
 
 
 @@ GROUP_PROPERTIES_DATA

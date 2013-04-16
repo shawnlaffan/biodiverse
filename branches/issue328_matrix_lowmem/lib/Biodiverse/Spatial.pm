@@ -1,16 +1,5 @@
 package Biodiverse::Spatial;
 
-## This block of comments is out of date...
-#  Package containing methods to analyse a Biodiverse::BaseStruct object using spatial arrangements
-#  These are just a set of methods linked directly into a Biodiverse object,
-#  putting the output into a BaseStruct object.
-#  Many of the methods call Biodiverse::Indices methods, these are handled by
-#  the Biodiverse::BaseStruct @ISA list.
-#  Generally this will consist of creating surfaces of index values based on a set of groups
-#  These group elements do not need to be the same as in the GROUPS sub-object,
-#  so we keep them in a separate hash
-#  Note that we have yet to define methods to load a seperate set of coords.
-
 use strict;
 use warnings;
 
@@ -22,7 +11,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 #use Time::HiRes qw /tv_interval gettimeofday/;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Biodiverse::SpatialParams;
 use Biodiverse::SpatialParams::DefQuery;
@@ -278,6 +267,7 @@ sub sp_calc {
         nbr_list_count => $nbr_list_count,
         element_list1 => [],  #  for validity checking only
         element_list2 => $nbr_list_count == 2 ? [] : undef,
+        processing_element => 'x',
     );
 
     #  drop out if we have none to do and we don't have an override flag
@@ -298,7 +288,7 @@ sub sp_calc {
     #  don't pass these onwards when we call the calcs
     delete @args{qw /calculations analyses/};  
 
-    print "[SPATIAL] sp_calc running analyses "
+    print "[SPATIAL] running calculations "
           . (join (q{ }, sort keys %{$indices_object->get_valid_calculations_to_run}))
           . "\n";
 
@@ -319,13 +309,10 @@ sub sp_calc {
     $spatial_params_ref   = $self->get_param ('SPATIAL_PARAMS')
                             || [];
 
-    #  get the global pre_calc results - move lower down?
-    $indices_object->run_precalc_globals(%args);
-
     if (! $use_nbrs_from) {
         #  first look for a sibling with the same spatial parameters
         $use_nbrs_from = eval {
-            $bd->get_spatial_outputs_with_same_nbrs (compare_with => $self);
+            $bd->get_outputs_with_same_conditions (compare_with => $self);
         };
     }
     #  try again if we didn't get it before, 
@@ -420,39 +407,25 @@ sub sp_calc {
         $self->set_param (CELL_SIZES => $bd->get_param('CELL_SIZES'));
     }
     my $name = $self->get_param ('NAME');
-    my $progress_text = $args{progress_text} || $name;
+    my $progress_text_base = $args{progress_text} || $name;
     
     #  create all the elements and the SPATIAL_RESULTS list
     my $toDo = scalar @elements_to_calc;
     #my $timer = [gettimeofday];
     
     #  check the elements against the definition query
-    my $pass_def_query;
-    
-    if ($definition_query) {
-        print "Running definition query\n";
-        my $element = $elements_to_calc[0];
-        my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+    my $pass_def_query = $self->get_groups_that_pass_def_query (
+        def_query        => $definition_query,
+        elements_to_calc => \@elements_to_calc,
+    );
 
-        $pass_def_query
-          = $bd->get_neighbours(
-                element        => $element,
-                spatial_params => $definition_query,
-                is_def_query   => 1,
-                progress       => $defq_progress,
-            );
-        $self->set_param (PASS_DEF_QUERY => $pass_def_query);
-
-        if (! scalar keys %$pass_def_query) {
-            $self->clear_spatial_condition_caches;
-            croak "Nothing passed the definition query\n";
-        }
-    }
+    #  get the global pre_calc results
+    $indices_object->run_precalc_globals(%args);
 
     print "[SPATIAL] Creating target groups\n";
     
     my $progress_text_create
-        = $progress_text . "\nCreating target groups";
+        = $progress_text_base . "\nCreating target groups";
     my $progress = Biodiverse::Progress->new(text => $progress_text_create);
 
     my $failed_def_query_sp_res_hash = {};
@@ -493,11 +466,17 @@ sub sp_calc {
     $progress->reset;
     $progress = undef;
     
-    $progress = Biodiverse::Progress->new();
-
     local $| = 1;  #  write to screen as we go
     my $using_index_text = defined $sp_index ? $EMPTY_STRING : "\nNot using spatial index";
+
+    my $progress_text =
+              "Spatial analysis\n$progress_text_base\n"
+            . "(0 / $toDo)"
+            . $using_index_text;
+    $progress = Biodiverse::Progress->new(text => $progress_text);
     
+    #$progress->update ($progress_text, 0);
+
     my ($count, $printedProgress) = (0, -1);
     print "[SPATIAL] Progress (% of $toDo elements):     ";
     #$timer = [gettimeofday];    # to use with progress bar
@@ -513,7 +492,7 @@ sub sp_calc {
         
         my $progress_so_far = $count / $toDo;
         my $progress_text =
-              "Spatial analysis\n$progress_text\n"
+              "Spatial analysis\n$progress_text_base\n"
             . "($count / $toDo)"
             . $using_index_text;
         $progress->update ($progress_text, $progress_so_far);
@@ -550,7 +529,11 @@ sub sp_calc {
         );
 
         #  this is the meat of it all
-        my %sp_calc_values = $indices_object->run_calculations(%args, %elements);
+        my %sp_calc_values = $indices_object->run_calculations(
+            %args,
+            %elements,
+            processing_element => $element,
+        );
 
         my $recycle_lists = {};
 
@@ -644,7 +627,7 @@ sub sp_calc {
     my $lists = $self->get_lists_across_elements();
 
     my $time_taken = time - $start_time;
-    print "[SPATIAL] Analysis took $time_taken seconds.\n";
+    print "\n[SPATIAL] Analysis took $time_taken seconds.\n";
     $self->set_param (ANALYSIS_TIME_TAKEN => $time_taken);
 
     #  sometimes we crash out but the object still exists
@@ -1078,12 +1061,48 @@ sub get_recyclable_nbrhoods {
     return wantarray ? @recyclable_nbrhoods : \@recyclable_nbrhoods;
 }
 
+sub get_groups_that_pass_def_query {
+    my $self = shift;
+    my %args = @_;
 
+    my $definition_query = $self->get_definition_query (%args);
+    my $passed = $self->get_param('PASS_DEF_QUERY') || {};
+    
+    return wantarray ? %$passed : $passed
+      if $self->exists_param('PASS_DEF_QUERY') || !$definition_query;
+
+    my $bd = $self->get_basedata_ref;
+
+    print "Running definition query\n";
+    my $elements_to_calc = $args{elements_to_calc};
+    my $element = $elements_to_calc->[0];
+    my $defq_progress = Biodiverse::Progress->new(text => 'def query');
+
+    $passed
+      = $bd->get_neighbours(
+            element        => $element,
+            spatial_params => $definition_query,
+            is_def_query   => 1,
+            progress       => $defq_progress,
+        );
+    $self->set_param (PASS_DEF_QUERY => $passed);
+
+    if (! scalar keys %$passed) {
+        $self->clear_spatial_condition_caches;
+        croak "Nothing passed the definition query\n";
+    }
+
+    my $pass_count = scalar keys %$passed;
+    print "$pass_count groups passed the definition query\n";
+
+
+    return wantarray ? %$passed : $passed;
+}
 
 #sub numerically {$a <=> $b};
-sub max {
-    return $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub max {
+#    return $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
 1;
 

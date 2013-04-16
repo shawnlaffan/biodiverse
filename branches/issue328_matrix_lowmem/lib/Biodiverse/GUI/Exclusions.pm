@@ -4,9 +4,10 @@ use strict;
 use warnings;
 use Gtk2;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Biodiverse::GUI::GUIManager;
+use Biodiverse::GUI::ParametersTable;
 
 =head1
 Implements the Run Exclusions dialog
@@ -39,15 +40,8 @@ my %g_widget_map = (
     GroupsMinRedundancy => ['GROUPS', 'minRedundancy'],
 );
 
-#my %g_widget_map2;
-#foreach my $type (qw /LABELS GROUPS/) {
-#    ...
-#}
-
-
-
 sub showDialog {
-    my $exclusionsHash = shift;
+    my $exclusions_hash = shift;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
     my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, DLG_NAME);
@@ -60,10 +54,10 @@ sub showDialog {
     foreach my $name (keys %g_widget_map) {
         my $checkbox = $dlgxml->get_widget('chk' . $name);
         my $spinbutton = $dlgxml->get_widget('spin' . $name);
-#print "$name : $checkbox : $spinbutton\n";
+
         # Load initial value
         my $fields = $g_widget_map{$name};
-        my $value = $exclusionsHash->{$fields->[0]}{$fields->[1]};
+        my $value = $exclusions_hash->{$fields->[0]}{$fields->[1]};
         
         if (defined $value) {
             $checkbox->set_active(1);
@@ -75,8 +69,53 @@ sub showDialog {
 
         # Set up the toggle checkbox signals
         $checkbox->signal_connect(toggled => \&onToggled, $spinbutton);
-
     }
+    
+    #  and the text matching
+    my $label_filter_checkbox = $dlgxml->get_widget('chk_enable_label_exclusion_regex');
+    my @label_filter_widget_names = qw /
+        Entry_label_exclusion_regex
+        chk_label_exclusion_regex
+        Entry_label_exclusion_regex_modifiers
+    /;
+
+    foreach my $widget_name (@label_filter_widget_names) {
+        my $widget = $dlgxml->get_widget($widget_name);
+
+        $widget->set_sensitive(0);
+
+        my $callback = sub {
+            my ($checkbox, $option_widget) = @_;
+            $option_widget->set_sensitive( $checkbox->get_active );
+        };
+
+        $label_filter_checkbox->signal_connect(toggled => $callback, $widget);
+    }
+
+    #  and the file list
+    my $file_list_checkbox = $dlgxml->get_widget('chk_label_exclude_use_file');
+    my @file_list_filter_widget_names = qw /
+        chk_label_exclusion_label_file
+    /;
+
+    foreach my $widget_name (@file_list_filter_widget_names ) {
+        my $widget = $dlgxml->get_widget($widget_name);
+
+        $widget->set_sensitive(0);
+
+        my $callback = sub {
+            my ($checkbox, $option_widget) = @_;
+            $option_widget->set_sensitive( $checkbox->get_active );
+        };
+
+        $file_list_checkbox->signal_connect(toggled => $callback, $widget);
+    }
+    
+    #  and the groups def query
+    my $specs = { name => 'Definition_query', type => 'spatial_params', default => '' };
+    my ($defq_widget, $defq_extractor) = Biodiverse::GUI::ParametersTable::generateWidget ($specs);
+    my $groups_vbox = $dlgxml->get_widget('vbox_group_exclusions_defq');
+    $groups_vbox->pack_start ($defq_widget, 0, 0, 0);
 
     # Show the dialog
     my $response = $dlg->run();
@@ -91,15 +130,61 @@ sub showDialog {
             my $checkbox = $dlgxml->get_widget('chk' . $name);
             my $spinbutton = $dlgxml->get_widget('spin' . $name);
 
+            my $fields = $g_widget_map{$name};
             if ($checkbox->get_active()) {
-
-                my $fields = $g_widget_map{$name};
                 my $value = $spinbutton->get_value();
                 #  round any decimals to six places to avoid floating point issues.
                 #  could cause trouble later on, but the GUI only allows two decimals now anyway...
                 $value = sprintf ("%.6f", $value) if $value =~ /\./;  
-                $exclusionsHash->{$fields->[0]}{$fields->[1]} = $value;
+                $exclusions_hash->{$fields->[0]}{$fields->[1]} = $value;
             }
+            else {
+                delete $exclusions_hash->{$fields->[0]}{$fields->[1]};
+            }
+        }
+
+        my $regex_widget = $dlgxml->get_widget('Entry_label_exclusion_regex');
+        my $regex        = $regex_widget->get_text;
+        if ($label_filter_checkbox->get_active && length $regex) {
+
+            my $regex_negate_widget = $dlgxml->get_widget('chk_label_exclusion_regex');
+            my $regex_negate        = $regex_negate_widget->get_active;
+
+            my $regex_modifiers_widget = $dlgxml->get_widget('Entry_label_exclusion_regex_modifiers');
+            my $regex_modifiers        = $regex_modifiers_widget->get_text;
+
+            $exclusions_hash->{LABELS}{regex}{regex}  = $regex;
+            $exclusions_hash->{LABELS}{regex}{negate} = $regex_negate;
+        }
+
+        if ($file_list_checkbox->get_active) {
+            print "";
+            my $negate_widget = $dlgxml->get_widget('chk_label_exclusion_label_file');
+            my $negate        = $negate_widget->get_active;
+
+            my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+                $gui,
+                undef,
+                undef,
+                undef,
+                ['Input_element'],
+            );
+
+            ##  now do something with them...
+            if ($options{file}) {
+
+                my $check_list = Biodiverse::ElementProperties->new;
+                $check_list->import_data (%options);
+
+                $exclusions_hash->{LABELS}{element_check_list}{list}   = $check_list;
+                $exclusions_hash->{LABELS}{element_check_list}{negate} = $negate;
+            }
+        }
+
+        if (my $defq = &$defq_extractor) {
+            #  do stuff
+            #print $defq;
+            $exclusions_hash->{GROUPS}{definition_query} = $defq;
         }
     }
 

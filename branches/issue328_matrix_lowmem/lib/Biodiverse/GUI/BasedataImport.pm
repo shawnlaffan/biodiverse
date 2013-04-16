@@ -6,7 +6,7 @@ use English ( -no_match_vars );
 
 use Carp;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use File::Basename;
 use Gtk2;
@@ -73,7 +73,12 @@ sub run {
 
     # Get selected filenames
     my @filenames = $dlgxml->get_widget($filechooserInput)->get_filenames();
-    my $file_list_as_text = join ("\n", @filenames);
+    my @file_names_tmp = @filenames;
+    if (scalar @filenames > 5) {
+        @file_names_tmp = @filenames[0..5];
+        push @file_names_tmp, '... plus ' . (scalar @filenames - 5) . ' others';
+    }
+    my $file_list_as_text = join ("\n", @file_names_tmp);
     $dlg->destroy();
     
     #########
@@ -1080,7 +1085,7 @@ sub makeColumnsDialog {
     # use row_widgets to store the radio buttons, spinboxes
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
-        my $row_label_text = defined $header->[$i] ? $header->[$i] : q{};
+        my $row_label_text = $header->[$i] // q{};
         addRow($row_widgets, $table, $i, $row_label_text, $row_options);
     }
 
@@ -1138,10 +1143,10 @@ sub addRow {
 
     # Cell sizes/snaps
     my $adj1  = Gtk2::Adjustment -> new (100000, 0, 10000000, 100, 10000, 0);
-    my $spin1 = Gtk2::SpinButton -> new ($adj1, 100, 4);
+    my $spin1 = Gtk2::SpinButton -> new ($adj1, 100, 7);
 
     my $adj2  = Gtk2::Adjustment -> new (0, -1000000, 1000000, 100, 10000, 0);
-    my $spin2 = Gtk2::SpinButton -> new ($adj2, 100, 4);
+    my $spin2 = Gtk2::SpinButton -> new ($adj2, 100, 7);
 
     $spin1->hide(); # By default, columns are "ignored" so cell sizes don't apply
     $spin2->hide();
@@ -1210,12 +1215,15 @@ sub onTypeComboChanged {
 # Asks user whether remap is required
 #   returns (filename, in column, out column)
 sub getRemapInfo {
-    my $gui = shift;
-    my $data_filename = shift;
-    my $type = shift || "";
+    my $gui              = shift;
+    my $data_filename    = shift;
+    my $type             = shift || "";
     my $other_properties = shift || [];
+    my $column_overrides = shift;
     
-    my ($_file, $data_dir, $_suffixes) = fileparse($data_filename);
+    my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
+        ? fileparse($data_filename)
+        : ();
 
     # Get filename for the name-translation file
     my $filename = $gui->showOpenDialog("Select $type properties file", '*', $data_dir);
@@ -1240,7 +1248,7 @@ sub getRemapInfo {
     
     $dlg->show_all;
     my $response = $dlg -> run;
-    $dlg -> destroy;
+    $dlg->destroy;
     
     if ($response ne 'ok') {  #  drop out
         return wantarray ? () : {};
@@ -1293,7 +1301,8 @@ sub getRemapInfo {
     ($dlg, my $col_widgets) = makeRemapColumnsDialog (
         \@headers,
         $gui->getWidget('wndMain'),
-        $other_properties
+        $other_properties,
+        $column_overrides,
     );
     
     my $column_settings = {};
@@ -1391,14 +1400,13 @@ sub getRemapInfo {
     return wantarray ? %results : \%results;
 }
 
-
+# We have to dynamically generate the choose columns dialog since
+# the number of columns is unknown
 sub makeRemapColumnsDialog {
-    # We have to dynamically generate the choose columns dialog since
-    # the number of columns is unknown
-
-    my $header = shift; # ref to column header array
-    my $wndMain = shift;
-    my $other_props = shift || [];
+    my $header           = shift; # ref to column header array
+    my $wndMain          = shift;
+    my $other_props      = shift || [];
+    my $column_overrides = shift;
 
     my $num_columns = @$header;
     print "[GUI] Generating make columns dialog for $num_columns columns\n";
@@ -1451,7 +1459,7 @@ sub makeRemapColumnsDialog {
     # use row_widgets to store the radio buttons, spinboxes
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
-        addRemapRow($row_widgets, $table, $i, $header->[$i], $other_props);
+        addRemapRow($row_widgets, $table, $i, $header->[$i], $other_props, $column_overrides);
     }
 
     $dlg->set_resizable(1);
@@ -1486,7 +1494,7 @@ sub getRemapColumnSettings {
 }
 
 sub addRemapRow {
-    my ($row_widgets, $table, $colId, $header, $other_props) = @_;
+    my ($row_widgets, $table, $colId, $header, $other_props, $column_overrides) = @_;
 
     #  column number
     my $i_label = Gtk2::Label->new($colId);
@@ -1499,8 +1507,12 @@ sub addRemapRow {
 
     # Type combo box
     my $combo = Gtk2::ComboBox->new_text;
-    #foreach (qw /Ignore Input_element Remapped_element Range Sample_count Include Exclude Use_field_name/) {
-    foreach (qw /Ignore Input_element Remapped_element Include Exclude Property/, @$other_props) {
+    my @options = $column_overrides
+        ? @$column_overrides
+        : (qw /Input_element Remapped_element Include Exclude Property/, @$other_props);
+    unshift @options, 'Ignore';
+
+    foreach (@options) {
         $combo->append_text($_);
     }
     $combo -> set_active(0);

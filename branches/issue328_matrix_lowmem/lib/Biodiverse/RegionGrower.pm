@@ -2,7 +2,7 @@ package Biodiverse::RegionGrower;
 use strict;
 use warnings;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use base qw /
     Biodiverse::Cluster
@@ -32,21 +32,6 @@ sub get_default_cluster_index {
 sub get_type {
     return $PARAMS{TYPE};
 }
-
-#sub get_valid_indices {
-#    my $self = shift;
-#    my %args = @_;
-#
-#    my $bd = $args{BASEDATA_REF};
-#    my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
-#
-#    return $self->get_valid_region_grower_indices (@_);
-#}
-
-#sub get_valid_indices {
-#    my $self = shift;
-#    return $self->get_valid_region_grower_indices (@_);
-#}
 
 sub get_valid_indices_sub {
     return 'get_valid_region_grower_indices';

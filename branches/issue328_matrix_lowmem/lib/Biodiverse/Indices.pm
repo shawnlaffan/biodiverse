@@ -16,7 +16,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 my $EMPTY_STRING = q{};
 
@@ -658,7 +658,7 @@ sub get_indices {
 sub get_index_source {  #  return the source sub for an index
     my $self = shift;
     my %args = @_;
-    return undef if ! defined $args{index};
+    croak "index argument not specified\n" if ! defined $args{index};
 
     my $source = $self->get_index_source_hash;
     my @tmp = %{$source->{$args{index}}}; 
@@ -706,6 +706,30 @@ sub get_required_args {  #  return a hash of those methods that require a parame
     }
 
     return wantarray ? %params : \%params;
+}
+
+sub is_region_grower_index {
+    my $self = shift;
+    my %args = @_;
+    my $index = $args{index};
+    croak "index argument missing\n"
+      if !defined $index;
+    
+    my %valid = $self->get_valid_region_grower_indices;
+    
+    return exists $valid{$index};
+}
+
+sub is_cluster_index {
+    my $self = shift;
+    my %args = @_;
+    my $index = $args{index};
+    croak "index argument missing\n"
+      if !defined $index;
+    
+    my %valid = $self->get_valid_cluster_indices;
+    
+    return exists $valid{$index};
 }
 
 sub get_valid_cluster_indices {

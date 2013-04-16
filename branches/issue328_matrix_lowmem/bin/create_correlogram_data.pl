@@ -55,7 +55,7 @@ my $max_lag   = $rest{max_lag};
 my $sp_cond_f = $rest{sp_cond};
 my $def_q_f   = $rest{def_q};
 my $no_dir    = $rest{no_dir};
-my $overwrite = defined $rest{overwrite} ? $rest{overwrite} : 1;
+my $overwrite = $rest{overwrite} // 1;
 my $lag_size  = $rest{lag_size} || 0;
 
 #die usage() if ! defined $bd_file;

@@ -18,7 +18,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -138,11 +138,11 @@ sub new {
         my $spatial_params = $cluster_ref->get_param ('SPATIAL_PARAMS') || [];
         $sp_initial1
             = defined $spatial_params->[0]
-            ? $spatial_params->[0] -> get_conditions_unparsed()
+            ? $spatial_params->[0]->get_conditions_unparsed()
             : $NULL_STRING;
         $sp_initial2
             = defined $spatial_params->[1]
-            ? $spatial_params->[1] -> get_conditions_unparsed()
+            ? $spatial_params->[1]->get_conditions_unparsed()
             : $NULL_STRING;
 
         $def_query_init1 = $cluster_ref -> get_param ('DEFINITION_QUERY');
@@ -150,10 +150,17 @@ sub new {
             $def_query_init1 = $empty_string;
         }
         elsif (blessed $def_query_init1) { #  get the text if already an object 
-            $def_query_init1 = $def_query_init1 -> get_conditions_unparsed();
+            $def_query_init1 = $def_query_init1->get_conditions_unparsed();
+        }
+        if (my $prng_seed = $cluster_ref->get_prng_seed_argument()) {
+            my $spin_widget = $xml_page->get_widget('spinbutton_cluster_prng_seed');
+            $spin_widget->set_value ($prng_seed);
         }
     }
+
     $self->{output_ref} = $cluster_ref;
+
+    $self->setup_tie_breaker_widgets($cluster_ref);
 
     # Initialise widgets
     $xml_page ->get_widget('txtClusterName')->set_text( $self->{output_name} );
@@ -199,7 +206,14 @@ sub new {
     $self->initIndicesCombo();
     $self->initLinkageCombo();
     $self->initMap();
-    $self->initDendrogram();
+    eval {
+        $self->initDendrogram();
+    };
+    if (my $e = $EVAL_ERROR) {
+        $self->{gui}->report_error($e);
+        $self->onClose;
+        return;
+    }
     $self->initMapShowCombo();
     $self->initMapListCombo();
 
@@ -274,6 +288,74 @@ sub new {
     return $self;
 }
 
+
+sub setup_tie_breaker_widgets {
+    my $self     = shift;
+    my $existing = shift;
+
+    my $xml_page = $self->{xmlPage};
+    my $hbox_name = 'hbox_cluster_tie_breakers';
+    my $breaker_hbox = $xml_page->get_widget($hbox_name);
+
+    my ($tie_breakers, $bd);
+    if ($existing) {
+        $tie_breakers = $existing->get_param ('CLUSTER_TIE_BREAKER');
+        $bd = $existing->get_basedata_ref;
+    }
+    else {
+        $bd = $self->{project}->getSelectedBaseData;
+    }
+    $tie_breakers //= [];  #  param is not always set
+
+    my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
+    my %valid_indices = $indices_object->get_valid_region_grower_indices;
+    my %tmp = $indices_object->get_valid_cluster_indices;
+    @valid_indices{keys %tmp} = values %tmp;
+    
+    my @tie_breaker_widgets;
+    
+    foreach my $i (0, 1) {
+        my $id = $i + 1;
+        my $j = 2 * $i;
+        my $k = $j + 1;
+        my $label = Gtk2::Label->new("  $id: ");
+        my $index_combo = Gtk2::ComboBox->new_text;
+        my $l = 0;
+        my $use_iter;
+        foreach my $index (qw /none random/, sort keys %valid_indices) {
+            $index_combo->append_text ($index);
+            if (defined $tie_breakers->[$j] && $tie_breakers->[$j] eq $index) {
+                $use_iter = $l;
+            }
+            $l ++;
+        }
+
+        $index_combo->set_active($use_iter // 1);  #  random by default
+
+        my $combo_minmax = Gtk2::ComboBox->new_text;
+        $combo_minmax->append_text ('maximise');
+        $combo_minmax->append_text ('minimise');
+        $combo_minmax->set_active (0);
+
+        my $use_iter_minmax = 0;
+        if (defined (my $minmax = $tie_breakers->[$k])) {
+            $use_iter_minmax = $minmax =~ /^min/ ? 0 : 1;
+        }
+        $combo_minmax->set_active ($use_iter_minmax || 0);
+
+        my $hbox = Gtk2::HBox->new;
+        $hbox->pack_start ($label, 0, 1, 0);
+        $hbox->pack_start ($index_combo, 0, 1, 0);
+        $hbox->pack_start ($combo_minmax, 0, 1, 0);
+        $breaker_hbox->pack_start ($hbox, 0, 1, 0);
+        push @tie_breaker_widgets, $index_combo, $combo_minmax;
+    }
+    $breaker_hbox->show_all();
+
+    $self->{tie_breaker_widgets} = \@tie_breaker_widgets;
+
+    return;
+}
 
 #  clunky, but for some reason Gtk-perl cannot get the label from the activated widget
 #  If it could then we could just use get_label on the active widget and pass that
@@ -790,6 +872,28 @@ sub get_no_clone_matrices {
     return $value;
 }
 
+sub get_prng_seed {
+    my $self = shift;
+
+    my $widget = $self->{xmlPage}->get_widget('spinbutton_cluster_prng_seed');
+
+    my $value = $widget->get_value;
+
+    return $value;
+}
+
+sub get_tie_breakers {
+    my $self = shift;
+    
+    my $widgets = $self->{tie_breaker_widgets};
+    my @choices;
+    foreach my $widget (@$widgets) {
+        push @choices, $widget->get_active_text;
+    }
+    
+    return wantarray ? @choices : \@choices;
+}
+
 sub get_output_file_handles {
     my $self = shift;
     
@@ -918,15 +1022,9 @@ sub onRunAnalysis {
     my %args = @_;
 
     # Check spatial syntax
-    if ($self->{spatialParams1}->syntax_check('no_ok') ne 'ok') {
-        return;
-    }
-    if ($self->{spatialParams2}->syntax_check('no_ok') ne 'ok') {
-        return;
-    }
-    if ($self->{definition_query1}->syntax_check('no_ok') ne 'ok') {
-        return;
-    }
+    return if ($self->{spatialParams1}->syntax_check('no_ok')    ne 'ok');
+    return if ($self->{spatialParams2}->syntax_check('no_ok')    ne 'ok');
+    return if ($self->{definition_query1}->syntax_check('no_ok') ne 'ok');
 
     # Load settings...
     $self->{output_name}    = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
@@ -938,6 +1036,7 @@ sub onRunAnalysis {
     my $output_gdm_format   = $self->get_output_gdm_format;
     my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
     my $no_clone_matrices   = $self->get_no_clone_matrices;
+    my $prng_seed           = $self->get_prng_seed;
 
     # Get spatial calculations to run
     my @calculations_to_run = Biodiverse::GUI::Tabs::CalculationsTree::getCalculationsToRun(
@@ -1011,8 +1110,11 @@ sub onRunAnalysis {
             $self->{spatialParams2}->get_text(),
         ],
         no_clone_matrices   => $no_clone_matrices,
+        prng_seed           => $prng_seed,
     );
 
+    my $tie_breakers  = $self->get_tie_breakers;
+    $output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
 
     # Perform the clustering
     RUN_CLUSTER:
@@ -1055,6 +1157,7 @@ sub onRunAnalysis {
         $self->{project}->addOutput($self->{basedata_ref}, $sp_ref);
     }
 
+    #  add the matrices to the outputs tab
     if ($new_analysis) {
         foreach my $ref ($output_ref->get_orig_matrices) {
             next if not $ref->get_element_count;  #  don't add if empty

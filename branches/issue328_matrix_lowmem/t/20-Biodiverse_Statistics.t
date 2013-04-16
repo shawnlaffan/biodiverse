@@ -54,12 +54,24 @@ use Biodiverse::Statistics;
     );
 
     while (my ($key, $val) = each %pctls) {
-        my $text = defined $val ? $val : 'undef';
+        my $text = $val // 'undef';
         is ($stat->percentile_RFC2330 ($key),
             $val,
             "Percentile RFC2330 $key is $text",
         );
     }
+}
+
+#  check sd and stdev are same as standard_deviation
+{
+    my $stat = Biodiverse::Statistics->new();
+
+    $stat->add_data (1 .. 100);
+
+    foreach my $shortname (qw /sd stdev/) {
+        is ($stat->standard_deviation, $stat->$shortname, "$shortname is same as standard_deviation");
+    }
+    
 }
 
 

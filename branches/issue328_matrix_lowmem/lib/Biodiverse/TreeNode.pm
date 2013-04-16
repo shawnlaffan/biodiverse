@@ -15,7 +15,7 @@ use Biodiverse::BaseStruct;
 
 use base qw /Biodiverse::Common/;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -191,10 +191,8 @@ sub set_length {
     my $self = shift;
     my %args = @_;
     #croak 'length argument missing' if not exists ($args{length});
-    $self->{NODE_VALUES}{LENGTH} = defined $args{length}
-        ? $args{length}
-        : $default_length;
-    
+    $self->{NODE_VALUES}{LENGTH} = $args{length} // $default_length;
+
     return;
 }
 
@@ -383,6 +381,7 @@ sub add_children {
 
     CHILD:
     foreach my $child (@{$args{children}}) {
+        next if $self->has_child (node_ref => $child);  #  don't re-add our own child
         if ($self->is_tree_node(node => $child)) {
             if (defined $child->get_parent) {  #  too many parents - this is a single parent system
                 if ($args{warn}) {
@@ -409,6 +408,20 @@ sub add_children {
         $child->set_parent(parent => $self);
     }
     
+    return;
+}
+
+sub has_child {
+    my $self = shift;
+    my %args = @_;
+    my $node_ref = $args{node_ref} || croak "missing node_ref argument\n";
+
+    my @children = $self->get_children;
+
+    foreach my $child (@children) {
+        return 1 if $child eq $node_ref;
+    }
+
     return;
 }
 
@@ -677,6 +690,21 @@ sub raise_zerolength_children {
     return \%results;
 }
 
+#  a bit inefficient, but should work
+sub get_terminal_node_refs {
+    my $self = shift;
+    
+    my %descendents = $self->get_all_descendents;
+
+    my %terminals;
+    while (my ($name, $node_ref) = each %descendents) {
+        next if ! $node_ref->is_terminal_node;
+        $terminals{$name} = $node_ref;
+    }
+
+    return wantarray ? %terminals : \%terminals;
+}
+
 sub get_terminal_elements { #  get all the elements in the terminal nodes
     #  need to add a cache option to reduce the amount of tree walking
     #  - use  hash for this, but return the keys
@@ -784,7 +812,7 @@ sub get_all_descendents { #  get all the nodes (whether terminal or not) which a
 #  should use a while loop instead of recursion
 sub get_path_to_root_node {
     my $self = shift;
-    my %args = @_;
+    my %args = (cache => 1, @_);  #  cache unless told not to
 
     return wantarray ? ($self) : [$self] if $self->is_root_node;
 
@@ -795,7 +823,9 @@ sub get_path_to_root_node {
 
     if ($use_cache) {
         $path = $self->get_cached_value('PATH_TO_ROOT_NODE');
-        return wantarray ? @$path : $path;
+        #print ("using cache for " . $self->get_name . "\n") if $path;
+        return wantarray ? @$path : $path
+          if $path;
     }
 
     #$path = $self->get_parent->get_path_to_root_node (@_);
@@ -1344,7 +1374,7 @@ sub to_table {
         $parent_num = $node->is_root_node
                         ? 0
                         : $node->get_parent->get_value ('NODE_NUMBER');
-        if ($node->is_terminal_node || $args{use_internal_names}) {
+        if (!$node->is_internal_node || $args{use_internal_names}) {
             $taxon_name = $node->get_name;
         }
         else {

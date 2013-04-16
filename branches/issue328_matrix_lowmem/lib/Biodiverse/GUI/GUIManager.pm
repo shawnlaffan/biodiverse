@@ -5,7 +5,7 @@ use warnings;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Data::Dumper;
 use Data::DumpXML::Parser;
@@ -594,7 +594,71 @@ sub do_basedata_reorder_axes {
 
     my $new_bd = $bd->new_with_reordered_element_axes (%$params);
     $new_bd->set_param (NAME => $new_name);
-    $self->{project}->addBaseData($new_bd);    
+    $self->{project}->addBaseData($new_bd);
+
+    $self->set_dirty();
+
+    return;
+}
+
+sub do_basedata_attach_properties {
+    my $self = shift;
+
+    my $bd = $self->{project}->getSelectedBaseData();
+    croak "Cannot add proerties to Basedata with existing outputs\n"
+        . "Use the Duplicate Without Outputs option to create a copy without deleting the outputs.\n"
+      if $bd->get_output_ref_count;
+
+    # are we attaching groups or labels?
+    my $gui = $self;  #  copied code from elsewhere
+    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgGroupsLabels');
+    my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
+    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_modal(1);
+    my $label = $dlgxml->get_widget('label_dlg_groups_labels');
+    $label->set_text ('Group or label properties?');
+    $dlg->set_title('Attach properties');
+    my $response = $dlg->run();
+    $dlg->destroy();
+
+    return if not $response =~ /^(yes|no)$/;
+
+    my $type = $response eq 'yes' ? 'labels' : 'groups';
+
+    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo(
+        $self,
+        undef,
+        $type,
+        undef,
+        [qw /Input_element Property/],
+    );
+    
+    return if ! defined $options{file};
+    
+    my $props = Biodiverse::ElementProperties->new (name => 'assigning properties');
+    $props->import_data (%options);
+
+    my $count = $bd->assign_element_properties (
+        properties_object => $props,
+        type              => $type,
+    );
+
+    if ($count) {
+        $self->set_dirty();
+    }
+    
+    my $summary_text = "Assigned properties to $count ${type}";
+    my $summary_dlg = Gtk2::MessageDialog->new (
+        $self->{gui},
+        'destroy-with-parent',
+        'info', # message type
+        'ok', # which set of buttons?
+        $summary_text,
+    );
+    $summary_dlg->set_title ('Assigned properties');
+    
+    $summary_dlg->run;
+    $summary_dlg->destroy;
 
     return;
 }
@@ -1000,6 +1064,73 @@ sub doDuplicateBasedata {
 
     $dlg->destroy();
     
+    return;
+}
+
+sub do_rename_basedata_labels {
+    my $self = shift;
+    
+    my $bd = $self->{project}->getSelectedBaseData();
+    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+        $self,
+        undef,
+        undef,
+        undef,
+        [qw /Input_element Remapped_element/],
+    );
+    
+    ##  now do something with them...
+    if ($options{file}) {
+        #my $file = $options{file};
+        my $check_list = Biodiverse::ElementProperties->new;
+        $check_list->import_data (%options);
+        $bd->rename_labels (remap => $check_list);
+    }
+
+    return;
+}
+
+sub do_add_basedata_label_properties {
+    my $self = shift;
+    
+    my $bd = $self->{project}->getSelectedBaseData();
+    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+        $self,
+    );
+
+    ##  now do something with them...
+    if ($options{file}) {
+        #my $file = $options{file};
+        my $check_list = Biodiverse::ElementProperties->new;
+        $check_list->import_data (%options);
+        $bd->assign_element_properties (
+            type              => 'labels',
+            properties_object => $check_list,
+        );
+    }
+
+    return;
+}
+
+sub do_add_basedata_group_properties {
+    my $self = shift;
+    
+    my $bd = $self->{project}->getSelectedBaseData();
+    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+        $self,
+    );
+
+    ##  now do something with them...
+    if ($options{file}) {
+        #my $file = $options{file};
+        my $check_list = Biodiverse::ElementProperties->new;
+        $check_list->import_data (%options);
+        $bd->assign_element_properties (
+            type              => 'groups',
+            properties_object => $check_list,
+        );
+    }
+
     return;
 }
 
@@ -2059,7 +2190,8 @@ sub doRunExclusions {
     my $exclusionsHash = $basedata->get_param('EXCLUSION_HASH');
     if (Biodiverse::GUI::Exclusions::showDialog($exclusionsHash)) {
         #print Data::Dumper::Dumper($exclusionsHash);
-        my $feedback = eval {$basedata->run_exclusions()};
+        my $tally = eval {$basedata->run_exclusions()};
+        my $feedback = $tally->{feedback};
         if ($EVAL_ERROR) {
             $self->report_error ($EVAL_ERROR);
             return;

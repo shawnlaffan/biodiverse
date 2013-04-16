@@ -55,12 +55,33 @@ my @calcs = qw/
             label => 'namenotontree:atall',
         );
     };
+    
+    my $overlay1 = {
+        'PHYLO_LABELS_NOT_ON_TREE_N' => 1,
+        'PHYLO_LABELS_NOT_ON_TREE_P' => (1/3),
+        'PHYLO_LABELS_NOT_ON_TREE' => {
+            'namenotontree:atall' => 1,
+        },
+    };
+    my $overlay2 = {
+        'PHYLO_LABELS_NOT_ON_TREE_N' => 1,
+        'PHYLO_LABELS_NOT_ON_TREE_P' => (1/15),
+        'PHYLO_LABELS_NOT_ON_TREE' => {
+            'namenotontree:atall' => 1,
+        },
+    };
 
-    my @calcs_to_test = qw/calc_phylo_aed/;
+    my %expected_results_overlay = (
+        1 => $overlay1,
+        2 => $overlay2,
+    );
+
+    my @calcs_to_test = qw/calc_phylo_aed calc_labels_not_on_tree/;
     run_indices_test1 (
         calcs_to_test   => \@calcs_to_test,
         callbacks       => [$cb],
         no_strict_match => 1,
+        expected_results_overlay => \%expected_results_overlay,
     );
     
 }
@@ -326,6 +347,8 @@ __DATA__
                             'Genus:sp30' => 1,
                             'Genus:sp5'  => 1
                           },
+'PHYLO_LABELS_NOT_ON_TREE_N' => 0,
+'PHYLO_LABELS_NOT_ON_TREE_P' => 0,
 'PHYLO_S2'         => 0,
 'PHYLO_SORENSON'   => '0.729801407809261',
 'TDB_DENOMINATOR'  => 182,
@@ -419,6 +442,8 @@ __DATA__
                   'Genus:sp26' => undef
                 },
 'PHYLO_LABELS_NOT_ON_TREE' => {},
+'PHYLO_LABELS_NOT_ON_TREE_N' => 0,
+'PHYLO_LABELS_NOT_ON_TREE_P' => 0,
 'PHYLO_LABELS_ON_TREE' => {
                             'Genus:sp20' => 1,
                             'Genus:sp26' => 1

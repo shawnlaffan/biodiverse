@@ -7,7 +7,7 @@ use Data::Dumper;
 use Carp;
 use Scalar::Util qw /looks_like_number/;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Gtk2;
 
@@ -254,7 +254,6 @@ sub showAllLabels {
     my $bd      = $data -> get_param ('BASEDATA_REF') || $data;
 
     if (not $popup->{labels_model}) {
-        
         #print "[Cell popup] Making labels model using get_labels_in_group_as_hash()\n";
         #!! Assuming that the correct basedata is selected
         #my $project = Biodiverse::GUI::GUIManager->instance->getProject();
@@ -262,9 +261,13 @@ sub showAllLabels {
         my %labels = $bd->get_labels_in_group_as_hash (group => $element);
         #my %labels = $data -> get_lists (element => $element);
 
+        my $num_type = eval {$bd->sample_counts_are_floats}
+            ? 'Glib::Double'
+            : 'Glib::Int';
+
         my $model = Gtk2::ListStore->new(
             'Glib::String',
-            'Glib::Int',
+            $num_type,
         );
 
         foreach my $label (sort keys %labels) {
@@ -350,11 +353,14 @@ sub showOutputList {
                 last;
             }
         }
-        my @keys = $numeric
-                ? sort {$a<=>$b}   keys %$list_ref
-                : sort {$a cmp $b} keys %$list_ref;
+        my $sort_sub = sub {$a cmp $b};
+        if ($numeric) {
+            $sort_sub = sub {$a <=> $b};
+        }
+        my @keys = sort $sort_sub keys %$list_ref;
+
         foreach my $key (@keys) {
-            my $val = defined $list_ref->{$key} ? $list_ref->{$key} : "";  #  zeros are valid values
+            my $val = $list_ref->{$key} // "";  #  zeros are valid values
             #print "[Cell popup] Adding output hash entry $key\t\t$val\n";
             my $iter = $model->append;
             $model->set($iter,    0, $key ,  1, $val);
@@ -368,14 +374,17 @@ sub showOutputList {
                 last;
             }
         }
-        my @keys = $numeric
-                ? sort {$a<=>$b}   @$list_ref
-                : sort {$a cmp $b} @$list_ref;
+        my $sort_sub = sub {$a cmp $b};
+        if ($numeric) {
+            $sort_sub = sub {$a <=> $b};
+        }
+
+        my @keys = sort $sort_sub @$list_ref;
 
         foreach my $elt (@keys) {
             #print "[Cell popup] Adding output array entry $elt\n";
             my $iter = $model->append;
-            $model->set($iter,    0,$elt ,  1,'');
+            $model->set($iter, 0, $elt, 1, '');
         }
     }
 

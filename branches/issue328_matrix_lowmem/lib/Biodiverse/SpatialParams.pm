@@ -18,7 +18,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 
 use base qw /Biodiverse::Common/;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 our $NULL_STRING = q{};
 
@@ -406,7 +406,7 @@ sub get_invalid_args_for_sub_call {
         delete @called_args_hash{@$list};
     }
 
-    my @invalid = keys %called_args_hash;
+    my @invalid = sort keys %called_args_hash;
 
     return wantarray ? @invalid : \@invalid;
 }
@@ -438,7 +438,7 @@ sub verify {
     my $missing_opt_args = $self->get_param('MISSING_OPT_ARGS');
     if ( $missing_opt_args and scalar keys %$missing_opt_args ) {
         $msg .= "Unused optional arguments\n";
-        foreach my $sub ( keys %$missing_opt_args ) {
+        foreach my $sub ( sort keys %$missing_opt_args ) {
             my $sub_m = $missing_opt_args->{$sub};
             $msg .= "$sub : " . join( ', ', keys %$sub_m ) . "\n";
         }
@@ -448,7 +448,7 @@ sub verify {
     my $incorrect_args = $self->get_param('INCORRECT_ARGS');
     if ( $incorrect_args and scalar keys %$incorrect_args ) {
         $msg .= "\nSubs have incorrectly specified arguments\n";
-        foreach my $sub ( keys %$incorrect_args ) {
+        foreach my $sub ( sort keys %$incorrect_args ) {
             $msg .= $incorrect_args->{$sub} . "\n";
         }
         $valid = 0;
@@ -458,7 +458,7 @@ sub verify {
     my $invalid_args = $self->get_param ('INVALID_ARGS');
     if ( $incorrect_args and scalar keys %$invalid_args ) {
         $msg .= "\nSubs have invalid arguments - they might not work as you hope.\n";
-        foreach my $sub ( keys %$invalid_args ) {
+        foreach my $sub ( sort keys %$invalid_args ) {
             my $sub_m = $invalid_args->{$sub};
             $msg .= "$sub : " . join( ', ', @$sub_m ) . "\n";
         }
@@ -477,7 +477,7 @@ sub verify {
         #  Get the first two elements
         my $elements = $bd->get_groups;
         my $element1 = $elements->[0];
-        my $element2 = $elements->[1];
+        my $element2 = scalar @$elements > 1 ? $elements->[1] : $elements->[0];
 
         my $coord_array1 =
            $bd->get_group_element_as_array (element => $element1);
@@ -1387,7 +1387,6 @@ END_SP_MT_EX
         #required_args => ['axis'],
         required_args => [
             'text',  #  the match text
-
         ],
         optional_args => [
             'axis',  #  which axis from nbrcoord to use in the match
@@ -1616,7 +1615,7 @@ sub _sp_side {
     my $self = shift;
     my %args = @_;
 
-    my $axes = defined $args{axes} ? $args{axes} : [0,1];
+    my $axes = $args{axes} // [0,1];
     if ( defined $axes ) {
         croak "_sp_side:  axes arg is not an array ref\n"
             if ( ref $axes ) !~ /ARRAY/;
@@ -1646,7 +1645,7 @@ sub _sp_side {
         $vector_angle = deg2rad ( $args{vector_angle_deg} );
     }
     else {
-        $vector_angle = defined $args{vector_angle} ? $args{vector_angle} : 0
+        $vector_angle = $args{vector_angle} // 0;
     }
 
     #  get the direction and rotate it so vector_angle is zero
@@ -1726,8 +1725,8 @@ sub sp_select_sequence {
     my $verifying = $self->get_param('VERIFYING');
 
     my $spacing      = $args{frequency};
-    my $cycle_offset = defined $args{cycle_offset} ? $args{cycle_offset} : 1;
-    my $use_cache    = defined $args{use_cache} ? $args{use_cache} : 1;
+    my $cycle_offset = $args{cycle_offset} // 1;
+    my $use_cache    = $args{use_cache} // 1;
 
     if ($args{clear_cache}) {
         $self->set_param(SP_SELECT_SEQUENCE_CLEAR_CACHE => 1);
@@ -1931,11 +1930,11 @@ sub sp_select_block {
 
     my $verifying = $self->get_param('VERIFYING');
 
-    my $frequency    = defined $args{count} ? $args{count} : 1;
+    my $frequency    = $args{count} // 1;
     my $size         = $args{size}; #  should be a function of cellsizes
     my $prng_seed    = $args{prng_seed};
-    my $random       = defined $args{random} ? $args{random} : 1;
-    my $use_cache    = defined $args{use_cache} ? $args{use_cache} : 1;
+    my $random       = $args{random} // 1;
+    my $use_cache    = $args{use_cache} // 1;
 
     if ($args{clear_cache}) {
         $self->set_param(SP_SELECT_BLOCK_CLEAR_CACHE => 1);
@@ -2188,6 +2187,130 @@ sub sp_point_in_poly_shape {
     return;
 }
 
+
+
+sub get_metadata_sp_points_in_same_poly_shape {
+    my $self = shift;
+    my %args = @_;
+
+    my $examples = 'NEED SOME EXAMPLES';
+
+    my %metadata = (
+        description =>
+            'Returns true when two points are within the same shapefile polygon',
+        required_args => [
+            qw /file/,
+        ],
+        optional_args => [
+            qw /point1 point2 axes no_cache/,
+        ],
+        index_no_use => 1,
+        result_type  => 'non_overlapping',
+        example => $examples,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub sp_points_in_same_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $no_cache = $args{no_cache};
+    my $axes = $args{axes} || [0,1];
+
+    my $point1 = $args{point1} // $h->{'@coord'};
+    my $point2 = $args{point2} // $h->{'@nbrcoord'};
+
+    my $x_coord1 = $point1->[$axes->[0]];
+    my $y_coord1 = $point1->[$axes->[1]];
+    my $x_coord2 = $point2->[$axes->[0]];
+    my $y_coord2 = $point2->[$axes->[1]];
+
+    my $cached_results     = $self->get_cache_sp_points_in_same_poly_shape(%args);
+    my $cached_pts_in_poly = $self->get_cache_points_in_shapepoly(%args);
+
+    my $point_string1 = join (':', $x_coord1, $y_coord1, $x_coord2, $y_coord2);
+    my $point_string2 = join (':', $x_coord2, $y_coord2, $x_coord1, $y_coord1);    
+    if (!$no_cache) {
+        for my $point_string ($point_string1, $point_string2) {
+            return $cached_results->{$point_string}
+              if (exists $cached_results->{$point_string});
+        }
+    }
+
+    my $polys = $self->get_polygons_from_shapefile (%args);
+
+    my $pointshape1 = Geo::ShapeFile::Point->new(X => $x_coord1, Y => $y_coord1);
+    my $pointshape2 = Geo::ShapeFile::Point->new(X => $x_coord2, Y => $y_coord2);
+
+    my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
+    my $bd = ${$h->{'$basedata'}};
+    my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
+    my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
+    
+    my @rect1 = (
+        $x_coord1 - $cell_x / 2,
+        $y_coord1 - $cell_y / 2,
+        $x_coord1 + $cell_x / 2,
+        $y_coord1 + $cell_y / 2,
+    );
+    my $rtree_polys1 = [];
+    $rtree->query_partly_within_rect(@rect1, $rtree_polys1);
+
+    my @rect2 = (
+        $x_coord2 - $cell_x / 2,
+        $y_coord2 - $cell_y / 2,
+        $x_coord2 + $cell_x / 2,
+        $y_coord2 + $cell_y / 2,
+    );
+    my $rtree_polys2 = [];
+    $rtree->query_partly_within_rect(@rect2, $rtree_polys2);
+    
+    #  get the list of common polys
+    my @rtree_polys_common = grep {
+        my $check = $_;
+        List::MoreUtils::any {$_ eq $check} @$rtree_polys2
+    } @$rtree_polys1;
+
+    my ($i, $target) = (1, scalar @$rtree_polys1);
+    my $point1_str = join ':', $x_coord1, $y_coord1;
+    my $point2_str = join ':', $x_coord2, $y_coord2;
+    
+
+    foreach my $poly (@rtree_polys_common) {
+        my $poly_id     = $poly->shape_id();
+
+        my $pt1_in_poly = $cached_pts_in_poly->{$poly_id}{$point1_str};
+        if (!defined $pt1_in_poly) {
+            $pt1_in_poly = $poly->contains_point($pointshape1);
+            $cached_pts_in_poly->{$poly_id}{$point1_str} = $pt1_in_poly ? 1 : 0;
+        }
+
+        my $pt2_in_poly = $cached_pts_in_poly->{$poly_id}{$point2_str};
+        if (!defined $pt2_in_poly) {
+            $pt2_in_poly = $poly->contains_point($pointshape2);
+            $cached_pts_in_poly->{$poly_id}{$point2_str} = $pt2_in_poly ? 1 : 0;
+        }
+
+        if ($pt1_in_poly || $pt2_in_poly) {
+            my $result = $pt1_in_poly && $pt2_in_poly;
+            if (!$no_cache) {
+                $cached_results->{$point_string1} = $result;
+            }
+            return $result;
+        }
+    }
+
+    if (!$no_cache) {
+        $cached_results->{$point_string1} = 0;
+    }
+
+    return;
+}
+
 sub get_cache_name_sp_point_in_poly_shape {
     my $self = shift;
     my %args = @_;
@@ -2199,10 +2322,44 @@ sub get_cache_name_sp_point_in_poly_shape {
     return $cache_name;
 }
 
+sub get_cache_name_sp_points_in_same_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $cache_name = join ':',
+        'sp_points_in_same_poly_shape',
+        $args{file};
+    return $cache_name;
+}
+
+sub get_cache_points_in_shapepoly {
+    my $self = shift;
+    my %args = @_;
+
+    my $cache_name = 'cache_' . $args{file};
+    my $cache = $self->get_cached_value($cache_name);
+    if (!$cache) {
+        $cache = {};
+        $self->set_cached_value($cache_name => $cache);
+    }
+    return $cache;
+}
+
 sub get_cache_sp_point_in_poly_shape {
     my $self = shift;
     my %args = @_;
     my $cache_name = $self->get_cache_name_sp_point_in_poly_shape(%args);
+    my $cache = $self->get_cached_value($cache_name);
+    if (!$cache) {
+        $cache = {};
+        $self->set_cached_value($cache_name => $cache);
+    }
+    return $cache;
+}
+
+sub get_cache_sp_points_in_same_poly_shape {
+    my $self = shift;
+    my %args = @_;
+    my $cache_name = $self->get_cache_name_sp_points_in_same_poly_shape(%args);
     my $cache = $self->get_cached_value($cache_name);
     if (!$cache) {
         $cache = {};
@@ -2352,6 +2509,58 @@ sub sp_group_not_empty {
     return $bd->get_richness (element => $element) ? 1 : 0;
 }
 
+sub get_metadata_sp_in_label_range {
+    my $self = shift;
+
+    my %args = @_;
+
+    my %metadata = (
+        description   => "Is a label within a group's range?",
+        required_args => ['label'],
+        optional_args => [
+            'type',  #  nbr or proc to control use of nbr or processing groups
+        ],
+        result_type   => 'always_same',
+        index_no_use  => 1,  #  turn index off since this doesn't cooperate with the search method
+        example       =>
+              q{# Are we in the range of label called Genus:Sp1?}
+            . q{sp_in_label_range(label => 'Genus:Sp1')}
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub sp_in_label_range {
+    my $self = shift;
+    my %args = @_;
+
+    my $h = $self->get_param('CURRENT_ARGS');
+
+    my $label = $args{label} // croak "argument label not defined\n";
+
+    my $type = $args{type};
+    $type ||= eval {$self->is_def_query()} ? 'proc' : 'nbr';
+
+    my $group;
+    if ( $type eq 'proc' ) {
+        $group = ${$h->{'$coord_id1'}};
+    }
+    elsif ( $type eq 'nbr' ) {
+        $group = ${$h->{'$coord_id2'}};
+    }
+
+    my $bd  = ${$h->{'$basedata'}};
+
+    my $labels_in_group = $bd->get_labels_in_group_as_hash (group => $group);
+
+    my $exists = exists $labels_in_group->{$label};
+
+    return $exists;
+}
+
+
+
 sub max { return $_[0] > $_[1] ? $_[0] : $_[1] }
 sub min { return $_[0] < $_[1] ? $_[0] : $_[1] }
 
@@ -2405,7 +2614,7 @@ sub sp_get_spatial_output_list_value {
     my $self = shift;
     my %args = @_;
 
-    my $list_name = defined $args{list}? $args{list} : 'SPATIAL_RESULTS';
+    my $list_name = $args{list} // 'SPATIAL_RESULTS';
     my $index     = $args{index};
     
     my $h           = $self->get_param('CURRENT_ARGS');
@@ -2416,7 +2625,7 @@ sub sp_get_spatial_output_list_value {
       ? $caller_args->{coord_id1}
       : $caller_args->{coord_id2};
 
-    my $element = defined $args{element} ? $args{element} : $default_element;
+    my $element = $args{element} // $default_element;
 
     my $bd      = eval {$self->get_basedata_ref} || $caller_args->{basedata_ref} || $caller_args->{caller_object} || $h->{'$basedata'};
     my $sp_name = $args{output};

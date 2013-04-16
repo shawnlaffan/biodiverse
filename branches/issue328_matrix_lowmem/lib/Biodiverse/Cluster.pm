@@ -1,6 +1,7 @@
 #  all the clustering stuff over the top of a Biodiverse::Tree object
-
 package Biodiverse::Cluster;
+
+use 5.010;
 
 use Carp;
 use strict;
@@ -8,16 +9,15 @@ use warnings;
 use English ( -no_match_vars );
 
 use Data::Dumper;
-#use Devel::Symdump;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval/;
-use List::Util;
-#use Math::Random::MT::Auto qw /rand shuffle get_state/;
+use List::Util qw /first reduce/;
+use List::MoreUtils qw /any natatime/;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
-#use Biodiverse::Common;
 use Biodiverse::Matrix;
+use Biodiverse::Matrix::LowMem;
 use Biodiverse::TreeNode;
 use Biodiverse::SpatialParams;
 use Biodiverse::Progress;
@@ -41,6 +41,8 @@ our %PARAMS = (  #  most of these are not used
 );
 
 my $EMPTY_STRING = q{};
+my $mx_class        = 'Biodiverse::Matrix';
+my $mx_class_lowmem = 'Biodiverse::Matrix::LowMem';
 
 
 #  use the "new" sub from Tree.
@@ -143,39 +145,87 @@ sub export_matrices {
     return;
 }
 
-#  build the matrices required
-#  need to use $bd->get_cluster_outputs_with_same_index_and_nbrs to allow shortcuts
-sub build_matrices {
+sub process_spatial_conditions_and_def_query {
+    my $self = shift;
+    my %args = @_;
+    
+        #  we work with any number of spatial conditions, but default to consider everything
+    if (! defined $args{spatial_conditions}) {
+        $args{spatial_conditions} = ['sp_select_all ()'];
+    }
+
+    my @spatial_conditions = @{$args{spatial_conditions}};
+    #  and we remove any undefined or empty conditions
+    for my $i (reverse 0 .. $#spatial_conditions) {
+
+        if (    defined $spatial_conditions[$i]
+            and length $spatial_conditions[$i] == 0) {
+            $spatial_conditions[$i] = undef;
+        }
+        if (not defined $spatial_conditions[$i]) {
+            splice (@spatial_conditions, $i);
+            next;
+        }
+    }
+
+    #  now generate the spatial_params
+    my $spatial_params_array = [];
+    my $i = 0;
+    foreach my $condition (@spatial_conditions) {
+        if (! defined $spatial_params_array->[$i]) {
+            $spatial_params_array->[$i]
+              = Biodiverse::SpatialParams->new (
+                    conditions   => $spatial_conditions[$i],
+                    basedata_ref => $self->get_basedata_ref,
+            );
+        }
+        $i++;
+    }
+    #  add true condition if needed, and always add it if user doesn't specify
+    if (scalar @$spatial_params_array == 0) {  
+        push (@$spatial_params_array, Biodiverse::SpatialParams->new (conditions => 1));
+        push (@spatial_conditions, 1);
+    }
+
+    #  store for later
+    if (not defined $self->get_param ('SPATIAL_PARAMS')) {
+        $self->set_param (SPATIAL_PARAMS => $spatial_params_array)
+    }
+
+    #  let the spatial object handle the conditions stuff
+    my $definition_query
+        = $self->get_param ('DEFINITION_QUERY')
+          || $args{definition_query};
+
+    if (not defined $self->get_param ('DEFINITION_QUERY')) {
+        $self->set_param (DEFINITION_QUERY => $definition_query);
+    }
+
+    return;
+}
+
+
+sub get_indices_object_for_matrix_and_clustering {
     my $self = shift;
     my %args = @_;
 
-    #  any file handles to output
-    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
-    delete $args{file_handles};
-
-    #  override any args if we are a re-run
-    if (defined $self->get_param('ANALYSIS_ARGS')) {  
-        %args = %{$self->get_param ('ANALYSIS_ARGS')};
-    }
-    else {  #  store them for future use
-        my %args_sub = %args;
-        $self->set_param (ANALYSIS_ARGS => \%args_sub);
-    }
+    my $indices_object;
     
-    my $output_gdm_format = $args{output_gdm_format};  #  need to make all the file stuff a hashref
-
-    my $start_time = time;
-
+    #  return cached version if we have one
+    return $indices_object
+      if $indices_object = $self->get_param ('INDICES_OBJECT');
+    
     my $bd = $self->get_param ('BASEDATA_REF');
 
-    my $indices_object = Biodiverse::Indices->new(
+    $indices_object = Biodiverse::Indices->new(
         BASEDATA_REF    => $bd,
         BUILDING_MATRIX => 1,
         NAME            => 'Indices for ' . $self->get_param ('NAME'),
     );
     $self->set_param (INDICES_OBJECT => $indices_object);
 
-    my $index = $args{index} || $self->get_default_cluster_index;
+    #  not sure why we are setting this here  - OK now?  was in build_matrices
+    my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
     $self->set_param (CLUSTER_INDEX => $index);
     delete $args{index};  # saves passing it on in the index function args
     croak "[CLUSTER] $index not a valid clustering similarity index\n"
@@ -224,51 +274,49 @@ sub build_matrices {
 
     #  run the global pre_calcs
     $indices_object->run_precalc_globals(%args);
+    
+    return $indices_object;
+}
+
+#  build the matrices required
+sub build_matrices {
+    my $self = shift;
+    my %args = @_;
+
+    #  any file handles to output
+    my $file_handles = $args{file_handles} ? $args{file_handles} : [];
+    delete $args{file_handles};
+
+    #  override any args if we are a re-run
+    if (defined $self->get_param('ANALYSIS_ARGS')) {  
+        %args = %{$self->get_param ('ANALYSIS_ARGS')};
+    }
+    else {  #  store them for future use
+        my %args_sub = %args;
+        $self->set_param (ANALYSIS_ARGS => \%args_sub);
+    }
+    
+    my $output_gdm_format = $args{output_gdm_format};  #  need to make all the file stuff a hashref
+
+    my $start_time = time;
+
+    my $indices_object = $self->get_indices_object_for_matrix_and_clustering (%args);
+
+    my $index          = $self->get_param ('CLUSTER_INDEX');
+    my $index_function = $self->get_param ('CLUSTER_INDEX_SUB');
+    my $cache_abc      = $self->get_param ('CACHE_ABC');
 
     my $name = $args{name} || $self->get_param ('NAME') || "CLUSTERMATRIX_$index";
 
-    #  we work with any number of spatial conditions, but default to consider everything
-    if (! defined $args{spatial_conditions}) {
-        $args{spatial_conditions} = ['sp_select_all ()'];
-    }
-
-    my @spatial_conditions = @{$args{spatial_conditions}};
-    #  and we remove any undefined or empty conditions
-    for my $i (reverse 0 .. $#spatial_conditions) {
-
-        if (    defined $spatial_conditions[$i]
-            and length $spatial_conditions[$i] == 0) {
-            $spatial_conditions[$i] = undef;
-        }
-        if (not defined $spatial_conditions[$i]) {
-            splice (@spatial_conditions, $i);
-            next;
-        }
-    }
-
-    #  now generate the spatial_params
-    my $spatial_params_array = [];
-    my $i = 0;
-    foreach my $condition (@spatial_conditions) {
-        if (! defined $spatial_params_array->[$i]) {
-            $spatial_params_array->[$i]
-              = Biodiverse::SpatialParams->new (
-                    conditions   => $spatial_conditions[$i],
-                    basedata_ref => $self->get_basedata_ref,
-            );
-        }
-        $i++;
-    }
-    #  add true condition if needed, and always add it if user doesn't specify
-    if (scalar @$spatial_params_array == 0) {  
-        push (@$spatial_params_array, Biodiverse::SpatialParams->new (conditions => 1));
-        push (@spatial_conditions, 1);
-    }
+    my @spatial_conditions = @{$self->get_param ('SPATIAL_PARAMS')};
+    my $definition_query = $self->get_param ('DEFINITION_QUERY');
+    
+    my $bd = $self->get_basedata_ref;
 
     #  now we loop over the conditions and initialise the matrices
     #  kept separate from previous loop for cleaner default matrix generation
     my @matrices;
-    $i = 0;
+    my $i = 0;
     foreach my $condition (@spatial_conditions) {
         my $mx_name = $name . " Matrix_$i";
 
@@ -281,7 +329,7 @@ sub build_matrices {
             );
         }
 
-        $matrices[$i] = Biodiverse::Matrix->new(
+        $matrices[$i] = $mx_class->new(
             JOIN_CHAR    => $bd->get_param('JOIN_CHAR'),
             NAME         => $mx_name,
             BASEDATA_REF => $bd,
@@ -291,26 +339,12 @@ sub build_matrices {
 
     my $shadow_matrix;
     if (scalar @matrices > 1) {
-        $shadow_matrix = Biodiverse::Matrix->new (
+        $shadow_matrix = $mx_class->new (
             name         => $name . '_SHADOW_MATRIX',
             BASEDATA_REF => $bd,
         );
     }
     $self->set_shadow_matrix (matrix => $shadow_matrix);
-
-    #  store for later
-    if (not defined $self->get_param ('SPATIAL_PARAMS')) {
-        $self->set_param (SPATIAL_PARAMS => $spatial_params_array)
-    }
-
-    #  let the spatial object handle the conditions stuff
-    my $definition_query
-        = $self->get_param ('DEFINITION_QUERY')
-          || $args{definition_query};
-
-    if (not defined $self->get_param ('DEFINITION_QUERY')) {
-        $self->set_param (DEFINITION_QUERY => $definition_query);
-    }
 
     print "[CLUSTER] BUILDING ", scalar @matrices, " MATRICES FOR $index CLUSTERING\n";
 
@@ -701,7 +735,7 @@ sub infer_if_already_calculated {
 
     NBR:
     foreach my $nbr (sort @$nbrs) {
-        next NBR if ! defined (List::Util::first {$_ eq $nbr} @$processed_elements);
+        next NBR if ! defined (first {$_ eq $nbr} @$processed_elements);
         $already_calculated{$nbr} = 1;
     }
 
@@ -714,10 +748,15 @@ sub add_matrices_to_basedata {
     my %args = @_;
 
     my $bd = $self->get_param ('BASEDATA_REF');
+    my %existing_outputs = $bd->get_matrix_outputs;
+
     my $orig_matrices = $args{matrices} || $self->get_param ('ORIGINAL_MATRICES');
+
     foreach my $mx (@$orig_matrices) {
+        next if exists $existing_outputs{$mx->get_name} || any { $mx eq $_ } values %existing_outputs;
         $bd->add_output(object => $mx);
     }
+
     return;
 }
 
@@ -853,7 +892,7 @@ sub cluster_matrix_elements {
     $self->set_param (LINKAGE_FUNCTION => $linkage_function);
 
     my $rand = $self->initialise_rand (
-        seed  => $args{prng_seed},
+        seed  => $args{prng_seed} || undef,
         state => $args{prng_state},
     );
 
@@ -868,7 +907,7 @@ sub cluster_matrix_elements {
             "\n";
 
     my $new_node;
-    my $minValue;
+    my $min_value;
     #  track the number of joins - use as element name for merged nodes
     my $join_number = $self->get_param ('JOIN_NUMBER') || -1;  
     my $total = $sim_matrix->get_element_count;
@@ -880,17 +919,17 @@ sub cluster_matrix_elements {
 
     my $count = 0;
     my $printedProgress = -1;
+    
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
     print "[CLUSTER] Progress (% of $total elements):     ";
-    my $last_update_time = [gettimeofday];
 
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
         #print "Remaining $remaining\n";
 
         #  get the most similar two candidates
-        $minValue = $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+        $min_value = $self->get_most_similar_matrix_value (matrix => $sim_matrix);
 
         $join_number ++;
 
@@ -898,43 +937,25 @@ sub cluster_matrix_elements {
                  . "$progress_text\n("
                  . ($remaining - 1)
                  . " remaining)\nMost similar value is "
-                 . sprintf ("%.3f", $minValue);
+                 . sprintf ("%.3f", $min_value);
 
         $progress_bar->update ($text, 1 - $remaining / $total);
 
         $count ++;
 
-        my $keysRef = $sim_matrix->get_elements_with_value (value => $minValue);
-        my $count1  = scalar keys %{$keysRef};
-        my $keys    = $rand->shuffle ([sort keys %{$keysRef}]);
-        my $node1   = $keys->[0];  # grab the first shuffled key
-        my $count2  = scalar keys %{$keysRef};
-        $keys       = $rand->shuffle ([sort keys %{$keysRef->{$node1}}]);
-        my $node2   = $keys->[0];  #  grab the first shuffled sub key
-
-        #print "$join_number $count1, $count2\n" if $count1 > 1 and $count2 > 1;
+        my ($node1, $node2) = $self->get_most_similar_pair (
+            sim_matrix  => $sim_matrix,
+            value       => $min_value,
+            rand_object => $rand,
+        );
 
         #  use node refs for children that are nodes
         #  use original name if not a node
         #  - this is where the name for $el1 comes from (a historical leftover)
-        my ($el1, $el2);
         my $lengthBelow = 0;
         my $nodeNames = $self->get_node_hash;
-        if (defined $nodeNames->{$node1}) {
-            $el1 = $nodeNames->{$node1};
-        }
-        else {
-            $el1 = $node1;
-        }
-        if (defined $nodeNames->{$node2}) {
-            $el2 = $nodeNames->{$node2};
-        }
-        else {
-            $el2 = $node2;
-        }
-
-        #print "cluster $join_number $minValue $el1 $el2\n";
-        #print "Cluster $join_number :: $minValue :: $node1 :: $node2\n";
+        my $el1 = defined $nodeNames->{$node1} ? $nodeNames->{$node1} : $node1;
+        my $el2 = defined $nodeNames->{$node2} ? $nodeNames->{$node2} : $node2;
 
         my $new_node_name = $join_number . "___";
 
@@ -948,7 +969,7 @@ sub cluster_matrix_elements {
             MATRIX_ITER_USED => $mx_iter,
             JOIN_NUMBER      => $join_number,
         );
-        $new_node->set_child_lengths (total_length => $minValue);
+        $new_node->set_child_lengths (total_length => $min_value);
 
         #  add children to the node hash if they are terminals
         foreach my $child ($new_node->get_children) {
@@ -963,6 +984,11 @@ sub cluster_matrix_elements {
                 );
             }
         }
+        
+        #if ($new_node->get_length < 0) {
+        #    printf "[CLUSTER] Node %s has negative length of %f\n", $new_node->get_name, $new_node->get_length;
+        #}
+        #printf "[CLUSTER] Node %s has length of %f\n", $new_node->get_name, $new_node->get_length;
 
         ###  now we rebuild the similarity matrix to include the new linkages and destroy the old ones
         #  possibly we should return a list of other matrix elements where the length
@@ -980,11 +1006,193 @@ sub cluster_matrix_elements {
     $progress_bar->update (undef, 1);
 
     $self->set_param(JOIN_NUMBER => $join_number);
-    $self->set_param(MIN_VALUE   => $minValue);
+    $self->set_param(MIN_VALUE   => $min_value);
 
     $self->store_rand_state (rand_object => $rand);
 
     return;
+}
+
+sub get_most_similar_pair {
+    my $self= shift;
+    my %args = @_;
+    
+    my $rand        = $args{rand_object} // croak "rand_object argument not passed\n";
+    my $sim_matrix  = $args{sim_matrix}  // croak "sim_matrix argument not passed\n";
+    my $min_value   = $args{min_value}   // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+    my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
+
+    my $keys_ref = $sim_matrix->get_elements_with_value (value => $min_value);
+    my ($node1, $node2);
+
+    if (!$tie_breaker)  {  #  the old way
+        my $count1  = scalar keys %$keys_ref;
+        my $keys1   = $rand->shuffle ([sort keys %{$keys_ref}]);
+        $node1      = $keys1->[0];  # grab the first shuffled key
+        my $count2  = scalar keys %{$keys_ref};
+        my $keys2   = $rand->shuffle ([sort keys %{$keys_ref->{$node1}}]);
+        $node2      = $keys2->[0];  #  grab the first shuffled sub key
+    }
+    else {
+        my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
+        my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
+        my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHES');
+        if (!$tie_breaker_cache) {
+            $tie_breaker_cache = {};
+            $self->set_cached_value (TIEBREAKER_CACHES => $tie_breaker_cache);
+        }
+
+        #  need to get all the pairs
+        my @pairs;
+        foreach my $name1 (keys %$keys_ref) {
+            my $ref = $keys_ref->{$name1};
+            foreach my $name2 (keys %$ref) {
+                push @pairs, [$name1, $name2];  #  need to use terminal names - allows to link_recalculate
+            }
+        }
+        return (wantarray ? @{$pairs[0]} : $pairs[0])
+          if scalar @pairs == 1;
+
+        my $current_pair;
+        my %tmp = @$tie_breaker;
+        my @tie_keys = keys %tmp;
+
+        foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { #  ensures same order each time, thus stabilising random results
+            no autovivification;
+
+            my $calc_results = $tie_breaker_cache->{$pair->[0]}{$pair->[1]}
+                            || $tie_breaker_cache->{$pair->[1]}{$pair->[0]};
+
+            if (!defined $calc_results) {
+                my @el_lists;
+                foreach my $j (0, 1) {
+                    my $node = $pair->[$j];
+                    my $node_ref = $self->get_node_ref (node => $node);
+                    my $el_list;
+                    if ($node_ref->is_internal_node) {
+                        my $terminals = $node_ref->get_terminal_elements;
+                        $el_list = [keys %$terminals];
+                    }
+                    else {
+                        $el_list = [$node];
+                    }
+                    push @el_lists, $el_list;
+                }
+                my %results = $indices_object->run_calculations(
+                    %$analysis_args,
+                    element_list1 => $el_lists[0],
+                    element_list2 => $el_lists[1],
+                );
+                $results{random} = $rand->rand;  #  add values for non-index options, keep them consistet across all runs
+                $results{none}   = 0;
+
+                #  remove any keys we won't use for tie breakers
+                my %tmp = %results;
+                delete @tmp{@tie_keys};
+                delete @results{keys %tmp};
+                $calc_results = \%results;
+                $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $calc_results;
+            }
+            my %calc_res = %$calc_results;
+
+            my $itx = natatime 2, @$tie_breaker;
+            my $sub_res = [];
+            while (my ($breaker, $optimisation) = $itx->()) {
+                push @$sub_res, $calc_res{$breaker};
+            }
+            #print "\n@$pair : @$sub_res";
+            push @$sub_res, $pair;
+
+            $current_pair = $self->run_tie_breaker (
+                tie_breaker => $tie_breaker,
+                pair1       => $current_pair,
+                pair2       => $sub_res,
+            );
+        }
+
+        my $chosen_pair = $current_pair->[-1];  #  last item in array is the pair
+        ($node1, $node2) = @$chosen_pair;
+        #print "\nChosen = $node1, $node2\n";
+        if ($tie_breaker_cache) {  #  cleanup
+            no autovivification;
+            do {      delete $tie_breaker_cache->{$node1}{$node2}   #  delete our chosen pair
+                      && !$tie_breaker_cache->{$node1}              #  and, if parent is empty
+                      && delete $tie_breaker_cache->{$node1}}       #  then delete that too
+                //
+                do {  delete $tie_breaker_cache->{$node2}{$node1}   #  also the reverse
+                      && !$tie_breaker_cache->{$node2}
+                      && delete $tie_breaker_cache->{$node2}
+                };
+        }
+    }
+
+    return wantarray ? ($node1, $node2) : [$node1, $node2];
+}
+
+sub setup_tie_breaker {
+    my $self = shift;
+    my %args = @_;
+    my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
+
+    return if !$tie_breaker;  #  old school clusters did not have one
+
+    my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $self->get_basedata_ref);
+    my $analysis_args = $self->get_param('ANALYSIS_ARGS');
+
+    my $it = natatime 2, @$tie_breaker;
+    my @calc_subs;
+    while (my ($breaker, $optimisation) = $it->()) {
+        next if $breaker eq 'random';  #  special handling for this - should change approach?
+        next if $breaker eq 'none';
+        next if !defined $breaker;
+        croak "$breaker is not a valid tie breaker\n"
+            if   !$indices_object->is_cluster_index (index => $breaker)
+              && !$indices_object->is_region_grower_index (index => $breaker);
+        my $calc = $indices_object->get_index_source (index => $breaker);
+        croak "no calc sub for $breaker\n" if !defined $calc;
+        push @calc_subs, $calc;
+    }
+
+    $indices_object->get_valid_calculations (
+        %args,
+        calculations   => \@calc_subs,
+        nbr_list_count => 2,
+        element_list1  => [],  #  for validity checking only
+        element_list2  => [],
+    );
+
+    $indices_object->run_precalc_globals (%$analysis_args);
+    
+    $self->set_param (CLUSTER_TIE_BREAKER_INDICES_OBJECT => $indices_object);
+}
+
+sub run_tie_breaker {
+    my $self = shift;
+    my %args = @_;
+    my $breaker = $args{tie_breaker};
+    my $pair1 = $args{pair1};
+    my $pair2 = $args{pair2};
+
+    return $pair1 if !$pair2;
+    return $pair2 if !$pair1;
+
+    my $it = natatime 2, @$breaker;
+    my $i = -1;
+    COMP:
+    while (my ($breaker, $optimisation) = $it->()) {
+        $i ++;
+        my @comps = ($pair1->[$i], $pair2->[$i]);
+        if ($optimisation =~ '^max') {
+            @comps = reverse @comps;
+        }
+        my $comp_result = $comps[0] <=> $comps[1];
+
+        next COMP if !$comp_result;
+        return $pair1 if $comp_result < 0;
+        return $pair2;
+    }
+
+    return $pair1;  #  we only had ties
 }
 
 sub run_analysis {
@@ -1038,6 +1246,12 @@ sub cluster {
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
 
+    $self->process_spatial_conditions_and_def_query (%args);
+
+    my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
+    croak "[CLUSTER] $index not a valid clustering similarity index\n"
+        if ! exists ${$self->get_valid_indices}{$index};
+    $self->set_param (CLUSTER_INDEX => $index);
 
     my @matrices;
     #  if we were passed a matrix in the args  
@@ -1052,19 +1266,35 @@ sub cluster {
     }
     else {
         #  try to build the matrices.
+        my $matrices_recycled;
         if (not $self->get_matrix_count) {
-            #  Can we get them from the originals?
-            #  Need to generalise to get them from another
-            #  cluster/regiongrower output if available.
+            #  can we get them from another output?
+            my $bd = $self->get_basedata_ref;
+            if (my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self)) {
+                my $other_original_matrices = $ref->get_param('ORIGINAL_MATRICES');
+                my $other_orig_shadow_mx    = $self->get_param('ORIGINAL_SHADOW_MATRIX');
+                #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
+                if (   eval {$other_orig_shadow_mx->get_element_count}
+                    || eval {$other_original_matrices->[0]->get_element_count}) {
+
+                    print "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name, "\n";
+                    $self->set_param (ORIGINAL_MATRICES      => $other_original_matrices);
+                    $self->set_param (ORIGINAL_SHADOW_MATRIX => $other_orig_shadow_mx);
+                    $matrices_recycled = 1;
+                }
+            }
+
+            #  Do we already have some we can work on? 
             my $original_matrices = $self->get_param('ORIGINAL_MATRICES');
-            if ($original_matrices) {
+            if ($original_matrices) {  #  need to handle no_clone_matrices
+                say '[CLUSTER] Cloning matrices prior to destructive processing';
                 foreach my $mx (@$original_matrices) {
                     push @matrices, $mx->clone;
                 }
                 my $orig_shadow_mx = $self->get_param('ORIGINAL_SHADOW_MATRIX');
                 eval {
                     $self->set_shadow_matrix (matrix => $orig_shadow_mx->clone);
-                }
+                };
             }
             else {  #  build them
                 @matrices = eval {
@@ -1101,11 +1331,12 @@ sub cluster {
         }
         else {
             if ($args{no_clone_matrices}) {  # reduce memory at the cost of later exports and visualisation
+                                             # How does this interact with the matrix recycling? 
                 print "[CLUSTER] Storing matrices with no cloning - be warned that these will be destroyed in clustering\n";
                 $self->set_param (ORIGINAL_SHADOW_MATRIX => $self->get_shadow_matrix);
                 $self->set_param (ORIGINAL_MATRICES => \@matrices);
             }
-            else {
+            elsif (!$matrices_recycled) {
                 #  save clones of the matrices for later export
                 print "[CLUSTER] Creating and storing matrix clones\n";
     
@@ -1128,6 +1359,8 @@ sub cluster {
         next if not defined $element;
         $self->add_node (name => $element);
     }
+    
+    $self->setup_tie_breaker;
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?
@@ -1144,6 +1377,7 @@ sub cluster {
     }
 
     $self->run_indices_object_cleanup;
+    $self->run_tiebreaker_indices_object_cleanup;
 
     my %root_nodes = $self->get_root_nodes;
 
@@ -1254,6 +1488,22 @@ sub run_indices_object_cleanup {
         };
     }
     $self->set_param(INDICES_OBJECT => undef);
+
+    return;
+}
+
+sub run_tiebreaker_indices_object_cleanup {
+    my $self = shift;
+    
+    #  run some cleanup on the indices object
+    my $indices_object = $self->get_param('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
+    if ($indices_object) {
+        eval {
+            $indices_object->run_postcalc_globals;
+            $indices_object->reset_results(global => 1);
+        };
+    }
+    $self->set_param(CLUSTER_TIE_BREAKER_INDICES_OBJECT => undef);
 
     return;
 }
@@ -1426,11 +1676,9 @@ sub link_recalculate {
 
     my $cache_abc
         = $args{cache_abc}
-        || $self->get_param ('CACHE_ABC');
+        // $self->get_param ('CACHE_ABC');
 
-    my $indices_object
-        = $args{indices_object}
-        || $self->get_param('INDICES_OBJECT');
+    my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
 
     #  for the dependency analyses,
     #  we treat node1 and node2 as one element set,
@@ -1450,7 +1698,7 @@ sub link_recalculate {
     elsif ($node2_ref) {
         $label_hash1 = $node1_ref->get_cached_value ($node1_2_cache_name);
     }
-    #  if no cahced value then merge the lists of terminal elements
+    #  if no cached value then merge the lists of terminal elements
     if (not $label_hash1) {
         $el1_list = [];
         #  only need to do the check until all terminal nodes
@@ -1514,9 +1762,6 @@ sub link_recalculate {
     }
 
     my %r = (value => $results->{$index});
-
-    #  run any local post_calcs - no these are done in run_calculations
-    #$indices_object->run_postcalc_locals;
 
     return wantarray ? %r : \%r;
 }
@@ -1788,15 +2033,25 @@ sub sp_calc {
             }
         }
         $node->add_to_lists (SPATIAL_RESULTS => \%sp_calc_values);
-
-        #  run any local post_calcs - no these are done in run_calculations
-        #$indices_object->run_postcalc_locals (%args);
     }
 
     #  run any global post_calcs
     $indices_object->run_postcalc_globals (%args);
 
     return 1;
+}
+
+sub get_prng_seed_argument {
+    my $self = shift;
+
+    my $arguments = $self->get_param('ANALYSIS_ARGS');
+
+    return if !$arguments;
+
+    #no autovivification;
+    return if !exists $arguments->{prng_seed};
+    
+    return $arguments->{prng_seed};
 }
 
 sub get_embedded_tree {

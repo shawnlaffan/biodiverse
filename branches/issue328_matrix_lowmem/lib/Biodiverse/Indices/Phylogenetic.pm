@@ -11,7 +11,7 @@ use Biodiverse::Progress;
 use List::Util qw /sum min/;
 use Math::BigInt;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -279,6 +279,9 @@ sub get_path_lengths_to_root_node {
         if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element
             my $path = $cache->{$el_list[0]};
             return (wantarray ? %$path : $path) if ($path);
+        }
+        else {
+            $use_path_cache = undef;  #  skip caching below
         }
     }
 
@@ -627,7 +630,16 @@ sub get_metadata_calc_labels_not_on_tree {
         indices         => {
             PHYLO_LABELS_NOT_ON_TREE => {
                 description => 'A hash of labels that are not found on the tree, across both neighbour sets',
+                type        => 'list',
             },  #  should poss also do nbr sets 1 and 2
+            PHYLO_LABELS_NOT_ON_TREE_N => {
+                description => 'Number of labels not on the tree',
+                
+            },
+            PHYLO_LABELS_NOT_ON_TREE_P => {
+                description => 'Proportion of labels not on the tree',
+                
+            },
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc_global => [qw /get_labels_not_on_tree/],
@@ -646,13 +658,26 @@ sub calc_labels_not_on_tree {
     my $not_on_tree = $args{labels_not_on_tree};
 
     my %labels1 = %{$args{label_hash_all}};
+    my $richness = scalar keys %labels1;
     delete @labels1{keys %$not_on_tree};
 
     my %labels2 = %{$args{label_hash_all}};
     delete @labels2{keys %labels1};
-    
-    my %results = (PHYLO_LABELS_NOT_ON_TREE => \%labels2);
-    
+
+    my $count_not_on_tree = scalar keys %labels2;
+    my $p_not_on_tree;
+    {
+        no warnings 'numeric';
+        my $richness   = scalar keys %{$args{label_hash_all}};
+        $p_not_on_tree = eval { $count_not_on_tree / $richness } || 0;
+    }
+
+    my %results = (
+        PHYLO_LABELS_NOT_ON_TREE   => \%labels2,
+        PHYLO_LABELS_NOT_ON_TREE_N => $count_not_on_tree,
+        PHYLO_LABELS_NOT_ON_TREE_P => $p_not_on_tree,
+    );
+
     return wantarray ? %results : \%results;
 }
 
@@ -1317,7 +1342,7 @@ sub _calc_phylo_mpd_mntd {
         LABEL2:
         foreach my $label2 (@labels2) {
 
-            #  skip same labels
+            #  skip same labels (FIXME: but not if used as dissim measure)
             next LABEL2 if $label1 eq $label2;
 
             my $label_count2 = $label_hash2->{$label2};
@@ -1349,23 +1374,18 @@ sub _calc_phylo_mpd_mntd {
                     value    => $path_length,
                 );
             }
-            #if ($do_mpd) {  #  mpd case needs to weight by labelcount2
-                push @mpd_path_lengths_this_node, ($path_length) x $label_count2;
-            #}
-            #else {          #  mntd case takes the min, so don't bother weighting?
-                push @mntd_path_lengths_this_node, $path_length;  
-            #}
+
+            push @mpd_path_lengths_this_node, ($path_length) x $label_count2;
+            push @mntd_path_lengths_this_node, $path_length;
 
             $i ++;
         }
+
         if ($i) {  #  only if we added something
-            #if ($do_mpd) {
-                push @mpd_path_lengths, (@mpd_path_lengths_this_node) x $label_count1;
-            #}
-            #else {
-                my $min = min (@mntd_path_lengths_this_node);
-                push @mntd_path_lengths, ($min) x $label_count1;
-            #}
+            #  weighting scheme won't work with non-integer wts - need to use weighted stats
+            push @mpd_path_lengths, (@mpd_path_lengths_this_node) x $label_count1;
+            my $min = min (@mntd_path_lengths_this_node);
+            push @mntd_path_lengths, ($min) x $label_count1;  
         }
     }
 

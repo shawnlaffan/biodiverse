@@ -18,7 +18,7 @@ use Tree::R;
 
 use Geo::ShapeFile;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -484,7 +484,7 @@ sub setBaseStruct {
     if ($sizes[0] == 0
         || ! defined $sizes[1]
         || $sizes[1] == 0 ) {
-        $width_pixels = 2
+        $width_pixels = 1
     }
 
 #    my ($cellX, $cellY, $width_pixels) = $self->getCellSizes($data);

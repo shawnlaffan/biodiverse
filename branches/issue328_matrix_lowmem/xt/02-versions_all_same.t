@@ -13,46 +13,47 @@ use FindBin qw { $Bin };
 use File::Spec;
 use File::Find;
 
-use mylib;
+use rlib;
+
+use Biodiverse::BaseData;
 
 #  list of files
 our @files;
 
-BEGIN {
-    my $wanted = sub {
-        # only operate on Perl modules
-        return if $_ !~ m/\.pm$/;
-        return if $File::Find::name !~ m/Biodiverse/;
-        return if $File::Find::name =~ m/Bundle/;
-        
-        
-        my $filename = $File::Find::name;
-        $filename =~ s/\.pm$//;
-        $filename =~ s/.+(Biodiverse.+)/$1/;
-        $filename =~ s{/}{::}g;
-        push @files, $filename;
-    };
-    
-    #my @files;
-    my $lib_dir = File::Spec->catfile( $Bin, '..' );
-    find ( $wanted,  $lib_dir );
-    #print join q{ }, @files;
-    #}
-    
-    
-    my $f1 = shift @files;
-    eval qq { require $f1 };
-    my $version = eval '$' . $f1 . q{::VERSION};
-    
-    diag( "Testing Biodiverse $version, Perl $], $^X" );
-    
-    while (my $file = shift @files) {
-        eval qq{ require $file };
-        my $this_version = eval '$' . $file . q{::VERSION};
-        my $msg = "$file is $version";
-        is ( $version, $this_version, $msg );
-    }
+my $wanted = sub {
+    # only operate on Perl modules
+    return if $_ !~ m/\.pm$/;
+    return if $File::Find::name !~ m/Biodiverse/;
+    return if $File::Find::name =~ m/Bundle/;
 
+    my $filename = $File::Find::name;
+    $filename =~ s/\.pm$//;
+    if ($filename =~ /((?:App\/)?Biodiverse.*)$/) {
+        $filename = $1;
+    }
+    $filename =~ s{/}{::}g;
+    push @files, $filename;
+};
+
+my $lib_dir = File::Spec->catfile( $Bin, '..', 'lib' );
+find ( $wanted,  $lib_dir );
+
+my $version = $Biodiverse::BaseData::VERSION;
+
+note ( "Testing Biodiverse $version, Perl $], $^X" );
+
+require App::Biodiverse;
+my $blah = $App::Biodiverse::VERSION;
+
+while (my $file = shift @files) {
+    my $loaded = eval qq{ require $file };
+    my $msg_extra = q{};
+    if (!$loaded) {
+        $msg_extra = " (Unable to load $file).";
+    }
+    my $this_version = eval '$' . $file . q{::VERSION};
+    my $msg = "$file is $version." . $msg_extra;
+    is ( $this_version, $version, $msg );
 }
 
 done_testing();

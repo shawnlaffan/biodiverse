@@ -5,9 +5,12 @@ package Biodiverse::Indices::Numeric_Labels;
 use strict;
 use warnings;
 
+use List::Util qw /sum/;
+use List::MoreUtils qw /apply pairwise/;
+
 use Carp;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Biodiverse::Statistics;
 
@@ -257,7 +260,7 @@ sub get_metadata_calc_numeric_label_data {
                 description => 'Numeric label data in array form.  '
                                . 'Multiple occurrences are repeated '
                                . 'based on their sample counts.',
-                TYPE        => 'list',
+                type        => 'list',
             },
         },
     );
@@ -346,29 +349,35 @@ sub calc_numeric_label_dissimilarity {
         return wantarray ? %results : \%results;
     }
 
-    my $label_list1     = $args{label_hash1};
-    my $label_list2     = $args{label_hash2};
+    my $list1 = $args{label_hash1};
+    my $list2 = $args{label_hash2};
+    #  make %$l1 the shorter, as it is used in the while loop
+    if (scalar keys %$list1 > scalar keys %$list2) {  
+        $list1 = $args{label_hash2};
+        $list2 = $args{label_hash1};
+    }
 
-    my ($sumX, $sum_absX, $sumXsqr, $count) = (undef, undef, undef, 0);
+    #  use copies in case the two refs are to the same hash
+    my %label_list1 = %$list1;
+    my %label_list2 = %$list2;
 
-    #  should look into using PDL to handle this, as it will be much, much faster
-    #  (but it will use more memory, which will be bad for large label lists)
+    my ($sum_absX, $sumXsqr, $count) = (undef, undef, 0);
+    my @joint_count    = values %label_list2;
+    my $sum_joint_count = sum @joint_count;
+
     BY_LABEL1:
-    while (my ($label1, $count1) = each %{$label_list1}) {
+    while (my ($label1, $count1) = each %label_list1) {
 
-        BY_LABEL2:
-        while (my ($label2, $count2) = each %{$label_list2}) {
+        my @abs_diff_list  = map { abs($_ - $label1) } keys %label_list2;
+        my @ssq_list       = map { $_ ** 2 } @abs_diff_list;
 
-            my $value = $label1 - $label2;
-            my $joint_count = $count1 * $count2;
+        my @wtd_adiff_list = pairwise {$a * $b} @abs_diff_list, @joint_count;
+        my @wtd_ssq_list   = pairwise {$a * $b} @ssq_list, @joint_count;
+        #my @wtd_ssq_list   = pairwise {$a**2 * $b} @abs_diff_list, @joint_count;  #  map is faster than doing **2 in pairwise
 
-            #  tally the stats
-            my $x      = $value * $joint_count;
-            #$sumX     += $x;
-            $sum_absX += abs($x);
-            $sumXsqr  += $value ** 2 * $joint_count;
-            $count    += $joint_count;
-        }
+        $sum_absX += $count1 * sum @wtd_adiff_list;
+        $sumXsqr  += $count1 * sum @wtd_ssq_list;
+        $count    += $count1 * $sum_joint_count;
     }
 
     my %results;
@@ -376,7 +385,6 @@ sub calc_numeric_label_dissimilarity {
         #  suppress these warnings within this block
         no warnings qw /uninitialized numeric/;
 
-        #$results{NUMD_MEAN}     = eval {$sumX / $count};
         $results{NUMD_ABSMEAN}  = eval {$sum_absX / $count};
         $results{NUMD_VARIANCE} = eval {$sumXsqr / $count};
         $results{NUMD_COUNT}    = $count;

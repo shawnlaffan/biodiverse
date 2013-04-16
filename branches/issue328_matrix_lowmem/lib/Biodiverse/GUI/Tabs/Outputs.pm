@@ -12,7 +12,7 @@ use Biodiverse::GUI::Export;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use base qw {Biodiverse::GUI::Tabs::Tab};
 
@@ -295,7 +295,9 @@ sub onShow {
         };
         if ($EVAL_ERROR) {
             $self->{gui}->report_error ($EVAL_ERROR);
-            $tab->onClose;
+            if ($tab) {
+                $tab->onClose;
+            }
             return;
         }
     }

@@ -15,11 +15,13 @@ use English ( -no_match_vars );
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
+use List::Util qw /min max/;
 use File::Basename;
 use Path::Class;
+use POSIX qw /fmod/;
 use Time::localtime;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 #require Biodiverse::Config;
 #my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -339,14 +341,22 @@ sub get_metadata_export_table_delimited_text {
     return wantarray ? %args : \%args;
 }
 
-#  generic - should be factored out
+#  generic - should be factored out to Biodiverse::Common?
 sub export_table_delimited_text {
     my $self = shift;
     my %args = @_;
 
-    my $table = $self->to_table (symmetric => 1, %args);
+    my $filename = $args{file} || croak "file arg not specified\n";
+    my $fh;
+    if (!$args{_no_fh}) {  #  allow control of $fh for test purposes
+        open $fh, '>', $filename or croak "Could not open $filename\n";
+    }
 
-    $self->write_table_csv (%args, data => $table);
+    my $table = $self->to_table (symmetric => 1, %args, file_handle => $fh);
+
+    if (scalar @$table) {  #  won;t ned this once issue #350 is fixed
+        $self->write_table_csv (%args, data => $table);
+    }
 
     return;
 }
@@ -578,7 +588,8 @@ sub get_lists_for_export {
 sub write_table {
     my $self = shift;
     my %args = @_;
-    defined $args{file} || croak "file argument not specified\n";
+    croak "file argument not specified\n"
+      if !defined $args{file};
     my $data = $args{data} || croak "data argument not specified\n";
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
@@ -608,7 +619,7 @@ sub to_table {
     my %list_keys;
     my $prev_list_keys;
 
-    print "[BASESTRUCT] Checking elements for list contents\n";
+    #print "[BASESTRUCT] Checking elements for list contents\n";
     CHECK_ELEMENTS:
     foreach my $i (0 .. $#$checkElements) {  # sample the lot
         my $checkElement = $checkElements->[$i];
@@ -674,14 +685,20 @@ sub get_longest_name_array_length {
     return $longest;
 }
 
-#  write parts of the object to a CSV file
-#  assumes these are always hashes, which may blow
+#  Write parts of the object to a CSV file
+#  Assumes these are always hashes, which may blow
 #  up in our faces later.  We'll fix it then
 sub to_table_sym {  
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not defined\n";
-    my $no_data_value = $args{no_data_value};
+
+    my $no_data_value      = $args{no_data_value};
+    my $one_value_per_line = $args{one_value_per_line};
+    my $no_element_array   = $args{no_element_array};
+
+    my $fh = $args{file_handle};
+    my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     my @data;
     my @elements = sort $self->get_element_list;
@@ -691,13 +708,13 @@ sub to_table_sym {
         list    => $args{list},
     );
     my @print_order = sort keys %$listHashRef;
-    
+
     my $max_element_array_len;  #  used in some sections, set below if needed
 
     #  need the number of element components for the header
     my @header = ('Element');  
 
-    if (! $args{no_element_array}) {
+    if (! $no_element_array) {
         my $i = 0;
         #  get the number of element columns
         $max_element_array_len = $self->get_longest_name_array_length - 1;
@@ -708,18 +725,19 @@ sub to_table_sym {
         }
     }
 
-    if ($args{one_value_per_line}) {
+    if ($one_value_per_line) {
         push @header, qw /Key Value/;
     }
     else {
         push @header, @print_order;
     }
     push @data, \@header;
-
+    
     #  now add the data to the array
     foreach my $element (@elements) {
+
         my @basic = ($element);
-        if (! $args{no_element_array}) {
+        if (! $no_element_array) {
             my @array = $self->get_element_name_as_array (element => $element);
             if ($#array < $max_element_array_len) {  #  pad if needed
                 push @array, (undef) x ($max_element_array_len - $#array);
@@ -732,9 +750,7 @@ sub to_table_sym {
             list    => $args{list},
         );
 
-        #  we've built the hash, now print it out
-
-        if ($args{one_value_per_line}) {  
+        if ($one_value_per_line) {  
             #  repeat the elements, once for each value or key/value pair
             if (!defined $no_data_value) {
                 foreach my $key (@print_order) {
@@ -743,7 +759,7 @@ sub to_table_sym {
             }
             else {  #  need to change some values
                 foreach my $key (@print_order) {
-                    my $val = defined $listRef->{$key} ? $listRef->{$key} : $no_data_value;
+                    my $val = $listRef->{$key} // $no_data_value;
                     push @data, [@basic, $key, $val];
                 }
             }
@@ -757,6 +773,17 @@ sub to_table_sym {
                 push @data, [@basic, @vals];
             }
         }
+
+        if ($fh) {
+            #  print to file, clear @data - gets header on first run
+            while (my $list_data = shift @data) {
+                my $string = $self->list2csv (
+                    csv_object => $csv_obj,
+                    list       => $list_data,
+                );
+                print { $fh } $string . "\n";
+            }
+        }
     }
 
     return wantarray ? @data : \@data;
@@ -766,22 +793,30 @@ sub to_table_asym {  #  get the data as an asymmetric table
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not specified\n";
+
     my $list = $args{list};
-    my $no_data_value = $args{no_data_value};
+
+    my $no_data_value      = $args{no_data_value};
+    my $one_value_per_line = $args{one_value_per_line};
+    my $no_element_array   = $args{no_element_array};
+
+    my $fh = $args{file_handle};
+    my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     my @data;  #  2D array to hold the data
     my @elements = sort $self->get_element_list;
 
-    push my @header, "ELEMENT";  #  need the number of element components for the header
-    if (! $args{no_element_array}) {
+    push my @header, 'Element';  
+    if (! $no_element_array) {  #  need the number of element components for the header
         my $i = 0;
-        foreach my $null (@{$self->get_element_name_as_array (element => $elements[0])}) {  #  get the number of element columns
+        #  get the number of element columns
+        foreach my $null (@{$self->get_element_name_as_array (element => $elements[0])}) {  
             push (@header, "Axis_$i");
             $i++;
         }
     }
 
-    if ($args{one_value_per_line}) {
+    if ($one_value_per_line) {
         push @header, qw /Key Value/;
     }
     else {
@@ -790,11 +825,14 @@ sub to_table_asym {  #  get the data as an asymmetric table
     push @data, \@header;
 
     foreach my $element (@elements) {
+
         my @basic = ($element);
-        push @basic, ($self->get_element_name_as_array (element => $element)) if ! $args{no_element_array};
+        if (! $no_element_array) {
+            push @basic, ($self->get_element_name_as_array (element => $element));
+        }
         #  get_list_values returns a list reference in scalar context - could be a hash or an array
         my $list =  $self->get_list_values (element => $element, list => $list);
-        if ($args{one_value_per_line}) {  #  repeats the elements, once for each value or key/value pair
+        if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
             if ((ref $list) =~ /ARRAY/) {
                 foreach my $value (@$list) {
                     if (!defined $value) {
@@ -827,6 +865,17 @@ sub to_table_asym {  #  get the data as an asymmetric table
             }
             push @data, \@line;
         }
+
+        if ($fh) {
+            #  print to file, clear @data - gets header on first run
+            while (my $list_data = shift @data) {
+                my $string = $self->list2csv (
+                    csv_object => $csv_obj,
+                    list       => $list_data,
+                );
+                print { $fh } $string . "\n";
+            }
+        }
     }
 
     return wantarray ? @data : \@data;
@@ -836,7 +885,15 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my $self = shift;
     my %args = @_;
     defined $args{list} || croak "list not specified\n";
+
     my $list = $args{list};
+
+    my $no_data_value      = $args{no_data_value};
+    my $one_value_per_line = $args{one_value_per_line};
+    my $no_element_array   = $args{no_element_array};
+
+    my $fh = $args{file_handle};
+    my $csv_obj = $fh ? $self->get_csv_object_for_export (%args) : undef;
 
     # Get all possible indices by sampling all elements
     # - this allows for asymmetric lists
@@ -860,7 +917,7 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
     my @elements = sort keys %$elements;
 
     push my @header, "ELEMENT";  #  need the number of element components for the header
-    if (! $args{no_element_array}) {
+    if (! $no_element_array) {
         my $i = 0;
         foreach my $null (@{$self->get_element_name_as_array(element => $elements[0])}) {  #  get the number of element columns
             push (@header, "Axis_$i");
@@ -868,24 +925,21 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         }
     }
 
-    #push (@header, @print_order);
-    if ($args{one_value_per_line}) {
+    if ($one_value_per_line) {
         push @header, qw /Key Value/;
     }
     else {
         push @header, @print_order;
     }
     push @data, \@header;
-
-    #  allows us to pass text "undef"
-    my $no_data_value = $args{no_data_value};
-
+    
     print "[BASESTRUCT] Processing elements...\n";
 
     BY_ELEMENT2:
     foreach my $element (@elements) {
+
         my @basic = ($element);
-        if (! $args{no_element_array}) {
+        if (! $no_element_array) {
             push @basic, ($self->get_element_name_as_array (element => $element)) ;
         }
         my $list = $self->get_hash_list_values (element => $element, list => $list);
@@ -899,13 +953,24 @@ sub to_table_asym_as_sym {  #  write asymmetric lists to a symmetric format
         }
 
         #  we've built the hash, now print it out
-        if ($args{one_value_per_line}) {  #  repeats the elements, once for each value or key/value pair
+        if ($one_value_per_line) {  #  repeats the elements, once for each value or key/value pair
             foreach my $key (@print_order) {
                 push @data, [@basic, $key, $data_hash{$key}];
             }
         }
         else {
             push @data, [@basic, @data_hash{@print_order}];
+        }
+
+        if ($fh) {
+            #  print to file, clear @data - gets header on first run
+            while (my $list_data = shift @data) {
+                my $string = $self->list2csv (
+                    csv_object => $csv_obj,
+                    list       => $list_data,
+                );
+                print { $fh } $string . "\n";
+            }
         }
     }
 
@@ -983,9 +1048,7 @@ sub write_table_asciigrid {
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) {
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
-                my $value = defined $data_hash{$coord_name}[$i]
-                          ? $data_hash{$coord_name}[$i]
-                          : $no_data;
+                my $value = $data_hash{$coord_name}[$i] // $no_data;
                 my $ofh = $fh[$i];
                 print $ofh "$value ";
             }
@@ -1101,9 +1164,7 @@ sub write_table_floatgrid {
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
-                my $value = defined $data_hash{$coord_name}[$i]
-                          ? $data_hash{$coord_name}[$i]
-                          : $no_data;
+                my $value = $data_hash{$coord_name}[$i] // $no_data;
                 my $fh = $fh[$i];
                 print $fh pack ('f', $value);
             }
@@ -1237,9 +1298,7 @@ DIVA_HDR
             my $coord_name = join (':', $x, $y);
             foreach my $i (@band_cols) { 
                 next if $coord_cols_hash{$i};  #  skip if it is a coordinate
-                my $value = defined $data_hash{$coord_name}[$i]
-                          ? $data_hash{$coord_name}[$i]
-                          : $no_data;
+                my $value = $data_hash{$coord_name}[$i] // $no_data;
                 my $fh = $fh[$i];
                 print $fh pack ('f', $value);
             }
@@ -1901,9 +1960,9 @@ sub get_sub_element_list {
     return if ! exists $self->{ELEMENTS}{$element};
     return if ! exists $self->{ELEMENTS}{$element}{SUBELEMENTS};
 
-    return wantarray ?  keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}
-                     : [keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}]
-                     ;
+    return wantarray
+        ?  keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}
+        : [keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}];
 }
 
 sub get_sub_element_hash {
@@ -2000,6 +2059,66 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     }
 
     $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement} += $args{count};
+
+    return;
+}
+
+sub rename_element {
+    my $self = shift;
+    my %args = @_;
+    
+    my $element  = $args{element};
+    my $new_name = $args{new_name};
+
+    croak "element does not exist\n"
+      if !$self->exists_element (element => $element);
+    croak "argument 'new_name' is undefined\n"
+      if !defined $new_name;
+
+    my @sub_elements =
+        $self->get_sub_element_list (element => $element);
+
+    my $el_hash = $self->{ELEMENTS};
+    
+    #  increment the subelements
+    if ($self->exists_element (element => $new_name)) {
+        my $sub_el_hash_target = $self->{ELEMENTS}{$new_name}{SUBELEMENTS};
+        my $sub_el_hash_source = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+        foreach my $sub_element (keys %$sub_el_hash_source) {
+            #if (exists $sub_el_hash_target->{$sub_element} {
+                $sub_el_hash_target->{$sub_element} += $sub_el_hash_source->{$sub_element};
+            #}
+        }
+    }
+    else {
+        $self->add_element (element => $new_name);
+        $el_hash->{$new_name} = $el_hash->{$element};
+        delete $el_hash->{$new_name}{_ELEMENT_ARRAY};
+        delete $el_hash->{$new_name}{_ELEMENT_COORD};
+    }
+    delete $el_hash->{$element};
+
+    return wantarray ? @sub_elements : \@sub_elements;
+}
+
+sub rename_subelement {
+    my $self = shift;
+    my %args = @_;
+    
+    my $element     = $args{element};
+    my $sub_element = $args{sub_element};
+    my $new_name    = $args{new_name};
+    
+    croak "element does not exist\n"
+      if ! exists $self->{ELEMENTS}{$element};
+
+    my $sub_el_hash = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+
+    croak "sub_element does not exist\n"
+      if !exists $sub_el_hash->{$sub_element};
+
+    $sub_el_hash->{$new_name} += $sub_el_hash->{$sub_element};
+    delete $sub_el_hash->{$sub_element};
 
     return;
 }
@@ -2118,17 +2237,19 @@ sub get_list_values {
     croak "Element $element does not exist in BaseStruct\n"
       if ! $self->exists_element(element => $element);
 
-    return if ! exists $self->{ELEMENTS}{$element}{$list};
+    my $element_ref = $self->{ELEMENTS}{$element};
 
-    return $self->{ELEMENTS}{$element}{$list} if ! wantarray;
+    return if ! exists $element_ref->{$list};
+
+    return $element_ref->{$list} if ! wantarray;
 
     #  need to return correct type in list context
-    return %{$self->{ELEMENTS}{$element}{$list}}
-      if ref($self->{ELEMENTS}{$element}{$list}) =~ /HASH/;
+    return %{$element_ref->{$list}}
+      if ref ($element_ref->{$list}) =~ /HASH/;
 
-    if (ref($self->{ELEMENTS}{$element}{$list}) =~ /ARRAY/) {
+    if (ref($element_ref->{$list}) =~ /ARRAY/) {
         #  SWL 15Feb2011: should this always sort?
-        my @list = sort @{$self->{ELEMENTS}{$element}{$list}};
+        my @list = sort @{$element_ref->{$list}};
         return @list;
     }
 
@@ -2632,20 +2753,48 @@ sub get_base_stats_all {
     foreach my $element ($self->get_element_list) {
         $self->add_lists (
             element =>$element,
-            BASE_STATS => $self->calc_base_stats(element =>$element)
+            BASE_STATS => $self->calc_base_stats(element => $element)
         );
     }
 
     return;
 }
 
+#  are the sample counts floats or ints?  
+sub sample_counts_are_floats {
+    my $self = shift;
+
+    my $cached_val = $self->get_param('SAMPLE_COUNTS_ARE_FLOATS');
+    return $cached_val if defined $cached_val;
+    
+    foreach my $element ($self->get_element_list) {
+        my $count = $self->get_sample_count (element => $element);
+
+        next if !(fmod ($count, 1));
+
+        $cached_val = 1;
+        $self->set_param (SAMPLE_COUNTS_ARE_FLOATS => 1);
+
+        return $cached_val;
+    }
+
+    $self->set_param(SAMPLE_COUNTS_ARE_FLOATS => 0);
+
+    return $cached_val;
+}
+
+
 sub get_metadata_get_base_stats {
     my $self = shift;
 
     #  types are for GUI's benefit - should really add a guessing routine instead
+    my $sample_type = eval {$self->sample_counts_are_floats} 
+        ? 'Double'
+        : 'Uint';
+
     my $types = [
         {VARIETY       => 'Int'},
-        {SAMPLES       => 'Uint'},
+        {SAMPLES       => $sample_type},
         {REDUNDANCY    => 'Double'},
     ];
 
@@ -2680,8 +2829,6 @@ sub get_base_stats {  #  calculate basestats for a single element
 
     PROP:
     foreach my $prop (keys %$props) {
-        #next PROP if $prop eq 'INCLUDE';
-        #next PROP if $prop eq 'EXCLUDE';
         $stats{$prop} = $props->{$prop};
     }
 
@@ -2691,19 +2838,7 @@ sub get_base_stats {  #  calculate basestats for a single element
 sub get_element_property_keys {
     my $self = shift;
 
-    my $res = [];
-
-    #my $elements = $self->get_element_list;
-    #
-    #return wantarray ? @$res : $res
-    #    if ! scalar @$elements;
-
-    #  cheat a bit and assume all have the same props (they should)    
-    #my %p = $self->get_element_properties(element => $elements->[0]);
-    #
-    #my @keys = keys %p;
-
-    my @keys = $self->get_hash_list_keys_across_elements(list => 'PROPERTIES');
+    my @keys = $self->get_hash_list_keys_across_elements (list => 'PROPERTIES');
 
     return wantarray ? @keys : \@keys;
 }
@@ -2781,13 +2916,13 @@ sub element_arrays_are_numeric {
     return 1;  # if we get this far then they must all be numbers
 }
 
-sub min {
-    return $_[0] < $_[1] ? $_[0] : $_[1];
-}
-
-sub max {
-    return $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub min {
+#    return $_[0] < $_[1] ? $_[0] : $_[1];
+#}
+#
+#sub max {
+#    return $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
 sub DESTROY {
     my $self = shift;

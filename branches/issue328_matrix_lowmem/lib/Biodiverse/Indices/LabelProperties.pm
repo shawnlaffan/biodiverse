@@ -4,7 +4,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -205,10 +205,10 @@ sub calc_lbprop_hashes {
 }
 
 
-my @stats     = qw /count mean min max median sum skewness kurtosis standard_deviation iqr/;
-my %stat_name_short = (
-    standard_deviation => 'SD',
-);
+my @stats     = qw /count mean min max median sum skewness kurtosis sd iqr/;
+#my %stat_name_short = (
+#    standard_deviation => 'SD',
+#);
 my @quantiles = qw /05 10 20 30 40 50 60 70 80 90 95/;
 
 sub get_metadata_calc_lbprop_stats {
@@ -247,9 +247,10 @@ sub calc_lbprop_stats {
         $pfx =~ s/DATA$//;
         $pfx =~ s/^LBPROP_STATS_//;
         foreach my $stat (@stats) {
-            my $stat_name = exists $stat_name_short{$stat}
-                        ? $stat_name_short{$stat}
-                        : $stat;
+            #my $stat_name = exists $stat_name_short{$stat}
+            #            ? $stat_name_short{$stat}
+            #            : $stat;
+            my $stat_name = $stat;
 
             $res{$pfx . uc $stat_name} = eval {$stats_object->$stat};
         }
@@ -275,7 +276,7 @@ sub get_metadata_calc_lbprop_quantiles {
         uses_nbr_lists  => 1,
         indices         => {
             LBPROP_QUANTILE_LIST => {
-                description => 'List of quantiles for the label properties ' . $quantile_list_text,
+                description => 'List of quantiles for the label properties: ' . $quantile_list_text,
                 type        => 'list',
             }
         },

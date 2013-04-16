@@ -4,7 +4,7 @@ use warnings;
 use Carp;
 use English qw ( -no_match_vars );
 
-use mylib;
+use rlib;
 
 use Test::More;
 

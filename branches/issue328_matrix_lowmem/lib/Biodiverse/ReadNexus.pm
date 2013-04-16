@@ -16,7 +16,7 @@ use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 use base qw /Biodiverse::Common/;
 
@@ -347,6 +347,8 @@ sub import_nexus {
             }
 
             $tree_name =~ s/\s+$//;  #  trim trailing whitespace
+
+            print "[ReadNexus] Processing tree $tree_name\n";
 
             my $tree = Biodiverse::Tree->new (NAME => $tree_name);
             #$tree->set_param ()

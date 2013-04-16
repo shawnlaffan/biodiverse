@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 #use Statistics::Descriptive;
 #my $stats_class = 'Statistics::Descriptive::Full';
@@ -71,7 +71,7 @@ sub calc_matrix_stats {
     my @valueList;
     my %done;
     
-    my $labels_in_matrix = $matrix -> get_elements;
+    my $labels_in_matrix = $matrix->get_elements;
     my %tmp = %label_list;
     delete @tmp{keys %$labels_in_matrix};  #  get a list of those not in the matrix
     delete @label_list{keys %tmp};  #  these should be the ones in the matrix
@@ -81,8 +81,10 @@ sub calc_matrix_stats {
         foreach my $label2 (keys %label_list) {
             next if $done{$label2};
 
-            my $value = $matrix -> get_value (element1 => $label1, element2 => $label2);
-            $value = 0 if ! defined $value && $label1 eq $label2;
+            my $value = $matrix->get_value (element1 => $label1, element2 => $label2);
+            next if !defined $value;
+            
+            #$value = 0 if ! defined $value && $label1 eq $label2;
             
             push (@valueList, $value);
         }
@@ -90,10 +92,10 @@ sub calc_matrix_stats {
     }
 
     my $stats = $stats_class->new;
-    $stats -> add_data (\@valueList);
+    $stats->add_data (\@valueList);
 
-    $stats -> sort_data;
-    my $valuesRef = $stats->get_data;
+    $stats->sort_data;
+    my $valuesRef = [$stats->get_data];
     my $null;
     (my $mx_pct95, $null) = eval {$stats->percentile(95)};
     (my $mx_pct05, $null) = eval {$stats->percentile( 5)};

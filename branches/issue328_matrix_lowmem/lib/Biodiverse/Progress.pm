@@ -7,9 +7,9 @@ use POSIX qw /fmod/;
 use List::Util qw /max min/;
 my $NULL_STRING = q{};
 
-use Biodiverse::Config;
+require Biodiverse::Config;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_004';
 
 sub new {
     my $class = shift;

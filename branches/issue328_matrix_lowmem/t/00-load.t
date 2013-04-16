@@ -21,7 +21,9 @@ sub Wanted {
 
     my $filename = $File::Find::name;
     $filename =~ s/\.pm$//;
-    $filename =~ s/.+(Biodiverse.+)/$1/;
+    if ($filename =~ /((?:App\/)?Biodiverse.*)$/) {
+        $filename = $1;
+    }
     $filename =~ s{/}{::}g;
     push @files, $filename;
 };

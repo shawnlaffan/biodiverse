@@ -20,7 +20,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:basedata/;
+use Biodiverse::TestHelpers qw /:cluster/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
@@ -108,11 +108,6 @@ done_testing();
 
 ######################################
 
-sub get_cluster_mini_data {
-    my $data = get_data_section('CLUSTER_MINI_DATA');
-    $data =~ s/(?<!\w)\n+\z//m;  #  clear trailing newlines
-    return $data;
-}
 
 sub get_cluster_mini_data_newick {
     return q{((('2.5:1.5':0,'3.5:1.5':0,'3.5:2.5':0)'3___':0.2,('1.5:1.5':0,'1.5:2.5':0,'2.5:2.5':0)'2___':0.2)'4___':0)'5___':0}
@@ -136,24 +131,6 @@ sub get_site_data_newick_tree {
 1;
 
 __DATA__
-
-@@ CLUSTER_MINI_DATA
-label,x,y,samples
-a,1,1,1
-b,1,1,1
-c,1,1,1
-a,1,2,1
-b,1,2,1
-c,1,2,1
-a,2,1,1
-b,2,1,1
-a,2,2,1
-b,2,2,1
-c,2,2,1
-a,3,1,1
-b,3,1,1
-a,3,2,1
-b,3,2,1
 
 
 @@ SITE_DATA_NEWICK_TREE

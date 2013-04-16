@@ -41,8 +41,8 @@ our %PARAMS = (  #  most of these are not used
 );
 
 my $EMPTY_STRING = q{};
-my $mx_class        = 'Biodiverse::Matrix';
-my $mx_class_lowmem = 'Biodiverse::Matrix::LowMem';
+my $mx_class_default = 'Biodiverse::Matrix';
+my $mx_class_lowmem  = 'Biodiverse::Matrix::LowMem';
 
 
 #  use the "new" sub from Tree.
@@ -315,6 +315,7 @@ sub build_matrices {
 
     #  now we loop over the conditions and initialise the matrices
     #  kept separate from previous loop for cleaner default matrix generation
+    my $mx_class = $self->get_param('MATRIX_CLASS') // $mx_class_default;
     my @matrices;
     my $i = 0;
     foreach my $condition (@spatial_conditions) {

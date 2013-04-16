@@ -831,8 +831,9 @@ sub get_elements {
 
 sub get_elements_as_array {
     my $self = shift;
-    return [keys %{$self->{ELEMENTS}}] if ! wantarray;
-    return (keys %{$self->{ELEMENTS}});
+    return wantarray
+        ? keys %{$self->{ELEMENTS}}
+        : [keys %{$self->{ELEMENTS}}];
 }
 
 sub get_element_count {

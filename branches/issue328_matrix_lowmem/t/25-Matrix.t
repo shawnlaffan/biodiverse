@@ -237,7 +237,10 @@ sub run_main_tests {
             "Got expected element pairs with value $check_val, $class"
         );
     }
-    
+
+    my @expected_element_array = qw /a b c d e f/;
+    my @array = sort @{$mx->get_elements_as_array};
+    is_deeply (\@array, \@expected_element_array, 'Got correct element array');
 }
 
 
@@ -291,8 +294,9 @@ sub run_with_site_data {
 
 sub test_cluster_analysis {
     #  make sure we get the same cluster result using each type of matrix
-    my $data = get_cluster_mini_data();
-    my $bd   = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    #my $data = get_cluster_mini_data();
+    #my $bd   = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
 
     my $prng_seed = 123456;
 
@@ -303,9 +307,12 @@ sub test_cluster_analysis {
         MATRIX_CLASS        => $class1,
     );
     $cl1->run_analysis (
-        prng_seed => $prng_seed + 1,  #  different prng
+        prng_seed => $prng_seed,
     );
     my $nwk1 = $cl1->to_newick;
+
+    #  make sure we build a new matrix
+    $bd->delete_all_outputs();
 
     my $class2 = 'Biodiverse::Matrix::LowMem';
     my $cl2 = $bd->add_cluster_output (
@@ -314,10 +321,11 @@ sub test_cluster_analysis {
         MATRIX_CLASS        => $class2,
     );
     $cl2->run_analysis (
-        prng_seed => $prng_seed,  #  different prng
+        prng_seed => $prng_seed,
     );
     my $nwk2 = $cl2->to_newick;
 
+    
     is (
         $nwk1,
         $nwk2,

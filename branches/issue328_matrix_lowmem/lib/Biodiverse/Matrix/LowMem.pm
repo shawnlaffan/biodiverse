@@ -193,6 +193,23 @@ sub get_element_pair_count {
     return $count;
 }
 
+sub get_elements_as_array {
+    my $self = shift;
+
+    my $elements_ref = $self->{BYELEMENT};
+
+    my %elements;
+    @elements{keys %$elements_ref} = undef;
+
+    foreach my $hash (values %$elements_ref) {
+        @elements{keys %$hash} = undef;
+    }
+
+    return wantarray
+        ? keys %elements
+        : [keys %elements];
+}
+
 #  will not work well in all cases
 sub get_element_count {
     my $self = shift;

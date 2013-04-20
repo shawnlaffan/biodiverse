@@ -41,7 +41,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 }}}
 
 
-6.  Now we need to install some files using PPM and then cpan.  In the same command prompt, run the ppm install command for all ppd files:
+6.  Now we need to install some files using PPM and then cpan.  In the same command prompt that you ran the commands from step 1, run the ppm install command for all ppd files:
 
 {{{
   set BDV_PPM=%BDV_PATH%\etc\ppm\ppm516_x64
@@ -64,7 +64,7 @@ The above installation process *should* install all the relevant files, so we ca
 {{{
   set BDV_PATH=c:\biodiverse
   set STRAWPATH=c:\strawberry
-  set GTK_PATH=c:\win64_gtk
+  set GTK_PATH=c:\gtk_win64
   set PATH=%GTK_PATH%\c\bin;%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%PATH%
 }}}
 
@@ -80,7 +80,7 @@ The above installation process *should* install all the relevant files, so we ca
 
 = Trouble shooting =
 
-  * If you get errors about not finding gnome-canvas, glib and friends then check that the `%GTK_PATH%\c\bin` directory exists and is correct.
+  * If you get errors about not finding gnome-canvas, glib and friends then check that the `%GTK_PATH%\c\bin` directory exists and is correctly named.
   *  If Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively using cpan. The complaint will contain text like `Can't locate Fred/Fred.pm in @INC (@INC contains:...)`  In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate). E.g.: `cpan Fred::Fred` . This can happen if one or more of the modules listed in the bundle failed to install.
 
   *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

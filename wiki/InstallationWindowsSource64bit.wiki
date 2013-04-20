@@ -44,7 +44,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 6.  Now we need to install some files using PPM and then cpan.  In the same command prompt that you ran the commands from step 1, run the ppm install command for all ppd files:
 
 {{{
-  set BDV_PPM=%BDV_PATH%\etc\ppm\ppm516_x64
+  set BDV_PPM=https://biodiverse.googlecode.com/svn/trunk/etc/ppm/ppm516_x64
   ppm install %BDV_PPM%/Cairo.ppd 
   ppm install %BDV_PPM%/Glib.ppd 
   ppm install %BDV_PPM%/Gnome2-Canvas.ppd 

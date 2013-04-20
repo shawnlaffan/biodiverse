@@ -45,8 +45,12 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 
 {{{
   set BDV_PPM=%BDV_PATH%\etc\ppm\ppm516_x64
-  cd %BDV_PPM%
-  ppm install Cairo.ppd Glib.ppd Gnome2-Canvas.ppd Gtk2-GladeXML.ppd Gtk2.ppd Pango.ppd
+  ppm install %BDV_PPM%/Cairo.ppd 
+  ppm install %BDV_PPM%/Glib.ppd 
+  ppm install %BDV_PPM%/Gnome2-Canvas.ppd 
+  ppm install %BDV_PPM%/Gtk2-GladeXML.ppd 
+  ppm install %BDV_PPM%/Gtk2.ppd 
+  ppm install %BDV_PPM%/Pango.ppd
 
   cpan rlib
   cpan autovivification

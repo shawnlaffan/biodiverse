@@ -599,7 +599,8 @@ sub do_sampling {
     my $groups_ref = $self->{groups_ref};
     my $dist_measure = $self->{dist_measure};
     my $quota_dist_measure = $self->{quota_dist_measure};
-    my ($geog_dist, $geog_dist_output, $regions_output, $output_row, $all_sitepairs_done, $frequency);
+    my ($geog_dist, $geog_dist_output, $regions_output, $output_row, $all_sitepairs_done, $frequency, $proportion_needed);
+# delete $frequency once code updated    
     my ($all_sitepairs_kept,$regions_done);
     my ($one_quota,$one_count, $skip) = ($self->{one_quota},0, 0);
     my $result_file_handle = $self->{result_file_handle};
@@ -662,21 +663,43 @@ sub do_sampling {
         my $bins_max = $bins[0]{maximum};
         my $max_class = $self->{max_class};
         
-        ###  calculate sampling frequency for this region pair
-        my $all_comparisons = $region_pair{all_pairs};
+        ####  calculate sampling frequency for this region pair
+        #my $all_comparisons = $region_pair{all_pairs};
+        #
+        #if ($all_comparisons > $total_samples) {
+        #    $frequency = $all_comparisons / $total_samples;
+        #}
+        #else {    
+        #    $frequency = 1;
+        #};
         
+        ###  calculate sampling PROPORTION for this region pair
+        my $all_comparisons = $region_pair{all_pairs};
         if ($all_comparisons > $total_samples) {
-            $frequency = $all_comparisons / $total_samples;
+            $proportion_needed = $total_samples / $all_comparisons;
         }
         else {    
-            $frequency = 1;
+            $proportion_needed = 1;
         };
-        
-        #add frequency to the hash for feedback
-        $region_pair{frequency} = $frequency;
 
-        $toDo = int($all_comparisons / $frequency);
+        #add proportion needed to the hash for feedback
+        $region_pair{proportion_needed} = $proportion_needed;
+        $toDo = lesser($total_samples,$all_comparisons);
         
+ ### DECIDE HERE WHETHER TO (A) GENERATE ALL, SHUFFLE AND USE OR (B) GENERATE AS NEEDED, AND CHECK IF USED
+ ### CALCULATE AS PROPORTION, NOT FREQUENCY AND DO ALL IF PROPORTION GREATER THAN A THRESHOLD
+ ### FOR NOW SET THIS PROPORTION, BUT WILL USE A FUNCTION TO CALCULATE
+        my $sampling_threshold = 0.8;
+        my $sampling_strategy = "iterative";   # a default value
+        if ($proportion_needed > $sampling_threshold) {
+            $sampling_strategy = "complete";
+            
+            #code to get all site pairs
+            
+            # create a hash of sampled site-pairs
+            my (%all_pairs, $pair_name1, $pair_name2);
+        }
+    
         if ($self->{verbosity} >=2) {
             if ($region1 eq $region2) {
                 if ($self->{sample_by_regions}) {
@@ -705,19 +728,33 @@ sub do_sampling {
         my (%dist_result,$j, @groups2);
         my $previous_j = 0;
         
-        
-        
+        # create a hash of sampled site-pairs
+        my (%sampled_pairs, $valid_sample, $pair_name1, $pair_name2);
+                
         ###############################
         #  the main loop starts here  #  
         ###############################
       MAIN_LOOP:
-        foreach my $i (0..$groupcount1 -1) {
-         
-            next MAIN_LOOP if ($region_completed);
-
-            $group1 = pop @grouplist1;
+        foreach my $n (0..$total_samples -1) {  ########## loop here on a while or until.  Then iterate n.
+            
+            $valid_sample = 0;
+            
+            GET_VALID_SAMPLE:
+            while ($valid_sample==0) {
+                #$group1 = pop @grouplist1;
+                $group1 = @grouplist1[int(rand($groupcount1))];
+                $group2 = @grouplist2[int(rand($groupcount2))];
+                $pair_name1 = $group1." ".$group2;
+                $pair_name2 = $group2." ".$group1;
+                if (exists $sampled_pairs{$pair_name1} or exists $sampled_pairs{$pair_name2}) {
+                    next VALID_SAMPLE
+                }
+                $valid_sample=1;
+            }
+            
+            # now we have a valid sample - add it to the sample list
+                
             %gl1 = ($group1 => 0);    
-            #@coords1 = split /:/, $group1;
             @coords1     = $groups_ref->get_element_name_as_array (element => $group1);
             $label_hash1 = $groups_ref->get_sub_element_hash (element => $group1);
 
@@ -1042,7 +1079,6 @@ sub do_sampling {
         all_sitepairs_done => $all_sitepairs_done,
         all_sitepairs_kept => $all_sitepairs_kept,
     );
-    
 
 }
 

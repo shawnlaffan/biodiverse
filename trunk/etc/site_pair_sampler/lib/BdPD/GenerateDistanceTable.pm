@@ -107,12 +107,6 @@ use Exporter::Easy (
 #                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple diagonal, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
 #
-#   oversample_ratio
-#                   - a multiplier to increase the total number of site pairs to sample, to find enough
-#                     pairs to meet the conditions specified by one_quota and bins.
-#                     may be estimated internally in the future
-#                   - optional - defaults to 1
-#
 #   sample_by_regions
 #                   - if 1 split sampling by regions, setting quotas for regions according to the parameter region_quota_strategy
 #                   - if 0 ignore regions in sampling (but can still report the regions in the output)
@@ -239,12 +233,6 @@ sub generate_distance_table {
     
     if ($SPM->{test_sample_ratio} <= 0) {
         $SPM->set_param(test_sample_ratio => 1);
-    }
-    
-    if ($SPM->{oversample_ratio} < 1) {
-        print "\nOversample ratio requested was ", $SPM->{oversample_ratio};
-        $SPM->set_param(oversample_ratio => 1);
-        print ", but was set to 1, the minimum valid value.";
     }
     
     my $measures = $args{dist_measure};
@@ -388,12 +376,6 @@ sub generate_distance_table {
                                bins_max_class => 1,
                                bins_sample_count => $SPM->{sample_count_current});
             my @bins_all = $SPM->make_bins("bins_all");
-            
-            if ($SPM->{bins_count} > 1) {
-                print "\nNumber dissimilarity of bins: $SPM->{bins_count}\n";
-                print "Oversample ratio to get enough samples to meet quotas: $SPM->{oversample_ratio}\n";
-            };
-            
     
             # get distance measure list as a text string
             my $dist_measure_text = q{};

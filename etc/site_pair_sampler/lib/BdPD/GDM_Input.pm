@@ -611,21 +611,15 @@ sub do_sampling {
     my $dist_limit = $self->{dist_limit};
     
     my $single_dist_measure;
-    if ($measure_count == 1) {
-        $single_dist_measure = (keys($dist_measure))[0];
-    };
+    if ($measure_count == 1) { $single_dist_measure = (keys($dist_measure))[0] };
     
     #set up to report the total sum of the number of species at both sites, optional extra to use as a weighting factor
     my $species_sum = 0;
     my $sum = 0;
-    if (exists($self->{species_sum})) {
-        $species_sum = $self->{species_sum};
-    }
+    if (exists($self->{species_sum})) { $species_sum = $self->{species_sum} }
     
     # start a feedback table, if requested
-    if ($self->{feedback_table}) {
-        $self->feedback_table(open => 1);
-    }
+    if ($self->{feedback_table}) { $self->feedback_table(open => 1) };
     
     #######################################################
     #  start the regions loop here                        #
@@ -663,16 +657,6 @@ sub do_sampling {
         my $bins_max = $bins[0]{maximum};
         my $max_class = $self->{max_class};
         
-        ####  calculate sampling frequency for this region pair
-        #my $all_comparisons = $region_pair{all_pairs};
-        #
-        #if ($all_comparisons > $total_samples) {
-        #    $frequency = $all_comparisons / $total_samples;
-        #}
-        #else {    
-        #    $frequency = 1;
-        #};
-        
         ###  calculate sampling PROPORTION for this region pair
         my $all_comparisons = $region_pair{all_pairs};
         if ($all_comparisons > $total_samples) {
@@ -687,7 +671,7 @@ sub do_sampling {
  ### DECIDE HERE WHETHER TO (A) GENERATE ALL, SHUFFLE AND USE OR (B) GENERATE AS NEEDED, AND CHECK IF USED
  ### CALCULATE AS PROPORTION, NOT FREQUENCY AND DO ALL IF PROPORTION GREATER THAN A THRESHOLD
  ### FOR NOW SET THIS PROPORTION, BUT WILL USE A FUNCTION TO CALCULATE
-        my $sampling_threshold = 0.1;
+        my $sampling_threshold = 0.55;
         my $sampling_strategy = "iterative";   # a default value
         my (%all_pairs, $pair_name, $i);
         my $same_sites = ($region1 eq $region2);
@@ -720,6 +704,8 @@ sub do_sampling {
         
         if ($proportion_needed > $sampling_threshold) {
             $sampling_strategy = "complete";
+            
+            print "\nSampling strategy: complete\n";  # debugging info - remove once working
 
             # create a hash of all site-pairs - no randomization needed
             while (scalar @grouplist1) {
@@ -744,261 +730,277 @@ sub do_sampling {
             @site_pairs_random = shuffle(keys %all_pairs);
         }
         
-        my (%dist_result,$j, @groups2);
-        my $previous_j = 0;
+        my (%dist_result, @groups2);
         
         # create a hash of sampled site-pairs
-        my (%sampled_pairs, $valid_sample);
+        my (%sampled_pairs, %sampled_sites, $valid_sample, $site_use_count);
+        my $max_use1 = $groupcount1 - 2;
+        my $max_use2 = $groupcount2 - 2;
+        my $n = 0;
 
         ###############################
         #  the main loop starts here  #  
         ###############################
         MAIN_LOOP:
-        foreach my $n (0..$total_samples -1) {  ########## loop here on a while or until.  Then iterate n.
-            
-            if ($sampling_strategy eq "complete") {  #get the next site pair from a complete sample
-                $pair_name = $site_pairs_random[$n];
+        while (($loops < $all_comparisons) and !$region_completed) {
+            $n++;
+                    
+            if ($sampling_strategy eq "complete") {  # for the 'complete' sampling strategy get the next site pair
+                $pair_name = $site_pairs_random[$n-1];
                 my @groups = split(" ",$pair_name);
                 $group1 = $groups[0];
                 $group2 = $groups[1];                
             }
-            else {                                  #get the next site pair from a new iterative sample
+            else {                                  # for the 'iterative' sampling strategy randomly select the next site pair and check it is unused
                 $valid_sample = 0;
                 
-                GET_VALID_SAMPLE:
+                GET_UNUSED_PAIR:
                 while ($valid_sample==0) {
                     my ($pair_name1, $pair_name2);
                     $group1 = @grouplist1[int(rand($groupcount1))];
                     $group2 = @grouplist2[int(rand($groupcount2))];
                     if ($group1 eq $group2) {
-                        next GET_VALID_SAMPLE
+                        next GET_UNUSED_PAIR
                     }
                     $pair_name1 = $group1." ".$group2;
                     $pair_name2 = $group2." ".$group1;
                     if (exists $sampled_pairs{$pair_name1} or exists $sampled_pairs{$pair_name2}) {
-                        next GET_VALID_SAMPLE
+                        next GET_UNUSED_PAIR
                     }
                     $valid_sample=1;
+                    $sampled_pairs{$pair_name1} = 1;
+                }
+                                
+                # Keep track of how many times each site has been used and remove it from the list
+                # if no more samples should be taken from it.  By default this is if all pairs
+                # including this site have been sampled, but could be set at a lower proportion
+                if (exists $sampled_sites{$group1}) {
+                    $site_use_count = $sampled_sites{$group1} + 1;
+                    if ($site_use_count > $max_use1) {
+                        print "\nSite $group1 fully sampled";
+                        @grouplist1 = grep ! /$group1/, @grouplist1;  # delete a group from group list 1
+                        $groupcount1 --;
+                        if ($same_sites) {
+                            @grouplist2 = @grouplist1;  # for a within region sample, this ensures that only half the matrix is sampled
+                            $groupcount2 = $groupcount1;
+                        }
+                    } else {
+                        $sampled_sites{$group1} = $site_use_count;
+                    }
+                } else {
+                    $sampled_sites{$group1} = 1;
+                }
+                
+                # now the same for group2, except that if both sites are drawn from the same list ($same_sites is true), then
+                # actions are applied to grouplist1
+                if (exists $sampled_sites{$group2}) {
+                    $site_use_count = $sampled_sites{$group2} + 1;
+                    if ($same_sites) {
+                        if ($site_use_count > $max_use1) {
+                            print "\nSite $group2 fully sampled";                            
+                            @grouplist1 = grep ! /$group2/, @grouplist1;  # delete a group from group list 1
+                            $groupcount1 --;
+                            
+                        } else {
+                            $sampled_sites{$group2} = $site_use_count;
+                        }
+                    } else {
+                        if ($site_use_count > $max_use2) {
+                            @grouplist2 = grep ! /$group2/, @grouplist2;  # delete a group from group list 2
+                            $groupcount2 --;
+                        } else {
+                            $sampled_sites{$group2} = $site_use_count;
+                        }
+                    }
+                } else {
+                    $sampled_sites{$group2} = 1;
                 }
             }
-            
-            # now we have a valid sample - add it to the sample list
-            %gl1 = ($group1 => 0);    
-            @coords1     = $groups_ref->get_element_name_as_array (element => $group1);
-            $label_hash1 = $groups_ref->get_sub_element_hash (element => $group1);
 
-            if ($region1 eq $region2) {@grouplist2 = @grouplist1};
-            # for a within region sample, this ensures that only half the matrix is sampled
+            # now we have a valid sample - add it to the sample list
+            %gl1 = ($group1 => 0);
+            #@coords1     = $groups_ref->get_element_name_as_array (element => $group1);
+            @coords1 = split /:/, $group1;            
+            $label_hash1 = $groups_ref->get_sub_element_hash (element => $group1);
+            %gl2 = ($group2 => 0);
+            #@coords2     = $groups_ref->get_element_name_as_array (element => $group2);
+            @coords2 = split /:/, $group2;
+            $label_hash2 = $groups_ref->get_sub_element_hash (element => $group2);
+
+            # calculate the geographic distance
+            if (exists($dist_measure->{geographic})) {  # geographic
+                $dist_result{geographic} = sprintf("%.3f", sqrt( ($coords1[0] - $coords2[0]) ** 2 + ($coords1[1] - $coords2[1]) ** 2 ));
+            };
             
-            # create a list of groups.  Only shuffled if frequency > 1.  Otherwise all groups are used so no need to shuffle.
-            # calculate how many values are required, and simply shift that many from the start of the list
-            
-            @groups2 = @grouplist2;
-            if ($frequency > 1) {shuffle (\@groups2);}
-            
-            my $j_count = (scalar @groups2 / $frequency) + $previous_j;
-            $previous_j = $j_count - int($j_count); # keep the non-integer component to add next time, so the total is not rounded down for each row
-            $j_count = int($j_count);
-            $j = 0;
-            
-            # add previous j, so that the frequency is applied over the whole run, with gaps flowing from
-            #one row to the next, rather than taking the first record of each row with no gaps
-            
-            while (($j < $j_count) and (! $region_completed)) {
-                
-                $group2  = $groups2[$j];
-                @coords2 = split /:/, $group2;
-                
-                ####################################################################################
-                # the following line is a more generic, higher level version of the preceding one  #
-                # it is not being used as it alone adds 30% to program runtime                     #
-                # however, it can be reverted to if changes to the basedata data structure result  #
-                # in the preceding line not working                                                #
-                #@coords2 = $groups_ref->get_element_name_as_array(element => $group2);          #
-                ####################################################################################
-                
-                $label_hash2 = $groups_ref->get_sub_element_hash(element => $group2);
-                
-                %gl2 = ($group2 => 0);
-                
-                 # calculate the geographic distance
-                if (exists($dist_measure->{geographic})) {  # geographic
-                    $dist_result{geographic} = sprintf("%.3f", sqrt( ($coords1[0] - $coords2[0]) ** 2 + ($coords1[1] - $coords2[1]) ** 2 ));
-                };
-                
-                # check for results beyond the distance threshold
-                # NOTE this check is performed before the beta diversity measures are calculated so it only works for geographic distance.
-                # This means no time is wasted on biological measures where the sites are too geographically distant
-                # but if a limit was wanted where the quota_dist_measure was not geographic, this check would need to be placed after those
-                # measures.
-                if ($dist_limit) {
-                    if (exists($dist_result{$quota_dist_measure})) {
-                        if ($dist_result{$quota_dist_measure} > $dist_limit) {
-                            $dist_exceeded = 1;
-                        };
+            # check for results beyond the distance threshold
+            # NOTE this check is performed before the beta diversity measures are calculated so it only works for geographic distance.
+            # This means no time is wasted on biological measures where the sites are too geographically distant
+            # but if a limit was wanted where the quota_dist_measure was not geographic, this check would need to be placed after those
+            # measures.
+            if ($dist_limit) {
+                if (exists($dist_result{$quota_dist_measure})) {
+                    if ($dist_result{$quota_dist_measure} > $dist_limit) {
+                        $dist_exceeded = 1;
                     };
                 };
-                
-                if (! $dist_exceeded) {    
-                    # calculate the phylo Sørensen distance
-                    if (exists($dist_measure->{phylo_sorenson})) {  # phylo_sorenson
-                        $dist_result{phylo_sorenson} = -1;      # an undefined distance result is given as -1
-                        %phylo_abc = $indices->calc_phylo_abc(
-                            group_list1  => \%gl1,
-                            group_list2  => \%gl2,
-                            label_hash1  => $label_hash1,
-                            label_hash2  => $label_hash2,
-                            trimmed_tree => $self->{trimmed_tree},
-                        );
+            };
             
-                        if (($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_B}) and ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_C})) {  #  sum of each side must be non-zero
-                            $dist_result{phylo_sorenson} = sprintf ("%.6f", eval {1 - (2 * $phylo_abc{PHYLO_A} / ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_ABC}))});
+            if (! $dist_exceeded) {    
+                # calculate the phylo Sørensen distance
+                if (exists($dist_measure->{phylo_sorenson})) {  # phylo_sorenson
+                    $dist_result{phylo_sorenson} = -1;      # an undefined distance result is given as -1
+                    %phylo_abc = $indices->calc_phylo_abc(
+                        group_list1  => \%gl1,
+                        group_list2  => \%gl2,
+                        label_hash1  => $label_hash1,
+                        label_hash2  => $label_hash2,
+                        trimmed_tree => $self->{trimmed_tree},
+                    );
+        
+                    if (($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_B}) and ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_C})) {  #  sum of each side must be non-zero
+                        $dist_result{phylo_sorenson} = sprintf ("%.6f", eval {1 - (2 * $phylo_abc{PHYLO_A} / ($phylo_abc{PHYLO_A} + $phylo_abc{PHYLO_ABC}))});
+                    };
+                }
+
+                # calculate the Sørensen distance                                    
+                if (exists($dist_measure->{sorenson})) {  # sorenson
+                    $dist_result{sorenson} = -1;      # an undefined distance result is given as -1
+                    %abc = $indices->calc_abc(
+                        group_list1 => \%gl1,
+                        group_list2 => \%gl2,
+                        label_hash1 => $label_hash1,
+                        label_hash2 => $label_hash2,
+                    );
+    
+                    if (($abc{A} + $abc{B}) and ($abc{A} + $abc{C})) {  #  sum of each side must be non-zero
+                        $dist_result{sorenson} = sprintf("%.6f", eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))});
+                    };
+
+                    # an optional extra feature, calculates the sum of species across the two sites (ignoring whether they are shared)
+                    $sum = ",".$abc{ABC};
+                };
+                
+                # if any distance measure has a valid result
+                if (   (exists($dist_measure->{sorenson}) and ($dist_result{sorenson} != -1))
+                    or (exists($dist_measure->{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1))
+                    or (exists($dist_measure->{geographic}) and $dist_result{geographic} >= 0)) {
+    
+                    #format the distance result(s)
+                    if ($measure_count > 1) {
+                        foreach my $result (sort keys(%dist_result)) {
+                            if ($dist_output) {
+                                $dist_output = $dist_output. "," .$dist_result{$result};
+                            }
+                            else {
+                                $dist_output = $dist_result{$result};
+                            };
                         };
                     }
-
-                    # calculate the Sørensen distance                                    
-                    if (exists($dist_measure->{sorenson})) {  # sorenson
-                        $dist_result{sorenson} = -1;      # an undefined distance result is given as -1
-                        %abc = $indices->calc_abc(
-                            group_list1 => \%gl1,
-                            group_list2 => \%gl2,
-                            label_hash1 => $label_hash1,
-                            label_hash2 => $label_hash2,
-                        );
-        
-                        if (($abc{A} + $abc{B}) and ($abc{A} + $abc{C})) {  #  sum of each side must be non-zero
-                            $dist_result{sorenson} = sprintf("%.6f", eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))});
-                        };
-
-                        # an optional extra feature, calculates the sum of species across the two sites (ignoring whether they are shared)
-                        $sum = ",".$abc{ABC};
+                    else {
+                        $dist_output = $dist_result{$single_dist_measure};
                     };
-                    
-                    # if any distance measure has a valid result
-                    if (   (exists($dist_measure->{sorenson}) and ($dist_result{sorenson} != -1))
-                        or (exists($dist_measure->{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1))
-                        or (exists($dist_measure->{geographic}) and $dist_result{geographic} >= 0)) {
-        
-                        #format the distance result(s)
-                        if ($measure_count > 1) {
-                            foreach my $result (sort keys(%dist_result)) {
-                                if ($dist_output) {
-                                    $dist_output = $dist_output. "," .$dist_result{$result};
-                                }
-                                else {
-                                    $dist_output = $dist_result{$result};
-                                };
-                            };
-                        }
-                        else {
-                            $dist_output = $dist_result{$single_dist_measure};
-                        };
 
-                        # set the region names output
-                        if ($self->{do_output_regions}) {
-                            $regions_output = ",".$region1.",".$region2;
-                        }
-                        else {
-                            $regions_output = "";
-                        }
+                    # set the region names output
+                    if ($self->{do_output_regions}) {
+                        $regions_output = ",".$region1.",".$region2;
+                    }
+                    else {
+                        $regions_output = "";
+                    }
 
-                        # set the region codes output
-                        if ($self->{region_codes}) {
-                            $regions_output .= ",".$region_stats{$region1}{code}.",".$region_stats{$region2}{code};
-                        };
+                    # set the region codes output
+                    if ($self->{region_codes}) {
+                        $regions_output .= ",".$region_stats{$region1}{code}.",".$region_stats{$region2}{code};
+                    };
 
-                        if ($one_quota_region) { #1st of two alternative methods for managing the spread of distance values
-                            if ($dist_result{$quota_dist_measure} == 1) {
-                                $one_count ++;
-                                if ($one_count >= $one_quota_region) {
-                                    $skip = 1;
-                                    if ($one_count == $one_quota_region) {
-                                        if ($self->{verbosity} >= 2) {
-                                            print "Quota of $one_quota_region scores of 1 reached after $count iterations \n";
-                                        };
+                    if ($one_quota_region) { #1st of two alternative methods for managing the spread of distance values
+                        if ($dist_result{$quota_dist_measure} == 1) {
+                            $one_count ++;
+                            if ($one_count >= $one_quota_region) {
+                                $skip = 1;
+                                if ($one_count == $one_quota_region) {
+                                    if ($self->{verbosity} >= 2) {
+                                        print "Quota of $one_quota_region scores of 1 reached after $count iterations \n";
                                     };
                                 };
                             };
-                        }
-                        elsif (@bins and $bin_count > 1) { #2nd of two alternative methods for managing the spread of distance values
-                            if ($max_class and $dist_result{$quota_dist_measure} == $bins_max){  #check if the distance value is within a separate single-value top bin (normally value 1)
-                                if (!$bins[$bin_count][3]){ #if quota not previously reached
-                                    $bins[$bin_count][2] ++;
-                                    if ($bins[$bin_count][1] <= $bins[$bin_count][2]) {
-                                        if ($self->{verbosity} >=2) {
-                                            print "   Quota of $bins[$bin_count][2] scores of 1 reached from " . ($loops + 1) ." site pairs \n";
-                                        };
-                                        $bins[$bin_count][3] = 1; # quota reached so set full = true
-                                        $bins[$bin_count][4] = $loops+1;  # record the number of site pairs needed to fill this bin
-                                        $diss_quotas_reached ++;
+                        };
+                    }
+                    elsif (@bins and $bin_count > 1) { #2nd of two alternative methods for managing the spread of distance values
+                        if ($max_class and $dist_result{$quota_dist_measure} == $bins_max){  #check if the distance value is within a separate single-value top bin (normally value 1)
+                            if (!$bins[$bin_count][3]){ #if quota not previously reached
+                                $bins[$bin_count][2] ++;
+                                if ($bins[$bin_count][1] <= $bins[$bin_count][2]) {
+                                    if ($self->{verbosity} >=2) {
+                                        print "   Quota of $bins[$bin_count][2] scores of 1 reached from " . ($loops + 1) ." site pairs \n";
                                     };
-                                }
-                                else {
-                                    $skip = 1;
+                                    $bins[$bin_count][3] = 1; # quota reached so set full = true
+                                    $bins[$bin_count][4] = $loops+1;  # record the number of site pairs needed to fill this bin
+                                    $diss_quotas_reached ++;
                                 };
                             }
-                            else { #for all values except a separate single-value top bin (normally value 1)
-                                for my $bin_number (1..($bin_count-$max_class)) {
-                                    if ($dist_result{$quota_dist_measure} < $bins[$bin_number][0]) {
-                                        if (!$bins[$bin_number][3]){    #if quota not previously reached
-                                            $bins[$bin_number][2] ++;
-                                            if ($bins[$bin_number][1] <= $bins[$bin_number][2]) {
-                                                my $bin_min = 0;
-                                                if ($bin_number > 1) {
-                                                    $bin_min = $bins[$bin_number-1][0];
-                                                };
-                                                if ($self->{verbosity} >=2) {
-                                                    print "   Quota of $bins[$bin_number][2] scores of " . sprintf("%.3f", $bin_min) . " to < " . sprintf("%.3f",$bins[$bin_number][0]) . " reached from $loops site pairs \n";
-                                                };
-                                                $bins[$bin_number][3] = 1; #quota reached so set full = true
-                                                $bins[$bin_number][4] = $loops+1;  # record the number of site pairs needed to fill this bin
-                                                $diss_quotas_reached ++;
-                                                
+                            else {
+                                $skip = 1;
+                            };
+                        }
+                        else { #for all values except a separate single-value top bin (normally value 1)
+                            for my $bin_number (1..($bin_count-$max_class)) {
+                                if ($dist_result{$quota_dist_measure} < $bins[$bin_number][0]) {
+                                    if (!$bins[$bin_number][3]){    #if quota not previously reached
+                                        $bins[$bin_number][2] ++;
+                                        if ($bins[$bin_number][1] <= $bins[$bin_number][2]) {
+                                            my $bin_min = 0;
+                                            if ($bin_number > 1) {
+                                                $bin_min = $bins[$bin_number-1][0];
                                             };
-                                        }
-                                        else {
-                                            $skip = 1;
+                                            if ($self->{verbosity} >=2) {
+                                                print "   Quota of $bins[$bin_number][2] scores of " . sprintf("%.3f", $bin_min) . " to < " . sprintf("%.3f",$bins[$bin_number][0]) . " reached from $loops site pairs \n";
+                                            };
+                                            $bins[$bin_number][3] = 1; #quota reached so set full = true
+                                            $bins[$bin_number][4] = $loops+1;  # record the number of site pairs needed to fill this bin
+                                            $diss_quotas_reached ++;
+                                            
                                         };
-                                        last;  #  of MAIN_LOOP?? if so then need to use label for clarity
+                                    }
+                                    else {
+                                        $skip = 1;
                                     };
+                                    last;  # stop iterating through bins when the bin that this result fits into, is found
                                 };
                             };
                         };
+                    };
 
-                        if (($diss_quotas_reached > 0 and $diss_quotas_reached >= $bin_count) or ($count >= $region_pair_quota)) {
-                            $region_completed = 1;
-                        }
+                    if (($diss_quotas_reached > 0 and $diss_quotas_reached >= $bin_count) or ($count >= $region_pair_quota)) {
+                        $region_completed = 1;
+                    }
+        
+                    if (!$skip) { 
+                        $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$regions_output.$sum."\n";
+                        print $result_file_handle "$output_row";
+                        $count++;
+                    };
+                };
+                        
+            };
             
-                        if (!$skip) { 
-                            $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$regions_output.$sum."\n";
-                            print $result_file_handle "$output_row";
-                            $count++;
-                        #}
-                        #else {
-                        #    print "undefined result for $coords1[0],$coords1[1] and $coords2[0],$coords2[1], $regions_output\n";;
-                        };
+            $skip = 0;
+            $loops++;
+            $dist_output = "";
+            $dist_exceeded = 0;
+            $sum = q{};
+            
+            if ($self->{verbosity} == 3) {
+                $progress = int (100 * $loops / $toDo);
+                if (($progress % 5 == 0) or (($diss_quotas_reached == $bin_count) and $bin_count>1)) {
+                    if ($printedProgress != $progress) {
+                        $storedProgress = int (100 * $count / $region_pair_quota);
+                        my $percent_sampled = int(1000 * ($loops / $all_comparisons)) / 10;
+                        print "Sampled: $percent_sampled% \t$loops \t\tStored: $count \t$storedProgress% of target\n";
+                        $printedProgress = $progress;
                     };
-                            
                 };
-                
-                $j++;
-                $skip = 0;
-                $loops++;
-                $dist_output = "";
-                $dist_exceeded = 0;
-                $sum = q{};
-                
-                if ($self->{verbosity} == 3) {
-                    $progress = int (100 * $loops / $toDo);
-                    if (($progress % 5 == 0) or (($diss_quotas_reached == $bin_count) and $bin_count>1)) {
-                        if ($printedProgress != $progress) {
-                            $storedProgress = int (100 * $count / $region_pair_quota);
-                            print "Sampled: $progress%       $loops      Stored: $storedProgress%     $count\n";
-                            $printedProgress = $progress;
-                        };
-                    };
-                    print "\n" if $count == $toDo;    
-                };
+                print "\n" if $count == $toDo;    
             };
         };
 
@@ -1108,8 +1110,7 @@ sub do_sampling {
         all_sitepairs_done => $all_sitepairs_done,
         all_sitepairs_kept => $all_sitepairs_kept,
     );
-
-}
+};
 
 sub feedback_table {
 # this sub produces a .csv file with statistics on sampling for each region pair

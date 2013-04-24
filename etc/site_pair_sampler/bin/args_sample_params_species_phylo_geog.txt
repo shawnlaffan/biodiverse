@@ -15,14 +15,13 @@ nexus_file              hylid_relaxed alltaxa 27apr09.nex
 nexus_remap             Translate_Hylid_Names_aug08.csv
 remap_input             3
 remap_output            1
-sample_count            500000
-min_group_richness      15
-min_group_samples       15
-bins_count              5
+sample_count            200000
+min_group_richness      5
+min_group_samples       5
+bins_count              0
 one_quota               0
-oversample_ratio        1
 quota_dist_measure      geographic
-dist_limit              10
+dist_limit              15
 regions                 0
 region_header           IBRA
 sample_by_regions       0
@@ -124,12 +123,6 @@ feedback_suffix         _fb
 #   dist_limit
 #                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple diagonal, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
-#
-#   oversample_ratio
-#                   - a multiplier to increase the total number of site pairs to sample, to find enough
-#                     pairs to meet the conditions specified by one_quota and bins.
-#                     may be estimated internally in the future
-#                   - optional - defaults to 1
 #
 #   sample_by_regions
 #                   - if 1 split sampling by regions, setting quotas for regions according to the parameter region_quota_strategy

@@ -14,6 +14,7 @@ use 5.010;
 use Carp;  #  warnings and dropouts
 use File::Spec;  #  for the cat_file sub 
 use Scalar::Util qw /reftype/;
+use List::Util qw[min max];
 
 our $VERSION = '0.18003';
 
@@ -34,7 +35,6 @@ sub new {
         min_group_richness    => 0,
         use_phylogeny         => 0,
         frequency             => 0,
-        oversample_ratio      => 1,
         sample_by_regions     => 1,
         region_quota_strategy => 'equal',
         within_region_ratio   => 1,
@@ -653,7 +653,7 @@ sub do_sampling {
         shuffle (\@grouplist1);
         
         my $region_pair_quota = $region_pair{quota};
-        my $total_samples = $region_pair_quota * $self->{oversample_ratio};
+        my $total_samples = $region_pair_quota;
         my $one_quota_region = int($one_quota * $region_pair_quota);
         $one_count = 0;
         
@@ -678,30 +678,23 @@ sub do_sampling {
         if ($all_comparisons > $total_samples) {
             $proportion_needed = $total_samples / $all_comparisons;
         }
-        else {    
-            $proportion_needed = 1;
-        };
+        else { $proportion_needed = 1; }
 
         #add proportion needed to the hash for feedback
         $region_pair{proportion_needed} = $proportion_needed;
-        $toDo = lesser($total_samples,$all_comparisons);
+        $toDo = min($total_samples,$all_comparisons);
         
  ### DECIDE HERE WHETHER TO (A) GENERATE ALL, SHUFFLE AND USE OR (B) GENERATE AS NEEDED, AND CHECK IF USED
  ### CALCULATE AS PROPORTION, NOT FREQUENCY AND DO ALL IF PROPORTION GREATER THAN A THRESHOLD
  ### FOR NOW SET THIS PROPORTION, BUT WILL USE A FUNCTION TO CALCULATE
-        my $sampling_threshold = 0.8;
+        my $sampling_threshold = 0.1;
         my $sampling_strategy = "iterative";   # a default value
-        if ($proportion_needed > $sampling_threshold) {
-            $sampling_strategy = "complete";
-            
-            #code to get all site pairs
-            
-            # create a hash of sampled site-pairs
-            my (%all_pairs, $pair_name1, $pair_name2);
-        }
+        my (%all_pairs, $pair_name, $i);
+        my $same_sites = ($region1 eq $region2);
+        my @site_pairs_random;
     
         if ($self->{verbosity} >=2) {
-            if ($region1 eq $region2) {
+            if ($same_sites) {
                 if ($self->{sample_by_regions}) {
                     print "\nSeeking ". $region_pair_quota . " site pairs within region " . $region1.".\n";
                     print "Groups in region: $groupcount1\n";
@@ -721,39 +714,75 @@ sub do_sampling {
                 print "Quota per bin:  $bins[1][1]\n";
             };
 
-            my $round_freq = sprintf("%.3f",  $frequency);
-            print "Sampling frequency: $round_freq, Estimated samples to do: $toDo\n\n";
+            my $round_prop = sprintf("%.3f",  $proportion_needed);
+            print "Sampling proportion: $round_prop\n\n";
         }
+        
+        if ($proportion_needed > $sampling_threshold) {
+            $sampling_strategy = "complete";
 
+            # create a hash of all site-pairs - no randomization needed
+            while (scalar @grouplist1) {
+                $group1 = pop @grouplist1;
+                if ($same_sites) {
+                    foreach $group2 (@grouplist1) {                    
+                        #print $group1,' ',$group2,"\n";
+                        $pair_name = $group1." ".$group2;
+                        $all_pairs{$pair_name} = 1;
+                        $i++;
+                    }
+                } else {  # for sampling two different regions (and thus a full matrix, not a diagonal half)
+                        foreach $group2 (@grouplist2) {                    
+                        $pair_name = $group1." ".$group2;
+                        %all_pairs = ($pair_name => 1);
+                    }
+                }
+            print scalar @grouplist1,"\t";  #FOR FEEDBACK DELETE ONCE WORKING
+            }
+            
+            # prepare to iterate randomly through the site pairs
+            @site_pairs_random = shuffle(keys %all_pairs);
+        }
+        
         my (%dist_result,$j, @groups2);
         my $previous_j = 0;
         
         # create a hash of sampled site-pairs
-        my (%sampled_pairs, $valid_sample, $pair_name1, $pair_name2);
-                
+        my (%sampled_pairs, $valid_sample);
+
         ###############################
         #  the main loop starts here  #  
         ###############################
-      MAIN_LOOP:
+        MAIN_LOOP:
         foreach my $n (0..$total_samples -1) {  ########## loop here on a while or until.  Then iterate n.
             
-            $valid_sample = 0;
-            
-            GET_VALID_SAMPLE:
-            while ($valid_sample==0) {
-                #$group1 = pop @grouplist1;
-                $group1 = @grouplist1[int(rand($groupcount1))];
-                $group2 = @grouplist2[int(rand($groupcount2))];
-                $pair_name1 = $group1." ".$group2;
-                $pair_name2 = $group2." ".$group1;
-                if (exists $sampled_pairs{$pair_name1} or exists $sampled_pairs{$pair_name2}) {
-                    next VALID_SAMPLE
+            if ($sampling_strategy eq "complete") {  #get the next site pair from a complete sample
+                $pair_name = $site_pairs_random[$n];
+                my @groups = split(" ",$pair_name);
+                $group1 = $groups[0];
+                $group2 = $groups[1];                
+            }
+            else {                                  #get the next site pair from a new iterative sample
+                $valid_sample = 0;
+                
+                GET_VALID_SAMPLE:
+                while ($valid_sample==0) {
+                    my ($pair_name1, $pair_name2);
+                    $group1 = @grouplist1[int(rand($groupcount1))];
+                    $group2 = @grouplist2[int(rand($groupcount2))];
+                    if ($group1 eq $group2) {
+                        next GET_VALID_SAMPLE
+                    }
+                    $pair_name1 = $group1." ".$group2;
+                    $pair_name2 = $group2." ".$group1;
+                    if (exists $sampled_pairs{$pair_name1} or exists $sampled_pairs{$pair_name2}) {
+                        next GET_VALID_SAMPLE
+                    }
+                    $valid_sample=1;
                 }
-                $valid_sample=1;
             }
             
             # now we have a valid sample - add it to the sample list
-                
             %gl1 = ($group1 => 0);    
             @coords1     = $groups_ref->get_element_name_as_array (element => $group1);
             $label_hash1 = $groups_ref->get_sub_element_hash (element => $group1);

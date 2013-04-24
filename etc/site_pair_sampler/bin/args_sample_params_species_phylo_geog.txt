@@ -15,12 +15,12 @@ nexus_file              hylid_relaxed alltaxa 27apr09.nex
 nexus_remap             Translate_Hylid_Names_aug08.csv
 remap_input             3
 remap_output            1
-sample_count            1000000
-min_group_richness      2
-min_group_samples       5
+sample_count            500000
+min_group_richness      15
+min_group_samples       15
 bins_count              5
 one_quota               0
-oversample_ratio        10
+oversample_ratio        1
 quota_dist_measure      geographic
 dist_limit              10
 regions                 0

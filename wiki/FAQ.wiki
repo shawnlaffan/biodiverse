@@ -141,7 +141,16 @@ These are display parameters used by the system and can be ignored.
 
 == What coordinate system are my data in? ==
 
-The coordinates of the exported data are in the same coordinate system as your input data.  There is one known issue with ER-Mapper files ([#My_ER-Mapper_BIL_file_is_offset_by_half_a_pixel listed below]).
+Biodiverse knows nothing about coordinate systems and does no transformation of coordinates except to snap them to the group coordinates using the cellsize you set at import.  This means that the results are in whatever coordinate system your input data were in.
+
+The good news here is that, in your GIS software, you can then define the coordinate system for any exported files to be the same as for your input data. 
+
+Once that is done then software that does on-the-fly projections for display will be able to plot any other data over your Biodiverse results.  The reverse is also true.
+
+If your GIS software does not support on-the-fly projections then you can project the other data to the same coordinate system as your Biodiverse data.  Note that projecting the Biodiverse results can result in resampling distortions which might be undesirable in subsequent analyses.
+
+Note that there is one known issue with ER-Mapper files ([#My_ER-Mapper_BIL_file_is_offset_by_half_a_pixel listed below]).
+
 
 == How do I export as a raster? ==
 

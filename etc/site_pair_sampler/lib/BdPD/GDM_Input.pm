@@ -874,8 +874,9 @@ sub do_sampling {
                         $dist_result{sorenson} = sprintf("%.6f", eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))});
                     };
 
-                    # an optional extra feature, calculates the sum of species across the two sites (ignoring whether they are shared)
-                    $sum = ",".$abc{ABC};
+                    # an optional extra feature, calculates the sum of species at the two sites (ignoring whether they are shared)
+                    $sum = 2*$abc{A} + $abc{B} + $abc{C};
+                    $sum = ",".$sum;
                 };
                 
                 # if any distance measure has a valid result

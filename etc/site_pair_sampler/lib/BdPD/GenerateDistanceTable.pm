@@ -83,16 +83,10 @@ use Exporter::Easy (
 #                   - optional - defaults to 0
 #                   eg 3
 #
-#   one_quota       - maximum proportion (range 0 to 1) of site pairs with a dissimilarity of one to be included.
-#                     Once the quota is reached only site pairs with a lower dissimilarity are included in the output
-#                   - optional - defaults to 1 (no quota)
-#                   eg 0.15
-#
 #   bins_count      - number of bins to divide the 0 to 1 dissimilarity range into. Each bin will have as its target
 #                     an equal proportion of the site pairs. 1 is treated as on of the classes.
 #                     So if bins = 4, the classes will be: 0 - 0.3333, 0.3333 - 0.6667, 0.6667 - 0.9999, 1
 #                     Each bin would have a quota of 0.25
-#                   - optional - overrides one_quota if used, so no point giving both.
 #                   eg 6
 #
 #   quota_dist_measure
@@ -222,10 +216,6 @@ sub generate_distance_table {
     };
     
     ### SAMPLING PARAMETERS
-    
-    if ($SPM->{bins_count} > 0) {
-        $SPM->set_param(one_quota => 0);
-    };
     
     if ($SPM->{subset_for_testing} < 0 || $SPM->{subset_for_testing} >= 1) {
         $SPM->set_param(subset_for_testing => 0);

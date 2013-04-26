@@ -34,7 +34,6 @@ sub new {
         min_group_samples     => 0,
         min_group_richness    => 0,
         use_phylogeny         => 0,
-        frequency             => 0,
         sample_by_regions     => 1,
         region_quota_strategy => 'equal',
         within_region_ratio   => 1,
@@ -599,8 +598,7 @@ sub do_sampling {
     my $groups_ref = $self->{groups_ref};
     my $dist_measure = $self->{dist_measure};
     my $quota_dist_measure = $self->{quota_dist_measure};
-    my ($geog_dist, $geog_dist_output, $regions_output, $output_row, $all_sitepairs_done, $frequency, $proportion_needed);
-# delete $frequency once code updated    
+    my ($geog_dist, $geog_dist_output, $regions_output, $output_row, $all_sitepairs_done, $proportion_needed);
     my ($all_sitepairs_kept,$regions_done);
     my ($one_quota,$one_count, $skip) = ($self->{one_quota},0, 0);
     my $result_file_handle = $self->{result_file_handle};
@@ -643,9 +641,6 @@ sub do_sampling {
 
         my ($count, $loops, $toDo, $progress, $printedProgress, $storedProgress, $diss_quotas_reached) = (0,0,0,0,0,0,0);
         my $region_completed =0;
-        
-        shuffle (\@grouplist1);
-        
         my $region_pair_quota = $region_pair{quota};
         my $total_samples = $region_pair_quota;
         my $one_quota_region = int($one_quota * $region_pair_quota);
@@ -672,10 +667,8 @@ sub do_sampling {
  ### CALCULATE AS PROPORTION, NOT FREQUENCY AND DO ALL IF PROPORTION GREATER THAN A THRESHOLD
  ### FOR NOW SET THIS PROPORTION, BUT WILL USE A FUNCTION TO CALCULATE
         my $sampling_threshold = 0.55;
-        my $sampling_strategy = "iterative";   # a default value
-        my (%all_pairs, $pair_name, $i);
         my $same_sites = ($region1 eq $region2);
-        my @site_pairs_random;
+        my ($pair_name, @site_pairs_random);
     
         if ($self->{verbosity} >=2) {
             if ($same_sites) {
@@ -702,40 +695,49 @@ sub do_sampling {
             print "Sampling proportion: $round_prop\n\n";
         }
         
+        my $sampling_strategy = "iterative";   # a default value
         if ($proportion_needed > $sampling_threshold) {
             $sampling_strategy = "complete";
-            
-            print "\nSampling strategy: complete\n";  # debugging info - remove once working
+            print "Sampling strategy to be used: 'complete matrix'\n";  # debugging info - remove once working               
+        } else {
+            print "Sampling strategy to be used: 'iterative'\n";  # debugging info - remove once working
+        }
+        
+        if ($sampling_strategy eq "complete") {
+            my (%site_pairs);
+            my @temp_grouplist1 = @grouplist1;
 
             # create a hash of all site-pairs - no randomization needed
-            while (scalar @grouplist1) {
-                $group1 = pop @grouplist1;
-                if ($same_sites) {
-                    foreach $group2 (@grouplist1) {                    
-                        #print $group1,' ',$group2,"\n";
+            while (scalar @temp_grouplist1 > 0) {
+                $group1 = pop @temp_grouplist1;
+                if ($same_sites) {  # use @temp_grouplist1 to source both sites of the pair
+                    foreach $group2 (@temp_grouplist1) {                    
                         $pair_name = $group1." ".$group2;
-                        $all_pairs{$pair_name} = 1;
-                        $i++;
+                        $site_pairs{$pair_name} = 1;
                     }
                 } else {  # for sampling two different regions (and thus a full matrix, not a diagonal half)
-                        foreach $group2 (@grouplist2) {                    
+                    foreach $group2 (@grouplist2) {                    
                         $pair_name = $group1." ".$group2;
-                        %all_pairs = ($pair_name => 1);
+                        $site_pairs{$pair_name} = 1;
                     }
                 }
-            print scalar @grouplist1,"\t";  #FOR FEEDBACK DELETE ONCE WORKING
             }
             
             # prepare to iterate randomly through the site pairs
-            @site_pairs_random = shuffle(keys %all_pairs);
+            @site_pairs_random = shuffle(keys %site_pairs);
         }
         
         my (%dist_result, @groups2);
         
         # create a hash of sampled site-pairs
         my (%sampled_pairs, %sampled_sites, $valid_sample, $site_use_count);
-        my $max_use1 = $groupcount1 - 2;
-        my $max_use2 = $groupcount2 - 2;
+        my ($max_use1, $max_use2);
+        if (!$same_sites) {
+            $max_use1 = $groupcount2;
+            $max_use2 = $groupcount1;
+        } else {
+            $max_use2 = $max_use1 = $groupcount1 - 1;
+        }
         my $n = 0;
 
         ###############################
@@ -770,14 +772,14 @@ sub do_sampling {
                     $valid_sample=1;
                     $sampled_pairs{$pair_name1} = 1;
                 }
-                                
+   
                 # Keep track of how many times each site has been used and remove it from the list
                 # if no more samples should be taken from it.  By default this is if all pairs
                 # including this site have been sampled, but could be set at a lower proportion
                 if (exists $sampled_sites{$group1}) {
-                    $site_use_count = $sampled_sites{$group1} + 1;
-                    if ($site_use_count > $max_use1) {
-                        print "\nSite $group1 fully sampled";
+                    $site_use_count = $sampled_sites{$group1} = $sampled_sites{$group1} + 1;
+                    if ($site_use_count > $max_use1 and $groupcount1 > 2) {  #delete fully sampled groups, but don't remove all groups
+                        print "\nSite $group1 sampled $site_use_count.  Fully sampled\n";
                         @grouplist1 = grep ! /$group1/, @grouplist1;  # delete a group from group list 1
                         $groupcount1 --;
                         if ($same_sites) {
@@ -796,8 +798,8 @@ sub do_sampling {
                 if (exists $sampled_sites{$group2}) {
                     $site_use_count = $sampled_sites{$group2} + 1;
                     if ($same_sites) {
-                        if ($site_use_count > $max_use1) {
-                            print "\nSite $group2 fully sampled";                            
+                        if ($site_use_count > $max_use1 and $groupcount2 > 2) {  #delete fully sampled groups, but don't remove all groups
+                            print "\nSite $group2 sampled $site_use_count.  Fully sampled\n";                           
                             @grouplist1 = grep ! /$group2/, @grouplist1;  # delete a group from group list 1
                             $groupcount1 --;
                             
@@ -805,7 +807,7 @@ sub do_sampling {
                             $sampled_sites{$group2} = $site_use_count;
                         }
                     } else {
-                        if ($site_use_count > $max_use2) {
+                        if ($site_use_count > $max_use2 and $groupcount2 > 1) {  #delete fully sampled groups, but don't remove all groups
                             @grouplist2 = grep ! /$group2/, @grouplist2;  # delete a group from group list 2
                             $groupcount2 --;
                         } else {
@@ -1060,9 +1062,9 @@ sub do_sampling {
                 print "Distance quotas met: $diss_quotas_reached"."/"."$bin_count";
             }
 
-            if ($frequency > 1) {
-                my $round_freq = sprintf("%.2f",  $frequency);               
-                print " Freq $round_freq";
+            if ($proportion_needed < 1) {
+                my $round_prop = sprintf("%.3f",  $proportion_needed);               
+                print " Prop $round_prop";
             }
 
             if ($region_completed) {
@@ -1145,7 +1147,7 @@ sub feedback_table {
 
         # write the header line if not yet written
         if (! $feedback_header_done) {
-            my $header_text = "Region1,Region2,GroupCount1,GroupCount2,Species count1,Species count2,Species shared,AllPairs,Region pair quota,Frequency,Site pairs searched,Site pair output,Bins quota";
+            my $header_text = "Region1,Region2,GroupCount1,GroupCount2,Species count1,Species count2,Species shared,AllPairs,Region pair quota,Proportion,Site pairs searched,Site pair output,Bins quota";
             for my $bindex (1..$self->{bins_count}) {
                 $header_text .= ",Bin".$bindex.",Quota $bindex reached after";
             }
@@ -1164,9 +1166,9 @@ sub feedback_table {
         my $shared = $region_pair->{labels_shared};
 
         # build the row of output for this region pair as a string
-        my $round_freq = sprintf("%.3f",  $region_pair->{frequency});
+        my $round_prop = sprintf("%.3f",  $region_pair->{proportion_needed});
         my $row_text = "$region1,$region2,$region1_stats->{group_count},$region2_stats->{group_count},$region1_stats->{label_count},$region2_stats->{label_count},";
-        $row_text .= "$shared,$region_pair->{all_pairs},$region_pair->{quota},$round_freq,$region_pair->{sitepairs_done},$region_pair->{sitepairs_kept},$$bins[1][1]";
+        $row_text .= "$shared,$region_pair->{all_pairs},$region_pair->{quota},$round_prop,$region_pair->{sitepairs_done},$region_pair->{sitepairs_kept},$$bins[1][1]";
 
         for my $bindex (1..$self->{bins_count}) {
             $row_text .= ",$$bins[$bindex][2],$$bins[$bindex][4]";

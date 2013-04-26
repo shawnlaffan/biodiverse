@@ -121,7 +121,7 @@ feedback_suffix         _fb
 #                       - defaults to the only, or first distance measure.  Because key order is unreliable, with multiple
 #                           distance measures it is important to set this parameter explicitly
 #   dist_limit
-#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple diagonal, with no adjustment for curvature etc
+#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
 #
 #   sample_by_regions

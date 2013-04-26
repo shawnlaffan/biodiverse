@@ -41,7 +41,6 @@ sub new {
         region_header         => 'region',
         verbosity             => 1,
         sample_count          => 100000,
-        one_quota             => 0,
         subset_for_testing    => 0,
         test_sample_ratio     => 1,
         shared_species        => 0,
@@ -600,13 +599,13 @@ sub do_sampling {
     my $quota_dist_measure = $self->{quota_dist_measure};
     my ($geog_dist, $geog_dist_output, $regions_output, $output_row, $all_sitepairs_done, $proportion_needed);
     my ($all_sitepairs_kept,$regions_done);
-    my ($one_quota,$one_count, $skip) = ($self->{one_quota},0, 0);
     my $result_file_handle = $self->{result_file_handle};
     my ($printedProgress_all, $storedProgress_all) = (0,0);
     my $dist_output;
     my $measure_count = $self->{measure_count};
     my $dist_exceeded;
     my $dist_limit = $self->{dist_limit};
+    my $skip = 0;
     
     my $single_dist_measure;
     if ($measure_count == 1) { $single_dist_measure = (keys($dist_measure))[0] };
@@ -643,8 +642,6 @@ sub do_sampling {
         my $region_completed =0;
         my $region_pair_quota = $region_pair{quota};
         my $total_samples = $region_pair_quota;
-        my $one_quota_region = int($one_quota * $region_pair_quota);
-        $one_count = 0;
         
         # set bins for this region pair
         $self->set_param (bins_sample_count => $region_pair_quota);
@@ -686,7 +683,6 @@ sub do_sampling {
                 print "Groups in region " . $region1 . ": " . $groupcount1 . ", in region " . $region2 . ": " . $groupcount2 . "\n";    
             }
             print "Possible comparisons: $all_comparisons \n";
-            if ($one_quota) {print "Quota for samples where difference = 1: $one_quota_region\n";};
             if (@bins and ($bins[0]{classes}>1)) {
                 print "Quota per bin:  $bins[1][1]\n";
             };
@@ -915,20 +911,7 @@ sub do_sampling {
                         $regions_output .= ",".$region_stats{$region1}{code}.",".$region_stats{$region2}{code};
                     };
 
-                    if ($one_quota_region) { #1st of two alternative methods for managing the spread of distance values
-                        if ($dist_result{$quota_dist_measure} == 1) {
-                            $one_count ++;
-                            if ($one_count >= $one_quota_region) {
-                                $skip = 1;
-                                if ($one_count == $one_quota_region) {
-                                    if ($self->{verbosity} >= 2) {
-                                        print "Quota of $one_quota_region scores of 1 reached after $count iterations \n";
-                                    };
-                                };
-                            };
-                        };
-                    }
-                    elsif (@bins and $bin_count > 1) { #2nd of two alternative methods for managing the spread of distance values
+                    if (@bins and $bin_count > 1) { #2nd of two alternative methods for managing the spread of distance values
                         if ($max_class and $dist_result{$quota_dist_measure} == $bins_max){  #check if the distance value is within a separate single-value top bin (normally value 1)
                             if (!$bins[$bin_count][3]){ #if quota not previously reached
                                 $bins[$bin_count][2] ++;

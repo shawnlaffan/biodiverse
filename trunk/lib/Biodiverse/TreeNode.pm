@@ -809,15 +809,16 @@ sub get_all_descendents { #  get all the nodes (whether terminal or not) which a
     return wantarray ? %list : {%list};
 }
 
-#  should use a while loop instead of recursion
+#  while loop cleaner than recursion
 sub get_path_to_root_node {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told not to
 
     return wantarray ? ($self) : [$self] if $self->is_root_node;
 
-    #  don't cache internals
+    #  don't cache internals 
     my $use_cache = $self->is_internal_node ? 0 : $args{cache};
+    #my $use_cache = 1; # - override
 
     my $path;
 
@@ -847,13 +848,14 @@ sub get_path_lengths_to_root_node {
     my $self = shift;
     my %args = (cache => 1, @_);
 
-    if ($self->is_root_node) {
-        my %result = ($self->get_name, $self->get_length);
-        return wantarray ? %result : \%result;
-    }
+    #if ($self->is_root_node) {
+    #    my %result = ($self->get_name, $self->get_length);
+    #    return wantarray ? %result : \%result;
+    #}
 
     #  don't cache internals
-    my $use_cache = $self->is_internal_node ? 0 : $args{cache};
+    #my $use_cache = $self->is_internal_node ? 0 : $args{cache};
+    my $use_cache = $args{cache};  #  cache internals
 
     if ($use_cache) {
         my $path = $self->get_cached_value('PATH_LENGTHS_TO_ROOT_NODE');
@@ -861,7 +863,9 @@ sub get_path_lengths_to_root_node {
     }
 
     my %path_lengths;
-    my $node = $self;
+    $path_lengths{$self->get_name} = $self->get_length;
+
+    my $node = $self->get_parent;
     while ($node) {  #  undef when root node
         $path_lengths{$node->get_name} = $node->get_length;
         $node = $node->get_parent;

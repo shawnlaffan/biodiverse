@@ -319,7 +319,7 @@ sub get_metadata_calc_numeric_label_dissimilarity {
                 ],
             },
             NUMD_VARIANCE   => {
-                description => 'Variance of the dissimilarity values, set 1 vs set 2.',
+                description => 'Variance of the dissimilarity values (mean squared deviation), set 1 vs set 2.',
                 cluster     => 1,
                 formula     => [
                     '= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}',
@@ -351,7 +351,7 @@ sub calc_numeric_label_dissimilarity {
 
     my $list1 = $args{label_hash1};
     my $list2 = $args{label_hash2};
-    #  make %$l1 the shorter, as it is used in the while loop
+    #  make %$l1 the shorter, as it is used in the loop with more calculations
     if (scalar keys %$list1 > scalar keys %$list2) {  
         $list1 = $args{label_hash2};
         $list2 = $args{label_hash1};
@@ -361,23 +361,28 @@ sub calc_numeric_label_dissimilarity {
     my %label_list1 = %$list1;
     my %label_list2 = %$list2;
 
-    my ($sum_absX, $sumXsqr, $count) = (undef, undef, 0);
+    my ($sum_absX, $sumXsqr, $sum_wts) = (undef, undef, 0);
     my @joint_count    = values %label_list2;
-    my $sum_joint_count = sum @joint_count;
+
+    # thanks to quadratic expressins, we can avoid all the inner loops for the variance
+    my ($ssq_v2, $sum_v2, $sum_wt2);
+    while (my ($val2, $wt2) = each %label_list2) {
+        $ssq_v2  += $val2 ** 2 * $wt2;
+        $sum_v2  += $val2 * $wt2;
+        $sum_wt2 += $wt2;
+    }
+
 
     BY_LABEL1:
-    while (my ($label1, $count1) = each %label_list1) {
+    while (my ($val1, $wt1) = each %label_list1) {
 
-        my @abs_diff_list  = map { abs($_ - $label1) } keys %label_list2;
-        my @ssq_list       = map { $_ ** 2 } @abs_diff_list;
+        my @abs_diff_list  = map { abs($_ - $val1) } keys %label_list2;
 
         my @wtd_adiff_list = pairwise {$a * $b} @abs_diff_list, @joint_count;
-        my @wtd_ssq_list   = pairwise {$a * $b} @ssq_list, @joint_count;
-        #my @wtd_ssq_list   = pairwise {$a**2 * $b} @abs_diff_list, @joint_count;  #  map is faster than doing **2 in pairwise
 
-        $sum_absX += $count1 * sum @wtd_adiff_list;
-        $sumXsqr  += $count1 * sum @wtd_ssq_list;
-        $count    += $count1 * $sum_joint_count;
+        $sum_absX += $wt1 * sum @wtd_adiff_list;
+        $sumXsqr  += $wt1 * ($ssq_v2 - 2 * $val1 * $sum_v2 + $sum_wt2 * $val1**2);
+        $sum_wts  += $wt1 * $sum_wt2;
     }
 
     my %results;
@@ -385,9 +390,9 @@ sub calc_numeric_label_dissimilarity {
         #  suppress these warnings within this block
         no warnings qw /uninitialized numeric/;
 
-        $results{NUMD_ABSMEAN}  = eval {$sum_absX / $count};
-        $results{NUMD_VARIANCE} = eval {$sumXsqr / $count};
-        $results{NUMD_COUNT}    = $count;
+        $results{NUMD_ABSMEAN}  = eval {$sum_absX / $sum_wts};
+        $results{NUMD_VARIANCE} = eval {$sumXsqr / $sum_wts};
+        $results{NUMD_COUNT}    = $sum_wts;
     }
 
     return wantarray ? %results : \%results;

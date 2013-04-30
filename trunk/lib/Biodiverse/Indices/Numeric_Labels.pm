@@ -420,8 +420,6 @@ sub calc_numeric_label_dissimilarity {
         my $diff_gt = abs ($val1 - $mean_gt) * $n_gt;
 
         $sum_absX += $wt1 * ($diff_lt + $diff_gt);
-        my $pred_sum_tmp = ($diff_lt + $diff_gt);  #  debug
-
     }
 
     my %results;

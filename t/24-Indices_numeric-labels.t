@@ -29,6 +29,9 @@ done_testing;
 
 1;
 
+__END__
+
+
 __DATA__
 
 @@ RESULTS_2_NBR_LISTS

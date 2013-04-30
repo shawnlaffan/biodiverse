@@ -358,20 +358,15 @@ sub calc_numeric_label_dissimilarity {
         $list2 = $args{label_hash1};
     }
 
-    #  use copies in case the two refs are to the same hash - will be redundant when new approach works
-    my %label_list1 = %$list1;
-    my %label_list2 = %$list2;
-
     my ($sum_absX, $sumXsqr, $sum_wts) = (undef, undef, 0);
-    my @joint_count    = values %label_list2;
-    
+
     my @val1_arr = sort {$a <=> $b} keys %$list1;
     my @val2_arr = sort {$a <=> $b} keys %$list2;
 
     # thanks to quadratics, we can avoid all the inner loops for the variance
     my ($ssq_v2, $sum_v2, $sum_wt2, @cum_sum_arr, @cum_wt2_arr);
     for my $val2 (@val2_arr) {
-        my $wt2  =  $label_list2{$val2};
+        my $wt2  =  $list2->{$val2};
         my $wtd_val = $val2 * $wt2;
         $sum_v2  += $wtd_val;
         $ssq_v2  += $val2 ** 2 * $wt2;
@@ -383,24 +378,17 @@ sub calc_numeric_label_dissimilarity {
     my $val2_max  = $val2_arr[-1];
     my $val2_mean = $sum_v2 / $sum_wt2;
 
-    my $sum_xx_tmp;
-
     my $i = 0;
 
   BY_LABEL1:
     foreach my $val1 (@val1_arr) {
-        my $wt1 = $label_list1{$val1};
+        my $wt1 = $list1->{$val1};
 
         ###  the variance code
         $sumXsqr  += $wt1 * ($ssq_v2 - 2 * $val1 * $sum_v2 + $sum_wt2 * $val1**2);
 
-        #  sum the wts
+        ###  sum the wts
         $sum_wts  += $wt1 * $sum_wt2;
-
-        #my @abs_diff_list  = map { abs($_ - $val1) } keys %label_list2;
-        #my @wtd_adiff_list = pairwise {$a * $b} @abs_diff_list, @joint_count;
-        #my $adiff_sum = sum @wtd_adiff_list;
-        #$sum_xx_tmp += $wt1 * $adiff_sum;
 
         ####  the mean diff code
         #  if we are outside the bounds of @val2 then it is a one-sided comparison
@@ -410,7 +398,8 @@ sub calc_numeric_label_dissimilarity {
             next BY_LABEL1;
         }
 
-        #  first find out where we are in the sorted sequence
+        #  If we get here then it is two-sided, check above and below.  
+        #  First find out where we are in the sorted sequence.
         my $j = min ($i, $#val2_arr);
         for ($j .. $#val2_arr) {
             if ($val1 < $val2_arr[$i]) {
@@ -420,8 +409,6 @@ sub calc_numeric_label_dissimilarity {
             last if $val1 == $val2_arr[$i];
             $i++;            
         }
-
-        #say "$i, V1: $val1, V2: $val2_arr[$i-1], $val2_arr[$i], $val2_arr[$i+1]";
 
         #  now get the mean absolute difference above and below, and sum them
         my $cum_sum_i = $cum_sum_arr[$i];
@@ -435,13 +422,8 @@ sub calc_numeric_label_dissimilarity {
         $sum_absX += $wt1 * ($diff_lt + $diff_gt);
         my $pred_sum_tmp = ($diff_lt + $diff_gt);  #  debug
 
-        #my $diff = 0 + sprintf "%10f", ($adiff_sum - $pred_sum_tmp);
-        #if ($diff) {say "$i, $adiff_sum, $pred_sum_tmp, $diff";}
     }
 
-    #say "ABSMEAN: $sum_absX / $sum_wts = " . ($sum_absX / $sum_wts);
-    #say "OLD:     $sum_xx_tmp / $sum_wts = " . ($sum_xx_tmp / $sum_wts);
-    
     my %results;
     {
         #  suppress these warnings within this block

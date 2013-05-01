@@ -426,8 +426,8 @@ sub calc_numeric_label_dissimilarity {
         my $cum_sum_i = $cum_sum_arr[$i];
         my $n_le = $cum_wt2_arr[$i];
         my $n_gt = $sum_wt2 - $n_le;
-        my $mean_lt = $cum_sum_arr[$i] / $n_le;
-        my $mean_gt = ($sum_v2 - $cum_sum_i) / $n_gt;
+        my $mean_lt = $cum_sum_arr[$i] / ($n_le || 1);
+        my $mean_gt = ($sum_v2 - $cum_sum_i) / ($n_gt || 1);
         my $diff_lt = abs ($val1 - $mean_lt) * $n_le;
         my $diff_gt = abs ($val1 - $mean_gt) * $n_gt;
 

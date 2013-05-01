@@ -352,6 +352,18 @@ sub calc_numeric_label_dissimilarity {
 
     my $list1 = $args{label_hash1};
     my $list2 = $args{label_hash2};
+
+    #  handle empty assemblages (neighbour sets)
+    if (! scalar keys %$list1 || ! scalar keys %$list2) {
+        my %results = (
+            NUMD_ABSMEAN  => undef,
+            NUMD_VARIANCE => undef,
+            NUMD_COUNT    => undef,
+        );
+        return wantarray ? %results : \%results;
+    }
+
+
     #  make %$l1 the shorter, as it is used in the loop with more calculations
     if (scalar keys %$list1 > scalar keys %$list2) {  
         $list1 = $args{label_hash2};

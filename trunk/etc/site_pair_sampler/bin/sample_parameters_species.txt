@@ -1,36 +1,56 @@
-#  File of arguments for the site pair sampler.
+#  File of arguments for the Site Pair Sampler.
+
+################################################################################
+#  Site Pair Sampler is an add-on to Biodiverse                                #
+#  Before running Site Pair Sampler, use Biodiverse to group location records, #
+#    typically by grid squares, to generate a set of populated sites.          #
+#  The resulting data, saved in the Biodiverse basedata format (*.bds)         #
+#    is the main input for the site pair sampler                               #
+#                                                                              #
+#  All parameters are listed at the end of this file.                          #
+#  Help is available at:                                                       #
+#    https://code.google.com/p/biodiverse/wiki/SitePairSampler                 #
+#                                                                              #
+#  Dan Rosauer                                                                 #
+################################################################################
+
 #  Anything after a # is a comment and is ignored.
 #  If your argument contains a # then put it inside quotes.
 #  Blank lines are also ignored.
 
-#  Scroll down for a definition of all available parameters
+# Inputs
+  directory               C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae  ## CHANGE THIS TO REFER TO TEST DATA
+  basedata_file           Hylids_Feb10_001deg_5000_IBRA                    ## CHANGE THIS TO REFER TO TEST DATA
+
+# Sampling
+  dist_measure            sorenson
+  dist_measure            geographic 
+  sample_count            25000
+  min_group_richness      5
+  min_group_samples       5
+  quota_dist_measure      geographic
+  dist_limit              15
+
+# Regions
+  regions                 0
+  region_header           IBRA                                             ## CHANGE THIS TO REFER TO TEST DATA
+  sample_by_regions       0
+  region_quota_strategy   log_richness
+  within_region_ratio     10
+  region_codes            1
+
+# Additional outputs
+  species_sum             1
+
+# Test and training data
+  subset_for_testing      0
+
+# Feedback
+  verbosity               3
+  feedback_table          1
+  feedback_suffix         _fb
 
 
-dist_measure            sorenson
-dist_measure            geographic 
-directory               C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae  ## CHANGE THIS TO REFER TO TEST DATA
-basedata_file           Hylids_Feb10_001deg_5000_IBRA                    ## CHANGE THIS TO REFER TO TEST DATA
-sample_count            250000
-min_group_richness      5
-min_group_samples       5
-bins_count              0
-quota_dist_measure      geographic
-dist_limit              15
-regions                 0
-region_header           IBRA                                             ## CHANGE THIS TO REFER TO TEST DATA
-sample_by_regions       0
-region_quota_strategy   log_richness
-within_region_ratio     10
-region_codes            1
-species_sum             1
-subset_for_testing      0
-verbosity               3
-feedback_table          1
-feedback_suffix         _fb
-
-
-# the parameters for this sub are passed as a hash with the following items:
-#
 #   FILE PARAMETERS
 #
 #   dist_measure
@@ -60,7 +80,7 @@ feedback_suffix         _fb
 #                   - required if nexus_remap is given
 #                   eg [1]
 #
-#   basedata_file   - file name of the basedata object holding grouped taxon locations
+#   basedata_file   - file name of the Biodiverse basedata object holding grouped taxon locations
 #                   - required
 #                   eg "Hylids_May09_001deg_5000"
 #

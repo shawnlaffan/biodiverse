@@ -3,30 +3,41 @@ use strict;
 use warnings;
 use 5.010;
 
-use Getopt::Long;
-
+#use Getopt::Long;
+use Getopt::Long::Descriptive;
+ 
 use Carp;
 use English qw { -no_match_vars };
 
 use Biodiverse::BaseData;
+use Biodiverse::ElementProperties;
 
-my $bd_file;
-my $out_file;
-my $remap_file;
-my $input_cols_str    = '1';
-my $remapped_cols_str = '1,2';
-my $input_sep_char    = q{,};
-my $input_quote_char     = q{"};
-
-GetOptions(
-    'basedata|bd_file=s' => \$bd_file,
-    'out_file=s'         => \$out_file,
-    'remap_file=s'       => \$remap_file,
-    'input_cols=s'       => \$input_cols_str,
-    'remapped_cols=s'    => \$remapped_cols_str,
-    'input_sep_char=s'   => \$input_sep_char,
-    'input_quote_char=s' => \$input_quote_char,
+my ($opt, $usage) = describe_options(
+  '%c <arguments>',
+  [ 'basedata|input_bd=s',  "the input basedata file", { required => 1 } ],
+  [ 'out_file|output_bd=s', "the output basedata file", { required => 1 }],
+  [ 'remap_file=s',         "the text file containing label remap details", { required => 1 } ],
+  [ 'input_cols=s',         "the columns in the remap file that match the original labels", { default => '1' } ],
+  [ 'remapped_cols=s',      "the columns in the remap file to generate the remapped labels", { default => '1,2' } ],
+  [ 'input_sep_char=s',     "column separator character in the remap file", { default => q{,} } ],
+  [ 'input_quote_char=s',   "quotes character in the remap file", { default => q{"} } ],
+  [],
+  [ 'help',       "print usage message and exit" ],
 );
+ 
+if ($opt->help) {
+    print($usage->text);
+    exit;
+}
+
+my $bd_file           = $opt->basedata;
+my $out_file          = $opt->out_file;
+my $remap_file        = $opt->remap_file;
+my $input_cols_str    = $opt->input_cols;
+my $remapped_cols_str = $opt->remapped_cols;
+my $input_sep_char    = $opt->input_sep_char;
+my $input_quote_char  = $opt->input_quote_char;
+
 
 
 croak "no basedata file specified" if !defined $bd_file;

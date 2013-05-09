@@ -17,14 +17,14 @@ exit if $ENV{BDV_PP_BUILDING};
 
 my ($opt, $usage) = describe_options(
   '%c <arguments>',
-  [ 'basedata|input_bd=s',   'the input basedata file', { required => 1 } ],
-  [ 'out_file|output_bd=s',  'the output basedata file', { required => 1 }],
-  [ 'remap_file|rf=s',       'the text file containing label remap details', { required => 1 } ],
-  [ 'input_cols|ic=s',       'the columns in the remap file that match the original labels', { default => '1' } ],
-  [ 'remapped_cols|rc=s',    'the columns in the remap file to generate the remapped labels', { default => '1,2' } ],
-  [ 'input_sep_char|is=s',   'column separator character in the remap file', { default => q{,} } ],
-  [ 'input_quote_char|iq=s', 'quotes character in the remap file', { default => q{"} } ],
-  [ 'verbose|v!',            'warns if labels are not remapped', { default => 1 } ],
+  [ 'basedata|input_bd=s',   'The input basedata file', { required => 1 } ],
+  [ 'out_file|output_bd=s',  'The output basedata file', { required => 1 }],
+  [ 'remap_file|rf=s',       'The text file containing label remap details', { required => 1 } ],
+  [ 'input_cols|ic=s',       'The columns in the remap file that match the original labels, comma separated, no spaces [default= "1"]', { default => '1' } ],
+  [ 'remapped_cols|rc=s',    'The columns in the remap file to generate the remapped labels, comma separated, no spaces [default = "1,2"]', { default => '1,2' } ],
+  [ 'input_sep_char|is=s',   'Column separator character in the remap file [default = ","]', { default => q{,} } ],
+  [ 'input_quote_char|iq=s', 'Quotes character in the remap file [default = "]', { default => q{"} } ],
+  [ 'verbose|v!',            'Warns if labels are not remapped when copied across [default = 1]', { default => 1 } ],
   [],
   [ 'help',       "print usage message and exit" ],
 );
@@ -61,7 +61,8 @@ $remap->import_data (
 );
 
 
-#  Get a hash of arrays, where each original label has an array of labels it is remapped to
+#  Get a hash of arrays, where each original label has an array
+#  of labels it is to be remapped to.
 my %label_remap_hash;
 foreach my $element ($remap->get_element_list()) {
     my $bd_label = $remap->get_element_remapped(element => $element);
@@ -71,7 +72,7 @@ foreach my $element ($remap->get_element_list()) {
     push @{$label_remap_hash{$bd_label}}, $element;
 }
 
-#  create the new basedata to be populated
+#  Create the new basedata to be populated.
 my $new_bd = Biodiverse::BaseData->new(
     CELL_SIZES => $bd->get_param('CELL_SIZES'),
     NAME       => $bd->get_param('NAME'),

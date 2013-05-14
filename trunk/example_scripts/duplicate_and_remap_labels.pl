@@ -13,7 +13,14 @@ use English qw { -no_match_vars };
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
 
-exit if $ENV{BDV_PP_BUILDING};
+if ($ENV{BDV_PP_BUILDING}) {
+    say 'Building pp file';
+    use File::BOM qw / :subs /;          #  we need File::BOM.
+    open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
+      or croak "Cannot open $0 via File::BOM\n";
+    $fh->close;
+    exit ;
+}
 
 my ($opt, $usage) = describe_options(
   '%c <arguments>',

@@ -34,9 +34,17 @@ my @linkages = qw /
 
 #  do we get a stable cluster result?
 {
+    #skip();
     run_linkages (delete_outputs => 1);
     run_linkages (delete_outputs => 0);
 }
+
+#  do we get a stable cluster result, but not checking stored results?
+{
+    run_linkages_and_check_replication (delete_outputs => 1);
+    run_linkages_and_check_replication (delete_outputs => 0);
+}
+
 
 
 #  make sure we get the same result with the same prng across two runs
@@ -53,7 +61,7 @@ my @linkages = qw /
 
 sub run_linkages {
     my %args = @_;
- 
+
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
     foreach my $linkage (@linkages) {
         my $cl = $bd->add_cluster_output (name => $linkage);
@@ -61,16 +69,65 @@ sub run_linkages {
             prng_seed => $default_prng_seed,
             linkage   => $linkage,
         );
-    
-        my $nwk = $cl->to_newick;
-        my $comp_nwk = get_site_data_newick_tree();
 
-        is ($nwk, $comp_nwk, "Generated correct cluster tree using $linkage");
-        
+        my $comparison_tree = get_site_data_as_tree ($linkage);
+
+        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
+
+        my $are_same = $cl->trees_are_same (comparison => $comparison_tree);
+        ok ($are_same, "Exact match using $linkage" . $suffix);
+
+        my $nodes_have_matching_terminals = $cl->trees_are_same (
+            comparison     => $comparison_tree,
+            terminals_only => 1,
+        );
+        ok (
+            $nodes_have_matching_terminals,
+            "Nodes have matching terminals using $linkage" . $suffix,
+        );
+
         if ($args{delete_outputs}) {
             $bd->delete_all_outputs;
         }
     }    
+}
+
+sub run_linkages_and_check_replication {
+    my %args = @_;
+
+    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+
+    foreach my $linkage (@linkages) {
+        my $cl1 = $bd1->add_cluster_output (name => $linkage);
+        $cl1->run_analysis (
+            prng_seed => $default_prng_seed,
+            linkage   => $linkage,
+        );
+        my $cl2 = $bd2->add_cluster_output (name => $linkage);
+        $cl2->run_analysis (
+            prng_seed => $default_prng_seed,
+            linkage   => $linkage,
+        );
+
+        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
+        my $are_same = $cl1->trees_are_same (comparison => $cl2);
+        ok ($are_same, "Check Rep: Exact match using $linkage" . $suffix);
+
+        my $nodes_have_matching_terminals = $cl1->trees_are_same (
+            comparison     => $cl2,
+            terminals_only => 1,
+        );
+        ok (
+            $nodes_have_matching_terminals,
+            "Check Rep: Nodes have matching terminals using $linkage" . $suffix,
+        );
+
+        if ($args{delete_outputs}) {
+            $bd1->delete_all_outputs;
+            $bd2->delete_all_outputs;
+        }
+    }
 }
 
 #  need to add tie breaker
@@ -111,6 +168,19 @@ done_testing();
 
 sub get_cluster_mini_data_newick {
     return q{((('2.5:1.5':0,'3.5:1.5':0,'3.5:2.5':0)'3___':0.2,('1.5:1.5':0,'1.5:2.5':0,'2.5:2.5':0)'2___':0.2)'4___':0)'5___':0}
+}
+
+sub get_site_data_as_tree {
+    my $comp_nwk = get_site_data_newick_tree(@_);
+
+    my $read_nex = Biodiverse::ReadNexus->new();
+    my $success = eval {$read_nex->import_data (data => $comp_nwk)};
+    croak $@ if $@;
+
+    my $tree_arr = $read_nex->get_tree_array;
+    my $comparison_tree = $tree_arr->[0];
+
+    return $comparison_tree;
 }
 
 sub get_site_data_newick_tree {

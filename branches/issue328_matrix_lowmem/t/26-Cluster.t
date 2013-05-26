@@ -34,18 +34,19 @@ my @linkages = qw /
 
 #  do we get a stable cluster result?
 {
-    #skip();
     run_linkages (delete_outputs => 1);
     run_linkages (delete_outputs => 0);
 }
 
-#  do we get a stable cluster result, but not checking stored results?
+#  do we get a stable cluster result, but not using stored results?
 {
-    run_linkages_and_check_replication (delete_outputs => 1);
     run_linkages_and_check_replication (delete_outputs => 0);
 }
 
-
+#  what of differing matrix precisions?
+{
+    run_linkages_and_check_mx_precision ();
+}
 
 #  make sure we get the same result with the same prng across two runs
 {
@@ -64,7 +65,11 @@ sub run_linkages {
 
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
     foreach my $linkage (@linkages) {
-        my $cl = $bd->add_cluster_output (name => $linkage);
+        my $cl = $bd->add_cluster_output (
+            name => $linkage,
+            CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
+            MATRIX_INDEX_PRECISION => undef,  #  use old default for now
+        );
         $cl->run_analysis (
             prng_seed => $default_prng_seed,
             linkage   => $linkage,
@@ -72,7 +77,7 @@ sub run_linkages {
 
         my $comparison_tree = get_site_data_as_tree ($linkage);
 
-        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
+        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : ', recycled matrix';
 
         my $are_same = $cl->trees_are_same (comparison => $comparison_tree);
         ok ($are_same, "Exact match using $linkage" . $suffix);
@@ -129,6 +134,59 @@ sub run_linkages_and_check_replication {
         }
     }
 }
+
+sub run_linkages_and_check_mx_precision {
+    #  make sure we get the same cluster result using different matrix precisions
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    foreach my $linkage (@linkages) {
+        my $prng_seed = 123456;
+        $bd->delete_all_outputs();
+
+        my $class1 = 'Biodiverse::Matrix';
+        my $cl1 = $bd->add_cluster_output (
+            name => "$class1 $linkage 1",
+            CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
+            MATRIX_CLASS        => $class1,
+        );
+        $cl1->run_analysis (
+            prng_seed => $prng_seed,
+            linkage   => $linkage,
+        );
+        my $nwk1 = $cl1->to_newick;
+    
+        #  make sure we build a new matrix
+        $bd->delete_all_outputs();
+    
+        my $cl2 = $bd->add_cluster_output (
+            name => "$class1 $linkage 2",
+            CLUSTER_TIE_BREAKER    => [ENDW_WE => 'max'],
+            MATRIX_CLASS           => $class1,
+            MATRIX_INDEX_PRECISION => undef,
+        );
+        $cl2->run_analysis (
+            prng_seed => $prng_seed,
+            linkage   => $linkage,
+        );
+        my $nwk2 = $cl2->to_newick;
+
+        #  getting cache deletion issues - need to look into them before using this test
+        #ok (
+        #    $cl1->trees_are_same (
+        #        comparison     => $cl2,
+        #    ),
+        #    "Clustering using matrices with differing index precisions, linkage $linkage"
+        #);
+
+        #  this test will likely have issues with v5.18 and hash randomisation
+        is (
+            $nwk1,
+            $nwk2,
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
+    }
+}
+
 
 #  need to add tie breaker
 sub check_order_is_same_given_same_prng {

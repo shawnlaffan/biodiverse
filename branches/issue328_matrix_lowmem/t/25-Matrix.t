@@ -74,7 +74,8 @@ foreach my $class (@classes) {
 }
 
 {
-    test_cluster_analysis()
+    test_cluster_analysis();
+    test_cluster_analysis_diff_precisions();
 }
 
 
@@ -332,6 +333,7 @@ sub test_cluster_analysis {
         "Cluster analyses using matrices of classes $class1 and $class2 are the same"
     );
 }
+
 
 sub create_matrix_object {
     my $class = shift // 'Biodiverse::Matrix';

@@ -45,12 +45,11 @@ sub new {
         ELEMENT_COLUMNS      => [1,2],  #  default columns in input file to define the names (eg genus,species).  Should not be used as a list here.
         PARAM_CHANGE_WARN    => undef,
         CACHE_MATRIX_AS_TREE => 1,
-        VAL_INDEX_PRECISION  => '%.2g',
+        VAL_INDEX_PRECISION  => '%.2g'
     );
 
-    $self->set_params (%PARAMS, @_);  #  load the defaults, with the rest of the args as params
+    $self->set_params (%PARAMS, %args);  #  load the defaults, with the rest of the args as params
     $self->set_default_params;  #  and any user overrides
-
     
     $self->{BYELEMENT} = undef;  #  values indexed by elements
     $self->{BYVALUE}   = undef;  #  elements indexed by value
@@ -890,7 +889,7 @@ sub get_element_pairs_with_value {
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
             my $value = $self->get_value (element1 => $el1, element2 => $el2);
-            next if $val ne $value;
+            next if $val ne $value;  #  implicitly uses %.15f precision
             $results{$el1}{$el2} ++;
         }
     }

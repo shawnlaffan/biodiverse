@@ -42,7 +42,7 @@ WriteMakefile(
         "Geo::ShapeFile" => "0",
         "List::MoreUtils" => "0",
         "Class::Inspector" => "0",
-        "autovivification" => "0",
+        "autovivification" => "0.11",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",

@@ -1,6 +1,7 @@
 package Biodiverse::BaseData;
 
 #  package containing methods to access and store a Biodiverse BaseData object
+use 5.010;
 
 use Carp;
 use strict;
@@ -1245,16 +1246,23 @@ sub rename_label {
     my $label = $args{label};
     my $new_name = $args{new_name};
 
-    my @sub_elements = $lb->rename_element (element => $label, new_name => $new_name);
-    foreach my $group (@sub_elements) {
-        $gp->rename_subelement (
-            element     => $group,
-            sub_element => $label,
-            new_name    => $new_name,
-        );
+    if ($lb->exists_element (element => $label)) {
+    
+        my @sub_elements = $lb->rename_element (element => $label, new_name => $new_name);
+        foreach my $group (@sub_elements) {
+            $gp->rename_subelement (
+                element     => $group,
+                sub_element => $label,
+                new_name    => $new_name,
+            );
+        }
+    
+        print "[BASEDATA] Renamed $label to $new_name\n";
+    
     }
-
-    print "[BASEDATA] Renamed $label to $new_name\n";
+    else {
+        say "Label $label does not exist, not renaming it";
+    }
 
     return;
 }

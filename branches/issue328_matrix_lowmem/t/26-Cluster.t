@@ -32,24 +32,30 @@ my @linkages = qw /
     link_average_unweighted
 /;
 
-#  do we get a stable cluster result?
-{
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    #  do we get a stable cluster result?
     run_linkages (delete_outputs => 1);
     run_linkages (delete_outputs => 0);
-}
 
-#  do we get a stable cluster result, but not using stored results?
-{
+    #  do we get a stable cluster result, but not using stored results?    
     run_linkages_and_check_replication (delete_outputs => 0);
+
+    #  what of differing matrix precisions?
+    run_linkages_and_check_mx_precision ();
+
+    run_same_results_given_same_prng_seed();
+
+    done_testing;
+    return 0;
 }
 
-#  what of differing matrix precisions?
-{
-    run_linkages_and_check_mx_precision ();
-}
 
 #  make sure we get the same result with the same prng across two runs
-{
+sub run_same_results_given_same_prng_seed {
     my $data = get_cluster_mini_data();
     my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
     
@@ -176,12 +182,12 @@ sub run_linkages_and_check_mx_precision {
         my $nwk2 = $cl2->to_newick;
 
         #  getting cache deletion issues - need to look into them before using this test
-        #ok (
-        #    $cl1->trees_are_same (
-        #        comparison     => $cl2,
-        #    ),
-        #    "Clustering using matrices with differing index precisions, linkage $linkage"
-        #);
+        ok (
+            $cl1->trees_are_same (
+                comparison => $cl2,
+            ),
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
 
         #  this test will likely have issues with v5.18 and hash randomisation
         is (
@@ -224,9 +230,6 @@ sub check_order_is_same_given_same_prng {
     is   ($newick1, $newick2, 'trees are the same');
     isnt ($newick1, $newick3, 'trees are not the same');
 }
-
-
-done_testing();
 
 
 ######################################

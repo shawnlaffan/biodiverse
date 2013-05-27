@@ -37,17 +37,27 @@ exit main( @ARGV );
 sub main {
     my @args  = @_;
 
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = __PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name );
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
     #  do we get a stable cluster result?
-    run_linkages (delete_outputs => 1);
-    run_linkages (delete_outputs => 0);
+    test_linkages_delete_outputs();
+    test_linkages_no_delete_outputs();
 
     #  do we get a stable cluster result, but not using stored results?    
-    run_linkages_and_check_replication (delete_outputs => 0);
+    test_linkages_and_check_replication();
 
     #  what of differing matrix precisions?
-    run_linkages_and_check_mx_precision ();
+    test_linkages_and_check_mx_precision ();
 
-    run_same_results_given_same_prng_seed();
+    test_same_results_given_same_prng_seed();
 
     done_testing;
     return 0;
@@ -55,7 +65,7 @@ sub main {
 
 
 #  make sure we get the same result with the same prng across two runs
-sub run_same_results_given_same_prng_seed {
+sub test_same_results_given_same_prng_seed {
     my $data = get_cluster_mini_data();
     my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
     
@@ -65,8 +75,15 @@ sub run_same_results_given_same_prng_seed {
     check_order_is_same_given_same_prng (basedata_ref => $site_bd);
 }
 
+sub test_linkages_delete_outputs {
+    test_linkages (delete_outputs => 1);
+}
 
-sub run_linkages {
+sub test_linkages_no_delete_outputs {
+    test_linkages (delete_outputs => 0);
+}
+
+sub test_linkages {
     my %args = @_;
 
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
@@ -107,8 +124,8 @@ sub run_linkages {
     }    
 }
 
-sub run_linkages_and_check_replication {
-    my %args = @_;
+sub test_linkages_and_check_replication {
+    my %args = (delete_outputs => 1, @_);
 
     my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
     my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
@@ -145,7 +162,7 @@ sub run_linkages_and_check_replication {
     }
 }
 
-sub run_linkages_and_check_mx_precision {
+sub test_linkages_and_check_mx_precision {
     #  make sure we get the same cluster result using different matrix precisions
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
     my $tie_breaker = 'random';

@@ -27,15 +27,12 @@ use Biodiverse::Config;
 #  don't buffer text output - output to screen as we go
 local $OUTPUT_AUTOFLUSH = 1;
 
-
 my $args_file = $ARGV[0];
 
 my %dist_args = parse_args_file ($args_file);
 
-
 print "\n\nStarting site pair process\n";
 
-#BdPD::GDM_Input_standard::generate_distance_table(%dist_args);
 generate_distance_table(%dist_args);
 
 print "\n Script finished.\n";

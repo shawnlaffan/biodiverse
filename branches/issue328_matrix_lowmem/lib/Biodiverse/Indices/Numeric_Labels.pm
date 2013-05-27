@@ -4,8 +4,9 @@
 package Biodiverse::Indices::Numeric_Labels;
 use strict;
 use warnings;
+use 5.010;
 
-use List::Util qw /sum/;
+use List::Util qw /sum min/;
 use List::MoreUtils qw /apply pairwise/;
 
 use Carp;
@@ -319,7 +320,7 @@ sub get_metadata_calc_numeric_label_dissimilarity {
                 ],
             },
             NUMD_VARIANCE   => {
-                description => 'Variance of the dissimilarity values, set 1 vs set 2.',
+                description => 'Variance of the dissimilarity values (mean squared deviation), set 1 vs set 2.',
                 cluster     => 1,
                 formula     => [
                     '= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}',
@@ -351,33 +352,86 @@ sub calc_numeric_label_dissimilarity {
 
     my $list1 = $args{label_hash1};
     my $list2 = $args{label_hash2};
-    #  make %$l1 the shorter, as it is used in the while loop
+
+    #  handle empty assemblages (neighbour sets)
+    if (! scalar keys %$list1 || ! scalar keys %$list2) {
+        my %results = (
+            NUMD_ABSMEAN  => undef,
+            NUMD_VARIANCE => undef,
+            NUMD_COUNT    => undef,
+        );
+        return wantarray ? %results : \%results;
+    }
+
+
+    #  make %$l1 the shorter, as it is used in the loop with more calculations
     if (scalar keys %$list1 > scalar keys %$list2) {  
         $list1 = $args{label_hash2};
         $list2 = $args{label_hash1};
     }
 
-    #  use copies in case the two refs are to the same hash
-    my %label_list1 = %$list1;
-    my %label_list2 = %$list2;
+    my ($sum_absX, $sumXsqr, $sum_wts) = (undef, undef, 0);
 
-    my ($sum_absX, $sumXsqr, $count) = (undef, undef, 0);
-    my @joint_count    = values %label_list2;
-    my $sum_joint_count = sum @joint_count;
+    my @val1_arr = sort {$a <=> $b} keys %$list1;
+    my @val2_arr = sort {$a <=> $b} keys %$list2;
 
-    BY_LABEL1:
-    while (my ($label1, $count1) = each %label_list1) {
+    # thanks to quadratics, we can avoid all the inner loops for the variance
+    my ($ssq_v2, $sum_v2, $sum_wt2, @cum_sum_arr, @cum_wt2_arr);
+    for my $val2 (@val2_arr) {
+        my $wt2  =  $list2->{$val2};
+        my $wtd_val = $val2 * $wt2;
+        $sum_v2  += $wtd_val;
+        $ssq_v2  += $val2 ** 2 * $wt2;
+        $sum_wt2 += $wt2;
+        push @cum_sum_arr, $sum_v2;
+        push @cum_wt2_arr, $sum_wt2;
+    }
+    my $val2_min  = $val2_arr[0];
+    my $val2_max  = $val2_arr[-1];
+    my $val2_mean = $sum_v2 / $sum_wt2;
 
-        my @abs_diff_list  = map { abs($_ - $label1) } keys %label_list2;
-        my @ssq_list       = map { $_ ** 2 } @abs_diff_list;
+    my $i = 0;
 
-        my @wtd_adiff_list = pairwise {$a * $b} @abs_diff_list, @joint_count;
-        my @wtd_ssq_list   = pairwise {$a * $b} @ssq_list, @joint_count;
-        #my @wtd_ssq_list   = pairwise {$a**2 * $b} @abs_diff_list, @joint_count;  #  map is faster than doing **2 in pairwise
+  BY_LABEL1:
+    foreach my $val1 (@val1_arr) {
+        my $wt1 = $list1->{$val1};
 
-        $sum_absX += $count1 * sum @wtd_adiff_list;
-        $sumXsqr  += $count1 * sum @wtd_ssq_list;
-        $count    += $count1 * $sum_joint_count;
+        ###  the variance code
+        $sumXsqr  += $wt1 * ($ssq_v2 - 2 * $val1 * $sum_v2 + $sum_wt2 * $val1**2);
+
+        ###  sum the wts
+        $sum_wts  += $wt1 * $sum_wt2;
+
+        ####  the mean diff code
+        #  if we are outside the bounds of @val2 then it is a one-sided comparison
+        if ($val1 < $val2_min || $val1 > $val2_max) {
+            my $diff = abs ($val1 - $val2_mean);
+            $sum_absX += $wt1 * $sum_wt2 * $diff;
+            next BY_LABEL1;
+        }
+
+        #  If we get here then it is two-sided, check above and below.  
+        #  First find out where we are in the sorted sequence.
+        my $j = min ($i, $#val2_arr);
+        for ($j .. $#val2_arr) {
+            if ($val1 < $val2_arr[$i]) {
+                $i--;  #  allow for non-ties
+                last;
+            }
+            last if $val1 == $val2_arr[$i];
+            $i++;            
+        }
+
+        #  now get the mean absolute difference above and below, and sum them
+        my $cum_sum_i = $cum_sum_arr[$i];
+        my $n_le = $cum_wt2_arr[$i];
+        my $n_gt = $sum_wt2 - $n_le;
+        my $mean_lt = $cum_sum_arr[$i] / ($n_le || 1);
+        my $mean_gt = ($sum_v2 - $cum_sum_i) / ($n_gt || 1);
+        my $diff_lt = abs ($val1 - $mean_lt) * $n_le;
+        my $diff_gt = abs ($val1 - $mean_gt) * $n_gt;
+
+        $sum_absX += $wt1 * ($diff_lt + $diff_gt);
     }
 
     my %results;
@@ -385,9 +439,9 @@ sub calc_numeric_label_dissimilarity {
         #  suppress these warnings within this block
         no warnings qw /uninitialized numeric/;
 
-        $results{NUMD_ABSMEAN}  = eval {$sum_absX / $count};
-        $results{NUMD_VARIANCE} = eval {$sumXsqr / $count};
-        $results{NUMD_COUNT}    = $count;
+        $results{NUMD_ABSMEAN}  = eval {$sum_absX / $sum_wts};
+        $results{NUMD_VARIANCE} = eval {$sumXsqr / $sum_wts};
+        $results{NUMD_COUNT}    = $sum_wts;
     }
 
     return wantarray ? %results : \%results;

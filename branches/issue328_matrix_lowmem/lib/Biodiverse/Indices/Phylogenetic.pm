@@ -1318,11 +1318,14 @@ sub _calc_phylo_mpd_mntd {
       || croak "Argument PHYLO_MPD_MNTD_MATRIX not defined\n";
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
     my $tree_ref   = $args{tree_ref};
-    #my $do_mpd    = $args{do_mpd};  #  are we doing MPD or MNTD?
     my $abc_num = $args{abc_num} || 1;
+    my $label_hashrefs_are_same = $label_hash1 eq $label_hash2;
 
-    my @labels1 = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash1;
-    my @labels2 = sort grep { exists $labels_on_tree->{$_} } keys %$label_hash2;
+    #  are we on the tree and have a non-zero count?
+    my @labels1 = sort grep { exists $labels_on_tree->{$_} && $label_hash1->{$_}} keys %$label_hash1;
+    my @labels2 = $label_hashrefs_are_same
+        ? @labels1
+        : sort grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} } keys %$label_hash2;
 
     my (@mpd_path_lengths, @mntd_path_lengths);
 
@@ -1330,11 +1333,7 @@ sub _calc_phylo_mpd_mntd {
     BY_LABEL:
     foreach my $label1 (@labels1) {
         my $label_count1 = $label_hash1->{$label1};
-        
-        #  save some calcs (if ever this happens)
-        next BY_LABEL if $label_count1 == 0;
 
-        #my $min;
         my @mpd_path_lengths_this_node;
         my @mntd_path_lengths_this_node;
         my $i = 0;
@@ -1346,7 +1345,6 @@ sub _calc_phylo_mpd_mntd {
             next LABEL2 if $label1 eq $label2;
 
             my $label_count2 = $label_hash2->{$label2};
-            next LABEL2 if $label_count2 == 0;
 
             my $path_length = $mx->get_value(
                 element1 => $label1,

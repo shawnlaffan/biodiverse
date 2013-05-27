@@ -83,16 +83,10 @@ use Exporter::Easy (
 #                   - optional - defaults to 0
 #                   eg 3
 #
-#   one_quota       - maximum proportion (range 0 to 1) of site pairs with a dissimilarity of one to be included.
-#                     Once the quota is reached only site pairs with a lower dissimilarity are included in the output
-#                   - optional - defaults to 1 (no quota)
-#                   eg 0.15
-#
 #   bins_count      - number of bins to divide the 0 to 1 dissimilarity range into. Each bin will have as its target
 #                     an equal proportion of the site pairs. 1 is treated as on of the classes.
 #                     So if bins = 4, the classes will be: 0 - 0.3333, 0.3333 - 0.6667, 0.6667 - 0.9999, 1
 #                     Each bin would have a quota of 0.25
-#                   - optional - overrides one_quota if used, so no point giving both.
 #                   eg 6
 #
 #   quota_dist_measure
@@ -106,12 +100,6 @@ use Exporter::Easy (
 #   dist_limit
 #                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple diagonal, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
-#
-#   oversample_ratio
-#                   - a multiplier to increase the total number of site pairs to sample, to find enough
-#                     pairs to meet the conditions specified by one_quota and bins.
-#                     may be estimated internally in the future
-#                   - optional - defaults to 1
 #
 #   sample_by_regions
 #                   - if 1 split sampling by regions, setting quotas for regions according to the parameter region_quota_strategy
@@ -229,22 +217,12 @@ sub generate_distance_table {
     
     ### SAMPLING PARAMETERS
     
-    if ($SPM->{bins_count} > 0) {
-        $SPM->set_param(one_quota => 0);
-    };
-    
     if ($SPM->{subset_for_testing} < 0 || $SPM->{subset_for_testing} >= 1) {
         $SPM->set_param(subset_for_testing => 0);
     }
     
     if ($SPM->{test_sample_ratio} <= 0) {
         $SPM->set_param(test_sample_ratio => 1);
-    }
-    
-    if ($SPM->{oversample_ratio} < 1) {
-        print "\nOversample ratio requested was ", $SPM->{oversample_ratio};
-        $SPM->set_param(oversample_ratio => 1);
-        print ", but was set to 1, the minimum valid value.";
     }
     
     my $measures = $args{dist_measure};
@@ -388,12 +366,6 @@ sub generate_distance_table {
                                bins_max_class => 1,
                                bins_sample_count => $SPM->{sample_count_current});
             my @bins_all = $SPM->make_bins("bins_all");
-            
-            if ($SPM->{bins_count} > 1) {
-                print "\nNumber dissimilarity of bins: $SPM->{bins_count}\n";
-                print "Oversample ratio to get enough samples to meet quotas: $SPM->{oversample_ratio}\n";
-            };
-            
     
             # get distance measure list as a text string
             my $dist_measure_text = q{};

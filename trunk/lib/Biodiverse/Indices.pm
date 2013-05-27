@@ -891,6 +891,22 @@ sub run_calculations {
     return wantarray ? %results : \%results;
 }
 
+#  Allow access to the pre_calc_global results.
+#  Local results are more problematic as they can be cleaned up by post_calc_locals.
+#  Or are they?  However, the fact remains that, at the moment, they are not stored anywhere.  
+sub get_results_from_pre_calc_global {
+    my $self = shift;
+    my %args = @_;
+    
+    no autovivification;
+    
+    my $results = $self->get_param ('AS_RESULTS_FROM_GLOBAL');
+    my $calc_results = $results->{$args{calculation}};
+    
+    return wantarray ? %$calc_results : $calc_results;
+}
+
+
 sub run_precalc_globals {
     my $self = shift;
     my %args = @_;

@@ -2,7 +2,7 @@
 #
 #  tests for both normal and lowmem matrices, where they overlap in methods
 
-require 5.010;
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -67,12 +67,12 @@ sub run_linkages {
     foreach my $linkage (@linkages) {
         my $cl = $bd->add_cluster_output (
             name => $linkage,
-            CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
+            #CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],  #  need to update expected values before using the tie breaker
             MATRIX_INDEX_PRECISION => undef,  #  use old default for now
         );
         $cl->run_analysis (
-            prng_seed => $default_prng_seed,
-            linkage   => $linkage,
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
         );
 
         my $comparison_tree = get_site_data_as_tree ($linkage);
@@ -81,6 +81,10 @@ sub run_linkages {
 
         my $are_same = $cl->trees_are_same (comparison => $comparison_tree);
         ok ($are_same, "Exact match using $linkage" . $suffix);
+
+        #say join "\n", ('======') x 4;
+        #say "=== $linkage " . $cl->to_newick;
+        #say join "\n", ('======') x 4;
 
         my $nodes_have_matching_terminals = $cl->trees_are_same (
             comparison     => $comparison_tree,
@@ -106,13 +110,13 @@ sub run_linkages_and_check_replication {
     foreach my $linkage (@linkages) {
         my $cl1 = $bd1->add_cluster_output (name => $linkage);
         $cl1->run_analysis (
-            prng_seed => $default_prng_seed,
-            linkage   => $linkage,
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
         );
         my $cl2 = $bd2->add_cluster_output (name => $linkage);
         $cl2->run_analysis (
-            prng_seed => $default_prng_seed,
-            linkage   => $linkage,
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
         );
 
         my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
@@ -138,6 +142,7 @@ sub run_linkages_and_check_replication {
 sub run_linkages_and_check_mx_precision {
     #  make sure we get the same cluster result using different matrix precisions
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tie_breaker = 'random';
 
     foreach my $linkage (@linkages) {
         my $prng_seed = 123456;
@@ -146,27 +151,27 @@ sub run_linkages_and_check_mx_precision {
         my $class1 = 'Biodiverse::Matrix';
         my $cl1 = $bd->add_cluster_output (
             name => "$class1 $linkage 1",
-            CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
+            CLUSTER_TIE_BREAKER => [$tie_breaker => 'max'],
             MATRIX_CLASS        => $class1,
         );
         $cl1->run_analysis (
-            prng_seed => $prng_seed,
-            linkage   => $linkage,
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
         );
         my $nwk1 = $cl1->to_newick;
-    
+
         #  make sure we build a new matrix
         $bd->delete_all_outputs();
-    
+
         my $cl2 = $bd->add_cluster_output (
             name => "$class1 $linkage 2",
-            CLUSTER_TIE_BREAKER    => [ENDW_WE => 'max'],
+            CLUSTER_TIE_BREAKER    => [$tie_breaker => 'max'],
             MATRIX_CLASS           => $class1,
             MATRIX_INDEX_PRECISION => undef,
         );
         $cl2->run_analysis (
-            prng_seed => $prng_seed,
-            linkage   => $linkage,
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
         );
         my $nwk2 = $cl2->to_newick;
 
@@ -184,6 +189,9 @@ sub run_linkages_and_check_mx_precision {
             $nwk2,
             "Clustering using matrices with differing index precisions, linkage $linkage"
         );
+        #print join "\n", ('======') x 4;
+        #say "$linkage $nwk1";
+        #print join "\n", ('======') x 4;
     }
 }
 

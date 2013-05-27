@@ -2,6 +2,7 @@ package Biodiverse::Tree;
 
 #  Package to build and store trees.
 #  includes clustering methods
+use 5.010;
 
 use Carp;
 use strict;
@@ -1409,28 +1410,31 @@ sub compare {
     use warnings FATAL => qw { numeric };
 
     my $comparison = $args{comparison}
-        || croak "Comparison not specified\n";
+      || croak "Comparison not specified\n";
+
+    my $track_matches  = !$args{no_track_matches};
+    my $terminals_only = $args{terminals_only};
+    my $comp_precision = $args{comp_precision} // '%.10f';
 
     my $result_list_pfx = $args{result_list_name};
+    if (!$track_matches) {  #  avoid some warnings lower down
+       $result_list_pfx //= q{};
+    }
+
     croak "Comparison list name not specified\n"
-        if ! defined $result_list_pfx;
+      if ! defined $result_list_pfx;
 
     my $result_data_list = $result_list_pfx . "_DATA";
-    #my $result_sp_list   = $result_list_pfx . "_SPATIAL";
     my $result_identical_node_length_list = $result_list_pfx . "_ID_LDIFFS";
-    #my %comparison_ops;
 
-    #my $progress = $args{progress};
-    #delete $args{progress};
     my $progress = Biodiverse::Progress->new();
-    my $progress_text = "Comparing "
-                        . $self->get_param ("NAME")
-                        . " with "
-                        . $comparison->get_param ("NAME")
-                        . "\n";
-    #if ($progress) {
-        $progress->update ($progress_text, 0);
-    #}
+    my $progress_text
+        = "Comparing "
+        . $self->get_param ("NAME")
+        . " with "
+        . $comparison->get_param ("NAME")
+        . "\n";
+    $progress->update ($progress_text, 0);
 
     print "[TREE] Comparing "
         . $self->get_param ('NAME')
@@ -1444,7 +1448,7 @@ sub compare {
     );
     my %base_list_indices;
 
-    if ($has_spatial_results) {
+    if ($track_matches && $has_spatial_results) {
 
         %base_list_indices = $self->find_list_indices_across_nodes;
         $base_list_indices{SPATIAL_RESULTS} = 'SPATIAL_RESULTS';
@@ -1469,12 +1473,10 @@ sub compare {
     my $i = 0;
     my $last_update = [gettimeofday];
 
+  BASE_NODE:
     foreach my $base_node ($self->get_node_refs) {
         $i++;
-        #if ($progress and tv_interval ($last_update)) {
-            $progress->update ($progress_text . "(node $i / $to_do)", $i / $to_do);
-            #$last_update = [gettimeofday];
-        #}
+        $progress->update ($progress_text . "(node $i / $to_do)", $i / $to_do);
 
         my %base_elements = $base_node->get_terminal_elements;
         my $base_node_name = $base_node->get_name;
@@ -1484,39 +1486,56 @@ sub compare {
         #  also need to get the spatial list from the most similar
         COMP:
         foreach my $compare_node_name (keys %compare_nodes) {
-            next if $found_perfect_match{$compare_node_name};
+            next if exists $found_perfect_match{$compare_node_name};
             my $sorenson = $done{$compare_node_name}{$base_node_name}
                         // $done{$base_node_name}{$compare_node_name};
 
             if (! defined $sorenson) { #  if still not defined then it needs to be calculated
-                my %comp_elements = $compare_nodes{$compare_node_name}->get_terminal_elements;
+                my %comp_elements  = $compare_nodes{$compare_node_name}->get_terminal_elements;
                 my %union_elements = (%comp_elements, %base_elements);
-                my $abc = scalar keys %union_elements;
-                my $a = (scalar keys %base_elements) + (scalar keys %comp_elements) - $abc;
+                my $abc =  scalar keys %union_elements;
+                my $a   = (scalar keys %base_elements) + (scalar keys %comp_elements) - $abc;
                 $sorenson = 1 - ((2 * $a) / ($a + $abc));
                 $done{$compare_node_name}{$base_node_name} = $sorenson;
             }
 
-            #warn "BC NOT DEFINED" if ! defined $bray_curtis;
             if ($sorenson <= $min_val) {
                 $min_val = $sorenson;
                 $most_similar_node = $compare_nodes{$compare_node_name};
                 carp $compare_node_name if ! defined $most_similar_node;
                 if ($sorenson == $min_poss_value) {
                     #  cannot be related to another node
-                    $found_perfect_match{$compare_node_name} ++;
+                    if ($terminals_only) {
+                        $found_perfect_match{$compare_node_name} = 1;
+                    }
+                    else {
+                        #  If its length is same then we have perfect match
+                        my $len_comp = $self->set_precision (
+                            value     => $compare_nodes{$compare_node_name}->get_length,
+                            precision => $comp_precision,
+                        );
+                        my $len_base = $self->set_precision (
+                            value     => $base_node->get_length,
+                            precision => $comp_precision,
+                        );
+                        if ($len_comp eq $len_base) {
+                            $found_perfect_match{$compare_node_name} = $len_base;
+                        }
+                    }
                     last COMP;
                 }
             }
             carp "$compare_node_name $sorenson $min_val"
                 if ! defined $most_similar_node;
         }
+        
+        next BASE_NODE if !$track_matches;
 
         $base_node->add_to_lists ($result_data_list => [$min_val]);
         my $stats = $stats_class->new;
 
         $stats->add_data ($base_node->get_list_ref (list => $result_data_list));
-        my $prev_stat = $base_node->get_list_ref (list => $result_list_pfx);
+        my $prev_stat   = $base_node->get_list_ref (list => $result_list_pfx);
         my %stats = (
             MEAN   => $stats->mean,
             SD     => $stats->standard_deviation,
@@ -1578,7 +1597,25 @@ sub compare {
 
     $self->set_last_update_time;
 
-    return 1;
+    return scalar keys %found_perfect_match;
+}
+
+sub trees_are_same {
+    my $self = shift;
+    my %args = @_;
+    
+    my $exact_match_count = $self->compare (%args, no_track_matches => 1);
+    
+    my $comparison = $args{comparison}
+        || croak "Comparison not specified\n";
+
+    my $node_count_self = $self->get_node_count;
+    my $node_count_comp = $comparison->get_node_count;
+    my $trees_match
+        = $node_count_self == $node_count_comp
+        && $exact_match_count == $node_count_self;
+    
+    return $trees_match;
 }
 
 #  trim a tree to remove nodes from a set of names, or those not in a set of names

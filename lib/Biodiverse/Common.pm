@@ -465,8 +465,10 @@ sub delete_cached_values {
     delete @{$self->{_cache}}{@$keys};
     delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
 
-    warn "Cache deletion problem\n$EVAL_ERROR\n"
-      if $EVAL_ERROR;
+    #  This was generating spurious warnings under test regime.
+    #  It should be unnecesary anyway.
+    #warn "Cache deletion problem\n$EVAL_ERROR\n"
+    #  if $EVAL_ERROR;
 
     warn "XXXXXXX "  . $self -> get_name . "\n" if exists $self->{_cache};
 

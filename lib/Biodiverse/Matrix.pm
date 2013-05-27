@@ -36,7 +36,7 @@ sub new {
 
 
     my %PARAMS = (
-        OUTPFX               =>  'BIODIVERSE',
+        OUTPFX               => 'BIODIVERSE',
         OUTSUFFIX            => 'bms',
         OUTSUFFIX_YAML       => 'bmy',
         TYPE                 => undef,
@@ -45,15 +45,15 @@ sub new {
         ELEMENT_COLUMNS      => [1,2],  #  default columns in input file to define the names (eg genus,species).  Should not be used as a list here.
         PARAM_CHANGE_WARN    => undef,
         CACHE_MATRIX_AS_TREE => 1,
+        VAL_INDEX_PRECISION  => '%.2g'
     );
-    
-    $self->set_params (%PARAMS, @_);  #  load the defaults, with the rest of the args as params
-    $self->set_default_params;  #  and any user overrides
 
+    $self->set_params (%PARAMS, %args);  #  load the defaults, with the rest of the args as params
+    $self->set_default_params;  #  and any user overrides
     
     $self->{BYELEMENT} = undef;  #  values indexed by elements
-    $self->{BYVALUE} = undef;    #  elements indexed by value
-    
+    $self->{BYVALUE}   = undef;  #  elements indexed by value
+
     $self->set_param (NAME => $args{name}) if defined $args{name};
 
     warn "[MATRIX] WARNING: Matrix name not specified\n"
@@ -103,6 +103,58 @@ sub clone {
     return $clone_ref;
 }
 
+sub delete_value_index {
+    my $self = shift;
+
+    undef $self->{BYVALUE};
+    delete $self->{BYVALUE};
+
+    return $self;
+}
+
+sub rebuild_value_index {
+    my $self = shift;
+    
+    #$self->delete_value_index;
+    $self->{BYVALUE} = {};
+    
+    my @elements = $self->get_elements_as_array;
+    
+    EL1:
+    foreach my $el1 (@elements) {
+        EL2:
+        foreach my $el2 (@elements) {
+            #  we want pairs in their stored order
+            next EL2
+              if 1 != $self->element_pair_exists(element1 => $el1, element2 => $el2);
+
+            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+
+            my $index_val = $self->get_value_index_key (value => $val);
+
+            $self->{BYVALUE}{$index_val}{$el1}{$el2}++;
+        }
+    }
+
+    return $self;
+}
+
+sub get_value_index_key {
+    my $self = shift;
+    my %args = @_;
+    
+    my $val = $args{value};
+    
+    my $index_val = $val;  #  should make this a method
+    if (!defined $index_val) {
+        $index_val = q{undef};
+    }
+    elsif (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
+        $index_val = sprintf $prec, $val;
+    }
+    
+    return $index_val;
+}
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
 sub describe {
@@ -561,19 +613,43 @@ END_MX_TOOLTIP
     return $tool_tip;
 }
 
+my $ludicrously_extreme_pos_val = 10 ** 20;
+my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
 sub get_min_value {  #  get the minimum similarity value
     my $self = shift;
-    #my @array = sort numerically keys %{$self->{BYVALUE}};
-    #return $array[0];
-    return min keys %{$self->{BYVALUE}};
+
+    my $val_hash = $self->{BYVALUE};    
+    my $min_key  = min keys %$val_hash;
+    my $min      = $ludicrously_extreme_pos_val;
+    
+    my $element_hash = $val_hash->{$min_key};
+    while (my ($el1, $hash_ref) = each %$element_hash) {
+        foreach my $el2 (keys %$hash_ref) {
+            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+            $min = min ($min, $val);
+        }
+    }
+
+    return $min;
 }
 
 sub get_max_value {  #  get the minimum similarity value
     my $self = shift;
-    #my @array = reverse sort numerically keys %{$self->{BYVALUE}};
-    #return $array[0];
-    return max keys %{$self->{BYVALUE}};
+
+    my $val_hash = $self->{BYVALUE};    
+    my $max_key  = max keys %$val_hash;
+    my $max      = $ludicrously_extreme_neg_val;
+
+    my $element_hash = $val_hash->{$max_key};
+    while (my ($el1, $hash_ref) = each %$element_hash) {
+        foreach my $el2 (keys %$hash_ref) {
+            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+            $max = max ($max, $val);
+        }
+    }
+
+    return $max;
 }
 
 #  crude summary stats.
@@ -642,27 +718,28 @@ sub add_element {  #  add an element pair to the object
 
     my $val = $args{value};
     if (! defined $val && ! $self->get_param('ALLOW_UNDEF')) {
-        warn "[Matrix] add_element Warning: Value not defined and ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
+        warn "[Matrix] add_element Warning: Value not defined and "
+            . "ALLOW_UNDEF not set, not adding row $element1 col $element2.\n";
         return;
     }
-    if (!defined $val) {
-        $val = q{undef};
-    }
 
-    $self->{BYELEMENT}{$element1}{$element2} = $args{value};
-    $self->{BYVALUE}{$val}{$element1}{$element2}++;
+    my $index_val = $self->get_value_index_key (value => $val);
+
+    $self->{BYELEMENT}{$element1}{$element2} = $val;
+    $self->{BYVALUE}{$index_val}{$element1}{$element2}++;
     $self->{ELEMENTS}{$element1}++;  #  cache the component elements to save searching through the other lists later
     $self->{ELEMENTS}{$element2}++;  #  also keeps a count of the elements
     
     return;
 }
 
-sub delete_element {  #  should be called delete_element_pair, but need to find where it's used first
+#  should be called delete_element_pair, but need to find where it's used first
+sub delete_element {
     my $self = shift;
     my %args = @_;
     croak "element1 or element2 not defined\n"
-        if ! defined $args{element1}
-            || ! defined $args{element2};
+        if   ! defined $args{element1}
+          || ! defined $args{element2};
 
     my $element1 = $args{element1};
     my $element2 = $args{element2};
@@ -695,14 +772,17 @@ sub delete_element {  #  should be called delete_element_pair, but need to find 
         defined (delete $self->{BYELEMENT}{$element1})
             || warn "ISSUES BYELEMENT $element1 $element2\n";
     }
-    delete $self->{BYVALUE}{$value}{$element1}{$element2}; # if exists $self->{BYVALUE}{$value}{$element1}{$element2};
-    if (scalar keys %{$self->{BYVALUE}{$value}{$element1}} == 0) {
+
+    my $index_val = $self->get_value_index_key (value => $value);
+
+    delete $self->{BYVALUE}{$index_val}{$element1}{$element2}; # if exists $self->{BYVALUE}{$value}{$element1}{$element2};
+    if (scalar keys %{$self->{BYVALUE}{$index_val}{$element1}} == 0) {
         #undef $self->{BYVALUE}{$value}{$element1};
-        delete $self->{BYVALUE}{$value}{$element1};
-        if (scalar keys %{$self->{BYVALUE}{$value}} == 0) {
+        delete $self->{BYVALUE}{$index_val}{$element1};
+        if (scalar keys %{$self->{BYVALUE}{$index_val}} == 0) {
             #undef $self->{BYVALUE}{$value};
-            defined (delete $self->{BYVALUE}{$value})
-                || warn "ISSUES BYVALUE $value $element1 $element2\n";
+            defined (delete $self->{BYVALUE}{$index_val})
+                || warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
         }
     }
     #  decrement the ELEMENTS counts, deleting entry if now zero, as there are no more entries with this element
@@ -750,8 +830,9 @@ sub get_elements {
 
 sub get_elements_as_array {
     my $self = shift;
-    return [keys %{$self->{ELEMENTS}}] if ! wantarray;
-    return (keys %{$self->{ELEMENTS}});
+    return wantarray
+        ? keys %{$self->{ELEMENTS}}
+        : [keys %{$self->{ELEMENTS}}];
 }
 
 sub get_element_count {
@@ -775,18 +856,45 @@ sub get_element_pair_count {
     return $count;
 }
 
-sub get_elements_with_value {  #  returns a hash of the elements with $value
+##  superceded by get_element_pairs_with_value - yes
+#sub get_elements_with_value {  #  returns a hash of the elements with $value
+#    my $self = shift;
+#    my %args = @_;
+#    
+#    croak "Value not specified in call to get_elements_with_value\n"
+#        if ! defined $args{value};
+#    
+#    my $value = $args{value};
+#
+#    return if ! exists $self->{BYVALUE}{$value};
+#    return $self->{BYVALUE}{$value} if ! wantarray;
+#    return %{$self->{BYVALUE}{$value}};
+#}
+
+sub get_element_pairs_with_value {
     my $self = shift;
     my %args = @_;
-    
-    croak "Value not specified in call to get_elements_with_value\n"
-        if ! defined $args{value};
-    
-    my $value = $args{value};
 
-    return if ! exists $self->{BYVALUE}{$value};
-    return $self->{BYVALUE}{$value} if ! wantarray;
-    return %{$self->{BYVALUE}{$value}};
+    my $val = $args{value};
+    my $val_key = $val;
+    if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
+        $val_key = sprintf $prec, $val;
+    }
+
+    my %results;
+
+    my $val_hash = $self->{BYVALUE};
+    my $element_hash = $val_hash->{$val_key};
+
+    while (my ($el1, $hash_ref) = each %$element_hash) {
+        foreach my $el2 (keys %$hash_ref) {
+            my $value = $self->get_value (element1 => $el1, element2 => $el2);
+            next if $val ne $value;  #  implicitly uses %.15f precision
+            $results{$el1}{$el2} ++;
+        }
+    }
+
+    return wantarray ? %results : \%results;    
 }
 
 sub get_element_values {  #  get all values associated with one element
@@ -795,8 +903,7 @@ sub get_element_values {  #  get all values associated with one element
     
     croak "element not specified (matrix)\n"  if ! defined $args{element};
     croak "matrix element does not exist\n" if ! $self->element_is_in_matrix (element => $args{element});
-    
-    
+
     my @elements = $self->get_elements_as_array;
     
     my %values;

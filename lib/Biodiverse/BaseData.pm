@@ -2818,7 +2818,7 @@ sub add_matrix_output {
         #  check is a bit underhanded, as it does not allow abstraction - clean up later if needed
         my $obj_class = blessed ($object);
         carp "[BASEDATA] Object is not of type $class"
-            if $class ne $obj_class;
+            if not $class =~ /^$class/;
 
         $name = $object->get_param('NAME');
 

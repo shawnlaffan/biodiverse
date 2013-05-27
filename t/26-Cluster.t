@@ -2,7 +2,7 @@
 #
 #  tests for both normal and lowmem matrices, where they overlap in methods
 
-require 5.010;
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -20,7 +20,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:basedata/;
+use Biodiverse::TestHelpers qw /:cluster/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
@@ -32,15 +32,40 @@ my @linkages = qw /
     link_average_unweighted
 /;
 
-#  do we get a stable cluster result?
-{
-    run_linkages (delete_outputs => 1);
-    run_linkages (delete_outputs => 0);
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    #  do we get a stable cluster result?
+    test_linkages_delete_outputs();
+    test_linkages_no_delete_outputs();
+
+    #  do we get a stable cluster result, but not using stored results?    
+    test_linkages_and_check_replication();
+
+    #  what of differing matrix precisions?
+    test_linkages_and_check_mx_precision ();
+
+    test_same_results_given_same_prng_seed();
+
+    done_testing;
+    return 0;
 }
 
 
 #  make sure we get the same result with the same prng across two runs
-{
+sub test_same_results_given_same_prng_seed {
     my $data = get_cluster_mini_data();
     my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
     
@@ -50,28 +75,149 @@ my @linkages = qw /
     check_order_is_same_given_same_prng (basedata_ref => $site_bd);
 }
 
+sub test_linkages_delete_outputs {
+    test_linkages (delete_outputs => 1);
+}
 
-sub run_linkages {
+sub test_linkages_no_delete_outputs {
+    test_linkages (delete_outputs => 0);
+}
+
+sub test_linkages {
     my %args = @_;
- 
+
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
     foreach my $linkage (@linkages) {
-        my $cl = $bd->add_cluster_output (name => $linkage);
-        $cl->run_analysis (
-            prng_seed => $default_prng_seed,
-            linkage   => $linkage,
+        my $cl = $bd->add_cluster_output (
+            name => $linkage,
+            #CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],  #  need to update expected values before using the tie breaker
+            MATRIX_INDEX_PRECISION => undef,  #  use old default for now
         );
-    
-        my $nwk = $cl->to_newick;
-        my $comp_nwk = get_site_data_newick_tree();
+        $cl->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+        );
 
-        is ($nwk, $comp_nwk, "Generated correct cluster tree using $linkage");
-        
+        my $comparison_tree = get_site_data_as_tree ($linkage);
+
+        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : ', recycled matrix';
+
+        my $are_same = $cl->trees_are_same (comparison => $comparison_tree);
+        ok ($are_same, "Exact match using $linkage" . $suffix);
+
+        #say join "\n", ('======') x 4;
+        #say "=== $linkage " . $cl->to_newick;
+        #say join "\n", ('======') x 4;
+
+        my $nodes_have_matching_terminals = $cl->trees_are_same (
+            comparison     => $comparison_tree,
+            terminals_only => 1,
+        );
+        ok (
+            $nodes_have_matching_terminals,
+            "Nodes have matching terminals using $linkage" . $suffix,
+        );
+
         if ($args{delete_outputs}) {
             $bd->delete_all_outputs;
         }
     }    
 }
+
+sub test_linkages_and_check_replication {
+    my %args = (delete_outputs => 1, @_);
+
+    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+
+    foreach my $linkage (@linkages) {
+        my $cl1 = $bd1->add_cluster_output (name => $linkage);
+        $cl1->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+        );
+        my $cl2 = $bd2->add_cluster_output (name => $linkage);
+        $cl2->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+        );
+
+        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
+        my $are_same = $cl1->trees_are_same (comparison => $cl2);
+        ok ($are_same, "Check Rep: Exact match using $linkage" . $suffix);
+
+        my $nodes_have_matching_terminals = $cl1->trees_are_same (
+            comparison     => $cl2,
+            terminals_only => 1,
+        );
+        ok (
+            $nodes_have_matching_terminals,
+            "Check Rep: Nodes have matching terminals using $linkage" . $suffix,
+        );
+
+        if ($args{delete_outputs}) {
+            $bd1->delete_all_outputs;
+            $bd2->delete_all_outputs;
+        }
+    }
+}
+
+sub test_linkages_and_check_mx_precision {
+    #  make sure we get the same cluster result using different matrix precisions
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tie_breaker = 'random';
+
+    foreach my $linkage (@linkages) {
+        my $prng_seed = 123456;
+        $bd->delete_all_outputs();
+
+        my $class1 = 'Biodiverse::Matrix';
+        my $cl1 = $bd->add_cluster_output (
+            name => "$class1 $linkage 1",
+            CLUSTER_TIE_BREAKER => [$tie_breaker => 'max'],
+            MATRIX_CLASS        => $class1,
+        );
+        $cl1->run_analysis (
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
+        );
+        my $nwk1 = $cl1->to_newick;
+
+        #  make sure we build a new matrix
+        $bd->delete_all_outputs();
+
+        my $cl2 = $bd->add_cluster_output (
+            name => "$class1 $linkage 2",
+            CLUSTER_TIE_BREAKER    => [$tie_breaker => 'max'],
+            MATRIX_CLASS           => $class1,
+            MATRIX_INDEX_PRECISION => undef,
+        );
+        $cl2->run_analysis (
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
+        );
+        my $nwk2 = $cl2->to_newick;
+
+        #  getting cache deletion issues - need to look into them before using this test
+        ok (
+            $cl1->trees_are_same (
+                comparison => $cl2,
+            ),
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
+
+        #  this test will likely have issues with v5.18 and hash randomisation
+        is (
+            $nwk1,
+            $nwk2,
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
+        #print join "\n", ('======') x 4;
+        #say "$linkage $nwk1";
+        #print join "\n", ('======') x 4;
+    }
+}
+
 
 #  need to add tie breaker
 sub check_order_is_same_given_same_prng {
@@ -103,19 +249,24 @@ sub check_order_is_same_given_same_prng {
 }
 
 
-done_testing();
-
-
 ######################################
 
-sub get_cluster_mini_data {
-    my $data = get_data_section('CLUSTER_MINI_DATA');
-    $data =~ s/(?<!\w)\n+\z//m;  #  clear trailing newlines
-    return $data;
-}
 
 sub get_cluster_mini_data_newick {
     return q{((('2.5:1.5':0,'3.5:1.5':0,'3.5:2.5':0)'3___':0.2,('1.5:1.5':0,'1.5:2.5':0,'2.5:2.5':0)'2___':0.2)'4___':0)'5___':0}
+}
+
+sub get_site_data_as_tree {
+    my $comp_nwk = get_site_data_newick_tree(@_);
+
+    my $read_nex = Biodiverse::ReadNexus->new();
+    my $success = eval {$read_nex->import_data (data => $comp_nwk)};
+    croak $@ if $@;
+
+    my $tree_arr = $read_nex->get_tree_array;
+    my $comparison_tree = $tree_arr->[0];
+
+    return $comparison_tree;
 }
 
 sub get_site_data_newick_tree {
@@ -136,24 +287,6 @@ sub get_site_data_newick_tree {
 1;
 
 __DATA__
-
-@@ CLUSTER_MINI_DATA
-label,x,y,samples
-a,1,1,1
-b,1,1,1
-c,1,1,1
-a,1,2,1
-b,1,2,1
-c,1,2,1
-a,2,1,1
-b,2,1,1
-a,2,2,1
-b,2,2,1
-c,2,2,1
-a,3,1,1
-b,3,1,1
-a,3,2,1
-b,3,2,1
 
 
 @@ SITE_DATA_NEWICK_TREE

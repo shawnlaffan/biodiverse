@@ -11,7 +11,7 @@ use Biodiverse::Progress;
 use List::Util qw /sum min/;
 use Math::BigInt;
 
-our $VERSION = '0.18_004';
+our $VERSION = '0.18_006';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';

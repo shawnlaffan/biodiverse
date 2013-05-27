@@ -11,7 +11,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 #use Time::HiRes qw /tv_interval gettimeofday/;
 
-our $VERSION = '0.18_004';
+our $VERSION = '0.18_006';
 
 use Biodiverse::SpatialParams;
 use Biodiverse::SpatialParams::DefQuery;

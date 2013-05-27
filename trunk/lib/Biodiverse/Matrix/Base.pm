@@ -3,7 +3,7 @@ use strict;
 use warnings;
 
 use Carp;
-use Scalar::Util qw /looks_like_number/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
@@ -12,6 +12,8 @@ our $VERSION = '0.18_004';
 use Biodiverse::Exception;
 
 my $EMPTY_STRING = q{};
+my $lowmem_class = 'Biodiverse::Matrix::LowMem';
+my $normal_class   = 'Biodiverse::Matrix';
 
 #  check if the matrix contains an element with any pair
 sub element_is_in_matrix { 
@@ -80,6 +82,12 @@ sub element_pair_exists {
         return 2 if exists $self->{BYELEMENT}{$element2}{$element1};
     }
     return 0;
+}
+
+#  pass-through method
+sub get_elements_with_value {
+    my $self = shift;
+    return $self->get_element_pairs_with_value (@_);
 }
 
 sub import_data {
@@ -267,6 +275,29 @@ sub load_data {
     }
 
     return;
+}
+
+#  convert to a Biodiverse::Matrix::LowMem object, if not one already
+sub to_lowmem {
+    my $self = shift;
+
+    return $self if blessed ($self) eq $lowmem_class;
+
+    $self->delete_value_index;
+    bless $self, $lowmem_class;
+
+    return $self;
+}
+
+sub to_normal {
+    my $self = shift;
+
+    return $self if blessed ($self) eq $normal_class;
+
+    bless $self, $normal_class;
+    $self->rebuild_value_index;
+
+    return $self;
 }
 
 sub numerically {$a <=> $b};

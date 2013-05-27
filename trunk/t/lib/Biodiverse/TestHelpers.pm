@@ -71,6 +71,16 @@ use Exporter::Easy (
         matrix => [
             qw(
                 get_matrix_object
+                get_matrix_object_from_sample_data
+                get_cluster_mini_data
+                :basedata
+                :utils
+            ),
+        ],
+        cluster => [
+            qw (
+                get_cluster_mini_data
+                :basedata
                 :utils
             ),
         ],
@@ -401,6 +411,11 @@ END_DATA
 
 }
 
+sub get_cluster_mini_data {
+    my $data = get_data_section('CLUSTER_MINI_DATA');
+    $data =~ s/(?<!\w)\n+\z//m;  #  clear trailing newlines
+    return $data;
+}
 
 sub get_tree_object {
     my $self = shift;
@@ -432,10 +447,12 @@ sub get_tree_object_from_sample_data {
 
 
 sub get_matrix_object_from_sample_data {
-    my $self = shift;
+    my $class = shift || 'Biodiverse::Matrix';
+    my %args  = @_;
 
-    my $matrix = Biodiverse::Matrix->new (
+    my $matrix = $class->new (
         NAME => 'Matrix for testing purposes',
+        %args,
     );
 
     my $file = write_data_to_temp_file(get_matrix_site_data());
@@ -445,6 +462,7 @@ sub get_matrix_object_from_sample_data {
     my $result = eval {
         $matrix->import_data (file => $file);
     };
+    croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $matrix;
 }
@@ -783,6 +801,24 @@ sub run_indices_test1_inner {
 1;
 
 __DATA__
+
+@@ CLUSTER_MINI_DATA
+label,x,y,samples
+a,1,1,1
+b,1,1,1
+c,1,1,1
+a,1,2,1
+b,1,2,1
+c,1,2,1
+a,2,1,1
+b,2,1,1
+a,2,2,1
+b,2,2,1
+c,2,2,1
+a,3,1,1
+b,3,1,1
+a,3,2,1
+b,3,2,1
 
 @@ NEWICK_TREE
 (((((((((((44:0.6,47:0.6):0.077662337662338,(18:0.578947368421053,58:0.578947368421053):0.098714969241285):0.106700478344225,31:0.784362816006563):0.05703610742759,(6:0.5,35:0.5):0.341398923434153):0.03299436960061,(((((1:0.434782608695652,52:0.434782608695652):0.051317777404734,57:0.486100386100386):0.11249075347436,22:0.598591139574746):0.0272381982058111,46:0.625829337780557):0.172696292660468,(7:0.454545454545455,9:0.454545454545455):0.34398017589557):0.075867662593738):0.057495084175743,((4:0,25:0):0.666666666666667,16:0.666666666666667):0.265221710543839):0.026396763298318,((0:0.789473684210526,12:0.789473684210526):0.111319966583125,(15:0.6,30:0.6):0.300793650793651):0.0574914897151729):0.020427284632173,48:0.978712425140997):0.00121523842637206,(24:0.25,55:0.25):0.729927663567369):0.00291112550535999,((((38:0.461538461538462,13:0.461538461538462):0.160310277957336,(50:0.166666666666667,59:0.166666666666667):0.455182072829131):0.075519681556834,32:0.697368421052632):0.258187134502923,2:0.955555555555555):0.027283233517174):0.00993044169650192,42:0.992769230769231):0;

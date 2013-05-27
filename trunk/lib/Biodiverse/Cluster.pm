@@ -41,8 +41,8 @@ our %PARAMS = (  #  most of these are not used
 );
 
 my $EMPTY_STRING = q{};
-my $mx_class        = 'Biodiverse::Matrix';
-my $mx_class_lowmem = 'Biodiverse::Matrix::LowMem';
+my $mx_class_default = 'Biodiverse::Matrix';
+my $mx_class_lowmem  = 'Biodiverse::Matrix::LowMem';
 
 
 #  use the "new" sub from Tree.
@@ -315,6 +315,13 @@ sub build_matrices {
 
     #  now we loop over the conditions and initialise the matrices
     #  kept separate from previous loop for cleaner default matrix generation
+    my $mx_class = $self->get_param('MATRIX_CLASS') // $mx_class_default;
+    my %mx_common_args = (BASEDATA_REF => $bd,);
+    if ($self->exists_param ('MATRIX_INDEX_PRECISION')) {  #  undef is OK, but must be explicitly set
+        my $mx_index_precision = $self->get_param('MATRIX_INDEX_PRECISION');
+        $mx_common_args{VAL_INDEX_PRECISION} = $mx_index_precision;
+    }
+
     my @matrices;
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
@@ -332,7 +339,7 @@ sub build_matrices {
         $matrices[$i] = $mx_class->new(
             JOIN_CHAR    => $bd->get_param('JOIN_CHAR'),
             NAME         => $mx_name,
-            BASEDATA_REF => $bd,
+            %mx_common_args,
         );
         $i ++;
     }
@@ -341,7 +348,7 @@ sub build_matrices {
     if (scalar @matrices > 1) {
         $shadow_matrix = $mx_class->new (
             name         => $name . '_SHADOW_MATRIX',
-            BASEDATA_REF => $bd,
+            %mx_common_args,
         );
     }
     $self->set_shadow_matrix (matrix => $shadow_matrix);

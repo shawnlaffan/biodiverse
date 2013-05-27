@@ -40,7 +40,7 @@ sub main {
     if (@args) {
         for my $name (@args) {
             die "No test method test_$name\n"
-                if not my $func = __PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name );
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
             $func->();
         }
         done_testing;

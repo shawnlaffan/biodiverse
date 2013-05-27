@@ -26,7 +26,7 @@ use Biodiverse::Progress;
 
 use Scalar::Util qw /blessed reftype/;
 
-our $VERSION = '0.18_004';
+our $VERSION = '0.18_006';
 
 #use List::Util;
 use POSIX qw /fmod ceil/;

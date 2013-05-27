@@ -21,7 +21,7 @@ use Path::Class;
 use POSIX qw /fmod/;
 use Time::localtime;
 
-our $VERSION = '0.18_004';
+our $VERSION = '0.18_006';
 
 #require Biodiverse::Config;
 #my $progress_update_interval = $Biodiverse::Config::progress_update_interval;

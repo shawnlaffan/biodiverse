@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.18_004';
+our $VERSION = '0.18_006';
 
 
 sub get_metadata_calc_endemism_central_normalised {

@@ -2,7 +2,7 @@
 #labels Featured
 #sidebar TOC
 
-= Version 0.18005 = 
+= Version 0.18006 = 
 
 This is a development version and has not yet been released.  
 
@@ -29,6 +29,8 @@ Main changes since previous version (0.17) are:
   *  Exports
     *  Delimited text exports now write directly to file, avoiding large memory usage.  Issue #350 
     *  All tree nodes can now be optionally exported when using the Table Grouped type.  Issue #312
+  *  Data structures
+    *  The matrices are now less memory hungry.  Previously matrices with many unique values would require large amounts of storage due to the value indexing used.  This was a particular problem for phylogenetic turnover measures.  Issue #328
 
 To see the full list of issues and changes in the 0.18x versions, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.18
 

@@ -282,7 +282,8 @@ sub set_legend_ltgt_flags {
     my $flag = 0;
     my $stat_name = ($self->{PLOT_STAT_MIN} || 'MIN');
     eval {
-        if ($stats->{$stat_name} != $stats->{MIN}
+        if (defined $stats->{$stat_name}
+            and $stats->{$stat_name} != $stats->{MIN}
             and $stat_name =~ /PCT/) {
             $flag = 1;
         }
@@ -291,7 +292,8 @@ sub set_legend_ltgt_flags {
     $flag = 0;
     $stat_name = ($self->{PLOT_STAT_MAX} || 'MAX');
     eval {
-        if ($stats->{$stat_name} != $stats->{MAX}
+        if (defined $stats->{$stat_name}
+            and $stats->{$stat_name} != $stats->{MAX}
             and $stat_name =~ /PCT/) {
             $flag = 1;
         }

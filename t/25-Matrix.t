@@ -75,7 +75,6 @@ foreach my $class (@classes) {
 
 {
     test_cluster_analysis();
-    test_cluster_analysis_diff_precisions();
 }
 
 

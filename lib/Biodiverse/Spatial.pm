@@ -704,8 +704,9 @@ sub get_nbrs_for_element {
                 #  if nbrs are always the same
                 elsif ($result_type eq 'always_same') {
                     my $tmp = $self->get_cached_value('NBRS_FROM_ALWAYS_SAME');
-                    if ($tmp) {
-                        $list = [keys %$tmp];
+                    if ($tmp && $tmp->[$i]) {
+                        my $nbrs = $tmp->[$i];
+                        $list = [keys %$nbrs];
                     }
                 }
 
@@ -719,8 +720,7 @@ sub get_nbrs_for_element {
                 else {    #  no nbr list thus far so go looking
 
                     #  don't use the index if there are no search blocks
-                    my $sp_index_i
-                      = defined $search_blocks_ref->[$i]
+                    my $sp_index_i = defined $search_blocks_ref->[$i]
                       ? $sp_index
                       : undef;
 
@@ -739,7 +739,13 @@ sub get_nbrs_for_element {
                             progress => $progr,
                         );
                         $progr = undef;
-                        $self->set_cached_value(NBRS_FROM_ALWAYS_SAME => $tmp);
+                        my $cached_arr = $self->get_cached_value('NBRS_FROM_ALWAYS_SAME');
+                        if (!$cached_arr) {
+                            $cached_arr = [];
+                            $self->set_cached_value(NBRS_FROM_ALWAYS_SAME => $cached_arr);
+                        }
+
+                        $cached_arr->[$i] = $tmp;
                         my %tmp2 = %$tmp;
                         delete @tmp2{@$exclude_list};
                         $nbr_list[$i] = [keys %tmp2];

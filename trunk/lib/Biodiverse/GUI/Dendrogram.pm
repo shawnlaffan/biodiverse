@@ -767,19 +767,11 @@ sub recolourClusterElements {
         my $cluster_node = $self->{element_to_cluster}{$elt};
 
         if ($cluster_node) {
-
-            #my $colour_ref = $cluster_node->get_cached_value('__gui_palette_colour');
             my $colour_ref = $self->{node_palette_colours}{$cluster_node -> get_name};
-            if ($colour_ref) {
-                #print "[palette_colour_func] $elt: $colour_ref\n";
-                return $colour_ref;
-            }
-            else {
-                return COLOUR_PALETTE_OVERFLOW;
-            }
+            return $colour_ref if $colour_ref
+            return COLOUR_PALETTE_OVERFLOW;
         }
         else {
-            #print "[palette_colour_func] $elt: no cluster\n";
             if (exists $terminal_elements->{$elt}) {
                 # in tree
                 return COLOUR_OUTSIDE_SELECTION;
@@ -875,10 +867,7 @@ sub recolourClusterLines {
     foreach my $node_ref (@$cluster_nodes) {
 
         if ($self->{cluster_colour_mode} eq 'palette') {
-
-            #$colour_ref = $node_ref->get_cached_value('__gui_palette_colour') || COLOUR_RED;
             $colour_ref = $self->{node_palette_colours}{$node_ref->get_name} || COLOUR_RED;
-
         }
         elsif ($self->{cluster_colour_mode} eq 'list-values') {
 
@@ -963,7 +952,6 @@ sub restoreLineColours {
         my $colour_ref;
         foreach my $node_ref (keys %{ $self->{recolour_nodes} }) {
 
-            #$colour_ref = $node_ref->get_cached_value('__gui_palette_colour');
             $colour_ref = $self->{node_palette_colours}{$node_ref->get_name};
             $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef -> we're clearing back to default
 
@@ -1651,10 +1639,7 @@ sub drawNode {
     my $length = &$length_func($node) * $length_scale;
     my $new_current_xpos = $current_xpos - $length;
     my $y = $node->get_value('_y') * $height_scale;
-    #my $colour_ref = $node->get_cached_value('__gui_colour') || DEFAULT_LINE_COLOUR;
     my $colour_ref = $self->{node_colours_cache}{$node -> get_name} || DEFAULT_LINE_COLOUR;
-
-    #print "[Dendrogram] new current length = $new_current_xpos\n";
 
     # Draw our horizontal line
     my $line = $self->drawLine($current_xpos, $y, $new_current_xpos, $y, $colour_ref);
@@ -1662,9 +1647,7 @@ sub drawNode {
     $line->{node} =  $node; # Remember the node (for hovering, etc...)
 
     # Remember line (for colouring, etc...)
-    #$self->{node_lines_cache}->{$node->get_name} = $line;
     $self->{node_lines}->{$node->get_name} = $line;
-    #$node->set_cached_value(__gui_line => $line);  #  don't cache glib stuff - serialisation causes crashes
 
     # Draw children
     my ($ymin, $ymax);

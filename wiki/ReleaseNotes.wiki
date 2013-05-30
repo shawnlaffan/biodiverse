@@ -19,7 +19,8 @@ Main changes since previous version (0.17) are:
     *  New calculation to obtain a list of the nodes not on the selected tree.  Issue #334
   *  Spatial conditions
     *  The sp_match_text() and sp_match_regex() conditions now match against the whole label by default.  Specifying the axis argument will make them behave as in previous releases.  Issue #325
-    *  New condition sp_select_element() which will match only one element (group).  This is the same as sp_match_text() but is optimisated to make it considerably faster (since it can only ever match one element).  Issue #326
+    *  New condition sp_select_element() which will match only one element (group).  This is the same as sp_match_text() but has been optimised to make it considerably faster since it can only ever match one element.  Issue #326
+    *  Analyses using point in polygon conditions for neighbour sets 1 & 2 now work correctly.  Previously no groups were identified in neighbour set 2.  Issue #380
   *  GUI
     *  Label and group properties can now be attached after the data are imported.  Issue #327
     *  Labels can be renamed after import.  Issue #349

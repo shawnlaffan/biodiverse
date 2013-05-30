@@ -768,7 +768,7 @@ sub recolourClusterElements {
 
         if ($cluster_node) {
             my $colour_ref = $self->{node_palette_colours}{$cluster_node -> get_name};
-            return $colour_ref if $colour_ref
+            return $colour_ref if $colour_ref;
             return COLOUR_PALETTE_OVERFLOW;
         }
         else {
@@ -891,8 +891,6 @@ sub recolourClusterLines {
         $self->{node_colours_cache}{$node_ref -> get_name} = $colour_ref;
         $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef -> we're clearing back to default
 
-        #$line = $node_ref->get_cached_value('__gui_line');
-        #$line = $self->{node_lines_cache}->{$node_ref->get_name};
         $line = $self->{node_lines}->{$node_ref->get_name};
         $line->set(fill_color_gdk => $colour_ref);
 

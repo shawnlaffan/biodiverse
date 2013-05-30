@@ -4,7 +4,7 @@
 
 = Version 0.18006 = 
 
-This is a development version and has not yet been released.  
+This is a development version, with periodic releases of test versions. 
 
 Main changes since previous version (0.17) are:
   *  Analyses

@@ -9,7 +9,9 @@ use Carp;
 use Biodiverse::Progress;
 
 use List::Util qw /sum min max/;
+use List::MoreUtils qw /pairwise any/;
 use Math::BigInt;
+use POSIX qw /floor/;
 
 our $VERSION = '0.18_006';
 
@@ -192,9 +194,9 @@ sub _calc_pd { #  calculate the phylogenetic diversity of the species in the cen
     my $self = shift;
     my %args = @_;
 
-    my $tree_ref = $args{tree_ref};
+    my $tree_ref   = $args{tree_ref};
     my $label_list = $args{PHYLO_LABELS_ON_TREE};
-    my $richness = scalar keys %$label_list;
+    my $richness   = scalar keys %$label_list;
 
     my $nodes_in_path = $self->get_path_lengths_to_root_node (
         @_,
@@ -519,14 +521,14 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
                 $gp_wts{$name}    = $wt;
                 $gp_ranges{$name} = $range;
             }
-            
+
             $results = {
                 PE_WE           => $gp_score,
                 wts             => \%gp_wts,
                 ranges          => \%gp_ranges,
                 nodes_in_path   => $nodes_in_path,
             };
-            
+
             $results_cache->{$group} = $results;
         }
 
@@ -547,7 +549,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         # unweighted weights are invariant
         $hash_ref = $results->{wts};
         @unweighted_wts{keys %$hash_ref} = values %$hash_ref;
-        
+
         # weights need to be summed
         foreach my $node (keys %$hash_ref) {
             $wts{$node} += $hash_ref->{$node};
@@ -1355,7 +1357,8 @@ sub _calc_phylo_mpd_mntd {
         ? @labels1
         : sort grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} } keys %$label_hash2;
 
-    my (@mpd_path_lengths, @mntd_path_lengths);
+    my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
+    my $use_wts = $abc_num != 1;
 
     #  Loop over all possible pairs, 
     BY_LABEL:
@@ -1364,6 +1367,7 @@ sub _calc_phylo_mpd_mntd {
 
         my @mpd_path_lengths_this_node;
         my @mntd_path_lengths_this_node;
+        my @mpd_wts_this_node;
         my $i = 0;
 
         LABEL2:
@@ -1401,17 +1405,24 @@ sub _calc_phylo_mpd_mntd {
                 );
             }
 
-            push @mpd_path_lengths_this_node, ($path_length) x $label_count2;
+            push @mpd_path_lengths_this_node, $path_length;
             push @mntd_path_lengths_this_node, $path_length;
+            if ($use_wts) {
+                push @mpd_wts_this_node, $label_count2;
+            }
 
             $i ++;
         }
 
         if ($i) {  #  only if we added something
             #  weighting scheme won't work with non-integer wts - need to use weighted stats
-            push @mpd_path_lengths, (@mpd_path_lengths_this_node) x $label_count1;
+            push @mpd_path_lengths, @mpd_path_lengths_this_node;
             my $min = min (@mntd_path_lengths_this_node);
-            push @mntd_path_lengths, ($min) x $label_count1;  
+            push @mntd_path_lengths, $min;
+            if ($use_wts) {
+                push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
+                push @mntd_wts, $label_count1;
+            }
         }
     }
 
@@ -1424,8 +1435,17 @@ sub _calc_phylo_mpd_mntd {
         $i++;
 
         my $pfx  = $pfxs[$i] . $abc_num;
-        my $n    = scalar @$path;
-        my $mean = eval {sum (@$path) / $n};
+        my ($mean, $n, $wts);
+
+        if ($use_wts) {
+            $wts  = $pfx =~ /^PMPD/ ? \@mpd_wts : \@mntd_wts;
+            $n    = sum @$wts;
+            $mean = eval {sum (pairwise {$a * $b} @$path, @$wts) / $n};
+        }
+        else {
+            $n    = scalar @$path;
+            $mean = eval {sum (@$path) / $n};;
+        }
 
         $results{$pfx . '_MEAN'} = $mean;
 
@@ -1435,11 +1455,16 @@ sub _calc_phylo_mpd_mntd {
         $results{$pfx . '_MIN'} = min @$path;
         $results{$pfx . '_MAX'} = max @$path;
 
-        my $sd;
-        my $sumsq = sum (map {$_ ** 2} @$path);
+        my ($sd, $sumsq);
+        $sumsq = $use_wts
+            ? sum (pairwise {$a ** 2 * $b} @$path, @$wts)
+            : sum (map {$_ ** 2} @$path);
+
         if ($n) {
             my $variance = $sumsq - $n * $mean ** 2;
-            $sd = $n > 1 ? eval {sqrt ($variance / ($n - 1))} : 0;
+            my $wts_are_integer = $use_wts ? !any {floor ($_) != $_} @$wts : 1;
+            #  and the variance correction factor
+            $sd = $wts_are_integer && $n > 1 ? eval {sqrt ($variance / ($n - 1))} : 0;
         }
         $results{$pfx . '_SD'}   = $sd;
     }

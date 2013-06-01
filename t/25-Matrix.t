@@ -2,7 +2,6 @@
 #
 #  tests for both normal and lowmem matrices, where they overlap in methods
 use 5.010;
-require 5.010;
 use strict;
 use warnings;
 

@@ -11,7 +11,7 @@ use Biodiverse::Progress;
 use List::Util qw /sum min max/;
 use List::MoreUtils qw /pairwise any/;
 use Math::BigInt;
-use POSIX qw /floor/;
+#use POSIX qw /floor/;
 
 our $VERSION = '0.18_006';
 
@@ -1159,8 +1159,8 @@ sub get_mpd_mntd_metadata {
         PNTD_MIN => {
             description    => 'Minimum of nearest taxon distances',
         },
-        PNTD_SD => {
-            description    => 'Standard deviation of nearest taxon distances',
+        PNTD_RMSD => {
+            description    => 'Root mean squared nearest taxon distances',
         },
         PNTD_N => {
             description    => 'Count of nearest taxon distances',
@@ -1174,8 +1174,8 @@ sub get_mpd_mntd_metadata {
         PMPD_MIN => {
             description    => 'Minimum of pairwise phylogenetic distances',
         },
-        PMPD_SD => {
-            description    => 'Standard deviation of pairwise phylogenetic distances',
+        PMPD_RMSD => {
+            description    => 'Root mean squared pairwise phylogenetic distances',
         },
         PMPD_N => {
             description    => 'Count of pairwise phylogenetic distances',
@@ -1455,18 +1455,14 @@ sub _calc_phylo_mpd_mntd {
         $results{$pfx . '_MIN'} = min @$path;
         $results{$pfx . '_MAX'} = max @$path;
 
-        my ($sd, $sumsq);
-        $sumsq = $use_wts
-            ? sum (pairwise {$a ** 2 * $b} @$path, @$wts)
-            : sum (map {$_ ** 2} @$path);
-
+        my $rmsd;
         if ($n) {
-            my $variance = $sumsq - $n * $mean ** 2;
-            my $wts_are_integer = $use_wts ? !any {floor ($_) != $_} @$wts : 1;
-            #  and the variance correction factor
-            $sd = $wts_are_integer && $n > 1 ? eval {sqrt ($variance / ($n - 1))} : 0;
+            my $sumsq = $use_wts
+                ? sum (pairwise {$a ** 2 * $b} @$path, @$wts)
+                : sum (map {$_ ** 2} @$path);
+            $rmsd = sqrt ($sumsq / $n);
         }
-        $results{$pfx . '_SD'}   = $sd;
+        $results{$pfx . '_RMSD'} = $rmsd;
     }
 
     return wantarray ? %results : \%results;

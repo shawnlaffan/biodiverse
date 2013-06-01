@@ -8,7 +8,7 @@ use English qw /-no_match_vars/;
 use Carp;
 use Biodiverse::Progress;
 
-use List::Util qw /sum min/;
+use List::Util qw /sum min max/;
 use Math::BigInt;
 
 our $VERSION = '0.18_006';
@@ -1285,7 +1285,7 @@ sub get_metadata_calc_phylo_mpd_mntd3 {
         description     => 'Distance stats from each label to the nearest label '
                          . 'along the tree.  Compares with '
                          . 'all other labels across both neighbour sets. '
-                         . 'Weighted by sample counts',
+                         . 'Weighted by sample counts (which currently must be integers)',
         name            => 'Phylogenetic and Nearest taxon distances, abundance weighted',
         %submeta,
     );
@@ -1307,6 +1307,28 @@ sub calc_phylo_mpd_mntd3 {
     return wantarray ? %results : \%results;
 }
 
+sub default_mpd_mntd_results {
+    my $self = shift;
+    my %args = @_;
+
+    my $abcnum = $args{abcnum} || 1;
+    
+    my $mpd_pfx  = 'MPD' . $abcnum;
+    my $mntd_pfx = 'NTD' . $abcnum;
+    my %results;
+    foreach my $pfx ($mpd_pfx, $mntd_pfx) {
+        $results{$pfx . '_SD'}   = undef;
+        $results{$pfx . '_N'}    = 0;
+        $results{$pfx . '_MIN'}  = undef;
+        $results{$pfx . '_MAX'}  = undef;
+        $results{$pfx . '_SUM'}  = undef;
+        $results{$pfx . '_MEAN'} = undef;
+    };
+    
+    return wantarray ? %results : \%results;
+}
+
+
 #  mean nearest taxon distance and mean phylogenetic distance
 sub _calc_phylo_mpd_mntd {
     my $self = shift;
@@ -1314,14 +1336,20 @@ sub _calc_phylo_mpd_mntd {
 
     my $label_hash1 = $args{label_hash1};
     my $label_hash2 = $args{label_hash2};
-    my $mx         = $args{PHYLO_MPD_MNTD_MATRIX}
+    my $mx          = $args{PHYLO_MPD_MNTD_MATRIX}
       || croak "Argument PHYLO_MPD_MNTD_MATRIX not defined\n";
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
-    my $tree_ref   = $args{tree_ref};
-    my $abc_num = $args{abc_num} || 1;
+    my $tree_ref       = $args{tree_ref};
+    my $abc_num        = $args{abc_num} || 1;
+    my $return_means_only       = $args{mpd_mntd_means_only};
     my $label_hashrefs_are_same = $label_hash1 eq $label_hash2;
+    
+    return $self->default_mpd_mntd_results (@_)
+        if $label_hashrefs_are_same
+           && scalar keys %$label_hash1 == 1;
 
-    #  are we on the tree and have a non-zero count?
+    #  Are we on the tree and have a non-zero count?
+    #  Could be a needless slowdown under permutations using only labels on the tree.
     my @labels1 = sort grep { exists $labels_on_tree->{$_} && $label_hash1->{$_}} keys %$label_hash1;
     my @labels2 = $label_hashrefs_are_same
         ? @labels1
@@ -1391,21 +1419,29 @@ sub _calc_phylo_mpd_mntd {
 
     my @paths = (\@mntd_path_lengths, \@mpd_path_lengths);
     my @pfxs  = qw /PNTD PMPD/;
-    my $i = 0;
+    my $i = -1;
     foreach my $path (@paths) {
-        #  allows us to generalise later on
-        my $stats = $stats_package->new();
-        $stats->add_data($path);
-        my $n = $stats->count;
-        my $pfx = $pfxs[$i] . $abc_num;
-
-        $results{$pfx . '_N'}    = $n;
-        $results{$pfx . '_MEAN'} = $stats->mean;
-        $results{$pfx . '_MIN'}  = $stats->min;
-        $results{$pfx . '_MAX'}  = $stats->max;
-        $results{$pfx . '_SD'}   = $stats->standard_deviation;
-    
         $i++;
+
+        my $pfx  = $pfxs[$i] . $abc_num;
+        my $n    = scalar @$path;
+        my $mean = eval {sum (@$path) / $n};
+
+        $results{$pfx . '_MEAN'} = $mean;
+
+        next if $return_means_only;
+
+        $results{$pfx . '_N'}   = $n;
+        $results{$pfx . '_MIN'} = min @$path;
+        $results{$pfx . '_MAX'} = max @$path;
+
+        my $sd;
+        my $sumsq = sum (map {$_ ** 2} @$path);
+        if ($n) {
+            my $variance = $sumsq - $n * $mean ** 2;
+            $sd = $n > 1 ? eval {sqrt ($variance / ($n - 1))} : 0;
+        }
+        $results{$pfx . '_SD'}   = $sd;
     }
 
     return wantarray ? %results : \%results;

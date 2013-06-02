@@ -12,6 +12,7 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 ==Publications using Biodiverse (or its ancestors)==
   (Publications are listed in reverse chronological order).  
 
+  *  Rosauer, D.F., Ferrier, S., Williams, K.J., Manion, G, Keogh, S & Laffan, S.W. (2013), Phylogenetic Generalised Dissimilarity Modelling: a new approach to analysing and predicting spatial turnover in the phylogenetic composition of communities.  [https://sites.google.com/site/danielrosauer/files/Rosauer%20et%20al%20Phylo%20GDM%20accepted.pdf?attredirects=0 Ecography, accepted 16May2013].
 
   *  Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (2013) Quantifying high resolution transitional breaks in plant and mammal distributions at regional extent and their association with climate, topography and geology.  [http://dx.doi.org/10.1371/journal.pone.0059227 PLoS ONE, 8, e59227].
 

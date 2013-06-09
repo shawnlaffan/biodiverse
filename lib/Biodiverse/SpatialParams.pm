@@ -14,7 +14,7 @@ use Math::Polygon;
 use Geo::ShapeFile;
 use Tree::R;
 use Biodiverse::Progress;
-use Scalar::Util qw /looks_like_number blessed/;
+use Scalar::Util qw /looks_like_number blessed reftype/;
 
 use base qw /Biodiverse::Common/;
 
@@ -678,6 +678,81 @@ sub evaluate {
         @_,
     );
 
+    my $code_ref = $self->get_conditions_code_ref (%args);
+    
+    return $self->$code_ref (%args);
+
+    ###  THIS IS ALL NOW IN get_conditions_code_ref()
+    ###  It is only left here in case we have serialisation issues with the
+    ###  code ref and need to reinstate it temporarily.
+
+    #my $conditions = $self->get_conditions;
+    #
+    ##  CHEATING... should use a generic means of getting at the caller object
+    #my $basedata = $args{basedata} || $args{caller_object}; 
+    #
+    #my %dists;
+    #
+    #my ( @d, @D, $D, $Dsqr, @c, @C, $C, $Csqr );
+    #
+    #if ( $args{calc_distances} ) {
+    #    %dists = eval { $self->get_distances(@_) };
+    #    croak $EVAL_ERROR if $EVAL_ERROR;
+    #
+    #    @d    = @{ $dists{d_list} };
+    #    @D    = @{ $dists{D_list} };
+    #    $D    = $dists{D};
+    #    $Dsqr = $dists{Dsqr};
+    #    @c    = @{ $dists{c_list} };
+    #    @C    = @{ $dists{C_list} };
+    #    $C    = $dists{C};
+    #    $Csqr = $dists{Csqr};
+    #
+    #    if ($self->get_param ('KEEP_LAST_DISTANCES')) {
+    #        $self -> set_param (LAST_DISTS => \%dists);
+    #    }
+    #}
+    #
+    #my $coord_id1 = $args{coord_id1};
+    #my $coord_id2 = $args{coord_id2};
+    #
+    #my @coord = @{ $args{coord_array1} };
+    #
+    ##  shorthands - most cases will be 2D
+    #my ( $x, $y, $z ) = ( $coord[0], $coord[1], $coord[2] );
+    #
+    #my @nbrcoord = $args{coord_array2} ? @{ $args{coord_array2} } : ();
+    #
+    ##  shorthands - most cases will be 2D
+    #my ( $nbr_x, $nbr_y, $nbr_z ) =
+    #  ( $nbrcoord[0], $nbrcoord[1], $nbrcoord[2] );
+    #
+    #$self->set_param( CURRENT_ARGS => peek_my(0) );
+    #
+    #my $result = eval $conditions;
+    #my $error  = $EVAL_ERROR;
+    #
+    ##  clear the args, avoid ref cycles
+    #$self->set_param( CURRENT_ARGS => undef );
+    #
+    #croak $error if $error;
+    #
+    #return $result;
+}
+
+#  get a subroutine reference based on the conditions
+sub get_conditions_code_ref {
+    my $self = shift;
+
+    my $code_ref = $self->{code_ref};
+    
+    return $code_ref if defined $code_ref && reftype ($code_ref) eq 'CODE';  #  need to check for valid code?
+
+    my $conditions_code = <<'END_OF_CONDITIONS_CODE'
+sub {
+    my $self = shift;
+    my %args = @_;
+    
     #  CHEATING... should use a generic means of getting at the caller object
     my $basedata = $args{basedata} || $args{caller_object}; 
 
@@ -719,9 +794,7 @@ sub evaluate {
 
     $self->set_param( CURRENT_ARGS => peek_my(0) );
 
-    my $conditions = $self->get_conditions;
-
-    my $result = eval $conditions;
+    my $result = eval { CONDITIONS_GO_HERE };
     my $error  = $EVAL_ERROR;
     
     #  clear the args, avoid ref cycles
@@ -730,6 +803,18 @@ sub evaluate {
     croak $error if $error;
 
     return $result;
+}
+END_OF_CONDITIONS_CODE
+      ;
+
+    my $conditions = $self->get_conditions;
+    $conditions_code =~ s/CONDITIONS_GO_HERE/$conditions/m;
+
+    $code_ref = eval $conditions_code;
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    $self->{code_ref} = $code_ref;
+    return $code_ref;
 }
 
 #  is the condition always true, always false or variable?

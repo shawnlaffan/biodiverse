@@ -3163,7 +3163,9 @@ sub get_neighbours {
 
         # If it has survived then it must be valid.
         #$valid_nbrs{$element2} = $spatial_params->get_param ('LAST_DISTS');  #  store the distances for possible later use
-        $valid_nbrs{$element2} = 1;  #  don't store the dists - serious memory issues for large files
+        #  Don't store the dists - serious memory issues for large files
+        #  But could store $success if we later want to support weighted calculations
+        $valid_nbrs{$element2} = 1;
     }
 
     if ($args{as_array}) {

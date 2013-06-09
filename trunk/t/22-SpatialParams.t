@@ -7,6 +7,7 @@ use English qw { -no_match_vars };
 use FindBin qw/$Bin/;
 
 use rlib;
+use Scalar::Util qw /looks_like_number/;
 
 #use Test::More tests => 255;
 use Test::More;
@@ -103,39 +104,61 @@ my @res_pairs = (
     },
 );
 
-plan tests =>  3 * @res_pairs * keys %conditions;
+exit main( @ARGV );
 
+sub main {
+    my @args  = @_;
 
-SKIP:
-{
-    while (my $cond = shift @res_pairs) {
-        my $res = $cond->{res};
-        my @x   = ($cond->{min_x}, $cond->{min_x} + 29);
-        my @y   = @x;
-        my $bd = get_basedata_object(
-            x_spacing  => $res->[0],
-            y_spacing  => $res->[1],
-            CELL_SIZES => $res,
-            x_max      => $x[1],
-            y_max      => $y[1],
-            x_min      => $x[0],
-            y_min      => $y[0],
-        );
-
-        #  should sub this - get centre_group or something
-        my $element_x = $res->[0] * (($x[0] + $x[1]) / 2) + $res->[0];
-        my $element_y = $res->[1] * (($y[0] + $y[1]) / 2) + $res->[1];
-        my $element = join ":", $element_x, $element_y;
-
-        run_tests (
-            basedata => $bd,
-            element  => $element,
-        );
+    if (@args) {
+        for my $res (@args) {
+            die "Res index $res is not numeric\n"
+                if not looks_like_number ($res);
+        }
+        diag 'Using res pair subset: ' . join ", ", @args;
+        @res_pairs = @res_pairs[@args];
     }
+    
+    plan tests =>  3 * @res_pairs * keys %conditions;
+
+    test_res_pairs(@res_pairs);
+    
+    #done_testing;
+    return 0;
 }
 
 
-#done_testing();
+
+sub test_res_pairs {
+    my @res_pairs = @_;
+
+    SKIP:
+    {
+        while (my $cond = shift @res_pairs) {
+            my $res = $cond->{res};
+            my @x   = ($cond->{min_x}, $cond->{min_x} + 29);
+            my @y   = @x;
+            my $bd = get_basedata_object(
+                x_spacing  => $res->[0],
+                y_spacing  => $res->[1],
+                CELL_SIZES => $res,
+                x_max      => $x[1],
+                y_max      => $y[1],
+                x_min      => $x[0],
+                y_min      => $y[0],
+            );
+    
+            #  should sub this - get centre_group or something
+            my $element_x = $res->[0] * (($x[0] + $x[1]) / 2) + $res->[0];
+            my $element_y = $res->[1] * (($y[0] + $y[1]) / 2) + $res->[1];
+            my $element = join ":", $element_x, $element_y;
+    
+            run_tests (
+                basedata => $bd,
+                element  => $element,
+            );
+        }
+    }
+}
 
 
 sub run_tests {

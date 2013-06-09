@@ -9,7 +9,7 @@ use English qw { -no_match_vars };
 use Data::Dumper;
 use Scalar::Util qw /weaken blessed/;
 use List::Util;
-#use Time::HiRes qw /tv_interval gettimeofday/;
+use Time::HiRes qw /time/;
 
 our $VERSION = '0.18_006';
 
@@ -627,7 +627,7 @@ sub sp_calc {
     my $lists = $self->get_lists_across_elements();
 
     my $time_taken = time - $start_time;
-    print "\n[SPATIAL] Analysis took $time_taken seconds.\n";
+    printf "\n[SPATIAL] Analysis took %.3f seconds.\n", $time_taken;
     $self->set_param (ANALYSIS_TIME_TAKEN => $time_taken);
 
     #  sometimes we crash out but the object still exists

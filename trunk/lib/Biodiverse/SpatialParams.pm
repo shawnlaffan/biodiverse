@@ -744,7 +744,7 @@ sub evaluate {
 sub get_conditions_code_ref {
     my $self = shift;
 
-    my $code_ref = $self->{code_ref};
+    my $code_ref = $self->get_cached_value ('CODE_REF');
     
     return $code_ref if defined $code_ref && reftype ($code_ref) eq 'CODE';  #  need to check for valid code?
 
@@ -813,8 +813,16 @@ END_OF_CONDITIONS_CODE
     $code_ref = eval $conditions_code;
     croak $EVAL_ERROR if $EVAL_ERROR;
 
-    $self->{code_ref} = $code_ref;
+    $self->set_cached_value (CODE_REF => $code_ref);
     return $code_ref;
+}
+
+#  Clear the code ref as Storable does not like such things unless
+#  its deparse is set to true, and we don't really want to save code refs
+sub clear_conditions_code_ref {
+    my $self = shift;
+    #$self->{code_ref} = undef;
+    return;
 }
 
 #  is the condition always true, always false or variable?

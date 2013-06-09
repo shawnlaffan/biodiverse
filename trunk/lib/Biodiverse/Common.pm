@@ -585,8 +585,8 @@ sub save_to_storable {
 
     print "[COMMON] WRITING TO FILE $file\n";
 
-    #local $Storable::Deparse = 1;  #  store code refs
-    $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
+    local $Storable::Deparse = 0;  #  for code refs
+    local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
     eval { nstore $self, $file };
     croak $EVAL_ERROR if $EVAL_ERROR;
 

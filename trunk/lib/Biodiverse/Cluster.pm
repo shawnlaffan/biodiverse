@@ -10,7 +10,7 @@ use English ( -no_match_vars );
 
 use Data::Dumper;
 use Scalar::Util qw/blessed/;
-use Time::HiRes qw /gettimeofday tv_interval/;
+use Time::HiRes qw /gettimeofday tv_interval time/;
 use List::Util qw /first reduce/;
 use List::MoreUtils qw /any natatime/;
 
@@ -149,7 +149,7 @@ sub process_spatial_conditions_and_def_query {
     my $self = shift;
     my %args = @_;
     
-        #  we work with any number of spatial conditions, but default to consider everything
+    #  we work with any number of spatial conditions, but default to consider everything
     if (! defined $args{spatial_conditions}) {
         $args{spatial_conditions} = ['sp_select_all ()'];
     }
@@ -510,7 +510,7 @@ sub build_matrices {
     $indices_object->set_param(BUILDING_MATRIX => 0);  #  turn off this flag
     
     my $time_taken = time - $start_time;
-    print "[CLUSTER] Matrix build took $time_taken seconds.\n";
+    printf "[CLUSTER] Matrix build took %.3f seconds.\n", $time_taken;
     $self->set_param (ANALYSIS_TIME_TAKEN_MATRIX => $time_taken);
     $self->set_param (COMPLETED_MATRIX => 1);
 
@@ -1454,9 +1454,11 @@ sub cluster {
     }
 
     $self->add_matrices_to_basedata;
+    
+    $self->clear_spatial_condition_caches;
 
     my $time_taken = time - $start_time;
-    print "[CLUSTER] Analysis took $time_taken seconds.\n";
+    printf '[CLUSTER] Analysis took %.3f seconds.\n', $time_taken;
     $self->set_param (ANALYSIS_TIME_TAKEN => $time_taken);
     $self->set_param (COMPLETED => 1);
 

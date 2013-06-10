@@ -622,6 +622,7 @@ sub sp_calc {
     my %post_calc_globals = $indices_object->run_postcalc_globals (%args);
 
     $self->clear_spatial_condition_caches;
+    $self->clear_spatial_index_csv_object;
 
     #  this will cache as well
     my $lists = $self->get_lists_across_elements();
@@ -1100,7 +1101,6 @@ sub get_groups_that_pass_def_query {
 
     my $pass_count = scalar keys %$passed;
     print "$pass_count groups passed the definition query\n";
-
 
     return wantarray ? %$passed : $passed;
 }

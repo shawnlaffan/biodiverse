@@ -1474,6 +1474,7 @@ sub cluster {
     $self->add_matrices_to_basedata;
     
     $self->clear_spatial_condition_caches;  #  could this go into the matrix building phase?
+    $self->clear_spatial_index_csv_object;
 
     my $time_taken = time - $start_time;
     printf "[CLUSTER] Analysis took %.3f seconds.\n", $time_taken;

@@ -457,7 +457,7 @@ sub load_data {
     $self->set_param (groups_ref => $bd->get_groups_ref);
     
     my $indices = Biodiverse::Indices->new (BASEDATA_REF => $self->{bd});
-    $indices -> set_param (BUILDING_MATRIX => 1);
+    $indices->set_pairwise_mode (1);
     $self->{indices} = $indices;
 };
 

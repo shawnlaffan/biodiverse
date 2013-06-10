@@ -950,6 +950,21 @@ sub run_postcalc_globals {
     );
 }
 
+sub set_pairwise_mode {
+    my ($self, $mode) = @_;
+    
+    $self->{pairwise_mode} = $mode;
+    
+    return $mode;
+}
+
+sub get_pairwise_mode {
+    my $self = shift;
+
+    return $self->{pairwise_mode};
+}
+
+
 
 1;
 

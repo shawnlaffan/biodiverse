@@ -137,7 +137,6 @@ use Exporter::Easy (
 #                       means that the frequency with which each site is sampled in the test site pairs is greater.
 #                   - optional - defaults to 1
 #
-#
 #   OUTPUT PARAMETERS
 #
 #   regions

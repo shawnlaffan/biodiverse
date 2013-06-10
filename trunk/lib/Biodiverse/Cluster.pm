@@ -824,6 +824,23 @@ sub set_matrix_ref {
     return;
 }
 
+#  special handling to avoid cloning their basedata refs
+sub clone_matrices {
+    my $self = shift;
+    my %args = @_;
+
+    my $matrices = $args{matrices} || $self->get_matrices_ref;
+
+    my @cloned_matrices;
+    
+    foreach my $mx (@$matrices) {
+        push @cloned_matrices, $mx->clone;
+    }
+    
+    return wantarray ? @cloned_matrices : \@cloned_matrices;
+}
+
+
 sub set_shadow_matrix {
     my $self = shift;
     my %args = @_;
@@ -1349,7 +1366,8 @@ sub cluster {
     
                 my $clone = eval {$self->get_shadow_matrix->clone};
                 $self->set_param (ORIGINAL_SHADOW_MATRIX => $clone);
-                my $original_matrices = $self->clone (data => \@matrices);
+                #my $original_matrices = $self->clone (data => \@matrices);
+                my $original_matrices = $self->clone_matrices (matrices => \@matrices);
                 $self->set_param (ORIGINAL_MATRICES => $original_matrices);
         
                 print "[CLUSTER] Done\n";
@@ -1455,7 +1473,7 @@ sub cluster {
 
     $self->add_matrices_to_basedata;
     
-    $self->clear_spatial_condition_caches;
+    $self->clear_spatial_condition_caches;  #  could this go into the matrix building phase?
 
     my $time_taken = time - $start_time;
     printf "[CLUSTER] Analysis took %.3f seconds.\n", $time_taken;

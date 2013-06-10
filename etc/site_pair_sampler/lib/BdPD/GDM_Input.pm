@@ -771,51 +771,6 @@ sub do_sampling {
                     $valid_sample=1;
                     $sampled_pairs{$pair_name1} = 1;
                 }
-   
-                ## Keep track of how many times each site has been used and remove it from the list
-                ## if no more samples should be taken from it.  By default this is if all pairs
-                ## including this site have been sampled, but could be set at a lower proportion
-                #if (exists $sampled_sites{$group1}) {
-                #    $site_use_count = $sampled_sites{$group1} = $sampled_sites{$group1} + 1;
-                #    if ($site_use_count > $max_use1 and $groupcount1 > 2) {  #delete fully sampled groups, but don't remove all groups
-                #        print "\nSite $group1 sampled $site_use_count.  Fully sampled\n";
-                #        @grouplist1 = grep ! /$group1/, @grouplist1;  # delete a group from group list 1
-                #        $groupcount1 --;
-                #        if ($same_sites) {
-                #            @grouplist2 = @grouplist1;  # for a within region sample, this ensures that only half the matrix is sampled
-                #            $groupcount2 = $groupcount1;
-                #        }
-                #    } else {
-                #        $sampled_sites{$group1} = $site_use_count;
-                #    }
-                #} else {
-                #    $sampled_sites{$group1} = 1;
-                #}
-                #
-                ## now the same for group2, except that if both sites are drawn from the same list ($same_sites is true), then
-                ## actions are applied to grouplist1
-                #if (exists $sampled_sites{$group2}) {
-                #    $site_use_count = $sampled_sites{$group2} + 1;
-                #    if ($same_sites) {
-                #        if ($site_use_count > $max_use1 and $groupcount2 > 2) {  #delete fully sampled groups, but don't remove all groups
-                #            print "\nSite $group2 sampled $site_use_count.  Fully sampled\n";                           
-                #            @grouplist1 = grep ! /$group2/, @grouplist1;  # delete a group from group list 1
-                #            $groupcount1 --;
-                #            
-                #        } else {
-                #            $sampled_sites{$group2} = $site_use_count;
-                #        }
-                #    } else {
-                #        if ($site_use_count > $max_use2 and $groupcount2 > 1) {  #delete fully sampled groups, but don't remove all groups
-                #            @grouplist2 = grep ! /$group2/, @grouplist2;  # delete a group from group list 2
-                #            $groupcount2 --;
-                #        } else {
-                #            $sampled_sites{$group2} = $site_use_count;
-                #        }
-                #    }
-                #} else {
-                #    $sampled_sites{$group2} = 1;
-                #}
             }
 
             # now we have a valid sample - add it to the sample list

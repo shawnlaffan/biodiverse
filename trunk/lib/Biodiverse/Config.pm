@@ -73,6 +73,7 @@ sub add_lib_paths {
 sub use_base {
     my $file = shift;
     my $use_envt_var;
+
     if (!defined $file) {
         if (exists $ENV{BIODIVERSE_EXTENSIONS}
             && ! $ENV{BIODIVERSE_EXTENSIONS_IGNORE}) {
@@ -87,6 +88,7 @@ sub use_base {
     my %check_packages;
 
     print "[USE_BASE] Checking and loading user modules";
+
     my $x;
     if (-e $file) {
         print " from file $file\n";
@@ -107,26 +109,22 @@ sub use_base {
     elsif ($use_envt_var) {
         warn "Loading extensions directly from environment variable is deprecated\n";
         warn "Nothing loaded\n";
-        #print " directly from environment variable\n";
-        #$x = eval "$ENV{BIODIVERSE_EXTENSIONS}";
-        #warn $EVAL_ERROR if $EVAL_ERROR;;
     }
-    #if ($EVAL_ERROR) {
-    #    warn "[USE_BASE] Problems with environment variable BIODIVERSE_EXTENSIONS - check the filename or syntax\n";
-    #    warn $EVAL_ERROR;
-    #    warn "$ENV{BIODIVERSE_EXTENSIONS}\n";
-    #    return;
-    #}
+
     @check_packages{keys %$x} = values %$x if (ref $x) =~ /HASH/;
 
     foreach my $package (keys %check_packages) {
         my @packs = @{$check_packages{$package}};
         my $pack_list = join (q{ }, @packs);
-        my $cmd = "package $package;\n"
-                . "use base qw/$pack_list/;";
-        print "$cmd\n";
-        eval $cmd;
-        warn $EVAL_ERROR if $EVAL_ERROR;
+
+        print "$package inherits from $pack_list\n";
+
+        foreach my $pk (@packs) {
+            my $cmd = "package $package;\n"
+                    . "use base qw/$pk/;";
+            eval $cmd;
+            warn $EVAL_ERROR if $EVAL_ERROR;
+        }
     }
 
     return;

@@ -274,13 +274,13 @@ sub get_path_lengths_to_root_node {
     #$cache = 0;  #  turn it off for debug
     
     #  have we cached it?
-    my $use_path_cache = $cache && $self->get_param('BUILDING_MATRIX');
+    my $use_path_cache = $cache && $self->get_pairwise_mode();
     if ($use_path_cache) {
         my $cache   = $args{path_length_cache};
         my @el_list = keys %{$args{el_list}};
         if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element
             my $path = $cache->{$el_list[0]};
-            return (wantarray ? %$path : $path) if ($path);
+            return (wantarray ? %$path : $path) if $path;
         }
         else {
             $use_path_cache = undef;  #  skip caching below
@@ -1343,6 +1343,7 @@ sub _calc_phylo_mpd_mntd {
     my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
     my $tree_ref       = $args{tree_ref};
     my $abc_num        = $args{abc_num} || 1;
+    my $use_wts        = $abc_num == 1 ? $args{mpd_mntd_use_wts} : 1;
     my $return_means_only       = $args{mpd_mntd_means_only};
     my $label_hashrefs_are_same = $label_hash1 eq $label_hash2;
     
@@ -1358,7 +1359,6 @@ sub _calc_phylo_mpd_mntd {
         : sort grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} } keys %$label_hash2;
 
     my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
-    my $use_wts = $abc_num != 1;
 
     #  Loop over all possible pairs, 
     BY_LABEL:

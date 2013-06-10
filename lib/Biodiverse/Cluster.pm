@@ -219,9 +219,9 @@ sub get_indices_object_for_matrix_and_clustering {
 
     $indices_object = Biodiverse::Indices->new(
         BASEDATA_REF    => $bd,
-        BUILDING_MATRIX => 1,
         NAME            => 'Indices for ' . $self->get_param ('NAME'),
     );
+    $indices_object->set_pairwise_mode (1);
     $self->set_param (INDICES_OBJECT => $indices_object);
 
     #  not sure why we are setting this here  - OK now?  was in build_matrices
@@ -506,8 +506,8 @@ sub build_matrices {
     if (defined $linkage_function and not $linkage_function =~ /recalculate/) {
         $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => undef);
     }
-    
-    $indices_object->set_param(BUILDING_MATRIX => 0);  #  turn off this flag
+
+    $indices_object->set_pairwise_mode (0);    #  turn off this flag
     
     my $time_taken = time - $start_time;
     printf "[CLUSTER] Matrix build took %.3f seconds.\n", $time_taken;
@@ -1458,7 +1458,7 @@ sub cluster {
     $self->clear_spatial_condition_caches;
 
     my $time_taken = time - $start_time;
-    printf '[CLUSTER] Analysis took %.3f seconds.\n', $time_taken;
+    printf "[CLUSTER] Analysis took %.3f seconds.\n", $time_taken;
     $self->set_param (ANALYSIS_TIME_TAKEN => $time_taken);
     $self->set_param (COMPLETED => 1);
 

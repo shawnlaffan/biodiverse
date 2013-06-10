@@ -2398,21 +2398,21 @@ sub build_spatial_index {  #  builds GROUPS, not LABELS
     return;
 }
 
-sub delete_spatial_index {
-    my $self = shift;
-    
-    my $name = $self->get_param ('NAME');
-
-    if ($self->get_param ('SPATIAL_INDEX')) {
-        print "[Basedata] Deleting spatial index from $name\n";
-        $self->delete_param('SPATIAL_INDEX');
-        return 1;
-    }
-
-    print "[Basedata] Unable to delete a spatial index that does not exist\n";
-
-    return;
-}
+#sub delete_spatial_index {
+#    my $self = shift;
+#    
+#    my $name = $self->get_param ('NAME');
+#
+#    if ($self->get_param ('SPATIAL_INDEX')) {
+#        print "[Basedata] Deleting spatial index from $name\n";
+#        $self->delete_param('SPATIAL_INDEX');
+#        return 1;
+#    }
+#
+#    #print "[Basedata] Unable to delete a spatial index that does not exist\n";
+#
+#    return;
+#}
 
 sub rebuild_spatial_index {
     my $self = shift;

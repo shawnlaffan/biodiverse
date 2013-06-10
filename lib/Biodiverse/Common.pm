@@ -426,6 +426,36 @@ sub set_default_params {
     return;
 }
 
+sub delete_spatial_index {
+    my $self = shift;
+    
+    my $name = $self->get_param ('NAME');
+
+    if ($self->get_param ('SPATIAL_INDEX')) {
+        my $class = blessed $self;
+        print "[$class] Deleting spatial index from $name\n";
+        $self->delete_param('SPATIAL_INDEX');
+        return 1;
+    }
+
+    return;
+}
+
+#  Text::CSV_XS seems to have cache problems that borks Clone::clone and YAML::Syck::to_yaml
+sub clear_spatial_index_csv_object {
+    my $self = shift;
+    
+    my $name = $self->get_param ('NAME');
+
+    if (my $sp_index = $self->get_param ('SPATIAL_INDEX')) {
+        $sp_index->delete_param('CSV_OBJECT');
+        return 1;
+    }
+
+    return;
+}
+
+
 #  set any value - allows user specified additions to the core stuff
 sub set_cached_value {
     my $self = shift;
@@ -488,6 +518,7 @@ sub clear_spatial_condition_caches {
         my $def_query = $self->get_param('DEFINITION_QUERY');
         $def_query->delete_cached_values (keys => $args{keys})
     };
+
     return;
 }
 

@@ -25,7 +25,7 @@
 # Sampling
   dist_measure            sorenson
   dist_measure            geographic 
-  sample_count            25000
+  sample_count            100000
   min_group_richness      5
   min_group_samples       5
   quota_dist_measure      geographic

@@ -10,6 +10,7 @@
 
 #  If the nexus file has multiple trees, multiple results files are generated.
 
+use 5.010;
 use strict;
 use warnings;
 use Carp;  #  warnings and dropouts
@@ -18,6 +19,17 @@ use English qw { -no_match_vars };
 #  add the lib folder if needed
 use rlib;
 use lib '../../../lib';  #  until we move the site pair sampler to the main bin/lib folders
+
+#  need this for the pp build to work
+if ($ENV{BDV_PP_BUILDING}) {
+    use FindBin qw ( $Bin );
+    say 'Building pp file';
+    use File::BOM qw / :subs /;          #  we need File::BOM.
+    open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
+      or croak "Cannot open $Bin via File::BOM\n";
+    $fh->close;
+    exit ;
+}
 
 use BdPD::GenerateDistanceTable qw /:all/;
 

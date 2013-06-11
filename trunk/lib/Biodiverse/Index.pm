@@ -21,53 +21,35 @@ use strict;
 use warnings;
 use Carp;
 use English qw / -no_match_vars /;
+use POSIX qw /fmod ceil/;
+use Scalar::Util qw /blessed reftype/;
 
 use Biodiverse::Progress;
 
-use Scalar::Util qw /blessed reftype/;
-
 our $VERSION = '0.18_006';
 
-#use List::Util;
-use POSIX qw /fmod ceil/;
-
-#use base qw /Biodiverse::BaseData/;  #  CHEATING MOST HEINOUSLY WITH THE BASEDATA USE - need to put all distance stuff into spatialparams.pm
-#use base qw /Sirca::Utilities/;
 use base qw /Biodiverse::Common/;
-
-#our %PARAMS = (JOIN_CHAR => ":",
-#               QUOTES => "'"
-#               );
 
 
 sub new {
     my $class = shift;
-
     my %args = @_;
-    #my %uc_args;
-    #foreach my $key (keys %args) {  #  upper case them
-    #    $uc_args{uc($key)} = $args{$key};
-    #}
-    
-    #my $self = {};
+
     my $self = bless {}, $class;
 
     my %PARAMS = (
         JOIN_CHAR => q{:},
         QUOTES    => q{'},
     );
-    $self -> set_param (%PARAMS);  #  set the defaults
-    
-    my $csv_object = $self -> get_csv_object (
-        sep_char   => $self -> get_param ('JOIN_CHAR'),
-        quote_char => $self -> get_param ('QUOTES'),
+    $self->set_param (%PARAMS);  #  set the defaults
+
+    my $csv_object = $self->get_csv_object (
+        sep_char   => $self->get_param ('JOIN_CHAR'),
+        quote_char => $self->get_param ('QUOTES'),
     );
-    $self -> set_param (CSV_OBJECT => $csv_object);
-    
-    #my $parent = $self -> get_param ('PARENT') || confess "parent not specified\n";
-    #$self -> weaken_param ('PARENT');  #  must weaken this
-    
-    $self -> build (@_);
+    $self->set_cached_value (CSV_OBJECT => $csv_object);
+
+    $self->build (@_);
 
     return $self;
 }
@@ -76,33 +58,33 @@ sub new {
 sub build {
     my $self = shift;
     my %args = @_;
-    
+
     #  what is the index resolution to be?
     my $resolutions = $args{resolutions} || croak "Index 'resolutions' not specified\n";
     my @resolutions = @$resolutions;
     foreach my $i (0 .. $#resolutions) {
         $resolutions[$i] = 0 if $resolutions[$i] < 0;  #  no negatives
     }
-    
-    print "[INDEX] Building index for resolution ", join (",", @resolutions), "\n";
-    
-    $self -> set_param (RESOLUTIONS => \@resolutions);
-    
+
+    print "[INDEX] Building index for resolution ", join (',', @resolutions), "\n";
+
+    $self->set_param (RESOLUTIONS => \@resolutions);
+
     #  this should be a ref to a hash with all the element IDs as keys and their coord arrays as values
     my $element_hash = $args{element_hash} || croak "Argument element_hash not specified\n";
 
     #  are we dealing with blessed objects or just coord array refs?  
-    my @keys = keys %$element_hash;  #  will blow up if not a hash ref
+    my @keys    = keys %$element_hash;  #  will blow up if not a hash ref
     my $blessed = blessed $element_hash->{$keys[0]};
 
     #  get the bounds and the list of unique element columns
     my (%count, %bounds, %ihash);
-    
+
     #  get the coord bounds
     foreach my $element (@keys) {
 
         my $coord_array     #  will blow up if no such method
-            = eval {$element_hash->{$element} -> get_coord_array}  
+            = eval {$element_hash->{$element}->get_coord_array}  
             || $element_hash->{$element};
 
         foreach my $i (0 .. $#resolutions) {
@@ -118,13 +100,17 @@ sub build {
                 $bounds{min}[$i] = $coord_array->[$i];
             }
             else {
-                $bounds{max}[$i] = $coord_array->[$i] if $coord_array->[$i] > $bounds{max}[$i];
-                $bounds{min}[$i] = $coord_array->[$i] if $coord_array->[$i] < $bounds{min}[$i];
+                if ($coord_array->[$i] > $bounds{max}[$i]) {
+                    $bounds{max}[$i] = $coord_array->[$i];
+                }
+                if ($coord_array->[$i] < $bounds{min}[$i]) {
+                    $bounds{min}[$i] = $coord_array->[$i];
+                }
             }
         }
-        
+
         #  and now we allocate this elements to the index hash
-        my $index_key = $self -> snap_to_index (element_array => $coord_array);
+        my $index_key = $self->snap_to_index (element_array => $coord_array);
         $self->{ELEMENTS}{$index_key}{$element} = $coord_array;
     }    
     
@@ -142,8 +128,8 @@ sub build {
         }
     }
 
-    $self -> set_param(MAXIMA => \@maxima);
-    $self -> set_param(MINIMA => \@minima);
+    $self->set_param(MAXIMA => \@maxima);
+    $self->set_param(MINIMA => \@minima);
 
     print "[INDEX] Index bounds are: Max=[", join (", ", @maxima), "], Min=[", join (", ", @minima), "]\n";
 
@@ -158,7 +144,7 @@ sub snap_to_index {
     (ref ($element_array)) =~ /ARRAY/ || croak "element_array is not an array ref\n";
 
     my @columns = @$element_array;
-    my @index_res = @{$self -> get_param('RESOLUTIONS')};
+    my @index_res = @{$self->get_param('RESOLUTIONS')};
 
     my @index;
     foreach my $i (0 .. $#columns) {
@@ -177,18 +163,19 @@ sub snap_to_index {
         return wantarray ? @index : \@index;
     }
 
-    my $csv_object = $self -> get_param ('CSV_OBJECT');
+    my $csv_object = $self->get_cached_value ('CSV_OBJECT');
     #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
     if (not defined $csv_object) {
-        my $sep = $self -> get_param('JOIN_CHAR');
-        my $quotes = $self -> get_param('QUOTES');
-        $csv_object = $self -> get_csv_object (
+        my $sep     = $self->get_param('JOIN_CHAR');
+        my $quotes  = $self->get_param('QUOTES');
+        $csv_object = $self->get_csv_object (
             sep_char   => $sep,
             quote_char => $quotes
         );
+        $self->set_cached_value (CSV_OBJECT => $csv_object);
     }
 
-    my $index_key = $self -> list2csv (list => \@index, csv_object => $csv_object);
+    my $index_key = $self->list2csv (list => \@index, csv_object => $csv_object);
 
     return wantarray ? (index => $index_key) : $index_key;
 }
@@ -199,7 +186,7 @@ sub delete_from_index {
 
     my $element = $args{element};
 
-    my $index_key = $self -> snap_to_index (@_);
+    my $index_key = $self->snap_to_index (@_);
 
     return if ! exists $self->{$index_key};
 
@@ -240,7 +227,7 @@ sub get_index_elements {
 
     if (defined $offset) {  #  we have been given an index element with an offset, so return the elements from the offset
 
-        my $csv_object = $self->get_param ('CSV_OBJECT');
+        my $csv_object = $self->get_cached_value ('CSV_OBJECT');
         #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
         if (!defined $csv_object || !exists $csv_object->{quote_binary}) {  #  second condition is dirty and underhanded
             my $sep = $self->get_param('JOIN_CHAR');
@@ -249,7 +236,7 @@ sub get_index_elements {
                 sep_char   => $sep,
                 quote_char => $quotes,
             );
-            $self->set_param (CSV_OBJECT => $csv_object);
+            $self->set_cached_value (CSV_OBJECT => $csv_object);
         }
 
         my $reftype_el = reftype $element // q{};
@@ -291,7 +278,7 @@ sub round_up_to_resolution {
     my $self = shift;
     my %args = @_;
     
-    my $resolutions = $self -> get_param('RESOLUTIONS');
+    my $resolutions = $self->get_param('RESOLUTIONS');
     
     my $values = $args{values};
     #  if not an array then make it one
@@ -333,30 +320,29 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     #  Derive the full parameter set.  We may not need it, but just in case...
     #  (and it doesn't take overly long)
     #  should add it as an argument
-    
+
     my $spatial_params = $args{spatial_params};
     my $conditions = $spatial_params->get_conditions_unparsed();
-    $self -> update_log (text => "[INDEX] PREDICTING SPATIAL INDEX NEIGHBOURS\n$conditions\n");
-    
+    $self->update_log (text => "[INDEX] PREDICTING SPATIAL INDEX NEIGHBOURS\n$conditions\n");
 
-    my $csv_object = $self -> get_param ('CSV_OBJECT');
+    my $csv_object = $self->get_cached_value ('CSV_OBJECT');
     #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
     if (not defined $csv_object) {
-        my $sep = $self -> get_param('JOIN_CHAR');
-        my $quotes = $self -> get_param('QUOTES');
-        $csv_object = $self -> get_csv_object (
-            sep_char => $sep,
+        my $sep     = $self->get_param('JOIN_CHAR');
+        my $quotes  = $self->get_param('QUOTES');
+        $csv_object = $self->get_csv_object (
+            sep_char   => $sep,
             quote_char => $quotes
         );
+        $self->set_cached_value (CSV_OBJECT => $csv_object);
     }
 
-    
-    my $index_resolutions = $self -> get_param('RESOLUTIONS');
-    my $minima = $self -> get_param('MINIMA');
-    my $maxima = $self -> get_param('MAXIMA');
+    my $index_resolutions = $self->get_param('RESOLUTIONS');
+    my $minima    = $self->get_param('MINIMA');
+    my $maxima    = $self->get_param('MAXIMA');
     my $cellsizes = $args{cellsizes};  #  needs to be passed if used
     my $poss_elements_ref;
-    
+
     #  get the decimal precision of the index resolution (we get floating point to string problems lower down)
     #  also generate an array of the index ranges
     my @ranges;
@@ -367,14 +353,14 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         my $decimal_len = length (defined $2 ? $2 : q{});
         $index_res_precision[$i] = "%.$decimal_len" . "f";  #  count the numbers at the end after the decimal place
     }
-    
+
     my $subset_search_offsets;
     my $use_subset_search = $args{index_use_subset_search};
-    my $using_cell_units = undef;
-    my $subset_dist = $args{index_search_dist};
+    my $using_cell_units  = undef;
+    my $subset_dist       = $args{index_search_dist};
     #  insert a shortcut for no neighbours
-    if ($spatial_params -> get_result_type eq 'self_only') {
-        my $offsets = $self -> list2csv (
+    if ($spatial_params->get_result_type eq 'self_only') {
+        my $offsets = $self->list2csv (
             list       => [0 x scalar @$index_resolutions],  #  all zeroes
             csv_object => $csv_object,
         );
@@ -383,11 +369,11 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
 
-    #elsif (my $i_dist = $spatial_params -> get_index_max_dist) {
-    if (my $i_dist = $spatial_params -> get_index_max_dist) {
+    #elsif (my $i_dist = $spatial_params->get_index_max_dist) {
+    if (my $i_dist = $spatial_params->get_index_max_dist) {
         print "[INDEX] Max search dist is $i_dist - using shortcut\n";
         $use_subset_search = 1;
-        my $max_off = $self -> round_up_to_resolution (values => $i_dist);
+        my $max_off = $self->round_up_to_resolution (values => $i_dist);
         my $min_off = [];
         foreach my $i (0 .. $#$max_off) {
             #  snap to range of data - avoids crashes
@@ -398,7 +384,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             # minima will be the negated max, so we can get ranges like -2..2.
             $min_off->[$i] = -1 * $max_off->[$i];
         }
-        my $offsets = $self -> get_poss_elements (
+        my $offsets = $self->get_poss_elements (
             minima      => $min_off,
             maxima      => $max_off,
             resolutions => $index_resolutions,
@@ -408,26 +394,23 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         @offsets{@$offsets} = @$offsets;
         return wantarray ? %offsets : \%offsets;
     }
-    
-    
+
     #  Build all possible index elements by default, as not all will exist for non-square data sets (most data sets)
-    $poss_elements_ref = $self -> get_poss_elements (
+    $poss_elements_ref = $self->get_poss_elements (
         minima      => $minima,
         maxima      => $maxima,
         resolutions => $index_resolutions,
         precision   => \@index_res_precision,
     );
 
-
     #  generate the extrema
-    my $extreme_elements_ref = $self -> get_poss_elements (
+    my $extreme_elements_ref = $self->get_poss_elements (
         minima      => $minima,
         maxima      => $maxima,
         resolutions => \@ranges,
         precision   => \@index_res_precision,
     );
-    
-    
+
     #  now we grab the first order neighbours around each of the extrema
     #  these will be used to check the index offsets
     #  (neighbours are needed to ensure we get all possible values)
@@ -437,11 +420,11 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my $total_elements_to_search;
     my $corner_case_count = 0;
     foreach my $element (@$extreme_elements_ref) {
-        my $element_array = $self -> csv2list (
+        my $element_array = $self->csv2list (
             string     => $element,
             csv_object => $csv_object,
         );
-        my $nbrsRef = $self -> get_surrounding_elements (
+        my $nbrsRef = $self->get_surrounding_elements (
             coord       => $element_array,
             resolutions => $index_resolutions,
             precision   => \@index_res_precision,
@@ -453,7 +436,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         if ($use_subset_search) {  #  only want to search a few nearby index cells
             #  do we want to go up or down?
             my @target;
-            
+
             my $i = 0;
             foreach my $axis (@$element_array) {
                 
@@ -465,8 +448,8 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 }
                 $i++;
             }
-            
-            my $x = $self -> get_poss_elements (
+
+            my $x = $self->get_poss_elements (
                 minima => $element_array,
                 maxima => \@target,
                 resolutions => $index_resolutions,
@@ -477,11 +460,11 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         else {
             $index_elements_to_search{$element} = $poss_elements_ref;
         }
-        
+
         $total_elements_to_search += scalar @$nbrsRef;
         $corner_case_count ++;
     }
-  
+
     #  loop through each permutation of the index resolutions, dropping those
     #    that cannot fit into our neighbourhood
     #  this allows us to define an offset distance to search in the up and down directions
@@ -492,18 +475,18 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my %valid_index_offsets;
     my %offsets_checked;
     my (@min_offset, @max_offset);
-    
+
     my $progress_bar = Biodiverse::Progress->new();
     my $to_do = $total_elements_to_search;
-    my $resolutions_text = join (q{ }, @{$self -> get_param ('RESOLUTIONS')});
+    my $resolutions_text = join (q{ }, @{$self->get_param ('RESOLUTIONS')});
     my ($count, $printedProgress) = (0, -1);
     my %index_element_arrays;  #  keep a cache of the arrays to save converting them
     print "[INDEX] Case of $to_do: ";
-    
+
     foreach my $extreme_element (keys %element_search_list) {  #  loop over the corner cases
-        
+
         my $extreme_ref = $element_search_arrays{$extreme_element};
-        
+
         #  loop over the 3x3 nbrs of the extreme element
         foreach my $check_element (@{$element_search_list{$extreme_element}}) {  
             my $check_ref;
@@ -511,7 +494,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 $check_ref = $index_element_arrays{$check_element};
             }
             else {
-                $check_ref = $self -> csv2list(
+                $check_ref = $self->csv2list(
                     string     => $check_element,
                     csv_object => $csv_object,
                 );
@@ -520,15 +503,12 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
 
             #  update progress to GUI
             $count ++;
-            #print "$count ";
-            #if ($progress_bar) {
-                my $progress = int (100 * $count / $to_do);
-                my $p_text =   "$progress_text_pfx\n"
-                             . "Predicting index offsets based on $corner_case_count corner cases " 
-                             . "and their first order nbrs\n(index resolution: $resolutions_text)\n"
-                             . ($count / $to_do);
-                $progress_bar -> update ($p_text, $progress / 100) ;
-            #}
+            my $progress = int (100 * $count / $to_do);
+            my $p_text =   "$progress_text_pfx\n"
+                         . "Predicting index offsets based on $corner_case_count corner cases " 
+                         . "and their first order nbrs\n(index resolution: $resolutions_text)\n"
+                         . ($count / $to_do);
+            $progress_bar->update ($p_text, $progress / 100) ;
 
             COMPARE: foreach my $element (@{$index_elements_to_search{$extreme_element}}) {
                 #  evaluate current check element against the search nbrs for their related extreme element
@@ -555,26 +535,24 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                     #push @list, sprintf ($index_res_precision[$i], $element_ref->[$i] - $extreme_ref->[$i]) + 0;
                     push @list,
                         0
-                        + $self -> set_precision (
+                        + $self->set_precision (
                             precision => $index_res_precision[$i],
                             value     => $element_ref->[$i] - $extreme_ref->[$i],
                         );
                 }
-                my $offsets = $self -> list2csv (
+                my $offsets = $self->list2csv (
                     list        => \@list,
                     csv_object  => $csv_object,
                 );
-                
+
                 $offsets_checked{$offsets} ++;
-                
+
                 #  skip it if it's already passed
                 next if exists $valid_index_offsets{$offsets};
-                
+
                 #  might want to also check if it has already been checked and failed?
                 #  No - there might be cases where it fails for one origin, but not for others
 
-                #my $pass = 0;
-                #next COMPARE if ! eval ($conditions);
                 next COMPARE
                     if not $spatial_params->evaluate (
                         coord_array1 => $check_ref,
@@ -592,15 +570,12 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     #print Data::Dumper::Dumper (\@min_offset);
     #print Data::Dumper::Dumper (\@max_offset);
     print "\nDone\n";
-    
+
     return wantarray ? %valid_index_offsets : \%valid_index_offsets;
 }
 
-
-#sub numerically {$a <=> $b};
 sub min {$_[0] < $_[1] ? $_[0] : $_[1]};
 sub max {$_[0] > $_[1] ? $_[0] : $_[1]};
-
 
 1;
 

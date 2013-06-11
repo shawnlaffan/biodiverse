@@ -446,13 +446,15 @@ sub clear_spatial_index_csv_object {
     my $self = shift;
     
     my $name = $self->get_param ('NAME');
+    my $cleared;
 
     if (my $sp_index = $self->get_param ('SPATIAL_INDEX')) {
         $sp_index->delete_param('CSV_OBJECT');
-        return 1;
+        $sp_index->delete_cached_values (keys => ['CSV_OBJECT']);
+        $cleared = 1;
     }
 
-    return;
+    return $cleared;
 }
 
 

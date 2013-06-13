@@ -278,10 +278,11 @@ sub sp_calc {
     #  this is for the GUI
     $self->set_param (CALCULATIONS_REQUESTED => $args{calculations});
     #  save the args, but override the calcs so we only store the valid ones
+    my $valid_calcs = scalar $indices_object->get_valid_calculations_to_run;
     $self->set_param (
         SP_CALC_ARGS => {
             %args,
-            calculations => scalar $indices_object->get_valid_calculations_to_run,
+            calculations => [keys %$valid_calcs],
         }
     );
 
@@ -617,7 +618,7 @@ sub sp_calc {
     }  #  end BY_ELEMENT
 
     $progress->reset;
-    
+
     #  run any global post_calcs
     my %post_calc_globals = $indices_object->run_postcalc_globals (%args);
 

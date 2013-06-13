@@ -13,6 +13,8 @@ package Biodiverse::GUI::Tabs::CalculationsTree;
 use strict;
 use warnings;
 
+use Scalar::Util qw /reftype/;
+
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::Indices;
@@ -184,7 +186,7 @@ sub makeCalculationsModel {
             }
 
             my @index_data = ();
-            push @index_data, ["Indices:", $EMPTY_STRING];
+            push @index_data, ['Indices:', $EMPTY_STRING];
 
             #  now loop over the indices to get their descriptions
             foreach my $index (sort keys %{$info{indices}}) {
@@ -245,12 +247,16 @@ sub makeCalculationsModel {
 
 # Returns whether an element is in some array-ref
 sub member_of {
-    my ($elem, $array) = @_;
-    foreach my $member (@$array) {
-        if ($elem eq $member) {
-            return 1;
-        }
+    my ($elem, $ref) = @_;
+
+    #  sometimes we are passed a hash
+    return exists $ref->{$elem}
+      if (reftype ($ref) eq 'HASH');
+
+    foreach my $member (@$ref) {
+        return 1 if $elem eq $member;
     }
+
     return 0;
 }
 

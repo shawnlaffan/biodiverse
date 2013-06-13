@@ -390,9 +390,9 @@ sub run_randomisation {
 
             next TARGET if ! defined $target;
             if (! $target->can('run_analysis')) {
-                if (! $args{retain_outputs}) {
-                    $rand_bd->delete_output (output => $rand_analysis);
-                }
+                #if (! $args{retain_outputs}) {
+                #    $rand_bd->delete_output (output => $rand_analysis);
+                #}
                 next TARGET;
             }
             my $completed = $target->get_param ('COMPLETED');

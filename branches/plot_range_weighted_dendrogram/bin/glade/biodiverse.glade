@@ -461,6 +461,12 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1030,6 +1036,12 @@
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1083,8 +1095,8 @@
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1101,8 +1113,8 @@
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7034,19 +7046,6 @@ Both</property>
                                               </widget>
                                             </child>
                                             <child>
-                                              <widget class="GtkRadioMenuItem" id="phylogeny_plot_range_weighted">
-                                                <property name="visible">True</property>
-                                                <property name="can_focus">False</property>
-                                                <property name="has_tooltip">True</property>
-                                                <property name="tooltip" translatable="yes">Rescale the branch lengths inversely proportional to their ranges.
-This can help interpret phylogenetic endemism results.</property>
-                                                <property name="label" translatable="yes">Range weighted</property>
-                                                <property name="use_underline">True</property>
-                                                <property name="group">phylogeny_plot_length</property>
-                                                <signal name="activate" handler="on_plot_range_weighted_activate" swapped="no"/>
-                                              </widget>
-                                            </child>
-                                            <child>
                                               <widget class="GtkCheckMenuItem" id="highlight_groups_on_map_labels_tab">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
@@ -8937,6 +8936,12 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

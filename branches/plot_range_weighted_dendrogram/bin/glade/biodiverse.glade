@@ -4304,6 +4304,17 @@ Assumes a dissimilarity matrix, so take care.</property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menu_range_weight_tree_branches">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Create a new tree where the branch lengths are divided by their ranges.
+This can help interpret phylogenetic endemism and related analyses.  </property>
+                        <property name="label" translatable="yes">Convert to range weighted branches</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_range_weight_tree" swapped="no"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkSeparatorMenuItem" id="separator7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>

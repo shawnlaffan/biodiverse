@@ -9,7 +9,7 @@ use English ( -no_match_vars );
 use Carp;
 use Scalar::Util qw /weaken isweak blessed/;
 use Data::Dumper qw/Dumper/;
-use List::Util;
+use List::Util qw /min/;
 
 use Biodiverse::BaseStruct;
 
@@ -1840,8 +1840,7 @@ sub get_node_range {
     return $range;
 }
 
-
-sub min {$_[0] < $_[1] ? $_[0] : $_[1]}
+#sub min {$_[0] < $_[1] ? $_[0] : $_[1]}
 
 sub numerically {$a <=> $b}
 

@@ -208,6 +208,8 @@ sub compare_hash_vals {
                     descr_suffix    => "in $key",
                 );
             };
+            #say join ' ', sort keys %$hash_got;
+            #say join ' ', sort keys %$hash_exp;
         }
         elsif (ref $hash_exp->{$key} eq 'ARRAY') {
             subtest "Got expected array for $key" => sub {

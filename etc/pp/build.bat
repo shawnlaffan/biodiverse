@@ -28,7 +28,7 @@ goto :copy_files
 
 :64bit
 echo "using 64 bit"
-set perl_path=C:\strawberry51611
+set perl_path=C:\strawberry_51631
 set perl_c_path=%perl_path%\c\bin
 set lib_expat=libexpat-1__.dll
 set bits=64

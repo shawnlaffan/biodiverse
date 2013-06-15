@@ -33,7 +33,7 @@ sub Run {
     #my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgExport');
 
     # Get the Parameters metadata
-    my %args = $object -> get_args (sub => 'export');
+    my %args = $object->get_args (sub => 'export');
     
     ###################
     # get the selected format
@@ -45,7 +45,7 @@ sub Run {
     
     #my $format_dlg = $dlgxml->get_widget('dlgExport');
     $format_dlg->set_transient_for( $gui->getWidget('wndMain') );
-    $format_dlg -> set_title ('Export parameters');
+    $format_dlg->set_title ('Export parameters');
     
     # Build widgets for parameters
     my $format_table = $dlgxml->get_widget('tableImportParameters');
@@ -65,7 +65,7 @@ sub Run {
     my $format_response = $format_dlg->run();
     
     if ($format_response ne 'ok') {
-        $format_dlg -> destroy;
+        $format_dlg->destroy;
         return;
     }
     
@@ -83,7 +83,7 @@ sub Run {
 
     my $dlg = $dlgxml->get_widget('dlgExport');
     $dlg->set_transient_for( $gui->getWidget('wndMain') );
-    $dlg -> set_title ("Export format: $selected_format");
+    $dlg->set_title ("Export format: $selected_format");
 
     # Build widgets for parameters
     my $table = $dlgxml->get_widget('tableParameters');
@@ -127,10 +127,10 @@ sub Run {
             )
         };
         if ($EVAL_ERROR) {
-            $gui -> report_error ($EVAL_ERROR);
+            $gui->report_error ($EVAL_ERROR);
         }
         
-        #$progress -> destroy;  #  clean up the progress bar
+        #$progress->destroy;  #  clean up the progress bar
     }
     else {
         goto RUN_DIALOG; # my first ever goto!

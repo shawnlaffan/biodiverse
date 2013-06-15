@@ -1,6 +1,7 @@
 package Biodiverse::GUI::Tabs::SpatialMatrix;
 use strict;
 use warnings;
+use 5.010;
 
 use English ( -no_match_vars );
 
@@ -83,16 +84,16 @@ sub new {
         # Register as a tab for this output
         $self->registerInOutputsModel($matrix_ref, $self);
         
-        $elt_count = $groups_ref  -> get_element_count;
-        $completed = $groups_ref  -> get_param ('COMPLETED');
-        $completed = 1 if not defined $completed;  #  backwards compatibility - old versions did not have this flag
+        $elt_count = $groups_ref->get_element_count;
+        $completed = $groups_ref->get_param ('COMPLETED');
+        $completed //= 1;  #  backwards compatibility - old versions did not have this flag
 
         my $elements = $groups_ref->get_element_list_sorted;
         $self->{selected_element} = $elements->[0];
         
         print "[SpatialMatrix tab] Existing matrix output - " . $self->{output_name}
               . ". Part of Basedata set - "
-              . ($self->{basedata_ref} -> get_param ('NAME') || "no name")
+              . ($self->{basedata_ref}->get_param ('NAME') || "no name")
               . "\n";
 
         $self->queueSetPane(0.01);
@@ -183,10 +184,10 @@ sub set_frame_label_widget {
     return;
     
     my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
-    $widget -> show;
+    $widget->show;
 
     my $frame = $self->{xmlPage}->get_widget('frame_spatial_parameters');
-    $frame -> set_label_widget ($widget);
+    $frame->set_label_widget ($widget);
 
     $widget->signal_connect_swapped (
         clicked => \&on_show_hide_parameters,
@@ -238,8 +239,8 @@ sub initGrid {
     );
 
     my $data = $self->{groups_ref};  #  should be the groups?
-    my $elt_count = $data -> get_element_count;
-    my $completed = $data -> get_param ('COMPLETED');
+    my $elt_count = $data->get_element_count;
+    my $completed = $data->get_param ('COMPLETED');
     #  backwards compatibility - old versions did not have this flag
     $completed = 1 if not defined $completed;  
     
@@ -276,9 +277,9 @@ sub makeOutputIndicesModel {
     my $model = Gtk2::ListStore->new('Glib::String');
     foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
         my $iter = $model->append;
-        #print ($model -> get($iter, 0), "\n") if defined $model -> get($iter, 0);    #debug
+        #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
         $model->set($iter, 0, $x);
-        #print ($model -> get($iter, 0), "\n") if defined $model -> get($iter, 0);      #debug
+        #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
     }
 
     return $model;
@@ -391,12 +392,12 @@ sub onGridHover {
     my $output_ref = $self->{groups_ref};
     my $text = '';
     
-    my $bd_ref = $output_ref -> get_param ('BASEDATA_REF');
+    my $bd_ref = $output_ref->get_param ('BASEDATA_REF');
 
     if ($element) {
         no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
         # Update the Value label
-        #my $elts = $output_ref -> get_element_hash();
+        #my $elts = $output_ref->get_element_hash();
 
         my $val = $matrix_ref->get_value (
             element1 => $element,

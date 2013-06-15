@@ -72,8 +72,8 @@ sub update_name {
     my $self = shift;
     my $new_name = shift;
     #$self->{current_registration} = $new_name;
-    eval {$self->{label_widget} -> set_text ($new_name)};
-    eval {$self->{title_widget} -> set_text ($new_name)};
+    eval {$self->{label_widget}->set_text ($new_name)};
+    eval {$self->{title_widget}->set_text ($new_name)};
     eval {$self->{tab_menu_label}->set_text ($new_name)};
     return;
 }

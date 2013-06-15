@@ -175,7 +175,7 @@ sub new {
 #    foreach my $key (keys %$self) {
 #        if ((ref $self->{$key}) =~ '::') {
 #            warn "Deleting $key - $self->{$key}\n";
-#            $self->{$key} -> DESTROY if $self->{$key} -> can ('DESTROY');
+#            $self->{$key}->DESTROY if $self->{$key}->can ('DESTROY');
 #        }
 #        delete $self->{$key};
 #    }
@@ -524,9 +524,9 @@ sub get_palette_max_colours {
     my $self = shift;
     if (blessed ($self)
         and blessed ($self->{cluster})
-        and defined $self->{cluster} -> get_param ('MAX_COLOURS')) {
+        and defined $self->{cluster}->get_param ('MAX_COLOURS')) {
 
-        return $self->{cluster} -> get_param ('MAX_COLOURS');
+        return $self->{cluster}->get_param ('MAX_COLOURS');
     }
 
     return 13;  #  modify if more are added above.
@@ -563,7 +563,7 @@ sub doSliderMove {
         croak "invalid plot mode: $self->{plot_mode}\n";
     }
 
-    my $node_hash = $self->{tree_node} -> group_nodes_below (
+    my $node_hash = $self->{tree_node}->group_nodes_below (
         target_value => $length_along,
         type         => $self->{plot_mode},
     );
@@ -582,7 +582,7 @@ sub doSliderMove {
     $self->{clusters_text}->set( text => $text );
 
     # Highlight the lines in the dendrogram
-    $self -> clearHighlights;
+    $self->clearHighlights;
     foreach my $node (values %$node_hash) {
         $self->highlightNode($node);
     }
@@ -615,7 +615,7 @@ sub doColourNodesBelow {
     my $start_node = shift;
     $self->{colour_start_node} = $start_node;
 
-    my $num_clusters = $self -> getNumClusters;
+    my $num_clusters = $self->getNumClusters;
     my $original_num_clusters = $num_clusters;
     my $excess_flag = 0;
     my @colour_nodes;
@@ -654,7 +654,7 @@ sub doColourNodesBelow {
                 if ($excess_flag) {
                     print "[Dendrogram] More clusters were requested ("
                           . "$original_num_clusters) than available colours ("
-                          . $self -> get_palette_max_colours
+                          . $self->get_palette_max_colours
                           . ")\n";
                 }
                 else {
@@ -689,13 +689,13 @@ sub assignClusterPaletteColours {
     my $cluster_nodes = shift;
 
     # don't set cluster colours if don't have enough palette values
-    if (scalar @$cluster_nodes > $self -> get_palette_max_colours()) {
+    if (scalar @$cluster_nodes > $self->get_palette_max_colours()) {
         #print "[Dendrogram] not assigning palette colours (too many clusters)\n";
 
         # clear existing values
         foreach my $j (0..$#{$cluster_nodes}) {
             #$cluster_nodes->[$j]->set_cached_value(__gui_palette_colour => undef);
-            $self->{node_palette_colours}{$cluster_nodes->[$j] -> get_name} = undef;
+            $self->{node_palette_colours}{$cluster_nodes->[$j]->get_name} = undef;
         }
 
     }
@@ -707,7 +707,7 @@ sub assignClusterPaletteColours {
         my %sort_by_firstnode;
         my $i = 0;  #  in case we dont have numbered nodes
         foreach my $node_ref (@$cluster_nodes) {
-            my $firstnode = $node_ref -> get_value ('TERMINAL_NODE_FIRST');
+            my $firstnode = $node_ref->get_value ('TERMINAL_NODE_FIRST');
             $sort_by_firstnode{$firstnode} = $node_ref;
             $i++;
         }
@@ -719,7 +719,7 @@ sub assignClusterPaletteColours {
         foreach my $k (0..$#sorted_clusters) {
             $colour_ref = Gtk2::Gdk::Color->parse($palette[$k]);
             #$sorted_clusters[$k]->set_cached_value(__gui_palette_colour => $colour_ref);
-            $self->{node_palette_colours}{$sorted_clusters[$k] -> get_name} = $colour_ref;
+            $self->{node_palette_colours}{$sorted_clusters[$k]->get_name} = $colour_ref;
         }
     }
 
@@ -734,11 +734,11 @@ sub mapElementsToClusters {
 
     foreach my $node_ref (@$cluster_nodes) {
 
-        my $terminal_elements = $node_ref -> get_terminal_elements();
+        my $terminal_elements = $node_ref->get_terminal_elements();
 
         foreach my $elt (keys %$terminal_elements) {
             $map{ $elt } = $node_ref;
-            #print "[mapElementsToClusters] $elt -> $node_ref\n";
+            #print "[mapElementsToClusters] $elt->$node_ref\n";
         }
 
     }
@@ -767,7 +767,7 @@ sub recolourClusterElements {
         my $cluster_node = $self->{element_to_cluster}{$elt};
 
         if ($cluster_node) {
-            my $colour_ref = $self->{node_palette_colours}{$cluster_node -> get_name};
+            my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
             return $colour_ref if $colour_ref;
             return COLOUR_PALETTE_OVERFLOW;
         }
@@ -793,13 +793,13 @@ sub recolourClusterElements {
 
         if ($cluster_node) {
 
-            my $list_ref = $cluster_node -> get_list_ref (list => $list_name);
+            my $list_ref = $cluster_node->get_list_ref (list => $list_name);
             my $val = defined $list_ref
                 ? $list_ref->{$list_index}
                 : undef;  #  allows for missing lists
 
             if (defined $val) {
-                return $map -> getColour ($val, $analysis_min, $analysis_max);
+                return $map->getColour ($val, $analysis_min, $analysis_max);
             }
             else {
                 return COLOUR_LIST_UNDEF;
@@ -877,7 +877,7 @@ sub recolourClusterLines {
                 : undef;  #  allows for missing lists
 
             if (defined $val) {
-                $colour_ref = $map -> getColour ($val, $analysis_min, $analysis_max);
+                $colour_ref = $map->getColour ($val, $analysis_min, $analysis_max);
             }
             else {
                 $colour_ref = undef;
@@ -888,8 +888,8 @@ sub recolourClusterLines {
         }
 
         #$node_ref->set_cached_value(__gui_colour => $colour_ref);
-        $self->{node_colours_cache}{$node_ref -> get_name} = $colour_ref;
-        $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef -> we're clearing back to default
+        $self->{node_colours_cache}{$node_ref->get_name} = $colour_ref;
+        $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
 
         $line = $self->{node_lines}->{$node_ref->get_name};
         $line->set(fill_color_gdk => $colour_ref);
@@ -929,7 +929,7 @@ sub colourLines {
 
     # We set the cached value to make it easier to recolour if the tree has to be re-rendered
     #$node_ref->set_cached_value(__gui_colour => $colour_ref);
-    my $name = $node_ref -> get_name;
+    my $name = $node_ref->get_name;
     $self->{node_colours_cache}{$name} = $colour_ref;
 
     $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
@@ -951,7 +951,7 @@ sub restoreLineColours {
         foreach my $node_ref (keys %{ $self->{recolour_nodes} }) {
 
             $colour_ref = $self->{node_palette_colours}{$node_ref->get_name};
-            $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef -> we're clearing back to default
+            $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
 
             $self->{node_lines}->{$node_ref->get_name}->set(fill_color_gdk => $colour_ref);
 
@@ -1379,8 +1379,8 @@ sub setCluster {
     $self->{processed_nodes} = undef;
 
     #  number the nodes if needed
-    if (! defined $self->{tree_node} -> get_value ('TERMINAL_NODE_FIRST')) {
-        $self->{tree_node} -> number_terminal_nodes;
+    if (! defined $self->{tree_node}->get_value ('TERMINAL_NODE_FIRST')) {
+        $self->{tree_node}->number_terminal_nodes;
     }
 
     my $terminal_nodes_ref = $cluster->get_terminal_nodes();
@@ -1410,7 +1410,7 @@ sub setCluster {
 sub clear {
     my $self = shift;
 
-    $self -> clearHighlights;
+    $self->clearHighlights;
 
     $self->{node_lines} = {};
     $self->{node_colours_cache} = {};
@@ -1637,7 +1637,7 @@ sub drawNode {
     my $length = &$length_func($node) * $length_scale;
     my $new_current_xpos = $current_xpos - $length;
     my $y = $node->get_value('_y') * $height_scale;
-    my $colour_ref = $self->{node_colours_cache}{$node -> get_name} || DEFAULT_LINE_COLOUR;
+    my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
 
     # Draw our horizontal line
     my $line = $self->drawLine($current_xpos, $y, $new_current_xpos, $y, $colour_ref);
@@ -1790,7 +1790,7 @@ sub onBackgroundEvent {
 
     if ( $event->type eq 'button-press') {
         if ($event->button == 1) {
-            $self -> doColourNodesBelow;  #  no arg will clear colouring
+            $self->doColourNodesBelow;  #  no arg will clear colouring
             if (defined $self->{click_func}) {
                 my $f = $self->{click_func};
                 &$f();

@@ -42,7 +42,7 @@ sub run {
     #########
     # 2. Make object
     #########
-    my $phylogeny_ref = Biodiverse::ReadNexus -> new;
+    my $phylogeny_ref = Biodiverse::ReadNexus->new;
 
     #########
     # 3. Possibly do Label remapping
@@ -50,7 +50,7 @@ sub run {
     #my ($remap_filename, $incol, $outcol) = getRemapInfo($gui, $nexus_filename);
     #if ($remap_filename and defined $incol and defined $outcol) {
     #    print "[Phylogeny import] remapping from $remap_filename. in=$incol out=$outcol\n";
-    #    $phylogeny_ref -> load_label_remap (file => $remap_filename, in_col_num => $incol, out_col_num => $outcol);
+    #    $phylogeny_ref->load_label_remap (file => $remap_filename, in_col_num => $incol, out_col_num => $outcol);
     #}
 
     my %import_params;
@@ -60,8 +60,8 @@ sub run {
         my $remap;
         if ($remap_data{file}) {
             #my $file = $remap_data{file};
-            $remap = Biodiverse::ElementProperties -> new;
-            $remap -> import_data (#file => $file,
+            $remap = Biodiverse::ElementProperties->new;
+            $remap->import_data (#file => $file,
                            %remap_data,
                         );
         }
@@ -76,23 +76,23 @@ sub run {
     #########
     # 3. Load da tree
     #########
-    #$phylogeny_ref -> parse (file => $nexus_filename);
-    eval {$phylogeny_ref -> import_data (
+    #$phylogeny_ref->parse (file => $nexus_filename);
+    eval {$phylogeny_ref->import_data (
         file => $nexus_filename,
         %import_params
     )};
     if ($EVAL_ERROR) {
-        $gui -> report_error ($EVAL_ERROR);
+        $gui->report_error ($EVAL_ERROR);
         return;
     }
 
-    my $phylogeny_array = $phylogeny_ref -> get_tree_array;
+    my $phylogeny_array = $phylogeny_ref->get_tree_array;
     
     my $tree_count = scalar @$phylogeny_array;
     my $feedback = "[Phylogeny import] $tree_count trees parsed from $nexus_filename\nNames are: ";
     my @names;
     foreach my $tree (@$phylogeny_array) {
-        push @names, $tree -> get_param ('NAME');
+        push @names, $tree->get_param ('NAME');
     }
     $feedback .= join (", ", @names);
     
@@ -101,7 +101,7 @@ sub run {
     #########
     $gui->getProject->addPhylogeny ($phylogeny_array);
     
-    $gui -> report_error (  #  not really an error...
+    $gui->report_error (  #  not really an error...
         $feedback,
         'Import results'
     );

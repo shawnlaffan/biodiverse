@@ -147,7 +147,7 @@ sub pulsate {
         $text = $NULL_STRING;
     }
     
-    #$self -> update ($text, $progress);  #  We are avoiding pulsation for the moment...
+    #$self->update ($text, $progress);  #  We are avoiding pulsation for the moment...
     #return;
 
     if ($progress < 0 || $progress > 1) {
@@ -158,17 +158,17 @@ sub pulsate {
     else {
         # update dialog
         my $widget = $self->{dlgxml}->get_widget('label');
-        $widget -> set_markup("<b>$text</b>") if $widget;
+        $widget->set_markup("<b>$text</b>") if $widget;
         
         my $bar = $self->{dlgxml}->get_widget('progressbar');
-        $bar -> set_pulse_step ($progress);
-        #$bar -> pulse;
+        $bar->set_pulse_step ($progress);
+        #$bar->pulse;
         
         if (not $self->{pulse}) {  #  only set this if we aren't already pulsing
             print "Starting pulse\n";
             $self->{pulse} = 1;
-            my $x = Glib::Timeout -> add(10, \&pulse_progress_bar, [$self, $bar]);
-            #my $x = Glib::Timeout -> add(100, sub {pulse_progress_bar ( $self )});
+            my $x = Glib::Timeout->add(10, \&pulse_progress_bar, [$self, $bar]);
+            #my $x = Glib::Timeout->add(100, sub {pulse_progress_bar ( $self )});
             #my $y = $x;
         }
         
@@ -204,8 +204,8 @@ sub pulse_progress_bar {
     
     if ($self->{pulse} and defined $p_bar) {
         #print "     PULSING\n";
-        #$p_bar -> set_pulse_step (0.1);
-        $p_bar -> pulse;
+        #$p_bar->set_pulse_step (0.1);
+        $p_bar->pulse;
         return TRUE;  #  keep going
     }
     

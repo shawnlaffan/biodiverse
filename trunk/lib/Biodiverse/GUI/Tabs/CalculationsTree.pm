@@ -111,9 +111,9 @@ sub makeCalculationsModel {
     # Try to get a list of analyses that should be checked
     my $checkRef;
     if ($output_ref) {  #  the latter are for backwards compatibility
-        $checkRef =    $output_ref -> get_param('CALCULATIONS_REQUESTED')
-                    or $output_ref -> get_param('ANALYSES_REQUESTED')
-                    or $output_ref -> get_param('ANALYSES_RAN');
+        $checkRef =    $output_ref->get_param('CALCULATIONS_REQUESTED')
+                    or $output_ref->get_param('ANALYSES_REQUESTED')
+                    or $output_ref->get_param('ANALYSES_RAN');
     }
     if (! defined $checkRef) {
         $checkRef = [$EMPTY_STRING] ;  # trap other cases
@@ -134,7 +134,7 @@ sub makeCalculationsModel {
     my $model = Gtk2::TreeStore->new( @treestore_args );
     
     #my $analysis_caller_ref = defined $output_ref ? $output_ref : $base_ref;
-    #my %calculations = $analysis_caller_ref -> get_calculations;
+    #my %calculations = $analysis_caller_ref->get_calculations;
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $base_ref);
     my %calculations = $indices->get_calculations;
 

@@ -478,7 +478,7 @@ sub setBaseStruct {
     $self->{base_struct_cellsizes} = [$cellX, $cellY];
     $self->{base_struct_bounds}    = [$minX, $minY, $maxX, $maxY];
 
-    my $sizes = $data -> get_param ('CELL_SIZES');
+    my $sizes = $data->get_param ('CELL_SIZES');
     my @sizes = @$sizes;
     my $width_pixels = 0;
     if ($sizes[0] == 0
@@ -491,7 +491,7 @@ sub setBaseStruct {
     #$cellY = 1 if ! defined $cellY; #  catcher for single axis data sets
     
     #print "[GRID] Cellsizes:  $cellX, $cellY, (width: $width_pixels)\n";
-    #print "[GRID] Basedata cell size is: ", join (" ", @{$data -> get_param ('CELL_SIZES')}), "\n";
+    #print "[GRID] Basedata cell size is: ", join (" ", @{$data->get_param ('CELL_SIZES')}), "\n";
 
     # Configure cell heights and y-offsets for the marks (circles, lines,...)
     my $ratio = eval {$cellY / $cellX} || 1;  #  trap divide by zero
@@ -500,7 +500,7 @@ sub setBaseStruct {
     
     #  setup the index if needed
     if (defined $self->{select_func}) {
-        my $rtree = $self -> get_rtree();
+        my $rtree = $self->get_rtree();
     }
     
     my $elts = $data->get_element_hash();
@@ -515,7 +515,7 @@ sub setBaseStruct {
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
     print "[Grid] Grid loading $count elements (cells)\n";
-    $progress_bar -> update ("Grid loading $count elements (cells)", 0);
+    $progress_bar->update ("Grid loading $count elements (cells)", 0);
 
 
     # Delete any old cells
@@ -560,7 +560,7 @@ sub setBaseStruct {
     foreach my $element (keys %$elts) {
         no warnings 'uninitialized';  #  suppress these warnings
         
-        $progress_bar -> update (
+        $progress_bar->update (
             "Grid loading $i of $count elements (cells)",
             $i / $count
         );
@@ -580,7 +580,7 @@ sub setBaseStruct {
 
 #my $testx = $x * CELL_SIZE_X;
 #my $testy = $y * $cell_size_y;
-#my @test = $self -> units_canvas2basestruct ($testx, $testy);
+#my @test = $self->units_canvas2basestruct ($testx, $testy);
 
         # Make container group ("cell") for the rectangle and any marks
         my $container = Gnome2::Canvas::Item->new (
@@ -704,9 +704,9 @@ sub loadShapefile {
 
     # Get shapes within visible region - allow for cell extents
     my @shapes;
-    @shapes = $shapefile -> shapes_in_area (@rect);
+    @shapes = $shapefile->shapes_in_area (@rect);
     #  try to get all, but canvas ignores those outside the area...
-    #@shapes = $shapefile -> shapes_in_area ($shapefile -> bounds);
+    #@shapes = $shapefile->shapes_in_area ($shapefile->bounds);
     
     my $num = @shapes;
     print "[Grid] Shapes within plot area: $num\n";
@@ -1300,7 +1300,7 @@ sub findMaxMin {
 
     foreach ($data->get_element_list) {
 
-        my ($x, $y) = $data -> get_element_name_coord (element => $_);
+        my ($x, $y) = $data->get_element_name_coord (element => $_);
 
         $minX = $x if ( (not defined $minX) || $x < $minX);
         $minY = $y if ( (not defined $minY) || $y < $minY);
@@ -1663,8 +1663,8 @@ sub endSelection {
     }
 
     my @rect_baseunits = (
-        $self -> units_canvas2basestruct ($rect[0], $rect[1]),
-        $self -> units_canvas2basestruct ($rect[2], $rect[3]),
+        $self->units_canvas2basestruct ($rect[0], $rect[1]),
+        $self->units_canvas2basestruct ($rect[2], $rect[3]),
     );
 
     my $elements = [];

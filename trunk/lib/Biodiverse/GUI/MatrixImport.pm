@@ -46,12 +46,12 @@ sub run {
     }
     my $header = $line;
     $line = <$fh>; #  don't test on the header - can sometimes have one column
-    $fh -> close;
+    $fh->close;
     
     my $sep_char = $gui->getProject->guess_field_separator (string => $line);
     my $eol = $gui->getProject->guess_eol (string => $line);
     my @headers_full
-        = $gui -> getProject -> csv2list(
+        = $gui->getProject->csv2list(
             string   => $header,
             sep_char => $sep_char,
             eol      => $eol
@@ -113,7 +113,7 @@ sub run {
     #  do we need a remap table?
     my $remap;
     my $remap_response
-        = Biodiverse::GUI::YesNoCancel -> run ({
+        = Biodiverse::GUI::YesNoCancel->run ({
             title => 'Remap option',
             text  => 'Remap element names and set include/exclude?'
             }
@@ -128,15 +128,15 @@ sub run {
         #  now do something with them...
         if ($remap_data{file}) {
             #my $file = $remap_data{file};
-            $remap = Biodiverse::ElementProperties -> new;
-            $remap -> import_data (%remap_data);
+            $remap = Biodiverse::ElementProperties->new;
+            $remap->import_data (%remap_data);
         }
     }
 
     #########
     # 3. Add the matrix
     #########
-    my $matrix_ref = Biodiverse::Matrix -> new (NAME => $name);
+    my $matrix_ref = Biodiverse::Matrix->new (NAME => $name);
 
     # Set parameters
     my @label_columns;

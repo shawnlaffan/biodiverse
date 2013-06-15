@@ -122,19 +122,21 @@ sub new {
     
     
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
-    $self->{xmlPage}->get_widget('btnZoomInVL')->signal_connect_swapped(clicked => \&onZoomIn, $self->{grid});
-    $self->{xmlPage}->get_widget('btnZoomOutVL')->signal_connect_swapped(clicked => \&onZoomOut, $self->{grid});
-    $self->{xmlPage}->get_widget('btnZoomFitVL')->signal_connect_swapped(clicked => \&onZoomFit, $self->{grid});
-    $self->{xmlPage}->get_widget('btnMatrixZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{matrix_grid});
-    $self->{xmlPage}->get_widget('btnMatrixZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{matrix_grid});
-    $self->{xmlPage}->get_widget('btnMatrixZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{matrix_grid});
-    $self->{xmlPage}->get_widget('btnPhylogenyZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{dendrogram});
-    $self->{xmlPage}->get_widget('btnPhylogenyZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{dendrogram});
-    $self->{xmlPage}->get_widget('btnPhylogenyZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{dendrogram});
-    $self->{xmlPage}->get_widget('btnOverlaysVL')->signal_connect_swapped(clicked => \&onOverlays, $self);
-    $self->{xmlPage}->get_widget('phylogeny_plot_length')->signal_connect_swapped('toggled' => \&onPhylogenyPlotModeChanged, $self);
-    $self->{xmlPage}->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped('toggled' => \&on_highlight_groups_on_map_changed, $self);
-    $self->{xmlPage}->get_widget('use_highlight_path_changed1')->signal_connect_swapped(toggled => \&on_use_highlight_path_changed, $self);
+    my $xml = $self->{xmlPage};
+    $xml->get_widget('btnZoomInVL')->signal_connect_swapped(clicked => \&onZoomIn, $self->{grid});
+    $xml->get_widget('btnZoomOutVL')->signal_connect_swapped(clicked => \&onZoomOut, $self->{grid});
+    $xml->get_widget('btnZoomFitVL')->signal_connect_swapped(clicked => \&onZoomFit, $self->{grid});
+    $xml->get_widget('btnMatrixZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{matrix_grid});
+    $xml->get_widget('btnMatrixZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{matrix_grid});
+    $xml->get_widget('btnMatrixZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{matrix_grid});
+    $xml->get_widget('btnPhylogenyZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{dendrogram});
+    $xml->get_widget('btnPhylogenyZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{dendrogram});
+    $xml->get_widget('btnPhylogenyZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{dendrogram});
+    $xml->get_widget('btnOverlaysVL')->signal_connect_swapped(clicked => \&onOverlays, $self);
+    $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped('toggled' => \&onPhylogenyPlotModeChanged, $self);
+    #$xml->get_widget('phylogeny_plot_range_weighted')->signal_connect_swapped('toggled' => \&onPhylogenyPlotModeChanged, $self);
+    $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped('toggled' => \&on_highlight_groups_on_map_changed, $self);
+    $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(toggled => \&on_use_highlight_path_changed, $self);
     
     $self->{use_highlight_path} = 1;
     
@@ -227,7 +229,8 @@ sub initDendrogram {
         undef,
         $highlight_closure,
         $ctrl_click_closure,
-        $click_closure
+        $click_closure,
+        $self->{base_ref},
     );
     
     #  cannot colour more than one in a phylogeny
@@ -824,23 +827,32 @@ sub onGridSelect {
 ##################################################
 
 sub onPhylogenyPlotModeChanged {
-    my $self = shift;
-    my $combo = shift;
-    my $mode = $combo->get_active;
-    if ($mode == 0) {
-        $mode = 'depth';
-    }
-    elsif ($mode == 1) {
-        $mode = 'length';
-    }
-    else {
-        die "[Labels tab] - onPhylogenyPlotModeChanged - invalid mode $mode";
+    my ($self, $combo) = @_;
+
+    my $xml_page = $self->{xmlPage};
+
+    my %names_and_strings = (
+        phylogeny_plot_depth          => 'depth',
+        phylogeny_plot_length         => 'length',
+        #phylogeny_plot_range_weighted => 'range_weighted',
+    );
+
+    my $mode_string;
+    while (my ($name, $string) = each %names_and_strings) {
+        my $widget = $xml_page->get_widget($name);
+        if ($widget->get_active) {
+            $mode_string = $string;
+            last;
+        }
     }
 
-    print "[Labels tab] Changing mode to $mode\n";
-    $self->{plot_mode} = $mode;
-    $self->{dendrogram}->setPlotMode($mode); # the menubar should be disabled if no tree is loaded
-    
+    die "[Labels tab] - onPhylogenyPlotModeChanged - undefined mode"
+      if !defined $mode_string;
+
+    print "[Labels tab] Changing mode to $mode_string\n";
+    $self->{plot_mode} = $mode_string;
+    $self->{dendrogram}->setPlotMode($mode_string); # the menubar should be disabled if no tree is loaded
+
     return;
 }
 

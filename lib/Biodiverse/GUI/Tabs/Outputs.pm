@@ -118,7 +118,7 @@ sub getSelection {
     
     return if not defined $project;
     
-    my $model = $project -> getBaseDataOutputModel();
+    my $model = $project->getBaseDataOutputModel();
 
     my $selection = $tree->get_selection();
     my $iter      = $selection->get_selected();
@@ -425,7 +425,7 @@ sub onDelete {
                 $basedata_ref->delete_output (output => $output_ref)
             };  
             if ($EVAL_ERROR) {
-                $self->{gui} -> report_error ($EVAL_ERROR);
+                $self->{gui}->report_error ($EVAL_ERROR);
             }
 
             # Close any tabs with this output

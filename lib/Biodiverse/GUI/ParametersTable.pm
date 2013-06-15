@@ -104,7 +104,7 @@ sub fill {
             }
             #my $barry = exists $param->{sensitive} ? $param->{editable} : 1;
                         # widgets are sensitive unless explicitly told otherwise
-            $widget -> set_sensitive (exists $param->{sensitive} ? $param->{sensitive} : 1);  
+            $widget->set_sensitive (exists $param->{sensitive} ? $param->{sensitive} : 1);  
 
             $label->show;
             $widget->show;
@@ -256,7 +256,7 @@ sub generate_spatial_params {
 #    my $text_view = Gtk2::TextView->new_with_buffer($text_buffer);
 #        
 #    my $extract = sub { return ($param->{name}, $text_buffer->get_text); };
-#    return ($text_view -> get_widget, $extract);
+#    return ($text_view->get_widget, $extract);
 #
 #}
 

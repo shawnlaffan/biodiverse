@@ -84,18 +84,18 @@ sub new {
         my $bd = $self->{basedata_ref} = $self->{project}->getSelectedBaseData;
 
         if (not blessed ($bd)) {  #  this should be fixed now
-            $self -> onClose;
+            $self->onClose;
             croak "Basedata ref undefined - click on the basedata object "
                   . "in the outputs tab to select it (this is a bug)\n";
         }
 
         #  check if it has rand outputs already and warn the user
         if (my @a = $self->{basedata_ref}->get_randomisation_output_refs) {
-            my $response = $gui -> warn_outputs_exist_if_randomisation_run(
-                $self->{basedata_ref} -> get_param ('NAME'),
+            my $response = $gui->warn_outputs_exist_if_randomisation_run(
+                $self->{basedata_ref}->get_param ('NAME'),
             );
             if (not $response eq 'yes') {
-                $self -> onClose;
+                $self->onClose;
                 croak "User cancelled operation\n";
             }
         }
@@ -121,10 +121,10 @@ sub new {
         print "[Clustering tab] Existing spatial output - "
               . $self->{output_name}
               . " within Basedata set - "
-              . $self->{basedata_ref} -> get_param ('NAME')
+              . $self->{basedata_ref}->get_param ('NAME')
               . "\n";
 
-        my $completed = $cluster_ref -> get_param ('COMPLETED');
+        my $completed = $cluster_ref->get_param ('COMPLETED');
         $completed = 1 if not defined $completed;
         if ($completed == 1) {
             $self->queueSetPane(0.01, 'vpaneClustering');
@@ -145,7 +145,7 @@ sub new {
             ? $spatial_params->[1]->get_conditions_unparsed()
             : $NULL_STRING;
 
-        $def_query_init1 = $cluster_ref -> get_param ('DEFINITION_QUERY');
+        $def_query_init1 = $cluster_ref->get_param ('DEFINITION_QUERY');
         if (not defined $def_query_init1) {
             $def_query_init1 = $empty_string;
         }
@@ -431,10 +431,10 @@ sub set_frame_label_widget {
     my $self = shift;
     
     my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
-    $widget -> show;
+    $widget->show;
 
     my $frame = $self->{xmlPage}->get_widget('frame_cluster_parameters');
-    $frame -> set_label_widget ($widget);
+    $frame->set_label_widget ($widget);
     
     $widget->signal_connect_swapped (
         clicked => \&on_show_hide_parameters,
@@ -451,16 +451,16 @@ sub on_show_hide_parameters {
     my $self = shift;
     
     my $frame = $self->{xmlPage}->get_widget('frame_cluster_parameters');
-    my $widget = $frame -> get_label_widget;
-    my $active = $widget -> get_active;
+    my $widget = $frame->get_label_widget;
+    my $active = $widget->get_active;
 
     my $table = $self->{xmlPage}->get_widget('tbl_cluster_parameters');
 
     if ($active) {
-        $table -> hide;
+        $table->hide;
     }
     else {
-        $table -> show;
+        $table->show;
     }
 
     return;
@@ -524,7 +524,7 @@ sub initDendrogram {
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};
 
-        my $completed = $cluster_ref -> get_param ('COMPLETED');
+        my $completed = $cluster_ref->get_param ('COMPLETED');
 
         #  partial cluster analysis - don't try to plot it
         #  the defined test is for very backwards compatibility
@@ -1205,9 +1205,9 @@ sub onDendrogramHover {
     my $map_text = '<b>Node label: </b> ' . $node->get_name;
     my $dendro_text = sprintf (
         '<b>Node Length: </b> %.4f <b>Element numbers: First</b> %d <b>Last:</b> %d',
-         $node -> get_total_length, # round to 4 d.p.
-         $node -> get_value ('TERMINAL_NODE_FIRST'),
-         $node -> get_value ('TERMINAL_NODE_LAST'),
+         $node->get_total_length, # round to 4 d.p.
+         $node->get_value ('TERMINAL_NODE_FIRST'),
+         $node->get_value ('TERMINAL_NODE_LAST'),
     );
 
     $self->{xmlPage}->get_widget('lblMap')->set_markup($map_text);
@@ -1246,7 +1246,7 @@ sub onGridHover {
         my $cluster_ref = $self->{output_ref};
         $self->{dendrogram}->clearHighlights();
         
-        my $node_ref = eval {$cluster_ref -> get_node_ref (node => $element)};
+        my $node_ref = eval {$cluster_ref->get_node_ref (node => $element)};
         if ($self->{use_highlight_path} and $node_ref) {
             $self->{dendrogram}->highlightPath($node_ref);
         }
@@ -1255,13 +1255,13 @@ sub onGridHover {
         my $coloured_node = $self->getColouredNodeForElement($element);
         if (defined $coloured_node && defined $analysis_name) {
             #  need to get the displayed node, not the terminal node
-            my $list_ref = $coloured_node -> get_list_ref (list => 'SPATIAL_RESULTS');  #  will need changing when otehr lists can be selected
+            my $list_ref = $coloured_node->get_list_ref (list => 'SPATIAL_RESULTS');  #  will need changing when otehr lists can be selected
             my $value = $list_ref->{$analysis_name};
             $string = sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
             $string .= ", <b>Element:</b> $element";
         }
         elsif (! defined $analysis_name && defined $coloured_node) {
-            $string = sprintf '<b>Node %s </b>', $coloured_node -> get_name;  #  should really grab the node number?
+            $string = sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
             $string .= ", <b>Element:</b> $element";
         }
         else {
@@ -1523,7 +1523,7 @@ sub onNameChanged {
 
     my $bd = $self->{basedata_ref};
 
-    my $name_in_use = $bd -> get_cluster_output_ref (name => $name);
+    my $name_in_use = $bd->get_cluster_output_ref (name => $name);
     
     #  make things go red
     if ($name_in_use) {
@@ -1618,7 +1618,7 @@ sub onPlotModeChanged {
 
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
-    $self->{dendrogram} -> set_use_highlight_func;
+    $self->{dendrogram}->set_use_highlight_func;
 
     return;
 }

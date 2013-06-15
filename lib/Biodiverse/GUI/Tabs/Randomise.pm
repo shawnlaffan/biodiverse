@@ -42,7 +42,7 @@ sub new {
     
     #  create one for the function combo to use
     if (not defined $output_ref) {  
-        my $object = Biodiverse::Randomise -> new();
+        my $object = Biodiverse::Randomise->new();
         $self->{output_placeholder_ref} = $object;
     }
 
@@ -130,12 +130,12 @@ sub new {
         $self->set_button_sensitivity (0); 
     }
     else {
-        $name = $bd -> get_unique_randomisation_name;
+        $name = $bd->get_unique_randomisation_name;
         #$seed_widget->set_text (time);
     }
     
     $xml_label->get_widget('lblRandomiseName')->set_text($name);
-    $xml_page ->get_widget('randomise_results_list_name') -> set_text ($name);
+    $xml_page ->get_widget('randomise_results_list_name')->set_text ($name);
     $self->{tab_menu_label}->set_text($name );
 
     # Connect signals
@@ -170,7 +170,7 @@ sub get_table_widget {
 
 sub add_row_to_table {
     my $self  = shift;
-    my $table = shift || $self -> get_table_widget;
+    my $table = shift || $self->get_table_widget;
 
     my $row_count = $table->get('n-rows');
     $row_count ++;
@@ -182,7 +182,7 @@ sub add_row_to_table {
 sub add_save_checkpoint_to_table {
     my $self = shift;
     
-    my $table = $self -> get_table_widget;
+    my $table = $self->get_table_widget;
 
     my $label = Gtk2::Label->new("Checkpoint save\niterations");
     
@@ -199,12 +199,12 @@ sub add_save_checkpoint_to_table {
     $tooltip_group->set_tip($label, $tip_text, undef);
     
     #  and now add the widgets
-    my $row_count = $self -> add_row_to_table ($table);    
-    $table -> attach ($label, 0, 1, $row_count, $row_count + 1, 'fill', [], 0, 0);
-    $table -> attach ($spin,  1, 2, $row_count, $row_count + 1, 'fill', [], 0, 0);
+    my $row_count = $self->add_row_to_table ($table);    
+    $table->attach ($label, 0, 1, $row_count, $row_count + 1, 'fill', [], 0, 0);
+    $table->attach ($spin,  1, 2, $row_count, $row_count + 1, 'fill', [], 0, 0);
 
-    $label -> show;
-    $spin -> show;
+    $label->show;
+    $spin->show;
 
     $self->{save_checkpoint_button} = $spin;
 
@@ -219,21 +219,21 @@ sub add_iteration_count_to_table {
     
     my $table = $xml_page->get_widget('table_randomise_setup');
     
-    my $row_count = $self -> add_row_to_table ($table); 
+    my $row_count = $self->add_row_to_table ($table); 
     
     my $count = defined $output_ref
                 ? $output_ref->get_param ('TOTAL_ITERATIONS')
                 : 'nil';
-    #my $label1 = Gtk2::Label -> new ();
-    #$label1 -> set_text ('Iterations so far: ');
-    my $label2 = Gtk2::Label -> new ();
+    #my $label1 = Gtk2::Label->new ();
+    #$label1->set_text ('Iterations so far: ');
+    my $label2 = Gtk2::Label->new ();
     #$label2->set_justify('GTK_JUSTIFY_LEFT');
     
     $self->{iterations_label} = $label2;
-    $self -> update_iterations_count_label ($count);
+    $self->update_iterations_count_label ($count);
 
-    #$table -> attach ($label1, 0, 1, $row_count, $row_count + 1, 'fill', [], 0, 0);
-    $table -> attach ($label2, 1, 2, $row_count, $row_count + 1, 'expand', [], 0, 0);
+    #$table->attach ($label1, 0, 1, $row_count, $row_count + 1, 'fill', [], 0, 0);
+    $table->attach ($label2, 1, 2, $row_count, $row_count + 1, 'expand', [], 0, 0);
     #$label1->show;
     $label2->show;
     return;
@@ -245,7 +245,7 @@ sub update_iterations_count_label {
     
     my $label = $self->{iterations_label};
     
-    $label -> set_text ("Iterations so far: $count");
+    $label->set_text ("Iterations so far: $count");
     
     return;
 }
@@ -268,7 +268,7 @@ sub set_button_sensitivity {
     }
 
     my $table = $self->{xmlPage}->get_widget('tableParams');
-    $table -> set_sensitive ($sens);
+    $table->set_sensitive ($sens);
 
     #  no - keep this modifiable
     #if (defined $self->{save_checkpoint_button}) {
@@ -299,12 +299,12 @@ sub initBasedataCombo {
         : $self->{gui}->getProject->getSelectedBaseDataIter;
 
     if (defined $selected) {
-        $combo -> set_active_iter($selected);
+        $combo->set_active_iter($selected);
     }
     
     $combo->set_sensitive (0); # if 1 then re-enable signal connect above
 
-    $self -> onRandomiseBasedataChanged;  #  set a few things
+    $self->onRandomiseBasedataChanged;  #  set a few things
     
     return;
 }
@@ -352,18 +352,18 @@ sub initFunctionCombo {
         
     my $combo = $self->{xmlPage}->get_widget('comboFunction');
     my $renderer = Gtk2::CellRendererText->new();
-    $combo -> pack_start($renderer, 1);
-    $combo -> add_attribute($renderer, text => 0);
+    $combo->pack_start($renderer, 1);
+    $combo->add_attribute($renderer, text => 0);
 
-    $combo -> signal_connect_swapped(changed => \&onFunctionChanged, $self);
+    $combo->signal_connect_swapped(changed => \&onFunctionChanged, $self);
 
-    $combo -> set_model($self->{function_model});
+    $combo->set_model($self->{function_model});
     if ($self->{selected_function_iter}) {
         $combo->set_active_iter( $self->{selected_function_iter} );
     }
         
     if ($self->{output_ref}) {
-        $combo -> set_sensitive (0);
+        $combo->set_sensitive (0);
     }
     
     return;
@@ -382,11 +382,11 @@ sub onFunctionChanged {
     my $self = shift;
 
     # Get the Parameters metadata
-    my $func = $self -> getSelectedFunction;
+    my $func = $self->getSelectedFunction;
     
     my $object = $self->{output_ref}
                  || $self->{output_placeholder_ref};
-    my %info = $object -> get_args (sub => $func);
+    my %info = $object->get_args (sub => $func);
     
     my $params = $info{parameters};
 
@@ -394,7 +394,7 @@ sub onFunctionChanged {
     
     #  set the parameter values if the output exists
     if ($self->{output_ref}) {
-        my $args = $self->{output_ref} -> get_param ('ARGS') || {};
+        my $args = $self->{output_ref}->get_param ('ARGS') || {};
         foreach my $arg (keys %$args) {
             foreach my $param (@$params) {
                 next if $param->{name} ne $arg;
@@ -543,7 +543,7 @@ sub onNameChanged {
     $self->{xmlLabel}->get_widget('lblRandomiseName')->set_text($name);
     
     my $label_widget = $self->{xmlPage}->get_widget('label_rand_list_name');
-    my $label = $label_widget -> get_label;
+    my $label = $label_widget->get_label;
     
     my $tab_menu_label = $self->{tab_menu_label};
     $tab_menu_label->set_text($name);
@@ -551,7 +551,7 @@ sub onNameChanged {
     #  colour the label red if the list exists
     my $span_leader = '<span foreground="red">';
     my $span_ender  = ' <b>exists</b></span>';
-    if ($self -> get_rand_output_exists ($name)) {
+    if ($self->get_rand_output_exists ($name)) {
         $label =  $span_leader . $label . $span_ender;
         $label_widget->set_markup ($label);
     }
@@ -600,7 +600,7 @@ sub onRun {
 
     # Fill in parameters
     my %args;
-    $args{function} = $self -> getSelectedFunction;
+    $args{function} = $self->getSelectedFunction;
     $args{iterations}
         = $self->{xmlPage}->get_widget('spinIterations')->get_value_as_int;
     #$args{targets} = $targets;
@@ -646,7 +646,7 @@ sub onRun {
 
 
     #  get it if it exists, create otherwise
-    my $output_ref = $basedata_ref -> get_randomisation_output_ref (name => $name);
+    my $output_ref = $basedata_ref->get_randomisation_output_ref (name => $name);
     if (defined $output_ref) {  #  warn it is an existing output, quit if user specifies
         my $text =
             "Randomisation $name already exists.\n\n"
@@ -655,7 +655,7 @@ sub onRun {
             . "If you have typed an existing list name then any "
             . "newly set parameters will be ignored.\n\n"
             . "Continue?";
-        my $response = Biodiverse::GUI::YesNoCancel -> run ({header => $text});
+        my $response = Biodiverse::GUI::YesNoCancel->run ({header => $text});
 
         return if $response ne 'yes';
 
@@ -664,7 +664,7 @@ sub onRun {
     else {
         #  eval is prob not needed, as we trap pre-existing above
         $output_ref = eval {  
-            $basedata_ref -> add_randomisation_output (name => $name);
+            $basedata_ref->add_randomisation_output (name => $name);
         };
         if ($EVAL_ERROR) {
             $self->{gui}-> report_error ($EVAL_ERROR);

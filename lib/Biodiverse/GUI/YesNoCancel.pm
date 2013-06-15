@@ -51,7 +51,7 @@ sub run {
     }
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::GladeXML -> new ($gui->getGladeFile, DLG_NAME);
+    my $dlgxml = Gtk2::GladeXML->new ($gui->getGladeFile, DLG_NAME);
     my $dlg = $dlgxml->get_widget(DLG_NAME);
 
     # Put it on top of main window
@@ -67,20 +67,20 @@ sub run {
     }
     
     if ($args->{hide_yes}) {
-        $dlgxml->get_widget('btnYes')    -> hide;
+        $dlgxml->get_widget('btnYes')->hide;
     }
     if ($args->{hide_no}) {
-        $dlgxml->get_widget('btnNo')     -> hide;
+        $dlgxml->get_widget('btnNo')->hide;
     }
     if ($args->{hide_cancel}) {
-        $dlgxml->get_widget('btnCancel') -> hide;
+        $dlgxml->get_widget('btnCancel')->hide;
     }
     #  not yet... should add an OK button and hide by default
     if ($args->{yes_is_ok}) {
-        $dlgxml->get_widget('btnYes') -> set_label ('OK');
+        $dlgxml->get_widget('btnYes')->set_label ('OK');
     }
     if ($args->{title}) {
-        $dlg -> set_title ($args->{title});
+        $dlg->set_title ($args->{title});
     }
 
     # Show the dialog

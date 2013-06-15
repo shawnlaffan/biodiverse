@@ -50,7 +50,7 @@ sub run {
     my $response = $dlg->run();
     
     if ($response ne 'ok') {  #  clean up and drop out
-        $dlg -> destroy;
+        $dlg->destroy;
         return;
     }
     
@@ -113,7 +113,7 @@ sub run {
     
     $dlg->show_all;
     $response = $dlg->run;
-    $dlg -> destroy;
+    $dlg->destroy;
     
     if ($response ne 'ok') {  #  clean up and drop out
         if ($use_new) {
@@ -381,7 +381,7 @@ sub run {
             $text .= "\tWarning: Records prior to this line have been imported.\n";
         }
         #$progress->destroy;
-        $gui -> report_error ($text);
+        $gui->report_error ($text);
     }
     #else {
         #$progress->destroy;
@@ -405,19 +405,19 @@ sub check_if_r_data_frame {
     my %args = @_;
     
     my $package = 'Biodiverse::Common';
-    my $csv = $package -> get_csv_object (@_);
+    my $csv = $package->get_csv_object (@_);
     
     my $fh;
     open ($fh, '<:via(File::BOM)', $args{file})
         || croak "Unable to open file $args{file}\n";
 
-    my @lines = $package -> get_next_line_set (
+    my @lines = $package->get_next_line_set (
         target_line_count => 10,
         file_handle       => $fh,
         csv_object        => $csv,
     );
 
-    $fh -> close;
+    $fh->close;
 
     my $header = shift @lines;
     my $header_count = scalar @$header;
@@ -871,8 +871,8 @@ sub makeFilenameDialog {
     $dlg->set_transient_for( $x );
     
 #    # Get the Parameters metadata
-#    my $tmp = Biodiverse::BaseData -> new;
-#        my %args = $tmp -> get_args (sub => 'import_data');
+#    my $tmp = Biodiverse::BaseData->new;
+#        my %args = $tmp->get_args (sub => 'import_data');
 #    my $params = $args{parameters};
 #
 #    # Build widgets for parameters
@@ -905,14 +905,14 @@ sub makeFilenameDialog {
     $filter->add_pattern('*.txt');
     #$filter->add_pattern("*");
     $filter->set_name('txt and csv files');
-    $dlgxml->get_widget($filechooserInput)    -> add_filter($filter);
+    $dlgxml->get_widget($filechooserInput)->add_filter($filter);
     $filter = Gtk2::FileFilter->new();
     $filter->add_pattern('*');
     $filter->set_name('all files');
-    $dlgxml->get_widget($filechooserInput)    -> add_filter($filter);
+    $dlgxml->get_widget($filechooserInput)->add_filter($filter);
     
-    $dlgxml->get_widget($filechooserInput)    -> set_select_multiple(1);
-    $dlgxml->get_widget($filechooserInput)    -> signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
+    $dlgxml->get_widget($filechooserInput)->set_select_multiple(1);
+    $dlgxml->get_widget($filechooserInput)->signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
 
     $dlgxml->get_widget($chkNew)->signal_connect(toggled => \&onNewToggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txtImportNew)->signal_connect(changed => \&onNewChanged, [$gui, $dlgxml]);
@@ -1142,11 +1142,11 @@ sub addRow {
     $combo->set_active(0);
 
     # Cell sizes/snaps
-    my $adj1  = Gtk2::Adjustment -> new (100000, 0, 10000000, 100, 10000, 0);
-    my $spin1 = Gtk2::SpinButton -> new ($adj1, 100, 7);
+    my $adj1  = Gtk2::Adjustment->new (100000, 0, 10000000, 100, 10000, 0);
+    my $spin1 = Gtk2::SpinButton->new ($adj1, 100, 7);
 
-    my $adj2  = Gtk2::Adjustment -> new (0, -1000000, 1000000, 100, 10000, 0);
-    my $spin2 = Gtk2::SpinButton -> new ($adj2, 100, 7);
+    my $adj2  = Gtk2::Adjustment->new (0, -1000000, 1000000, 100, 10000, 0);
+    my $spin2 = Gtk2::SpinButton->new ($adj2, 100, 7);
 
     $spin1->hide(); # By default, columns are "ignored" so cell sizes don't apply
     $spin2->hide();
@@ -1201,7 +1201,7 @@ sub onTypeComboChanged {
     my $selected = $combo->get_active_text;
     my $show_or_hide = $selected eq 'Group' ? 'show' : 'hide';
     foreach my $widget (@$spins) {
-        $widget -> $show_or_hide;
+        $widget->$show_or_hide;
     }
 
     return;
@@ -1247,7 +1247,7 @@ sub getRemapInfo {
     my $extractors = Biodiverse::GUI::ParametersTable::fill ($params, $table, $dlgxml); 
     
     $dlg->show_all;
-    my $response = $dlg -> run;
+    my $response = $dlg->run;
     $dlg->destroy;
     
     if ($response ne 'ok') {  #  drop out
@@ -1502,8 +1502,8 @@ sub addRemapRow {
     $i_label->set_use_markup(1);
 
     # Column header
-    my $label = Gtk2::Label -> new("<tt>$header</tt>");
-    $label -> set_use_markup(1);
+    my $label = Gtk2::Label->new("<tt>$header</tt>");
+    $label->set_use_markup(1);
 
     # Type combo box
     my $combo = Gtk2::ComboBox->new_text;
@@ -1515,7 +1515,7 @@ sub addRemapRow {
     foreach (@options) {
         $combo->append_text($_);
     }
-    $combo -> set_active(0);
+    $combo->set_active(0);
 
 
     # Attach to table

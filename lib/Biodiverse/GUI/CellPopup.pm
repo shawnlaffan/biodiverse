@@ -251,7 +251,7 @@ sub showAllLabels {
     my $popup   = shift;
     my $element = shift;
     my $data    = shift;
-    my $bd      = $data -> get_param ('BASEDATA_REF') || $data;
+    my $bd      = $data->get_param ('BASEDATA_REF') || $data;
 
     if (not $popup->{labels_model}) {
         #print "[Cell popup] Making labels model using get_labels_in_group_as_hash()\n";
@@ -259,7 +259,7 @@ sub showAllLabels {
         #my $project = Biodiverse::GUI::GUIManager->instance->getProject();
         #my $basedata = $project->getSelectedBaseData();
         my %labels = $bd->get_labels_in_group_as_hash (group => $element);
-        #my %labels = $data -> get_lists (element => $element);
+        #my %labels = $data->get_lists (element => $element);
 
         my $num_type = eval {$bd->sample_counts_are_floats}
             ? 'Glib::Double'
@@ -421,15 +421,15 @@ sub findNeighbours {
     my @nbr_list;
     my $parsed_spatial_params = $output_ref->get_param ('SPATIAL_PARAMS');
     my $sp_index = $output_ref->get_param ('SPATIAL_INDEX');
-    my $search_blocks_ref = $output_ref -> get_param ('INDEX_SEARCH_BLOCKS');
+    my $search_blocks_ref = $output_ref->get_param ('INDEX_SEARCH_BLOCKS');
 
     foreach my $i (0 .. $#$parsed_spatial_params) {
-        if ($output_ref -> exists_list (
+        if ($output_ref->exists_list (
                 element => $element,
                 list    => '_NBR_SET' . ($i+1),
             )
         ) {
-            $nbr_list[$i] = $output_ref -> get_list_values (
+            $nbr_list[$i] = $output_ref->get_list_values (
                 element => $element,
                 list    => '_NBR_SET' . ($i+1),
             );

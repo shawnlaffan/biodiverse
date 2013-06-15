@@ -67,19 +67,19 @@ sub new {
         my $bd = $self->{basedata_ref} = $self->{project}->getSelectedBaseData;
         
         if (not blessed ($bd)) {  #  this should be fixed now
-            $self -> onClose;
+            $self->onClose;
             croak "Basedata ref undefined - click on the basedata object in "
                     . "the outputs tab to select it (this is a bug)\n";
         }
         
         #  check if it has rand outputs already and warn the user
-        if (my @a = $bd -> get_randomisation_output_refs) {
+        if (my @a = $bd->get_randomisation_output_refs) {
             my $response
-                = $self->{gui} -> warn_outputs_exist_if_randomisation_run(
-                    $self->{basedata_ref} -> get_param ('NAME')
+                = $self->{gui}->warn_outputs_exist_if_randomisation_run(
+                    $self->{basedata_ref}->get_param ('NAME')
                 );
             if (not $response eq 'yes') {
-                $self -> onClose;
+                $self->onClose;
                 croak "User cancelled operation\n";
             }
         }
@@ -100,18 +100,16 @@ sub new {
         $self->registerInOutputsModel($output_ref, $self);
         
         
-        $elt_count = $output_ref -> get_element_count;
-        $completed = $output_ref -> get_param ('COMPLETED');
+        $elt_count = $output_ref->get_element_count;
+        $completed = $output_ref->get_param ('COMPLETED');
         #  backwards compatibility - old versions did not have this flag
-        if (not defined $completed) {
-            $completed = 1;
-        }
+        $completed //= 1;
 
         $self->{output_name} = $output_ref->get_param('NAME');
         $self->{basedata_ref} = $output_ref->get_param('BASEDATA_REF');
         print "[Spatial tab] Existing spatial output - " . $self->{output_name}
               . ". Part of Basedata set - "
-              . ($self->{basedata_ref} -> get_param ('NAME') || "no name")
+              . ($self->{basedata_ref}->get_param ('NAME') || "no name")
               . "\n";
 
         if ($elt_count and $completed) {
@@ -137,7 +135,7 @@ sub new {
     my $initial_def1 = $NULL_STRING;
     if ($self->{existing}) {
         
-        my $spatial_params = $output_ref -> get_param ('SPATIAL_PARAMS');
+        my $spatial_params = $output_ref->get_param ('SPATIAL_PARAMS');
         #  allow for empty conditions
         $initial_sp1
             = defined $spatial_params->[0]
@@ -151,7 +149,7 @@ sub new {
         my $definition_query = $output_ref->get_param ('DEFINITION_QUERY');
         $initial_def1
             = defined $definition_query
-            ? $definition_query -> get_conditions_unparsed()
+            ? $definition_query->get_conditions_unparsed()
             : $NULL_STRING;
     }
     else {
@@ -238,7 +236,7 @@ sub new {
     $self->{xmlPage} ->get_widget('colourButton')   ->signal_connect_swapped(color_set => \&onColourSet,             $self);
     
 
-    $self -> set_frame_label_widget;
+    $self->set_frame_label_widget;
     
     #my $options_menu = $self->{xmlPage}->get_widget('menu_spatial_grid_options');
     #$options_menu->set_menu ($self->get_options_menu);
@@ -285,7 +283,7 @@ sub set_frame_label_widget {
     $widget->show;
 
     my $frame = $self->{xmlPage}->get_widget('frame_spatial_parameters');
-    $frame -> set_label_widget ($widget);
+    $frame->set_label_widget ($widget);
 
     $widget->signal_connect_swapped (
         clicked => \&on_show_hide_parameters,
@@ -302,8 +300,8 @@ sub on_show_hide_parameters {
     my $self = shift;
 
     my $frame = $self->{xmlPage}->get_widget('frame_spatial_parameters');
-    my $widget = $frame -> get_label_widget;
-    my $active = $widget -> get_active;
+    my $widget = $frame->get_label_widget;
+    my $active = $widget->get_active;
 
     my $table = $self->{xmlPage}->get_widget('tbl_spatial_parameters');
 
@@ -347,8 +345,8 @@ sub initGrid {
 
     if ($self->{existing}) {
         my $data = $self->{output_ref};
-        my $elt_count = $data -> get_element_count;
-        my $completed = $data -> get_param ('COMPLETED');
+        my $elt_count = $data->get_element_count;
+        my $completed = $data->get_param ('COMPLETED');
         #  backwards compatibility - old versions did not have this flag
         $completed = 1 if not defined $completed;  
         
@@ -461,7 +459,7 @@ sub makeOutputIndicesModel {
     my $output_ref = $self->{output_ref};
 
     # SWL: Get possible analyses by sampling all elements - this allows for asymmetric lists
-    #my $bd_ref = $output_ref -> get_param ('BASEDATA_REF') || $output_ref;
+    #my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
     my $elements = $output_ref->get_element_hash() || {};
     
     my %analyses_tmp;
@@ -499,9 +497,9 @@ sub makeOutputIndicesModel {
     my $model = Gtk2::ListStore->new('Glib::String');
     foreach my $x (@analyses) {
         my $iter = $model->append;
-        #print ($model -> get($iter, 0), "\n") if defined $model -> get($iter, 0);    #debug
+        #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
         $model->set($iter, 0, $x);
-        #print ($model -> get($iter, 0), "\n") if defined $model -> get($iter, 0);      #debug
+        #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
     }
 
     return $model;
@@ -662,7 +660,7 @@ sub onRun {
         );
     };
     if ($EVAL_ERROR) {
-        $self->{gui} -> report_error ($EVAL_ERROR);
+        $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
 
@@ -687,7 +685,7 @@ sub onRun {
         $output_ref->sp_calc(%args)
     };  #  wrap it in an eval to trap any errors
     if ($EVAL_ERROR) {
-        $self->{gui} -> report_error ($EVAL_ERROR);
+        $self->{gui}->report_error ($EVAL_ERROR);
     }
     
     if ($success) {
@@ -697,7 +695,7 @@ sub onRun {
     $self->{project}->updateIndicesRows($output_ref);
 
     if (not $success) {
-        $self -> onClose;  #  close the tab to avoid horrible problems with multiple instances
+        $self->onClose;  #  close the tab to avoid horrible problems with multiple instances
         return;  # sp_calc dropped out for some reason, eg no valid calculations.
     }
 
@@ -749,7 +747,7 @@ sub onGridHover {
     if ($element) {
         no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
         # Update the Value label
-        my $elts = $output_ref -> get_element_hash();
+        my $elts = $output_ref->get_element_hash();
 
         my $val = $elts->{$element}{ $self->{selected_list} }{$self->{selected_index}};
 
@@ -767,11 +765,11 @@ sub onGridHover {
         
         #  take advantage of the caching now in use - let sp_calc handle these calcs
         my @nbr_list;
-        $nbr_list[0] = $output_ref -> get_list_values (
+        $nbr_list[0] = $output_ref->get_list_values (
             element => $element,
             list    => '_NBR_SET1',
         );
-        $nbr_list[1] = $output_ref -> get_list_values (
+        $nbr_list[1] = $output_ref->get_list_values (
             element => $element,
             list    => '_NBR_SET2',
         );
@@ -820,7 +818,7 @@ sub onNameChanged {
 
     my $bd = $self->{basedata_ref};
 
-    my $name_in_use = $bd -> get_spatial_output_ref (name => $name);
+    my $name_in_use = $bd->get_spatial_output_ref (name => $name);
     
     #  make things go red
     if ($name_in_use) {

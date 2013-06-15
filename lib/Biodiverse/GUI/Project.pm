@@ -69,7 +69,7 @@ sub new {
     $self->selectPhylogeny(undef);
     $self->selectBaseData(undef);
 
-    $self -> set_params (
+    $self->set_params (
         OUTSUFFIX       => 'bps',
         #OUTSUFFIX_XML => 'bpx',
         OUTSUFFIX_YAML  => 'bpy',  #  deprecated
@@ -98,13 +98,13 @@ sub new {
         #    $self = $tmp;
         #}
         if ($type eq 'Biodiverse::BaseData') {
-            $self -> addBaseData ($tmp);
+            $self->addBaseData ($tmp);
         }
         elsif ($type eq 'Biodiverse::Matrix') {
-            $self -> addMatrix ($tmp);
+            $self->addMatrix ($tmp);
         }
         elsif ($type eq 'Biodiverse::Tree') {
-            $self -> addPhylogeny ($tmp);
+            $self->addPhylogeny ($tmp);
         }
         else {
             croak "File $args{file} is not of correct type.\n It is " .
@@ -142,12 +142,12 @@ sub save {
     
     #  make a copy so we don't interfere with the current display settings
     #  not needed if the code de-refs work properly
-    #my $copy = $self -> clone;
+    #my $copy = $self->clone;
     my $copy = $self;  #  still debugging - leave as it was before
     
     #  SWL: now using a generic save method
     #    that handles all types
-    my $file = $copy -> save_to (%args);
+    my $file = $copy->save_to (%args);
     
     $self->{callbacks} = $callbacks;
     $self->{iters} = $iters;
@@ -197,10 +197,10 @@ sub initModels {
     # We put all the iterator hashes separately because they must not be written out to XML
     # (they contain pointers to real memory)
     $self->{iters} = {};
-    $self->{iters}{basedata_iters}  = {}; # Maps basedata-ref   -> iterator
-    $self->{iters}{matrix_iters}    = {}; # Maps matrix-ref     -> iterator
-    $self->{iters}{phylogeny_iters} = {}; # Maps phylogeny-tree -> iterator
-    $self->{iters}{output_iters}    = {}; # Maps output-ref     -> iterator
+    $self->{iters}{basedata_iters}  = {}; # Maps basedata-ref  ->iterator
+    $self->{iters}{matrix_iters}    = {}; # Maps matrix-ref    ->iterator
+    $self->{iters}{phylogeny_iters} = {}; # Maps phylogeny-tree->iterator
+    $self->{iters}{output_iters}    = {}; # Maps output-ref    ->iterator
 
     # Enable use of references as keys
     tie %{$self->{iters}{basedata_iters}},  'Tie::RefHash';
@@ -533,9 +533,9 @@ sub updateOutputName {
     if (defined $iter) {
         my $model = $self->{models}{basedata_output_model};
         #$self->{models}{basedata_output_model}->set($iter, MODEL_OUTPUT, $name);
-        $model -> set($iter, MODEL_OUTPUT, $name);
+        $model->set($iter, MODEL_OUTPUT, $name);
         
-        #$model -> set_value ($iter, 1, $name);
+        #$model->set_value ($iter, 1, $name);
         
         $self->setDirty();
     }
@@ -551,7 +551,7 @@ sub addBaseData {
     my $no_select = shift;
     
     if (not ref $basedata_ref) {
-        $basedata_ref = Biodiverse::BaseData -> new (NAME => $basedata_ref);
+        $basedata_ref = Biodiverse::BaseData->new (NAME => $basedata_ref);
     }
 
     push (@{$self->{BASEDATA}}, $basedata_ref);
@@ -626,8 +626,8 @@ sub addPhylogeny {
 
     # update model
     foreach my $phylogeny_ref (@$phylogenies) {
-        #$phylogeny_ref -> set_parents_below();  #  make sure we have the correct parental structure - dealt with by ReadNexus now.
-        $phylogeny_ref -> set_param (MAX_COLOURS => 1);  #  underhanded, but gives us one colour when clicked on
+        #$phylogeny_ref->set_parents_below();  #  make sure we have the correct parental structure - dealt with by ReadNexus now.
+        $phylogeny_ref->set_param (MAX_COLOURS => 1);  #  underhanded, but gives us one colour when clicked on
         $self->phylogenyRowAdd($phylogeny_ref);
         $self->manageEmptyPhylogenies();  #  SWL: not sure if this should be in the loop
     }
@@ -664,7 +664,7 @@ sub selectBaseData {
     my $self = shift;
     my $basedata_ref = shift;
 
-    $self -> set_param (SELECTED_BASEDATA => $basedata_ref);
+    $self->set_param (SELECTED_BASEDATA => $basedata_ref);
     
     if ($basedata_ref) {
         
@@ -695,7 +695,7 @@ sub selectMatrix {
     my $self = shift;
     my $matrix_ref = shift;
 
-    $self -> set_param(SELECTED_MATRIX => $matrix_ref);
+    $self->set_param(SELECTED_MATRIX => $matrix_ref);
 
     if ($matrix_ref) {
         Biodiverse::GUI::GUIManager->instance->setMatrixIter( $self->{iters}{matrix_iters}{$matrix_ref} );
@@ -724,7 +724,7 @@ sub selectPhylogeny {
     my $self = shift;
     my $phylogeny_ref = shift;
 
-    $self -> set_param('SELECTED_PHYLOGENY', $phylogeny_ref);
+    $self->set_param('SELECTED_PHYLOGENY', $phylogeny_ref);
 
     if ($phylogeny_ref) {
         Biodiverse::GUI::GUIManager->instance->setPhylogenyIter( $self->{iters}{phylogeny_iters}{$phylogeny_ref} );
@@ -754,7 +754,7 @@ sub deleteBaseData {
     my $self = shift;
     my $basedata_ref = shift || $self->getSelectedBaseData() || return 0;  #  drop out if nothing here
 
-    $self -> delete_all_basedata_outputs ($basedata_ref);
+    $self->delete_all_basedata_outputs ($basedata_ref);
 
     # Remove from basedata list
     my $bd_array = $self->{BASEDATA};  #  use a ref to make reading easier
@@ -771,7 +771,7 @@ sub deleteBaseData {
         if (defined $iter) {
             #print "REMOVING BASEDATA FROM OUTPUT MODELS\n";
             my $model = $self->{models}{basedata_output_model};
-            $model -> remove ($iter);
+            $model->remove ($iter);
             delete $self->{iters}{basedata_iters}{$basedata_ref};
             #$self->{iters}{output_iters}
         }
@@ -782,13 +782,13 @@ sub deleteBaseData {
     # Clear selection
     my $selected = $self->getSelectedBaseData;
     if ($basedata_ref eq $selected) {
-        $self -> set_param (SELECTED_BASEDATA => undef);
+        $self->set_param (SELECTED_BASEDATA => undef);
         #print "CLEARED SELECTED_BASEDATA\n";
     }
 
 
     #  clear its outputs
-    #$basedata_ref -> delete_all_outputs if defined $basedata_ref;
+    #$basedata_ref->delete_all_outputs if defined $basedata_ref;
 
     # Select the first one remaining
     my $basedata_list = $self->getBaseDataList;
@@ -801,9 +801,9 @@ sub deleteBaseData {
 
     #  this is pretty underhanded, but it is not being freed somewhere
     #   so we will empty it instead to reduce the footprint
-    #$basedata_ref -> DESTROY;
+    #$basedata_ref->DESTROY;
         
-    #$self -> dump_to_yaml (filename => 'circle3.yml', data => $self->getBaseDataList)
+    #$self->dump_to_yaml (filename => 'circle3.yml', data => $self->getBaseDataList)
 
     return;
 }
@@ -816,14 +816,14 @@ sub renameBaseData {
     
     my $basedata_ref = shift || $self->getSelectedBaseData() || return;  #  drop out if nothing here
 
-    $basedata_ref -> rename (name => $name);
+    $basedata_ref->rename (name => $name);
 
     # Rename in model
     if (exists $self->{iters}{basedata_iters}{$basedata_ref}) {
         my $iter = $self->{iters}{basedata_iters}{$basedata_ref};
         if (defined $iter) {
             my $model = $self->{models}{basedata_output_model};
-            $model -> set_value ($iter, 0, $name);
+            $model->set_value ($iter, 0, $name);
         }
     }
     
@@ -840,14 +840,14 @@ sub renameMatrix {
     
     my $ref = shift || $self->getSelectedMatrix() || return;  #  drop out if nothing here
 
-    $ref -> rename_object (name => $name);
+    $ref->rename_object (name => $name);
 
     # Rename in model
     if (exists $self->{iters}{matrix_iters}{$ref}) {
         my $iter = $self->{iters}{matrix_iters}{$ref};
         if (defined $iter) {
             my $model = $self->{models}{matrix_model};
-            $model -> set_value ($iter, 0, $name);
+            $model->set_value ($iter, 0, $name);
         }
     }
     
@@ -865,14 +865,14 @@ sub renamePhylogeny {
     
     my $ref = shift || $self->getSelectedPhylogeny() || return;  #  drop out if nothing here
 
-    $ref -> rename_object (name => $name);
+    $ref->rename_object (name => $name);
 
     # Rename in model
     if (exists $self->{iters}{phylogeny_iters}{$ref}) {
         my $iter = $self->{iters}{phylogeny_iters}{$ref};
         if (defined $iter) {
             my $model = $self->{models}{phylogeny_model};
-            $model -> set_value ($iter, 0, $name);
+            $model->set_value ($iter, 0, $name);
         }
     }
     
@@ -888,7 +888,7 @@ sub deleteMatrix {
     # Clear selection
     my $selected = $self->getSelectedMatrix;
     if ($matrix_ref eq $selected) {
-        $self -> set_param('SELECTED_MATRIX', undef);
+        $self->set_param('SELECTED_MATRIX', undef);
         #print "CLEARED SELECTED_MATRIX\n";
     }
         
@@ -927,7 +927,7 @@ sub deletePhylogeny {
         # Clear selection
     my $selected = $self->getSelectedPhylogeny;
     if ($phylogeny_ref eq $selected) {
-        $self -> set_param('SELECTED_PHYLOGENY', undef);
+        $self->set_param('SELECTED_PHYLOGENY', undef);
         #print "CLEARED SELECTED_PHYLOGENY $selected\n";
     }
         
@@ -980,13 +980,13 @@ sub deleteOutput {
 sub renameOutput {
     my $self = shift;
     my $output_ref = shift;
-    my $name = $output_ref -> get_param ('NAME');
+    my $name = $output_ref->get_param ('NAME');
 
 
     my $iter = $self->{iters}{output_iters}{$output_ref};
     if (defined $iter) {
         my $model = $self->{models}{basedata_output_model};
-        $model -> set_value ($iter, MODEL_OUTPUT, $name);
+        $model->set_value ($iter, MODEL_OUTPUT, $name);
         
         $self->setDirty();
     }
@@ -997,10 +997,10 @@ sub renameOutput {
 #  go through and clean them all up.  
 sub delete_all_basedata_outputs {
     my $self = shift;
-    my $bd = shift || $self -> getSelectedBaseData || return 0;
+    my $bd = shift || $self->getSelectedBaseData || return 0;
     
-    foreach my $output_ref ($bd -> get_output_refs) {
-        $self -> deleteOutput ($output_ref);
+    foreach my $output_ref ($bd->get_output_refs) {
+        $self->deleteOutput ($output_ref);
     }
     
     return;
@@ -1407,7 +1407,7 @@ sub getOverlay {
 
         print "[Project] Loading shapefile...\n";
 
-        my $shapefile = Geo::ShapeFile -> new ($name);
+        my $shapefile = Geo::ShapeFile->new ($name);
         printf "[Project] loaded %i shapes of type %s\n",
             $shapefile->shapes,
             $shapefile->shape_type_text;

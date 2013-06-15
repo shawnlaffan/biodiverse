@@ -32,7 +32,7 @@ sub Run {
     $dlg->set_title($title);
 
     # Connect file selected event - to automatically update name based on filename
-    $dlgxml->get_widget('filechooser') -> signal_connect('selection-changed' => \&onFileSelection, $dlgxml);
+    $dlgxml->get_widget('filechooser')->signal_connect('selection-changed' => \&onFileSelection, $dlgxml);
 
     # Add filters
     foreach my $suffix (@suffixes) {
@@ -49,7 +49,7 @@ sub Run {
             $filter->set_name("$suffix files");
         }
 
-        $dlgxml->get_widget('filechooser') -> add_filter($filter);
+        $dlgxml->get_widget('filechooser')->add_filter($filter);
 
     }
 

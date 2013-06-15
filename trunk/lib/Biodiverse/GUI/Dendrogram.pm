@@ -52,6 +52,7 @@ use constant HOVER_CURSOR => 'hand2';
 ##########################################################
 
 sub new {
+    #  FIXME FIXME this sub desperately needs to use a hash of key-value pairs
     my $class           = shift;
     my $mainFrame       = shift;    # GTK frame to add dendrogram
     my $graphFrame      = shift;    # GTK frame for the graph (below!)
@@ -60,6 +61,7 @@ sub new {
     my $map             = shift;    # Grid.pm object of the dataset to link in
     my $map_list_combo  = shift;    # Combo for selecting how to colour the grid (based on spatial result or cluster)
     my $map_index_combo = shift;    # Combo for selecting how to colour the grid (which spatial result)
+    my $basedata_ref    = pop;
 
     my $grey = 0.9 * 255 * 257;
 
@@ -91,6 +93,11 @@ sub new {
 
     if (defined $self->{parent_tab}) {
         weaken $self->{parent_tab};
+    }
+
+    if (defined $basedata_ref) {
+        $self->{basedata_ref} = $basedata_ref;
+        weaken $self->{basedata_ref};
     }
 
     # starting off with the "clustering" view, not a spatial analysis
@@ -1299,8 +1306,8 @@ sub makeTotalLengthArrayInner {
 
 # whether to plot by 'length' or 'depth'
 sub setPlotMode {
-    my $self = shift;
-    my $plot_mode = shift;
+    my ($self, $plot_mode) = @_;
+
     $self->{plot_mode} = $plot_mode;
 
     # Work out how to get the "length" based on mode
@@ -1314,6 +1321,13 @@ sub setPlotMode {
         $self->{max_length_func} = \&Biodiverse::TreeNode::get_depth_below;
         $self->{neg_length_func} = sub { return 0; };
     }
+    #elsif ($plot_mode eq 'range_weighted') {  #  experimental - replaced by method to convert the tree's branch lengths
+    #    #  need to get the node range table
+    #    my $bd = $self->{basedata_ref};
+    #    $self->{length_func}     = sub {my ($node, %args) = @_; return $node->get_length / $node->get_node_range (basedata_ref => $bd)};
+    #    $self->{max_length_func} = \&Biodiverse::TreeNode::get_max_total_length;
+    #    $self->{neg_length_func} = \&getMaxNegativeLength;
+    #}
     else {
         die "Invalid cluster-plotting mode - $plot_mode";
     }

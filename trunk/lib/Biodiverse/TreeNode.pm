@@ -9,7 +9,7 @@ use English ( -no_match_vars );
 use Carp;
 use Scalar::Util qw /weaken isweak blessed/;
 use Data::Dumper qw/Dumper/;
-use List::Util;
+use List::Util qw /min/;
 
 use Biodiverse::BaseStruct;
 
@@ -1808,7 +1808,39 @@ sub get_list_ref {
     exists $self->{$list} ? $self->{$list} : undef;
 }
 
-sub min {$_[0] < $_[1] ? $_[0] : $_[1]}
+sub get_node_range {
+    my $self = shift;
+    my %args = @_;
+
+    my $bd = $args{basedata_ref} || croak "argument basedata_ref not provided\n";
+
+    #  need to apply some caching using the $bd ref in the key
+    my $cache_key = 'NODE_RANGE_' . $bd;
+    my $cached_range = $self->get_cached_value ($cache_key);
+
+    return $cached_range if defined $cached_range;
+
+    my @labels   = ($self->get_name);
+    my $children =  $self->get_all_descendents;
+
+    #  collect the set of non-internal (named) nodes
+    #  Possibly should only work with terminals
+    #  which would simplify things.
+    foreach my $name (keys %$children) {
+        next if $children->{$name}->is_internal_node;
+        push (@labels, $name);
+    }
+
+    my @range = $bd->get_range_union (labels => \@labels);
+
+    my $range = scalar @range;
+
+    $self->set_cached_value ($cache_key => $range);
+
+    return $range;
+}
+
+#sub min {$_[0] < $_[1] ? $_[0] : $_[1]}
 
 sub numerically {$a <=> $b}
 

@@ -1541,8 +1541,19 @@ sub do_convert_phylogeny_to_matrix {
     return;
 }
 
+sub do_range_weight_tree {
+    my $self = shift;
+
+    return $self->do_trim_tree_to_basedata (
+        do_range_weighting => 1,
+        suffix             => 'RW',
+    );
+}
+
 sub do_trim_tree_to_basedata {
     my $self = shift;
+    my %args = @_;
+
     my $phylogeny = $self->{project}->getSelectedPhylogeny;
     my $bd = $self->{project}->getSelectedBaseData || return 0;
     
@@ -1566,31 +1577,35 @@ sub do_trim_tree_to_basedata {
     my $txtName = $dlgxml->get_widget('txtName');
     my $name = $phylogeny->get_param('NAME');
 
+    my $suffix = $args{suffix} || 'TRIMMED';
     # If ends with _TRIMMED followed by a number then increment it
-    if ($name =~ /(.*_TRIMMED)([0-9]+)$/) {
+    if ($name =~ /(.*_$suffix)([0-9]+)$/) {
         $name = $1 . ($2 + 1)
     }
     else {
-        $name .= '_TRIMMED1';
+        $name .= "_${suffix}1";
     }
     $txtName->set_text($name);
 
     my $response = $dlg->run();
-    
-    my $new_tree;
-    
-    if ($response eq 'ok') {
-        my $chosen_name = $txtName->get_text;
-        #my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
-        $new_tree = $phylogeny->clone;
-        $new_tree->trim (keep => scalar $bd->get_labels);
-        $new_tree->set_param (NAME => $chosen_name);
-        #$progress_bar->destroy;
-    }
+    my $chosen_name = $txtName->get_text;
+
     $dlg->destroy;
 
-    return if ! defined $new_tree;  #  they chickened out
-    
+    return if $response ne 'ok';  #  they chickened out
+
+    my $new_tree = $phylogeny->clone;
+    $new_tree->trim (keep => scalar $bd->get_labels);
+
+    if ($args{do_range_weighting}) {
+        foreach my $node ($new_tree->get_node_refs) {
+            my $range = $node->get_node_range (basedata_ref => $bd);
+            $node->set_length (length => $node->get_length / $range);
+        }
+    }
+
+    $new_tree->set_param (NAME => $chosen_name);
+
     #  now we add it if it is not already in the list
     #  otherwise we select it
     my $phylogenies = $self->{project}->getPhylogenyList;

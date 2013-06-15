@@ -283,6 +283,9 @@ my %data_funcs = (
     on_trim_tree_to_basedata => {
         METHOD => 'do_trim_tree_to_basedata',
     },
+    on_range_weight_tree => {
+        METHOD => 'do_range_weight_tree',
+    },
     on_matrix_export => {
         METHOD => 'do_export_matrix',
     },

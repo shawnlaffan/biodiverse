@@ -455,6 +455,18 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -994,6 +1006,18 @@
                     <property name="n_columns">2</property>
                     <property name="column_spacing">3</property>
                     <property name="row_spacing">3</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                     <child>
                       <placeholder/>
                     </child>
@@ -4280,6 +4304,17 @@ Assumes a dissimilarity matrix, so take care.</property>
                       </widget>
                     </child>
                     <child>
+                      <widget class="GtkMenuItem" id="menu_range_weight_tree_branches">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Create a new tree where the branch lengths are divided by their ranges.
+This can help interpret phylogenetic endemism and related analyses.  </property>
+                        <property name="label" translatable="yes">Convert to range weighted branches</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_range_weight_tree"/>
+                      </widget>
+                    </child>
+                    <child>
                       <widget class="GtkSeparatorMenuItem" id="separator7">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
@@ -7001,6 +7036,8 @@ Both</property>
                                               <widget class="GtkRadioMenuItem" id="phylogeny_plot_length">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="has_tooltip">True</property>
+                                                <property name="tooltip" translatable="yes">Plot branches using their lengths.</property>
                                                 <property name="label" translatable="yes">Length</property>
                                                 <property name="use_underline">True</property>
                                                 <property name="active">True</property>
@@ -7011,6 +7048,8 @@ Both</property>
                                               <widget class="GtkRadioMenuItem" id="phylogeny_plot_depth">
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
+                                                <property name="has_tooltip">True</property>
+                                                <property name="tooltip" translatable="yes">Plot branches as a function of depth from the root node.</property>
                                                 <property name="label" translatable="yes">Depth</property>
                                                 <property name="use_underline">True</property>
                                                 <property name="group">phylogeny_plot_length</property>
@@ -8908,6 +8947,18 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

@@ -708,9 +708,9 @@ sub run_indices_test1 {
         # Used for acquiring sample results
         if ($generate_result_sets) {
             use Data::Dumper;
-            $Data::Dumper::Purity   = 1;
-            $Data::Dumper::Terse    = 1;
-            $Data::Dumper::Sortkeys = 1;
+            local $Data::Dumper::Purity   = 1;
+            local $Data::Dumper::Terse    = 1;
+            local $Data::Dumper::Sortkeys = 1;
             say '#' x 20;
             say Dumper(\%results);
             say '#' x 20;

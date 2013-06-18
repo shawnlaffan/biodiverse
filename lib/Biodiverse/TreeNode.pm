@@ -467,14 +467,10 @@ sub get_child_count {
 }
     
 # should be get_terminal_node_count
-# but we already have a get_terminal_element_count - fold together?
+# same as get_terminal_element_count, so just pass it on
 sub get_child_count_below {
     my $self = shift;
-    #  should just get the key counts and return that
-    #  return scalar keys %{};
-    #  get_terminal_elements caches the requisite lists
-    my $te = [keys %{$self->get_terminal_elements}];
-    return $#$te + 1;
+    return $self->get_terminal_element_count (@_);
 }
 
 

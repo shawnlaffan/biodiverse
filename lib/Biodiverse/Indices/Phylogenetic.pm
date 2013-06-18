@@ -670,7 +670,6 @@ sub calc_labels_not_on_tree {
     my $p_not_on_tree;
     {
         no warnings 'numeric';
-        my $richness   = scalar keys %{$args{label_hash_all}};
         $p_not_on_tree = eval { $count_not_on_tree / $richness } || 0;
     }
 

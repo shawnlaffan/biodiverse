@@ -14,7 +14,7 @@ These also assume you have [http://code.google.com/p/biodiverse/downloads/list d
 
   * It is also a very good idea to *not* use the system perl for this.  The operating system assumes specific versions of files are in the system perl.  Download and install one of the many available perls, for example from !ActiveState.  http://www.activestate.com/activeperl/downloads .  You could also try perlbrew.  http://perlbrew.pl/
 
-  * Once you have installed the other perl, you need to make sure it is the one you call in subsequent steps.  You will probably need to give the full path name to the perl binary in each line, rather than just saying `perl`.  If you installed perl to your home directory then you won;t need to prepend each perl command with `sudo`.  
+  * Once you have installed the other perl, you need to make sure it is the one you call in subsequent steps.  You will probably need to give the full path name to the perl binary in each line, rather than just saying `perl`.  If you installed perl to your home directory then you won't need to prepend each perl command with `sudo`.  
 
 
 {{{
@@ -25,6 +25,10 @@ cd etc/bundles/NoGUI
 cpan -i .
 cd ../GUI
 cpan -i .
+cpan -i .  
+#  The last cpan command might need to be run twice 
+#  to get Gnome::Canvas and Gtk2::GladeXML to install after
+#  their dependencies.
 }}}
 
 If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).

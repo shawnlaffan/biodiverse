@@ -70,13 +70,6 @@ sub get_metadata_calc_richness {
                 uses_nbr_lists  => 2,
                 lumper          => 0,
             },
-            COMPL           => {
-                cluster         => [1,0],  #  largest to smallest
-                description     => "A crude complementarity index for use in clustering.\n"
-                                    . "It is actually the same as RICHNESS_ALL and "
-                                    . "might be disabled in a later release.",
-                uses_nbr_lists  => 2,
-            },
         },
     );
 
@@ -90,7 +83,6 @@ sub calc_richness {  #  calculate the aggregate richness for a set of elements
     my %results = (RICHNESS_ALL => $args{ABC},
                    RICHNESS_SET1 => $args{A} + $args{B},
                    RICHNESS_SET2 => $args{A} + $args{C},
-                   COMPL => $args{ABC}
                   );
 
     return wantarray

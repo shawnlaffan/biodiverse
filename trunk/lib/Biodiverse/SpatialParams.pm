@@ -679,65 +679,8 @@ sub evaluate {
     );
 
     my $code_ref = $self->get_conditions_code_ref (%args);
-    
+
     return $self->$code_ref (%args);
-
-    ###  THIS IS ALL NOW IN get_conditions_code_ref()
-    ###  It is only left here in case we have serialisation issues with the
-    ###  code ref and need to reinstate it temporarily.
-
-    #my $conditions = $self->get_conditions;
-    #
-    ##  CHEATING... should use a generic means of getting at the caller object
-    #my $basedata = $args{basedata} || $args{caller_object}; 
-    #
-    #my %dists;
-    #
-    #my ( @d, @D, $D, $Dsqr, @c, @C, $C, $Csqr );
-    #
-    #if ( $args{calc_distances} ) {
-    #    %dists = eval { $self->get_distances(@_) };
-    #    croak $EVAL_ERROR if $EVAL_ERROR;
-    #
-    #    @d    = @{ $dists{d_list} };
-    #    @D    = @{ $dists{D_list} };
-    #    $D    = $dists{D};
-    #    $Dsqr = $dists{Dsqr};
-    #    @c    = @{ $dists{c_list} };
-    #    @C    = @{ $dists{C_list} };
-    #    $C    = $dists{C};
-    #    $Csqr = $dists{Csqr};
-    #
-    #    if ($self->get_param ('KEEP_LAST_DISTANCES')) {
-    #        $self -> set_param (LAST_DISTS => \%dists);
-    #    }
-    #}
-    #
-    #my $coord_id1 = $args{coord_id1};
-    #my $coord_id2 = $args{coord_id2};
-    #
-    #my @coord = @{ $args{coord_array1} };
-    #
-    ##  shorthands - most cases will be 2D
-    #my ( $x, $y, $z ) = ( $coord[0], $coord[1], $coord[2] );
-    #
-    #my @nbrcoord = $args{coord_array2} ? @{ $args{coord_array2} } : ();
-    #
-    ##  shorthands - most cases will be 2D
-    #my ( $nbr_x, $nbr_y, $nbr_z ) =
-    #  ( $nbrcoord[0], $nbrcoord[1], $nbrcoord[2] );
-    #
-    #$self->set_param( CURRENT_ARGS => peek_my(0) );
-    #
-    #my $result = eval $conditions;
-    #my $error  = $EVAL_ERROR;
-    #
-    ##  clear the args, avoid ref cycles
-    #$self->set_param( CURRENT_ARGS => undef );
-    #
-    #croak $error if $error;
-    #
-    #return $result;
 }
 
 #  get a subroutine reference based on the conditions
@@ -745,14 +688,14 @@ sub get_conditions_code_ref {
     my $self = shift;
 
     my $code_ref = $self->get_cached_value ('CODE_REF');
-    
+
     return $code_ref if defined $code_ref && reftype ($code_ref) eq 'CODE';  #  need to check for valid code?
 
     my $conditions_code = <<'END_OF_CONDITIONS_CODE'
 sub {
     my $self = shift;
     my %args = @_;
-    
+
     #  CHEATING... should use a generic means of getting at the caller object
     my $basedata = $args{basedata} || $args{caller_object}; 
 
@@ -782,21 +725,21 @@ sub {
     my $coord_id2 = $args{coord_id2};
 
     my @coord = @{ $args{coord_array1} };
-    
+
     #  shorthands - most cases will be 2D
     my ( $x, $y, $z ) = ( $coord[0], $coord[1], $coord[2] );
 
     my @nbrcoord = $args{coord_array2} ? @{ $args{coord_array2} } : ();
-    
+
     #  shorthands - most cases will be 2D
     my ( $nbr_x, $nbr_y, $nbr_z ) =
       ( $nbrcoord[0], $nbrcoord[1], $nbrcoord[2] );
 
     $self->set_param( CURRENT_ARGS => peek_my(0) );
 
-    my $result = eval { CONDITIONS_GO_HERE };
+    my $result = eval { CONDITIONS_STRING_GOES_HERE };
     my $error  = $EVAL_ERROR;
-    
+
     #  clear the args, avoid ref cycles
     $self->set_param( CURRENT_ARGS => undef );
 
@@ -808,7 +751,7 @@ END_OF_CONDITIONS_CODE
       ;
 
     my $conditions = $self->get_conditions;
-    $conditions_code =~ s/CONDITIONS_GO_HERE/$conditions/m;
+    $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 
     $code_ref = eval $conditions_code;
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -833,8 +776,8 @@ sub get_result_type {
 
     my $type = $self->get_param('RESULT_TYPE');
 
-    if ( defined $type and length $type and $type =~ /\S/ )
-    {    #  must contain some non-whitespace
+    #  must contain some non-whitespace
+    if ( defined $type and length $type and $type =~ /\S/ ) {
         return $type;
     }
 
@@ -909,7 +852,6 @@ sub get_result_type {
     #  too hard to work out, and so any analyses have to check all candidates
     $self->set_param( 'RESULT_TYPE' => 'complex' );
     return 'complex';
-
 }
 
 sub get_index_max_dist {
@@ -917,8 +859,8 @@ sub get_index_max_dist {
     my %args = @_;
 
     return $self->get_param('INDEX_MAX_DIST');
-
-#  should put some checks in here?  or restructure the get_result_type to find both at once
+    #  should put some checks in here?
+    #  or restructure the get_result_type to find both at once
 }
 
 
@@ -957,7 +899,6 @@ sub sp_circle {
     my $self = shift;
     my %args = @_;
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
     my $dist;
@@ -976,13 +917,12 @@ sub sp_circle {
         $dist = sqrt $d_sqr;
     }
     else {
-        $dist =
-            ${ $h->{'$D'}
-            }; #  PadWalker gives hashrefs of scalar refs, so need to de-ref to get the value
+        #  PadWalker gives hashrefs of scalar refs, so need to de-ref to get the value
+        $dist = ${ $h->{'$D'} }; 
     }
 
-    my $test = $dist
-        <= $args{radius};    #  could put into the return, but still debugging
+    #  could put into the return, but this helps debugging
+    my $test = $dist <= $args{radius};    
 
     return $test;
 }
@@ -1000,7 +940,6 @@ sub get_metadata_sp_circle_cell {
         use_cell_distance  => $args{axes}
                             ? undef
                             : 1,    #  don't need $C if we're using a subset
-         #index_max_dist => (looks_like_number $args{radius} ? $args{radius} : undef),
         required_args => ['radius'],
         result_type   => 'circle',
     );
@@ -1015,7 +954,6 @@ sub sp_circle_cell {
     my $self = shift;
     my %args = @_;
 
-    #my $h = peek_my (1);  # get a hash of the $C etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
     my $dist;
@@ -1029,13 +967,12 @@ sub sp_circle_cell {
         $dist = sqrt $d_sqr;
     }
     else {
-        $dist =
-            ${ $h->{'$C'}
-            }; #  PadWalker gives hash of refs, so need to de-ref scalars to get the value
+        #  PadWalker gives hash of refs, so need to de-ref scalars to get the value
+        $dist = ${ $h->{'$C'} };
     }
 
-    my $test = $dist
-        <= $args{radius};    #  could put into the return, but still debugging
+    #  could put into the return, but still debugging
+    my $test = $dist <= $args{radius};
 
     return $test;
 }
@@ -1050,10 +987,9 @@ sub get_metadata_sp_annulus {
             . "but use the optional \"axes => []\" arg to specify a subset.\n"
             . 'Uses group (map) distances.',
         use_euc_distances => $args{axes},
-        use_euc_distance  => $args{axes}
-        ? undef
-        : 1,    #  don't need $D if we're using a subset
-                #  flag index dist if easy to determine
+            #  don't need $D if we're using a subset
+        use_euc_distance  => $args{axes} ? undef : 1,    
+            #  flag index dist if easy to determine
         index_max_dist => $args{outer_radius},
         required_args      => [ 'inner_radius', 'outer_radius' ],
         optional_args      => [qw /axes/],
@@ -1072,7 +1008,6 @@ sub sp_annulus {
     my $self = shift;
     my %args = @_;
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
     my $dist;
@@ -1091,12 +1026,9 @@ sub sp_annulus {
         $dist = sqrt $d_sqr;
     }
     else {
-        $dist =
-            ${ $h->{'$D'}
-            }; #  PadWalker gives hashrefs of scalar refs, so need to de-ref to get the value
+        $dist = ${ $h->{'$D'} };
     }
 
-    #  could put into the return, but still debugging
     my $test =
         eval { $dist >= $args{inner_radius} && $dist <= $args{outer_radius} };
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -1136,17 +1068,14 @@ sub sp_square {
 
     my $size = $args{size} / 2;
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x =
-        @{ $h->{'@D'}
-        }; #  PadWalker gives hashrefs of scalar refs, so need to de-ref to get the value
+    my @x = @{ $h->{'@D'} }; 
     foreach my $dist (@x) {    #  should use List::Util::any for speed
         return 0 if $dist > $size;
     }
-    return 1;                  #  if we get this far then we are OK.
 
+    return 1;                  #  if we get this far then we are OK.
 }
 
 sub get_metadata_sp_square_cell {
@@ -1161,8 +1090,6 @@ sub get_metadata_sp_square_cell {
     my %args_r = (
         description => $description,
         use_cell_distance => 1,    #  need all the distances
-                                   #  flag index dist if easy to determine
-          #index_max_dist => (looks_like_number $args{size} ? $args{size} : undef),
         required_args => ['size'],
         result_type   => 'square',
         example       => 'sp_square_cell (size => 3)',
@@ -1177,17 +1104,15 @@ sub sp_square_cell {
 
     my $size = $args{size} / 2;
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x =
-        @{ $h->{'@C'}
-        }; #  PadWalker gives hashrefs of scalar refs, so need to de-ref to get the value
-    foreach my $dist (@x) {    #  should use List::Util::any for speed
+    my @x = @{ $h->{'@C'} };
+    foreach my $dist (@x) {    #  could use List::Util::any for speed?
         return 0 if $dist > $size;
     }
-    return 1;                  #  if we get this far then we are OK.
 
+    #  if we get this far then we are OK.
+    return 1;
 }
 
 sub get_metadata_sp_block {
@@ -1196,9 +1121,7 @@ sub get_metadata_sp_block {
 
     my %args_r = (
         description =>
-            'A non-overlapping block.  Set an axis to undef to ignore it.'
-        ,                      #  should add an example field
-                               #  flag index dist if easy to determine
+            'A non-overlapping block.  Set an axis to undef to ignore it.',
         index_max_dist =>
             ( looks_like_number $args{size} ? $args{size} : undef ),
         required_args => ['size'],
@@ -1215,7 +1138,6 @@ sub get_metadata_sp_block {
 
 #  non-overlapping block, cube or hypercube
 #  should drop the guts into another sub so we can call it with cell based args
-#*block = &sp_block;  #  for short term backwards compatibility
 sub sp_block {
     my $self = shift;
     my %args = @_;
@@ -1223,7 +1145,6 @@ sub sp_block {
     croak "sp_block: argument 'size' not specified\n"
         if not defined $args{size};
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
     my $coord    = $h->{'@coord'};
@@ -1242,12 +1163,13 @@ sub sp_block {
 
     foreach my $i ( 0 .. $#$coord ) {
         #  should add an arg to use a slice (subset) of the coord array
+        #  Should also use floor() instead of fmod()
 
         next if not defined $size->[$i];    #  ignore if this is undef
         my $axis   = $coord->[$i];
         my $tmp    = $axis - $origin->[$i];
         my $offset = fmod( $tmp, $size->[$i] );
-        my $edge   = $offset < 0                  #  "left" edge
+        my $edge   = $offset < 0               #  "left" edge
             ? $axis - $offset - $size->[$i]    #  allow for -ve fmod results
             : $axis - $offset;
         my $dist = $nbrcoord->[$i] - $edge;
@@ -1406,7 +1328,6 @@ sub sp_self_only {
     my $self = shift;
     my %args = @_;
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h           = $self->get_param('CURRENT_ARGS');
     my $caller_args = $h->{'%args'};
 
@@ -1718,7 +1639,6 @@ sub _sp_side {
           if $axis_count != 2;
     }
 
-    #my $h = peek_my (1);  # get a hash of the $C etc from the level above
     my $h = $self->get_param('CURRENT_ARGS');
 
     #  PadWalker gives hashrefs of scalar refs,
@@ -1783,9 +1703,7 @@ sub get_metadata_sp_select_sequence {
             'first_offset',     #  the first offset, defaults to 0
             'use_cache',        #  a boolean flag, defaults to 1
             'reverse_order',    #  work from the other end
-             #"ignore_after_use",  #  boolean - should we ignore coords after they've been processed - REDUNDANT?
-            'cycle_offset'
-            , #  boolean, default=1.  cycle the offset back to zero when it exceeds the frequency
+            'cycle_offset',
         ],
         index_no_use => 1,          #  turn the index off
         result_type  => 'subset',
@@ -1805,7 +1723,6 @@ sub sp_select_sequence {
     my $self = shift;
     my %args = @_;
 
-    #my $h = peek_my (1);  # get a hash of the $D etc from the level above
     my $h           = $self->get_param('CURRENT_ARGS');
     my $caller_args = $h->{'%args'};
 

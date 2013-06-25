@@ -3,13 +3,15 @@ use strict;
 use warnings;
 use 5.010;
 
+use rlib;
+
 use Carp;
 use English qw { -no_match_vars };
 
 use Biodiverse::BaseData;
 
 #  need to use GetOpt::Long or similar
-my $glob        = $ARGV[0];
+my $glob        = $ARGV[0] // '*.bds';
 my $out_prefix  = $ARGV[1];
 my $out_suffix  = $ARGV[2];
 my $list_name   = $ARGV[3] // 'SPATIAL_RESULTS';

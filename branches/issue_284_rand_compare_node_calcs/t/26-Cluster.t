@@ -58,6 +58,8 @@ sub main {
     test_linkages_and_check_mx_precision ();
 
     test_same_results_given_same_prng_seed();
+    
+    test_rand_calc_per_node_uses_orig_bd();
 
     done_testing;
     return 0;
@@ -247,6 +249,28 @@ sub check_order_is_same_given_same_prng {
     is   ($newick1, $newick2, 'trees are the same');
     isnt ($newick1, $newick3, 'trees are not the same');
 }
+
+
+sub test_rand_calc_per_node_uses_orig_bd {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+
+    #  name is short for test_rand_calc_per_node_uses_orig_bd
+    my $cl = $bd->add_cluster_output (name => 't_r_c_p_n_u_o_b');
+    
+    $cl->run_analysis (
+        spatial_calculations => [qw /calc_richness calc_element_lists_used calc_elements_used/],
+    );
+
+    my $rand = $bd->add_randomisation_output (name => 'xxx');
+    $rand->run_analysis (
+        function   => 'rand_csr_by_group',
+        iterations => 1,
+    );
+
+    is (1, 1, 'for debug purposes');
+}
+
+
 
 
 ######################################

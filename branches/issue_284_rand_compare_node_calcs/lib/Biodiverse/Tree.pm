@@ -1429,18 +1429,12 @@ sub compare {
 
     my $progress = Biodiverse::Progress->new();
     my $progress_text
-        = "Comparing "
-        . $self->get_param ("NAME")
-        . " with "
-        . $comparison->get_param ("NAME")
-        . "\n";
+      = sprintf "Comparing %s with %s\n",
+        $self->get_param ('NAME'),
+        $comparison->get_param ('NAME');
     $progress->update ($progress_text, 0);
 
-    print "[TREE] Comparing "
-        . $self->get_param ('NAME')
-        . ' with '
-        . $comparison->get_param ('NAME')
-        . "\n";
+    #print "\n[TREE] " . $progress_text;
 
     #  set up the comparison operators if it has spatial results
     my $has_spatial_results = defined $self->get_list_ref (

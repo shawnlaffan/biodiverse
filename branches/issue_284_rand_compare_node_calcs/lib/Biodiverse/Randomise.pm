@@ -429,6 +429,8 @@ sub run_randomisation {
             $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
             my $rand_state = $target->get_param('RAND_INIT_STATE') || [];
             $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
+            eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
+            $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
 
             eval {
                 $rand_analysis->run_analysis (
@@ -450,7 +452,8 @@ sub run_randomisation {
             #  unless we've been told to keep it
             #  (this has not been exposed to the GUI yet)
             if (! $args{retain_outputs}) {
-                $rand_bd->delete_output (output => $rand_analysis);
+                #$rand_bd->delete_output (output => $rand_analysis);
+                $rand_bd->delete_all_outputs();
             }
         }
 

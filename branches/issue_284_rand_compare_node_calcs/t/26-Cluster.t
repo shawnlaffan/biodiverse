@@ -265,6 +265,7 @@ sub test_rand_calc_per_node_uses_orig_bd {
     $rand->run_analysis (
         function   => 'rand_csr_by_group',
         iterations => 1,
+        retain_outputs => 1,
     );
 
     is (1, 1, 'for debug purposes');

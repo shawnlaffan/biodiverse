@@ -36,6 +36,11 @@ use base qw /
 
 my $EMPTY_STRING = q{};
 
+#  useful for analyses that are of type tree - could be too generic a name?
+sub is_tree_object {
+    return 1;
+}
+
 sub new {
     my $class = shift;
 

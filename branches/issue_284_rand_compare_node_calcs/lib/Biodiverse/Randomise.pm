@@ -424,19 +424,26 @@ sub run_randomisation {
                 object  => $rand_analysis,
             );
 
-            #  ensure we recreate cluster matrices and use the same PRNG sequence
+            #  ensure we use the same PRNG sequence and recreate cluster matrices
             #  HACK...
-            $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
             my $rand_state = $target->get_param('RAND_INIT_STATE') || [];
             $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
-            eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
-            $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
+            if ($rand_analysis->is_tree_object) {
+                $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
+                eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
+                $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
+            }
 
             eval {
                 $rand_analysis->run_analysis (
                     progress_text   => $progress_text,
                     use_nbrs_from   => $target,
-                )
+                );
+                #  calcs per node for cluster type analyses
+                $self->run_cluster_calcs_per_node (
+                    orig_analysis => $target,
+                    rand_bd       => $rand_bd,
+                );
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -495,6 +502,34 @@ sub run_randomisation {
     #  return 2 if successful but did not need to run anything
     return $return_success_code;
 }
+
+
+
+#  need to ensure we re-use the original nodes for the randomisation test
+sub run_cluster_calcs_per_node {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_analysis = $args{orig_analysis};
+    my $analysis_args = $orig_analysis->get_param ('ANALYSIS_ARGS');
+
+    return if ! $orig_analysis->is_tree_object;
+    return if !defined $analysis_args->{spatial_analyses};
+    
+    my $bd      = $orig_analysis->get_basedata_ref;
+    my $rand_bd = $args{rand_bd};
+
+    #  get a clone of the cluster tree and attach it to the randomised basedata
+    $orig_analysis->set_basedata_ref (BASEDATA_REF => undef);
+    my $clone = $orig_analysis->clone;
+    $orig_analysis->set_basedata_ref (BASEDATA_REF => $bd);
+
+    $clone->set_basedata_ref (BASEDATA_REF => $rand_bd);
+
+    
+    $args{spatial_calculations}
+}
+
 
 #####################################################################
 #

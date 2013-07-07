@@ -192,8 +192,8 @@ sub set_basedata_ref {
 
 sub get_basedata_ref {
     my $self = shift;
-    
-    my $bd = $self -> get_param ('BASEDATA_REF')
+
+    my $bd = $self->get_param ('BASEDATA_REF')
            || Biodiverse::MissingBasedataRef->throw (
               message => 'Parameter BASEDATA_REF not set'
             );

@@ -354,6 +354,7 @@ sub run_randomisation {
     ##$self->find_circular_refs ($bd);
 
     my $return_success_code = 1;
+    my @rand_bd_array;  #  populated if return_rand_bd_array is true
 
     #  do stuff here
     ITERATION:
@@ -451,9 +452,11 @@ sub run_randomisation {
             croak $EVAL_ERROR if $EVAL_ERROR;
 
             #  calcs per node for cluster type analyses
-            $self->run_cluster_calcs_per_node (
-                orig_analysis => $target,
-                rand_bd       => $rand_bd,
+            $self->compare_cluster_calcs_per_node (
+                orig_analysis  => $target,
+                rand_bd        => $rand_bd,
+                rand_iter      => $$total_iterations,
+                retain_outputs => $args{retain_outputs},
             );
 
             #  and now remove this output to save a bit of memory
@@ -470,6 +473,10 @@ sub run_randomisation {
             print "[Randomise] Saving randomised basedata\n";
             $rand_bd->save;
         }
+        if ($args{return_rand_bd_array}) {
+            push @rand_bd_array, $rand_bd;
+        }
+        
 
         #  save incremental basedata file
         if (   defined $args{save_checkpoint}
@@ -499,6 +506,10 @@ sub run_randomisation {
     #  this is just in case YAML will not work with MT::Auto
     $self->store_rand_state (rand_object => $rand);
 
+    #  return the rand_bd's if told to
+    return wantarray ? \@rand_bd_array : \@rand_bd_array
+      if $args{return_rand_bd_array};
+    
     #  return 1 if successful and ran some iterations
     #  return 2 if successful but did not need to run anything
     return $return_success_code;
@@ -507,7 +518,7 @@ sub run_randomisation {
 
 
 #  need to ensure we re-use the original nodes for the randomisation test
-sub run_cluster_calcs_per_node {
+sub compare_cluster_calcs_per_node {
     my $self = shift;
     my %args = @_;
 
@@ -531,6 +542,7 @@ sub run_cluster_calcs_per_node {
     my $clone = $tree_array[0];
     bless $clone, blessed ($orig_analysis);
 
+    $clone->rename (new_name => $orig_analysis->get_param ('NAME') . ' rand sp_calc' . $args{rand_iter});
     my %clone_analysis_args = %$analysis_args;
     #$clone_analysis_args{spatial_calculations} = $args{spatial_calculations};
     if (exists $clone_analysis_args{basedata_ref}) {
@@ -541,6 +553,10 @@ sub run_cluster_calcs_per_node {
 
     $clone->run_spatial_calculations (%clone_analysis_args);
 
+    if ($args{retain_outputs}) {
+        $rand_bd->add_output (object => $clone);
+    }
+    
     return $clone;
 }
 

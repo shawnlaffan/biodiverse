@@ -9,6 +9,7 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use rlib;
+use List::Util qw /first/;
 
 use Test::More;
 
@@ -262,14 +263,64 @@ sub test_rand_calc_per_node_uses_orig_bd {
     );
 
     my $rand = $bd->add_randomisation_output (name => 'xxx');
-    $rand->run_analysis (
+    my $rand_bd_array = $rand->run_analysis (
         function   => 'rand_csr_by_group',
         iterations => 1,
         retain_outputs => 1,
+        return_rand_bd_array => 1,
     );
 
     is (1, 1, 'for debug purposes');
+    
+    my $rand_bd1 = $rand_bd_array->[0];
+    my @refs = $rand_bd1->get_cluster_output_refs;
+    my $rand_cl = first {$_->get_param ('NAME') =~ m/rand sp_calc/} @refs;  #  bodgy way of getting at it
+
+    #  iterate over all the nodes and check they have the same
+    #  element lists and counts, but that the richness scores are not the same
+    my $sub_ref = sub {
+        node_calcs_used_same_element_sets (
+            orig_tree => $cl,
+            rand_tree => $rand_cl,
+        );
+    };
+    subtest 'Calcs per node used the same element sets' => $sub_ref;
+    
+    return;
 }
+
+sub node_calcs_used_same_element_sets {
+    my %args = @_;
+    my $orig_tree = $args{orig_tree};
+    my $rand_tree = $args{rand_tree};
+
+    my %orig_nodes = $orig_tree->get_node_hash;
+    my %rand_nodes = $rand_tree->get_node_hash;
+
+    is (scalar keys %orig_nodes, scalar keys %rand_nodes, 'same number of nodes');
+
+    my $count_richness_same = 0;
+
+    foreach my $name (sort keys %orig_nodes) {  #  always test in same order for repeatability
+        my $o_node_ref = $orig_nodes{$name};
+        my $r_node_ref = $rand_nodes{$name};
+
+        my $o_element_list = $o_node_ref->get_list_ref (list => 'EL_LIST_SET1');
+        my $r_element_list = $r_node_ref->get_list_ref (list => 'EL_LIST_SET1');
+        is_deeply ($o_element_list, $r_element_list, "$name used same element lists");
+        
+        my $o_sp_res = $o_node_ref->get_list_ref (list => 'SPATIAL_RESULTS');
+        my $r_sp_res = $r_node_ref->get_list_ref (list => 'SPATIAL_RESULTS');
+        if ($o_sp_res->{RICHNESS_ALL} == $r_sp_res->{RICHNESS_ALL}) {
+            $count_richness_same ++;
+        }
+    }
+
+    isnt ($count_richness_same, scalar keys %orig_nodes, 'richness scores differ between orig and rand nodes');
+
+    return;
+}
+
 
 
 

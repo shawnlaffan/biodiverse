@@ -1406,7 +1406,10 @@ sub get_last_shared_ancestor_for_nodes {
 #  Creates a new list in the tree object containing values based on the rand_compare
 #  argument in the relevant indices
 #  This is really designed for the randomisation procedure, but has more
-#  general applicability
+#  general applicability.
+#  As of issue #284, we optionally skip tracking the stats,
+#  thus avoiding double counting since we compare the calculations per
+#  node using a cloned tree
 sub compare {
     my $self = shift;
     my %args = @_;
@@ -1417,9 +1420,10 @@ sub compare {
     my $comparison = $args{comparison}
       || croak "Comparison not specified\n";
 
-    my $track_matches  = !$args{no_track_matches};
-    my $terminals_only = $args{terminals_only};
-    my $comp_precision = $args{comp_precision} // '%.10f';
+    my $track_matches    = !$args{no_track_matches};
+    my $track_node_stats = !$args{no_track_node_stats};
+    my $terminals_only   = $args{terminals_only};
+    my $comp_precision   = $args{comp_precision} // '%.10f';
 
     my $result_list_pfx = $args{result_list_name};
     if (!$track_matches) {  #  avoid some warnings lower down
@@ -1482,9 +1486,16 @@ sub compare {
         my $min_val = $max_poss_value;
         my $most_similar_node;
 
-        #  also need to get the spatial list from the most similar
+        #  A small optimisation - if they have the same name then
+        #  they can often have the same terminals so this will
+        #  reduce the search times
+        my @compare_name_list = keys %compare_nodes;
+        if (exists $compare_nodes{$base_node_name}) {
+            unshift @compare_name_list, $base_node_name;
+        }
+
         COMP:
-        foreach my $compare_node_name (keys %compare_nodes) {
+        foreach my $compare_node_name (@compare_name_list) {
             next if exists $found_perfect_match{$compare_node_name};
             my $sorenson = $done{$compare_node_name}{$base_node_name}
                         // $done{$base_node_name}{$compare_node_name};
@@ -1527,40 +1538,42 @@ sub compare {
             carp "$compare_node_name $sorenson $min_val"
                 if ! defined $most_similar_node;
         }
-        
+
         next BASE_NODE if !$track_matches;
 
-        $base_node->add_to_lists ($result_data_list => [$min_val]);
-        my $stats = $stats_class->new;
-
-        $stats->add_data ($base_node->get_list_ref (list => $result_data_list));
-        my $prev_stat   = $base_node->get_list_ref (list => $result_list_pfx);
-        my %stats = (
-            MEAN   => $stats->mean,
-            SD     => $stats->standard_deviation,
-            MEDIAN => $stats->median,
-            Q25    => scalar $stats->percentile (25),
-            Q05    => scalar $stats->percentile (5),
-            Q01    => scalar $stats->percentile (1),
-            COUNT_IDENTICAL
-                   =>   ($prev_stat->{COUNT_IDENTICAL} || 0)
-                      + ($min_val == $min_poss_value ?  1 : 0),
-            COMPARISONS
-                   => ($prev_stat->{COMPARISONS} || 0) + 1,
-        );
-        $stats{PCT_IDENTICAL} = 100 * $stats{COUNT_IDENTICAL} / $stats{COMPARISONS};
-
-        my $length_diff = ($min_val == $min_poss_value)
-                        ? [  $base_node->get_total_length
-                           - $most_similar_node->get_total_length
-                          ]
-                        : [];  #  empty array by default
-
-        $base_node->add_to_lists (
-            $result_identical_node_length_list => $length_diff
-        );
-
-        $base_node->add_to_lists ($result_list_pfx => \%stats);
+        if ($track_node_stats) {
+            $base_node->add_to_lists ($result_data_list => [$min_val]);
+            my $stats = $stats_class->new;
+    
+            $stats->add_data ($base_node->get_list_ref (list => $result_data_list));
+            my $prev_stat   = $base_node->get_list_ref (list => $result_list_pfx);
+            my %stats = (
+                MEAN   => $stats->mean,
+                SD     => $stats->standard_deviation,
+                MEDIAN => $stats->median,
+                Q25    => scalar $stats->percentile (25),
+                Q05    => scalar $stats->percentile (5),
+                Q01    => scalar $stats->percentile (1),
+                COUNT_IDENTICAL
+                       =>   ($prev_stat->{COUNT_IDENTICAL} || 0)
+                          + ($min_val == $min_poss_value ?  1 : 0),
+                COMPARISONS
+                       => ($prev_stat->{COMPARISONS} || 0) + 1,
+            );
+            $stats{PCT_IDENTICAL} = 100 * $stats{COUNT_IDENTICAL} / $stats{COMPARISONS};
+    
+            my $length_diff = ($min_val == $min_poss_value)
+                            ? [  $base_node->get_total_length
+                               - $most_similar_node->get_total_length
+                              ]
+                            : [];  #  empty array by default
+    
+            $base_node->add_to_lists (
+                $result_identical_node_length_list => $length_diff
+            );
+    
+            $base_node->add_to_lists ($result_list_pfx => \%stats);
+        }
 
         if ($has_spatial_results) {
             BY_INDEX_LIST:

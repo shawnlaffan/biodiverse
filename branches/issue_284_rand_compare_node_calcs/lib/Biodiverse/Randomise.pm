@@ -451,13 +451,17 @@ sub run_randomisation {
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
-            #  calcs per node for cluster type analyses
-            $self->compare_cluster_calcs_per_node (
-                orig_analysis  => $target,
-                rand_bd        => $rand_bd,
-                rand_iter      => $$total_iterations,
-                retain_outputs => $args{retain_outputs},
-            );
+            #  Does nothing if not a cluster type analysis
+            eval {
+                $self->compare_cluster_calcs_per_node (
+                    orig_analysis  => $target,
+                    rand_bd        => $rand_bd,
+                    rand_iter      => $$total_iterations,
+                    retain_outputs => $args{retain_outputs},
+                    result_list_name => $results_list_name,
+                );
+            };
+            croak $EVAL_ERROR if $EVAL_ERROR;
 
             #  and now remove this output to save a bit of memory
             #  unless we've been told to keep it
@@ -556,7 +560,18 @@ sub compare_cluster_calcs_per_node {
     if ($args{retain_outputs}) {
         $rand_bd->add_output (object => $clone);
     }
-    
+
+    #  now we need to compare the orig and the rand
+    my $result_list_name = $args{result_list_name};
+    eval {
+        $orig_analysis->compare (
+            comparison       => $clone,
+            result_list_name => $result_list_name,
+            no_track_node_stats => 1,
+        )
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
     return $clone;
 }
 

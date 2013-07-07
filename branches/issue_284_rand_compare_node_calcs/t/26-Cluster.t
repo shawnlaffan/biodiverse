@@ -252,6 +252,7 @@ sub check_order_is_same_given_same_prng {
 }
 
 
+#  this should move to a randomisation test file
 sub test_rand_calc_per_node_uses_orig_bd {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
 
@@ -262,7 +263,9 @@ sub test_rand_calc_per_node_uses_orig_bd {
         spatial_calculations => [qw /calc_richness calc_element_lists_used calc_elements_used/],
     );
 
-    my $rand = $bd->add_randomisation_output (name => 'xxx');
+    my $rand_name = 'xxx';
+
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
     my $rand_bd_array = $rand->run_analysis (
         function   => 'rand_csr_by_group',
         iterations => 1,
@@ -270,14 +273,10 @@ sub test_rand_calc_per_node_uses_orig_bd {
         return_rand_bd_array => 1,
     );
 
-    is (1, 1, 'for debug purposes');
-    
     my $rand_bd1 = $rand_bd_array->[0];
     my @refs = $rand_bd1->get_cluster_output_refs;
     my $rand_cl = first {$_->get_param ('NAME') =~ m/rand sp_calc/} @refs;  #  bodgy way of getting at it
 
-    #  iterate over all the nodes and check they have the same
-    #  element lists and counts, but that the richness scores are not the same
     my $sub_ref = sub {
         node_calcs_used_same_element_sets (
             orig_tree => $cl,
@@ -286,9 +285,19 @@ sub test_rand_calc_per_node_uses_orig_bd {
     };
     subtest 'Calcs per node used the same element sets' => $sub_ref;
     
+    my $sub_ref2 = sub {
+        node_calcs_gave_expected_results (
+            cluster_output => $cl,
+            rand_name      => $rand_name,
+        );
+    };
+    subtest 'Calcs per node used the same element sets' => $sub_ref2;
+
     return;
 }
 
+#  iterate over all the nodes and check they have the same
+#  element lists and counts, but that the richness scores are not the same    
 sub node_calcs_used_same_element_sets {
     my %args = @_;
     my $orig_tree = $args{orig_tree};
@@ -322,7 +331,35 @@ sub node_calcs_used_same_element_sets {
 }
 
 
-
+#  rand results should be zero for all el_list P and C results, 1 for Q
+sub node_calcs_gave_expected_results {
+    my %args = @_;
+    my $cl          = $args{cluster_output};
+    my $list_prefix = $args{rand_name};
+    
+    my $list_name = $list_prefix . '>>SPATIAL_RESULTS';
+    
+    my %nodes = $cl->get_node_hash;
+    foreach my $node_ref (sort {$a->get_name cmp $b->get_name} values %nodes) {
+        my $list_ref = $node_ref->get_list_ref (list => $list_name);
+        KEY:
+        while (my ($key, $value) = each %$list_ref) {
+            my $expected;
+            if ($key =~ /^[TQ]_EL/) {
+                $expected = 1;
+            }
+            elsif ($key =~ /^[CP]_EL/) {
+                $expected = 0;
+            }
+            else {
+                next KEY;
+            }
+            is ($value, $expected, "$key score is $expected")
+        }
+        
+    }
+    
+}
 
 
 ######################################

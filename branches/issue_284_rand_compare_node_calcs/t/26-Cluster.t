@@ -342,19 +342,15 @@ sub node_calcs_gave_expected_results {
     my %nodes = $cl->get_node_hash;
     foreach my $node_ref (sort {$a->get_name cmp $b->get_name} values %nodes) {
         my $list_ref = $node_ref->get_list_ref (list => $list_name);
+        my $node_name = $node_ref->get_name;
+
         KEY:
         while (my ($key, $value) = each %$list_ref) {
-            my $expected;
-            if ($key =~ /^[TQ]_EL/) {
-                $expected = 1;
-            }
-            elsif ($key =~ /^[CP]_EL/) {
-                $expected = 0;
-            }
-            else {
-                next KEY;
-            }
-            is ($value, $expected, "$key score is $expected")
+            my $expected
+              = ($key =~ /^[TQ]_EL/) ? 1
+              : ($key =~ /^[CP]_EL/) ? 0
+              : next KEY;
+            is ($value, $expected, "$key score for $node_name is $expected")
         }
         
     }

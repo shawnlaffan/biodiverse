@@ -843,7 +843,6 @@ sub clone_matrices {
     return wantarray ? @cloned_matrices : \@cloned_matrices;
 }
 
-
 sub set_shadow_matrix {
     my $self = shift;
     my %args = @_;
@@ -1234,7 +1233,10 @@ sub override_cached_spatial_calculations_arg {
 
     return if ! defined $analysis_args;  #  should we croak instead?
 
-    $analysis_args->{spatial_calculations} = $spatial_calculations;
+    #  make sure we work on a copy, as these can be shallow copies from another object
+    my %new_analysis_args = %$analysis_args;
+    $new_analysis_args{spatial_calculations} = $spatial_calculations;
+    $self->set_param (ANALYSIS_ARGS => \%new_analysis_args);
 
     return $spatial_calculations;
 }

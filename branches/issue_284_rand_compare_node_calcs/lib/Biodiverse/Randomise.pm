@@ -439,11 +439,6 @@ sub run_randomisation {
                     progress_text   => $progress_text,
                     use_nbrs_from   => $target,
                 );
-                #  calcs per node for cluster type analyses
-                $self->run_cluster_calcs_per_node (
-                    orig_analysis => $target,
-                    rand_bd       => $rand_bd,
-                );
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -454,6 +449,12 @@ sub run_randomisation {
                 )
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
+
+            #  calcs per node for cluster type analyses
+            $self->run_cluster_calcs_per_node (
+                orig_analysis => $target,
+                rand_bd       => $rand_bd,
+            );
 
             #  and now remove this output to save a bit of memory
             #  unless we've been told to keep it
@@ -514,20 +515,33 @@ sub run_cluster_calcs_per_node {
     my $analysis_args = $orig_analysis->get_param ('ANALYSIS_ARGS');
 
     return if ! $orig_analysis->is_tree_object;
-    return if !defined $analysis_args->{spatial_analyses};
-    
+    return if !defined $analysis_args->{spatial_calculations};
+
     my $bd      = $orig_analysis->get_basedata_ref;
     my $rand_bd = $args{rand_bd};
 
-    #  get a clone of the cluster tree and attach it to the randomised basedata
-    $orig_analysis->set_basedata_ref (BASEDATA_REF => undef);
-    my $clone = $orig_analysis->clone;
-    $orig_analysis->set_basedata_ref (BASEDATA_REF => $bd);
-
-    $clone->set_basedata_ref (BASEDATA_REF => $rand_bd);
-
+    #  Get a clone of the cluster tree and attach it to the randomised basedata
+    #  Cloning via newick format clears all the params,
+    #  so avoids lingering basedata refs and the like
+    require Biodiverse::ReadNexus;
     
-    $args{spatial_calculations}
+    my $read_nexus = Biodiverse::ReadNexus->new;
+    $read_nexus->import_newick (data => $orig_analysis->to_newick);
+    my @tree_array = $read_nexus->get_tree_array;
+    my $clone = $tree_array[0];
+    bless $clone, blessed ($orig_analysis);
+
+    my %clone_analysis_args = %$analysis_args;
+    #$clone_analysis_args{spatial_calculations} = $args{spatial_calculations};
+    if (exists $clone_analysis_args{basedata_ref}) {
+        $clone_analysis_args{basedata_ref} = $rand_bd;  #  just in case
+    }
+    $clone->set_basedata_ref (BASEDATA_REF => $rand_bd);
+    $clone->set_param (ANALYSIS_ARGS => \%clone_analysis_args);
+
+    $clone->run_spatial_calculations (%clone_analysis_args);
+
+    return $clone;
 }
 
 

@@ -2415,7 +2415,7 @@ sub delete_lists {
     croak "argument 'lists' not specified\n" if not defined $args{lists};
 
     my $element = $args{element};
-    my $lists = $args{lists};
+    my $lists   = $args{lists};
     croak "argument 'lists' is not an array ref\n" if not (ref $lists) =~ /ARRAY/;
 
     foreach my $list (@$lists) {
@@ -2892,6 +2892,14 @@ sub get_element_properties_summary_stats {
     }
 
     return wantarray ? %results : \%results;
+}
+
+sub has_element_properties {
+    my $self = shift;
+    
+    my @keys = $self->get_element_property_keys;
+    
+    return scalar @keys;
 }
 
 #  return true if the labels are all numeric

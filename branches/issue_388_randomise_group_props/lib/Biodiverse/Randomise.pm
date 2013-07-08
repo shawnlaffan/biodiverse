@@ -293,7 +293,7 @@ sub run_randomisation {
 
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
 
-    my $rand = $self->initialise_rand (%args);
+    my $rand_object = $self->initialise_rand (%args);
 
     #  get a list of refs for objects that are to be compared
     #  get the lot by default
@@ -325,6 +325,8 @@ sub run_randomisation {
                 ? "_$single_level_args"
                 : $EMPTY_STRING)
             );
+    
+    my $randomise_group_props_by = $args{randomise_group_props_by} // 'no_change';
 
     #  counts are stored on the outputs, as they can be different if
     #    an output is created after some randomisations have been run
@@ -357,7 +359,7 @@ sub run_randomisation {
         my $rand_bd = eval {
             $self->$function (
                 %args,
-                rand_object => $rand,
+                rand_object => $rand_object,
                 rand_iter   => $$total_iterations,
             );
         };
@@ -365,6 +367,13 @@ sub run_randomisation {
 
         $rand_bd->rename (
             name => $bd->get_param ('NAME') . "_$function"."_$$total_iterations"
+        );
+
+        $self->process_group_props (
+            orig_bd  => $bd,
+            rand_bd  => $rand_bd,
+            function => $randomise_group_props_by,
+            rand_object => $rand_object,
         );
 
         TARGET:
@@ -492,7 +501,7 @@ sub run_randomisation {
     #  and keep a track of the randomisation state,
     #  even though we are storing the object
     #  this is just in case YAML will not work with MT::Auto
-    $self->store_rand_state (rand_object => $rand);
+    $self->store_rand_state (rand_object => $rand_object);
 
     #  return the rand_bd's if told to
     return wantarray ? \@rand_bd_array : \@rand_bd_array
@@ -1246,6 +1255,183 @@ sub swap_to_reach_targets {
 
     return;
 }
+
+
+sub process_group_props {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_bd = $args{orig_bd};
+    my $rand_bd = $args{rand_bd};
+
+    my @keys = $orig_bd->get_groups_ref->get_element_property_keys;
+
+    return if !scalar @keys;
+
+    my $function = $args{function};
+    if (not $function =~ /^process_group_props_/) {
+        $function = 'process_group_props_' . $function;
+    }
+    
+    my $success = eval {$self->$function (%args)};
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return $success;
+}
+
+sub process_group_props_no_change {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_bd = $args{orig_bd};
+    my $rand_bd = $args{rand_bd};
+
+    $orig_bd->transfer_group_properties (
+        %args,
+        receiver => $rand_bd,
+    );
+
+    return;
+}
+
+#  move them around as a set of values, so the
+#  receiving group gets all of the providing groups props
+sub process_group_props_by_set {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_bd = $args{orig_bd} || croak "Missing orig_bd argument\n";
+    my $rand_bd = $args{rand_bd} || croak "Missing rand_bd argument\n";
+
+    my $rand  = $args{rand_object};
+
+    my $progress_bar = Biodiverse::Progress->new();
+
+    my $elements_ref    = $orig_bd->get_groups_ref;
+    my $to_elements_ref = $rand_bd->get_groups_ref;
+
+    my $name        = $self->get_param ('NAME');
+    my $to_name     = $rand_bd->get_param ('NAME');
+    my $text        = "Transferring group properties from $name to $to_name";
+
+    my $total_to_do = $elements_ref->get_element_count;
+    print "[BASEDATA] Transferring properties for $total_to_do groups\n";
+
+    my $count = 0;
+    my $i = -1;
+
+    my @to_element_list = sort $to_elements_ref->get_element_list;
+    my $shuffled_to_elements = $rand->shuffle (\@to_element_list);
+
+    BY_ELEMENT:
+    foreach my $element (sort $elements_ref->get_element_list) {
+        $i++;
+        my $progress = $i / $total_to_do;
+        $progress_bar->update (
+            "$text\n"
+            . "(label $i of $total_to_do)",
+            $progress
+        );
+
+        my $to_element = shift @$shuffled_to_elements;
+
+        my $props = $elements_ref->get_list_values (
+            element => $element,
+            list => 'PROPERTIES'
+        );
+
+        next BY_ELEMENT if ! defined $props;  #  none there
+
+        #  delete any existing lists - cleaner and safer than adding to them
+        $to_elements_ref->delete_lists (
+            element => $to_element,
+            lists => ['PROPERTIES'],
+        );
+
+        $to_elements_ref->add_to_lists (
+            element    => $to_element,
+            PROPERTIES => {%$props},  #  make sure it's a copy so bad things don't happen
+        );
+        $count ++;
+    }
+
+    return $count; 
+}
+
+#  move them around as a set of values, so the
+#  receiving group gets all of the providing groups props
+sub process_group_props_by_item {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_bd = $args{orig_bd} || croak "Missing orig_bd argument\n";
+    my $rand_bd = $args{rand_bd} || croak "Missing rand_bd argument\n";
+
+    my $rand  = $args{rand_object};
+
+    my $progress_bar = Biodiverse::Progress->new();
+
+    my $elements_ref    = $orig_bd->get_groups_ref;
+    my $to_elements_ref = $rand_bd->get_groups_ref;
+
+    foreach my $to_element ($to_elements_ref->get_element_list) {
+        #  delete any existing lists - cleaner and safer than adding to them
+        $to_elements_ref->delete_lists (
+            element => $to_element,
+            lists => ['PROPERTIES'],
+        );
+    }
+
+    my $name        = $self->get_param ('NAME');
+    my $to_name     = $rand_bd->get_param ('NAME');
+    my $text        = "Transferring group properties from $name to $to_name";
+
+    my $total_to_do = $elements_ref->get_element_count;
+    print "[BASEDATA] Transferring group properties for $total_to_do\n";
+
+    my $count = 0;
+    my $i = -1;
+
+    my @to_element_list = sort $to_elements_ref->get_element_list;
+    
+    for my $prop_key ($elements_ref->get_element_property_keys) {
+
+        my $shuffled_to_elements = $rand->shuffle ([@to_element_list]);  #  need a shuffled copy
+
+        BY_ELEMENT:
+        foreach my $element ($elements_ref->get_element_list) {
+            $i++;
+            my $progress = $i / $total_to_do;
+            $progress_bar->update (
+                "$text\n"
+                . "(label $i of $total_to_do)",
+                $progress
+            );
+
+            my $to_element = shift @$shuffled_to_elements;
+
+            my $props = $elements_ref->get_list_values (
+                element => $element,
+                list => 'PROPERTIES'
+            );
+
+            next BY_ELEMENT if ! defined $props;  #  none there
+            next BY_ELEMENT if ! exists $props->{$prop_key};
+
+            #  now add the value for this property
+            $to_elements_ref->add_to_lists (
+                element    => $to_element,
+                PROPERTIES => {$prop_key => $props->{$prop_key}},
+            );
+
+            $count ++;
+        }
+    }
+
+    return $count; 
+}
+
+
 
 #  these appear redundant but might help with mem leaks
 our $AUTOLOAD;

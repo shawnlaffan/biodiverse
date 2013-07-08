@@ -252,19 +252,6 @@ sub export_prng_current_state {
 sub get_randomisations {
     my $self = shift || __PACKAGE__;
 
-    #  get the @ISA array for the current object.
-    #my $isa_tree = mro::get_linear_isa(blessed ($self) || __PACKAGE__);
-    #my $syms = Devel::Symdump->rnew(@$isa_tree);
-
-    #my %analyses;
-    #
-    #foreach my $analysis (sort $syms->functions) {
-    #    next if $analysis !~ /^.*::rand_./;
-    #    $analysis =~ s/(.*::)*//;
-    #    #print "RANDOMISATION IS $analysis\n";
-    #    $analyses{$analysis}++;
-    #}
-
     my %analyses = $self->get_subs_with_prefix (
         prefix => 'rand_',
         class => __PACKAGE__,
@@ -339,8 +326,6 @@ sub run_randomisation {
                 : $EMPTY_STRING)
             );
 
-    #$results_list_name =~ s/^RAND/R/;  #  shorten the name
-
     #  counts are stored on the outputs, as they can be different if
     #    an output is created after some randomisations have been run
     my $rand_iter_param_name = "RAND_ITER_$results_list_name";
@@ -350,8 +335,6 @@ sub run_randomisation {
         $self->set_param (TOTAL_ITERATIONS => 0);
         $total_iterations = $self->get_param_as_ref ('TOTAL_ITERATIONS');
     }
-
-    ##$self->find_circular_refs ($bd);
 
     my $return_success_code = 1;
     my @rand_bd_array;  #  populated if return_rand_bd_array is true
@@ -966,8 +949,6 @@ END_PROGRESS_TEXT
         }
     }
 
-    #$self->find_circular_refs (label => "checker");
-
     $self->swap_to_reach_targets (
         basedata_ref    => $bd,
         cloned_bd       => $cloned_bd,
@@ -986,8 +967,6 @@ END_PROGRESS_TEXT
 
     my $time_taken = sprintf "%d", tv_interval ($start_time);
     print "[RANDOMISE] Time taken for rand_structured: $time_taken seconds\n";
-
-    #$self->find_circular_refs_in_package;
 
     #  we used to have a memory leak somewhere, but this doesn't hurt anyway.    
     $cloned_bd = undef;
@@ -1104,29 +1083,6 @@ sub swap_to_reach_targets {
         my $target_gp_richness
             = $new_bd->get_richness (element => $target_group);
 
-        ## the following used large amounts of time, and to no great effect
-        ## as all the target groups were usually filled
-        #my $target_list_shuffled = $rand->shuffle ([sort @target_groups]);
-        #
-        ##  some defaults in case all targets are full
-        #my $target_group = $target_list_shuffled->[0];
-        #my $target_gp_richness
-        #        = $new_bd->get_richness (element => $target_group);
-        #
-        #BY_TARGET:
-        #foreach my $target (@$target_list_shuffled) {
-        #    #  skip if already full
-        #    next BY_TARGET if exists $filled_groups{$target};
-        #
-        #    #  grab the first that fits the bill
-        #    if ($target_gp_richness < $target_richness{$target_group}) {
-        #        $target_group = $target;
-        #        $target_gp_richness
-        #            = $new_bd->get_richness (element => $target);
-        #        last BY_TARGET;
-        #    }
-        #}
-
         #  If the target group is at its richness threshold then
         #  we must first remove one label.
         #  Get a list of labels in this group and select one to remove.
@@ -1141,8 +1097,6 @@ sub swap_to_reach_targets {
                 my @list = $new_bd->get_labels_in_group (group => $gp);
                 @labels_in_unfilled{@list} = undef;
             }
-
-            #$self->find_circular_refs (label => 'tgt_gp_richness');
 
             #  we will remove one of these labels
             my %loser_labels = $new_bd->get_labels_in_group_as_hash (
@@ -1237,11 +1191,6 @@ sub swap_to_reach_targets {
                 my @tmp = sort keys %unfilled_tmp;
                 my $return_gp = $tmp[$i];
 
-                # warn "$return_gp is already at the richness target\n"
-                #    if ($new_bd->get_richness (element => $return_gp)
-                #        == $target_richness{$return_gp});
-
-                #print "R: $remove_label, $return_gp, $removed_count\n";
                 $new_bd->add_element   (
                     label => $remove_label,
                     group => $return_gp,
@@ -1256,12 +1205,9 @@ sub swap_to_reach_targets {
                     if $new_richness > $target_richness{$return_gp};
 
                 if ($new_richness >= $target_richness{$return_gp}) {
-                    #print "NEWLY FILLED GROUP $target_group\n"
-                    #    if ! exists $filled_groups{$target_group};
                     $filled_groups{$return_gp} = $new_richness;
                     delete $unfilled_groups{$return_gp};  #  no effect if it's not in the list
                     $last_filled = $return_gp;
-                    #print "Return: Last filled $last_filled\n";
                 }
             }
 
@@ -1288,12 +1234,9 @@ sub swap_to_reach_targets {
 
         if ($target_gp_richness != $new_richness
             and $new_richness >= $target_richness{$target_group}) {
-            #print "NEWLY FILLED GROUP $target_group\n"
-            #    if ! exists $filled_groups{$target_group};
             $filled_groups{$target_group} = $new_richness;
             delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
             $last_filled = $target_group;
-            #print "Target: Last filled $last_filled\n";
         }
 
     }

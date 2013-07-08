@@ -354,6 +354,7 @@ sub run_randomisation {
     ##$self->find_circular_refs ($bd);
 
     my $return_success_code = 1;
+    my @rand_bd_array;  #  populated if return_rand_bd_array is true
 
     #  do stuff here
     ITERATION:
@@ -424,17 +425,21 @@ sub run_randomisation {
                 object  => $rand_analysis,
             );
 
-            #  ensure we recreate cluster matrices and use the same PRNG sequence
+            #  ensure we use the same PRNG sequence and recreate cluster matrices
             #  HACK...
-            $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
             my $rand_state = $target->get_param('RAND_INIT_STATE') || [];
             $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
+            if ($rand_analysis->is_tree_object) {
+                $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
+                eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
+                $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
+            }
 
             eval {
                 $rand_analysis->run_analysis (
                     progress_text   => $progress_text,
                     use_nbrs_from   => $target,
-                )
+                );
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -446,11 +451,24 @@ sub run_randomisation {
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
+            #  Does nothing if not a cluster type analysis
+            eval {
+                $self->compare_cluster_calcs_per_node (
+                    orig_analysis  => $target,
+                    rand_bd        => $rand_bd,
+                    rand_iter      => $$total_iterations,
+                    retain_outputs => $args{retain_outputs},
+                    result_list_name => $results_list_name,
+                );
+            };
+            croak $EVAL_ERROR if $EVAL_ERROR;
+
             #  and now remove this output to save a bit of memory
             #  unless we've been told to keep it
             #  (this has not been exposed to the GUI yet)
             if (! $args{retain_outputs}) {
-                $rand_bd->delete_output (output => $rand_analysis);
+                #$rand_bd->delete_output (output => $rand_analysis);
+                $rand_bd->delete_all_outputs();
             }
         }
 
@@ -459,6 +477,10 @@ sub run_randomisation {
             print "[Randomise] Saving randomised basedata\n";
             $rand_bd->save;
         }
+        if ($args{return_rand_bd_array}) {
+            push @rand_bd_array, $rand_bd;
+        }
+        
 
         #  save incremental basedata file
         if (   defined $args{save_checkpoint}
@@ -488,10 +510,71 @@ sub run_randomisation {
     #  this is just in case YAML will not work with MT::Auto
     $self->store_rand_state (rand_object => $rand);
 
+    #  return the rand_bd's if told to
+    return wantarray ? \@rand_bd_array : \@rand_bd_array
+      if $args{return_rand_bd_array};
+    
     #  return 1 if successful and ran some iterations
     #  return 2 if successful but did not need to run anything
     return $return_success_code;
 }
+
+
+
+#  need to ensure we re-use the original nodes for the randomisation test
+sub compare_cluster_calcs_per_node {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_analysis = $args{orig_analysis};
+    my $analysis_args = $orig_analysis->get_param ('ANALYSIS_ARGS');
+
+    return if ! $orig_analysis->is_tree_object;
+    return if !defined $analysis_args->{spatial_calculations};
+
+    my $bd      = $orig_analysis->get_basedata_ref;
+    my $rand_bd = $args{rand_bd};
+
+    #  Get a clone of the cluster tree and attach it to the randomised basedata
+    #  Cloning via newick format clears all the params,
+    #  so avoids lingering basedata refs and the like
+    require Biodiverse::ReadNexus;
+    
+    my $read_nexus = Biodiverse::ReadNexus->new;
+    $read_nexus->import_newick (data => $orig_analysis->to_newick);
+    my @tree_array = $read_nexus->get_tree_array;
+    my $clone = $tree_array[0];
+    bless $clone, blessed ($orig_analysis);
+
+    $clone->rename (new_name => $orig_analysis->get_param ('NAME') . ' rand sp_calc' . $args{rand_iter});
+    my %clone_analysis_args = %$analysis_args;
+    #$clone_analysis_args{spatial_calculations} = $args{spatial_calculations};
+    if (exists $clone_analysis_args{basedata_ref}) {
+        $clone_analysis_args{basedata_ref} = $rand_bd;  #  just in case
+    }
+    $clone->set_basedata_ref (BASEDATA_REF => $rand_bd);
+    $clone->set_param (ANALYSIS_ARGS => \%clone_analysis_args);
+
+    $clone->run_spatial_calculations (%clone_analysis_args);
+
+    if ($args{retain_outputs}) {
+        $rand_bd->add_output (object => $clone);
+    }
+
+    #  now we need to compare the orig and the rand
+    my $result_list_name = $args{result_list_name};
+    eval {
+        $orig_analysis->compare (
+            comparison       => $clone,
+            result_list_name => $result_list_name,
+            no_track_node_stats => 1,
+        )
+    };
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return $clone;
+}
+
 
 #####################################################################
 #

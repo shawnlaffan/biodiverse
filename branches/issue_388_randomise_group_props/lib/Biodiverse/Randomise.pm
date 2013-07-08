@@ -412,7 +412,8 @@ sub run_randomisation {
             #  HACK...
             my $rand_state = $target->get_param('RAND_INIT_STATE') || [];
             $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
-            if ($rand_analysis->is_tree_object) {
+            my $is_tree_object = eval {$rand_analysis->is_tree_object};
+            if ($is_tree_object) {
                 $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
                 eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
                 $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
@@ -512,7 +513,7 @@ sub compare_cluster_calcs_per_node {
     my $orig_analysis = $args{orig_analysis};
     my $analysis_args = $orig_analysis->get_param ('ANALYSIS_ARGS');
 
-    return if ! $orig_analysis->is_tree_object;
+    return if ! eval {$orig_analysis->is_tree_object};
     return if !defined $analysis_args->{spatial_calculations};
 
     my $bd      = $orig_analysis->get_basedata_ref;

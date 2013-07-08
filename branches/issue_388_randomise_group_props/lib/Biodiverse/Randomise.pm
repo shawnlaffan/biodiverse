@@ -621,8 +621,6 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
 
     my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
 
-    #my $progress_bar = $args{progress};
-    #delete $args{progress};  #  the progress bar can get nasty if stored and then defrosted
     my $progress_bar = Biodiverse::Progress->new();
 
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
@@ -644,7 +642,6 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     $new_bd->get_labels_ref->set_param ($bd->get_labels_ref->get_params_hash);
 
     my @orig_groups = sort $bd->get_groups;
-    #my @tmp = @origData;  #  needed lest shuffle works on the origData in place
     #  make sure shuffle does not work on the original data
     my $randOrder = $rand->shuffle ([@orig_groups]);
 
@@ -653,26 +650,20 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     #print join ("\n", @candidates) . "\n";
 
     my $total_to_do = $#orig_groups;
-    my $last_update_time = [gettimeofday];
 
     foreach my $i (0 .. $#orig_groups) {
 
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
+        my $progress = $i / $total_to_do;
+        my $p_text
+            = "$progress_text\n"
+            . "Shuffling labels from\n"
+            . "\t$orig_groups[$i]\nto\n\t$randOrder->[$i]\n"
+            . "(element $i of $total_to_do)";
 
-            my $progress = $i / $total_to_do;
-            my $p_text
-                = "$progress_text\n"
-                . "Shuffling labels from\n"
-                . "\t$orig_groups[$i]\nto\n\t$randOrder->[$i]\n"
-                . "(element $i of $total_to_do)";
-
-            $progress_bar->update (
-                $p_text,
-                $progress,
-            );
-            #$last_update_time = [gettimeofday];
-        #}
+        $progress_bar->update (
+            $p_text,
+            $progress,
+        );
 
         #  create the group (this allows for empty groups with no labels)
         $new_bd->add_element(group => $randOrder->[$i]);
@@ -750,8 +741,6 @@ sub rand_structured {
     my $bd = $self->get_param ('BASEDATA_REF')
             || $args{basedata_ref};
 
-    #my $progress_bar = $args{progress};  #  can't store to output file and then recreate
-    #delete $args{progress};
     my $progress_bar = Biodiverse::Progress->new();
 
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
@@ -786,13 +775,11 @@ END_PROGRESS_TEXT
     $new_bd->rename (name => $new_bd_name . "_" . $name);
 
     print "[RANDOMISE] Creating clone for destructive sampling\n";
-    #if ($progress_bar) {
-        $progress_bar->update (
-            "$progress_text\n"
-            . "Creating clone for destructive sampling\n",
-            0.1,
-        );
-    #}
+    $progress_bar->update (
+        "$progress_text\n"
+        . "Creating clone for destructive sampling\n",
+        0.1,
+    );
 
     #  create a clone for destructive sampling
     #  clear out the outputs - we seem to get a memory leak otherwise
@@ -809,38 +796,27 @@ END_PROGRESS_TEXT
     #  make sure shuffle does not work on the original data
     my $rand_label_order = $rand->shuffle ([@sorted_labels]);
 
-    print "[RANDOMISE] Richness Shuffling " . scalar @sorted_labels . " labels from " . (scalar @sorted_groups) . " groups\n";
+    printf "[RANDOMISE] Richness Shuffling %s labels from %s groups\n",
+       scalar @sorted_labels, scalar @sorted_groups;
 
     #  generate a hash with the target richness values
     my %target_richness;
     my $i = 0;
     my $total_to_do = scalar @sorted_groups;
-    my $last_update_time = [gettimeofday];
 
     foreach my $group (@sorted_groups) {
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
 
-            my $progress = $i / $total_to_do;
+        my $progress = $i / $total_to_do;
 
-            $progress_bar->update (
-                "$progress_text\n"
-                . "Assigning richness targets\n"
-                . int (100 * $i / $total_to_do)
-                . '%',
-                  $progress,
-            );
-        #    $last_update_time = [gettimeofday];
-        #}
-        #  round threshold up to nearest integer
-        #$target_richness{$group} = ceil (
-        #    $bd->get_richness (
-        #        element => $group
-        #    )
-        #    * $multiplier
-        #);
-        #  no, don't round up, but maybe make it an option later
-        #  round down
+        $progress_bar->update (
+            "$progress_text\n"
+            . "Assigning richness targets\n"
+            . int (100 * $i / $total_to_do)
+            . '%',
+              $progress,
+        );
+
+        #  round down - could make this an option
         $target_richness{$group} = floor (
             $bd->get_richness (
                 element => $group
@@ -872,18 +848,14 @@ END_PROGRESS_TEXT
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
 
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
+        my $progress = $i / $total_to_do;
+        $progress_bar->update (
+            "Allocating labels to groups\n"
+            . "$progress_text\n"
+            . "($i / $total_to_do)",
+            $progress,
+        );
 
-            my $progress = $i / $total_to_do;
-            $progress_bar->update (
-                "Allocating labels to groups\n"
-                . "$progress_text\n"
-                . "($i / $total_to_do)",
-                $progress,
-            );
-        #    $last_update_time = [gettimeofday];
-        #}
         $i++;
 
         ###  get the new groups not containing this label
@@ -963,7 +935,7 @@ END_PROGRESS_TEXT
             last BY_GROUP if scalar @target_groups == 0;  #  no more targets for this label, move to next label
         }
     }
-    #print "\n";
+
 
     my $target_label_count = $cloned_bd->get_label_count;
     my $target_group_count = $cloned_bd->get_group_count;
@@ -1002,7 +974,6 @@ END_PROGRESS_TEXT
         new_bd          => $new_bd,
         filled_groups   => \%filled_groups,
         unfilled_groups => \%unfilled_groups,
-        #progress        => $progress_bar,
         rand_object     => $rand,
         target_richness => \%target_richness,
         progress_text   => $progress_text,
@@ -1033,7 +1004,6 @@ sub swap_to_reach_targets {
     my %filled_groups   = %{$args{filled_groups}};
     my %unfilled_groups = %{$args{unfilled_groups}};
     my %target_richness = %{$args{target_richness}};
-    #my $progress_bar    = $args{progress};
     my $rand            = $args{rand_object};
     my $progress_text   = $args{progress_text};
 
@@ -1059,49 +1029,40 @@ sub swap_to_reach_targets {
 
     my $swap_count = 0;
     my $last_filled = $EMPTY_STRING;
-    my $last_update_time = [gettimeofday];
 
     #  keep going until we've reached the fill threshold for each group
     BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
-        #  keep a track of what's left
-        #my @target_labels = $cloned_bd->get_labels;  #  work with whatever is left
-        #@target_groups = $cloned_bd->get_groups;
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
 
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
+        my $precision = '%8d';
+        my $fmt = "Total gps:\t\t\t$precision\n"
+                    . "Unfilled groups:\t\t$precision\n"
+                    . "Filled groups:\t\t$precision\n"
+                    . "Labels to assign:\t\t$precision\n"
+                    . "Old gps to empty:\t$precision\n"
+                    . "Swap count:\t\t\t$precision\n"
+                    . "Last group filled: %s\n";
+        my $check_text
+            = sprintf $fmt,
+                $total_to_do,
+                (scalar keys %unfilled_groups),
+                (scalar keys %filled_groups),
+                $target_label_count,
+                $target_group_count,
+                $swap_count,
+                $last_filled;
 
-            my $precision = '%8d';
-            my $fmt = "Total gps:\t\t\t$precision\n"
-                        . "Unfilled groups:\t\t$precision\n"
-                        . "Filled groups:\t\t$precision\n"
-                        . "Labels to assign:\t\t$precision\n"
-                        . "Old gps to empty:\t$precision\n"
-                        . "Swap count:\t\t\t$precision\n"
-                        . "Last group filled: %s\n";
-            my $check_text
-                = sprintf $fmt,
-                    $total_to_do,
-                    (scalar keys %unfilled_groups),
-                    (scalar keys %filled_groups),
-                    $target_label_count,
-                    $target_group_count,
-                    $swap_count,
-                    $last_filled;
-
-            my $progress_i = scalar keys %filled_groups;
-            my $progress = $progress_i / $total_to_do;
-            $progress_bar->update (
-                "Swapping labels to reach richness targets\n"
-                . "$progress_text\n"
-                . $check_text,
-                $progress,
-            );
-        #    $last_update_time = [gettimeofday];
-        #}
+        my $progress_i = scalar keys %filled_groups;
+        my $progress = $progress_i / $total_to_do;
+        $progress_bar->update (
+            "Swapping labels to reach richness targets\n"
+            . "$progress_text\n"
+            . $check_text,
+            $progress,
+        );
 
         if ($target_label_count == 0) {
             #  we ran out of labels before richness criterion is met,

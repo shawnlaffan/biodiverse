@@ -754,6 +754,9 @@ sub add_matrices_to_basedata {
     my $self = shift;
     my %args = @_;
 
+    #  Don't add for randomisations
+    return if $self->get_param ('NO_ADD_MATRICES_TO_BASEDATA');
+
     my $bd = $self->get_param ('BASEDATA_REF');
     my %existing_outputs = $bd->get_matrix_outputs;
 
@@ -839,7 +842,6 @@ sub clone_matrices {
     
     return wantarray ? @cloned_matrices : \@cloned_matrices;
 }
-
 
 sub set_shadow_matrix {
     my $self = shift;
@@ -1217,6 +1219,26 @@ sub run_tie_breaker {
     }
 
     return $pair1;  #  we only had ties
+}
+
+#  Needed for randomisations.
+#  Has no effect if it is not already set and args have not been cached.
+#  Should perhaps generalise to any arg.
+sub override_cached_spatial_calculations_arg {
+    my $self = shift;
+    my %args = @_;
+    my $spatial_calculations = $args{spatial_calculations};
+
+    my $analysis_args = $self->get_param('ANALYSIS_ARGS');
+
+    return if ! defined $analysis_args;  #  should we croak instead?
+
+    #  make sure we work on a copy, as these can be shallow copies from another object
+    my %new_analysis_args = %$analysis_args;
+    $new_analysis_args{spatial_calculations} = $spatial_calculations;
+    $self->set_param (ANALYSIS_ARGS => \%new_analysis_args);
+
+    return $spatial_calculations;
 }
 
 sub run_analysis {

@@ -14,7 +14,7 @@ use rlib;
 
 local $| = 1;
 
-our $VERSION = '0.18_004';
+our $VERSION = '0.18_007';
 
 #  load up the user defined libs
 #use Biodiverse::Config qw /use_base add_lib_paths/;

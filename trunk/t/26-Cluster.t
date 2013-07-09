@@ -60,8 +60,6 @@ sub main {
 
     test_same_results_given_same_prng_seed();
     
-    test_rand_calc_per_node_uses_orig_bd();
-
     done_testing;
     return 0;
 }
@@ -251,111 +249,6 @@ sub check_order_is_same_given_same_prng {
     isnt ($newick1, $newick3, 'trees are not the same');
 }
 
-
-#  this should move to a randomisation test file
-sub test_rand_calc_per_node_uses_orig_bd {
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-
-    #  name is short for test_rand_calc_per_node_uses_orig_bd
-    my $cl = $bd->add_cluster_output (name => 't_r_c_p_n_u_o_b');
-    
-    $cl->run_analysis (
-        spatial_calculations => [qw /calc_richness calc_element_lists_used calc_elements_used/],
-    );
-
-    my $rand_name = 'xxx';
-
-    my $rand = $bd->add_randomisation_output (name => $rand_name);
-    my $rand_bd_array = $rand->run_analysis (
-        function   => 'rand_csr_by_group',
-        iterations => 1,
-        retain_outputs => 1,
-        return_rand_bd_array => 1,
-    );
-
-    my $rand_bd1 = $rand_bd_array->[0];
-    my @refs = $rand_bd1->get_cluster_output_refs;
-    my $rand_cl = first {$_->get_param ('NAME') =~ m/rand sp_calc/} @refs;  #  bodgy way of getting at it
-
-    my $sub_ref = sub {
-        node_calcs_used_same_element_sets (
-            orig_tree => $cl,
-            rand_tree => $rand_cl,
-        );
-    };
-    subtest 'Calcs per node used the same element sets' => $sub_ref;
-    
-    my $sub_ref2 = sub {
-        node_calcs_gave_expected_results (
-            cluster_output => $cl,
-            rand_name      => $rand_name,
-        );
-    };
-    subtest 'Calcs per node used the same element sets' => $sub_ref2;
-
-    return;
-}
-
-#  iterate over all the nodes and check they have the same
-#  element lists and counts, but that the richness scores are not the same    
-sub node_calcs_used_same_element_sets {
-    my %args = @_;
-    my $orig_tree = $args{orig_tree};
-    my $rand_tree = $args{rand_tree};
-
-    my %orig_nodes = $orig_tree->get_node_hash;
-    my %rand_nodes = $rand_tree->get_node_hash;
-
-    is (scalar keys %orig_nodes, scalar keys %rand_nodes, 'same number of nodes');
-
-    my $count_richness_same = 0;
-
-    foreach my $name (sort keys %orig_nodes) {  #  always test in same order for repeatability
-        my $o_node_ref = $orig_nodes{$name};
-        my $r_node_ref = $rand_nodes{$name};
-
-        my $o_element_list = $o_node_ref->get_list_ref (list => 'EL_LIST_SET1');
-        my $r_element_list = $r_node_ref->get_list_ref (list => 'EL_LIST_SET1');
-        is_deeply ($o_element_list, $r_element_list, "$name used same element lists");
-        
-        my $o_sp_res = $o_node_ref->get_list_ref (list => 'SPATIAL_RESULTS');
-        my $r_sp_res = $r_node_ref->get_list_ref (list => 'SPATIAL_RESULTS');
-        if ($o_sp_res->{RICHNESS_ALL} == $r_sp_res->{RICHNESS_ALL}) {
-            $count_richness_same ++;
-        }
-    }
-
-    isnt ($count_richness_same, scalar keys %orig_nodes, 'richness scores differ between orig and rand nodes');
-
-    return;
-}
-
-
-#  rand results should be zero for all el_list P and C results, 1 for Q
-sub node_calcs_gave_expected_results {
-    my %args = @_;
-    my $cl          = $args{cluster_output};
-    my $list_prefix = $args{rand_name};
-    
-    my $list_name = $list_prefix . '>>SPATIAL_RESULTS';
-    
-    my %nodes = $cl->get_node_hash;
-    foreach my $node_ref (sort {$a->get_name cmp $b->get_name} values %nodes) {
-        my $list_ref = $node_ref->get_list_ref (list => $list_name);
-        my $node_name = $node_ref->get_name;
-
-        KEY:
-        while (my ($key, $value) = each %$list_ref) {
-            my $expected
-              = ($key =~ /^[TQ]_EL/) ? 1
-              : ($key =~ /^[CP]_EL/) ? 0
-              : next KEY;
-            is ($value, $expected, "$key score for $node_name is $expected")
-        }
-        
-    }
-    
-}
 
 
 ######################################

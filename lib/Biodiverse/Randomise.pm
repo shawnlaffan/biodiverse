@@ -252,19 +252,6 @@ sub export_prng_current_state {
 sub get_randomisations {
     my $self = shift || __PACKAGE__;
 
-    #  get the @ISA array for the current object.
-    #my $isa_tree = mro::get_linear_isa(blessed ($self) || __PACKAGE__);
-    #my $syms = Devel::Symdump->rnew(@$isa_tree);
-
-    #my %analyses;
-    #
-    #foreach my $analysis (sort $syms->functions) {
-    #    next if $analysis !~ /^.*::rand_./;
-    #    $analysis =~ s/(.*::)*//;
-    #    #print "RANDOMISATION IS $analysis\n";
-    #    $analyses{$analysis}++;
-    #}
-
     my %analyses = $self->get_subs_with_prefix (
         prefix => 'rand_',
         class => __PACKAGE__,
@@ -306,7 +293,7 @@ sub run_randomisation {
 
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
 
-    my $rand = $self->initialise_rand (%args);
+    my $rand_object = $self->initialise_rand (%args);
 
     #  get a list of refs for objects that are to be compared
     #  get the lot by default
@@ -338,8 +325,8 @@ sub run_randomisation {
                 ? "_$single_level_args"
                 : $EMPTY_STRING)
             );
-
-    #$results_list_name =~ s/^RAND/R/;  #  shorten the name
+    
+    my $randomise_group_props_by = $args{randomise_group_props_by} // 'no_change';
 
     #  counts are stored on the outputs, as they can be different if
     #    an output is created after some randomisations have been run
@@ -350,8 +337,6 @@ sub run_randomisation {
         $self->set_param (TOTAL_ITERATIONS => 0);
         $total_iterations = $self->get_param_as_ref ('TOTAL_ITERATIONS');
     }
-
-    ##$self->find_circular_refs ($bd);
 
     my $return_success_code = 1;
     my @rand_bd_array;  #  populated if return_rand_bd_array is true
@@ -374,7 +359,7 @@ sub run_randomisation {
         my $rand_bd = eval {
             $self->$function (
                 %args,
-                rand_object => $rand,
+                rand_object => $rand_object,
                 rand_iter   => $$total_iterations,
             );
         };
@@ -382,6 +367,13 @@ sub run_randomisation {
 
         $rand_bd->rename (
             name => $bd->get_param ('NAME') . "_$function"."_$$total_iterations"
+        );
+
+        $self->process_group_props (
+            orig_bd  => $bd,
+            rand_bd  => $rand_bd,
+            function => $randomise_group_props_by,
+            rand_object => $rand_object,
         );
 
         TARGET:
@@ -429,7 +421,8 @@ sub run_randomisation {
             #  HACK...
             my $rand_state = $target->get_param('RAND_INIT_STATE') || [];
             $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
-            if ($rand_analysis->is_tree_object) {
+            my $is_tree_object = eval {$rand_analysis->is_tree_object};
+            if ($is_tree_object) {
                 $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
                 eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
                 $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
@@ -508,7 +501,7 @@ sub run_randomisation {
     #  and keep a track of the randomisation state,
     #  even though we are storing the object
     #  this is just in case YAML will not work with MT::Auto
-    $self->store_rand_state (rand_object => $rand);
+    $self->store_rand_state (rand_object => $rand_object);
 
     #  return the rand_bd's if told to
     return wantarray ? \@rand_bd_array : \@rand_bd_array
@@ -529,7 +522,7 @@ sub compare_cluster_calcs_per_node {
     my $orig_analysis = $args{orig_analysis};
     my $analysis_args = $orig_analysis->get_param ('ANALYSIS_ARGS');
 
-    return if ! $orig_analysis->is_tree_object;
+    return if ! eval {$orig_analysis->is_tree_object};
     return if !defined $analysis_args->{spatial_calculations};
 
     my $bd      = $orig_analysis->get_basedata_ref;
@@ -582,9 +575,14 @@ sub compare_cluster_calcs_per_node {
 
 sub get_metadata_rand_nochange {
     my $self = shift;
+    
+    my $group_props_parameters = $self->get_group_prop_metadata;
 
     my %args = (
         Description => 'No change - just a cloned data set',
+        parameters  => [
+            $group_props_parameters,
+        ],
     );
 
     return wantarray ? %args : \%args;
@@ -608,8 +606,13 @@ sub rand_nochange {
 sub get_metadata_rand_csr_by_group {
     my $self = shift;
 
+    my $group_props_parameters = $self->get_group_prop_metadata;
+
     my %args = (
         Description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
+        parameters  => [
+            $group_props_parameters,
+        ],
     ); 
 
     return wantarray ? %args : \%args;
@@ -621,8 +624,6 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
 
     my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
 
-    #my $progress_bar = $args{progress};
-    #delete $args{progress};  #  the progress bar can get nasty if stored and then defrosted
     my $progress_bar = Biodiverse::Progress->new();
 
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
@@ -644,7 +645,6 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     $new_bd->get_labels_ref->set_param ($bd->get_labels_ref->get_params_hash);
 
     my @orig_groups = sort $bd->get_groups;
-    #my @tmp = @origData;  #  needed lest shuffle works on the origData in place
     #  make sure shuffle does not work on the original data
     my $randOrder = $rand->shuffle ([@orig_groups]);
 
@@ -653,26 +653,20 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     #print join ("\n", @candidates) . "\n";
 
     my $total_to_do = $#orig_groups;
-    my $last_update_time = [gettimeofday];
 
     foreach my $i (0 .. $#orig_groups) {
 
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
+        my $progress = $i / $total_to_do;
+        my $p_text
+            = "$progress_text\n"
+            . "Shuffling labels from\n"
+            . "\t$orig_groups[$i]\nto\n\t$randOrder->[$i]\n"
+            . "(element $i of $total_to_do)";
 
-            my $progress = $i / $total_to_do;
-            my $p_text
-                = "$progress_text\n"
-                . "Shuffling labels from\n"
-                . "\t$orig_groups[$i]\nto\n\t$randOrder->[$i]\n"
-                . "(element $i of $total_to_do)";
-
-            $progress_bar->update (
-                $p_text,
-                $progress,
-            );
-            #$last_update_time = [gettimeofday];
-        #}
+        $progress_bar->update (
+            $p_text,
+            $progress,
+        );
 
         #  create the group (this allows for empty groups with no labels)
         $new_bd->add_element(group => $randOrder->[$i]);
@@ -717,6 +711,8 @@ This is applied after the multiplier parameter so you have:
 END_TOOLTIP_ADDN
 ;
 
+    my $group_props_parameters = $self->get_group_prop_metadata;
+
     my %args = (
         parameters  => [ 
             {name       => 'richness_multiplier',
@@ -731,6 +727,7 @@ END_TOOLTIP_ADDN
              increment  => 1,
              tooltip    => $tooltip_addn,
              },
+            $group_props_parameters,
         ],
         Description => "Randomly allocate labels to groups,\n"
                        . 'but keep the richness the same or within '
@@ -750,8 +747,6 @@ sub rand_structured {
     my $bd = $self->get_param ('BASEDATA_REF')
             || $args{basedata_ref};
 
-    #my $progress_bar = $args{progress};  #  can't store to output file and then recreate
-    #delete $args{progress};
     my $progress_bar = Biodiverse::Progress->new();
 
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
@@ -786,13 +781,11 @@ END_PROGRESS_TEXT
     $new_bd->rename (name => $new_bd_name . "_" . $name);
 
     print "[RANDOMISE] Creating clone for destructive sampling\n";
-    #if ($progress_bar) {
-        $progress_bar->update (
-            "$progress_text\n"
-            . "Creating clone for destructive sampling\n",
-            0.1,
-        );
-    #}
+    $progress_bar->update (
+        "$progress_text\n"
+        . "Creating clone for destructive sampling\n",
+        0.1,
+    );
 
     #  create a clone for destructive sampling
     #  clear out the outputs - we seem to get a memory leak otherwise
@@ -809,38 +802,27 @@ END_PROGRESS_TEXT
     #  make sure shuffle does not work on the original data
     my $rand_label_order = $rand->shuffle ([@sorted_labels]);
 
-    print "[RANDOMISE] Richness Shuffling " . scalar @sorted_labels . " labels from " . (scalar @sorted_groups) . " groups\n";
+    printf "[RANDOMISE] Richness Shuffling %s labels from %s groups\n",
+       scalar @sorted_labels, scalar @sorted_groups;
 
     #  generate a hash with the target richness values
     my %target_richness;
     my $i = 0;
     my $total_to_do = scalar @sorted_groups;
-    my $last_update_time = [gettimeofday];
 
     foreach my $group (@sorted_groups) {
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
 
-            my $progress = $i / $total_to_do;
+        my $progress = $i / $total_to_do;
 
-            $progress_bar->update (
-                "$progress_text\n"
-                . "Assigning richness targets\n"
-                . int (100 * $i / $total_to_do)
-                . '%',
-                  $progress,
-            );
-        #    $last_update_time = [gettimeofday];
-        #}
-        #  round threshold up to nearest integer
-        #$target_richness{$group} = ceil (
-        #    $bd->get_richness (
-        #        element => $group
-        #    )
-        #    * $multiplier
-        #);
-        #  no, don't round up, but maybe make it an option later
-        #  round down
+        $progress_bar->update (
+            "$progress_text\n"
+            . "Assigning richness targets\n"
+            . int (100 * $i / $total_to_do)
+            . '%',
+              $progress,
+        );
+
+        #  round down - could make this an option
         $target_richness{$group} = floor (
             $bd->get_richness (
                 element => $group
@@ -872,18 +854,14 @@ END_PROGRESS_TEXT
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
 
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
+        my $progress = $i / $total_to_do;
+        $progress_bar->update (
+            "Allocating labels to groups\n"
+            . "$progress_text\n"
+            . "($i / $total_to_do)",
+            $progress,
+        );
 
-            my $progress = $i / $total_to_do;
-            $progress_bar->update (
-                "Allocating labels to groups\n"
-                . "$progress_text\n"
-                . "($i / $total_to_do)",
-                $progress,
-            );
-        #    $last_update_time = [gettimeofday];
-        #}
         $i++;
 
         ###  get the new groups not containing this label
@@ -963,7 +941,7 @@ END_PROGRESS_TEXT
             last BY_GROUP if scalar @target_groups == 0;  #  no more targets for this label, move to next label
         }
     }
-    #print "\n";
+
 
     my $target_label_count = $cloned_bd->get_label_count;
     my $target_group_count = $cloned_bd->get_group_count;
@@ -994,15 +972,12 @@ END_PROGRESS_TEXT
         }
     }
 
-    #$self->find_circular_refs (label => "checker");
-
     $self->swap_to_reach_targets (
         basedata_ref    => $bd,
         cloned_bd       => $cloned_bd,
         new_bd          => $new_bd,
         filled_groups   => \%filled_groups,
         unfilled_groups => \%unfilled_groups,
-        #progress        => $progress_bar,
         rand_object     => $rand,
         target_richness => \%target_richness,
         progress_text   => $progress_text,
@@ -1015,8 +990,6 @@ END_PROGRESS_TEXT
 
     my $time_taken = sprintf "%d", tv_interval ($start_time);
     print "[RANDOMISE] Time taken for rand_structured: $time_taken seconds\n";
-
-    #$self->find_circular_refs_in_package;
 
     #  we used to have a memory leak somewhere, but this doesn't hurt anyway.    
     $cloned_bd = undef;
@@ -1033,7 +1006,6 @@ sub swap_to_reach_targets {
     my %filled_groups   = %{$args{filled_groups}};
     my %unfilled_groups = %{$args{unfilled_groups}};
     my %target_richness = %{$args{target_richness}};
-    #my $progress_bar    = $args{progress};
     my $rand            = $args{rand_object};
     my $progress_text   = $args{progress_text};
 
@@ -1059,49 +1031,40 @@ sub swap_to_reach_targets {
 
     my $swap_count = 0;
     my $last_filled = $EMPTY_STRING;
-    my $last_update_time = [gettimeofday];
 
     #  keep going until we've reached the fill threshold for each group
     BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
-        #  keep a track of what's left
-        #my @target_labels = $cloned_bd->get_labels;  #  work with whatever is left
-        #@target_groups = $cloned_bd->get_groups;
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
 
-        #if ($progress_bar
-        #    and tv_interval ($last_update_time) > $progress_update_interval) {
+        my $precision = '%8d';
+        my $fmt = "Total gps:\t\t\t$precision\n"
+                    . "Unfilled groups:\t\t$precision\n"
+                    . "Filled groups:\t\t$precision\n"
+                    . "Labels to assign:\t\t$precision\n"
+                    . "Old gps to empty:\t$precision\n"
+                    . "Swap count:\t\t\t$precision\n"
+                    . "Last group filled: %s\n";
+        my $check_text
+            = sprintf $fmt,
+                $total_to_do,
+                (scalar keys %unfilled_groups),
+                (scalar keys %filled_groups),
+                $target_label_count,
+                $target_group_count,
+                $swap_count,
+                $last_filled;
 
-            my $precision = '%8d';
-            my $fmt = "Total gps:\t\t\t$precision\n"
-                        . "Unfilled groups:\t\t$precision\n"
-                        . "Filled groups:\t\t$precision\n"
-                        . "Labels to assign:\t\t$precision\n"
-                        . "Old gps to empty:\t$precision\n"
-                        . "Swap count:\t\t\t$precision\n"
-                        . "Last group filled: %s\n";
-            my $check_text
-                = sprintf $fmt,
-                    $total_to_do,
-                    (scalar keys %unfilled_groups),
-                    (scalar keys %filled_groups),
-                    $target_label_count,
-                    $target_group_count,
-                    $swap_count,
-                    $last_filled;
-
-            my $progress_i = scalar keys %filled_groups;
-            my $progress = $progress_i / $total_to_do;
-            $progress_bar->update (
-                "Swapping labels to reach richness targets\n"
-                . "$progress_text\n"
-                . $check_text,
-                $progress,
-            );
-        #    $last_update_time = [gettimeofday];
-        #}
+        my $progress_i = scalar keys %filled_groups;
+        my $progress = $progress_i / $total_to_do;
+        $progress_bar->update (
+            "Swapping labels to reach richness targets\n"
+            . "$progress_text\n"
+            . $check_text,
+            $progress,
+        );
 
         if ($target_label_count == 0) {
             #  we ran out of labels before richness criterion is met,
@@ -1143,29 +1106,6 @@ sub swap_to_reach_targets {
         my $target_gp_richness
             = $new_bd->get_richness (element => $target_group);
 
-        ## the following used large amounts of time, and to no great effect
-        ## as all the target groups were usually filled
-        #my $target_list_shuffled = $rand->shuffle ([sort @target_groups]);
-        #
-        ##  some defaults in case all targets are full
-        #my $target_group = $target_list_shuffled->[0];
-        #my $target_gp_richness
-        #        = $new_bd->get_richness (element => $target_group);
-        #
-        #BY_TARGET:
-        #foreach my $target (@$target_list_shuffled) {
-        #    #  skip if already full
-        #    next BY_TARGET if exists $filled_groups{$target};
-        #
-        #    #  grab the first that fits the bill
-        #    if ($target_gp_richness < $target_richness{$target_group}) {
-        #        $target_group = $target;
-        #        $target_gp_richness
-        #            = $new_bd->get_richness (element => $target);
-        #        last BY_TARGET;
-        #    }
-        #}
-
         #  If the target group is at its richness threshold then
         #  we must first remove one label.
         #  Get a list of labels in this group and select one to remove.
@@ -1180,8 +1120,6 @@ sub swap_to_reach_targets {
                 my @list = $new_bd->get_labels_in_group (group => $gp);
                 @labels_in_unfilled{@list} = undef;
             }
-
-            #$self->find_circular_refs (label => 'tgt_gp_richness');
 
             #  we will remove one of these labels
             my %loser_labels = $new_bd->get_labels_in_group_as_hash (
@@ -1276,11 +1214,6 @@ sub swap_to_reach_targets {
                 my @tmp = sort keys %unfilled_tmp;
                 my $return_gp = $tmp[$i];
 
-                # warn "$return_gp is already at the richness target\n"
-                #    if ($new_bd->get_richness (element => $return_gp)
-                #        == $target_richness{$return_gp});
-
-                #print "R: $remove_label, $return_gp, $removed_count\n";
                 $new_bd->add_element   (
                     label => $remove_label,
                     group => $return_gp,
@@ -1295,12 +1228,9 @@ sub swap_to_reach_targets {
                     if $new_richness > $target_richness{$return_gp};
 
                 if ($new_richness >= $target_richness{$return_gp}) {
-                    #print "NEWLY FILLED GROUP $target_group\n"
-                    #    if ! exists $filled_groups{$target_group};
                     $filled_groups{$return_gp} = $new_richness;
                     delete $unfilled_groups{$return_gp};  #  no effect if it's not in the list
                     $last_filled = $return_gp;
-                    #print "Return: Last filled $last_filled\n";
                 }
             }
 
@@ -1327,12 +1257,9 @@ sub swap_to_reach_targets {
 
         if ($target_gp_richness != $new_richness
             and $new_richness >= $target_richness{$target_group}) {
-            #print "NEWLY FILLED GROUP $target_group\n"
-            #    if ! exists $filled_groups{$target_group};
             $filled_groups{$target_group} = $new_richness;
             delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
             $last_filled = $target_group;
-            #print "Target: Last filled $last_filled\n";
         }
 
     }
@@ -1341,6 +1268,204 @@ sub swap_to_reach_targets {
 
     return;
 }
+
+
+sub process_group_props {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_bd = $args{orig_bd};
+    my $rand_bd = $args{rand_bd};
+
+    my @keys = $orig_bd->get_groups_ref->get_element_property_keys;
+
+    return if !scalar @keys;
+
+    my $function = $args{function};
+    if (not $function =~ /^process_group_props_/) {
+        $function = 'process_group_props_' . $function;
+    }
+    
+    my $success = eval {$self->$function (%args)};
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
+    return $success;
+}
+
+sub process_group_props_no_change {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_bd = $args{orig_bd};
+    my $rand_bd = $args{rand_bd};
+
+    $orig_bd->transfer_group_properties (
+        %args,
+        receiver => $rand_bd,
+    );
+
+    return;
+}
+
+#  move them around as a set of values, so the
+#  receiving group gets all of the providing groups props
+sub process_group_props_by_set {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_bd = $args{orig_bd} || croak "Missing orig_bd argument\n";
+    my $rand_bd = $args{rand_bd} || croak "Missing rand_bd argument\n";
+
+    my $rand  = $args{rand_object};
+
+    my $progress_bar = Biodiverse::Progress->new();
+
+    my $elements_ref    = $orig_bd->get_groups_ref;
+    my $to_elements_ref = $rand_bd->get_groups_ref;
+
+    my $name        = $self->get_param ('NAME');
+    my $to_name     = $rand_bd->get_param ('NAME');
+    my $text        = "Transferring group properties from $name to $to_name";
+
+    my $total_to_do = $elements_ref->get_element_count;
+    print "[BASEDATA] Transferring properties for $total_to_do groups\n";
+
+    my $count = 0;
+    my $i = -1;
+
+    my @to_element_list = sort $to_elements_ref->get_element_list;
+    my $shuffled_to_elements = $rand->shuffle (\@to_element_list);
+
+    BY_ELEMENT:
+    foreach my $element (sort $elements_ref->get_element_list) {
+        $i++;
+        my $progress = $i / $total_to_do;
+        $progress_bar->update (
+            "$text\n"
+            . "(label $i of $total_to_do)",
+            $progress
+        );
+
+        my $to_element = shift @$shuffled_to_elements;
+
+        my $props = $elements_ref->get_list_values (
+            element => $element,
+            list => 'PROPERTIES'
+        );
+
+        next BY_ELEMENT if ! defined $props;  #  none there
+
+        #  delete any existing lists - cleaner and safer than adding to them
+        $to_elements_ref->delete_lists (
+            element => $to_element,
+            lists => ['PROPERTIES'],
+        );
+
+        $to_elements_ref->add_to_lists (
+            element    => $to_element,
+            PROPERTIES => {%$props},  #  make sure it's a copy so bad things don't happen
+        );
+        $count ++;
+    }
+
+    return $count; 
+}
+
+#  move them around as a set of values, so the
+#  receiving group gets all of the providing groups props
+sub process_group_props_by_item {
+    my $self = shift;
+    my %args = @_;
+
+    my $orig_bd = $args{orig_bd} || croak "Missing orig_bd argument\n";
+    my $rand_bd = $args{rand_bd} || croak "Missing rand_bd argument\n";
+
+    my $rand  = $args{rand_object};
+
+    my $progress_bar = Biodiverse::Progress->new();
+
+    my $elements_ref    = $orig_bd->get_groups_ref;
+    my $to_elements_ref = $rand_bd->get_groups_ref;
+
+    foreach my $to_element ($to_elements_ref->get_element_list) {
+        #  delete any existing lists - cleaner and safer than adding to them
+        $to_elements_ref->delete_lists (
+            element => $to_element,
+            lists => ['PROPERTIES'],
+        );
+    }
+
+    my $name        = $self->get_param ('NAME');
+    my $to_name     = $rand_bd->get_param ('NAME');
+    my $text        = "Transferring group properties from $name to $to_name";
+
+    my $total_to_do = $elements_ref->get_element_count;
+    print "[BASEDATA] Transferring group properties for $total_to_do\n";
+
+    my $count = 0;
+    my $i = -1;
+
+    my @to_element_list = sort $to_elements_ref->get_element_list;
+    
+    for my $prop_key ($elements_ref->get_element_property_keys) {
+
+        my $shuffled_to_elements = $rand->shuffle ([@to_element_list]);  #  need a shuffled copy
+
+        BY_ELEMENT:
+        foreach my $element ($elements_ref->get_element_list) {
+            $i++;
+            my $progress = $i / $total_to_do;
+            $progress_bar->update (
+                "$text\n"
+                . "(label $i of $total_to_do)",
+                $progress
+            );
+
+            my $to_element = shift @$shuffled_to_elements;
+
+            my $props = $elements_ref->get_list_values (
+                element => $element,
+                list => 'PROPERTIES'
+            );
+
+            next BY_ELEMENT if ! defined $props;  #  none there
+            next BY_ELEMENT if ! exists $props->{$prop_key};
+
+            #  now add the value for this property
+            $to_elements_ref->add_to_lists (
+                element    => $to_element,
+                PROPERTIES => {$prop_key => $props->{$prop_key}},
+            );
+
+            $count ++;
+        }
+    }
+
+    return $count; 
+}
+
+my $process_group_props_tooltip = <<'END_OF_GPPROP_TOOLTIP'
+Group properties in the randomised basedata will be assigned in these ways:
+no_change:  The same as in the original basedata. 
+by_set:     All of a group's properties are assigned as a set.
+by_item:    Properties are randomly allocated to new groups on an individual basis.  
+END_OF_GPPROP_TOOLTIP
+  ;
+
+sub get_group_prop_metadata {
+    my $self = shift;
+
+    my %metadata = (
+        name => 'randomise_group_props_by',
+        type => 'choice',
+        choices => [qw /no_change by_set by_item/],
+        #default => 0,
+        tooltip => $process_group_props_tooltip,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
 
 #  these appear redundant but might help with mem leaks
 our $AUTOLOAD;

@@ -54,6 +54,7 @@ use Exporter::Easy (
         element_properties => [
             qw(
                 get_element_properties_test_data
+                get_group_properties_site_data_object
                 :utils
             ),
         ],
@@ -522,6 +523,13 @@ sub get_label_properties_site_data_binomial {
 
 sub get_group_properties_site_data {
     return get_data_section('GROUP_PROPERTIES_DATA');
+}
+
+sub get_group_properties_site_data_object {
+    my $data  = get_group_properties_site_data;
+    my $props = element_properties_from_string($data);
+
+    return $props;
 }
 
 sub element_properties_from_string {

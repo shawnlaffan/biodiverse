@@ -575,9 +575,14 @@ sub compare_cluster_calcs_per_node {
 
 sub get_metadata_rand_nochange {
     my $self = shift;
+    
+    my $group_props_parameters = $self->get_group_prop_metadata;
 
     my %args = (
         Description => 'No change - just a cloned data set',
+        parameters  => [
+            $group_props_parameters,
+        ],
     );
 
     return wantarray ? %args : \%args;
@@ -601,8 +606,13 @@ sub rand_nochange {
 sub get_metadata_rand_csr_by_group {
     my $self = shift;
 
+    my $group_props_parameters = $self->get_group_prop_metadata;
+
     my %args = (
         Description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
+        parameters  => [
+            $group_props_parameters,
+        ],
     ); 
 
     return wantarray ? %args : \%args;
@@ -701,6 +711,8 @@ This is applied after the multiplier parameter so you have:
 END_TOOLTIP_ADDN
 ;
 
+    my $group_props_parameters = $self->get_group_prop_metadata;
+
     my %args = (
         parameters  => [ 
             {name       => 'richness_multiplier',
@@ -715,6 +727,7 @@ END_TOOLTIP_ADDN
              increment  => 1,
              tooltip    => $tooltip_addn,
              },
+            $group_props_parameters,
         ],
         Description => "Randomly allocate labels to groups,\n"
                        . 'but keep the richness the same or within '
@@ -1431,6 +1444,27 @@ sub process_group_props_by_item {
     return $count; 
 }
 
+my $process_group_props_tooltip = <<'END_OF_GPPROP_TOOLTIP'
+Group properties in the randomised basedata will be assigned in these ways:
+no_change:  The same as in the original basedata. 
+by_set:     All of a group's properties are assigned as a set.
+by_item:    Properties are randomly allocated to new groups on an individual basis.  
+END_OF_GPPROP_TOOLTIP
+  ;
+
+sub get_group_prop_metadata {
+    my $self = shift;
+
+    my %metadata = (
+        name => 'randomise_group_props_by',
+        type => 'choice',
+        choices => [qw /no_change by_set by_item/],
+        #default => 0,
+        tooltip => $process_group_props_tooltip,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
 
 
 #  these appear redundant but might help with mem leaks

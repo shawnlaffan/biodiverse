@@ -114,6 +114,8 @@ sub fill {
 
     }
     
+    $table->show_all;  #  sometimes we have compound widgets not being shown
+
     $tooltip_group->enable();
     return \@extract_closures;
 }
@@ -171,9 +173,8 @@ sub generate_choice {
     }
 
     # select default
-    if (exists $param->{default}) {
-        $combo->set_active($param->{default});
-    }
+    my $default = $param->{default} // 0;
+    $combo->set_active($default);
 
     # Extraction closure
     my $extract = sub {

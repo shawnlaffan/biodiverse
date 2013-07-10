@@ -791,6 +791,21 @@ sub onGridHover {
     return;
 }
 
+sub rectCanonicalise {
+    my ($rect, ) = @_;
+    if ($rect->[0] > $rect->[2]) {
+        ($rect->[0], $rect->[2]) = ($rect->[2], $rect->[0]);
+    }
+    if ($rect->[1] > $rect->[3]) {
+        ($rect->[1], $rect->[3]) = ($rect->[3], $rect->[1]);
+    }
+}
+
+sub rectCentre {
+    my ($rect, ) = @_;
+    return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
+}
+
 sub onGridSelect {
     my $self = shift;
     my $groups = shift;
@@ -836,32 +851,79 @@ sub onGridSelect {
         }
         onSelectedLabelsChanged($hselection, [$self, 'listLabels1']);
     } elsif ($self->{tool} eq 'Zoom') {
-        # zoom such that the entirety of the dragged box is visible
-
         my $grid = $self->{grid};
         my $canvas = $grid->{canvas};
+        rectCanonicalise ($rect);
 
         # Scale
         my $width_px  = $grid->{width_px}; # Viewport/window size
         my $height_px = $grid->{height_px};
+        my ($xc, $yc) = $canvas->world_to_window(rectCentre ($rect));
+        print "Centre: $xc $yc\n";
         my ($x1, $y1) = $canvas->world_to_window($rect->[0], $rect->[1]);
         my ($x2, $y2) = $canvas->world_to_window($rect->[2], $rect->[3]);
-        my $width_s   = max (abs ($x2 - $x1), 1); # Selected box width
-        my $height_s  = max (abs ($y2 - $y1), 1); # Avoid div by 0
+        print "Window Rect: $x1 $x2 $y1 $y2\n";
+        my $width_s   = max ($x2 - $x1, 1); # Selected box width
+        my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
+
+        # Special case: If the rect is tiny, the user probably just clicked
+        # and released. Do something sensible, like just double the zoom level.
+        if ($width_s <= 2 || $height_s <= 2) {
+            $width_s = $width_px / 2;
+            $height_s = $height_px / 2;
+            ($rect->[0], $rect->[1]) = $canvas->window_to_world(
+                    $xc - $width_s / 2, $yc - $height_s / 2);
+            ($rect->[2], $rect->[3]) = $canvas->window_to_world(
+                    $xc + $width_s / 2, $yc + $height_s / 2);
+        }
 
         my $oppu = $canvas->get_pixels_per_unit;
         print "Old PPU: $oppu\n";
-        my $ppu = $oppu * min ($width_px / $width_s, $height_px / $height_s);
+        my $ratio = min ($width_px / $width_s, $height_px / $height_s);
+        my $ppu = $oppu * $ratio;
         print "New PPU: $ppu\n";
         $canvas->set_pixels_per_unit($ppu);
 
-        # Calculate size of selection compared to current viewport size.
-
         $grid->postZoom;
 
+        # Now pan so that the selection is centered. There are two cases.
+        # +------------------------------------------+
+        # |                +-----+                   |
+        # |                |     |                   |
+        # |                |     |                   |
+        # |                +-----+                   |
+        # +------------------------------------------+
+        # or
+        # +------------------------------------------+
+        # |                                          |
+        # |                                          |
+        # |+----------------------------------------+|
+        # ||                                        ||
+        # |+----------------------------------------+|
+        # |                                          |
+        # |                                          |
+        # +------------------------------------------+
+        # We can cover both if we expand rect along both axes until it is
+        # the same aspect ratio as the window. (One axis will not change).
+        my $window_aspect = $width_px / $height_px;
+        my $rect_aspect = ($rect->[2] - $rect->[0]) / ($rect->[3] - $rect->[1]);
+        if ($rect_aspect > $window_aspect) {
+            # 2nd case illustrated above. We need to change the height.
+            my $mid = ($rect->[1] + $rect->[3]) / 2;
+            my $width = $rect->[2] - $rect->[0];
+            $rect->[1] = $mid - 0.5 * $width / $window_aspect;
+            $rect->[3] = $mid + 0.5 * $width / $window_aspect;
+        } else {
+            # 1st case illustracted above. We need to change the width.
+            my $mid = ($rect->[0] + $rect->[2]) / 2;
+            my $height = $rect->[3] - $rect->[1];
+            $rect->[0] = $mid - 0.5 * $height * $window_aspect;
+            $rect->[2] = $mid + 0.5 * $height * $window_aspect;
+        }
+
         # Pan
-        $canvas->scroll_to($canvas->w2c(min ($rect->[0], $rect->[2]),
-                                        min ($rect->[1], $rect->[3])));
+        $canvas->scroll_to($canvas->w2c(
+                $rect->[0], $rect->[1]));
         $grid->updateScrollbars;
     }
 

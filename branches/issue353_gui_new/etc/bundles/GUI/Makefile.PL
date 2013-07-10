@@ -22,5 +22,6 @@ WriteMakefile(
         "ExtUtils::PkgConfig" => "0",
         "Glib" => "0",
         "Gtk2" => "0",
+        "Pango" => "0",
     },
 );

@@ -1910,6 +1910,29 @@ sub root_unrooted_tree {
     return;
 }
 
+#  users should make a clone before doing this...
+sub shuffle_terminal_names {
+    my $self = shift;
+    my %args = @_;
+    
+    my $target_node = $args{target_node} // $self->get_root_node;
+
+    my $node_hash = $self->get_node_hash;
+    my %reordered = $target_node->shuffle_terminal_names (%args);
+
+    #  place holder for nodes that will change
+    my %tmp;
+    while (my ($old, $new) = each %reordered) {
+        $tmp{$new} = $node_hash->{$old};
+    }
+
+    #  and now we override the old with the new
+    @{$node_hash}{keys %tmp} = values %tmp;
+
+    return if !defined wantarray;
+    return wantarray ? %reordered : \%reordered;
+}
+
 #  Let the system take care of most of the memory stuff.  
 sub DESTROY {
     my $self = shift;

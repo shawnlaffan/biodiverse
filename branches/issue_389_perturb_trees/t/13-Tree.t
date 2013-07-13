@@ -66,7 +66,7 @@ sub test_shuffle_terminal_names {
         "Cloned tree with shuffled terminals differs from original"
     );
     
-    #  Should add a test for working on a sub clade.
+    #  Now check a shuffle of a sub-clade's terminals.
     #  Its terminals should change, but its sib's termials should not.
     
     my $clone2 = $tree->clone;
@@ -125,6 +125,8 @@ sub descendents_are_same {
         is_terminal_node
         is_internal_node
     /;
+    
+    my ($neg_count, $pos_count) = (0, 0);
 
     METHOD:
     foreach my $method (@methods) {
@@ -134,13 +136,16 @@ sub descendents_are_same {
 
         #  Only testing if names differ under negation for terminals
         #  Need to devise better rules as args as we develop more perturbations.
-        #  BUT WE CAN HAVE RANDOMLY THE SAME...better to just keep count and check if the matches don;t sum
+        #  BUT WE CAN HAVE RANDOMLY THE SAME (albeit rarely)
+        #  ...better to just keep count and check if the matches don't sum - still not perfect, though
         if ($method eq $negation_method) {
             if (($terminals_only && $node1->is_terminal_node)) {
-                $message = "nodes don't match for $method";
-                isnt ($val1, $val2, $message);
+                if ($val1 ne $val2) {
+                    $neg_count ++;
+                }
                 next METHOD;
             }
+            $pos_count++;
         }
         is ($val1, $val2, $message);
     }
@@ -150,6 +155,11 @@ sub descendents_are_same {
 
     for my $i (0 .. $#children1) {
         descendents_are_same ($children1[$i], $children2[$i], $negation_method, $terminals_only);
+    }
+    
+    #  need to generalise this to work with any type of node, but cleanly
+    if ($negation_method && !$node1->is_terminal_node) {
+        isnt (scalar $node1->get_terminal_element_count, $pos_count, 'differing terminals for $negation_method');
     }
 
     return;

@@ -1550,6 +1550,18 @@ sub do_range_weight_tree {
     );
 }
 
+sub do_tree_equalise_branch_lengths {
+    my $self = shift;
+
+    return $self->do_trim_tree_to_basedata (
+        do_equalise_branch_lengths => 1,
+        suffix  => 'EQ',
+        no_trim => 1,
+    );
+}
+
+#  Should probably rename this sub as it is being used for more purposes,
+#  some of which do not involve trimming.  
 sub do_trim_tree_to_basedata {
     my $self = shift;
     my %args = @_;
@@ -1595,12 +1607,20 @@ sub do_trim_tree_to_basedata {
     return if $response ne 'ok';  #  they chickened out
 
     my $new_tree = $phylogeny->clone;
-    $new_tree->trim (keep => scalar $bd->get_labels);
+    if (!$args{no_trim}) {
+        new_tree->trim (keep => scalar $bd->get_labels);
+    }
 
     if ($args{do_range_weighting}) {
         foreach my $node ($new_tree->get_node_refs) {
             my $range = $node->get_node_range (basedata_ref => $bd);
             $node->set_length (length => $node->get_length / $range);
+        }
+    }
+    elsif ($args{do_equalise_branch_lengths}) {
+        foreach my $node ($new_tree->get_node_refs) {
+            my $len = $node->get_length == 0 ? 0 : 1;
+            $node->set_length (length => $len);
         }
     }
 

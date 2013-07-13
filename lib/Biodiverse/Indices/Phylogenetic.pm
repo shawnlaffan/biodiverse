@@ -383,6 +383,10 @@ sub get_metadata_calc_pe_lists {
                 description => 'Node ranges used in PE calculations',
                 type        => 'list',
             },
+            PE_LOCAL_RANGELIST => {
+                description => 'Local node ranges used in PE calculations (number of groups in which a node is found)',
+                type        => 'list',
+            }
         },
     );
     
@@ -393,7 +397,7 @@ sub calc_pe_lists {
     my $self = shift;
     my %args = @_;
     
-    my @keys = qw /PE_WTLIST PE_RANGELIST/;
+    my @keys = qw /PE_WTLIST PE_RANGELIST PE_LOCAL_RANGELIST/;
     my %results;
     @results{@keys} = @args{@keys};
     
@@ -494,6 +498,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
 
     my %ranges;
     my %wts;
+    my %local_ranges;
     my %unweighted_wts;  #  count once for each label, not weighted by group
     my %nodes_in_path;
 
@@ -553,6 +558,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         # weights need to be summed
         foreach my $node (keys %$hash_ref) {
             $wts{$node} += $hash_ref->{$node};
+            $local_ranges{$node}++;
         }
     }
 
@@ -584,6 +590,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
         PE_WE_P        => $PE_WE_P,
         PE_WTLIST      => \%wts,
         PE_RANGELIST   => \%ranges,
+        PE_LOCAL_RANGELIST => \%local_ranges,
     );
 
     return wantarray ? %results : \%results;

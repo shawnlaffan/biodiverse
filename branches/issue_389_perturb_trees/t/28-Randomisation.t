@@ -378,10 +378,6 @@ sub test_randomise_tree_ref_args {
             "$shuffle_method: Shuffled tree refs $notnot_text same across randomisation iter 2",
         );
 
-        #diag $tree;
-        #diag $analysis_args_array[0]->{tree_ref};
-        #diag $analysis_args_array[2]->{tree_ref};
-
         is_or_isnt (
             $analysis_args_array[0]->{self_only}->{tree_ref},
             $analysis_args_array[1]->{self_only}->{tree_ref},

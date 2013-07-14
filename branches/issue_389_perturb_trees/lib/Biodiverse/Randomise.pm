@@ -13,6 +13,7 @@ use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { gettimeofday tv_interval };
 use Scalar::Util qw { blessed };
+use List::MoreUtils qw /first_index/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
 #use MRO::Compat;
 use Class::Inspector;
@@ -542,7 +543,7 @@ sub override_object_analysis_args {
     #  this could be generalised to handle any of the object types
     my $tree_shuffle_method = $args{randomise_trees_by};
     my $tree_ref_used = $new_analysis_args->{tree_ref};
-    #warn 'tree name is ' . $tree_ref_used->get_param('NAME') . "\n";
+
     if ($tree_ref_used && $tree_shuffle_method && $tree_shuffle_method !~ /no_change$/) {
         my $shuffled_tree = $cache->{$tree_ref_used};
         if (!$shuffled_tree) {  # shuffle and cache if we don't already have it
@@ -654,12 +655,14 @@ sub compare_cluster_calcs_per_node {
 sub get_metadata_rand_nochange {
     my $self = shift;
     
-    my $group_props_parameters = $self->get_group_prop_metadata;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
     my %args = (
         Description => 'No change - just a cloned data set',
         parameters  => [
             $group_props_parameters,
+            $tree_shuffle_parameters,
         ],
     );
 
@@ -684,12 +687,15 @@ sub rand_nochange {
 sub get_metadata_rand_csr_by_group {
     my $self = shift;
 
-    my $group_props_parameters = $self->get_group_prop_metadata;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+
 
     my %args = (
         Description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
         parameters  => [
             $group_props_parameters,
+            $tree_shuffle_parameters,
         ],
     ); 
 
@@ -789,7 +795,8 @@ This is applied after the multiplier parameter so you have:
 END_TOOLTIP_ADDN
 ;
 
-    my $group_props_parameters = $self->get_group_prop_metadata;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
     my %args = (
         parameters  => [ 
@@ -806,6 +813,7 @@ END_TOOLTIP_ADDN
              tooltip    => $tooltip_addn,
              },
             $group_props_parameters,
+            $tree_shuffle_parameters,
         ],
         Description => "Randomly allocate labels to groups,\n"
                        . 'but keep the richness the same or within '
@@ -1539,6 +1547,33 @@ sub get_group_prop_metadata {
         choices => [qw /no_change by_set by_item/],
         #default => 0,
         tooltip => $process_group_props_tooltip,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+#  should build this from metadata
+my $randomise_trees_tooltip = <<"END_RANDOMISE_TREES_TOOLTIP"
+Trees used as arguments in the analyses will be randomised in these ways:
+shuffle_no_change:  Trees will be unchanged. 
+shuffle_terminal_names:  Terminal node names will be randomly re-assigned within each tree.
+END_RANDOMISE_TREES_TOOLTIP
+  ;
+
+sub get_tree_shuffle_metadata {
+    my $self = shift;
+
+    require Biodiverse::Tree;
+    my $tree = Biodiverse::Tree->new;
+    my @choices = sort keys %{$tree->get_subs_with_prefix (prefix => 'shuffle')};
+    my $default = first_index {$_ eq 'shuffle_no_change'} @choices;
+
+    my %metadata = (
+        name => 'randomise_trees_by',
+        type => 'choice',
+        choices => \@choices,
+        default => $default,
+        tooltip => $randomise_trees_tooltip,
     );
 
     return wantarray ? %metadata : \%metadata;

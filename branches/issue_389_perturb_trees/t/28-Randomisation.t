@@ -271,11 +271,13 @@ sub test_randomise_tree_ref_args {
         tree_ref           => $tree,
     );
     
+    my $iter_count = 2;
     my $rand_name = 't_r_t_r_f_rand';
     my $rand = $bd->add_randomisation_output (name => $rand_name);
     my $rand_bd_array = $rand->run_analysis (
         function           => 'rand_nochange',
         randomise_trees_by => 'shuffle_terminal_names',
+        iterations         => $iter_count,
         retain_outputs     => 1,
         return_rand_bd_array => 1,
     );
@@ -298,34 +300,51 @@ sub test_randomise_tree_ref_args {
         $count_same{select_all} += $list_ref_select_all->{T_PD} // 0;
     }
 
-    isnt ($count_same{self_only},  scalar @groups, 'local PD scores differ between orig and rand');
-    is   ($count_same{select_all}, scalar @groups, 'global PD scores are same for orig and rand');
+    my $expected = $iter_count * scalar @groups;
+    isnt ($count_same{self_only},  $expected, 'local PD scores differ between orig and rand');
+    is   ($count_same{select_all}, $expected, 'global PD scores are same for orig and rand');
+
+    my @analysis_args_array;
 
     #  and check we haven't overridden the original tree_ref
-    my $rand_bd = $rand_bd_array->[0];
-    my @rand_sp_refs = $rand_bd->get_spatial_output_refs;
-    my @analysis_args_array;
-    for my $ref (@rand_sp_refs) {
-        my $analysis_args = $ref->get_param ('SP_CALC_ARGS');
-        my $rand_tree_ref = $analysis_args->{tree_ref};
-        #diag $rand_tree_ref . ' ' . $rand_tree_ref->get_param ('NAME');
-        isnt (
-            $tree,
-            $rand_tree_ref,
-            'Tree refs differ, orig & ' . $ref->get_param ('NAME'),
-        );
-        push @analysis_args_array, $analysis_args;
+    for my $i (0 .. $#$rand_bd_array) {
+        my $rand_bd = $rand_bd_array->[$i];
+        my @rand_sp_refs = $rand_bd->get_spatial_output_refs;
+        for my $ref (@rand_sp_refs) {
+            my $analysis_args = $ref->get_param ('SP_CALC_ARGS');
+            my $rand_tree_ref = $analysis_args->{tree_ref};
+            #diag $rand_tree_ref . ' ' . $rand_tree_ref->get_param ('NAME');
+            isnt (
+                $tree,
+                $rand_tree_ref,
+                'Tree refs differ, orig & ' . $ref->get_param ('NAME'),
+            );
+            push @analysis_args_array, $analysis_args;
+        }
+        #diag $tree . ' ' . $tree->get_param ('NAME');
     }
-    #diag $tree . ' ' . $tree->get_param ('NAME');
 
     is (
         $analysis_args_array[0]->{tree_ref},
         $analysis_args_array[1]->{tree_ref},
-        'Tree refs same across randomised analyses',
+        'Tree refs same across randomisation iter 1',
+    );
+    is (
+        $analysis_args_array[2]->{tree_ref},
+        $analysis_args_array[3]->{tree_ref},
+        'Tree refs same across randomisation iter 2',
     );
 
-    #  need to check that another iteration does not re-use the same shuffled tree
-    
+    #diag $tree;
+    #diag $analysis_args_array[0]->{tree_ref};
+    #diag $analysis_args_array[2]->{tree_ref};
+
+    isnt (
+        $analysis_args_array[0]->{tree_ref},
+        $analysis_args_array[2]->{tree_ref},
+        'Tree refs not same for different randomisation iter',
+    );
+
     return;
 }
 

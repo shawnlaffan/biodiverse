@@ -433,8 +433,9 @@ sub run_randomisation {
             $self->override_object_analysis_args (
                 %args,
                 randomised_arg_object_cache => \%randomised_arg_object_cache,
-                object => $rand_analysis,
-                iteration => $$total_iterations,
+                object      => $rand_analysis,
+                rand_object => $rand_object,
+                iteration   => $$total_iterations,
             );
 
             eval {
@@ -544,7 +545,7 @@ sub override_object_analysis_args {
         my $shuffled_tree = $cache->{$tree_ref_used};
         if (!$shuffled_tree) {  # shuffle and cache if we don't already have it
             $shuffled_tree = $tree_ref_used->clone;
-            $shuffled_tree->$shuffle_method;
+            $shuffled_tree->$shuffle_method (%args);
             $shuffled_tree->rename (
                 new_name => $shuffled_tree->get_param ('NAME') . ' ' . $iter,
             );

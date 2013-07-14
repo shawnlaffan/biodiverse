@@ -230,6 +230,7 @@ sub sp_calc {
     $self->set_param (COMPLETED => 0);
     
     #  load any predefined args - overriding user specified ones
+    #  need to change this to be ANALYSIS_ARGS
     my $ref = $self->get_param ('SP_CALC_ARGS');
     if (defined $ref) {
         %args = %$ref;

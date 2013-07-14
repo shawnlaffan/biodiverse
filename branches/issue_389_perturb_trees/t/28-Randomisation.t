@@ -22,7 +22,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster :element_properties/;
+use Biodiverse::TestHelpers qw /:cluster :element_properties :tree/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
@@ -47,6 +47,8 @@ sub main {
     test_rand_calc_per_node_uses_orig_bd();
     
     test_group_properties_reassigned();
+
+    test_randomise_tree_ref_args();
 
     done_testing;
     return 0;
@@ -244,6 +246,86 @@ sub test_group_properties_reassigned {
         subtest "$props_func checks" => $sub_same;
     }
 
+    return;
+}
+
+sub test_randomise_tree_ref_args {
+    my $rand_func   = 'rand_csr_by_group';
+    my $object_name = 't_r_t_r_f';
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $tree = get_tree_object_from_sample_data();
+    #diag $tree;
+
+    #  name is short for sub name
+    my $sp_self_only = $bd->add_spatial_output (name => 't_r_t_r_f_self_only');
+    $sp_self_only->run_analysis (
+        calculations       => [qw /calc_pd/],
+        spatial_conditions => ['sp_self_only()'],
+        tree_ref           => $tree,
+    );
+    my $sp_select_all = $bd->add_spatial_output (name => 't_r_t_r_f_select_all');
+    $sp_select_all->run_analysis (
+        calculations       => [qw /calc_pd/],
+        spatial_conditions => ['sp_select_all()'],
+        tree_ref           => $tree,
+    );
+    
+    my $rand_name = 't_r_t_r_f_rand';
+    my $rand = $bd->add_randomisation_output (name => $rand_name);
+    my $rand_bd_array = $rand->run_analysis (
+        function           => 'rand_nochange',
+        randomise_trees_by => 'shuffle_terminal_names',
+        retain_outputs     => 1,
+        return_rand_bd_array => 1,
+    );
+
+    #  sp_self_only should be different, but sp_select_all should be the same
+    my @groups = sort $sp_self_only->get_element_list;
+    my $list_name = $rand_name . '>>SPATIAL_RESULTS';
+    my %count_same;
+    foreach my $gp (@groups) {
+        my $list_ref_self_only = $sp_self_only->get_list_ref (
+            element => $gp,
+            list    => $list_name,
+        );
+        my $list_ref_select_all = $sp_select_all->get_list_ref (
+            element => $gp,
+            list    => $list_name,
+        );
+
+        $count_same{self_only}  += $list_ref_self_only->{T_PD} // 0;
+        $count_same{select_all} += $list_ref_select_all->{T_PD} // 0;
+    }
+
+    isnt ($count_same{self_only},  scalar @groups, 'local PD scores differ between orig and rand');
+    is   ($count_same{select_all}, scalar @groups, 'global PD scores are same for orig and rand');
+
+    #  and check we haven't overridden the original tree_ref
+    my $rand_bd = $rand_bd_array->[0];
+    my @rand_sp_refs = $rand_bd->get_spatial_output_refs;
+    my @analysis_args_array;
+    for my $ref (@rand_sp_refs) {
+        my $analysis_args = $ref->get_param ('SP_CALC_ARGS');
+        my $rand_tree_ref = $analysis_args->{tree_ref};
+        #diag $rand_tree_ref . ' ' . $rand_tree_ref->get_param ('NAME');
+        isnt (
+            $tree,
+            $rand_tree_ref,
+            'Tree refs differ, orig & ' . $ref->get_param ('NAME'),
+        );
+        push @analysis_args_array, $analysis_args;
+    }
+    #diag $tree . ' ' . $tree->get_param ('NAME');
+
+    is (
+        $analysis_args_array[0]->{tree_ref},
+        $analysis_args_array[1]->{tree_ref},
+        'Tree refs same across randomised analyses',
+    );
+
+    #  need to check that another iteration does not re-use the same shuffled tree
+    
     return;
 }
 

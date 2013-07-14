@@ -65,10 +65,10 @@ sub test_shuffle_terminal_names {
         ),
         "Cloned tree with shuffled terminals differs from original"
     );
-    
+
     #  Now check a shuffle of a sub-clade's terminals.
-    #  Its terminals should change, but its sib's termials should not.
-    
+    #  Its terminals should change, but its sibling's termials should not.
+
     my $clone2 = $tree->clone;
     my $cloned_sibs = $clone2->get_children;
     my $orig_sibs   = $tree->get_children;
@@ -83,10 +83,10 @@ sub test_shuffle_terminal_names {
         seed => $default_prng_seed,
         target_node => $cloned_sibs->[0],
     );
-    
+
     subtest "Cloned sub-tree with shuffled terminals differs from original"
      => sub {descendents_are_same ($cloned_sibs->[0], $orig_sibs->[0], 'get_name', 'terminals_only')};
-    
+
     subtest "Cloned sub-tree without shuffled terminals same as original"
      => sub {descendents_are_same ($cloned_sibs->[1], $orig_sibs->[1])};
 
@@ -159,7 +159,11 @@ sub descendents_are_same {
     
     #  need to generalise this to work with any type of node, but cleanly
     if ($negation_method && !$node1->is_terminal_node) {
-        isnt (scalar $node1->get_terminal_element_count, $pos_count, 'differing terminals for $negation_method');
+        my $result = isnt (scalar $node1->get_terminal_element_count, $pos_count, 'differing terminals for $negation_method');
+        diag 'This test can intermittently fail due to randomness. '
+             . 'If it fails consistently for different PRNG seeds '
+             . 'then there is a problem'
+          if !$result;
     }
 
     return;

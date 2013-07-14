@@ -39,7 +39,7 @@ use Exporter::Easy (
                 compare_arr_vals
                 get_all_calculations
                 transform_element
-                is_with_negation
+                is_or_isnt
             ),
         ],
         basedata => [
@@ -174,16 +174,14 @@ sub verify_set_contents {
 }
 
 #  use is or isnt
-sub is_with_negation {
-    my ($got, $excpected, $msg, $negate) = @_;
+sub is_or_isnt {
+    my ($got, $expected, $msg, $isnt) = @_;
 
-    my $result;
-    if ($negate) {
-        $result = isnt ($got, $excpected, $msg);
-    }
-    else {
-        $result = is ($got, $excpected, $msg);
-    }
+    $isnt //= 'is';
+
+    my $result = $isnt eq 'isnt'
+      ? isnt ($got, $expected, $msg)
+      : is   ($got, $expected, $msg);
 
     return $result;
 }

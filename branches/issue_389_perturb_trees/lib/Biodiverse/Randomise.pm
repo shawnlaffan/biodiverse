@@ -541,8 +541,9 @@ sub override_object_analysis_args {
 
     #  this could be generalised to handle any of the object types
     my $tree_shuffle_method = $args{randomise_trees_by};
-    if ($tree_shuffle_method && $tree_shuffle_method !~ /no_change$/) {
-        my $tree_ref_used = $new_analysis_args->{tree_ref};
+    my $tree_ref_used = $new_analysis_args->{tree_ref};
+    #warn 'tree name is ' . $tree_ref_used->get_param('NAME') . "\n";
+    if ($tree_ref_used && $tree_shuffle_method && $tree_shuffle_method !~ /no_change$/) {
         my $shuffled_tree = $cache->{$tree_ref_used};
         if (!$shuffled_tree) {  # shuffle and cache if we don't already have it
             $shuffled_tree = $tree_ref_used->clone;

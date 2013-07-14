@@ -576,8 +576,8 @@ sub get_analysis_args_from_object {
   ARGS_PARAM:
     for my $key (qw /ANALYSIS_ARGS SP_CALC_ARGS/) {
         $analysis_args = $object->get_param ($key);
-        next ARGS_PARAM if !defined $analysis_args;
         $p_key = $key;
+        last ARGS_PARAM if defined $analysis_args;
     }
 
     my $return_hash = $get_copy ? {%$analysis_args} : $analysis_args;

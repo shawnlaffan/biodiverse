@@ -39,6 +39,7 @@ use Exporter::Easy (
                 compare_arr_vals
                 get_all_calculations
                 transform_element
+                is_with_negation
             ),
         ],
         basedata => [
@@ -170,6 +171,21 @@ sub verify_set_contents {
     }
 
     return;
+}
+
+#  use is or isnt
+sub is_with_negation {
+    my ($got, $excpected, $msg, $negate) = @_;
+
+    my $result;
+    if ($negate) {
+        $result = isnt ($got, $excpected, $msg);
+    }
+    else {
+        $result = is ($got, $excpected, $msg);
+    }
+
+    return $result;
 }
 
 sub compare_hash_vals {

@@ -1910,6 +1910,11 @@ sub root_unrooted_tree {
     return;
 }
 
+sub shuffle_no_change {
+    my $self = shift;
+    return $self;
+}
+
 #  users should make a clone before doing this...
 sub shuffle_terminal_names {
     my $self = shift;

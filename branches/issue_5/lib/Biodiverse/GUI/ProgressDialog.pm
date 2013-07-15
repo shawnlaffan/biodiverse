@@ -6,6 +6,8 @@ package Biodiverse::GUI::ProgressDialog;
 
 use strict;
 use warnings;
+use 5.010;
+
 use Glib qw (TRUE FALSE);
 use Gtk2;
 use Gtk2::GladeXML;
@@ -37,7 +39,6 @@ sub new {
     #my $trace = Devel::StackTrace->new;
     #print $trace->as_string; # like carp
 
-    
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     # Load the widgets from Glade's XML
@@ -48,7 +49,7 @@ sub new {
     my $dlgxml = Gtk2::GladeXML->new($glade_file, 'wndProgress');
     my $dlg = $dlgxml->get_widget('wndProgress');
     $dlg->set_transient_for( $gui->getWidget('wndMain') );
-    
+
     $dlg->set_position('GTK_WIN_POS_MOUSE');
 
     # Show the dialog
@@ -56,10 +57,21 @@ sub new {
     $dlg->show_all();
     #$dlg->present();  #  raise to top
 
+    my $label_widget = $dlgxml->get_widget('label');
+    if ($label_widget) {
+        $label_widget->set_markup($text);
+    }
+    my $bar = $dlgxml->get_widget('progressbar');
+
     # Make object
-    my $self = { dlgxml => $dlgxml, dlg => $dlg };
+    my $self = {
+        #dlgxml       => $dlgxml,
+        dlg          => $dlg,
+        label_widget => $label_widget,
+        progress_bar => $bar,
+    };
     bless $self, $class;
-    
+
     #$dlg->signal_connect (
     #    'stop_pulsing'   => \&pulsate_stop,
     #    $self,
@@ -67,10 +79,6 @@ sub new {
 
     $self->{progress_update_interval} = $progress_update_interval;
 
-    my $widget = $self->{dlgxml}->get_widget('label');
-    if ($widget) {
-        $widget->set_markup($text);
-    }
     $self->update ($text, 0, 1);
 
     #$self->{last_update_time} = [gettimeofday];
@@ -80,11 +88,17 @@ sub new {
 
 sub destroy {
     my $self = shift;
-    
+say "Destroying progress bar";
     $self->pulsate_stop;
     
     $self->{dlg}->destroy();
-    
+    $self->{progress_bar}->destroy;
+    $self->{label_widget}->destroy;
+
+    foreach my $key (keys %$self) {
+        $self->{$key} = undef;
+    }
+
     return;
 }
 
@@ -113,21 +127,21 @@ sub update {
     #$self->{dlg}->present;  #  raise to top
 
     # update dialog
-    my $widget = $self->{dlgxml}->get_widget('label');
-    if ($widget) {
-        $widget->set_markup("<b>$text</b>");
+    my $label_widget = $self->{label_widget};
+    if ($label_widget) {
+        $label_widget->set_markup("<b>$text</b>");
     }
 
-    my $bar = $self->{dlgxml}->get_widget('progressbar');
-    
+    my $bar = $self->{progress_bar};
+
     if (not defined $bar) {
         Biodiverse::GUI::ProgressDialog::Cancel->throw(
             message  => "Progress bar closed, operation cancelled",
         );
     }
-    
+
     $self->{pulse} = 0;
-    
+
     $bar->set_fraction($progress);
 
     while (Gtk2->events_pending) { Gtk2->main_iteration(); }
@@ -146,7 +160,7 @@ sub pulsate {
     if (not defined $text) {
         $text = $NULL_STRING;
     }
-    
+
     #$self->update ($text, $progress);  #  We are avoiding pulsation for the moment...
     #return;
 
@@ -157,13 +171,15 @@ sub pulsate {
     }
     else {
         # update dialog
-        my $widget = $self->{dlgxml}->get_widget('label');
-        $widget->set_markup("<b>$text</b>") if $widget;
-        
-        my $bar = $self->{dlgxml}->get_widget('progressbar');
+        my $label_widget = $self->{label_widget};
+        if ($label_widget) {
+            $label_widget->set_markup("<b>$text</b>");
+        }
+
+        my $bar = $self->{bar};
         $bar->set_pulse_step ($progress);
         #$bar->pulse;
-        
+
         if (not $self->{pulse}) {  #  only set this if we aren't already pulsing
             print "Starting pulse\n";
             $self->{pulse} = 1;
@@ -171,15 +187,14 @@ sub pulsate {
             #my $x = Glib::Timeout->add(100, sub {pulse_progress_bar ( $self )});
             #my $y = $x;
         }
-        
+
         # process Gtk events - does this do the right thing?
         while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-        
+
         #  bad idea this one.  It pulses without end.
         #Gtk2->main;
     }
-    
-    
+
     return;
 }
 
@@ -211,8 +226,7 @@ sub pulse_progress_bar {
     
     #print "[PROGRESS BAR] Stop pulsing\n";
     
-    return FALSE;
-    
+    return FALSE;    
 }
 
 1;

@@ -542,7 +542,7 @@ sub override_object_analysis_args {
 
     #  The following process could be generalised to handle any of the object types
 
-    my $tree_shuffle_method = $args{randomise_trees_by};
+    my $tree_shuffle_method = $args{randomise_trees_by} // q{};
     if (not $tree_shuffle_method =~ /^shuffle_/) {  #  add the shuffle prefix if needed
         $tree_shuffle_method = 'shuffle_' . $tree_shuffle_method;
     }

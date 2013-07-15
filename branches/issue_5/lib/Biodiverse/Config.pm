@@ -22,6 +22,7 @@ use Data::Dumper qw /Dumper/;
 #  update interval for progress bars
 our $progress_update_interval     = $ENV{BIODIVERSE_PROGRESS_INTERVAL} || 0.3;
 our $progress_update_interval_pct = $ENV{BIODIVERSE_PROGRESS_INTERVAL_PCT} || 5;
+our $progress_no_use_gui          = $ENV{BIODIVERSE_PROGRESS_NO_USE_GUI} || 0;
 
 our $license = << 'END_OF_LICENSE'
 This program is free software: you can redistribute it and/or modify

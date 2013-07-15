@@ -169,7 +169,8 @@ sub initGrid {
     my $hover_closure  = sub { $self->onGridHover(@_); };
     my $click_closure  = sub { Biodiverse::GUI::CellPopup::cellClicked($_[0], $self->{base_ref}); };
     my $select_closure = sub { $self->onGridSelect(@_); };
-    
+    my $right_click_closure = sub { $self->onGridRightClick(@_); };
+
     $self->{grid} = Biodiverse::GUI::Grid->new(
         $frame,
         $hscroll,
@@ -179,6 +180,7 @@ sub initGrid {
         $hover_closure,
         $click_closure,
         $select_closure,
+        $right_click_closure
     );
 
     eval {$self->{grid}->setBaseStruct($self->{base_ref}->get_groups_ref)};
@@ -928,6 +930,24 @@ sub onGridSelect {
     }
 
     return;
+}
+
+sub onGridRightClick {
+    my $self = shift;
+    #my $groups = shift;
+    #my $ignore_change = shift;
+
+    print "onGridRightClick\n";
+
+    if ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{grid};
+        my $canvas = $grid->{canvas};
+        # Zoom out a level. Keep current centre.
+        my $oppu = $canvas->get_pixels_per_unit;
+        my $ppu = 0.5 * $oppu;
+        $canvas->set_pixels_per_unit($ppu);
+        $grid->postZoom;
+    }
 }
 
 ##################################################

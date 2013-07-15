@@ -96,6 +96,13 @@ It can be changed by calling setValueLabel
 Closures that will be invoked with the grid cell's element name
 whenever cell is hovered over or clicked
 
+=item select_func
+
+=item right_click_func
+
+Closure that will be called whenever the grid has been right clicked, but not
+dragged
+
 =back
 
 =cut
@@ -121,6 +128,7 @@ sub new {
     #$self->{use_hover_func} = 1;          #  we should use the hover func by default
     $self->{click_func}  = shift || undef; # Callback function for when users click on a cell
     $self->{select_func} = shift || undef; # Callback function for when users select a set of elements
+    $self->{right_click_func} = shift || undef; # Callback function for when the user right clicks anywhere
     my $g = 0;
     $self->{colour_none} = Gtk2::Gdk::Color->new($g, $g, $g);
 
@@ -259,6 +267,7 @@ sub destroy {
     delete $self->{hover_func};  #??? not sure if helps
     delete $self->{click_func};  #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
+    delete $self->{right_click_func};
     
     delete $self->{cells_group}; #!!!! Without this, GnomeCanvas __crashes__
                                 # Apparently, a reference cycle prevents it
@@ -1538,7 +1547,6 @@ my $state = $event->state;
 
 
     if ( $event->type eq 'button-press') {
-        
         if ($event->button == 1 and defined $self->{select_func} and not $self->{selecting}) {
 #print "COMMENCING SELECTION  $self->{select_func}\n";
             ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
@@ -1564,7 +1572,7 @@ my $state = $event->state;
                 width_pixels => 0,
             );
         }
-        else {
+        elsif ($event->button == 3) { # Right button only
             ($self->{pan_start_x}, $self->{pan_start_y}) = $event->coords;
 
             # Grab mouse
@@ -1574,11 +1582,11 @@ my $state = $event->state;
                 $event->time,
             );
             $self->{dragging} = 1;
+            $self->{has_moved} = 0;
         }
 
     }
     elsif ( $event->type eq 'button-release') {
-
         if ($self->{selecting} and $event->button == 1) {
             # Establish the selection
             my ($x_start, $y_start) = ($self->{sel_start_x}, $self->{sel_start_y});
@@ -1607,6 +1615,13 @@ my $state = $event->state;
             $cell->ungrab ($event->time);
             $self->{dragging} = 0;
             $self->updateScrollbars(); #FIXME: If we do this for motion-notify - get great flicker!?!?
+
+            # Mouse wasn't moved at all during the click.
+            if (not $self->{has_moved}) {
+                if (defined $self->{right_click_func}) {
+                    $self->{right_click_func}->();
+                }
+            }
         }
 
     }
@@ -1620,6 +1635,9 @@ my $state = $event->state;
 
         }
         elsif ($self->{dragging}) {
+            # Mark as an actual pan, so we don't treat the event as a right
+            # click.
+            $self->{has_moved} = 1;
             # Work out how much we've moved away from pan_start (world coords)
             my ($x, $y) = $event->coords;
             my ($dx, $dy) = ($x - $self->{pan_start_x}, $y - $self->{pan_start_y});

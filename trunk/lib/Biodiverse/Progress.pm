@@ -30,7 +30,7 @@ sub new {
 
     my $gui_progress;
     eval q{
-        use Biodiverse::GUI::ProgressDialog;
+        require Biodiverse::GUI::ProgressDialog;
         $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  #  should pass on all relevant args
     };
     if (! $EVAL_ERROR and defined $gui_progress) {

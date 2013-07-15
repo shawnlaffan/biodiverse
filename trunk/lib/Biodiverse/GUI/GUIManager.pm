@@ -1608,7 +1608,7 @@ sub do_trim_tree_to_basedata {
 
     my $new_tree = $phylogeny->clone;
     if (!$args{no_trim}) {
-        new_tree->trim (keep => scalar $bd->get_labels);
+        $new_tree->trim (keep => scalar $bd->get_labels);
     }
 
     if ($args{do_range_weighting}) {

@@ -540,8 +540,13 @@ sub override_object_analysis_args {
 
     my $made_changes;
 
-    #  this could be generalised to handle any of the object types
+    #  The following process could be generalised to handle any of the object types
+
     my $tree_shuffle_method = $args{randomise_trees_by};
+    if (not $tree_shuffle_method =~ /^shuffle_/) {  #  add the shuffle prefix if needed
+        $tree_shuffle_method = 'shuffle_' . $tree_shuffle_method;
+    }
+
     my $tree_ref_used = $new_analysis_args->{tree_ref};
 
     if ($tree_ref_used && $tree_shuffle_method && $tree_shuffle_method !~ /no_change$/) {
@@ -1566,7 +1571,8 @@ sub get_tree_shuffle_metadata {
     require Biodiverse::Tree;
     my $tree = Biodiverse::Tree->new;
     my @choices = sort keys %{$tree->get_subs_with_prefix (prefix => 'shuffle')};
-    my $default = first_index {$_ eq 'shuffle_no_change'} @choices;
+    my $default = first_index {$_ =~ 'no_change$'} @choices;
+    @choices = map {(my $x = $_) =~ s/^shuffle_//; $x} @choices;  #  strip the shuffle_ off the front
 
     my %metadata = (
         name => 'randomise_trees_by',

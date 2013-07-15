@@ -21,55 +21,69 @@
  *         Stef Walter <stefw@collabora.co.uk>
  */
 
+#ifndef __G_BYTES_H__
+#define __G_BYTES_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_BYTES_H__
-#define __G_BYTES_H__
 
 #include <glib/gtypes.h>
 #include <glib/garray.h>
 
 G_BEGIN_DECLS
 
+GLIB_AVAILABLE_IN_ALL
 GBytes *        g_bytes_new                     (gconstpointer   data,
                                                  gsize           size);
 
+GLIB_AVAILABLE_IN_ALL
 GBytes *        g_bytes_new_take                (gpointer        data,
                                                  gsize           size);
 
+GLIB_AVAILABLE_IN_ALL
 GBytes *        g_bytes_new_static              (gconstpointer   data,
                                                  gsize           size);
 
+GLIB_AVAILABLE_IN_ALL
 GBytes *        g_bytes_new_with_free_func      (gconstpointer   data,
                                                  gsize           size,
                                                  GDestroyNotify  free_func,
                                                  gpointer        user_data);
 
+GLIB_AVAILABLE_IN_ALL
 GBytes *        g_bytes_new_from_bytes          (GBytes         *bytes,
                                                  gsize           offset,
                                                  gsize           length);
 
+GLIB_AVAILABLE_IN_ALL
 gconstpointer   g_bytes_get_data                (GBytes         *bytes,
                                                  gsize          *size);
 
+GLIB_AVAILABLE_IN_ALL
 gsize           g_bytes_get_size                (GBytes         *bytes);
 
+GLIB_AVAILABLE_IN_ALL
 GBytes *        g_bytes_ref                     (GBytes         *bytes);
 
+GLIB_AVAILABLE_IN_ALL
 void            g_bytes_unref                   (GBytes         *bytes);
 
+GLIB_AVAILABLE_IN_ALL
 gpointer        g_bytes_unref_to_data           (GBytes         *bytes,
                                                  gsize          *size);
 
+GLIB_AVAILABLE_IN_ALL
 GByteArray *    g_bytes_unref_to_array          (GBytes         *bytes);
 
+GLIB_AVAILABLE_IN_ALL
 guint           g_bytes_hash                    (gconstpointer   bytes);
 
+GLIB_AVAILABLE_IN_ALL
 gboolean        g_bytes_equal                   (gconstpointer   bytes1,
                                                  gconstpointer   bytes2);
 
+GLIB_AVAILABLE_IN_ALL
 gint            g_bytes_compare                 (gconstpointer   bytes1,
                                                  gconstpointer   bytes2);
 

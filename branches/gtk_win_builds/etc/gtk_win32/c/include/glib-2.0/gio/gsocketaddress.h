@@ -21,12 +21,12 @@
  *          Samuel Cormier-Iijima <sciyoshi@gmail.com>
  */
 
+#ifndef __G_SOCKET_ADDRESS_H__
+#define __G_SOCKET_ADDRESS_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_SOCKET_ADDRESS_H__
-#define __G_SOCKET_ADDRESS_H__
 
 #include <gio/giotypes.h>
 
@@ -60,18 +60,23 @@ struct _GSocketAddressClass
 				     GError        **error);
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType                 g_socket_address_get_type        (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GSocketFamily         g_socket_address_get_family      (GSocketAddress *address);
 
+GLIB_AVAILABLE_IN_ALL
 GSocketAddress *      g_socket_address_new_from_native (gpointer        native,
                                                         gsize           len);
 
+GLIB_AVAILABLE_IN_ALL
 gboolean              g_socket_address_to_native       (GSocketAddress *address,
                                                         gpointer        dest,
                                                         gsize           destlen,
 							GError        **error);
 
+GLIB_AVAILABLE_IN_ALL
 gssize                g_socket_address_get_native_size (GSocketAddress *address);
 
 G_END_DECLS

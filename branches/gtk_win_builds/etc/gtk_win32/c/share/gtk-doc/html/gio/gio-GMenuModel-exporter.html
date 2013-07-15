@@ -37,13 +37,13 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <a name="gio-GMenuModel-exporter.synopsis"></a><h2>Synopsis</h2>
-<pre class="synopsis"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-GMenuModel-exporter.html#g-dbus-connection-export-menu-model" title="g_dbus_connection_export_menu_model ()">g_dbus_connection_export_menu_model</a> (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>,
+<pre class="synopsis"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-GMenuModel-exporter.html#g-dbus-connection-export-menu-model" title="g_dbus_connection_export_menu_model ()">g_dbus_connection_export_menu_model</a> (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMenuModel.html" title="GMenuModel"><span class="type">GMenuModel</span></a> *menu</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gio-GMenuModel-exporter.html#g-dbus-connection-unexport-menu-model" title="g_dbus_connection_unexport_menu_model ()">g_dbus_connection_unexport_menu_model</a>
                                                         (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> export_id</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> export_id</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -62,10 +62,10 @@ To access an exported <a class="link" href="GMenuModel.html" title="GMenuModel">
 <a name="gio-GMenuModel-exporter.details"></a><h2>Details</h2>
 <div class="refsect2">
 <a name="g-dbus-connection-export-menu-model"></a><h3>g_dbus_connection_export_menu_model ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_dbus_connection_export_menu_model (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_dbus_connection_export_menu_model (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMenuModel.html" title="GMenuModel"><span class="type">GMenuModel</span></a> *menu</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Exports <em class="parameter"><code>menu</code></em> on <em class="parameter"><code>connection</code></em> at <em class="parameter"><code>object_path</code></em>.
 </p>
@@ -74,7 +74,7 @@ The implemented D-Bus API should be considered private.
 It is subject to change in the future.
 </p>
 <p>
-An object path can only have one action group exported on it. If this
+An object path can only have one menu model exported on it. If this
 constraint is violated, the export will fail and 0 will be
 returned (with <em class="parameter"><code>error</code></em> set accordingly).
 </p>
@@ -105,7 +105,7 @@ this function.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>return location for an error, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>return location for an error, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
@@ -121,7 +121,7 @@ this function.
 <a name="g-dbus-connection-unexport-menu-model"></a><h3>g_dbus_connection_unexport_menu_model ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_connection_unexport_menu_model
                                                         (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> export_id</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> export_id</code></em>);</pre>
 <p>
 Reverses the effect of a previous call to
 <a class="link" href="gio-GMenuModel-exporter.html#g-dbus-connection-export-menu-model" title="g_dbus_connection_export_menu_model ()"><code class="function">g_dbus_connection_export_menu_model()</code></a>.

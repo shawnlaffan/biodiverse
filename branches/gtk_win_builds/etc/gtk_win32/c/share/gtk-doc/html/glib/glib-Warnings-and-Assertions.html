@@ -432,7 +432,7 @@ This function may cause different actions on non-UNIX platforms.
 <td>the program name, needed by <span class="command"><strong>gdb</strong></span>
 for the [S]tack trace option. If <em class="parameter"><code>prg_name</code></em> is <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a>, <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-get-prgname" title="g_get_prgname ()"><code class="function">g_get_prgname()</code></a>
 is called to get the program name (which will work correctly if
-<a href="http://library.gnome.org/devel/gdk3/gdk-General.html#gdk-init"><code class="function">gdk_init()</code></a> or <a href="http://library.gnome.org/devel/gtk3/gtk-General.html#gtk-init"><code class="function">gtk_init()</code></a> has been called)</td>
+<code class="function">gdk_init()</code> or <code class="function">gtk_init()</code> has been called)</td>
 </tr></tbody>
 </table></div>
 </div>
@@ -445,7 +445,7 @@ Invokes <span class="command"><strong>gdb</strong></span>, which attaches to the
 process and shows a stack trace. Called by <a class="link" href="glib-Warnings-and-Assertions.html#g-on-error-query" title="g_on_error_query ()"><code class="function">g_on_error_query()</code></a>
 when the [S]tack trace option is selected. You can get the current
 process's "program name" with <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-get-prgname" title="g_get_prgname ()"><code class="function">g_get_prgname()</code></a>, assuming that you
-have called <a href="http://library.gnome.org/devel/gtk3/gtk-General.html#gtk-init"><code class="function">gtk_init()</code></a> or <a href="http://library.gnome.org/devel/gdk3/gdk-General.html#gdk-init"><code class="function">gdk_init()</code></a>.
+have called <code class="function">gtk_init()</code> or <code class="function">gdk_init()</code>.
 </p>
 <p>
 This function may cause different actions on non-UNIX platforms.

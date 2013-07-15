@@ -28,12 +28,12 @@
  * not refer to variables from glibconfig.h
  */
 
+#ifndef __G_MACROS_H__
+#define __G_MACROS_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_MACROS_H__
-#define __G_MACROS_H__
 
 /* We include stddef.h to get the system's definition of NULL
  */
@@ -159,9 +159,9 @@
 #define G_PASTE_ARGS(identifier1,identifier2) identifier1 ## identifier2
 #define G_PASTE(identifier1,identifier2)      G_PASTE_ARGS (identifier1, identifier2)
 #ifdef __COUNTER__
-#define G_STATIC_ASSERT(expr) typedef char G_PASTE (_GStaticAssertCompileTimeAssertion_, __COUNTER__)[(expr) ? 1 : -1]
+#define G_STATIC_ASSERT(expr) typedef char G_PASTE (_GStaticAssertCompileTimeAssertion_, __COUNTER__)[(expr) ? 1 : -1] G_GNUC_UNUSED
 #else
-#define G_STATIC_ASSERT(expr) typedef char G_PASTE (_GStaticAssertCompileTimeAssertion_, __LINE__)[(expr) ? 1 : -1]
+#define G_STATIC_ASSERT(expr) typedef char G_PASTE (_GStaticAssertCompileTimeAssertion_, __LINE__)[(expr) ? 1 : -1] G_GNUC_UNUSED
 #endif
 #define G_STATIC_ASSERT_EXPR(expr) ((void) sizeof (char[(expr) ? 1 : -1]))
 #endif
@@ -324,6 +324,10 @@
 #define G_UNAVAILABLE(maj,min)
 #endif
 
+#ifndef _GLIB_EXTERN
+#define _GLIB_EXTERN extern
+#endif
+
 /* These macros are used to mark deprecated functions in GLib headers,
  * and thus have to be exposed in installed headers. But please
  * do *not* use them in other projects. Instead, use G_DEPRECATED
@@ -331,13 +335,13 @@
  */
 
 #ifdef GLIB_DISABLE_DEPRECATION_WARNINGS
-#define GLIB_DEPRECATED
-#define GLIB_DEPRECATED_FOR(f)
-#define GLIB_UNAVAILABLE(maj,min)
+#define GLIB_DEPRECATED _GLIB_EXTERN
+#define GLIB_DEPRECATED_FOR(f) _GLIB_EXTERN
+#define GLIB_UNAVAILABLE(maj,min) _GLIB_EXTERN
 #else
-#define GLIB_DEPRECATED G_DEPRECATED
-#define GLIB_DEPRECATED_FOR(f) G_DEPRECATED_FOR(f)
-#define GLIB_UNAVAILABLE(maj,min) G_UNAVAILABLE(maj,min)
+#define GLIB_DEPRECATED G_DEPRECATED _GLIB_EXTERN
+#define GLIB_DEPRECATED_FOR(f) G_DEPRECATED_FOR(f) _GLIB_EXTERN
+#define GLIB_UNAVAILABLE(maj,min) G_UNAVAILABLE(maj,min) _GLIB_EXTERN
 #endif
 
 #endif /* __G_MACROS_H__ */

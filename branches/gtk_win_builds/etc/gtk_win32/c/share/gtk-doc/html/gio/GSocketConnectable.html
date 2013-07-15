@@ -6,7 +6,7 @@
 <meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
 <link rel="home" href="index.html" title="GIO Reference Manual">
 <link rel="up" href="resolver.html" title="DNS resolution">
-<link rel="prev" href="GProxyResolver.html" title="GProxyResolver">
+<link rel="prev" href="GSimpleProxyResolver.html" title="GSimpleProxyResolver">
 <link rel="next" href="GNetworkAddress.html" title="GNetworkAddress">
 <meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
@@ -14,7 +14,7 @@
 <body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
 <table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
 <tr valign="middle">
-<td><a accesskey="p" href="GProxyResolver.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="p" href="GSimpleProxyResolver.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
 <td><a accesskey="u" href="resolver.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
 <th width="100%" align="center">GIO Reference Manual</th>
@@ -55,16 +55,16 @@ struct              <a class="link" href="GSocketConnectable.html#GSocketConnect
                     <a class="link" href="GSocketConnectable.html#GSocketAddressEnumerator-struct" title="GSocketAddressEnumerator">GSocketAddressEnumerator</a>;
 <a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="returnvalue">GSocketAddress</span></a> *    <a class="link" href="GSocketConnectable.html#g-socket-address-enumerator-next" title="g_socket_address_enumerator_next ()">g_socket_address_enumerator_next</a>    (<em class="parameter"><code><a class="link" href="GSocketConnectable.html#GSocketAddressEnumerator"><span class="type">GSocketAddressEnumerator</span></a> *enumerator</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GSocketConnectable.html#g-socket-address-enumerator-next-async" title="g_socket_address_enumerator_next_async ()">g_socket_address_enumerator_next_async</a>
                                                         (<em class="parameter"><code><a class="link" href="GSocketConnectable.html#GSocketAddressEnumerator"><span class="type">GSocketAddressEnumerator</span></a> *enumerator</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
 <a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="returnvalue">GSocketAddress</span></a> *    <a class="link" href="GSocketConnectable.html#g-socket-address-enumerator-next-finish" title="g_socket_address_enumerator_next_finish ()">g_socket_address_enumerator_next_finish</a>
                                                         (<em class="parameter"><code><a class="link" href="GSocketConnectable.html#GSocketAddressEnumerator"><span class="type">GSocketAddressEnumerator</span></a> *enumerator</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 
                     <a class="link" href="GSocketConnectable.html#GProxyAddressEnumerator-struct" title="GProxyAddressEnumerator">GProxyAddressEnumerator</a>;
 </pre>
@@ -76,12 +76,12 @@ struct              <a class="link" href="GSocketConnectable.html#GSocketConnect
    +----GSocketConnectable
 </pre>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GSocketAddressEnumerator
          +----<a class="link" href="GSocketConnectable.html#GProxyAddressEnumerator">GProxyAddressEnumerator</a>
 </pre>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----<a class="link" href="GSocketConnectable.html#GSocketAddressEnumerator">GSocketAddressEnumerator</a>
          +----GProxyAddressEnumerator
 </pre>
@@ -90,7 +90,7 @@ struct              <a class="link" href="GSocketConnectable.html#GSocketConnect
 <a name="GSocketConnectable.prerequisites"></a><h2>Prerequisites</h2>
 <p>
 GSocketConnectable requires
- <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
+ <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
 </div>
 <div class="refsect1">
 <a name="GSocketConnectable.implementations"></a><h2>Known Implementations</h2>
@@ -102,7 +102,8 @@ GSocketConnectable is implemented by
 <a name="GSocketConnectable.properties"></a><h2>Properties</h2>
 <pre class="synopsis">
   "<a class="link" href="GSocketConnectable.html#GProxyAddressEnumerator--connectable" title='The "connectable" property'>connectable</a>"              <a class="link" href="GSocketConnectable.html" title="GSocketConnectable"><span class="type">GSocketConnectable</span></a>*   : Read / Write / Construct Only
-  "<a class="link" href="GSocketConnectable.html#GProxyAddressEnumerator--uri" title='The "uri" property'>uri</a>"                      <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only
+  "<a class="link" href="GSocketConnectable.html#GProxyAddressEnumerator--proxy-resolver" title='The "proxy-resolver" property'>proxy-resolver</a>"           <a class="link" href="GProxyResolver.html" title="GProxyResolver"><span class="type">GProxyResolver</span></a>*       : Read / Write / Construct
+  "<a class="link" href="GSocketConnectable.html#GProxyAddressEnumerator--uri" title='The "uri" property'>uri</a>"                      <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only
 </pre>
 </div>
 <div class="refsect1">
@@ -179,15 +180,15 @@ in the sample code below.
 <span class="normal">                 </span><span class="usertype">GCancellable</span><span class="normal">  </span><span class="symbol">*</span><span class="normal">cancellable</span><span class="symbol">,</span>
 <span class="normal">                 </span><span class="usertype">GError</span><span class="normal">       </span><span class="symbol">**</span><span class="normal">error</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="usertype">MyConnection</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">conn </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  </span><span class="usertype">MyConnection</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">conn </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">GSocketConnectable</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">addr</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">GSocketAddressEnumerator</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">enumerator</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">GSocketAddress</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">sockaddr</span><span class="symbol">;</span>
-<span class="normal">  </span><span class="usertype">GError</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">conn_error </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  </span><span class="usertype">GError</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">conn_error </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 
 <span class="normal">  addr </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GNetworkAddress.html#g-network-address-new">g_network_address_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"www.gnome.org"</span><span class="symbol">,</span><span class="normal"> </span><span class="number">80</span><span class="symbol">);</span>
 <span class="normal">  enumerator </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GSocketConnectable.html#g-socket-connectable-enumerate">g_socket_connectable_enumerate</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">addr</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">addr</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">addr</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="comment">/* Try each sockaddr until we succeed. Record the first</span>
 <span class="comment">   * connection error, but not any further ones (since they'll probably</span>
@@ -195,10 +196,10 @@ in the sample code below.
 <span class="comment">   */</span>
 <span class="normal">  </span><span class="keyword">while</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">conn </span><span class="symbol">&amp;&amp;</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">sockaddr </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GSocketConnectable.html#g-socket-address-enumerator-next">g_socket_address_enumerator_next</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">enumerator</span><span class="symbol">,</span><span class="normal"> cancellable</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">))</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      conn </span><span class="symbol">=</span><span class="normal"> </span><span class="function">connect_to_sockaddr</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">sockaddr</span><span class="symbol">,</span><span class="normal"> conn_error </span><span class="symbol">?</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">:</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">conn_error</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">sockaddr</span><span class="symbol">);</span>
+<span class="normal">      conn </span><span class="symbol">=</span><span class="normal"> </span><span class="function">connect_to_sockaddr</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">sockaddr</span><span class="symbol">,</span><span class="normal"> conn_error </span><span class="symbol">?</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="symbol">:</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">conn_error</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">sockaddr</span><span class="symbol">);</span>
 <span class="normal">    </span><span class="cbracket">}</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">enumerator</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">enumerator</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">conn</span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
@@ -207,7 +208,7 @@ in the sample code below.
 <span class="normal">          </span><span class="comment">/* We couldn't connect to the first address, but we succeeded</span>
 <span class="comment">           * in connecting to a later address.</span>
 <span class="comment">           */</span>
-<span class="normal">          </span><span class="function"><a href="./../glib/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">conn_error</span><span class="symbol">);</span>
+<span class="normal">          </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">conn_error</span><span class="symbol">);</span>
 <span class="normal">        </span><span class="cbracket">}</span>
 <span class="normal">      </span><span class="keyword">return</span><span class="normal"> conn</span><span class="symbol">;</span>
 <span class="normal">    </span><span class="cbracket">}</span>
@@ -217,13 +218,13 @@ in the sample code below.
 <span class="comment">       * cancelled us.</span>
 <span class="comment">       */</span>
 <span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">conn_error</span><span class="symbol">)</span>
-<span class="normal">        </span><span class="function"><a href="./../glib/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">conn_error</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="keyword">return</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">        </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">conn_error</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="keyword">return</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 <span class="normal">  </span><span class="keyword">else</span>
 <span class="normal">    </span><span class="cbracket">{</span>
 <span class="normal">      </span><span class="function">g_error_propagate</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error</span><span class="symbol">,</span><span class="normal"> conn_error</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="keyword">return</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">      </span><span class="keyword">return</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 <span class="cbracket">}</span></pre></td>
       </tr>
@@ -267,7 +268,7 @@ and <a class="link" href="GSocketConnectable.html#GProxyAddressEnumerator"><span
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GSocketConnectableIface.g-iface"></a>g_iface</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GSocketConnectableIface.g-iface"></a>g_iface</code></em>;</span></p></td>
 <td>The parent interface.</td>
 </tr>
 <tr>
@@ -360,7 +361,7 @@ Enumerator type for objects that contain or generate
 <a name="g-socket-address-enumerator-next"></a><h3>g_socket_address_enumerator_next ()</h3>
 <pre class="programlisting"><a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="returnvalue">GSocketAddress</span></a> *    g_socket_address_enumerator_next    (<em class="parameter"><code><a class="link" href="GSocketConnectable.html#GSocketAddressEnumerator"><span class="type">GSocketAddressEnumerator</span></a> *enumerator</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Retrieves the next <a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="type">GSocketAddress</span></a> from <em class="parameter"><code>enumerator</code></em>. Note that this
 may block for some amount of time. (Eg, a <a class="link" href="GNetworkAddress.html" title="GNetworkAddress"><span class="type">GNetworkAddress</span></a> may need
@@ -390,16 +391,16 @@ ignored.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>.</td>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="type">GSocketAddress</span></a> (owned by the caller), or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
+<td>a <a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="type">GSocketAddress</span></a> (owned by the caller), or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
 error (in which case *<em class="parameter"><code>error</code></em> will be set) or if there are no
 more addresses. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
@@ -414,7 +415,7 @@ more addresses. <span class="annotation">[<acronym title="Free data after the co
                                                         (<em class="parameter"><code><a class="link" href="GSocketConnectable.html#GSocketAddressEnumerator"><span class="type">GSocketAddressEnumerator</span></a> *enumerator</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Asynchronously retrieves the next <a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="type">GSocketAddress</span></a> from <em class="parameter"><code>enumerator</code></em>
 and then calls <em class="parameter"><code>callback</code></em>, which must call
@@ -433,7 +434,7 @@ and then calls <em class="parameter"><code>callback</code></em>, which must call
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -456,7 +457,7 @@ is satisfied. <span class="annotation">[<acronym title="The callback is valid un
 <pre class="programlisting"><a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="returnvalue">GSocketAddress</span></a> *    g_socket_address_enumerator_next_finish
                                                         (<em class="parameter"><code><a class="link" href="GSocketConnectable.html#GSocketAddressEnumerator"><span class="type">GSocketAddressEnumerator</span></a> *enumerator</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Retrieves the result of a completed call to
 <a class="link" href="GSocketConnectable.html#g-socket-address-enumerator-next-async" title="g_socket_address_enumerator_next_async ()"><code class="function">g_socket_address_enumerator_next_async()</code></a>. See
@@ -481,12 +482,12 @@ error handling.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="type">GSocketAddress</span></a> (owned by the caller), or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
+<td>a <a class="link" href="GSocketAddress.html" title="GSocketAddress"><span class="type">GSocketAddress</span></a> (owned by the caller), or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on
 error (in which case *<em class="parameter"><code>error</code></em> will be set) or if there are no
 more addresses. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
@@ -514,8 +515,17 @@ directed by the default <a class="link" href="GProxyResolver.html" title="GProxy
 </div>
 <hr>
 <div class="refsect2">
+<a name="GProxyAddressEnumerator--proxy-resolver"></a><h3>The <code class="literal">"proxy-resolver"</code> property</h3>
+<pre class="programlisting">  "proxy-resolver"           <a class="link" href="GProxyResolver.html" title="GProxyResolver"><span class="type">GProxyResolver</span></a>*       : Read / Write / Construct</pre>
+<p>
+The proxy resolver to use.
+</p>
+<p class="since">Since 2.36</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="GProxyAddressEnumerator--uri"></a><h3>The <code class="literal">"uri"</code> property</h3>
-<pre class="programlisting">  "uri"                      <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only</pre>
+<pre class="programlisting">  "uri"                      <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only</pre>
 <p>The destination URI, use none:// for generic socket.</p>
 <p>Default value: NULL</p>
 </div>

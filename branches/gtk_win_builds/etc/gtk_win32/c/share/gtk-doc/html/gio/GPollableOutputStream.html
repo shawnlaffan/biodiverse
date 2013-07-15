@@ -49,18 +49,18 @@
                     <a class="link" href="GPollableOutputStream.html#GPollableOutputStream-struct" title="GPollableOutputStream">GPollableOutputStream</a>;
 struct              <a class="link" href="GPollableOutputStream.html#GPollableOutputStreamInterface" title="struct GPollableOutputStreamInterface">GPollableOutputStreamInterface</a>;
 
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-can-poll" title="g_pollable_output_stream_can_poll ()">g_pollable_output_stream_can_poll</a>   (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-is-writable" title="g_pollable_output_stream_is_writable ()">g_pollable_output_stream_is_writable</a>
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-can-poll" title="g_pollable_output_stream_can_poll ()">g_pollable_output_stream_can_poll</a>   (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-is-writable" title="g_pollable_output_stream_is_writable ()">g_pollable_output_stream_is_writable</a>
                                                         (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>);
-<a href="./../glib/glib/glib-The-Main-Event-Loop.html#GSource"><span class="returnvalue">GSource</span></a> *           <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-create-source" title="g_pollable_output_stream_create_source ()">g_pollable_output_stream_create_source</a>
+<a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#GSource"><span class="returnvalue">GSource</span></a> *           <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-create-source" title="g_pollable_output_stream_create_source ()">g_pollable_output_stream_create_source</a>
                                                         (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gssize"><span class="returnvalue">gssize</span></a>              <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-write-nonblocking" title="g_pollable_output_stream_write_nonblocking ()">g_pollable_output_stream_write_nonblocking</a>
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gssize"><span class="returnvalue">gssize</span></a>              <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-write-nonblocking" title="g_pollable_output_stream_write_nonblocking ()">g_pollable_output_stream_write_nonblocking</a>
                                                         (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *buffer</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> count</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> count</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -123,14 +123,14 @@ An interface for a <a class="link" href="GOutputStream.html" title="GOutputStrea
 The interface for pollable output streams.
 </p>
 <p>
-The default implementation of <em class="parameter"><code>can_poll</code></em> always returns <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>.
+The default implementation of <em class="parameter"><code>can_poll</code></em> always returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>.
 </p>
 <p>
 The default implementation of <em class="parameter"><code>write_nonblocking</code></em> calls
 <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-is-writable" title="g_pollable_output_stream_is_writable ()"><code class="function">g_pollable_output_stream_is_writable()</code></a>, and then calls
-<a class="link" href="GOutputStream.html#g-output-stream-write" title="g_output_stream_write ()"><code class="function">g_output_stream_write()</code></a> if it returns <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>. This means you only
+<a class="link" href="GOutputStream.html#g-output-stream-write" title="g_output_stream_write ()"><code class="function">g_output_stream_write()</code></a> if it returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>. This means you only
 need to override it if it is possible that your <em class="parameter"><code>is_writable</code></em>
-implementation may return <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> when the stream is not actually
+implementation may return <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> when the stream is not actually
 writable.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -140,7 +140,7 @@ writable.
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GPollableOutputStreamInterface.g-iface"></a>g_iface</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GPollableOutputStreamInterface.g-iface"></a>g_iface</code></em>;</span></p></td>
 <td>The parent interface.</td>
 </tr>
 <tr>
@@ -153,7 +153,7 @@ writable.
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GPollableOutputStreamInterface.create-source"></a>create_source</code></em> ()</span></p></td>
-<td>Creates a <a href="./../glib/glib/glib-The-Main-Event-Loop.html#GSource"><span class="type">GSource</span></a> to poll the stream</td>
+<td>Creates a <a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#GSource"><span class="type">GSource</span></a> to poll the stream</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GPollableOutputStreamInterface.write-nonblocking"></a>write_nonblocking</code></em> ()</span></p></td>
@@ -168,11 +168,11 @@ writable.
 <hr>
 <div class="refsect2">
 <a name="g-pollable-output-stream-can-poll"></a><h3>g_pollable_output_stream_can_poll ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_pollable_output_stream_can_poll   (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_pollable_output_stream_can_poll   (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>);</pre>
 <p>
 Checks if <em class="parameter"><code>stream</code></em> is actually pollable. Some classes may implement
 <a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> but have only certain instances of that
-class be pollable. If this method returns <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, then the behavior
+class be pollable. If this method returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, then the behavior
 of other <a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> methods is undefined.
 </p>
 <p>
@@ -192,7 +192,7 @@ a stream cannot switch from pollable to non-pollable or vice versa.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>stream</code></em> is pollable, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>stream</code></em> is pollable, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not.</td>
 </tr>
 </tbody>
 </table></div>
@@ -201,7 +201,7 @@ a stream cannot switch from pollable to non-pollable or vice versa.
 <hr>
 <div class="refsect2">
 <a name="g-pollable-output-stream-is-writable"></a><h3>g_pollable_output_stream_is_writable ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_pollable_output_stream_is_writable
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_pollable_output_stream_is_writable
                                                         (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>);</pre>
 <p>
 Checks if <em class="parameter"><code>stream</code></em> can be written.
@@ -209,7 +209,7 @@ Checks if <em class="parameter"><code>stream</code></em> can be written.
 <p>
 Note that some stream types may not be able to implement this 100%
 reliably, and it is possible that a call to <a class="link" href="GOutputStream.html#g-output-stream-write" title="g_output_stream_write ()"><code class="function">g_output_stream_write()</code></a>
-after this returns <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> would still block. To guarantee
+after this returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> would still block. To guarantee
 non-blocking behavior, you should always use
 <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-write-nonblocking" title="g_pollable_output_stream_write_nonblocking ()"><code class="function">g_pollable_output_stream_write_nonblocking()</code></a>, which will return a
 <a class="link" href="gio-GIOError.html#G-IO-ERROR-WOULD-BLOCK:CAPS"><code class="literal">G_IO_ERROR_WOULD_BLOCK</code></a> error rather than blocking.
@@ -227,9 +227,9 @@ non-blocking behavior, you should always use
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>stream</code></em> is writable, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not. If an error
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>stream</code></em> is writable, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if not. If an error
 has occurred on <em class="parameter"><code>stream</code></em>, this will result in
-<a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-is-writable" title="g_pollable_output_stream_is_writable ()"><code class="function">g_pollable_output_stream_is_writable()</code></a> returning <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, and the
+<a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-is-writable" title="g_pollable_output_stream_is_writable ()"><code class="function">g_pollable_output_stream_is_writable()</code></a> returning <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, and the
 next attempt to write will return the error.</td>
 </tr>
 </tbody>
@@ -239,11 +239,11 @@ next attempt to write will return the error.</td>
 <hr>
 <div class="refsect2">
 <a name="g-pollable-output-stream-create-source"></a><h3>g_pollable_output_stream_create_source ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#GSource"><span class="returnvalue">GSource</span></a> *           g_pollable_output_stream_create_source
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#GSource"><span class="returnvalue">GSource</span></a> *           g_pollable_output_stream_create_source
                                                         (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>);</pre>
 <p>
-Creates a <a href="./../glib/glib/glib-The-Main-Event-Loop.html#GSource"><span class="type">GSource</span></a> that triggers when <em class="parameter"><code>stream</code></em> can be written, or
+Creates a <a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#GSource"><span class="type">GSource</span></a> that triggers when <em class="parameter"><code>stream</code></em> can be written, or
 <em class="parameter"><code>cancellable</code></em> is triggered or an error occurs. The callback on the
 source is of the <a class="link" href="gio-gpollableutils.html#GPollableSourceFunc" title="GPollableSourceFunc ()"><span class="type">GPollableSourceFunc</span></a> type.
 </p>
@@ -265,12 +265,12 @@ rather than <a class="link" href="GOutputStream.html#g-output-stream-write" titl
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a new <a href="./../glib/glib/glib-The-Main-Event-Loop.html#GSource"><span class="type">GSource</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>a new <a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#GSource"><span class="type">GSource</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -280,17 +280,17 @@ rather than <a class="link" href="GOutputStream.html#g-output-stream-write" titl
 <hr>
 <div class="refsect2">
 <a name="g-pollable-output-stream-write-nonblocking"></a><h3>g_pollable_output_stream_write_nonblocking ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gssize"><span class="returnvalue">gssize</span></a>              g_pollable_output_stream_write_nonblocking
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gssize"><span class="returnvalue">gssize</span></a>              g_pollable_output_stream_write_nonblocking
                                                         (<em class="parameter"><code><a class="link" href="GPollableOutputStream.html" title="GPollableOutputStream"><span class="type">GPollableOutputStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *buffer</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> count</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> count</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Attempts to write up to <em class="parameter"><code>count</code></em> bytes from <em class="parameter"><code>buffer</code></em> to <em class="parameter"><code>stream</code></em>, as
 with <a class="link" href="GOutputStream.html#g-output-stream-write" title="g_output_stream_write ()"><code class="function">g_output_stream_write()</code></a>. If <em class="parameter"><code>stream</code></em> is not currently writable,
 this will immediately return <a class="link" href="gio-GIOError.html#G-IO-ERROR-WOULD-BLOCK:CAPS"><code class="literal">G_IO_ERROR_WOULD_BLOCK</code></a>, and you can
-use <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-create-source" title="g_pollable_output_stream_create_source ()"><code class="function">g_pollable_output_stream_create_source()</code></a> to create a <a href="./../glib/glib/glib-The-Main-Event-Loop.html#GSource"><span class="type">GSource</span></a>
+use <a class="link" href="GPollableOutputStream.html#g-pollable-output-stream-create-source" title="g_pollable_output_stream_create_source ()"><code class="function">g_pollable_output_stream_create_source()</code></a> to create a <a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#GSource"><span class="type">GSource</span></a>
 that will be triggered when <em class="parameter"><code>stream</code></em> is writable.
 </p>
 <p>
@@ -326,13 +326,13 @@ data from. <span class="annotation">[<acronym title="Parameter points to an arra
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> for error reporting, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> for error reporting, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>

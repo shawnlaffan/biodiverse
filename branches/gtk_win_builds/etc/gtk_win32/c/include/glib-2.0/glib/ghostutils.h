@@ -17,22 +17,27 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __G_HOST_UTILS_H__
+#define __G_HOST_UTILS_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_HOST_UTILS_H__
-#define __G_HOST_UTILS_H__
 
 #include <glib/gtypes.h>
 
 G_BEGIN_DECLS
 
+GLIB_AVAILABLE_IN_ALL
 gboolean  g_hostname_is_non_ascii     (const gchar *hostname);
+GLIB_AVAILABLE_IN_ALL
 gboolean  g_hostname_is_ascii_encoded (const gchar *hostname);
+GLIB_AVAILABLE_IN_ALL
 gboolean  g_hostname_is_ip_address    (const gchar *hostname);
 
+GLIB_AVAILABLE_IN_ALL
 gchar    *g_hostname_to_ascii         (const gchar *hostname);
+GLIB_AVAILABLE_IN_ALL
 gchar    *g_hostname_to_unicode       (const gchar *hostname);
 
 G_END_DECLS

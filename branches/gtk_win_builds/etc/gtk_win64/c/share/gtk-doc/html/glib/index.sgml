@@ -30,6 +30,8 @@
 <ANCHOR id="GLIB-VERSION-2-28:CAPS" href="glib/glib-Version-Information.html#GLIB-VERSION-2-28:CAPS">
 <ANCHOR id="GLIB-VERSION-2-30:CAPS" href="glib/glib-Version-Information.html#GLIB-VERSION-2-30:CAPS">
 <ANCHOR id="GLIB-VERSION-2-32:CAPS" href="glib/glib-Version-Information.html#GLIB-VERSION-2-32:CAPS">
+<ANCHOR id="GLIB-VERSION-2-34:CAPS" href="glib/glib-Version-Information.html#GLIB-VERSION-2-34:CAPS">
+<ANCHOR id="GLIB-VERSION-2-36:CAPS" href="glib/glib-Version-Information.html#GLIB-VERSION-2-36:CAPS">
 <ANCHOR id="GLIB-VERSION-MIN-REQUIRED:CAPS" href="glib/glib-Version-Information.html#GLIB-VERSION-MIN-REQUIRED:CAPS">
 <ANCHOR id="GLIB-VERSION-MAX-ALLOWED:CAPS" href="glib/glib-Version-Information.html#GLIB-VERSION-MAX-ALLOWED:CAPS">
 <ANCHOR id="GLIB-DISABLE-DEPRECATION-WARNINGS:CAPS" href="glib/glib-Version-Information.html#GLIB-DISABLE-DEPRECATION-WARNINGS:CAPS">
@@ -398,6 +400,12 @@
 <ANCHOR id="g-source-set-callback" href="glib/glib-The-Main-Event-Loop.html#g-source-set-callback">
 <ANCHOR id="GSourceFunc" href="glib/glib-The-Main-Event-Loop.html#GSourceFunc">
 <ANCHOR id="g-source-set-callback-indirect" href="glib/glib-The-Main-Event-Loop.html#g-source-set-callback-indirect">
+<ANCHOR id="g-source-set-ready-time" href="glib/glib-The-Main-Event-Loop.html#g-source-set-ready-time">
+<ANCHOR id="g-source-get-ready-time" href="glib/glib-The-Main-Event-Loop.html#g-source-get-ready-time">
+<ANCHOR id="g-source-add-unix-fd" href="glib/glib-The-Main-Event-Loop.html#g-source-add-unix-fd">
+<ANCHOR id="g-source-remove-unix-fd" href="glib/glib-The-Main-Event-Loop.html#g-source-remove-unix-fd">
+<ANCHOR id="g-source-modify-unix-fd" href="glib/glib-The-Main-Event-Loop.html#g-source-modify-unix-fd">
+<ANCHOR id="g-source-query-unix-fd" href="glib/glib-The-Main-Event-Loop.html#g-source-query-unix-fd">
 <ANCHOR id="g-source-add-poll" href="glib/glib-The-Main-Event-Loop.html#g-source-add-poll">
 <ANCHOR id="g-source-remove-poll" href="glib/glib-The-Main-Event-Loop.html#g-source-remove-poll">
 <ANCHOR id="g-source-add-child-source" href="glib/glib-The-Main-Event-Loop.html#g-source-add-child-source">
@@ -479,6 +487,7 @@
 <ANCHOR id="g-pointer-bit-lock" href="glib/glib-Threads.html#g-pointer-bit-lock">
 <ANCHOR id="g-pointer-bit-trylock" href="glib/glib-Threads.html#g-pointer-bit-trylock">
 <ANCHOR id="g-pointer-bit-unlock" href="glib/glib-Threads.html#g-pointer-bit-unlock">
+<ANCHOR id="g-get-num-processors" href="glib/glib-Threads.html#g-get-num-processors">
 <ANCHOR id="glib-Threads.see-also" href="glib/glib-Threads.html#glib-Threads.see-also">
 <ANCHOR id="glib-Thread-Pools" href="glib/glib-Thread-Pools.html">
 <ANCHOR id="glib-Thread-Pools.synopsis" href="glib/glib-Thread-Pools.html#glib-Thread-Pools.synopsis">
@@ -667,6 +676,7 @@
 <ANCHOR id="G-IO-FLAG-NONBLOCK:CAPS" href="glib/glib-IO-Channels.html#G-IO-FLAG-NONBLOCK:CAPS">
 <ANCHOR id="G-IO-FLAG-IS-READABLE:CAPS" href="glib/glib-IO-Channels.html#G-IO-FLAG-IS-READABLE:CAPS">
 <ANCHOR id="G-IO-FLAG-IS-WRITABLE:CAPS" href="glib/glib-IO-Channels.html#G-IO-FLAG-IS-WRITABLE:CAPS">
+<ANCHOR id="G-IO-FLAG-IS-WRITEABLE:CAPS" href="glib/glib-IO-Channels.html#G-IO-FLAG-IS-WRITEABLE:CAPS">
 <ANCHOR id="G-IO-FLAG-IS-SEEKABLE:CAPS" href="glib/glib-IO-Channels.html#G-IO-FLAG-IS-SEEKABLE:CAPS">
 <ANCHOR id="G-IO-FLAG-MASK:CAPS" href="glib/glib-IO-Channels.html#G-IO-FLAG-MASK:CAPS">
 <ANCHOR id="G-IO-FLAG-GET-MASK:CAPS" href="glib/glib-IO-Channels.html#G-IO-FLAG-GET-MASK:CAPS">
@@ -969,6 +979,7 @@
 <ANCHOR id="G-UNICODE-BREAK-CLOSE-PARANTHESIS:CAPS" href="glib/glib-Unicode-Manipulation.html#G-UNICODE-BREAK-CLOSE-PARANTHESIS:CAPS">
 <ANCHOR id="G-UNICODE-BREAK-CONDITIONAL-JAPANESE-STARTER:CAPS" href="glib/glib-Unicode-Manipulation.html#G-UNICODE-BREAK-CONDITIONAL-JAPANESE-STARTER:CAPS">
 <ANCHOR id="G-UNICODE-BREAK-HEBREW-LETTER:CAPS" href="glib/glib-Unicode-Manipulation.html#G-UNICODE-BREAK-HEBREW-LETTER:CAPS">
+<ANCHOR id="G-UNICODE-BREAK-REGIONAL-INDICATOR:CAPS" href="glib/glib-Unicode-Manipulation.html#G-UNICODE-BREAK-REGIONAL-INDICATOR:CAPS">
 <ANCHOR id="g-unichar-break-type" href="glib/glib-Unicode-Manipulation.html#g-unichar-break-type">
 <ANCHOR id="g-unichar-combining-class" href="glib/glib-Unicode-Manipulation.html#g-unichar-combining-class">
 <ANCHOR id="g-unicode-canonical-ordering" href="glib/glib-Unicode-Manipulation.html#g-unicode-canonical-ordering">
@@ -1140,6 +1151,7 @@
 <ANCHOR id="G-CHECKSUM-MD5:CAPS" href="glib/glib-Data-Checksums.html#G-CHECKSUM-MD5:CAPS">
 <ANCHOR id="G-CHECKSUM-SHA1:CAPS" href="glib/glib-Data-Checksums.html#G-CHECKSUM-SHA1:CAPS">
 <ANCHOR id="G-CHECKSUM-SHA256:CAPS" href="glib/glib-Data-Checksums.html#G-CHECKSUM-SHA256:CAPS">
+<ANCHOR id="G-CHECKSUM-SHA512:CAPS" href="glib/glib-Data-Checksums.html#G-CHECKSUM-SHA512:CAPS">
 <ANCHOR id="g-checksum-type-get-length" href="glib/glib-Data-Checksums.html#g-checksum-type-get-length">
 <ANCHOR id="GChecksum" href="glib/glib-Data-Checksums.html#GChecksum">
 <ANCHOR id="g-checksum-new" href="glib/glib-Data-Checksums.html#g-checksum-new">
@@ -1687,6 +1699,7 @@
 <ANCHOR id="g-creat" href="glib/glib-File-Utilities.html#g-creat">
 <ANCHOR id="g-chdir" href="glib/glib-File-Utilities.html#g-chdir">
 <ANCHOR id="g-utime" href="glib/glib-File-Utilities.html#g-utime">
+<ANCHOR id="g-close" href="glib/glib-File-Utilities.html#g-close">
 <ANCHOR id="glib-URI-Functions" href="glib/glib-URI-Functions.html">
 <ANCHOR id="glib-URI-Functions.synopsis" href="glib/glib-URI-Functions.html#glib-URI-Functions.synopsis">
 <ANCHOR id="glib-URI-Functions.description" href="glib/glib-URI-Functions.html#glib-URI-Functions.description">
@@ -1969,6 +1982,8 @@
 <ANCHOR id="g-markup-parse-context-parse" href="glib/glib-Simple-XML-Subset-Parser.html#g-markup-parse-context-parse">
 <ANCHOR id="g-markup-parse-context-push" href="glib/glib-Simple-XML-Subset-Parser.html#g-markup-parse-context-push">
 <ANCHOR id="g-markup-parse-context-pop" href="glib/glib-Simple-XML-Subset-Parser.html#g-markup-parse-context-pop">
+<ANCHOR id="g-markup-parse-context-ref" href="glib/glib-Simple-XML-Subset-Parser.html#g-markup-parse-context-ref">
+<ANCHOR id="g-markup-parse-context-unref" href="glib/glib-Simple-XML-Subset-Parser.html#g-markup-parse-context-unref">
 <ANCHOR id="GMarkupCollectType" href="glib/glib-Simple-XML-Subset-Parser.html#GMarkupCollectType">
 <ANCHOR id="G-MARKUP-COLLECT-INVALID:CAPS" href="glib/glib-Simple-XML-Subset-Parser.html#G-MARKUP-COLLECT-INVALID:CAPS">
 <ANCHOR id="G-MARKUP-COLLECT-STRING:CAPS" href="glib/glib-Simple-XML-Subset-Parser.html#G-MARKUP-COLLECT-STRING:CAPS">
@@ -2125,6 +2140,7 @@
 <ANCHOR id="g-test-minimized-result" href="glib/glib-Testing.html#g-test-minimized-result">
 <ANCHOR id="g-test-maximized-result" href="glib/glib-Testing.html#g-test-maximized-result">
 <ANCHOR id="g-test-init" href="glib/glib-Testing.html#g-test-init">
+<ANCHOR id="g-test-initialized" href="glib/glib-Testing.html#g-test-initialized">
 <ANCHOR id="g-test-quick" href="glib/glib-Testing.html#g-test-quick">
 <ANCHOR id="g-test-slow" href="glib/glib-Testing.html#g-test-slow">
 <ANCHOR id="g-test-thorough" href="glib/glib-Testing.html#g-test-thorough">
@@ -2196,10 +2212,14 @@
 <ANCHOR id="glib-UNIX-specific-utilities-and-integration.details" href="glib/glib-UNIX-specific-utilities-and-integration.html#glib-UNIX-specific-utilities-and-integration.details">
 <ANCHOR id="G-UNIX-ERROR:CAPS" href="glib/glib-UNIX-specific-utilities-and-integration.html#G-UNIX-ERROR:CAPS">
 <ANCHOR id="g-unix-open-pipe" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-open-pipe">
+<ANCHOR id="g-unix-set-fd-nonblocking" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-set-fd-nonblocking">
 <ANCHOR id="g-unix-signal-add" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-signal-add">
 <ANCHOR id="g-unix-signal-add-full" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-signal-add-full">
 <ANCHOR id="g-unix-signal-source-new" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-signal-source-new">
-<ANCHOR id="g-unix-set-fd-nonblocking" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-set-fd-nonblocking">
+<ANCHOR id="GUnixFDSourceFunc" href="glib/glib-UNIX-specific-utilities-and-integration.html#GUnixFDSourceFunc">
+<ANCHOR id="g-unix-fd-add" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-fd-add">
+<ANCHOR id="g-unix-fd-add-full" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-fd-add-full">
+<ANCHOR id="g-unix-fd-source-new" href="glib/glib-UNIX-specific-utilities-and-integration.html#g-unix-fd-source-new">
 <ANCHOR id="glib-Windows-Compatibility-Functions" href="glib/glib-Windows-Compatibility-Functions.html">
 <ANCHOR id="glib-Windows-Compatibility-Functions.synopsis" href="glib/glib-Windows-Compatibility-Functions.html#glib-Windows-Compatibility-Functions.synopsis">
 <ANCHOR id="glib-Windows-Compatibility-Functions.description" href="glib/glib-Windows-Compatibility-Functions.html#glib-Windows-Compatibility-Functions.description">
@@ -2870,8 +2890,10 @@
 <ANCHOR id="g-variant-get-fixed-array" href="glib/glib-GVariant.html#g-variant-get-fixed-array">
 <ANCHOR id="g-variant-get-size" href="glib/glib-GVariant.html#g-variant-get-size">
 <ANCHOR id="g-variant-get-data" href="glib/glib-GVariant.html#g-variant-get-data">
+<ANCHOR id="g-variant-get-data-as-bytes" href="glib/glib-GVariant.html#g-variant-get-data-as-bytes">
 <ANCHOR id="g-variant-store" href="glib/glib-GVariant.html#g-variant-store">
 <ANCHOR id="g-variant-new-from-data" href="glib/glib-GVariant.html#g-variant-new-from-data">
+<ANCHOR id="g-variant-new-from-bytes" href="glib/glib-GVariant.html#g-variant-new-from-bytes">
 <ANCHOR id="g-variant-byteswap" href="glib/glib-GVariant.html#g-variant-byteswap">
 <ANCHOR id="g-variant-get-normal-form" href="glib/glib-GVariant.html#g-variant-get-normal-form">
 <ANCHOR id="g-variant-is-normal-form" href="glib/glib-GVariant.html#g-variant-is-normal-form">
@@ -3064,5 +3086,6 @@
 <ANCHOR id="annotation-glossterm-array" href="glib/annotation-glossary.html#annotation-glossterm-array">
 <ANCHOR id="annotation-glossterm-element-type" href="glib/annotation-glossary.html#annotation-glossterm-element-type">
 <ANCHOR id="annotation-glossterm-transfer container" href="glib/annotation-glossary.html#annotation-glossterm-transfer container">
+<ANCHOR id="annotation-glossterm-in" href="glib/annotation-glossary.html#annotation-glossterm-in">
 <ANCHOR id="annotation-glossterm-transfer full" href="glib/annotation-glossary.html#annotation-glossterm-transfer full">
 <ANCHOR id="annotation-glossterm-type" href="glib/annotation-glossary.html#annotation-glossterm-type">

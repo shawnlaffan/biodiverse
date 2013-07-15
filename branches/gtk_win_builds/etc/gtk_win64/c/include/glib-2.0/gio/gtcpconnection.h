@@ -20,12 +20,12 @@
  * Authors: Ryan Lortie <desrt@desrt.ca>
  */
 
+#ifndef __G_TCP_CONNECTION_H__
+#define __G_TCP_CONNECTION_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_TCP_CONNECTION_H__
-#define __G_TCP_CONNECTION_H__
 
 #include <gio/gsocketconnection.h>
 
@@ -57,10 +57,13 @@ struct _GTcpConnection
   GTcpConnectionPrivate *priv;
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType    g_tcp_connection_get_type                (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 void     g_tcp_connection_set_graceful_disconnect (GTcpConnection *connection,
 						   gboolean        graceful_disconnect);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_tcp_connection_get_graceful_disconnect (GTcpConnection *connection);
 
 G_END_DECLS

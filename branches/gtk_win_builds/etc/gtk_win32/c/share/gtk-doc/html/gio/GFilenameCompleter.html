@@ -53,20 +53,20 @@
                                                         (<em class="parameter"><code><a class="link" href="GFilenameCompleter.html" title="GFilenameCompleter"><span class="type">GFilenameCompleter</span></a> *completer</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *initial_text</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GFilenameCompleter.html#g-filename-completer-set-dirs-only" title="g_filename_completer_set_dirs_only ()">g_filename_completer_set_dirs_only</a>  (<em class="parameter"><code><a class="link" href="GFilenameCompleter.html" title="GFilenameCompleter"><span class="type">GFilenameCompleter</span></a> *completer</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> dirs_only</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> dirs_only</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GFilenameCompleter.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GFilenameCompleter
 </pre>
 </div>
 <div class="refsect1">
 <a name="GFilenameCompleter.signals"></a><h2>Signals</h2>
 <pre class="synopsis">
-  "<a class="link" href="GFilenameCompleter.html#GFilenameCompleter-got-completion-data" title='The "got-completion-data" signal'>got-completion-data</a>"                            : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GFilenameCompleter.html#GFilenameCompleter-got-completion-data" title='The "got-completion-data" signal'>got-completion-data</a>"                            : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
 </pre>
 </div>
 <div class="refsect1">
@@ -129,8 +129,8 @@ Obtains a completion for <em class="parameter"><code>initial_text</code></em> fr
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a completed string, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no completion exists.
-This string is not owned by GIO, so remember to <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> it
+<td>a completed string, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no completion exists.
+This string is not owned by GIO, so remember to <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> it
 when finished.</td>
 </tr>
 </tbody>
@@ -162,7 +162,7 @@ Gets an array of completion strings for a given initial text.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>array of strings with possible completions for <em class="parameter"><code>initial_text</code></em>.
-This array must be freed by <a href="./../glib/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a> when finished. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+This array must be freed by <a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a> when finished. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -172,9 +172,9 @@ This array must be freed by <a href="./../glib/glib/glib-String-Utility-Function
 <div class="refsect2">
 <a name="g-filename-completer-set-dirs-only"></a><h3>g_filename_completer_set_dirs_only ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_filename_completer_set_dirs_only  (<em class="parameter"><code><a class="link" href="GFilenameCompleter.html" title="GFilenameCompleter"><span class="type">GFilenameCompleter</span></a> *completer</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> dirs_only</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> dirs_only</code></em>);</pre>
 <p>
-If <em class="parameter"><code>dirs_only</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, <em class="parameter"><code>completer</code></em> will only 
+If <em class="parameter"><code>dirs_only</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, <em class="parameter"><code>completer</code></em> will only 
 complete directory names, and not file names.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -189,7 +189,7 @@ complete directory names, and not file names.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>dirs_only</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>.</td>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -200,7 +200,7 @@ complete directory names, and not file names.
 <div class="refsect2">
 <a name="GFilenameCompleter-got-completion-data"></a><h3>The <code class="literal">"got-completion-data"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GFilenameCompleter.html" title="GFilenameCompleter"><span class="type">GFilenameCompleter</span></a> *arg0,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 Emitted when the file name completion information comes available.
 </p>

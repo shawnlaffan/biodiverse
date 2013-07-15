@@ -22,12 +22,12 @@
  *          Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_THREADED_SOCKET_SERVICE_H__
+#define __G_THREADED_SOCKET_SERVICE_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_THREADED_SOCKET_SERVICE_H__
-#define __G_THREADED_SOCKET_SERVICE_H__
 
 #include <gio/gsocketservice.h>
 
@@ -73,7 +73,9 @@ struct _GThreadedSocketService
   GThreadedSocketServicePrivate *priv;
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType                   g_threaded_socket_service_get_type              (void);
+GLIB_AVAILABLE_IN_ALL
 GSocketService *        g_threaded_socket_service_new                   (int max_threads);
 
 G_END_DECLS

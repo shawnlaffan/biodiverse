@@ -54,7 +54,7 @@
       To explicitly chain up to the implementation of the virtual method in the parent class, 
       you first need a handle to the original parent class structure. This pointer can then be used to 
       access the original class function pointer and invoke it directly.
-      <a href="#ftn.idp26375968" class="footnote"><sup class="footnote"><a name="idp26375968"></a>[11]</sup></a>
+      <a href="#ftn.id-1.6.3.8.3.1" class="footnote"><sup class="footnote"><a name="id-1.6.3.8.3.1"></a>[11]</sup></a>
     </p>
 <p>The function <code class="function"><a class="link" href="gobject-Type-Information.html#g-type-class-peek-parent" title="g_type_class_peek_parent ()">g_type_class_peek_parent</a></code> is used to access the original parent 
     class structure. Its input is a pointer to the class of the derived object and it returns a pointer
@@ -81,7 +81,7 @@ b_method_to_call (B *obj, int a)
   </p>
 <div class="footnotes">
 <br><hr style="width:100; align:left;">
-<div id="ftn.idp26375968" class="footnote"><p><a href="#idp26375968" class="para"><sup class="para">[11] </sup></a>
+<div id="ftn.id-1.6.3.8.3.1" class="footnote"><p><a href="#id-1.6.3.8.3.1" class="para"><sup class="para">[11] </sup></a>
           The <span class="emphasis"><em>original</em></span> adjective used in this sentence is not innocuous. To fully 
           understand its meaning, you need to recall how class structures are initialized: for each object type,
           the class structure associated to this object is created by first copying the class structure of its 

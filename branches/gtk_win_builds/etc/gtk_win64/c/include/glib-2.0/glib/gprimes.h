@@ -24,12 +24,12 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __G_PRIMES_H__
+#define __G_PRIMES_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_PRIMES_H__
-#define __G_PRIMES_H__
 
 #include <glib/gtypes.h>
 
@@ -44,6 +44,7 @@ G_BEGIN_DECLS
  * next largest prime, or the highest it knows about which is about
  * MAXINT/4.
  */
+GLIB_AVAILABLE_IN_ALL
 guint	   g_spaced_primes_closest (guint num) G_GNUC_CONST;
 
 G_END_DECLS

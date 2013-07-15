@@ -336,7 +336,7 @@ encoding used for filenames.
 <td><p><span class="term"><em class="parameter"><code>hostname</code></em> :</span></p></td>
 <td>Location to store hostname for the URI, or <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a>.
 If there is no hostname in the URI, <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a> will be
-stored in this location. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+stored in this location. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -346,8 +346,9 @@ errors. Any of the errors in <a class="link" href="glib-Character-Set-Conversion
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a newly-allocated string holding the resulting
-filename, or <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a> on an error.</td>
+<td>a newly-allocated string holding
+the resulting filename, or <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a> on an error. <span class="annotation">[<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> filename]</span>
+</td>
 </tr>
 </tbody>
 </table></div>

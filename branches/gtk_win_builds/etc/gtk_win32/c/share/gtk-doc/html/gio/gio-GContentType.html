@@ -40,25 +40,25 @@
 <pre class="synopsis">
 #include &lt;gio/gio.h&gt;
 
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GContentType.html#g-content-type-equals" title="g_content_type_equals ()">g_content_type_equals</a>               (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type1</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type2</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GContentType.html#g-content-type-is-a" title="g_content_type_is_a ()">g_content_type_is_a</a>                 (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *supertype</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GContentType.html#g-content-type-is-unknown" title="g_content_type_is_unknown ()">g_content_type_is_unknown</a>           (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-description" title="g_content_type_get_description ()">g_content_type_get_description</a>      (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-mime-type" title="g_content_type_get_mime_type ()">g_content_type_get_mime_type</a>        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
-<a class="link" href="GIcon.html" title="GIcon"><span class="returnvalue">GIcon</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-icon" title="g_content_type_get_icon ()">g_content_type_get_icon</a>             (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
-<a class="link" href="GIcon.html" title="GIcon"><span class="returnvalue">GIcon</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-symbolic-icon" title="g_content_type_get_symbolic_icon ()">g_content_type_get_symbolic_icon</a>    (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-generic-icon-name" title="g_content_type_get_generic_icon_name ()">g_content_type_get_generic_icon_name</a>
-                                                        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GContentType.html#g-content-type-can-be-executable" title="g_content_type_can_be_executable ()">g_content_type_can_be_executable</a>    (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-from-mime-type" title="g_content_type_from_mime_type ()">g_content_type_from_mime_type</a>       (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *mime_type</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-guess" title="g_content_type_guess ()">g_content_type_guess</a>                (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *filename</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> data_size</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *result_uncertain</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            <a class="link" href="gio-GContentType.html#g-content-type-guess-for-tree" title="g_content_type_guess_for_tree ()">g_content_type_guess_for_tree</a>       (<em class="parameter"><code><a class="link" href="GFile.html" title="GFile"><span class="type">GFile</span></a> *root</code></em>);
-<a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             <a class="link" href="gio-GContentType.html#g-content-types-get-registered" title="g_content_types_get_registered ()">g_content_types_get_registered</a>      (<em class="parameter"><code><span class="type">void</span></code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GContentType.html#g-content-type-equals" title="g_content_type_equals ()">g_content_type_equals</a>               (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type1</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type2</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GContentType.html#g-content-type-is-a" title="g_content_type_is_a ()">g_content_type_is_a</a>                 (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *supertype</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GContentType.html#g-content-type-is-unknown" title="g_content_type_is_unknown ()">g_content_type_is_unknown</a>           (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-description" title="g_content_type_get_description ()">g_content_type_get_description</a>      (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-mime-type" title="g_content_type_get_mime_type ()">g_content_type_get_mime_type</a>        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
+<a class="link" href="GIcon.html" title="GIcon"><span class="returnvalue">GIcon</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-icon" title="g_content_type_get_icon ()">g_content_type_get_icon</a>             (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
+<a class="link" href="GIcon.html" title="GIcon"><span class="returnvalue">GIcon</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-symbolic-icon" title="g_content_type_get_symbolic_icon ()">g_content_type_get_symbolic_icon</a>    (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-get-generic-icon-name" title="g_content_type_get_generic_icon_name ()">g_content_type_get_generic_icon_name</a>
+                                                        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GContentType.html#g-content-type-can-be-executable" title="g_content_type_can_be_executable ()">g_content_type_can_be_executable</a>    (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-from-mime-type" title="g_content_type_from_mime_type ()">g_content_type_from_mime_type</a>       (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *mime_type</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gio-GContentType.html#g-content-type-guess" title="g_content_type_guess ()">g_content_type_guess</a>                (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *filename</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> data_size</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *result_uncertain</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            <a class="link" href="gio-GContentType.html#g-content-type-guess-for-tree" title="g_content_type_guess_for_tree ()">g_content_type_guess_for_tree</a>       (<em class="parameter"><code><a class="link" href="GFile.html" title="GFile"><span class="type">GFile</span></a> *root</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             <a class="link" href="gio-GContentType.html#g-content-types-get-registered" title="g_content_types_get_registered ()">g_content_types_get_registered</a>      (<em class="parameter"><code><span class="type">void</span></code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -75,8 +75,8 @@ HKEY_CLASSES_ROOT.
 <a name="gio-GContentType.details"></a><h2>Details</h2>
 <div class="refsect2">
 <a name="g-content-type-equals"></a><h3>g_content_type_equals ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_content_type_equals               (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type1</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type2</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_content_type_equals               (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type1</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type2</code></em>);</pre>
 <p>
 Compares two content types for equality.
 </p>
@@ -97,8 +97,8 @@ Compares two content types for equality.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the two strings are identical or equivalent,
-<a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the two strings are identical or equivalent,
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -106,8 +106,8 @@ Compares two content types for equality.
 <hr>
 <div class="refsect2">
 <a name="g-content-type-is-a"></a><h3>g_content_type_is_a ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_content_type_is_a                 (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *supertype</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_content_type_is_a                 (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *supertype</code></em>);</pre>
 <p>
 Determines if <em class="parameter"><code>type</code></em> is a subset of <em class="parameter"><code>supertype</code></em>.
 </p>
@@ -128,8 +128,8 @@ Determines if <em class="parameter"><code>type</code></em> is a subset of <em cl
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>type</code></em> is a kind of <em class="parameter"><code>supertype</code></em>,
-<a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>type</code></em> is a kind of <em class="parameter"><code>supertype</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -137,7 +137,7 @@ Determines if <em class="parameter"><code>type</code></em> is a subset of <em cl
 <hr>
 <div class="refsect2">
 <a name="g-content-type-is-unknown"></a><h3>g_content_type_is_unknown ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_content_type_is_unknown           (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_content_type_is_unknown           (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
 <p>
 Checks if the content type is the generic "unknown" type.
 On UNIX this is the "application/octet-stream" mimetype,
@@ -156,7 +156,7 @@ while on win32 it is "*".
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the type is the unknown type.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the type is the unknown type.</td>
 </tr>
 </tbody>
 </table></div>
@@ -164,7 +164,7 @@ while on win32 it is "*".
 <hr>
 <div class="refsect2">
 <a name="g-content-type-get-description"></a><h3>g_content_type_get_description ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_get_description      (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_get_description      (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
 <p>
 Gets the human readable description of the content type.
 </p>
@@ -181,7 +181,7 @@ Gets the human readable description of the content type.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a short description of the content type <em class="parameter"><code>type</code></em>. Free the
-returned string with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
+returned string with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
 </td>
 </tr>
 </tbody>
@@ -190,7 +190,7 @@ returned string with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"
 <hr>
 <div class="refsect2">
 <a name="g-content-type-get-mime-type"></a><h3>g_content_type_get_mime_type ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_get_mime_type        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_get_mime_type        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
 <p>
 Gets the mime type for the content type, if one is registered.
 </p>
@@ -207,7 +207,7 @@ Gets the mime type for the content type, if one is registered.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the registered mime type for the given <em class="parameter"><code>type</code></em>,
-or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if unknown. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if unknown. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -216,7 +216,7 @@ or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="lit
 <hr>
 <div class="refsect2">
 <a name="g-content-type-get-icon"></a><h3>g_content_type_get_icon ()</h3>
-<pre class="programlisting"><a class="link" href="GIcon.html" title="GIcon"><span class="returnvalue">GIcon</span></a> *             g_content_type_get_icon             (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="GIcon.html" title="GIcon"><span class="returnvalue">GIcon</span></a> *             g_content_type_get_icon             (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
 <p>
 Gets the icon for a content type.
 </p>
@@ -234,7 +234,7 @@ Gets the icon for a content type.
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
 <a class="link" href="GIcon.html" title="GIcon"><span class="type">GIcon</span></a> corresponding to the content type. Free the returned
-object with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+object with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -243,7 +243,7 @@ object with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-ob
 <hr>
 <div class="refsect2">
 <a name="g-content-type-get-symbolic-icon"></a><h3>g_content_type_get_symbolic_icon ()</h3>
-<pre class="programlisting"><a class="link" href="GIcon.html" title="GIcon"><span class="returnvalue">GIcon</span></a> *             g_content_type_get_symbolic_icon    (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="GIcon.html" title="GIcon"><span class="returnvalue">GIcon</span></a> *             g_content_type_get_symbolic_icon    (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
 <p>
 Gets the symbolic icon for a content type.
 </p>
@@ -260,7 +260,7 @@ Gets the symbolic icon for a content type.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>symbolic <a class="link" href="GIcon.html" title="GIcon"><span class="type">GIcon</span></a> corresponding to the content type.
-Free the returned object with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+Free the returned object with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -270,8 +270,8 @@ Free the returned object with <a href="./../gobject/gobject/gobject-The-Base-Obj
 <hr>
 <div class="refsect2">
 <a name="g-content-type-get-generic-icon-name"></a><h3>g_content_type_get_generic_icon_name ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_get_generic_icon_name
-                                                        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_get_generic_icon_name
+                                                        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
 <p>
 Gets the generic icon name for a content type.
 </p>
@@ -292,7 +292,7 @@ specification for more on the generic icon name.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the registered generic icon name for the given <em class="parameter"><code>type</code></em>,
-or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if unknown. Free with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if unknown. Free with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -302,7 +302,7 @@ or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="lit
 <hr>
 <div class="refsect2">
 <a name="g-content-type-can-be-executable"></a><h3>g_content_type_can_be_executable ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_content_type_can_be_executable    (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_content_type_can_be_executable    (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *type</code></em>);</pre>
 <p>
 Checks if a content type can be executable. Note that for instance
 things like text files can be executables (i.e. scripts and batch files).
@@ -320,8 +320,8 @@ things like text files can be executables (i.e. scripts and batch files).
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the file type corresponds to a type that
-can be executable, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the file type corresponds to a type that
+can be executable, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -329,7 +329,7 @@ can be executable, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"
 <hr>
 <div class="refsect2">
 <a name="g-content-type-from-mime-type"></a><h3>g_content_type_from_mime_type ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_from_mime_type       (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *mime_type</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_from_mime_type       (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *mime_type</code></em>);</pre>
 <p>
 Tries to find a content type based on the mime type name.
 </p>
@@ -346,7 +346,7 @@ Tries to find a content type based on the mime type name.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>Newly allocated string with content type
-or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. Free with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. Free with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -356,14 +356,14 @@ or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="lit
 <hr>
 <div class="refsect2">
 <a name="g-content-type-guess"></a><h3>g_content_type_guess ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_guess                (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *filename</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> data_size</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *result_uncertain</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_content_type_guess                (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *filename</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> data_size</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> *result_uncertain</code></em>);</pre>
 <p>
 Guesses the content type based on example data. If the function is
-uncertain, <em class="parameter"><code>result_uncertain</code></em> will be set to <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>. Either <em class="parameter"><code>filename</code></em>
-or <em class="parameter"><code>data</code></em> may be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, in which case the guess will be based solely
+uncertain, <em class="parameter"><code>result_uncertain</code></em> will be set to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>. Either <em class="parameter"><code>filename</code></em>
+or <em class="parameter"><code>data</code></em> may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, in which case the guess will be based solely
 on the other argument.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -374,12 +374,12 @@ on the other argument.
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>filename</code></em> :</span></p></td>
-<td>a string, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a string, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>a stream of data, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=data_size]</span>
+<td>a stream of data, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=data_size]</span>
 </td>
 </tr>
 <tr>
@@ -390,13 +390,13 @@ on the other argument.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>result_uncertain</code></em> :</span></p></td>
 <td>return location for the certainty
-of the result, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+of the result, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a string indicating a guessed content type for the
-given data. Free with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
+given data. Free with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
 </td>
 </tr>
 </tbody>
@@ -405,7 +405,7 @@ given data. Free with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free
 <hr>
 <div class="refsect2">
 <a name="g-content-type-guess-for-tree"></a><h3>g_content_type_guess_for_tree ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            g_content_type_guess_for_tree       (<em class="parameter"><code><a class="link" href="GFile.html" title="GFile"><span class="type">GFile</span></a> *root</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            g_content_type_guess_for_tree       (<em class="parameter"><code><a class="link" href="GFile.html" title="GFile"><span class="type">GFile</span></a> *root</code></em>);</pre>
 <p>
 Tries to guess the type of the tree with root <em class="parameter"><code>root</code></em>, by
 looking at the files it contains. The result is an array
@@ -433,8 +433,8 @@ This function is useful in the implementation of
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>an <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated
-array of zero or more content types. Free with <a href="./../glib/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span>
+<td>an <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated
+array of zero or more content types. Free with <a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span>
 </td>
 </tr>
 </tbody>
@@ -444,7 +444,7 @@ array of zero or more content types. Free with <a href="./../glib/glib/glib-Stri
 <hr>
 <div class="refsect2">
 <a name="g-content-types-get-registered"></a><h3>g_content_types_get_registered ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             g_content_types_get_registered      (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             g_content_types_get_registered      (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>
 Gets a list of strings containing all the registered content types
 known to the system. The list and its data should be freed using
@@ -462,7 +462,7 @@ g_list_free_full (list, g_free);
 <tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> of the registered content types. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="type">GList</span></a> of the registered content types. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr></tbody>
 </table></div>

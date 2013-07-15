@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_CONVERTER_H__
+#define __G_CONVERTER_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_CONVERTER_H__
-#define __G_CONVERTER_H__
 
 #include <gio/giotypes.h>
 
@@ -75,8 +75,10 @@ struct _GConverterIface
   void  (* reset)   (GConverter *converter);
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType            g_converter_get_type     (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GConverterResult g_converter_convert (GConverter       *converter,
 				      const void       *inbuf,
 				      gsize             inbuf_size,
@@ -86,6 +88,7 @@ GConverterResult g_converter_convert (GConverter       *converter,
 				      gsize            *bytes_read,
 				      gsize            *bytes_written,
 				      GError          **error);
+GLIB_AVAILABLE_IN_ALL
 void             g_converter_reset   (GConverter       *converter);
 
 

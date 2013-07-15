@@ -24,12 +24,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef GDK_PIXBUF_ANIMATION_H
+#define GDK_PIXBUF_ANIMATION_H
+
 #if defined(GDK_PIXBUF_DISABLE_SINGLE_INCLUDES) && !defined (GDK_PIXBUF_H_INSIDE) && !defined (GDK_PIXBUF_COMPILATION)
 #error "Only <gdk-pixbuf/gdk-pixbuf.h> can be included directly."
 #endif
-
-#ifndef GDK_PIXBUF_ANIMATION_H
-#define GDK_PIXBUF_ANIMATION_H
 
 #include <glib-object.h>
 #include <gdk-pixbuf/gdk-pixbuf-core.h>
@@ -71,6 +71,17 @@ GType               gdk_pixbuf_animation_get_type        (void) G_GNUC_CONST;
 #endif
 
 GdkPixbufAnimation *gdk_pixbuf_animation_new_from_file   (const char         *filename,
+                                                          GError            **error);
+GdkPixbufAnimation *gdk_pixbuf_animation_new_from_stream (GInputStream       *stream,
+                                                          GCancellable       *cancellable,
+                                                          GError            **error);
+void                gdk_pixbuf_animation_new_from_stream_async (GInputStream *stream,
+                                                          GCancellable       *cancellable,
+                                                          GAsyncReadyCallback callback,
+                                                          gpointer            user_data);
+GdkPixbufAnimation *gdk_pixbuf_animation_new_from_stream_finish (GAsyncResult*async_result,
+                                                          GError            **error);
+GdkPixbufAnimation *gdk_pixbuf_animation_new_from_resource(const char        *resource_path,
                                                           GError            **error);
 
 #ifndef GDK_PIXBUF_DISABLE_DEPRECATED

@@ -199,7 +199,7 @@ GOption groups options in <a class="link" href="glib-Commandline-option-parser.h
 incorporate options from multiple sources. The intended use for this is
 to let applications collect option groups from the libraries it uses,
 add them to their <a class="link" href="glib-Commandline-option-parser.html#GOptionContext" title="GOptionContext"><span class="type">GOptionContext</span></a>, and parse all options by a single call
-to <a class="link" href="glib-Commandline-option-parser.html#g-option-context-parse" title="g_option_context_parse ()"><code class="function">g_option_context_parse()</code></a>. See <a href="http://library.gnome.org/devel/gtk3/gtk-General.html#gtk-get-option-group"><code class="function">gtk_get_option_group()</code></a> for an example.
+to <a class="link" href="glib-Commandline-option-parser.html#g-option-context-parse" title="g_option_context_parse ()"><code class="function">g_option_context_parse()</code></a>. See <code class="function">gtk_get_option_group()</code> for an example.
 </p>
 <p>
 If an option is declared to be of type string or filename, GOption takes
@@ -276,7 +276,7 @@ commandline above and produce the example help output.
 
 <span class="normal">  context </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="glib-Commandline-option-parser.html#g-option-context-new">g_option_context_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"- test tree model performance"</span><span class="symbol">);</span>
 <span class="normal">  </span><span class="function"><a href="glib-Commandline-option-parser.html#g-option-context-add-main-entries">g_option_context_add_main_entries</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">context</span><span class="symbol">,</span><span class="normal"> entries</span><span class="symbol">,</span><span class="normal"> GETTEXT_PACKAGE</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="glib-Commandline-option-parser.html#g-option-context-add-group">g_option_context_add_group</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">context</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="http://library.gnome.org/devel/gtk3/gtk-General.html#gtk-get-option-group">gtk_get_option_group</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">));</span>
+<span class="normal">  </span><span class="function"><a href="glib-Commandline-option-parser.html#g-option-context-add-group">g_option_context_add_group</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">context</span><span class="symbol">,</span><span class="normal"> </span><span class="function">gtk_get_option_group</span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">));</span>
 <span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="function"><a href="glib-Commandline-option-parser.html#g-option-context-parse">g_option_context_parse</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">context</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">argc</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">argv</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">error</span><span class="symbol">))</span>
 <span class="normal">    </span><span class="cbracket">{</span>
 <span class="normal">      </span><span class="function"><a href="glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"option parsing failed: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
@@ -441,7 +441,7 @@ it should normally be passed untranslated.
 <td>a string which is displayed in
 the first line of <code class="option">--help</code> output, after the
 usage summary
-<code class="literal"><em class="replaceable"><code>programname</code></em> [OPTION...]</code>
+<code class="literal"><em class="replaceable"><code>programname</code></em> [OPTION...]</code>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>

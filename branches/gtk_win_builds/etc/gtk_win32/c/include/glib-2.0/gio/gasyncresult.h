@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_ASYNC_RESULT_H__
+#define __G_ASYNC_RESULT_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_ASYNC_RESULT_H__
-#define __G_ASYNC_RESULT_H__
 
 #include <gio/giotypes.h>
 
@@ -64,12 +64,15 @@ struct _GAsyncResultIface
   GObject * (* get_source_object) (GAsyncResult *res);
 
   gboolean  (* is_tagged)         (GAsyncResult *res,
-				   gpointer      tag);
+				   gpointer      source_tag);
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType    g_async_result_get_type          (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 gpointer g_async_result_get_user_data     (GAsyncResult *res);
+GLIB_AVAILABLE_IN_ALL
 GObject *g_async_result_get_source_object (GAsyncResult *res);
 
 GLIB_AVAILABLE_IN_2_34

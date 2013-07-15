@@ -50,14 +50,14 @@
 
                     <a class="link" href="GDBusObjectManager.html#GDBusObjectManager-struct" title="GDBusObjectManager">GDBusObjectManager</a>;
 struct              <a class="link" href="GDBusObjectManager.html#GDBusObjectManagerIface" title="struct GDBusObjectManagerIface">GDBusObjectManagerIface</a>;
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusObjectManager.html#g-dbus-object-manager-get-object-path" title="g_dbus_object_manager_get_object_path ()">g_dbus_object_manager_get_object_path</a>
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusObjectManager.html#g-dbus-object-manager-get-object-path" title="g_dbus_object_manager_get_object_path ()">g_dbus_object_manager_get_object_path</a>
                                                         (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>);
-<a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             <a class="link" href="GDBusObjectManager.html#g-dbus-object-manager-get-objects" title="g_dbus_object_manager_get_objects ()">g_dbus_object_manager_get_objects</a>   (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             <a class="link" href="GDBusObjectManager.html#g-dbus-object-manager-get-objects" title="g_dbus_object_manager_get_objects ()">g_dbus_object_manager_get_objects</a>   (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>);
 <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="returnvalue">GDBusObject</span></a> *       <a class="link" href="GDBusObjectManager.html#g-dbus-object-manager-get-object" title="g_dbus_object_manager_get_object ()">g_dbus_object_manager_get_object</a>    (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);
 <a class="link" href="GDBusInterface.html" title="GDBusInterface"><span class="returnvalue">GDBusInterface</span></a> *    <a class="link" href="GDBusObjectManager.html#g-dbus-object-manager-get-interface" title="g_dbus_object_manager_get_interface ()">g_dbus_object_manager_get_interface</a> (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_name</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_name</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -71,7 +71,7 @@ const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnva
 <a name="GDBusObjectManager.prerequisites"></a><h2>Prerequisites</h2>
 <p>
 GDBusObjectManager requires
- <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
+ <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
 </div>
 <div class="refsect1">
 <a name="GDBusObjectManager.implementations"></a><h2>Known Implementations</h2>
@@ -82,10 +82,10 @@ GDBusObjectManager is implemented by
 <div class="refsect1">
 <a name="GDBusObjectManager.signals"></a><h2>Signals</h2>
 <pre class="synopsis">
-  "<a class="link" href="GDBusObjectManager.html#GDBusObjectManager-interface-added" title='The "interface-added" signal'>interface-added</a>"                                : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GDBusObjectManager.html#GDBusObjectManager-interface-removed" title='The "interface-removed" signal'>interface-removed</a>"                              : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GDBusObjectManager.html#GDBusObjectManager-object-added" title='The "object-added" signal'>object-added</a>"                                   : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GDBusObjectManager.html#GDBusObjectManager-object-removed" title='The "object-removed" signal'>object-removed</a>"                                 : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GDBusObjectManager.html#GDBusObjectManager-interface-added" title='The "interface-added" signal'>interface-added</a>"                                : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GDBusObjectManager.html#GDBusObjectManager-interface-removed" title='The "interface-removed" signal'>interface-removed</a>"                              : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GDBusObjectManager.html#GDBusObjectManager-object-added" title='The "object-added" signal'>object-added</a>"                                   : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GDBusObjectManager.html#GDBusObjectManager-object-removed" title='The "object-removed" signal'>object-removed</a>"                                 : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
 </pre>
 </div>
 <div class="refsect1">
@@ -145,7 +145,7 @@ Base type for D-Bus object managers.
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GDBusObjectManagerIface.parent-iface"></a>parent_iface</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GDBusObjectManagerIface.parent-iface"></a>parent_iface</code></em>;</span></p></td>
 <td>The parent interface.</td>
 </tr>
 <tr>
@@ -187,7 +187,7 @@ Base type for D-Bus object managers.
 <hr>
 <div class="refsect2">
 <a name="g-dbus-object-manager-get-object-path"></a><h3>g_dbus_object_manager_get_object_path ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_object_manager_get_object_path
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_object_manager_get_object_path
                                                         (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>);</pre>
 <p>
 Gets the object path that <em class="parameter"><code>manager</code></em> is for.
@@ -213,7 +213,7 @@ Gets the object path that <em class="parameter"><code>manager</code></em> is for
 <hr>
 <div class="refsect2">
 <a name="g-dbus-object-manager-get-objects"></a><h3>g_dbus_object_manager_get_objects ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             g_dbus_object_manager_get_objects   (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             g_dbus_object_manager_get_objects   (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>);</pre>
 <p>
 Gets all <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="type">GDBusObject</span></a> objects known to <em class="parameter"><code>manager</code></em>.
 </p>
@@ -231,8 +231,8 @@ Gets all <a class="link" href="GDBusObject.html" title="GDBusObject"><span class
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>A list of
 <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="type">GDBusObject</span></a> objects. The returned list should be freed with
-<a href="./../glib/glib/glib-Doubly-Linked-Lists.html#g-list-free"><code class="function">g_list_free()</code></a> after each element has been freed with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GDBusObject]</span>
+<a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#g-list-free"><code class="function">g_list_free()</code></a> after each element has been freed with
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GDBusObject]</span>
 </td>
 </tr>
 </tbody>
@@ -243,7 +243,7 @@ Gets all <a class="link" href="GDBusObject.html" title="GDBusObject"><span class
 <div class="refsect2">
 <a name="g-dbus-object-manager-get-object"></a><h3>g_dbus_object_manager_get_object ()</h3>
 <pre class="programlisting"><a class="link" href="GDBusObject.html" title="GDBusObject"><span class="returnvalue">GDBusObject</span></a> *       g_dbus_object_manager_get_object    (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);</pre>
 <p>
 Gets the <a class="link" href="GDBusObjectProxy.html" title="GDBusObjectProxy"><span class="type">GDBusObjectProxy</span></a> at <em class="parameter"><code>object_path</code></em>, if any.
 </p>
@@ -263,8 +263,8 @@ Gets the <a class="link" href="GDBusObjectProxy.html" title="GDBusObjectProxy"><
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="type">GDBusObject</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. Free with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>A <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="type">GDBusObject</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. Free with
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -275,8 +275,8 @@ Gets the <a class="link" href="GDBusObjectProxy.html" title="GDBusObjectProxy"><
 <div class="refsect2">
 <a name="g-dbus-object-manager-get-interface"></a><h3>g_dbus_object_manager_get_interface ()</h3>
 <pre class="programlisting"><a class="link" href="GDBusInterface.html" title="GDBusInterface"><span class="returnvalue">GDBusInterface</span></a> *    g_dbus_object_manager_get_interface (<em class="parameter"><code><a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_name</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_name</code></em>);</pre>
 <p>
 Gets the interface proxy for <em class="parameter"><code>interface_name</code></em> at <em class="parameter"><code>object_path</code></em>, if
 any.
@@ -301,8 +301,8 @@ any.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GDBusInterface.html" title="GDBusInterface"><span class="type">GDBusInterface</span></a> instance or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. Free
-with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>A <a class="link" href="GDBusInterface.html" title="GDBusInterface"><span class="type">GDBusInterface</span></a> instance or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. Free
+with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -317,7 +317,7 @@ with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-un
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager,
                                                         <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="type">GDBusObject</span></a>        *object,
                                                         <a class="link" href="GDBusInterface.html" title="GDBusInterface"><span class="type">GDBusInterface</span></a>     *interface,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 Emitted when <em class="parameter"><code>interface</code></em> is added to <em class="parameter"><code>object</code></em>.
 </p>
@@ -357,7 +357,7 @@ connect signals to all objects managed by <em class="parameter"><code>manager</c
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager,
                                                         <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="type">GDBusObject</span></a>        *object,
                                                         <a class="link" href="GDBusInterface.html" title="GDBusInterface"><span class="type">GDBusInterface</span></a>     *interface,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 Emitted when <em class="parameter"><code>interface</code></em> has been removed from <em class="parameter"><code>object</code></em>.
 </p>
@@ -396,7 +396,7 @@ connect signals to all objects managed by <em class="parameter"><code>manager</c
 <a name="GDBusObjectManager-object-added"></a><h3>The <code class="literal">"object-added"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager,
                                                         <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="type">GDBusObject</span></a>        *object,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 Emitted when <em class="parameter"><code>object</code></em> is added to <em class="parameter"><code>manager</code></em>.
 </p>
@@ -427,7 +427,7 @@ Emitted when <em class="parameter"><code>object</code></em> is added to <em clas
 <a name="GDBusObjectManager-object-removed"></a><h3>The <code class="literal">"object-removed"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GDBusObjectManager.html" title="GDBusObjectManager"><span class="type">GDBusObjectManager</span></a> *manager,
                                                         <a class="link" href="GDBusObject.html" title="GDBusObject"><span class="type">GDBusObject</span></a>        *object,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>            user_data)      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 Emitted when <em class="parameter"><code>object</code></em> is removed from <em class="parameter"><code>manager</code></em>.
 </p>

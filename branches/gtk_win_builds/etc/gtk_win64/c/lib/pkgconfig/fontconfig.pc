@@ -10,7 +10,7 @@ cachedir=WINDOWSTEMPDIR_FONTCONFIG_CACHE
 
 Name: Fontconfig
 Description: Font configuration and customization library
-Version: 2.10.1
+Version: 2.10.92
 Libs: -L${libdir} -lfontconfig
 Libs.private: -L${libdir} -lxml2    -L${libdir} -lfreetype   
 Cflags: -I${includedir}

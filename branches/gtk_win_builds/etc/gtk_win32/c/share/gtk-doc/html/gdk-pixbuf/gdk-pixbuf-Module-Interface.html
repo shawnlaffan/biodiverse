@@ -3,11 +3,11 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Module Interface</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="GDK-PixBuf Reference Manual">
 <link rel="up" href="rn01.html" title="API Reference">
 <link rel="prev" href="GdkPixbufLoader.html" title="GdkPixbufLoader">
-<link rel="next" href="rn02.html" title="Tools Reference">
+<link rel="next" href="gdk-pixbuf-gdk-pixbuf-Xlib-initialization.html" title="gdk-pixbuf Xlib initialization">
 <meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
 <link rel="stylesheet" href="style.css" type="text/css">
 </head>
@@ -18,7 +18,7 @@
 <td><a accesskey="u" href="rn01.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
 <td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
 <th width="100%" align="center">GDK-PixBuf Reference Manual</th>
-<td><a accesskey="n" href="rn02.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+<td><a accesskey="n" href="gdk-pixbuf-gdk-pixbuf-Xlib-initialization.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
 </tr>
 <tr><td colspan="5" class="shortcuts">
 <a href="#gdk-pixbuf-Module-Interface.synopsis" class="shortcut">Top</a>
@@ -142,7 +142,7 @@ GdkPixBuf API. To underline this fact, they are protected by
                                                          <em class="parameter"><code>const <span class="type">gchar</span> *key</code></em>,
                                                          <em class="parameter"><code>const <span class="type">gchar</span> *value</code></em>);</pre>
 <p>
-Attaches a key/value pair as an option to a <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="type">GdkPixbuf</span></a>. If <code class="literal">key</code> already
+Attaches a key/value pair as an option to a <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="type">GdkPixbuf</span></a>. If <em class="parameter"><code>key</code></em> already
 exists in the list of options attached to <em class="parameter"><code>pixbuf</code></em>, the new value is 
 ignored and <code class="literal">FALSE</code> is returned.
 </p>
@@ -319,7 +319,7 @@ Returns the mime types supported by the format.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>-terminated array of mime types which must be freed with
+<td>a <code class="literal">NULL</code>-terminated array of mime types which must be freed with
 <code class="function">g_strfreev()</code> when it is no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
@@ -348,7 +348,7 @@ given format.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>-terminated array of filename extensions which must be
+<td>a <code class="literal">NULL</code>-terminated array of filename extensions which must be
 freed with <code class="function">g_strfreev()</code> when it is no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
@@ -543,11 +543,11 @@ use the <code class="function">gdk_pixbuf_format_*</code> functions.
 </tr>
 <tr>
 <td><p><span class="term"><span class="type">gchar</span> **<em class="structfield"><code><a name="GdkPixbufFormat.mime-types"></a>mime_types</code></em>;</span></p></td>
-<td>a <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>-terminated array of MIME types for the image format.</td>
+<td>a <code class="literal">NULL</code>-terminated array of MIME types for the image format.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="type">gchar</span> **<em class="structfield"><code><a name="GdkPixbufFormat.extensions"></a>extensions</code></em>;</span></p></td>
-<td>a <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>-terminated array of typical filename extensions for the
+<td>a <code class="literal">NULL</code>-terminated array of typical filename extensions for the
 image format.</td>
 </tr>
 <tr>
@@ -598,9 +598,8 @@ operations.
 </tr>
 <tr>
 <td><p><a name="GDK-PIXBUF-FORMAT-THREADSAFE:CAPS"></a><span class="term"><code class="literal">GDK_PIXBUF_FORMAT_THREADSAFE</code></span></p></td>
-<td>the module is threadsafe. If this flag is not
- set, &amp;gdk-pixbuf; will use a lock to prevent multiple threads from using
- this module at the same time. (Since 2.6)
+<td>the module is threadsafe. &amp;gdk-pixbuf;
+    ignores modules that are not marked as threadsafe. (Since 2.28).
 </td>
 </tr>
 </tbody>
@@ -619,7 +618,7 @@ operations.
 <p>
 The signature of a module is a set of prefixes. Prefixes are encoded as
 pairs of ordinary strings, where the second string, called the mask, if 
-not <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>, must be of the same length as the first one and may contain 
+not <code class="literal">NULL</code>, must be of the same length as the first one and may contain 
 ' ', '!', 'x', 'z', and 'n' to indicate bytes that must be matched, 
 not matched, "don't-care"-bytes, zeros and non-zeros. 
 Each prefix has an associated integer that describes the relevance of 
@@ -634,7 +633,7 @@ like an 'x'.
 <p>
 The signature of a module is stored as an array of 
 <a class="link" href="gdk-pixbuf-Module-Interface.html#GdkPixbufModulePattern" title="struct GdkPixbufModulePattern"><span class="type">GdkPixbufModulePattern</span></a>s. The array is terminated by a pattern
-where the <em class="parameter"><code>prefix</code></em> is <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>.
+where the <em class="parameter"><code>prefix</code></em> is <code class="literal">NULL</code>.
 </p>
 <p>
 </p>
@@ -785,7 +784,7 @@ signal.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>anim</code></em> :</span></p></td>
-<td>if an animation is being loaded, the <a class="link" href="gdk-pixbuf-Animations.html#GdkPixbufAnimation"><span class="type">GdkPixbufAnimation</span></a>, else <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>.</td>
+<td>if an animation is being loaded, the <a class="link" href="gdk-pixbuf-Animations.html#GdkPixbufAnimation"><span class="type">GdkPixbufAnimation</span></a>, else <code class="literal">NULL</code>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
@@ -992,7 +991,7 @@ virtual functions.
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObjectClass"><span class="type">GObjectClass</span></a> <em class="structfield"><code><a name="GdkPixbufAnimationClass.parent-class"></a>parent_class</code></em>;</span></p></td>
+<td><p><span class="term"><span class="type">GObjectClass</span> <em class="structfield"><code><a name="GdkPixbufAnimationClass.parent-class"></a>parent_class</code></em>;</span></p></td>
 <td>the parent class</td>
 </tr>
 <tr>
@@ -1043,7 +1042,7 @@ virtual functions.
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObjectClass"><span class="type">GObjectClass</span></a> <em class="structfield"><code><a name="GdkPixbufAnimationIterClass.parent-class"></a>parent_class</code></em>;</span></p></td>
+<td><p><span class="term"><span class="type">GObjectClass</span> <em class="structfield"><code><a name="GdkPixbufAnimationIterClass.parent-class"></a>parent_class</code></em>;</span></p></td>
 <td>the parent class</td>
 </tr>
 <tr>

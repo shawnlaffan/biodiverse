@@ -47,18 +47,18 @@
                     <a class="link" href="GIOModule.html#GIOModule-struct" title="GIOModule">GIOModule</a>;
                     <a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope">GIOModuleScope</a>;
 enum                <a class="link" href="GIOModule.html#GIOModuleScopeFlags" title="enum GIOModuleScopeFlags">GIOModuleScopeFlags</a>;
-<a class="link" href="GIOModule.html" title="GIOModule"><span class="returnvalue">GIOModule</span></a> *         <a class="link" href="GIOModule.html#g-io-module-new" title="g_io_module_new ()">g_io_module_new</a>                     (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *filename</code></em>);
+<a class="link" href="GIOModule.html" title="GIOModule"><span class="returnvalue">GIOModule</span></a> *         <a class="link" href="GIOModule.html#g-io-module-new" title="g_io_module_new ()">g_io_module_new</a>                     (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *filename</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GIOModule.html#g-io-module-scope-block" title="g_io_module_scope_block ()">g_io_module_scope_block</a>             (<em class="parameter"><code><a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope"><span class="type">GIOModuleScope</span></a> *scope</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *basename</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *basename</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GIOModule.html#g-io-module-scope-free" title="g_io_module_scope_free ()">g_io_module_scope_free</a>              (<em class="parameter"><code><a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope"><span class="type">GIOModuleScope</span></a> *scope</code></em>);
 <a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope"><span class="returnvalue">GIOModuleScope</span></a> *    <a class="link" href="GIOModule.html#g-io-module-scope-new" title="g_io_module_scope_new ()">g_io_module_scope_new</a>               (<em class="parameter"><code><a class="link" href="GIOModule.html#GIOModuleScopeFlags" title="enum GIOModuleScopeFlags"><span class="type">GIOModuleScopeFlags</span></a> flags</code></em>);
-<a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             <a class="link" href="GIOModule.html#g-io-modules-load-all-in-directory" title="g_io_modules_load_all_in_directory ()">g_io_modules_load_all_in_directory</a>  (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>);
-<a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             <a class="link" href="GIOModule.html#g-io-modules-load-all-in-directory-with-scope" title="g_io_modules_load_all_in_directory_with_scope ()">g_io_modules_load_all_in_directory_with_scope</a>
-                                                        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             <a class="link" href="GIOModule.html#g-io-modules-load-all-in-directory" title="g_io_modules_load_all_in_directory ()">g_io_modules_load_all_in_directory</a>  (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             <a class="link" href="GIOModule.html#g-io-modules-load-all-in-directory-with-scope" title="g_io_modules_load_all_in_directory_with_scope ()">g_io_modules_load_all_in_directory_with_scope</a>
+                                                        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope"><span class="type">GIOModuleScope</span></a> *scope</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GIOModule.html#g-io-modules-scan-all-in-directory" title="g_io_modules_scan_all_in_directory ()">g_io_modules_scan_all_in_directory</a>  (<em class="parameter"><code>const <span class="type">char</span> *dirname</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GIOModule.html#g-io-modules-scan-all-in-directory-with-scope" title="g_io_modules_scan_all_in_directory_with_scope ()">g_io_modules_scan_all_in_directory_with_scope</a>
-                                                        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>,
+                                                        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope"><span class="type">GIOModuleScope</span></a> *scope</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GIOModule.html#g-io-module-load" title="g_io_module_load ()">g_io_module_load</a>                    (<em class="parameter"><code><a class="link" href="GIOModule.html" title="GIOModule"><span class="type">GIOModule</span></a> *module</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GIOModule.html#g-io-module-unload" title="g_io_module_unload ()">g_io_module_unload</a>                  (<em class="parameter"><code><a class="link" href="GIOModule.html" title="GIOModule"><span class="type">GIOModule</span></a> *module</code></em>);
@@ -68,8 +68,8 @@ enum                <a class="link" href="GIOModule.html#GIOModuleScopeFlags" ti
 <div class="refsect1">
 <a name="GIOModule.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
-   +----<a href="./../gobject/gobject/GTypeModule.html">GTypeModule</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+   +----<a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html">GTypeModule</a>
          +----GIOModule
 </pre>
 </div>
@@ -77,7 +77,7 @@ enum                <a class="link" href="GIOModule.html#GIOModuleScopeFlags" ti
 <a name="GIOModule.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
 <p>
 GIOModule implements
- <a href="./../gobject/gobject/GTypePlugin.html">GTypePlugin</a>.</p>
+ <a href="/usr/share/gtk-doc/html/gobject/GTypePlugin.html">GTypePlugin</a>.</p>
 </div>
 <div class="refsect1">
 <a name="GIOModule.description"></a><h2>Description</h2>
@@ -146,7 +146,7 @@ Flags for use with <a class="link" href="GIOModule.html#g-io-module-scope-new" t
 <hr>
 <div class="refsect2">
 <a name="g-io-module-new"></a><h3>g_io_module_new ()</h3>
-<pre class="programlisting"><a class="link" href="GIOModule.html" title="GIOModule"><span class="returnvalue">GIOModule</span></a> *         g_io_module_new                     (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *filename</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="GIOModule.html" title="GIOModule"><span class="returnvalue">GIOModule</span></a> *         g_io_module_new                     (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *filename</code></em>);</pre>
 <p>
 Creates a new GIOModule that will load the specific
 shared library when in use.
@@ -164,7 +164,7 @@ shared library when in use.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a <a class="link" href="GIOModule.html" title="GIOModule"><span class="type">GIOModule</span></a> from given <em class="parameter"><code>filename</code></em>,
-or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.</td>
+or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.</td>
 </tr>
 </tbody>
 </table></div>
@@ -173,7 +173,7 @@ or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="lit
 <div class="refsect2">
 <a name="g-io-module-scope-block"></a><h3>g_io_module_scope_block ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_io_module_scope_block             (<em class="parameter"><code><a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope"><span class="type">GIOModuleScope</span></a> *scope</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *basename</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *basename</code></em>);</pre>
 <p>
 Block modules with the given <em class="parameter"><code>basename</code></em> from being loaded when
 this scope is used with <a class="link" href="GIOModule.html#g-io-modules-scan-all-in-directory-with-scope" title="g_io_modules_scan_all_in_directory_with_scope ()"><code class="function">g_io_modules_scan_all_in_directory_with_scope()</code></a>
@@ -251,7 +251,7 @@ in this scope.
 <hr>
 <div class="refsect2">
 <a name="g-io-modules-load-all-in-directory"></a><h3>g_io_modules_load_all_in_directory ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             g_io_modules_load_all_in_directory  (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             g_io_modules_load_all_in_directory  (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>);</pre>
 <p>
 Loads all the modules in the specified directory.
 </p>
@@ -276,8 +276,8 @@ which allows delayed/lazy loading of modules.
 from the directory,
 All the modules are loaded into memory, if you want to
 unload them (enabling on-demand loading) you must call
-<a href="./../gobject/gobject/GTypeModule.html#g-type-module-unuse"><code class="function">g_type_module_unuse()</code></a> on all the modules. Free the list
-with <a href="./../glib/glib/glib-Doubly-Linked-Lists.html#g-list-free"><code class="function">g_list_free()</code></a>. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GIOModule][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html#g-type-module-unuse"><code class="function">g_type_module_unuse()</code></a> on all the modules. Free the list
+with <a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#g-list-free"><code class="function">g_list_free()</code></a>. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GIOModule][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -286,8 +286,8 @@ with <a href="./../glib/glib/glib-Doubly-Linked-Lists.html#g-list-free"><code cl
 <hr>
 <div class="refsect2">
 <a name="g-io-modules-load-all-in-directory-with-scope"></a><h3>g_io_modules_load_all_in_directory_with_scope ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             g_io_modules_load_all_in_directory_with_scope
-                                                        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#GList"><span class="returnvalue">GList</span></a> *             g_io_modules_load_all_in_directory_with_scope
+                                                        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope"><span class="type">GIOModuleScope</span></a> *scope</code></em>);</pre>
 <p>
 Loads all the modules in the specified directory.
@@ -317,8 +317,8 @@ which allows delayed/lazy loading of modules.
 from the directory,
 All the modules are loaded into memory, if you want to
 unload them (enabling on-demand loading) you must call
-<a href="./../gobject/gobject/GTypeModule.html#g-type-module-unuse"><code class="function">g_type_module_unuse()</code></a> on all the modules. Free the list
-with <a href="./../glib/glib/glib-Doubly-Linked-Lists.html#g-list-free"><code class="function">g_list_free()</code></a>. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GIOModule][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/GTypeModule.html#g-type-module-unuse"><code class="function">g_type_module_unuse()</code></a> on all the modules. Free the list
+with <a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#g-list-free"><code class="function">g_list_free()</code></a>. <span class="annotation">[<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GIOModule][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -360,7 +360,7 @@ use <a class="link" href="GIOModule.html#g-io-modules-load-all-in-directory" tit
 <div class="refsect2">
 <a name="g-io-modules-scan-all-in-directory-with-scope"></a><h3>g_io_modules_scan_all_in_directory_with_scope ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_io_modules_scan_all_in_directory_with_scope
-                                                        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>,
+                                                        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *dirname</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GIOModule.html#GIOModuleScope" title="GIOModuleScope"><span class="type">GIOModuleScope</span></a> *scope</code></em>);</pre>
 <p>
 Scans all the modules in the specified directory, ensuring that
@@ -475,9 +475,9 @@ lazy loading.
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of strings, listing the supported
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of strings, listing the supported
 extension points of the module. The array must be suitable for
-freeing with <a href="./../glib/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+freeing with <a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr></tbody>
 </table></div>

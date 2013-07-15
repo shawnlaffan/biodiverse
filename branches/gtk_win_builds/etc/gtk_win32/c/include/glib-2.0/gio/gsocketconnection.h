@@ -23,12 +23,12 @@
  *          Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_SOCKET_CONNECTION_H__
+#define __G_SOCKET_CONNECTION_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_SOCKET_CONNECTION_H__
-#define __G_SOCKET_CONNECTION_H__
 
 #include <glib-object.h>
 #include <gio/gsocket.h>
@@ -70,6 +70,7 @@ struct _GSocketConnection
   GSocketConnectionPrivate *priv;
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType              g_socket_connection_get_type                  (void) G_GNUC_CONST;
 
 GLIB_AVAILABLE_IN_2_32
@@ -90,19 +91,25 @@ gboolean           g_socket_connection_connect_finish            (GSocketConnect
 								  GAsyncResult       *result,
 								  GError            **error);
 
+GLIB_AVAILABLE_IN_ALL
 GSocket           *g_socket_connection_get_socket                (GSocketConnection  *connection);
+GLIB_AVAILABLE_IN_ALL
 GSocketAddress    *g_socket_connection_get_local_address         (GSocketConnection  *connection,
 								  GError            **error);
+GLIB_AVAILABLE_IN_ALL
 GSocketAddress    *g_socket_connection_get_remote_address        (GSocketConnection  *connection,
 								  GError            **error);
 
+GLIB_AVAILABLE_IN_ALL
 void               g_socket_connection_factory_register_type     (GType               g_type,
 								  GSocketFamily       family,
 								  GSocketType         type,
 								  gint                protocol);
+GLIB_AVAILABLE_IN_ALL
 GType              g_socket_connection_factory_lookup_type       (GSocketFamily       family,
 								  GSocketType         type,
 								  gint                protocol_id);
+GLIB_AVAILABLE_IN_ALL
 GSocketConnection *g_socket_connection_factory_create_connection (GSocket            *socket);
 
 G_END_DECLS

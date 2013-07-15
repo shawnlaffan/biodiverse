@@ -50,6 +50,7 @@
 #include <atk/atkutil.h>
 #include <atk/atkmisc.h>
 #include <atk/atkvalue.h>
+#include <atk/atkversion.h>
 #include <atk/atkwindow.h>
 
 #undef __ATK_H_INSIDE__

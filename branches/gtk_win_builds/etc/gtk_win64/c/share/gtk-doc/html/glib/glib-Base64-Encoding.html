@@ -308,7 +308,9 @@ state).
 <pre class="programlisting"><a class="link" href="glib-Basic-Types.html#guchar" title="guchar"><span class="returnvalue">guchar</span></a> *            g_base64_decode                     (<em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *text</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gsize" title="gsize"><span class="type">gsize</span></a> *out_len</code></em>);</pre>
 <p>
-Decode a sequence of Base-64 encoded text into binary data
+Decode a sequence of Base-64 encoded text into binary data.  Note
+that the returned binary data is not necessarily zero-terminated,
+so it should not be used as a character string.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>

@@ -91,6 +91,7 @@
     <function name="IS_LETTER_CH" link="libxml2-parserInternals.html#IS_LETTER_CH"/>
     <function name="IS_PUBIDCHAR" link="libxml2-parserInternals.html#IS_PUBIDCHAR"/>
     <function name="IS_PUBIDCHAR_CH" link="libxml2-parserInternals.html#IS_PUBIDCHAR_CH"/>
+    <function name="LIBXML2_NEW_BUFFER" link="libxml2-tree.html#LIBXML2_NEW_BUFFER"/>
     <function name="LIBXML_ATTR_ALLOC_SIZE" link="libxml2-xmlversion.html#LIBXML_ATTR_ALLOC_SIZE"/>
     <function name="LIBXML_ATTR_FORMAT" link="libxml2-xmlversion.html#LIBXML_ATTR_FORMAT"/>
     <function name="LIBXML_AUTOMATA_ENABLED" link="libxml2-xmlversion.html#LIBXML_AUTOMATA_ENABLED"/>
@@ -164,7 +165,10 @@
     <function name="XML_GET_CONTENT" link="libxml2-tree.html#XML_GET_CONTENT"/>
     <function name="XML_GET_LINE" link="libxml2-tree.html#XML_GET_LINE"/>
     <function name="XML_LOCAL_NAMESPACE" link="libxml2-tree.html#XML_LOCAL_NAMESPACE"/>
+    <function name="XML_MAX_DICTIONARY_LIMIT" link="libxml2-parserInternals.html#XML_MAX_DICTIONARY_LIMIT"/>
+    <function name="XML_MAX_LOOKUP_LIMIT" link="libxml2-parserInternals.html#XML_MAX_LOOKUP_LIMIT"/>
     <function name="XML_MAX_NAMELEN" link="libxml2-parserInternals.html#XML_MAX_NAMELEN"/>
+    <function name="XML_MAX_NAME_LENGTH" link="libxml2-parserInternals.html#XML_MAX_NAME_LENGTH"/>
     <function name="XML_MAX_TEXT_LENGTH" link="libxml2-parserInternals.html#XML_MAX_TEXT_LENGTH"/>
     <function name="XML_SAX2_MAGIC" link="libxml2-parser.html#XML_SAX2_MAGIC"/>
     <function name="XML_SCHEMAS_ANYATTR_LAX" link="libxml2-schemasInternals.html#XML_SCHEMAS_ANYATTR_LAX"/>
@@ -351,6 +355,7 @@
     <function name="XML_BUFFER_ALLOC_HYBRID" link="libxml2-tree.html#XML_BUFFER_ALLOC_HYBRID"/>
     <function name="XML_BUFFER_ALLOC_IMMUTABLE" link="libxml2-tree.html#XML_BUFFER_ALLOC_IMMUTABLE"/>
     <function name="XML_BUFFER_ALLOC_IO" link="libxml2-tree.html#XML_BUFFER_ALLOC_IO"/>
+    <function name="XML_BUF_OVERFLOW" link="libxml2-xmlerror.html#XML_BUF_OVERFLOW"/>
     <function name="XML_C14N_1_0" link="libxml2-c14n.html#XML_C14N_1_0"/>
     <function name="XML_C14N_1_1" link="libxml2-c14n.html#XML_C14N_1_1"/>
     <function name="XML_C14N_CREATE_CTXT" link="libxml2-xmlerror.html#XML_C14N_CREATE_CTXT"/>
@@ -397,7 +402,6 @@
     <function name="XML_CHAR_ENCODING_UTF16BE" link="libxml2-encoding.html#XML_CHAR_ENCODING_UTF16BE"/>
     <function name="XML_CHAR_ENCODING_UTF16LE" link="libxml2-encoding.html#XML_CHAR_ENCODING_UTF16LE"/>
     <function name="XML_CHAR_ENCODING_UTF8" link="libxml2-encoding.html#XML_CHAR_ENCODING_UTF8"/>
-    <function name="XML_CHECK_" link="libxml2-xmlerror.html#XML_CHECK_"/>
     <function name="XML_CHECK_ENTITY_TYPE" link="libxml2-xmlerror.html#XML_CHECK_ENTITY_TYPE"/>
     <function name="XML_CHECK_FOUND_ATTRIBUTE" link="libxml2-xmlerror.html#XML_CHECK_FOUND_ATTRIBUTE"/>
     <function name="XML_CHECK_FOUND_CDATA" link="libxml2-xmlerror.html#XML_CHECK_FOUND_CDATA"/>
@@ -436,7 +440,6 @@
     <function name="XML_CHECK_WRONG_NEXT" link="libxml2-xmlerror.html#XML_CHECK_WRONG_NEXT"/>
     <function name="XML_CHECK_WRONG_PARENT" link="libxml2-xmlerror.html#XML_CHECK_WRONG_PARENT"/>
     <function name="XML_CHECK_WRONG_PREV" link="libxml2-xmlerror.html#XML_CHECK_WRONG_PREV"/>
-    <function name="XML_CHECK_X" link="libxml2-xmlerror.html#XML_CHECK_X"/>
     <function name="XML_COMMENT_NODE" link="libxml2-tree.html#XML_COMMENT_NODE"/>
     <function name="XML_DOCB_DOCUMENT_NODE" link="libxml2-tree.html#XML_DOCB_DOCUMENT_NODE"/>
     <function name="XML_DOCUMENT_FRAG_NODE" link="libxml2-tree.html#XML_DOCUMENT_FRAG_NODE"/>
@@ -574,6 +577,7 @@
     <function name="XML_ERR_MIXED_NOT_FINISHED" link="libxml2-xmlerror.html#XML_ERR_MIXED_NOT_FINISHED"/>
     <function name="XML_ERR_MIXED_NOT_STARTED" link="libxml2-xmlerror.html#XML_ERR_MIXED_NOT_STARTED"/>
     <function name="XML_ERR_NAME_REQUIRED" link="libxml2-xmlerror.html#XML_ERR_NAME_REQUIRED"/>
+    <function name="XML_ERR_NAME_TOO_LONG" link="libxml2-xmlerror.html#XML_ERR_NAME_TOO_LONG"/>
     <function name="XML_ERR_NMTOKEN_REQUIRED" link="libxml2-xmlerror.html#XML_ERR_NMTOKEN_REQUIRED"/>
     <function name="XML_ERR_NONE" link="libxml2-xmlerror.html#XML_ERR_NONE"/>
     <function name="XML_ERR_NOTATION_NOT_FINISHED" link="libxml2-xmlerror.html#XML_ERR_NOTATION_NOT_FINISHED"/>
@@ -625,6 +629,7 @@
     <function name="XML_EXTERNAL_GENERAL_PARSED_ENTITY" link="libxml2-entities.html#XML_EXTERNAL_GENERAL_PARSED_ENTITY"/>
     <function name="XML_EXTERNAL_GENERAL_UNPARSED_ENTITY" link="libxml2-entities.html#XML_EXTERNAL_GENERAL_UNPARSED_ENTITY"/>
     <function name="XML_EXTERNAL_PARAMETER_ENTITY" link="libxml2-entities.html#XML_EXTERNAL_PARAMETER_ENTITY"/>
+    <function name="XML_FROM_BUFFER" link="libxml2-xmlerror.html#XML_FROM_BUFFER"/>
     <function name="XML_FROM_C14N" link="libxml2-xmlerror.html#XML_FROM_C14N"/>
     <function name="XML_FROM_CATALOG" link="libxml2-xmlerror.html#XML_FROM_CATALOG"/>
     <function name="XML_FROM_CHECK" link="libxml2-xmlerror.html#XML_FROM_CHECK"/>
@@ -648,6 +653,7 @@
     <function name="XML_FROM_SCHEMASV" link="libxml2-xmlerror.html#XML_FROM_SCHEMASV"/>
     <function name="XML_FROM_SCHEMATRONV" link="libxml2-xmlerror.html#XML_FROM_SCHEMATRONV"/>
     <function name="XML_FROM_TREE" link="libxml2-xmlerror.html#XML_FROM_TREE"/>
+    <function name="XML_FROM_URI" link="libxml2-xmlerror.html#XML_FROM_URI"/>
     <function name="XML_FROM_VALID" link="libxml2-xmlerror.html#XML_FROM_VALID"/>
     <function name="XML_FROM_WRITER" link="libxml2-xmlerror.html#XML_FROM_WRITER"/>
     <function name="XML_FROM_XINCLUDE" link="libxml2-xmlerror.html#XML_FROM_XINCLUDE"/>
@@ -767,6 +773,7 @@
     <function name="XML_PARSER_SUBST_ENTITIES" link="libxml2-xmlreader.html#XML_PARSER_SUBST_ENTITIES"/>
     <function name="XML_PARSER_SYSTEM_LITERAL" link="libxml2-parser.html#XML_PARSER_SYSTEM_LITERAL"/>
     <function name="XML_PARSER_VALIDATE" link="libxml2-xmlreader.html#XML_PARSER_VALIDATE"/>
+    <function name="XML_PARSE_BIG_LINES" link="libxml2-parser.html#XML_PARSE_BIG_LINES"/>
     <function name="XML_PARSE_COMPACT" link="libxml2-parser.html#XML_PARSE_COMPACT"/>
     <function name="XML_PARSE_DOM" link="libxml2-parser.html#XML_PARSE_DOM"/>
     <function name="XML_PARSE_DTDATTR" link="libxml2-parser.html#XML_PARSE_DTDATTR"/>
@@ -1509,6 +1516,7 @@
     <function name="XPATH_ENCODING_ERROR" link="libxml2-xpath.html#XPATH_ENCODING_ERROR"/>
     <function name="XPATH_EXPRESSION_OK" link="libxml2-xpath.html#XPATH_EXPRESSION_OK"/>
     <function name="XPATH_EXPR_ERROR" link="libxml2-xpath.html#XPATH_EXPR_ERROR"/>
+    <function name="XPATH_FORBID_VARIABLE_ERROR" link="libxml2-xpath.html#XPATH_FORBID_VARIABLE_ERROR"/>
     <function name="XPATH_INVALID_ARITY" link="libxml2-xpath.html#XPATH_INVALID_ARITY"/>
     <function name="XPATH_INVALID_CHAR_ERROR" link="libxml2-xpath.html#XPATH_INVALID_CHAR_ERROR"/>
     <function name="XPATH_INVALID_CTXT" link="libxml2-xpath.html#XPATH_INVALID_CTXT"/>
@@ -1573,6 +1581,7 @@
     <function name="xmlAttributeType" link="libxml2-tree.html#xmlAttributeType"/>
     <function name="xmlAutomataPtr" link="libxml2-xmlautomata.html#xmlAutomataPtr"/>
     <function name="xmlAutomataStatePtr" link="libxml2-xmlautomata.html#xmlAutomataStatePtr"/>
+    <function name="xmlBufPtr" link="libxml2-tree.html#xmlBufPtr"/>
     <function name="xmlBufferAllocationScheme" link="libxml2-tree.html#xmlBufferAllocationScheme"/>
     <function name="xmlBufferPtr" link="libxml2-tree.html#xmlBufferPtr"/>
     <function name="xmlC14NMode" link="libxml2-c14n.html#xmlC14NMode"/>
@@ -1710,6 +1719,7 @@
     <function name="xmlAttributeTable" link="libxml2-valid.html#xmlAttributeTable"/>
     <function name="xmlAutomata" link="libxml2-xmlautomata.html#xmlAutomata"/>
     <function name="xmlAutomataState" link="libxml2-xmlautomata.html#xmlAutomataState"/>
+    <function name="xmlBuf" link="libxml2-tree.html#xmlBuf"/>
     <function name="xmlBuffer" link="libxml2-tree.html#xmlBuffer"/>
     <function name="xmlCatalog" link="libxml2-catalog.html#xmlCatalog"/>
     <function name="xmlChLRange" link="libxml2-chvalid.html#xmlChLRange"/>
@@ -1868,6 +1878,7 @@
     <function name="xmlRelaxNGValidityErrorFunc" link="libxml2-relaxng.html#xmlRelaxNGValidityErrorFunc"/>
     <function name="xmlRelaxNGValidityWarningFunc" link="libxml2-relaxng.html#xmlRelaxNGValidityWarningFunc"/>
     <function name="xmlSchemaValidityErrorFunc" link="libxml2-xmlschemas.html#xmlSchemaValidityErrorFunc"/>
+    <function name="xmlSchemaValidityLocatorFunc" link="libxml2-xmlschemas.html#xmlSchemaValidityLocatorFunc"/>
     <function name="xmlSchemaValidityWarningFunc" link="libxml2-xmlschemas.html#xmlSchemaValidityWarningFunc"/>
     <function name="xmlSchematronValidityErrorFunc" link="libxml2-schematron.html#xmlSchematronValidityErrorFunc"/>
     <function name="xmlSchematronValidityWarningFunc" link="libxml2-schematron.html#xmlSchematronValidityWarningFunc"/>
@@ -2097,6 +2108,12 @@
     <function name="xmlAutomataNewTransition2 ()" link="libxml2-xmlautomata.html#xmlAutomataNewTransition2"/>
     <function name="xmlAutomataSetFinalState ()" link="libxml2-xmlautomata.html#xmlAutomataSetFinalState"/>
     <function name="xmlBoolToText ()" link="libxml2-debugXML.html#xmlBoolToText"/>
+    <function name="xmlBufContent ()" link="libxml2-tree.html#xmlBufContent"/>
+    <function name="xmlBufEnd ()" link="libxml2-tree.html#xmlBufEnd"/>
+    <function name="xmlBufGetNodeContent ()" link="libxml2-tree.html#xmlBufGetNodeContent"/>
+    <function name="xmlBufNodeDump ()" link="libxml2-tree.html#xmlBufNodeDump"/>
+    <function name="xmlBufShrink ()" link="libxml2-tree.html#xmlBufShrink"/>
+    <function name="xmlBufUse ()" link="libxml2-tree.html#xmlBufUse"/>
     <function name="xmlBufferAdd ()" link="libxml2-tree.html#xmlBufferAdd"/>
     <function name="xmlBufferAddHead ()" link="libxml2-tree.html#xmlBufferAddHead"/>
     <function name="xmlBufferCCat ()" link="libxml2-tree.html#xmlBufferCCat"/>
@@ -2238,10 +2255,12 @@
     <function name="xmlDictCreateSub ()" link="libxml2-dict.html#xmlDictCreateSub"/>
     <function name="xmlDictExists ()" link="libxml2-dict.html#xmlDictExists"/>
     <function name="xmlDictFree ()" link="libxml2-dict.html#xmlDictFree"/>
+    <function name="xmlDictGetUsage ()" link="libxml2-dict.html#xmlDictGetUsage"/>
     <function name="xmlDictLookup ()" link="libxml2-dict.html#xmlDictLookup"/>
     <function name="xmlDictOwns ()" link="libxml2-dict.html#xmlDictOwns"/>
     <function name="xmlDictQLookup ()" link="libxml2-dict.html#xmlDictQLookup"/>
     <function name="xmlDictReference ()" link="libxml2-dict.html#xmlDictReference"/>
+    <function name="xmlDictSetLimit ()" link="libxml2-dict.html#xmlDictSetLimit"/>
     <function name="xmlDictSize ()" link="libxml2-dict.html#xmlDictSize"/>
     <function name="xmlDllMain ()" link="libxml2-threads.html#xmlDllMain"/>
     <function name="xmlDocCopyNode ()" link="libxml2-tree.html#xmlDocCopyNode"/>
@@ -2602,6 +2621,8 @@
     <function name="xmlOutputBufferCreateFilenameDefault ()" link="libxml2-globals.html#xmlOutputBufferCreateFilenameDefault"/>
     <function name="xmlOutputBufferCreateIO ()" link="libxml2-xmlIO.html#xmlOutputBufferCreateIO"/>
     <function name="xmlOutputBufferFlush ()" link="libxml2-xmlIO.html#xmlOutputBufferFlush"/>
+    <function name="xmlOutputBufferGetContent ()" link="libxml2-xmlIO.html#xmlOutputBufferGetContent"/>
+    <function name="xmlOutputBufferGetSize ()" link="libxml2-xmlIO.html#xmlOutputBufferGetSize"/>
     <function name="xmlOutputBufferWrite ()" link="libxml2-xmlIO.html#xmlOutputBufferWrite"/>
     <function name="xmlOutputBufferWriteEscape ()" link="libxml2-xmlIO.html#xmlOutputBufferWriteEscape"/>
     <function name="xmlOutputBufferWriteString ()" link="libxml2-xmlIO.html#xmlOutputBufferWriteString"/>
@@ -2897,6 +2918,8 @@
     <function name="xmlSchemaValidateListSimpleTypeFacet ()" link="libxml2-xmlschemastypes.html#xmlSchemaValidateListSimpleTypeFacet"/>
     <function name="xmlSchemaValidateOneElement ()" link="libxml2-xmlschemas.html#xmlSchemaValidateOneElement"/>
     <function name="xmlSchemaValidatePredefinedType ()" link="libxml2-xmlschemastypes.html#xmlSchemaValidatePredefinedType"/>
+    <function name="xmlSchemaValidateSetFilename ()" link="libxml2-xmlschemas.html#xmlSchemaValidateSetFilename"/>
+    <function name="xmlSchemaValidateSetLocator ()" link="libxml2-xmlschemas.html#xmlSchemaValidateSetLocator"/>
     <function name="xmlSchemaValidateStream ()" link="libxml2-xmlschemas.html#xmlSchemaValidateStream"/>
     <function name="xmlSchemaValueAppend ()" link="libxml2-xmlschemastypes.html#xmlSchemaValueAppend"/>
     <function name="xmlSchemaValueGetAsBoolean ()" link="libxml2-xmlschemastypes.html#xmlSchemaValueGetAsBoolean"/>
@@ -3069,6 +3092,7 @@
     <function name="xmlTextWriterFullEndElement ()" link="libxml2-xmlwriter.html#xmlTextWriterFullEndElement"/>
     <function name="xmlTextWriterSetIndent ()" link="libxml2-xmlwriter.html#xmlTextWriterSetIndent"/>
     <function name="xmlTextWriterSetIndentString ()" link="libxml2-xmlwriter.html#xmlTextWriterSetIndentString"/>
+    <function name="xmlTextWriterSetQuoteChar ()" link="libxml2-xmlwriter.html#xmlTextWriterSetQuoteChar"/>
     <function name="xmlTextWriterStartAttribute ()" link="libxml2-xmlwriter.html#xmlTextWriterStartAttribute"/>
     <function name="xmlTextWriterStartAttributeNS ()" link="libxml2-xmlwriter.html#xmlTextWriterStartAttributeNS"/>
     <function name="xmlTextWriterStartCDATA ()" link="libxml2-xmlwriter.html#xmlTextWriterStartCDATA"/>

@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_ZLIB_DECOMPRESSOR_H__
+#define __G_ZLIB_DECOMPRESSOR_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_ZLIB_DECOMPRESSOR_H__
-#define __G_ZLIB_DECOMPRESSOR_H__
 
 #include <gio/gconverter.h>
 #include <gio/gfileinfo.h>
@@ -46,10 +46,13 @@ struct _GZlibDecompressorClass
   GObjectClass parent_class;
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType              g_zlib_decompressor_get_type (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GZlibDecompressor *g_zlib_decompressor_new (GZlibCompressorFormat format);
 
+GLIB_AVAILABLE_IN_ALL
 GFileInfo         *g_zlib_decompressor_get_file_info (GZlibDecompressor *decompressor);
 
 G_END_DECLS

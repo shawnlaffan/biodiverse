@@ -5,7 +5,7 @@ includedir=${prefix}/include
 
 Name: Atk
 Description: Accessibility Toolkit
-Version: 2.6.0
+Version: 2.8.0
 Requires: gobject-2.0
 Libs: -L${libdir} -latk-1.0
 Cflags: -I${includedir}/atk-1.0

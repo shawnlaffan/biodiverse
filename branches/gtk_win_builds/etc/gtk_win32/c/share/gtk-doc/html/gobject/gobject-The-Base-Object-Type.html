@@ -48,11 +48,11 @@ struct              <a class="link" href="gobject-The-Base-Object-Type.html#GObj
 struct              <a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass">GObjectClass</a>;
 struct              <a class="link" href="gobject-The-Base-Object-Type.html#GObjectConstructParam" title="struct GObjectConstructParam">GObjectConstructParam</a>;
 <span class="returnvalue">void</span>                (<a class="link" href="gobject-The-Base-Object-Type.html#GObjectGetPropertyFunc" title="GObjectGetPropertyFunc ()">*GObjectGetPropertyFunc</a>)           (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *value</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);
 <span class="returnvalue">void</span>                (<a class="link" href="gobject-The-Base-Object-Type.html#GObjectSetPropertyFunc" title="GObjectSetPropertyFunc ()">*GObjectSetPropertyFunc</a>)           (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *value</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);
 <span class="returnvalue">void</span>                (<a class="link" href="gobject-The-Base-Object-Type.html#GObjectFinalizeFunc" title="GObjectFinalizeFunc ()">*GObjectFinalizeFunc</a>)              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>);
@@ -67,135 +67,135 @@ struct              <a class="link" href="gobject-The-Base-Object-Type.html#GObj
 #define             <a class="link" href="gobject-The-Base-Object-Type.html#G-OBJECT-CLASS-TYPE:CAPS" title="G_OBJECT_CLASS_TYPE()">G_OBJECT_CLASS_TYPE</a>                 (class)
 #define             <a class="link" href="gobject-The-Base-Object-Type.html#G-OBJECT-CLASS-NAME:CAPS" title="G_OBJECT_CLASS_NAME()">G_OBJECT_CLASS_NAME</a>                 (class)
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-class-install-property" title="g_object_class_install_property ()">g_object_class_install_property</a>     (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-class-install-properties" title="g_object_class_install_properties ()">g_object_class_install_properties</a>   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_pspecs</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_pspecs</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> **pspecs</code></em>);
 <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> *        <a class="link" href="gobject-The-Base-Object-Type.html#g-object-class-find-property" title="g_object_class_find_property ()">g_object_class_find_property</a>        (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);
 <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> **       <a class="link" href="gobject-The-Base-Object-Type.html#g-object-class-list-properties" title="g_object_class_list_properties ()">g_object_class_list_properties</a>      (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_properties</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_properties</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-class-override-property" title="g_object_class_override_property ()">g_object_class_override_property</a>    (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-interface-install-property" title="g_object_interface_install_property ()">g_object_interface_install_property</a> (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-interface-install-property" title="g_object_interface_install_property ()">g_object_interface_install_property</a> (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);
-<a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> *        <a class="link" href="gobject-The-Base-Object-Type.html#g-object-interface-find-property" title="g_object_interface_find_property ()">g_object_interface_find_property</a>    (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);
-<a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> **       <a class="link" href="gobject-The-Base-Object-Type.html#g-object-interface-list-properties" title="g_object_interface_list_properties ()">g_object_interface_list_properties</a>  (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_properties_p</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-new" title="g_object_new ()">g_object_new</a>                        (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+<a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> *        <a class="link" href="gobject-The-Base-Object-Type.html#g-object-interface-find-property" title="g_object_interface_find_property ()">g_object_interface_find_property</a>    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);
+<a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> **       <a class="link" href="gobject-The-Base-Object-Type.html#g-object-interface-list-properties" title="g_object_interface_list_properties ()">g_object_interface_list_properties</a>  (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_properties_p</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-new" title="g_object_new ()">g_object_new</a>                        (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-newv" title="g_object_newv ()">g_object_newv</a>                       (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_parameters</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-newv" title="g_object_newv ()">g_object_newv</a>                       (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_parameters</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GParameter" title="struct GParameter"><span class="type">GParameter</span></a> *parameters</code></em>);
 struct              <a class="link" href="gobject-The-Base-Object-Type.html#GParameter" title="struct GParameter">GParameter</a>;
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-ref" title="g_object_ref ()">g_object_ref</a>                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-unref" title="g_object_unref ()">g_object_unref</a>                      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-ref-sink" title="g_object_ref_sink ()">g_object_ref_sink</a>                   (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-ref" title="g_object_ref ()">g_object_ref</a>                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-unref" title="g_object_unref ()">g_object_unref</a>                      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-ref-sink" title="g_object_ref_sink ()">g_object_ref_sink</a>                   (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-clear-object" title="g_clear_object ()">g_clear_object</a>                      (<em class="parameter"><code>volatile <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> **object_ptr</code></em>);
 typedef             <a class="link" href="gobject-The-Base-Object-Type.html#GInitiallyUnowned" title="GInitiallyUnowned">GInitiallyUnowned</a>;
 typedef             <a class="link" href="gobject-The-Base-Object-Type.html#GInitiallyUnownedClass" title="GInitiallyUnownedClass">GInitiallyUnownedClass</a>;
 #define             <a class="link" href="gobject-The-Base-Object-Type.html#G-TYPE-INITIALLY-UNOWNED:CAPS" title="G_TYPE_INITIALLY_UNOWNED">G_TYPE_INITIALLY_UNOWNED</a>
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-is-floating" title="g_object_is_floating ()">g_object_is_floating</a>                (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-is-floating" title="g_object_is_floating ()">g_object_is_floating</a>                (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-force-floating" title="g_object_force_floating ()">g_object_force_floating</a>             (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>);
-<span class="returnvalue">void</span>                (<a class="link" href="gobject-The-Base-Object-Type.html#GWeakNotify" title="GWeakNotify ()">*GWeakNotify</a>)                      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+<span class="returnvalue">void</span>                (<a class="link" href="gobject-The-Base-Object-Type.html#GWeakNotify" title="GWeakNotify ()">*GWeakNotify</a>)                      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *where_the_object_was</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-weak-ref" title="g_object_weak_ref ()">g_object_weak_ref</a>                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakNotify" title="GWeakNotify ()"><span class="type">GWeakNotify</span></a> notify</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-weak-unref" title="g_object_weak_unref ()">g_object_weak_unref</a>                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakNotify" title="GWeakNotify ()"><span class="type">GWeakNotify</span></a> notify</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-add-weak-pointer" title="g_object_add_weak_pointer ()">g_object_add_weak_pointer</a>           (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> *weak_pointer_location</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> *weak_pointer_location</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-remove-weak-pointer" title="g_object_remove_weak_pointer ()">g_object_remove_weak_pointer</a>        (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> *weak_pointer_location</code></em>);
-<span class="returnvalue">void</span>                (<a class="link" href="gobject-The-Base-Object-Type.html#GToggleNotify" title="GToggleNotify ()">*GToggleNotify</a>)                    (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> *weak_pointer_location</code></em>);
+<span class="returnvalue">void</span>                (<a class="link" href="gobject-The-Base-Object-Type.html#GToggleNotify" title="GToggleNotify ()">*GToggleNotify</a>)                    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> is_last_ref</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> is_last_ref</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-add-toggle-ref" title="g_object_add_toggle_ref ()">g_object_add_toggle_ref</a>             (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GToggleNotify" title="GToggleNotify ()"><span class="type">GToggleNotify</span></a> notify</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-remove-toggle-ref" title="g_object_remove_toggle_ref ()">g_object_remove_toggle_ref</a>          (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GToggleNotify" title="GToggleNotify ()"><span class="type">GToggleNotify</span></a> notify</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-connect" title="g_object_connect ()">g_object_connect</a>                    (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_spec</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-connect" title="g_object_connect ()">g_object_connect</a>                    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_spec</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-disconnect" title="g_object_disconnect ()">g_object_disconnect</a>                 (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_spec</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-disconnect" title="g_object_disconnect ()">g_object_disconnect</a>                 (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_spec</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set" title="g_object_set ()">g_object_set</a>                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set" title="g_object_set ()">g_object_set</a>                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get" title="g_object_get ()">g_object_get</a>                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get" title="g_object_get ()">g_object_get</a>                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-notify" title="g_object_notify ()">g_object_notify</a>                     (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-notify-by-pspec" title="g_object_notify_by_pspec ()">g_object_notify_by_pspec</a>            (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-freeze-notify" title="g_object_freeze_notify ()">g_object_freeze_notify</a>              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-thaw-notify" title="g_object_thaw_notify ()">g_object_thaw_notify</a>                (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-data" title="g_object_get_data ()">g_object_get_data</a>                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-data" title="g_object_get_data ()">g_object_get_data</a>                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-data" title="g_object_set_data ()">g_object_set_data</a>                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-data-full" title="g_object_set_data_full ()">g_object_set_data_full</a>              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-steal-data" title="g_object_steal_data ()">g_object_steal_data</a>                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-dup-data" title="g_object_dup_data ()">g_object_dup_data</a>                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Keyed-Data-Lists.html#GDuplicateFunc"><span class="type">GDuplicateFunc</span></a> dup_func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-replace-data" title="g_object_replace_data ()">g_object_replace_data</a>               (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> oldval</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> newval</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> *old_destroy</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-qdata" title="g_object_get_qdata ()">g_object_get_qdata</a>                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-steal-data" title="g_object_steal_data ()">g_object_steal_data</a>                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-dup-data" title="g_object_dup_data ()">g_object_dup_data</a>                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Keyed-Data-Lists.html#GDuplicateFunc"><span class="type">GDuplicateFunc</span></a> dup_func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-replace-data" title="g_object_replace_data ()">g_object_replace_data</a>               (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> oldval</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> newval</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> *old_destroy</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-qdata" title="g_object_get_qdata ()">g_object_get_qdata</a>                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-qdata" title="g_object_set_qdata ()">g_object_set_qdata</a>                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-qdata-full" title="g_object_set_qdata_full ()">g_object_set_qdata_full</a>             (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-steal-qdata" title="g_object_steal_qdata ()">g_object_steal_qdata</a>                (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-dup-qdata" title="g_object_dup_qdata ()">g_object_dup_qdata</a>                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Keyed-Data-Lists.html#GDuplicateFunc"><span class="type">GDuplicateFunc</span></a> dup_func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-replace-qdata" title="g_object_replace_qdata ()">g_object_replace_qdata</a>              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> oldval</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> newval</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> *old_destroy</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-steal-qdata" title="g_object_steal_qdata ()">g_object_steal_qdata</a>                (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-dup-qdata" title="g_object_dup_qdata ()">g_object_dup_qdata</a>                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Keyed-Data-Lists.html#GDuplicateFunc"><span class="type">GDuplicateFunc</span></a> dup_func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-object-replace-qdata" title="g_object_replace_qdata ()">g_object_replace_qdata</a>              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> oldval</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> newval</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> *old_destroy</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-property" title="g_object_set_property ()">g_object_set_property</a>               (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *value</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-property" title="g_object_get_property ()">g_object_get_property</a>               (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *value</code></em>);
 <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="gobject-The-Base-Object-Type.html#g-object-new-valist" title="g_object_new_valist ()">g_object_new_valist</a>                 (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-valist" title="g_object_set_valist ()">g_object_set_valist</a>                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-valist" title="g_object_get_valist ()">g_object_get_valist</a>                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-object-watch-closure" title="g_object_watch_closure ()">g_object_watch_closure</a>              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>);
@@ -206,11 +206,11 @@ typedef             <a class="link" href="gobject-The-Base-Object-Type.html#GIni
 
                     <a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef">GWeakRef</a>;
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-weak-ref-init" title="g_weak_ref_init ()">g_weak_ref_init</a>                     (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-weak-ref-clear" title="g_weak_ref_clear ()">g_weak_ref_clear</a>                    (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-weak-ref-get" title="g_weak_ref_get ()">g_weak_ref_get</a>                      (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="gobject-The-Base-Object-Type.html#g-weak-ref-get" title="g_weak_ref_get ()">g_weak_ref_get</a>                      (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-The-Base-Object-Type.html#g-weak-ref-set" title="g_weak_ref_set ()">g_weak_ref_set</a>                      (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -300,7 +300,7 @@ expose floating references in their API.
 </p>
 <p>
 Some object implementations may need to save an objects floating state
-across certain code portions (an example is <a href="http://library.gnome.org/devel/gtk3/GtkMenu.html"><span class="type">GtkMenu</span></a>), to achieve this,
+across certain code portions (an example is <span class="type">GtkMenu</span>), to achieve this,
 the following sequence can be used:
 </p>
 <p>
@@ -317,7 +317,8 @@ the following sequence can be used:
 6
 7
 8
-9</pre></td>
+9
+10</pre></td>
         <td class="listing_code"><pre class="programlisting"><span class="comment">/* save floating state */</span>
 <span class="usertype">gboolean</span><span class="normal"> was_floating </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-is-floating">g_object_is_floating</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">);</span>
 <span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-ref-sink">g_object_ref_sink</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">);</span>
@@ -326,7 +327,8 @@ the following sequence can be used:
 <span class="comment">/* restore floating state */</span>
 <span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">was_floating</span><span class="symbol">)</span>
 <span class="normal">  </span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-force-floating">g_object_force_floating</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">);</span>
-<span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">);</span><span class="normal"> </span><span class="comment">/* release previously acquired reference */</span></pre></td>
+<span class="keyword">else</span>
+<span class="normal">  </span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">);</span><span class="normal"> </span><span class="comment">/* release previously acquired reference */</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -384,7 +386,7 @@ The class structure for the <span class="structname">GObject</span> type.
 <p>
 </p>
 <div class="example">
-<a name="idp14087248"></a><p class="title"><b>Example 1. Implementing singletons using a constructor</b></p>
+<a name="id-1.4.5.7.3.5.1"></a><p class="title"><b>Example 1. Implementing singletons using a constructor</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -410,7 +412,7 @@ The class structure for the <span class="structname">GObject</span> type.
 19
 20
 21</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">static</span><span class="normal"> </span><span class="usertype">MySingleton</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">the_singleton </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+        <td class="listing_code"><pre class="programlisting"><span class="keyword">static</span><span class="normal"> </span><span class="usertype">MySingleton</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">the_singleton </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 
 <span class="keyword">static</span><span class="normal"> <a href="gobject-The-Base-Object-Type.html#GObject">GObject</a></span><span class="symbol">*</span>
 <span class="function">my_singleton_constructor</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">GType</span><span class="normal">                  type</span><span class="symbol">,</span>
@@ -460,9 +462,10 @@ needed, e.g. to handle construct properties, or to implement singletons.</td>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GObjectClass.set-property"></a>set_property</code></em> ()</span></p></td>
 <td>the generic setter for all properties of this type. Should be
-overridden for every type with properties. Implementations of <em class="parameter"><code>set_property</code></em>
-don't need to emit property change notification explicitly, this is handled
-by the type system.</td>
+overridden for every type with properties. If implementations of
+<em class="parameter"><code>set_property</code></em> don't emit property change notification explicitly, this will
+be done implicitly by the type system. However, if the notify signal is
+emitted explicitly, the type system will not emit it a second time.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GObjectClass.get-property"></a>get_property</code></em> ()</span></p></td>
@@ -540,7 +543,7 @@ a <a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="s
 <div class="refsect2">
 <a name="GObjectGetPropertyFunc"></a><h3>GObjectGetPropertyFunc ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                (*GObjectGetPropertyFunc)           (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *value</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);</pre>
 <p>
@@ -577,7 +580,7 @@ The type of the <em class="parameter"><code>get_property</code></em> function of
 <div class="refsect2">
 <a name="GObjectSetPropertyFunc"></a><h3>GObjectSetPropertyFunc ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                (*GObjectSetPropertyFunc)           (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *value</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);</pre>
 <p>
@@ -649,7 +652,7 @@ Check if the passed in type id is a <a class="link" href="gobject-Type-Informati
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> or <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, indicating whether <em class="parameter"><code>type</code></em> is a <a class="link" href="gobject-Type-Information.html#G-TYPE-OBJECT:CAPS" title="G_TYPE_OBJECT"><code class="literal">G_TYPE_OBJECT</code></a>.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, indicating whether <em class="parameter"><code>type</code></em> is a <a class="link" href="gobject-Type-Information.html#G-TYPE-OBJECT:CAPS" title="G_TYPE_OBJECT"><code class="literal">G_TYPE_OBJECT</code></a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -868,7 +871,7 @@ should not be freed.</td>
 <div class="refsect2">
 <a name="g-object-class-install-property"></a><h3>g_object_class_install_property ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_class_install_property     (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);</pre>
 <p>
 Installs a new property. This is usually done in the class initializer.
@@ -904,7 +907,7 @@ e.g. to change the range of allowed values or the default value.
 <div class="refsect2">
 <a name="g-object-class-install-properties"></a><h3>g_object_class_install_properties ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_class_install_properties   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_pspecs</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_pspecs</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> **pspecs</code></em>);</pre>
 <p>
 Installs new properties from an array of <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a>s. This is
@@ -961,7 +964,7 @@ class initialization:
 <span class="normal">  PROP_0</span><span class="symbol">,</span><span class="normal"> PROP_FOO</span><span class="symbol">,</span><span class="normal"> PROP_BAR</span><span class="symbol">,</span><span class="normal"> N_PROPERTIES</span>
 <span class="cbracket">}</span><span class="symbol">;</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="usertype">GParamSpec</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">obj_properties</span><span class="symbol">[</span><span class="normal">N_PROPERTIES</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">;</span>
+<span class="keyword">static</span><span class="normal"> </span><span class="usertype">GParamSpec</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">obj_properties</span><span class="symbol">[</span><span class="normal">N_PROPERTIES</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">;</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
 <span class="function">my_object_class_init</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">MyObjectClass</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">klass</span><span class="symbol">)</span>
@@ -970,13 +973,13 @@ class initialization:
 
 <span class="normal">  obj_properties</span><span class="symbol">[</span><span class="normal">PROP_FOO</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span>
 <span class="normal">    </span><span class="function"><a href="gobject-Standard-Parameter-and-Value-Types.html#g-param-spec-int">g_param_spec_int</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"foo"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Foo"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Foo"</span><span class="symbol">,</span>
-<span class="normal">                      </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Basic-Types.html#G-MAXINT:CAPS">G_MAXINT</a></span><span class="symbol">,</span>
+<span class="normal">                      </span><span class="symbol">-</span><span class="number">1</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#G-MAXINT:CAPS">G_MAXINT</a></span><span class="symbol">,</span>
 <span class="normal">                      </span><span class="number">0</span><span class="symbol">,</span>
 <span class="normal">                      <a href="gobject-GParamSpec.html#G-PARAM-READWRITE:CAPS">G_PARAM_READWRITE</a></span><span class="symbol">);</span>
 
 <span class="normal">  obj_properties</span><span class="symbol">[</span><span class="normal">PROP_BAR</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span>
 <span class="normal">    </span><span class="function"><a href="gobject-Standard-Parameter-and-Value-Types.html#g-param-spec-string">g_param_spec_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"bar"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Bar"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Bar"</span><span class="symbol">,</span>
-<span class="normal">                         <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
+<span class="normal">                         <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
 <span class="normal">                         <a href="gobject-GParamSpec.html#G-PARAM-READWRITE:CAPS">G_PARAM_READWRITE</a></span><span class="symbol">);</span>
 
 <span class="normal">  gobject_class</span><span class="symbol">-&gt;</span><span class="normal">set_property </span><span class="symbol">=</span><span class="normal"> my_object_set_property</span><span class="symbol">;</span>
@@ -1055,7 +1058,7 @@ defining the new properties. <span class="annotation">[<acronym title="Parameter
 <div class="refsect2">
 <a name="g-object-class-find-property"></a><h3>g_object_class_find_property ()</h3>
 <pre class="programlisting"><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> *        g_object_class_find_property        (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);</pre>
 <p>
 Looks up the <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> for a property of a class.
 </p>
@@ -1077,7 +1080,7 @@ Looks up the <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="st
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> for the property, or
-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the class doesn't have a property of that name. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the class doesn't have a property of that name. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -1087,7 +1090,7 @@ Looks up the <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="st
 <div class="refsect2">
 <a name="g-object-class-list-properties"></a><h3>g_object_class_list_properties ()</h3>
 <pre class="programlisting"><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> **       g_object_class_list_properties      (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_properties</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_properties</code></em>);</pre>
 <p>
 Get an array of <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a>* for all properties of a class.
 </p>
@@ -1120,8 +1123,8 @@ Get an array of <a class="link" href="gobject-GParamSpec.html#GParamSpec" title=
 <div class="refsect2">
 <a name="g-object-class-override-property"></a><h3>g_object_class_override_property ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_class_override_property    (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass" title="struct GObjectClass"><span class="type">GObjectClass</span></a> *oclass</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> property_id</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>);</pre>
 <p>
 Registers <em class="parameter"><code>property_id</code></em> as referring to a property with the
 name <em class="parameter"><code>name</code></em> in a parent class or in an interface implemented
@@ -1173,7 +1176,7 @@ in an interface of this class.</td>
 <hr>
 <div class="refsect2">
 <a name="g-object-interface-install-property"></a><h3>g_object_interface_install_property ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_object_interface_install_property (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_object_interface_install_property (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec</code></em>);</pre>
 <p>
 Add a property to an interface; this is only useful for interfaces
@@ -1214,8 +1217,8 @@ vtable for the interface.</td>
 <hr>
 <div class="refsect2">
 <a name="g-object-interface-find-property"></a><h3>g_object_interface_find_property ()</h3>
-<pre class="programlisting"><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> *        g_object_interface_find_property    (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> *        g_object_interface_find_property    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);</pre>
 <p>
 Find the <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> with the given name for an
 interface. Generally, the interface vtable passed in as <em class="parameter"><code>g_iface</code></em>
@@ -1241,7 +1244,7 @@ vtable for the interface</td>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> for the property of the
-interface with the name <em class="parameter"><code>property_name</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no
+interface with the name <em class="parameter"><code>property_name</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no
 such property exists. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
@@ -1252,8 +1255,8 @@ such property exists. <span class="annotation">[<acronym title="Don't free data 
 <hr>
 <div class="refsect2">
 <a name="g-object-interface-list-properties"></a><h3>g_object_interface_list_properties ()</h3>
-<pre class="programlisting"><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> **       g_object_interface_list_properties  (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_properties_p</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="returnvalue">GParamSpec</span></a> **       g_object_interface_list_properties  (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> g_iface</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_properties_p</code></em>);</pre>
 <p>
 Lists the properties of an interface.Generally, the interface
 vtable passed in as <em class="parameter"><code>g_iface</code></em> will be the default vtable from
@@ -1281,7 +1284,7 @@ vtable for the interface</td>
 <td>a
 pointer to an array of pointers to <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a>
 structures. The paramspecs are owned by GLib, but the
-array should be freed with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you are done with
+array should be freed with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> when you are done with
 it. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_properties_p][<acronym title="Free data container after the code is done."><span class="acronym">transfer container</span></acronym>]</span>
 </td>
 </tr>
@@ -1292,8 +1295,8 @@ it. <span class="annotation">[<acronym title="Parameter points to an array of it
 <hr>
 <div class="refsect2">
 <a name="g-object-new"></a><h3>g_object_new ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_new                        (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_new                        (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Creates a new instance of a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> subtype and sets its properties.
@@ -1319,7 +1322,7 @@ which are not explicitly specified are set to their default values.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>...</code></em> :</span></p></td>
 <td>the value of the first property, followed optionally by more
-name/value pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+name/value pairs, followed by <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
@@ -1333,8 +1336,8 @@ name/value pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#
 <hr>
 <div class="refsect2">
 <a name="g-object-newv"></a><h3>g_object_newv ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_newv                       (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_parameters</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_newv                       (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_parameters</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GParameter" title="struct GParameter"><span class="type">GParameter</span></a> *parameters</code></em>);</pre>
 <p>
 Creates a new instance of a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> subtype and sets its properties.
@@ -1393,7 +1396,7 @@ to hand parameter name/value pairs to <a class="link" href="gobject-The-Base-Obj
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GParameter.name"></a>name</code></em>;</span></p></td>
+<td><p><span class="term">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GParameter.name"></a>name</code></em>;</span></p></td>
 <td>the parameter name</td>
 </tr>
 <tr>
@@ -1406,7 +1409,7 @@ to hand parameter name/value pairs to <a class="link" href="gobject-The-Base-Obj
 <hr>
 <div class="refsect2">
 <a name="g-object-ref"></a><h3>g_object_ref ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_ref                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_ref                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
 <p>
 Increases the reference count of <em class="parameter"><code>object</code></em>.
 </p>
@@ -1432,7 +1435,7 @@ Increases the reference count of <em class="parameter"><code>object</code></em>.
 <hr>
 <div class="refsect2">
 <a name="g-object-unref"></a><h3>g_object_unref ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_object_unref                      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_object_unref                      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
 <p>
 Decreases the reference count of <em class="parameter"><code>object</code></em>. When its reference count
 drops to 0, the object is finalized (i.e. its memory is freed).
@@ -1452,7 +1455,7 @@ drops to 0, the object is finalized (i.e. its memory is freed).
 <hr>
 <div class="refsect2">
 <a name="g-object-ref-sink"></a><h3>g_object_ref_sink ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_ref_sink                   (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_ref_sink                   (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
 <p>
 Increase the reference count of <em class="parameter"><code>object</code></em>, and possibly remove the
 <a class="link" href="gobject-The-Base-Object-Type.html#floating-ref">floating</a> reference, if <em class="parameter"><code>object</code></em>
@@ -1494,12 +1497,12 @@ adds a new normal reference increasing the reference count by one.
 Clears a reference to a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>.
 </p>
 <p>
-<em class="parameter"><code>object_ptr</code></em> must not be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+<em class="parameter"><code>object_ptr</code></em> must not be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <p>
-If the reference is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> then this function does nothing.
+If the reference is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> then this function does nothing.
 Otherwise, the reference count of the object is decreased and the
-pointer is set to <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+pointer is set to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <p>
 This function is threadsafe and modifies the pointer atomically,
@@ -1553,7 +1556,7 @@ The type for <a class="link" href="gobject-The-Base-Object-Type.html#GInitiallyU
 <hr>
 <div class="refsect2">
 <a name="g-object-is-floating"></a><h3>g_object_is_floating ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_object_is_floating                (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_object_is_floating                (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
 <p>
 Checks whether <em class="parameter"><code>object</code></em> has a <a class="link" href="gobject-The-Base-Object-Type.html#floating-ref">floating</a>
 reference.
@@ -1572,7 +1575,7 @@ reference.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>object</code></em> has a floating reference</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>object</code></em> has a floating reference</td>
 </tr>
 </tbody>
 </table></div>
@@ -1605,7 +1608,7 @@ usually just needs to be sunken by calling <a class="link" href="gobject-The-Bas
 <hr>
 <div class="refsect2">
 <a name="GWeakNotify"></a><h3>GWeakNotify ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                (*GWeakNotify)                      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                (*GWeakNotify)                      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *where_the_object_was</code></em>);</pre>
 <p>
 A <a class="link" href="gobject-The-Base-Object-Type.html#GWeakNotify" title="GWeakNotify ()"><span class="type">GWeakNotify</span></a> function can be added to an object as a callback that gets
@@ -1635,7 +1638,7 @@ with the object, apart from e.g. using its address as hash-index or the like.
 <a name="g-object-weak-ref"></a><h3>g_object_weak_ref ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_weak_ref                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakNotify" title="GWeakNotify ()"><span class="type">GWeakNotify</span></a> notify</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Adds a weak reference callback to an object. Weak references are
 used for notification when an object is finalized. They are called
@@ -1676,7 +1679,7 @@ Use <a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWe
 <a name="g-object-weak-unref"></a><h3>g_object_weak_unref ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_weak_unref                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakNotify" title="GWeakNotify ()"><span class="type">GWeakNotify</span></a> notify</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Removes a weak reference callback to an object.
 </p>
@@ -1706,12 +1709,12 @@ Removes a weak reference callback to an object.
 <div class="refsect2">
 <a name="g-object-add-weak-pointer"></a><h3>g_object_add_weak_pointer ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_add_weak_pointer           (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> *weak_pointer_location</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> *weak_pointer_location</code></em>);</pre>
 <p>
 Adds a weak reference from weak_pointer to <em class="parameter"><code>object</code></em> to indicate that
 the pointer located at <em class="parameter"><code>weak_pointer_location</code></em> is only valid during
 the lifetime of <em class="parameter"><code>object</code></em>. When the <em class="parameter"><code>object</code></em> is finalized,
-<em class="parameter"><code>weak_pointer</code></em> will be set to <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+<em class="parameter"><code>weak_pointer</code></em> will be set to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <p>
 Note that as with <a class="link" href="gobject-The-Base-Object-Type.html#g-object-weak-ref" title="g_object_weak_ref ()"><code class="function">g_object_weak_ref()</code></a>, the weak references created by
@@ -1741,7 +1744,7 @@ thread. Use <a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" ti
 <div class="refsect2">
 <a name="g-object-remove-weak-pointer"></a><h3>g_object_remove_weak_pointer ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_remove_weak_pointer        (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> *weak_pointer_location</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> *weak_pointer_location</code></em>);</pre>
 <p>
 Removes a weak reference from <em class="parameter"><code>object</code></em> that was previously added
 using <a class="link" href="gobject-The-Base-Object-Type.html#g-object-add-weak-pointer" title="g_object_add_weak_pointer ()"><code class="function">g_object_add_weak_pointer()</code></a>. The <em class="parameter"><code>weak_pointer_location</code></em> has
@@ -1768,9 +1771,9 @@ to match the one used with <a class="link" href="gobject-The-Base-Object-Type.ht
 <hr>
 <div class="refsect2">
 <a name="GToggleNotify"></a><h3>GToggleNotify ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                (*GToggleNotify)                    (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                (*GToggleNotify)                    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> is_last_ref</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> is_last_ref</code></em>);</pre>
 <p>
 A callback function used for notification when the state
 of a toggle reference changes. See <a class="link" href="gobject-The-Base-Object-Type.html#g-object-add-toggle-ref" title="g_object_add_toggle_ref ()"><code class="function">g_object_add_toggle_ref()</code></a>.
@@ -1793,8 +1796,8 @@ of a toggle reference changes. See <a class="link" href="gobject-The-Base-Object
 <tr>
 <td><p><span class="term"><em class="parameter"><code>is_last_ref</code></em> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the toggle reference is now the
-last reference to the object. <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the toggle
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the toggle reference is now the
+last reference to the object. <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> if the toggle
 reference was the last reference and there are now other
 references.</td>
 </tr>
@@ -1806,7 +1809,7 @@ references.</td>
 <a name="g-object-add-toggle-ref"></a><h3>g_object_add_toggle_ref ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_add_toggle_ref             (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GToggleNotify" title="GToggleNotify ()"><span class="type">GToggleNotify</span></a> notify</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Increases the reference count of the object by one and sets a
 callback to be called when all other references to the object are
@@ -1872,7 +1875,7 @@ the last reference.</td>
 <a name="g-object-remove-toggle-ref"></a><h3>g_object_remove_toggle_ref ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_remove_toggle_ref          (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GToggleNotify" title="GToggleNotify ()"><span class="type">GToggleNotify</span></a> notify</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Removes a reference added with <a class="link" href="gobject-The-Base-Object-Type.html#g-object-add-toggle-ref" title="g_object_add_toggle_ref ()"><code class="function">g_object_add_toggle_ref()</code></a>. The
 reference count of the object is decreased by one.
@@ -1906,8 +1909,8 @@ the last reference.</td>
 <hr>
 <div class="refsect2">
 <a name="g-object-connect"></a><h3>g_object_connect ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_connect                    (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_spec</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_connect                    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_spec</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 A convenience function to connect multiple signals at once.
@@ -1989,13 +1992,13 @@ equivalent to <code class="literal">g_signal_connect_object (..., G_CONNECT_SWAP
 7
 8</pre></td>
         <td class="listing_code"><pre class="programlisting"><span class="normal">menu</span><span class="symbol">-&gt;</span><span class="normal">toplevel </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-connect">g_object_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-new">g_object_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">GTK_TYPE_WINDOW</span><span class="symbol">,</span>
-<span class="normal">                           </span><span class="string">"type"</span><span class="symbol">,</span><span class="normal"> <a href="http://library.gnome.org/devel/gtk3/gtk-Standard-Enumerations.html#GTK-WINDOW-POPUP:CAPS">GTK_WINDOW_POPUP</a></span><span class="symbol">,</span>
+<span class="normal">                           </span><span class="string">"type"</span><span class="symbol">,</span><span class="normal"> GTK_WINDOW_POPUP</span><span class="symbol">,</span>
 <span class="normal">                           </span><span class="string">"child"</span><span class="symbol">,</span><span class="normal"> menu</span><span class="symbol">,</span>
-<span class="normal">                           <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">),</span>
+<span class="normal">                           <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">),</span>
 <span class="normal">                     </span><span class="string">"signal::event"</span><span class="symbol">,</span><span class="normal"> gtk_menu_window_event</span><span class="symbol">,</span><span class="normal"> menu</span><span class="symbol">,</span>
 <span class="normal">                     </span><span class="string">"signal::size_request"</span><span class="symbol">,</span><span class="normal"> gtk_menu_window_size_request</span><span class="symbol">,</span><span class="normal"> menu</span><span class="symbol">,</span>
-<span class="normal">                     </span><span class="string">"signal::destroy"</span><span class="symbol">,</span><span class="normal"> <a href="http://library.gnome.org/devel/gtk3/GtkWidget.html#gtk-widget-destroyed">gtk_widget_destroyed</a></span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">menu</span><span class="symbol">-&gt;</span><span class="normal">toplevel</span><span class="symbol">,</span>
-<span class="normal">                     <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span></pre></td>
+<span class="normal">                     </span><span class="string">"signal::destroy"</span><span class="symbol">,</span><span class="normal"> gtk_widget_destroyed</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">menu</span><span class="symbol">-&gt;</span><span class="normal">toplevel</span><span class="symbol">,</span>
+<span class="normal">                     <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -2023,7 +2026,7 @@ equivalent to <code class="literal">g_signal_connect_object (..., G_CONNECT_SWAP
 <td>
 <a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> for the first signal, followed by data for the
 first signal, followed optionally by more signal
-spec/callback/data triples, followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+spec/callback/data triples, followed by <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
@@ -2038,8 +2041,8 @@ spec/callback/data triples, followed by <a href="./../glib/glib/glib-Standard-Ma
 <hr>
 <div class="refsect2">
 <a name="g-object-disconnect"></a><h3>g_object_disconnect ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_object_disconnect                 (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_spec</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_object_disconnect                 (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_spec</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 A convenience function to disconnect multiple signals at once.
@@ -2070,7 +2073,7 @@ disconnects the signal named "signal_name".
 <td>
 <a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> for the first signal, followed by data for the first signal,
 followed optionally by more signal spec/callback/data triples,
-followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+followed by <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 </tbody>
@@ -2079,8 +2082,8 @@ followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code c
 <hr>
 <div class="refsect2">
 <a name="g-object-set"></a><h3>g_object_set ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_object_set                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_object_set                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Sets properties on an object.
@@ -2103,7 +2106,7 @@ Sets properties on an object.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>...</code></em> :</span></p></td>
 <td>value for the first property, followed optionally by more
-name/value pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+name/value pairs, followed by <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 </tbody>
@@ -2112,8 +2115,8 @@ name/value pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#
 <hr>
 <div class="refsect2">
 <a name="g-object-get"></a><h3>g_object_get ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_object_get                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_object_get                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Gets properties of an object.
@@ -2121,12 +2124,12 @@ Gets properties of an object.
 <p>
 In general, a copy is made of the property contents and the caller
 is responsible for freeing the memory in the appropriate manner for
-the type, for instance by calling <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> or <a class="link" href="gobject-The-Base-Object-Type.html#g-object-unref" title="g_object_unref ()"><code class="function">g_object_unref()</code></a>.
+the type, for instance by calling <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> or <a class="link" href="gobject-The-Base-Object-Type.html#g-object-unref" title="g_object_unref ()"><code class="function">g_object_unref()</code></a>.
 </p>
 <p>
 </p>
 <div class="example">
-<a name="idp17931088"></a><p class="title"><b>Example 2. Using g_object_get()</b></p>
+<a name="id-1.4.5.7.49.6.1"></a><p class="title"><b>Example 2. Using g_object_get()</b></p>
 <div class="example-contents">
 An example of using <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get" title="g_object_get ()"><code class="function">g_object_get()</code></a> to get the contents
 of three properties - one of type <a class="link" href="gobject-Type-Information.html#G-TYPE-INT:CAPS" title="G_TYPE_INT"><span class="type">G_TYPE_INT</span></a>,
@@ -2169,7 +2172,7 @@ one of type <a class="link" href="gobject-Type-Information.html#G-TYPE-STRING:CA
 <tr>
 <td><p><span class="term"><em class="parameter"><code>...</code></em> :</span></p></td>
 <td>return location for the first property, followed optionally by more
-name/return location pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+name/return location pairs, followed by <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 </tbody>
@@ -2179,7 +2182,7 @@ name/return location pairs, followed by <a href="./../glib/glib/glib-Standard-Ma
 <div class="refsect2">
 <a name="g-object-notify"></a><h3>g_object_notify ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_notify                     (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>);</pre>
 <p>
 Emits a "notify" signal for the property <em class="parameter"><code>property_name</code></em> on <em class="parameter"><code>object</code></em>.
 </p>
@@ -2373,8 +2376,8 @@ It is an error to call this function when the freeze count is zero.
 <hr>
 <div class="refsect2">
 <a name="g-object-get-data"></a><h3>g_object_get_data ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_get_data                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_get_data                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>);</pre>
 <p>
 Gets a named field from the objects table of associations (see <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-data" title="g_object_set_data ()"><code class="function">g_object_set_data()</code></a>).
 </p>
@@ -2395,7 +2398,7 @@ Gets a named field from the objects table of associations (see <a class="link" h
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the data if found, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such data exists. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>the data if found, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such data exists. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -2405,8 +2408,8 @@ Gets a named field from the objects table of associations (see <a class="link" h
 <div class="refsect2">
 <a name="g-object-set-data"></a><h3>g_object_set_data ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_set_data                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Each object carries around a table of associations from
 strings to pointers.  This function lets you set an association.
@@ -2441,16 +2444,16 @@ the old association will be destroyed.
 <div class="refsect2">
 <a name="g-object-set-data-full"></a><h3>g_object_set_data_full ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_set_data_full              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);</pre>
 <p>
 Like <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-data" title="g_object_set_data ()"><code class="function">g_object_set_data()</code></a> except it adds notification
 for when the association is destroyed, either by setting it
 to a different value or when the object is destroyed.
 </p>
 <p>
-Note that the <em class="parameter"><code>destroy</code></em> callback is not called if <em class="parameter"><code>data</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+Note that the <em class="parameter"><code>destroy</code></em> callback is not called if <em class="parameter"><code>data</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -2481,8 +2484,8 @@ Note that the <em class="parameter"><code>destroy</code></em> callback is not ca
 <hr>
 <div class="refsect2">
 <a name="g-object-steal-data"></a><h3>g_object_steal_data ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_steal_data                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_steal_data                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>);</pre>
 <p>
 Remove a specified datum from the object's data associations,
 without invoking the association's destroy handler.
@@ -2504,7 +2507,7 @@ without invoking the association's destroy handler.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the data if found, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such data exists. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>the data if found, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such data exists. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -2513,10 +2516,10 @@ without invoking the association's destroy handler.
 <hr>
 <div class="refsect2">
 <a name="g-object-dup-data"></a><h3>g_object_dup_data ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_dup_data                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Keyed-Data-Lists.html#GDuplicateFunc"><span class="type">GDuplicateFunc</span></a> dup_func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_dup_data                   (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Keyed-Data-Lists.html#GDuplicateFunc"><span class="type">GDuplicateFunc</span></a> dup_func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 This is a variant of <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-data" title="g_object_get_data ()"><code class="function">g_object_get_data()</code></a> which returns
 a 'duplicate' of the value. <em class="parameter"><code>dup_func</code></em> defines the
@@ -2525,7 +2528,7 @@ take a reference on a ref-counted object.
 </p>
 <p>
 If the <em class="parameter"><code>key</code></em> is not set on the object then <em class="parameter"><code>dup_func</code></em>
-will be called with a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> argument.
+will be called with a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> argument.
 </p>
 <p>
 Note that <em class="parameter"><code>dup_func</code></em> is called while user data of <em class="parameter"><code>object</code></em>
@@ -2563,8 +2566,8 @@ object.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the result of calling <em class="parameter"><code>dup_func</code></em> on the value
-associated with <em class="parameter"><code>key</code></em> on <em class="parameter"><code>object</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if not set.
-If <em class="parameter"><code>dup_func</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the value is returned
+associated with <em class="parameter"><code>key</code></em> on <em class="parameter"><code>object</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if not set.
+If <em class="parameter"><code>dup_func</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the value is returned
 unmodified.</td>
 </tr>
 </tbody>
@@ -2574,12 +2577,12 @@ unmodified.</td>
 <hr>
 <div class="refsect2">
 <a name="g-object-replace-data"></a><h3>g_object_replace_data ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_object_replace_data               (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> oldval</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> newval</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> *old_destroy</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_object_replace_data               (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *key</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> oldval</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> newval</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> *old_destroy</code></em>);</pre>
 <p>
 Compares the user data for the key <em class="parameter"><code>key</code></em> on <em class="parameter"><code>object</code></em> with
 <em class="parameter"><code>oldval</code></em>, and if they are the same, replaces <em class="parameter"><code>oldval</code></em> with
@@ -2598,8 +2601,8 @@ or may not include using <em class="parameter"><code>old_destroy</code></em> as 
 should not destroy the object in the normal way.
 </p>
 <p>
-Return: <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the existing value for <em class="parameter"><code>key</code></em> was replaced
- by <em class="parameter"><code>newval</code></em>, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.
+Return: <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the existing value for <em class="parameter"><code>key</code></em> was replaced
+ by <em class="parameter"><code>newval</code></em>, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -2642,8 +2645,8 @@ Return: <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class
 <hr>
 <div class="refsect2">
 <a name="g-object-get-qdata"></a><h3>g_object_get_qdata ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_get_qdata                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_get_qdata                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>);</pre>
 <p>
 This function gets back user data pointers stored via
 <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-qdata" title="g_object_set_qdata ()"><code class="function">g_object_set_qdata()</code></a>.
@@ -2660,11 +2663,11 @@ This function gets back user data pointers stored via
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>quark</code></em> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>The user data pointer set, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>The user data pointer set, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -2674,16 +2677,16 @@ This function gets back user data pointers stored via
 <div class="refsect2">
 <a name="g-object-set-qdata"></a><h3>g_object_set_qdata ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_set_qdata                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 This sets an opaque, named pointer on an object.
-The name is specified through a <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> (retrived e.g. via
-<a href="./../glib/glib/glib-Quarks.html#g-quark-from-static-string"><code class="function">g_quark_from_static_string()</code></a>), and the pointer
+The name is specified through a <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> (retrived e.g. via
+<a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#g-quark-from-static-string"><code class="function">g_quark_from_static_string()</code></a>), and the pointer
 can be gotten back from the <em class="parameter"><code>object</code></em> with <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-qdata" title="g_object_get_qdata ()"><code class="function">g_object_get_qdata()</code></a>
 until the <em class="parameter"><code>object</code></em> is finalized.
 Setting a previously set user data pointer, overrides (frees)
-the old pointer set, using <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><span class="type">NULL</span></a> as pointer essentially
+the old pointer set, using <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><span class="type">NULL</span></a> as pointer essentially
 removes the data stored.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -2698,7 +2701,7 @@ removes the data stored.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>quark</code></em> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
@@ -2711,9 +2714,9 @@ removes the data stored.
 <div class="refsect2">
 <a name="g-object-set-qdata-full"></a><h3>g_object_set_qdata_full ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_set_qdata_full             (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);</pre>
 <p>
 This function works like <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-qdata" title="g_object_set_qdata ()"><code class="function">g_object_set_qdata()</code></a>, but in addition,
 a void (*destroy) (gpointer) function may be specified which is
@@ -2733,7 +2736,7 @@ with the same <em class="parameter"><code>quark</code></em>.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>quark</code></em> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
@@ -2750,8 +2753,8 @@ needs to be freed</td>
 <hr>
 <div class="refsect2">
 <a name="g-object-steal-qdata"></a><h3>g_object_steal_qdata ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_steal_qdata                (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_steal_qdata                (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>);</pre>
 <p>
 This function gets back user data pointers stored via
 <a class="link" href="gobject-The-Base-Object-Type.html#g-object-set-qdata" title="g_object_set_qdata ()"><code class="function">g_object_set_qdata()</code></a> and removes the <em class="parameter"><code>data</code></em> from object
@@ -2792,12 +2795,12 @@ user data pointers with a destroy notifier, for example:
 <span class="normal">                         </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">new_string</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
 <span class="normal">  </span><span class="comment">// the quark, naming the object data</span>
-<span class="normal">  </span><span class="usertype">GQuark</span><span class="normal"> quark_string_list </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-Quarks.html#g-quark-from-static-string">g_quark_from_static_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"my-string-list"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="usertype">GQuark</span><span class="normal"> quark_string_list </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#g-quark-from-static-string">g_quark_from_static_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"my-string-list"</span><span class="symbol">);</span>
 <span class="normal">  </span><span class="comment">// retrive the old string list</span>
 <span class="normal">  </span><span class="usertype">GList</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">list </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-steal-qdata">g_object_steal_qdata</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">,</span><span class="normal"> quark_string_list</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="comment">// prepend new string</span>
-<span class="normal">  list </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-Doubly-Linked-Lists.html#g-list-prepend">g_list_prepend</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">list</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-String-Utility-Functions.html#g-strdup">g_strdup</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">new_string</span><span class="symbol">));</span>
+<span class="normal">  list </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#g-list-prepend">g_list_prepend</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">list</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strdup">g_strdup</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">new_string</span><span class="symbol">));</span>
 <span class="normal">  </span><span class="comment">// this changed 'list', so we need to set it again</span>
 <span class="normal">  </span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-set-qdata-full">g_object_set_qdata_full</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">,</span><span class="normal"> quark_string_list</span><span class="symbol">,</span><span class="normal"> list</span><span class="symbol">,</span><span class="normal"> free_string_list</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
@@ -2807,8 +2810,8 @@ user data pointers with a destroy notifier, for example:
 <span class="normal">  </span><span class="usertype">GList</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">node</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">list </span><span class="symbol">=</span><span class="normal"> data</span><span class="symbol">;</span>
 
 <span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">node </span><span class="symbol">=</span><span class="normal"> list</span><span class="symbol">;</span><span class="normal"> node</span><span class="symbol">;</span><span class="normal"> node </span><span class="symbol">=</span><span class="normal"> node</span><span class="symbol">-&gt;</span><span class="normal">next</span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">node</span><span class="symbol">-&gt;</span><span class="normal">data</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Doubly-Linked-Lists.html#g-list-free">g_list_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">list</span><span class="symbol">);</span>
+<span class="normal">    </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">node</span><span class="symbol">-&gt;</span><span class="normal">data</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#g-list-free">g_list_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">list</span><span class="symbol">);</span>
 <span class="cbracket">}</span></pre></td>
       </tr>
     </tbody>
@@ -2833,11 +2836,11 @@ and thus the partial string list would have been freed upon
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>quark</code></em> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>The user data pointer set, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>The user data pointer set, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -2846,10 +2849,10 @@ and thus the partial string list would have been freed upon
 <hr>
 <div class="refsect2">
 <a name="g-object-dup-qdata"></a><h3>g_object_dup_qdata ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_dup_qdata                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Keyed-Data-Lists.html#GDuplicateFunc"><span class="type">GDuplicateFunc</span></a> dup_func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_object_dup_qdata                  (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Keyed-Data-Lists.html#GDuplicateFunc"><span class="type">GDuplicateFunc</span></a> dup_func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 This is a variant of <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get-qdata" title="g_object_get_qdata ()"><code class="function">g_object_get_qdata()</code></a> which returns
 a 'duplicate' of the value. <em class="parameter"><code>dup_func</code></em> defines the
@@ -2858,7 +2861,7 @@ take a reference on a ref-counted object.
 </p>
 <p>
 If the <em class="parameter"><code>quark</code></em> is not set on the object then <em class="parameter"><code>dup_func</code></em>
-will be called with a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> argument.
+will be called with a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> argument.
 </p>
 <p>
 Note that <em class="parameter"><code>dup_func</code></em> is called while user data of <em class="parameter"><code>object</code></em>
@@ -2881,7 +2884,7 @@ object.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>quark</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>dup_func</code></em> :</span></p></td>
@@ -2896,8 +2899,8 @@ object.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the result of calling <em class="parameter"><code>dup_func</code></em> on the value
-associated with <em class="parameter"><code>quark</code></em> on <em class="parameter"><code>object</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if not set.
-If <em class="parameter"><code>dup_func</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the value is returned
+associated with <em class="parameter"><code>quark</code></em> on <em class="parameter"><code>object</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if not set.
+If <em class="parameter"><code>dup_func</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the value is returned
 unmodified.</td>
 </tr>
 </tbody>
@@ -2907,12 +2910,12 @@ unmodified.</td>
 <hr>
 <div class="refsect2">
 <a name="g-object-replace-qdata"></a><h3>g_object_replace_qdata ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_object_replace_qdata              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> oldval</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> newval</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> *old_destroy</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_object_replace_qdata              (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> quark</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> oldval</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> newval</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> *old_destroy</code></em>);</pre>
 <p>
 Compares the user data for the key <em class="parameter"><code>quark</code></em> on <em class="parameter"><code>object</code></em> with
 <em class="parameter"><code>oldval</code></em>, and if they are the same, replaces <em class="parameter"><code>oldval</code></em> with
@@ -2931,8 +2934,8 @@ or may not include using <em class="parameter"><code>old_destroy</code></em> as 
 should not destroy the object in the normal way.
 </p>
 <p>
-Return: <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the existing value for <em class="parameter"><code>quark</code></em> was replaced
- by <em class="parameter"><code>newval</code></em>, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.
+Return: <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the existing value for <em class="parameter"><code>quark</code></em> was replaced
+ by <em class="parameter"><code>newval</code></em>, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -2946,7 +2949,7 @@ Return: <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>quark</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>, naming the user data pointer</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>oldval</code></em> :</span></p></td>
@@ -2976,7 +2979,7 @@ Return: <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class
 <div class="refsect2">
 <a name="g-object-set-property"></a><h3>g_object_set_property ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_set_property               (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>
 Sets a property on an object.
@@ -3007,7 +3010,7 @@ Sets a property on an object.
 <div class="refsect2">
 <a name="g-object-get-property"></a><h3>g_object_get_property ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_get_property               (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *property_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *value</code></em>);</pre>
 <p>
 Gets a property of an object. <em class="parameter"><code>value</code></em> must have been initialized to the
@@ -3048,7 +3051,7 @@ bindings, <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get" 
 <div class="refsect2">
 <a name="g-object-new-valist"></a><h3>g_object_new_valist ()</h3>
 <pre class="programlisting"><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           g_object_new_valist                 (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> object_type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);</pre>
 <p>
 Creates a new instance of a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> subtype and sets its properties.
@@ -3074,7 +3077,7 @@ which are not explicitly specified are set to their default values.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>var_args</code></em> :</span></p></td>
 <td>the value of the first property, followed optionally by more
-name/value pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+name/value pairs, followed by <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
@@ -3089,7 +3092,7 @@ name/value pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#
 <div class="refsect2">
 <a name="g-object-set-valist"></a><h3>g_object_set_valist ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_set_valist                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);</pre>
 <p>
 Sets properties on an object.
@@ -3112,7 +3115,7 @@ Sets properties on an object.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>var_args</code></em> :</span></p></td>
 <td>value for the first property, followed optionally by more
-name/value pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+name/value pairs, followed by <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 </tbody>
@@ -3122,7 +3125,7 @@ name/value pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#
 <div class="refsect2">
 <a name="g-object-get-valist"></a><h3>g_object_get_valist ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_object_get_valist                 (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> *object</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *first_property_name</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);</pre>
 <p>
 Gets properties of an object.
@@ -3130,7 +3133,7 @@ Gets properties of an object.
 <p>
 In general, a copy is made of the property contents and the caller
 is responsible for freeing the memory in the appropriate manner for
-the type, for instance by calling <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> or <a class="link" href="gobject-The-Base-Object-Type.html#g-object-unref" title="g_object_unref ()"><code class="function">g_object_unref()</code></a>.
+the type, for instance by calling <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a> or <a class="link" href="gobject-The-Base-Object-Type.html#g-object-unref" title="g_object_unref ()"><code class="function">g_object_unref()</code></a>.
 </p>
 <p>
 See <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get" title="g_object_get ()"><code class="function">g_object_get()</code></a>.
@@ -3153,7 +3156,7 @@ See <a class="link" href="gobject-The-Base-Object-Type.html#g-object-get" title=
 <tr>
 <td><p><span class="term"><em class="parameter"><code>var_args</code></em> :</span></p></td>
 <td>return location for the first property, followed optionally by more
-name/return location pairs, followed by <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+name/return location pairs, followed by <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 </tbody>
@@ -3253,10 +3256,10 @@ properties in <code class="function">set_property()</code> and <code class="func
 </pre>
 <p>
 A structure containing a weak reference to a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>.  It can either
-be empty (i.e. point to <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>), or point to an object for as long as
+be empty (i.e. point to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>), or point to an object for as long as
 at least one "strong" reference to that object exists. Before the
 object's <a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass.dispose"><span class="type">GObjectClass.dispose</span></a> method is called, every <a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a>
-associated with becomes empty (i.e. points to <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>).
+associated with becomes empty (i.e. points to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>).
 </p>
 <p>
 Like <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a>, <a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> can be statically allocated, stack- or
@@ -3271,7 +3274,7 @@ objects.
 <p>
 If the object's <a class="link" href="gobject-The-Base-Object-Type.html#GObjectClass.dispose"><span class="type">GObjectClass.dispose</span></a> method results in additional
 references to the object being held, any <a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a>s taken
-before it was disposed will continue to point to <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  If
+before it was disposed will continue to point to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  If
 <a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a>s are taken after the object is disposed and
 re-referenced, they will continue to point to it until its refcount
 goes back to zero, at which point they too will be invalidated.
@@ -3281,7 +3284,7 @@ goes back to zero, at which point they too will be invalidated.
 <div class="refsect2">
 <a name="g-weak-ref-init"></a><h3>g_weak_ref_init ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_weak_ref_init                     (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
 <p>
 Initialise a non-statically-allocated <a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a>.
 </p>
@@ -3309,7 +3312,7 @@ reference. <span class="annotation">[<acronym title="Parameter for input and for
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
-<td>a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -3345,7 +3348,7 @@ may be empty. <span class="annotation">[<acronym title="Parameter for input and 
 <hr>
 <div class="refsect2">
 <a name="g-weak-ref-get"></a><h3>g_weak_ref_get ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_weak_ref_get                      (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="returnvalue">gpointer</span></a>            g_weak_ref_get                      (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>);</pre>
 <p>
 If <em class="parameter"><code>weak_ref</code></em> is not empty, atomically acquire a strong
 reference to the object it points to, and return that reference.
@@ -3373,7 +3376,7 @@ by using <a class="link" href="gobject-The-Base-Object-Type.html#g-object-unref"
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the object pointed to
-by <em class="parameter"><code>weak_ref</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if it was empty. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GObject.Object]</span>
+by <em class="parameter"><code>weak_ref</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if it was empty. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> GObject.Object]</span>
 </td>
 </tr>
 </tbody>
@@ -3384,10 +3387,10 @@ by <em class="parameter"><code>weak_ref</code></em>, or <a href="./../glib/glib/
 <div class="refsect2">
 <a name="g-weak-ref-set"></a><h3>g_weak_ref_set ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_weak_ref_set                      (<em class="parameter"><code><a class="link" href="gobject-The-Base-Object-Type.html#GWeakRef" title="GWeakRef"><span class="type">GWeakRef</span></a> *weak_ref</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> object</code></em>);</pre>
 <p>
 Change the object to which <em class="parameter"><code>weak_ref</code></em> points, or set it to
-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <p>
 You must own a strong reference on <em class="parameter"><code>object</code></em> while calling this
@@ -3405,7 +3408,7 @@ function.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
-<td>a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -3419,7 +3422,7 @@ function.
 <a name="GObject-notify"></a><h3>The <code class="literal">"notify"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>    *gobject,
                                                         <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> *pspec,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)      : <a class="link" href="gobject-Signals.html#G-SIGNAL-NO-HOOKS:CAPS"><code class="literal">No Hooks</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>    user_data)      : <a class="link" href="gobject-Signals.html#G-SIGNAL-NO-HOOKS:CAPS"><code class="literal">No Hooks</code></a></pre>
 <p>
 The notify signal is emitted on an object when one of its
 properties has been changed. Note that getting this signal

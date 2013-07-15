@@ -24,7 +24,7 @@
 #ifndef __ATK_GOBJECT_ACCESSIBLE_H__
 #define __ATK_GOBJECT_ACCESSIBLE_H__
 
-#include <atk/atk.h>
+#include <atk/atkobject.h>
 
 G_BEGIN_DECLS
 

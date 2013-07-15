@@ -47,34 +47,34 @@
                     <a class="link" href="GBinding.html#GBinding-struct" title="GBinding">GBinding</a>;
 enum                <a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags">GBindingFlags</a>;
 <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="GBinding.html#g-binding-get-source" title="g_binding_get_source ()">g_binding_get_source</a>                (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GBinding.html#g-binding-get-source-property" title="g_binding_get_source_property ()">g_binding_get_source_property</a>       (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GBinding.html#g-binding-get-source-property" title="g_binding_get_source_property ()">g_binding_get_source_property</a>       (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);
 <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="returnvalue">GObject</span></a> *           <a class="link" href="GBinding.html#g-binding-get-target" title="g_binding_get_target ()">g_binding_get_target</a>                (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GBinding.html#g-binding-get-target-property" title="g_binding_get_target_property ()">g_binding_get_target_property</a>       (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GBinding.html#g-binding-get-target-property" title="g_binding_get_target_property ()">g_binding_get_target_property</a>       (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);
 <a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags"><span class="returnvalue">GBindingFlags</span></a>       <a class="link" href="GBinding.html#g-binding-get-flags" title="g_binding_get_flags ()">g_binding_get_flags</a>                 (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);
 
-<a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          <a class="link" href="GBinding.html#g-object-bind-property" title="g_object_bind_property ()">g_object_bind_property</a>              (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
+<a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          <a class="link" href="GBinding.html#g-object-bind-property" title="g_object_bind_property ()">g_object_bind_property</a>              (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags"><span class="type">GBindingFlags</span></a> flags</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (<a class="link" href="GBinding.html#GBindingTransformFunc" title="GBindingTransformFunc ()">*GBindingTransformFunc</a>)            (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (<a class="link" href="GBinding.html#GBindingTransformFunc" title="GBindingTransformFunc ()">*GBindingTransformFunc</a>)            (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *source_value</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *target_value</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          <a class="link" href="GBinding.html#g-object-bind-property-full" title="g_object_bind_property_full ()">g_object_bind_property_full</a>         (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          <a class="link" href="GBinding.html#g-object-bind-property-full" title="g_object_bind_property_full ()">g_object_bind_property_full</a>         (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags"><span class="type">GBindingFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingTransformFunc" title="GBindingTransformFunc ()"><span class="type">GBindingTransformFunc</span></a> transform_to</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingTransformFunc" title="GBindingTransformFunc ()"><span class="type">GBindingTransformFunc</span></a> transform_from</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> notify</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> notify</code></em>);
 <a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          <a class="link" href="GBinding.html#g-object-bind-property-with-closures" title="g_object_bind_property_with_closures ()">g_object_bind_property_with_closures</a>
-                                                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
+                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags"><span class="type">GBindingFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *transform_to</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *transform_from</code></em>);
@@ -92,9 +92,9 @@ const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnva
 <pre class="synopsis">
   "<a class="link" href="GBinding.html#GBinding--flags" title='The "flags" property'>flags</a>"                    <a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags"><span class="type">GBindingFlags</span></a>         : Read / Write / Construct Only
   "<a class="link" href="GBinding.html#GBinding--source" title='The "source" property'>source</a>"                   <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>*              : Read / Write / Construct Only
-  "<a class="link" href="GBinding.html#GBinding--source-property" title='The "source-property" property'>source-property</a>"          <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only
+  "<a class="link" href="GBinding.html#GBinding--source-property" title='The "source-property" property'>source-property</a>"          <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only
   "<a class="link" href="GBinding.html#GBinding--target" title='The "target" property'>target</a>"                   <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>*              : Read / Write / Construct Only
-  "<a class="link" href="GBinding.html#GBinding--target-property" title='The "target-property" property'>target-property</a>"          <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only
+  "<a class="link" href="GBinding.html#GBinding--target-property" title='The "target-property" property'>target-property</a>"          <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only
 </pre>
 </div>
 <div class="refsect1">
@@ -180,7 +180,7 @@ applying it; for instance, the following binding:
 <span class="normal">                             <a href="GBinding.html#G-BINDING-BIDIRECTIONAL:CAPS">G_BINDING_BIDIRECTIONAL</a></span><span class="symbol">,</span>
 <span class="normal">                             celsius_to_fahrenheit</span><span class="symbol">,</span>
 <span class="normal">                             fahrenheit_to_celsius</span><span class="symbol">,</span>
-<span class="normal">                             <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span></pre></td>
+<span class="normal">                             <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -297,8 +297,8 @@ This enumeration can be extended at later date.
 <tr>
 <td><p><a name="G-BINDING-INVERT-BOOLEAN:CAPS"></a><span class="term"><code class="literal">G_BINDING_INVERT_BOOLEAN</code></span></p></td>
 <td>If the two properties being bound are
-  booleans, setting one to <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> will result in the other being
-  set to <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> and vice versa. This flag will only work for
+  booleans, setting one to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> will result in the other being
+  set to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> and vice versa. This flag will only work for
   boolean properties, and cannot be used when passing custom
   transformation functions to <a class="link" href="GBinding.html#g-object-bind-property-full" title="g_object_bind_property_full ()"><code class="function">g_object_bind_property_full()</code></a>.
 </td>
@@ -337,7 +337,7 @@ Retrieves the <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><
 <hr>
 <div class="refsect2">
 <a name="g-binding-get-source-property"></a><h3>g_binding_get_source_property ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_binding_get_source_property       (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_binding_get_source_property       (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);</pre>
 <p>
 Retrieves the name of the property of <a class="link" href="GBinding.html#GBinding--source" title='The "source" property'><span class="type">"source"</span></a> used as the source
 of the binding
@@ -391,7 +391,7 @@ Retrieves the <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><
 <hr>
 <div class="refsect2">
 <a name="g-binding-get-target-property"></a><h3>g_binding_get_target_property ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_binding_get_target_property       (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_binding_get_target_property       (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>);</pre>
 <p>
 Retrieves the name of the property of <a class="link" href="GBinding.html#GBinding--target" title='The "target" property'><span class="type">"target"</span></a> used as the target
 of the binding
@@ -445,10 +445,10 @@ Retrieves the flags passed when constructing the <a class="link" href="GBinding.
 <hr>
 <div class="refsect2">
 <a name="g-object-bind-property"></a><h3>g_object_bind_property ()</h3>
-<pre class="programlisting"><a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          g_object_bind_property              (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
+<pre class="programlisting"><a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          g_object_bind_property              (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags"><span class="type">GBindingFlags</span></a> flags</code></em>);</pre>
 <p>
 Creates a binding between <em class="parameter"><code>source_property</code></em> on <em class="parameter"><code>source</code></em> and <em class="parameter"><code>target_property</code></em>
@@ -532,10 +532,10 @@ whenever the <a class="link" href="GBinding.html" title="GBinding"><span class="
 <hr>
 <div class="refsect2">
 <a name="GBindingTransformFunc"></a><h3>GBindingTransformFunc ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (*GBindingTransformFunc)            (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (*GBindingTransformFunc)            (<em class="parameter"><code><a class="link" href="GBinding.html" title="GBinding"><span class="type">GBinding</span></a> *binding</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *source_value</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *target_value</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 A function to be called to transform the source property of <em class="parameter"><code>source</code></em>
 from <em class="parameter"><code>source_value</code></em> into the target property of <em class="parameter"><code>target</code></em>
@@ -567,7 +567,7 @@ using <em class="parameter"><code>target_value</code></em>.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the transformation was successful, and <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the transformation was successful, and <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
 otherwise</td>
 </tr>
 </tbody>
@@ -577,15 +577,15 @@ otherwise</td>
 <hr>
 <div class="refsect2">
 <a name="g-object-bind-property-full"></a><h3>g_object_bind_property_full ()</h3>
-<pre class="programlisting"><a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          g_object_bind_property_full         (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
+<pre class="programlisting"><a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          g_object_bind_property_full         (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags"><span class="type">GBindingFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingTransformFunc" title="GBindingTransformFunc ()"><span class="type">GBindingTransformFunc</span></a> transform_to</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingTransformFunc" title="GBindingTransformFunc ()"><span class="type">GBindingTransformFunc</span></a> transform_from</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> notify</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> notify</code></em>);</pre>
 <p>
 Complete version of <a class="link" href="GBinding.html#g-object-bind-property" title="g_object_bind_property ()"><code class="function">g_object_bind_property()</code></a>.
 </p>
@@ -651,19 +651,19 @@ for each transformation function, please use
 <tr>
 <td><p><span class="term"><em class="parameter"><code>transform_to</code></em> :</span></p></td>
 <td>the transformation function
-from the <em class="parameter"><code>source</code></em> to the <em class="parameter"><code>target</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to use the default. <span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+from the <em class="parameter"><code>source</code></em> to the <em class="parameter"><code>target</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to use the default. <span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>transform_from</code></em> :</span></p></td>
 <td>the transformation function
-from the <em class="parameter"><code>target</code></em> to the <em class="parameter"><code>source</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to use the default. <span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+from the <em class="parameter"><code>target</code></em> to the <em class="parameter"><code>source</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to use the default. <span class="annotation">[<acronym title="The callback is valid until the GDestroyNotify argument is called."><span class="acronym">scope notified</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
 <td>custom data to be passed to the transformation functions,
-or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
@@ -686,10 +686,10 @@ whenever the <a class="link" href="GBinding.html" title="GBinding"><span class="
 <div class="refsect2">
 <a name="g-object-bind-property-with-closures"></a><h3>g_object_bind_property_with_closures ()</h3>
 <pre class="programlisting"><a class="link" href="GBinding.html" title="GBinding"><span class="returnvalue">GBinding</span></a> *          g_object_bind_property_with_closures
-                                                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
+                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> source</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *source_property</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> target</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *target_property</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GBinding.html#GBindingFlags" title="enum GBindingFlags"><span class="type">GBindingFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *transform_to</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *transform_from</code></em>);</pre>
@@ -738,12 +738,12 @@ Rename to: g_object_bind_property_full
 <tr>
 <td><p><span class="term"><em class="parameter"><code>transform_to</code></em> :</span></p></td>
 <td>a <a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> wrapping the transformation function
-from the <em class="parameter"><code>source</code></em> to the <em class="parameter"><code>target</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to use the default</td>
+from the <em class="parameter"><code>source</code></em> to the <em class="parameter"><code>target</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to use the default</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>transform_from</code></em> :</span></p></td>
 <td>a <a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> wrapping the transformation function
-from the <em class="parameter"><code>target</code></em> to the <em class="parameter"><code>source</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to use the default</td>
+from the <em class="parameter"><code>target</code></em> to the <em class="parameter"><code>source</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to use the default</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -779,7 +779,7 @@ The <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class
 <hr>
 <div class="refsect2">
 <a name="GBinding--source-property"></a><h3>The <code class="literal">"source-property"</code> property</h3>
-<pre class="programlisting">  "source-property"          <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only</pre>
+<pre class="programlisting">  "source-property"          <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only</pre>
 <p>
 The name of the property of <a class="link" href="GBinding.html#GBinding--source" title='The "source" property'><span class="type">"source"</span></a> that should be used
 as the source of the binding
@@ -799,7 +799,7 @@ The <a class="link" href="gobject-The-Base-Object-Type.html#GObject"><span class
 <hr>
 <div class="refsect2">
 <a name="GBinding--target-property"></a><h3>The <code class="literal">"target-property"</code> property</h3>
-<pre class="programlisting">  "target-property"          <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only</pre>
+<pre class="programlisting">  "target-property"          <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct Only</pre>
 <p>
 The name of the property of <a class="link" href="GBinding.html#GBinding--target" title='The "target" property'><span class="type">"target"</span></a> that should be used
 as the target of the binding

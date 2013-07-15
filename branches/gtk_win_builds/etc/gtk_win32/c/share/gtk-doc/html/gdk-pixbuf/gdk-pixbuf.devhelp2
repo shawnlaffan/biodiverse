@@ -17,6 +17,10 @@
       <sub name="Animations" link="gdk-pixbuf-Animations.html"/>
       <sub name="GdkPixbufLoader" link="GdkPixbufLoader.html"/>
       <sub name="Module Interface" link="gdk-pixbuf-Module-Interface.html"/>
+      <sub name="gdk-pixbuf Xlib initialization" link="gdk-pixbuf-gdk-pixbuf-Xlib-initialization.html"/>
+      <sub name="Xlib Rendering" link="gdk-pixbuf-Xlib-Rendering.html"/>
+      <sub name="X Drawables to Pixbufs" link="gdk-pixbuf-X-Drawables-to-Pixbufs.html"/>
+      <sub name="XlibRGB" link="gdk-pixbuf-XlibRGB.html"/>
     </sub>
     <sub name="Tools Reference" link="rn02.html">
       <sub name="gdk-pixbuf-csource" link="gdk-pixbuf-csource.html"/>
@@ -28,11 +32,10 @@
     <sub name="Index of new symbols in 2.4" link="api-index-2-4.html"/>
     <sub name="Index of new symbols in 2.6" link="api-index-2-6.html"/>
     <sub name="Index of new symbols in 2.8" link="api-index-2-8.html"/>
-    <sub name="Index of new symbols in 2.10" link="api-index-2-10.html"/>
     <sub name="Index of new symbols in 2.12" link="api-index-2-12.html"/>
     <sub name="Index of new symbols in 2.14" link="api-index-2-14.html"/>
-    <sub name="Index of new symbols in 2.14" link="api-index-2-14.html"/>
     <sub name="Index of new symbols in 2.26" link="api-index-2-26.html"/>
+    <sub name="Index of new symbols in 2.28" link="api-index-2-28.html"/>
     <sub name="License" link="license.html"/>
     <sub name="Annotation Glossary" link="annotation-glossary.html"/>
   </chapters>
@@ -126,6 +129,10 @@
     <keyword type="struct" name="struct GdkPixbufAnimation" link="gdk-pixbuf-Animations.html#GdkPixbufAnimation-struct"/>
     <keyword type="struct" name="struct GdkPixbufAnimationIter" link="gdk-pixbuf-Animations.html#GdkPixbufAnimationIter-struct"/>
     <keyword type="function" name="gdk_pixbuf_animation_new_from_file ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-animation-new-from-file"/>
+    <keyword type="function" name="gdk_pixbuf_animation_new_from_resource ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-animation-new-from-resource" since="2.28"/>
+    <keyword type="function" name="gdk_pixbuf_animation_new_from_stream ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-animation-new-from-stream" since="2.28"/>
+    <keyword type="function" name="gdk_pixbuf_animation_new_from_stream_async ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-animation-new-from-stream-async" since="2.28"/>
+    <keyword type="function" name="gdk_pixbuf_animation_new_from_stream_finish ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-animation-new-from-stream-finish" since="2.28"/>
     <keyword type="function" name="gdk_pixbuf_animation_ref ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-animation-ref" deprecated="2.0: Use g_object_ref()."/>
     <keyword type="function" name="gdk_pixbuf_animation_unref ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-animation-unref" deprecated="2.0: Use g_object_unref()."/>
     <keyword type="function" name="gdk_pixbuf_animation_get_width ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-animation-get-width"/>
@@ -143,7 +150,7 @@
     <keyword type="function" name="gdk_pixbuf_simple_anim_set_loop ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-simple-anim-set-loop" since="2.18"/>
     <keyword type="function" name="gdk_pixbuf_simple_anim_get_loop ()" link="gdk-pixbuf-Animations.html#gdk-pixbuf-simple-anim-get-loop" since="2.18"/>
     <keyword type="property" name="The &quot;loop&quot; property" link="gdk-pixbuf-Animations.html#GdkPixbufSimpleAnim--loop"/>
-    <keyword type="" name="Loading an animation" link="GdkPixbufLoader.html#id560847"/>
+    <keyword type="" name="Loading an animation" link="GdkPixbufLoader.html#id-1.2.15.6.6.1"/>
     <keyword type="struct" name="struct GdkPixbufLoader" link="GdkPixbufLoader.html#GdkPixbufLoader-struct"/>
     <keyword type="function" name="gdk_pixbuf_loader_new ()" link="GdkPixbufLoader.html#gdk-pixbuf-loader-new"/>
     <keyword type="function" name="gdk_pixbuf_loader_new_with_type ()" link="GdkPixbufLoader.html#gdk-pixbuf-loader-new-with-type"/>
@@ -182,6 +189,37 @@
     <keyword type="struct" name="struct GdkPixbufModule" link="gdk-pixbuf-Module-Interface.html#GdkPixbufModule"/>
     <keyword type="struct" name="struct GdkPixbufAnimationClass" link="gdk-pixbuf-Module-Interface.html#GdkPixbufAnimationClass"/>
     <keyword type="struct" name="struct GdkPixbufAnimationIterClass" link="gdk-pixbuf-Module-Interface.html#GdkPixbufAnimationIterClass"/>
+    <keyword type="function" name="gdk_pixbuf_xlib_init ()" link="gdk-pixbuf-gdk-pixbuf-Xlib-initialization.html#gdk-pixbuf-xlib-init"/>
+    <keyword type="function" name="gdk_pixbuf_xlib_init_with_depth ()" link="gdk-pixbuf-gdk-pixbuf-Xlib-initialization.html#gdk-pixbuf-xlib-init-with-depth"/>
+    <keyword type="function" name="gdk_pixbuf_xlib_render_threshold_alpha ()" link="gdk-pixbuf-Xlib-Rendering.html#gdk-pixbuf-xlib-render-threshold-alpha"/>
+    <keyword type="function" name="gdk_pixbuf_xlib_render_to_drawable ()" link="gdk-pixbuf-Xlib-Rendering.html#gdk-pixbuf-xlib-render-to-drawable"/>
+    <keyword type="function" name="gdk_pixbuf_xlib_render_to_drawable_alpha ()" link="gdk-pixbuf-Xlib-Rendering.html#gdk-pixbuf-xlib-render-to-drawable-alpha"/>
+    <keyword type="function" name="gdk_pixbuf_xlib_render_pixmap_and_mask ()" link="gdk-pixbuf-Xlib-Rendering.html#gdk-pixbuf-xlib-render-pixmap-and-mask"/>
+    <keyword type="function" name="gdk_pixbuf_xlib_get_from_drawable ()" link="gdk-pixbuf-X-Drawables-to-Pixbufs.html#gdk-pixbuf-xlib-get-from-drawable"/>
+    <keyword type="struct" name="struct XlibRgbCmap" link="gdk-pixbuf-XlibRGB.html#XlibRgbCmap"/>
+    <keyword type="enum" name="enum XlibRgbDither" link="gdk-pixbuf-XlibRGB.html#XlibRgbDither"/>
+    <keyword type="function" name="xlib_rgb_init ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-init"/>
+    <keyword type="function" name="xlib_rgb_init_with_depth ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-init-with-depth"/>
+    <keyword type="function" name="xlib_rgb_xpixel_from_rgb ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-xpixel-from-rgb"/>
+    <keyword type="function" name="xlib_rgb_gc_set_foreground ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-gc-set-foreground"/>
+    <keyword type="function" name="xlib_rgb_gc_set_background ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-gc-set-background"/>
+    <keyword type="function" name="xlib_draw_rgb_image ()" link="gdk-pixbuf-XlibRGB.html#xlib-draw-rgb-image"/>
+    <keyword type="function" name="xlib_draw_rgb_image_dithalign ()" link="gdk-pixbuf-XlibRGB.html#xlib-draw-rgb-image-dithalign"/>
+    <keyword type="function" name="xlib_draw_rgb_32_image ()" link="gdk-pixbuf-XlibRGB.html#xlib-draw-rgb-32-image"/>
+    <keyword type="function" name="xlib_draw_gray_image ()" link="gdk-pixbuf-XlibRGB.html#xlib-draw-gray-image"/>
+    <keyword type="function" name="xlib_rgb_cmap_new ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-cmap-new"/>
+    <keyword type="function" name="xlib_rgb_cmap_free ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-cmap-free"/>
+    <keyword type="function" name="xlib_draw_indexed_image ()" link="gdk-pixbuf-XlibRGB.html#xlib-draw-indexed-image"/>
+    <keyword type="function" name="xlib_rgb_ditherable ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-ditherable"/>
+    <keyword type="function" name="xlib_rgb_set_verbose ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-set-verbose"/>
+    <keyword type="function" name="xlib_rgb_set_install ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-set-install"/>
+    <keyword type="function" name="xlib_rgb_set_min_colors ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-set-min-colors"/>
+    <keyword type="function" name="xlib_rgb_get_cmap ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-get-cmap"/>
+    <keyword type="function" name="xlib_rgb_get_visual ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-get-visual"/>
+    <keyword type="function" name="xlib_rgb_get_visual_info ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-get-visual-info"/>
+    <keyword type="function" name="xlib_rgb_get_depth ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-get-depth"/>
+    <keyword type="function" name="xlib_rgb_get_display ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-get-display"/>
+    <keyword type="function" name="xlib_rgb_get_screen ()" link="gdk-pixbuf-XlibRGB.html#xlib-rgb-get-screen"/>
     <keyword type="constant" name="GDK_PIXBUF_ERROR_CORRUPT_IMAGE" link="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR-CORRUPT-IMAGE:CAPS"/>
     <keyword type="constant" name="GDK_PIXBUF_ERROR_INSUFFICIENT_MEMORY" link="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR-INSUFFICIENT-MEMORY:CAPS"/>
     <keyword type="constant" name="GDK_PIXBUF_ERROR_BAD_OPTION" link="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR-BAD-OPTION:CAPS"/>
@@ -218,5 +256,8 @@
     <keyword type="constant" name="GDK_PIXBUF_FORMAT_WRITABLE" link="gdk-pixbuf-Module-Interface.html#GDK-PIXBUF-FORMAT-WRITABLE:CAPS"/>
     <keyword type="constant" name="GDK_PIXBUF_FORMAT_SCALABLE" link="gdk-pixbuf-Module-Interface.html#GDK-PIXBUF-FORMAT-SCALABLE:CAPS"/>
     <keyword type="constant" name="GDK_PIXBUF_FORMAT_THREADSAFE" link="gdk-pixbuf-Module-Interface.html#GDK-PIXBUF-FORMAT-THREADSAFE:CAPS"/>
+    <keyword type="constant" name="XLIB_RGB_DITHER_NONE" link="gdk-pixbuf-XlibRGB.html#XLIB-RGB-DITHER-NONE:CAPS"/>
+    <keyword type="constant" name="XLIB_RGB_DITHER_NORMAL" link="gdk-pixbuf-XlibRGB.html#XLIB-RGB-DITHER-NORMAL:CAPS"/>
+    <keyword type="constant" name="XLIB_RGB_DITHER_MAX" link="gdk-pixbuf-XlibRGB.html#XLIB-RGB-DITHER-MAX:CAPS"/>
   </functions>
 </book>

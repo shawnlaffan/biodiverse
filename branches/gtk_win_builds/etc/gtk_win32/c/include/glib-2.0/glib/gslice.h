@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __G_SLICE_H__
+#define __G_SLICE_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_SLICE_H__
-#define __G_SLICE_H__
 
 #include <glib/gtypes.h>
 
@@ -30,12 +30,17 @@ G_BEGIN_DECLS
 
 /* slices - fast allocation/release of small memory blocks
  */
+GLIB_AVAILABLE_IN_ALL
 gpointer g_slice_alloc          	(gsize	       block_size) G_GNUC_MALLOC G_GNUC_ALLOC_SIZE(1);
+GLIB_AVAILABLE_IN_ALL
 gpointer g_slice_alloc0         	(gsize         block_size) G_GNUC_MALLOC G_GNUC_ALLOC_SIZE(1);
+GLIB_AVAILABLE_IN_ALL
 gpointer g_slice_copy                   (gsize         block_size,
                                          gconstpointer mem_block) G_GNUC_MALLOC G_GNUC_ALLOC_SIZE(1);
+GLIB_AVAILABLE_IN_ALL
 void     g_slice_free1          	(gsize         block_size,
 					 gpointer      mem_block);
+GLIB_AVAILABLE_IN_ALL
 void     g_slice_free_chain_with_offset (gsize         block_size,
 					 gpointer      mem_chain,
 					 gsize         next_offset);
@@ -84,6 +89,11 @@ GLIB_DEPRECATED_IN_2_34
 gint64   g_slice_get_config	   (GSliceConfig ckey);
 GLIB_DEPRECATED_IN_2_34
 gint64*  g_slice_get_config_state  (GSliceConfig ckey, gint64 address, guint *n_values);
+
+#ifdef G_ENABLE_DEBUG
+GLIB_AVAILABLE_IN_ALL
+void     g_slice_debug_tree_statistics (void);
+#endif
 
 G_END_DECLS
 

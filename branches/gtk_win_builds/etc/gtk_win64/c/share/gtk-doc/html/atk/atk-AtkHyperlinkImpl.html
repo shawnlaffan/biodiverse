@@ -39,7 +39,7 @@ AtkObject may be obtained.</p>
 <div class="refsynopsisdiv">
 <a name="atk-AtkHyperlinkImpl.synopsis"></a><h2>Synopsis</h2>
 <pre class="synopsis">                    <a class="link" href="atk-AtkHyperlinkImpl.html#AtkHyperlinkImpl" title="AtkHyperlinkImpl">AtkHyperlinkImpl</a>;
-<a class="link" href="AtkHyperlink.html" title="AtkHyperlink"><span class="returnvalue">AtkHyperlink</span></a> *      <a class="link" href="atk-AtkHyperlinkImpl.html#atk-hyperlink-impl-get-hyperlink" title="atk_hyperlink_impl_get_hyperlink ()">atk_hyperlink_impl_get_hyperlink</a>    (<em class="parameter"><code><a class="link" href="atk-AtkHyperlinkImpl.html#AtkHyperlinkImpl" title="AtkHyperlinkImpl"><span class="type">AtkHyperlinkImpl</span></a> *obj</code></em>);
+<a class="link" href="AtkHyperlink.html" title="AtkHyperlink"><span class="returnvalue">AtkHyperlink</span></a> *      <a class="link" href="atk-AtkHyperlinkImpl.html#atk-hyperlink-impl-get-hyperlink" title="atk_hyperlink_impl_get_hyperlink ()">atk_hyperlink_impl_get_hyperlink</a>    (<em class="parameter"><code><a class="link" href="atk-AtkHyperlinkImpl.html#AtkHyperlinkImpl" title="AtkHyperlinkImpl"><span class="type">AtkHyperlinkImpl</span></a> *impl</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -77,7 +77,7 @@ queried.
 <hr>
 <div class="refsect2">
 <a name="atk-hyperlink-impl-get-hyperlink"></a><h3>atk_hyperlink_impl_get_hyperlink ()</h3>
-<pre class="programlisting"><a class="link" href="AtkHyperlink.html" title="AtkHyperlink"><span class="returnvalue">AtkHyperlink</span></a> *      atk_hyperlink_impl_get_hyperlink    (<em class="parameter"><code><a class="link" href="atk-AtkHyperlinkImpl.html#AtkHyperlinkImpl" title="AtkHyperlinkImpl"><span class="type">AtkHyperlinkImpl</span></a> *obj</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="AtkHyperlink.html" title="AtkHyperlink"><span class="returnvalue">AtkHyperlink</span></a> *      atk_hyperlink_impl_get_hyperlink    (<em class="parameter"><code><a class="link" href="atk-AtkHyperlinkImpl.html#AtkHyperlinkImpl" title="AtkHyperlinkImpl"><span class="type">AtkHyperlinkImpl</span></a> *impl</code></em>);</pre>
 <p>
 Gets the hyperlink associated with this object.
 </p>
@@ -85,8 +85,8 @@ Gets the hyperlink associated with this object.
 <col align="left" valign="top">
 <tbody>
 <tr>
-<td><p><span class="term"><em class="parameter"><code>obj</code></em> :</span></p></td>
-<td>a GObject instance that implements AtkHyperlinkImplIface</td>
+<td><p><span class="term"><em class="parameter"><code>impl</code></em> :</span></p></td>
+<td>a <span class="type">GObject</span> instance that implements AtkHyperlinkImplIface</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>

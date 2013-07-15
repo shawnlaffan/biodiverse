@@ -19,12 +19,12 @@
  * Authors: Ryan Lortie <desrt@desrt.ca>
  */
 
+#ifndef __G_SIMPLE_ACTION_GROUP_H__
+#define __G_SIMPLE_ACTION_GROUP_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_SIMPLE_ACTION_GROUP_H__
-#define __G_SIMPLE_ACTION_GROUP_H__
 
 #include "gactiongroup.h"
 #include "gactionmap.h"
@@ -70,19 +70,25 @@ struct _GSimpleActionGroupClass
   gpointer padding[12];
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType                   g_simple_action_group_get_type                  (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GSimpleActionGroup *    g_simple_action_group_new                       (void);
 
+GLIB_AVAILABLE_IN_ALL
 GAction *               g_simple_action_group_lookup                    (GSimpleActionGroup *simple,
                                                                          const gchar        *action_name);
 
+GLIB_AVAILABLE_IN_ALL
 void                    g_simple_action_group_insert                    (GSimpleActionGroup *simple,
                                                                          GAction            *action);
 
+GLIB_AVAILABLE_IN_ALL
 void                    g_simple_action_group_remove                    (GSimpleActionGroup *simple,
                                                                          const gchar        *action_name);
 
+GLIB_AVAILABLE_IN_2_30
 void                    g_simple_action_group_add_entries               (GSimpleActionGroup *simple,
                                                                          const GActionEntry *entries,
                                                                          gint                n_entries,

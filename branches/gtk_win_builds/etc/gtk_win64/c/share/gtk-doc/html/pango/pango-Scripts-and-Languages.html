@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Scripts and Languages</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Pango Reference Manual">
 <link rel="up" href="pango.html" title="Basic Pango Interfaces">
 <link rel="prev" href="pango-Layout-Objects.html" title="Layout Objects">
@@ -42,7 +42,7 @@
 <a name="PangoScript"></a><a name="PangoLanguage"></a><pre class="synopsis">enum                <a class="link" href="pango-Scripts-and-Languages.html#PangoScript-enum" title="enum PangoScript">PangoScript</a>;
 #define             <a class="link" href="pango-Scripts-and-Languages.html#PANGO-TYPE-SCRIPT:CAPS" title="PANGO_TYPE_SCRIPT">PANGO_TYPE_SCRIPT</a>
                     <a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter">PangoScriptIter</a>;
-<a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="returnvalue">PangoScript</span></a>         <a class="link" href="pango-Scripts-and-Languages.html#pango-script-for-unichar" title="pango_script_for_unichar ()">pango_script_for_unichar</a>            (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Unicode-Manipulation.html#gunichar"><span class="type">gunichar</span></a> ch</code></em>);
+<a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="returnvalue">PangoScript</span></a>         <a class="link" href="pango-Scripts-and-Languages.html#pango-script-for-unichar" title="pango_script_for_unichar ()">pango_script_for_unichar</a>            (<em class="parameter"><code><span class="type">gunichar</span> ch</code></em>);
 <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="returnvalue">PangoLanguage</span></a> *     <a class="link" href="pango-Scripts-and-Languages.html#pango-script-get-sample-language" title="pango_script_get_sample_language ()">pango_script_get_sample_language</a>    (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> script</code></em>);
 <a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="returnvalue">PangoScriptIter</span></a> *   <a class="link" href="pango-Scripts-and-Languages.html#pango-script-iter-new" title="pango_script_iter_new ()">pango_script_iter_new</a>               (<em class="parameter"><code>const <span class="type">char</span> *text</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> length</code></em>);
@@ -50,15 +50,15 @@
                                                          <em class="parameter"><code>const <span class="type">char</span> **start</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> **end</code></em>,
                                                          <em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> *script</code></em>);
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="pango-Scripts-and-Languages.html#pango-script-iter-next" title="pango_script_iter_next ()">pango_script_iter_next</a>              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="type">PangoScriptIter</span></a> *iter</code></em>);
+<span class="returnvalue">gboolean</span>            <a class="link" href="pango-Scripts-and-Languages.html#pango-script-iter-next" title="pango_script_iter_next ()">pango_script_iter_next</a>              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="type">PangoScriptIter</span></a> *iter</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="pango-Scripts-and-Languages.html#pango-script-iter-free" title="pango_script_iter_free ()">pango_script_iter_free</a>              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="type">PangoScriptIter</span></a> *iter</code></em>);
                     <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage-struct" title="PangoLanguage">PangoLanguage</a>;
 #define             <a class="link" href="pango-Scripts-and-Languages.html#PANGO-TYPE-LANGUAGE:CAPS" title="PANGO_TYPE_LANGUAGE">PANGO_TYPE_LANGUAGE</a>
 <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="returnvalue">PangoLanguage</span></a> *     <a class="link" href="pango-Scripts-and-Languages.html#pango-language-from-string" title="pango_language_from_string ()">pango_language_from_string</a>          (<em class="parameter"><code>const <span class="type">char</span> *language</code></em>);
 const <span class="returnvalue">char</span> *        <a class="link" href="pango-Scripts-and-Languages.html#pango-language-to-string" title="pango_language_to_string ()">pango_language_to_string</a>            (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>);
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="pango-Scripts-and-Languages.html#pango-language-matches" title="pango_language_matches ()">pango_language_matches</a>              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
+<span class="returnvalue">gboolean</span>            <a class="link" href="pango-Scripts-and-Languages.html#pango-language-matches" title="pango_language_matches ()">pango_language_matches</a>              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *range_list</code></em>);
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="pango-Scripts-and-Languages.html#pango-language-includes-script" title="pango_language_includes_script ()">pango_language_includes_script</a>      (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
+<span class="returnvalue">gboolean</span>            <a class="link" href="pango-Scripts-and-Languages.html#pango-language-includes-script" title="pango_language_includes_script ()">pango_language_includes_script</a>      (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
                                                          <em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> script</code></em>);
 const <a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="returnvalue">PangoScript</span></a> * <a class="link" href="pango-Scripts-and-Languages.html#pango-language-get-scripts" title="pango_language_get_scripts ()">pango_language_get_scripts</a>          (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> *num_scripts</code></em>);
@@ -177,7 +177,21 @@ and of ranges within a larger text string.
       PANGO_SCRIPT_VAI,                /* Vaii */
       PANGO_SCRIPT_CARIAN,             /* Cari */
       PANGO_SCRIPT_LYCIAN,             /* Lyci */
-      PANGO_SCRIPT_LYDIAN              /* Lydi */
+      PANGO_SCRIPT_LYDIAN,             /* Lydi */
+
+      /* Unicode-6.0 additions */
+      PANGO_SCRIPT_BATAK,              /* Batk */
+      PANGO_SCRIPT_BRAHMI,             /* Brah */
+      PANGO_SCRIPT_MANDAIC,            /* Mand */
+
+      /* Unicode-6.1 additions */
+      PANGO_SCRIPT_CHAKMA,             /* Cakm */
+      PANGO_SCRIPT_MEROITIC_CURSIVE,   /* Merc */
+      PANGO_SCRIPT_MEROITIC_HIEROGLYPHS,/* Mero */
+      PANGO_SCRIPT_MIAO,               /* Plrd */
+      PANGO_SCRIPT_SHARADA,            /* Shrd */
+      PANGO_SCRIPT_SORA_SOMPENG,       /* Sora */
+      PANGO_SCRIPT_TAKRI               /* Takr */
 } PangoScript;
 </pre>
 <p>
@@ -186,11 +200,14 @@ systems. The values correspond to the names as defined in the
 Unicode standard.
 Note that new types may be added in the future. Applications should be ready
 to handle unknown values.  This enumeration is interchangeable with
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Unicode-Manipulation.html#GUnicodeScript"><span class="type">GUnicodeScript</span></a>.  See <a class="ulink" href="http://www.unicode.org/reports/tr24/" target="_top">Unicode Standard Annex
+<span class="type">GUnicodeScript</span>.  See <a class="ulink" href="http://www.unicode.org/reports/tr24/" target="_top">Unicode Standard Annex
 #24: Script names</a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><a name="PANGO-SCRIPT-INVALID-CODE:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_INVALID_CODE</code></span></p></td>
@@ -588,16 +605,66 @@ to handle unknown values.  This enumeration is interchangeable with
 <td>    Lydian. Since 1.20.1
 </td>
 </tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-BATAK:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_BATAK</code></span></p></td>
+<td>     Batak. Since 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-BRAHMI:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_BRAHMI</code></span></p></td>
+<td>    Brahmi. Since 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-MANDAIC:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_MANDAIC</code></span></p></td>
+<td>   Mandaic. Since 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-CHAKMA:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_CHAKMA</code></span></p></td>
+<td>              Chakma. Since: 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-MEROITIC-CURSIVE:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_MEROITIC_CURSIVE</code></span></p></td>
+<td>    Meroitic Cursive. Since: 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-MEROITIC-HIEROGLYPHS:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_MEROITIC_HIEROGLYPHS</code></span></p></td>
+<td>Meroitic Hieroglyphs. Since: 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-MIAO:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_MIAO</code></span></p></td>
+<td>                Miao. Since: 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-SHARADA:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_SHARADA</code></span></p></td>
+<td>             Sharada. Since: 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-SORA-SOMPENG:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_SORA_SOMPENG</code></span></p></td>
+<td>        Sora Sompeng. Since: 1.32
+</td>
+</tr>
+<tr>
+<td><p><a name="PANGO-SCRIPT-TAKRI:CAPS"></a><span class="term"><code class="literal">PANGO_SCRIPT_TAKRI</code></span></p></td>
+<td>               Takri. Since: 1.32
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="PANGO-TYPE-SCRIPT:CAPS"></a><h3>PANGO_TYPE_SCRIPT</h3>
-<pre class="programlisting">#define PANGO_TYPE_SCRIPT (pango_script_get_type())
+<pre class="programlisting">#define PANGO_TYPE_SCRIPT (pango_script_get_type ())
 </pre>
 <p>
-The <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> type for <a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a>
+The <span class="type">GObject</span> type for <a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a>
 </p>
 </div>
 <hr>
@@ -612,7 +679,7 @@ and identify ranges in different scripts.
 <hr>
 <div class="refsect2">
 <a name="pango-script-for-unichar"></a><h3>pango_script_for_unichar ()</h3>
-<pre class="programlisting"><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="returnvalue">PangoScript</span></a>         pango_script_for_unichar            (<em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Unicode-Manipulation.html#gunichar"><span class="type">gunichar</span></a> ch</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="returnvalue">PangoScript</span></a>         pango_script_for_unichar            (<em class="parameter"><code><span class="type">gunichar</span> ch</code></em>);</pre>
 <p>
 Looks up the <a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> for a particular character (as defined by
 Unicode Standard Annex <span class="type">24</span>). No check is made for <em class="parameter"><code>ch</code></em> being a
@@ -621,10 +688,13 @@ result is undefined.
 </p>
 <p>
 As of Pango 1.18, this function simply returns the return value of
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Unicode-Manipulation.html#g-unichar-get-script"><code class="function">g_unichar_get_script()</code></a>.
+<code class="function">g_unichar_get_script()</code>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>ch</code></em> :</span></p></td>
@@ -676,8 +746,11 @@ in an otherwise non-Arabic text.  The same trick can be used to
 choose a default language for <a class="link" href="pango-Scripts-and-Languages.html#PANGO-SCRIPT-HAN:CAPS"><code class="literal">PANGO_SCRIPT_HAN</code></a> when setting
 context language is not feasible.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>script</code></em> :</span></p></td>
@@ -687,7 +760,7 @@ context language is not feasible.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> that is representative
-of the script, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such language exists.</td>
+of the script, or <code class="literal">NULL</code> if no such language exists.</td>
 </tr>
 </tbody>
 </table></div>
@@ -704,8 +777,11 @@ Unicode into runs by text. No copy is made of <em class="parameter"><code>text</
 the caller needs to make sure it remains valid until
 the iterator is freed with <a class="link" href="pango-Scripts-and-Languages.html#pango-script-iter-free" title="pango_script_iter_free ()"><code class="function">pango_script_iter_free()</code></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>text</code></em> :</span></p></td>
@@ -738,8 +814,11 @@ Gets information about the range to which <em class="parameter"><code>iter</code
 The range is the set of locations p where *start &lt;= p &lt; *end.
 (That is, it doesn't include the character stored at *end)
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>iter</code></em> :</span></p></td>
@@ -748,17 +827,17 @@ The range is the set of locations p where *start &lt;= p &lt; *end.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>start</code></em> :</span></p></td>
-<td>location to store start position of the range, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>location to store start position of the range, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>end</code></em> :</span></p></td>
-<td>location to store end position of the range, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>location to store end position of the range, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>script</code></em> :</span></p></td>
-<td>location to store script for range, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>location to store script for range, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -768,14 +847,17 @@ The range is the set of locations p where *start &lt;= p &lt; *end.
 <hr>
 <div class="refsect2">
 <a name="pango-script-iter-next"></a><h3>pango_script_iter_next ()</h3>
-<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            pango_script_iter_next              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="type">PangoScriptIter</span></a> *iter</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>            pango_script_iter_next              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="type">PangoScriptIter</span></a> *iter</code></em>);</pre>
 <p>
 Advances a <a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="type">PangoScriptIter</span></a> to the next range. If <em class="parameter"><code>iter</code></em>
-is already at the end, it is left unchanged and <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+is already at the end, it is left unchanged and <code class="literal">FALSE</code>
 is returned.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>iter</code></em> :</span></p></td>
@@ -785,7 +867,7 @@ is returned.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>iter</code></em> was successfully advanced.</td>
+<code class="literal">TRUE</code> if <em class="parameter"><code>iter</code></em> was successfully advanced.</td>
 </tr>
 </tbody>
 </table></div>
@@ -798,8 +880,11 @@ is returned.
 <p>
 Frees a <a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="type">PangoScriptIter</span></a> created with <a class="link" href="pango-Scripts-and-Languages.html#pango-script-iter-new" title="pango_script_iter_new ()"><code class="function">pango_script_iter_new()</code></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>iter</code></em> :</span></p></td>
 <td>a <a class="link" href="pango-Scripts-and-Languages.html#PangoScriptIter" title="PangoScriptIter"><span class="type">PangoScriptIter</span></a>
@@ -827,7 +912,7 @@ copied and compared with each other.
 <pre class="programlisting">#define PANGO_TYPE_LANGUAGE (pango_language_get_type ())
 </pre>
 <p>
-The <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> type for <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>.
+The <span class="type">GObject</span> type for <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>.
 </p>
 </div>
 <hr>
@@ -849,19 +934,24 @@ than letters and '-'.
 Use <a class="link" href="pango-Scripts-and-Languages.html#pango-language-get-default" title="pango_language_get_default ()"><code class="function">pango_language_get_default()</code></a> if you want to get the <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> for
 the current locale of the process.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>language</code></em> :</span></p></td>
-<td>a string representing a language tag, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a string representing a language tag, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>an opaque pointer to a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> structure, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
-if <em class="parameter"><code>language</code></em> was <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  The returned pointer will be valid
-forever after, and should not be freed.</td>
+<td>an opaque pointer to a
+<a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> structure, or <code class="literal">NULL</code> if <em class="parameter"><code>language</code></em> was
+<code class="literal">NULL</code>.  The returned pointer will be valid forever
+after, and should not be freed. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -873,8 +963,11 @@ forever after, and should not be freed.</td>
 <p>
 Gets the RFC-3066 format string representing the given language tag.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>language</code></em> :</span></p></td>
@@ -891,7 +984,7 @@ Pango and should not be freed.</td>
 <hr>
 <div class="refsect2">
 <a name="pango-language-matches"></a><h3>pango_language_matches ()</h3>
-<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            pango_language_matches              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
+<pre class="programlisting"><span class="returnvalue">gboolean</span>            pango_language_matches              (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *range_list</code></em>);</pre>
 <p>
 Checks if a language tag matches one of the elements in a list of
@@ -900,13 +993,16 @@ in the list if the range is '*', the range is exactly the tag,
 or the range is a prefix of the tag, and the character after it
 in the tag is '-'.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>language</code></em> :</span></p></td>
 <td>a language tag (see <a class="link" href="pango-Scripts-and-Languages.html#pango-language-from-string" title="pango_language_from_string ()"><code class="function">pango_language_from_string()</code></a>),
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is allowed and matches nothing but '*'</td>
+<code class="literal">NULL</code> is allowed and matches nothing but '*'</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>range_list</code></em> :</span></p></td>
@@ -919,7 +1015,7 @@ canonicalized as by <a class="link" href="pango-Scripts-and-Languages.html#pango
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a match was found.</td>
+<code class="literal">TRUE</code> if a match was found.</td>
 </tr>
 </tbody>
 </table></div>
@@ -927,13 +1023,13 @@ canonicalized as by <a class="link" href="pango-Scripts-and-Languages.html#pango
 <hr>
 <div class="refsect2">
 <a name="pango-language-includes-script"></a><h3>pango_language_includes_script ()</h3>
-<pre class="programlisting"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            pango_language_includes_script      (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
+<pre class="programlisting"><span class="returnvalue">gboolean</span>            pango_language_includes_script      (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a> *language</code></em>,
                                                          <em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> script</code></em>);</pre>
 <p>
 Determines if <em class="parameter"><code>script</code></em> is one of the scripts used to
 write <em class="parameter"><code>language</code></em>. The returned value is conservative;
 if nothing is known about the language tag <em class="parameter"><code>language</code></em>,
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> will be returned, since, as far as Pango knows,
+<code class="literal">TRUE</code> will be returned, since, as far as Pango knows,
 <em class="parameter"><code>script</code></em> might be used to write <em class="parameter"><code>language</code></em>.
 </p>
 <p>
@@ -945,12 +1041,15 @@ applications in most circumstances.
 <p>
 This function uses <a class="link" href="pango-Scripts-and-Languages.html#pango-language-get-scripts" title="pango_language_get_scripts ()"><code class="function">pango_language_get_scripts()</code></a> internally.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>language</code></em> :</span></p></td>
-<td>a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>, or <code class="literal">NULL</code>
 </td>
 </tr>
 <tr>
@@ -961,10 +1060,10 @@ This function uses <a class="link" href="pango-Scripts-and-Languages.html#pango-
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>script</code></em> is one of the scripts used
+<code class="literal">TRUE</code> if <em class="parameter"><code>script</code></em> is one of the scripts used
 to write <em class="parameter"><code>language</code></em> or if nothing is known about <em class="parameter"><code>language</code></em>
-(including the case that <em class="parameter"><code>language</code></em> is <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>),
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+(including the case that <em class="parameter"><code>language</code></em> is <code class="literal">NULL</code>),
+<code class="literal">FALSE</code> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -978,13 +1077,13 @@ to write <em class="parameter"><code>language</code></em> or if nothing is known
 <p>
 Determines the scripts used to to write <em class="parameter"><code>language</code></em>.
 If nothing is known about the language tag <em class="parameter"><code>language</code></em>,
-or if <em class="parameter"><code>language</code></em> is <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, then <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned.
+or if <em class="parameter"><code>language</code></em> is <code class="literal">NULL</code>, then <code class="literal">NULL</code> is returned.
 The list of scripts returned starts with the script that the
 language uses most and continues to the one it uses least.
 </p>
 <p>
 The value <em class="parameter"><code>num_script</code></em> points at will be set to the number
-of scripts in the returned array (or zero if <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned).
+of scripts in the returned array (or zero if <code class="literal">NULL</code> is returned).
 </p>
 <p>
 Most languages use only one script for writing, but there are
@@ -992,34 +1091,38 @@ some that use two (Latin and Cyrillic for example), and a few
 use three (Japanese for example).  Applications should not make
 any assumptions on the maximum number of scripts returned
 though, except that it is positive if the return value is not
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, and it is a small number.
+<code class="literal">NULL</code>, and it is a small number.
 </p>
 <p>
 The <a class="link" href="pango-Scripts-and-Languages.html#pango-language-includes-script" title="pango_language_includes_script ()"><code class="function">pango_language_includes_script()</code></a> function uses this function
 internally.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>language</code></em> :</span></p></td>
-<td>a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>num_scripts</code></em> :</span></p></td>
 <td>location to return number of scripts,
-or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Out parameter, where caller must allocate storage."><span class="acronym">out caller-allocates</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Out parameter, where caller must allocate storage."><span class="acronym">out caller-allocates</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>An array of <a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> values, with the
-number of entries in the array stored in <em class="parameter"><code>num_scripts</code></em>, or
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if Pango does not have any information about this
-particular language tag (also the case if <em class="parameter"><code>language</code></em> is <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>).
-The returned array is owned by Pango and should not be modified
-or freed.</td>
+<td>An array of <a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a>
+values, with the number of entries in the array stored in
+<em class="parameter"><code>num_scripts</code></em>, or <code class="literal">NULL</code> if Pango does not have any information about
+this particular language tag (also the case if <em class="parameter"><code>language</code></em> is <code class="literal">NULL</code>).
+The returned array is owned by Pango and should not be modified or
+freed. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=num_scripts]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -1047,7 +1150,7 @@ Brazil.
 On Windows, the C library does not use any such environment
 variables, and setting them won't affect the behavior of functions
 like <code class="function">ctime()</code>. The user sets the locale through the Regional Options
-in the Control Panel. The C library (in the <a href="http://library.gnome.org/devel/glib/unstable/glib-running.html#setlocale"><code class="function">setlocale()</code></a> function)
+in the Control Panel. The C library (in the <code class="function">setlocale()</code> function)
 does not use country and language codes, but country and language
 names spelled out in English.
 However, this function does check the above environment
@@ -1057,15 +1160,19 @@ either said environment variables or the thread's current locale.
 <p>
 Your application should call <code class="literal">setlocale(LC_ALL, "");</code>
 for the user settings to take effect.  Gtk+ does this in its initialization
-functions automatically (by calling <a href="http://library.gnome.org/devel/gtk3/gtk-General.html#gtk-set-locale"><code class="function">gtk_set_locale()</code></a>).
+functions automatically (by calling <a href="http://library.gnome.org/devel/gtk3/gtk2-General.html#gtk-set-locale"><code class="function">gtk_set_locale()</code></a>).
 See <code class="literal">man setlocale</code> for more details.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the default language as a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>, must not be
-freed.</td>
+<td>the default language as a
+<a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>, must not be freed. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr></tbody>
 </table></div>
 <p class="since">Since 1.16</p>
@@ -1085,7 +1192,7 @@ feature requirements unique to the language.  It is suitable for use
 as sample text in a font selection dialog.
 </p>
 <p>
-If <em class="parameter"><code>language</code></em> is <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the default language as found by
+If <em class="parameter"><code>language</code></em> is <code class="literal">NULL</code>, the default language as found by
 <a class="link" href="pango-Scripts-and-Languages.html#pango-language-get-default" title="pango_language_get_default ()"><code class="function">pango_language_get_default()</code></a> is used.
 </p>
 <p>
@@ -1107,12 +1214,15 @@ language code "xx".  That is, compare to:
 
 <p>
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>language</code></em> :</span></p></td>
-<td>a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>a <a class="link" href="pango-Scripts-and-Languages.html#PangoLanguage"><span class="type">PangoLanguage</span></a>, or <code class="literal">NULL</code>
 </td>
 </tr>
 <tr>

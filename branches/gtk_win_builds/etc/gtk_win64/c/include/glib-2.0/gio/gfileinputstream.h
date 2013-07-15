@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_FILE_INPUT_STREAM_H__
+#define __G_FILE_INPUT_STREAM_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_FILE_INPUT_STREAM_H__
-#define __G_FILE_INPUT_STREAM_H__
 
 #include <gio/ginputstream.h>
 
@@ -91,18 +91,22 @@ struct _GFileInputStreamClass
   void (*_g_reserved5) (void);
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType      g_file_input_stream_get_type          (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GFileInfo *g_file_input_stream_query_info        (GFileInputStream     *stream,
 						  const char           *attributes,
 						  GCancellable         *cancellable,
 						  GError              **error);
+GLIB_AVAILABLE_IN_ALL
 void       g_file_input_stream_query_info_async  (GFileInputStream     *stream,
 						  const char           *attributes,
 						  int                   io_priority,
 						  GCancellable         *cancellable,
 						  GAsyncReadyCallback   callback,
 						  gpointer              user_data);
+GLIB_AVAILABLE_IN_ALL
 GFileInfo *g_file_input_stream_query_info_finish (GFileInputStream     *stream,
 						  GAsyncResult         *result,
 						  GError              **error);

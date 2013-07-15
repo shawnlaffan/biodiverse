@@ -56,70 +56,70 @@ struct              <a class="link" href="GMount.html#GMountIface" title="struct
 <a class="link" href="GFile.html" title="GFile"><span class="returnvalue">GFile</span></a> *             <a class="link" href="GMount.html#g-mount-get-root" title="g_mount_get_root ()">g_mount_get_root</a>                    (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
 <a class="link" href="GVolume.html" title="GVolume"><span class="returnvalue">GVolume</span></a> *           <a class="link" href="GMount.html#g-mount-get-volume" title="g_mount_get_volume ()">g_mount_get_volume</a>                  (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
 <a class="link" href="GFile.html" title="GFile"><span class="returnvalue">GFile</span></a> *             <a class="link" href="GMount.html#g-mount-get-default-location" title="g_mount_get_default_location ()">g_mount_get_default_location</a>        (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-can-unmount" title="g_mount_can_unmount ()">g_mount_can_unmount</a>                 (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-can-unmount" title="g_mount_can_unmount ()">g_mount_can_unmount</a>                 (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
 enum                <a class="link" href="GMount.html#GMountMountFlags" title="enum GMountMountFlags">GMountMountFlags</a>;
 enum                <a class="link" href="GMount.html#GMountUnmountFlags" title="enum GMountUnmountFlags">GMountUnmountFlags</a>;
 <span class="returnvalue">void</span>                <a class="link" href="GMount.html#g-mount-unmount" title="g_mount_unmount ()">g_mount_unmount</a>                     (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMount.html#GMountUnmountFlags" title="enum GMountUnmountFlags"><span class="type">GMountUnmountFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-unmount-finish" title="g_mount_unmount_finish ()">g_mount_unmount_finish</a>              (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-unmount-finish" title="g_mount_unmount_finish ()">g_mount_unmount_finish</a>              (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GMount.html#g-mount-unmount-with-operation" title="g_mount_unmount_with_operation ()">g_mount_unmount_with_operation</a>      (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMount.html#GMountUnmountFlags" title="enum GMountUnmountFlags"><span class="type">GMountUnmountFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> *mount_operation</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-unmount-with-operation-finish" title="g_mount_unmount_with_operation_finish ()">g_mount_unmount_with_operation_finish</a>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-unmount-with-operation-finish" title="g_mount_unmount_with_operation_finish ()">g_mount_unmount_with_operation_finish</a>
                                                         (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GMount.html#g-mount-remount" title="g_mount_remount ()">g_mount_remount</a>                     (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMount.html#GMountMountFlags" title="enum GMountMountFlags"><span class="type">GMountMountFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> *mount_operation</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-remount-finish" title="g_mount_remount_finish ()">g_mount_remount_finish</a>              (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-remount-finish" title="g_mount_remount_finish ()">g_mount_remount_finish</a>              (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-can-eject" title="g_mount_can_eject ()">g_mount_can_eject</a>                   (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-can-eject" title="g_mount_can_eject ()">g_mount_can_eject</a>                   (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GMount.html#g-mount-eject" title="g_mount_eject ()">g_mount_eject</a>                       (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMount.html#GMountUnmountFlags" title="enum GMountUnmountFlags"><span class="type">GMountUnmountFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-eject-finish" title="g_mount_eject_finish ()">g_mount_eject_finish</a>                (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-eject-finish" title="g_mount_eject_finish ()">g_mount_eject_finish</a>                (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GMount.html#g-mount-eject-with-operation" title="g_mount_eject_with_operation ()">g_mount_eject_with_operation</a>        (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMount.html#GMountUnmountFlags" title="enum GMountUnmountFlags"><span class="type">GMountUnmountFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> *mount_operation</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-eject-with-operation-finish" title="g_mount_eject_with_operation_finish ()">g_mount_eject_with_operation_finish</a> (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-eject-with-operation-finish" title="g_mount_eject_with_operation_finish ()">g_mount_eject_with_operation_finish</a> (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GMount.html#g-mount-guess-content-type" title="g_mount_guess_content_type ()">g_mount_guess_content_type</a>          (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_rescan</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_rescan</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            <a class="link" href="GMount.html#g-mount-guess-content-type-finish" title="g_mount_guess_content_type_finish ()">g_mount_guess_content_type_finish</a>   (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            <a class="link" href="GMount.html#g-mount-guess-content-type-finish" title="g_mount_guess_content_type_finish ()">g_mount_guess_content_type_finish</a>   (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            <a class="link" href="GMount.html#g-mount-guess-content-type-sync" title="g_mount_guess_content_type_sync ()">g_mount_guess_content_type_sync</a>     (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_rescan</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            <a class="link" href="GMount.html#g-mount-guess-content-type-sync" title="g_mount_guess_content_type_sync ()">g_mount_guess_content_type_sync</a>     (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_rescan</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-is-shadowed" title="g_mount_is_shadowed ()">g_mount_is_shadowed</a>                 (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GMount.html#g-mount-is-shadowed" title="g_mount_is_shadowed ()">g_mount_is_shadowed</a>                 (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GMount.html#g-mount-shadow" title="g_mount_shadow ()">g_mount_shadow</a>                      (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GMount.html#g-mount-unshadow" title="g_mount_unshadow ()">g_mount_unshadow</a>                    (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GMount.html#g-mount-get-sort-key" title="g_mount_get_sort_key ()">g_mount_get_sort_key</a>                (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GMount.html#g-mount-get-sort-key" title="g_mount_get_sort_key ()">g_mount_get_sort_key</a>                (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -133,14 +133,14 @@ const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnva
 <a name="GMount.prerequisites"></a><h2>Prerequisites</h2>
 <p>
 GMount requires
- <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
+ <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
 </div>
 <div class="refsect1">
 <a name="GMount.signals"></a><h2>Signals</h2>
 <pre class="synopsis">
-  "<a class="link" href="GMount.html#GMount-changed" title='The "changed" signal'>changed</a>"                                        : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GMount.html#GMount-pre-unmount" title='The "pre-unmount" signal'>pre-unmount</a>"                                    : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GMount.html#GMount-unmounted" title='The "unmounted" signal'>unmounted</a>"                                      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GMount.html#GMount-changed" title='The "changed" signal'>changed</a>"                                        : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GMount.html#GMount-pre-unmount" title='The "pre-unmount" signal'>pre-unmount</a>"                                    : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GMount.html#GMount-unmounted" title='The "unmounted" signal'>unmounted</a>"                                      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
 </pre>
 </div>
 <div class="refsect1">
@@ -158,7 +158,7 @@ might not be related to a volume object.
 <p>
 Unmounting a <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> instance is an asynchronous operation. For
 more information about asynchronous operations, see <a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a>
-and <a class="link" href="GSimpleAsyncResult.html" title="GSimpleAsyncResult"><span class="type">GSimpleAsyncResult</span></a>. To unmount a <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> instance, first call
+and <a class="link" href="GTask.html" title="GTask"><span class="type">GTask</span></a>. To unmount a <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> instance, first call
 <a class="link" href="GMount.html#g-mount-unmount-with-operation" title="g_mount_unmount_with_operation ()"><code class="function">g_mount_unmount_with_operation()</code></a> with (at least) the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> instance and a
 <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>.  The callback will be fired when the
 operation has resolved (either with success or failure), and a
@@ -279,7 +279,7 @@ Interface for implementing operations for mounts.
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GMountIface.g-iface"></a>g_iface</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GMountIface.g-iface"></a>g_iface</code></em>;</span></p></td>
 <td>The parent interface.</td>
 </tr>
 <tr>
@@ -304,15 +304,15 @@ Interface for implementing operations for mounts.
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GMountIface.get-uuid"></a>get_uuid</code></em> ()</span></p></td>
-<td>Gets the UUID for the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a>. The reference is typically based on the file system UUID for the mount in question and should be considered an opaque string. Returns <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there is no UUID available.</td>
+<td>Gets the UUID for the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a>. The reference is typically based on the file system UUID for the mount in question and should be considered an opaque string. Returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there is no UUID available.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GMountIface.get-volume"></a>get_volume</code></em> ()</span></p></td>
-<td>Gets a <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a> the mount is located on. Returns <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> is not associated with a <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a>.</td>
+<td>Gets a <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a> the mount is located on. Returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> is not associated with a <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GMountIface.get-drive"></a>get_drive</code></em> ()</span></p></td>
-<td>Gets a <a class="link" href="GDrive.html" title="GDrive"><span class="type">GDrive</span></a> the volume of the mount is located on. Returns <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> is not associated with a <a class="link" href="GDrive.html" title="GDrive"><span class="type">GDrive</span></a> or a <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a>. This is convenience method for getting the <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a> and using that to get the <a class="link" href="GDrive.html" title="GDrive"><span class="type">GDrive</span></a>.</td>
+<td>Gets a <a class="link" href="GDrive.html" title="GDrive"><span class="type">GDrive</span></a> the volume of the mount is located on. Returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> is not associated with a <a class="link" href="GDrive.html" title="GDrive"><span class="type">GDrive</span></a> or a <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a>. This is convenience method for getting the <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a> and using that to get the <a class="link" href="GDrive.html" title="GDrive"><span class="type">GDrive</span></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GMountIface.can-unmount"></a>can_unmount</code></em> ()</span></p></td>
@@ -386,7 +386,7 @@ type guessing. This operation was added in 2.18.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GMountIface.get-sort-key"></a>get_sort_key</code></em> ()</span></p></td>
-<td>Gets a key used for sorting <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> instance or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such key exists. Since 2.32.</td>
+<td>Gets a key used for sorting <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> instance or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such key exists. Since 2.32.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="GMountIface.get-symbolic-icon"></a>get_symbolic_icon</code></em> ()</span></p></td>
@@ -415,7 +415,7 @@ Gets the name of <em class="parameter"><code>mount</code></em>.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the name for the given <em class="parameter"><code>mount</code></em>.
-The returned string should be freed with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
+The returned string should be freed with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
 when no longer needed.</td>
 </tr>
 </tbody>
@@ -428,7 +428,7 @@ when no longer needed.</td>
 <p>
 Gets the UUID for the <em class="parameter"><code>mount</code></em>. The reference is typically based on
 the file system UUID for the mount in question and should be
-considered an opaque string. Returns <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there is no UUID
+considered an opaque string. Returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if there is no UUID
 available.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -443,8 +443,8 @@ available.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the UUID for <em class="parameter"><code>mount</code></em> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no UUID can be computed.
-The returned string should be freed with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
+<td>the UUID for <em class="parameter"><code>mount</code></em> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no UUID can be computed.
+The returned string should be freed with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>
 when no longer needed.</td>
 </tr>
 </tbody>
@@ -471,7 +471,7 @@ Gets the icon for <em class="parameter"><code>mount</code></em>.
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a <a class="link" href="GIcon.html" title="GIcon"><span class="type">GIcon</span></a>.
 The returned object should be unreffed with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -498,7 +498,7 @@ Gets the symbolic icon for <em class="parameter"><code>mount</code></em>.
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a <a class="link" href="GIcon.html" title="GIcon"><span class="type">GIcon</span></a>.
 The returned object should be unreffed with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -528,9 +528,9 @@ using that object to get the <a class="link" href="GDrive.html" title="GDrive"><
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GDrive.html" title="GDrive"><span class="type">GDrive</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>mount</code></em> is not associated with a volume or a drive.
+<td>a <a class="link" href="GDrive.html" title="GDrive"><span class="type">GDrive</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>mount</code></em> is not associated with a volume or a drive.
 The returned object should be unreffed with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -557,7 +557,7 @@ Gets the root directory on <em class="parameter"><code>mount</code></em>.
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a <a class="link" href="GFile.html" title="GFile"><span class="type">GFile</span></a>.
 The returned object should be unreffed with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -582,9 +582,9 @@ Gets the volume for the <em class="parameter"><code>mount</code></em>.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>mount</code></em> is not associated with a volume.
+<td>a <a class="link" href="GVolume.html" title="GVolume"><span class="type">GVolume</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>mount</code></em> is not associated with a volume.
 The returned object should be unreffed with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -613,7 +613,7 @@ the home directory, or the root of the volume).
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a <a class="link" href="GFile.html" title="GFile"><span class="type">GFile</span></a>.
 The returned object should be unreffed with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> when no longer needed. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -622,7 +622,7 @@ The returned object should be unreffed with
 <hr>
 <div class="refsect2">
 <a name="g-mount-can-unmount"></a><h3>g_mount_can_unmount ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_can_unmount                 (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_can_unmount                 (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);</pre>
 <p>
 Checks if <em class="parameter"><code>mount</code></em> can be mounted.
 </p>
@@ -639,7 +639,7 @@ Checks if <em class="parameter"><code>mount</code></em> can be mounted.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>mount</code></em> can be unmounted.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>mount</code></em> can be unmounted.</td>
 </tr>
 </tbody>
 </table></div>
@@ -704,7 +704,7 @@ Flags used when an unmounting a mount.
                                                          <em class="parameter"><code><a class="link" href="GMount.html#GMountUnmountFlags" title="enum GMountUnmountFlags"><span class="type">GMountUnmountFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
 <p><code class="literal">g_mount_unmount</code> has been deprecated since version 2.22 and should not be used in newly-written code. Use <a class="link" href="GMount.html#g-mount-unmount-with-operation" title="g_mount_unmount_with_operation ()"><code class="function">g_mount_unmount_with_operation()</code></a> instead.</p>
@@ -730,12 +730,12 @@ and <a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="t
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -748,16 +748,16 @@ and <a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="t
 <hr>
 <div class="refsect2">
 <a name="g-mount-unmount-finish"></a><h3>g_mount_unmount_finish ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_unmount_finish              (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_unmount_finish              (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
 <p><code class="literal">g_mount_unmount_finish</code> has been deprecated since version 2.22 and should not be used in newly-written code. Use <a class="link" href="GMount.html#g-mount-unmount-with-operation-finish" title="g_mount_unmount_with_operation_finish ()"><code class="function">g_mount_unmount_with_operation_finish()</code></a> instead.</p>
 </div>
 <p>
 Finishes unmounting a mount. If any errors occurred during the operation, 
-<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
+<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -775,13 +775,13 @@ Finishes unmounting a mount. If any errors occurred during the operation,
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
 ignore.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully unmounted. <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully unmounted. <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -794,7 +794,7 @@ ignore.</td>
                                                          <em class="parameter"><code><a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> *mount_operation</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Unmounts a mount. This is an asynchronous operation, and is
 finished by calling <a class="link" href="GMount.html#g-mount-unmount-with-operation-finish" title="g_mount_unmount_with_operation_finish ()"><code class="function">g_mount_unmount_with_operation_finish()</code></a> with the <em class="parameter"><code>mount</code></em> 
@@ -816,18 +816,18 @@ and <a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="t
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>mount_operation</code></em> :</span></p></td>
-<td>a <a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to avoid
+<td>a <a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to avoid
 user interaction. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -841,13 +841,13 @@ user interaction. <span class="annotation">[<acronym title="NULL is ok, both for
 <hr>
 <div class="refsect2">
 <a name="g-mount-unmount-with-operation-finish"></a><h3>g_mount_unmount_with_operation_finish ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_unmount_with_operation_finish
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_unmount_with_operation_finish
                                                         (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Finishes unmounting a mount. If any errors occurred during the operation,
-<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
+<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -865,13 +865,13 @@ Finishes unmounting a mount. If any errors occurred during the operation,
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
 ignore.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully unmounted. <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully unmounted. <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -885,7 +885,7 @@ ignore.</td>
                                                          <em class="parameter"><code><a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> *mount_operation</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Remounts a mount. This is an asynchronous operation, and is 
 finished by calling <a class="link" href="GMount.html#g-mount-remount-finish" title="g_mount_remount_finish ()"><code class="function">g_mount_remount_finish()</code></a> with the <em class="parameter"><code>mount</code></em> 
@@ -914,18 +914,18 @@ unmounted.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>mount_operation</code></em> :</span></p></td>
-<td>a <a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to avoid
+<td>a <a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to avoid
 user interaction. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -938,12 +938,12 @@ user interaction. <span class="annotation">[<acronym title="NULL is ok, both for
 <hr>
 <div class="refsect2">
 <a name="g-mount-remount-finish"></a><h3>g_mount_remount_finish ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_remount_finish              (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_remount_finish              (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Finishes remounting a mount. If any errors occurred during the operation, 
-<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
+<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -961,13 +961,13 @@ Finishes remounting a mount. If any errors occurred during the operation,
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
 ignore.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully remounted. <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully remounted. <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -975,7 +975,7 @@ ignore.</td>
 <hr>
 <div class="refsect2">
 <a name="g-mount-can-eject"></a><h3>g_mount_can_eject ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_can_eject                   (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_can_eject                   (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);</pre>
 <p>
 Checks if <em class="parameter"><code>mount</code></em> can be eject.
 </p>
@@ -992,7 +992,7 @@ Checks if <em class="parameter"><code>mount</code></em> can be eject.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>mount</code></em> can be ejected.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the <em class="parameter"><code>mount</code></em> can be ejected.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1004,7 +1004,7 @@ Checks if <em class="parameter"><code>mount</code></em> can be eject.
                                                          <em class="parameter"><code><a class="link" href="GMount.html#GMountUnmountFlags" title="enum GMountUnmountFlags"><span class="type">GMountUnmountFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
 <p><code class="literal">g_mount_eject</code> has been deprecated since version 2.22 and should not be used in newly-written code. Use <a class="link" href="GMount.html#g-mount-eject-with-operation" title="g_mount_eject_with_operation ()"><code class="function">g_mount_eject_with_operation()</code></a> instead.</p>
@@ -1030,12 +1030,12 @@ and <a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="t
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -1048,16 +1048,16 @@ and <a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="t
 <hr>
 <div class="refsect2">
 <a name="g-mount-eject-finish"></a><h3>g_mount_eject_finish ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_eject_finish                (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_eject_finish                (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
 <p><code class="literal">g_mount_eject_finish</code> has been deprecated since version 2.22 and should not be used in newly-written code. Use <a class="link" href="GMount.html#g-mount-eject-with-operation-finish" title="g_mount_eject_with_operation_finish ()"><code class="function">g_mount_eject_with_operation_finish()</code></a> instead.</p>
 </div>
 <p>
 Finishes ejecting a mount. If any errors occurred during the operation, 
-<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
+<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1075,13 +1075,13 @@ Finishes ejecting a mount. If any errors occurred during the operation,
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
 ignore.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully ejected. <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully ejected. <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1094,7 +1094,7 @@ ignore.</td>
                                                          <em class="parameter"><code><a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> *mount_operation</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Ejects a mount. This is an asynchronous operation, and is
 finished by calling <a class="link" href="GMount.html#g-mount-eject-with-operation-finish" title="g_mount_eject_with_operation_finish ()"><code class="function">g_mount_eject_with_operation_finish()</code></a> with the <em class="parameter"><code>mount</code></em>
@@ -1116,18 +1116,18 @@ and <a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="t
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>mount_operation</code></em> :</span></p></td>
-<td>a <a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to avoid
+<td>a <a class="link" href="GMountOperation.html" title="GMountOperation"><span class="type">GMountOperation</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to avoid
 user interaction. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -1141,12 +1141,12 @@ user interaction. <span class="annotation">[<acronym title="NULL is ok, both for
 <hr>
 <div class="refsect2">
 <a name="g-mount-eject-with-operation-finish"></a><h3>g_mount_eject_with_operation_finish ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_eject_with_operation_finish (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_eject_with_operation_finish (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Finishes ejecting a mount. If any errors occurred during the operation,
-<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
+<em class="parameter"><code>error</code></em> will be set to contain the errors and <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1164,13 +1164,13 @@ Finishes ejecting a mount. If any errors occurred during the operation,
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
 ignore.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully ejected. <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the mount was successfully ejected. <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1180,10 +1180,10 @@ ignore.</td>
 <div class="refsect2">
 <a name="g-mount-guess-content-type"></a><h3>g_mount_guess_content_type ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_mount_guess_content_type          (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_rescan</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_rescan</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Tries to guess the type of content stored on <em class="parameter"><code>mount</code></em>. Returns one or
 more textual identifiers of well-known content types (typically
@@ -1215,7 +1215,7 @@ Otherwise a cached result will be used if available</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -1235,13 +1235,13 @@ Otherwise a cached result will be used if available</td>
 <hr>
 <div class="refsect2">
 <a name="g-mount-guess-content-type-finish"></a><h3>g_mount_guess_content_type_finish ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            g_mount_guess_content_type_finish   (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            g_mount_guess_content_type_finish   (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Finishes guessing content types of <em class="parameter"><code>mount</code></em>. If any errors occurred
 during the operation, <em class="parameter"><code>error</code></em> will be set to contain the errors and
-<a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned. In particular, you may get an 
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> will be returned. In particular, you may get an 
 <a class="link" href="gio-GIOError.html#G-IO-ERROR-NOT-SUPPORTED:CAPS"><code class="literal">G_IO_ERROR_NOT_SUPPORTED</code></a> if the mount does not support content 
 guessing.
 </p>
@@ -1263,13 +1263,13 @@ guessing.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
 ignore</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of content types or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.
-Caller should free this array with <a href="./../glib/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a> when done with it. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of content types or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.
+Caller should free this array with <a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a> when done with it. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span>
 </td>
 </tr>
 </tbody>
@@ -1279,10 +1279,10 @@ Caller should free this array with <a href="./../glib/glib/glib-String-Utility-F
 <hr>
 <div class="refsect2">
 <a name="g-mount-guess-content-type-sync"></a><h3>g_mount_guess_content_type_sync ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            g_mount_guess_content_type_sync     (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_rescan</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> **            g_mount_guess_content_type_sync     (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_rescan</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Tries to guess the type of content stored on <em class="parameter"><code>mount</code></em>. Returns one or
 more textual identifiers of well-known content types (typically
@@ -1312,18 +1312,18 @@ Otherwise a cached result will be used if available</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> location to store the error occurring, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
 ignore</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of content types or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.
-Caller should free this array with <a href="./../glib/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a> when done with it. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of content types or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.
+Caller should free this array with <a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strfreev"><code class="function">g_strfreev()</code></a> when done with it. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> utf8]</span>
 </td>
 </tr>
 </tbody>
@@ -1333,7 +1333,7 @@ Caller should free this array with <a href="./../glib/glib/glib-String-Utility-F
 <hr>
 <div class="refsect2">
 <a name="g-mount-is-shadowed"></a><h3>g_mount_is_shadowed ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_is_shadowed                 (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_mount_is_shadowed                 (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);</pre>
 <p>
 Determines if <em class="parameter"><code>mount</code></em> is shadowed. Applications or libraries should
 avoid displaying <em class="parameter"><code>mount</code></em> in the user interface if it is shadowed.
@@ -1375,7 +1375,7 @@ activation root on a <a class="link" href="GVolume.html" title="GVolume"><span c
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>mount</code></em> is shadowed.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>mount</code></em> is shadowed.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1428,7 +1428,7 @@ will need to emit the <a class="link" href="GMount.html#GMount-changed" title='T
 <hr>
 <div class="refsect2">
 <a name="g-mount-get-sort-key"></a><h3>g_mount_get_sort_key ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_mount_get_sort_key                (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_mount_get_sort_key                (<em class="parameter"><code><a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> *mount</code></em>);</pre>
 <p>
 Gets the sort key for <em class="parameter"><code>mount</code></em>, if any.
 </p>
@@ -1444,7 +1444,7 @@ Gets the sort key for <em class="parameter"><code>mount</code></em>, if any.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>Sorting key for <em class="parameter"><code>mount</code></em> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such key is available.</td>
+<td>Sorting key for <em class="parameter"><code>mount</code></em> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no such key is available.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1456,7 +1456,7 @@ Gets the sort key for <em class="parameter"><code>mount</code></em>, if any.
 <div class="refsect2">
 <a name="GMount-changed"></a><h3>The <code class="literal">"changed"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a>  *mount,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data)      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data)      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 Emitted when the mount has been changed.
 </p>
@@ -1481,7 +1481,7 @@ Emitted when the mount has been changed.
 <div class="refsect2">
 <a name="GMount-pre-unmount"></a><h3>The <code class="literal">"pre-unmount"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a>  *mount,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data)      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data)      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 This signal is emitted when the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> is about to be
 unmounted.
@@ -1508,7 +1508,7 @@ unmounted.
 <div class="refsect2">
 <a name="GMount-unmounted"></a><h3>The <code class="literal">"unmounted"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a>  *mount,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data)      : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data)      : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 This signal is emitted when the <a class="link" href="GMount.html" title="GMount"><span class="type">GMount</span></a> have been
 unmounted. If the recipient is holding references to the

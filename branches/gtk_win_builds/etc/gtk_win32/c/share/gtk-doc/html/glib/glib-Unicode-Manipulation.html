@@ -1384,17 +1384,16 @@ Classifies a Unicode character by type.
   G_UNICODE_BREAK_HANGUL_LVT_SYLLABLE,
   G_UNICODE_BREAK_CLOSE_PARANTHESIS,
   G_UNICODE_BREAK_CONDITIONAL_JAPANESE_STARTER,
-  G_UNICODE_BREAK_HEBREW_LETTER
+  G_UNICODE_BREAK_HEBREW_LETTER,
+  G_UNICODE_BREAK_REGIONAL_INDICATOR
 } GUnicodeBreakType;
 </pre>
 <p>
 These are the possible line break classifications.
 </p>
 <p>
-The five Hangul types were added in Unicode 4.1, so, has been
-introduced in GLib 2.10. Note that new types may be added in the future.
-Applications should be ready to handle unknown values.
-They may be regarded as <a class="link" href="glib-Unicode-Manipulation.html#G-UNICODE-BREAK-UNKNOWN:CAPS"><code class="literal">G_UNICODE_BREAK_UNKNOWN</code></a>.
+Since new unicode versions may add new types here, applications should be ready 
+to handle unknown values. They may be regarded as <a class="link" href="glib-Unicode-Manipulation.html#G-UNICODE-BREAK-UNKNOWN:CAPS"><code class="literal">G_UNICODE_BREAK_UNKNOWN</code></a>.
 </p>
 <p>
 See <a class="ulink" href="http://www.unicode.org/unicode/reports/tr14/" target="_top">http://www.unicode.org/unicode/reports/tr14/</a>.
@@ -1598,6 +1597,11 @@ See <a class="ulink" href="http://www.unicode.org/unicode/reports/tr14/" target=
 <tr>
 <td><p><a name="G-UNICODE-BREAK-HEBREW-LETTER:CAPS"></a><span class="term"><code class="literal">G_UNICODE_BREAK_HEBREW_LETTER</code></span></p></td>
 <td>Hebrew Letter (HL). Since: 2.32
+</td>
+</tr>
+<tr>
+<td><p><a name="G-UNICODE-BREAK-REGIONAL-INDICATOR:CAPS"></a><span class="term"><code class="literal">G_UNICODE_BREAK_REGIONAL_INDICATOR</code></span></p></td>
+<td>Regional Indicator (RI). Since: 2.36
 </td>
 </tr>
 </tbody>

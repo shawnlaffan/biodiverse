@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Engines</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Pango Reference Manual">
 <link rel="up" href="lowlevel.html" title="Low Level Functionality">
 <link rel="prev" href="pango-Coverage-Maps.html" title="Coverage Maps">
@@ -46,7 +46,7 @@ struct              <a class="link" href="pango-Engines.html#PangoEngineClass" t
 #define             <a class="link" href="pango-Engines.html#PANGO-RENDER-TYPE-NONE:CAPS" title="PANGO_RENDER_TYPE_NONE">PANGO_RENDER_TYPE_NONE</a>
 <span class="returnvalue">void</span>                <a class="link" href="pango-Engines.html#script-engine-list" title="script_engine_list ()">script_engine_list</a>                  (<em class="parameter"><code><a class="link" href="pango-Engines.html#PangoEngineInfo" title="struct PangoEngineInfo"><span class="type">PangoEngineInfo</span></a> **engines</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> *n_engines</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="pango-Engines.html#script-engine-init" title="script_engine_init ()">script_engine_init</a>                  (<em class="parameter"><code><a href="http://library.gnome.org/devel/gobject/unstable/GTypeModule.html"><span class="type">GTypeModule</span></a> *module</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="pango-Engines.html#script-engine-init" title="script_engine_init ()">script_engine_init</a>                  (<em class="parameter"><code><span class="type">GTypeModule</span> *module</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="pango-Engines.html#script-engine-exit" title="script_engine_exit ()">script_engine_exit</a>                  (<em class="parameter"><code><span class="type">void</span></code></em>);
 <a class="link" href="pango-Engines.html#PangoEngine"><span class="returnvalue">PangoEngine</span></a> *       <a class="link" href="pango-Engines.html#script-engine-create" title="script_engine_create ()">script_engine_create</a>                (<em class="parameter"><code>const <span class="type">char</span> *id</code></em>);
 </pre>
@@ -54,7 +54,7 @@ struct              <a class="link" href="pango-Engines.html#PangoEngineClass" t
 <div class="refsect1">
 <a name="pango-Engines.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  GObject
    +----PangoEngine
          +----<a class="link" href="PangoEngineLang.html" title="PangoEngineLang">PangoEngineLang</a>
          +----<a class="link" href="PangoEngineShape.html" title="PangoEngineShape">PangoEngineShape</a>
@@ -96,19 +96,22 @@ function is used when building a catalog of all available modules.
 The <a class="link" href="pango-Engines.html#PangoEngineInfo" title="struct PangoEngineInfo"><span class="type">PangoEngineInfo</span></a> structure contains information about a particular
 engine. It contains the following fields:
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="PangoEngineInfo.id"></a>id</code></em>;</span></p></td>
+<td><p><span class="term">const <span class="type">gchar</span> *<em class="structfield"><code><a name="PangoEngineInfo.id"></a>id</code></em>;</span></p></td>
 <td>a unique string ID for the engine.</td>
 </tr>
 <tr>
-<td><p><span class="term">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="PangoEngineInfo.engine-type"></a>engine_type</code></em>;</span></p></td>
+<td><p><span class="term">const <span class="type">gchar</span> *<em class="structfield"><code><a name="PangoEngineInfo.engine-type"></a>engine_type</code></em>;</span></p></td>
 <td>a string identifying the engine type.</td>
 </tr>
 <tr>
-<td><p><span class="term">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="PangoEngineInfo.render-type"></a>render_type</code></em>;</span></p></td>
+<td><p><span class="term">const <span class="type">gchar</span> *<em class="structfield"><code><a name="PangoEngineInfo.render-type"></a>render_type</code></em>;</span></p></td>
 <td>a string identifying the render type.</td>
 </tr>
 <tr>
@@ -116,7 +119,7 @@ engine. It contains the following fields:
 <td>array of scripts this engine supports.</td>
 </tr>
 <tr>
-<td><p><span class="term"><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gint"><span class="type">gint</span></a> <em class="structfield"><code><a name="PangoEngineInfo.n-scripts"></a>n_scripts</code></em>;</span></p></td>
+<td><p><span class="term"><span class="type">gint</span> <em class="structfield"><code><a name="PangoEngineInfo.n-scripts"></a>n_scripts</code></em>;</span></p></td>
 <td>number of items in <em class="parameter"><code>scripts</code></em>.</td>
 </tr>
 </tbody>
@@ -135,8 +138,11 @@ The <a class="link" href="pango-Engines.html#PangoEngineScriptInfo" title="struc
 information about how the shaper covers a particular
 script.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> <em class="structfield"><code><a name="PangoEngineScriptInfo.script"></a>script</code></em>;</span></p></td>
@@ -144,7 +150,7 @@ script.
 the special meaning here of "all scripts"</td>
 </tr>
 <tr>
-<td><p><span class="term">const <a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="PangoEngineScriptInfo.langs"></a>langs</code></em>;</span></p></td>
+<td><p><span class="term">const <span class="type">gchar</span> *<em class="structfield"><code><a name="PangoEngineScriptInfo.langs"></a>langs</code></em>;</span></p></td>
 <td>a semicolon separated list of languages that this
 engine handles for this script. This may be empty,
 in which case the engine is saying that it is a
@@ -203,8 +209,11 @@ the given location.
 Note that <a class="link" href="pango-Engines.html#script-engine-init" title="script_engine_init ()"><code class="function">script_engine_init()</code></a> will not be called before this
 function.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>engines</code></em> :</span></p></td>
@@ -220,16 +229,19 @@ function.
 <hr>
 <div class="refsect2">
 <a name="script-engine-init"></a><h3>script_engine_init ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                script_engine_init                  (<em class="parameter"><code><a href="http://library.gnome.org/devel/gobject/unstable/GTypeModule.html"><span class="type">GTypeModule</span></a> *module</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                script_engine_init                  (<em class="parameter"><code><span class="type">GTypeModule</span> *module</code></em>);</pre>
 <p>
 Function to be provided by a module to register any
 GObject types in the module.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>module</code></em> :</span></p></td>
-<td>a <a href="http://library.gnome.org/devel/gobject/unstable/GTypeModule.html"><span class="type">GTypeModule</span></a> structure used to associate any
+<td>a <span class="type">GTypeModule</span> structure used to associate any
 GObject types created in this module with the module.</td>
 </tr></tbody>
 </table></div>
@@ -251,8 +263,11 @@ when the module is unloading. Frequently does nothing.
 Function to be provided by the module to create an instance
 of one of the engines implemented by the module.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>id</code></em> :</span></p></td>
@@ -261,8 +276,8 @@ of one of the engines implemented by the module.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a newly created <a class="link" href="pango-Engines.html#PangoEngine"><span class="type">PangoEngine</span></a> of the specified
-type, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if an error occurred. (In normal operation,
-a module should not return <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. A <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> return is only
+type, or <code class="literal">NULL</code> if an error occurred. (In normal operation,
+a module should not return <code class="literal">NULL</code>. A <code class="literal">NULL</code> return is only
 acceptable in the case where system misconfiguration or
 bugs in the driver routine are encountered.)</td>
 </tr>

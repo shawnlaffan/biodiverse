@@ -42,11 +42,11 @@
 
 struct              <a class="link" href="gio-GWin32InputStream.html#GWin32InputStream" title="struct GWin32InputStream">GWin32InputStream</a>;
 <a class="link" href="GInputStream.html" title="GInputStream"><span class="returnvalue">GInputStream</span></a> *      <a class="link" href="gio-GWin32InputStream.html#g-win32-input-stream-new" title="g_win32_input_stream_new ()">g_win32_input_stream_new</a>            (<em class="parameter"><code><span class="type">void</span> *handle</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> close_handle</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> close_handle</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gio-GWin32InputStream.html#g-win32-input-stream-set-close-handle" title="g_win32_input_stream_set_close_handle ()">g_win32_input_stream_set_close_handle</a>
                                                         (<em class="parameter"><code><a class="link" href="gio-GWin32InputStream.html#GWin32InputStream" title="struct GWin32InputStream"><span class="type">GWin32InputStream</span></a> *stream</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> close_handle</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GWin32InputStream.html#g-win32-input-stream-get-close-handle" title="g_win32_input_stream_get_close_handle ()">g_win32_input_stream_get_close_handle</a>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> close_handle</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gio-GWin32InputStream.html#g-win32-input-stream-get-close-handle" title="g_win32_input_stream_get_close_handle ()">g_win32_input_stream_get_close_handle</a>
                                                         (<em class="parameter"><code><a class="link" href="gio-GWin32InputStream.html#GWin32InputStream" title="struct GWin32InputStream"><span class="type">GWin32InputStream</span></a> *stream</code></em>);
 <span class="returnvalue">void</span> *              <a class="link" href="gio-GWin32InputStream.html#g-win32-input-stream-get-handle" title="g_win32_input_stream_get_handle ()">g_win32_input_stream_get_handle</a>     (<em class="parameter"><code><a class="link" href="gio-GWin32InputStream.html#GWin32InputStream" title="struct GWin32InputStream"><span class="type">GWin32InputStream</span></a> *stream</code></em>);
 </pre>
@@ -79,12 +79,12 @@ Implements <a class="link" href="GInputStream.html" title="GInputStream"><span c
 <div class="refsect2">
 <a name="g-win32-input-stream-new"></a><h3>g_win32_input_stream_new ()</h3>
 <pre class="programlisting"><a class="link" href="GInputStream.html" title="GInputStream"><span class="returnvalue">GInputStream</span></a> *      g_win32_input_stream_new            (<em class="parameter"><code><span class="type">void</span> *handle</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> close_handle</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> close_handle</code></em>);</pre>
 <p>
 Creates a new <a class="link" href="gio-GWin32InputStream.html#GWin32InputStream" title="struct GWin32InputStream"><span class="type">GWin32InputStream</span></a> for the given <em class="parameter"><code>handle</code></em>.
 </p>
 <p>
-If <em class="parameter"><code>close_handle</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, the handle will be closed
+If <em class="parameter"><code>close_handle</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, the handle will be closed
 when the stream is closed.
 </p>
 <p>
@@ -104,7 +104,7 @@ as used in the Windows C libraries.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>close_handle</code></em> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to close the handle when done</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to close the handle when done</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -119,7 +119,7 @@ as used in the Windows C libraries.
 <a name="g-win32-input-stream-set-close-handle"></a><h3>g_win32_input_stream_set_close_handle ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_win32_input_stream_set_close_handle
                                                         (<em class="parameter"><code><a class="link" href="gio-GWin32InputStream.html#GWin32InputStream" title="struct GWin32InputStream"><span class="type">GWin32InputStream</span></a> *stream</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> close_handle</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> close_handle</code></em>);</pre>
 <p>
 Sets whether the handle of <em class="parameter"><code>stream</code></em> shall be closed
 when the stream is closed.
@@ -138,7 +138,7 @@ when the stream is closed.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>close_handle</code></em> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to close the handle when done</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to close the handle when done</td>
 </tr>
 </tbody>
 </table></div>
@@ -147,7 +147,7 @@ when the stream is closed.
 <hr>
 <div class="refsect2">
 <a name="g-win32-input-stream-get-close-handle"></a><h3>g_win32_input_stream_get_close_handle ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_win32_input_stream_get_close_handle
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_win32_input_stream_get_close_handle
                                                         (<em class="parameter"><code><a class="link" href="gio-GWin32InputStream.html#GWin32InputStream" title="struct GWin32InputStream"><span class="type">GWin32InputStream</span></a> *stream</code></em>);</pre>
 <p>
 Returns whether the handle of <em class="parameter"><code>stream</code></em> will be
@@ -167,7 +167,7 @@ closed when the stream is closed.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the handle is closed when done</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the handle is closed when done</td>
 </tr>
 </tbody>
 </table></div>

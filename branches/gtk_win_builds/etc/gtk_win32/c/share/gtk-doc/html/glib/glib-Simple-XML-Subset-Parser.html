@@ -74,6 +74,8 @@ const <a class="link" href="glib-Singly-Linked-Lists.html#GSList" title="struct 
                                                          <em class="parameter"><code>const <a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParser" title="struct GMarkupParser"><span class="type">GMarkupParser</span></a> *parser</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gpointer" title="gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
 <a class="link" href="glib-Basic-Types.html#gpointer" title="gpointer"><span class="returnvalue">gpointer</span></a>            <a class="link" href="glib-Simple-XML-Subset-Parser.html#g-markup-parse-context-pop" title="g_markup_parse_context_pop ()">g_markup_parse_context_pop</a>          (<em class="parameter"><code><a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="type">GMarkupParseContext</span></a> *context</code></em>);
+<a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="returnvalue">GMarkupParseContext</span></a> * <a class="link" href="glib-Simple-XML-Subset-Parser.html#g-markup-parse-context-ref" title="g_markup_parse_context_ref ()">g_markup_parse_context_ref</a>        (<em class="parameter"><code><a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="type">GMarkupParseContext</span></a> *context</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="glib-Simple-XML-Subset-Parser.html#g-markup-parse-context-unref" title="g_markup_parse_context_unref ()">g_markup_parse_context_unref</a>        (<em class="parameter"><code><a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="type">GMarkupParseContext</span></a> *context</code></em>);
 
 enum                <a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupCollectType" title="enum GMarkupCollectType">GMarkupCollectType</a>;
 <a class="link" href="glib-Basic-Types.html#gboolean" title="gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="glib-Simple-XML-Subset-Parser.html#g-markup-collect-attributes" title="g_markup_collect_attributes ()">g_markup_collect_attributes</a>         (<em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *element_name</code></em>,
@@ -1100,6 +1102,54 @@ interface.
 </tbody>
 </table></div>
 <p class="since">Since 2.18</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-markup-parse-context-ref"></a><h3>g_markup_parse_context_ref ()</h3>
+<pre class="programlisting"><a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="returnvalue">GMarkupParseContext</span></a> * g_markup_parse_context_ref        (<em class="parameter"><code><a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="type">GMarkupParseContext</span></a> *context</code></em>);</pre>
+<p>
+Increases the reference count of <em class="parameter"><code>context</code></em>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>context</code></em> :</span></p></td>
+<td>a <a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="type">GMarkupParseContext</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the same <em class="parameter"><code>context</code></em>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.36</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-markup-parse-context-unref"></a><h3>g_markup_parse_context_unref ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_markup_parse_context_unref        (<em class="parameter"><code><a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="type">GMarkupParseContext</span></a> *context</code></em>);</pre>
+<p>
+Decreases the reference count of <em class="parameter"><code>context</code></em>.  When its reference count
+drops to 0, it is freed.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><em class="parameter"><code>context</code></em> :</span></p></td>
+<td>a <a class="link" href="glib-Simple-XML-Subset-Parser.html#GMarkupParseContext" title="GMarkupParseContext"><span class="type">GMarkupParseContext</span></a>
+</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.36</p>
 </div>
 <hr>
 <div class="refsect2">

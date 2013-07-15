@@ -49,35 +49,35 @@
 struct              <a class="link" href="GApplication.html#GApplicationClass" title="struct GApplicationClass">GApplicationClass</a>;
 
 enum                <a class="link" href="GApplication.html#GApplicationFlags-enum" title="enum GApplicationFlags">GApplicationFlags</a>;
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GApplication.html#g-application-id-is-valid" title="g_application_id_is_valid ()">g_application_id_is_valid</a>           (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);
-<a class="link" href="GApplication.html" title="GApplication"><span class="returnvalue">GApplication</span></a> *      <a class="link" href="GApplication.html#g-application-new" title="g_application_new ()">g_application_new</a>                   (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GApplication.html#g-application-id-is-valid" title="g_application_id_is_valid ()">g_application_id_is_valid</a>           (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);
+<a class="link" href="GApplication.html" title="GApplication"><span class="returnvalue">GApplication</span></a> *      <a class="link" href="GApplication.html#g-application-new" title="g_application_new ()">g_application_new</a>                   (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GApplication.html#GApplicationFlags"><span class="type">GApplicationFlags</span></a> flags</code></em>);
 
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GApplication.html#g-application-get-application-id" title="g_application_get_application_id ()">g_application_get_application_id</a>    (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GApplication.html#g-application-get-application-id" title="g_application_get_application_id ()">g_application_get_application_id</a>    (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GApplication.html#g-application-set-application-id" title="g_application_set_application_id ()">g_application_set_application_id</a>    (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);
 
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="GApplication.html#g-application-get-inactivity-timeout" title="g_application_get_inactivity_timeout ()">g_application_get_inactivity_timeout</a>
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="GApplication.html#g-application-get-inactivity-timeout" title="g_application_get_inactivity_timeout ()">g_application_get_inactivity_timeout</a>
                                                         (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GApplication.html#g-application-set-inactivity-timeout" title="g_application_set_inactivity_timeout ()">g_application_set_inactivity_timeout</a>
                                                         (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> inactivity_timeout</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> inactivity_timeout</code></em>);
 
 <a class="link" href="GApplication.html#GApplicationFlags"><span class="returnvalue">GApplicationFlags</span></a>   <a class="link" href="GApplication.html#g-application-get-flags" title="g_application_get_flags ()">g_application_get_flags</a>             (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GApplication.html#g-application-set-flags" title="g_application_set_flags ()">g_application_set_flags</a>             (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GApplication.html#GApplicationFlags"><span class="type">GApplicationFlags</span></a> flags</code></em>);
 
 <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="returnvalue">GDBusConnection</span></a> *   <a class="link" href="GApplication.html#g-application-get-dbus-connection" title="g_application_get_dbus_connection ()">g_application_get_dbus_connection</a>   (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GApplication.html#g-application-get-dbus-object-path" title="g_application_get_dbus_object_path ()">g_application_get_dbus_object_path</a>  (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GApplication.html#g-application-get-dbus-object-path" title="g_application_get_dbus_object_path ()">g_application_get_dbus_object_path</a>  (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
 
 <span class="returnvalue">void</span>                <a class="link" href="GApplication.html#g-application-set-action-group" title="g_application_set_action_group ()">g_application_set_action_group</a>      (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GActionGroup.html" title="GActionGroup"><span class="type">GActionGroup</span></a> *action_group</code></em>);
 
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GApplication.html#g-application-get-is-registered" title="g_application_get_is_registered ()">g_application_get_is_registered</a>     (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GApplication.html#g-application-get-is-remote" title="g_application_get_is_remote ()">g_application_get_is_remote</a>         (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GApplication.html#g-application-register" title="g_application_register ()">g_application_register</a>              (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GApplication.html#g-application-get-is-registered" title="g_application_get_is_registered ()">g_application_get_is_registered</a>     (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GApplication.html#g-application-get-is-remote" title="g_application_get_is_remote ()">g_application_get_is_remote</a>         (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GApplication.html#g-application-register" title="g_application_register ()">g_application_register</a>              (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 
 <span class="returnvalue">void</span>                <a class="link" href="GApplication.html#g-application-hold" title="g_application_hold ()">g_application_hold</a>                  (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GApplication.html#g-application-release" title="g_application_release ()">g_application_release</a>               (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
@@ -86,8 +86,8 @@ const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnva
 <span class="returnvalue">void</span>                <a class="link" href="GApplication.html#g-application-activate" title="g_application_activate ()">g_application_activate</a>              (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GApplication.html#g-application-open" title="g_application_open ()">g_application_open</a>                  (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GFile.html" title="GFile"><span class="type">GFile</span></a> **files</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_files</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *hint</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_files</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *hint</code></em>);
 
 <span class="returnvalue">int</span>                 <a class="link" href="GApplication.html#g-application-run" title="g_application_run ()">g_application_run</a>                   (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> argc</code></em>,
@@ -99,7 +99,7 @@ const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnva
 <div class="refsect1">
 <a name="GApplication.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GApplication
 </pre>
 <pre class="synopsis">
@@ -117,21 +117,21 @@ GApplication implements
 <a name="GApplication.properties"></a><h2>Properties</h2>
 <pre class="synopsis">
   "<a class="link" href="GApplication.html#GApplication--action-group" title='The "action-group" property'>action-group</a>"             <a class="link" href="GActionGroup.html" title="GActionGroup"><span class="type">GActionGroup</span></a>*         : Write
-  "<a class="link" href="GApplication.html#GApplication--application-id" title='The "application-id" property'>application-id</a>"           <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct
+  "<a class="link" href="GApplication.html#GApplication--application-id" title='The "application-id" property'>application-id</a>"           <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct
   "<a class="link" href="GApplication.html#GApplication--flags" title='The "flags" property'>flags</a>"                    <a class="link" href="GApplication.html#GApplicationFlags"><span class="type">GApplicationFlags</span></a>     : Read / Write
-  "<a class="link" href="GApplication.html#GApplication--inactivity-timeout" title='The "inactivity-timeout" property'>inactivity-timeout</a>"       <a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write
-  "<a class="link" href="GApplication.html#GApplication--is-registered" title='The "is-registered" property'>is-registered</a>"            <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
-  "<a class="link" href="GApplication.html#GApplication--is-remote" title='The "is-remote" property'>is-remote</a>"                <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="GApplication.html#GApplication--inactivity-timeout" title='The "inactivity-timeout" property'>inactivity-timeout</a>"       <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write
+  "<a class="link" href="GApplication.html#GApplication--is-registered" title='The "is-registered" property'>is-registered</a>"            <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="GApplication.html#GApplication--is-remote" title='The "is-remote" property'>is-remote</a>"                <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
 </pre>
 </div>
 <div class="refsect1">
 <a name="GApplication.signals"></a><h2>Signals</h2>
 <pre class="synopsis">
-  "<a class="link" href="GApplication.html#GApplication-activate" title='The "activate" signal'>activate</a>"                                       : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GApplication.html#GApplication-command-line" title='The "command-line" signal'>command-line</a>"                                   : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GApplication.html#GApplication-open" title='The "open" signal'>open</a>"                                           : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GApplication.html#GApplication-shutdown" title='The "shutdown" signal'>shutdown</a>"                                       : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
-  "<a class="link" href="GApplication.html#GApplication-startup" title='The "startup" signal'>startup</a>"                                        : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a>
+  "<a class="link" href="GApplication.html#GApplication-activate" title='The "activate" signal'>activate</a>"                                       : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GApplication.html#GApplication-command-line" title='The "command-line" signal'>command-line</a>"                                   : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GApplication.html#GApplication-open" title='The "open" signal'>open</a>"                                           : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GApplication.html#GApplication-shutdown" title='The "shutdown" signal'>shutdown</a>"                                       : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GApplication.html#GApplication-startup" title='The "startup" signal'>startup</a>"                                        : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a>
 </pre>
 </div>
 <div class="refsect1">
@@ -227,7 +227,7 @@ initialization for all of these in a single place.
 Regardless of which of these entry points is used to start the application,
 GApplication passes some <em class="firstterm"><a name="platform-data"></a>platform
 data</em> from the launching instance to the primary instance,
-in the form of a <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> dictionary mapping strings to variants.
+in the form of a <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> dictionary mapping strings to variants.
 To use platform data, override the <em class="parameter"><code>before_emit</code></em> or <em class="parameter"><code>after_emit</code></em> virtual
 functions in your <a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> subclass. When dealing with
 <a class="link" href="GApplicationCommandLine.html" title="GApplicationCommandLine"><span class="type">GApplicationCommandLine</span></a> objects, the platform data is directly
@@ -255,7 +255,7 @@ respectively.
 <p>
 </p>
 <div class="example">
-<a name="gapplication-example-open"></a><p class="title"><b>Example 14. Opening files with a GApplication</b></p>
+<a name="gapplication-example-open"></a><p class="title"><b>Example 18. Opening files with a GApplication</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -323,7 +323,7 @@ respectively.
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
 <span class="function">activate</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">GApplication</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">application</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="comment">/* Note: when doing a longer-lasting action here that returns</span>
 <span class="comment">   * to the mainloop, you should use g_application_hold() and</span>
@@ -343,8 +343,8 @@ respectively.
 <span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">i </span><span class="symbol">=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span><span class="normal"> i </span><span class="symbol">&lt;</span><span class="normal"> n_files</span><span class="symbol">;</span><span class="normal"> i</span><span class="symbol">++)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
 <span class="normal">      </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">uri </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GFile.html#g-file-get-uri">g_file_get_uri</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">files</span><span class="symbol">[</span><span class="normal">i</span><span class="symbol">]);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"open %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> uri</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">uri</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"open %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> uri</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">uri</span><span class="symbol">);</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 
 <span class="normal">  </span><span class="comment">/* Note: when doing a longer-lasting action here that returns</span>
@@ -362,13 +362,13 @@ respectively.
 
 <span class="normal">  app </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GApplication.html#g-application-new">g_application_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"org.gtk.TestApplication"</span><span class="symbol">,</span>
 <span class="normal">                           <a href="GApplication.html#G-APPLICATION-HANDLES-OPEN:CAPS">G_APPLICATION_HANDLES_OPEN</a></span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate</span><span class="symbol">),</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"open"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">open</span><span class="symbol">),</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate</span><span class="symbol">),</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"open"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">open</span><span class="symbol">),</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-set-inactivity-timeout">g_application_set_inactivity_timeout</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="number">10000</span><span class="symbol">);</span>
 
 <span class="normal">  status </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GApplication.html#g-application-run">g_application_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">return</span><span class="normal"> status</span><span class="symbol">;</span>
 <span class="cbracket">}</span></pre></td>
@@ -383,7 +383,7 @@ respectively.
 <p>
 </p>
 <div class="example">
-<a name="gapplication-example-actions"></a><p class="title"><b>Example 15. A GApplication with actions</b></p>
+<a name="gapplication-example-actions"></a><p class="title"><b>Example 19. A GApplication with actions</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -518,7 +518,7 @@ respectively.
 <span class="function">activate</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">GApplication</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">application</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-hold">g_application_hold</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">application</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-release">g_application_release</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">application</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
@@ -530,7 +530,7 @@ respectively.
 <span class="normal">  </span><span class="usertype">GApplication</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">application </span><span class="symbol">=</span><span class="normal"> </span><span class="function">G_APPLICATION</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">data</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-hold">g_application_hold</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">application</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"action %s activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GAction.html#g-action-get-name">g_action_get_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">));</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"action %s activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GAction.html#g-action-get-name">g_action_get_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">));</span>
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-release">g_application_release</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">application</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
@@ -543,14 +543,14 @@ respectively.
 <span class="normal">  </span><span class="usertype">GVariant</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">state</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">gboolean</span><span class="normal"> b</span><span class="symbol">;</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"action %s activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GAction.html#g-action-get-name">g_action_get_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">)));</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"action %s activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GAction.html#g-action-get-name">g_action_get_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">)));</span>
 
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-hold">g_application_hold</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">application</span><span class="symbol">);</span>
 <span class="normal">  state </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GAction.html#g-action-get-state">g_action_get_state</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">));</span>
-<span class="normal">  b </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-get-boolean">g_variant_get_boolean</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-unref">g_variant_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="GSimpleAction.html#g-simple-action-set-state">g_simple_action_set_state</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-new-boolean">g_variant_new_boolean</a></span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">b</span><span class="symbol">));</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"state change %d -&gt; %d</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> b</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">!</span><span class="normal">b</span><span class="symbol">);</span>
+<span class="normal">  b </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-get-boolean">g_variant_get_boolean</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-unref">g_variant_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="GSimpleAction.html#g-simple-action-set-state">g_simple_action_set_state</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-new-boolean">g_variant_new_boolean</a></span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">b</span><span class="symbol">));</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"state change %d -&gt; %d</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> b</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">!</span><span class="normal">b</span><span class="symbol">);</span>
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-release">g_application_release</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">application</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
@@ -559,16 +559,16 @@ respectively.
 <span class="cbracket">{</span>
 <span class="normal">  </span><span class="usertype">GSimpleAction</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">action</span><span class="symbol">;</span>
 
-<span class="normal">  action </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GSimpleAction.html#g-simple-action-new">g_simple_action_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"simple-action"</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate_action</span><span class="symbol">),</span><span class="normal"> app</span><span class="symbol">);</span>
+<span class="normal">  action </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GSimpleAction.html#g-simple-action-new">g_simple_action_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"simple-action"</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate_action</span><span class="symbol">),</span><span class="normal"> app</span><span class="symbol">);</span>
 <span class="normal">  </span><span class="function"><a href="GActionMap.html#g-action-map-add-action">g_action_map_add_action</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION_MAP</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">),</span><span class="normal"> </span><span class="function">G_ACTION</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">));</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">);</span>
 
-<span class="normal">  action </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GSimpleAction.html#g-simple-action-new-stateful">g_simple_action_new_stateful</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"toggle-action"</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
-<span class="normal">                                         </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-new-boolean">g_variant_new_boolean</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">));</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate_toggle_action</span><span class="symbol">),</span><span class="normal"> app</span><span class="symbol">);</span>
+<span class="normal">  action </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GSimpleAction.html#g-simple-action-new-stateful">g_simple_action_new_stateful</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"toggle-action"</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
+<span class="normal">                                         </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-new-boolean">g_variant_new_boolean</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">));</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate_toggle_action</span><span class="symbol">),</span><span class="normal"> app</span><span class="symbol">);</span>
 <span class="normal">  </span><span class="function"><a href="GActionMap.html#g-action-map-add-action">g_action_map_add_action</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION_MAP</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">),</span><span class="normal"> </span><span class="function">G_ACTION</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">));</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">action</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
@@ -584,21 +584,21 @@ respectively.
 <span class="normal">  state </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GActionGroup.html#g-action-group-get-action-state">g_action_group_get_action_state</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">group</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">);</span>
 <span class="normal">  enabled </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GActionGroup.html#g-action-group-get-action-enabled">g_action_group_get_action_enabled</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">group</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"action name:      %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">);</span>
-<span class="normal">  tmp </span><span class="symbol">=</span><span class="normal"> param_type </span><span class="symbol">?</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-GVariantType.html#g-variant-type-dup-string">g_variant_type_dup_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">param_type</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"parameter type:   %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> tmp </span><span class="symbol">?</span><span class="normal"> tmp </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"&lt;none&gt;"</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">tmp</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"state type:       %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span>
-<span class="normal">           state </span><span class="symbol">?</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-get-type-string">g_variant_get_type_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"&lt;none&gt;"</span><span class="symbol">);</span>
-<span class="normal">  tmp </span><span class="symbol">=</span><span class="normal"> state </span><span class="symbol">?</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-print">g_variant_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"state:            %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> tmp </span><span class="symbol">?</span><span class="normal"> tmp </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"&lt;none&gt;"</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">tmp</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"enabled:          %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> enabled </span><span class="symbol">?</span><span class="normal"> </span><span class="string">"true"</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"false"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"action name:      %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">);</span>
+<span class="normal">  tmp </span><span class="symbol">=</span><span class="normal"> param_type </span><span class="symbol">?</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#g-variant-type-dup-string">g_variant_type_dup_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">param_type</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"parameter type:   %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> tmp </span><span class="symbol">?</span><span class="normal"> tmp </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"&lt;none&gt;"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">tmp</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"state type:       %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span>
+<span class="normal">           state </span><span class="symbol">?</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-get-type-string">g_variant_get_type_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"&lt;none&gt;"</span><span class="symbol">);</span>
+<span class="normal">  tmp </span><span class="symbol">=</span><span class="normal"> state </span><span class="symbol">?</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-print">g_variant_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"state:            %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> tmp </span><span class="symbol">?</span><span class="normal"> tmp </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"&lt;none&gt;"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">tmp</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"enabled:          %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> enabled </span><span class="symbol">?</span><span class="normal"> </span><span class="string">"true"</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"false"</span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state </span><span class="symbol">!=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-unref">g_variant_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state </span><span class="symbol">!=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-unref">g_variant_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">state</span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="GActionGroup.html#g-action-group-activate-action">g_action_group_activate_action</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">group</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="GActionGroup.html#g-action-group-activate-action">g_action_group_activate_action</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">group</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 <span class="type">int</span>
@@ -608,27 +608,27 @@ respectively.
 <span class="normal">  </span><span class="type">int</span><span class="normal"> status</span><span class="symbol">;</span>
 
 <span class="normal">  app </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GApplication.html#g-application-new">g_application_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"org.gtk.TestApplication"</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate</span><span class="symbol">),</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate</span><span class="symbol">),</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-set-inactivity-timeout">g_application_set_inactivity_timeout</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="number">10000</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="function">add_actions</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">argc </span><span class="symbol">&gt;</span><span class="normal"> </span><span class="number">1</span><span class="normal"> </span><span class="symbol">&amp;&amp;</span><span class="normal"> </span><span class="function">strcmp</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">argv</span><span class="symbol">[</span><span class="number">1</span><span class="symbol">],</span><span class="normal"> </span><span class="string">"--simple-action"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="function"><a href="GApplication.html#g-application-register">g_application_register</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="GApplication.html#g-application-register">g_application_register</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 <span class="normal">      </span><span class="function">describe_and_activate_action</span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION_GROUP</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">),</span><span class="normal"> </span><span class="string">"simple-action"</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="function">exit</span><span class="normal"> </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">);</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 <span class="normal">  </span><span class="keyword">else</span><span class="normal"> </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">argc </span><span class="symbol">&gt;</span><span class="normal"> </span><span class="number">1</span><span class="normal"> </span><span class="symbol">&amp;&amp;</span><span class="normal"> </span><span class="function">strcmp</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">argv</span><span class="symbol">[</span><span class="number">1</span><span class="symbol">],</span><span class="normal"> </span><span class="string">"--toggle-action"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="function"><a href="GApplication.html#g-application-register">g_application_register</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="GApplication.html#g-application-register">g_application_register</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 <span class="normal">      </span><span class="function">describe_and_activate_action</span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION_GROUP</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">),</span><span class="normal"> </span><span class="string">"toggle-action"</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="function">exit</span><span class="normal"> </span><span class="symbol">(</span><span class="number">0</span><span class="symbol">);</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 
 <span class="normal">  status </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GApplication.html#g-application-run">g_application_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">return</span><span class="normal"> status</span><span class="symbol">;</span>
 <span class="cbracket">}</span></pre></td>
@@ -643,7 +643,7 @@ respectively.
 <p>
 </p>
 <div class="example">
-<a name="gapplication-example-menu"></a><p class="title"><b>Example 16. A GApplication with menus</b></p>
+<a name="gapplication-example-menu"></a><p class="title"><b>Example 20. A GApplication with menus</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -661,7 +661,7 @@ respectively.
 <p>
 </p>
 <div class="example">
-<a name="gapplication-example-dbushooks"></a><p class="title"><b>Example 17. Using extra D-Bus hooks with a GApplication</b></p>
+<a name="gapplication-example-dbushooks"></a><p class="title"><b>Example 21. Using extra D-Bus hooks with a GApplication</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -762,9 +762,7 @@ respectively.
 94
 95
 96
-97
-98
-99</pre></td>
+97</pre></td>
         <td class="listing_code"><pre class="programlisting"><span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;gio/gio.h&gt;</span>
 <span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;stdlib.h&gt;</span>
 <span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;string.h&gt;</span>
@@ -772,7 +770,7 @@ respectively.
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
 <span class="function">activate</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">GApplication</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">application</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"activated</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="comment">/* Note: when doing a longer-lasting action here that returns</span>
 <span class="comment">   * to the mainloop, you should use g_application_hold() and</span>
@@ -785,9 +783,9 @@ respectively.
 <span class="keyword">typedef</span><span class="normal"> </span><span class="usertype">GApplicationClass</span><span class="normal"> TestApplicationClass</span><span class="symbol">;</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="usertype">GType</span><span class="normal"> </span><span class="function">test_application_get_type</span><span class="normal"> </span><span class="symbol">(</span><span class="type">void</span><span class="symbol">);</span>
-<span class="function"><a href="./../gobject/gobject/gobject-Type-Information.html#G-DEFINE-TYPE:CAPS">G_DEFINE_TYPE</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">TestApplication</span><span class="symbol">,</span><span class="normal"> test_application</span><span class="symbol">,</span><span class="normal"> G_TYPE_APPLICATION</span><span class="symbol">)</span>
+<span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#G-DEFINE-TYPE:CAPS">G_DEFINE_TYPE</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">TestApplication</span><span class="symbol">,</span><span class="normal"> test_application</span><span class="symbol">,</span><span class="normal"> G_TYPE_APPLICATION</span><span class="symbol">)</span>
 
-<span class="keyword">static</span><span class="normal"> <a href="./../glib/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
+<span class="keyword">static</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
 <span class="function">test_application_dbus_register</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">GApplication</span><span class="normal">    </span><span class="symbol">*</span><span class="normal">application</span><span class="symbol">,</span>
 <span class="normal">                                </span><span class="usertype">GDBusConnection</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">connection</span><span class="symbol">,</span>
 <span class="normal">                                </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal">     </span><span class="symbol">*</span><span class="normal">object_path</span><span class="symbol">,</span>
@@ -798,10 +796,10 @@ respectively.
 <span class="normal">                                                                           connection</span><span class="symbol">,</span>
 <span class="normal">                                                                           object_path</span><span class="symbol">,</span>
 <span class="normal">                                                                           error</span><span class="symbol">))</span>
-<span class="normal">    </span><span class="keyword">return</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">;</span>
+<span class="normal">    </span><span class="keyword">return</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">;</span>
 
 <span class="normal">  </span><span class="comment">/* Now we can do our own stuff here. For example, we could export some D-Bus objects */</span>
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">;</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">;</span>
 <span class="cbracket">}</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
@@ -838,14 +836,12 @@ respectively.
 <span class="function">test_application_new</span><span class="normal"> </span><span class="symbol">(</span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal">       </span><span class="symbol">*</span><span class="normal">application_id</span><span class="symbol">,</span>
 <span class="normal">                      </span><span class="usertype">GApplicationFlags</span><span class="normal">  flags</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-return-val-if-fail">g_return_val_if_fail</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="GApplication.html#g-application-id-is-valid">g_application_id_is_valid</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">application_id</span><span class="symbol">),</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-return-val-if-fail">g_return_val_if_fail</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="GApplication.html#g-application-id-is-valid">g_application_id_is_valid</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">application_id</span><span class="symbol">),</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Type-Information.html#g-type-init">g_type_init</a></span><span class="normal"> </span><span class="symbol">();</span>
-
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-new">g_object_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">test_application_get_type</span><span class="normal"> </span><span class="symbol">(),</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-new">g_object_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">test_application_get_type</span><span class="normal"> </span><span class="symbol">(),</span>
 <span class="normal">                       </span><span class="string">"application-id"</span><span class="symbol">,</span><span class="normal"> application_id</span><span class="symbol">,</span>
 <span class="normal">                       </span><span class="string">"flags"</span><span class="symbol">,</span><span class="normal"> flags</span><span class="symbol">,</span>
-<span class="normal">                       <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">                       <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 <span class="type">int</span>
@@ -855,12 +851,12 @@ respectively.
 <span class="normal">  </span><span class="type">int</span><span class="normal"> status</span><span class="symbol">;</span>
 
 <span class="normal">  app </span><span class="symbol">=</span><span class="normal"> </span><span class="function">test_application_new</span><span class="normal"> </span><span class="symbol">(</span><span class="string">"org.gtk.TestApplication"</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate</span><span class="symbol">),</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"activate"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">activate</span><span class="symbol">),</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 <span class="normal">  </span><span class="function"><a href="GApplication.html#g-application-set-inactivity-timeout">g_application_set_inactivity_timeout</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> </span><span class="number">10000</span><span class="symbol">);</span>
 
 <span class="normal">  status </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GApplication.html#g-application-run">g_application_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">,</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> argv</span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">app</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">return</span><span class="normal"> status</span><span class="symbol">;</span>
 <span class="cbracket">}</span></pre></td>
@@ -898,6 +894,26 @@ respectively.
                                                      GApplicationCommandLine   *command_line);
 
   /* vfuncs */
+
+  /**
+   * GApplicationClass::local_command_line:
+   * @application: a #GApplication
+   * @arguments: (inout) (array zero-terminated=1): array of command line arguments
+   * @exit_status: (out): exit status to fill after processing the command line.
+   *
+   * This virtual function is always invoked in the local instance. It
+   * gets passed a pointer to a %NULL-terminated copy of @argv and is
+   * expected to remove arguments that it handled (shifting up remaining
+   * arguments).
+   *
+   * The last argument to local_command_line() is a pointer to the @status
+   * variable which can used to set the exit status that is returned from
+   * g_application_run().
+   *
+   * See g_application_run() for more details on #GApplication startup.
+   *
+   * Returns: %TRUE if the commandline has been completely handled
+   */
   gboolean                  (* local_command_line)  (GApplication              *application,
                                                      gchar                   ***arguments,
                                                      int                       *exit_status);
@@ -997,7 +1013,7 @@ using its D-Bus backend. You can use this to export extra objects on the
 bus, that need to exist before the application tries to own the bus name.
 The function is passed the <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> to to session bus, and the
 object path that <a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> will use to export is D-Bus API.
-If this function returns <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, registration will proceed; otherwise
+If this function returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, registration will proceed; otherwise
 registration will abort. Since: 2.34</td>
 </tr>
 <tr>
@@ -1042,8 +1058,9 @@ Flags used to define the behaviour of a <a class="link" href="GApplication.html"
 <tr>
 <td><p><a name="G-APPLICATION-IS-SERVICE:CAPS"></a><span class="term"><code class="literal">G_APPLICATION_IS_SERVICE</code></span></p></td>
 <td>Run as a service. In this mode, registration
-     fails if the service is already running, and the application will
-     stay around for a while when the use count falls to zero.
+     fails if the service is already running, and the application
+     will initially wait up to 10 seconds for an initial activation
+     message to arrive.
 </td>
 </tr>
 <tr>
@@ -1097,7 +1114,7 @@ Flags used to define the behaviour of a <a class="link" href="GApplication.html"
 <hr>
 <div class="refsect2">
 <a name="g-application-id-is-valid"></a><h3>g_application_id_is_valid ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_application_id_is_valid           (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_application_id_is_valid           (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);</pre>
 <p>
 Checks if <em class="parameter"><code>application_id</code></em> is a valid application identifier.
 </p>
@@ -1131,7 +1148,7 @@ reproduced here:
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>application_id</code></em> is valid</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>application_id</code></em> is valid</td>
 </tr>
 </tbody>
 </table></div>
@@ -1139,16 +1156,13 @@ reproduced here:
 <hr>
 <div class="refsect2">
 <a name="g-application-new"></a><h3>g_application_new ()</h3>
-<pre class="programlisting"><a class="link" href="GApplication.html" title="GApplication"><span class="returnvalue">GApplication</span></a> *      g_application_new                   (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>,
+<pre class="programlisting"><a class="link" href="GApplication.html" title="GApplication"><span class="returnvalue">GApplication</span></a> *      g_application_new                   (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GApplication.html#GApplicationFlags"><span class="type">GApplicationFlags</span></a> flags</code></em>);</pre>
 <p>
 Creates a new <a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> instance.
 </p>
 <p>
-This function calls <a href="./../gobject/gobject/gobject-Type-Information.html#g-type-init"><code class="function">g_type_init()</code></a> for you.
-</p>
-<p>
-If non-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the application id must be valid.  See
+If non-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the application id must be valid.  See
 <a class="link" href="GApplication.html#g-application-id-is-valid" title="g_application_id_is_valid ()"><code class="function">g_application_id_is_valid()</code></a>.
 </p>
 <p>
@@ -1180,7 +1194,7 @@ If no application ID is given then some features of <a class="link" href="GAppli
 <hr>
 <div class="refsect2">
 <a name="g-application-get-application-id"></a><h3>g_application_get_application_id ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_application_get_application_id    (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_application_get_application_id    (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
 <p>
 Gets the unique identifier for <em class="parameter"><code>application</code></em>.
 </p>
@@ -1208,7 +1222,7 @@ Gets the unique identifier for <em class="parameter"><code>application</code></e
 <div class="refsect2">
 <a name="g-application-set-application-id"></a><h3>g_application_set_application_id ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_application_set_application_id    (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *application_id</code></em>);</pre>
 <p>
 Sets the unique identifier for <em class="parameter"><code>application</code></em>.
 </p>
@@ -1217,7 +1231,7 @@ The application id can only be modified if <em class="parameter"><code>applicati
 been registered.
 </p>
 <p>
-If non-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the application id must be valid.  See
+If non-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, the application id must be valid.  See
 <a class="link" href="GApplication.html#g-application-id-is-valid" title="g_application_id_is_valid ()"><code class="function">g_application_id_is_valid()</code></a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -1243,7 +1257,7 @@ If non-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class=
 <hr>
 <div class="refsect2">
 <a name="g-application-get-inactivity-timeout"></a><h3>g_application_get_inactivity_timeout ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_application_get_inactivity_timeout
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_application_get_inactivity_timeout
                                                         (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
 <p>
 Gets the current inactivity timeout for the application.
@@ -1276,7 +1290,7 @@ This is the amount of time (in milliseconds) after the last call to
 <a name="g-application-set-inactivity-timeout"></a><h3>g_application_set_inactivity_timeout ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_application_set_inactivity_timeout
                                                         (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> inactivity_timeout</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> inactivity_timeout</code></em>);</pre>
 <p>
 Sets the current inactivity timeout for the application.
 </p>
@@ -1378,7 +1392,7 @@ See <a class="link" href="GApplication.html#GApplicationFlags"><span class="type
 <a name="g-application-get-dbus-connection"></a><h3>g_application_get_dbus_connection ()</h3>
 <pre class="programlisting"><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="returnvalue">GDBusConnection</span></a> *   g_application_get_dbus_connection   (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
 <p>
-Gets the <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> being used by the application, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+Gets the <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> being used by the application, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <p>
 If <a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> is using its D-Bus backend then this function will
@@ -1388,7 +1402,7 @@ application.
 </p>
 <p>
 If <a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> is not using D-Bus then this function will return
-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  This includes the situation where the D-Bus backend would
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  This includes the situation where the D-Bus backend would
 normally be in use but we were unable to connect to the bus.
 </p>
 <p>
@@ -1408,7 +1422,7 @@ registered.  See <a class="link" href="GApplication.html#g-application-get-is-re
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>a <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -1418,9 +1432,9 @@ registered.  See <a class="link" href="GApplication.html#g-application-get-is-re
 <hr>
 <div class="refsect2">
 <a name="g-application-get-dbus-object-path"></a><h3>g_application_get_dbus_object_path ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_application_get_dbus_object_path  (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_application_get_dbus_object_path  (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
 <p>
-Gets the D-Bus object path being used by the application, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+Gets the D-Bus object path being used by the application, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <p>
 If <a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> is using its D-Bus backend then this function will
@@ -1431,7 +1445,7 @@ the result of this function is undefined.
 </p>
 <p>
 If <a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> is not using D-Bus then this function will return
-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  This includes the situation where the D-Bus backend would
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  This includes the situation where the D-Bus backend would
 normally be in use but we were unable to connect to the bus.
 </p>
 <p>
@@ -1451,7 +1465,7 @@ registered.  See <a class="link" href="GApplication.html#g-application-get-is-re
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the object path, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>the object path, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 </tbody>
@@ -1488,7 +1502,7 @@ Now there is <a class="link" href="GActionMap.html" title="GActionMap"><span cla
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>action_group</code></em> :</span></p></td>
-<td>a <a class="link" href="GActionGroup.html" title="GActionGroup"><span class="type">GActionGroup</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GActionGroup.html" title="GActionGroup"><span class="type">GActionGroup</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -1498,7 +1512,7 @@ Now there is <a class="link" href="GActionMap.html" title="GActionMap"><span cla
 <hr>
 <div class="refsect2">
 <a name="g-application-get-is-registered"></a><h3>g_application_get_is_registered ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_application_get_is_registered     (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_application_get_is_registered     (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
 <p>
 Checks if <em class="parameter"><code>application</code></em> is registered.
 </p>
@@ -1520,7 +1534,7 @@ successfully called.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>application</code></em> is registered</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>application</code></em> is registered</td>
 </tr>
 </tbody>
 </table></div>
@@ -1529,7 +1543,7 @@ successfully called.
 <hr>
 <div class="refsect2">
 <a name="g-application-get-is-remote"></a><h3>g_application_get_is_remote ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_application_get_is_remote         (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_application_get_is_remote         (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>);</pre>
 <p>
 Checks if <em class="parameter"><code>application</code></em> is remote.
 </p>
@@ -1558,7 +1572,7 @@ The value of this property cannot be accessed before
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>application</code></em> is remote</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>application</code></em> is remote</td>
 </tr>
 </tbody>
 </table></div>
@@ -1567,9 +1581,9 @@ The value of this property cannot be accessed before
 <hr>
 <div class="refsect2">
 <a name="g-application-register"></a><h3>g_application_register ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_application_register              (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_application_register              (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Attempts registration of the application.
 </p>
@@ -1591,7 +1605,7 @@ this reason, you must ensure that any object paths that you wish to
 register are registered before calling this function.
 </p>
 <p>
-If the application has already been registered then <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is
+If the application has already been registered then <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is
 returned with no work performed.
 </p>
 <p>
@@ -1601,7 +1615,7 @@ case).
 </p>
 <p>
 In the event of an error (such as <em class="parameter"><code>cancellable</code></em> being cancelled, or a
-failure to connect to the session bus), <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned and <em class="parameter"><code>error</code></em>
+failure to connect to the session bus), <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned and <em class="parameter"><code>error</code></em>
 is set appropriately.
 </p>
 <p>
@@ -1622,18 +1636,18 @@ instance is or is not the primary instance of the application.  See
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a pointer to a NULL <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>a pointer to a NULL <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if registration succeeded</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if registration succeeded</td>
 </tr>
 </tbody>
 </table></div>
@@ -1755,8 +1769,8 @@ The application must be registered before calling this function.
 <a name="g-application-open"></a><h3>g_application_open ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_application_open                  (<em class="parameter"><code><a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GFile.html" title="GFile"><span class="type">GFile</span></a> **files</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_files</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *hint</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_files</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *hint</code></em>);</pre>
 <p>
 Opens the given files.
 </p>
@@ -1799,7 +1813,7 @@ and it must have the <a class="link" href="GApplication.html#G-APPLICATION-HANDL
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>hint</code></em> :</span></p></td>
-<td>a hint (or ""), but never <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>a hint (or ""), but never <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 </tbody>
@@ -1819,16 +1833,16 @@ Runs the application.
 This function is intended to be run from <code class="function">main()</code> and its return value
 is intended to be returned by <code class="function">main()</code>. Although you are expected to pass
 the <em class="parameter"><code>argc</code></em>, <em class="parameter"><code>argv</code></em> parameters from <code class="function">main()</code> to this function, it is possible
-to pass <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>argv</code></em> is not available or commandline handling is not
+to pass <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>argv</code></em> is not available or commandline handling is not
 required.
 </p>
 <p>
 First, the <code class="function">local_command_line()</code> virtual function is invoked.
 This function always runs on the local instance. It gets passed a pointer
-to a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated copy of <em class="parameter"><code>argv</code></em> and is expected to remove the arguments
+to a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated copy of <em class="parameter"><code>argv</code></em> and is expected to remove the arguments
 that it handled (shifting up remaining arguments). See
-<a class="xref" href="GApplicationCommandLine.html#gapplication-example-cmdline2" title="Example 19. Split commandline handling">Example 19, “Split commandline handling”</a> for an example of
-parsing <em class="parameter"><code>argv</code></em> manually. Alternatively, you may use the <a href="./../glib/glib/glib-Commandline-option-parser.html#GOptionContext"><span class="type">GOptionContext</span></a> API,
+<a class="xref" href="GApplicationCommandLine.html#gapplication-example-cmdline2" title="Example 23. Split commandline handling">Example 23, “Split commandline handling”</a> for an example of
+parsing <em class="parameter"><code>argv</code></em> manually. Alternatively, you may use the <a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#GOptionContext"><span class="type">GOptionContext</span></a> API,
 after setting <code class="literal">argc = g_strv_length (argv);</code>.
 </p>
 <p>
@@ -1837,12 +1851,12 @@ variable which can used to set the exit status that is returned from
 <a class="link" href="GApplication.html#g-application-run" title="g_application_run ()"><code class="function">g_application_run()</code></a>.
 </p>
 <p>
-If <code class="function">local_command_line()</code> returns <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, the command line is expected
+If <code class="function">local_command_line()</code> returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>, the command line is expected
 to be completely handled, including possibly registering as the primary
 instance, calling <a class="link" href="GApplication.html#g-application-activate" title="g_application_activate ()"><code class="function">g_application_activate()</code></a> or <a class="link" href="GApplication.html#g-application-open" title="g_application_open ()"><code class="function">g_application_open()</code></a>, etc.
 </p>
 <p>
-If <code class="function">local_command_line()</code> returns <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> then the application is registered
+If <code class="function">local_command_line()</code> returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> then the application is registered
 and the <a class="link" href="GApplication.html#GApplication-command-line" title='The "command-line" signal'><span class="type">"command-line"</span></a> signal is emitted in the primary
 instance (which may or may not be this instance). The signal handler
 gets passed a <a class="link" href="GApplicationCommandLine.html" title="GApplicationCommandLine"><span class="type">GApplicationCommandLine</span></a> object that (among other things)
@@ -1852,7 +1866,7 @@ by <code class="function">local_command_line()</code>.
 <p>
 If the application has the <a class="link" href="GApplication.html#G-APPLICATION-HANDLES-COMMAND-LINE:CAPS"><code class="literal">G_APPLICATION_HANDLES_COMMAND_LINE</code></a>
 flag set then the default implementation of <code class="function">local_command_line()</code>
-always returns <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> immediately, resulting in the commandline
+always returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> immediately, resulting in the commandline
 always being handled in the primary instance.
 </p>
 <p>
@@ -1870,15 +1884,15 @@ If you need to handle commandline arguments that are not filenames,
 and you don't mind commandline handling to happen in the primary
 instance, you should set <a class="link" href="GApplication.html#G-APPLICATION-HANDLES-COMMAND-LINE:CAPS"><code class="literal">G_APPLICATION_HANDLES_COMMAND_LINE</code></a> and
 process the commandline arguments in your <a class="link" href="GApplication.html#GApplication-command-line" title='The "command-line" signal'><span class="type">"command-line"</span></a>
-signal handler, either manually or using the <a href="./../glib/glib/glib-Commandline-option-parser.html#GOptionContext"><span class="type">GOptionContext</span></a> API.
+signal handler, either manually or using the <a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#GOptionContext"><span class="type">GOptionContext</span></a> API.
 </p>
 <p>
 If you are interested in doing more complicated local handling of the
 commandline then you should implement your own <a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> subclass
 and override <code class="function">local_command_line()</code>. In this case, you most likely want
-to return <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> from your <code class="function">local_command_line()</code> implementation to
+to return <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> from your <code class="function">local_command_line()</code> implementation to
 suppress the default handling. See
-<a class="xref" href="GApplicationCommandLine.html#gapplication-example-cmdline2" title="Example 19. Split commandline handling">Example 19, “Split commandline handling”</a> for an example.
+<a class="xref" href="GApplicationCommandLine.html#gapplication-example-cmdline2" title="Example 23. Split commandline handling">Example 23, “Split commandline handling”</a> for an example.
 </p>
 <p>
 If, after the above is done, the use count of the application is zero
@@ -1887,9 +1901,12 @@ non-zero then the default main context is iterated until the use count
 falls to zero, at which point 0 is returned.
 </p>
 <p>
-If the <a class="link" href="GApplication.html#G-APPLICATION-IS-SERVICE:CAPS"><code class="literal">G_APPLICATION_IS_SERVICE</code></a> flag is set, then the exiting at
-use count of zero is delayed for a while (ie: the instance stays
-around to provide its <span class="emphasis"><em>service</em></span> to others).
+If the <a class="link" href="GApplication.html#G-APPLICATION-IS-SERVICE:CAPS"><code class="literal">G_APPLICATION_IS_SERVICE</code></a> flag is set, then the service will
+run for as much as 10 seconds with a use count of zero while waiting
+for the message that caused the activation to arrive.  After that,
+if the use count falls to zero the application will exit immediately,
+except in the case that <a class="link" href="GApplication.html#g-application-set-inactivity-timeout" title="g_application_set_inactivity_timeout ()"><code class="function">g_application_set_inactivity_timeout()</code></a> is in
+use.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1904,11 +1921,11 @@ around to provide its <span class="emphasis"><em>service</em></span> to others).
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>argc</code></em> :</span></p></td>
-<td>the argc from <code class="function">main()</code> (or 0 if <em class="parameter"><code>argv</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>)</td>
+<td>the argc from <code class="function">main()</code> (or 0 if <em class="parameter"><code>argv</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>)</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>argv</code></em> :</span></p></td>
-<td>the argv from <code class="function">main()</code>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=argc][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>the argv from <code class="function">main()</code>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=argc][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -1930,7 +1947,7 @@ by <a class="link" href="GApplication.html#g-application-get-default" title="g_a
 <p>
 This function does not take its own reference on <em class="parameter"><code>application</code></em>.  If
 <em class="parameter"><code>application</code></em> is destroyed then the default application will revert
-back to <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+back to <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1939,7 +1956,7 @@ back to <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>application</code></em> :</span></p></td>
-<td>the application to set as default, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>the application to set as default, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr></tbody>
 </table></div>
@@ -1958,7 +1975,7 @@ the default when it is created.  You can exercise more control over
 this by using <a class="link" href="GApplication.html#g-application-set-default" title="g_application_set_default ()"><code class="function">g_application_set_default()</code></a>.
 </p>
 <p>
-If there is no default application then <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned.
+If there is no default application then <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> is returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1967,7 +1984,7 @@ If there is no default application then <a href="./../glib/glib/glib-Standard-Ma
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the default application for this process, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>the default application for this process, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr></tbody>
 </table></div>
@@ -1984,7 +2001,7 @@ If there is no default application then <a href="./../glib/glib/glib-Standard-Ma
 <hr>
 <div class="refsect2">
 <a name="GApplication--application-id"></a><h3>The <code class="literal">"application-id"</code> property</h3>
-<pre class="programlisting">  "application-id"           <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct</pre>
+<pre class="programlisting">  "application-id"           <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Read / Write / Construct</pre>
 <p>The unique identifier for the application.</p>
 <p>Default value: NULL</p>
 </div>
@@ -1997,21 +2014,21 @@ If there is no default application then <a href="./../glib/glib/glib-Standard-Ma
 <hr>
 <div class="refsect2">
 <a name="GApplication--inactivity-timeout"></a><h3>The <code class="literal">"inactivity-timeout"</code> property</h3>
-<pre class="programlisting">  "inactivity-timeout"       <a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write</pre>
+<pre class="programlisting">  "inactivity-timeout"       <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a>                 : Read / Write</pre>
 <p>Time (ms) to stay alive after becoming idle.</p>
 <p>Default value: 0</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="GApplication--is-registered"></a><h3>The <code class="literal">"is-registered"</code> property</h3>
-<pre class="programlisting">  "is-registered"            <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<pre class="programlisting">  "is-registered"            <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
 <p>If g_application_register() has been called.</p>
 <p>Default value: FALSE</p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="GApplication--is-remote"></a><h3>The <code class="literal">"is-remote"</code> property</h3>
-<pre class="programlisting">  "is-remote"                <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<pre class="programlisting">  "is-remote"                <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
 <p>If this application instance is remote.</p>
 <p>Default value: FALSE</p>
 </div>
@@ -2021,7 +2038,7 @@ If there is no default application then <a href="./../glib/glib/glib-Standard-Ma
 <div class="refsect2">
 <a name="GApplication-activate"></a><h3>The <code class="literal">"activate"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)        : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)        : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 The ::activate signal is emitted on the primary instance when an
 activation occurs. See <a class="link" href="GApplication.html#g-application-activate" title="g_application_activate ()"><code class="function">g_application_activate()</code></a>.
@@ -2046,9 +2063,9 @@ activation occurs. See <a class="link" href="GApplication.html#g-application-act
 <hr>
 <div class="refsect2">
 <a name="GApplication-command-line"></a><h3>The <code class="literal">"command-line"</code> signal</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                user_function                      (<a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a>            *application,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="returnvalue">gint</span></a>                user_function                      (<a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a>            *application,
                                                         <a class="link" href="GApplicationCommandLine.html" title="GApplicationCommandLine"><span class="type">GApplicationCommandLine</span></a> *command_line,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>                 user_data)         : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>                 user_data)         : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 The ::command-line signal is emitted on the primary instance when
 a commandline is not handled locally. See <a class="link" href="GApplication.html#g-application-run" title="g_application_run ()"><code class="function">g_application_run()</code></a> and
@@ -2085,10 +2102,10 @@ process. See <a class="link" href="GApplicationCommandLine.html#g-application-co
 <div class="refsect2">
 <a name="GApplication-open"></a><h3>The <code class="literal">"open"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      files,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>          n_files,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>        *hint,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)        : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      files,
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>          n_files,
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>        *hint,
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)        : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 The ::open signal is emitted on the primary instance when there are
 files to open. See <a class="link" href="GApplication.html#g-application-open" title="g_application_open ()"><code class="function">g_application_open()</code></a> for more information.
@@ -2128,7 +2145,7 @@ files to open. See <a class="link" href="GApplication.html#g-application-open" t
 <div class="refsect2">
 <a name="GApplication-shutdown"></a><h3>The <code class="literal">"shutdown"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)        : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)        : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 The ::shutdown signal is emitted only on the registered primary instance
 immediately after the main loop terminates.
@@ -2154,7 +2171,7 @@ immediately after the main loop terminates.
 <div class="refsect2">
 <a name="GApplication-startup"></a><h3>The <code class="literal">"startup"</code> signal</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="GApplication.html" title="GApplication"><span class="type">GApplication</span></a> *application,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)        : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>      user_data)        : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS"><code class="literal">Run First</code></a></pre>
 <p>
 The ::startup signal is emitted on the primary instance immediately
 after registration. See <a class="link" href="GApplication.html#g-application-register" title="g_application_register ()"><code class="function">g_application_register()</code></a>.

@@ -17,12 +17,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __G_POLL_H__
+#define __G_POLL_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (__G_MAIN_H__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_POLL_H__
-#define __G_POLL_H__
 
 #include <glib/gtypes.h>
 
@@ -111,6 +111,7 @@ struct _GPollFD
 #define G_POLLFD_FORMAT "%d"
 #endif
 
+GLIB_AVAILABLE_IN_ALL
 gint g_poll (GPollFD *fds,
 	     guint    nfds,
 	     gint     timeout);

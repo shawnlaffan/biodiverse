@@ -21,9 +21,9 @@
 </tr></table>
 <div class="chapter">
 <div class="titlepage"><div><div><h2 class="title">
-<a name="idp10055296"></a>Migrating to GDBus</h2></div></div></div>
+<a name="id-1.5.5"></a>Migrating to GDBus</h2></div></div></div>
 <div class="toc"><dl>
-<dt><span class="section"><a href="ch32.html#idp77664560">Conceptual differences</a></span></dt>
+<dt><span class="section"><a href="ch32.html#id-1.5.5.2">Conceptual differences</a></span></dt>
 <dt><span class="section"><a href="ch32s02.html">API comparison</a></span></dt>
 <dt><span class="section"><a href="ch32s03.html">Owning bus names</a></span></dt>
 <dt><span class="section"><a href="ch32s04.html">Creating proxies for well-known names</a></span></dt>
@@ -52,7 +52,7 @@
 </dl></div>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="idp77664560"></a>Conceptual differences</h2></div></div></div>
+<a name="id-1.5.5.2"></a>Conceptual differences</h2></div></div></div>
 <p>
       The central concepts of D-Bus are modelled in a very similar way
       in dbus-glib and GDBus. Both have a objects representing connections,
@@ -72,7 +72,7 @@
 <li class="listitem"><p>
           dbus-glib uses the GObject type system for method arguments and
           return values, including a homegrown container specialization
-          mechanism. GDBus relies on the <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> type system which is
+          mechanism. GDBus relies on the <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> type system which is
           explicitly designed to match D-Bus types.
         </p></li>
 <li class="listitem"><p>
@@ -100,6 +100,9 @@
 <li class="listitem"><p>
           GDBus provides API to parse, generate and work with <a class="link" href="gio-D-Bus-Introspection-Data.html" title="D-Bus Introspection Data">Introspection
           XML</a>, dbus-glib doesn't.
+        </p></li>
+<li class="listitem"><p>
+          GTestDBus provides API to create isolated unit tests <a class="link" href="GTestDBus.html#gio-D-Bus-Test-Scaffolding" title="Creating unit tests using GTestDBus">GDBus Test Scaffolding</a>.
         </p></li>
 </ul></div>
 <p>

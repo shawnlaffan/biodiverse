@@ -43,20 +43,20 @@
 <a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="returnvalue">GSocketControlMessage</span></a> * <a class="link" href="GSocketControlMessage.html#g-socket-control-message-deserialize" title="g_socket_control_message_deserialize ()">g_socket_control_message_deserialize</a>
                                                         (<em class="parameter"><code><span class="type">int</span> level</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> size</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> size</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 <span class="returnvalue">int</span>                 <a class="link" href="GSocketControlMessage.html#g-socket-control-message-get-level" title="g_socket_control_message_get_level ()">g_socket_control_message_get_level</a>  (<em class="parameter"><code><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a> *message</code></em>);
 <span class="returnvalue">int</span>                 <a class="link" href="GSocketControlMessage.html#g-socket-control-message-get-msg-type" title="g_socket_control_message_get_msg_type ()">g_socket_control_message_get_msg_type</a>
                                                         (<em class="parameter"><code><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a> *message</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="returnvalue">gsize</span></a>               <a class="link" href="GSocketControlMessage.html#g-socket-control-message-get-size" title="g_socket_control_message_get_size ()">g_socket_control_message_get_size</a>   (<em class="parameter"><code><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a> *message</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="returnvalue">gsize</span></a>               <a class="link" href="GSocketControlMessage.html#g-socket-control-message-get-size" title="g_socket_control_message_get_size ()">g_socket_control_message_get_size</a>   (<em class="parameter"><code><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GSocketControlMessage.html#g-socket-control-message-serialize" title="g_socket_control_message_serialize ()">g_socket_control_message_serialize</a>  (<em class="parameter"><code><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GSocketControlMessage.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GSocketControlMessage
          +----<a class="link" href="GUnixFDMessage.html" title="GUnixFDMessage">GUnixFDMessage</a>
          +----<a class="link" href="GUnixCredentialsMessage.html" title="GUnixCredentialsMessage">GUnixCredentialsMessage</a>
@@ -107,8 +107,8 @@ received over <a class="link" href="GSocket.html" title="GSocket"><span class="t
 <pre class="programlisting"><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="returnvalue">GSocketControlMessage</span></a> * g_socket_control_message_deserialize
                                                         (<em class="parameter"><code><span class="type">int</span> level</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> size</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> size</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Tries to deserialize a socket control message of a given
 <em class="parameter"><code>level</code></em> and <em class="parameter"><code>type</code></em>. This will ask all known (to GType) subclasses
@@ -116,7 +116,7 @@ of <a class="link" href="GSocketControlMessage.html" title="GSocketControlMessag
 of message and if so deserialize it into a <a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a>.
 </p>
 <p>
-If there is no implementation for this kind of control message, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+If there is no implementation for this kind of control message, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 will be returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -145,7 +145,7 @@ will be returned.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the deserialized message or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>the deserialized message or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -210,7 +210,7 @@ For instance, for UNIX fd passing this would be SCM_RIGHTS.
 <hr>
 <div class="refsect2">
 <a name="g-socket-control-message-get-size"></a><h3>g_socket_control_message_get_size ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="returnvalue">gsize</span></a>               g_socket_control_message_get_size   (<em class="parameter"><code><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="returnvalue">gsize</span></a>               g_socket_control_message_get_size   (<em class="parameter"><code><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a> *message</code></em>);</pre>
 <p>
 Returns the space required for the control message, not including
 headers or alignment.
@@ -238,7 +238,7 @@ headers or alignment.
 <div class="refsect2">
 <a name="g-socket-control-message-serialize"></a><h3>g_socket_control_message_serialize ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_socket_control_message_serialize  (<em class="parameter"><code><a class="link" href="GSocketControlMessage.html" title="GSocketControlMessage"><span class="type">GSocketControlMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Converts the data in the message to bytes placed in the
 message.

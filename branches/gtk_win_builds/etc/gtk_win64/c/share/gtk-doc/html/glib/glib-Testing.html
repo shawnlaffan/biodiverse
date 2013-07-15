@@ -49,6 +49,7 @@
 <span class="returnvalue">void</span>                <a class="link" href="glib-Testing.html#g-test-init" title="g_test_init ()">g_test_init</a>                         (<em class="parameter"><code><span class="type">int</span> *argc</code></em>,
                                                          <em class="parameter"><code><span class="type">char</span> ***argv</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
+#define             <a class="link" href="glib-Testing.html#g-test-initialized" title="g_test_initialized">g_test_initialized</a>
 #define             <a class="link" href="glib-Testing.html#g-test-quick" title="g_test_quick">g_test_quick</a>
 #define             <a class="link" href="glib-Testing.html#g-test-slow" title="g_test_slow">g_test_slow</a>
 #define             <a class="link" href="glib-Testing.html#g-test-thorough" title="g_test_thorough">g_test_thorough</a>
@@ -420,6 +421,26 @@ Any parameters understood by <a class="link" href="glib-Testing.html#g-test-init
 </tbody>
 </table></div>
 <p class="since">Since 2.16</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-test-initialized"></a><h3>g_test_initialized</h3>
+<pre class="programlisting">#define             g_test_initialized()</pre>
+<p>
+Returns <a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a> if <a class="link" href="glib-Testing.html#g-test-init" title="g_test_init ()"><code class="function">g_test_init()</code></a> has been called.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a> if <a class="link" href="glib-Testing.html#g-test-init" title="g_test_init ()"><code class="function">g_test_init()</code></a> has been called.</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.36</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -1059,9 +1080,9 @@ callback A before callback B will cause <code class="function">B()</code> to be 
 <a name="g-test-queue-unref"></a><h3>g_test_queue_unref()</h3>
 <pre class="programlisting">#define             g_test_queue_unref(gobject)</pre>
 <p>
-Enqueue an object to be released with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> during
+Enqueue an object to be released with <code class="function">g_object_unref()</code> during
 the next teardown phase. This is equivalent to calling
-<a class="link" href="glib-Testing.html#g-test-queue-destroy" title="g_test_queue_destroy ()"><code class="function">g_test_queue_destroy()</code></a> with a destroy callback of <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.
+<a class="link" href="glib-Testing.html#g-test-queue-destroy" title="g_test_queue_destroy ()"><code class="function">g_test_queue_destroy()</code></a> with a destroy callback of <code class="function">g_object_unref()</code>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1117,8 +1138,8 @@ For example:
 <span class="comment"> * context is already owned by another thread.</span>
 <span class="comment"> */</span>
 <span class="function"><a href="glib-Testing.html#g-test-expect-message">g_test_expect_message</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="glib-Message-Logging.html#G-LOG-DOMAIN:CAPS">G_LOG_DOMAIN</a></span><span class="symbol">,</span>
-<span class="normal">                       G_LOG_LEVEL_CRITICIAL</span><span class="symbol">,</span>
-<span class="normal">                       </span><span class="string">"assertion.*acquired_context.*failed"</span><span class="symbol">);</span>
+<span class="normal">                       <a href="glib-Message-Logging.html#G-LOG-LEVEL-CRITICAL:CAPS">G_LOG_LEVEL_CRITICAL</a></span><span class="symbol">,</span>
+<span class="normal">                       </span><span class="string">"assertion*acquired_context*failed"</span><span class="symbol">);</span>
 <span class="function"><a href="glib-The-Main-Event-Loop.html#g-main-context-push-thread-default">g_main_context_push_thread_default</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">bad_context</span><span class="symbol">);</span>
 <span class="function"><a href="glib-Testing.html#g-test-assert-expected-messages">g_test_assert_expected_messages</a></span><span class="normal"> </span><span class="symbol">();</span></pre></td>
       </tr>

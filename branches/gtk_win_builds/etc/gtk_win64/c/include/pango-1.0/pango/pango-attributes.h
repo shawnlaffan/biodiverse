@@ -111,10 +111,28 @@ struct _PangoAttribute
   guint end_index;	/* in bytes. The character at this index is not included */
 };
 
+/**
+ * PangoAttrFilterFunc:
+ * @attribute: a Pango attribute
+ * @user_data: user data passed to the function
+ *
+ * Type of a function filtering a list of attributes.
+ *
+ * Return value: %TRUE if the attribute should be kept, %FALSE if it should be
+ * filtered out.
+ **/
 typedef gboolean (*PangoAttrFilterFunc) (PangoAttribute *attribute,
-					 gpointer        data);
+					 gpointer        user_data);
 
-typedef gpointer (*PangoAttrDataCopyFunc) (gconstpointer data);
+/**
+ * PangoAttrDataCopyFunc:
+ * @user_data: user data to copy
+ *
+ * Type of a function that can duplicate user data for an attribute.
+ *
+ * Return value: new copy of @user_data.
+ **/
+typedef gpointer (*PangoAttrDataCopyFunc) (gconstpointer user_data);
 
 struct _PangoAttrClass
 {
@@ -274,6 +292,13 @@ gboolean pango_parse_markup (const char                 *markup_text,
 			     char                      **text,
 			     gunichar                   *accel_char,
 			     GError                    **error);
+
+GMarkupParseContext * pango_markup_parser_new (gunichar               accel_marker);
+gboolean              pango_markup_parser_finish (GMarkupParseContext   *context,
+                                                  PangoAttrList        **attr_list,
+                                                  char                 **text,
+                                                  gunichar              *accel_char,
+                                                  GError               **error);
 
 G_END_DECLS
 

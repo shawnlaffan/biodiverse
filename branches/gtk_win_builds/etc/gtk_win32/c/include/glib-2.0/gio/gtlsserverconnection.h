@@ -18,12 +18,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __G_TLS_SERVER_CONNECTION_H__
+#define __G_TLS_SERVER_CONNECTION_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_TLS_SERVER_CONNECTION_H__
-#define __G_TLS_SERVER_CONNECTION_H__
 
 #include <gio/gtlsconnection.h>
 
@@ -50,8 +50,10 @@ struct _GTlsServerConnectionInterface
 
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType                 g_tls_server_connection_get_type                 (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GIOStream *           g_tls_server_connection_new                      (GIOStream        *base_io_stream,
 									GTlsCertificate  *certificate,
 									GError          **error);

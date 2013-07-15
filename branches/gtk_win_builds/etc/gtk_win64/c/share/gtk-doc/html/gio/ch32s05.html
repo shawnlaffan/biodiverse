@@ -21,7 +21,7 @@
 </tr></table>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="idp78300688"></a>Generating code and docs</h2></div></div></div>
+<a name="id-1.5.5.6"></a>Generating code and docs</h2></div></div></div>
 <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="gdbus-example-gdbus-codegen"></a>Using gdbus-codegen</h3></div></div></div>
@@ -32,7 +32,7 @@
       its counterpart, it also takes D-Bus Introspection XML as input:
     </p>
 <div class="example">
-<a name="gdbus-example-codegen-input"></a><p class="title"><b>Example 24. Example D-Bus Introspection XML</b></p>
+<a name="gdbus-example-codegen-input"></a><p class="title"><b>Example 29. Example D-Bus Introspection XML</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -101,7 +101,20 @@
 62
 63
 64
-65</pre></td>
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78</pre></td>
         <td class="listing_code"><pre class="programlisting"><span class="symbol">&lt;</span><span class="normal">node</span><span class="symbol">&gt;</span>
 <span class="normal">  </span><span class="symbol">&lt;!--</span><span class="normal"> org</span><span class="symbol">.</span><span class="normal">gtk</span><span class="symbol">.</span><span class="normal">GDBus</span><span class="symbol">.</span><span class="normal">Example</span><span class="symbol">.</span><span class="normal">ObjectManager</span><span class="symbol">.</span><span class="normal">Animal</span><span class="symbol">:</span>
 <span class="normal">       @short_description</span><span class="symbol">:</span><span class="normal"> Example docs generated </span><span class="usertype">by</span><span class="normal"> <a href="gdbus.html">gdbus</a></span><span class="symbol">-</span><span class="normal">codegen</span>
@@ -149,6 +162,19 @@
 <span class="normal">    </span><span class="symbol">&lt;</span><span class="usertype">signal</span><span class="normal"> name</span><span class="symbol">=</span><span class="string">"Jumped"</span><span class="symbol">&gt;</span>
 <span class="normal">      </span><span class="symbol">&lt;</span><span class="usertype">arg</span><span class="normal"> type</span><span class="symbol">=</span><span class="string">"d"</span><span class="normal"> name</span><span class="symbol">=</span><span class="string">"height"</span><span class="symbol">/&gt;</span>
 <span class="normal">    </span><span class="symbol">&lt;/</span><span class="normal">signal</span><span class="symbol">&gt;</span>
+
+<span class="normal">    </span><span class="symbol">&lt;!--</span>
+<span class="label">        Foo:</span>
+<span class="normal">        Property </span><span class="usertype">with</span><span class="normal"> no </span><span class="symbol">&lt;</span><span class="normal">quote</span><span class="symbol">&gt;</span><span class="usertype">since&lt;/quote&gt;</span><span class="normal"> </span><span class="function">annotation</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">should inherit the </span><span class="number">2.30</span><span class="normal"> from its </span><span class="usertype">containing</span><span class="normal"> interface</span><span class="symbol">).</span>
+<span class="normal">      </span><span class="symbol">--&gt;</span>
+<span class="normal">    </span><span class="symbol">&lt;</span><span class="usertype">property</span><span class="normal"> name</span><span class="symbol">=</span><span class="string">"Foo"</span><span class="normal"> type</span><span class="symbol">=</span><span class="string">"s"</span><span class="normal"> access</span><span class="symbol">=</span><span class="string">"read"</span><span class="symbol">/&gt;</span>
+
+<span class="normal">    </span><span class="symbol">&lt;!--</span>
+<span class="label">        Bar:</span>
+<span class="normal">        @since</span><span class="symbol">:</span><span class="normal"> </span><span class="number">2.36</span>
+<span class="normal">        Property with </span><span class="usertype">a</span><span class="normal"> later </span><span class="symbol">&lt;</span><span class="normal">quote</span><span class="symbol">&gt;</span><span class="usertype">since&lt;/quote&gt;</span><span class="normal"> annotation</span><span class="symbol">.</span>
+<span class="normal">      </span><span class="symbol">--&gt;</span>
+<span class="normal">    </span><span class="symbol">&lt;</span><span class="usertype">property</span><span class="normal"> name</span><span class="symbol">=</span><span class="string">"Bar"</span><span class="normal"> type</span><span class="symbol">=</span><span class="string">"s"</span><span class="normal"> access</span><span class="symbol">=</span><span class="string">"read"</span><span class="symbol">/&gt;</span>
 <span class="normal">  </span><span class="symbol">&lt;/</span><span class="normal">interface</span><span class="symbol">&gt;</span>
 
 <span class="normal">  </span><span class="symbol">&lt;!--</span><span class="normal"> org</span><span class="symbol">.</span><span class="normal">gtk</span><span class="symbol">.</span><span class="normal">GDBus</span><span class="symbol">.</span><span class="normal">Example</span><span class="symbol">.</span><span class="normal">ObjectManager</span><span class="symbol">.</span><span class="normal">Cat</span><span class="symbol">:</span>
@@ -213,14 +239,14 @@
       <code class="filename">generated-code.c</code> are best described by the
       <span class="command"><strong><a href="gdbus-codegen.html">gdbus-codegen</a></strong></span> manual
       page, brief examples of how this generated code can be used can be found in
-      <a class="xref" href="ch32s05.html#gdbus-example-codegen-server" title="Example 25. Server-side application using generated code">Example 25, “Server-side application using generated code”</a>
-      and <a class="xref" href="ch32s05.html#gdbus-example-codegen-client" title="Example 26. Client-side application using generated code">Example 26, “Client-side application using generated code”</a>. Additionally, since
+      <a class="xref" href="ch32s05.html#gdbus-example-codegen-server" title="Example 30. Server-side application using generated code">Example 30, “Server-side application using generated code”</a>
+      and <a class="xref" href="ch32s05.html#gdbus-example-codegen-client" title="Example 31. Client-side application using generated code">Example 31, “Client-side application using generated code”</a>. Additionally, since
       the generated code has 100% gtk-doc coverage, see
       <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a>, <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="type">ExampleCat</span></a>, <a class="link" href="ExampleObject.html" title="ExampleObject"><span class="type">ExampleObject</span></a> and
       <a class="link" href="ExampleObjectManagerClient.html" title="ExampleObjectManagerClient"><span class="type">ExampleObjectManagerClient</span></a> pages for documentation.
     </p>
 <div class="example">
-<a name="gdbus-example-codegen-server"></a><p class="title"><b>Example 25. Server-side application using generated code</b></p>
+<a name="gdbus-example-codegen-server"></a><p class="title"><b>Example 30. Server-side application using generated code</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -383,16 +409,14 @@
 156
 157
 158
-159
-160
-161</pre></td>
+159</pre></td>
         <td class="listing_code"><pre class="programlisting"><span class="preproc">#include</span><span class="normal"> </span><span class="string">"gdbus-example-objectmanager-generated.h"</span>
 
 <span class="comment">/* ---------------------------------------------------------------------------------------------------- */</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="usertype">GDBusObjectManagerServer</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">manager </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="keyword">static</span><span class="normal"> </span><span class="usertype">GDBusObjectManagerServer</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">manager </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 
-<span class="keyword">static</span><span class="normal"> <a href="./../glib/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
+<span class="keyword">static</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
 <span class="function">on_animal_poke</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">ExampleAnimal</span><span class="normal">          </span><span class="symbol">*</span><span class="normal">animal</span><span class="symbol">,</span>
 <span class="normal">                </span><span class="usertype">GDBusMethodInvocation</span><span class="normal">  </span><span class="symbol">*</span><span class="normal">invocation</span><span class="symbol">,</span>
 <span class="normal">                </span><span class="usertype">gboolean</span><span class="normal">                make_sad</span><span class="symbol">,</span>
@@ -409,7 +433,7 @@
 
 <span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">make_sad</span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="./../glib/glib/glib-String-Utility-Functions.html#g-strcmp0">g_strcmp0</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="ExampleAnimal.html#example-animal-get-mood">example_animal_get_mood</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">),</span><span class="normal"> </span><span class="string">"Sad"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span>
+<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strcmp0">g_strcmp0</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="ExampleAnimal.html#example-animal-get-mood">example_animal_get_mood</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">),</span><span class="normal"> </span><span class="string">"Sad"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span>
 <span class="normal">        </span><span class="cbracket">{</span>
 <span class="normal">          </span><span class="function"><a href="GDBusMethodInvocation.html#g-dbus-method-invocation-return-dbus-error">g_dbus_method_invocation_return_dbus_error</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">invocation</span><span class="symbol">,</span>
 <span class="normal">                                                      </span><span class="string">"org.gtk.GDBus.Examples.ObjectManager.Error.SadAnimalIsSad"</span><span class="symbol">,</span>
@@ -424,7 +448,7 @@
 
 <span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">make_happy</span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="./../glib/glib/glib-String-Utility-Functions.html#g-strcmp0">g_strcmp0</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="ExampleAnimal.html#example-animal-get-mood">example_animal_get_mood</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">),</span><span class="normal"> </span><span class="string">"Happy"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span>
+<span class="normal">      </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strcmp0">g_strcmp0</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="ExampleAnimal.html#example-animal-get-mood">example_animal_get_mood</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">),</span><span class="normal"> </span><span class="string">"Happy"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">==</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span>
 <span class="normal">        </span><span class="cbracket">{</span>
 <span class="normal">          </span><span class="function"><a href="GDBusMethodInvocation.html#g-dbus-method-invocation-return-dbus-error">g_dbus_method_invocation_return_dbus_error</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">invocation</span><span class="symbol">,</span>
 <span class="normal">                                                      </span><span class="string">"org.gtk.GDBus.Examples.ObjectManager.Error.HappyAnimalIsHappy"</span><span class="symbol">,</span>
@@ -437,10 +461,10 @@
 <span class="normal">      </span><span class="keyword">goto</span><span class="normal"> out</span><span class="symbol">;</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Testing.html#g-assert-not-reached">g_assert_not_reached</a></span><span class="normal"> </span><span class="symbol">();</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Testing.html#g-assert-not-reached">g_assert_not_reached</a></span><span class="normal"> </span><span class="symbol">();</span>
 
 <span class="label"> out:</span>
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">;</span><span class="normal"> </span><span class="comment">/* to indicate that the method was handled */</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">;</span><span class="normal"> </span><span class="comment">/* to indicate that the method was handled */</span>
 <span class="cbracket">}</span>
 
 
@@ -452,7 +476,7 @@
 <span class="normal">  </span><span class="usertype">ExampleObjectSkeleton</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">object</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">guint</span><span class="normal"> n</span><span class="symbol">;</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Acquired a message bus connection</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Acquired a message bus connection</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="comment">/* Create a new org.freedesktop.DBus.ObjectManager rooted at /example/Animals */</span>
 <span class="normal">  manager </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GDBusObjectManagerServer.html#g-dbus-object-manager-server-new">g_dbus_object_manager_server_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"/example/Animals"</span><span class="symbol">);</span>
@@ -463,9 +487,9 @@
 <span class="normal">      </span><span class="usertype">ExampleAnimal</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">animal</span><span class="symbol">;</span>
 
 <span class="normal">      </span><span class="comment">/* Create a new D-Bus object at the path /example/Animals/N where N is 000..009 */</span>
-<span class="normal">      s </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-String-Utility-Functions.html#g-strdup-printf">g_strdup_printf</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"/example/Animals/%03d"</span><span class="symbol">,</span><span class="normal"> n</span><span class="symbol">);</span>
+<span class="normal">      s </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strdup-printf">g_strdup_printf</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"/example/Animals/%03d"</span><span class="symbol">,</span><span class="normal"> n</span><span class="symbol">);</span>
 <span class="normal">      object </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="ExampleObject.html#example-object-skeleton-new">example_object_skeleton_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s</span><span class="symbol">);</span>
 
 <span class="normal">      </span><span class="comment">/* Make the newly created object export the interface</span>
 <span class="comment">       * org.gtk.GDBus.Example.ObjectManager.Animal (note</span>
@@ -474,7 +498,7 @@
 <span class="normal">      animal </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="ExampleAnimal.html#example-animal-skeleton-new">example_animal_skeleton_new</a></span><span class="normal"> </span><span class="symbol">();</span>
 <span class="normal">      </span><span class="function"><a href="ExampleAnimal.html#example-animal-set-mood">example_animal_set_mood</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Happy"</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="function"><a href="ExampleObject.html#example-object-skeleton-set-animal">example_object_skeleton_set_animal</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">,</span><span class="normal"> animal</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">);</span>
 
 <span class="normal">      </span><span class="comment">/* Cats are odd animals - so some of our objects implement the</span>
 <span class="comment">       * org.gtk.GDBus.Example.ObjectManager.Cat interface in addition</span>
@@ -485,18 +509,18 @@
 <span class="normal">          </span><span class="usertype">ExampleCat</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">cat</span><span class="symbol">;</span>
 <span class="normal">          cat </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="ExampleCat.html#example-cat-skeleton-new">example_cat_skeleton_new</a></span><span class="normal"> </span><span class="symbol">();</span>
 <span class="normal">          </span><span class="function"><a href="ExampleObject.html#example-object-skeleton-set-cat">example_object_skeleton_set_cat</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">,</span><span class="normal"> cat</span><span class="symbol">);</span>
-<span class="normal">          </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">cat</span><span class="symbol">);</span>
+<span class="normal">          </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">cat</span><span class="symbol">);</span>
 <span class="normal">        </span><span class="cbracket">}</span>
 
 <span class="normal">      </span><span class="comment">/* Handle Poke() D-Bus method invocations on the .Animal interface */</span>
-<span class="normal">      </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">,</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">animal</span><span class="symbol">,</span>
 <span class="normal">                        </span><span class="string">"handle-poke"</span><span class="symbol">,</span>
-<span class="normal">                        </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_animal_poke</span><span class="symbol">),</span>
-<span class="normal">                        <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span><span class="normal"> </span><span class="comment">/* user_data */</span>
+<span class="normal">                        </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_animal_poke</span><span class="symbol">),</span>
+<span class="normal">                        <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span><span class="normal"> </span><span class="comment">/* user_data */</span>
 
 <span class="normal">      </span><span class="comment">/* Export the object (@manager takes its own reference to @object) */</span>
 <span class="normal">      </span><span class="function"><a href="GDBusObjectManagerServer.html#g-dbus-object-manager-server-export">g_dbus_object_manager_server_export</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span><span class="normal"> </span><span class="function">G_DBUS_OBJECT_SKELETON</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">));</span>
-<span class="normal">      </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">);</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 
 <span class="normal">  </span><span class="comment">/* Export all objects */</span>
@@ -508,7 +532,7 @@
 <span class="normal">                  </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal">     </span><span class="symbol">*</span><span class="normal">name</span><span class="symbol">,</span>
 <span class="normal">                  </span><span class="usertype">gpointer</span><span class="normal">         user_data</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Acquired the name %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Acquired the name %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
@@ -516,19 +540,17 @@
 <span class="normal">              </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal">     </span><span class="symbol">*</span><span class="normal">name</span><span class="symbol">,</span>
 <span class="normal">              </span><span class="usertype">gpointer</span><span class="normal">         user_data</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Lost the name %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Lost the name %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 
-<span class="normal"><a href="./../glib/glib/glib-Basic-Types.html#gint">gint</a></span>
+<span class="normal"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint">gint</a></span>
 <span class="function">main</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">gint</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">argv</span><span class="symbol">[])</span>
 <span class="cbracket">{</span>
 <span class="normal">  </span><span class="usertype">GMainLoop</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">loop</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">guint</span><span class="normal"> id</span><span class="symbol">;</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Type-Information.html#g-type-init">g_type_init</a></span><span class="normal"> </span><span class="symbol">();</span>
-
-<span class="normal">  loop </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-new">g_main_loop_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">);</span>
+<span class="normal">  loop </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-new">g_main_loop_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">);</span>
 
 <span class="normal">  id </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gio-Owning-Bus-Names.html#g-bus-own-name">g_bus_own_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="GDBusConnection.html#G-BUS-TYPE-SESSION:CAPS">G_BUS_TYPE_SESSION</a></span><span class="symbol">,</span>
 <span class="normal">                       </span><span class="string">"org.gtk.GDBus.Examples.ObjectManager"</span><span class="symbol">,</span>
@@ -538,12 +560,12 @@
 <span class="normal">                       on_name_acquired</span><span class="symbol">,</span>
 <span class="normal">                       on_name_lost</span><span class="symbol">,</span>
 <span class="normal">                       loop</span><span class="symbol">,</span>
-<span class="normal">                       <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">                       <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-run">g_main_loop_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-run">g_main_loop_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="function"><a href="gio-Owning-Bus-Names.html#g-bus-unown-name">g_bus_unown_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">id</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-unref">g_main_loop_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-unref">g_main_loop_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
 <span class="cbracket">}</span></pre></td>
@@ -554,7 +576,7 @@
 
 </div>
 <br class="example-break"><div class="example">
-<a name="gdbus-example-codegen-client"></a><p class="title"><b>Example 26. Client-side application using generated code</b></p>
+<a name="gdbus-example-codegen-client"></a><p class="title"><b>Example 31. Client-side application using generated code</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -725,9 +747,7 @@
 164
 165
 166
-167
-168
-169</pre></td>
+167</pre></td>
         <td class="listing_code"><pre class="programlisting"><span class="preproc">#include</span><span class="normal"> </span><span class="string">"gdbus-example-objectmanager-generated.h"</span>
 
 <span class="comment">/* ---------------------------------------------------------------------------------------------------- */</span>
@@ -738,20 +758,20 @@
 <span class="normal">  </span><span class="usertype">GList</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">objects</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">GList</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">l</span><span class="symbol">;</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Object manager at %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObjectManager.html#g-dbus-object-manager-get-object-path">g_dbus_object_manager_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">));</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Object manager at %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObjectManager.html#g-dbus-object-manager-get-object-path">g_dbus_object_manager_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">));</span>
 <span class="normal">  objects </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GDBusObjectManager.html#g-dbus-object-manager-get-objects">g_dbus_object_manager_get_objects</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">l </span><span class="symbol">=</span><span class="normal"> objects</span><span class="symbol">;</span><span class="normal"> l </span><span class="symbol">!=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span><span class="normal"> l </span><span class="symbol">=</span><span class="normal"> l</span><span class="symbol">-&gt;</span><span class="normal">next</span><span class="symbol">)</span>
+<span class="normal">  </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">l </span><span class="symbol">=</span><span class="normal"> objects</span><span class="symbol">;</span><span class="normal"> l </span><span class="symbol">!=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span><span class="normal"> l </span><span class="symbol">=</span><span class="normal"> l</span><span class="symbol">-&gt;</span><span class="normal">next</span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
 <span class="normal">      </span><span class="usertype">ExampleObject</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">object </span><span class="symbol">=</span><span class="normal"> </span><span class="function">EXAMPLE_OBJECT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">l</span><span class="symbol">-&gt;</span><span class="normal">data</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="usertype">GList</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">interfaces</span><span class="symbol">;</span>
 <span class="normal">      </span><span class="usertype">GList</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">ll</span><span class="symbol">;</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">" - Object at %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-object-path">g_dbus_object_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_OBJECT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">)));</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">" - Object at %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-object-path">g_dbus_object_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_OBJECT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">)));</span>
 
 <span class="normal">      interfaces </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-interfaces">g_dbus_object_get_interfaces</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_OBJECT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">));</span>
-<span class="normal">      </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">ll </span><span class="symbol">=</span><span class="normal"> interfaces</span><span class="symbol">;</span><span class="normal"> ll </span><span class="symbol">!=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span><span class="normal"> ll </span><span class="symbol">=</span><span class="normal"> ll</span><span class="symbol">-&gt;</span><span class="normal">next</span><span class="symbol">)</span>
+<span class="normal">      </span><span class="keyword">for</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">ll </span><span class="symbol">=</span><span class="normal"> interfaces</span><span class="symbol">;</span><span class="normal"> ll </span><span class="symbol">!=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span><span class="normal"> ll </span><span class="symbol">=</span><span class="normal"> ll</span><span class="symbol">-&gt;</span><span class="normal">next</span><span class="symbol">)</span>
 <span class="normal">        </span><span class="cbracket">{</span>
 <span class="normal">          </span><span class="usertype">GDBusInterface</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">interface </span><span class="symbol">=</span><span class="normal"> </span><span class="function">G_DBUS_INTERFACE</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">ll</span><span class="symbol">-&gt;</span><span class="normal">data</span><span class="symbol">);</span>
-<span class="normal">          </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"   - Interface %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusInterface.html#g-dbus-interface-get-info">g_dbus_interface_get_info</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interface</span><span class="symbol">)-&gt;</span><span class="normal">name</span><span class="symbol">);</span>
+<span class="normal">          </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"   - Interface %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusInterface.html#g-dbus-interface-get-info">g_dbus_interface_get_info</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interface</span><span class="symbol">)-&gt;</span><span class="normal">name</span><span class="symbol">);</span>
 
 <span class="normal">          </span><span class="comment">/* Note that @interface is really a GDBusProxy instance - and additionally also</span>
 <span class="comment">           * an ExampleAnimal or ExampleCat instance - either of these can be used to</span>
@@ -771,9 +791,9 @@
 <span class="comment">           * can be used to get the value of the :Mood property.</span>
 <span class="comment">           */</span>
 <span class="normal">        </span><span class="cbracket">}</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Doubly-Linked-Lists.html#g-list-free-full">g_list_free_full</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interfaces</span><span class="symbol">,</span><span class="normal"> <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#g-list-free-full">g_list_free_full</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interfaces</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="symbol">);</span>
 <span class="normal">    </span><span class="cbracket">}</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Doubly-Linked-Lists.html#g-list-free-full">g_list_free_full</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">objects</span><span class="symbol">,</span><span class="normal"> <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Doubly-Linked-Lists.html#g-list-free-full">g_list_free_full</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">objects</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
@@ -783,8 +803,8 @@
 <span class="cbracket">{</span>
 <span class="normal">  </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">owner</span><span class="symbol">;</span>
 <span class="normal">  owner </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GDBusObjectManagerClient.html#g-dbus-object-manager-client-get-name-owner">g_dbus_object_manager_client_get_name_owner</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_OBJECT_MANAGER_CLIENT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">));</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Added object at %s (owner %s)</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-object-path">g_dbus_object_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">),</span><span class="normal"> owner</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">owner</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Added object at %s (owner %s)</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-object-path">g_dbus_object_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">),</span><span class="normal"> owner</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">owner</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
@@ -794,8 +814,8 @@
 <span class="cbracket">{</span>
 <span class="normal">  </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">owner</span><span class="symbol">;</span>
 <span class="normal">  owner </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GDBusObjectManagerClient.html#g-dbus-object-manager-client-get-name-owner">g_dbus_object_manager_client_get_name_owner</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_OBJECT_MANAGER_CLIENT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">));</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Removed object at %s (owner %s)</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-object-path">g_dbus_object_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">),</span><span class="normal"> owner</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">owner</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Removed object at %s (owner %s)</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-object-path">g_dbus_object_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object</span><span class="symbol">),</span><span class="normal"> owner</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">owner</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
@@ -807,8 +827,8 @@
 <span class="normal">  </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">name_owner</span><span class="symbol">;</span>
 
 <span class="normal">  name_owner </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GDBusObjectManagerClient.html#g-dbus-object-manager-client-get-name-owner">g_dbus_object_manager_client_get_name_owner</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"name-owner: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name_owner</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">name_owner</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"name-owner: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name_owner</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">name_owner</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
@@ -824,18 +844,18 @@
 <span class="normal">  </span><span class="usertype">GVariant</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">value</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">s</span><span class="symbol">;</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Properties Changed on %s:</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-object-path">g_dbus_object_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_OBJECT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object_proxy</span><span class="symbol">)));</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-iter-init">g_variant_iter_init</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">iter</span><span class="symbol">,</span><span class="normal"> changed_properties</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="keyword">while</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-iter-next">g_variant_iter_next</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">iter</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"{&amp;sv}"</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">key</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">value</span><span class="symbol">))</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Properties Changed on %s:</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="GDBusObject.html#g-dbus-object-get-object-path">g_dbus_object_get_object_path</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_OBJECT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">object_proxy</span><span class="symbol">)));</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-iter-init">g_variant_iter_init</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">iter</span><span class="symbol">,</span><span class="normal"> changed_properties</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">while</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-iter-next">g_variant_iter_next</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">iter</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"{&amp;sv}"</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">key</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">value</span><span class="symbol">))</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      s </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-print">g_variant_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">value</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"  %s -&gt; %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> key</span><span class="symbol">,</span><span class="normal"> s</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-unref">g_variant_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">value</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s</span><span class="symbol">);</span>
+<span class="normal">      s </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-print">g_variant_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">value</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"  %s -&gt; %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> key</span><span class="symbol">,</span><span class="normal"> s</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-unref">g_variant_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">value</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">s</span><span class="symbol">);</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 <span class="cbracket">}</span>
 
-<span class="normal"><a href="./../glib/glib/glib-Basic-Types.html#gint">gint</a></span>
+<span class="normal"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint">gint</a></span>
 <span class="function">main</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">gint</span><span class="normal"> argc</span><span class="symbol">,</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">argv</span><span class="symbol">[])</span>
 <span class="cbracket">{</span>
 <span class="normal">  </span><span class="usertype">GDBusObjectManager</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">manager</span><span class="symbol">;</span>
@@ -843,57 +863,55 @@
 <span class="normal">  </span><span class="usertype">GError</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">error</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">name_owner</span><span class="symbol">;</span>
 
-<span class="normal">  manager </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
-<span class="normal">  loop </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  manager </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  loop </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Type-Information.html#g-type-init">g_type_init</a></span><span class="normal"> </span><span class="symbol">();</span>
+<span class="normal">  loop </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-new">g_main_loop_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">);</span>
 
-<span class="normal">  loop </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-new">g_main_loop_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">);</span>
-
-<span class="normal">  error </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  error </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 <span class="normal">  manager </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="ExampleObjectManagerClient.html#example-object-manager-client-new-for-bus-sync">example_object_manager_client_new_for_bus_sync</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="GDBusConnection.html#G-BUS-TYPE-SESSION:CAPS">G_BUS_TYPE_SESSION</a></span><span class="symbol">,</span>
 <span class="normal">                                                            <a href="GDBusObjectManagerClient.html#G-DBUS-OBJECT-MANAGER-CLIENT-FLAGS-NONE:CAPS">G_DBUS_OBJECT_MANAGER_CLIENT_FLAGS_NONE</a></span><span class="symbol">,</span>
 <span class="normal">                                                            </span><span class="string">"org.gtk.GDBus.Examples.ObjectManager"</span><span class="symbol">,</span>
 <span class="normal">                                                            </span><span class="string">"/example/Animals"</span><span class="symbol">,</span>
-<span class="normal">                                                            <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="comment">/* GCancellable */</span>
+<span class="normal">                                                            <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="comment">/* GCancellable */</span>
 <span class="normal">                                                            </span><span class="symbol">&amp;</span><span class="normal">error</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager </span><span class="symbol">==</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager </span><span class="symbol">==</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-printerr">g_printerr</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Error getting object manager client: %s"</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-printerr">g_printerr</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Error getting object manager client: %s"</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="keyword">goto</span><span class="normal"> out</span><span class="symbol">;</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 
 <span class="normal">  name_owner </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GDBusObjectManagerClient.html#g-dbus-object-manager-client-get-name-owner">g_dbus_object_manager_client_get_name_owner</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_OBJECT_MANAGER_CLIENT</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">));</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"name-owner: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name_owner</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">name_owner</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"name-owner: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> name_owner</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">name_owner</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="function">print_objects</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span>
 <span class="normal">                    </span><span class="string">"notify::name-owner"</span><span class="symbol">,</span>
-<span class="normal">                    </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_notify_name_owner</span><span class="symbol">),</span>
-<span class="normal">                    <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span>
+<span class="normal">                    </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_notify_name_owner</span><span class="symbol">),</span>
+<span class="normal">                    <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span>
 <span class="normal">                    </span><span class="string">"object-added"</span><span class="symbol">,</span>
-<span class="normal">                    </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_object_added</span><span class="symbol">),</span>
-<span class="normal">                    <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span>
+<span class="normal">                    </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_object_added</span><span class="symbol">),</span>
+<span class="normal">                    <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span>
 <span class="normal">                    </span><span class="string">"object-removed"</span><span class="symbol">,</span>
-<span class="normal">                    </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_object_removed</span><span class="symbol">),</span>
-<span class="normal">                    <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span>
+<span class="normal">                    </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_object_removed</span><span class="symbol">),</span>
+<span class="normal">                    <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">,</span>
 <span class="normal">                    </span><span class="string">"interface-proxy-properties-changed"</span><span class="symbol">,</span>
-<span class="normal">                    </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_interface_proxy_properties_changed</span><span class="symbol">),</span>
-<span class="normal">                    <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">                    </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_interface_proxy_properties_changed</span><span class="symbol">),</span>
+<span class="normal">                    <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-run">g_main_loop_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-run">g_main_loop_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
 
 <span class="label"> out:</span>
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager </span><span class="symbol">!=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop </span><span class="symbol">!=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
-<span class="normal">    </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-unref">g_main_loop_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager </span><span class="symbol">!=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">manager</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop </span><span class="symbol">!=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
+<span class="normal">    </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-unref">g_main_loop_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
 <span class="cbracket">}</span></pre></td>

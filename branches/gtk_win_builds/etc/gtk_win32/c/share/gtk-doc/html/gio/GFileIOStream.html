@@ -49,22 +49,22 @@
 <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="returnvalue">GFileInfo</span></a> *         <a class="link" href="GFileIOStream.html#g-file-io-stream-query-info" title="g_file_io_stream_query_info ()">g_file_io_stream_query_info</a>         (<em class="parameter"><code><a class="link" href="GFileIOStream.html" title="GFileIOStream"><span class="type">GFileIOStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *attributes</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GFileIOStream.html#g-file-io-stream-query-info-async" title="g_file_io_stream_query_info_async ()">g_file_io_stream_query_info_async</a>   (<em class="parameter"><code><a class="link" href="GFileIOStream.html" title="GFileIOStream"><span class="type">GFileIOStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *attributes</code></em>,
                                                          <em class="parameter"><code><span class="type">int</span> io_priority</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
 <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="returnvalue">GFileInfo</span></a> *         <a class="link" href="GFileIOStream.html#g-file-io-stream-query-info-finish" title="g_file_io_stream_query_info_finish ()">g_file_io_stream_query_info_finish</a>  (<em class="parameter"><code><a class="link" href="GFileIOStream.html" title="GFileIOStream"><span class="type">GFileIOStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GFileIOStream.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----<a class="link" href="GIOStream.html" title="GIOStream">GIOStream</a>
          +----GFileIOStream
 </pre>
@@ -150,7 +150,7 @@ and closed, as the etag can change while writing.
 <pre class="programlisting"><a class="link" href="GFileInfo.html" title="GFileInfo"><span class="returnvalue">GFileInfo</span></a> *         g_file_io_stream_query_info         (<em class="parameter"><code><a class="link" href="GFileIOStream.html" title="GFileIOStream"><span class="type">GFileIOStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *attributes</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Queries a file io stream for the given <em class="parameter"><code>attributes</code></em>.
 This function blocks while querying the stream. For the asynchronous
@@ -164,12 +164,12 @@ Can fail if the stream was already closed (with <em class="parameter"><code>erro
 <a class="link" href="gio-GIOError.html#G-IO-ERROR-CLOSED:CAPS"><code class="literal">G_IO_ERROR_CLOSED</code></a>), the stream has pending operations (with <em class="parameter"><code>error</code></em> being
 set to <a class="link" href="gio-GIOError.html#G-IO-ERROR-PENDING:CAPS"><code class="literal">G_IO_ERROR_PENDING</code></a>), or if querying info is not supported for
 the stream's interface (with <em class="parameter"><code>error</code></em> being set to <a class="link" href="gio-GIOError.html#G-IO-ERROR-NOT-SUPPORTED:CAPS"><code class="literal">G_IO_ERROR_NOT_SUPPORTED</code></a>). I
-all cases of failure, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> will be returned.
+all cases of failure, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> will be returned.
 </p>
 <p>
-If <em class="parameter"><code>cancellable</code></em> is not <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, then the operation can be cancelled by
+If <em class="parameter"><code>cancellable</code></em> is not <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, then the operation can be cancelled by
 triggering the cancellable object from another thread. If the operation
-was cancelled, the error <a class="link" href="gio-GIOError.html#G-IO-ERROR-CANCELLED:CAPS"><code class="literal">G_IO_ERROR_CANCELLED</code></a> will be set, and <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> will
+was cancelled, the error <a class="link" href="gio-GIOError.html#G-IO-ERROR-CANCELLED:CAPS"><code class="literal">G_IO_ERROR_CANCELLED</code></a> will be set, and <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> will
 be returned.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -188,16 +188,16 @@ be returned.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore.</td>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a> for the <em class="parameter"><code>stream</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>a <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a> for the <em class="parameter"><code>stream</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -212,7 +212,7 @@ be returned.
                                                          <em class="parameter"><code><span class="type">int</span> io_priority</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Asynchronously queries the <em class="parameter"><code>stream</code></em> for a <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a>. When completed,
 <em class="parameter"><code>callback</code></em> will be called with a <a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> which can be used to
@@ -243,7 +243,7 @@ of the request.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>optional <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> object, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -265,7 +265,7 @@ of the request.</td>
 <a name="g-file-io-stream-query-info-finish"></a><h3>g_file_io_stream_query_info_finish ()</h3>
 <pre class="programlisting"><a class="link" href="GFileInfo.html" title="GFileInfo"><span class="returnvalue">GFileInfo</span></a> *         g_file_io_stream_query_info_finish  (<em class="parameter"><code><a class="link" href="GFileIOStream.html" title="GFileIOStream"><span class="type">GFileIOStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Finalizes the asynchronous query started
 by <a class="link" href="GFileIOStream.html#g-file-io-stream-query-info-async" title="g_file_io_stream_query_info_async ()"><code class="function">g_file_io_stream_query_info_async()</code></a>.
@@ -286,7 +286,7 @@ by <a class="link" href="GFileIOStream.html#g-file-io-stream-query-info-async" t
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore.</td>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>

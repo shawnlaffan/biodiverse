@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_NATIVE_VOLUME_MONITOR_H__
+#define __G_NATIVE_VOLUME_MONITOR_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_NATIVE_VOLUME_MONITOR_H__
-#define __G_NATIVE_VOLUME_MONITOR_H__
 
 #include <gio/gvolumemonitor.h>
 
@@ -55,6 +55,7 @@ struct _GNativeVolumeMonitorClass
                                          GCancellable *cancellable);
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType g_native_volume_monitor_get_type (void) G_GNUC_CONST;
 
 G_END_DECLS

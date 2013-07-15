@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_ZLIB_COMPRESSOR_H__
+#define __G_ZLIB_COMPRESSOR_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_ZLIB_COMPRESSOR_H__
-#define __G_ZLIB_COMPRESSOR_H__
 
 #include <gio/gconverter.h>
 #include <gio/gfileinfo.h>
@@ -46,12 +46,16 @@ struct _GZlibCompressorClass
   GObjectClass parent_class;
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType            g_zlib_compressor_get_type (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GZlibCompressor *g_zlib_compressor_new (GZlibCompressorFormat format,
 					int level);
 
+GLIB_AVAILABLE_IN_ALL
 GFileInfo       *g_zlib_compressor_get_file_info (GZlibCompressor *compressor);
+GLIB_AVAILABLE_IN_ALL
 void             g_zlib_compressor_set_file_info (GZlibCompressor *compressor,
                                                   GFileInfo       *file_info);
 

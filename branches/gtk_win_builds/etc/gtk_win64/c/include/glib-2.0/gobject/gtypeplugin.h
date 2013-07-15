@@ -16,12 +16,12 @@
  * Free Software Foundation, Inc., 59 Temple Place, Suite 330,
  * Boston, MA 02111-1307, USA.
  */
+#ifndef __G_TYPE_PLUGIN_H__
+#define __G_TYPE_PLUGIN_H__
+
 #if !defined (__GLIB_GOBJECT_H_INSIDE__) && !defined (GOBJECT_COMPILATION)
 #error "Only <glib-object.h> can be included directly."
 #endif
-
-#ifndef __G_TYPE_PLUGIN_H__
-#define __G_TYPE_PLUGIN_H__
 
 #include	<gobject/gtype.h>
 
@@ -117,13 +117,18 @@ struct _GTypePluginClass
 
 
 /* --- prototypes --- */
+GLIB_AVAILABLE_IN_ALL
 GType	g_type_plugin_get_type			(void)	G_GNUC_CONST;
+GLIB_AVAILABLE_IN_ALL
 void	g_type_plugin_use			(GTypePlugin	 *plugin);
+GLIB_AVAILABLE_IN_ALL
 void	g_type_plugin_unuse			(GTypePlugin	 *plugin);
+GLIB_AVAILABLE_IN_ALL
 void	g_type_plugin_complete_type_info	(GTypePlugin     *plugin,
 						 GType            g_type,
 						 GTypeInfo       *info,
 						 GTypeValueTable *value_table);
+GLIB_AVAILABLE_IN_ALL
 void	g_type_plugin_complete_interface_info	(GTypePlugin     *plugin,
 						 GType            instance_type,
 						 GType            interface_type,

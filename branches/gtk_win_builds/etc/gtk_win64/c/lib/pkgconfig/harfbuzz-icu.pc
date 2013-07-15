@@ -1,0 +1,13 @@
+prefix=/usr/x86_64-w64-mingw32/sys-root/mingw
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: harfbuzz
+Description: HarfBuzz text shaping library ICU integration
+Version: 0.9.18
+
+Requires: harfbuzz
+Requires.private: icu-uc
+Libs: -L${libdir} -lharfbuzz-icu
+Cflags: -I${includedir}/harfbuzz

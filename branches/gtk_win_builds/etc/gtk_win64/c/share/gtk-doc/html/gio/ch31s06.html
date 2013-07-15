@@ -21,7 +21,7 @@
 </tr></table>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="idp6926112"></a>Schema conversion</h2></div></div></div>
+<a name="id-1.5.4.7"></a>Schema conversion</h2></div></div></div>
 <p>
         If you are porting your application from GConf, most likely you already
         have a GConf schema. GConf comes with a commandline tool
@@ -30,7 +30,7 @@
         perfect and may need assistence in some cases.
       </p>
 <div class="example">
-<a name="idp59304368"></a><p class="title"><b>Example 23. An example for using gsettings-schema-convert</b></p>
+<a name="id-1.5.4.7.3"></a><p class="title"><b>Example 28. An example for using gsettings-schema-convert</b></p>
 <div class="example-contents">
 <p>Running <strong class="userinput"><code>gsettings-schema-convert --gconf --xml --schema-id "org.gnome.font-rendering" --output org.gnome.font-rendering.gschema.xml destop_gnome_font_rendering.schemas</code></strong> on the following <code class="filename">desktop_gnome_font_rendering.schemas</code> file:
         </p>
@@ -132,9 +132,9 @@ gsettings_SCHEMAS = my.app.gschema.xml
       </p>
 <p>
         One possible pitfall in doing schema conversion is that the default
-        values in GSettings schemas are parsed by the <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> parser.
+        values in GSettings schemas are parsed by the <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> parser.
         This means that strings need to include quotes in the XML.  Also note
-        that the types are now specified as <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> type strings.
+        that the types are now specified as <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> type strings.
         </p>
 <pre class="programlisting">
 

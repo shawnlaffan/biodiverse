@@ -43,41 +43,41 @@
 <div class="refsynopsisdiv">
 <a name="GPermission.synopsis"></a><h2>Synopsis</h2>
 <pre class="synopsis">                    <a class="link" href="GPermission.html#GPermission-struct" title="GPermission">GPermission</a>;
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-get-allowed" title="g_permission_get_allowed ()">g_permission_get_allowed</a>            (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-get-can-acquire" title="g_permission_get_can_acquire ()">g_permission_get_can_acquire</a>        (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-get-can-release" title="g_permission_get_can_release ()">g_permission_get_can_release</a>        (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-get-allowed" title="g_permission_get_allowed ()">g_permission_get_allowed</a>            (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-get-can-acquire" title="g_permission_get_can_acquire ()">g_permission_get_can_acquire</a>        (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-get-can-release" title="g_permission_get_can_release ()">g_permission_get_can_release</a>        (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);
 
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-acquire" title="g_permission_acquire ()">g_permission_acquire</a>                (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-acquire" title="g_permission_acquire ()">g_permission_acquire</a>                (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GPermission.html#g-permission-acquire-async" title="g_permission_acquire_async ()">g_permission_acquire_async</a>          (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-acquire-finish" title="g_permission_acquire_finish ()">g_permission_acquire_finish</a>         (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-acquire-finish" title="g_permission_acquire_finish ()">g_permission_acquire_finish</a>         (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-release" title="g_permission_release ()">g_permission_release</a>                (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-release" title="g_permission_release ()">g_permission_release</a>                (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GPermission.html#g-permission-release-async" title="g_permission_release_async ()">g_permission_release_async</a>          (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-release-finish" title="g_permission_release_finish ()">g_permission_release_finish</a>         (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GPermission.html#g-permission-release-finish" title="g_permission_release_finish ()">g_permission_release_finish</a>         (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 
 <span class="returnvalue">void</span>                <a class="link" href="GPermission.html#g-permission-impl-update" title="g_permission_impl_update ()">g_permission_impl_update</a>            (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> allowed</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> can_acquire</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> can_release</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> allowed</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> can_acquire</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> can_release</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GPermission.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GPermission
          +----<a class="link" href="GSimplePermission.html" title="GSimplePermission">GSimplePermission</a>
 </pre>
@@ -85,9 +85,9 @@
 <div class="refsect1">
 <a name="GPermission.properties"></a><h2>Properties</h2>
 <pre class="synopsis">
-  "<a class="link" href="GPermission.html#GPermission--allowed" title='The "allowed" property'>allowed</a>"                  <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
-  "<a class="link" href="GPermission.html#GPermission--can-acquire" title='The "can-acquire" property'>can-acquire</a>"              <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
-  "<a class="link" href="GPermission.html#GPermission--can-release" title='The "can-release" property'>can-release</a>"              <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="GPermission.html#GPermission--allowed" title='The "allowed" property'>allowed</a>"                  <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="GPermission.html#GPermission--can-acquire" title='The "can-acquire" property'>can-acquire</a>"              <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="GPermission.html#GPermission--can-release" title='The "can-release" property'>can-release</a>"              <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
 </pre>
 </div>
 <div class="refsect1">
@@ -126,9 +126,9 @@ using the following functions.
 <hr>
 <div class="refsect2">
 <a name="g-permission-get-allowed"></a><h3>g_permission_get_allowed ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_get_allowed            (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_get_allowed            (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);</pre>
 <p>
-Gets the value of the 'allowed' property.  This property is <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if
+Gets the value of the 'allowed' property.  This property is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if
 the caller currently has permission to perform the action that
 <em class="parameter"><code>permission</code></em> represents the permission to perform.
 </p>
@@ -153,9 +153,9 @@ the caller currently has permission to perform the action that
 <hr>
 <div class="refsect2">
 <a name="g-permission-get-can-acquire"></a><h3>g_permission_get_can_acquire ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_get_can_acquire        (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_get_can_acquire        (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);</pre>
 <p>
-Gets the value of the 'can-acquire' property.  This property is <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>
+Gets the value of the 'can-acquire' property.  This property is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>
 if it is generally possible to acquire the permission by calling
 <a class="link" href="GPermission.html#g-permission-acquire" title="g_permission_acquire ()"><code class="function">g_permission_acquire()</code></a>.
 </p>
@@ -180,9 +180,9 @@ if it is generally possible to acquire the permission by calling
 <hr>
 <div class="refsect2">
 <a name="g-permission-get-can-release"></a><h3>g_permission_get_can_release ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_get_can_release        (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_get_can_release        (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>);</pre>
 <p>
-Gets the value of the 'can-release' property.  This property is <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>
+Gets the value of the 'can-release' property.  This property is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>
 if it is generally possible to release the permission by calling
 <a class="link" href="GPermission.html#g-permission-release" title="g_permission_release ()"><code class="function">g_permission_release()</code></a>.
 </p>
@@ -207,9 +207,9 @@ if it is generally possible to release the permission by calling
 <hr>
 <div class="refsect2">
 <a name="g-permission-acquire"></a><h3>g_permission_acquire ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_acquire                (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_acquire                (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Attempts to acquire the permission represented by <em class="parameter"><code>permission</code></em>.
 </p>
@@ -223,8 +223,8 @@ You should check with <a class="link" href="GPermission.html#g-permission-get-ca
 this function.
 </p>
 <p>
-If the permission is acquired then <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is returned.  Otherwise,
-<a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned and <em class="parameter"><code>error</code></em> is set appropriately.
+If the permission is acquired then <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is returned.  Otherwise,
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned and <em class="parameter"><code>error</code></em> is set appropriately.
 </p>
 <p>
 This call is blocking, likely for a very long time (in the case that
@@ -243,18 +243,18 @@ the non-blocking version.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a pointer to a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>a pointer to a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the permission was successfully acquired</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the permission was successfully acquired</td>
 </tr>
 </tbody>
 </table></div>
@@ -266,7 +266,7 @@ the non-blocking version.
 <pre class="programlisting"><span class="returnvalue">void</span>                g_permission_acquire_async          (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Attempts to acquire the permission represented by <em class="parameter"><code>permission</code></em>.
 </p>
@@ -286,7 +286,7 @@ This is the first half of the asynchronous version of
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -305,9 +305,9 @@ This is the first half of the asynchronous version of
 <hr>
 <div class="refsect2">
 <a name="g-permission-acquire-finish"></a><h3>g_permission_acquire_finish ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_acquire_finish         (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_acquire_finish         (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Collects the result of attempting to acquire the permission
 represented by <em class="parameter"><code>permission</code></em>.
@@ -333,13 +333,13 @@ This is the second half of the asynchronous version of
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a pointer to a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>a pointer to a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the permission was successfully acquired</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the permission was successfully acquired</td>
 </tr>
 </tbody>
 </table></div>
@@ -348,9 +348,9 @@ This is the second half of the asynchronous version of
 <hr>
 <div class="refsect2">
 <a name="g-permission-release"></a><h3>g_permission_release ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_release                (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_release                (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Attempts to release the permission represented by <em class="parameter"><code>permission</code></em>.
 </p>
@@ -364,8 +364,8 @@ You should check with <a class="link" href="GPermission.html#g-permission-get-ca
 this function.
 </p>
 <p>
-If the permission is released then <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is returned.  Otherwise,
-<a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned and <em class="parameter"><code>error</code></em> is set appropriately.
+If the permission is released then <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is returned.  Otherwise,
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> is returned and <em class="parameter"><code>error</code></em> is set appropriately.
 </p>
 <p>
 This call is blocking, likely for a very long time (in the case that
@@ -384,18 +384,18 @@ the non-blocking version.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a pointer to a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>a pointer to a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the permission was successfully released</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the permission was successfully released</td>
 </tr>
 </tbody>
 </table></div>
@@ -407,7 +407,7 @@ the non-blocking version.
 <pre class="programlisting"><span class="returnvalue">void</span>                g_permission_release_async          (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Attempts to release the permission represented by <em class="parameter"><code>permission</code></em>.
 </p>
@@ -427,7 +427,7 @@ This is the first half of the asynchronous version of
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>a <a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -446,9 +446,9 @@ This is the first half of the asynchronous version of
 <hr>
 <div class="refsect2">
 <a name="g-permission-release-finish"></a><h3>g_permission_release_finish ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_release_finish         (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_permission_release_finish         (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Collects the result of attempting to release the permission
 represented by <em class="parameter"><code>permission</code></em>.
@@ -474,13 +474,13 @@ This is the second half of the asynchronous version of
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a pointer to a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>a pointer to a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the permission was successfully released</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the permission was successfully released</td>
 </tr>
 </tbody>
 </table></div>
@@ -490,9 +490,9 @@ This is the second half of the asynchronous version of
 <div class="refsect2">
 <a name="g-permission-impl-update"></a><h3>g_permission_impl_update ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_permission_impl_update            (<em class="parameter"><code><a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> *permission</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> allowed</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> can_acquire</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> can_release</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> allowed</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> can_acquire</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> can_release</code></em>);</pre>
 <p>
 This function is called by the <a class="link" href="GPermission.html" title="GPermission"><span class="type">GPermission</span></a> implementation to update
 the properties of the permission.  You should never call this
@@ -532,9 +532,9 @@ GObject notify signals are generated, as appropriate.
 <a name="GPermission.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="GPermission--allowed"></a><h3>The <code class="literal">"allowed"</code> property</h3>
-<pre class="programlisting">  "allowed"                  <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<pre class="programlisting">  "allowed"                  <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
 <p>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the caller currently has permission to perform the action that
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if the caller currently has permission to perform the action that
 <em class="parameter"><code>permission</code></em> represents the permission to perform.
 </p>
 <p>Default value: FALSE</p>
@@ -542,9 +542,9 @@ GObject notify signals are generated, as appropriate.
 <hr>
 <div class="refsect2">
 <a name="GPermission--can-acquire"></a><h3>The <code class="literal">"can-acquire"</code> property</h3>
-<pre class="programlisting">  "can-acquire"              <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<pre class="programlisting">  "can-acquire"              <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
 <p>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if it is generally possible to acquire the permission by calling
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if it is generally possible to acquire the permission by calling
 <a class="link" href="GPermission.html#g-permission-acquire" title="g_permission_acquire ()"><code class="function">g_permission_acquire()</code></a>.
 </p>
 <p>Default value: FALSE</p>
@@ -552,9 +552,9 @@ GObject notify signals are generated, as appropriate.
 <hr>
 <div class="refsect2">
 <a name="GPermission--can-release"></a><h3>The <code class="literal">"can-release"</code> property</h3>
-<pre class="programlisting">  "can-release"              <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<pre class="programlisting">  "can-release"              <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
 <p>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if it is generally possible to release the permission by calling
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if it is generally possible to release the permission by calling
 <a class="link" href="GPermission.html#g-permission-release" title="g_permission_release ()"><code class="function">g_permission_release()</code></a>.
 </p>
 <p>Default value: FALSE</p>

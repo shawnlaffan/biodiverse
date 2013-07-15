@@ -50,7 +50,7 @@
 <div class="refsect1">
 <a name="GThreadedSocketService.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----<a class="link" href="GSocketListener.html" title="GSocketListener">GSocketListener</a>
          +----<a class="link" href="GSocketService.html" title="GSocketService">GSocketService</a>
                +----GThreadedSocketService
@@ -59,13 +59,13 @@
 <div class="refsect1">
 <a name="GThreadedSocketService.properties"></a><h2>Properties</h2>
 <pre class="synopsis">
-  "<a class="link" href="GThreadedSocketService.html#GThreadedSocketService--max-threads" title='The "max-threads" property'>max-threads</a>"              <a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct Only
+  "<a class="link" href="GThreadedSocketService.html#GThreadedSocketService--max-threads" title='The "max-threads" property'>max-threads</a>"              <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct Only
 </pre>
 </div>
 <div class="refsect1">
 <a name="GThreadedSocketService.signals"></a><h2>Signals</h2>
 <pre class="synopsis">
-  "<a class="link" href="GThreadedSocketService.html#GThreadedSocketService-run" title='The "run" signal'>run</a>"                                            : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
+  "<a class="link" href="GThreadedSocketService.html#GThreadedSocketService-run" title='The "run" signal'>run</a>"                                            : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a>
 </pre>
 </div>
 <div class="refsect1">
@@ -134,7 +134,7 @@ handling incoming clients, -1 means no limit</td>
 <a name="GThreadedSocketService.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="GThreadedSocketService--max-threads"></a><h3>The <code class="literal">"max-threads"</code> property</h3>
-<pre class="programlisting">  "max-threads"              <a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct Only</pre>
+<pre class="programlisting">  "max-threads"              <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct Only</pre>
 <p>The max number of threads handling clients for this service.</p>
 <p>Allowed values: &gt;= G_MAXULONG</p>
 <p>Default value: 10</p>
@@ -144,10 +144,10 @@ handling incoming clients, -1 means no limit</td>
 <a name="GThreadedSocketService.signal-details"></a><h2>Signal Details</h2>
 <div class="refsect2">
 <a name="GThreadedSocketService-run"></a><h3>The <code class="literal">"run"</code> signal</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            user_function                      (<a class="link" href="GThreadedSocketService.html" title="GThreadedSocketService"><span class="type">GThreadedSocketService</span></a> *service,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            user_function                      (<a class="link" href="GThreadedSocketService.html" title="GThreadedSocketService"><span class="type">GThreadedSocketService</span></a> *service,
                                                         <a class="link" href="GSocketConnection.html" title="GSocketConnection"><span class="type">GSocketConnection</span></a>      *connection,
-                                                        <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>                *source_object,
-                                                        <a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>                user_data)          : <a href="./../gobject/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
+                                                        <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>                *source_object,
+                                                        <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a>                user_data)          : <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#G-SIGNAL-RUN-LAST:CAPS"><code class="literal">Run Last</code></a></pre>
 <p>
 The ::run signal is emitted in a worker thread in response to an
 incoming connection. This thread is dedicated to handling
@@ -179,7 +179,7 @@ not return until the connection is closed.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to stop further signal handlers from being called</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> to stop further signal handlers from being called</td>
 </tr>
 </tbody>
 </table></div>

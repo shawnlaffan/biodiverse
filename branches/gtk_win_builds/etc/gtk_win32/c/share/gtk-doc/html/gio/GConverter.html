@@ -52,13 +52,13 @@ enum                <a class="link" href="GConverter.html#GConverterResult" titl
 enum                <a class="link" href="GConverter.html#GConverterFlags" title="enum GConverterFlags">GConverterFlags</a>;
 <a class="link" href="GConverter.html#GConverterResult" title="enum GConverterResult"><span class="returnvalue">GConverterResult</span></a>    <a class="link" href="GConverter.html#g-converter-convert" title="g_converter_convert ()">g_converter_convert</a>                 (<em class="parameter"><code><a class="link" href="GConverter.html" title="GConverter"><span class="type">GConverter</span></a> *converter</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *inbuf</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> inbuf_size</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> inbuf_size</code></em>,
                                                          <em class="parameter"><code><span class="type">void</span> *outbuf</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> outbuf_size</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> outbuf_size</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GConverter.html#GConverterFlags" title="enum GConverterFlags"><span class="type">GConverterFlags</span></a> flags</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *bytes_read</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *bytes_written</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *bytes_read</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *bytes_written</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GConverter.html#g-converter-reset" title="g_converter_reset ()">g_converter_reset</a>                   (<em class="parameter"><code><a class="link" href="GConverter.html" title="GConverter"><span class="type">GConverter</span></a> *converter</code></em>);
 </pre>
 </div>
@@ -73,7 +73,7 @@ enum                <a class="link" href="GConverter.html#GConverterFlags" title
 <a name="GConverter.prerequisites"></a><h2>Prerequisites</h2>
 <p>
 GConverter requires
- <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
+ <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
 </div>
 <div class="refsect1">
 <a name="GConverter.implementations"></a><h2>Known Implementations</h2>
@@ -136,7 +136,7 @@ and may fail at any place.
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GConverterIface.g-iface"></a>g_iface</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GConverterIface.g-iface"></a>g_iface</code></em>;</span></p></td>
 <td>The parent interface.</td>
 </tr>
 <tr>
@@ -236,13 +236,13 @@ Flags used when calling a <a class="link" href="GConverter.html#g-converter-conv
 <a name="g-converter-convert"></a><h3>g_converter_convert ()</h3>
 <pre class="programlisting"><a class="link" href="GConverter.html#GConverterResult" title="enum GConverterResult"><span class="returnvalue">GConverterResult</span></a>    g_converter_convert                 (<em class="parameter"><code><a class="link" href="GConverter.html" title="GConverter"><span class="type">GConverter</span></a> *converter</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *inbuf</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> inbuf_size</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> inbuf_size</code></em>,
                                                          <em class="parameter"><code><span class="type">void</span> *outbuf</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> outbuf_size</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> outbuf_size</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GConverter.html#GConverterFlags" title="enum GConverterFlags"><span class="type">GConverterFlags</span></a> flags</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *bytes_read</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *bytes_written</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *bytes_read</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *bytes_written</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 This is the main operation used when converting data. It is to be called
 multiple times in a loop, and each time it will do some work, i.e.
@@ -384,7 +384,7 @@ containing the data to convert. <span class="annotation">[<acronym title="Parame
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>location to store the error occurring, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore</td>
+<td>location to store the error occurring, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to ignore</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>

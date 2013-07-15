@@ -152,6 +152,7 @@ G_BEGIN_DECLS
  *@ATK_ROLE_IMAGE_MAP: An image map object. Usually a graphic with multiple hotspots, where each hotspot can be activated resulting in the loading of another document or section of a document. @Since: ATK-2.1.0
  *@ATK_ROLE_NOTIFICATION: A transitory object designed to present a message to the user, typically at the desktop level rather than inside a particular application.  @Since: ATK-2.1.0
  *@ATK_ROLE_INFO_BAR: An object designed to present a message to the user within an existing window. @Since: ATK-2.1.0
+ *@ATK_ROLE_LEVEL_BAR: A bar that serves as a level indicator to, for instance, show the strength of a password or the state of a battery.  @Since: ATK-2.7.3
  *@ATK_ROLE_LAST_DEFINED: not a valid role, used for finding end of the enumeration
  * 
  * Describes the role of an object
@@ -263,6 +264,7 @@ typedef enum
   ATK_ROLE_IMAGE_MAP,
   ATK_ROLE_NOTIFICATION,
   ATK_ROLE_INFO_BAR,
+  ATK_ROLE_LEVEL_BAR,
   ATK_ROLE_LAST_DEFINED
 } AtkRole;
 
@@ -351,15 +353,15 @@ typedef struct _AtkStateSet               AtkStateSet;
  * @old_value: The old property value, NULL; in some contexts this value is undefined (see note below).
  * @new_value: The new value of the named property.
  *
- * @note: For most properties the old_value field of AtkPropertyValues will
- * not contain a valid value.
+ * Note: for most properties the old_value field of #AtkPropertyValues
+ * will not contain a valid value.
  *
  * Currently, the only property for which old_value is used is
  * accessible-state; for instance if there is a focus state the
  * property change handler will be called for the object which lost the focus
- * with the old_value containing an AtkState value corresponding to focused
+ * with the old_value containing an #AtkState value corresponding to focused
  * and the property change handler will be called for the object which
- * received the focus with the new_value containing an AtkState value
+ * received the focus with the new_value containing an #AtkState value
  * corresponding to focused.
  *
  **/
@@ -372,7 +374,7 @@ struct _AtkPropertyValues
 
 typedef struct _AtkPropertyValues        AtkPropertyValues;
 
-typedef gboolean (*AtkFunction)          (gpointer data); 
+typedef gboolean (*AtkFunction)          (gpointer user_data);
 /*
  * For most properties the old_value field of AtkPropertyValues will
  * not contain a valid value.
@@ -385,7 +387,7 @@ typedef gboolean (*AtkFunction)          (gpointer data);
  * received the focus with the new_value containing an AtkState value
  * corresponding to focused.
  */
-typedef void (*AtkPropertyChangeHandler) (AtkObject*, AtkPropertyValues*);
+typedef void (*AtkPropertyChangeHandler) (AtkObject* obj, AtkPropertyValues* vals);
 
 
 struct _AtkObject
@@ -529,8 +531,10 @@ void                      (* initialize)                         (AtkObject     
    * Since ATK 1.12
    */
   AtkAttributeSet* 	  (*get_attributes)            (AtkObject                  *accessible);
+
+  const gchar*            (*get_object_locale)         (AtkObject                  *accessible);
+
   AtkFunction             pad1;
-  AtkFunction             pad2;
 };
 
 GType            atk_object_get_type   (void);
@@ -611,6 +615,7 @@ gboolean              atk_object_remove_relationship           (AtkObject      *
 								AtkRelationType relationship,
 								AtkObject      *target);
 const gchar*          atk_role_get_localized_name              (AtkRole     role);
+const gchar*          atk_object_get_object_locale             (AtkObject   *accessible);
 
 /* */
 

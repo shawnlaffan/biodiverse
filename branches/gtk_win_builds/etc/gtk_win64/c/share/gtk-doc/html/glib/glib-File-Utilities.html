@@ -123,6 +123,8 @@ typedef             <a class="link" href="glib-File-Utilities.html#GStatBuf" tit
 <span class="returnvalue">int</span>                 <a class="link" href="glib-File-Utilities.html#g-chdir" title="g_chdir ()">g_chdir</a>                             (<em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *path</code></em>);
 <span class="returnvalue">int</span>                 <a class="link" href="glib-File-Utilities.html#g-utime" title="g_utime ()">g_utime</a>                             (<em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *filename</code></em>,
                                                          <em class="parameter"><code><span class="type">struct utimbuf</span> *utb</code></em>);
+<a class="link" href="glib-Basic-Types.html#gboolean" title="gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="glib-File-Utilities.html#g-close" title="g_close ()">g_close</a>                             (<em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gint" title="gint"><span class="type">gint</span></a> fd</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="glib-Error-Reporting.html#GError" title="struct GError"><span class="type">GError</span></a> **error</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -2099,6 +2101,39 @@ occurred</td>
 </tbody>
 </table></div>
 <p class="since">Since 2.18</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-close"></a><h3>g_close ()</h3>
+<pre class="programlisting"><a class="link" href="glib-Basic-Types.html#gboolean" title="gboolean"><span class="returnvalue">gboolean</span></a>            g_close                             (<em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gint" title="gint"><span class="type">gint</span></a> fd</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="glib-Error-Reporting.html#GError" title="struct GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<p>
+This wraps the <code class="function">close()</code> call; in case of error, <code class="literal">errno</code> will be
+preserved, but the error will also be stored as a <a class="link" href="glib-Error-Reporting.html#GError" title="struct GError"><span class="type">GError</span></a> in <em class="parameter"><code>error</code></em>.
+</p>
+<p>
+Besides using <a class="link" href="glib-Error-Reporting.html#GError" title="struct GError"><span class="type">GError</span></a>, there is another major reason to prefer this
+function over the call provided by the system; on Unix, it will
+attempt to correctly handle <code class="literal">EINTR</code>, which has platform-specific
+semantics.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>fd</code></em> :</span></p></td>
+<td>A file descriptor</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
+<td>a <a class="link" href="glib-Error-Reporting.html#GError" title="struct GError"><span class="type">GError</span></a>
+</td>
+</tr>
+</tbody>
+</table></div>
 </div>
 </div>
 </div>

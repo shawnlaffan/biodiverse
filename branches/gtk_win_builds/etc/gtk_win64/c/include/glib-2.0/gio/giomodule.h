@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_IO_MODULE_H__
+#define __G_IO_MODULE_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_IO_MODULE_H__
-#define __G_IO_MODULE_H__
 
 #include <gio/giotypes.h>
 #include <gmodule.h>
@@ -34,8 +34,11 @@ G_BEGIN_DECLS
 
 typedef struct _GIOModuleScope GIOModuleScope;
 
+GLIB_AVAILABLE_IN_2_30
 GIOModuleScope *   g_io_module_scope_new     (GIOModuleScopeFlags  flags);
+GLIB_AVAILABLE_IN_2_30
 void               g_io_module_scope_free    (GIOModuleScope      *scope);
+GLIB_AVAILABLE_IN_2_30
 void               g_io_module_scope_block   (GIOModuleScope      *scope,
                                               const gchar         *basename);
 
@@ -53,33 +56,50 @@ void               g_io_module_scope_block   (GIOModuleScope      *scope,
  **/
 typedef struct _GIOModuleClass GIOModuleClass;
 
+GLIB_AVAILABLE_IN_ALL
 GType              g_io_module_get_type                       (void) G_GNUC_CONST;
+GLIB_AVAILABLE_IN_ALL
 GIOModule         *g_io_module_new                            (const gchar       *filename);
 
+GLIB_AVAILABLE_IN_ALL
 void               g_io_modules_scan_all_in_directory         (const char        *dirname);
+GLIB_AVAILABLE_IN_ALL
 GList             *g_io_modules_load_all_in_directory         (const gchar       *dirname);
 
+GLIB_AVAILABLE_IN_2_30
 void               g_io_modules_scan_all_in_directory_with_scope   (const gchar       *dirname,
                                                                     GIOModuleScope    *scope);
+GLIB_AVAILABLE_IN_2_30
 GList             *g_io_modules_load_all_in_directory_with_scope   (const gchar       *dirname,
                                                                     GIOModuleScope    *scope);
 
+GLIB_AVAILABLE_IN_ALL
 GIOExtensionPoint *g_io_extension_point_register              (const char        *name);
+GLIB_AVAILABLE_IN_ALL
 GIOExtensionPoint *g_io_extension_point_lookup                (const char        *name);
+GLIB_AVAILABLE_IN_ALL
 void               g_io_extension_point_set_required_type     (GIOExtensionPoint *extension_point,
 							       GType              type);
+GLIB_AVAILABLE_IN_ALL
 GType              g_io_extension_point_get_required_type     (GIOExtensionPoint *extension_point);
+GLIB_AVAILABLE_IN_ALL
 GList             *g_io_extension_point_get_extensions        (GIOExtensionPoint *extension_point);
+GLIB_AVAILABLE_IN_ALL
 GIOExtension *     g_io_extension_point_get_extension_by_name (GIOExtensionPoint *extension_point,
 							       const char        *name);
+GLIB_AVAILABLE_IN_ALL
 GIOExtension *     g_io_extension_point_implement             (const char        *extension_point_name,
 							       GType              type,
 							       const char        *extension_name,
 							       gint               priority);
 
+GLIB_AVAILABLE_IN_ALL
 GType              g_io_extension_get_type                    (GIOExtension      *extension);
+GLIB_AVAILABLE_IN_ALL
 const char *       g_io_extension_get_name                    (GIOExtension      *extension);
+GLIB_AVAILABLE_IN_ALL
 gint               g_io_extension_get_priority                (GIOExtension      *extension);
+GLIB_AVAILABLE_IN_ALL
 GTypeClass*        g_io_extension_ref_class                   (GIOExtension      *extension);
 
 
@@ -93,6 +113,7 @@ GTypeClass*        g_io_extension_ref_class                   (GIOExtension     
  * This function is ran after the module has been loaded into GIO,
  * to initialize the module.
  **/
+GLIB_AVAILABLE_IN_ALL
 void   g_io_module_load   (GIOModule *module);
 
 /**
@@ -103,6 +124,7 @@ void   g_io_module_load   (GIOModule *module);
  * This function is ran when the module is being unloaded from GIO,
  * to finalize the module.
  **/
+GLIB_AVAILABLE_IN_ALL
 void   g_io_module_unload (GIOModule *module);
 
 /**
@@ -137,6 +159,7 @@ void   g_io_module_unload (GIOModule *module);
  *
  * Since: 2.24
  **/
+GLIB_AVAILABLE_IN_ALL
 char **g_io_module_query (void);
 
 G_END_DECLS

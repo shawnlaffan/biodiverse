@@ -3,11 +3,11 @@ exec_prefix=${prefix}
 libdir=${prefix}/lib
 includedir=${prefix}/include
 
-pango_module_version=1.6.0
+pango_module_version=1.8.0
 
 Name: Pango
 Description: Internationalized text handling
-Version: 1.30.1
+Version: 1.34.0
 Requires: glib-2.0 gobject-2.0
 Requires.private: gmodule-no-export-2.0
 Libs: -L${libdir} -lpango-1.0 

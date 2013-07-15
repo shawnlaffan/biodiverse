@@ -19,12 +19,12 @@
  * Authors: Ryan Lortie <desrt@desrt.ca>
  */
 
+#ifndef __G_APPLICATION_H__
+#define __G_APPLICATION_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_APPLICATION_H__
-#define __G_APPLICATION_H__
 
 #include <gio/giotypes.h>
 
@@ -76,6 +76,26 @@ struct _GApplicationClass
                                                      GApplicationCommandLine   *command_line);
 
   /* vfuncs */
+
+  /**
+   * GApplicationClass::local_command_line:
+   * @application: a #GApplication
+   * @arguments: (inout) (array zero-terminated=1): array of command line arguments
+   * @exit_status: (out): exit status to fill after processing the command line.
+   *
+   * This virtual function is always invoked in the local instance. It
+   * gets passed a pointer to a %NULL-terminated copy of @argv and is
+   * expected to remove arguments that it handled (shifting up remaining
+   * arguments).
+   *
+   * The last argument to local_command_line() is a pointer to the @status
+   * variable which can used to set the exit status that is returned from
+   * g_application_run().
+   *
+   * See g_application_run() for more details on #GApplication startup.
+   *
+   * Returns: %TRUE if the commandline has been completely handled
+   */
   gboolean                  (* local_command_line)  (GApplication              *application,
                                                      gchar                   ***arguments,
                                                      int                       *exit_status);
@@ -102,14 +122,19 @@ struct _GApplicationClass
   gpointer padding[9];
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType                   g_application_get_type                          (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 gboolean                g_application_id_is_valid                       (const gchar              *application_id);
 
+GLIB_AVAILABLE_IN_ALL
 GApplication *          g_application_new                               (const gchar              *application_id,
                                                                          GApplicationFlags         flags);
 
+GLIB_AVAILABLE_IN_ALL
 const gchar *           g_application_get_application_id                (GApplication             *application);
+GLIB_AVAILABLE_IN_ALL
 void                    g_application_set_application_id                (GApplication             *application,
                                                                          const gchar              *application_id);
 
@@ -118,11 +143,15 @@ GDBusConnection *       g_application_get_dbus_connection               (GApplic
 GLIB_AVAILABLE_IN_2_34
 const gchar *           g_application_get_dbus_object_path              (GApplication             *application);
 
+GLIB_AVAILABLE_IN_ALL
 guint                   g_application_get_inactivity_timeout            (GApplication             *application);
+GLIB_AVAILABLE_IN_ALL
 void                    g_application_set_inactivity_timeout            (GApplication             *application,
                                                                          guint                     inactivity_timeout);
 
+GLIB_AVAILABLE_IN_ALL
 GApplicationFlags       g_application_get_flags                         (GApplication             *application);
+GLIB_AVAILABLE_IN_ALL
 void                    g_application_set_flags                         (GApplication             *application,
                                                                          GApplicationFlags         flags);
 
@@ -130,27 +159,36 @@ GLIB_DEPRECATED
 void                    g_application_set_action_group                  (GApplication             *application,
                                                                          GActionGroup             *action_group);
 
+GLIB_AVAILABLE_IN_ALL
 gboolean                g_application_get_is_registered                 (GApplication             *application);
+GLIB_AVAILABLE_IN_ALL
 gboolean                g_application_get_is_remote                     (GApplication             *application);
 
+GLIB_AVAILABLE_IN_ALL
 gboolean                g_application_register                          (GApplication             *application,
                                                                          GCancellable             *cancellable,
                                                                          GError                  **error);
 
+GLIB_AVAILABLE_IN_ALL
 void                    g_application_hold                              (GApplication             *application);
+GLIB_AVAILABLE_IN_ALL
 void                    g_application_release                           (GApplication             *application);
 
+GLIB_AVAILABLE_IN_ALL
 void                    g_application_activate                          (GApplication             *application);
 
+GLIB_AVAILABLE_IN_ALL
 void                    g_application_open                              (GApplication             *application,
                                                                          GFile                   **files,
                                                                          gint                      n_files,
                                                                          const gchar              *hint);
 
+GLIB_AVAILABLE_IN_ALL
 int                     g_application_run                               (GApplication             *application,
                                                                          int                       argc,
                                                                          char                    **argv);
 
+GLIB_AVAILABLE_IN_2_32
 void                    g_application_quit                              (GApplication             *application);
 
 GLIB_AVAILABLE_IN_2_32

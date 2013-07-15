@@ -19,12 +19,12 @@
  * Authors: Ryan Lortie <desrt@desrt.ca>
  */
 
+#ifndef __G_SIMPLE_ACTION_H__
+#define __G_SIMPLE_ACTION_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_SIMPLE_ACTION_H__
-#define __G_SIMPLE_ACTION_H__
 
 #include <gio/giotypes.h>
 
@@ -36,18 +36,23 @@ G_BEGIN_DECLS
 #define G_IS_SIMPLE_ACTION(inst)                            (G_TYPE_CHECK_INSTANCE_TYPE ((inst),                     \
                                                              G_TYPE_SIMPLE_ACTION))
 
+GLIB_AVAILABLE_IN_ALL
 GType                   g_simple_action_get_type                        (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GSimpleAction *         g_simple_action_new                             (const gchar        *name,
                                                                          const GVariantType *parameter_type);
 
+GLIB_AVAILABLE_IN_ALL
 GSimpleAction *         g_simple_action_new_stateful                    (const gchar        *name,
                                                                          const GVariantType *parameter_type,
                                                                          GVariant           *state);
 
+GLIB_AVAILABLE_IN_ALL
 void                    g_simple_action_set_enabled                     (GSimpleAction      *simple,
                                                                          gboolean            enabled);
 
+GLIB_AVAILABLE_IN_2_30
 void                    g_simple_action_set_state                       (GSimpleAction      *simple,
                                                                          GVariant           *value);
 

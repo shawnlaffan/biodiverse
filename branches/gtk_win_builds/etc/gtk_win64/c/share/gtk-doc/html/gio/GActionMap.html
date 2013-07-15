@@ -46,16 +46,16 @@
 <pre class="synopsis">                    <a class="link" href="GActionMap.html#GActionMap-struct" title="GActionMap">GActionMap</a>;
 struct              <a class="link" href="GActionMap.html#GActionMapInterface" title="struct GActionMapInterface">GActionMapInterface</a>;
 <a class="link" href="GAction.html" title="GAction"><span class="returnvalue">GAction</span></a> *           <a class="link" href="GActionMap.html#g-action-map-lookup-action" title="g_action_map_lookup_action ()">g_action_map_lookup_action</a>          (<em class="parameter"><code><a class="link" href="GActionMap.html" title="GActionMap"><span class="type">GActionMap</span></a> *action_map</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);
 struct              <a class="link" href="GActionMap.html#GActionEntry" title="struct GActionEntry">GActionEntry</a>;
 <span class="returnvalue">void</span>                <a class="link" href="GActionMap.html#g-action-map-add-action-entries" title="g_action_map_add_action_entries ()">g_action_map_add_action_entries</a>     (<em class="parameter"><code><a class="link" href="GActionMap.html" title="GActionMap"><span class="type">GActionMap</span></a> *action_map</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="GActionMap.html#GActionEntry" title="struct GActionEntry"><span class="type">GActionEntry</span></a> *entries</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_entries</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_entries</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GActionMap.html#g-action-map-add-action" title="g_action_map_add_action ()">g_action_map_add_action</a>             (<em class="parameter"><code><a class="link" href="GActionMap.html" title="GActionMap"><span class="type">GActionMap</span></a> *action_map</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAction.html" title="GAction"><span class="type">GAction</span></a> *action</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GActionMap.html#g-action-map-remove-action" title="g_action_map_remove_action ()">g_action_map_remove_action</a>          (<em class="parameter"><code><a class="link" href="GActionMap.html" title="GActionMap"><span class="type">GActionMap</span></a> *action_map</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -69,7 +69,7 @@ struct              <a class="link" href="GActionMap.html#GActionEntry" title="s
 <a name="GActionMap.prerequisites"></a><h2>Prerequisites</h2>
 <p>
 GActionMap requires
- <a class="link" href="GActionGroup.html" title="GActionGroup">GActionGroup</a> and  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
+ <a class="link" href="GActionGroup.html" title="GActionGroup">GActionGroup</a> and  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
 </div>
 <div class="refsect1">
 <a name="GActionMap.implementations"></a><h2>Known Implementations</h2>
@@ -122,7 +122,7 @@ The virtual function table for <a class="link" href="GActionMap.html" title="GAc
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GActionMapInterface.g-iface"></a>g_iface</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GActionMapInterface.g-iface"></a>g_iface</code></em>;</span></p></td>
 <td></td>
 </tr>
 <tr>
@@ -148,12 +148,12 @@ The virtual function table for <a class="link" href="GActionMap.html" title="GAc
 <div class="refsect2">
 <a name="g-action-map-lookup-action"></a><h3>g_action_map_lookup_action ()</h3>
 <pre class="programlisting"><a class="link" href="GAction.html" title="GAction"><span class="returnvalue">GAction</span></a> *           g_action_map_lookup_action          (<em class="parameter"><code><a class="link" href="GActionMap.html" title="GActionMap"><span class="type">GActionMap</span></a> *action_map</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);</pre>
 <p>
 Looks up the action with the name <em class="parameter"><code>action_name</code></em> in <em class="parameter"><code>action_map</code></em>.
 </p>
 <p>
-If no such action exists, returns <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+If no such action exists, returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -172,7 +172,7 @@ If no such action exists, returns <a href="./../glib/glib/glib-Standard-Macros.h
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GAction.html" title="GAction"><span class="type">GAction</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>a <a class="link" href="GAction.html" title="GAction"><span class="type">GAction</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -205,7 +205,7 @@ This struct defines a single action.  It is for use with
 <p>
 The order of the items in the structure are intended to reflect
 frequency of use.  It is permissible to use an incomplete initialiser
-in order to leave some of the later values as <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  All values
+in order to leave some of the later values as <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.  All values
 after <em class="parameter"><code>name</code></em> are optional.  Additional optional fields may be added in
 the future.
 </p>
@@ -219,7 +219,7 @@ See <a class="link" href="GActionMap.html#g-action-map-add-action-entries" title
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GActionEntry.name"></a>name</code></em>;</span></p></td>
+<td><p><span class="term">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GActionEntry.name"></a>name</code></em>;</span></p></td>
 <td>the name of the action</td>
 </tr>
 <tr>
@@ -228,13 +228,13 @@ See <a class="link" href="GActionMap.html#g-action-map-add-action-entries" title
 action</td>
 </tr>
 <tr>
-<td><p><span class="term">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GActionEntry.parameter-type"></a>parameter_type</code></em>;</span></p></td>
+<td><p><span class="term">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GActionEntry.parameter-type"></a>parameter_type</code></em>;</span></p></td>
 <td>the type of the parameter that must be passed to the
 activate function for this action, given as a single
-GVariant type string (or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> for no parameter)</td>
+GVariant type string (or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> for no parameter)</td>
 </tr>
 <tr>
-<td><p><span class="term">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GActionEntry.state"></a>state</code></em>;</span></p></td>
+<td><p><span class="term">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GActionEntry.state"></a>state</code></em>;</span></p></td>
 <td>the initial state for this action, given in GVariant text
 format.  The state is parsed with no extra type information,
 so type tags must be added to the string if they are
@@ -253,8 +253,8 @@ of the action</td>
 <a name="g-action-map-add-action-entries"></a><h3>g_action_map_add_action_entries ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_action_map_add_action_entries     (<em class="parameter"><code><a class="link" href="GActionMap.html" title="GActionMap"><span class="type">GActionMap</span></a> *action_map</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="GActionMap.html#GActionEntry" title="struct GActionEntry"><span class="type">GActionEntry</span></a> *entries</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_entries</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_entries</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 A convenience function for creating multiple <a class="link" href="GSimpleAction.html" title="GSimpleAction"><span class="type">GSimpleAction</span></a> instances
 and adding them to a <a class="link" href="GActionMap.html" title="GActionMap"><span class="type">GActionMap</span></a>.
@@ -265,7 +265,7 @@ Each action is constructed as per one <a class="link" href="GActionMap.html#GAct
 <p>
 </p>
 <div class="example">
-<a name="idp66276128"></a><p class="title"><b>Example 21. Using <a class="link" href="GActionMap.html#g-action-map-add-action-entries" title="g_action_map_add_action_entries ()"><code class="function">g_action_map_add_action_entries()</code></a></b></p>
+<a name="id-1.4.21.5.8.6.6.1"></a><p class="title"><b>Example 25. Using <a class="link" href="GActionMap.html#g-action-map-add-action-entries" title="g_action_map_add_action_entries ()"><code class="function">g_action_map_add_action_entries()</code></a></b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -313,7 +313,7 @@ Each action is constructed as per one <a class="link" href="GActionMap.html#GAct
 <span class="normal">                       </span><span class="usertype">GVariant</span><span class="normal">      </span><span class="symbol">*</span><span class="normal">parameter</span><span class="symbol">,</span>
 <span class="normal">                       </span><span class="usertype">gpointer</span><span class="normal">       user_data</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"%s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-GVariant.html#g-variant-get-string">g_variant_get_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">parameter</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">));</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"%s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#g-variant-get-string">g_variant_get_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">parameter</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">));</span>
 <span class="cbracket">}</span>
 
 <span class="keyword">static</span><span class="normal"> <a href="GActionGroup.html">GActionGroup</a> </span><span class="symbol">*</span>
@@ -326,7 +326,7 @@ Each action is constructed as per one <a class="link" href="GActionMap.html#GAct
 <span class="normal">  </span><span class="usertype">GSimpleActionGroup</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">group</span><span class="symbol">;</span>
 
 <span class="normal">  group </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GSimpleActionGroup.html#g-simple-action-group-new">g_simple_action_group_new</a></span><span class="normal"> </span><span class="symbol">();</span>
-<span class="normal">  </span><span class="function"><a href="GActionMap.html#g-action-map-add-action-entries">g_action_map_add_action_entries</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION_MAP</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">group</span><span class="symbol">),</span><span class="normal"> entries</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-Standard-Macros.html#G-N-ELEMENTS:CAPS">G_N_ELEMENTS</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">entries</span><span class="symbol">),</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="GActionMap.html#g-action-map-add-action-entries">g_action_map_add_action_entries</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_ACTION_MAP</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">group</span><span class="symbol">),</span><span class="normal"> entries</span><span class="symbol">,</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#G-N-ELEMENTS:CAPS">G_N_ELEMENTS</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">entries</span><span class="symbol">),</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="function">G_ACTION_GROUP</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">group</span><span class="symbol">);</span>
 <span class="cbracket">}</span></pre></td>
@@ -351,12 +351,13 @@ Each action is constructed as per one <a class="link" href="GActionMap.html#GAct
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>entries</code></em> :</span></p></td>
-<td>a pointer to the first item in an array of <a class="link" href="GActionMap.html#GActionEntry" title="struct GActionEntry"><span class="type">GActionEntry</span></a>
-structs</td>
+<td>a pointer to
+the first item in an array of <a class="link" href="GActionMap.html#GActionEntry" title="struct GActionEntry"><span class="type">GActionEntry</span></a> structs. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_entries][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> GActionEntry]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>n_entries</code></em> :</span></p></td>
-<td>the length of <em class="parameter"><code>entries</code></em>, or -1 if <em class="parameter"><code>entries</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated</td>
+<td>the length of <em class="parameter"><code>entries</code></em>, or -1 if <em class="parameter"><code>entries</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
@@ -405,7 +406,7 @@ The action map takes its own reference on <em class="parameter"><code>action</co
 <div class="refsect2">
 <a name="g-action-map-remove-action"></a><h3>g_action_map_remove_action ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_action_map_remove_action          (<em class="parameter"><code><a class="link" href="GActionMap.html" title="GActionMap"><span class="type">GActionMap</span></a> *action_map</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);</pre>
 <p>
 Removes the named action from the action map.
 </p>

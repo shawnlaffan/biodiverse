@@ -40,7 +40,7 @@
     ]</p></div>
 </div>
 <div class="refsect1">
-<a name="idp50337792"></a><h2>Description</h2>
+<a name="id-1.4.23.7.5"></a><h2>Description</h2>
 <p>
     <span class="command"><strong>gdbus-codegen</strong></span> is used to generate code and/or
     documentation for one or more D-Bus interfaces. The tool reads
@@ -52,7 +52,7 @@
   </p>
 </div>
 <div class="refsect1">
-<a name="idp50945888"></a><h2>Generating C code</h2>
+<a name="id-1.4.23.7.6"></a><h2>Generating C code</h2>
 <p>
     When generating C code, a
     <span class="type">GInterface</span>-derived type is generated for each D-Bus
@@ -84,7 +84,7 @@
   </p>
 <p>
     Two forms of the name are used - the CamelCase form and the
-    lower-case form. The CamelCase form is used for the <a href="./../gobject/gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a> and
+    lower-case form. The CamelCase form is used for the <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a> and
     struct name, while lower-case form is used in function names. The
     lower-case form is calculated by converting from CamelCase to
     lower-case and inserting underscores at word boundaries (using
@@ -108,7 +108,7 @@
   </p>
 </div>
 <div class="refsect1">
-<a name="idp61603408"></a><h2>Generating Docbook documentation</h2>
+<a name="id-1.4.23.7.7"></a><h2>Generating Docbook documentation</h2>
 <p>
     Each generated Docbook XML file (see the
     <code class="option">--generate-docbook</code> option for details) is a <a class="ulink" href="http://www.docbook.org/tdg/en/html/refentry.html" target="_top"><code class="literal">RefEntry</code></a>
@@ -116,7 +116,7 @@
   </p>
 </div>
 <div class="refsect1">
-<a name="idp10457920"></a><h2>Options</h2>
+<a name="id-1.4.23.7.8"></a><h2>Options</h2>
 <p>
     The following options are supported:
   </p>
@@ -224,7 +224,7 @@
 </table></div>
 </div>
 <div class="refsect1">
-<a name="idp29857056"></a><h2>Supported D-Bus Annotations</h2>
+<a name="id-1.4.23.7.9"></a><h2>Supported D-Bus Annotations</h2>
 <p>
     The following D-Bus annotations are supported by
     <span class="command"><strong>gdbus-codegen</strong></span>:
@@ -255,7 +255,7 @@
         </p>
 <p>
           When generating C code, this annotation is used to add
-          <a href="./../glib/glib/glib-Miscellaneous-Macros.html#G-GNUC-DEPRECATED:CAPS"><span class="type">G_GNUC_DEPRECATED</span></a> to generated functions for the element.
+          <a href="/usr/share/gtk-doc/html/glib/glib-Miscellaneous-Macros.html#G-GNUC-DEPRECATED:CAPS"><span class="type">G_GNUC_DEPRECATED</span></a> to generated functions for the element.
         </p>
 <p>
           When generating Docbook XML, a deprecation warning will
@@ -318,7 +318,7 @@
 <tr>
 <td><p><span class="term"><code class="literal">org.gtk.GDBus.C.ForceGVariant</code></span></p></td>
 <td><p>
-          If set to a non-empty string, a <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> instance will
+          If set to a non-empty string, a <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> instance will
           be used instead of the natural C type. This annotation can
           be used on any <code class="literal">&lt;arg&gt;</code> and
           <code class="literal">&lt;property&gt;</code> element.
@@ -450,7 +450,7 @@
   </p>
 </div>
 <div class="refsect1">
-<a name="idp37831280"></a><h2>Example</h2>
+<a name="id-1.4.23.7.10"></a><h2>Example</h2>
 <p>
     Consider the following D-Bus Introspection XML.
   </p>
@@ -519,7 +519,7 @@
     two files called
     <code class="filename">myapp-generated.[ch]</code> are
     generated. The files provide an abstract
-    <a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a>-derived type called
+    <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a>-derived type called
     <span class="type">MyAppFrobber</span> as well as two instantiable types with
     the same name but suffixed with <span class="type">Proxy</span> and
     <span class="type">Skeleton</span>. The generated file, roughly, contains the
@@ -641,10 +641,10 @@
 <span class="normal">  </span><span class="type">void</span><span class="normal"> </span><span class="symbol">(*</span><span class="normal">notification</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">MyAppFrobber</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">proxy</span><span class="symbol">,</span>
 <span class="normal">                        </span><span class="usertype">GVariant</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">icon_blob</span><span class="symbol">,</span>
 <span class="normal">                        </span><span class="usertype">gint</span><span class="normal"> height</span><span class="symbol">,</span>
-<span class="normal">                        </span><span class="keyword">const</span><span class="normal"> <a href="./../glib/glib/glib-Basic-Types.html#gchar">gchar</a></span><span class="symbol">*</span><span class="normal"> </span><span class="keyword">const</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">messages</span><span class="symbol">);</span>
+<span class="normal">                        </span><span class="keyword">const</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar">gchar</a></span><span class="symbol">*</span><span class="normal"> </span><span class="keyword">const</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">messages</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="comment">/* Signal handler for the ::handle-hello-world signal */</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Basic-Types.html#gboolean">gboolean</a></span><span class="normal"> </span><span class="symbol">(*</span><span class="normal">handle_hello_world</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">MyAppFrobber</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">proxy</span><span class="symbol">,</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean">gboolean</a></span><span class="normal"> </span><span class="symbol">(*</span><span class="normal">handle_hello_world</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">MyAppFrobber</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">proxy</span><span class="symbol">,</span>
 <span class="normal">                                  </span><span class="usertype">GDBusMethodInvocation</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">invocation</span><span class="symbol">,</span>
 <span class="normal">                                  </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">greeting</span><span class="symbol">);</span>
 <span class="cbracket">}</span><span class="normal"> MyAppFrobberIface</span><span class="symbol">;</span>
@@ -656,14 +656,14 @@
 <span class="normal">                                 </span><span class="usertype">GCancellable</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">cancellable</span><span class="symbol">,</span>
 <span class="normal">                                 </span><span class="usertype">GAsyncReadyCallback</span><span class="normal"> callback</span><span class="symbol">,</span>
 <span class="normal">                                 </span><span class="usertype">gpointer</span><span class="normal"> user_data</span><span class="symbol">);</span>
-<span class="normal"><a href="./../glib/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
+<span class="normal"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
 <span class="function">my_app_frobber_call_hello_world_finish</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">MyAppFrobber</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">proxy</span><span class="symbol">,</span>
 <span class="normal">                                        </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">out_response</span><span class="symbol">,</span>
 <span class="normal">                                        </span><span class="usertype">GAsyncResult</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">res</span><span class="symbol">,</span>
 <span class="normal">                                        </span><span class="usertype">GError</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">error</span><span class="symbol">);</span>
 
 <span class="comment">/* Synchronously calls HelloWorld(). Blocks calling thread. */</span>
-<span class="normal"><a href="./../glib/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
+<span class="normal"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
 <span class="function">my_app_frobber_call_hello_world_sync</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">MyAppFrobber</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">proxy</span><span class="symbol">,</span>
 <span class="normal">                                      </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">greeting</span><span class="symbol">,</span>
 <span class="normal">                                      </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">**</span><span class="normal">out_response</span><span class="symbol">,</span>
@@ -681,7 +681,7 @@
 <span class="function">my_app_frobber_emit_notification</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">MyAppFrobber</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">object</span><span class="symbol">,</span>
 <span class="normal">                                  </span><span class="usertype">GVariant</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">icon_blob</span><span class="symbol">,</span>
 <span class="normal">                                  </span><span class="usertype">gint</span><span class="normal"> height</span><span class="symbol">,</span>
-<span class="normal">                                  </span><span class="keyword">const</span><span class="normal"> <a href="./../glib/glib/glib-Basic-Types.html#gchar">gchar</a></span><span class="symbol">*</span><span class="normal"> </span><span class="keyword">const</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">messages</span><span class="symbol">);</span>
+<span class="normal">                                  </span><span class="keyword">const</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar">gchar</a></span><span class="symbol">*</span><span class="normal"> </span><span class="keyword">const</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">messages</span><span class="symbol">);</span>
 
 <span class="comment">/* Gets the :verbose GObject property / Verbose D-Bus property.</span>
 <span class="comment"> * Does no blocking I/O.</span>
@@ -730,11 +730,11 @@
 
 <p>
     Thus, for every D-Bus method, there will be three C functions for
-    calling the method, one <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> signal for handling an incoming
+    calling the method, one <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> signal for handling an incoming
     call and one C function for completing an incoming call. For every
-    D-Bus signal, there's one <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> signal and one C function for
+    D-Bus signal, there's one <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> signal and one C function for
     emitting it. For every D-Bus property, two C functions are
-    generated (one setter, one getter) and one <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> property. The
+    generated (one setter, one getter) and one <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> property. The
     following table summarizes the generated facilities and where they
     are applicable:
   </p>
@@ -770,17 +770,17 @@
 <tr>
 <td>Properties (Reading)</td>
 <td>Use <code class="function"><code class="function">m_a_f_get_verbose()</code></code> or <em class="parameter"><code>:verbose</code></em>.</td>
-<td>Implement <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>'s <code class="function"><code class="function">get_property()</code></code> vfunc.</td>
+<td>Implement <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>'s <code class="function"><code class="function">get_property()</code></code> vfunc.</td>
 </tr>
 <tr>
 <td>Properties (writing)</td>
 <td>Use <code class="function"><code class="function">m_a_f_set_verbose()</code></code> or <em class="parameter"><code>:verbose</code></em>.</td>
-<td>Implement <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>'s <code class="function"><code class="function">set_property()</code></code> vfunc.</td>
+<td>Implement <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>'s <code class="function"><code class="function">set_property()</code></code> vfunc.</td>
 </tr>
 </tbody>
 </table></div>
 <div class="refsect2">
-<a name="idp38966960"></a><h3>Client-side usage</h3>
+<a name="id-1.4.23.7.10.10"></a><h3>Client-side usage</h3>
 <p>
       You can use the generated proxy type with the generated
       constructors:
@@ -805,16 +805,16 @@
         <td class="listing_code"><pre class="programlisting"><span class="usertype">MyAppFrobber</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">proxy</span><span class="symbol">;</span>
 <span class="usertype">GError</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">error</span><span class="symbol">;</span>
 
-<span class="normal">error </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">error </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 <span class="normal">proxy </span><span class="symbol">=</span><span class="normal"> </span><span class="function">my_app_frobber_proxy_new_for_bus_sync</span><span class="normal"> </span><span class="symbol">(</span>
 <span class="normal">            <a href="GDBusConnection.html#G-BUS-TYPE-SESSION:CAPS">G_BUS_TYPE_SESSION</a></span><span class="symbol">,</span>
 <span class="normal">            <a href="GDBusProxy.html#G-DBUS-PROXY-FLAGS-NONE:CAPS">G_DBUS_PROXY_FLAGS_NONE</a></span><span class="symbol">,</span>
 <span class="normal">            </span><span class="string">"net.Corp.MyApp"</span><span class="symbol">,</span><span class="normal">              </span><span class="comment">/* bus name */</span>
 <span class="normal">            </span><span class="string">"/net/Corp/MyApp/SomeFrobber"</span><span class="symbol">,</span><span class="normal"> </span><span class="comment">/* object */</span>
-<span class="normal">            <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal">                          </span><span class="comment">/* GCancellable* */</span>
+<span class="normal">            <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal">                          </span><span class="comment">/* GCancellable* */</span>
 <span class="normal">            </span><span class="symbol">&amp;</span><span class="normal">error</span><span class="symbol">);</span>
 <span class="comment">/* do stuff with proxy */</span>
-<span class="function"><a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">proxy</span><span class="symbol">);</span></pre></td>
+<span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref">g_object_unref</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">proxy</span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -834,7 +834,7 @@
       <em class="parameter"><code>:verbose</code></em> or the
       <code class="function"><code class="function">my_app_get_verbose()</code></code> and
       <code class="function"><code class="function">my_app_set_verbose()</code></code> methods. Use the
-      standard <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signal to listen to property changes.
+      standard <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signal to listen to property changes.
     </p>
 <p>
       Note that all property access is via <a class="link" href="GDBusProxy.html" title="GDBusProxy"><span class="type">GDBusProxy</span></a>'s
@@ -848,30 +848,30 @@
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp9379376"></a><h3>Server-side usage</h3>
+<a name="id-1.4.23.7.10.11"></a><h3>Server-side usage</h3>
 <p>
       The generated <span class="type">MyAppFrobber</span> interface is designed so
-      it is easy to implement it in a <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>
+      it is easy to implement it in a <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>
       subclass. For example, to handle
       <code class="function"><code class="function">HelloWorld()</code></code> method invocations, set the
       vfunc for <code class="function"><code class="function">handle_hello_hello_world()</code></code> in the
       <span class="type">MyAppFrobberIface</span> structure. Similary, to handle
       the <em class="parameter"><code>net.Corp.MyApp.Frobber:Verbose</code></em>
-      property override the <em class="parameter"><code>:verbose</code></em> <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>
+      property override the <em class="parameter"><code>:verbose</code></em> <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>
       property from the subclass. To emit a signal, use
       e.g. <code class="function"><code class="function">my_app_emit_signal()</code></code> or
-      <a href="./../gobject/gobject/gobject-Signals.html#g-signal-emit-by-name"><code class="function">g_signal_emit_by_name()</code></a>.
+      <a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-emit-by-name"><code class="function">g_signal_emit_by_name()</code></a>.
     </p>
 <p>
       Instead of subclassing, it is often easier to use the generated
       <span class="type">MyAppFrobberSkeleton</span> subclass. To handle incoming
-      method calls, use <code class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect"><code class="function">g_signal_connect()</code></a></code> with
+      method calls, use <code class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect"><code class="function">g_signal_connect()</code></a></code> with
       the <code class="function">::handle-*</code> signals and instead of
-      overriding <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>'s
+      overriding <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>'s
       <code class="function"><code class="function">get_property()</code></code> and
       <code class="function"><code class="function">set_property()</code></code> vfuncs, use
-      <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-get"><code class="function">g_object_get()</code></a> and
-      <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-set"><code class="function">g_object_set()</code></a> or the generated property
+      <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-get"><code class="function">g_object_get()</code></a> and
+      <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-set"><code class="function">g_object_set()</code></a> or the generated property
       getters and setters (the generated class has an internal
       property bag implementation).
     </p>
@@ -923,18 +923,18 @@
 42
 43
 44</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">static</span><span class="normal"> <a href="./../glib/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
+        <td class="listing_code"><pre class="programlisting"><span class="keyword">static</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean">gboolean</a></span>
 <span class="function">on_handle_hello_world</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">MyAppFrobber</span><span class="normal">           </span><span class="symbol">*</span><span class="normal">interface</span><span class="symbol">,</span>
 <span class="normal">                       </span><span class="usertype">GDBusMethodInvocation</span><span class="normal">  </span><span class="symbol">*</span><span class="normal">invocation</span><span class="symbol">,</span>
 <span class="normal">                       </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal">            </span><span class="symbol">*</span><span class="normal">greeting</span><span class="symbol">,</span>
 <span class="normal">                       </span><span class="usertype">gpointer</span><span class="normal">                user_data</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="./../glib/glib/glib-String-Utility-Functions.html#g-strcmp0">g_strcmp0</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">greeting</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Boo"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">!=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span>
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strcmp0">g_strcmp0</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">greeting</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Boo"</span><span class="symbol">)</span><span class="normal"> </span><span class="symbol">!=</span><span class="normal"> </span><span class="number">0</span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
 <span class="normal">      </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">response</span><span class="symbol">;</span>
-<span class="normal">      response </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-String-Utility-Functions.html#g-strdup-printf">g_strdup_printf</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Word! You said `%s'."</span><span class="symbol">,</span><span class="normal"> greeting</span><span class="symbol">);</span>
+<span class="normal">      response </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-String-Utility-Functions.html#g-strdup-printf">g_strdup_printf</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Word! You said `%s'."</span><span class="symbol">,</span><span class="normal"> greeting</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="function">my_app_complete_hello_world</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interface</span><span class="symbol">,</span><span class="normal"> invocation</span><span class="symbol">,</span><span class="normal"> response</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">response</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">response</span><span class="symbol">);</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 <span class="normal">  </span><span class="keyword">else</span>
 <span class="normal">    </span><span class="cbracket">{</span>
@@ -944,22 +944,22 @@
 <span class="normal">                 </span><span class="string">"Hey, %s, there will be no whining!"</span><span class="symbol">,</span>
 <span class="normal">                 </span><span class="function"><a href="GDBusMethodInvocation.html#g-dbus-method-invocation-get-sender">g_dbus_method_invocation_get_sender</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">invocation</span><span class="symbol">));</span>
 <span class="normal">    </span><span class="cbracket">}</span>
-<span class="normal">  </span><span class="keyword">return</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">;</span>
+<span class="normal">  </span><span class="keyword">return</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">;</span>
 <span class="cbracket">}</span>
 
 <span class="normal">  </span><span class="symbol">[...]</span>
 
 <span class="normal">  interface </span><span class="symbol">=</span><span class="normal"> </span><span class="function">my_app_frobber_skeleton_new</span><span class="normal"> </span><span class="symbol">();</span>
-<span class="normal">  </span><span class="function">my_app_frobber_set_verbose</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interface</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function">my_app_frobber_set_verbose</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interface</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS">TRUE</a></span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interface</span><span class="symbol">,</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Signals.html#g-signal-connect">g_signal_connect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interface</span><span class="symbol">,</span>
 <span class="normal">                    </span><span class="string">"handle-hello-world"</span><span class="symbol">,</span>
-<span class="normal">                    </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_handle_hello_world</span><span class="symbol">),</span>
+<span class="normal">                    </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_handle_hello_world</span><span class="symbol">),</span>
 <span class="normal">                    some_user_data</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="symbol">[...]</span>
 
-<span class="normal">  error </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  error </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 <span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="function"><a href="GDBusInterfaceSkeleton.html#g-dbus-interface-skeleton-export">g_dbus_interface_skeleton_export</a></span><span class="normal"> </span><span class="symbol">(</span><span class="function">G_DBUS_INTERFACE_SKELETON</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">interface</span><span class="symbol">),</span>
 <span class="normal">                                         connection</span><span class="symbol">,</span>
 <span class="normal">                                         </span><span class="string">"/path/of/dbus_object"</span><span class="symbol">,</span>
@@ -974,57 +974,57 @@
 
 <p>
       To facilitate atomic changesets (multiple properties changing at
-      the same time), <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signals are queued up when
+      the same time), <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signals are queued up when
       received. The queue is drained in an idle handler (which is called from the
-      <a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-context-push-thread-default">thread-default main loop</a>
+      <a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-context-push-thread-default">thread-default main loop</a>
       of the thread where the skeleton object was
       contructed) and will cause emissions of the <a class="ulink" href="http://dbus.freedesktop.org/doc/dbus-specification.html#standard-interfaces-properties" target="_top">org.freedesktop.DBus.Properties::PropertiesChanged</a>
       signal with all the properties that have changed. Use
       <a class="link" href="GDBusInterfaceSkeleton.html#g-dbus-interface-skeleton-flush" title="g_dbus_interface_skeleton_flush ()"><code class="function">g_dbus_interface_skeleton_flush()</code></a> or
       <a class="link" href="GDBusObjectSkeleton.html#g-dbus-object-skeleton-flush" title="g_dbus_object_skeleton_flush ()"><code class="function">g_dbus_object_skeleton_flush()</code></a> to empty the queue
-      immediately. Use <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-freeze-notify"><code class="function">g_object_freeze_notify()</code></a> and
-      <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-thaw-notify"><code class="function">g_object_thaw_notify()</code></a> for atomic changesets if on a different
+      immediately. Use <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-freeze-notify"><code class="function">g_object_freeze_notify()</code></a> and
+      <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-thaw-notify"><code class="function">g_object_thaw_notify()</code></a> for atomic changesets if on a different
       thread.
     </p>
 </div>
 </div>
 <div class="refsect1">
-<a name="idp15780288"></a><h2>C Type Mapping</h2>
+<a name="id-1.4.23.7.11"></a><h2>C Type Mapping</h2>
 <p>
     Scalar types
     (type-strings
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-BOOLEAN:CAPS">'b'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-BYTE:CAPS">'y'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-INT16:CAPS">'n'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-UINT16:CAPS">'q'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-INT32:CAPS">'i'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-UINT32:CAPS">'u'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-INT64:CAPS">'x'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-UINT64:CAPS">'t'</a> and
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-DOUBLE:CAPS">'d'</a>)
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-BOOLEAN:CAPS">'b'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-BYTE:CAPS">'y'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-INT16:CAPS">'n'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-UINT16:CAPS">'q'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-INT32:CAPS">'i'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-UINT32:CAPS">'u'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-INT64:CAPS">'x'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-UINT64:CAPS">'t'</a> and
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-DOUBLE:CAPS">'d'</a>)
     ),
     strings (type-strings
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-STRING:CAPS">'s'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-BYTESTRING:CAPS">'ay'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-OBJECT-PATH:CAPS">'o'</a> and
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-SIGNATURE:CAPS">'g'</a>) and
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-STRING:CAPS">'s'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-BYTESTRING:CAPS">'ay'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-OBJECT-PATH:CAPS">'o'</a> and
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-SIGNATURE:CAPS">'g'</a>) and
     arrays of string (type-strings
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-STRING-ARRAY:CAPS">'as'</a>,
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-OBJECT-PATH-ARRAY:CAPS">'ao'</a> and
-    <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-BYTESTRING-ARRAY:CAPS">'aay'</a>)
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-STRING-ARRAY:CAPS">'as'</a>,
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-OBJECT-PATH-ARRAY:CAPS">'ao'</a> and
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-BYTESTRING-ARRAY:CAPS">'aay'</a>)
     are mapped to the natural types,
-    e.g. <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>, <a href="./../glib/glib/glib-Basic-Types.html#gdouble"><span class="type">gdouble</span></a>, <a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>, <a href="./../gobject/gobject/gobject-Standard-Parameter-and-Value-Types.html#gchararray">gchar*</a>,
-    <a href="./../gobject/gobject/gobject-Boxed-Types.html#GStrv">gchar**</a> and
-    so on. Everything else is mapped to the <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a>
+    e.g. <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>, <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gdouble"><span class="type">gdouble</span></a>, <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>, <a href="/usr/share/gtk-doc/html/gobject/gobject-Standard-Parameter-and-Value-Types.html#gchararray">gchar*</a>,
+    <a href="/usr/share/gtk-doc/html/gobject/gobject-Boxed-Types.html#GStrv">gchar**</a> and
+    so on. Everything else is mapped to the <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a>
     type.
   </p>
 <p>
     This automatic mapping can be turned off by using the annotation
     <code class="literal">org.gtk.GDBus.C.ForceGVariant</code> - if used then a
-    <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> is always exchanged instead of the
+    <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> is always exchanged instead of the
     corresponding native C type. This annotation may be convenient to
     use when using
-    bytestrings (type-string <a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-BYTESTRING:CAPS">'ay'</a>)
+    bytestrings (type-string <a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-BYTESTRING:CAPS">'ay'</a>)
     for data that could have embedded NUL bytes.
   </p>
 </div>
@@ -1037,7 +1037,7 @@
     not change its C ABI either.
   </p>
 <p>
-    The ABI of the generated <a href="./../gobject/gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a>s will be preserved only if
+    The ABI of the generated <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GType"><span class="type">GType</span></a>s will be preserved only if
     the <code class="literal">org.gtk.GDBus.Since</code> annotation is used
     judiciously — this is because the VTable for the <span class="type">GInterface</span>
     relies on functions pointers for signal handlers. Specifically, if
@@ -1059,7 +1059,7 @@
   </p>
 </div>
 <div class="refsect1">
-<a name="idp30379296"></a><h2>Bugs</h2>
+<a name="id-1.4.23.7.13"></a><h2>Bugs</h2>
 <p>
     Please send bug reports to either the distribution bug tracker
     or the upstream bug tracker at
@@ -1067,7 +1067,7 @@
   </p>
 </div>
 <div class="refsect1">
-<a name="idp9826912"></a><h2>See also</h2>
+<a name="id-1.4.23.7.14"></a><h2>See also</h2>
 <p>
     <span class="citerefentry"><span class="refentrytitle">gdbus</span>(1)</span>
   </p>

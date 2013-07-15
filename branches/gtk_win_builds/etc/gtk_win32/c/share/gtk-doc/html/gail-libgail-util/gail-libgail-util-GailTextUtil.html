@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>GailTextUtil</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="GAIL Reference Manual">
 <link rel="up" href="libgail-util-main.html" title="GAIL libgail-util Library">
 <link rel="prev" href="libgail-util-main.html" title="GAIL libgail-util Library">
@@ -43,19 +43,19 @@
 enum                <a class="link" href="gail-libgail-util-GailTextUtil.html#GailOffsetType" title="enum GailOffsetType">GailOffsetType</a>;
 <a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="returnvalue">GailTextUtil</span></a> *      <a class="link" href="gail-libgail-util-GailTextUtil.html#gail-text-util-new" title="gail_text_util_new ()">gail_text_util_new</a>                  (<em class="parameter"><code><span class="type">void</span></code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gail-libgail-util-GailTextUtil.html#gail-text-util-text-setup" title="gail_text_util_text_setup ()">gail_text_util_text_setup</a>           (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
-                                                         <em class="parameter"><code>const <span class="type">gchar</span> *text</code></em>);
+                                                         <em class="parameter"><code>const <a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *text</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gail-libgail-util-GailTextUtil.html#gail-text-util-buffer-setup" title="gail_text_util_buffer_setup ()">gail_text_util_buffer_setup</a>         (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
-                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gtk3/GtkTextBuffer.html"><span class="type">GtkTextBuffer</span></a> *buffer</code></em>);
-<span class="returnvalue">gchar</span> *             <a class="link" href="gail-libgail-util-GailTextUtil.html#gail-text-util-get-text" title="gail_text_util_get_text ()">gail_text_util_get_text</a>             (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
-                                                         <em class="parameter"><code><span class="type">gpointer</span> layout</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/gtk3/GtkTextBuffer.html"><span class="type">GtkTextBuffer</span></a> *buffer</code></em>);
+<a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gail-libgail-util-GailTextUtil.html#gail-text-util-get-text" title="gail_text_util_get_text ()">gail_text_util_get_text</a>             (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> layout</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailOffsetType" title="enum GailOffsetType"><span class="type">GailOffsetType</span></a> function</code></em>,
                                                          <em class="parameter"><code><span class="type">AtkTextBoundary</span> boundary_type</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> offset</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> *start_offset</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> *end_offset</code></em>);
-<span class="returnvalue">gchar</span> *             <a class="link" href="gail-libgail-util-GailTextUtil.html#gail-text-util-get-substring" title="gail_text_util_get_substring ()">gail_text_util_get_substring</a>        (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> start_pos</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> end_pos</code></em>);
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> offset</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> *start_offset</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> *end_offset</code></em>);
+<a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="gail-libgail-util-GailTextUtil.html#gail-text-util-get-substring" title="gail_text_util_get_substring ()">gail_text_util_get_substring</a>        (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> start_pos</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> end_pos</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -66,8 +66,8 @@ GailTextUtil is a utility class which can be used to implement the
 <span class="type">AtkText</span>.
 </p>
 <p>
-In GAIL it is used by the accsesible objects for <span class="type">GnomeCanvasText</span>, <a href="http://library.gnome.org/devel/gtk3/GtkEntry.html"><span class="type">GtkEntry</span></a>,
-<a href="http://library.gnome.org/devel/gtk3/GtkLabel.html"><span class="type">GtkLabel</span></a>, <a href="http://library.gnome.org/devel/gtk3/GtkCellRendererText.html"><span class="type">GtkCellRendererText</span></a> and <a href="http://library.gnome.org/devel/gtk3/GtkTextView.html"><span class="type">GtkTextView</span></a>.
+In GAIL it is used by the accsesible objects for <span class="type">GnomeCanvasText</span>, <a href="/home/mclasen/gnome/share/gtk-doc/html/gtk3/GtkEntry.html"><span class="type">GtkEntry</span></a>,
+<a href="/home/mclasen/gnome/share/gtk-doc/html/gtk3/GtkLabel.html"><span class="type">GtkLabel</span></a>, <a href="/home/mclasen/gnome/share/gtk-doc/html/gtk3/GtkCellRendererText.html"><span class="type">GtkCellRendererText</span></a> and <a href="/home/mclasen/gnome/share/gtk-doc/html/gtk3/GtkTextView.html"><span class="type">GtkTextView</span></a>.
 </p>
 </div>
 <div class="refsect1">
@@ -143,7 +143,7 @@ This function creates a new GailTextUtil object.
 <div class="refsect2">
 <a name="gail-text-util-text-setup"></a><h3>gail_text_util_text_setup ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                gail_text_util_text_setup           (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
-                                                         <em class="parameter"><code>const <span class="type">gchar</span> *text</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *text</code></em>);</pre>
 <p>
 This function initializes the GailTextUtil with the specified character string,
 </p>
@@ -168,7 +168,7 @@ This function initializes the GailTextUtil with the specified character string,
 <div class="refsect2">
 <a name="gail-text-util-buffer-setup"></a><h3>gail_text_util_buffer_setup ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                gail_text_util_buffer_setup         (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
-                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/gtk3/GtkTextBuffer.html"><span class="type">GtkTextBuffer</span></a> *buffer</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/gtk3/GtkTextBuffer.html"><span class="type">GtkTextBuffer</span></a> *buffer</code></em>);</pre>
 <p>
 This function initializes the GailTextUtil with the specified GtkTextBuffer
 </p>
@@ -184,7 +184,7 @@ This function initializes the GailTextUtil with the specified GtkTextBuffer
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>buffer</code></em> :</span></p></td>
-<td>The <a href="http://library.gnome.org/devel/gtk3/GtkTextBuffer.html"><span class="type">GtkTextBuffer</span></a> which identifies the text to be stored in the GailUtil.</td>
+<td>The <a href="/home/mclasen/gnome/share/gtk-doc/html/gtk3/GtkTextBuffer.html"><span class="type">GtkTextBuffer</span></a> which identifies the text to be stored in the GailUtil.</td>
 </tr>
 </tbody>
 </table></div>
@@ -192,13 +192,13 @@ This function initializes the GailTextUtil with the specified GtkTextBuffer
 <hr>
 <div class="refsect2">
 <a name="gail-text-util-get-text"></a><h3>gail_text_util_get_text ()</h3>
-<pre class="programlisting"><span class="returnvalue">gchar</span> *             gail_text_util_get_text             (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
-                                                         <em class="parameter"><code><span class="type">gpointer</span> layout</code></em>,
+<pre class="programlisting"><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             gail_text_util_get_text             (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> layout</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailOffsetType" title="enum GailOffsetType"><span class="type">GailOffsetType</span></a> function</code></em>,
                                                          <em class="parameter"><code><span class="type">AtkTextBoundary</span> boundary_type</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> offset</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> *start_offset</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> *end_offset</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> offset</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> *start_offset</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> *end_offset</code></em>);</pre>
 <p>
 This function gets the requested substring from the text in the GtkTextUtil.
 The layout is used only for getting the text on a line. The value is NULL 
@@ -251,9 +251,9 @@ after the offset.</td>
 <hr>
 <div class="refsect2">
 <a name="gail-text-util-get-substring"></a><h3>gail_text_util_get_substring ()</h3>
-<pre class="programlisting"><span class="returnvalue">gchar</span> *             gail_text_util_get_substring        (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> start_pos</code></em>,
-                                                         <em class="parameter"><code><span class="type">gint</span> end_pos</code></em>);</pre>
+<pre class="programlisting"><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             gail_text_util_get_substring        (<em class="parameter"><code><a class="link" href="gail-libgail-util-GailTextUtil.html#GailTextUtil" title="struct GailTextUtil"><span class="type">GailTextUtil</span></a> *textutil</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> start_pos</code></em>,
+                                                         <em class="parameter"><code><a href="/home/mclasen/gnome/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> end_pos</code></em>);</pre>
 <p>
 Gets the substring indicated by <em class="parameter"><code>start_pos</code></em> and <em class="parameter"><code>end_pos</code></em>
 </p>

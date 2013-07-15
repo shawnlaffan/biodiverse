@@ -52,7 +52,7 @@ typedef int		FcBool;
 
 #define FC_MAJOR	2
 #define FC_MINOR	10
-#define FC_REVISION	1
+#define FC_REVISION	92
 
 #define FC_VERSION	((FC_MAJOR * 10000) + (FC_MINOR * 100) + (FC_REVISION))
 
@@ -66,7 +66,7 @@ typedef int		FcBool;
  * it means multiple copies of the font information.
  */
 
-#define FC_CACHE_VERSION    "3"
+#define FC_CACHE_VERSION    "4"
 
 #define FcTrue		1
 #define FcFalse		0
@@ -112,7 +112,11 @@ typedef int		FcBool;
 #define FC_EMBEDDED_BITMAP  "embeddedbitmap"	/* Bool - true to enable embedded bitmaps */
 #define FC_DECORATIVE	    "decorative"	/* Bool - true if style is a decorative variant */
 #define FC_LCD_FILTER	    "lcdfilter"		/* Int */
+#define FC_FONT_FEATURES    "fontfeatures"	/* String */
 #define FC_NAMELANG	    "namelang"		/* String RFC 3866 langs */
+#define FC_PRGNAME	    "prgname"		/* String */
+#define FC_HASH		    "hash"		/* String */
+#define FC_POSTSCRIPT_NAME  "postscriptname"	/* String */
 
 #define FC_CACHE_SUFFIX		    ".cache-" FC_CACHE_VERSION
 #define FC_DIR_CACHE_FILE	    "fonts.cache-" FC_CACHE_VERSION
@@ -181,10 +185,10 @@ typedef int		FcBool;
 #define FC_LCD_LEGACY	    3
 
 typedef enum _FcType {
-    FcTypeVoid, 
-    FcTypeInteger, 
-    FcTypeDouble, 
-    FcTypeString, 
+    FcTypeVoid,
+    FcTypeInteger,
+    FcTypeDouble,
+    FcTypeString,
     FcTypeBool,
     FcTypeMatrix,
     FcTypeCharSet,
@@ -417,6 +421,13 @@ FcConfigSubstitute (FcConfig	*config,
 		    FcPattern	*p,
 		    FcMatchKind	kind);
 
+FcPublic const FcChar8 *
+FcConfigGetSysRoot (const FcConfig *config);
+
+FcPublic void
+FcConfigSetSysRoot (FcConfig      *config,
+		    const FcChar8 *sysroot);
+
 /* fccharset.c */
 FcPublic FcCharSet*
 FcCharSetCreate (void);
@@ -424,7 +435,7 @@ FcCharSetCreate (void);
 /* deprecated alias for FcCharSetCreate */
 FcPublic FcCharSet *
 FcCharSetNew (void);
-    
+
 FcPublic void
 FcCharSetDestroy (FcCharSet *fcs);
 
@@ -580,6 +591,9 @@ FcInitBringUptoDate (void);
 FcPublic FcStrSet *
 FcGetLangs (void);
 
+FcPublic FcChar8 *
+FcLangNormalize (const FcChar8 *lang);
+
 FcPublic const FcCharSet *
 FcLangGetCharSet (const FcChar8 *lang);
 
@@ -734,21 +748,25 @@ FcMatrixShear (FcMatrix *m, double sh, double sv);
 
 /* fcname.c */
 
+/* Deprecated.  Does nothing.  Returns FcFalse. */
 FcPublic FcBool
 FcNameRegisterObjectTypes (const FcObjectType *types, int ntype);
 
+/* Deprecated.  Does nothing.  Returns FcFalse. */
 FcPublic FcBool
 FcNameUnregisterObjectTypes (const FcObjectType *types, int ntype);
-    
+
 FcPublic const FcObjectType *
 FcNameGetObjectType (const char *object);
 
+/* Deprecated.  Does nothing.  Returns FcFalse. */
 FcPublic FcBool
 FcNameRegisterConstants (const FcConstant *consts, int nconsts);
 
+/* Deprecated.  Does nothing.  Returns FcFalse. */
 FcPublic FcBool
 FcNameUnregisterConstants (const FcConstant *consts, int nconsts);
-    
+
 FcPublic const FcConstant *
 FcNameGetConstant (const FcChar8 *string);
 

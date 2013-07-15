@@ -42,8 +42,8 @@
 
 #define             <a class="link" href="gio-GIOError.html#G-IO-ERROR:CAPS" title="G_IO_ERROR">G_IO_ERROR</a>
 enum                <a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum">GIOErrorEnum</a>;
-<a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="returnvalue">GIOErrorEnum</span></a>        <a class="link" href="gio-GIOError.html#g-io-error-from-errno" title="g_io_error_from_errno ()">g_io_error_from_errno</a>               (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> err_no</code></em>);
-<a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="returnvalue">GIOErrorEnum</span></a>        <a class="link" href="gio-GIOError.html#g-io-error-from-win32-error" title="g_io_error_from_win32_error ()">g_io_error_from_win32_error</a>         (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> error_code</code></em>);
+<a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="returnvalue">GIOErrorEnum</span></a>        <a class="link" href="gio-GIOError.html#g-io-error-from-errno" title="g_io_error_from_errno ()">g_io_error_from_errno</a>               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> err_no</code></em>);
+<a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="returnvalue">GIOErrorEnum</span></a>        <a class="link" href="gio-GIOError.html#g-io-error-from-win32-error" title="g_io_error_from_win32_error ()">g_io_error_from_win32_error</a>         (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> error_code</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -60,7 +60,7 @@ Contains helper functions for reporting errors to the user.
 </pre>
 <p>
 Error domain for GIO. Errors in this domain will be from the <a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="type">GIOErrorEnum</span></a> enumeration.
-See <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> for more information on error domains.
+See <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> for more information on error domains.
 </p>
 </div>
 <hr>
@@ -110,7 +110,8 @@ See <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type"
   G_IO_ERROR_PROXY_FAILED,
   G_IO_ERROR_PROXY_AUTH_FAILED,
   G_IO_ERROR_PROXY_NEED_AUTH,
-  G_IO_ERROR_PROXY_NOT_ALLOWED
+  G_IO_ERROR_PROXY_NOT_ALLOWED,
+  G_IO_ERROR_BROKEN_PIPE
 } GIOErrorEnum;
 </pre>
 <p>
@@ -302,13 +303,13 @@ Error codes returned by GIO functions.
 </tr>
 <tr>
 <td><p><a name="G-IO-ERROR-INVALID-DATA:CAPS"></a><span class="term"><code class="literal">G_IO_ERROR_INVALID_DATA</code></span></p></td>
-<td>There input data was invalid. Since 2.24
+<td>The input data was invalid. Since 2.24
 </td>
 </tr>
 <tr>
 <td><p><a name="G-IO-ERROR-DBUS-ERROR:CAPS"></a><span class="term"><code class="literal">G_IO_ERROR_DBUS_ERROR</code></span></p></td>
 <td>A remote object generated an error that
-    doesn't correspond to a locally registered <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> error
+    doesn't correspond to a locally registered <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> error
     domain. Use <a class="link" href="gio-GDBusError.html#g-dbus-error-get-remote-error" title="g_dbus_error_get_remote_error ()"><code class="function">g_dbus_error_get_remote_error()</code></a> to extract the D-Bus
     error name and <a class="link" href="gio-GDBusError.html#g-dbus-error-strip-remote-error" title="g_dbus_error_strip_remote_error ()"><code class="function">g_dbus_error_strip_remote_error()</code></a> to fix up the
     message so it matches what was received on the wire. Since 2.26.
@@ -350,13 +351,18 @@ Error codes returned by GIO functions.
     Since 2.26
 </td>
 </tr>
+<tr>
+<td><p><a name="G-IO-ERROR-BROKEN-PIPE:CAPS"></a><span class="term"><code class="literal">G_IO_ERROR_BROKEN_PIPE</code></span></p></td>
+<td>Broken pipe. Since 2.36
+</td>
+</tr>
 </tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="g-io-error-from-errno"></a><h3>g_io_error_from_errno ()</h3>
-<pre class="programlisting"><a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="returnvalue">GIOErrorEnum</span></a>        g_io_error_from_errno               (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> err_no</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="returnvalue">GIOErrorEnum</span></a>        g_io_error_from_errno               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> err_no</code></em>);</pre>
 <p>
 Converts errno.h error codes into GIO error codes.
 </p>
@@ -381,7 +387,7 @@ Converts errno.h error codes into GIO error codes.
 <hr>
 <div class="refsect2">
 <a name="g-io-error-from-win32-error"></a><h3>g_io_error_from_win32_error ()</h3>
-<pre class="programlisting"><a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="returnvalue">GIOErrorEnum</span></a>        g_io_error_from_win32_error         (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> error_code</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="gio-GIOError.html#GIOErrorEnum" title="enum GIOErrorEnum"><span class="returnvalue">GIOErrorEnum</span></a>        g_io_error_from_win32_error         (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> error_code</code></em>);</pre>
 <p>
 Converts some common error codes into GIO error codes. The
 fallback value G_IO_ERROR_FAILED is returned for error codes not

@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>pango-querymodules</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Pango Reference Manual">
 <link rel="up" href="tools.html" title="Pango Tools">
 <link rel="prev" href="tools.html" title="Pango Tools">
@@ -30,32 +30,92 @@
 </tr></table></div>
 <div class="refsynopsisdiv">
 <h2>Synopsis</h2>
-<div class="cmdsynopsis"><p><code class="command">pango-querymodules</code>  [module...]</p></div>
+<div class="cmdsynopsis"><p><code class="command">pango-querymodules</code>  [OPTION...] [MODULE...]</p></div>
 </div>
 <div class="refsect1">
 <a name="Description"></a><h2>Description</h2>
 <p>
-<span class="command"><strong>pango-querymodules</strong></span> collects information about loadable 
-modules for Pango and writes it to <code class="filename">stdout</code>. 
+<span class="command"><strong>pango-querymodules</strong></span> collects information about loadable
+modules for Pango and writes it to <code class="filename">stdout</code>.
 </p>
 <p>
-If called without arguments, it looks for modules in the Pango module path.  
+If called without MODULE arguments, it looks for modules in the Pango
+module path, which is specified by the key <code class="literal">Pango/ModulesPath</code>
+in the Pango configuration database.
 </p>
 <p>
-If called with arguments, it looks for the specified modules. The arguments
-may be absolute or relative paths.
+If called with MODULE arguments, it looks for the specified modules. The
+arguments may be absolute or relative paths.
+</p>
+<p>
+At runtime, Pango looks for the loadable module information (i.e. the output
+of pango-querymodules) in <code class="filename"><em class="replaceable"><code>libdir</code></em>/pango/1.8.0/modules.cache</code>.
 </p>
 </div>
 <div class="refsect1">
+<a name="id-1.5.2.6"></a><h2>Options</h2>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="option">-?</code>, <code class="option">--help</code></span></p></td>
+<td><p>Prints a short help text and exits.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">--version</code></span></p></td>
+<td><p>Prints version information.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">--system</code></span></p></td>
+<td><p>Do not load user-specific configuration.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">--update-cache</code></span></p></td>
+<td><p>Update the Pango module cache file directly,
+instead of writing the information to <code class="filename">stdout</code>.</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
 <a name="Environment"></a><h2>Environment</h2>
-<p>
-The Pango module path is specified by the key
-<code class="literal">Pango/ModulesPath</code> in the Pango config database, which is
-read from
-      <code class="filename"><em class="replaceable"><code>sysconfdir</code></em>/pango/pangorc</code>,
-      <code class="filename">~/.config/pango/pangorc</code> and the file specified in
-      the environment variable <code class="envar">PANGO_RC_FILE</code>.
-</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><code class="envar">PANGO_RC_FILE</code></span></p></td>
+<td><p>Specifies an additional rc file for the Pango configuration
+database, in addition to the system-wide and per-user files.</p></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="id-1.5.2.8"></a><h2>Files</h2>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="filename"><em class="replaceable"><code>sysconfdir</code></em>/pango/pangorc</code></span></p></td>
+<td><p>System-wide Pango configuration file.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="filename"><code class="envar">$XDG_CONFIG_HOME</code>/pango/pangorc</code></span></p></td>
+<td><p>User-specific Pango configuration file.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="filename"><em class="replaceable"><code>libdir</code></em>/pango/1.8.0/modules.cache</code></span></p></td>
+<td><p>Location of the module cache file read by Pango.</p></td>
+</tr>
+</tbody>
+</table></div>
 </div>
 <div class="refsect1">
 <a name="Bugs"></a><h2>Bugs</h2>

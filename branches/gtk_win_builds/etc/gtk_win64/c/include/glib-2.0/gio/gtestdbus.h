@@ -22,12 +22,12 @@
  *          Xavier Claessens <xavier.claessens@collabora.co.uk>
  */
 
+#ifndef __G_TEST_DBUS_H__
+#define __G_TEST_DBUS_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_TEST_DBUS_H__
-#define __G_TEST_DBUS_H__
 
 #include <gio/giotypes.h>
 
@@ -37,7 +37,7 @@ G_BEGIN_DECLS
     (g_test_dbus_get_type ())
 #define G_TEST_DBUS(obj) \
     (G_TYPE_CHECK_INSTANCE_CAST ((obj), G_TYPE_TEST_DBUS, \
-        GTestDbus))
+        GTestDBus))
 #define G_IS_TEST_DBUS(obj) \
     (G_TYPE_CHECK_INSTANCE_TYPE ((obj), G_TYPE_TEST_DBUS))
 

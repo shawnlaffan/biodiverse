@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Image Data in Memory</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="GDK-PixBuf Reference Manual">
 <link rel="up" href="rn01.html" title="API Reference">
 <link rel="prev" href="gdk-pixbuf-File-saving.html" title="File saving">
@@ -77,7 +77,7 @@ the destroy notification function that will be called when the
 data buffer needs to be freed; this will happen when a <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="type">GdkPixbuf</span></a>
 is finalized by the reference counting functions If you have a
 chunk of static data compiled into your application, you can pass
-in <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> as the destroy notification function so that the data
+in <code class="literal">NULL</code> as the destroy notification function so that the data
 will not be freed.
 </p>
 <p>
@@ -94,7 +94,7 @@ function to create a pixbuf from inline XPM image data.
 </p>
 <p>
 You can also copy an existing pixbuf with the <a class="link" href="gdk-pixbuf-Image-Data-in-Memory.html#gdk-pixbuf-copy" title="gdk_pixbuf_copy ()"><code class="function">gdk_pixbuf_copy()</code></a>
-function.  This is not the same as just doing a <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-ref"><code class="function">g_object_ref()</code></a>
+function.  This is not the same as just doing a <code class="function">g_object_ref()</code>
 on the old pixbuf; the copy function will actually duplicate the
 pixel data in memory and create a new <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="type">GdkPixbuf</span></a> structure for it.
 </p>
@@ -142,7 +142,7 @@ you will have to fill it completely yourself.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>A newly-created <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="type">GdkPixbuf</span></a> with a reference count of 1, or
-<a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if not enough memory could be allocated for the image buffer.</td>
+<code class="literal">NULL</code> if not enough memory could be allocated for the image buffer.</td>
 </tr>
 </tbody>
 </table></div>
@@ -201,7 +201,7 @@ images with 8 bits per sample are supported.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>destroy_fn</code></em> :</span></p></td>
 <td>Function used to free the data when the pixbuf's reference count
-drops to zero, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if the data should not be freed. <span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+drops to zero, or <code class="literal">NULL</code> if the data should not be freed. <span class="annotation">[<acronym title="The callback is valid until first called."><span class="acronym">scope async</span></acronym>][<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -295,7 +295,7 @@ since things will always succeed:
     <tbody>
       <tr>
         <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">pixbuf </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gdk-pixbuf-Image-Data-in-Memory.html#gdk-pixbuf-new-from-inline">gdk_pixbuf_new_from_inline</a></span><span class="normal"> </span><span class="symbol">(-</span><span class="number">1</span><span class="symbol">,</span><span class="normal"> myimage_inline</span><span class="symbol">,</span><span class="normal"> FALSE</span><span class="symbol">,</span><span class="normal"> <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS">NULL</a></span><span class="symbol">);</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">pixbuf </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gdk-pixbuf-Image-Data-in-Memory.html#gdk-pixbuf-new-from-inline">gdk_pixbuf_new_from_inline</a></span><span class="normal"> </span><span class="symbol">(-</span><span class="number">1</span><span class="symbol">,</span><span class="normal"> myimage_inline</span><span class="symbol">,</span><span class="normal"> FALSE</span><span class="symbol">,</span><span class="normal"> NULL</span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -333,12 +333,12 @@ serialized <a class="link" href="gdk-pixbuf-Inline-data.html#GdkPixdata" title="
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
 <td>
-<span class="type">GError</span> return location, may be <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> to ignore errors</td>
+<span class="type">GError</span> return location, may be <code class="literal">NULL</code> to ignore errors</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>A newly-created <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="type">GdkPixbuf</span></a> structure with a reference,
-count of 1, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if an error occurred.</td>
+count of 1, or <code class="literal">NULL</code> if an error occurred.</td>
 </tr>
 </tbody>
 </table></div>
@@ -418,7 +418,7 @@ Creates a new <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkP
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly-created pixbuf with a reference count of 1, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if
+<td>A newly-created pixbuf with a reference count of 1, or <code class="literal">NULL</code> if
 not enough memory could be allocated. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>

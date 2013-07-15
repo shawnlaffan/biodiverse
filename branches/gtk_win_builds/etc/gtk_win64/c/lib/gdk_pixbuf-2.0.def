@@ -69,6 +69,10 @@ EXPORTS
 	gdk_pixbuf_animation_iter_get_type 
 	gdk_pixbuf_animation_iter_on_currently_loading_frame
 	gdk_pixbuf_animation_new_from_file PRIVATE
+	gdk_pixbuf_animation_new_from_resource
+	gdk_pixbuf_animation_new_from_stream
+	gdk_pixbuf_animation_new_from_stream_async
+	gdk_pixbuf_animation_new_from_stream_finish
 	gdk_pixbuf_animation_new_from_file_utf8
 	gdk_pixbuf_animation_ref
 	gdk_pixbuf_animation_unref

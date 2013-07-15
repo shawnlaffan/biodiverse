@@ -47,28 +47,28 @@ enum                <a class="link" href="GTlsInteraction.html#GTlsInteractionRe
 <a class="link" href="GTlsInteraction.html#GTlsInteractionResult" title="enum GTlsInteractionResult"><span class="returnvalue">GTlsInteractionResult</span></a> <a class="link" href="GTlsInteraction.html#g-tls-interaction-ask-password" title="g_tls_interaction_ask_password ()">g_tls_interaction_ask_password</a>    (<em class="parameter"><code><a class="link" href="GTlsInteraction.html" title="GTlsInteraction"><span class="type">GTlsInteraction</span></a> *interaction</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GTlsPassword.html" title="GTlsPassword"><span class="type">GTlsPassword</span></a> *password</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GTlsInteraction.html#g-tls-interaction-ask-password-async" title="g_tls_interaction_ask_password_async ()">g_tls_interaction_ask_password_async</a>
                                                         (<em class="parameter"><code><a class="link" href="GTlsInteraction.html" title="GTlsInteraction"><span class="type">GTlsInteraction</span></a> *interaction</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GTlsPassword.html" title="GTlsPassword"><span class="type">GTlsPassword</span></a> *password</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
 <a class="link" href="GTlsInteraction.html#GTlsInteractionResult" title="enum GTlsInteractionResult"><span class="returnvalue">GTlsInteractionResult</span></a> <a class="link" href="GTlsInteraction.html#g-tls-interaction-ask-password-finish" title="g_tls_interaction_ask_password_finish ()">g_tls_interaction_ask_password_finish</a>
                                                         (<em class="parameter"><code><a class="link" href="GTlsInteraction.html" title="GTlsInteraction"><span class="type">GTlsInteraction</span></a> *interaction</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <a class="link" href="GTlsInteraction.html#GTlsInteractionResult" title="enum GTlsInteractionResult"><span class="returnvalue">GTlsInteractionResult</span></a> <a class="link" href="GTlsInteraction.html#g-tls-interaction-invoke-ask-password" title="g_tls_interaction_invoke_ask_password ()">g_tls_interaction_invoke_ask_password</a>
                                                         (<em class="parameter"><code><a class="link" href="GTlsInteraction.html" title="GTlsInteraction"><span class="type">GTlsInteraction</span></a> *interaction</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GTlsPassword.html" title="GTlsPassword"><span class="type">GTlsPassword</span></a> *password</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GTlsInteraction.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GTlsInteraction
 </pre>
 </div>
@@ -159,7 +159,7 @@ when finishing an interaction request.
 <pre class="programlisting"><a class="link" href="GTlsInteraction.html#GTlsInteractionResult" title="enum GTlsInteractionResult"><span class="returnvalue">GTlsInteractionResult</span></a> g_tls_interaction_ask_password    (<em class="parameter"><code><a class="link" href="GTlsInteraction.html" title="GTlsInteraction"><span class="type">GTlsInteraction</span></a> *interaction</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GTlsPassword.html" title="GTlsPassword"><span class="type">GTlsPassword</span></a> *password</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Run synchronous interaction to ask the user for a password. In general,
 <a class="link" href="GTlsInteraction.html#g-tls-interaction-invoke-ask-password" title="g_tls_interaction_invoke_ask_password ()"><code class="function">g_tls_interaction_invoke_ask_password()</code></a> should be used instead of this
@@ -215,7 +215,7 @@ not support immediate cancellation.
                                                          <em class="parameter"><code><a class="link" href="GTlsPassword.html" title="GTlsPassword"><span class="type">GTlsPassword</span></a> *password</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html#GAsyncReadyCallback" title="GAsyncReadyCallback ()"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Run asynchronous interaction to ask the user for a password. In general,
 <a class="link" href="GTlsInteraction.html#g-tls-interaction-invoke-ask-password" title="g_tls_interaction_invoke_ask_password ()"><code class="function">g_tls_interaction_invoke_ask_password()</code></a> should be used instead of this
@@ -274,7 +274,7 @@ Certain implementations may not support immediate cancellation.
 <pre class="programlisting"><a class="link" href="GTlsInteraction.html#GTlsInteractionResult" title="enum GTlsInteractionResult"><span class="returnvalue">GTlsInteractionResult</span></a> g_tls_interaction_ask_password_finish
                                                         (<em class="parameter"><code><a class="link" href="GTlsInteraction.html" title="GTlsInteraction"><span class="type">GTlsInteraction</span></a> *interaction</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAsyncResult.html" title="GAsyncResult"><span class="type">GAsyncResult</span></a> *result</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Complete an ask password user interaction request. This should be once
 the <a class="link" href="GTlsInteraction.html#g-tls-interaction-ask-password-async" title="g_tls_interaction_ask_password_async ()"><code class="function">g_tls_interaction_ask_password_async()</code></a> completion callback is called.
@@ -321,11 +321,11 @@ contains a <a class="link" href="gio-GIOError.html#G-IO-ERROR-CANCELLED:CAPS"><c
                                                         (<em class="parameter"><code><a class="link" href="GTlsInteraction.html" title="GTlsInteraction"><span class="type">GTlsInteraction</span></a> *interaction</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GTlsPassword.html" title="GTlsPassword"><span class="type">GTlsPassword</span></a> *password</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GCancellable.html" title="GCancellable"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Invoke the interaction to ask the user for a password. It invokes this
-interaction in the main loop, specifically the <a href="./../glib/glib/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a> returned by
-<a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-context-get-thread-default"><code class="function">g_main_context_get_thread_default()</code></a> when the interaction is created. This
+interaction in the main loop, specifically the <a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#GMainContext"><span class="type">GMainContext</span></a> returned by
+<a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-context-get-thread-default"><code class="function">g_main_context_get_thread_default()</code></a> when the interaction is created. This
 is called by called by <a class="link" href="GTlsConnection.html" title="GTlsConnection"><span class="type">GTlsConnection</span></a> or <a class="link" href="GTlsDatabase.html" title="GTlsDatabase"><span class="type">GTlsDatabase</span></a> to ask the user
 for a password.
 </p>

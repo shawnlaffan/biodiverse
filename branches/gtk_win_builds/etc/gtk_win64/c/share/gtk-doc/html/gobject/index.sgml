@@ -109,6 +109,7 @@
 <ANCHOR id="GTypeInterfaceCheckFunc" href="gobject/gobject-Type-Information.html#GTypeInterfaceCheckFunc">
 <ANCHOR id="g-type-value-table-peek" href="gobject/gobject-Type-Information.html#g-type-value-table-peek">
 <ANCHOR id="g-type-ensure" href="gobject/gobject-Type-Information.html#g-type-ensure">
+<ANCHOR id="g-type-get-type-registration-serial" href="gobject/gobject-Type-Information.html#g-type-get-type-registration-serial">
 <ANCHOR id="G-DEFINE-TYPE:CAPS" href="gobject/gobject-Type-Information.html#G-DEFINE-TYPE:CAPS">
 <ANCHOR id="G-DEFINE-TYPE-WITH-CODE:CAPS" href="gobject/gobject-Type-Information.html#G-DEFINE-TYPE-WITH-CODE:CAPS">
 <ANCHOR id="G-DEFINE-ABSTRACT-TYPE:CAPS" href="gobject/gobject-Type-Information.html#G-DEFINE-ABSTRACT-TYPE:CAPS">
@@ -331,7 +332,10 @@
 <ANCHOR id="G-TYPE-KEY-FILE:CAPS" href="gobject/gobject-Boxed-Types.html#G-TYPE-KEY-FILE:CAPS">
 <ANCHOR id="G-TYPE-MAIN-CONTEXT:CAPS" href="gobject/gobject-Boxed-Types.html#G-TYPE-MAIN-CONTEXT:CAPS">
 <ANCHOR id="G-TYPE-MAIN-LOOP:CAPS" href="gobject/gobject-Boxed-Types.html#G-TYPE-MAIN-LOOP:CAPS">
+<ANCHOR id="G-TYPE-MARKUP-PARSE-CONTEXT:CAPS" href="gobject/gobject-Boxed-Types.html#G-TYPE-MARKUP-PARSE-CONTEXT:CAPS">
 <ANCHOR id="G-TYPE-SOURCE:CAPS" href="gobject/gobject-Boxed-Types.html#G-TYPE-SOURCE:CAPS">
+<ANCHOR id="G-TYPE-POLLFD:CAPS" href="gobject/gobject-Boxed-Types.html#G-TYPE-POLLFD:CAPS">
+<ANCHOR id="G-TYPE-THREAD:CAPS" href="gobject/gobject-Boxed-Types.html#G-TYPE-THREAD:CAPS">
 <ANCHOR id="GStrv" href="gobject/gobject-Boxed-Types.html#GStrv">
 <ANCHOR id="gobject-Boxed-Types.see-also" href="gobject/gobject-Boxed-Types.html#gobject-Boxed-Types.see-also">
 <ANCHOR id="gobject-Generic-values" href="gobject/gobject-Generic-values.html">

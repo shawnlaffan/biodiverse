@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>File Loading</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="GDK-PixBuf Reference Manual">
 <link rel="up" href="rn01.html" title="API Reference">
 <link rel="prev" href="gdk-pixbuf-Reference-Counting-and-Memory-Mangement.html" title="Reference Counting and Memory Mangement">
@@ -62,28 +62,28 @@
                                                          <em class="parameter"><code><span class="type">int</span> height</code></em>,
                                                          <em class="parameter"><code><span class="type">gboolean</span> preserve_aspect_ratio</code></em>,
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);
-<a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream" title="gdk_pixbuf_new_from_stream ()">gdk_pixbuf_new_from_stream</a>          (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> *stream</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+<a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream" title="gdk_pixbuf_new_from_stream ()">gdk_pixbuf_new_from_stream</a>          (<em class="parameter"><code><span class="type">GInputStream</span> *stream</code></em>,
+                                                         <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream-async" title="gdk_pixbuf_new_from_stream_async ()">gdk_pixbuf_new_from_stream_async</a>    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> *stream</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream-async" title="gdk_pixbuf_new_from_stream_async ()">gdk_pixbuf_new_from_stream_async</a>    (<em class="parameter"><code><span class="type">GInputStream</span> *stream</code></em>,
+                                                         <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                                                         <em class="parameter"><code><span class="type">GAsyncReadyCallback</span> callback</code></em>,
                                                          <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);
-<a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream-finish" title="gdk_pixbuf_new_from_stream_finish ()">gdk_pixbuf_new_from_stream_finish</a>   (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html"><span class="type">GAsyncResult</span></a> *async_result</code></em>,
+<a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream-finish" title="gdk_pixbuf_new_from_stream_finish ()">gdk_pixbuf_new_from_stream_finish</a>   (<em class="parameter"><code><span class="type">GAsyncResult</span> *async_result</code></em>,
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);
-<a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream-at-scale" title="gdk_pixbuf_new_from_stream_at_scale ()">gdk_pixbuf_new_from_stream_at_scale</a> (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> *stream</code></em>,
+<a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream-at-scale" title="gdk_pixbuf_new_from_stream_at_scale ()">gdk_pixbuf_new_from_stream_at_scale</a> (<em class="parameter"><code><span class="type">GInputStream</span> *stream</code></em>,
                                                          <em class="parameter"><code><span class="type">gint</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">gint</span> height</code></em>,
                                                          <em class="parameter"><code><span class="type">gboolean</span> preserve_aspect_ratio</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                                                         <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-new-from-stream-at-scale-async" title="gdk_pixbuf_new_from_stream_at_scale_async ()">gdk_pixbuf_new_from_stream_at_scale_async</a>
-                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> *stream</code></em>,
+                                                        (<em class="parameter"><code><span class="type">GInputStream</span> *stream</code></em>,
                                                          <em class="parameter"><code><span class="type">gint</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">gint</span> height</code></em>,
                                                          <em class="parameter"><code><span class="type">gboolean</span> preserve_aspect_ratio</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                                                         <em class="parameter"><code><span class="type">GAsyncReadyCallback</span> callback</code></em>,
                                                          <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);
 </pre>
 </div>
@@ -111,7 +111,7 @@ loading can use the <a class="link" href="GdkPixbufLoader.html" title="GdkPixbuf
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>
 Creates a new pixbuf by loading an image from a file.  The file format is
-detected automatically. If <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is returned, then <em class="parameter"><code>error</code></em> will be set.
+detected automatically. If <code class="literal">NULL</code> is returned, then <em class="parameter"><code>error</code></em> will be set.
 Possible errors are in the <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR:CAPS" title="GDK_PIXBUF_ERROR"><span class="type">GDK_PIXBUF_ERROR</span></a> and <span class="type">G_FILE_ERROR</span> domains.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -130,7 +130,7 @@ Possible errors are in the <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Struct
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly-created pixbuf with a reference count of 1, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if
+<td>A newly-created pixbuf with a reference count of 1, or <code class="literal">NULL</code> if
 any of several error conditions occurred:  the file could not be opened,
 there was no loader for the file's format, there was not enough memory to
 allocate the image buffer, or the image file contained invalid data.</td>
@@ -147,7 +147,7 @@ allocate the image buffer, or the image file contained invalid data.</td>
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>
 Creates a new pixbuf by loading an image from a file.  
-The file format is detected automatically. If <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is returned, then 
+The file format is detected automatically. If <code class="literal">NULL</code> is returned, then 
 <em class="parameter"><code>error</code></em> will be set. Possible errors are in the <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR:CAPS" title="GDK_PIXBUF_ERROR"><span class="type">GDK_PIXBUF_ERROR</span></a> and 
 <span class="type">G_FILE_ERROR</span> domains.
 </p>
@@ -183,7 +183,7 @@ and image at the requested size, regardless of aspect ratio, use
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>A newly-created pixbuf with a reference count of 1, or
-<a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if any of several error conditions occurred:  the file could not
+<code class="literal">NULL</code> if any of several error conditions occurred:  the file could not
 be opened, there was no loader for the file's format, there was not
 enough memory to allocate the image buffer, or the image file contained
 invalid data.</td>
@@ -202,7 +202,7 @@ invalid data.</td>
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>
 Creates a new pixbuf by loading an image from a file.  The file format is
-detected automatically. If <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is returned, then <em class="parameter"><code>error</code></em> will be set.
+detected automatically. If <code class="literal">NULL</code> is returned, then <em class="parameter"><code>error</code></em> will be set.
 Possible errors are in the <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR:CAPS" title="GDK_PIXBUF_ERROR"><span class="type">GDK_PIXBUF_ERROR</span></a> and <span class="type">G_FILE_ERROR</span> domains.
 The image will be scaled to fit in the requested size, optionally preserving
 the image's aspect ratio. 
@@ -244,7 +244,7 @@ allowed since 2.8.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly-created pixbuf with a reference count of 1, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>
+<td>A newly-created pixbuf with a reference count of 1, or <code class="literal">NULL</code>
 if any of several error conditions occurred:  the file could not be opened,
 there was no loader for the file's format, there was not enough memory to
 allocate the image buffer, or the image file contained invalid data.</td>
@@ -274,18 +274,18 @@ Parses an image file far enough to determine its format and size.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>width</code></em> :</span></p></td>
-<td>Return location for the width of the image, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+<td>Return location for the width of the image, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>height</code></em> :</span></p></td>
-<td>Return location for the height of the image, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+<td>Return location for the height of the image, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>A <a class="link" href="gdk-pixbuf-Module-Interface.html#GdkPixbufFormat" title="struct GdkPixbufFormat"><span class="type">GdkPixbufFormat</span></a> describing the image
-format of the file or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if the image format wasn't
+format of the file or <code class="literal">NULL</code> if the image format wasn't
 recognized. The return value is owned by GdkPixbuf and should
 not be freed. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
@@ -303,7 +303,7 @@ not be freed. <span class="annotation">[<acronym title="Don't free data after th
 Creates a new pixbuf by loading an image from an resource.
 </p>
 <p>
-The file format is detected automatically. If <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is returned, then
+The file format is detected automatically. If <code class="literal">NULL</code> is returned, then
 <em class="parameter"><code>error</code></em> will be set.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -322,7 +322,7 @@ The file format is detected automatically. If <a href="/home/mclasen/gnome/share
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly-created pixbuf, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if any of several error
+<td>A newly-created pixbuf, or <code class="literal">NULL</code> if any of several error
 conditions occurred: the file could not be opened, the image format is
 not supported, there was not enough memory to allocate the image buffer,
 the stream contained invalid data, or the operation was cancelled.</td>
@@ -344,7 +344,7 @@ the stream contained invalid data, or the operation was cancelled.</td>
 Creates a new pixbuf by loading an image from an resource.
 </p>
 <p>
-The file format is detected automatically. If <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is returned, then
+The file format is detected automatically. If <code class="literal">NULL</code> is returned, then
 <em class="parameter"><code>error</code></em> will be set.
 </p>
 <p>
@@ -387,7 +387,7 @@ The stream is not closed.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly-created pixbuf, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if any of several error
+<td>A newly-created pixbuf, or <code class="literal">NULL</code> if any of several error
 conditions occurred: the file could not be opened, the image format is
 not supported, there was not enough memory to allocate the image buffer,
 the stream contained invalid data, or the operation was cancelled.</td>
@@ -399,18 +399,18 @@ the stream contained invalid data, or the operation was cancelled.</td>
 <hr>
 <div class="refsect2">
 <a name="gdk-pixbuf-new-from-stream"></a><h3>gdk_pixbuf_new_from_stream ()</h3>
-<pre class="programlisting"><a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         gdk_pixbuf_new_from_stream          (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> *stream</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+<pre class="programlisting"><a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         gdk_pixbuf_new_from_stream          (<em class="parameter"><code><span class="type">GInputStream</span> *stream</code></em>,
+                                                         <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>
 Creates a new pixbuf by loading an image from an input stream.  
 </p>
 <p>
-The file format is detected automatically. If <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is returned, then 
+The file format is detected automatically. If <code class="literal">NULL</code> is returned, then 
 <em class="parameter"><code>error</code></em> will be set. The <em class="parameter"><code>cancellable</code></em> can be used to abort the operation
 from another thread. If the operation was cancelled, the error 
-<code class="literal">GIO_ERROR_CANCELLED</code> will be returned. Other possible errors are in 
-the <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR:CAPS" title="GDK_PIXBUF_ERROR"><span class="type">GDK_PIXBUF_ERROR</span></a> and <a href="/usr/share/gtk-doc/html/gio/gio-GIOError.html#G-IO-ERROR:CAPS"><code class="literal">G_IO_ERROR</code></a> domains. 
+<code class="literal">G_IO_ERROR_CANCELLED</code> will be returned. Other possible errors are in 
+the <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR:CAPS" title="GDK_PIXBUF_ERROR"><span class="type">GDK_PIXBUF_ERROR</span></a> and <code class="literal">G_IO_ERROR</code> domains. 
 </p>
 <p>
 The stream is not closed.
@@ -423,11 +423,12 @@ The stream is not closed.
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>stream</code></em> :</span></p></td>
-<td>a <a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> to load the pixbuf from</td>
+<td>a <span class="type">GInputStream</span> to load the pixbuf from</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> object, <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> to ignore</td>
+<td>optional <span class="type">GCancellable</span> object, <code class="literal">NULL</code> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
@@ -435,7 +436,7 @@ The stream is not closed.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly-created pixbuf, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if any of several error
+<td>A newly-created pixbuf, or <code class="literal">NULL</code> if any of several error
 conditions occurred: the file could not be opened, the image format is
 not supported, there was not enough memory to allocate the image buffer,
 the stream contained invalid data, or the operation was cancelled.</td>
@@ -447,9 +448,9 @@ the stream contained invalid data, or the operation was cancelled.</td>
 <hr>
 <div class="refsect2">
 <a name="gdk-pixbuf-new-from-stream-async"></a><h3>gdk_pixbuf_new_from_stream_async ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                gdk_pixbuf_new_from_stream_async    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> *stream</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                gdk_pixbuf_new_from_stream_async    (<em class="parameter"><code><span class="type">GInputStream</span> *stream</code></em>,
+                                                         <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                                                         <em class="parameter"><code><span class="type">GAsyncReadyCallback</span> callback</code></em>,
                                                          <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>
 Creates a new pixbuf by asynchronously loading an image from an input stream.
@@ -470,15 +471,16 @@ You can then call <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>stream</code></em> :</span></p></td>
-<td>a <a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> from which to load the pixbuf</td>
+<td>a <span class="type">GInputStream</span> from which to load the pixbuf</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> object, <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> to ignore</td>
+<td>optional <span class="type">GCancellable</span> object, <code class="literal">NULL</code> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>a <a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> to call when the the pixbuf is loaded</td>
+<td>a <span class="type">GAsyncReadyCallback</span> to call when the the pixbuf is loaded</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
@@ -491,7 +493,7 @@ You can then call <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-
 <hr>
 <div class="refsect2">
 <a name="gdk-pixbuf-new-from-stream-finish"></a><h3>gdk_pixbuf_new_from_stream_finish ()</h3>
-<pre class="programlisting"><a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         gdk_pixbuf_new_from_stream_finish   (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html"><span class="type">GAsyncResult</span></a> *async_result</code></em>,
+<pre class="programlisting"><a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         gdk_pixbuf_new_from_stream_finish   (<em class="parameter"><code><span class="type">GAsyncResult</span> *async_result</code></em>,
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>
 Finishes an asynchronous pixbuf creation operation started with
@@ -505,18 +507,18 @@ Finishes an asynchronous pixbuf creation operation started with
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>async_result</code></em> :</span></p></td>
-<td>a <a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html"><span class="type">GAsyncResult</span></a>
+<td>a <span class="type">GAsyncResult</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>a <span class="type">GError</span>, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>
+<td>a <span class="type">GError</span>, or <code class="literal">NULL</code>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="type">GdkPixbuf</span></a> or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> on error. Free the returned
-object with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
+<td>a <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="type">GdkPixbuf</span></a> or <code class="literal">NULL</code> on error. Free the returned
+object with <code class="function">g_object_unref()</code>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -525,21 +527,21 @@ object with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Typ
 <hr>
 <div class="refsect2">
 <a name="gdk-pixbuf-new-from-stream-at-scale"></a><h3>gdk_pixbuf_new_from_stream_at_scale ()</h3>
-<pre class="programlisting"><a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         gdk_pixbuf_new_from_stream_at_scale (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> *stream</code></em>,
+<pre class="programlisting"><a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GdkPixbuf"><span class="returnvalue">GdkPixbuf</span></a> *         gdk_pixbuf_new_from_stream_at_scale (<em class="parameter"><code><span class="type">GInputStream</span> *stream</code></em>,
                                                          <em class="parameter"><code><span class="type">gint</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">gint</span> height</code></em>,
                                                          <em class="parameter"><code><span class="type">gboolean</span> preserve_aspect_ratio</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
+                                                         <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
                                                          <em class="parameter"><code><span class="type">GError</span> **error</code></em>);</pre>
 <p>
 Creates a new pixbuf by loading an image from an input stream.  
 </p>
 <p>
-The file format is detected automatically. If <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is returned, then 
+The file format is detected automatically. If <code class="literal">NULL</code> is returned, then 
 <em class="parameter"><code>error</code></em> will be set. The <em class="parameter"><code>cancellable</code></em> can be used to abort the operation
 from another thread. If the operation was cancelled, the error 
-<code class="literal">GIO_ERROR_CANCELLED</code> will be returned. Other possible errors are in 
-the <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR:CAPS" title="GDK_PIXBUF_ERROR"><span class="type">GDK_PIXBUF_ERROR</span></a> and <a href="/usr/share/gtk-doc/html/gio/gio-GIOError.html#G-IO-ERROR:CAPS"><code class="literal">G_IO_ERROR</code></a> domains. 
+<code class="literal">G_IO_ERROR_CANCELLED</code> will be returned. Other possible errors are in 
+the <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR:CAPS" title="GDK_PIXBUF_ERROR"><span class="type">GDK_PIXBUF_ERROR</span></a> and <code class="literal">G_IO_ERROR</code> domains. 
 </p>
 <p>
 The image will be scaled to fit in the requested size, optionally 
@@ -560,7 +562,7 @@ The stream is not closed.
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>stream</code></em> :</span></p></td>
-<td>a <a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> to load the pixbuf from</td>
+<td>a <span class="type">GInputStream</span> to load the pixbuf from</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>width</code></em> :</span></p></td>
@@ -577,7 +579,8 @@ The stream is not closed.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> object, <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> to ignore</td>
+<td>optional <span class="type">GCancellable</span> object, <code class="literal">NULL</code> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
@@ -585,7 +588,7 @@ The stream is not closed.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A newly-created pixbuf, or <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if any of several error
+<td>A newly-created pixbuf, or <code class="literal">NULL</code> if any of several error
 conditions occurred: the file could not be opened, the image format is
 not supported, there was not enough memory to allocate the image buffer,
 the stream contained invalid data, or the operation was cancelled.</td>
@@ -598,12 +601,12 @@ the stream contained invalid data, or the operation was cancelled.</td>
 <div class="refsect2">
 <a name="gdk-pixbuf-new-from-stream-at-scale-async"></a><h3>gdk_pixbuf_new_from_stream_at_scale_async ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                gdk_pixbuf_new_from_stream_at_scale_async
-                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> *stream</code></em>,
+                                                        (<em class="parameter"><code><span class="type">GInputStream</span> *stream</code></em>,
                                                          <em class="parameter"><code><span class="type">gint</span> width</code></em>,
                                                          <em class="parameter"><code><span class="type">gint</span> height</code></em>,
                                                          <em class="parameter"><code><span class="type">gboolean</span> preserve_aspect_ratio</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> *cancellable</code></em>,
-                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> callback</code></em>,
+                                                         <em class="parameter"><code><span class="type">GCancellable</span> *cancellable</code></em>,
+                                                         <em class="parameter"><code><span class="type">GAsyncReadyCallback</span> callback</code></em>,
                                                          <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>
 Creates a new pixbuf by asynchronously loading an image from an input stream.
@@ -624,7 +627,7 @@ You can then call <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>stream</code></em> :</span></p></td>
-<td>a <a href="/usr/share/gtk-doc/html/gio/GInputStream.html"><span class="type">GInputStream</span></a> from which to load the pixbuf</td>
+<td>a <span class="type">GInputStream</span> from which to load the pixbuf</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>width</code></em> :</span></p></td>
@@ -641,11 +644,12 @@ You can then call <a class="link" href="gdk-pixbuf-File-Loading.html#gdk-pixbuf-
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>cancellable</code></em> :</span></p></td>
-<td>optional <a href="/usr/share/gtk-doc/html/gio/GCancellable.html"><span class="type">GCancellable</span></a> object, <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> to ignore</td>
+<td>optional <span class="type">GCancellable</span> object, <code class="literal">NULL</code> to ignore. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>callback</code></em> :</span></p></td>
-<td>a <a href="/usr/share/gtk-doc/html/gio/GAsyncResult.html#GAsyncReadyCallback"><span class="type">GAsyncReadyCallback</span></a> to call when the the pixbuf is loaded</td>
+<td>a <span class="type">GAsyncReadyCallback</span> to call when the the pixbuf is loaded</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>

@@ -24,17 +24,18 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __G_QSORT_H__
+#define __G_QSORT_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_QSORT_H__
-#define __G_QSORT_H__
 
 #include <glib/gtypes.h>
 
 G_BEGIN_DECLS
 
+GLIB_AVAILABLE_IN_ALL
 void g_qsort_with_data (gconstpointer    pbase,
 			gint             total_elems,
 			gsize            size,

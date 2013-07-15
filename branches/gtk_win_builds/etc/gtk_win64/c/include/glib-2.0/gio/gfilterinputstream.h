@@ -20,12 +20,12 @@
  * Author: Christian Kellner <gicmo@gnome.org>
  */
 
+#ifndef __G_FILTER_INPUT_STREAM_H__
+#define __G_FILTER_INPUT_STREAM_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_FILTER_INPUT_STREAM_H__
-#define __G_FILTER_INPUT_STREAM_H__
 
 #include <gio/ginputstream.h>
 
@@ -65,9 +65,13 @@ struct _GFilterInputStreamClass
 };
 
 
+GLIB_AVAILABLE_IN_ALL
 GType          g_filter_input_stream_get_type              (void) G_GNUC_CONST;
+GLIB_AVAILABLE_IN_ALL
 GInputStream * g_filter_input_stream_get_base_stream       (GFilterInputStream *stream);
+GLIB_AVAILABLE_IN_ALL
 gboolean       g_filter_input_stream_get_close_base_stream (GFilterInputStream *stream);
+GLIB_AVAILABLE_IN_ALL
 void           g_filter_input_stream_set_close_base_stream (GFilterInputStream *stream,
                                                             gboolean            close_base);
 

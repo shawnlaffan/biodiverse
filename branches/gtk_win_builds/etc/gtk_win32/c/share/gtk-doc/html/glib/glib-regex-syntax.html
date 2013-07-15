@@ -31,7 +31,7 @@ syntax and semantics of regular expressions supported by GRegex
 <td valign="top" align="right"></td>
 </tr></table></div>
 <div class="refsect1">
-<a name="idp28342448"></a><h2>GRegex regular expression details</h2>
+<a name="id-1.5.25.3"></a><h2>GRegex regular expression details</h2>
 <p>
 A regular expression is a pattern that is matched against a
 string from left to right. Most characters stand for themselves in a
@@ -59,7 +59,7 @@ that are recognized in square brackets. Outside square brackets, the
 metacharacters are as follows:
 </p>
 <div class="table">
-<a name="idp35801648"></a><p class="title"><b>Table 1. Metacharacters outside square brackets</b></p>
+<a name="id-1.5.25.3.7"></a><p class="title"><b>Table 1. Metacharacters outside square brackets</b></p>
 <div class="table-contents"><table summary="Metacharacters outside square brackets" border="1">
 <colgroup>
 <col align="center">
@@ -126,7 +126,7 @@ Part of a pattern that is in square brackets is called a "character
 class". In a character class the only metacharacters are:
 </p>
 <div class="table">
-<a name="idp23309120"></a><p class="title"><b>Table 2. Metacharacters inside square brackets</b></p>
+<a name="id-1.5.25.3.9"></a><p class="title"><b>Table 2. Metacharacters inside square brackets</b></p>
 <div class="table-contents"><table summary="Metacharacters inside square brackets" border="1">
 <colgroup>
 <col align="center">
@@ -163,7 +163,7 @@ class". In a character class the only metacharacters are:
 <br class="table-break">
 </div>
 <div class="refsect1">
-<a name="idp23278160"></a><h2>Backslash</h2>
+<a name="id-1.5.25.4"></a><h2>Backslash</h2>
 <p>
 The backslash character has several uses. Firstly, if it is followed by
 a non-alphanumeric character, it takes away any special meaning that
@@ -198,7 +198,7 @@ The \Q...\E sequence is recognized both inside and outside character
 classes.
 </p>
 <div class="refsect2">
-<a name="idp23282784"></a><h3>Non-printing characters</h3>
+<a name="id-1.5.25.4.7"></a><h3>Non-printing characters</h3>
 <p>
 A second use of backslash provides a way of encoding non-printing
 characters in patterns in a visible manner. There is no restriction on the
@@ -208,7 +208,7 @@ editing, it is usually easier to use one of the following escape
 sequences than the binary character it represents:
 </p>
 <div class="table">
-<a name="idp23334720"></a><p class="title"><b>Table 3. Non-printing characters</b></p>
+<a name="id-1.5.25.4.7.3"></a><p class="title"><b>Table 3. Non-printing characters</b></p>
 <div class="table-contents"><table summary="Non-printing characters" border="1">
 <colgroup>
 <col align="center">
@@ -309,7 +309,7 @@ up to three octal digits following the backslash, and uses them to generate
 a data character. Any subsequent digits stand for themselves. For example:
 </p>
 <div class="table">
-<a name="idp23358368"></a><p class="title"><b>Table 4. Non-printing characters</b></p>
+<a name="id-1.5.25.4.7.10"></a><p class="title"><b>Table 4. Non-printing characters</b></p>
 <div class="table-contents"><table summary="Non-printing characters" border="1">
 <colgroup>
 <col align="center">
@@ -373,7 +373,7 @@ Outside a character class, these sequences have different meanings (see below).
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp23364080"></a><h3>Absolute and relative back references</h3>
+<a name="id-1.5.25.4.8"></a><h3>Absolute and relative back references</h3>
 <p>
 The sequence \g followed by a positive or negative number, optionally enclosed
 in braces, is an absolute or relative back reference. Back references are
@@ -382,13 +382,13 @@ discussed later, following the discussion of parenthesized subpatterns.
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp23365648"></a><h3>Generic character types</h3>
+<a name="id-1.5.25.4.9"></a><h3>Generic character types</h3>
 <p>
 Another use of backslash is for specifying generic character types.
 The following are always recognized:
 </p>
 <div class="table">
-<a name="idp23366928"></a><p class="title"><b>Table 5. Generic characters</b></p>
+<a name="id-1.5.25.4.9.3"></a><p class="title"><b>Table 5. Generic characters</b></p>
 <div class="table-contents"><table summary="Generic characters" border="1">
 <colgroup>
 <col align="center">
@@ -452,7 +452,7 @@ Characters with values greater than 128 never match \d,
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp23403040"></a><h3>Newline sequences</h3>
+<a name="id-1.5.25.4.10"></a><h3>Newline sequences</h3>
 <p>Outside a character class, the escape sequence \R matches any Unicode
 newline sequence.
 This particular group matches either the two-character sequence CR followed by
@@ -464,13 +464,13 @@ cannot be split. Inside a character class, \R matches the letter "R".</p>
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp23404896"></a><h3>Unicode character properties</h3>
+<a name="id-1.5.25.4.11"></a><h3>Unicode character properties</h3>
 <p>
 To support generic character types there are three additional escape
 sequences, they are:
 </p>
 <div class="table">
-<a name="idp23406176"></a><p class="title"><b>Table 6. Generic character types</b></p>
+<a name="id-1.5.25.4.11.3"></a><p class="title"><b>Table 6. Generic character types</b></p>
 <div class="table-contents"><table summary="Generic character types" border="1">
 <colgroup>
 <col align="center">
@@ -537,7 +537,7 @@ documentation for the #GUnicodeType enumeration, the following
 general category property codes are supported:
 </p>
 <div class="table">
-<a name="idp37542880"></a><p class="title"><b>Table 7. Property codes</b></p>
+<a name="id-1.5.25.4.11.11"></a><p class="title"><b>Table 7. Property codes</b></p>
 <div class="table-contents"><table summary="Property codes" border="1">
 <colgroup>
 <col align="center">
@@ -620,7 +620,7 @@ characters. That is why the traditional escape sequences such as \d and
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp34730592"></a><h3>Simple assertions</h3>
+<a name="id-1.5.25.4.12"></a><h3>Simple assertions</h3>
 <p>
 The final use of backslash is for certain simple assertions. An
 assertion specifies a condition that has to be met at a particular point in
@@ -629,7 +629,7 @@ use of subpatterns for more complicated assertions is described below.
 The backslashed assertions are:
 </p>
 <div class="table">
-<a name="idp34732064"></a><p class="title"><b>Table 8. Simple assertions</b></p>
+<a name="id-1.5.25.4.12.3"></a><p class="title"><b>Table 8. Simple assertions</b></p>
 <div class="table-contents"><table summary="Simple assertions" border="1">
 <colgroup>
 <col align="center">
@@ -711,7 +711,7 @@ in the compiled regular expression.
 </div>
 </div>
 <div class="refsect1">
-<a name="idp34720736"></a><h2>Circumflex and dollar</h2>
+<a name="id-1.5.25.5"></a><h2>Circumflex and dollar</h2>
 <p>
 Outside a character class, in the default matching mode, the circumflex
 character is an assertion that is true only if the current matching
@@ -769,7 +769,7 @@ is set.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp37892496"></a><h2>Full stop (period, dot)</h2>
+<a name="id-1.5.25.6"></a><h2>Full stop (period, dot)</h2>
 <p>
 Outside a character class, a dot in the pattern matches any one character
 in the string, including a non-printing character, but not (by
@@ -802,7 +802,7 @@ special meaning in a character class.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp37897616"></a><h2>Matching a single byte</h2>
+<a name="id-1.5.25.7"></a><h2>Matching a single byte</h2>
 <p>
 Outside a character class, the escape sequence \C matches any one byte,
 both in and out of UTF-8 mode. Unlike a dot, it always matches any line
@@ -819,7 +819,7 @@ the length of the lookbehind.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp37899984"></a><h2>Square brackets and character classes</h2>
+<a name="id-1.5.25.8"></a><h2>Square brackets and character classes</h2>
 <p>
 An opening square bracket introduces a character class, terminated by a
 closing square bracket. A closing square bracket on its own is not special. If a closing square bracket is required as a member of the class,
@@ -904,7 +904,7 @@ escaping other non-alphanumeric characters does no harm.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp37620224"></a><h2>Posix character classes</h2>
+<a name="id-1.5.25.9"></a><h2>Posix character classes</h2>
 <p>
 GRegex supports the POSIX notation for character classes. This uses names
 enclosed by [: and :] within the enclosing square brackets. For example,
@@ -917,7 +917,7 @@ matches "0", "1", any alphabetic character, or "%". The supported class
 names are
 </p>
 <div class="table">
-<a name="idp37622672"></a><p class="title"><b>Table 9. Posix classes</b></p>
+<a name="id-1.5.25.9.5"></a><p class="title"><b>Table 9. Posix classes</b></p>
 <div class="table-contents"><table summary="Posix classes" border="1">
 <colgroup>
 <col align="center">
@@ -1012,7 +1012,7 @@ of the POSIX character classes.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp37403968"></a><h2>Vertical bar</h2>
+<a name="id-1.5.25.10"></a><h2>Vertical bar</h2>
 <p>
 Vertical bar characters are used to separate alternative patterns. For
 example, the pattern
@@ -1028,7 +1028,7 @@ left to right, and the first one that succeeds is used. If the alternatives are 
 </p>
 </div>
 <div class="refsect1">
-<a name="idp37406960"></a><h2>Internal option setting</h2>
+<a name="id-1.5.25.11"></a><h2>Internal option setting</h2>
 <p>
 The settings of the <code class="varname">G_REGEX_CASELESS</code>, <code class="varname">G_REGEX_MULTILINE</code>, <code class="varname">G_REGEX_MULTILINE</code>,
 and <code class="varname">G_REGEX_EXTENDED</code> options can be changed from within the pattern by a
@@ -1036,7 +1036,7 @@ sequence of Perl-style option letters enclosed between "(?" and ")". The
 option letters are
 </p>
 <div class="table">
-<a name="idp37410064"></a><p class="title"><b>Table 10. Option settings</b></p>
+<a name="id-1.5.25.11.3"></a><p class="title"><b>Table 10. Option settings</b></p>
 <div class="table-contents"><table summary="Option settings" border="1">
 <colgroup>
 <col align="center">
@@ -1110,7 +1110,7 @@ the characters U, X and J respectively.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp23283184"></a><h2>Subpatterns</h2>
+<a name="id-1.5.25.12"></a><h2>Subpatterns</h2>
 <p>
 Subpatterns are delimited by parentheses (round brackets), which can be
 nested. Turning part of a pattern into a subpattern does two things:
@@ -1174,7 +1174,7 @@ subsequent branches, so the above patterns match "SUNDAY" as well as
 </p>
 </div>
 <div class="refsect1">
-<a name="idp23293408"></a><h2>Named subpatterns</h2>
+<a name="id-1.5.25.13"></a><h2>Named subpatterns</h2>
 <p>
 Identifying capturing parentheses by number is simple, but it can be
 very hard to keep track of the numbers in complicated regular expressions.
@@ -1215,7 +1215,7 @@ pattern, the one that corresponds to the lowest number is used.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp23298480"></a><h2>Repetition</h2>
+<a name="id-1.5.25.14"></a><h2>Repetition</h2>
 <p>
 Repetition is specified by quantifiers, which can follow any of the
 following items:
@@ -1278,7 +1278,7 @@ For convenience, the three most common quantifiers have single-character
 abbreviations:
 </p>
 <div class="table">
-<a name="idp41195808"></a><p class="title"><b>Table 11. Abbreviations for quantifiers</b></p>
+<a name="id-1.5.25.14.14"></a><p class="title"><b>Table 11. Abbreviations for quantifiers</b></p>
 <div class="table-contents"><table summary="Abbreviations for quantifiers" border="1">
 <colgroup>
 <col align="center">
@@ -1419,7 +1419,7 @@ matches "aba" the value of the second captured substring is "b".
 </p>
 </div>
 <div class="refsect1">
-<a name="idp41222768"></a><h2>Atomic grouping and possessive quantifiers</h2>
+<a name="id-1.5.25.15"></a><h2>Atomic grouping and possessive quantifiers</h2>
 <p>
 With both maximizing ("greedy") and minimizing ("ungreedy" or "lazy")
 repetition, failure of what follows normally causes the repeated
@@ -1537,7 +1537,7 @@ sequences of non-digits cannot be broken, and failure happens quickly.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp41238784"></a><h2>Back references</h2>
+<a name="id-1.5.25.16"></a><h2>Back references</h2>
 <p>
 Outside a character class, a backslash followed by a digit greater than
 0 (and possibly further digits) is a back reference to a capturing subpattern
@@ -1646,7 +1646,7 @@ the example above, or by a quantifier with a minimum of zero.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp41253968"></a><h2>Assertions</h2>
+<a name="id-1.5.25.17"></a><h2>Assertions</h2>
 <p>
 An assertion is a test on the characters following or preceding the
 current matching point that does not actually consume any characters.
@@ -1670,7 +1670,7 @@ out only for positive assertions, because it does not make sense for
 negative assertions.
 </p>
 <div class="refsect2">
-<a name="idp41256960"></a><h3>Lookahead assertions</h3>
+<a name="id-1.5.25.17.5"></a><h3>Lookahead assertions</h3>
 <p>
 Lookahead assertions start with (?= for positive assertions and (?! for
 negative assertions. For example,
@@ -1707,7 +1707,7 @@ string must always fail.
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp41263024"></a><h3>Lookbehind assertions</h3>
+<a name="id-1.5.25.17.6"></a><h3>Lookbehind assertions</h3>
 <p>
 Lookbehind assertions start with (?&lt;= for positive assertions and (?&lt;!
 for negative assertions. For example,
@@ -1796,7 +1796,7 @@ processing time.
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp41276768"></a><h3>Using multiple assertions</h3>
+<a name="id-1.5.25.17.7"></a><h3>Using multiple assertions</h3>
 <p>
 Several assertions (of any sort) may occur in succession. For example,
 </p>
@@ -1841,7 +1841,7 @@ three characters that are not "999".
 </div>
 </div>
 <div class="refsect1">
-<a name="idp41284240"></a><h2>Conditional subpatterns</h2>
+<a name="id-1.5.25.18"></a><h2>Conditional subpatterns</h2>
 <p>
 It is possible to cause the matching process to obey a subpattern
 conditionally or to choose between two alternative subpatterns, depending
@@ -1862,7 +1862,7 @@ There are four kinds of condition: references to subpatterns, references to
 recursion, a pseudo-condition called DEFINE, and assertions.
 </p>
 <div class="refsect2">
-<a name="idp41287584"></a><h3>Checking for a used subpattern by number</h3>
+<a name="id-1.5.25.18.6"></a><h3>Checking for a used subpattern by number</h3>
 <p>
 If the text between the parentheses consists of a sequence of digits, the
 condition is true if the capturing subpattern of that number has previously
@@ -1891,7 +1891,7 @@ optionally enclosed in parentheses.
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp41291824"></a><h3>Checking for a used subpattern by name</h3>
+<a name="id-1.5.25.18.7"></a><h3>Checking for a used subpattern by name</h3>
 <p>
 Perl uses the syntax (?(&lt;name&gt;)...) or (?('name')...) to test for a used
 subpattern by name, the Python syntax (?(name)...) is also recognized. However,
@@ -1910,7 +1910,7 @@ Rewriting the above example to use a named subpattern gives this:
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp41294800"></a><h3>Checking for pattern recursion</h3>
+<a name="id-1.5.25.18.8"></a><h3>Checking for pattern recursion</h3>
 <p>
 If the condition is the string (R), and there is no subpattern with the name R,
 the condition is true if a recursive call to the whole pattern or any
@@ -1933,7 +1933,7 @@ patterns are described below.
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp41298272"></a><h3>Defining subpatterns for use by reference only</h3>
+<a name="id-1.5.25.18.9"></a><h3>Defining subpatterns for use by reference only</h3>
 <p>
 If the condition is the string (DEFINE), and there is no subpattern with the
 name DEFINE, the condition is always false. In this case, there may be only one
@@ -1961,7 +1961,7 @@ each end.
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp41302208"></a><h3>Assertion conditions</h3>
+<a name="id-1.5.25.18.10"></a><h3>Assertion conditions</h3>
 <p>
 If the condition is not in any of the above formats, it must be an
 assertion. This may be a positive or negative lookahead or lookbehind
@@ -1984,7 +1984,7 @@ letters and dd are digits.
 </div>
 </div>
 <div class="refsect1">
-<a name="idp41305520"></a><h2>Comments</h2>
+<a name="id-1.5.25.19"></a><h2>Comments</h2>
 <p>
 The sequence (?# marks the start of a comment that continues up to the
 next closing parenthesis. Nested parentheses are not permitted. The
@@ -1998,7 +1998,7 @@ immediately after the next newline in the pattern.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp41308112"></a><h2>Recursive patterns</h2>
+<a name="id-1.5.25.20"></a><h2>Recursive patterns</h2>
 <p>
 Consider the problem of matching a string in parentheses, allowing for
 unlimited nested parentheses. Without the use of recursion, the best
@@ -2130,7 +2130,7 @@ The (?R) item is the actual recursive call.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp41326720"></a><h2>Subpatterns as subroutines</h2>
+<a name="id-1.5.25.21"></a><h2>Subpatterns as subroutines</h2>
 <p>
 If the syntax for a recursive subpattern reference (either by number or
 by name) is used outside the parentheses to which it refers, it operates
@@ -2172,7 +2172,7 @@ processing option does not affect the called subpattern.
 </p>
 </div>
 <div class="refsect1">
-<a name="idp41335584"></a><h2>Copyright</h2>
+<a name="id-1.5.25.22"></a><h2>Copyright</h2>
 <p>
 This document was copied and adapted from the PCRE documentation,
 specifically from the man page for pcrepattern.

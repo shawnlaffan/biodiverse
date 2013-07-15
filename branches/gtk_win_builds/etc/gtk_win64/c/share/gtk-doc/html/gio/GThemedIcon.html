@@ -56,13 +56,13 @@
                                                          <em class="parameter"><code>const <span class="type">char</span> *iconname</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GThemedIcon.html#g-themed-icon-append-name" title="g_themed_icon_append_name ()">g_themed_icon_append_name</a>           (<em class="parameter"><code><a class="link" href="GThemedIcon.html" title="GThemedIcon"><span class="type">GThemedIcon</span></a> *icon</code></em>,
                                                          <em class="parameter"><code>const <span class="type">char</span> *iconname</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> * const * <a class="link" href="GThemedIcon.html#g-themed-icon-get-names" title="g_themed_icon_get_names ()">g_themed_icon_get_names</a>           (<em class="parameter"><code><a class="link" href="GThemedIcon.html" title="GThemedIcon"><span class="type">GThemedIcon</span></a> *icon</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> * const * <a class="link" href="GThemedIcon.html#g-themed-icon-get-names" title="g_themed_icon_get_names ()">g_themed_icon_get_names</a>           (<em class="parameter"><code><a class="link" href="GThemedIcon.html" title="GThemedIcon"><span class="type">GThemedIcon</span></a> *icon</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GThemedIcon.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GThemedIcon
 </pre>
 </div>
@@ -75,9 +75,9 @@ GThemedIcon implements
 <div class="refsect1">
 <a name="GThemedIcon.properties"></a><h2>Properties</h2>
 <pre class="synopsis">
-  "<a class="link" href="GThemedIcon.html#GThemedIcon--name" title='The "name" property'>name</a>"                     <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Write / Construct Only
-  "<a class="link" href="GThemedIcon.html#GThemedIcon--names" title='The "names" property'>names</a>"                    <a href="./../gobject/gobject/gobject-Boxed-Types.html#GStrv"><span class="type">GStrv</span></a>                 : Read / Write / Construct Only
-  "<a class="link" href="GThemedIcon.html#GThemedIcon--use-default-fallbacks" title='The "use-default-fallbacks" property'>use-default-fallbacks</a>"    <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write / Construct Only
+  "<a class="link" href="GThemedIcon.html#GThemedIcon--name" title='The "name" property'>name</a>"                     <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Write / Construct Only
+  "<a class="link" href="GThemedIcon.html#GThemedIcon--names" title='The "names" property'>names</a>"                    <a href="/usr/share/gtk-doc/html/gobject/gobject-Boxed-Types.html#GStrv"><span class="type">GStrv</span></a>                 : Read / Write / Construct Only
+  "<a class="link" href="GThemedIcon.html#GThemedIcon--use-default-fallbacks" title='The "use-default-fallbacks" property'>use-default-fallbacks</a>"    <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write / Construct Only
 </pre>
 </div>
 <div class="refsect1">
@@ -87,7 +87,7 @@ GThemedIcon implements
 <a class="link" href="GThemedIcon.html" title="GThemedIcon"><span class="type">GThemedIcon</span></a> contains a list of all of the icons present in an icon
 theme, so that icons can be looked up quickly. <a class="link" href="GThemedIcon.html" title="GThemedIcon"><span class="type">GThemedIcon</span></a> does
 not provide actual pixmaps for icons, just the icon names.
-Ideally something like <a href="http://library.gnome.org/devel/gtk3/GtkIconTheme.html#gtk-icon-theme-choose-icon"><code class="function">gtk_icon_theme_choose_icon()</code></a> should be used to
+Ideally something like <code class="function">gtk_icon_theme_choose_icon()</code> should be used to
 resolve the list of names so that fallback icons work nicely with
 themes that inherit other themes.
 </p>
@@ -148,7 +148,7 @@ Creates a new themed icon for <em class="parameter"><code>iconnames</code></em>.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>len</code></em> :</span></p></td>
 <td>the length of the <em class="parameter"><code>iconnames</code></em> array, or -1 if <em class="parameter"><code>iconnames</code></em> is
-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -295,7 +295,7 @@ to <a class="link" href="GIcon.html#g-icon-hash" title="g_icon_hash ()"><code cl
 <hr>
 <div class="refsect2">
 <a name="g-themed-icon-get-names"></a><h3>g_themed_icon_get_names ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> * const * g_themed_icon_get_names           (<em class="parameter"><code><a class="link" href="GThemedIcon.html" title="GThemedIcon"><span class="type">GThemedIcon</span></a> *icon</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> * const * g_themed_icon_get_names           (<em class="parameter"><code><a class="link" href="GThemedIcon.html" title="GThemedIcon"><span class="type">GThemedIcon</span></a> *icon</code></em>);</pre>
 <p>
 Gets the names of icons from within <em class="parameter"><code>icon</code></em>.
 </p>
@@ -322,7 +322,7 @@ Gets the names of icons from within <em class="parameter"><code>icon</code></em>
 <a name="GThemedIcon.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="GThemedIcon--name"></a><h3>The <code class="literal">"name"</code> property</h3>
-<pre class="programlisting">  "name"                     <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Write / Construct Only</pre>
+<pre class="programlisting">  "name"                     <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a>*                : Write / Construct Only</pre>
 <p>
 The icon name.
 </p>
@@ -331,22 +331,25 @@ The icon name.
 <hr>
 <div class="refsect2">
 <a name="GThemedIcon--names"></a><h3>The <code class="literal">"names"</code> property</h3>
-<pre class="programlisting">  "names"                    <a href="./../gobject/gobject/gobject-Boxed-Types.html#GStrv"><span class="type">GStrv</span></a>                 : Read / Write / Construct Only</pre>
+<pre class="programlisting">  "names"                    <a href="/usr/share/gtk-doc/html/gobject/gobject-Boxed-Types.html#GStrv"><span class="type">GStrv</span></a>                 : Read / Write / Construct Only</pre>
 <p>
-A <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of icon names.
+A <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>-terminated array of icon names.
 </p>
 </div>
 <hr>
 <div class="refsect2">
 <a name="GThemedIcon--use-default-fallbacks"></a><h3>The <code class="literal">"use-default-fallbacks"</code> property</h3>
-<pre class="programlisting">  "use-default-fallbacks"    <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write / Construct Only</pre>
+<pre class="programlisting">  "use-default-fallbacks"    <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write / Construct Only</pre>
 <p>
 Whether to use the default fallbacks found by shortening the icon name
-at '-' characters. If the "names" array has more than one element, 
+
+at '-' characters. If the "names" array has more than one element,
+
 ignores any past the first.
 </p>
 <p>
-For example, if the icon name was "gnome-dev-cdrom-audio", the array 
+For example, if the icon name was "gnome-dev-cdrom-audio", the array
+
 would become
 </p>
 <div class="informalexample">
@@ -365,7 +368,7 @@ would become
 <span class="normal">  </span><span class="string">"gnome-dev-cdrom"</span><span class="symbol">,</span>
 <span class="normal">  </span><span class="string">"gnome-dev"</span><span class="symbol">,</span>
 <span class="normal">  </span><span class="string">"gnome"</span><span class="symbol">,</span>
-<span class="normal">  <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span>
+<span class="normal">  <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span>
 <span class="cbracket">}</span><span class="symbol">;</span></pre></td>
       </tr>
     </tbody>

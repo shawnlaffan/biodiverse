@@ -94,7 +94,8 @@ Support for checksums has been added in GLib 2.16
 <pre class="programlisting">typedef enum {
   G_CHECKSUM_MD5,
   G_CHECKSUM_SHA1,
-  G_CHECKSUM_SHA256
+  G_CHECKSUM_SHA256,
+  G_CHECKSUM_SHA512
 } GChecksumType;
 </pre>
 <p>
@@ -124,6 +125,11 @@ date to include new hashing algorithm types.
 <tr>
 <td><p><a name="G-CHECKSUM-SHA256:CAPS"></a><span class="term"><code class="literal">G_CHECKSUM_SHA256</code></span></p></td>
 <td>Use the SHA-256 hashing algorithm
+</td>
+</tr>
+<tr>
+<td><p><a name="G-CHECKSUM-SHA512:CAPS"></a><span class="term"><code class="literal">G_CHECKSUM_SHA512</code></span></p></td>
+<td>Use the SHA-512 hashing algorithm
 </td>
 </tr>
 </tbody>
@@ -201,7 +207,8 @@ on it anymore.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the newly created <a class="link" href="glib-Data-Checksums.html#GChecksum" title="GChecksum"><span class="type">GChecksum</span></a>, or <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a>.
-Use <a class="link" href="glib-Data-Checksums.html#g-checksum-free" title="g_checksum_free ()"><code class="function">g_checksum_free()</code></a> to free the memory allocated by it.</td>
+Use <a class="link" href="glib-Data-Checksums.html#g-checksum-free" title="g_checksum_free ()"><code class="function">g_checksum_free()</code></a> to free the memory allocated by it. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>
@@ -298,7 +305,8 @@ not have been called on <em class="parameter"><code>checksum</code></em>.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>buffer used to compute the checksum</td>
+<td>buffer used to compute the checksum. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>length</code></em> :</span></p></td>
@@ -408,7 +416,8 @@ The hexadecimal string returned will be in lower case.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>binary blob to compute the digest of</td>
+<td>binary blob to compute the digest of. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>length</code></em> :</span></p></td>

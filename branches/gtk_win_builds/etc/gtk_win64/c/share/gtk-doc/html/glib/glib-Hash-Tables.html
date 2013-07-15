@@ -177,55 +177,14 @@ key/value pairs in the hash table, see <a class="link" href="glib-Hash-Tables.ht
 To destroy a <a class="link" href="glib-Hash-Tables.html#GHashTable" title="GHashTable"><span class="type">GHashTable</span></a> use <a class="link" href="glib-Hash-Tables.html#g-hash-table-destroy" title="g_hash_table_destroy ()"><code class="function">g_hash_table_destroy()</code></a>.
 </p>
 <p>
-</p>
-<div class="example">
-<a name="idp50718944"></a><p class="title"><b>Example 13. Using a GHashTable as a set</b></p>
-<div class="example-contents">
-<p>
-A common use-case for hash tables is to store information about
-a set of keys, without associating any particular value with each
+A common use-case for hash tables is to store information about a
+set of keys, without associating any particular value with each
 key. GHashTable optimizes one way of doing so: If you store only
 key-value pairs where key == value, then GHashTable does not
 allocate memory to store the values, which can be a considerable
-space saving, if your set is large.
-</p>
-<pre class="programlisting">
-GHashTable *
-set_new (GHashFunc      hash_func,
-         GEqualFunc     equal_func,
-         GDestroyNotify destroy)
-{
-  return g_hash_table_new_full (hash_func, equal_func, destroy, NULL);
-}
-
-void
-set_add (GHashTable *set,
-         gpointer    element)
-{
-  g_hash_table_replace (set, element, element);
-}
-
-gboolean
-set_contains (GHashTable *set,
-              gpointer    element)
-{
-  return g_hash_table_lookup_extended (set, element, NULL, NULL);
-}
-
-gboolean
-set_remove (GHashTable *set,
-            gpointer    element)
-{
-  return g_hash_table_remove (set, element);
-}
-</pre>
-</div>
-</div>
-<p><br class="example-break">
-</p>
-<p>
-As of version 2.32, there is also a <a class="link" href="glib-Hash-Tables.html#g-hash-table-add" title="g_hash_table_add ()"><code class="function">g_hash_table_add()</code></a> function to
-add a key to a <a class="link" href="glib-Hash-Tables.html#GHashTable" title="GHashTable"><span class="type">GHashTable</span></a> that is being used as a set.
+space saving, if your set is large. The functions
+<a class="link" href="glib-Hash-Tables.html#g-hash-table-add" title="g_hash_table_add ()"><code class="function">g_hash_table_add()</code></a> and <a class="link" href="glib-Hash-Tables.html#g-hash-table-contains" title="g_hash_table_contains ()"><code class="function">g_hash_table_contains()</code></a> are designed to be
+used when using <a class="link" href="glib-Hash-Tables.html#GHashTable" title="GHashTable"><span class="type">GHashTable</span></a> this way.
 </p>
 </div>
 <div class="refsect1">
@@ -1003,8 +962,8 @@ without calling the key and value destroy functions.
 <a name="g-hash-table-get-keys"></a><h3>g_hash_table_get_keys ()</h3>
 <pre class="programlisting"><a class="link" href="glib-Doubly-Linked-Lists.html#GList" title="struct GList"><span class="returnvalue">GList</span></a> *             g_hash_table_get_keys               (<em class="parameter"><code><a class="link" href="glib-Hash-Tables.html#GHashTable" title="GHashTable"><span class="type">GHashTable</span></a> *hash_table</code></em>);</pre>
 <p>
-Retrieves every key inside <em class="parameter"><code>hash_table</code></em>. The returned data
-is valid until <em class="parameter"><code>hash_table</code></em> is modified.
+Retrieves every key inside <em class="parameter"><code>hash_table</code></em>. The returned data is valid
+until changes to the hash release those keys.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>

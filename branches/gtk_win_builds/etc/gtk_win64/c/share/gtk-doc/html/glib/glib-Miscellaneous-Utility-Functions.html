@@ -42,7 +42,7 @@
 
 const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-get-application-name" title="g_get_application_name ()">g_get_application_name</a>              (<em class="parameter"><code><span class="type">void</span></code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-set-application-name" title="g_set_application_name ()">g_set_application_name</a>              (<em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *application_name</code></em>);
-<a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-get-prgname" title="g_get_prgname ()">g_get_prgname</a>                       (<em class="parameter"><code><span class="type">void</span></code></em>);
+const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-get-prgname" title="g_get_prgname ()">g_get_prgname</a>                       (<em class="parameter"><code><span class="type">void</span></code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-set-prgname" title="g_set_prgname ()">g_set_prgname</a>                       (<em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *prgname</code></em>);
 <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="returnvalue">gchar</span></a> **            <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-get-environ" title="g_get_environ ()">g_get_environ</a>                       (<em class="parameter"><code><span class="type">void</span></code></em>);
 const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-environ-getenv" title="g_environ_getenv ()">g_environ_getenv</a>                    (<em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> **envp</code></em>,
@@ -166,7 +166,7 @@ been called).
 Sets a human-readable name for the application. This name should be
 localized if possible, and is intended for display to the user.
 Contrast with <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-set-prgname" title="g_set_prgname ()"><code class="function">g_set_prgname()</code></a>, which sets a non-localized name.
-<a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-set-prgname" title="g_set_prgname ()"><code class="function">g_set_prgname()</code></a> will be called automatically by <a href="http://library.gnome.org/devel/gtk3/gtk-General.html#gtk-init"><code class="function">gtk_init()</code></a>,
+<a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-set-prgname" title="g_set_prgname ()"><code class="function">g_set_prgname()</code></a> will be called automatically by <code class="function">gtk_init()</code>,
 but <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-set-application-name" title="g_set_application_name ()"><code class="function">g_set_application_name()</code></a> will not.
 </p>
 <p>
@@ -192,12 +192,12 @@ or when displaying an application's name in the task list.
 <hr>
 <div class="refsect2">
 <a name="g-get-prgname"></a><h3>g_get_prgname ()</h3>
-<pre class="programlisting"><a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="returnvalue">gchar</span></a> *             g_get_prgname                       (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<pre class="programlisting">const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="returnvalue">gchar</span></a> *       g_get_prgname                       (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>
 Gets the name of the program. This name should <span class="emphasis"><em>not</em></span> 
 be localized, contrast with <a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-get-application-name" title="g_get_application_name ()"><code class="function">g_get_application_name()</code></a>.
-(If you are using GDK or GTK+ the program name is set in <a href="http://library.gnome.org/devel/gdk3/gdk-General.html#gdk-init"><code class="function">gdk_init()</code></a>, 
-which is called by <a href="http://library.gnome.org/devel/gtk3/gtk-General.html#gtk-init"><code class="function">gtk_init()</code></a>. The program name is found by taking 
+(If you are using GDK or GTK+ the program name is set in <code class="function">gdk_init()</code>, 
+which is called by <code class="function">gtk_init()</code>. The program name is found by taking 
 the last component of <code class="literal">argv[0]</code>.)
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -1011,46 +1011,39 @@ returned.
 <a name="g-get-home-dir"></a><h3>g_get_home_dir ()</h3>
 <pre class="programlisting">const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="returnvalue">gchar</span></a> *       g_get_home_dir                      (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
 <p>
-Gets the current user's home directory as defined in the 
-password database.
+Gets the current user's home directory.
 </p>
 <p>
-Note that in contrast to traditional UNIX tools, this function 
-prefers <code class="filename">passwd</code> entries over the <code class="envar">HOME</code> 
-environment variable. 
+As with most UNIX tools, this function will return the value of the
+<code class="envar">HOME</code> environment variable if it is set to an existing
+absolute path name, falling back to the <code class="filename">passwd</code>
+file in the case that it is unset.
 </p>
 <p>
-One of the reasons for this decision is that applications in many 
-cases need special handling to deal with the case where 
-<code class="envar">HOME</code> is
+If the path given in <code class="envar">HOME</code> is non-absolute, does not
+exist, or is not a directory, the result is undefined.
 </p>
-<table border="0" summary="Simple list" class="simplelist">
-<tr><td>Not owned by the user</td></tr>
-<tr><td>Not writeable</td></tr>
-<tr><td>Not even readable</td></tr>
-</table>
 <p>
-Since applications are in general <span class="emphasis"><em>not</em></span> written 
-to deal with these situations it was considered better to make 
-<a class="link" href="glib-Miscellaneous-Utility-Functions.html#g-get-home-dir" title="g_get_home_dir ()"><code class="function">g_get_home_dir()</code></a> not pay attention to <code class="envar">HOME</code> and to 
-return the real home directory for the user. If applications
-want to pay attention to <code class="envar">HOME</code>, they can do:
 </p>
-<div class="informalexample">
-  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
-    <tbody>
-      <tr>
-        <td class="listing_lines" align="right"><pre>1
-2
-3</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">const</span><span class="normal"> </span><span class="type">char</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">homedir </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="glib-Miscellaneous-Utility-Functions.html#g-getenv">g_getenv</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"HOME"</span><span class="symbol">);</span>
-<span class="normal"> </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">homedir</span><span class="symbol">)</span>
-<span class="normal">    homedir </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="glib-Miscellaneous-Utility-Functions.html#g-get-home-dir">g_get_home_dir</a></span><span class="normal"> </span><span class="symbol">();</span></pre></td>
-      </tr>
-    </tbody>
-  </table>
+<div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
+<h3 class="title">Note</h3>
+<p>
+  Before version 2.36 this function would ignore the
+  <code class="envar">HOME</code> environment variable, taking the value from the
+  <code class="filename">passwd</code> database instead.  This was changed to
+  increase the compatibility of GLib with other programs (and the XDG
+  basedir specification) and to increase testability of programs
+  based on GLib (by making it easier to run them from test
+  frameworks).
+</p>
+<p>
+  If your program has a strong requirement for either the new or the
+  old behaviour (and if you don't wish to increase your GLib
+  dependency to ensure that the new behaviour is in effect) then you
+  should either directly check the <code class="envar">HOME</code> environment
+  variable yourself or unset it before calling any functions in GLib.
+</p>
 </div>
-
 <p>
 </p>
 <div class="variablelist"><table border="0" class="variablelist">

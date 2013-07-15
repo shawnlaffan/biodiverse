@@ -24,12 +24,12 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __G_TIMER_H__
+#define __G_TIMER_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_TIMER_H__
-#define __G_TIMER_H__
 
 #include <glib/gtypes.h>
 
@@ -43,21 +43,32 @@ typedef struct _GTimer		GTimer;
 
 #define G_USEC_PER_SEC 1000000
 
+GLIB_AVAILABLE_IN_ALL
 GTimer*  g_timer_new	         (void);
+GLIB_AVAILABLE_IN_ALL
 void	 g_timer_destroy         (GTimer      *timer);
+GLIB_AVAILABLE_IN_ALL
 void	 g_timer_start	         (GTimer      *timer);
+GLIB_AVAILABLE_IN_ALL
 void	 g_timer_stop	         (GTimer      *timer);
+GLIB_AVAILABLE_IN_ALL
 void	 g_timer_reset	         (GTimer      *timer);
+GLIB_AVAILABLE_IN_ALL
 void	 g_timer_continue        (GTimer      *timer);
+GLIB_AVAILABLE_IN_ALL
 gdouble  g_timer_elapsed         (GTimer      *timer,
 				  gulong      *microseconds);
 
+GLIB_AVAILABLE_IN_ALL
 void     g_usleep                (gulong       microseconds);
 
+GLIB_AVAILABLE_IN_ALL
 void     g_time_val_add          (GTimeVal    *time_, 
                                   glong        microseconds);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_time_val_from_iso8601 (const gchar *iso_date,
 				  GTimeVal    *time_);
+GLIB_AVAILABLE_IN_ALL
 gchar*   g_time_val_to_iso8601   (GTimeVal    *time_) G_GNUC_MALLOC;
 
 G_END_DECLS

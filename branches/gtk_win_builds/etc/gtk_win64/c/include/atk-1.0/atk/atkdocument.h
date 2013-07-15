@@ -70,7 +70,10 @@ GType  atk_document_get_type             (void);
 
 const gchar*          atk_document_get_document_type (AtkDocument   *document);
 gpointer atk_document_get_document (AtkDocument   *document);
+#ifndef ATK_DISABLE_DEPRECATED
+G_DEPRECATED
 const gchar*          atk_document_get_locale (AtkDocument *document);
+#endif /* ATK_DISABLE_DEPRECATED */
 AtkAttributeSet*      atk_document_get_attributes (AtkDocument *document);
 const gchar*          atk_document_get_attribute_value (AtkDocument *document,
                                                         const gchar *attribute_name);

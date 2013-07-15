@@ -50,111 +50,111 @@ enum                <a class="link" href="GDBusMessage.html#GDBusMessageFlags" t
 enum                <a class="link" href="GDBusMessage.html#GDBusMessageHeaderField" title="enum GDBusMessageHeaderField">GDBusMessageHeaderField</a>;
 enum                <a class="link" href="GDBusMessage.html#GDBusMessageByteOrder" title="enum GDBusMessageByteOrder">GDBusMessageByteOrder</a>;
 <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new" title="g_dbus_message_new ()">g_dbus_message_new</a>                  (<em class="parameter"><code><span class="type">void</span></code></em>);
-<a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-signal" title="g_dbus_message_new_signal ()">g_dbus_message_new_signal</a>           (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal</code></em>);
-<a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-method-call" title="g_dbus_message_new_method_call ()">g_dbus_message_new_method_call</a>      (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *method</code></em>);
+<a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-signal" title="g_dbus_message_new_signal ()">g_dbus_message_new_signal</a>           (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal</code></em>);
+<a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-method-call" title="g_dbus_message_new_method_call ()">g_dbus_message_new_method_call</a>      (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *method</code></em>);
 <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-method-reply" title="g_dbus_message_new_method_reply ()">g_dbus_message_new_method_reply</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *method_call_message</code></em>);
 <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-method-error" title="g_dbus_message_new_method_error ()">g_dbus_message_new_method_error</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *method_call_message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message_format</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message_format</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
 <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-method-error-valist" title="g_dbus_message_new_method_error_valist ()">g_dbus_message_new_method_error_valist</a>
                                                         (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *method_call_message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message_format</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message_format</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);
 <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-method-error-literal" title="g_dbus_message_new_method_error_literal ()">g_dbus_message_new_method_error_literal</a>
                                                         (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *method_call_message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="GDBusMessage.html#g-dbus-message-print" title="g_dbus_message_print ()">g_dbus_message_print</a>                (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> indent</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GDBusMessage.html#g-dbus-message-get-locked" title="g_dbus_message_get_locked ()">g_dbus_message_get_locked</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             <a class="link" href="GDBusMessage.html#g-dbus-message-print" title="g_dbus_message_print ()">g_dbus_message_print</a>                (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> indent</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GDBusMessage.html#g-dbus-message-get-locked" title="g_dbus_message_get_locked ()">g_dbus_message_get_locked</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-lock" title="g_dbus_message_lock ()">g_dbus_message_lock</a>                 (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-copy" title="g_dbus_message_copy ()">g_dbus_message_copy</a>                 (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 <a class="link" href="GDBusMessage.html#GDBusMessageByteOrder" title="enum GDBusMessageByteOrder"><span class="returnvalue">GDBusMessageByteOrder</span></a> <a class="link" href="GDBusMessage.html#g-dbus-message-get-byte-order" title="g_dbus_message_get_byte_order ()">g_dbus_message_get_byte_order</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-byte-order" title="g_dbus_message_set_byte_order ()">g_dbus_message_set_byte_order</a>       (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusMessage.html#GDBusMessageByteOrder" title="enum GDBusMessageByteOrder"><span class="type">GDBusMessageByteOrder</span></a> byte_order</code></em>);
 <a class="link" href="GDBusMessage.html#GDBusMessageType" title="enum GDBusMessageType"><span class="returnvalue">GDBusMessageType</span></a>    <a class="link" href="GDBusMessage.html#g-dbus-message-get-message-type" title="g_dbus_message_get_message_type ()">g_dbus_message_get_message_type</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-message-type" title="g_dbus_message_set_message_type ()">g_dbus_message_set_message_type</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusMessage.html#GDBusMessageType" title="enum GDBusMessageType"><span class="type">GDBusMessageType</span></a> type</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="GDBusMessage.html#g-dbus-message-get-serial" title="g_dbus_message_get_serial ()">g_dbus_message_get_serial</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="GDBusMessage.html#g-dbus-message-get-serial" title="g_dbus_message_get_serial ()">g_dbus_message_get_serial</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-serial" title="g_dbus_message_set_serial ()">g_dbus_message_set_serial</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> serial</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> serial</code></em>);
 <a class="link" href="GDBusMessage.html#GDBusMessageFlags" title="enum GDBusMessageFlags"><span class="returnvalue">GDBusMessageFlags</span></a>   <a class="link" href="GDBusMessage.html#g-dbus-message-get-flags" title="g_dbus_message_get_flags ()">g_dbus_message_get_flags</a>            (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-flags" title="g_dbus_message_set_flags ()">g_dbus_message_set_flags</a>            (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusMessage.html#GDBusMessageFlags" title="enum GDBusMessageFlags"><span class="type">GDBusMessageFlags</span></a> flags</code></em>);
-<a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *          <a class="link" href="GDBusMessage.html#g-dbus-message-get-body" title="g_dbus_message_get_body ()">g_dbus_message_get_body</a>             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *          <a class="link" href="GDBusMessage.html#g-dbus-message-get-body" title="g_dbus_message_get_body ()">g_dbus_message_get_body</a>             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-body" title="g_dbus_message_set_body ()">g_dbus_message_set_body</a>             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *body</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *body</code></em>);
 <a class="link" href="GUnixFDList.html" title="GUnixFDList"><span class="returnvalue">GUnixFDList</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-unix-fd-list" title="g_dbus_message_get_unix_fd_list ()">g_dbus_message_get_unix_fd_list</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-unix-fd-list" title="g_dbus_message_set_unix_fd_list ()">g_dbus_message_set_unix_fd_list</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GUnixFDList.html" title="GUnixFDList"><span class="type">GUnixFDList</span></a> *fd_list</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="GDBusMessage.html#g-dbus-message-get-num-unix-fds" title="g_dbus_message_get_num_unix_fds ()">g_dbus_message_get_num_unix_fds</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="GDBusMessage.html#g-dbus-message-get-num-unix-fds" title="g_dbus_message_get_num_unix_fds ()">g_dbus_message_get_num_unix_fds</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-num-unix-fds" title="g_dbus_message_set_num_unix_fds ()">g_dbus_message_set_num_unix_fds</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> value</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="returnvalue">guchar</span></a> *            <a class="link" href="GDBusMessage.html#g-dbus-message-get-header-fields" title="g_dbus_message_get_header_fields ()">g_dbus_message_get_header_fields</a>    (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
-<a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *          <a class="link" href="GDBusMessage.html#g-dbus-message-get-header" title="g_dbus_message_get_header ()">g_dbus_message_get_header</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> value</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="returnvalue">guchar</span></a> *            <a class="link" href="GDBusMessage.html#g-dbus-message-get-header-fields" title="g_dbus_message_get_header_fields ()">g_dbus_message_get_header_fields</a>    (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *          <a class="link" href="GDBusMessage.html#g-dbus-message-get-header" title="g_dbus_message_get_header ()">g_dbus_message_get_header</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusMessage.html#GDBusMessageHeaderField" title="enum GDBusMessageHeaderField"><span class="type">GDBusMessageHeaderField</span></a> header_field</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-header" title="g_dbus_message_set_header ()">g_dbus_message_set_header</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusMessage.html#GDBusMessageHeaderField" title="enum GDBusMessageHeaderField"><span class="type">GDBusMessageHeaderField</span></a> header_field</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-destination" title="g_dbus_message_get_destination ()">g_dbus_message_get_destination</a>      (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-destination" title="g_dbus_message_get_destination ()">g_dbus_message_get_destination</a>      (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-destination" title="g_dbus_message_set_destination ()">g_dbus_message_set_destination</a>      (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-error-name" title="g_dbus_message_get_error_name ()">g_dbus_message_get_error_name</a>       (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-error-name" title="g_dbus_message_get_error_name ()">g_dbus_message_get_error_name</a>       (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-error-name" title="g_dbus_message_set_error_name ()">g_dbus_message_set_error_name</a>       (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-interface" title="g_dbus_message_get_interface ()">g_dbus_message_get_interface</a>        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-interface" title="g_dbus_message_get_interface ()">g_dbus_message_get_interface</a>        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-interface" title="g_dbus_message_set_interface ()">g_dbus_message_set_interface</a>        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-member" title="g_dbus_message_get_member ()">g_dbus_message_get_member</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-member" title="g_dbus_message_get_member ()">g_dbus_message_get_member</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-member" title="g_dbus_message_set_member ()">g_dbus_message_set_member</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-path" title="g_dbus_message_get_path ()">g_dbus_message_get_path</a>             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-path" title="g_dbus_message_get_path ()">g_dbus_message_get_path</a>             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-path" title="g_dbus_message_set_path ()">g_dbus_message_set_path</a>             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="GDBusMessage.html#g-dbus-message-get-reply-serial" title="g_dbus_message_get_reply_serial ()">g_dbus_message_get_reply_serial</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             <a class="link" href="GDBusMessage.html#g-dbus-message-get-reply-serial" title="g_dbus_message_get_reply_serial ()">g_dbus_message_get_reply_serial</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-reply-serial" title="g_dbus_message_set_reply_serial ()">g_dbus_message_set_reply_serial</a>     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> value</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-sender" title="g_dbus_message_get_sender ()">g_dbus_message_get_sender</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> value</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-sender" title="g_dbus_message_get_sender ()">g_dbus_message_get_sender</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-sender" title="g_dbus_message_set_sender ()">g_dbus_message_set_sender</a>           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-signature" title="g_dbus_message_get_signature ()">g_dbus_message_get_signature</a>        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-signature" title="g_dbus_message_get_signature ()">g_dbus_message_get_signature</a>        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GDBusMessage.html#g-dbus-message-set-signature" title="g_dbus_message_set_signature ()">g_dbus_message_set_signature</a>        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-arg0" title="g_dbus_message_get_arg0 ()">g_dbus_message_get_arg0</a>             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="returnvalue">guchar</span></a> *            <a class="link" href="GDBusMessage.html#g-dbus-message-to-blob" title="g_dbus_message_to_blob ()">g_dbus_message_to_blob</a>              (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *out_size</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="GDBusMessage.html#g-dbus-message-get-arg0" title="g_dbus_message_get_arg0 ()">g_dbus_message_get_arg0</a>             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="returnvalue">guchar</span></a> *            <a class="link" href="GDBusMessage.html#g-dbus-message-to-blob" title="g_dbus_message_to_blob ()">g_dbus_message_to_blob</a>              (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *out_size</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusConnection.html#GDBusCapabilityFlags"><span class="type">GDBusCapabilityFlags</span></a> capabilities</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gssize"><span class="returnvalue">gssize</span></a>              <a class="link" href="GDBusMessage.html#g-dbus-message-bytes-needed" title="g_dbus_message_bytes_needed ()">g_dbus_message_bytes_needed</a>         (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *blob</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> blob_len</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
-<a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-from-blob" title="g_dbus_message_new_from_blob ()">g_dbus_message_new_from_blob</a>        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *blob</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> blob_len</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gssize"><span class="returnvalue">gssize</span></a>              <a class="link" href="GDBusMessage.html#g-dbus-message-bytes-needed" title="g_dbus_message_bytes_needed ()">g_dbus_message_bytes_needed</a>         (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *blob</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> blob_len</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      <a class="link" href="GDBusMessage.html#g-dbus-message-new-from-blob" title="g_dbus_message_new_from_blob ()">g_dbus_message_new_from_blob</a>        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *blob</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> blob_len</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusConnection.html#GDBusCapabilityFlags"><span class="type">GDBusCapabilityFlags</span></a> capabilities</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GDBusMessage.html#g-dbus-message-to-gerror" title="g_dbus_message_to_gerror ()">g_dbus_message_to_gerror</a>            (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GDBusMessage.html#g-dbus-message-to-gerror" title="g_dbus_message_to_gerror ()">g_dbus_message_to_gerror</a>            (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GDBusMessage.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GDBusMessage
 </pre>
 </div>
 <div class="refsect1">
 <a name="GDBusMessage.properties"></a><h2>Properties</h2>
 <pre class="synopsis">
-  "<a class="link" href="GDBusMessage.html#GDBusMessage--locked" title='The "locked" property'>locked</a>"                   <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
+  "<a class="link" href="GDBusMessage.html#GDBusMessage--locked" title='The "locked" property'>locked</a>"                   <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read
 </pre>
 </div>
 <div class="refsect1">
@@ -386,7 +386,7 @@ Creates a new empty <a class="link" href="GDBusMessage.html" title="GDBusMessage
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
+<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
 </tr></tbody>
 </table></div>
 <p class="since">Since 2.26</p>
@@ -394,9 +394,9 @@ Creates a new empty <a class="link" href="GDBusMessage.html" title="GDBusMessage
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-new-signal"></a><h3>g_dbus_message_new_signal ()</h3>
-<pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_signal           (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_signal           (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal</code></em>);</pre>
 <p>
 Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> for a signal emission.
 </p>
@@ -420,7 +420,7 @@ Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><spa
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
+<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -429,10 +429,10 @@ Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><spa
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-new-method-call"></a><h3>g_dbus_message_new_method_call ()</h3>
-<pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_method_call      (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *method</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_method_call      (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *path</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *interface_</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *method</code></em>);</pre>
 <p>
 Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> for a method call.
 </p>
@@ -444,7 +444,7 @@ Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><spa
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name</code></em> :</span></p></td>
-<td>A valid D-Bus name or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>A valid D-Bus name or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -453,7 +453,7 @@ Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><spa
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>interface_</code></em> :</span></p></td>
-<td>A valid D-Bus interface name or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>A valid D-Bus interface name or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -462,7 +462,7 @@ Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><spa
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
+<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -489,7 +489,7 @@ create a reply message to.</td>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -500,8 +500,8 @@ create a reply message to.</td>
 <div class="refsect2">
 <a name="g-dbus-message-new-method-error"></a><h3>g_dbus_message_new_method_error ()</h3>
 <pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_method_error     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *method_call_message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message_format</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message_format</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> that is an error reply to <em class="parameter"><code>method_call_message</code></em>.
@@ -531,7 +531,7 @@ create a reply message to.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -543,8 +543,8 @@ create a reply message to.</td>
 <a name="g-dbus-message-new-method-error-valist"></a><h3>g_dbus_message_new_method_error_valist ()</h3>
 <pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_method_error_valist
                                                         (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *method_call_message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message_format</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message_format</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);</pre>
 <p>
 Like <a class="link" href="GDBusMessage.html#g-dbus-message-new-method-error" title="g_dbus_message_new_method_error ()"><code class="function">g_dbus_message_new_method_error()</code></a> but intended for language bindings.
@@ -574,7 +574,7 @@ create a reply message to.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -586,8 +586,8 @@ create a reply message to.</td>
 <a name="g-dbus-message-new-method-error-literal"></a><h3>g_dbus_message_new_method_error_literal ()</h3>
 <pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_method_error_literal
                                                         (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *method_call_message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *error_message</code></em>);</pre>
 <p>
 Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> that is an error reply to <em class="parameter"><code>method_call_message</code></em>.
 </p>
@@ -612,7 +612,7 @@ create a reply message to.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>A <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a>. Free with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -622,8 +622,8 @@ create a reply message to.</td>
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-print"></a><h3>g_dbus_message_print ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_dbus_message_print                (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> indent</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *             g_dbus_message_print                (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> indent</code></em>);</pre>
 <p>
 Produces a human-readable multi-line description of <em class="parameter"><code>message</code></em>.
 </p>
@@ -681,7 +681,7 @@ UNIX File Descriptors:
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A string that should be freed with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>.</td>
+<td>A string that should be freed with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -690,10 +690,10 @@ UNIX File Descriptors:
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-locked"></a><h3>g_dbus_message_get_locked ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_dbus_message_get_locked           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_dbus_message_get_locked           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Checks whether <em class="parameter"><code>message</code></em> is locked. To monitor changes to this
-value, conncet to the <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signal to listen for changes
+value, conncet to the <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signal to listen for changes
 on the <a class="link" href="GDBusMessage.html#GDBusMessage--locked" title='The "locked" property'><span class="type">"locked"</span></a> property.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -709,7 +709,7 @@ on the <a class="link" href="GDBusMessage.html#GDBusMessage--locked" title='The 
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>message</code></em> is locked, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>message</code></em> is locked, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -738,7 +738,7 @@ If <em class="parameter"><code>message</code></em> is locked, does nothing. Othe
 <div class="refsect2">
 <a name="g-dbus-message-copy"></a><h3>g_dbus_message_copy ()</h3>
 <pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_copy                 (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Copies <em class="parameter"><code>message</code></em>. The copy is a deep copy and the returned
 <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> is completely identical except that it is guaranteed
@@ -760,12 +760,12 @@ and the per-process or system-wide open files limit is reached.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>Return location for error or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+<td>Return location for error or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>error</code></em> is set.
-Free with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>A new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>error</code></em> is set.
+Free with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -875,7 +875,7 @@ Sets <em class="parameter"><code>message</code></em> to be of <em class="paramet
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-serial"></a><h3>g_dbus_message_get_serial ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             g_dbus_message_get_serial           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             g_dbus_message_get_serial           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Gets the serial for <em class="parameter"><code>message</code></em>.
 </p>
@@ -891,7 +891,7 @@ Gets the serial for <em class="parameter"><code>message</code></em>.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>.</td>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -901,7 +901,7 @@ Gets the serial for <em class="parameter"><code>message</code></em>.
 <div class="refsect2">
 <a name="g-dbus-message-set-serial"></a><h3>g_dbus_message_set_serial ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_serial           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> serial</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> serial</code></em>);</pre>
 <p>
 Sets the serial for <em class="parameter"><code>message</code></em>.
 </p>
@@ -917,7 +917,7 @@ Sets the serial for <em class="parameter"><code>message</code></em>.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>serial</code></em> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>.</td>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -978,7 +978,7 @@ enumeration bitwise ORed together).</td>
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-body"></a><h3>g_dbus_message_get_body ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *          g_dbus_message_get_body             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *          g_dbus_message_get_body             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Gets the body of a message.
 </p>
@@ -994,7 +994,7 @@ Gets the body of a message.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the body is empty. Do not free, it is owned by <em class="parameter"><code>message</code></em>.</td>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the body is empty. Do not free, it is owned by <em class="parameter"><code>message</code></em>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1004,11 +1004,11 @@ Gets the body of a message.
 <div class="refsect2">
 <a name="g-dbus-message-set-body"></a><h3>g_dbus_message_set_body ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_body             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *body</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *body</code></em>);</pre>
 <p>
 Sets the body <em class="parameter"><code>message</code></em>. As a side-effect the
 <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-SIGNATURE:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_SIGNATURE</code></a> header field is set to the
-type string of <em class="parameter"><code>body</code></em> (or cleared if <em class="parameter"><code>body</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>).
+type string of <em class="parameter"><code>body</code></em> (or cleared if <em class="parameter"><code>body</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>).
 </p>
 <p>
 If <em class="parameter"><code>body</code></em> is floating, <em class="parameter"><code>message</code></em> assumes ownership of <em class="parameter"><code>body</code></em>.
@@ -1025,7 +1025,7 @@ If <em class="parameter"><code>body</code></em> is floating, <em class="paramete
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>body</code></em> :</span></p></td>
-<td>Either <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> or a <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> that is a tuple.</td>
+<td>Either <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> or a <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> that is a tuple.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1053,7 +1053,7 @@ This method is only available on UNIX.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="GUnixFDList.html" title="GUnixFDList"><span class="type">GUnixFDList</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no file descriptors are
+<td>A <a class="link" href="GUnixFDList.html" title="GUnixFDList"><span class="type">GUnixFDList</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no file descriptors are
 associated. Do not free, this object is owned by <em class="parameter"><code>message</code></em>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
@@ -1070,7 +1070,7 @@ associated. Do not free, this object is owned by <em class="parameter"><code>mes
 Sets the UNIX file descriptors associated with <em class="parameter"><code>message</code></em>. As a
 side-effect the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-NUM-UNIX-FDS:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_NUM_UNIX_FDS</code></a> header
 field is set to the number of fds in <em class="parameter"><code>fd_list</code></em> (or cleared if
-<em class="parameter"><code>fd_list</code></em> is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>).
+<em class="parameter"><code>fd_list</code></em> is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>).
 </p>
 <p>
 This method is only available on UNIX.
@@ -1087,7 +1087,7 @@ This method is only available on UNIX.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>fd_list</code></em> :</span></p></td>
-<td>A <a class="link" href="GUnixFDList.html" title="GUnixFDList"><span class="type">GUnixFDList</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>A <a class="link" href="GUnixFDList.html" title="GUnixFDList"><span class="type">GUnixFDList</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -1097,7 +1097,7 @@ This method is only available on UNIX.
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-num-unix-fds"></a><h3>g_dbus_message_get_num_unix_fds ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             g_dbus_message_get_num_unix_fds     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             g_dbus_message_get_num_unix_fds     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-NUM-UNIX-FDS:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_NUM_UNIX_FDS</code></a> header field.
 </p>
@@ -1123,7 +1123,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-num-unix-fds"></a><h3>g_dbus_message_set_num_unix_fds ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_num_unix_fds     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> value</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-NUM-UNIX-FDS:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_NUM_UNIX_FDS</code></a> header field.
 </p>
@@ -1148,7 +1148,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-header-fields"></a><h3>g_dbus_message_get_header_fields ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="returnvalue">guchar</span></a> *            g_dbus_message_get_header_fields    (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="returnvalue">guchar</span></a> *            g_dbus_message_get_header_fields    (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Gets an array of all header fields on <em class="parameter"><code>message</code></em> that are set.
 </p>
@@ -1166,7 +1166,7 @@ Gets an array of all header fields on <em class="parameter"><code>message</code>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>An array of header fields
 terminated by <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-INVALID:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_INVALID</code></a>.  Each element
-is a <a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a>. Free with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span>
+is a <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a>. Free with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> zero-terminated=1]</span>
 </td>
 </tr>
 </tbody>
@@ -1176,7 +1176,7 @@ is a <a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="type">gu
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-header"></a><h3>g_dbus_message_get_header ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *          g_dbus_message_get_header           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="returnvalue">GVariant</span></a> *          g_dbus_message_get_header           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusMessage.html#GDBusMessageHeaderField" title="enum GDBusMessageHeaderField"><span class="type">GDBusMessageHeaderField</span></a> header_field</code></em>);</pre>
 <p>
 Gets a header field on <em class="parameter"><code>message</code></em>.
@@ -1197,7 +1197,7 @@ Gets a header field on <em class="parameter"><code>message</code></em>.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> with the value if the header was found, <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> with the value if the header was found, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
 otherwise. Do not free, it is owned by <em class="parameter"><code>message</code></em>.</td>
 </tr>
 </tbody>
@@ -1209,7 +1209,7 @@ otherwise. Do not free, it is owned by <em class="parameter"><code>message</code
 <a name="g-dbus-message-set-header"></a><h3>g_dbus_message_set_header ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_header           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusMessage.html#GDBusMessageHeaderField" title="enum GDBusMessageHeaderField"><span class="type">GDBusMessageHeaderField</span></a> header_field</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
 <p>
 Sets a header field on <em class="parameter"><code>message</code></em>.
 </p>
@@ -1232,7 +1232,7 @@ If <em class="parameter"><code>value</code></em> is floating, <em class="paramet
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>value</code></em> :</span></p></td>
-<td>A <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> to set the header field or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the header field. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>A <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> to set the header field or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the header field. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -1242,7 +1242,7 @@ If <em class="parameter"><code>value</code></em> is floating, <em class="paramet
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-destination"></a><h3>g_dbus_message_get_destination ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_destination      (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_destination      (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-DESTINATION:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_DESTINATION</code></a> header field.
 </p>
@@ -1268,7 +1268,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-destination"></a><h3>g_dbus_message_set_destination ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_destination      (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-DESTINATION:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_DESTINATION</code></a> header field.
 </p>
@@ -1293,7 +1293,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-error-name"></a><h3>g_dbus_message_get_error_name ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_error_name       (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_error_name       (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-ERROR-NAME:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_ERROR_NAME</code></a> header field.
 </p>
@@ -1319,7 +1319,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-error-name"></a><h3>g_dbus_message_set_error_name ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_error_name       (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-ERROR-NAME:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_ERROR_NAME</code></a> header field.
 </p>
@@ -1344,7 +1344,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-interface"></a><h3>g_dbus_message_get_interface ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_interface        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_interface        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-INTERFACE:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_INTERFACE</code></a> header field.
 </p>
@@ -1370,7 +1370,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-interface"></a><h3>g_dbus_message_set_interface ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_interface        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-INTERFACE:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_INTERFACE</code></a> header field.
 </p>
@@ -1395,7 +1395,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-member"></a><h3>g_dbus_message_get_member ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_member           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_member           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-MEMBER:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_MEMBER</code></a> header field.
 </p>
@@ -1421,7 +1421,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-member"></a><h3>g_dbus_message_set_member ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_member           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-MEMBER:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_MEMBER</code></a> header field.
 </p>
@@ -1446,7 +1446,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-path"></a><h3>g_dbus_message_get_path ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_path             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_path             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-PATH:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_PATH</code></a> header field.
 </p>
@@ -1472,7 +1472,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-path"></a><h3>g_dbus_message_set_path ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_path             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-PATH:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_PATH</code></a> header field.
 </p>
@@ -1497,7 +1497,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-reply-serial"></a><h3>g_dbus_message_get_reply_serial ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             g_dbus_message_get_reply_serial     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="returnvalue">guint32</span></a>             g_dbus_message_get_reply_serial     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-REPLY-SERIAL:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_REPLY_SERIAL</code></a> header field.
 </p>
@@ -1523,7 +1523,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-reply-serial"></a><h3>g_dbus_message_set_reply_serial ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_reply_serial     (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> value</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-REPLY-SERIAL:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_REPLY_SERIAL</code></a> header field.
 </p>
@@ -1548,7 +1548,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-sender"></a><h3>g_dbus_message_get_sender ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_sender           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_sender           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-SENDER:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_SENDER</code></a> header field.
 </p>
@@ -1574,7 +1574,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-sender"></a><h3>g_dbus_message_set_sender ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_sender           (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-SENDER:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_SENDER</code></a> header field.
 </p>
@@ -1599,7 +1599,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-signature"></a><h3>g_dbus_message_get_signature ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_signature        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_signature        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-SIGNATURE:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_SIGNATURE</code></a> header field.
 </p>
@@ -1625,7 +1625,7 @@ Convenience getter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <div class="refsect2">
 <a name="g-dbus-message-set-signature"></a><h3>g_dbus_message_set_signature ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_dbus_message_set_signature        (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *value</code></em>);</pre>
 <p>
 Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-SIGNATURE:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_SIGNATURE</code></a> header field.
 </p>
@@ -1650,7 +1650,7 @@ Convenience setter for the <a class="link" href="GDBusMessage.html#G-DBUS-MESSAG
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-get-arg0"></a><h3>g_dbus_message_get_arg0 ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_arg0             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_dbus_message_get_arg0             (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>);</pre>
 <p>
 Convenience to get the first item in the body of <em class="parameter"><code>message</code></em>.
 </p>
@@ -1666,7 +1666,7 @@ Convenience to get the first item in the body of <em class="parameter"><code>mes
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>The string item or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the first item in the body of
+<td>The string item or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the first item in the body of
 <em class="parameter"><code>message</code></em> is not a string.</td>
 </tr>
 </tbody>
@@ -1676,10 +1676,10 @@ Convenience to get the first item in the body of <em class="parameter"><code>mes
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-to-blob"></a><h3>g_dbus_message_to_blob ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="returnvalue">guchar</span></a> *            g_dbus_message_to_blob              (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *out_size</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="returnvalue">guchar</span></a> *            g_dbus_message_to_blob              (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> *out_size</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusConnection.html#GDBusCapabilityFlags"><span class="type">GDBusCapabilityFlags</span></a> capabilities</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Serializes <em class="parameter"><code>message</code></em> to a blob. The byte order returned by
 <a class="link" href="GDBusMessage.html#g-dbus-message-get-byte-order" title="g_dbus_message_get_byte_order ()"><code class="function">g_dbus_message_get_byte_order()</code></a> will be used.
@@ -1710,7 +1710,7 @@ Serializes <em class="parameter"><code>message</code></em> to a blob. The byte o
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>A pointer to a
 valid binary D-Bus message of <em class="parameter"><code>out_size</code></em> bytes generated by <em class="parameter"><code>message</code></em>
-or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>error</code></em> is set. Free with <a href="./../glib/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_size][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>error</code></em> is set. Free with <a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free"><code class="function">g_free()</code></a>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=out_size][<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -1720,9 +1720,9 @@ or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="lit
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-bytes-needed"></a><h3>g_dbus_message_bytes_needed ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gssize"><span class="returnvalue">gssize</span></a>              g_dbus_message_bytes_needed         (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *blob</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> blob_len</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gssize"><span class="returnvalue">gssize</span></a>              g_dbus_message_bytes_needed         (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *blob</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> blob_len</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Utility function to calculate how many bytes are needed to
 completely deserialize the D-Bus message stored at <em class="parameter"><code>blob</code></em>.
@@ -1744,7 +1744,7 @@ completely deserialize the D-Bus message stored at <em class="parameter"><code>b
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>Return location for error or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+<td>Return location for error or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -1759,10 +1759,10 @@ determine the size).</td>
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-new-from-blob"></a><h3>g_dbus_message_new_from_blob ()</h3>
-<pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_from_blob        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *blob</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> blob_len</code></em>,
+<pre class="programlisting"><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="returnvalue">GDBusMessage</span></a> *      g_dbus_message_new_from_blob        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guchar"><span class="type">guchar</span></a> *blob</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gsize"><span class="type">gsize</span></a> blob_len</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GDBusConnection.html#GDBusCapabilityFlags"><span class="type">GDBusCapabilityFlags</span></a> capabilities</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Creates a new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> from the data stored at <em class="parameter"><code>blob</code></em>. The byte
 order that the message was in can be retrieved using
@@ -1789,12 +1789,12 @@ order that the message was in can be retrieved using
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>Return location for error or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+<td>Return location for error or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>error</code></em> is set. Free with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
+<td>A new <a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>error</code></em> is set. Free with
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1803,14 +1803,14 @@ order that the message was in can be retrieved using
 <hr>
 <div class="refsect2">
 <a name="g-dbus-message-to-gerror"></a><h3>g_dbus_message_to_gerror ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_dbus_message_to_gerror            (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_dbus_message_to_gerror            (<em class="parameter"><code><a class="link" href="GDBusMessage.html" title="GDBusMessage"><span class="type">GDBusMessage</span></a> *message</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 If <em class="parameter"><code>message</code></em> is not of type <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-TYPE-ERROR:CAPS"><code class="literal">G_DBUS_MESSAGE_TYPE_ERROR</code></a> does
-nothing and returns <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.
+nothing and returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>.
 </p>
 <p>
-Otherwise this method encodes the error in <em class="parameter"><code>message</code></em> as a <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>
+Otherwise this method encodes the error in <em class="parameter"><code>message</code></em> as a <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a>
 using <a class="link" href="gio-GDBusError.html#g-dbus-error-set-dbus-error" title="g_dbus_error_set_dbus_error ()"><code class="function">g_dbus_error_set_dbus_error()</code></a> using the information in the
 <a class="link" href="GDBusMessage.html#G-DBUS-MESSAGE-HEADER-FIELD-ERROR-NAME:CAPS"><code class="literal">G_DBUS_MESSAGE_HEADER_FIELD_ERROR_NAME</code></a> header field of <em class="parameter"><code>message</code></em> as
 well as the first string item in <em class="parameter"><code>message</code></em>'s body.
@@ -1827,12 +1827,12 @@ well as the first string item in <em class="parameter"><code>message</code></em>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
-<td>The <a href="./../glib/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> to set.</td>
+<td>The <a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#GError"><span class="type">GError</span></a> to set.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>error</code></em> was set, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>error</code></em> was set, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1843,7 +1843,7 @@ well as the first string item in <em class="parameter"><code>message</code></em>
 <a name="GDBusMessage.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="GDBusMessage--locked"></a><h3>The <code class="literal">"locked"</code> property</h3>
-<pre class="programlisting">  "locked"                   <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
+<pre class="programlisting">  "locked"                   <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read</pre>
 <p>Whether the message is locked.</p>
 <p>Default value: FALSE</p>
 </div>

@@ -62,7 +62,7 @@ gboolean        atk_relation_set_contains             (AtkRelationSet  *set,
                                                        AtkRelationType relationship);
 gboolean        atk_relation_set_contains_target      (AtkRelationSet  *set,
                                                        AtkRelationType relationship,
-                                                       AtkObject       *targe);
+                                                       AtkObject       *target);
 void            atk_relation_set_remove               (AtkRelationSet  *set,
                                                        AtkRelation     *relation);
 void            atk_relation_set_add                  (AtkRelationSet  *set,

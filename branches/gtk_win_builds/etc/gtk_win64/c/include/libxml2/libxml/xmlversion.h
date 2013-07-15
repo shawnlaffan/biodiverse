@@ -29,21 +29,21 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  *
  * the version string like "1.2.3"
  */
-#define LIBXML_DOTTED_VERSION "2.8.0"
+#define LIBXML_DOTTED_VERSION "2.9.0"
 
 /**
  * LIBXML_VERSION:
  *
  * the version number: 1.2.3 value is 10203
  */
-#define LIBXML_VERSION 20800
+#define LIBXML_VERSION 20900
 
 /**
  * LIBXML_VERSION_STRING:
  *
  * the version number string, 1.2.3 value is "10203"
  */
-#define LIBXML_VERSION_STRING "20800"
+#define LIBXML_VERSION_STRING "20900"
 
 /**
  * LIBXML_VERSION_EXTRA:
@@ -58,7 +58,7 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  * Macro to check that the libxml version in use is compatible with
  * the version the software has been compiled against
  */
-#define LIBXML_TEST_VERSION xmlCheckVersion(20800);
+#define LIBXML_TEST_VERSION xmlCheckVersion(20900);
 
 #ifndef VMS
 #if 0
@@ -412,7 +412,11 @@ XMLPUBFUN void XMLCALL xmlCheckVersion(int version);
  */
 
 #ifndef ATTRIBUTE_UNUSED
-#define ATTRIBUTE_UNUSED __attribute__((unused))
+# if ((__GNUC__ > 2) || ((__GNUC__ == 2) && (__GNUC_MINOR__ >= 7)))
+#  define ATTRIBUTE_UNUSED __attribute__((unused))
+# else
+#  define ATTRIBUTE_UNUSED
+# endif
 #endif
 
 /**

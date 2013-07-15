@@ -41,39 +41,39 @@
 #include &lt;gio/gio.h&gt;
 
 <span class="returnvalue">void</span>                (<a class="link" href="gio-Watching-Bus-Names.html#GBusNameAppearedCallback" title="GBusNameAppearedCallback ()">*GBusNameAppearedCallback</a>)         (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name_owner</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name_owner</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
 <span class="returnvalue">void</span>                (<a class="link" href="gio-Watching-Bus-Names.html#GBusNameVanishedCallback" title="GBusNameVanishedCallback ()">*GBusNameVanishedCallback</a>)         (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
 enum                <a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags">GBusNameWatcherFlags</a>;
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name" title="g_bus_watch_name ()">g_bus_watch_name</a>                    (<em class="parameter"><code><a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a> bus_type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name" title="g_bus_watch_name ()">g_bus_watch_name</a>                    (<em class="parameter"><code><a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a> bus_type</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags"><span class="type">GBusNameWatcherFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameAppearedCallback" title="GBusNameAppearedCallback ()"><span class="type">GBusNameAppearedCallback</span></a> name_appeared_handler</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameVanishedCallback" title="GBusNameVanishedCallback ()"><span class="type">GBusNameVanishedCallback</span></a> name_vanished_handler</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> user_data_free_func</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name-on-connection" title="g_bus_watch_name_on_connection ()">g_bus_watch_name_on_connection</a>      (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> user_data_free_func</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name-on-connection" title="g_bus_watch_name_on_connection ()">g_bus_watch_name_on_connection</a>      (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags"><span class="type">GBusNameWatcherFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameAppearedCallback" title="GBusNameAppearedCallback ()"><span class="type">GBusNameAppearedCallback</span></a> name_appeared_handler</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameVanishedCallback" title="GBusNameVanishedCallback ()"><span class="type">GBusNameVanishedCallback</span></a> name_vanished_handler</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> user_data_free_func</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gio-Watching-Bus-Names.html#g-bus-unwatch-name" title="g_bus_unwatch_name ()">g_bus_unwatch_name</a>                  (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> watcher_id</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name-with-closures" title="g_bus_watch_name_with_closures ()">g_bus_watch_name_with_closures</a>      (<em class="parameter"><code><a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a> bus_type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> user_data_free_func</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gio-Watching-Bus-Names.html#g-bus-unwatch-name" title="g_bus_unwatch_name ()">g_bus_unwatch_name</a>                  (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> watcher_id</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name-with-closures" title="g_bus_watch_name_with_closures ()">g_bus_watch_name_with_closures</a>      (<em class="parameter"><code><a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a> bus_type</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags"><span class="type">GBusNameWatcherFlags</span></a> flags</code></em>,
-                                                         <em class="parameter"><code><a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_appeared_closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_vanished_closure</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name-on-connection-with-closures" title="g_bus_watch_name_on_connection_with_closures ()">g_bus_watch_name_on_connection_with_closures</a>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_appeared_closure</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_vanished_closure</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name-on-connection-with-closures" title="g_bus_watch_name_on_connection_with_closures ()">g_bus_watch_name_on_connection_with_closures</a>
                                                         (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags"><span class="type">GBusNameWatcherFlags</span></a> flags</code></em>,
-                                                         <em class="parameter"><code><a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_appeared_closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_vanished_closure</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_appeared_closure</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_vanished_closure</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -84,7 +84,7 @@ Convenience API for watching bus names.
 <p>
 </p>
 <div class="example">
-<a name="gdbus-watching-names"></a><p class="title"><b>Example 9. Simple application watching a name</b></p>
+<a name="gdbus-watching-names"></a><p class="title"><b>Example 13. Simple application watching a name</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -174,21 +174,19 @@ Convenience API for watching bus names.
 83
 84
 85
-86
-87
-88</pre></td>
+86</pre></td>
         <td class="listing_code"><pre class="programlisting"><span class="preproc">#include</span><span class="normal"> </span><span class="string">&lt;gio/gio.h&gt;</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">opt_name         </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
-<span class="keyword">static</span><span class="normal"> </span><span class="usertype">gboolean</span><span class="normal"> opt_system_bus </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">;</span>
-<span class="keyword">static</span><span class="normal"> </span><span class="usertype">gboolean</span><span class="normal"> opt_auto_start </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">;</span>
+<span class="keyword">static</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">opt_name         </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="keyword">static</span><span class="normal"> </span><span class="usertype">gboolean</span><span class="normal"> opt_system_bus </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">;</span>
+<span class="keyword">static</span><span class="normal"> </span><span class="usertype">gboolean</span><span class="normal"> opt_auto_start </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">;</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="usertype">GOptionEntry</span><span class="normal"> opt_entries</span><span class="symbol">[]</span><span class="normal"> </span><span class="symbol">=</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="string">"name"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">'n'</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Commandline-option-parser.html#G-OPTION-ARG-STRING:CAPS">G_OPTION_ARG_STRING</a></span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">opt_name</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Name to watch"</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="string">"system-bus"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">'s'</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Commandline-option-parser.html#G-OPTION-ARG-NONE:CAPS">G_OPTION_ARG_NONE</a></span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">opt_system_bus</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Use the system-bus instead of the session-bus"</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="string">"auto-start"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">'a'</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Commandline-option-parser.html#G-OPTION-ARG-NONE:CAPS">G_OPTION_ARG_NONE</a></span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">opt_auto_start</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Instruct the bus to launch an owner for the name"</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="cbracket">}</span><span class="symbol">,</span>
-<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="cbracket">}</span>
+<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="string">"name"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">'n'</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#G-OPTION-ARG-STRING:CAPS">G_OPTION_ARG_STRING</a></span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">opt_name</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Name to watch"</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="cbracket">}</span><span class="symbol">,</span>
+<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="string">"system-bus"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">'s'</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#G-OPTION-ARG-NONE:CAPS">G_OPTION_ARG_NONE</a></span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">opt_system_bus</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Use the system-bus instead of the session-bus"</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a> </span><span class="cbracket">}</span><span class="symbol">,</span>
+<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> </span><span class="string">"auto-start"</span><span class="symbol">,</span><span class="normal"> </span><span class="string">'a'</span><span class="symbol">,</span><span class="normal"> </span><span class="number">0</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#G-OPTION-ARG-NONE:CAPS">G_OPTION_ARG_NONE</a></span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">opt_auto_start</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"Instruct the bus to launch an owner for the name"</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="cbracket">}</span><span class="symbol">,</span>
+<span class="normal">  </span><span class="cbracket">{</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="cbracket">}</span>
 <span class="cbracket">}</span><span class="symbol">;</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
@@ -197,7 +195,7 @@ Convenience API for watching bus names.
 <span class="normal">                  </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal">     </span><span class="symbol">*</span><span class="normal">name_owner</span><span class="symbol">,</span>
 <span class="normal">                  </span><span class="usertype">gpointer</span><span class="normal">         user_data</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Name %s on %s is owned by %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Name %s on %s is owned by %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span>
 <span class="normal">           name</span><span class="symbol">,</span>
 <span class="normal">           opt_system_bus </span><span class="symbol">?</span><span class="normal"> </span><span class="string">"the system bus"</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"the session bus"</span><span class="symbol">,</span>
 <span class="normal">           name_owner</span><span class="symbol">);</span>
@@ -208,7 +206,7 @@ Convenience API for watching bus names.
 <span class="normal">                  </span><span class="keyword">const</span><span class="normal"> </span><span class="usertype">gchar</span><span class="normal">     </span><span class="symbol">*</span><span class="normal">name</span><span class="symbol">,</span>
 <span class="normal">                  </span><span class="usertype">gpointer</span><span class="normal">         user_data</span><span class="symbol">)</span>
 <span class="cbracket">{</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Name %s does not exist on %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Name %s does not exist on %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span>
 <span class="normal">           name</span><span class="symbol">,</span>
 <span class="normal">           opt_system_bus </span><span class="symbol">?</span><span class="normal"> </span><span class="string">"the system bus"</span><span class="normal"> </span><span class="symbol">:</span><span class="normal"> </span><span class="string">"the session bus"</span><span class="symbol">);</span>
 <span class="cbracket">}</span>
@@ -222,23 +220,21 @@ Convenience API for watching bus names.
 <span class="normal">  </span><span class="usertype">GError</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">error</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="usertype">GBusNameWatcherFlags</span><span class="normal"> flags</span><span class="symbol">;</span>
 
-<span class="normal">  </span><span class="function"><a href="./../gobject/gobject/gobject-Type-Information.html#g-type-init">g_type_init</a></span><span class="normal"> </span><span class="symbol">();</span>
-
-<span class="normal">  error </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
-<span class="normal">  opt_context </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-Commandline-option-parser.html#g-option-context-new">g_option_context_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"g_bus_watch_name() example"</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Commandline-option-parser.html#g-option-context-set-summary">g_option_context_set_summary</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_context</span><span class="symbol">,</span>
+<span class="normal">  error </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">  opt_context </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#g-option-context-new">g_option_context_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"g_bus_watch_name() example"</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#g-option-context-set-summary">g_option_context_set_summary</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_context</span><span class="symbol">,</span>
 <span class="normal">                                </span><span class="string">"Example: to watch the power manager on the session bus, use:</span><span class="specialchar">\n</span><span class="string">"</span>
 <span class="normal">                                </span><span class="string">"</span><span class="specialchar">\n</span><span class="string">"</span>
 <span class="normal">                                </span><span class="string">"  ./example-watch-name -n org.gnome.PowerManager"</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Commandline-option-parser.html#g-option-context-add-main-entries">g_option_context_add_main_entries</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_context</span><span class="symbol">,</span><span class="normal"> opt_entries</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="function"><a href="./../glib/glib/glib-Commandline-option-parser.html#g-option-context-parse">g_option_context_parse</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_context</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">argc</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">argv</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">error</span><span class="symbol">))</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#g-option-context-add-main-entries">g_option_context_add_main_entries</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_context</span><span class="symbol">,</span><span class="normal"> opt_entries</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#g-option-context-parse">g_option_context_parse</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_context</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">argc</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">argv</span><span class="symbol">,</span><span class="normal"> </span><span class="symbol">&amp;</span><span class="normal">error</span><span class="symbol">))</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-printerr">g_printerr</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Error parsing options: %s"</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-printerr">g_printerr</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Error parsing options: %s"</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="keyword">goto</span><span class="normal"> out</span><span class="symbol">;</span>
 <span class="normal">    </span><span class="cbracket">}</span>
-<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_name </span><span class="symbol">==</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
+<span class="normal">  </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_name </span><span class="symbol">==</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-printerr">g_printerr</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Incorrect usage, try --help.</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-printerr">g_printerr</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Incorrect usage, try --help.</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="keyword">goto</span><span class="normal"> out</span><span class="symbol">;</span>
 <span class="normal">    </span><span class="cbracket">}</span>
 
@@ -251,17 +247,17 @@ Convenience API for watching bus names.
 <span class="normal">                                 flags</span><span class="symbol">,</span>
 <span class="normal">                                 on_name_appeared</span><span class="symbol">,</span>
 <span class="normal">                                 on_name_vanished</span><span class="symbol">,</span>
-<span class="normal">                                 <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
-<span class="normal">                                 <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">                                 <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
+<span class="normal">                                 <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 
-<span class="normal">  loop </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-new">g_main_loop_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-run">g_main_loop_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
+<span class="normal">  loop </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-new">g_main_loop_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS">FALSE</a></span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-run">g_main_loop_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="function"><a href="gio-Watching-Bus-Names.html#g-bus-unwatch-name">g_bus_unwatch_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">watcher_id</span><span class="symbol">);</span>
 
 <span class="label"> out:</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Commandline-option-parser.html#g-option-context-free">g_option_context_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_context</span><span class="symbol">);</span>
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_name</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Commandline-option-parser.html#g-option-context-free">g_option_context_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_context</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">opt_name</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="keyword">return</span><span class="normal"> </span><span class="number">0</span><span class="symbol">;</span>
 <span class="cbracket">}</span></pre></td>
@@ -279,9 +275,9 @@ Convenience API for watching bus names.
 <div class="refsect2">
 <a name="GBusNameAppearedCallback"></a><h3>GBusNameAppearedCallback ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                (*GBusNameAppearedCallback)         (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name_owner</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name_owner</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Invoked when the name being watched is known to have to have a owner.
 </p>
@@ -315,10 +311,15 @@ Invoked when the name being watched is known to have to have a owner.
 <div class="refsect2">
 <a name="GBusNameVanishedCallback"></a><h3>GBusNameVanishedCallback ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                (*GBusNameVanishedCallback)         (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 Invoked when the name being watched is known not to have to have a owner.
+</p>
+<p>
+This is also invoked when the <span class="type">GDBusConection</span> on which the watch was
+established has been closed.  In that case, <em class="parameter"><code>connection</code></em> will be
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -328,7 +329,8 @@ Invoked when the name being watched is known not to have to have a owner.
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>connection</code></em> :</span></p></td>
-<td>The <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> the name is being watched on.</td>
+<td>The <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> the name is being watched on, or
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name</code></em> :</span></p></td>
@@ -378,13 +380,13 @@ name.
 <hr>
 <div class="refsect2">
 <a name="g-bus-watch-name"></a><h3>g_bus_watch_name ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_bus_watch_name                    (<em class="parameter"><code><a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a> bus_type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_bus_watch_name                    (<em class="parameter"><code><a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a> bus_type</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags"><span class="type">GBusNameWatcherFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameAppearedCallback" title="GBusNameAppearedCallback ()"><span class="type">GBusNameAppearedCallback</span></a> name_appeared_handler</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameVanishedCallback" title="GBusNameVanishedCallback ()"><span class="type">GBusNameVanishedCallback</span></a> name_vanished_handler</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> user_data_free_func</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> user_data_free_func</code></em>);</pre>
 <p>
 Starts watching <em class="parameter"><code>name</code></em> on the bus specified by <em class="parameter"><code>bus_type</code></em> and calls
 <em class="parameter"><code>name_appeared_handler</code></em> and <em class="parameter"><code>name_vanished_handler</code></em> when the name is
@@ -414,7 +416,7 @@ will be <em class="parameter"><code>name_vanished_handler</code></em>. The rever
 </p>
 <p>
 This behavior makes it very simple to write applications that wants
-to take action when a certain name exists, see <a class="xref" href="gio-Watching-Bus-Names.html#gdbus-watching-names" title="Example 9. Simple application watching a name">Example 9, “Simple application watching a name”</a>. Basically, the application
+to take action when a certain name exists, see <a class="xref" href="gio-Watching-Bus-Names.html#gdbus-watching-names" title="Example 13. Simple application watching a name">Example 13, “Simple application watching a name”</a>. Basically, the application
 should create object proxies in <em class="parameter"><code>name_appeared_handler</code></em> and destroy
 them again (if any) in <em class="parameter"><code>name_vanished_handler</code></em>.
 </p>
@@ -438,12 +440,12 @@ them again (if any) in <em class="parameter"><code>name_vanished_handler</code><
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name_appeared_handler</code></em> :</span></p></td>
-<td>Handler to invoke when <em class="parameter"><code>name</code></em> is known to exist or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>Handler to invoke when <em class="parameter"><code>name</code></em> is known to exist or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name_vanished_handler</code></em> :</span></p></td>
-<td>Handler to invoke when <em class="parameter"><code>name</code></em> is known to not exist or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>Handler to invoke when <em class="parameter"><code>name</code></em> is known to not exist or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -452,7 +454,7 @@ them again (if any) in <em class="parameter"><code>name_vanished_handler</code><
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data_free_func</code></em> :</span></p></td>
-<td>Function for freeing <em class="parameter"><code>user_data</code></em> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>Function for freeing <em class="parameter"><code>user_data</code></em> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -467,13 +469,13 @@ them again (if any) in <em class="parameter"><code>name_vanished_handler</code><
 <hr>
 <div class="refsect2">
 <a name="g-bus-watch-name-on-connection"></a><h3>g_bus_watch_name_on_connection ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_bus_watch_name_on_connection      (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_bus_watch_name_on_connection      (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags"><span class="type">GBusNameWatcherFlags</span></a> flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameAppearedCallback" title="GBusNameAppearedCallback ()"><span class="type">GBusNameAppearedCallback</span></a> name_appeared_handler</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameVanishedCallback" title="GBusNameVanishedCallback ()"><span class="type">GBusNameVanishedCallback</span></a> name_vanished_handler</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> user_data_free_func</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> user_data_free_func</code></em>);</pre>
 <p>
 Like <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name" title="g_bus_watch_name ()"><code class="function">g_bus_watch_name()</code></a> but takes a <a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> instead of a
 <a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a>.
@@ -498,12 +500,12 @@ Like <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name" title="
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name_appeared_handler</code></em> :</span></p></td>
-<td>Handler to invoke when <em class="parameter"><code>name</code></em> is known to exist or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>Handler to invoke when <em class="parameter"><code>name</code></em> is known to exist or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name_vanished_handler</code></em> :</span></p></td>
-<td>Handler to invoke when <em class="parameter"><code>name</code></em> is known to not exist or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>Handler to invoke when <em class="parameter"><code>name</code></em> is known to not exist or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -512,7 +514,7 @@ Like <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name" title="
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>user_data_free_func</code></em> :</span></p></td>
-<td>Function for freeing <em class="parameter"><code>user_data</code></em> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>Function for freeing <em class="parameter"><code>user_data</code></em> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -527,7 +529,7 @@ Like <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name" title="
 <hr>
 <div class="refsect2">
 <a name="g-bus-unwatch-name"></a><h3>g_bus_unwatch_name ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_bus_unwatch_name                  (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> watcher_id</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_bus_unwatch_name                  (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> watcher_id</code></em>);</pre>
 <p>
 Stops watching a name.
 </p>
@@ -547,11 +549,11 @@ Stops watching a name.
 <hr>
 <div class="refsect2">
 <a name="g-bus-watch-name-with-closures"></a><h3>g_bus_watch_name_with_closures ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_bus_watch_name_with_closures      (<em class="parameter"><code><a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a> bus_type</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_bus_watch_name_with_closures      (<em class="parameter"><code><a class="link" href="GDBusConnection.html#GBusType" title="enum GBusType"><span class="type">GBusType</span></a> bus_type</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags"><span class="type">GBusNameWatcherFlags</span></a> flags</code></em>,
-                                                         <em class="parameter"><code><a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_appeared_closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_vanished_closure</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_appeared_closure</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_vanished_closure</code></em>);</pre>
 <p>
 Version of <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name" title="g_bus_watch_name ()"><code class="function">g_bus_watch_name()</code></a> using closures instead of callbacks for
 easier binding in other languages.
@@ -577,15 +579,15 @@ easier binding in other languages.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name_appeared_closure</code></em> :</span></p></td>
 <td>
-<a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> to invoke when <em class="parameter"><code>name</code></em> is known
-to exist or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> to invoke when <em class="parameter"><code>name</code></em> is known
+to exist or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name_vanished_closure</code></em> :</span></p></td>
 <td>
-<a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> to invoke when <em class="parameter"><code>name</code></em> is known
-to not exist or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> to invoke when <em class="parameter"><code>name</code></em> is known
+to not exist or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -601,12 +603,12 @@ Rename to: g_bus_watch_name</td>
 <hr>
 <div class="refsect2">
 <a name="g-bus-watch-name-on-connection-with-closures"></a><h3>g_bus_watch_name_on_connection_with_closures ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_bus_watch_name_on_connection_with_closures
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_bus_watch_name_on_connection_with_closures
                                                         (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gio-Watching-Bus-Names.html#GBusNameWatcherFlags" title="enum GBusNameWatcherFlags"><span class="type">GBusNameWatcherFlags</span></a> flags</code></em>,
-                                                         <em class="parameter"><code><a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_appeared_closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_vanished_closure</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_appeared_closure</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> *name_vanished_closure</code></em>);</pre>
 <p>
 Version of <a class="link" href="gio-Watching-Bus-Names.html#g-bus-watch-name-on-connection" title="g_bus_watch_name_on_connection ()"><code class="function">g_bus_watch_name_on_connection()</code></a> using closures instead of callbacks for
 easier binding in other languages.
@@ -632,15 +634,15 @@ easier binding in other languages.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name_appeared_closure</code></em> :</span></p></td>
 <td>
-<a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> to invoke when <em class="parameter"><code>name</code></em> is known
-to exist or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> to invoke when <em class="parameter"><code>name</code></em> is known
+to exist or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name_vanished_closure</code></em> :</span></p></td>
 <td>
-<a href="./../gobject/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> to invoke when <em class="parameter"><code>name</code></em> is known
-to not exist or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#GClosure"><span class="type">GClosure</span></a> to invoke when <em class="parameter"><code>name</code></em> is known
+to not exist or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>

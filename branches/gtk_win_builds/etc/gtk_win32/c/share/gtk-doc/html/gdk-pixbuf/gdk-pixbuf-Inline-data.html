@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Inline data</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="GDK-PixBuf Reference Manual">
 <link rel="up" href="rn01.html" title="API Reference">
 <link rel="prev" href="gdk-pixbuf-Image-Data-in-Memory.html" title="Image Data in Memory">
@@ -346,7 +346,7 @@ pointer to that memory is returned.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>If <em class="parameter"><code>ure_rle</code></em> is <code class="literal">TRUE</code>, a pointer to the newly-allocated memory
-for the run-length encoded pixel data, otherwise <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a>.</td>
+for the run-length encoded pixel data, otherwise <code class="literal">NULL</code>.</td>
 </tr>
 </tbody>
 </table></div>
@@ -437,7 +437,7 @@ The byte stream consists of a straightforward writeout of the
 <a class="link" href="gdk-pixbuf-Inline-data.html#GdkPixdata" title="struct GdkPixdata"><span class="type">GdkPixdata</span></a> fields in network byte order, plus the <em class="parameter"><code>pixel_data</code></em>
 bytes the structure points to.
 The <em class="parameter"><code>pixdata</code></em> contents are reconstructed byte by byte and are checked
-for validity. This function may fail with <code class="literal">GDK_PIXBUF_CORRUPT_IMAGE</code>
+for validity. This function may fail with <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR-CORRUPT-IMAGE:CAPS"><code class="literal">GDK_PIXBUF_ERROR_CORRUPT_IMAGE</code></a>
 or <a class="link" href="gdk-pixbuf-The-GdkPixbuf-Structure.html#GDK-PIXBUF-ERROR-UNKNOWN-TYPE:CAPS"><code class="literal">GDK_PIXBUF_ERROR_UNKNOWN_TYPE</code></a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -463,7 +463,7 @@ serialized <a class="link" href="gdk-pixbuf-Inline-data.html#GdkPixdata" title="
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
 <td>
-<span class="type">GError</span> location to indicate failures (maybe <a href="/home/mclasen/gnome/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> to ignore errors).</td>
+<span class="type">GError</span> location to indicate failures (maybe <code class="literal">NULL</code> to ignore errors).</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>

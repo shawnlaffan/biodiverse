@@ -41,14 +41,14 @@
 <a name="GDBusMenuModel.synopsis"></a><h2>Synopsis</h2>
 <pre class="synopsis">                    <a class="link" href="GDBusMenuModel.html#GDBusMenuModel-struct" title="GDBusMenuModel">GDBusMenuModel</a>;
 <a class="link" href="GDBusMenuModel.html" title="GDBusMenuModel"><span class="returnvalue">GDBusMenuModel</span></a> *    <a class="link" href="GDBusMenuModel.html#g-dbus-menu-model-get" title="g_dbus_menu_model_get ()">g_dbus_menu_model_get</a>               (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *bus_name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *bus_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GDBusMenuModel.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----<a class="link" href="GMenuModel.html" title="GMenuModel">GMenuModel</a>
          +----GDBusMenuModel
 </pre>
@@ -71,8 +71,8 @@ as a proxy for a menu model that is exported over D-Bus with
 <div class="refsect2">
 <a name="g-dbus-menu-model-get"></a><h3>g_dbus_menu_model_get ()</h3>
 <pre class="programlisting"><a class="link" href="GDBusMenuModel.html" title="GDBusMenuModel"><span class="returnvalue">GDBusMenuModel</span></a> *    g_dbus_menu_model_get               (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *bus_name</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *bus_name</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);</pre>
 <p>
 Obtains a <a class="link" href="GDBusMenuModel.html" title="GDBusMenuModel"><span class="type">GDBusMenuModel</span></a> for the menu model which is exported
 at the given <em class="parameter"><code>bus_name</code></em> and <em class="parameter"><code>object_path</code></em>.
@@ -106,7 +106,7 @@ the thread default main context unchanged.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a <a class="link" href="GDBusMenuModel.html" title="GDBusMenuModel"><span class="type">GDBusMenuModel</span></a> object. Free with
-<a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>

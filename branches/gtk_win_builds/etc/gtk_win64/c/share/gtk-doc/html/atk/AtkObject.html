@@ -27,6 +27,8 @@
                    | 
                   <a href="#AtkObject.object-hierarchy" class="shortcut">Object Hierarchy</a>
                    | 
+                  <a href="#AtkObject.derived-interfaces" class="shortcut">Known Derived Interfaces</a>
+                   | 
                   <a href="#AtkObject.properties" class="shortcut">Properties</a>
                    | 
                   <a href="#AtkObject.signals" class="shortcut">Signals</a>
@@ -49,9 +51,9 @@ enum                <a class="link" href="AtkObject.html#AtkRole" title="enum At
 enum                <a class="link" href="AtkObject.html#AtkLayer" title="enum AtkLayer">AtkLayer</a>;
                     <a class="link" href="AtkObject.html#AtkImplementor" title="AtkImplementor">AtkImplementor</a>;
                     <a class="link" href="AtkObject.html#AtkPropertyValues" title="AtkPropertyValues">AtkPropertyValues</a>;
-<span class="returnvalue">gboolean</span>            (<a class="link" href="AtkObject.html#AtkFunction" title="AtkFunction ()">*AtkFunction</a>)                      (<em class="parameter"><code><span class="type">gpointer</span> data</code></em>);
-<span class="returnvalue">void</span>                (<a class="link" href="AtkObject.html#AtkPropertyChangeHandler" title="AtkPropertyChangeHandler ()">*AtkPropertyChangeHandler</a>)         (<em class="parameter"><code><a class="link" href="AtkObject.html" title="AtkObject"><span class="type">AtkObject</span></a> *Param1</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="AtkObject.html#AtkPropertyValues" title="AtkPropertyValues"><span class="type">AtkPropertyValues</span></a> *Param2</code></em>);
+<span class="returnvalue">gboolean</span>            (<a class="link" href="AtkObject.html#AtkFunction" title="AtkFunction ()">*AtkFunction</a>)                      (<em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);
+<span class="returnvalue">void</span>                (<a class="link" href="AtkObject.html#AtkPropertyChangeHandler" title="AtkPropertyChangeHandler ()">*AtkPropertyChangeHandler</a>)         (<em class="parameter"><code><a class="link" href="AtkObject.html" title="AtkObject"><span class="type">AtkObject</span></a> *obj</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="AtkObject.html#AtkPropertyValues" title="AtkPropertyValues"><span class="type">AtkPropertyValues</span></a> *vals</code></em>);
 <a class="link" href="AtkObject.html" title="AtkObject"><span class="returnvalue">AtkObject</span></a> *         <a class="link" href="AtkObject.html#atk-implementor-ref-accessible" title="atk_implementor_ref_accessible ()">atk_implementor_ref_accessible</a>      (<em class="parameter"><code><a class="link" href="AtkObject.html#AtkImplementor" title="AtkImplementor"><span class="type">AtkImplementor</span></a> *implementor</code></em>);
 const <span class="returnvalue">gchar</span> *       <a class="link" href="AtkObject.html#atk-object-get-name" title="atk_object_get_name ()">atk_object_get_name</a>                 (<em class="parameter"><code><a class="link" href="AtkObject.html" title="AtkObject"><span class="type">AtkObject</span></a> *accessible</code></em>);
 const <span class="returnvalue">gchar</span> *       <a class="link" href="AtkObject.html#atk-object-get-description" title="atk_object_get_description ()">atk_object_get_description</a>          (<em class="parameter"><code><a class="link" href="AtkObject.html" title="AtkObject"><span class="type">AtkObject</span></a> *accessible</code></em>);
@@ -105,6 +107,12 @@ const <span class="returnvalue">gchar</span> *       <a class="link" href="AtkOb
          +----<a class="link" href="AtkGObjectAccessible.html" title="AtkGObjectAccessible">AtkGObjectAccessible</a>
          +----<a class="link" href="AtkNoOpObject.html" title="AtkNoOpObject">AtkNoOpObject</a>
 </pre>
+</div>
+<div class="refsect1">
+<a name="AtkObject.derived-interfaces"></a><h2>Known Derived Interfaces</h2>
+<p>
+AtkObject is required by
+ <a class="link" href="AtkWindow.html" title="AtkWindow">AtkWindow</a>.</p>
 </div>
 <div class="refsect1">
 <a name="AtkObject.properties"></a><h2>Properties</h2>
@@ -272,6 +280,7 @@ The AtkObject structure should not be accessed directly.
   ATK_ROLE_IMAGE_MAP,
   ATK_ROLE_NOTIFICATION,
   ATK_ROLE_INFO_BAR,
+  ATK_ROLE_LEVEL_BAR,
   ATK_ROLE_LAST_DEFINED
 } AtkRole;
 </pre>
@@ -801,6 +810,11 @@ in other words it is an "input method window." <em class="parameter"><code>Since
 </td>
 </tr>
 <tr>
+<td><p><a name="ATK-ROLE-LEVEL-BAR:CAPS"></a><span class="term"><code class="literal">ATK_ROLE_LEVEL_BAR</code></span></p></td>
+<td>A bar that serves as a level indicator to, for instance, show the strength of a password or the state of a battery.  <em class="parameter"><code>Since</code></em>: ATK-2.7.3
+</td>
+</tr>
+<tr>
 <td><p><a name="ATK-ROLE-LAST-DEFINED:CAPS"></a><span class="term"><code class="literal">ATK_ROLE_LAST_DEFINED</code></span></p></td>
 <td>not a valid role, used for finding end of the enumeration
 </td>
@@ -915,16 +929,16 @@ The AtkImplementor interface is implemented by objects for which AtkObject peers
 } AtkPropertyValues;
 </pre>
 <p>
-<em class="parameter"><code>note</code></em>: For most properties the old_value field of AtkPropertyValues will
-not contain a valid value.
+Note: for most properties the old_value field of <a class="link" href="AtkObject.html#AtkPropertyValues" title="AtkPropertyValues"><span class="type">AtkPropertyValues</span></a>
+will not contain a valid value.
 </p>
 <p>
 Currently, the only property for which old_value is used is
 accessible-state; for instance if there is a focus state the
 property change handler will be called for the object which lost the focus
-with the old_value containing an AtkState value corresponding to focused
+with the old_value containing an <a class="link" href="atk-AtkState.html#AtkState" title="AtkState"><span class="type">AtkState</span></a> value corresponding to focused
 and the property change handler will be called for the object which
-received the focus with the new_value containing an AtkState value
+received the focus with the new_value containing an <a class="link" href="atk-AtkState.html#AtkState" title="AtkState"><span class="type">AtkState</span></a> value
 corresponding to focused.
 </p>
 <p>
@@ -958,49 +972,28 @@ corresponding to focused.
 <hr>
 <div class="refsect2">
 <a name="AtkFunction"></a><h3>AtkFunction ()</h3>
-<pre class="programlisting"><span class="returnvalue">gboolean</span>            (*AtkFunction)                      (<em class="parameter"><code><span class="type">gpointer</span> data</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">gboolean</span>            (*AtkFunction)                      (<em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>
 An AtkFunction is a function definition used for padding which has been added
 to class and interface structures to allow for expansion in the future.
 </p>
 <div class="variablelist"><table border="0">
 <col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>a gpointer to parameter data.</td>
-</tr>
-<tr>
+<tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>Nothing useful, this is only a dummy prototype.</td>
-</tr>
-</tbody>
+</tr></tbody>
 </table></div>
 </div>
 <hr>
 <div class="refsect2">
 <a name="AtkPropertyChangeHandler"></a><h3>AtkPropertyChangeHandler ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                (*AtkPropertyChangeHandler)         (<em class="parameter"><code><a class="link" href="AtkObject.html" title="AtkObject"><span class="type">AtkObject</span></a> *Param1</code></em>,
-                                                         <em class="parameter"><code><a class="link" href="AtkObject.html#AtkPropertyValues" title="AtkPropertyValues"><span class="type">AtkPropertyValues</span></a> *Param2</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                (*AtkPropertyChangeHandler)         (<em class="parameter"><code><a class="link" href="AtkObject.html" title="AtkObject"><span class="type">AtkObject</span></a> *obj</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="AtkObject.html#AtkPropertyValues" title="AtkPropertyValues"><span class="type">AtkPropertyValues</span></a> *vals</code></em>);</pre>
 <p>
 An AtkPropertyChangeHandler is a function which is executed when an AtkObject's property changes value. It is specified in a call to
 <a class="link" href="AtkObject.html#atk-object-connect-property-change-handler" title="atk_object_connect_property_change_handler ()"><code class="function">atk_object_connect_property_change_handler()</code></a>.
 </p>
-<div class="variablelist"><table border="0">
-<col align="left" valign="top">
-<tbody>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>Param1</code></em> :</span></p></td>
-<td>an <a class="link" href="AtkObject.html" title="AtkObject"><span class="type">AtkObject</span></a>
-</td>
-</tr>
-<tr>
-<td><p><span class="term"><em class="parameter"><code>Param2</code></em> :</span></p></td>
-<td>an <a class="link" href="AtkObject.html#AtkPropertyValues" title="AtkPropertyValues"><span class="type">AtkPropertyValues</span></a>
-</td>
-</tr>
-</tbody>
-</table></div>
 </div>
 <hr>
 <div class="refsect2">

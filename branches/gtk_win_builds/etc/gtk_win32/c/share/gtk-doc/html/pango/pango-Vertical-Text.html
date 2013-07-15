@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Vertical Text</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Pango Reference Manual">
 <link rel="up" href="pango.html" title="Basic Pango Interfaces">
 <link rel="prev" href="pango-Bidirectional-Text.html" title="Bidirectional Text">
@@ -41,6 +41,7 @@
 <a name="pango-Vertical-Text.synopsis"></a><h2>Synopsis</h2>
 <a name="PangoGravity"></a><a name="PangoGravityHint"></a><pre class="synopsis">enum                <a class="link" href="pango-Vertical-Text.html#PangoGravity-enum" title="enum PangoGravity">PangoGravity</a>;
 enum                <a class="link" href="pango-Vertical-Text.html#PangoGravityHint-enum" title="enum PangoGravityHint">PangoGravityHint</a>;
+#define             <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-IS-IMPROPER:CAPS" title="PANGO_GRAVITY_IS_IMPROPER()">PANGO_GRAVITY_IS_IMPROPER</a>           (gravity)
 #define             <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-IS-VERTICAL:CAPS" title="PANGO_GRAVITY_IS_VERTICAL()">PANGO_GRAVITY_IS_VERTICAL</a>           (gravity)
 <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="returnvalue">PangoGravity</span></a>        <a class="link" href="pango-Vertical-Text.html#pango-gravity-get-for-matrix" title="pango_gravity_get_for_matrix ()">pango_gravity_get_for_matrix</a>        (<em class="parameter"><code>const <a class="link" href="pango-Glyph-Storage.html#PangoMatrix"><span class="type">PangoMatrix</span></a> *matrix</code></em>);
 <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="returnvalue">PangoGravity</span></a>        <a class="link" href="pango-Vertical-Text.html#pango-gravity-get-for-script" title="pango_gravity_get_for_script ()">pango_gravity_get_for_script</a>        (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> script</code></em>,
@@ -48,7 +49,7 @@ enum                <a class="link" href="pango-Vertical-Text.html#PangoGravityH
                                                          <em class="parameter"><code><a class="link" href="pango-Vertical-Text.html#PangoGravityHint"><span class="type">PangoGravityHint</span></a> hint</code></em>);
 <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="returnvalue">PangoGravity</span></a>        <a class="link" href="pango-Vertical-Text.html#pango-gravity-get-for-script-and-width" title="pango_gravity_get_for_script_and_width ()">pango_gravity_get_for_script_and_width</a>
                                                         (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> script</code></em>,
-                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> wide</code></em>,
+                                                         <em class="parameter"><code><span class="type">gboolean</span> wide</code></em>,
                                                          <em class="parameter"><code><a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="type">PangoGravity</span></a> base_gravity</code></em>,
                                                          <em class="parameter"><code><a class="link" href="pango-Vertical-Text.html#PangoGravityHint"><span class="type">PangoGravityHint</span></a> hint</code></em>);
 <span class="returnvalue">double</span>              <a class="link" href="pango-Vertical-Text.html#pango-gravity-to-rotation" title="pango_gravity_to_rotation ()">pango_gravity_to_rotation</a>           (<em class="parameter"><code><a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="type">PangoGravity</span></a> gravity</code></em>);
@@ -144,8 +145,11 @@ Not every value in this enumeration makes sense for every usage of
 <p>
 See also: <a class="link" href="pango-Vertical-Text.html#PangoGravityHint"><span class="type">PangoGravityHint</span></a>
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><a name="PANGO-GRAVITY-SOUTH:CAPS"></a><span class="term"><code class="literal">PANGO_GRAVITY_SOUTH</code></span></p></td>
@@ -193,8 +197,11 @@ example.
 <p>
 See <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="type">PangoGravity</span></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><a name="PANGO-GRAVITY-HINT-NATURAL:CAPS"></a><span class="term"><code class="literal">PANGO_GRAVITY_HINT_NATURAL</code></span></p></td>
@@ -222,13 +229,16 @@ opposite gravities and both flow top-to-bottom for example.
 </div>
 <hr>
 <div class="refsect2">
-<a name="PANGO-GRAVITY-IS-VERTICAL:CAPS"></a><h3>PANGO_GRAVITY_IS_VERTICAL()</h3>
-<pre class="programlisting">#define             PANGO_GRAVITY_IS_VERTICAL(gravity)</pre>
+<a name="PANGO-GRAVITY-IS-IMPROPER:CAPS"></a><h3>PANGO_GRAVITY_IS_IMPROPER()</h3>
+<pre class="programlisting">#define             PANGO_GRAVITY_IS_IMPROPER(gravity)</pre>
 <p>
-Whether a <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="type">PangoGravity</span></a> represents vertical writing directions.
+Whether a <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="type">PangoGravity</span></a> represents a gravity that results in reversal of text direction.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>gravity</code></em> :</span></p></td>
@@ -237,8 +247,35 @@ Whether a <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span cla
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if <em class="parameter"><code>gravity</code></em> is <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-EAST:CAPS"><code class="literal">PANGO_GRAVITY_EAST</code></a> or <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-WEST:CAPS"><code class="literal">PANGO_GRAVITY_WEST</code></a>,
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise.</td>
+<code class="literal">TRUE</code> if <em class="parameter"><code>gravity</code></em> is <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-WEST:CAPS"><code class="literal">PANGO_GRAVITY_WEST</code></a> or <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-NORTH:CAPS"><code class="literal">PANGO_GRAVITY_NORTH</code></a>,
+<code class="literal">FALSE</code> otherwise.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 1.32</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="PANGO-GRAVITY-IS-VERTICAL:CAPS"></a><h3>PANGO_GRAVITY_IS_VERTICAL()</h3>
+<pre class="programlisting">#define             PANGO_GRAVITY_IS_VERTICAL(gravity)</pre>
+<p>
+Whether a <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="type">PangoGravity</span></a> represents vertical writing directions.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>gravity</code></em> :</span></p></td>
+<td>the <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="type">PangoGravity</span></a> to check</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<code class="literal">TRUE</code> if <em class="parameter"><code>gravity</code></em> is <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-EAST:CAPS"><code class="literal">PANGO_GRAVITY_EAST</code></a> or <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-WEST:CAPS"><code class="literal">PANGO_GRAVITY_WEST</code></a>,
+<code class="literal">FALSE</code> otherwise.</td>
 </tr>
 </tbody>
 </table></div>
@@ -252,8 +289,11 @@ Whether a <a class="link" href="pango-Vertical-Text.html#PangoGravity"><span cla
 Finds the gravity that best matches the rotation component
 in a <a class="link" href="pango-Glyph-Storage.html#PangoMatrix"><span class="type">PangoMatrix</span></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>matrix</code></em> :</span></p></td>
@@ -263,7 +303,7 @@ in a <a class="link" href="pango-Glyph-Storage.html#PangoMatrix"><span class="ty
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>the gravity of <em class="parameter"><code>matrix</code></em>, which will never be
-<a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-AUTO:CAPS"><code class="literal">PANGO_GRAVITY_AUTO</code></a>, or <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-SOUTH:CAPS"><code class="literal">PANGO_GRAVITY_SOUTH</code></a> if <em class="parameter"><code>matrix</code></em> is <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-AUTO:CAPS"><code class="literal">PANGO_GRAVITY_AUTO</code></a>, or <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-SOUTH:CAPS"><code class="literal">PANGO_GRAVITY_SOUTH</code></a> if <em class="parameter"><code>matrix</code></em> is <code class="literal">NULL</code>
 </td>
 </tr>
 </tbody>
@@ -285,8 +325,11 @@ If <em class="parameter"><code>base_gravity</code></em> is <a class="link" href=
 preferred gravity of <em class="parameter"><code>script</code></em>.  To get the preferred gravity of a script,
 pass <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-AUTO:CAPS"><code class="literal">PANGO_GRAVITY_AUTO</code></a> and <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-HINT-STRONG:CAPS"><code class="literal">PANGO_GRAVITY_HINT_STRONG</code></a> in.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>script</code></em> :</span></p></td>
@@ -315,7 +358,7 @@ with <em class="parameter"><code>script</code></em>.</td>
 <a name="pango-gravity-get-for-script-and-width"></a><h3>pango_gravity_get_for_script_and_width ()</h3>
 <pre class="programlisting"><a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="returnvalue">PangoGravity</span></a>        pango_gravity_get_for_script_and_width
                                                         (<em class="parameter"><code><a class="link" href="pango-Scripts-and-Languages.html#PangoScript"><span class="type">PangoScript</span></a> script</code></em>,
-                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> wide</code></em>,
+                                                         <em class="parameter"><code><span class="type">gboolean</span> wide</code></em>,
                                                          <em class="parameter"><code><a class="link" href="pango-Vertical-Text.html#PangoGravity"><span class="type">PangoGravity</span></a> base_gravity</code></em>,
                                                          <em class="parameter"><code><a class="link" href="pango-Vertical-Text.html#PangoGravityHint"><span class="type">PangoGravityHint</span></a> hint</code></em>);</pre>
 <p>
@@ -335,8 +378,11 @@ context.
 If <em class="parameter"><code>base_gravity</code></em> is <a class="link" href="pango-Vertical-Text.html#PANGO-GRAVITY-AUTO:CAPS"><code class="literal">PANGO_GRAVITY_AUTO</code></a>, it is first replaced with the
 preferred gravity of <em class="parameter"><code>script</code></em>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>script</code></em> :</span></p></td>
@@ -346,7 +392,7 @@ preferred gravity of <em class="parameter"><code>script</code></em>.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>wide</code></em> :</span></p></td>
 <td>
-<a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> for wide characters as returned by <a href="http://library.gnome.org/devel/glib/unstable/glib-Unicode-Manipulation.html#g-unichar-iswide"><code class="function">g_unichar_iswide()</code></a>
+<code class="literal">TRUE</code> for wide characters as returned by <code class="function">g_unichar_iswide()</code>
 </td>
 </tr>
 <tr>
@@ -379,8 +425,11 @@ Note that <a class="link" href="pango-Glyph-Storage.html#pango-matrix-rotate" ti
 So, to call <a class="link" href="pango-Glyph-Storage.html#pango-matrix-rotate" title="pango_matrix_rotate ()"><code class="function">pango_matrix_rotate()</code></a> with the output of this function
 you should multiply it by (180. / G_PI).
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>gravity</code></em> :</span></p></td>

@@ -26,12 +26,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef GDK_PIXBUF_IO_H
+#define GDK_PIXBUF_IO_H
+
 #if defined(GDK_PIXBUF_DISABLE_SINGLE_INCLUDES) && !defined (GDK_PIXBUF_H_INSIDE) && !defined (GDK_PIXBUF_COMPILATION)
 #error "Only <gdk-pixbuf/gdk-pixbuf.h> can be included directly."
 #endif
-
-#ifndef GDK_PIXBUF_IO_H
-#define GDK_PIXBUF_IO_H
 
 #include <stdio.h>
 #include <glib.h>
@@ -291,9 +291,8 @@ gboolean gdk_pixbuf_set_option  (GdkPixbuf   *pixbuf,
  * GdkPixbufFormatFlags:
  * @GDK_PIXBUF_FORMAT_WRITABLE: the module can write out images in the format.
  * @GDK_PIXBUF_FORMAT_SCALABLE: the image format is scalable
- * @GDK_PIXBUF_FORMAT_THREADSAFE: the module is threadsafe. If this flag is not
- *  set, &gdk-pixbuf; will use a lock to prevent multiple threads from using
- *  this module at the same time. (Since 2.6)
+ * @GDK_PIXBUF_FORMAT_THREADSAFE: the module is threadsafe. &gdk-pixbuf;
+ *     ignores modules that are not marked as threadsafe. (Since 2.28).
  * 
  * Flags which allow a module to specify further details about the supported
  * operations.

@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __GIO_ENUMS_H__
+#define __GIO_ENUMS_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __GIO_ENUMS_H__
-#define __GIO_ENUMS_H__
 
 #include <glib-object.h>
 
@@ -308,13 +308,16 @@ typedef enum {
  *   event instead (NB: not supported on all backends; the default
  *   behaviour -without specifying this flag- is to send single DELETED
  *   and CREATED events).
+ * @G_FILE_MONITOR_WATCH_HARD_LINKS: Watch for changes to the file made
+ *   via another hard link. Since 2.36.
  *
  * Flags used to set what a #GFileMonitor will watch for.
  */
 typedef enum {
-  G_FILE_MONITOR_NONE         = 0,
-  G_FILE_MONITOR_WATCH_MOUNTS = (1 << 0),
-  G_FILE_MONITOR_SEND_MOVED   = (1 << 1)
+  G_FILE_MONITOR_NONE             = 0,
+  G_FILE_MONITOR_WATCH_MOUNTS     = (1 << 0),
+  G_FILE_MONITOR_SEND_MOVED       = (1 << 1),
+  G_FILE_MONITOR_WATCH_HARD_LINKS = (1 << 2)
 } GFileMonitorFlags;
 
 
@@ -430,7 +433,7 @@ typedef enum {
  * @G_IO_ERROR_NOT_INITIALIZED: The object has not been initialized. Since 2.22
  * @G_IO_ERROR_ADDRESS_IN_USE: The requested address is already in use. Since 2.22
  * @G_IO_ERROR_PARTIAL_INPUT: Need more input to finish operation. Since 2.24
- * @G_IO_ERROR_INVALID_DATA: There input data was invalid. Since 2.24
+ * @G_IO_ERROR_INVALID_DATA: The input data was invalid. Since 2.24
  * @G_IO_ERROR_DBUS_ERROR: A remote object generated an error that
  *     doesn't correspond to a locally registered #GError error
  *     domain. Use g_dbus_error_get_remote_error() to extract the D-Bus
@@ -444,6 +447,7 @@ typedef enum {
  * @G_IO_ERROR_PROXY_NEED_AUTH: Proxy server needs authentication. Since 2.26
  * @G_IO_ERROR_PROXY_NOT_ALLOWED: Proxy connection is not allowed by ruleset.
  *     Since 2.26
+ * @G_IO_ERROR_BROKEN_PIPE: Broken pipe. Since 2.36
  *
  * Error codes returned by GIO functions.
  *
@@ -492,7 +496,8 @@ typedef enum {
   G_IO_ERROR_PROXY_FAILED,
   G_IO_ERROR_PROXY_AUTH_FAILED,
   G_IO_ERROR_PROXY_NEED_AUTH,
-  G_IO_ERROR_PROXY_NOT_ALLOWED
+  G_IO_ERROR_PROXY_NOT_ALLOWED,
+  G_IO_ERROR_BROKEN_PIPE
 } GIOErrorEnum;
 
 
@@ -1334,8 +1339,9 @@ typedef enum
  * GApplicationFlags:
  * @G_APPLICATION_FLAGS_NONE: Default
  * @G_APPLICATION_IS_SERVICE: Run as a service. In this mode, registration
- *      fails if the service is already running, and the application will
- *      stay around for a while when the use count falls to zero.
+ *      fails if the service is already running, and the application
+ *      will initially wait up to 10 seconds for an initial activation
+ *      message to arrive.
  * @G_APPLICATION_IS_LAUNCHER: Don't try to become the primary instance.
  * @G_APPLICATION_HANDLES_OPEN: This application handles opening files (in
  *     the primary instance). Note that this flag only affects the default

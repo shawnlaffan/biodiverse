@@ -21,7 +21,7 @@
 </tr></table>
 <div class="sect1">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="idp9649920"></a>Exporting a C API</h2></div></div></div>
+<a name="id-1.3.2.6"></a>Exporting a C API</h2></div></div></div>
 <p>
       C APIs are defined by a set of functions and global variables which are usually exported from a 
       binary. C functions have an arbitrary number of arguments and one return value. Each function is thus
@@ -91,7 +91,7 @@ call   0x80482f4 &lt;function_foo&gt;
         reads the original function signature.</p></li>
 <li class="listitem"><p>The solution used by GLib is to use the GType library which holds at runtime a description of
         all the objects manipulated by the programmer. This so-called <span class="emphasis"><em>dynamic type</em></span>
-        <a href="#ftn.idp9251312" class="footnote"><sup class="footnote"><a name="idp9251312"></a>[1]</sup></a>
+        <a href="#ftn.id-1.3.2.6.6.1.3.1.2" class="footnote"><sup class="footnote"><a name="id-1.3.2.6.6.1.3.1.2"></a>[1]</sup></a>
         library is then used by special generic glue code to automatically convert function parameters and
         function calling conventions between different runtime domains.</p></li>
 </ul></div>
@@ -100,7 +100,7 @@ call   0x80482f4 &lt;function_foo&gt;
       boundaries is written once: the figure below states this more clearly.
       </p>
 <div class="figure">
-<a name="idp78448"></a><p class="title"><b>Figure 1. </b></p>
+<a name="id-1.3.2.6.6.2"></a><p class="title"><b>Figure 1. </b></p>
 <div class="figure-contents"><div class="mediaobject" align="center"><img src="glue.png" align="middle"></div></div>
 </div>
 <p><br class="figure-break">
@@ -118,7 +118,7 @@ call   0x80482f4 &lt;function_foo&gt;
     </p>
 <div class="footnotes">
 <br><hr style="width:100; align:left;">
-<div id="ftn.idp9251312" class="footnote"><p><a href="#idp9251312" class="para"><sup class="para">[1] </sup></a>
+<div id="ftn.id-1.3.2.6.6.1.3.1.2" class="footnote"><p><a href="#id-1.3.2.6.6.1.3.1.2" class="para"><sup class="para">[1] </sup></a>
             There are numerous different implementations of dynamic type systems: all C++ 
             compilers have one, Java and .NET have one too. A dynamic type system allows you
             to get information about every instantiated object at runtime. It can be implemented

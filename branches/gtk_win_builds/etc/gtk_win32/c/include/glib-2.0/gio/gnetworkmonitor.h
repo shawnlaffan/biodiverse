@@ -18,12 +18,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __G_NETWORK_MONITOR_H__
+#define __G_NETWORK_MONITOR_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_NETWORK_MONITOR_H__
-#define __G_NETWORK_MONITOR_H__
 
 #include <gio/giotypes.h>
 
@@ -71,17 +71,21 @@ GType            g_network_monitor_get_type              (void) G_GNUC_CONST;
 GLIB_AVAILABLE_IN_2_32
 GNetworkMonitor *g_network_monitor_get_default           (void);
 
+GLIB_AVAILABLE_IN_ALL
 gboolean         g_network_monitor_get_network_available (GNetworkMonitor     *monitor);
 
+GLIB_AVAILABLE_IN_ALL
 gboolean         g_network_monitor_can_reach             (GNetworkMonitor     *monitor,
 							  GSocketConnectable  *connectable,
 							  GCancellable        *cancellable,
 							  GError             **error);
+GLIB_AVAILABLE_IN_ALL
 void             g_network_monitor_can_reach_async       (GNetworkMonitor     *monitor,
 							  GSocketConnectable  *connectable,
 							  GCancellable        *cancellable,
 							  GAsyncReadyCallback  callback,
 							  gpointer             user_data);
+GLIB_AVAILABLE_IN_ALL
 gboolean         g_network_monitor_can_reach_finish      (GNetworkMonitor     *monitor,
 							  GAsyncResult        *result,
 							  GError             **error);

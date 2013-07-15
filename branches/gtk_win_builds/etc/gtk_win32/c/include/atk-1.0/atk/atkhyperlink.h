@@ -35,7 +35,7 @@ G_BEGIN_DECLS
  */
 
 /**
- *AtkHyperlinkStateFlags
+ *AtkHyperlinkStateFlags:
  *@ATK_HYPERLINK_IS_INLINE: Link is inline
  *
  *Describes the type of link

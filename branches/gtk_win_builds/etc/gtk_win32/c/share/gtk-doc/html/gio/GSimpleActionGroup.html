@@ -46,22 +46,22 @@
 <a class="link" href="GSimpleActionGroup.html" title="GSimpleActionGroup"><span class="returnvalue">GSimpleActionGroup</span></a> * <a class="link" href="GSimpleActionGroup.html#g-simple-action-group-new" title="g_simple_action_group_new ()">g_simple_action_group_new</a>          (<em class="parameter"><code><span class="type">void</span></code></em>);
 
 <a class="link" href="GAction.html" title="GAction"><span class="returnvalue">GAction</span></a> *           <a class="link" href="GSimpleActionGroup.html#g-simple-action-group-lookup" title="g_simple_action_group_lookup ()">g_simple_action_group_lookup</a>        (<em class="parameter"><code><a class="link" href="GSimpleActionGroup.html" title="GSimpleActionGroup"><span class="type">GSimpleActionGroup</span></a> *simple</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GSimpleActionGroup.html#g-simple-action-group-insert" title="g_simple_action_group_insert ()">g_simple_action_group_insert</a>        (<em class="parameter"><code><a class="link" href="GSimpleActionGroup.html" title="GSimpleActionGroup"><span class="type">GSimpleActionGroup</span></a> *simple</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GAction.html" title="GAction"><span class="type">GAction</span></a> *action</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GSimpleActionGroup.html#g-simple-action-group-remove" title="g_simple_action_group_remove ()">g_simple_action_group_remove</a>        (<em class="parameter"><code><a class="link" href="GSimpleActionGroup.html" title="GSimpleActionGroup"><span class="type">GSimpleActionGroup</span></a> *simple</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);
 
 <span class="returnvalue">void</span>                <a class="link" href="GSimpleActionGroup.html#g-simple-action-group-add-entries" title="g_simple_action_group_add_entries ()">g_simple_action_group_add_entries</a>   (<em class="parameter"><code><a class="link" href="GSimpleActionGroup.html" title="GSimpleActionGroup"><span class="type">GSimpleActionGroup</span></a> *simple</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="GActionMap.html#GActionEntry" title="struct GActionEntry"><span class="type">GActionEntry</span></a> *entries</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_entries</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_entries</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GSimpleActionGroup.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GSimpleActionGroup
 </pre>
 </div>
@@ -112,12 +112,12 @@ Creates a new, empty, <a class="link" href="GSimpleActionGroup.html" title="GSim
 <div class="refsect2">
 <a name="g-simple-action-group-lookup"></a><h3>g_simple_action_group_lookup ()</h3>
 <pre class="programlisting"><a class="link" href="GAction.html" title="GAction"><span class="returnvalue">GAction</span></a> *           g_simple_action_group_lookup        (<em class="parameter"><code><a class="link" href="GSimpleActionGroup.html" title="GSimpleActionGroup"><span class="type">GSimpleActionGroup</span></a> *simple</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);</pre>
 <p>
 Looks up the action with the name <em class="parameter"><code>action_name</code></em> in the group.
 </p>
 <p>
-If no such action exists, returns <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
+If no such action exists, returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -136,7 +136,7 @@ If no such action exists, returns <a href="./../glib/glib/glib-Standard-Macros.h
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GAction.html" title="GAction"><span class="type">GAction</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>a <a class="link" href="GAction.html" title="GAction"><span class="type">GAction</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -182,7 +182,7 @@ The action group takes its own reference on <em class="parameter"><code>action</
 <div class="refsect2">
 <a name="g-simple-action-group-remove"></a><h3>g_simple_action_group_remove ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_simple_action_group_remove        (<em class="parameter"><code><a class="link" href="GSimpleActionGroup.html" title="GSimpleActionGroup"><span class="type">GSimpleActionGroup</span></a> *simple</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>);</pre>
 <p>
 Removes the named action from the action group.
 </p>
@@ -213,8 +213,8 @@ If no action of this name is in the group then nothing happens.
 <a name="g-simple-action-group-add-entries"></a><h3>g_simple_action_group_add_entries ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_simple_action_group_add_entries   (<em class="parameter"><code><a class="link" href="GSimpleActionGroup.html" title="GSimpleActionGroup"><span class="type">GSimpleActionGroup</span></a> *simple</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="GActionMap.html#GActionEntry" title="struct GActionEntry"><span class="type">GActionEntry</span></a> *entries</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_entries</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a> n_entries</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> user_data</code></em>);</pre>
 <p>
 A convenience function for creating multiple <a class="link" href="GSimpleAction.html" title="GSimpleAction"><span class="type">GSimpleAction</span></a> instances
 and adding them to the action group.

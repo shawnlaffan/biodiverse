@@ -24,19 +24,21 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __G_BACKTRACE_H__
+#define __G_BACKTRACE_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_BACKTRACE_H__
-#define __G_BACKTRACE_H__
 
 #include <glib/gtypes.h>
 #include <signal.h>
 
 G_BEGIN_DECLS
 
+GLIB_AVAILABLE_IN_ALL
 void g_on_error_query (const gchar *prg_name);
+GLIB_AVAILABLE_IN_ALL
 void g_on_error_stack_trace (const gchar *prg_name);
 
 /**

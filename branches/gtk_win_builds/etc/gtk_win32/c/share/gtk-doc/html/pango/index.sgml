@@ -18,6 +18,8 @@
 <ANCHOR id="pango-item-split" href="pango/pango-Text-Processing.html#pango-item-split">
 <ANCHOR id="pango-reorder-items" href="pango/pango-Text-Processing.html#pango-reorder-items">
 <ANCHOR id="pango-context-new" href="pango/pango-Text-Processing.html#pango-context-new">
+<ANCHOR id="pango-context-changed" href="pango/pango-Text-Processing.html#pango-context-changed">
+<ANCHOR id="pango-context-get-serial" href="pango/pango-Text-Processing.html#pango-context-get-serial">
 <ANCHOR id="pango-context-set-font-map" href="pango/pango-Text-Processing.html#pango-context-set-font-map">
 <ANCHOR id="pango-context-get-font-map" href="pango/pango-Text-Processing.html#pango-context-get-font-map">
 <ANCHOR id="pango-context-get-font-description" href="pango/pango-Text-Processing.html#pango-context-get-font-description">
@@ -43,6 +45,7 @@
 <ANCHOR id="pango-default-break" href="pango/pango-Text-Processing.html#pango-default-break">
 <ANCHOR id="PangoLogAttr" href="pango/pango-Text-Processing.html#PangoLogAttr">
 <ANCHOR id="pango-shape" href="pango/pango-Text-Processing.html#pango-shape">
+<ANCHOR id="pango-shape-full" href="pango/pango-Text-Processing.html#pango-shape-full">
 <ANCHOR id="pango-Glyph-Storage" href="pango/pango-Glyph-Storage.html">
 <ANCHOR id="pango-Glyph-Storage.synopsis" href="pango/pango-Glyph-Storage.html#pango-Glyph-Storage.synopsis">
 <ANCHOR id="PangoMatrix" href="pango/pango-Glyph-Storage.html#PangoMatrix">
@@ -262,6 +265,7 @@
 <ANCHOR id="pango-font-map-load-fontset" href="pango/pango-Fonts.html#pango-font-map-load-fontset">
 <ANCHOR id="pango-font-map-list-families" href="pango/pango-Fonts.html#pango-font-map-list-families">
 <ANCHOR id="pango-font-map-get-shape-engine-type" href="pango/pango-Fonts.html#pango-font-map-get-shape-engine-type">
+<ANCHOR id="pango-font-map-get-serial" href="pango/pango-Fonts.html#pango-font-map-get-serial">
 <ANCHOR id="PangoFontset-struct" href="pango/pango-Fonts.html#PangoFontset-struct">
 <ANCHOR id="PANGO-TYPE-FONTSET:CAPS" href="pango/pango-Fonts.html#PANGO-TYPE-FONTSET:CAPS">
 <ANCHOR id="PangoFontsetClass" href="pango/pango-Fonts.html#PangoFontsetClass">
@@ -321,6 +325,8 @@
 <ANCHOR id="PangoAttrShape" href="pango/pango-Text-Attributes.html#PangoAttrShape">
 <ANCHOR id="PangoAttrSize" href="pango/pango-Text-Attributes.html#PangoAttrSize">
 <ANCHOR id="pango-parse-markup" href="pango/pango-Text-Attributes.html#pango-parse-markup">
+<ANCHOR id="pango-markup-parser-new" href="pango/pango-Text-Attributes.html#pango-markup-parser-new">
+<ANCHOR id="pango-markup-parser-finish" href="pango/pango-Text-Attributes.html#pango-markup-parser-finish">
 <ANCHOR id="pango-attr-type-register" href="pango/pango-Text-Attributes.html#pango-attr-type-register">
 <ANCHOR id="pango-attr-type-get-name" href="pango/pango-Text-Attributes.html#pango-attr-type-get-name">
 <ANCHOR id="pango-attribute-init" href="pango/pango-Text-Attributes.html#pango-attribute-init">
@@ -433,6 +439,7 @@
 <ANCHOR id="pango-layout-copy" href="pango/pango-Layout-Objects.html#pango-layout-copy">
 <ANCHOR id="pango-layout-get-context" href="pango/pango-Layout-Objects.html#pango-layout-get-context">
 <ANCHOR id="pango-layout-context-changed" href="pango/pango-Layout-Objects.html#pango-layout-context-changed">
+<ANCHOR id="pango-layout-get-serial" href="pango/pango-Layout-Objects.html#pango-layout-get-serial">
 <ANCHOR id="pango-layout-set-text" href="pango/pango-Layout-Objects.html#pango-layout-set-text">
 <ANCHOR id="pango-layout-get-text" href="pango/pango-Layout-Objects.html#pango-layout-get-text">
 <ANCHOR id="pango-layout-get-character-count" href="pango/pango-Layout-Objects.html#pango-layout-get-character-count">
@@ -617,6 +624,16 @@
 <ANCHOR id="PANGO-SCRIPT-CARIAN:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-CARIAN:CAPS">
 <ANCHOR id="PANGO-SCRIPT-LYCIAN:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-LYCIAN:CAPS">
 <ANCHOR id="PANGO-SCRIPT-LYDIAN:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-LYDIAN:CAPS">
+<ANCHOR id="PANGO-SCRIPT-BATAK:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-BATAK:CAPS">
+<ANCHOR id="PANGO-SCRIPT-BRAHMI:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-BRAHMI:CAPS">
+<ANCHOR id="PANGO-SCRIPT-MANDAIC:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-MANDAIC:CAPS">
+<ANCHOR id="PANGO-SCRIPT-CHAKMA:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-CHAKMA:CAPS">
+<ANCHOR id="PANGO-SCRIPT-MEROITIC-CURSIVE:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-MEROITIC-CURSIVE:CAPS">
+<ANCHOR id="PANGO-SCRIPT-MEROITIC-HIEROGLYPHS:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-MEROITIC-HIEROGLYPHS:CAPS">
+<ANCHOR id="PANGO-SCRIPT-MIAO:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-MIAO:CAPS">
+<ANCHOR id="PANGO-SCRIPT-SHARADA:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-SHARADA:CAPS">
+<ANCHOR id="PANGO-SCRIPT-SORA-SOMPENG:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-SORA-SOMPENG:CAPS">
+<ANCHOR id="PANGO-SCRIPT-TAKRI:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-SCRIPT-TAKRI:CAPS">
 <ANCHOR id="PANGO-TYPE-SCRIPT:CAPS" href="pango/pango-Scripts-and-Languages.html#PANGO-TYPE-SCRIPT:CAPS">
 <ANCHOR id="PangoScriptIter" href="pango/pango-Scripts-and-Languages.html#PangoScriptIter">
 <ANCHOR id="pango-script-for-unichar" href="pango/pango-Scripts-and-Languages.html#pango-script-for-unichar">
@@ -691,6 +708,7 @@
 <ANCHOR id="PANGO-GRAVITY-HINT-NATURAL:CAPS" href="pango/pango-Vertical-Text.html#PANGO-GRAVITY-HINT-NATURAL:CAPS">
 <ANCHOR id="PANGO-GRAVITY-HINT-STRONG:CAPS" href="pango/pango-Vertical-Text.html#PANGO-GRAVITY-HINT-STRONG:CAPS">
 <ANCHOR id="PANGO-GRAVITY-HINT-LINE:CAPS" href="pango/pango-Vertical-Text.html#PANGO-GRAVITY-HINT-LINE:CAPS">
+<ANCHOR id="PANGO-GRAVITY-IS-IMPROPER:CAPS" href="pango/pango-Vertical-Text.html#PANGO-GRAVITY-IS-IMPROPER:CAPS">
 <ANCHOR id="PANGO-GRAVITY-IS-VERTICAL:CAPS" href="pango/pango-Vertical-Text.html#PANGO-GRAVITY-IS-VERTICAL:CAPS">
 <ANCHOR id="pango-gravity-get-for-matrix" href="pango/pango-Vertical-Text.html#pango-gravity-get-for-matrix">
 <ANCHOR id="pango-gravity-get-for-script" href="pango/pango-Vertical-Text.html#pango-gravity-get-for-script">
@@ -831,52 +849,12 @@
 <ANCHOR id="pango-cairo-layout-line-path" href="pango/pango-Cairo-Rendering.html#pango-cairo-layout-line-path">
 <ANCHOR id="pango-cairo-layout-path" href="pango/pango-Cairo-Rendering.html#pango-cairo-layout-path">
 <ANCHOR id="pango-cairo-error-underline-path" href="pango/pango-Cairo-Rendering.html#pango-cairo-error-underline-path">
-<ANCHOR id="pango-ATSUI-Fonts" href="pango/pango-ATSUI-Fonts.html">
-<ANCHOR id="pango-ATSUI-Fonts.synopsis" href="pango/pango-ATSUI-Fonts.html#pango-ATSUI-Fonts.synopsis">
-<ANCHOR id="pango-ATSUI-Fonts.description" href="pango/pango-ATSUI-Fonts.html#pango-ATSUI-Fonts.description">
-<ANCHOR id="pango-ATSUI-Fonts.details" href="pango/pango-ATSUI-Fonts.html#pango-ATSUI-Fonts.details">
-<ANCHOR id="PANGO-RENDER-TYPE-ATSUI:CAPS" href="pango/pango-ATSUI-Fonts.html#PANGO-RENDER-TYPE-ATSUI:CAPS">
-<ANCHOR id="pango-atsui-font-get-cgfont" href="pango/pango-ATSUI-Fonts.html#pango-atsui-font-get-cgfont">
-<ANCHOR id="pango-atsui-font-get-atsfont" href="pango/pango-ATSUI-Fonts.html#pango-atsui-font-get-atsfont">
 <ANCHOR id="pango-CoreText-Fonts" href="pango/pango-CoreText-Fonts.html">
 <ANCHOR id="pango-CoreText-Fonts.synopsis" href="pango/pango-CoreText-Fonts.html#pango-CoreText-Fonts.synopsis">
 <ANCHOR id="pango-CoreText-Fonts.description" href="pango/pango-CoreText-Fonts.html#pango-CoreText-Fonts.description">
 <ANCHOR id="pango-CoreText-Fonts.details" href="pango/pango-CoreText-Fonts.html#pango-CoreText-Fonts.details">
 <ANCHOR id="PANGO-RENDER-TYPE-CORE-TEXT:CAPS" href="pango/pango-CoreText-Fonts.html#PANGO-RENDER-TYPE-CORE-TEXT:CAPS">
 <ANCHOR id="pango-core-text-font-get-ctfont" href="pango/pango-CoreText-Fonts.html#pango-core-text-font-get-ctfont">
-<ANCHOR id="pango-X-Fonts-and-Rendering" href="pango/pango-X-Fonts-and-Rendering.html">
-<ANCHOR id="pango-X-Fonts-and-Rendering.synopsis" href="pango/pango-X-Fonts-and-Rendering.html#pango-X-Fonts-and-Rendering.synopsis">
-<ANCHOR id="pango-X-Fonts-and-Rendering.description" href="pango/pango-X-Fonts-and-Rendering.html#pango-X-Fonts-and-Rendering.description">
-<ANCHOR id="pango-X-Fonts-and-Rendering.details" href="pango/pango-X-Fonts-and-Rendering.html#pango-X-Fonts-and-Rendering.details">
-<ANCHOR id="PANGO-RENDER-TYPE-X:CAPS" href="pango/pango-X-Fonts-and-Rendering.html#PANGO-RENDER-TYPE-X:CAPS">
-<ANCHOR id="pango-x-get-context" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-get-context">
-<ANCHOR id="pango-x-context-set-funcs" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-context-set-funcs">
-<ANCHOR id="PangoGetGCFunc" href="pango/pango-X-Fonts-and-Rendering.html#PangoGetGCFunc">
-<ANCHOR id="PangoFreeGCFunc" href="pango/pango-X-Fonts-and-Rendering.html#PangoFreeGCFunc">
-<ANCHOR id="pango-x-render" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-render">
-<ANCHOR id="pango-x-render-layout-line" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-render-layout-line">
-<ANCHOR id="pango-x-render-layout" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-render-layout">
-<ANCHOR id="PangoXSubfont" href="pango/pango-X-Fonts-and-Rendering.html#PangoXSubfont">
-<ANCHOR id="PANGO-X-MAKE-GLYPH:CAPS" href="pango/pango-X-Fonts-and-Rendering.html#PANGO-X-MAKE-GLYPH:CAPS">
-<ANCHOR id="PANGO-X-GLYPH-SUBFONT:CAPS" href="pango/pango-X-Fonts-and-Rendering.html#PANGO-X-GLYPH-SUBFONT:CAPS">
-<ANCHOR id="PANGO-X-GLYPH-INDEX:CAPS" href="pango/pango-X-Fonts-and-Rendering.html#PANGO-X-GLYPH-INDEX:CAPS">
-<ANCHOR id="pango-x-load-font" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-load-font">
-<ANCHOR id="pango-x-get-unknown-glyph" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-get-unknown-glyph">
-<ANCHOR id="pango-x-has-glyph" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-has-glyph">
-<ANCHOR id="pango-x-list-subfonts" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-list-subfonts">
-<ANCHOR id="pango-x-font-map-for-display" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-font-map-for-display">
-<ANCHOR id="pango-x-shutdown-display" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-shutdown-display">
-<ANCHOR id="pango-x-font-map-get-font-cache" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-font-map-get-font-cache">
-<ANCHOR id="pango-x-font-subfont-xlfd" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-font-subfont-xlfd">
-<ANCHOR id="pango-x-find-first-subfont" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-find-first-subfont">
-<ANCHOR id="pango-x-font-get-unknown-glyph" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-font-get-unknown-glyph">
-<ANCHOR id="pango-x-apply-ligatures" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-apply-ligatures">
-<ANCHOR id="pango-x-fallback-shape" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-fallback-shape">
-<ANCHOR id="PangoXFontCache" href="pango/pango-X-Fonts-and-Rendering.html#PangoXFontCache">
-<ANCHOR id="pango-x-font-cache-new" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-font-cache-new">
-<ANCHOR id="pango-x-font-cache-free" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-font-cache-free">
-<ANCHOR id="pango-x-font-cache-load" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-font-cache-load">
-<ANCHOR id="pango-x-font-cache-unload" href="pango/pango-X-Fonts-and-Rendering.html#pango-x-font-cache-unload">
 <ANCHOR id="pango-pango-renderer" href="pango/pango-pango-renderer.html">
 <ANCHOR id="pango-pango-renderer.synopsis" href="pango/pango-pango-renderer.html#pango-pango-renderer.synopsis">
 <ANCHOR id="PangoRenderer" href="pango/pango-pango-renderer.html#PangoRenderer">
@@ -923,6 +901,7 @@
 <ANCHOR id="pango-fc-font-map-cache-clear" href="pango/PangoFcFontMap.html#pango-fc-font-map-cache-clear">
 <ANCHOR id="pango-fc-font-map-shutdown" href="pango/PangoFcFontMap.html#pango-fc-font-map-shutdown">
 <ANCHOR id="pango-fc-font-description-from-pattern" href="pango/PangoFcFontMap.html#pango-fc-font-description-from-pattern">
+<ANCHOR id="PANGO-FC-FONT-FEATURES:CAPS" href="pango/PangoFcFontMap.html#PANGO-FC-FONT-FEATURES:CAPS">
 <ANCHOR id="PANGO-FC-GRAVITY:CAPS" href="pango/PangoFcFontMap.html#PANGO-FC-GRAVITY:CAPS">
 <ANCHOR id="PANGO-FC-VERSION:CAPS" href="pango/PangoFcFontMap.html#PANGO-FC-VERSION:CAPS">
 <ANCHOR id="PANGO-FC-PRGNAME:CAPS" href="pango/PangoFcFontMap.html#PANGO-FC-PRGNAME:CAPS">
@@ -1105,6 +1084,7 @@
 <ANCHOR id="pango-scan-string" href="pango/pango-Miscellaneous-Utilities.html#pango-scan-string">
 <ANCHOR id="pango-scan-int" href="pango/pango-Miscellaneous-Utilities.html#pango-scan-int">
 <ANCHOR id="pango-config-key-get" href="pango/pango-Miscellaneous-Utilities.html#pango-config-key-get">
+<ANCHOR id="pango-config-key-get-system" href="pango/pango-Miscellaneous-Utilities.html#pango-config-key-get-system">
 <ANCHOR id="pango-lookup-aliases" href="pango/pango-Miscellaneous-Utilities.html#pango-lookup-aliases">
 <ANCHOR id="pango-parse-enum" href="pango/pango-Miscellaneous-Utilities.html#pango-parse-enum">
 <ANCHOR id="pango-parse-style" href="pango/pango-Miscellaneous-Utilities.html#pango-parse-style">
@@ -1143,5 +1123,5 @@
 <ANCHOR id="annotation-glossterm-array" href="pango/annotation-glossary.html#annotation-glossterm-array">
 <ANCHOR id="annotation-glossterm-element-type" href="pango/annotation-glossary.html#annotation-glossterm-element-type">
 <ANCHOR id="annotation-glossterm-transfer container" href="pango/annotation-glossary.html#annotation-glossterm-transfer container">
-<ANCHOR id="annotation-glossterm-transfer full" href="pango/annotation-glossary.html#annotation-glossterm-transfer full">
 <ANCHOR id="annotation-glossterm-scope call" href="pango/annotation-glossary.html#annotation-glossterm-scope call">
+<ANCHOR id="annotation-glossterm-transfer full" href="pango/annotation-glossary.html#annotation-glossterm-transfer full">

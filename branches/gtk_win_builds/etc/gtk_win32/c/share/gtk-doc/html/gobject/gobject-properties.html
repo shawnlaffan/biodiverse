@@ -164,7 +164,7 @@
 <span class="normal">  N_PROPERTIES</span>
 <span class="cbracket">}</span><span class="symbol">;</span>
 
-<span class="keyword">static</span><span class="normal"> </span><span class="usertype">GParamSpec</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">obj_properties</span><span class="symbol">[</span><span class="normal">N_PROPERTIES</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">;</span>
+<span class="keyword">static</span><span class="normal"> </span><span class="usertype">GParamSpec</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">obj_properties</span><span class="symbol">[</span><span class="normal">N_PROPERTIES</span><span class="symbol">]</span><span class="normal"> </span><span class="symbol">=</span><span class="normal"> </span><span class="cbracket">{</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="cbracket">}</span><span class="symbol">;</span>
 
 <span class="keyword">static</span><span class="normal"> </span><span class="type">void</span>
 <span class="function">maman_bar_set_property</span><span class="normal"> </span><span class="symbol">(</span><span class="usertype">GObject</span><span class="normal">      </span><span class="symbol">*</span><span class="normal">object</span><span class="symbol">,</span>
@@ -177,14 +177,14 @@
 <span class="normal">  </span><span class="keyword">switch</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">property_id</span><span class="symbol">)</span>
 <span class="normal">    </span><span class="cbracket">{</span>
 <span class="normal">    </span><span class="keyword">case</span><span class="normal"> PROP_MAMAN_NAME</span><span class="symbol">:</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">self</span><span class="symbol">-&gt;</span><span class="normal">priv</span><span class="symbol">-&gt;</span><span class="normal">name</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Memory-Allocation.html#g-free">g_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">self</span><span class="symbol">-&gt;</span><span class="normal">priv</span><span class="symbol">-&gt;</span><span class="normal">name</span><span class="symbol">);</span>
 <span class="normal">      self</span><span class="symbol">-&gt;</span><span class="normal">priv</span><span class="symbol">-&gt;</span><span class="normal">name </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gobject-Standard-Parameter-and-Value-Types.html#g-value-dup-string">g_value_dup_string</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">value</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"maman: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> self</span><span class="symbol">-&gt;</span><span class="normal">priv</span><span class="symbol">-&gt;</span><span class="normal">name</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"maman: %s</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> self</span><span class="symbol">-&gt;</span><span class="normal">priv</span><span class="symbol">-&gt;</span><span class="normal">name</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="keyword">break</span><span class="symbol">;</span>
 
 <span class="normal">    </span><span class="keyword">case</span><span class="normal"> PROP_PAPA_NUMBER</span><span class="symbol">:</span>
 <span class="normal">      self</span><span class="symbol">-&gt;</span><span class="normal">priv</span><span class="symbol">-&gt;</span><span class="normal">papa_number </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gobject-Standard-Parameter-and-Value-Types.html#g-value-get-uchar">g_value_get_uchar</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">value</span><span class="symbol">);</span>
-<span class="normal">      </span><span class="function"><a href="./../glib/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"papa: %u</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> self</span><span class="symbol">-&gt;</span><span class="normal">priv</span><span class="symbol">-&gt;</span><span class="normal">papa_number</span><span class="symbol">);</span>
+<span class="normal">      </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Warnings-and-Assertions.html#g-print">g_print</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"papa: %u</span><span class="specialchar">\n</span><span class="string">"</span><span class="symbol">,</span><span class="normal"> self</span><span class="symbol">-&gt;</span><span class="normal">priv</span><span class="symbol">-&gt;</span><span class="normal">papa_number</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="keyword">break</span><span class="symbol">;</span>
 
 <span class="label">    default:</span>
@@ -255,7 +255,7 @@
 <span class="usertype">GObject</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">bar</span><span class="symbol">;</span>
 <span class="usertype">GValue</span><span class="normal"> val </span><span class="symbol">=</span><span class="normal"> <a href="gobject-Generic-values.html#G-VALUE-INIT:CAPS">G_VALUE_INIT</a></span><span class="symbol">;</span>
 
-<span class="normal">bar </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-new">g_object_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">MAMAN_TYPE_SUBBAR</span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">bar </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="gobject-The-Base-Object-Type.html#g-object-new">g_object_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">MAMAN_TYPE_SUBBAR</span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 
 <span class="function"><a href="gobject-Generic-values.html#g-value-init">g_value_init</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">val</span><span class="symbol">,</span><span class="normal"> <a href="gobject-Type-Information.html#G-TYPE-CHAR:CAPS">G_TYPE_CHAR</a></span><span class="symbol">);</span>
 <span class="function"><a href="gobject-Standard-Parameter-and-Value-Types.html#g-value-set-char">g_value_set_char</a></span><span class="normal"> </span><span class="symbol">(&amp;</span><span class="normal">val</span><span class="symbol">,</span><span class="normal"> </span><span class="number">11</span><span class="symbol">);</span>
@@ -284,7 +284,7 @@
       <code class="function"><a class="link" href="gobject-Generic-values.html#g-value-transform" title="g_value_transform ()">g_value_transform</a></code> will try to transform the input signed char into
       an unsigned int. Of course, the success of the transformation depends on the availability
       of the required transform function. In practice, there will almost always be a transformation
-      <a href="#ftn.idp10829056" class="footnote"><sup class="footnote"><a name="idp10829056"></a>[4]</sup></a>
+      <a href="#ftn.id-1.3.4.6.5.2" class="footnote"><sup class="footnote"><a name="id-1.3.4.6.5.2"></a>[4]</sup></a>
       which matches and conversion will be carried out if needed.
     </p>
 <p>
@@ -305,7 +305,7 @@
       implementation of Foo did override this method, the code path would jump to
       <code class="function">foo_set_property</code> after having retrieved from the 
       <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> the <span class="emphasis"><em>param_id</em></span>
-      <a href="#ftn.idp10840880" class="footnote"><sup class="footnote"><a name="idp10840880"></a>[5]</sup></a>
+      <a href="#ftn.id-1.3.4.6.7.5" class="footnote"><sup class="footnote"><a name="id-1.3.4.6.7.5"></a>[5]</sup></a>
       which had been stored by
       <code class="function"><a class="link" href="gobject-The-Base-Object-Type.html#g-object-class-install-property" title="g_object_class_install_property ()">g_object_class_install_property</a></code>.
     </p>
@@ -373,10 +373,10 @@ g_object_set (G_OBJECT (foo),
 </div>
 <div class="footnotes">
 <br><hr style="width:100; align:left;">
-<div id="ftn.idp10829056" class="footnote"><p><a href="#idp10829056" class="para"><sup class="para">[4] </sup></a>Its behaviour might not be what you expect but it is up to you to actually avoid
+<div id="ftn.id-1.3.4.6.5.2" class="footnote"><p><a href="#id-1.3.4.6.5.2" class="para"><sup class="para">[4] </sup></a>Its behaviour might not be what you expect but it is up to you to actually avoid
           relying on these transformations.
         </p></div>
-<div id="ftn.idp10840880" class="footnote"><p><a href="#idp10840880" class="para"><sup class="para">[5] </sup></a>
+<div id="ftn.id-1.3.4.6.7.5" class="footnote"><p><a href="#id-1.3.4.6.7.5" class="para"><sup class="para">[5] </sup></a>
           It should be noted that the param_id used here need only to uniquely identify each 
           <a class="link" href="gobject-GParamSpec.html#GParamSpec" title="struct GParamSpec"><span class="type">GParamSpec</span></a> within the <span class="type">FooClass</span> such that the switch
           used in the set and get methods actually works. Of course, this locally-unique 

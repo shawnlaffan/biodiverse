@@ -717,12 +717,14 @@ is from the line end at or after the offset to the next line end.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>start_offset</code></em> :</span></p></td>
-<td>the start offset of the returned string</td>
+<td>the start offset of the returned string. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>end_offset</code></em> :</span></p></td>
 <td>the offset of the first character after the
-returned substring</td>
+returned substring. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -816,12 +818,14 @@ the offset.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>start_offset</code></em> :</span></p></td>
-<td>the start offset of the returned string</td>
+<td>the start offset of the returned string. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>end_offset</code></em> :</span></p></td>
 <td>the offset of the first character after the
-returned substring</td>
+returned substring. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -913,12 +917,14 @@ line end before the offset.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>start_offset</code></em> :</span></p></td>
-<td>the start offset of the returned string</td>
+<td>the start offset of the returned string. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>end_offset</code></em> :</span></p></td>
 <td>the offset of the first character after the
-returned substring</td>
+returned substring. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -1030,11 +1036,13 @@ the character to be inserted at the caret location.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>start_offset</code></em> :</span></p></td>
-<td>the address to put the start offset of the range</td>
+<td>the address to put the start offset of the range. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>end_offset</code></em> :</span></p></td>
-<td>the address to put the end offset of the range</td>
+<td>the address to put the end offset of the range. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -1175,7 +1183,8 @@ Get the ranges of text in the specified bounding box.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>Array of AtkTextRange. The last
-element of the array returned by this function will be NULL. <span class="annotation">[<a href="http://foldoc.org/array"><span class="acronym">array</span></a> zero-terminated=1]</span>
+element of the array returned by this function will be NULL.
+Virtual: get_bounded_ranges. <span class="annotation">[<a href="http://foldoc.org/array"><span class="acronym">array</span></a> zero-terminated=1]</span>
 </td>
 </tr>
 </tbody>
@@ -1236,7 +1245,9 @@ and is NULL terminated.
 <col align="left" valign="top">
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>ranges</code></em> :</span></p></td>
-<td>A pointer to an array of  <a class="link" href="AtkText.html#AtkTextRange" title="struct AtkTextRange"><span class="type">AtkTextRange</span></a> which is to be freed.</td>
+<td>A pointer to an array of <a class="link" href="AtkText.html#AtkTextRange" title="struct AtkTextRange"><span class="type">AtkTextRange</span></a> which is
+to be freed. <span class="annotation">[<a href="http://foldoc.org/array"><span class="acronym">array</span></a>]</span>
+</td>
 </tr></tbody>
 </table></div>
 <p class="since">Since 1.3</p>
@@ -1292,12 +1303,14 @@ moving or deleting a selected region can change the numbering.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>start_offset</code></em> :</span></p></td>
-<td>passes back the start position of the selected region</td>
+<td>passes back the start position of the selected region. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>end_offset</code></em> :</span></p></td>
 <td>passes back the end position of (e.g. offset immediately past)
-the selected region</td>
+the selected region. <span class="annotation">[<a href="http://foldoc.org/out"><span class="acronym">out</span></a>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>

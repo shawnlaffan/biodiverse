@@ -24,12 +24,12 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __G_MESSAGES_H__
+#define __G_MESSAGES_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_MESSAGES_H__
-#define __G_MESSAGES_H__
 
 #include <stdarg.h>
 #include <glib/gtypes.h>
@@ -45,8 +45,9 @@ G_BEGIN_DECLS
 
 /* calculate a string size, guaranteed to fit format + args.
  */
+GLIB_AVAILABLE_IN_ALL
 gsize	g_printf_string_upper_bound (const gchar* format,
-				     va_list	  args);
+				     va_list	  args) G_GNUC_PRINTF(1, 0);
 
 /* Log level shift offset for user defined
  * log levels (0-7 are used by GLib).
@@ -82,40 +83,50 @@ typedef void            (*GLogFunc)             (const gchar   *log_domain,
 
 /* Logging mechanism
  */
+GLIB_AVAILABLE_IN_ALL
 guint           g_log_set_handler       (const gchar    *log_domain,
                                          GLogLevelFlags  log_levels,
                                          GLogFunc        log_func,
                                          gpointer        user_data);
+GLIB_AVAILABLE_IN_ALL
 void            g_log_remove_handler    (const gchar    *log_domain,
                                          guint           handler_id);
+GLIB_AVAILABLE_IN_ALL
 void            g_log_default_handler   (const gchar    *log_domain,
                                          GLogLevelFlags  log_level,
                                          const gchar    *message,
                                          gpointer        unused_data);
+GLIB_AVAILABLE_IN_ALL
 GLogFunc        g_log_set_default_handler (GLogFunc      log_func,
 					   gpointer      user_data);
+GLIB_AVAILABLE_IN_ALL
 void            g_log                   (const gchar    *log_domain,
                                          GLogLevelFlags  log_level,
                                          const gchar    *format,
                                          ...) G_GNUC_PRINTF (3, 4);
+GLIB_AVAILABLE_IN_ALL
 void            g_logv                  (const gchar    *log_domain,
                                          GLogLevelFlags  log_level,
                                          const gchar    *format,
-                                         va_list         args);
+                                         va_list         args) G_GNUC_PRINTF(3, 0);
+GLIB_AVAILABLE_IN_ALL
 GLogLevelFlags  g_log_set_fatal_mask    (const gchar    *log_domain,
                                          GLogLevelFlags  fatal_mask);
+GLIB_AVAILABLE_IN_ALL
 GLogLevelFlags  g_log_set_always_fatal  (GLogLevelFlags  fatal_mask);
 
 /* internal */
-G_GNUC_INTERNAL void	_g_log_fallback_handler	(const gchar   *log_domain,
+void	_g_log_fallback_handler	(const gchar   *log_domain,
 						 GLogLevelFlags log_level,
 						 const gchar   *message,
 						 gpointer       unused_data);
 
 /* Internal functions, used to implement the following macros */
+GLIB_AVAILABLE_IN_ALL
 void g_return_if_fail_warning (const char *log_domain,
 			       const char *pretty_function,
 			       const char *expression);
+GLIB_AVAILABLE_IN_ALL
 void g_warn_message           (const char     *domain,
                                const char     *file,
                                int             line,
@@ -233,11 +244,15 @@ g_debug (const gchar *format,
  * These are called with the complete formatted string to output.
  */
 typedef void    (*GPrintFunc)           (const gchar    *string);
+GLIB_AVAILABLE_IN_ALL
 void            g_print                 (const gchar    *format,
                                          ...) G_GNUC_PRINTF (1, 2);
+GLIB_AVAILABLE_IN_ALL
 GPrintFunc      g_set_print_handler     (GPrintFunc      func);
+GLIB_AVAILABLE_IN_ALL
 void            g_printerr              (const gchar    *format,
                                          ...) G_GNUC_PRINTF (1, 2);
+GLIB_AVAILABLE_IN_ALL
 GPrintFunc      g_set_printerr_handler  (GPrintFunc      func);
 
 /**

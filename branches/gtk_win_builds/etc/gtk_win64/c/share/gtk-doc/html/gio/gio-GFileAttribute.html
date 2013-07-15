@@ -65,7 +65,7 @@ File attributes in GIO consist of a list of key-value pairs.
 </p>
 <p>
 Keys are strings that contain a key namespace and a key name, separated
-by a colon, e.g. "namespace:keyname". Namespaces are included to sort
+by a colon, e.g. "namespace::keyname". Namespaces are included to sort
 key-value pairs by namespaces for relevance. Keys can be retrived
 using wildcards, e.g. "standard::*" will return all of the keys in the
 "standard" namespace.
@@ -92,7 +92,7 @@ attribute key will be registered for the user id for a given file).
 <p>
 </p>
 <div class="table">
-<a name="idp11442624"></a><p class="title"><b>Table 1. GFileAttributes Default Namespaces</b></p>
+<a name="id-1.4.2.3.4.7.1.1"></a><p class="title"><b>Table 1. GFileAttributes Default Namespaces</b></p>
 <div class="table-contents"><table summary="GFileAttributes Default Namespaces" border="1">
 <colgroup>
 <col>
@@ -126,7 +126,7 @@ to check for loops and to uniquely identify files.</td>
 <td align="left">The "Access" namespace. Used to check
 if a user has the proper privilidges to access files and perform
 file operations. Keys in this namespace are made to be generic
-and easily understood, e.g. the "can_read" key is <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if
+and easily understood, e.g. the "can_read" key is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if
 the current user has permission to read the file. UNIX permissions and
 NTFS ACLs in Windows should be mapped to these values.</td>
 </tr>
@@ -219,7 +219,7 @@ For more information about writing GIO modules, see <a class="link" href="GIOMod
 <p>
 </p>
 <div class="table">
-<a name="idp9223216"></a><p class="title"><b>Table 2. GFileAttributes Built-in Keys and Value Types</b></p>
+<a name="id-1.4.2.3.4.10.1.1"></a><p class="title"><b>Table 2. GFileAttributes Built-in Keys and Value Types</b></p>
 <div class="table-contents"><table summary="GFileAttributes Built-in Keys and Value Types" border="1">
 <colgroup>
 <col>
@@ -228,7 +228,7 @@ For more information about writing GIO modules, see <a class="link" href="GIOMod
 </colgroup>
 <thead><tr>
 <th align="left">Enum Value</th>
-<th align="left">Namespace:Key</th>
+<th align="left">Namespace::Key</th>
 <th align="left">Value Type</th>
 </tr></thead>
 <tbody>
@@ -637,12 +637,12 @@ The data types for file attributes.
 </tr>
 <tr>
 <td><p><a name="G-FILE-ATTRIBUTE-TYPE-OBJECT:CAPS"></a><span class="term"><code class="literal">G_FILE_ATTRIBUTE_TYPE_OBJECT</code></span></p></td>
-<td>a <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>.
+<td>a <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a>.
 </td>
 </tr>
 <tr>
 <td><p><a name="G-FILE-ATTRIBUTE-TYPE-STRINGV:CAPS"></a><span class="term"><code class="literal">G_FILE_ATTRIBUTE_TYPE_STRINGV</code></span></p></td>
-<td>a <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> terminated char **. Since 2.22
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> terminated char **. Since 2.22
 </td>
 </tr>
 </tbody>
@@ -820,7 +820,7 @@ References a file attribute info list.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a class="link" href="gio-GFileAttribute.html#GFileAttributeInfoList" title="GFileAttributeInfoList"><span class="type">GFileAttributeInfoList</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.</td>
+<a class="link" href="gio-GFileAttribute.html#GFileAttributeInfoList" title="GFileAttributeInfoList"><span class="type">GFileAttributeInfoList</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> on error.</td>
 </tr>
 </tbody>
 </table></div>
@@ -893,7 +893,7 @@ Gets the file attribute with the name <em class="parameter"><code>name</code></e
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="gio-GFileAttribute.html#GFileAttributeInfo" title="GFileAttributeInfo"><span class="type">GFileAttributeInfo</span></a> for the <em class="parameter"><code>name</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if an
+<td>a <a class="link" href="gio-GFileAttribute.html#GFileAttributeInfo" title="GFileAttributeInfo"><span class="type">GFileAttributeInfo</span></a> for the <em class="parameter"><code>name</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if an
 attribute isn't found.</td>
 </tr>
 </tbody>

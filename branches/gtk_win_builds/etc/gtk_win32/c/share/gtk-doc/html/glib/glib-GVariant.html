@@ -163,6 +163,7 @@ const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span cla
 
 <a class="link" href="glib-Basic-Types.html#gsize" title="gsize"><span class="returnvalue">gsize</span></a>               <a class="link" href="glib-GVariant.html#g-variant-get-size" title="g_variant_get_size ()">g_variant_get_size</a>                  (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>);
 <a class="link" href="glib-Basic-Types.html#gconstpointer" title="gconstpointer"><span class="returnvalue">gconstpointer</span></a>       <a class="link" href="glib-GVariant.html#g-variant-get-data" title="g_variant_get_data ()">g_variant_get_data</a>                  (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>);
+<a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"><span class="returnvalue">GBytes</span></a> *            <a class="link" href="glib-GVariant.html#g-variant-get-data-as-bytes" title="g_variant_get_data_as_bytes ()">g_variant_get_data_as_bytes</a>         (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="glib-GVariant.html#g-variant-store" title="g_variant_store ()">g_variant_store</a>                     (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gpointer" title="gpointer"><span class="type">gpointer</span></a> data</code></em>);
 <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="returnvalue">GVariant</span></a> *          <a class="link" href="glib-GVariant.html#g-variant-new-from-data" title="g_variant_new_from_data ()">g_variant_new_from_data</a>             (<em class="parameter"><code>const <a class="link" href="glib-GVariantType.html#GVariantType" title="GVariantType"><span class="type">GVariantType</span></a> *type</code></em>,
@@ -171,6 +172,9 @@ const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span cla
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gboolean" title="gboolean"><span class="type">gboolean</span></a> trusted</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Datasets.html#GDestroyNotify" title="GDestroyNotify ()"><span class="type">GDestroyNotify</span></a> notify</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gpointer" title="gpointer"><span class="type">gpointer</span></a> user_data</code></em>);
+<a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="returnvalue">GVariant</span></a> *          <a class="link" href="glib-GVariant.html#g-variant-new-from-bytes" title="g_variant_new_from_bytes ()">g_variant_new_from_bytes</a>            (<em class="parameter"><code>const <a class="link" href="glib-GVariantType.html#GVariantType" title="GVariantType"><span class="type">GVariantType</span></a> *type</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"><span class="type">GBytes</span></a> *bytes</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gboolean" title="gboolean"><span class="type">gboolean</span></a> trusted</code></em>);
 <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="returnvalue">GVariant</span></a> *          <a class="link" href="glib-GVariant.html#g-variant-byteswap" title="g_variant_byteswap ()">g_variant_byteswap</a>                  (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>);
 <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="returnvalue">GVariant</span></a> *          <a class="link" href="glib-GVariant.html#g-variant-get-normal-form" title="g_variant_get_normal_form ()">g_variant_get_normal_form</a>           (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>);
 <a class="link" href="glib-Basic-Types.html#gboolean" title="gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="glib-GVariant.html#g-variant-is-normal-form" title="g_variant_is_normal_form ()">g_variant_is_normal_form</a>            (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>);
@@ -268,7 +272,7 @@ Serialised <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><
 <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> is largely compatible with D-Bus.  Almost all types of
 <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> instances can be sent over D-Bus.  See <a class="link" href="glib-GVariantType.html#GVariantType" title="GVariantType"><span class="type">GVariantType</span></a> for
 exceptions.  (However, <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a>'s serialisation format is not the same
-as the serialisation format of a D-Bus message body: use <a href="/usr/share/gtk-doc/html/gio/GDBusMessage.html"><span class="type">GDBusMessage</span></a>,
+as the serialisation format of a D-Bus message body: use <span class="type">GDBusMessage</span>,
 in the gio library, for those.)
 </p>
 <p>
@@ -299,7 +303,7 @@ with type inferencing.
 <p>
 </p>
 <div class="refsect2">
-<a name="idp61883568"></a><h3>Memory Use</h3>
+<a name="id-1.6.19.4.12.1"></a><h3>Memory Use</h3>
 <p>
   <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> tries to be quite efficient with respect to memory use.
   This section gives a rough idea of how much memory is used by the
@@ -381,7 +385,7 @@ with type inferencing.
   </p>
 </div>
 <div class="refsect3">
-<a name="idp61895520"></a><h4>Type Information Cache</h4>
+<a name="id-1.6.19.4.12.1.5"></a><h4>Type Information Cache</h4>
 <p>
    For each GVariant type that currently exists in the program a type
    information structure is kept in the type information cache.  The
@@ -436,7 +440,7 @@ with type inferencing.
   </p>
 </div>
 <div class="refsect3">
-<a name="idp61903904"></a><h4>Buffer Management Memory</h4>
+<a name="id-1.6.19.4.12.1.6"></a><h4>Buffer Management Memory</h4>
 <p>
    <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> uses an internal buffer management structure to deal
    with the various different possible sources of serialised data
@@ -452,7 +456,7 @@ with type inferencing.
   </p>
 </div>
 <div class="refsect3">
-<a name="idp61910400"></a><h4>GVariant structure</h4>
+<a name="id-1.6.19.4.12.1.7"></a><h4>GVariant structure</h4>
 <p>
    The size of a <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> structure is 6 * (void *).  On 32 bit
    systems, that's 24 bytes.
@@ -477,7 +481,7 @@ with type inferencing.
   </p>
 </div>
 <div class="refsect3">
-<a name="idp61917792"></a><h4>Summary</h4>
+<a name="id-1.6.19.4.12.1.8"></a><h4>Summary</h4>
 <p>
    To put the entire example together, for our dictionary mapping
    strings to variants (with two entries, as given above), we are
@@ -1057,7 +1061,7 @@ check fails then a <a class="link" href="glib-Message-Logging.html#g-critical" t
 <p>
 This function is meant to be used by functions that wish to provide
 varargs accessors to <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> values of uncertain values (eg:
-<a class="link" href="glib-GVariant.html#g-variant-lookup" title="g_variant_lookup ()"><code class="function">g_variant_lookup()</code></a> or <a href="/usr/share/gtk-doc/html/gio/GMenuModel.html#g-menu-model-get-item-attribute"><code class="function">g_menu_model_get_item_attribute()</code></a>).
+<a class="link" href="glib-GVariant.html#g-variant-lookup" title="g_variant_lookup ()"><code class="function">g_variant_lookup()</code></a> or <code class="function">g_menu_model_get_item_attribute()</code>).
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -3392,6 +3396,36 @@ serialised data).
 </div>
 <hr>
 <div class="refsect2">
+<a name="g-variant-get-data-as-bytes"></a><h3>g_variant_get_data_as_bytes ()</h3>
+<pre class="programlisting"><a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"><span class="returnvalue">GBytes</span></a> *            g_variant_get_data_as_bytes         (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>);</pre>
+<p>
+Returns a pointer to the serialised form of a <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> instance.
+The semantics of this function are exactly the same as
+<a class="link" href="glib-GVariant.html#g-variant-get-data" title="g_variant_get_data ()"><code class="function">g_variant_get_data()</code></a>, except that the returned <a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"><span class="type">GBytes</span></a> holds
+a reference to the variant data.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>value</code></em> :</span></p></td>
+<td>a <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>A new <a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"><span class="type">GBytes</span></a> representing the variant data. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.36</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="g-variant-store"></a><h3>g_variant_store ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_variant_store                     (<em class="parameter"><code><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> *value</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gpointer" title="gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
@@ -3514,6 +3548,48 @@ before this function returns.
 </tbody>
 </table></div>
 <p class="since">Since 2.24</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-variant-new-from-bytes"></a><h3>g_variant_new_from_bytes ()</h3>
+<pre class="programlisting"><a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="returnvalue">GVariant</span></a> *          g_variant_new_from_bytes            (<em class="parameter"><code>const <a class="link" href="glib-GVariantType.html#GVariantType" title="GVariantType"><span class="type">GVariantType</span></a> *type</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"><span class="type">GBytes</span></a> *bytes</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gboolean" title="gboolean"><span class="type">gboolean</span></a> trusted</code></em>);</pre>
+<p>
+Constructs a new serialised-mode <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> instance.  This is the
+inner interface for creation of new serialised values that gets
+called from various functions in gvariant.c.
+</p>
+<p>
+A reference is taken on <em class="parameter"><code>bytes</code></em>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>type</code></em> :</span></p></td>
+<td>a <a class="link" href="glib-GVariantType.html#GVariantType" title="GVariantType"><span class="type">GVariantType</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>bytes</code></em> :</span></p></td>
+<td>a <a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"><span class="type">GBytes</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>trusted</code></em> :</span></p></td>
+<td>if the contents of <em class="parameter"><code>bytes</code></em> are trusted</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>a new <a class="link" href="glib-GVariant.html#GVariant" title="GVariant"><span class="type">GVariant</span></a> with a floating reference</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.36</p>
 </div>
 <hr>
 <div class="refsect2">
@@ -3987,7 +4063,7 @@ you no longer need it.
 <p>
 </p>
 <div class="example">
-<a name="idp63939600"></a><p class="title"><b>Example 18. Iterating with <a class="link" href="glib-GVariant.html#g-variant-iter-next-value" title="g_variant_iter_next_value ()"><code class="function">g_variant_iter_next_value()</code></a></b></p>
+<a name="id-1.6.19.5.92.6.1"></a><p class="title"><b>Example 17. Iterating with <a class="link" href="glib-GVariant.html#g-variant-iter-next-value" title="g_variant_iter_next_value ()"><code class="function">g_variant_iter_next_value()</code></a></b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -4082,7 +4158,7 @@ Format Strings</GTKDOCLINK>.
 <p>
 </p>
 <div class="example">
-<a name="idp63968064"></a><p class="title"><b>Example 19. Memory management with <a class="link" href="glib-GVariant.html#g-variant-iter-next" title="g_variant_iter_next ()"><code class="function">g_variant_iter_next()</code></a></b></p>
+<a name="id-1.6.19.5.93.8.1"></a><p class="title"><b>Example 18. Memory management with <a class="link" href="glib-GVariant.html#g-variant-iter-next" title="g_variant_iter_next ()"><code class="function">g_variant_iter_next()</code></a></b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -4213,7 +4289,7 @@ Format Strings</GTKDOCLINK>.
 <p>
 </p>
 <div class="example">
-<a name="idp64010272"></a><p class="title"><b>Example 20. Memory management with <a class="link" href="glib-GVariant.html#g-variant-iter-loop" title="g_variant_iter_loop ()"><code class="function">g_variant_iter_loop()</code></a></b></p>
+<a name="id-1.6.19.5.94.10.1"></a><p class="title"><b>Example 19. Memory management with <a class="link" href="glib-GVariant.html#g-variant-iter-loop" title="g_variant_iter_loop ()"><code class="function">g_variant_iter_loop()</code></a></b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>

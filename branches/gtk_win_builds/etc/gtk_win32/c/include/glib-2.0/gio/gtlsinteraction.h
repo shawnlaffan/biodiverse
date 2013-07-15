@@ -20,12 +20,12 @@
  * Author: Stef Walter <stefw@collabora.co.uk>
  */
 
+#ifndef __G_TLS_INTERACTION_H__
+#define __G_TLS_INTERACTION_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_TLS_INTERACTION_H__
-#define __G_TLS_INTERACTION_H__
 
 #include <gio/giotypes.h>
 
@@ -74,25 +74,30 @@ struct _GTlsInteractionClass
   gpointer padding[24];
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType                  g_tls_interaction_get_type            (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GTlsInteractionResult  g_tls_interaction_invoke_ask_password (GTlsInteraction    *interaction,
                                                               GTlsPassword       *password,
                                                               GCancellable       *cancellable,
                                                               GError            **error);
 
 
+GLIB_AVAILABLE_IN_ALL
 GTlsInteractionResult  g_tls_interaction_ask_password        (GTlsInteraction    *interaction,
                                                               GTlsPassword       *password,
                                                               GCancellable       *cancellable,
                                                               GError            **error);
 
+GLIB_AVAILABLE_IN_ALL
 void                   g_tls_interaction_ask_password_async  (GTlsInteraction    *interaction,
                                                               GTlsPassword       *password,
                                                               GCancellable       *cancellable,
                                                               GAsyncReadyCallback callback,
                                                               gpointer            user_data);
 
+GLIB_AVAILABLE_IN_ALL
 GTlsInteractionResult  g_tls_interaction_ask_password_finish (GTlsInteraction    *interaction,
                                                               GAsyncResult       *result,
                                                               GError            **error);

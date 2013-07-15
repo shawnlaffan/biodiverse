@@ -174,7 +174,7 @@ Add the states for the specified types to the current state set.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>types</code></em> :</span></p></td>
-<td>an array of <a class="link" href="atk-AtkState.html#AtkStateType" title="enum AtkStateType"><span class="type">AtkStateType</span></a>
+<td>an array of <a class="link" href="atk-AtkState.html#AtkStateType" title="enum AtkStateType"><span class="type">AtkStateType</span></a>. <span class="annotation">[<a href="http://foldoc.org/array"><span class="acronym">array</span></a> length=n_types]</span>
 </td>
 </tr>
 <tr>
@@ -249,7 +249,7 @@ specified set.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>types</code></em> :</span></p></td>
-<td>an array of <a class="link" href="atk-AtkState.html#AtkStateType" title="enum AtkStateType"><span class="type">AtkStateType</span></a>
+<td>an array of <a class="link" href="atk-AtkState.html#AtkStateType" title="enum AtkStateType"><span class="type">AtkStateType</span></a>. <span class="annotation">[<a href="http://foldoc.org/array"><span class="acronym">array</span></a> length=n_types]</span>
 </td>
 </tr>
 <tr>
@@ -299,7 +299,7 @@ Removes the state for the specified type from the state set.
 <pre class="programlisting"><a class="link" href="AtkStateSet.html" title="AtkStateSet"><span class="returnvalue">AtkStateSet</span></a> *       atk_state_set_and_sets              (<em class="parameter"><code><a class="link" href="AtkStateSet.html" title="AtkStateSet"><span class="type">AtkStateSet</span></a> *set</code></em>,
                                                          <em class="parameter"><code><a class="link" href="AtkStateSet.html" title="AtkStateSet"><span class="type">AtkStateSet</span></a> *compare_set</code></em>);</pre>
 <p>
-Constructs the intersection of the two sets, returning <a href="/opt/gnome3/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> if the
+Constructs the intersection of the two sets, returning <code class="literal">NULL</code> if the
 intersection is empty.
 </p>
 <div class="variablelist"><table border="0">
@@ -348,7 +348,7 @@ Constructs the union of the two sets.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>a new <a class="link" href="AtkStateSet.html" title="AtkStateSet"><span class="type">AtkStateSet</span></a> which is the union of the two
-sets, returning <a href="/opt/gnome3/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is empty. <span class="annotation">[<a href="http://foldoc.org/transfer%20full"><span class="acronym">transfer full</span></a>]</span>
+sets, returning <code class="literal">NULL</code> is empty. <span class="annotation">[<a href="http://foldoc.org/transfer%20full"><span class="acronym">transfer full</span></a>]</span>
 </td>
 </tr>
 </tbody>
@@ -360,7 +360,7 @@ sets, returning <a href="/opt/gnome3/share/gtk-doc/html/liboil/liboil-liboiljunk
 <pre class="programlisting"><a class="link" href="AtkStateSet.html" title="AtkStateSet"><span class="returnvalue">AtkStateSet</span></a> *       atk_state_set_xor_sets              (<em class="parameter"><code><a class="link" href="AtkStateSet.html" title="AtkStateSet"><span class="type">AtkStateSet</span></a> *set</code></em>,
                                                          <em class="parameter"><code><a class="link" href="AtkStateSet.html" title="AtkStateSet"><span class="type">AtkStateSet</span></a> *compare_set</code></em>);</pre>
 <p>
-Constructs the exclusive-or of the two sets, returning <a href="/opt/gnome3/share/gtk-doc/html/liboil/liboil-liboiljunk.html#NULL--CAPS"><code class="literal">NULL</code></a> is empty.
+Constructs the exclusive-or of the two sets, returning <code class="literal">NULL</code> is empty.
 The set returned by this operation contains the states in exactly
 one of the two sets.
 </p>

@@ -19,12 +19,12 @@
  * Authors: Ryan Lortie <desrt@desrt.ca>
  */
 
+#ifndef __G_ACTION_H__
+#define __G_ACTION_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_ACTION_H__
-#define __G_ACTION_H__
 
 #include <gio/giotypes.h>
 
@@ -61,16 +61,24 @@ struct _GActionInterface
 GLIB_AVAILABLE_IN_2_30
 GType                   g_action_get_type                               (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 const gchar *           g_action_get_name                               (GAction            *action);
+GLIB_AVAILABLE_IN_ALL
 const GVariantType *    g_action_get_parameter_type                     (GAction            *action);
+GLIB_AVAILABLE_IN_ALL
 const GVariantType *    g_action_get_state_type                         (GAction            *action);
+GLIB_AVAILABLE_IN_ALL
 GVariant *              g_action_get_state_hint                         (GAction            *action);
 
+GLIB_AVAILABLE_IN_ALL
 gboolean                g_action_get_enabled                            (GAction            *action);
+GLIB_AVAILABLE_IN_ALL
 GVariant *              g_action_get_state                              (GAction            *action);
 
+GLIB_AVAILABLE_IN_ALL
 void                    g_action_change_state                           (GAction            *action,
                                                                          GVariant           *value);
+GLIB_AVAILABLE_IN_ALL
 void                    g_action_activate                               (GAction            *action,
                                                                          GVariant           *parameter);
 G_END_DECLS

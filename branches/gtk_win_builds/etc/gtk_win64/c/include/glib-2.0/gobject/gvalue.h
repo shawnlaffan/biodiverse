@@ -18,12 +18,12 @@
  *
  * gvalue.h: generic GValue functions
  */
+#ifndef __G_VALUE_H__
+#define __G_VALUE_H__
+
 #if !defined (__GLIB_GOBJECT_H_INSIDE__) && !defined (GOBJECT_COMPILATION)
 #error "Only <glib-object.h> can be included directly."
 #endif
-
-#ifndef __G_VALUE_H__
-#define __G_VALUE_H__
 
 #include	<gobject/gtype.h>
 
@@ -126,28 +126,39 @@ struct _GValue
 
 
 /* --- prototypes --- */
+GLIB_AVAILABLE_IN_ALL
 GValue*         g_value_init	   	(GValue       *value,
 					 GType         g_type);
+GLIB_AVAILABLE_IN_ALL
 void            g_value_copy    	(const GValue *src_value,
 					 GValue       *dest_value);
+GLIB_AVAILABLE_IN_ALL
 GValue*         g_value_reset   	(GValue       *value);
+GLIB_AVAILABLE_IN_ALL
 void            g_value_unset   	(GValue       *value);
+GLIB_AVAILABLE_IN_ALL
 void		g_value_set_instance	(GValue	      *value,
 					 gpointer      instance);
 
 
 /* --- private --- */
+GLIB_AVAILABLE_IN_ALL
 gboolean	g_value_fits_pointer	(const GValue *value);
+GLIB_AVAILABLE_IN_ALL
 gpointer	g_value_peek_pointer	(const GValue *value);
 
 
 /* --- implementation details --- */
+GLIB_AVAILABLE_IN_ALL
 gboolean g_value_type_compatible	(GType		 src_type,
 					 GType		 dest_type);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_value_type_transformable	(GType           src_type,
 					 GType           dest_type);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_value_transform		(const GValue   *src_value,
 					 GValue         *dest_value);
+GLIB_AVAILABLE_IN_ALL
 void	g_value_register_transform_func	(GType		 src_type,
 					 GType		 dest_type,
 					 GValueTransform transform_func);

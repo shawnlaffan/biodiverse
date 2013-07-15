@@ -20,12 +20,12 @@
  * Author: Emmanuele Bassi <ebassi@linux.intel.com>
  */
 
+#ifndef __G_BINDING_H__
+#define __G_BINDING_H__
+
 #if !defined (__GLIB_GOBJECT_H_INSIDE__) && !defined (GOBJECT_COMPILATION)
 #error "Only <glib-object.h> can be included directly."
 #endif
-
-#ifndef __G_BINDING_H__
-#define __G_BINDING_H__
 
 #include <glib.h>
 #include <gobject/gobject.h>
@@ -100,20 +100,29 @@ typedef enum { /*< prefix=G_BINDING >*/
   G_BINDING_INVERT_BOOLEAN = 1 << 2
 } GBindingFlags;
 
+GLIB_AVAILABLE_IN_ALL
 GType                 g_binding_flags_get_type      (void) G_GNUC_CONST;
+GLIB_AVAILABLE_IN_ALL
 GType                 g_binding_get_type            (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GBindingFlags         g_binding_get_flags           (GBinding *binding);
+GLIB_AVAILABLE_IN_ALL
 GObject *             g_binding_get_source          (GBinding *binding);
+GLIB_AVAILABLE_IN_ALL
 GObject *             g_binding_get_target          (GBinding *binding);
+GLIB_AVAILABLE_IN_ALL
 const gchar *         g_binding_get_source_property (GBinding *binding);
+GLIB_AVAILABLE_IN_ALL
 const gchar *         g_binding_get_target_property (GBinding *binding);
 
+GLIB_AVAILABLE_IN_ALL
 GBinding *g_object_bind_property               (gpointer               source,
                                                 const gchar           *source_property,
                                                 gpointer               target,
                                                 const gchar           *target_property,
                                                 GBindingFlags          flags);
+GLIB_AVAILABLE_IN_ALL
 GBinding *g_object_bind_property_full          (gpointer               source,
                                                 const gchar           *source_property,
                                                 gpointer               target,
@@ -123,6 +132,7 @@ GBinding *g_object_bind_property_full          (gpointer               source,
                                                 GBindingTransformFunc  transform_from,
                                                 gpointer               user_data,
                                                 GDestroyNotify         notify);
+GLIB_AVAILABLE_IN_ALL
 GBinding *g_object_bind_property_with_closures (gpointer               source,
                                                 const gchar           *source_property,
                                                 gpointer               target,

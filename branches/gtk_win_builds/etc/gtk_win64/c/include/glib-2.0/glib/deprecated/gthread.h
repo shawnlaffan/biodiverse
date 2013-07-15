@@ -24,12 +24,12 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __G_DEPRECATED_THREAD_H__
+#define __G_DEPRECATED_THREAD_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_DEPRECATED_THREAD_H__
-#define __G_DEPRECATED_THREAD_H__
 
 #include <glib/gthread.h>
 
@@ -143,8 +143,9 @@ typedef struct
 
 GLIB_DEPRECATED_IN_2_32_FOR(g_mutex_init)
 void    g_static_mutex_init           (GStaticMutex *mutex);
-GLIB_DEPRECATED_IN_2_32_FOR(g_mutex_free)
+GLIB_DEPRECATED_IN_2_32_FOR(g_mutex_clear)
 void    g_static_mutex_free           (GStaticMutex *mutex);
+GLIB_DEPRECATED_IN_2_32_FOR(GMutex)
 GMutex *g_static_mutex_get_mutex_impl (GStaticMutex *mutex);
 
 typedef struct _GStaticRecMutex GStaticRecMutex;

@@ -21,7 +21,7 @@
 </tr></table>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="idp72745328"></a>Creating proxies for well-known names</h2></div></div></div>
+<a name="id-1.5.5.5"></a>Creating proxies for well-known names</h2></div></div></div>
 <p>
       dbus-glib lets you create proxy objects for well-known names, like the
       following example:
@@ -34,7 +34,7 @@
 2
 3
 4</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">proxy </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/home/mclasen/gnome/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGProxy.html#dbus-g-proxy-new-for-name">dbus_g_proxy_new_for_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">system_bus_connection</span><span class="symbol">,</span>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">proxy </span><span class="symbol">=</span><span class="normal"> </span><span class="function">dbus_g_proxy_new_for_name</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">system_bus_connection</span><span class="symbol">,</span>
 <span class="normal">                                   </span><span class="string">"org.freedesktop.Accounts"</span><span class="symbol">,</span>
 <span class="normal">                                   </span><span class="string">"/org/freedesktop/Accounts"</span><span class="symbol">,</span>
 <span class="normal">                                   </span><span class="string">"org.freedesktop.Accounts"</span><span class="symbol">);</span></pre></td>
@@ -44,7 +44,7 @@
 </div>
 
 <p>
-      For a <a href="/home/mclasen/gnome/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGProxy.html#DBusGProxy"><span class="type">DBusGProxy</span></a> constructed like this, method calls will be sent to
+      For a <span class="type">DBusGProxy</span> constructed like this, method calls will be sent to
       the current owner of the name, and that owner can change over time.
     </p>
 <p>
@@ -63,14 +63,14 @@
 7
 8
 9</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">error </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">error </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
 <span class="normal">proxy </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="GDBusProxy.html#g-dbus-proxy-new-for-bus-sync">g_dbus_proxy_new_for_bus_sync</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="GDBusConnection.html#G-BUS-TYPE-SYSTEM:CAPS">G_BUS_TYPE_SYSTEM</a></span><span class="symbol">,</span>
 <span class="normal">                                       <a href="GDBusProxy.html#G-DBUS-PROXY-FLAGS-NONE:CAPS">G_DBUS_PROXY_FLAGS_NONE</a></span><span class="symbol">,</span>
-<span class="normal">                                       <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="comment">/* GDBusInterfaceInfo */</span>
+<span class="normal">                                       <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="comment">/* GDBusInterfaceInfo */</span>
 <span class="normal">                                       </span><span class="string">"org.freedesktop.Accounts"</span><span class="symbol">,</span>
 <span class="normal">                                       </span><span class="string">"/org/freedesktop/Accounts"</span><span class="symbol">,</span>
 <span class="normal">                                       </span><span class="string">"org.freedesktop.Accounts"</span><span class="symbol">,</span>
-<span class="normal">                                       <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="comment">/* GCancellable */</span>
+<span class="normal">                                       <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> </span><span class="comment">/* GCancellable */</span>
 <span class="normal">                                       </span><span class="symbol">&amp;</span><span class="normal">error</span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>

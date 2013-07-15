@@ -135,6 +135,8 @@ enum                <a class="link" href="glib-Threads.html#GOnceStatus" title="
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gint" title="gint"><span class="type">gint</span></a> lock_bit</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="glib-Threads.html#g-pointer-bit-unlock" title="g_pointer_bit_unlock ()">g_pointer_bit_unlock</a>                (<em class="parameter"><code>volatile <span class="type">void</span> *address</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gint" title="gint"><span class="type">gint</span></a> lock_bit</code></em>);
+
+<a class="link" href="glib-Basic-Types.html#guint" title="guint"><span class="returnvalue">guint</span></a>               <a class="link" href="glib-Threads.html#g-get-num-processors" title="g_get_num_processors ()">g_get_num_processors</a>                (<em class="parameter"><code><span class="type">void</span></code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -228,7 +230,7 @@ you must coordinate accesses to the same <a class="link" href="glib-Hash-Tables.
 threads. The two notable exceptions from this rule are <a class="link" href="glib-The-Main-Event-Loop.html#GMainLoop" title="GMainLoop"><span class="type">GMainLoop</span></a>
 and <a class="link" href="glib-Asynchronous-Queues.html#GAsyncQueue" title="GAsyncQueue"><span class="type">GAsyncQueue</span></a>, which <span class="emphasis"><em>are</em></span> thread-safe and
 need no further application-level locking to be accessed from
-multiple threads. Most refcounting functions such as <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-ref"><code class="function">g_object_ref()</code></a>
+multiple threads. Most refcounting functions such as <code class="function">g_object_ref()</code>
 are also thread-safe.
 </p>
 </div>
@@ -605,7 +607,7 @@ access. Take for example the following function:
 <p>
 </p>
 <div class="example">
-<a name="idp16304992"></a><p class="title"><b>Example 2. A function which will not work in a threaded environment</b></p>
+<a name="id-1.4.3.5.14.5.1"></a><p class="title"><b>Example 2. A function which will not work in a threaded environment</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -650,7 +652,7 @@ access. A <a class="link" href="glib-Threads.html#GMutex" title="union GMutex"><
 <p>
 </p>
 <div class="example">
-<a name="idp16309376"></a><p class="title"><b>Example 3. Using GMutex to protected a shared variable</b></p>
+<a name="id-1.4.3.5.14.7.1"></a><p class="title"><b>Example 3. Using GMutex to protected a shared variable</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -911,7 +913,7 @@ of the variable you intend to protect with the lock. Look at our
 <p>
 </p>
 <div class="example">
-<a name="idp16411792"></a><p class="title"><b>Example 4. Using the <code class="literal">G_LOCK_*</code> convenience macros</b></p>
+<a name="id-1.4.3.5.20.5.1"></a><p class="title"><b>Example 4. Using the <code class="literal">G_LOCK_*</code> convenience macros</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -1294,7 +1296,7 @@ simultaneous read-only access (by holding the 'reader' lock via
 <p>
 </p>
 <div class="example">
-<a name="idp16560800"></a><p class="title"><b>Example 5. An array with access functions</b></p>
+<a name="id-1.4.3.5.32.6.1"></a><p class="title"><b>Example 5. An array with access functions</b></p>
 <div class="example-contents">
 <pre class="programlisting">
   GRWLock lock;
@@ -1626,7 +1628,7 @@ threads to wake up to collect the data.
 <p>
 </p>
 <div class="example">
-<a name="idp19289920"></a><p class="title"><b>Example 6. 
+<a name="id-1.4.3.5.41.6.1"></a><p class="title"><b>Example 6. 
   Using GCond to block a thread until a condition is satisfied
  </b></p>
 <div class="example-contents">
@@ -1794,6 +1796,8 @@ blocking leads to undefined behaviour.
                                                          <em class="parameter"><code><a class="link" href="glib-Threads.html#GMutex" title="union GMutex"><span class="type">GMutex</span></a> *mutex</code></em>);</pre>
 <p>
 Atomically releases <em class="parameter"><code>mutex</code></em> and waits until <em class="parameter"><code>cond</code></em> is signalled.
+When this function returns, <em class="parameter"><code>mutex</code></em> is locked again and owned by the
+calling thread.
 </p>
 <p>
 When using condition variables, it is possible that a spurious wakeup
@@ -2766,6 +2770,28 @@ the pointer.
 </tbody>
 </table></div>
 <p class="since">Since 2.30</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-get-num-processors"></a><h3>g_get_num_processors ()</h3>
+<pre class="programlisting"><a class="link" href="glib-Basic-Types.html#guint" title="guint"><span class="returnvalue">guint</span></a>               g_get_num_processors                (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Determine the approximate number of threads that the system will
+schedule simultaneously for this process.  This is intended to be
+used as a parameter to <a class="link" href="glib-Thread-Pools.html#g-thread-pool-new" title="g_thread_pool_new ()"><code class="function">g_thread_pool_new()</code></a> for CPU bound tasks and
+similar cases.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>Number of schedulable threads, always greater than 0</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.36</p>
 </div>
 </div>
 <div class="refsect1">

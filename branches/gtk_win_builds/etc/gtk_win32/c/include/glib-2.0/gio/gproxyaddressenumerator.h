@@ -20,12 +20,12 @@
  * Author: Nicolas Dufresne <nicolas.dufresne@collabora.co.uk>
  */
 
+#ifndef __G_PROXY_ADDRESS_ENUMERATOR_H__
+#define __G_PROXY_ADDRESS_ENUMERATOR_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_PROXY_ADDRESS_ENUMERATOR_H__
-#define __G_PROXY_ADDRESS_ENUMERATOR_H__
 
 #include <gio/gsocketaddressenumerator.h>
 
@@ -68,6 +68,7 @@ struct _GProxyAddressEnumeratorClass
   void (*_g_reserved7) (void);
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType           g_proxy_address_enumerator_get_type    (void) G_GNUC_CONST;
 
 G_END_DECLS

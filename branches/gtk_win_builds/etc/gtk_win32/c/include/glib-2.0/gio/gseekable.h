@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_SEEKABLE_H__
+#define __G_SEEKABLE_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_SEEKABLE_H__
-#define __G_SEEKABLE_H__
 
 #include <gio/giotypes.h>
 
@@ -78,16 +78,22 @@ struct _GSeekableIface
   /* TODO: Async seek/truncate */
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType    g_seekable_get_type     (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 goffset  g_seekable_tell         (GSeekable     *seekable);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_seekable_can_seek     (GSeekable     *seekable);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_seekable_seek         (GSeekable     *seekable,
 				  goffset        offset,
 				  GSeekType      type,
 				  GCancellable  *cancellable,
 				  GError       **error);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_seekable_can_truncate (GSeekable     *seekable);
+GLIB_AVAILABLE_IN_ALL
 gboolean g_seekable_truncate     (GSeekable     *seekable,
 				  goffset        offset,
 				  GCancellable  *cancellable,

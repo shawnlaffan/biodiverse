@@ -24,12 +24,12 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __G_THREAD_H__
+#define __G_THREAD_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_THREAD_H__
-#define __G_THREAD_H__
 
 #include <glib/gatomic.h>
 #include <glib/gerror.h>
@@ -37,6 +37,7 @@
 G_BEGIN_DECLS
 
 #define G_THREAD_ERROR g_thread_error_quark ()
+GLIB_AVAILABLE_IN_ALL
 GQuark g_thread_error_quark (void);
 
 typedef enum
@@ -137,62 +138,100 @@ struct _GOnce
 #  define G_TRYLOCK(name) g_mutex_trylock (&G_LOCK_NAME (name))
 #endif /* !G_DEBUG_LOCKS */
 
+GLIB_AVAILABLE_IN_2_32
 GThread *       g_thread_ref                    (GThread        *thread);
+GLIB_AVAILABLE_IN_2_32
 void            g_thread_unref                  (GThread        *thread);
+GLIB_AVAILABLE_IN_2_32
 GThread *       g_thread_new                    (const gchar    *name,
                                                  GThreadFunc     func,
                                                  gpointer        data);
+GLIB_AVAILABLE_IN_2_32
 GThread *       g_thread_try_new                (const gchar    *name,
                                                  GThreadFunc     func,
                                                  gpointer        data,
                                                  GError        **error);
+GLIB_AVAILABLE_IN_ALL
 GThread *       g_thread_self                   (void);
+GLIB_AVAILABLE_IN_ALL
 void            g_thread_exit                   (gpointer        retval);
+GLIB_AVAILABLE_IN_ALL
 gpointer        g_thread_join                   (GThread        *thread);
+GLIB_AVAILABLE_IN_ALL
 void            g_thread_yield                  (void);
 
 
+GLIB_AVAILABLE_IN_2_32
 void            g_mutex_init                    (GMutex         *mutex);
+GLIB_AVAILABLE_IN_2_32
 void            g_mutex_clear                   (GMutex         *mutex);
+GLIB_AVAILABLE_IN_ALL
 void            g_mutex_lock                    (GMutex         *mutex);
+GLIB_AVAILABLE_IN_ALL
 gboolean        g_mutex_trylock                 (GMutex         *mutex);
+GLIB_AVAILABLE_IN_ALL
 void            g_mutex_unlock                  (GMutex         *mutex);
 
+GLIB_AVAILABLE_IN_2_32
 void            g_rw_lock_init                  (GRWLock        *rw_lock);
+GLIB_AVAILABLE_IN_2_32
 void            g_rw_lock_clear                 (GRWLock        *rw_lock);
+GLIB_AVAILABLE_IN_2_32
 void            g_rw_lock_writer_lock           (GRWLock        *rw_lock);
+GLIB_AVAILABLE_IN_2_32
 gboolean        g_rw_lock_writer_trylock        (GRWLock        *rw_lock);
+GLIB_AVAILABLE_IN_2_32
 void            g_rw_lock_writer_unlock         (GRWLock        *rw_lock);
+GLIB_AVAILABLE_IN_2_32
 void            g_rw_lock_reader_lock           (GRWLock        *rw_lock);
+GLIB_AVAILABLE_IN_2_32
 gboolean        g_rw_lock_reader_trylock        (GRWLock        *rw_lock);
+GLIB_AVAILABLE_IN_2_32
 void            g_rw_lock_reader_unlock         (GRWLock        *rw_lock);
 
+GLIB_AVAILABLE_IN_2_32
 void            g_rec_mutex_init                (GRecMutex      *rec_mutex);
+GLIB_AVAILABLE_IN_2_32
 void            g_rec_mutex_clear               (GRecMutex      *rec_mutex);
+GLIB_AVAILABLE_IN_2_32
 void            g_rec_mutex_lock                (GRecMutex      *rec_mutex);
+GLIB_AVAILABLE_IN_2_32
 gboolean        g_rec_mutex_trylock             (GRecMutex      *rec_mutex);
+GLIB_AVAILABLE_IN_2_32
 void            g_rec_mutex_unlock              (GRecMutex      *rec_mutex);
 
+GLIB_AVAILABLE_IN_2_32
 void            g_cond_init                     (GCond          *cond);
+GLIB_AVAILABLE_IN_2_32
 void            g_cond_clear                    (GCond          *cond);
+GLIB_AVAILABLE_IN_ALL
 void            g_cond_wait                     (GCond          *cond,
                                                  GMutex         *mutex);
+GLIB_AVAILABLE_IN_ALL
 void            g_cond_signal                   (GCond          *cond);
+GLIB_AVAILABLE_IN_ALL
 void            g_cond_broadcast                (GCond          *cond);
+GLIB_AVAILABLE_IN_2_32
 gboolean        g_cond_wait_until               (GCond          *cond,
                                                  GMutex         *mutex,
                                                  gint64          end_time);
 
+GLIB_AVAILABLE_IN_ALL
 gpointer        g_private_get                   (GPrivate       *key);
+GLIB_AVAILABLE_IN_ALL
 void            g_private_set                   (GPrivate       *key,
                                                  gpointer        value);
+GLIB_AVAILABLE_IN_2_32
 void            g_private_replace               (GPrivate       *key,
                                                  gpointer        value);
 
+GLIB_AVAILABLE_IN_ALL
 gpointer        g_once_impl                     (GOnce          *once,
                                                  GThreadFunc     func,
                                                  gpointer        arg);
+GLIB_AVAILABLE_IN_ALL
 gboolean        g_once_init_enter               (volatile void  *location);
+GLIB_AVAILABLE_IN_ALL
 void            g_once_init_leave               (volatile void  *location,
                                                  gsize           result);
 
@@ -225,6 +264,9 @@ void            g_once_init_leave               (volatile void  *location,
 # define g_once_init_leave(location, result) \
   (g_once_init_leave((location), (gsize) (result)))
 #endif
+
+GLIB_AVAILABLE_IN_2_36
+guint          g_get_num_processors (void);
 
 G_END_DECLS
 

@@ -58,7 +58,7 @@ while test $# -gt 0; do
       ;;
 
     --version)
-	echo 2.8.0
+	echo 2.9.0
 	exit 0
 	;;
 
@@ -91,7 +91,7 @@ while test $# -gt 0; do
 		echo -L${libdir} -lxml2 -lz     
 	    fi
 	else
-	    echo -L${libdir} -lxml2 -lz     -lws2_32
+	    echo -L${libdir} -lxml2 -lz      -lws2_32
 	fi
        	;;
 

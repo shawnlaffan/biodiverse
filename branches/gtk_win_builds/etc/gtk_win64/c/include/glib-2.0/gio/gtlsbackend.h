@@ -18,12 +18,12 @@
  * Boston, MA 02111-1307, USA.
  */
 
+#ifndef __G_TLS_BACKEND_H__
+#define __G_TLS_BACKEND_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_TLS_BACKEND_H__
-#define __G_TLS_BACKEND_H__
 
 #include <gio/giotypes.h>
 
@@ -72,17 +72,25 @@ struct _GTlsBackendInterface
   GTlsDatabase * ( *get_default_database)       (GTlsBackend *backend);
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType          g_tls_backend_get_type                   (void) G_GNUC_CONST;
 
+GLIB_AVAILABLE_IN_ALL
 GTlsBackend *  g_tls_backend_get_default                (void);
 
+GLIB_AVAILABLE_IN_ALL
 GTlsDatabase * g_tls_backend_get_default_database       (GTlsBackend *backend);
 
+GLIB_AVAILABLE_IN_ALL
 gboolean       g_tls_backend_supports_tls               (GTlsBackend *backend);
 
+GLIB_AVAILABLE_IN_ALL
 GType          g_tls_backend_get_certificate_type       (GTlsBackend *backend);
+GLIB_AVAILABLE_IN_ALL
 GType          g_tls_backend_get_client_connection_type (GTlsBackend *backend);
+GLIB_AVAILABLE_IN_ALL
 GType          g_tls_backend_get_server_connection_type (GTlsBackend *backend);
+GLIB_AVAILABLE_IN_ALL
 GType          g_tls_backend_get_file_database_type     (GTlsBackend *backend);
 
 G_END_DECLS

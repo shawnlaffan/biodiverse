@@ -107,7 +107,7 @@ needed so often by application programmers.
 <a name="glib-Miscellaneous-Macros.details"></a><h2>Details</h2>
 <div class="refsect2">
 <a name="G-INLINE-FUNC:CAPS"></a><h3>G_INLINE_FUNC</h3>
-<pre class="programlisting">#  define G_INLINE_FUNC
+<pre class="programlisting">#  define G_INLINE_FUNC _GLIB_EXTERN
 </pre>
 <p>
 This macro is used to export function prototypes so they can be linked
@@ -322,7 +322,7 @@ is transformed by the preprocessor into:
 <hr>
 <div class="refsect2">
 <a name="G-STATIC-ASSERT:CAPS"></a><h3>G_STATIC_ASSERT()</h3>
-<pre class="programlisting">#define G_STATIC_ASSERT(expr) typedef char G_PASTE (_GStaticAssertCompileTimeAssertion_, __COUNTER__)[(expr) ? 1 : -1]
+<pre class="programlisting">#define G_STATIC_ASSERT(expr) typedef char G_PASTE (_GStaticAssertCompileTimeAssertion_, __COUNTER__)[(expr) ? 1 : -1] G_GNUC_UNUSED
 </pre>
 <p>
 The G_STATIC_ASSERT macro lets the programmer check

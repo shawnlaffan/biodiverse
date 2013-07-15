@@ -13,7 +13,7 @@
 -->
 <!ELEMENT dir (#PCDATA)>
 <!ATTLIST dir
-	  prefix    (#PCDATA)	       "default"
+	  prefix    CDATA       "default"
 	  xml:space (default|preserve) 'preserve'>
 
 <!--
@@ -36,7 +36,7 @@
 -->
 <!ELEMENT cachedir (#PCDATA)>
 <!ATTLIST cachedir
-	  prefix    (#PCDATA)	       "default"
+	  prefix    CDATA      "default"
 	  xml:space (default|preserve) 'preserve'>
 
 <!--
@@ -52,8 +52,8 @@
 <!ELEMENT include (#PCDATA)>
 <!ATTLIST include
 	  ignore_missing    (no|yes)		"no"
-	  prefix	    (#PCDATA)		"default"
-	  deprecated	    (#PCDATA)		"no"
+	  prefix	    CDATA               "default"
+	  deprecated	    (yes|no)		"no"
 	  xml:space	    (default|preserve)	"preserve">
 
 <!--
@@ -140,7 +140,7 @@
     if 'target' is 'font', execute the match on the result of a font
     selection.
 -->
-<!ELEMENT match (test*, edit*)>
+<!ELEMENT match (test*, edit*)+>
 <!ATTLIST match
 	  target (pattern|font|scan) "pattern">
 
@@ -165,7 +165,7 @@
 	  qual (any|all|first|not_first)    "any"
 	  name CDATA	    #REQUIRED
 	  target (pattern|font|default)		"default"
-	  ignore-blanks (#PCDATA)	"false"
+	  ignore-blanks (true|false)	"false"
 	  compare (eq|not_eq|less|less_eq|more|more_eq|contains|not_contains)	"eq">
 
 <!--
@@ -189,7 +189,7 @@
 <!ELEMENT edit (%expr;)*>
 <!ATTLIST edit
 	  name CDATA	    #REQUIRED
-	  mode (assign|assign_replace|prepend|append|prepend_first|append_last) "assign"
+	  mode (assign|assign_replace|prepend|append|prepend_first|append_last|delete|delete_all) "assign"
 	  binding (weak|strong|same) "weak">
 
 <!--
@@ -201,13 +201,14 @@
 <!ATTLIST double xml:space (default|preserve) 'preserve'>
 <!ELEMENT string (#PCDATA)>
 <!ATTLIST string xml:space (default|preserve) 'preserve'>
-<!ELEMENT matrix (double,double,double,double)>
+<!ELEMENT matrix ((%expr;), (%expr;), (%expr;), (%expr;))>
 <!ELEMENT bool (#PCDATA)>
 <!ELEMENT charset (int|range)*>
 <!ELEMENT range (int,int)>
 <!ELEMENT langset (string)*>
 <!ELEMENT name (#PCDATA)>
-<!ATTLIST name xml:space (default|preserve) 'preserve'>
+<!ATTLIST name xml:space (default|preserve) 'preserve'
+	  target (default|font|pattern) 'default'>
 <!ELEMENT const (#PCDATA)>
 <!ATTLIST const xml:space (default|preserve) 'preserve'>
 <!ELEMENT or (%expr;)*>

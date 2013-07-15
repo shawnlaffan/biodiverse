@@ -44,15 +44,15 @@
 <pre class="synopsis">                    <a class="link" href="GTcpConnection.html#GTcpConnection-struct" title="GTcpConnection">GTcpConnection</a>;
 <span class="returnvalue">void</span>                <a class="link" href="GTcpConnection.html#g-tcp-connection-set-graceful-disconnect" title="g_tcp_connection_set_graceful_disconnect ()">g_tcp_connection_set_graceful_disconnect</a>
                                                         (<em class="parameter"><code><a class="link" href="GTcpConnection.html" title="GTcpConnection"><span class="type">GTcpConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> graceful_disconnect</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GTcpConnection.html#g-tcp-connection-get-graceful-disconnect" title="g_tcp_connection_get_graceful_disconnect ()">g_tcp_connection_get_graceful_disconnect</a>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> graceful_disconnect</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="GTcpConnection.html#g-tcp-connection-get-graceful-disconnect" title="g_tcp_connection_get_graceful_disconnect ()">g_tcp_connection_get_graceful_disconnect</a>
                                                         (<em class="parameter"><code><a class="link" href="GTcpConnection.html" title="GTcpConnection"><span class="type">GTcpConnection</span></a> *connection</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GTcpConnection.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----<a class="link" href="GIOStream.html" title="GIOStream">GIOStream</a>
          +----<a class="link" href="GSocketConnection.html" title="GSocketConnection">GSocketConnection</a>
                +----GTcpConnection
@@ -62,7 +62,7 @@
 <div class="refsect1">
 <a name="GTcpConnection.properties"></a><h2>Properties</h2>
 <pre class="synopsis">
-  "<a class="link" href="GTcpConnection.html#GTcpConnection--graceful-disconnect" title='The "graceful-disconnect" property'>graceful-disconnect</a>"      <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write
+  "<a class="link" href="GTcpConnection.html#GTcpConnection--graceful-disconnect" title='The "graceful-disconnect" property'>graceful-disconnect</a>"      <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write
 </pre>
 </div>
 <div class="refsect1">
@@ -87,7 +87,7 @@ A <a class="link" href="GSocketConnection.html" title="GSocketConnection"><span 
 <a name="g-tcp-connection-set-graceful-disconnect"></a><h3>g_tcp_connection_set_graceful_disconnect ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_tcp_connection_set_graceful_disconnect
                                                         (<em class="parameter"><code><a class="link" href="GTcpConnection.html" title="GTcpConnection"><span class="type">GTcpConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> graceful_disconnect</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> graceful_disconnect</code></em>);</pre>
 <p>
 This enabled graceful disconnects on close. A graceful disconnect
 means that we signal the receiving end that the connection is terminated
@@ -122,7 +122,7 @@ take a while. For this reason it is disabled by default.
 <hr>
 <div class="refsect2">
 <a name="g-tcp-connection-get-graceful-disconnect"></a><h3>g_tcp_connection_get_graceful_disconnect ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_tcp_connection_get_graceful_disconnect
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_tcp_connection_get_graceful_disconnect
                                                         (<em class="parameter"><code><a class="link" href="GTcpConnection.html" title="GTcpConnection"><span class="type">GTcpConnection</span></a> *connection</code></em>);</pre>
 <p>
 Checks if graceful disconnects are used. See
@@ -142,7 +142,7 @@ Checks if graceful disconnects are used. See
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if graceful disconnect is used on close, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if graceful disconnect is used on close, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> otherwise</td>
 </tr>
 </tbody>
 </table></div>
@@ -153,7 +153,7 @@ Checks if graceful disconnects are used. See
 <a name="GTcpConnection.property-details"></a><h2>Property Details</h2>
 <div class="refsect2">
 <a name="GTcpConnection--graceful-disconnect"></a><h3>The <code class="literal">"graceful-disconnect"</code> property</h3>
-<pre class="programlisting">  "graceful-disconnect"      <a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write</pre>
+<pre class="programlisting">  "graceful-disconnect"      <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a>              : Read / Write</pre>
 <p>Whether or not close does a graceful disconnect.</p>
 <p>Default value: FALSE</p>
 </div>

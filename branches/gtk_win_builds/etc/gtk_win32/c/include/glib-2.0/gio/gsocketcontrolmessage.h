@@ -20,12 +20,12 @@
  * Authors: Ryan Lortie <desrt@desrt.ca>
  */
 
+#ifndef __G_SOCKET_CONTROL_MESSAGE_H__
+#define __G_SOCKET_CONTROL_MESSAGE_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_SOCKET_CONTROL_MESSAGE_H__
-#define __G_SOCKET_CONTROL_MESSAGE_H__
 
 #include <gio/giotypes.h>
 
@@ -88,12 +88,18 @@ struct _GSocketControlMessage
   GSocketControlMessagePrivate *priv;
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType                  g_socket_control_message_get_type     (void) G_GNUC_CONST;
+GLIB_AVAILABLE_IN_ALL
 gsize                  g_socket_control_message_get_size     (GSocketControlMessage *message);
+GLIB_AVAILABLE_IN_ALL
 int                    g_socket_control_message_get_level    (GSocketControlMessage *message);
+GLIB_AVAILABLE_IN_ALL
 int                    g_socket_control_message_get_msg_type (GSocketControlMessage *message);
+GLIB_AVAILABLE_IN_ALL
 void                   g_socket_control_message_serialize    (GSocketControlMessage *message,
 							      gpointer               data);
+GLIB_AVAILABLE_IN_ALL
 GSocketControlMessage *g_socket_control_message_deserialize  (int                    level,
 							      int                    type,
 							      gsize                  size,

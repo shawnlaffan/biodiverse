@@ -47,18 +47,22 @@
                     <a class="link" href="GMemoryInputStream.html#GMemoryInputStream-struct" title="GMemoryInputStream">GMemoryInputStream</a>;
 <a class="link" href="GInputStream.html" title="GInputStream"><span class="returnvalue">GInputStream</span></a> *      <a class="link" href="GMemoryInputStream.html#g-memory-input-stream-new" title="g_memory_input_stream_new ()">g_memory_input_stream_new</a>           (<em class="parameter"><code><span class="type">void</span></code></em>);
 <a class="link" href="GInputStream.html" title="GInputStream"><span class="returnvalue">GInputStream</span></a> *      <a class="link" href="GMemoryInputStream.html#g-memory-input-stream-new-from-data" title="g_memory_input_stream_new_from_data ()">g_memory_input_stream_new_from_data</a> (<em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gssize"><span class="type">gssize</span></a> len</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gssize"><span class="type">gssize</span></a> len</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);
+<a class="link" href="GInputStream.html" title="GInputStream"><span class="returnvalue">GInputStream</span></a> *      <a class="link" href="GMemoryInputStream.html#g-memory-input-stream-new-from-bytes" title="g_memory_input_stream_new_from_bytes ()">g_memory_input_stream_new_from_bytes</a>
+                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *bytes</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GMemoryInputStream.html#g-memory-input-stream-add-data" title="g_memory_input_stream_add_data ()">g_memory_input_stream_add_data</a>      (<em class="parameter"><code><a class="link" href="GMemoryInputStream.html" title="GMemoryInputStream"><span class="type">GMemoryInputStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gssize"><span class="type">gssize</span></a> len</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gssize"><span class="type">gssize</span></a> len</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="GMemoryInputStream.html#g-memory-input-stream-add-bytes" title="g_memory_input_stream_add_bytes ()">g_memory_input_stream_add_bytes</a>     (<em class="parameter"><code><a class="link" href="GMemoryInputStream.html" title="GMemoryInputStream"><span class="type">GMemoryInputStream</span></a> *stream</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *bytes</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="GMemoryInputStream.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----<a class="link" href="GInputStream.html" title="GInputStream">GInputStream</a>
          +----GMemoryInputStream
 </pre>
@@ -112,8 +116,8 @@ Creates a new empty <a class="link" href="GMemoryInputStream.html" title="GMemor
 <div class="refsect2">
 <a name="g-memory-input-stream-new-from-data"></a><h3>g_memory_input_stream_new_from_data ()</h3>
 <pre class="programlisting"><a class="link" href="GInputStream.html" title="GInputStream"><span class="returnvalue">GInputStream</span></a> *      g_memory_input_stream_new_from_data (<em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gssize"><span class="type">gssize</span></a> len</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gssize"><span class="type">gssize</span></a> len</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);</pre>
 <p>
 Creates a new <a class="link" href="GMemoryInputStream.html" title="GMemoryInputStream"><span class="type">GMemoryInputStream</span></a> with data in memory of a given size.
 </p>
@@ -134,7 +138,7 @@ Creates a new <a class="link" href="GMemoryInputStream.html" title="GMemoryInput
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>destroy</code></em> :</span></p></td>
-<td>function that is called to free <em class="parameter"><code>data</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>function that is called to free <em class="parameter"><code>data</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -146,11 +150,39 @@ Creates a new <a class="link" href="GMemoryInputStream.html" title="GMemoryInput
 </div>
 <hr>
 <div class="refsect2">
+<a name="g-memory-input-stream-new-from-bytes"></a><h3>g_memory_input_stream_new_from_bytes ()</h3>
+<pre class="programlisting"><a class="link" href="GInputStream.html" title="GInputStream"><span class="returnvalue">GInputStream</span></a> *      g_memory_input_stream_new_from_bytes
+                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *bytes</code></em>);</pre>
+<p>
+Creates a new <a class="link" href="GMemoryInputStream.html" title="GMemoryInputStream"><span class="type">GMemoryInputStream</span></a> with data from the given <em class="parameter"><code>bytes</code></em>.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>bytes</code></em> :</span></p></td>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>new <a class="link" href="GInputStream.html" title="GInputStream"><span class="type">GInputStream</span></a> read from <em class="parameter"><code>bytes</code></em>
+</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.34</p>
+</div>
+<hr>
+<div class="refsect2">
 <a name="g-memory-input-stream-add-data"></a><h3>g_memory_input_stream_add_data ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_memory_input_stream_add_data      (<em class="parameter"><code><a class="link" href="GMemoryInputStream.html" title="GMemoryInputStream"><span class="type">GMemoryInputStream</span></a> *stream</code></em>,
                                                          <em class="parameter"><code>const <span class="type">void</span> *data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gssize"><span class="type">gssize</span></a> len</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gssize"><span class="type">gssize</span></a> len</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> destroy</code></em>);</pre>
 <p>
 Appends <em class="parameter"><code>data</code></em> to data that can be read from the input stream
 </p>
@@ -176,11 +208,38 @@ Appends <em class="parameter"><code>data</code></em> to data that can be read fr
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>destroy</code></em> :</span></p></td>
-<td>function that is called to free <em class="parameter"><code>data</code></em>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>function that is called to free <em class="parameter"><code>data</code></em>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
 </table></div>
+</div>
+<hr>
+<div class="refsect2">
+<a name="g-memory-input-stream-add-bytes"></a><h3>g_memory_input_stream_add_bytes ()</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_memory_input_stream_add_bytes     (<em class="parameter"><code><a class="link" href="GMemoryInputStream.html" title="GMemoryInputStream"><span class="type">GMemoryInputStream</span></a> *stream</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Byte-Arrays.html#GBytes"><span class="type">GBytes</span></a> *bytes</code></em>);</pre>
+<p>
+Appends <em class="parameter"><code>bytes</code></em> to data that can be read from the input stream.
+</p>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>stream</code></em> :</span></p></td>
+<td>a <a class="link" href="GMemoryInputStream.html" title="GMemoryInputStream"><span class="type">GMemoryInputStream</span></a>
+</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>bytes</code></em> :</span></p></td>
+<td>input data</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.34</p>
 </div>
 </div>
 <div class="refsect1">

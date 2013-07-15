@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>PangoFcDecoder</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Pango Reference Manual">
 <link rel="up" href="lowlevel.html" title="Low Level Functionality">
 <link rel="prev" href="PangoFcFont.html" title="PangoFcFont">
@@ -45,13 +45,13 @@ struct              <a class="link" href="PangoFcDecoder.html#PangoFcDecoderClas
                                                          <em class="parameter"><code><a class="link" href="PangoFcFont.html" title="PangoFcFont"><span class="type">PangoFcFont</span></a> *fcfont</code></em>);
 <a class="link" href="pango-Glyph-Storage.html#PangoGlyph" title="PangoGlyph"><span class="returnvalue">PangoGlyph</span></a>          <a class="link" href="PangoFcDecoder.html#pango-fc-decoder-get-glyph" title="pango_fc_decoder_get_glyph ()">pango_fc_decoder_get_glyph</a>          (<em class="parameter"><code><a class="link" href="PangoFcDecoder.html" title="PangoFcDecoder"><span class="type">PangoFcDecoder</span></a> *decoder</code></em>,
                                                          <em class="parameter"><code><a class="link" href="PangoFcFont.html" title="PangoFcFont"><span class="type">PangoFcFont</span></a> *fcfont</code></em>,
-                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> wc</code></em>);
+                                                         <em class="parameter"><code><span class="type">guint32</span> wc</code></em>);
 </pre>
 </div>
 <div class="refsect1">
 <a name="PangoFcDecoder.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  GObject
    +----PangoFcDecoder
 </pre>
 </div>
@@ -94,8 +94,11 @@ object implementation.
 <p>
 Class structure for <a class="link" href="PangoFcDecoder.html" title="PangoFcDecoder"><span class="type">PangoFcDecoder</span></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="PangoFcDecoderClass.get-charset"></a>get_charset</code></em> ()</span></p></td>
@@ -126,8 +129,11 @@ given.  The returned <span class="type">FcCharSet</span> will be a reference to 
 internal value stored by the <a class="link" href="PangoFcDecoder.html" title="PangoFcDecoder"><span class="type">PangoFcDecoder</span></a> and must not
 be modified or freed.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>decoder</code></em> :</span></p></td>
@@ -152,7 +158,7 @@ or freed.</td>
 <a name="pango-fc-decoder-get-glyph"></a><h3>pango_fc_decoder_get_glyph ()</h3>
 <pre class="programlisting"><a class="link" href="pango-Glyph-Storage.html#PangoGlyph" title="PangoGlyph"><span class="returnvalue">PangoGlyph</span></a>          pango_fc_decoder_get_glyph          (<em class="parameter"><code><a class="link" href="PangoFcDecoder.html" title="PangoFcDecoder"><span class="type">PangoFcDecoder</span></a> *decoder</code></em>,
                                                          <em class="parameter"><code><a class="link" href="PangoFcFont.html" title="PangoFcFont"><span class="type">PangoFcFont</span></a> *fcfont</code></em>,
-                                                         <em class="parameter"><code><a href="http://library.gnome.org/devel/glib/unstable/glib-Basic-Types.html#guint32"><span class="type">guint32</span></a> wc</code></em>);</pre>
+                                                         <em class="parameter"><code><span class="type">guint32</span> wc</code></em>);</pre>
 <p>
 Generates a <a class="link" href="pango-Glyph-Storage.html#PangoGlyph" title="PangoGlyph"><span class="type">PangoGlyph</span></a> for the given Unicode point using the
 custom decoder. For complex scripts where there can be multiple
@@ -160,8 +166,11 @@ glyphs for a single character, the decoder will return whatever
 glyph is most convenient for it. (Usually whatever glyph is directly
 in the fonts character map table.)
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>decoder</code></em> :</span></p></td>

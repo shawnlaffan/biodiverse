@@ -636,7 +636,7 @@ a GStaticMutex.
 <p>
 </p>
 <div class="example">
-<a name="idp59881152"></a><p class="title"><b>Example 21. 
+<a name="id-1.7.2.5.17.7.1"></a><p class="title"><b>Example 20. 
   Using <span class="structname">GStaticMutex</span>
   to simplify thread-safe programming
  </b></p>
@@ -870,7 +870,7 @@ corresponding <a class="link" href="glib-Threads.html#GMutex" title="union GMute
 <pre class="programlisting"><span class="returnvalue">void</span>                g_static_mutex_free                 (<em class="parameter"><code><a class="link" href="glib-Deprecated-Thread-APIs.html#GStaticMutex" title="GStaticMutex"><span class="type">GStaticMutex</span></a> *mutex</code></em>);</pre>
 <div class="warning" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Warning</h3>
-<p><code class="literal">g_static_mutex_free</code> has been deprecated since version 2.32 and should not be used in newly-written code. Use <a class="link" href="glib-Deprecated-Thread-APIs.html#g-mutex-free" title="g_mutex_free ()"><code class="function">g_mutex_free()</code></a></p>
+<p><code class="literal">g_static_mutex_free</code> has been deprecated since version 2.32 and should not be used in newly-written code. Use <a class="link" href="glib-Threads.html#g-mutex-clear" title="g_mutex_clear ()"><code class="function">g_mutex_clear()</code></a></p>
 </div>
 <p>
 Releases all resources allocated to <em class="parameter"><code>mutex</code></em>.
@@ -1178,7 +1178,7 @@ example:
 <p>
 </p>
 <div class="example">
-<a name="idp60165936"></a><p class="title"><b>Example 22. An array with access functions</b></p>
+<a name="id-1.7.2.5.34.6.1"></a><p class="title"><b>Example 21. An array with access functions</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -1396,9 +1396,6 @@ lock <em class="parameter"><code>lock</code></em> for writing, immediately retur
 <em class="parameter"><code>lock</code></em> for reading and returns <a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a>. This lock has to be unlocked by
 <a class="link" href="glib-Deprecated-Thread-APIs.html#g-static-rw-lock-reader-unlock" title="g_static_rw_lock_reader_unlock ()"><code class="function">g_static_rw_lock_reader_unlock()</code></a>.
 </p>
-<p>
-Deprectated: 2.32: Use <a class="link" href="glib-Threads.html#g-rw-lock-reader-trylock" title="g_rw_lock_reader_trylock ()"><code class="function">g_rw_lock_reader_trylock()</code></a> instead
-</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -1412,7 +1409,8 @@ Deprectated: 2.32: Use <a class="link" href="glib-Threads.html#g-rw-lock-reader-
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a>, if <em class="parameter"><code>lock</code></em> could be locked for reading.</td>
+<a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a>, if <em class="parameter"><code>lock</code></em> could be locked for reading.
+Deprectated: 2.32: Use <a class="link" href="glib-Threads.html#g-rw-lock-reader-trylock" title="g_rw_lock_reader_trylock ()"><code class="function">g_rw_lock_reader_trylock()</code></a> instead</td>
 </tr>
 </tbody>
 </table></div>
@@ -1477,9 +1475,6 @@ either reading or writing) by another thread, it immediately returns
 <a class="link" href="glib-Standard-Macros.html#FALSE:CAPS" title="FALSE"><code class="literal">FALSE</code></a>. Otherwise it locks <em class="parameter"><code>lock</code></em> for writing and returns <a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a>. This
 lock has to be unlocked by <a class="link" href="glib-Deprecated-Thread-APIs.html#g-static-rw-lock-writer-unlock" title="g_static_rw_lock_writer_unlock ()"><code class="function">g_static_rw_lock_writer_unlock()</code></a>.
 </p>
-<p>
-Deprectated: 2.32: Use <a class="link" href="glib-Threads.html#g-rw-lock-writer-trylock" title="g_rw_lock_writer_trylock ()"><code class="function">g_rw_lock_writer_trylock()</code></a> instead
-</p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -1493,7 +1488,8 @@ Deprectated: 2.32: Use <a class="link" href="glib-Threads.html#g-rw-lock-writer-
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a>, if <em class="parameter"><code>lock</code></em> could be locked for writing.</td>
+<a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a>, if <em class="parameter"><code>lock</code></em> could be locked for writing.
+Deprectated: 2.32: Use <a class="link" href="glib-Threads.html#g-rw-lock-writer-trylock" title="g_rw_lock_writer_trylock ()"><code class="function">g_rw_lock_writer_trylock()</code></a> instead</td>
 </tr>
 </tbody>
 </table></div>
@@ -1569,7 +1565,7 @@ look at our <code class="function"><code class="function">give_me_next_number()<
 <p>
 </p>
 <div class="example">
-<a name="idp60345936"></a><p class="title"><b>Example 23. Using GStaticPrivate for per-thread data</b></p>
+<a name="id-1.7.2.5.44.5.1"></a><p class="title"><b>Example 22. Using GStaticPrivate for per-thread data</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>

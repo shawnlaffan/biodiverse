@@ -29,6 +29,10 @@
       <sub name="AtkText" link="AtkText.html"/>
       <sub name="AtkUtil" link="AtkUtil.html"/>
       <sub name="AtkValue" link="AtkValue.html"/>
+      <sub name="AtkWindow" link="AtkWindow.html"/>
+    </sub>
+    <sub name="Utilities" link="atk.html">
+      <sub name="Versioning macros" link="atk-Versioning-Utilities.html"/>
     </sub>
     <sub name="Index of all symbols" link="api-index-full.html"/>
     <sub name="Index of deprecated symbols" link="api-index-deprecated.html"/>
@@ -77,7 +81,7 @@
     <keyword type="function" name="atk_document_get_attribute_value ()" link="AtkDocument.html#atk-document-get-attribute-value" since="1.12"/>
     <keyword type="function" name="atk_document_set_attribute_value ()" link="AtkDocument.html#atk-document-set-attribute-value" since="1.12"/>
     <keyword type="function" name="atk_document_get_attributes ()" link="AtkDocument.html#atk-document-get-attributes" since="1.12"/>
-    <keyword type="function" name="atk_document_get_locale ()" link="AtkDocument.html#atk-document-get-locale"/>
+    <keyword type="function" name="atk_document_get_locale ()" link="AtkDocument.html#atk-document-get-locale" deprecated=""/>
     <keyword type="signal" name="The &quot;load-complete&quot; signal" link="AtkDocument.html#AtkDocument-load-complete"/>
     <keyword type="signal" name="The &quot;load-stopped&quot; signal" link="AtkDocument.html#AtkDocument-load-stopped"/>
     <keyword type="signal" name="The &quot;reload&quot; signal" link="AtkDocument.html#AtkDocument-reload"/>
@@ -355,6 +359,25 @@
     <keyword type="function" name="atk_value_get_minimum_value ()" link="AtkValue.html#atk-value-get-minimum-value"/>
     <keyword type="function" name="atk_value_set_current_value ()" link="AtkValue.html#atk-value-set-current-value"/>
     <keyword type="function" name="atk_value_get_minimum_increment ()" link="AtkValue.html#atk-value-get-minimum-increment" since="1.12"/>
+    <keyword type="struct" name="AtkWindow" link="AtkWindow.html#AtkWindow-struct"/>
+    <keyword type="signal" name="The &quot;activate&quot; signal" link="AtkWindow.html#AtkWindow-activate"/>
+    <keyword type="signal" name="The &quot;create&quot; signal" link="AtkWindow.html#AtkWindow-create"/>
+    <keyword type="signal" name="The &quot;deactivate&quot; signal" link="AtkWindow.html#AtkWindow-deactivate"/>
+    <keyword type="signal" name="The &quot;destroy&quot; signal" link="AtkWindow.html#AtkWindow-destroy"/>
+    <keyword type="signal" name="The &quot;maximize&quot; signal" link="AtkWindow.html#AtkWindow-maximize"/>
+    <keyword type="signal" name="The &quot;minimize&quot; signal" link="AtkWindow.html#AtkWindow-minimize"/>
+    <keyword type="signal" name="The &quot;move&quot; signal" link="AtkWindow.html#AtkWindow-move"/>
+    <keyword type="signal" name="The &quot;resize&quot; signal" link="AtkWindow.html#AtkWindow-resize"/>
+    <keyword type="signal" name="The &quot;restore&quot; signal" link="AtkWindow.html#AtkWindow-restore"/>
+    <keyword type="function" name="atk_get_major_version ()" link="atk-Versioning-Utilities.html#atk-get-major-version" since="2.7.4"/>
+    <keyword type="function" name="atk_get_minor_version ()" link="atk-Versioning-Utilities.html#atk-get-minor-version" since="2.7.4"/>
+    <keyword type="function" name="atk_get_micro_version ()" link="atk-Versioning-Utilities.html#atk-get-micro-version" since="2.7.4"/>
+    <keyword type="function" name="atk_get_binary_age ()" link="atk-Versioning-Utilities.html#atk-get-binary-age" since="2.7.4"/>
+    <keyword type="function" name="atk_get_interface_age ()" link="atk-Versioning-Utilities.html#atk-get-interface-age" since="2.7.4"/>
+    <keyword type="macro" name="ATK_MAJOR_VERSION" link="atk-Versioning-Utilities.html#ATK-MAJOR-VERSION:CAPS" since="2.7.4"/>
+    <keyword type="macro" name="ATK_MINOR_VERSION" link="atk-Versioning-Utilities.html#ATK-MINOR-VERSION:CAPS" since="2.7.4"/>
+    <keyword type="macro" name="ATK_MICRO_VERSION" link="atk-Versioning-Utilities.html#ATK-MICRO-VERSION:CAPS" since="2.7.4"/>
+    <keyword type="macro" name="ATK_CHECK_VERSION()" link="atk-Versioning-Utilities.html#ATK-CHECK-VERSION:CAPS" since="2.7.4"/>
     <keyword type="constant" name="ATK_HYPERLINK_IS_INLINE" link="AtkHyperlink.html#ATK-HYPERLINK-IS-INLINE:CAPS"/>
     <keyword type="constant" name="ATK_ROLE_INVALID" link="AtkObject.html#ATK-ROLE-INVALID:CAPS"/>
     <keyword type="constant" name="ATK_ROLE_ACCEL_LABEL" link="AtkObject.html#ATK-ROLE-ACCEL-LABEL:CAPS"/>
@@ -457,6 +480,7 @@
     <keyword type="constant" name="ATK_ROLE_IMAGE_MAP" link="AtkObject.html#ATK-ROLE-IMAGE-MAP:CAPS"/>
     <keyword type="constant" name="ATK_ROLE_NOTIFICATION" link="AtkObject.html#ATK-ROLE-NOTIFICATION:CAPS"/>
     <keyword type="constant" name="ATK_ROLE_INFO_BAR" link="AtkObject.html#ATK-ROLE-INFO-BAR:CAPS"/>
+    <keyword type="constant" name="ATK_ROLE_LEVEL_BAR" link="AtkObject.html#ATK-ROLE-LEVEL-BAR:CAPS"/>
     <keyword type="constant" name="ATK_ROLE_LAST_DEFINED" link="AtkObject.html#ATK-ROLE-LAST-DEFINED:CAPS"/>
     <keyword type="constant" name="ATK_LAYER_INVALID" link="AtkObject.html#ATK-LAYER-INVALID:CAPS"/>
     <keyword type="constant" name="ATK_LAYER_BACKGROUND" link="AtkObject.html#ATK-LAYER-BACKGROUND:CAPS"/>

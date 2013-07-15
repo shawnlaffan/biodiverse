@@ -114,6 +114,7 @@ EXPORTS
 	 atk_object_set_name
 	 atk_object_set_parent
 	 atk_object_set_role
+	 atk_plug_get_type
 	 atk_rectangle_get_type
 	 atk_registry_get_factory
 	 atk_registry_get_factory_type
@@ -154,6 +155,7 @@ EXPORTS
 	 atk_selection_ref_selection
 	 atk_selection_remove_selection
 	 atk_selection_select_all_selection
+	 atk_socket_get_type
 	 atk_state_set_add_state
 	 atk_state_set_add_states
 	 atk_state_set_and_sets
@@ -230,6 +232,7 @@ EXPORTS
 	 atk_text_get_text_at_offset
 	 atk_text_get_text_before_offset
 	 atk_text_get_type
+	 atk_text_range_get_type
 	 atk_text_remove_selection
 	 atk_text_set_caret_offset
 	 atk_text_set_selection

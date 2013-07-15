@@ -20,12 +20,12 @@
  * Author: Christian Kellner <gicmo@gnome.org>
  */
 
+#ifndef __G_BUFFERED_OUTPUT_STREAM_H__
+#define __G_BUFFERED_OUTPUT_STREAM_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_BUFFERED_OUTPUT_STREAM_H__
-#define __G_BUFFERED_OUTPUT_STREAM_H__
 
 #include <gio/gfilteroutputstream.h>
 
@@ -65,14 +65,21 @@ struct _GBufferedOutputStreamClass
 };
 
 
+GLIB_AVAILABLE_IN_ALL
 GType          g_buffered_output_stream_get_type        (void) G_GNUC_CONST;
+GLIB_AVAILABLE_IN_ALL
 GOutputStream* g_buffered_output_stream_new             (GOutputStream         *base_stream);
+GLIB_AVAILABLE_IN_ALL
 GOutputStream* g_buffered_output_stream_new_sized       (GOutputStream         *base_stream,
 							 gsize                  size);
+GLIB_AVAILABLE_IN_ALL
 gsize          g_buffered_output_stream_get_buffer_size (GBufferedOutputStream *stream);
+GLIB_AVAILABLE_IN_ALL
 void           g_buffered_output_stream_set_buffer_size (GBufferedOutputStream *stream,
 							 gsize                  size);
+GLIB_AVAILABLE_IN_ALL
 gboolean       g_buffered_output_stream_get_auto_grow   (GBufferedOutputStream *stream);
+GLIB_AVAILABLE_IN_ALL
 void           g_buffered_output_stream_set_auto_grow   (GBufferedOutputStream *stream,
 							 gboolean               auto_grow);
 

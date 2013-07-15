@@ -56,10 +56,10 @@ struct              <a class="link" href="ExampleObject.html#ExampleObjectIface"
 struct              <a class="link" href="ExampleObject.html#ExampleObjectProxy-struct" title="struct ExampleObjectProxy">ExampleObjectProxy</a>;
 struct              <a class="link" href="ExampleObject.html#ExampleObjectProxyClass" title="struct ExampleObjectProxyClass">ExampleObjectProxyClass</a>;
 <a class="link" href="ExampleObject.html#ExampleObjectProxy"><span class="returnvalue">ExampleObjectProxy</span></a> * <a class="link" href="ExampleObject.html#example-object-proxy-new" title="example_object_proxy_new ()">example_object_proxy_new</a>           (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);
 struct              <a class="link" href="ExampleObject.html#ExampleObjectSkeleton-struct" title="struct ExampleObjectSkeleton">ExampleObjectSkeleton</a>;
 struct              <a class="link" href="ExampleObject.html#ExampleObjectSkeletonClass" title="struct ExampleObjectSkeletonClass">ExampleObjectSkeletonClass</a>;
-<a class="link" href="ExampleObject.html#ExampleObjectSkeleton"><span class="returnvalue">ExampleObjectSkeleton</span></a> * <a class="link" href="ExampleObject.html#example-object-skeleton-new" title="example_object_skeleton_new ()">example_object_skeleton_new</a>     (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);
+<a class="link" href="ExampleObject.html#ExampleObjectSkeleton"><span class="returnvalue">ExampleObjectSkeleton</span></a> * <a class="link" href="ExampleObject.html#example-object-skeleton-new" title="example_object_skeleton_new ()">example_object_skeleton_new</a>     (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="ExampleObject.html#example-object-skeleton-set-animal" title="example_object_skeleton_set_animal ()">example_object_skeleton_set_animal</a>  (<em class="parameter"><code><a class="link" href="ExampleObject.html#ExampleObjectSkeleton"><span class="type">ExampleObjectSkeleton</span></a> *object</code></em>,
                                                          <em class="parameter"><code><a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a> *interface_</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="ExampleObject.html#example-object-skeleton-set-cat" title="example_object_skeleton_set_cat ()">example_object_skeleton_set_cat</a>     (<em class="parameter"><code><a class="link" href="ExampleObject.html#ExampleObjectSkeleton"><span class="type">ExampleObjectSkeleton</span></a> *object</code></em>,
@@ -73,12 +73,12 @@ struct              <a class="link" href="ExampleObject.html#ExampleObjectSkelet
    +----ExampleObject
 </pre>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----<a class="link" href="GDBusObjectProxy.html" title="GDBusObjectProxy">GDBusObjectProxy</a>
          +----ExampleObjectProxy
 </pre>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----<a class="link" href="GDBusObjectSkeleton.html" title="GDBusObjectSkeleton">GDBusObjectSkeleton</a>
          +----ExampleObjectSkeleton
 </pre>
@@ -87,7 +87,7 @@ struct              <a class="link" href="ExampleObject.html#ExampleObjectSkelet
 <a name="ExampleObject.prerequisites"></a><h2>Prerequisites</h2>
 <p>
 ExampleObject requires
- <a class="link" href="GDBusObject.html" title="GDBusObject">GDBusObject</a> and  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
+ <a class="link" href="GDBusObject.html" title="GDBusObject">GDBusObject</a> and  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
 </div>
 <div class="refsect1">
 <a name="ExampleObject.implemented-interfaces"></a><h2>Implemented Interfaces</h2>
@@ -142,7 +142,7 @@ Virtual table for the <a class="link" href="ExampleObject.html" title="ExampleOb
 <col>
 </colgroup>
 <tbody><tr>
-<td><p><span class="term"><a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="ExampleObjectIface.parent-iface"></a>parent_iface</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="ExampleObjectIface.parent-iface"></a>parent_iface</code></em>;</span></p></td>
 <td>The parent interface.</td>
 </tr></tbody>
 </table></div>
@@ -166,7 +166,7 @@ Gets the <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span c
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a> that must be freed with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>object</code></em> does not implement the interface. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>A <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a> that must be freed with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>object</code></em> does not implement the interface. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -192,7 +192,7 @@ Gets the <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="type">ExampleCat</span></a> that must be freed with <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>object</code></em> does not implement the interface. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+<td>A <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="type">ExampleCat</span></a> that must be freed with <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#g-object-unref"><code class="function">g_object_unref()</code></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>object</code></em> does not implement the interface. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -223,7 +223,7 @@ Like <a class="link" href="ExampleObject.html#example-object-get-animal" title="
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>object</code></em> does not implement the interface. Do not free the returned object, it is owned by <em class="parameter"><code>object</code></em>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>A <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>object</code></em> does not implement the interface. Do not free the returned object, it is owned by <em class="parameter"><code>object</code></em>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -255,7 +255,7 @@ Like <a class="link" href="ExampleObject.html#example-object-get-cat" title="exa
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>A <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="type">ExampleCat</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>object</code></em> does not implement the interface. Do not free the returned object, it is owned by <em class="parameter"><code>object</code></em>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>A <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="type">ExampleCat</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if <em class="parameter"><code>object</code></em> does not implement the interface. Do not free the returned object, it is owned by <em class="parameter"><code>object</code></em>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -294,7 +294,7 @@ Class structure for <a class="link" href="ExampleObject.html#ExampleObjectProxy"
 <div class="refsect2">
 <a name="example-object-proxy-new"></a><h3>example_object_proxy_new ()</h3>
 <pre class="programlisting"><a class="link" href="ExampleObject.html#ExampleObjectProxy"><span class="returnvalue">ExampleObjectProxy</span></a> * example_object_proxy_new           (<em class="parameter"><code><a class="link" href="GDBusConnection.html" title="GDBusConnection"><span class="type">GDBusConnection</span></a> *connection</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);</pre>
 <p>
 Creates a new proxy object.
 </p>
@@ -352,7 +352,7 @@ Class structure for <a class="link" href="ExampleObject.html#ExampleObjectSkelet
 <hr>
 <div class="refsect2">
 <a name="example-object-skeleton-new"></a><h3>example_object_skeleton_new ()</h3>
-<pre class="programlisting"><a class="link" href="ExampleObject.html#ExampleObjectSkeleton"><span class="returnvalue">ExampleObjectSkeleton</span></a> * example_object_skeleton_new     (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="ExampleObject.html#ExampleObjectSkeleton"><span class="returnvalue">ExampleObjectSkeleton</span></a> * example_object_skeleton_new     (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *object_path</code></em>);</pre>
 <p>
 Creates a new skeleton object.
 </p>
@@ -394,7 +394,7 @@ Sets the <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span c
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>interface_</code></em> :</span></p></td>
-<td>A <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the interface. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>A <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the interface. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -421,7 +421,7 @@ Sets the <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>interface_</code></em> :</span></p></td>
-<td>A <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="type">ExampleCat</span></a> or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the interface. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>A <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="type">ExampleCat</span></a> or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to clear the interface. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -437,7 +437,7 @@ Sets the <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="
 The <a class="link" href="ExampleAnimal.html" title="ExampleAnimal"><span class="type">ExampleAnimal</span></a> instance corresponding to the D-Bus interface <a class="link" href="gdbus-org.gtk.GDBus.Example.ObjectManager.Animal.html#gdbus-interface-org-gtk-GDBus-Example-ObjectManager-Animal.top_of_page">org.gtk.GDBus.Example.ObjectManager.Animal</a>, if any.
 </p>
 <p>
-Connect to the <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signal to get informed of property changes.
+Connect to the <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signal to get informed of property changes.
 </p>
 <p class="since">Since 2.30</p>
 </div>
@@ -449,7 +449,7 @@ Connect to the <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#G
 The <a class="link" href="ExampleCat.html" title="ExampleCat"><span class="type">ExampleCat</span></a> instance corresponding to the D-Bus interface <a class="link" href="gdbus-org.gtk.GDBus.Example.ObjectManager.Cat.html#gdbus-interface-org-gtk-GDBus-Example-ObjectManager-Cat.top_of_page">org.gtk.GDBus.Example.ObjectManager.Cat</a>, if any.
 </p>
 <p>
-Connect to the <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signal to get informed of property changes.
+Connect to the <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject-notify"><span class="type">"notify"</span></a> signal to get informed of property changes.
 </p>
 </div>
 </div>

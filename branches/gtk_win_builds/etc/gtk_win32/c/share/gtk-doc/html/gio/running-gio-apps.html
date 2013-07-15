@@ -47,6 +47,14 @@
         has the name "local", the implementation in the gvfs module has
         the name "gvfs".
       </p>
+<p><b><code class="envar">GIO_USE_FILE_MONITOR</code>. </b>
+        This variable can be set to the name of a <a class="link" href="GFileMonitor.html" title="GFileMonitor"><span class="type">GFileMonitor</span></a>
+        implementation to override the default for debugging purposes.
+        The <a class="link" href="GFileMonitor.html" title="GFileMonitor"><span class="type">GFileMonitor</span></a> implementation for local files that is included
+        in GIO on Linux has the name "inotify", others that are built
+        are built as modules (depending on the platform) are called
+        "fam" and "fen".
+      </p>
 <p><b><code class="envar">GIO_USE_VOLUME_MONITOR</code>. </b>
         This variable can be set to the name of a <a class="link" href="GVolumeMonitor.html" title="GVolumeMonitor"><span class="type">GVolumeMonitor</span></a>
         implementation to override the default for debugging purposes.

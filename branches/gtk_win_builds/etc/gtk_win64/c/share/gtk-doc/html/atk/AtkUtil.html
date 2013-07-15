@@ -53,7 +53,7 @@ enum                <a class="link" href="AtkUtil.html#AtkCoordType" title="enum
 struct              <a class="link" href="AtkUtil.html#AtkKeyEventStruct" title="struct AtkKeyEventStruct">AtkKeyEventStruct</a>;
 enum                <a class="link" href="AtkUtil.html#AtkKeyEventType" title="enum AtkKeyEventType">AtkKeyEventType</a>;
 <span class="returnvalue">gint</span>                (<a class="link" href="AtkUtil.html#AtkKeySnoopFunc" title="AtkKeySnoopFunc ()">*AtkKeySnoopFunc</a>)                  (<em class="parameter"><code><a class="link" href="AtkUtil.html#AtkKeyEventStruct" title="struct AtkKeyEventStruct"><span class="type">AtkKeyEventStruct</span></a> *event</code></em>,
-                                                         <em class="parameter"><code><span class="type">gpointer</span> func_data</code></em>);
+                                                         <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);
 <span class="returnvalue">guint</span>               <a class="link" href="AtkUtil.html#atk-add-key-event-listener" title="atk_add_key_event_listener ()">atk_add_key_event_listener</a>          (<em class="parameter"><code><a class="link" href="AtkUtil.html#AtkKeySnoopFunc" title="AtkKeySnoopFunc ()"><span class="type">AtkKeySnoopFunc</span></a> listener</code></em>,
                                                          <em class="parameter"><code><span class="type">gpointer</span> data</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="AtkUtil.html#atk-remove-key-event-listener" title="atk_remove_key_event_listener ()">atk_remove_key_event_listener</a>       (<em class="parameter"><code><span class="type">guint</span> listener_id</code></em>);
@@ -257,17 +257,24 @@ when an ATK event of type event_type occurs.
 </p>
 <p>
 The format of event_type is the following:
- "ATK:&lt;atk_type&gt;:&lt;atk_event&gt;
+ "ATK:&lt;atk_type&gt;:&lt;atk_event&gt;:&lt;atk_event_detail&gt;
 </p>
 <p>
 Where "ATK" works as the namespace, &lt;atk_interface&gt; is the name of
-the ATK type (interface or object) and &lt;atk_event&gt; is the name of
-the signal defined on that interface.
+the ATK type (interface or object), &lt;atk_event&gt; is the name of the
+signal defined on that interface and &lt;atk_event_detail&gt; is the
+gsignal detail of that signal. You can find more info about gsignal
+details here:
+http://developer.gnome.org/gobject/stable/gobject-Signals.html
+</p>
+<p>
+The first three parameters are mandatory. The last one is optional.
 </p>
 <p>
 For example:
   ATK:AtkObject:state-change
   ATK:AtkText:text-selection-changed
+  ATK:AtkText:text-insert:system
 </p>
 <p>
 Toolkit implementor note: Atk provides a default implementation for
@@ -415,7 +422,7 @@ Specifies the type of a keyboard evemt.
 <div class="refsect2">
 <a name="AtkKeySnoopFunc"></a><h3>AtkKeySnoopFunc ()</h3>
 <pre class="programlisting"><span class="returnvalue">gint</span>                (*AtkKeySnoopFunc)                  (<em class="parameter"><code><a class="link" href="AtkUtil.html#AtkKeyEventStruct" title="struct AtkKeyEventStruct"><span class="type">AtkKeyEventStruct</span></a> *event</code></em>,
-                                                         <em class="parameter"><code><span class="type">gpointer</span> func_data</code></em>);</pre>
+                                                         <em class="parameter"><code><span class="type">gpointer</span> user_data</code></em>);</pre>
 <p>
 An <a class="link" href="AtkUtil.html#AtkKeySnoopFunc" title="AtkKeySnoopFunc ()"><span class="type">AtkKeySnoopFunc</span></a> is a type of callback which is called whenever a key event occurs, 
 if registered via atk_add_key_event_listener.  It allows for pre-emptive 
@@ -430,7 +437,7 @@ interception of key events via the return code as described below.
 notification is being given.</td>
 </tr>
 <tr>
-<td><p><span class="term"><em class="parameter"><code>func_data</code></em> :</span></p></td>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
 <td>a block of data which will be passed to the event listener, on notification.</td>
 </tr>
 <tr>

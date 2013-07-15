@@ -51,7 +51,9 @@ struct              <a class="link" href="glib-IO-Channels.html#GIOChannel" titl
 
 <span class="returnvalue">void</span>                <a class="link" href="glib-IO-Channels.html#g-io-channel-init" title="g_io_channel_init ()">g_io_channel_init</a>                   (<em class="parameter"><code><a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a> *channel</code></em>);
 
-#define             <a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file">g_io_channel_new_file</a>
+<a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="returnvalue">GIOChannel</span></a> *        <a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file ()">g_io_channel_new_file</a>               (<em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *filename</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *mode</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="glib-Error-Reporting.html#GError" title="struct GError"><span class="type">GError</span></a> **error</code></em>);
 <a class="link" href="glib-IO-Channels.html#GIOStatus" title="enum GIOStatus"><span class="returnvalue">GIOStatus</span></a>           <a class="link" href="glib-IO-Channels.html#g-io-channel-read-chars" title="g_io_channel_read_chars ()">g_io_channel_read_chars</a>             (<em class="parameter"><code><a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a> *channel</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *buf</code></em>,
                                                          <em class="parameter"><code><a class="link" href="glib-Basic-Types.html#gsize" title="gsize"><span class="type">gsize</span></a> count</code></em>,
@@ -172,7 +174,7 @@ support for Windows is only partially complete.
 To create a new <a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a> on UNIX systems use
 <a class="link" href="glib-IO-Channels.html#g-io-channel-unix-new" title="g_io_channel_unix_new ()"><code class="function">g_io_channel_unix_new()</code></a>. This works for plain file descriptors,
 pipes and sockets. Alternatively, a channel can be created for a
-file in a system independent manner using <a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file"><code class="function">g_io_channel_new_file()</code></a>.
+file in a system independent manner using <a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file ()"><code class="function">g_io_channel_new_file()</code></a>.
 </p>
 <p>
 Once a <a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a> has been created, it can be used in a generic
@@ -192,7 +194,7 @@ function to be called whenever these events occur.
 increment or decrement the reference count respectively. When the
 reference count falls to 0, the <a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a> is freed. (Though it
 isn't closed automatically, unless it was created using
-<a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file"><code class="function">g_io_channel_new_file()</code></a>.) Using <a class="link" href="glib-IO-Channels.html#g-io-add-watch" title="g_io_add_watch ()"><code class="function">g_io_add_watch()</code></a> or
+<a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file ()"><code class="function">g_io_channel_new_file()</code></a>.) Using <a class="link" href="glib-IO-Channels.html#g-io-add-watch" title="g_io_add_watch ()"><code class="function">g_io_add_watch()</code></a> or
 <a class="link" href="glib-IO-Channels.html#g-io-add-watch-full" title="g_io_add_watch_full ()"><code class="function">g_io_add_watch_full()</code></a> increments a channel's reference count.
 </p>
 <p>
@@ -428,8 +430,10 @@ programmer (unless you are creating a new type of <a class="link" href="glib-IO-
 </div>
 <hr>
 <div class="refsect2">
-<a name="g-io-channel-new-file"></a><h3>g_io_channel_new_file</h3>
-<pre class="programlisting">#define             g_io_channel_new_file</pre>
+<a name="g-io-channel-new-file"></a><h3>g_io_channel_new_file ()</h3>
+<pre class="programlisting"><a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="returnvalue">GIOChannel</span></a> *        g_io_channel_new_file               (<em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *filename</code></em>,
+                                                         <em class="parameter"><code>const <a class="link" href="glib-Basic-Types.html#gchar" title="gchar"><span class="type">gchar</span></a> *mode</code></em>,
+                                                         <em class="parameter"><code><a class="link" href="glib-Error-Reporting.html#GError" title="struct GError"><span class="type">GError</span></a> **error</code></em>);</pre>
 <p>
 Open a file <em class="parameter"><code>filename</code></em> as a <a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a> using mode <em class="parameter"><code>mode</code></em>. This
 channel will be closed when the last reference to it is dropped,
@@ -489,20 +493,22 @@ Replacement for <a class="link" href="glib-IO-Channels.html#g-io-channel-read" t
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>buf</code></em> :</span></p></td>
-<td>a buffer to read data into</td>
+<td>a buffer to read data into. <span class="annotation">[<acronym title="Out parameter, where caller must allocate storage."><span class="acronym">out caller-allocates</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=count][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>count</code></em> :</span></p></td>
 <td>the size of the buffer. Note that the buffer may not be
 complelely filled even if there is data in the buffer if the
-remaining data is not a complete character.</td>
+remaining data is not a complete character. <span class="annotation">[<acronym title="Parameter for input. Default is transfer none."><span class="acronym">in</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>bytes_read</code></em> :</span></p></td>
 <td>The number of bytes read. This may be
 zero even on success if count &lt; 6 and the channel's encoding
 is non-<a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a>. This indicates that the next UTF-8 character is
-too wide for the buffer. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+too wide for the buffer. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -586,16 +592,17 @@ is <a class="link" href="glib-IO-Channels.html#G-IO-STATUS-NORMAL:CAPS"><code cl
 <td>The line read from the <a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a>, including the
 line terminator. This data should be freed with <a class="link" href="glib-Memory-Allocation.html#g-free" title="g_free ()"><code class="function">g_free()</code></a>
 when no longer needed. This is a nul-terminated string.
-If a <em class="parameter"><code>length</code></em> of zero is returned, this will be <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a> instead.</td>
+If a <em class="parameter"><code>length</code></em> of zero is returned, this will be <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a> instead. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>length</code></em> :</span></p></td>
-<td>location to store length of the read data, or <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>location to store length of the read data, or <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>terminator_pos</code></em> :</span></p></td>
-<td>location to store position of line terminator, or <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>location to store position of line terminator, or <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>][<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -679,15 +686,17 @@ Reads all the remaining data from the file.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>str_return</code></em> :</span></p></td>
-<td>Location to store a pointer to a string holding
-the remaining data in the <a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a>. This data should
-be freed with <a class="link" href="glib-Memory-Allocation.html#g-free" title="g_free ()"><code class="function">g_free()</code></a> when no longer needed. This
-data is terminated by an extra nul character, but there
-may be other nuls in the intervening data.</td>
+<td>Location to
+store a pointer to a string holding the remaining data in the
+<a class="link" href="glib-IO-Channels.html#GIOChannel" title="struct GIOChannel"><span class="type">GIOChannel</span></a>. This data should be freed with <a class="link" href="glib-Memory-Allocation.html#g-free" title="g_free ()"><code class="function">g_free()</code></a> when no
+longer needed. This data is terminated by an extra nul
+character, but there may be other nuls in the intervening data. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=length][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>length</code></em> :</span></p></td>
-<td>location to store length of the data</td>
+<td>location to store length of the data. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
@@ -734,7 +743,8 @@ cases described in the documentation for <a class="link" href="glib-IO-Channels.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>buf</code></em> :</span></p></td>
-<td>a buffer to write data from</td>
+<td>a buffer to write data from. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym>][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>count</code></em> :</span></p></td>
@@ -747,7 +757,8 @@ is taken to be a nul-terminated string.</td>
 even if the return value is not <a class="link" href="glib-IO-Channels.html#G-IO-STATUS-NORMAL:CAPS"><code class="literal">G_IO_STATUS_NORMAL</code></a>.
 If the return value is <a class="link" href="glib-IO-Channels.html#G-IO-STATUS-NORMAL:CAPS"><code class="literal">G_IO_STATUS_NORMAL</code></a> and the
 channel is blocking, this will always be equal
-to <em class="parameter"><code>count</code></em> if <em class="parameter"><code>count</code></em> &gt;= 0.</td>
+to <em class="parameter"><code>count</code></em> if <em class="parameter"><code>count</code></em> &gt;= 0. <span class="annotation">[<acronym title="Parameter for returning results. Default is transfer full."><span class="acronym">out</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
@@ -1638,6 +1649,7 @@ Sets the (writeable) flags in <em class="parameter"><code>channel</code></em> to
   G_IO_FLAG_NONBLOCK = 1 &lt;&lt; 1,
   G_IO_FLAG_IS_READABLE = 1 &lt;&lt; 2, /* Read only flag */
   G_IO_FLAG_IS_WRITABLE = 1 &lt;&lt; 3, /* Read only flag */
+  G_IO_FLAG_IS_WRITEABLE = 1 &lt;&lt; 3,      /* Misspelling in 2.29.10 and earlier */
   G_IO_FLAG_IS_SEEKABLE = 1 &lt;&lt; 4, /* Read only flag */
   G_IO_FLAG_MASK = (1 &lt;&lt; 5) - 1,
   G_IO_FLAG_GET_MASK = G_IO_FLAG_MASK,
@@ -1680,6 +1692,10 @@ read with <a class="link" href="glib-IO-Channels.html#g-io-channel-get-flags" ti
 <td>indicates that the io channel is writable.
                          This flag cannot be changed.
 </td>
+</tr>
+<tr>
+<td><p><a name="G-IO-FLAG-IS-WRITEABLE:CAPS"></a><span class="term"><code class="literal">G_IO_FLAG_IS_WRITEABLE</code></span></p></td>
+<td></td>
 </tr>
 <tr>
 <td><p><a name="G-IO-FLAG-IS-SEEKABLE:CAPS"></a><span class="term"><code class="literal">G_IO_FLAG_IS_SEEKABLE</code></span></p></td>
@@ -1764,10 +1780,11 @@ where in the file a line break occurs.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>line_term</code></em> :</span></p></td>
-<td>The line termination string. Use <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a> for autodetect.
-Autodetection breaks on "\n", "\r\n", "\r", "\0", and
-the Unicode paragraph separator. Autodetection should
-not be used for anything other than file-based channels.</td>
+<td>The line termination string. Use <a class="link" href="glib-Standard-Macros.html#NULL:CAPS" title="NULL"><code class="literal">NULL</code></a> for
+autodetect.  Autodetection breaks on "\n", "\r\n", "\r", "\0",
+and the Unicode paragraph separator. Autodetection should not be
+used for anything other than file-based channels. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>length</code></em> :</span></p></td>
@@ -1947,7 +1964,8 @@ calling one of the API "read" functions.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>encoding</code></em> :</span></p></td>
-<td>the encoding type</td>
+<td>the encoding type. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>error</code></em> :</span></p></td>
@@ -1970,7 +1988,7 @@ calling one of the API "read" functions.
 Returns whether the file/socket/whatever associated with <em class="parameter"><code>channel</code></em>
 will be closed when <em class="parameter"><code>channel</code></em> receives its final unref and is
 destroyed. The default value of this is <a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a> for channels created
-by <a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file"><code class="function">g_io_channel_new_file()</code></a>, and <a class="link" href="glib-Standard-Macros.html#FALSE:CAPS" title="FALSE"><code class="literal">FALSE</code></a> for all other channels.
+by <a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file ()"><code class="function">g_io_channel_new_file()</code></a>, and <a class="link" href="glib-Standard-Macros.html#FALSE:CAPS" title="FALSE"><code class="literal">FALSE</code></a> for all other channels.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -2014,7 +2032,7 @@ can cause problems.
 <td><p><span class="term"><em class="parameter"><code>do_close</code></em> :</span></p></td>
 <td>Whether to close the channel on the final unref of
 the GIOChannel data structure. The default value of
-this is <a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a> for channels created by <a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file"><code class="function">g_io_channel_new_file()</code></a>,
+this is <a class="link" href="glib-Standard-Macros.html#TRUE:CAPS" title="TRUE"><code class="literal">TRUE</code></a> for channels created by <a class="link" href="glib-IO-Channels.html#g-io-channel-new-file" title="g_io_channel_new_file ()"><code class="function">g_io_channel_new_file()</code></a>,
 and <a class="link" href="glib-Standard-Macros.html#FALSE:CAPS" title="FALSE"><code class="literal">FALSE</code></a> for all other channels.</td>
 </tr>
 </tbody>

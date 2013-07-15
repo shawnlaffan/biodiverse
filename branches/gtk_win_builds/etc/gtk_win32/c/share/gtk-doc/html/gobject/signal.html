@@ -190,7 +190,7 @@ void g_signal_emitv (const GValue *instance_and_params,
 			no accumulator was specified. If an accumulator was specified during signal creation,
 			this accumulator is used to calculate the return_value as a function of the return
 			values of all the closures invoked during emission. 
-			<a href="#ftn.idp11144576" class="footnote"><sup class="footnote"><a name="idp11144576"></a>[8]</sup></a>
+			<a href="#ftn.id-1.3.5.3.7.2.3.4.1.1" class="footnote"><sup class="footnote"><a name="id-1.3.5.3.7.2.3.4.1.1"></a>[8]</sup></a>
 			If no closure is invoked during
 			emission, the return_value is nonetheless initialized to zero/null.
 			</p></li>
@@ -272,8 +272,8 @@ void g_signal_emitv (const GValue *instance_and_params,
 	  </p>
 <p>
 	    Of the three main connection functions,
-		only one has an explicit detail parameter as a <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>
-		<a href="#ftn.idp10874544" class="footnote"><sup class="footnote"><a name="idp10874544"></a>[9]</sup></a>:
+		only one has an explicit detail parameter as a <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a>
+		<a href="#ftn.id-1.3.5.3.8.3.2" class="footnote"><sup class="footnote"><a name="id-1.3.5.3.8.3.2"></a>[9]</sup></a>:
 </p>
 <pre class="programlisting">
 gulong     g_signal_connect_closure_by_id          (gpointer          instance,
@@ -307,7 +307,7 @@ gulong     g_signal_connect_data              (gpointer          instance,
 	  </p>
 <p>
 		Of the four main signal emission functions, three have an explicit detail parameter as a 
-		<a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> again:
+		<a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> again:
 </p>
 <pre class="programlisting">
 void                  g_signal_emitv        (const GValue       *instance_and_params,
@@ -357,7 +357,7 @@ void                  g_signal_emit_by_name (gpointer            instance,
 </div>
 <div class="footnotes">
 <br><hr style="width:100; align:left;">
-<div id="ftn.idp11144576" class="footnote"><p><a href="#idp11144576" class="para"><sup class="para">[8] </sup></a>
+<div id="ftn.id-1.3.5.3.7.2.3.4.1.1" class="footnote"><p><a href="#id-1.3.5.3.7.2.3.4.1.1" class="para"><sup class="para">[8] </sup></a>
 			  James (again!!) gives a few non-trivial examples of accumulators:
 			  <span class="quote">“<span class="quote">
 				For instance, you may have an accumulator that ignores NULL returns from 
@@ -365,9 +365,9 @@ void                  g_signal_emit_by_name (gpointer            instance,
 				to return the list of values returned by the closures.
 			  </span>”</span>
 			</p></div>
-<div id="ftn.idp10874544" class="footnote"><p><a href="#idp10874544" class="para"><sup class="para">[9] </sup></a>A GQuark is an integer which uniquely represents a string. It is possible to transform
+<div id="ftn.id-1.3.5.3.8.3.2" class="footnote"><p><a href="#id-1.3.5.3.8.3.2" class="para"><sup class="para">[9] </sup></a>A GQuark is an integer which uniquely represents a string. It is possible to transform
 		   back and forth between the integer and string representations with the functions 
-		   <code class="function"><a href="./../glib/glib/glib-Quarks.html#g-quark-from-string">g_quark_from_string</a></code> and <code class="function"><a href="./../glib/glib/glib-Quarks.html#g-quark-to-string">g_quark_to_string</a></code>.
+		   <code class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#g-quark-from-string">g_quark_from_string</a></code> and <code class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#g-quark-to-string">g_quark_to_string</a></code>.
 		  </p></div>
 </div>
 </div>

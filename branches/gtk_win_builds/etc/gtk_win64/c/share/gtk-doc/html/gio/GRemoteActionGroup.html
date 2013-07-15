@@ -48,14 +48,14 @@ struct              <a class="link" href="GRemoteActionGroup.html#GRemoteActionG
 
 <span class="returnvalue">void</span>                <a class="link" href="GRemoteActionGroup.html#g-remote-action-group-activate-action-full" title="g_remote_action_group_activate_action_full ()">g_remote_action_group_activate_action_full</a>
                                                         (<em class="parameter"><code><a class="link" href="GRemoteActionGroup.html" title="GRemoteActionGroup"><span class="type">GRemoteActionGroup</span></a> *remote</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *parameter</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *platform_data</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *parameter</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *platform_data</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="GRemoteActionGroup.html#g-remote-action-group-change-action-state-full" title="g_remote_action_group_change_action_state_full ()">g_remote_action_group_change_action_state_full</a>
                                                         (<em class="parameter"><code><a class="link" href="GRemoteActionGroup.html" title="GRemoteActionGroup"><span class="type">GRemoteActionGroup</span></a> *remote</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *platform_data</code></em>);
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *platform_data</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -69,7 +69,7 @@ struct              <a class="link" href="GRemoteActionGroup.html#GRemoteActionG
 <a name="GRemoteActionGroup.prerequisites"></a><h2>Prerequisites</h2>
 <p>
 GRemoteActionGroup requires
- <a class="link" href="GActionGroup.html" title="GActionGroup">GActionGroup</a> and  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
+ <a class="link" href="GActionGroup.html" title="GActionGroup">GActionGroup</a> and  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>.</p>
 </div>
 <div class="refsect1">
 <a name="GRemoteActionGroup.implementations"></a><h2>Known Implementations</h2>
@@ -90,7 +90,7 @@ The interface has <code class="literal">_full</code> variants of the two
 methods on <a class="link" href="GActionGroup.html" title="GActionGroup"><span class="type">GActionGroup</span></a> used to activate actions:
 <a class="link" href="GActionGroup.html#g-action-group-activate-action" title="g_action_group_activate_action ()"><code class="function">g_action_group_activate_action()</code></a> and
 <a class="link" href="GActionGroup.html#g-action-group-change-action-state" title="g_action_group_change_action_state ()"><code class="function">g_action_group_change_action_state()</code></a>.  These variants allow a
-"platform data" <a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> to be specified: a dictionary providing
+"platform data" <a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> to be specified: a dictionary providing
 context for the action invocation (for example: timestamps, startup
 notification IDs, etc).
 </p>
@@ -139,7 +139,7 @@ The virtual function table for <a class="link" href="GRemoteActionGroup.html" ti
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../gobject/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GRemoteActionGroupInterface.g-iface"></a>g_iface</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#GTypeInterface"><span class="type">GTypeInterface</span></a> <em class="structfield"><code><a name="GRemoteActionGroupInterface.g-iface"></a>g_iface</code></em>;</span></p></td>
 <td></td>
 </tr>
 <tr>
@@ -161,9 +161,9 @@ The virtual function table for <a class="link" href="GRemoteActionGroup.html" ti
 <a name="g-remote-action-group-activate-action-full"></a><h3>g_remote_action_group_activate_action_full ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_remote_action_group_activate_action_full
                                                         (<em class="parameter"><code><a class="link" href="GRemoteActionGroup.html" title="GRemoteActionGroup"><span class="type">GRemoteActionGroup</span></a> *remote</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *parameter</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *platform_data</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *parameter</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *platform_data</code></em>);</pre>
 <p>
 Activates the remote action.
 </p>
@@ -174,8 +174,8 @@ activation request.  This typically contains details such as the user
 interaction timestamp or startup notification information.
 </p>
 <p>
-<em class="parameter"><code>platform_data</code></em> must be non-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> and must have the type
-<a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-VARDICT:CAPS"><code class="literal">G_VARIANT_TYPE_VARDICT</code></a>.  If it is floating, it will be consumed.
+<em class="parameter"><code>platform_data</code></em> must be non-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> and must have the type
+<a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-VARDICT:CAPS"><code class="literal">G_VARIANT_TYPE_VARDICT</code></a>.  If it is floating, it will be consumed.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -210,9 +210,9 @@ interaction timestamp or startup notification information.
 <a name="g-remote-action-group-change-action-state-full"></a><h3>g_remote_action_group_change_action_state_full ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_remote_action_group_change_action_state_full
                                                         (<em class="parameter"><code><a class="link" href="GRemoteActionGroup.html" title="GRemoteActionGroup"><span class="type">GRemoteActionGroup</span></a> *remote</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *platform_data</code></em>);</pre>
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *action_name</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *value</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-GVariant.html#GVariant"><span class="type">GVariant</span></a> *platform_data</code></em>);</pre>
 <p>
 Changes the state of a remote action.
 </p>
@@ -223,8 +223,8 @@ state change request.  This typically contains details such as the
 user interaction timestamp or startup notification information.
 </p>
 <p>
-<em class="parameter"><code>platform_data</code></em> must be non-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> and must have the type
-<a href="./../glib/glib/glib-GVariantType.html#G-VARIANT-TYPE-VARDICT:CAPS"><code class="literal">G_VARIANT_TYPE_VARDICT</code></a>.  If it is floating, it will be consumed.
+<em class="parameter"><code>platform_data</code></em> must be non-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> and must have the type
+<a href="/usr/share/gtk-doc/html/glib/glib-GVariantType.html#G-VARIANT-TYPE-VARDICT:CAPS"><code class="literal">G_VARIANT_TYPE_VARDICT</code></a>.  If it is floating, it will be consumed.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>

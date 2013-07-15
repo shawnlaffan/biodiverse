@@ -24,12 +24,12 @@
  * GLib at ftp://ftp.gtk.org/pub/gtk/.
  */
 
+#ifndef __G_VERSION_H__
+#define __G_VERSION_H__
+
 #if !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
 #error "Only <glib.h> can be included directly."
 #endif
-
-#ifndef __G_VERSION_H__
-#define __G_VERSION_H__
 
 #include <glib/gtypes.h>
 
@@ -41,6 +41,7 @@ GLIB_VAR const guint glib_micro_version;
 GLIB_VAR const guint glib_interface_age;
 GLIB_VAR const guint glib_binary_age;
 
+GLIB_AVAILABLE_IN_ALL
 const gchar * glib_check_version (guint required_major,
                                   guint required_minor,
                                   guint required_micro);

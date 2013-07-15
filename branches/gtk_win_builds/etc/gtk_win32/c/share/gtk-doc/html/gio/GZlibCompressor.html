@@ -58,7 +58,7 @@ enum                <a class="link" href="GZlibCompressor.html#GZlibCompressorFo
 <div class="refsect1">
 <a name="GZlibCompressor.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="./../gobject/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  <a href="/usr/share/gtk-doc/html/gobject/gobject-The-Base-Object-Type.html#GObject">GObject</a>
    +----GZlibCompressor
 </pre>
 </div>
@@ -73,7 +73,7 @@ GZlibCompressor implements
 <pre class="synopsis">
   "<a class="link" href="GZlibCompressor.html#GZlibCompressor--file-info" title='The "file-info" property'>file-info</a>"                <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a>*            : Read / Write
   "<a class="link" href="GZlibCompressor.html#GZlibCompressor--format" title='The "format" property'>format</a>"                   <a class="link" href="GZlibCompressor.html#GZlibCompressorFormat" title="enum GZlibCompressorFormat"><span class="type">GZlibCompressorFormat</span></a>  : Read / Write / Construct Only
-  "<a class="link" href="GZlibCompressor.html#GZlibCompressor--level" title='The "level" property'>level</a>"                    <a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct Only
+  "<a class="link" href="GZlibCompressor.html#GZlibCompressor--level" title='The "level" property'>level</a>"                    <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct Only
 </pre>
 </div>
 <div class="refsect1">
@@ -181,7 +181,7 @@ Returns the <a class="link" href="GZlibCompressor.html#GZlibCompressor--file-inf
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a>, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+<td>a <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a>, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -194,7 +194,7 @@ Returns the <a class="link" href="GZlibCompressor.html#GZlibCompressor--file-inf
 <pre class="programlisting"><span class="returnvalue">void</span>                g_zlib_compressor_set_file_info     (<em class="parameter"><code><a class="link" href="GZlibCompressor.html" title="GZlibCompressor"><span class="type">GZlibCompressor</span></a> *compressor</code></em>,
                                                          <em class="parameter"><code><a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a> *file_info</code></em>);</pre>
 <p>
-Sets <em class="parameter"><code>file_info</code></em> in <em class="parameter"><code>compressor</code></em>. If non-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, and <em class="parameter"><code>compressor</code></em>'s
+Sets <em class="parameter"><code>file_info</code></em> in <em class="parameter"><code>compressor</code></em>. If non-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, and <em class="parameter"><code>compressor</code></em>'s
 <a class="link" href="GZlibCompressor.html#GZlibCompressor--format" title='The "format" property'><span class="type">"format"</span></a> property is <a class="link" href="GZlibCompressor.html#G-ZLIB-COMPRESSOR-FORMAT-GZIP:CAPS"><code class="literal">G_ZLIB_COMPRESSOR_FORMAT_GZIP</code></a>,
 it will be used to set the file name and modification time in
 the GZIP header of the compressed data.
@@ -231,7 +231,7 @@ or after resetting it with <a class="link" href="GConverter.html#g-converter-res
 <a name="GZlibCompressor--file-info"></a><h3>The <code class="literal">"file-info"</code> property</h3>
 <pre class="programlisting">  "file-info"                <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a>*            : Read / Write</pre>
 <p>
-If set to a non-<a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a> object, and <a class="link" href="GZlibCompressor.html#GZlibCompressor--format" title='The "format" property'><span class="type">"format"</span></a> is
+If set to a non-<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <a class="link" href="GFileInfo.html" title="GFileInfo"><span class="type">GFileInfo</span></a> object, and <a class="link" href="GZlibCompressor.html#GZlibCompressor--format" title='The "format" property'><span class="type">"format"</span></a> is
 <a class="link" href="GZlibCompressor.html#G-ZLIB-COMPRESSOR-FORMAT-GZIP:CAPS"><code class="literal">G_ZLIB_COMPRESSOR_FORMAT_GZIP</code></a>, the compressor will write the file name
 and modification time from the file info to the GZIP header.
 </p>
@@ -247,7 +247,7 @@ and modification time from the file info to the GZIP header.
 <hr>
 <div class="refsect2">
 <a name="GZlibCompressor--level"></a><h3>The <code class="literal">"level"</code> property</h3>
-<pre class="programlisting">  "level"                    <a href="./../glib/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct Only</pre>
+<pre class="programlisting">  "level"                    <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gint"><span class="type">gint</span></a>                  : Read / Write / Construct Only</pre>
 <p>The level of compression from 0 (no compression) to 9 (most compression), -1 for the default level.</p>
 <p>Allowed values: [G_MAXULONG,9]</p>
 <p>Default value: -1</p>

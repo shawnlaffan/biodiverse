@@ -20,12 +20,12 @@
  * Author: Alexander Larsson <alexl@redhat.com>
  */
 
+#ifndef __G_CONVERTER_OUTPUT_STREAM_H__
+#define __G_CONVERTER_OUTPUT_STREAM_H__
+
 #if !defined (__GIO_GIO_H_INSIDE__) && !defined (GIO_COMPILATION)
 #error "Only <gio/gio.h> can be included directly."
 #endif
-
-#ifndef __G_CONVERTER_OUTPUT_STREAM_H__
-#define __G_CONVERTER_OUTPUT_STREAM_H__
 
 #include <gio/gfilteroutputstream.h>
 #include <gio/gconverter.h>
@@ -69,9 +69,12 @@ struct _GConverterOutputStreamClass
   void (*_g_reserved5) (void);
 };
 
+GLIB_AVAILABLE_IN_ALL
 GType                   g_converter_output_stream_get_type      (void) G_GNUC_CONST;
+GLIB_AVAILABLE_IN_ALL
 GOutputStream          *g_converter_output_stream_new           (GOutputStream         *base_stream,
                                                                  GConverter            *converter);
+GLIB_AVAILABLE_IN_ALL
 GConverter             *g_converter_output_stream_get_converter (GConverterOutputStream *converter_stream);
 
 G_END_DECLS

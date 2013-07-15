@@ -68,7 +68,7 @@ struct _AtkHyperlinkImplIface
 
 GType            atk_hyperlink_impl_get_type (void);
 
-AtkHyperlink    *atk_hyperlink_impl_get_hyperlink (AtkHyperlinkImpl *obj);
+AtkHyperlink    *atk_hyperlink_impl_get_hyperlink (AtkHyperlinkImpl *impl);
 
 G_END_DECLS
 

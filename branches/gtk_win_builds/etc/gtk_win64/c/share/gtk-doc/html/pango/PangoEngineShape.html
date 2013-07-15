@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>PangoEngineShape</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Pango Reference Manual">
 <link rel="up" href="lowlevel.html" title="Low Level Functionality">
 <link rel="prev" href="PangoEngineLang.html" title="PangoEngineLang">
@@ -55,7 +55,7 @@ struct              <a class="link" href="PangoEngineShape.html#PangoEngineShape
 <div class="refsect1">
 <a name="PangoEngineShape.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  GObject
    +----<a class="link" href="pango-Engines.html#PangoEngine">PangoEngine</a>
          +----PangoEngineShape
 </pre>
@@ -88,12 +88,14 @@ for Fontconfig-based backends.
 <div class="refsect2">
 <a name="PangoEngineShapeClass"></a><h3>struct PangoEngineShapeClass</h3>
 <pre class="programlisting">struct PangoEngineShapeClass {
-  void (*script_shape) (PangoEngineShape *engine,
-			PangoFont        *font,
-			const char       *text,
-			int               length,
+  void (*script_shape) (PangoEngineShape    *engine,
+			PangoFont           *font,
+			const char          *item_text,
+			unsigned int         item_length,
 			const PangoAnalysis *analysis,
-			PangoGlyphString *glyphs);
+			PangoGlyphString    *glyphs,
+			const char          *paragraph_text,
+			unsigned int         paragraph_length);
   PangoCoverageLevel (*covers)   (PangoEngineShape *engine,
 				  PangoFont        *font,
 				  PangoLanguage    *language,
@@ -103,8 +105,11 @@ for Fontconfig-based backends.
 <p>
 Class structure for <a class="link" href="PangoEngineShape.html" title="PangoEngineShape"><span class="type">PangoEngineShape</span></a>
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="PangoEngineShapeClass.script-shape"></a>script_shape</code></em> ()</span></p></td>
@@ -164,7 +169,7 @@ are defined.
 <p>
 </p>
 <p>
-The <code class="function"><em class="replaceable"><code>prefix</code></em>, <code class="function">_register_type()</code></code>
+The <code class="function"><em class="replaceable"><code>prefix</code></em><code class="function">_register_type()</code></code>
 function should be called in your <a class="link" href="pango-Engines.html#script-engine-init" title="script_engine_init ()"><code class="function">script_engine_init()</code></a> function for
 each type that your module implements, and then your <a class="link" href="pango-Engines.html#script-engine-create" title="script_engine_create ()"><code class="function">script_engine_create()</code></a>
 function can create instances of the object as follows:
@@ -176,7 +181,7 @@ function can create instances of the object as follows:
     <tbody>
       <tr>
         <td class="listing_lines" align="right"><pre>1</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="usertype">PangoEngine</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">engine </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#g-object-new">g_object_new</a></span><span class="normal"> </span><span class="symbol">(&lt;</span><span class="usertype">em</span><span class="normal"> class</span><span class="symbol">=</span><span class="string">"replaceable"</span><span class="symbol">&gt;&lt;</span><span class="normal">code</span><span class="symbol">&gt;</span><span class="normal">prefix</span><span class="symbol">&lt;/</span><span class="normal">code</span><span class="symbol">&gt;&lt;/</span><span class="normal">em</span><span class="symbol">&gt;</span><span class="normal">_type</span><span class="symbol">,</span><span class="normal"> <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span></pre></td>
+        <td class="listing_code"><pre class="programlisting"><span class="usertype">PangoEngine</span><span class="normal"> </span><span class="symbol">*</span><span class="normal">engine </span><span class="symbol">=</span><span class="normal"> </span><span class="function">g_object_new</span><span class="normal"> </span><span class="symbol">(&lt;</span><span class="usertype">em</span><span class="normal"> class</span><span class="symbol">=</span><span class="string">"replaceable"</span><span class="symbol">&gt;&lt;</span><span class="normal">code</span><span class="symbol">&gt;</span><span class="normal">prefix</span><span class="symbol">&lt;/</span><span class="normal">code</span><span class="symbol">&gt;&lt;/</span><span class="normal">em</span><span class="symbol">&gt;</span><span class="normal">_type</span><span class="symbol">,</span><span class="normal"> NULL</span><span class="symbol">);</span></pre></td>
       </tr>
     </tbody>
   </table>
@@ -184,8 +189,11 @@ function can create instances of the object as follows:
 
 <p>
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>name</code></em> :</span></p></td>
@@ -199,12 +207,12 @@ function can create instances of the object as follows:
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>class_init</code></em> :</span></p></td>
-<td>Class initialization function for the new type, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>Class initialization function for the new type, or <code class="literal">NULL</code>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>instance_init</code></em> :</span></p></td>
-<td>Instance initialization function for the new type, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>Instance initialization function for the new type, or <code class="literal">NULL</code>
 </td>
 </tr>
 </tbody>

@@ -119,7 +119,7 @@ To free a <a class="link" href="glib-Byte-Arrays.html#GByteArray" title="struct 
 <p>
 </p>
 <div class="example">
-<a name="idp54522976"></a><p class="title"><b>Example 17. Using a <a class="link" href="glib-Byte-Arrays.html#GByteArray" title="struct GByteArray"><span class="type">GByteArray</span></a></b></p>
+<a name="id-1.6.12.4.6.1"></a><p class="title"><b>Example 16. Using a <a class="link" href="glib-Byte-Arrays.html#GByteArray" title="struct GByteArray"><span class="type">GByteArray</span></a></b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -214,7 +214,8 @@ Creates a new <a class="link" href="glib-Byte-Arrays.html#GByteArray" title="str
 </colgroup>
 <tbody><tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the new <a class="link" href="glib-Byte-Arrays.html#GByteArray" title="struct GByteArray"><span class="type">GByteArray</span></a>.</td>
+<td>the new <a class="link" href="glib-Byte-Arrays.html#GByteArray" title="struct GByteArray"><span class="type">GByteArray</span></a>. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>]</span>
+</td>
 </tr></tbody>
 </table></div>
 </div>
@@ -235,7 +236,7 @@ and will be freed with <a class="link" href="glib-Memory-Allocation.html#g-free"
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>byte data for the array. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=len]</span>
+<td>byte data for the array. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=len]</span>
 </td>
 </tr>
 <tr>
@@ -715,7 +716,7 @@ Creates a new <a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>the data to be used for the bytes. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size]</span>
+<td>the data to be used for the bytes. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span>
 </td>
 </tr>
 <tr>
@@ -759,7 +760,7 @@ For creating <a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes">
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>the data to be used for the bytes. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size]</span>
+<td>the data to be used for the bytes. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span>
 </td>
 </tr>
 <tr>
@@ -795,7 +796,7 @@ Creates a new <a class="link" href="glib-Byte-Arrays.html#GBytes" title="GBytes"
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data</code></em> :</span></p></td>
-<td>the data to be used for the bytes. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size]</span>
+<td>the data to be used for the bytes. <span class="annotation">[<acronym title="Free data after the code is done."><span class="acronym">transfer full</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size][<acronym title="Generics and defining elements of containers and arrays."><span class="acronym">element-type</span></acronym> guint8]</span>
 </td>
 </tr>
 <tr>
@@ -935,7 +936,8 @@ This function will always return the same pointer for a given <a class="link" hr
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>a pointer to the byte data. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size][<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> guint8]</span>
+<td>a pointer to the
+byte data. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>][<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=size][<acronym title="Override the parsed C type with given type."><span class="acronym">type</span></acronym> guint8]</span>
 </td>
 </tr>
 </tbody>

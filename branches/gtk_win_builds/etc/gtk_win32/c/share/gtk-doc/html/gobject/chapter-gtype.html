@@ -84,13 +84,13 @@ GType g_type_register_fundamental (GType                       type_id,
         <code class="function"><a class="link" href="gobject-Type-Information.html#g-type-register-fundamental" title="g_type_register_fundamental ()">g_type_register_fundamental</a></code> (you have to be Tim Janik 
         to do that) but in case you want to, the last chapter explains how to create
         new fundamental types.
-        <a href="#ftn.idp7537616" class="footnote"><sup class="footnote"><a name="idp7537616"></a>[2]</sup></a>
+        <a href="#ftn.id-1.3.3.3.7" class="footnote"><sup class="footnote"><a name="id-1.3.3.3.7"></a>[2]</sup></a>
       </p>
 <p>
         Fundamental types are top-level types which do not derive from any other type 
         while other non-fundamental types derive from other types.
-        Upon initialization by <code class="function"><a class="link" href="gobject-Type-Information.html#g-type-init" title="g_type_init ()">g_type_init</a></code>, the type system not 
-        only initializes its internal data structures but it also registers a number of core
+        Upon initialization, the type system not only initializes its
+        internal data structures but it also registers a number of core
         types: some of these are fundamental types. Others are types derived from these 
         fundamental types.
       </p>
@@ -248,7 +248,7 @@ struct _GTypeValueTable
 </div>
 <div class="footnotes">
 <br><hr style="width:100; align:left;">
-<div id="ftn.idp7537616" class="footnote"><p><a href="#idp7537616" class="para"><sup class="para">[2] </sup></a>
+<div id="ftn.id-1.3.3.3.7" class="footnote"><p><a href="#id-1.3.3.3.7" class="para"><sup class="para">[2] </sup></a>
             Please note that there exists another registration function: the 
             <code class="function"><a class="link" href="gobject-Type-Information.html#g-type-register-dynamic" title="g_type_register_dynamic ()">g_type_register_dynamic</a></code>. We will not discuss this
             function here since its use is very similar to the <code class="function">_static</code> 

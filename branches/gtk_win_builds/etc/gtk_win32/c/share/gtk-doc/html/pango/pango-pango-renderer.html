@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>PangoRenderer</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Pango Reference Manual">
 <link rel="up" href="lowlevel.html" title="Low Level Functionality">
 <link rel="prev" href="lowlevel.html" title="Low Level Functionality">
@@ -104,7 +104,7 @@ const <a class="link" href="pango-Glyph-Storage.html#PangoMatrix"><span class="r
 <div class="refsect1">
 <a name="pango-pango-renderer.object-hierarchy"></a><h2>Object Hierarchy</h2>
 <pre class="synopsis">
-  <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject">GObject</a>
+  GObject
    +----PangoRenderer
          +----<a class="link" href="pango-Xft-Fonts-and-Rendering.html#PangoXftRenderer">PangoXftRenderer</a>
 </pre>
@@ -136,12 +136,15 @@ destinations can be created.
 render Pango objects such as <a class="link" href="pango-Glyph-Storage.html#PangoGlyphString"><span class="type">PangoGlyphString</span></a> and
 <a class="link" href="pango-Layout-Objects.html#PangoLayout"><span class="type">PangoLayout</span></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody><tr>
 <td><p><span class="term"><a class="link" href="pango-Glyph-Storage.html#PangoMatrix"><span class="type">PangoMatrix</span></a> *<em class="structfield"><code><a name="PangoRenderer-struct.matrix"></a>matrix</code></em>;</span></p></td>
 <td>the current transformation matrix for the Renderer; may
-be <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, which should be treated the same as the identity matrix.</td>
+be <code class="literal">NULL</code>, which should be treated the same as the identity matrix.</td>
 </tr></tbody>
 </table></div>
 <p class="since">Since 1.8</p>
@@ -160,8 +163,11 @@ be <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.ht
 <a class="link" href="pango-pango-renderer.html#PangoRenderPart"><span class="type">PangoRenderPart</span></a> defines different items to render for such
 purposes as setting colors.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><a name="PANGO-RENDER-PART-FOREGROUND:CAPS"></a><span class="term"><code class="literal">PANGO_RENDER_PART_FOREGROUND</code></span></p></td>
@@ -190,10 +196,10 @@ purposes as setting colors.
 <hr>
 <div class="refsect2">
 <a name="PANGO-TYPE-RENDER-PART:CAPS"></a><h3>PANGO_TYPE_RENDER_PART</h3>
-<pre class="programlisting">#define PANGO_TYPE_RENDER_PART (pango_render_part_get_type())
+<pre class="programlisting">#define PANGO_TYPE_RENDER_PART (pango_render_part_get_type ())
 </pre>
 <p>
-The <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Object-Type.html#GObject"><span class="type">GObject</span></a> type for <a class="link" href="pango-pango-renderer.html#PangoRenderPart"><span class="type">PangoRenderPart</span></a>.
+The <span class="type">GObject</span> type for <a class="link" href="pango-pango-renderer.html#PangoRenderPart"><span class="type">PangoRenderPart</span></a>.
 </p>
 </div>
 <hr>
@@ -271,8 +277,11 @@ The <a href="http://library.gnome.org/devel/gobject/unstable/gobject-The-Base-Ob
 <p>
 Class structure for <a class="link" href="pango-pango-renderer.html#PangoRenderer"><span class="type">PangoRenderer</span></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="structfield"><code><a name="PangoRendererClass.draw-glyphs"></a>draw_glyphs</code></em> ()</span></p></td>
@@ -339,8 +348,11 @@ attributes change</td>
 <p>
 Draws <em class="parameter"><code>layout</code></em> with the specified <a class="link" href="pango-pango-renderer.html#PangoRenderer"><span class="type">PangoRenderer</span></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -376,8 +388,11 @@ in Pango units.</td>
 <p>
 Draws <em class="parameter"><code>line</code></em> with the specified <a class="link" href="pango-pango-renderer.html#PangoRenderer"><span class="type">PangoRenderer</span></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -414,8 +429,11 @@ in Pango units.</td>
 <p>
 Draws the glyphs in <em class="parameter"><code>glyphs</code></em> with the specified <a class="link" href="pango-pango-renderer.html#PangoRenderer"><span class="type">PangoRenderer</span></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -464,14 +482,17 @@ Note that <em class="parameter"><code>text</code></em> is the start of the text 
 indexed by <code class="literal"><em class="parameter"><code>glyph_item-&gt;item-&gt;offset</code></em></code>.
 </p>
 <p>
-If <em class="parameter"><code>text</code></em> is <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, this simply calls <a class="link" href="pango-pango-renderer.html#pango-renderer-draw-glyphs" title="pango_renderer_draw_glyphs ()"><code class="function">pango_renderer_draw_glyphs()</code></a>.
+If <em class="parameter"><code>text</code></em> is <code class="literal">NULL</code>, this simply calls <a class="link" href="pango-pango-renderer.html#pango-renderer-draw-glyphs" title="pango_renderer_draw_glyphs ()"><code class="function">pango_renderer_draw_glyphs()</code></a>.
 </p>
 <p>
 The default implementation of this method simply falls back to
 <a class="link" href="pango-pango-renderer.html#pango-renderer-draw-glyphs" title="pango_renderer_draw_glyphs ()"><code class="function">pango_renderer_draw_glyphs()</code></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -480,7 +501,7 @@ The default implementation of this method simply falls back to
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>text</code></em> :</span></p></td>
-<td>the UTF-8 text that <em class="parameter"><code>glyph_item</code></em> refers to, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>the UTF-8 text that <em class="parameter"><code>glyph_item</code></em> refers to, or <code class="literal">NULL</code>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -519,8 +540,11 @@ specified <a class="link" href="pango-pango-renderer.html#PangoRenderer"><span c
 This should be called while <em class="parameter"><code>renderer</code></em> is already active.  Use
 <a class="link" href="pango-pango-renderer.html#pango-renderer-activate" title="pango_renderer_activate ()"><code class="function">pango_renderer_activate()</code></a> to activate a renderer.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -570,8 +594,11 @@ in the original rectangle)
 This should be called while <em class="parameter"><code>renderer</code></em> is already active.  Use
 <a class="link" href="pango-pango-renderer.html#pango-renderer-activate" title="pango_renderer_activate ()"><code class="function">pango_renderer_activate()</code></a> to activate a renderer.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -613,8 +640,11 @@ This should be called while <em class="parameter"><code>renderer</code></em> is 
 Draws a trapezoid with the parallel sides aligned with the X axis
 using the given <a class="link" href="pango-pango-renderer.html#PangoRenderer"><span class="type">PangoRenderer</span></a>; coordinates are in device space.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -664,8 +694,11 @@ using the given <a class="link" href="pango-pango-renderer.html#PangoRenderer"><
 <p>
 Draws a single glyph with coordinates in device space.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -706,8 +739,11 @@ activate the layout before drawing on it. Calls to
 be nested and the renderer will only be initialized and
 deinitialized once.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
 <td>a <a class="link" href="pango-pango-renderer.html#PangoRenderer"><span class="type">PangoRenderer</span></a>
@@ -724,8 +760,11 @@ deinitialized once.
 Cleans up after rendering operations on <em class="parameter"><code>renderer</code></em>. See
 docs for <a class="link" href="pango-pango-renderer.html#pango-renderer-activate" title="pango_renderer_activate ()"><code class="function">pango_renderer_activate()</code></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody><tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
 <td>a <a class="link" href="pango-pango-renderer.html#PangoRenderer"><span class="type">PangoRenderer</span></a>
@@ -766,8 +805,11 @@ When the stipple changes or underlines with different stipples
 might be joined together. Pango automatically calls this for
 changes to colors. (See <a class="link" href="pango-pango-renderer.html#pango-renderer-set-color" title="pango_renderer_set_color ()"><code class="function">pango_renderer_set_color()</code></a>)
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -791,8 +833,11 @@ changes to colors. (See <a class="link" href="pango-pango-renderer.html#pango-re
 <p>
 Sets the color for part of the rendering.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -805,7 +850,7 @@ Sets the color for part of the rendering.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>color</code></em> :</span></p></td>
-<td>the new color or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to unset the current color. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>the new color or <code class="literal">NULL</code> to unset the current color. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 </tbody>
@@ -820,8 +865,11 @@ Sets the color for part of the rendering.
 <p>
 Gets the current rendering color for the specified part.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -834,7 +882,7 @@ Gets the current rendering color for the specified part.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the color for the specified part, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>
+<td>the color for the specified part, or <code class="literal">NULL</code>
 if it hasn't been set and should be inherited from the
 environment.</td>
 </tr>
@@ -850,8 +898,11 @@ environment.</td>
 <p>
 Sets the transformation matrix that will be applied when rendering.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -860,7 +911,7 @@ Sets the transformation matrix that will be applied when rendering.
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>matrix</code></em> :</span></p></td>
-<td>a <a class="link" href="pango-Glyph-Storage.html#PangoMatrix"><span class="type">PangoMatrix</span></a>, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to unset any existing matrix.
+<td>a <a class="link" href="pango-Glyph-Storage.html#PangoMatrix"><span class="type">PangoMatrix</span></a>, or <code class="literal">NULL</code> to unset any existing matrix.
 (No matrix set is the same as setting the identity matrix.). <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
@@ -876,8 +927,11 @@ Sets the transformation matrix that will be applied when rendering.
 Gets the transformation matrix that will be applied when
 rendering. See <a class="link" href="pango-pango-renderer.html#pango-renderer-set-matrix" title="pango_renderer_set_matrix ()"><code class="function">pango_renderer_set_matrix()</code></a>.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -886,7 +940,7 @@ rendering. See <a class="link" href="pango-pango-renderer.html#pango-renderer-se
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the matrix, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no matrix has been set
+<td>the matrix, or <code class="literal">NULL</code> if no matrix has been set
 (which is the same as the identity matrix). The returned
 matrix is owned by Pango and must not be modified or
 freed.</td>
@@ -908,8 +962,11 @@ methods, like in its draw_shape() for example.
 The returned layout should not be modified while still being
 rendered.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -918,7 +975,7 @@ rendered.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the layout, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no layout is being
+<td>the layout, or <code class="literal">NULL</code> if no layout is being
 rendered using <em class="parameter"><code>renderer</code></em> at this time. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
 </td>
 </tr>
@@ -939,8 +996,11 @@ methods, like in its draw_shape() for example.
 The returned layout line should not be modified while still being
 rendered.
 </p>
-<div class="variablelist"><table border="0">
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>renderer</code></em> :</span></p></td>
@@ -949,8 +1009,9 @@ rendered.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the layout line, or <a href="http://library.gnome.org/devel/glib/unstable/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if no layout line is being
-rendered using <em class="parameter"><code>renderer</code></em> at this time.</td>
+<td>the layout line, or <code class="literal">NULL</code> if no
+layout line is being rendered using <em class="parameter"><code>renderer</code></em> at this time. <span class="annotation">[<acronym title="Don't free data after the code is done."><span class="acronym">transfer none</span></acronym>]</span>
+</td>
 </tr>
 </tbody>
 </table></div>

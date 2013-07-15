@@ -33,7 +33,7 @@
 <div class="cmdsynopsis"><p><code class="command">glib-genmarshal</code>  [OPTION...] [FILE...]</p></div>
 </div>
 <div class="refsect1">
-<a name="idp10352592"></a><h2>Description</h2>
+<a name="id-1.5.3.5"></a><h2>Description</h2>
 <p><span class="command"><strong>glib-genmarshal</strong></span> is a small utility that generates C code
 marshallers for callback functions of the GClosure mechanism in the GObject
 sublibrary of GLib. The marshaller functions have a standard signature,
@@ -48,7 +48,7 @@ input. The marshaller list is either read from standard input or from files
 passed as additional arguments on the command line.
 </p>
 <div class="refsect2">
-<a name="idp13250448"></a><h3>Marshaller list format</h3>
+<a name="id-1.5.3.5.4"></a><h3>Marshaller list format</h3>
 <p>
 The marshaller lists are processed line by line, a line can contain a
 comment in the form of
@@ -76,7 +76,7 @@ which are always pointers.
 </div>
 <hr>
 <div class="refsect2">
-<a name="idp5812480"></a><h3>Parameter types</h3>
+<a name="id-1.5.3.5.5"></a><h3>Parameter types</h3>
 <p>
 Currently, the following types are supported:
 </p>
@@ -227,7 +227,7 @@ deprecated alias for <em class="replaceable"><code>BOOLEAN</code></em>
 </div>
 </div>
 <div class="refsect1">
-<a name="idp10326400"></a><h2>Options</h2>
+<a name="id-1.5.3.6"></a><h2>Options</h2>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
 <col align="left" valign="top">
@@ -305,7 +305,7 @@ Print version and exit.
 </table></div>
 </div>
 <div class="refsect1">
-<a name="idp8921888"></a><h2>Example</h2>
+<a name="id-1.5.3.7"></a><h2>Example</h2>
 <p>
 To generate marshallers for the following callback functions:
 </p>
@@ -360,7 +360,7 @@ g_closure_set_marshal (cc_baz, g_cclosure_user_marshal_FLOAT__BOOLEAN_UCHAR);
 </pre>
 </div>
 <div class="refsect1">
-<a name="idp10797456"></a><h2>See also</h2>
+<a name="id-1.5.3.8"></a><h2>See also</h2>
 <p>
 <span class="citerefentry"><span class="refentrytitle">glib-mkenums</span>(1)</span>
 </p>

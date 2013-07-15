@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# Copyright 2000, 2001, 2002, 2003, 2004, 2005, 2008, 2009 by
+# Copyright 2000-2005, 2008, 2009, 2013 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -9,14 +9,15 @@
 # indicate that you have read the license and understand and accept it
 # fully.
 
-prefix=/usr/i686-w64-mingw32/sys-root/mingw
-exec_prefix=/usr/i686-w64-mingw32/sys-root/mingw
-exec_prefix_set=no
-includedir=/usr/i686-w64-mingw32/sys-root/mingw/include
-libdir=/usr/i686-w64-mingw32/sys-root/mingw/lib
-enable_shared=
-wl=-Wl,
-hardcode_libdir_flag_spec='-L$libdir'
+LC_ALL=C
+export LC_ALL
+
+prefix="/usr/i686-w64-mingw32/sys-root/mingw"
+exec_prefix="/usr/i686-w64-mingw32/sys-root/mingw"
+exec_prefix_set="no"
+includedir="/usr/i686-w64-mingw32/sys-root/mingw/include"
+libdir="/usr/i686-w64-mingw32/sys-root/mingw/lib"
+enable_shared=""
 
 usage()
 {
@@ -72,7 +73,7 @@ while test $# -gt 0 ; do
     echo_exec_prefix=yes
     ;;
   --version)
-    echo 15.0.9
+    echo 16.1.10
     exit 0
     ;;
   --ftversion)
@@ -140,12 +141,9 @@ if test "$echo_cflags" = "yes" ; then
 fi
 
 if test "$echo_libs" = "yes" ; then
-  rpath=
-  if test "$enable_shared" = "yes" ; then
-    eval "rpath=\"$hardcode_libdir_flag_spec\""
-  fi
   libs="-lfreetype -lz  "
-  if test "${SYSROOT}$libdir" != "/usr/lib" && test "${SYSROOT}$libdir" != "/usr/lib64"; then
+  if test "${SYSROOT}$libdir" != "/usr/lib"  &&
+     test "${SYSROOT}$libdir" != "/usr/lib64"; then
     echo -L${SYSROOT}$libdir $libs
   else
     echo $libs

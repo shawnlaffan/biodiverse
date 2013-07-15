@@ -31,7 +31,7 @@
 G_BEGIN_DECLS
 
 /**
- *AtkTextAttribute
+ *AtkTextAttribute:
  *@ATK_TEXT_ATTR_INVALID: Invalid attribute
  *@ATK_TEXT_ATTR_LEFT_MARGIN: The pixel width of the left margin
  *@ATK_TEXT_ATTR_RIGHT_MARGIN: The pixel width of the right margin
@@ -177,7 +177,7 @@ struct _AtkTextRange {
 GType atk_text_range_get_type (void);
 
 /**
- *AtkTextClipType
+ *AtkTextClipType:
  *@ATK_TEXT_CLIP_NONE: No clipping to be done
  *@ATK_TEXT_CLIP_MIN: Text clipped by min coordinate is omitted
  *@ATK_TEXT_CLIP_MAX: Text clipped by max coordinate is omitted

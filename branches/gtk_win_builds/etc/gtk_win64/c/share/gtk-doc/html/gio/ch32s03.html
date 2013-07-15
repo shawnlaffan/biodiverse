@@ -21,7 +21,7 @@
 </tr></table>
 <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="idp77277568"></a>Owning bus names</h2></div></div></div>
+<a name="id-1.5.5.4"></a>Owning bus names</h2></div></div></div>
 <p>
       Using dbus-glib, you typically call RequestName manually
       to own a name, like in the following excerpt:
@@ -75,49 +75,49 @@
 43
 44
 45</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="normal">error </span><span class="symbol">=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
-<span class="normal">res </span><span class="symbol">=</span><span class="normal"> </span><span class="function"><a href="/home/mclasen/gnome/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGProxy.html#dbus-g-proxy-call">dbus_g_proxy_call</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">system_bus_proxy</span><span class="symbol">,</span>
+        <td class="listing_code"><pre class="programlisting"><span class="normal">error </span><span class="symbol">=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">;</span>
+<span class="normal">res </span><span class="symbol">=</span><span class="normal"> </span><span class="function">dbus_g_proxy_call</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">system_bus_proxy</span><span class="symbol">,</span>
 <span class="normal">                         </span><span class="string">"RequestName"</span><span class="symbol">,</span>
 <span class="normal">                         </span><span class="symbol">&amp;</span><span class="normal">error</span><span class="symbol">,</span>
-<span class="normal">                         <a href="./../gobject/gobject/gobject-Type-Information.html#G-TYPE-STRING:CAPS">G_TYPE_STRING</a></span><span class="symbol">,</span><span class="normal"> NAME_TO_CLAIM</span><span class="symbol">,</span>
-<span class="normal">                         <a href="./../gobject/gobject/gobject-Type-Information.html#G-TYPE-UINT:CAPS">G_TYPE_UINT</a></span><span class="symbol">,</span><span class="normal">   DBUS_NAME_FLAG_ALLOW_REPLACEMENT</span><span class="symbol">,</span>
-<span class="normal">                         <a href="./../gobject/gobject/gobject-Type-Information.html#G-TYPE-INVALID:CAPS">G_TYPE_INVALID</a></span><span class="symbol">,</span>
-<span class="normal">                         <a href="./../gobject/gobject/gobject-Type-Information.html#G-TYPE-UINT:CAPS">G_TYPE_UINT</a></span><span class="symbol">,</span><span class="normal">   </span><span class="symbol">&amp;</span><span class="normal">result</span><span class="symbol">,</span>
-<span class="normal">                         <a href="./../gobject/gobject/gobject-Type-Information.html#G-TYPE-INVALID:CAPS">G_TYPE_INVALID</a></span><span class="symbol">);</span>
+<span class="normal">                         <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#G-TYPE-STRING:CAPS">G_TYPE_STRING</a></span><span class="symbol">,</span><span class="normal"> NAME_TO_CLAIM</span><span class="symbol">,</span>
+<span class="normal">                         <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#G-TYPE-UINT:CAPS">G_TYPE_UINT</a></span><span class="symbol">,</span><span class="normal">   DBUS_NAME_FLAG_ALLOW_REPLACEMENT</span><span class="symbol">,</span>
+<span class="normal">                         <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#G-TYPE-INVALID:CAPS">G_TYPE_INVALID</a></span><span class="symbol">,</span>
+<span class="normal">                         <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#G-TYPE-UINT:CAPS">G_TYPE_UINT</a></span><span class="symbol">,</span><span class="normal">   </span><span class="symbol">&amp;</span><span class="normal">result</span><span class="symbol">,</span>
+<span class="normal">                         <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#G-TYPE-INVALID:CAPS">G_TYPE_INVALID</a></span><span class="symbol">);</span>
 <span class="keyword">if</span><span class="normal"> </span><span class="symbol">(!</span><span class="normal">res</span><span class="symbol">)</span>
 <span class="normal">  </span><span class="cbracket">{</span>
-<span class="normal">    </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error </span><span class="symbol">!=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
+<span class="normal">    </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error </span><span class="symbol">!=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
 <span class="normal">      </span><span class="cbracket">{</span>
-<span class="normal">        </span><span class="function"><a href="./../glib/glib/glib-Message-Logging.html#g-warning">g_warning</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Failed to acquire %s: %s"</span><span class="symbol">,</span>
+<span class="normal">        </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Message-Logging.html#g-warning">g_warning</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Failed to acquire %s: %s"</span><span class="symbol">,</span>
 <span class="normal">                   NAME_TO_CLAIM</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
-<span class="normal">        </span><span class="function"><a href="./../glib/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="cbracket">}</span>
 <span class="normal">    </span><span class="keyword">else</span>
 <span class="normal">      </span><span class="cbracket">{</span>
-<span class="normal">        </span><span class="function"><a href="./../glib/glib/glib-Message-Logging.html#g-warning">g_warning</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Failed to acquire %s"</span><span class="symbol">,</span><span class="normal"> NAME_TO_CLAIM</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Message-Logging.html#g-warning">g_warning</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Failed to acquire %s"</span><span class="symbol">,</span><span class="normal"> NAME_TO_CLAIM</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="cbracket">}</span>
 <span class="normal">    </span><span class="keyword">goto</span><span class="normal"> out</span><span class="symbol">;</span>
 <span class="normal">  </span><span class="cbracket">}</span>
 
 <span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">result </span><span class="symbol">!=</span><span class="normal"> DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER</span><span class="symbol">)</span>
 <span class="normal">  </span><span class="cbracket">{</span>
-<span class="normal">    </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error </span><span class="symbol">!=</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
+<span class="normal">    </span><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error </span><span class="symbol">!=</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">)</span>
 <span class="normal">      </span><span class="cbracket">{</span>
-<span class="normal">        </span><span class="function"><a href="./../glib/glib/glib-Message-Logging.html#g-warning">g_warning</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Failed to acquire %s: %s"</span><span class="symbol">,</span>
+<span class="normal">        </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Message-Logging.html#g-warning">g_warning</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Failed to acquire %s: %s"</span><span class="symbol">,</span>
 <span class="normal">                   NAME_TO_CLAIM</span><span class="symbol">,</span><span class="normal"> error</span><span class="symbol">-&gt;</span><span class="normal">message</span><span class="symbol">);</span>
-<span class="normal">        </span><span class="function"><a href="./../glib/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Error-Reporting.html#g-error-free">g_error_free</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">error</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="cbracket">}</span>
 <span class="normal">    </span><span class="keyword">else</span>
 <span class="normal">      </span><span class="cbracket">{</span>
-<span class="normal">        </span><span class="function"><a href="./../glib/glib/glib-Message-Logging.html#g-warning">g_warning</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Failed to acquire %s"</span><span class="symbol">,</span><span class="normal"> NAME_TO_CLAIM</span><span class="symbol">);</span>
+<span class="normal">        </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Message-Logging.html#g-warning">g_warning</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"Failed to acquire %s"</span><span class="symbol">,</span><span class="normal"> NAME_TO_CLAIM</span><span class="symbol">);</span>
 <span class="normal">      </span><span class="cbracket">}</span>
 <span class="normal">    </span><span class="function">exit</span><span class="normal"> </span><span class="symbol">(</span><span class="number">1</span><span class="symbol">);</span>
 <span class="normal">  </span><span class="cbracket">}</span>
 
-<span class="function"><a href="/home/mclasen/gnome/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGProxy.html#dbus-g-proxy-add-signal">dbus_g_proxy_add_signal</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">system_bus_proxy</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"NameLost"</span><span class="symbol">,</span>
-<span class="normal">                         <a href="./../gobject/gobject/gobject-Type-Information.html#G-TYPE-STRING:CAPS">G_TYPE_STRING</a></span><span class="symbol">,</span><span class="normal"> <a href="./../gobject/gobject/gobject-Type-Information.html#G-TYPE-INVALID:CAPS">G_TYPE_INVALID</a></span><span class="symbol">);</span>
-<span class="function"><a href="/home/mclasen/gnome/share/gtk-doc/html/dbus-glib/dbus-glib-DBusGProxy.html#dbus-g-proxy-connect-signal">dbus_g_proxy_connect_signal</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">system_bus_proxy</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"NameLost"</span><span class="symbol">,</span>
-<span class="normal">                             </span><span class="function"><a href="./../gobject/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_name_lost</span><span class="symbol">),</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="function">dbus_g_proxy_add_signal</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">system_bus_proxy</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"NameLost"</span><span class="symbol">,</span>
+<span class="normal">                         <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#G-TYPE-STRING:CAPS">G_TYPE_STRING</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/gobject/gobject-Type-Information.html#G-TYPE-INVALID:CAPS">G_TYPE_INVALID</a></span><span class="symbol">);</span>
+<span class="function">dbus_g_proxy_connect_signal</span><span class="normal"> </span><span class="symbol">(</span><span class="normal">system_bus_proxy</span><span class="symbol">,</span><span class="normal"> </span><span class="string">"NameLost"</span><span class="symbol">,</span>
+<span class="normal">                             </span><span class="function"><a href="/usr/share/gtk-doc/html/gobject/gobject-Closures.html#G-CALLBACK:CAPS">G_CALLBACK</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">on_name_lost</span><span class="symbol">),</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 
 <span class="comment">/* further setup ... */</span></pre></td>
       </tr>
@@ -174,10 +174,10 @@
 <span class="normal">                             on_bus_acquired</span><span class="symbol">,</span>
 <span class="normal">                             on_name_acquired</span><span class="symbol">,</span>
 <span class="normal">                             on_name_lost</span><span class="symbol">,</span>
-<span class="normal">                             <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
-<span class="normal">                             <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
+<span class="normal">                             <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
+<span class="normal">                             <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">);</span>
 
-<span class="normal">  </span><span class="function"><a href="./../glib/glib/glib-The-Main-Event-Loop.html#g-main-loop-run">g_main_loop_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
+<span class="normal">  </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-The-Main-Event-Loop.html#g-main-loop-run">g_main_loop_run</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">loop</span><span class="symbol">);</span>
 
 <span class="normal">  </span><span class="function"><a href="gio-Owning-Bus-Names.html#g-bus-unown-name">g_bus_unown_name</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">owner_id</span><span class="symbol">);</span></pre></td>
       </tr>

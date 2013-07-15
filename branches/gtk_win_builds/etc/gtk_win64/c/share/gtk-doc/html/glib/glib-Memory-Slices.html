@@ -73,7 +73,7 @@ memory-waste, scalability and performance problems.
 <p>
 To achieve these goals, the slice allocator uses a sophisticated,
 layered design that has been inspired by Bonwick's slab allocator
-<a href="#ftn.idp6554976" class="footnote"><sup class="footnote"><a name="idp6554976"></a>[1]</sup></a>.
+<a href="#ftn.id-1.4.8.4.3.1" class="footnote"><sup class="footnote"><a name="id-1.4.8.4.3.1"></a>[1]</sup></a>.
 It uses <code class="function">posix_memalign()</code> to optimize allocations of many equally-sized
 chunks, and has per-thread free lists (the so-called magazine layer)
 to quickly satisfy allocation requests of already known structure sizes.
@@ -96,7 +96,7 @@ object size used at allocation time is still available when freeing.
 <p>
 </p>
 <div class="example">
-<a name="idp15991648"></a><p class="title"><b>Example 8. Using the slice allocator</b></p>
+<a name="id-1.4.8.4.5.1"></a><p class="title"><b>Example 8. Using the slice allocator</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -148,7 +148,7 @@ object size used at allocation time is still available when freeing.
 <p>
 </p>
 <div class="example">
-<a name="idp13870448"></a><p class="title"><b>Example 9. Using the slice allocator with data structures</b></p>
+<a name="id-1.4.8.4.6.1"></a><p class="title"><b>Example 9. Using the slice allocator with data structures</b></p>
 <div class="example-contents">
   <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
     <tbody>
@@ -539,7 +539,7 @@ related debugging options.
 </div>
 <div class="footnotes">
 <br><hr style="width:100; align:left;">
-<div id="ftn.idp6554976" class="footnote"><p><a href="#idp6554976" class="para"><sup class="para">[1] </sup></a>
+<div id="ftn.id-1.4.8.4.3.1" class="footnote"><p><a href="#id-1.4.8.4.3.1" class="para"><sup class="para">[1] </sup></a>
 <a class="ulink" href="http://citeseer.ist.psu.edu/bonwick94slab.html" target="_top">[Bonwick94]</a> Jeff Bonwick, The slab allocator: An object-caching kernel
 memory allocator. USENIX 1994, and
 <a class="ulink" href="http://citeseer.ist.psu.edu/bonwick01magazines.html" target="_top">[Bonwick01]</a> Bonwick and Jonathan Adams, Magazines and vmem: Extending the

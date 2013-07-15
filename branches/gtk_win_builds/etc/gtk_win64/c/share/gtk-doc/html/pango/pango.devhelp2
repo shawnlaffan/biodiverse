@@ -19,9 +19,7 @@
       <sub name="FreeType Fonts and Rendering" link="pango-FreeType-Fonts-and-Rendering.html"/>
       <sub name="Xft Fonts and Rendering" link="pango-Xft-Fonts-and-Rendering.html"/>
       <sub name="Cairo Rendering" link="pango-Cairo-Rendering.html"/>
-      <sub name="ATSUI Fonts" link="pango-ATSUI-Fonts.html"/>
       <sub name="CoreText Fonts" link="pango-CoreText-Fonts.html"/>
-      <sub name="Deprecated X font backend" link="pango-X-Fonts-and-Rendering.html"/>
     </sub>
     <sub name="Low Level Functionality" link="lowlevel.html">
       <sub name="PangoRenderer" link="pango-pango-renderer.html"/>
@@ -59,6 +57,7 @@
     <sub name="Index of new symbols in 1.26" link="api-index-1-26.html"/>
     <sub name="Index of new symbols in 1.28" link="api-index-1-28.html"/>
     <sub name="Index of new symbols in 1.30" link="api-index-1-30.html"/>
+    <sub name="Index of new symbols in 1.32" link="api-index-1-32.html"/>
   </chapters>
   <functions>
     <keyword type="struct" name="PangoContext" link="pango-Text-Processing.html#PangoContext-struct"/>
@@ -74,6 +73,8 @@
     <keyword type="function" name="pango_item_split ()" link="pango-Text-Processing.html#pango-item-split"/>
     <keyword type="function" name="pango_reorder_items ()" link="pango-Text-Processing.html#pango-reorder-items"/>
     <keyword type="function" name="pango_context_new ()" link="pango-Text-Processing.html#pango-context-new"/>
+    <keyword type="function" name="pango_context_changed ()" link="pango-Text-Processing.html#pango-context-changed" since="1.32.4"/>
+    <keyword type="function" name="pango_context_get_serial ()" link="pango-Text-Processing.html#pango-context-get-serial" since="1.32.4"/>
     <keyword type="function" name="pango_context_set_font_map ()" link="pango-Text-Processing.html#pango-context-set-font-map"/>
     <keyword type="function" name="pango_context_get_font_map ()" link="pango-Text-Processing.html#pango-context-get-font-map" since="1.6"/>
     <keyword type="function" name="pango_context_get_font_description ()" link="pango-Text-Processing.html#pango-context-get-font-description"/>
@@ -99,6 +100,7 @@
     <keyword type="function" name="pango_default_break ()" link="pango-Text-Processing.html#pango-default-break"/>
     <keyword type="struct" name="PangoLogAttr" link="pango-Text-Processing.html#PangoLogAttr"/>
     <keyword type="function" name="pango_shape ()" link="pango-Text-Processing.html#pango-shape"/>
+    <keyword type="function" name="pango_shape_full ()" link="pango-Text-Processing.html#pango-shape-full" since="1.32"/>
     <keyword type="macro" name="PANGO_SCALE" link="pango-Glyph-Storage.html#PANGO-SCALE:CAPS"/>
     <keyword type="macro" name="PANGO_PIXELS()" link="pango-Glyph-Storage.html#PANGO-PIXELS:CAPS"/>
     <keyword type="macro" name="PANGO_PIXELS_FLOOR()" link="pango-Glyph-Storage.html#PANGO-PIXELS-FLOOR:CAPS" since="1.14"/>
@@ -258,6 +260,7 @@
     <keyword type="function" name="pango_font_map_load_fontset ()" link="pango-Fonts.html#pango-font-map-load-fontset"/>
     <keyword type="function" name="pango_font_map_list_families ()" link="pango-Fonts.html#pango-font-map-list-families"/>
     <keyword type="function" name="pango_font_map_get_shape_engine_type ()" link="pango-Fonts.html#pango-font-map-get-shape-engine-type" since="1.4"/>
+    <keyword type="function" name="pango_font_map_get_serial ()" link="pango-Fonts.html#pango-font-map-get-serial" since="1.32.4"/>
     <keyword type="struct" name="struct PangoFontset" link="pango-Fonts.html#PangoFontset-struct"/>
     <keyword type="macro" name="PANGO_TYPE_FONTSET" link="pango-Fonts.html#PANGO-TYPE-FONTSET:CAPS"/>
     <keyword type="struct" name="struct PangoFontsetClass" link="pango-Fonts.html#PangoFontsetClass"/>
@@ -285,6 +288,8 @@
     <keyword type="struct" name="struct PangoAttrShape" link="pango-Text-Attributes.html#PangoAttrShape"/>
     <keyword type="struct" name="struct PangoAttrSize" link="pango-Text-Attributes.html#PangoAttrSize"/>
     <keyword type="function" name="pango_parse_markup ()" link="pango-Text-Attributes.html#pango-parse-markup"/>
+    <keyword type="function" name="pango_markup_parser_new ()" link="pango-Text-Attributes.html#pango-markup-parser-new" since="1.31.0"/>
+    <keyword type="function" name="pango_markup_parser_finish ()" link="pango-Text-Attributes.html#pango-markup-parser-finish" since="1.31.0"/>
     <keyword type="function" name="pango_attr_type_register ()" link="pango-Text-Attributes.html#pango-attr-type-register"/>
     <keyword type="function" name="pango_attr_type_get_name ()" link="pango-Text-Attributes.html#pango-attr-type-get-name" since="1.22"/>
     <keyword type="function" name="pango_attribute_init ()" link="pango-Text-Attributes.html#pango-attribute-init" since="1.20"/>
@@ -371,6 +376,7 @@
     <keyword type="function" name="pango_layout_copy ()" link="pango-Layout-Objects.html#pango-layout-copy"/>
     <keyword type="function" name="pango_layout_get_context ()" link="pango-Layout-Objects.html#pango-layout-get-context"/>
     <keyword type="function" name="pango_layout_context_changed ()" link="pango-Layout-Objects.html#pango-layout-context-changed"/>
+    <keyword type="function" name="pango_layout_get_serial ()" link="pango-Layout-Objects.html#pango-layout-get-serial" since="1.32.4"/>
     <keyword type="function" name="pango_layout_set_text ()" link="pango-Layout-Objects.html#pango-layout-set-text"/>
     <keyword type="function" name="pango_layout_get_text ()" link="pango-Layout-Objects.html#pango-layout-get-text"/>
     <keyword type="function" name="pango_layout_get_character_count ()" link="pango-Layout-Objects.html#pango-layout-get-character-count" since="1.30"/>
@@ -484,6 +490,7 @@
     <keyword type="function" name="pango_bidi_type_for_unichar ()" link="pango-Bidirectional-Text.html#pango-bidi-type-for-unichar" since="1.22"/>
     <keyword type="enum" name="enum PangoGravity" link="pango-Vertical-Text.html#PangoGravity-enum"/>
     <keyword type="enum" name="enum PangoGravityHint" link="pango-Vertical-Text.html#PangoGravityHint-enum"/>
+    <keyword type="macro" name="PANGO_GRAVITY_IS_IMPROPER()" link="pango-Vertical-Text.html#PANGO-GRAVITY-IS-IMPROPER:CAPS" since="1.32"/>
     <keyword type="macro" name="PANGO_GRAVITY_IS_VERTICAL()" link="pango-Vertical-Text.html#PANGO-GRAVITY-IS-VERTICAL:CAPS" since="1.16"/>
     <keyword type="function" name="pango_gravity_get_for_matrix ()" link="pango-Vertical-Text.html#pango-gravity-get-for-matrix" since="1.16"/>
     <keyword type="function" name="pango_gravity_get_for_script ()" link="pango-Vertical-Text.html#pango-gravity-get-for-script" since="1.16"/>
@@ -595,40 +602,8 @@
     <keyword type="function" name="pango_cairo_layout_line_path ()" link="pango-Cairo-Rendering.html#pango-cairo-layout-line-path" since="1.10"/>
     <keyword type="function" name="pango_cairo_layout_path ()" link="pango-Cairo-Rendering.html#pango-cairo-layout-path" since="1.10"/>
     <keyword type="function" name="pango_cairo_error_underline_path ()" link="pango-Cairo-Rendering.html#pango-cairo-error-underline-path" since="1.14"/>
-    <keyword type="macro" name="PANGO_RENDER_TYPE_ATSUI" link="pango-ATSUI-Fonts.html#PANGO-RENDER-TYPE-ATSUI:CAPS"/>
-    <keyword type="function" name="pango_atsui_font_get_cgfont ()" link="pango-ATSUI-Fonts.html#pango-atsui-font-get-cgfont" since="1.18"/>
-    <keyword type="function" name="pango_atsui_font_get_atsfont ()" link="pango-ATSUI-Fonts.html#pango-atsui-font-get-atsfont" since="1.28"/>
     <keyword type="macro" name="PANGO_RENDER_TYPE_CORE_TEXT" link="pango-CoreText-Fonts.html#PANGO-RENDER-TYPE-CORE-TEXT:CAPS"/>
     <keyword type="function" name="pango_core_text_font_get_ctfont ()" link="pango-CoreText-Fonts.html#pango-core-text-font-get-ctfont" since="1.24"/>
-    <keyword type="macro" name="PANGO_RENDER_TYPE_X" link="pango-X-Fonts-and-Rendering.html#PANGO-RENDER-TYPE-X:CAPS" deprecated=""/>
-    <keyword type="function" name="pango_x_get_context ()" link="pango-X-Fonts-and-Rendering.html#pango-x-get-context" deprecated=""/>
-    <keyword type="function" name="pango_x_context_set_funcs ()" link="pango-X-Fonts-and-Rendering.html#pango-x-context-set-funcs" deprecated=""/>
-    <keyword type="function" name="PangoGetGCFunc ()" link="pango-X-Fonts-and-Rendering.html#PangoGetGCFunc" deprecated=""/>
-    <keyword type="function" name="PangoFreeGCFunc ()" link="pango-X-Fonts-and-Rendering.html#PangoFreeGCFunc" deprecated=""/>
-    <keyword type="function" name="pango_x_render ()" link="pango-X-Fonts-and-Rendering.html#pango-x-render" deprecated=""/>
-    <keyword type="function" name="pango_x_render_layout_line ()" link="pango-X-Fonts-and-Rendering.html#pango-x-render-layout-line" deprecated=""/>
-    <keyword type="function" name="pango_x_render_layout ()" link="pango-X-Fonts-and-Rendering.html#pango-x-render-layout" deprecated=""/>
-    <keyword type="typedef" name="PangoXSubfont" link="pango-X-Fonts-and-Rendering.html#PangoXSubfont" deprecated=""/>
-    <keyword type="macro" name="PANGO_X_MAKE_GLYPH()" link="pango-X-Fonts-and-Rendering.html#PANGO-X-MAKE-GLYPH:CAPS" deprecated=""/>
-    <keyword type="macro" name="PANGO_X_GLYPH_SUBFONT()" link="pango-X-Fonts-and-Rendering.html#PANGO-X-GLYPH-SUBFONT:CAPS" deprecated=""/>
-    <keyword type="macro" name="PANGO_X_GLYPH_INDEX()" link="pango-X-Fonts-and-Rendering.html#PANGO-X-GLYPH-INDEX:CAPS" deprecated=""/>
-    <keyword type="function" name="pango_x_load_font ()" link="pango-X-Fonts-and-Rendering.html#pango-x-load-font" deprecated=""/>
-    <keyword type="function" name="pango_x_get_unknown_glyph ()" link="pango-X-Fonts-and-Rendering.html#pango-x-get-unknown-glyph" deprecated=""/>
-    <keyword type="function" name="pango_x_has_glyph ()" link="pango-X-Fonts-and-Rendering.html#pango-x-has-glyph" deprecated=""/>
-    <keyword type="function" name="pango_x_list_subfonts ()" link="pango-X-Fonts-and-Rendering.html#pango-x-list-subfonts" deprecated=""/>
-    <keyword type="function" name="pango_x_font_map_for_display ()" link="pango-X-Fonts-and-Rendering.html#pango-x-font-map-for-display" deprecated=""/>
-    <keyword type="function" name="pango_x_shutdown_display ()" link="pango-X-Fonts-and-Rendering.html#pango-x-shutdown-display" deprecated=""/>
-    <keyword type="function" name="pango_x_font_map_get_font_cache ()" link="pango-X-Fonts-and-Rendering.html#pango-x-font-map-get-font-cache" deprecated=""/>
-    <keyword type="function" name="pango_x_font_subfont_xlfd ()" link="pango-X-Fonts-and-Rendering.html#pango-x-font-subfont-xlfd" deprecated=""/>
-    <keyword type="function" name="pango_x_find_first_subfont ()" link="pango-X-Fonts-and-Rendering.html#pango-x-find-first-subfont" deprecated=""/>
-    <keyword type="function" name="pango_x_font_get_unknown_glyph ()" link="pango-X-Fonts-and-Rendering.html#pango-x-font-get-unknown-glyph" deprecated=""/>
-    <keyword type="function" name="pango_x_apply_ligatures ()" link="pango-X-Fonts-and-Rendering.html#pango-x-apply-ligatures" deprecated=""/>
-    <keyword type="function" name="pango_x_fallback_shape ()" link="pango-X-Fonts-and-Rendering.html#pango-x-fallback-shape" deprecated=""/>
-    <keyword type="struct" name="PangoXFontCache" link="pango-X-Fonts-and-Rendering.html#PangoXFontCache" deprecated=""/>
-    <keyword type="function" name="pango_x_font_cache_new ()" link="pango-X-Fonts-and-Rendering.html#pango-x-font-cache-new" deprecated=""/>
-    <keyword type="function" name="pango_x_font_cache_free ()" link="pango-X-Fonts-and-Rendering.html#pango-x-font-cache-free" deprecated=""/>
-    <keyword type="function" name="pango_x_font_cache_load ()" link="pango-X-Fonts-and-Rendering.html#pango-x-font-cache-load" deprecated=""/>
-    <keyword type="function" name="pango_x_font_cache_unload ()" link="pango-X-Fonts-and-Rendering.html#pango-x-font-cache-unload" deprecated=""/>
     <keyword type="struct" name="struct PangoRenderer" link="pango-pango-renderer.html#PangoRenderer-struct"/>
     <keyword type="enum" name="enum PangoRenderPart" link="pango-pango-renderer.html#PangoRenderPart-enum"/>
     <keyword type="macro" name="PANGO_TYPE_RENDER_PART" link="pango-pango-renderer.html#PANGO-TYPE-RENDER-PART:CAPS"/>
@@ -659,6 +634,7 @@
     <keyword type="function" name="pango_fc_font_map_cache_clear ()" link="PangoFcFontMap.html#pango-fc-font-map-cache-clear" since="1.4"/>
     <keyword type="function" name="pango_fc_font_map_shutdown ()" link="PangoFcFontMap.html#pango-fc-font-map-shutdown" since="1.4"/>
     <keyword type="function" name="pango_fc_font_description_from_pattern ()" link="PangoFcFontMap.html#pango-fc-font-description-from-pattern" since="1.4"/>
+    <keyword type="macro" name="PANGO_FC_FONT_FEATURES" link="PangoFcFontMap.html#PANGO-FC-FONT-FEATURES:CAPS" since="1.34"/>
     <keyword type="macro" name="PANGO_FC_GRAVITY" link="PangoFcFontMap.html#PANGO-FC-GRAVITY:CAPS" since="1.20"/>
     <keyword type="macro" name="PANGO_FC_VERSION" link="PangoFcFontMap.html#PANGO-FC-VERSION:CAPS" since="1.20"/>
     <keyword type="macro" name="PANGO_FC_PRGNAME" link="PangoFcFontMap.html#PANGO-FC-PRGNAME:CAPS" since="1.24"/>
@@ -681,7 +657,7 @@
     <keyword type="function" name="pango_fc_font_has_char ()" link="PangoFcFont.html#pango-fc-font-has-char" since="1.4"/>
     <keyword type="function" name="pango_fc_font_get_glyph ()" link="PangoFcFont.html#pango-fc-font-get-glyph" since="1.4"/>
     <keyword type="function" name="pango_fc_font_get_unknown_glyph ()" link="PangoFcFont.html#pango-fc-font-get-unknown-glyph" deprecated="" since="1.4"/>
-    <keyword type="function" name="pango_fc_font_kern_glyphs ()" link="PangoFcFont.html#pango-fc-font-kern-glyphs" since="1.4"/>
+    <keyword type="function" name="pango_fc_font_kern_glyphs ()" link="PangoFcFont.html#pango-fc-font-kern-glyphs" deprecated="1.32" since="1.4"/>
     <keyword type="property" name="The &quot;fontmap&quot; property" link="PangoFcFont.html#PangoFcFont--fontmap"/>
     <keyword type="property" name="The &quot;pattern&quot; property" link="PangoFcFont.html#PangoFcFont--pattern"/>
     <keyword type="struct" name="struct PangoFcDecoder" link="PangoFcDecoder.html#PangoFcDecoder-struct"/>
@@ -781,7 +757,8 @@
     <keyword type="function" name="pango_scan_string ()" link="pango-Miscellaneous-Utilities.html#pango-scan-string"/>
     <keyword type="function" name="pango_scan_int ()" link="pango-Miscellaneous-Utilities.html#pango-scan-int"/>
     <keyword type="function" name="pango_config_key_get ()" link="pango-Miscellaneous-Utilities.html#pango-config-key-get"/>
-    <keyword type="function" name="pango_lookup_aliases ()" link="pango-Miscellaneous-Utilities.html#pango-lookup-aliases"/>
+    <keyword type="function" name="pango_config_key_get_system ()" link="pango-Miscellaneous-Utilities.html#pango-config-key-get-system"/>
+    <keyword type="function" name="pango_lookup_aliases ()" link="pango-Miscellaneous-Utilities.html#pango-lookup-aliases" deprecated="1.32: This function is not thread-safe."/>
     <keyword type="function" name="pango_parse_enum ()" link="pango-Miscellaneous-Utilities.html#pango-parse-enum" since="1.16"/>
     <keyword type="function" name="pango_parse_style ()" link="pango-Miscellaneous-Utilities.html#pango-parse-style"/>
     <keyword type="function" name="pango_parse_variant ()" link="pango-Miscellaneous-Utilities.html#pango-parse-variant"/>
@@ -952,6 +929,16 @@
     <keyword type="constant" name="PANGO_SCRIPT_CARIAN" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-CARIAN:CAPS"/>
     <keyword type="constant" name="PANGO_SCRIPT_LYCIAN" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-LYCIAN:CAPS"/>
     <keyword type="constant" name="PANGO_SCRIPT_LYDIAN" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-LYDIAN:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_BATAK" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-BATAK:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_BRAHMI" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-BRAHMI:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_MANDAIC" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-MANDAIC:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_CHAKMA" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-CHAKMA:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_MEROITIC_CURSIVE" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-MEROITIC-CURSIVE:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_MEROITIC_HIEROGLYPHS" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-MEROITIC-HIEROGLYPHS:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_MIAO" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-MIAO:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_SHARADA" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-SHARADA:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_SORA_SOMPENG" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-SORA-SOMPENG:CAPS"/>
+    <keyword type="constant" name="PANGO_SCRIPT_TAKRI" link="pango-Scripts-and-Languages.html#PANGO-SCRIPT-TAKRI:CAPS"/>
     <keyword type="constant" name="PANGO_DIRECTION_LTR" link="pango-Bidirectional-Text.html#PANGO-DIRECTION-LTR:CAPS"/>
     <keyword type="constant" name="PANGO_DIRECTION_RTL" link="pango-Bidirectional-Text.html#PANGO-DIRECTION-RTL:CAPS"/>
     <keyword type="constant" name="PANGO_DIRECTION_TTB_LTR" link="pango-Bidirectional-Text.html#PANGO-DIRECTION-TTB-LTR:CAPS"/>

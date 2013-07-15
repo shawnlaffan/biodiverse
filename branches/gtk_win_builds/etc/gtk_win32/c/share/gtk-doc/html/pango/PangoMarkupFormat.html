@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Text Attribute Markup</title>
-<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
 <link rel="home" href="index.html" title="Pango Reference Manual">
 <link rel="up" href="pango.html" title="Basic Pango Interfaces">
 <link rel="prev" href="pango-Tab-Stops.html" title="Tab Stops">
@@ -46,8 +46,9 @@ position.
 The solution is to include the text attributes in the string to be
 translated. Pango provides this feature with a small markup language.
 You can parse a marked-up string into the string text plus a
-<a class="link" href="pango-Text-Attributes.html#PangoAttrList">PangoAttrList</a> using the function
-<a class="link" href="pango-Text-Attributes.html#pango-parse-markup" title="pango_parse_markup ()">pango_parse_markup()</a>.
+<a class="link" href="pango-Text-Attributes.html#PangoAttrList">PangoAttrList</a> using either of
+<a class="link" href="pango-Text-Attributes.html#pango-parse-markup" title="pango_parse_markup ()">pango_parse_markup()</a> or
+<a class="link" href="pango-Text-Attributes.html#pango-markup-parser-new" title="pango_markup_parser_new ()">pango_markup_parser_new()</a>.
 </p>
 <p>
 A simple example of a marked-up string might be:
@@ -66,11 +67,14 @@ tags. &lt;span&gt; has the following attributes:
 </p>
 <div class="variablelist">
 <p class="title"><b>&lt;span&gt; attributes</b></p>
-<table border="0">
+<table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
-<td><p><span class="term">font<sup>[<a name="since_1_21" href="#ftn.since_1_21" class="footnote">1</a>]</sup>, </span><span class="term">font_desc</span></p></td>
+<td><p><span class="term">font<a href="#ftn.since_1_21" class="footnote" name="since_1_21"><sup class="footnote">[1]</sup></a>, </span><span class="term">font_desc</span></p></td>
 <td><p>
 A font description string, such as "Sans Italic 12". See
 <a class="link" href="pango-Fonts.html#pango-font-description-from-string" title="pango_font_description_from_string ()">pango_font_description_from_string()</a>
@@ -86,7 +90,7 @@ A font family name
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">font_size<sup>[<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref">1</a>]</sup>, </span><span class="term">size</span></p></td>
+<td><p><span class="term">font_size<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref"><sup class="footnoteref">[1]</sup></a>, </span><span class="term">size</span></p></td>
 <td><p>
 Font size in 1024ths of a point, or one of the absolute sizes 
 'xx-small', 'x-small', 'small', 'medium', 'large', 'x-large',
@@ -99,26 +103,26 @@ font description using 'font'; you can use
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">font_style<sup>[<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref">1</a>]</sup>, </span><span class="term">style</span></p></td>
+<td><p><span class="term">font_style<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref"><sup class="footnoteref">[1]</sup></a>, </span><span class="term">style</span></p></td>
 <td><p>
 One of 'normal', 'oblique', 'italic'
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">font_weight<sup>[<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref">1</a>]</sup>, </span><span class="term">weight</span></p></td>
+<td><p><span class="term">font_weight<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref"><sup class="footnoteref">[1]</sup></a>, </span><span class="term">weight</span></p></td>
 <td><p>
 One of 'ultralight', 'light', 'normal', 'bold', 'ultrabold', 'heavy',
 or a numeric weight
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">font_variant<sup>[<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref">1</a>]</sup>, </span><span class="term">variant</span></p></td>
+<td><p><span class="term">font_variant<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref"><sup class="footnoteref">[1]</sup></a>, </span><span class="term">variant</span></p></td>
 <td><p>
 One of 'normal' or 'smallcaps'
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">font_stretch<sup>[<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref">1</a>]</sup>, </span><span class="term">stretch</span></p></td>
+<td><p><span class="term">font_stretch<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref"><sup class="footnoteref">[1]</sup></a>, </span><span class="term">stretch</span></p></td>
 <td><p>
 One of 'ultracondensed', 'extracondensed', 'condensed',
 'semicondensed', 'normal', 'semiexpanded', 'expanded',
@@ -126,14 +130,14 @@ One of 'ultracondensed', 'extracondensed', 'condensed',
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">foreground, </span><span class="term">fgcolor<sup>[<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref">1</a>]</sup>, </span><span class="term">color</span></p></td>
+<td><p><span class="term">foreground, </span><span class="term">fgcolor<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref"><sup class="footnoteref">[1]</sup></a>, </span><span class="term">color</span></p></td>
 <td><p>
 An RGB color specification such as '#00FF00' or a color name such as 
 'red'
 </p></td>
 </tr>
 <tr>
-<td><p><span class="term">background, </span><span class="term">bgcolor<sup>[<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref">1</a>]</sup></span></p></td>
+<td><p><span class="term">background, </span><span class="term">bgcolor<a href="PangoMarkupFormat.html#ftn.since_1_21" class="footnoteref"><sup class="footnoteref">[1]</sup></a></span></p></td>
 <td><p>
 An RGB color specification such as '#00FF00' or a color name such as 
 'red'
@@ -155,7 +159,7 @@ or a color name such as 'red'
 <tr>
 <td><p><span class="term">rise</span></p></td>
 <td><p>
-Vertical displacement, in 10000ths of an em. Can be negative for 
+Vertical displacement, in Pango units. Can be negative for 
 subscript, positive for superscript.
 </p></td>
 </tr>
@@ -218,8 +222,11 @@ The following convenience tags are provided:
 </p>
 <div class="variablelist">
 <p class="title"><b>Convenience tags</b></p>
-<table border="0">
+<table border="0" class="variablelist">
+<colgroup>
 <col align="left" valign="top">
+<col>
+</colgroup>
 <tbody>
 <tr>
 <td><p><span class="term">b</span></p></td>
@@ -283,8 +290,8 @@ Underline
 </p>
 </div>
 <div class="footnotes">
-<br><hr width="100" align="left">
-<div class="footnote"><p><sup>[<a id="ftn.since_1_21" href="#since_1_21" class="para">1</a>] </sup>Since 1.21</p></div>
+<br><hr style="width:100; text-align:left;margin-left: 0">
+<div id="ftn.since_1_21" class="footnote"><p><a href="#since_1_21" class="para"><sup class="para">[1] </sup></a>Since 1.21</p></div>
 </div>
 </div>
 <div class="footer">

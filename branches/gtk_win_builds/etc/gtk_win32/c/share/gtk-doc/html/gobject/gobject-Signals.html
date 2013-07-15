@@ -42,76 +42,76 @@
 #include &lt;glib-object.h&gt;
 
 struct              <a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint">GSignalInvocationHint</a>;
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (<a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()">*GSignalAccumulator</a>)               (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (<a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()">*GSignalAccumulator</a>)               (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_accu</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *handler_return</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 typedef             <a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller">GSignalCMarshaller</a>;
 typedef             <a class="link" href="gobject-Signals.html#GSignalCVaMarshaller" title="GSignalCVaMarshaller">GSignalCVaMarshaller</a>;
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (<a class="link" href="gobject-Signals.html#GSignalEmissionHook" title="GSignalEmissionHook ()">*GSignalEmissionHook</a>)              (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_param_values</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (<a class="link" href="gobject-Signals.html#GSignalEmissionHook" title="GSignalEmissionHook ()">*GSignalEmissionHook</a>)              (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_param_values</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *param_values</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
 enum                <a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags">GSignalFlags</a>;
 enum                <a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType">GSignalMatchType</a>;
 struct              <a class="link" href="gobject-Signals.html#GSignalQuery" title="struct GSignalQuery">GSignalQuery</a>;
 #define             <a class="link" href="gobject-Signals.html#G-SIGNAL-TYPE-STATIC-SCOPE:CAPS" title="G_SIGNAL_TYPE_STATIC_SCOPE">G_SIGNAL_TYPE_STATIC_SCOPE</a>
 #define             <a class="link" href="gobject-Signals.html#G-SIGNAL-MATCH-MASK:CAPS" title="G_SIGNAL_MATCH_MASK">G_SIGNAL_MATCH_MASK</a>
 #define             <a class="link" href="gobject-Signals.html#G-SIGNAL-FLAGS-MASK:CAPS" title="G_SIGNAL_FLAGS_MASK">G_SIGNAL_FLAGS_MASK</a>
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-new" title="g_signal_new ()">g_signal_new</a>                        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-new" title="g_signal_new ()">g_signal_new</a>                        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags"><span class="type">GSignalFlags</span></a> signal_flags</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> class_offset</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> class_offset</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> accumulator</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller"><span class="type">GSignalCMarshaller</span></a> c_marshaller</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> return_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-newv" title="g_signal_newv ()">g_signal_newv</a>                       (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-newv" title="g_signal_newv ()">g_signal_newv</a>                       (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags"><span class="type">GSignalFlags</span></a> signal_flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *class_closure</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> accumulator</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller"><span class="type">GSignalCMarshaller</span></a> c_marshaller</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> return_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> *param_types</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-new-valist" title="g_signal_new_valist ()">g_signal_new_valist</a>                 (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-new-valist" title="g_signal_new_valist ()">g_signal_new_valist</a>                 (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags"><span class="type">GSignalFlags</span></a> signal_flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *class_closure</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> accumulator</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller"><span class="type">GSignalCMarshaller</span></a> c_marshaller</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> return_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> args</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-set-va-marshaller" title="g_signal_set_va_marshaller ()">g_signal_set_va_marshaller</a>          (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-set-va-marshaller" title="g_signal_set_va_marshaller ()">g_signal_set_va_marshaller</a>          (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> instance_type</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCVaMarshaller" title="GSignalCVaMarshaller"><span class="type">GSignalCVaMarshaller</span></a> va_marshaller</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-query" title="g_signal_query ()">g_signal_query</a>                      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-query" title="g_signal_query ()">g_signal_query</a>                      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalQuery" title="struct GSignalQuery"><span class="type">GSignalQuery</span></a> *query</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-lookup" title="g_signal_lookup ()">g_signal_lookup</a>                     (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-lookup" title="g_signal_lookup ()">g_signal_lookup</a>                     (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>);
-const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="gobject-Signals.html#g-signal-name" title="g_signal_name ()">g_signal_name</a>                       (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a> *             <a class="link" href="gobject-Signals.html#g-signal-list-ids" title="g_signal_list_ids ()">g_signal_list_ids</a>                   (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_ids</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-emit" title="g_signal_emit ()">g_signal_emit</a>                       (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       <a class="link" href="gobject-Signals.html#g-signal-name" title="g_signal_name ()">g_signal_name</a>                       (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a> *             <a class="link" href="gobject-Signals.html#g-signal-list-ids" title="g_signal_list_ids ()">g_signal_list_ids</a>                   (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_ids</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-emit" title="g_signal_emit ()">g_signal_emit</a>                       (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-emit-by-name" title="g_signal_emit_by_name ()">g_signal_emit_by_name</a>               (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-emit-by-name" title="g_signal_emit_by_name ()">g_signal_emit_by_name</a>               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-emitv" title="g_signal_emitv ()">g_signal_emitv</a>                      (<em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *instance_and_params</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_value</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-emit-valist" title="g_signal_emit_valist ()">g_signal_emit_valist</a>                (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-emit-valist" title="g_signal_emit_valist ()">g_signal_emit_valist</a>                (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);
 #define             <a class="link" href="gobject-Signals.html#g-signal-connect" title="g_signal_connect()">g_signal_connect</a>                    (instance,
                                                          detailed_signal,
@@ -125,64 +125,64 @@ const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnva
                                                          detailed_signal,
                                                          c_handler,
                                                          data)
-<a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-connect-object" title="g_signal_connect_object ()">g_signal_connect_object</a>             (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-connect-object" title="g_signal_connect_object ()">g_signal_connect_object</a>             (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> c_handler</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> gobject</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> gobject</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GConnectFlags" title="enum GConnectFlags"><span class="type">GConnectFlags</span></a> connect_flags</code></em>);
 enum                <a class="link" href="gobject-Signals.html#GConnectFlags" title="enum GConnectFlags">GConnectFlags</a>;
-<a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-connect-data" title="g_signal_connect_data ()">g_signal_connect_data</a>               (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-connect-data" title="g_signal_connect_data ()">g_signal_connect_data</a>               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> c_handler</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosureNotify" title="GClosureNotify ()"><span class="type">GClosureNotify</span></a> destroy_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GConnectFlags" title="enum GConnectFlags"><span class="type">GConnectFlags</span></a> connect_flags</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-connect-closure" title="g_signal_connect_closure ()">g_signal_connect_closure</a>            (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-connect-closure" title="g_signal_connect_closure ()">g_signal_connect_closure</a>            (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> after</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-connect-closure-by-id" title="g_signal_connect_closure_by_id ()">g_signal_connect_closure_by_id</a>      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> after</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-connect-closure-by-id" title="g_signal_connect_closure_by_id ()">g_signal_connect_closure_by_id</a>      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> after</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-handler-block" title="g_signal_handler_block ()">g_signal_handler_block</a>              (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-handler-unblock" title="g_signal_handler_unblock ()">g_signal_handler_unblock</a>            (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-handler-disconnect" title="g_signal_handler_disconnect ()">g_signal_handler_disconnect</a>         (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-handler-find" title="g_signal_handler_find ()">g_signal_handler_find</a>               (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> after</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-handler-block" title="g_signal_handler_block ()">g_signal_handler_block</a>              (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-handler-unblock" title="g_signal_handler_unblock ()">g_signal_handler_unblock</a>            (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-handler-disconnect" title="g_signal_handler_disconnect ()">g_signal_handler_disconnect</a>         (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-handler-find" title="g_signal_handler_find ()">g_signal_handler_find</a>               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a> mask</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-handlers-block-matched" title="g_signal_handlers_block_matched ()">g_signal_handlers_block_matched</a>     (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-handlers-block-matched" title="g_signal_handlers_block_matched ()">g_signal_handlers_block_matched</a>     (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a> mask</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-handlers-unblock-matched" title="g_signal_handlers_unblock_matched ()">g_signal_handlers_unblock_matched</a>   (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-handlers-unblock-matched" title="g_signal_handlers_unblock_matched ()">g_signal_handlers_unblock_matched</a>   (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a> mask</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-handlers-disconnect-matched" title="g_signal_handlers_disconnect_matched ()">g_signal_handlers_disconnect_matched</a>
-                                                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-handlers-disconnect-matched" title="g_signal_handlers_disconnect_matched ()">g_signal_handlers_disconnect_matched</a>
+                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a> mask</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-handler-is-connected" title="g_signal_handler_is_connected ()">g_signal_handler_is_connected</a>       (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-handler-is-connected" title="g_signal_handler_is_connected ()">g_signal_handler_is_connected</a>       (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);
 #define             <a class="link" href="gobject-Signals.html#g-signal-handlers-block-by-func" title="g_signal_handlers_block_by_func()">g_signal_handlers_block_by_func</a>     (instance,
                                                          func,
                                                          data)
@@ -194,59 +194,59 @@ enum                <a class="link" href="gobject-Signals.html#GConnectFlags" ti
                                                          data)
 #define             <a class="link" href="gobject-Signals.html#g-signal-handlers-disconnect-by-data" title="g_signal_handlers_disconnect_by_data()">g_signal_handlers_disconnect_by_data</a>(instance,
                                                          data)
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-has-handler-pending" title="g_signal_has_handler_pending ()">g_signal_has_handler_pending</a>        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> may_be_blocked</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-stop-emission" title="g_signal_stop_emission ()">g_signal_stop_emission</a>              (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-stop-emission-by-name" title="g_signal_stop_emission_by_name ()">g_signal_stop_emission_by_name</a>      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-override-class-closure" title="g_signal_override_class_closure ()">g_signal_override_class_closure</a>     (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-has-handler-pending" title="g_signal_has_handler_pending ()">g_signal_has_handler_pending</a>        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> may_be_blocked</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-stop-emission" title="g_signal_stop_emission ()">g_signal_stop_emission</a>              (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-stop-emission-by-name" title="g_signal_stop_emission_by_name ()">g_signal_stop_emission_by_name</a>      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-override-class-closure" title="g_signal_override_class_closure ()">g_signal_override_class_closure</a>     (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> instance_type</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *class_closure</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-chain-from-overridden" title="g_signal_chain_from_overridden ()">g_signal_chain_from_overridden</a>      (<em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *instance_and_params</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_value</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-new-class-handler" title="g_signal_new_class_handler ()">g_signal_new_class_handler</a>          (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               <a class="link" href="gobject-Signals.html#g-signal-new-class-handler" title="g_signal_new_class_handler ()">g_signal_new_class_handler</a>          (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags"><span class="type">GSignalFlags</span></a> signal_flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> class_handler</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> accumulator</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller"><span class="type">GSignalCMarshaller</span></a> c_marshaller</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> return_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-override-class-handler" title="g_signal_override_class_handler ()">g_signal_override_class_handler</a>     (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-override-class-handler" title="g_signal_override_class_handler ()">g_signal_override_class_handler</a>     (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> instance_type</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> class_handler</code></em>);
 <span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-chain-from-overridden-handler" title="g_signal_chain_from_overridden_handler ()">g_signal_chain_from_overridden_handler</a>
-                                                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code>...</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-add-emission-hook" title="g_signal_add_emission_hook ()">g_signal_add_emission_hook</a>          (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              <a class="link" href="gobject-Signals.html#g-signal-add-emission-hook" title="g_signal_add_emission_hook ()">g_signal_add_emission_hook</a>          (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalEmissionHook" title="GSignalEmissionHook ()"><span class="type">GSignalEmissionHook</span></a> hook_func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> hook_data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> data_destroy</code></em>);
-<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-remove-emission-hook" title="g_signal_remove_emission_hook ()">g_signal_remove_emission_hook</a>       (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> hook_id</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-parse-name" title="g_signal_parse_name ()">g_signal_parse_name</a>                 (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> hook_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> data_destroy</code></em>);
+<span class="returnvalue">void</span>                <a class="link" href="gobject-Signals.html#g-signal-remove-emission-hook" title="g_signal_remove_emission_hook ()">g_signal_remove_emission_hook</a>       (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> hook_id</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-parse-name" title="g_signal_parse_name ()">g_signal_parse_name</a>                 (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *signal_id_p</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> *detail_p</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_detail_quark</code></em>);
-<a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="returnvalue">GSignalInvocationHint</span></a> * <a class="link" href="gobject-Signals.html#g-signal-get-invocation-hint" title="g_signal_get_invocation_hint ()">g_signal_get_invocation_hint</a>    (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *signal_id_p</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> *detail_p</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_detail_quark</code></em>);
+<a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="returnvalue">GSignalInvocationHint</span></a> * <a class="link" href="gobject-Signals.html#g-signal-get-invocation-hint" title="g_signal_get_invocation_hint ()">g_signal_get_invocation_hint</a>    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>);
 <a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="returnvalue">GClosure</span></a> *          <a class="link" href="gobject-Signals.html#g-signal-type-cclosure-new" title="g_signal_type_cclosure_new ()">g_signal_type_cclosure_new</a>          (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> struct_offset</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-accumulator-first-wins" title="g_signal_accumulator_first_wins ()">g_signal_accumulator_first_wins</a>     (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> struct_offset</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-accumulator-first-wins" title="g_signal_accumulator_first_wins ()">g_signal_accumulator_first_wins</a>     (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_accu</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *handler_return</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dummy</code></em>);
-<a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-accumulator-true-handled" title="g_signal_accumulator_true_handled ()">g_signal_accumulator_true_handled</a>   (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dummy</code></em>);
+<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            <a class="link" href="gobject-Signals.html#g-signal-accumulator-true-handled" title="g_signal_accumulator_true_handled ()">g_signal_accumulator_true_handled</a>   (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_accu</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *handler_return</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dummy</code></em>);
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dummy</code></em>);
 </pre>
 </div>
 <div class="refsect1">
@@ -260,7 +260,7 @@ basically they are a per-type facility that is inherited.  A signal
 emission mainly involves invocation of a certain set of callbacks
 in precisely defined manner. There are two main categories of such
 callbacks, per-object 
-<a href="#ftn.idp21478384" class="footnote"><sup class="footnote"><a name="idp21478384"></a>[10]</sup></a>
+<a href="#ftn.id-1.4.12.4.2.2" class="footnote"><sup class="footnote"><a name="id-1.4.12.4.2.2"></a>[10]</sup></a>
 ones and user provided ones.
 The per-object callbacks are most often referred to as "object method
 handler" or "default (signal) handler", while user provided callbacks are
@@ -288,7 +288,7 @@ A signal emission consists of five stages, unless prematurely stopped:
 <tr>
 <td><p><span class="term"></span></p></td>
 <td><p>
-	2 - Invocation of normal user-provided signal handlers (<span class="emphasis"><em>after</em></span> flag <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>)
+	2 - Invocation of normal user-provided signal handlers (<span class="emphasis"><em>after</em></span> flag <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>)
 </p></td>
 </tr>
 <tr>
@@ -300,7 +300,7 @@ A signal emission consists of five stages, unless prematurely stopped:
 <tr>
 <td><p><span class="term"></span></p></td>
 <td><p>
-	4 - Invocation of user provided signal handlers, connected with an <span class="emphasis"><em>after</em></span> flag of <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>
+	4 - Invocation of user provided signal handlers, connected with an <span class="emphasis"><em>after</em></span> flag of <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a>
 </p></td>
 </tr>
 <tr>
@@ -352,11 +352,11 @@ to callbacks during a signal emission.
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> <em class="structfield"><code><a name="GSignalInvocationHint.signal-id"></a>signal_id</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> <em class="structfield"><code><a name="GSignalInvocationHint.signal-id"></a>signal_id</code></em>;</span></p></td>
 <td>The signal id of the signal invoking the callback</td>
 </tr>
 <tr>
-<td><p><span class="term"><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> <em class="structfield"><code><a name="GSignalInvocationHint.detail"></a>detail</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> <em class="structfield"><code><a name="GSignalInvocationHint.detail"></a>detail</code></em>;</span></p></td>
 <td>The detail passed on for this emission</td>
 </tr>
 <tr>
@@ -371,15 +371,15 @@ field will contain one of <a class="link" href="gobject-Signals.html#G-SIGNAL-RU
 <hr>
 <div class="refsect2">
 <a name="GSignalAccumulator"></a><h3>GSignalAccumulator ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (*GSignalAccumulator)               (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (*GSignalAccumulator)               (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_accu</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *handler_return</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 The signal accumulator is a special callback function that can be used
 to collect return values of the various callbacks that are called
 during a signal emission. The signal accumulator is specified at signal
-creation time, if it is left <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, no accumulation of callback return
+creation time, if it is left <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, no accumulation of callback return
 values is performed. The return value of signal emissions is then the
 value returned by the last callback.
 </p>
@@ -409,8 +409,8 @@ is the return value of the current signal emission.</td>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>The accumulator function returns whether the signal emission
-should be aborted. Returning <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> means to abort the
-current emission and <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is returned for continuation.</td>
+should be aborted. Returning <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> means to abort the
+current emission and <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> is returned for continuation.</td>
 </tr>
 </tbody>
 </table></div>
@@ -442,10 +442,10 @@ marshalling the signal argument into GValues.
 <hr>
 <div class="refsect2">
 <a name="GSignalEmissionHook"></a><h3>GSignalEmissionHook ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (*GSignalEmissionHook)              (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_param_values</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            (*GSignalEmissionHook)              (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_param_values</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *param_values</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 A simple function pointer to get invoked when the signal is emitted. This 
 allows you to tie a hook to the signal type, so that it will trap all 
@@ -481,7 +481,7 @@ the signal was emitted, followed by the parameters of the emission. <span class=
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>whether it wants to stay connected. If it returns <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, the signal
+<td>whether it wants to stay connected. If it returns <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>, the signal
 hook is disconnected (and destroyed).</td>
 </tr>
 </tbody>
@@ -652,12 +652,12 @@ filled in by the <a class="link" href="gobject-Signals.html#g-signal-query" titl
 </colgroup>
 <tbody>
 <tr>
-<td><p><span class="term"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> <em class="structfield"><code><a name="GSignalQuery.signal-id"></a>signal_id</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> <em class="structfield"><code><a name="GSignalQuery.signal-id"></a>signal_id</code></em>;</span></p></td>
 <td>The signal id of the signal being queried, or 0 if the
 signal to be queried was unknown.</td>
 </tr>
 <tr>
-<td><p><span class="term">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GSignalQuery.signal-name"></a>signal_name</code></em>;</span></p></td>
+<td><p><span class="term">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *<em class="structfield"><code><a name="GSignalQuery.signal-name"></a>signal_name</code></em>;</span></p></td>
 <td>The signal name.</td>
 </tr>
 <tr>
@@ -673,18 +673,18 @@ signal to be queried was unknown.</td>
 <td>The return type for user callbacks.</td>
 </tr>
 <tr>
-<td><p><span class="term"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> <em class="structfield"><code><a name="GSignalQuery.n-params"></a>n_params</code></em>;</span></p></td>
+<td><p><span class="term"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> <em class="structfield"><code><a name="GSignalQuery.n-params"></a>n_params</code></em>;</span></p></td>
 <td>The number of parameters that user callbacks take.</td>
 </tr>
 <tr>
 <td><p><span class="term">const <a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> *<em class="structfield"><code><a name="GSignalQuery.param-types"></a>param_types</code></em>;</span></p></td>
-<td>The individual parameter types for user callbacks, note that the
-effective callback signature is:
+<td>The individual parameter types for
+user callbacks, note that the effective callback signature is:
 <pre class="programlisting">
-@return_type callback (<a href="./../glib/glib/glib-Basic-Types.html#gpointer">gpointer</a>     data1,
+@return_type callback (<a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer">gpointer</a>     data1,
 [param_types param_names,]
 gpointer     data2);
-</pre>
+</pre>. <span class="annotation">[<acronym title="Parameter points to an array of items."><span class="acronym">array</span></acronym> length=n_params]</span>
 </td>
 </tr>
 </tbody>
@@ -720,8 +720,8 @@ of <a class="link" href="gobject-Signals.html#g-signal-new" title="g_signal_new 
         <td class="listing_code"><pre class="programlisting"><span class="function"><a href="gobject-Signals.html#g-signal-new">g_signal_new</a></span><span class="normal"> </span><span class="symbol">(</span><span class="string">"size_request"</span><span class="symbol">,</span>
 <span class="normal">  </span><span class="function"><a href="gobject-Type-Information.html#G-TYPE-FROM-CLASS:CAPS">G_TYPE_FROM_CLASS</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">gobject_class</span><span class="symbol">),</span>
 <span class="normal">     <a href="gobject-Signals.html#G-SIGNAL-RUN-FIRST:CAPS">G_SIGNAL_RUN_FIRST</a></span><span class="symbol">,</span>
-<span class="normal">     </span><span class="function"><a href="./../glib/glib/glib-Standard-Macros.html#G-STRUCT-OFFSET:CAPS">G_STRUCT_OFFSET</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal"><a href="http://library.gnome.org/devel/gtk3/GtkWidget.html#GtkWidgetClass">GtkWidgetClass</a></span><span class="symbol">,</span><span class="normal"> size_request</span><span class="symbol">),</span>
-<span class="normal">     <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
+<span class="normal">     </span><span class="function"><a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#G-STRUCT-OFFSET:CAPS">G_STRUCT_OFFSET</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">GtkWidgetClass</span><span class="symbol">,</span><span class="normal"> size_request</span><span class="symbol">),</span>
+<span class="normal">     <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span><span class="normal"> <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS">NULL</a></span><span class="symbol">,</span>
 <span class="normal">     _gtk_marshal_VOID__BOXED</span><span class="symbol">,</span>
 <span class="normal">     <a href="gobject-Type-Information.html#G-TYPE-NONE:CAPS">G_TYPE_NONE</a></span><span class="symbol">,</span><span class="normal"> </span><span class="number">1</span><span class="symbol">,</span>
 <span class="normal">     GTK_TYPE_REQUISITION </span><span class="symbol">|</span><span class="normal"> <a href="gobject-Signals.html#G-SIGNAL-TYPE-STATIC-SCOPE:CAPS">G_SIGNAL_TYPE_STATIC_SCOPE</a></span><span class="symbol">);</span></pre></td>
@@ -754,15 +754,15 @@ A mask for all <a class="link" href="gobject-Signals.html#GSignalFlags" title="e
 <hr>
 <div class="refsect2">
 <a name="g-signal-new"></a><h3>g_signal_new ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_new                        (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_new                        (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags"><span class="type">GSignalFlags</span></a> signal_flags</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> class_offset</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> class_offset</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> accumulator</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller"><span class="type">GSignalCMarshaller</span></a> c_marshaller</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> return_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Creates a new signal. (This is usually done in the class initializer.)
@@ -784,7 +784,7 @@ in their <code class="code">class_init</code> method by doing
 will have to use <a class="link" href="gobject-Signals.html#g-signal-override-class-handler" title="g_signal_override_class_handler ()"><code class="function">g_signal_override_class_handler()</code></a>.
 </p>
 <p>
-If c_marshaller is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, <a class="link" href="gobject-Closures.html#g-cclosure-marshal-generic" title="g_cclosure_marshal_generic ()"><code class="function">g_cclosure_marshal_generic()</code></a> will be used as
+If c_marshaller is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, <a class="link" href="gobject-Closures.html#g-cclosure-marshal-generic" title="g_cclosure_marshal_generic ()"><code class="function">g_cclosure_marshal_generic()</code></a> will be used as
 the marshaller for this signal.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -816,7 +816,7 @@ not associate a class method slot with this signal.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>accumulator</code></em> :</span></p></td>
-<td>the accumulator for this signal; may be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+<td>the accumulator for this signal; may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>accu_data</code></em> :</span></p></td>
@@ -825,7 +825,7 @@ not associate a class method slot with this signal.</td>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>c_marshaller</code></em> :</span></p></td>
 <td>the function to translate arrays of parameter
-values to signal emissions into C language callback invocations or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+values to signal emissions into C language callback invocations or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -851,15 +851,15 @@ without a return value.</td>
 <hr>
 <div class="refsect2">
 <a name="g-signal-newv"></a><h3>g_signal_newv ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_newv                       (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_newv                       (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags"><span class="type">GSignalFlags</span></a> signal_flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *class_closure</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> accumulator</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller"><span class="type">GSignalCMarshaller</span></a> c_marshaller</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> return_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> *param_types</code></em>);</pre>
 <p>
 Creates a new signal. (This is usually done in the class initializer.)
@@ -868,7 +868,7 @@ Creates a new signal. (This is usually done in the class initializer.)
 See <a class="link" href="gobject-Signals.html#g-signal-new" title="g_signal_new ()"><code class="function">g_signal_new()</code></a> for details on allowed signal names.
 </p>
 <p>
-If c_marshaller is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <em class="parameter"><code>g_cclosure_marshal_generic</code></em> will be used as
+If c_marshaller is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <em class="parameter"><code>g_cclosure_marshal_generic</code></em> will be used as
 the marshaller for this signal.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -896,12 +896,12 @@ the default handler is to be invoked. You should at least specify
 <tr>
 <td><p><span class="term"><em class="parameter"><code>class_closure</code></em> :</span></p></td>
 <td>The closure to invoke on signal emission;
-may be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>accumulator</code></em> :</span></p></td>
-<td>the accumulator for this signal; may be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+<td>the accumulator for this signal; may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -913,7 +913,7 @@ may be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class=
 <td><p><span class="term"><em class="parameter"><code>c_marshaller</code></em> :</span></p></td>
 <td>the function to translate arrays of
 parameter values to signal emissions into C language callback
-invocations or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+invocations or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -942,15 +942,15 @@ each parameter. <span class="annotation">[<acronym title="Parameter points to an
 <hr>
 <div class="refsect2">
 <a name="g-signal-new-valist"></a><h3>g_signal_new_valist ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_new_valist                 (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_new_valist                 (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags"><span class="type">GSignalFlags</span></a> signal_flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *class_closure</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> accumulator</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller"><span class="type">GSignalCMarshaller</span></a> c_marshaller</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> return_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> args</code></em>);</pre>
 <p>
 Creates a new signal. (This is usually done in the class initializer.)
@@ -959,7 +959,7 @@ Creates a new signal. (This is usually done in the class initializer.)
 See <a class="link" href="gobject-Signals.html#g-signal-new" title="g_signal_new ()"><code class="function">g_signal_new()</code></a> for details on allowed signal names.
 </p>
 <p>
-If c_marshaller is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, <a class="link" href="gobject-Closures.html#g-cclosure-marshal-generic" title="g_cclosure_marshal_generic ()"><code class="function">g_cclosure_marshal_generic()</code></a> will be used as
+If c_marshaller is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>, <a class="link" href="gobject-Closures.html#g-cclosure-marshal-generic" title="g_cclosure_marshal_generic ()"><code class="function">g_cclosure_marshal_generic()</code></a> will be used as
 the marshaller for this signal.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -985,11 +985,11 @@ the default handler is to be invoked. You should at least specify
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>class_closure</code></em> :</span></p></td>
-<td>The closure to invoke on signal emission; may be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+<td>The closure to invoke on signal emission; may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>accumulator</code></em> :</span></p></td>
-<td>the accumulator for this signal; may be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+<td>the accumulator for this signal; may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>accu_data</code></em> :</span></p></td>
@@ -998,7 +998,7 @@ the default handler is to be invoked. You should at least specify
 <tr>
 <td><p><span class="term"><em class="parameter"><code>c_marshaller</code></em> :</span></p></td>
 <td>the function to translate arrays of parameter
-values to signal emissions into C language callback invocations or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+values to signal emissions into C language callback invocations or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -1024,14 +1024,14 @@ without a return value.</td>
 <hr>
 <div class="refsect2">
 <a name="g-signal-set-va-marshaller"></a><h3>g_signal_set_va_marshaller ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_set_va_marshaller          (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_set_va_marshaller          (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> instance_type</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCVaMarshaller" title="GSignalCVaMarshaller"><span class="type">GSignalCVaMarshaller</span></a> va_marshaller</code></em>);</pre>
 </div>
 <hr>
 <div class="refsect2">
 <a name="g-signal-query"></a><h3>g_signal_query ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_query                      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_query                      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalQuery" title="struct GSignalQuery"><span class="type">GSignalQuery</span></a> *query</code></em>);</pre>
 <p>
 Queries the signal system for in-depth information about a
@@ -1063,7 +1063,7 @@ filled in with constant values upon success. <span class="annotation">[<acronym 
 <hr>
 <div class="refsect2">
 <a name="g-signal-lookup"></a><h3>g_signal_lookup ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_lookup                     (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_lookup                     (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>);</pre>
 <p>
 Given the name of the signal and the type of object it connects to, gets
@@ -1100,7 +1100,7 @@ See <a class="link" href="gobject-Signals.html#g-signal-new" title="g_signal_new
 <hr>
 <div class="refsect2">
 <a name="g-signal-name"></a><h3>g_signal_name ()</h3>
-<pre class="programlisting">const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_signal_name                       (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>);</pre>
+<pre class="programlisting">const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="returnvalue">gchar</span></a> *       g_signal_name                       (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>);</pre>
 <p>
 Given the signal's identifier, finds its name.
 </p>
@@ -1119,7 +1119,7 @@ Two different signals may have the same name, if they have differing types.
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
-<td>the signal name, or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the signal number was invalid.</td>
+<td>the signal name, or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> if the signal number was invalid.</td>
 </tr>
 </tbody>
 </table></div>
@@ -1127,8 +1127,8 @@ Two different signals may have the same name, if they have differing types.
 <hr>
 <div class="refsect2">
 <a name="g-signal-list-ids"></a><h3>g_signal_list_ids ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a> *             g_signal_list_ids                   (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_ids</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a> *             g_signal_list_ids                   (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *n_ids</code></em>);</pre>
 <p>
 Lists the signals by id that a certain instance or interface type
 created. Further information about the signals can be acquired through
@@ -1159,9 +1159,9 @@ created. Further information about the signals can be acquired through
 <hr>
 <div class="refsect2">
 <a name="g-signal-emit"></a><h3>g_signal_emit ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_emit                       (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_emit                       (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Emits a signal.
@@ -1200,8 +1200,8 @@ is <a class="link" href="gobject-Type-Information.html#G-TYPE-NONE:CAPS" title="
 <hr>
 <div class="refsect2">
 <a name="g-signal-emit-by-name"></a><h3>g_signal_emit_by_name ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_emit_by_name               (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_emit_by_name               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Emits a signal.
@@ -1237,8 +1237,8 @@ is <a class="link" href="gobject-Type-Information.html#G-TYPE-NONE:CAPS" title="
 <div class="refsect2">
 <a name="g-signal-emitv"></a><h3>g_signal_emitv ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_signal_emitv                      (<em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *instance_and_params</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_value</code></em>);</pre>
 <p>
 Emits a signal.
@@ -1278,9 +1278,9 @@ is being emitted on. The rest are any arguments to be passed to the signal. <spa
 <hr>
 <div class="refsect2">
 <a name="g-signal-emit-valist"></a><h3>g_signal_emit_valist ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_emit_valist                (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_emit_valist                (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><span class="type">va_list</span> var_args</code></em>);</pre>
 <p>
 Emits a signal.
@@ -1437,10 +1437,10 @@ calling the handler.
 <hr>
 <div class="refsect2">
 <a name="g-signal-connect-object"></a><h3>g_signal_connect_object ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_connect_object             (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_connect_object             (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> c_handler</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> gobject</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> gobject</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GConnectFlags" title="enum GConnectFlags"><span class="type">GConnectFlags</span></a> connect_flags</code></em>);</pre>
 <p>
 This is similar to <a class="link" href="gobject-Signals.html#g-signal-connect-data" title="g_signal_connect_data ()"><code class="function">g_signal_connect_data()</code></a>, but uses a closure which
@@ -1448,36 +1448,10 @@ ensures that the <em class="parameter"><code>gobject</code></em> stays alive dur
 by temporarily adding a reference count to <em class="parameter"><code>gobject</code></em>.
 </p>
 <p>
-Note that there is a bug in GObject that makes this function
-much less useful than it might seem otherwise. Once <em class="parameter"><code>gobject</code></em> is
-disposed, the callback will no longer be called, but, the signal
-handler is <span class="emphasis"><em>not</em></span> currently disconnected. If the
-<em class="parameter"><code>instance</code></em> is itself being freed at the same time than this doesn't
-matter, since the signal will automatically be removed, but
-if <em class="parameter"><code>instance</code></em> persists, then the signal handler will leak. You
-should not remove the signal yourself because in a future versions of
-GObject, the handler <span class="emphasis"><em>will</em></span> automatically
-be disconnected.
-</p>
-<p>
-It's possible to work around this problem in a way that will
-continue to work with future versions of GObject by checking
-that the signal handler is still connected before disconnected it:
-</p>
-<div class="informalexample">
-  <table class="listing_frame" border="0" cellpadding="0" cellspacing="0">
-    <tbody>
-      <tr>
-        <td class="listing_lines" align="right"><pre>1
-2</pre></td>
-        <td class="listing_code"><pre class="programlisting"><span class="keyword">if</span><span class="normal"> </span><span class="symbol">(</span><span class="function"><a href="gobject-Signals.html#g-signal-handler-is-connected">g_signal_handler_is_connected</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">instance</span><span class="symbol">,</span><span class="normal"> id</span><span class="symbol">))</span>
-<span class="normal">  </span><span class="function"><a href="gobject-Signals.html#g-signal-handler-disconnect">g_signal_handler_disconnect</a></span><span class="normal"> </span><span class="symbol">(</span><span class="normal">instance</span><span class="symbol">,</span><span class="normal"> id</span><span class="symbol">);</span></pre></td>
-      </tr>
-    </tbody>
-  </table>
-</div>
-
-<p>
+When the <em class="parameter"><code>gobject</code></em> is destroyed the signal handler will be automatically
+disconnected.  Note that this is not currently threadsafe (ie:
+emitting a signal while <em class="parameter"><code>gobject</code></em> is being destroyed in another thread
+is not safe).
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
 <colgroup>
@@ -1548,10 +1522,10 @@ connection.
 <hr>
 <div class="refsect2">
 <a name="g-signal-connect-data"></a><h3>g_signal_connect_data ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_connect_data               (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_connect_data               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> c_handler</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosureNotify" title="GClosureNotify ()"><span class="type">GClosureNotify</span></a> destroy_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GConnectFlags" title="enum GConnectFlags"><span class="type">GConnectFlags</span></a> connect_flags</code></em>);</pre>
 <p>
@@ -1601,10 +1575,10 @@ used. Specify <em class="parameter"><code>connect_flags</code></em> if you need 
 <hr>
 <div class="refsect2">
 <a name="g-signal-connect-closure"></a><h3>g_signal_connect_closure ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_connect_closure            (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_connect_closure            (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> after</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> after</code></em>);</pre>
 <p>
 Connects a closure to a signal for a particular object.
 </p>
@@ -1641,11 +1615,11 @@ default handler of the signal.</td>
 <hr>
 <div class="refsect2">
 <a name="g-signal-connect-closure-by-id"></a><h3>g_signal_connect_closure_by_id ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_connect_closure_by_id      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_connect_closure_by_id      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> after</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> after</code></em>);</pre>
 <p>
 Connects a closure to a signal for a particular object.
 </p>
@@ -1686,8 +1660,8 @@ default handler of the signal.</td>
 <hr>
 <div class="refsect2">
 <a name="g-signal-handler-block"></a><h3>g_signal_handler_block ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_handler_block              (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_handler_block              (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);</pre>
 <p>
 Blocks a handler of an instance so it will not be called during any
 signal emissions unless it is unblocked again. Thus "blocking" a
@@ -1719,8 +1693,8 @@ signal of <em class="parameter"><code>instance</code></em>.
 <hr>
 <div class="refsect2">
 <a name="g-signal-handler-unblock"></a><h3>g_signal_handler_unblock ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_handler_unblock            (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_handler_unblock            (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);</pre>
 <p>
 Undoes the effect of a previous <a class="link" href="gobject-Signals.html#g-signal-handler-block" title="g_signal_handler_block ()"><code class="function">g_signal_handler_block()</code></a> call.  A
 blocked handler is skipped during signal emissions and will not be
@@ -1757,8 +1731,8 @@ connected to a signal of <em class="parameter"><code>instance</code></em> and is
 <hr>
 <div class="refsect2">
 <a name="g-signal-handler-disconnect"></a><h3>g_signal_handler_disconnect ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_handler_disconnect         (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_handler_disconnect         (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);</pre>
 <p>
 Disconnects a handler from an instance so it will not be called during
 any future or currently ongoing emissions of the signal it has been
@@ -1788,13 +1762,13 @@ signal of <em class="parameter"><code>instance</code></em>.
 <hr>
 <div class="refsect2">
 <a name="g-signal-handler-find"></a><h3>g_signal_handler_find ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_handler_find               (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_handler_find               (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a> mask</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Finds the first signal handler that matches certain selection criteria.
 The criteria mask is passed as an OR-ed combination of <a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a>
@@ -1848,13 +1822,13 @@ and/or <em class="parameter"><code>data</code></em> the handler has to match.</t
 <hr>
 <div class="refsect2">
 <a name="g-signal-handlers-block-matched"></a><h3>g_signal_handlers_block_matched ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_handlers_block_matched     (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_handlers_block_matched     (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a> mask</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Blocks all handlers on an instance that match a certain selection criteria.
 The criteria mask is passed as an OR-ed combination of <a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a>
@@ -1910,13 +1884,13 @@ and/or <em class="parameter"><code>data</code></em> the handlers have to match.<
 <hr>
 <div class="refsect2">
 <a name="g-signal-handlers-unblock-matched"></a><h3>g_signal_handlers_unblock_matched ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_handlers_unblock_matched   (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_handlers_unblock_matched   (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a> mask</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Unblocks all handlers on an instance that match a certain selection
 criteria. The criteria mask is passed as an OR-ed combination of
@@ -1973,14 +1947,14 @@ and/or <em class="parameter"><code>data</code></em> the handlers have to match.<
 <hr>
 <div class="refsect2">
 <a name="g-signal-handlers-disconnect-matched"></a><h3>g_signal_handlers_disconnect_matched ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_handlers_disconnect_matched
-                                                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_handlers_disconnect_matched
+                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalMatchType" title="enum GSignalMatchType"><span class="type">GSignalMatchType</span></a> mask</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *closure</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> func</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> data</code></em>);</pre>
 <p>
 Disconnects all handlers on an instance that match a certain
 selection criteria. The criteria mask is passed as an OR-ed
@@ -2037,8 +2011,8 @@ and/or <em class="parameter"><code>data</code></em> the handlers have to match.<
 <hr>
 <div class="refsect2">
 <a name="g-signal-handler-is-connected"></a><h3>g_signal_handler_is_connected ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_handler_is_connected       (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_handler_is_connected       (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> handler_id</code></em>);</pre>
 <p>
 Returns whether <em class="parameter"><code>handler_id</code></em> is the id of a handler connected to <em class="parameter"><code>instance</code></em>.
 </p>
@@ -2191,10 +2165,10 @@ Disconnects all handlers on an instance that match <em class="parameter"><code>d
 <hr>
 <div class="refsect2">
 <a name="g-signal-has-handler-pending"></a><h3>g_signal_has_handler_pending ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_has_handler_pending        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> may_be_blocked</code></em>);</pre>
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_has_handler_pending        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> may_be_blocked</code></em>);</pre>
 <p>
 Returns whether there are any handlers connected to <em class="parameter"><code>instance</code></em> for the
 given signal id and detail.
@@ -2230,7 +2204,7 @@ of building the arguments.
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a handler is connected to the signal, <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> if a handler is connected to the signal, <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a>
 otherwise.</td>
 </tr>
 </tbody>
@@ -2239,9 +2213,9 @@ otherwise.</td>
 <hr>
 <div class="refsect2">
 <a name="g-signal-stop-emission"></a><h3>g_signal_stop_emission ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_stop_emission              (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_stop_emission              (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>);</pre>
 <p>
 Stops a signal's current emission.
 </p>
@@ -2277,8 +2251,8 @@ Prints a warning if used on a signal which isn't being emitted.
 <hr>
 <div class="refsect2">
 <a name="g-signal-stop-emission-by-name"></a><h3>g_signal_stop_emission_by_name ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_stop_emission_by_name      (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
-                                                         <em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_stop_emission_by_name      (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                         <em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>);</pre>
 <p>
 Stops a signal's current emission.
 </p>
@@ -2306,7 +2280,7 @@ signal id for you.
 <hr>
 <div class="refsect2">
 <a name="g-signal-override-class-closure"></a><h3>g_signal_override_class_closure ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_override_class_closure     (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_override_class_closure     (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> instance_type</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="type">GClosure</span></a> *class_closure</code></em>);</pre>
 <p>
@@ -2374,15 +2348,15 @@ is being emitted on. The rest are any arguments to be passed to the signal.</td>
 <hr>
 <div class="refsect2">
 <a name="g-signal-new-class-handler"></a><h3>g_signal_new_class_handler ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_new_class_handler          (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="returnvalue">guint</span></a>               g_signal_new_class_handler          (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalFlags" title="enum GSignalFlags"><span class="type">GSignalFlags</span></a> signal_flags</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> class_handler</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> accumulator</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> accu_data</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalCMarshaller" title="GSignalCMarshaller"><span class="type">GSignalCMarshaller</span></a> c_marshaller</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> return_type</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> n_params</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Creates a new signal. (This is usually done in the class initializer.)
@@ -2402,7 +2376,7 @@ directly and can be overriden by derived classes with
 See <a class="link" href="gobject-Signals.html#g-signal-new" title="g_signal_new ()"><code class="function">g_signal_new()</code></a> for information about signal names.
 </p>
 <p>
-If c_marshaller is <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <em class="parameter"><code>g_cclosure_marshal_generic</code></em> will be used as
+If c_marshaller is <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> <em class="parameter"><code>g_cclosure_marshal_generic</code></em> will be used as
 the marshaller for this signal.
 </p>
 <div class="variablelist"><table border="0" class="variablelist">
@@ -2429,12 +2403,12 @@ the default handler is to be invoked. You should at least specify
 <tr>
 <td><p><span class="term"><em class="parameter"><code>class_handler</code></em> :</span></p></td>
 <td>a <a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> which acts as class implementation of
-this signal. Used to invoke a class method generically. Pass <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
+this signal. Used to invoke a class method generically. Pass <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a> to
 not associate a class method with this signal.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>accumulator</code></em> :</span></p></td>
-<td>the accumulator for this signal; may be <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
+<td>the accumulator for this signal; may be <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>accu_data</code></em> :</span></p></td>
@@ -2443,7 +2417,7 @@ not associate a class method with this signal.</td>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>c_marshaller</code></em> :</span></p></td>
 <td>the function to translate arrays of parameter
-values to signal emissions into C language callback invocations or <a href="./../glib/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
+values to signal emissions into C language callback invocations or <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#NULL:CAPS"><code class="literal">NULL</code></a>. <span class="annotation">[<acronym title="NULL is ok, both for passing and for returning."><span class="acronym">allow-none</span></acronym>]</span>
 </td>
 </tr>
 <tr>
@@ -2470,7 +2444,7 @@ without a return value.</td>
 <hr>
 <div class="refsect2">
 <a name="g-signal-override-class-handler"></a><h3>g_signal_override_class_handler ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_override_class_handler     (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_override_class_handler     (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *signal_name</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> instance_type</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Closures.html#GCallback" title="GCallback ()"><span class="type">GCallback</span></a> class_handler</code></em>);</pre>
 <p>
@@ -2511,7 +2485,7 @@ for the signal.</td>
 <div class="refsect2">
 <a name="g-signal-chain-from-overridden-handler"></a><h3>g_signal_chain_from_overridden_handler ()</h3>
 <pre class="programlisting"><span class="returnvalue">void</span>                g_signal_chain_from_overridden_handler
-                                                        (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
+                                                        (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>,
                                                          <em class="parameter"><code>...</code></em>);</pre>
 <p>
 Calls the original class closure of a signal. This function should
@@ -2542,11 +2516,11 @@ is <a class="link" href="gobject-Type-Information.html#G-TYPE-NONE:CAPS" title="
 <hr>
 <div class="refsect2">
 <a name="g-signal-add-emission-hook"></a><h3>g_signal_add_emission_hook ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_add_emission_hook          (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="returnvalue">gulong</span></a>              g_signal_add_emission_hook          (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> detail</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalEmissionHook" title="GSignalEmissionHook ()"><span class="type">GSignalEmissionHook</span></a> hook_func</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> hook_data</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> data_destroy</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> hook_data</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> data_destroy</code></em>);</pre>
 <p>
 Adds an emission hook for a signal, which will get called for any emission
 of that signal, independent of the instance. This is possible only
@@ -2576,7 +2550,7 @@ for signals which don't have <a class="link" href="gobject-Signals.html#G-SIGNAL
 </tr>
 <tr>
 <td><p><span class="term"><em class="parameter"><code>data_destroy</code></em> :</span></p></td>
-<td>a <a href="./../glib/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> for <em class="parameter"><code>hook_data</code></em>.</td>
+<td>a <a href="/usr/share/gtk-doc/html/glib/glib-Datasets.html#GDestroyNotify"><span class="type">GDestroyNotify</span></a> for <em class="parameter"><code>hook_data</code></em>.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -2588,8 +2562,8 @@ for signals which don't have <a class="link" href="gobject-Signals.html#G-SIGNAL
 <hr>
 <div class="refsect2">
 <a name="g-signal-remove-emission-hook"></a><h3>g_signal_remove_emission_hook ()</h3>
-<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_remove_emission_hook       (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> hook_id</code></em>);</pre>
+<pre class="programlisting"><span class="returnvalue">void</span>                g_signal_remove_emission_hook       (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> signal_id</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gulong"><span class="type">gulong</span></a> hook_id</code></em>);</pre>
 <p>
 Deletes an emission hook.
 </p>
@@ -2615,11 +2589,11 @@ Deletes an emission hook.
 <hr>
 <div class="refsect2">
 <a name="g-signal-parse-name"></a><h3>g_signal_parse_name ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_parse_name                 (<em class="parameter"><code>const <a href="./../glib/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_parse_name                 (<em class="parameter"><code>const <a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gchar"><span class="type">gchar</span></a> *detailed_signal</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *signal_id_p</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> *detail_p</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_detail_quark</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> *signal_id_p</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> *detail_p</code></em>,
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="type">gboolean</span></a> force_detail_quark</code></em>);</pre>
 <p>
 Internal function to parse a signal name into its <em class="parameter"><code>signal_id</code></em>
 and <em class="parameter"><code>detail</code></em> quark.
@@ -2651,7 +2625,7 @@ and <em class="parameter"><code>detail</code></em> quark.
 <tr>
 <td><p><span class="term"><em class="parameter"><code>force_detail_quark</code></em> :</span></p></td>
 <td>
-<a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> forces creation of a <a href="./../glib/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> for the detail.</td>
+<a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> forces creation of a <a href="/usr/share/gtk-doc/html/glib/glib-Quarks.html#GQuark"><span class="type">GQuark</span></a> for the detail.</td>
 </tr>
 <tr>
 <td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
@@ -2663,7 +2637,7 @@ and <em class="parameter"><code>detail</code></em> quark.
 <hr>
 <div class="refsect2">
 <a name="g-signal-get-invocation-hint"></a><h3>g_signal_get_invocation_hint ()</h3>
-<pre class="programlisting"><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="returnvalue">GSignalInvocationHint</span></a> * g_signal_get_invocation_hint    (<em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>);</pre>
+<pre class="programlisting"><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="returnvalue">GSignalInvocationHint</span></a> * g_signal_get_invocation_hint    (<em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> instance</code></em>);</pre>
 <p>
 Returns the invocation hint of the innermost signal emission of instance.
 </p>
@@ -2689,7 +2663,7 @@ Returns the invocation hint of the innermost signal emission of instance.
 <div class="refsect2">
 <a name="g-signal-type-cclosure-new"></a><h3>g_signal_type_cclosure_new ()</h3>
 <pre class="programlisting"><a class="link" href="gobject-Closures.html#GClosure" title="struct GClosure"><span class="returnvalue">GClosure</span></a> *          g_signal_type_cclosure_new          (<em class="parameter"><code><a class="link" href="gobject-Type-Information.html#GType" title="GType"><span class="type">GType</span></a> itype</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> struct_offset</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#guint"><span class="type">guint</span></a> struct_offset</code></em>);</pre>
 <p>
 Creates a new closure which invokes the function found at the offset
 <em class="parameter"><code>struct_offset</code></em> in the class structure of the interface or classed type
@@ -2721,10 +2695,10 @@ structure which is to be invoked by the new closure</td>
 <hr>
 <div class="refsect2">
 <a name="g-signal-accumulator-first-wins"></a><h3>g_signal_accumulator_first_wins ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_accumulator_first_wins     (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_accumulator_first_wins     (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_accu</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *handler_return</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dummy</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dummy</code></em>);</pre>
 <p>
 A predefined <a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> for signals intended to be used as a
 hook for application code to provide a particular value.  Usually
@@ -2771,16 +2745,16 @@ any further handlers (ie: the first handler "wins").
 <hr>
 <div class="refsect2">
 <a name="g-signal-accumulator-true-handled"></a><h3>g_signal_accumulator_true_handled ()</h3>
-<pre class="programlisting"><a href="./../glib/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_accumulator_true_handled   (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
+<pre class="programlisting"><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gboolean"><span class="returnvalue">gboolean</span></a>            g_signal_accumulator_true_handled   (<em class="parameter"><code><a class="link" href="gobject-Signals.html#GSignalInvocationHint" title="struct GSignalInvocationHint"><span class="type">GSignalInvocationHint</span></a> *ihint</code></em>,
                                                          <em class="parameter"><code><a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *return_accu</code></em>,
                                                          <em class="parameter"><code>const <a class="link" href="gobject-Generic-values.html#GValue" title="GValue"><span class="type">GValue</span></a> *handler_return</code></em>,
-                                                         <em class="parameter"><code><a href="./../glib/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dummy</code></em>);</pre>
+                                                         <em class="parameter"><code><a href="/usr/share/gtk-doc/html/glib/glib-Basic-Types.html#gpointer"><span class="type">gpointer</span></a> dummy</code></em>);</pre>
 <p>
 A predefined <a class="link" href="gobject-Signals.html#GSignalAccumulator" title="GSignalAccumulator ()"><span class="type">GSignalAccumulator</span></a> for signals that return a
 boolean values. The behavior that this accumulator gives is
-that a return of <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> stops the signal emission: no further
-callbacks will be invoked, while a return of <a href="./../glib/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> allows
-the emission to continue. The idea here is that a <a href="./../glib/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> return
+that a return of <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> stops the signal emission: no further
+callbacks will be invoked, while a return of <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#FALSE:CAPS"><code class="literal">FALSE</code></a> allows
+the emission to continue. The idea here is that a <a href="/usr/share/gtk-doc/html/glib/glib-Standard-Macros.html#TRUE:CAPS"><code class="literal">TRUE</code></a> return
 indicates that the callback <span class="emphasis"><em>handled</em></span> the signal,
 and no further handling is needed.
 </p>
@@ -2817,7 +2791,7 @@ and no further handling is needed.
 </div>
 <div class="footnotes">
 <br><hr style="width:100; align:left;">
-<div id="ftn.idp21478384" class="footnote"><p><a href="#idp21478384" class="para"><sup class="para">[10] </sup></a>Although signals can deal with any kind of instantiatable 
+<div id="ftn.id-1.4.12.4.2.2" class="footnote"><p><a href="#id-1.4.12.4.2.2" class="para"><sup class="para">[10] </sup></a>Although signals can deal with any kind of instantiatable 
 type, i'm referring to those types as "object types" in the following, 
 simply because that is the context most users will encounter signals in.
 </p></div>

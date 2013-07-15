@@ -281,10 +281,16 @@ sub test_randomise_tree_ref_args {
     );
 
     my $iter_count = 2;
-    my %shuffle_method_list = $tree->get_subs_with_prefix (prefix => 'shuffle');
-    diag 'testing tree shuffle methods: ' . join ' ', sort keys %shuffle_method_list;
+    my %shuffle_method_hash = $tree->get_subs_with_prefix (prefix => 'shuffle');
 
-    foreach my $shuffle_method (sort keys %shuffle_method_list) {
+    #  need to handle abbreviated forms
+    my @tmp = sort keys %shuffle_method_hash;
+    my @tmp2 = map {(my $x = $_) =~ s/^shuffle_//; $x} @tmp;
+    my @shuffle_method_array = (@tmp, @tmp2);
+    
+    #diag 'testing tree shuffle methods: ' . join ' ', @shuffle_method_array;
+
+    foreach my $shuffle_method (@shuffle_method_array) {
         my $use_is_or_isnt = ($shuffle_method !~ /no_change$/) ? 'isnt' : 'is';
         my $not_text = $use_is_or_isnt eq 'isnt' ? 'not' : ' ';
         my $notnot_text = $use_is_or_isnt eq 'isnt' ? '' : ' not';

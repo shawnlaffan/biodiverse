@@ -39,6 +39,7 @@ use Exporter::Easy (
                 compare_arr_vals
                 get_all_calculations
                 transform_element
+                is_or_isnt
             ),
         ],
         basedata => [
@@ -170,6 +171,19 @@ sub verify_set_contents {
     }
 
     return;
+}
+
+#  use is or isnt
+sub is_or_isnt {
+    my ($got, $expected, $msg, $isnt) = @_;
+
+    $isnt //= 'is';
+
+    my $result = $isnt eq 'isnt'
+      ? isnt ($got, $expected, $msg)
+      : is   ($got, $expected, $msg);
+
+    return $result;
 }
 
 sub compare_hash_vals {

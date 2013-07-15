@@ -13,6 +13,7 @@ use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { gettimeofday tv_interval };
 use Scalar::Util qw { blessed };
+use List::MoreUtils qw /first_index/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
 #use MRO::Compat;
 use Class::Inspector;
@@ -327,6 +328,7 @@ sub run_randomisation {
             );
     
     my $randomise_group_props_by = $args{randomise_group_props_by} // 'no_change';
+    my $randomise_trees_by       = $args{randomise_trees_by};
 
     #  counts are stored on the outputs, as they can be different if
     #    an output is created after some randomisations have been run
@@ -366,7 +368,7 @@ sub run_randomisation {
         croak $EVAL_ERROR if $EVAL_ERROR || ! defined $rand_bd;
 
         $rand_bd->rename (
-            name => $bd->get_param ('NAME') . "_$function"."_$$total_iterations"
+            name => $bd->get_param ('NAME') . '_' . $function . '_' . $$total_iterations,
         );
 
         $self->process_group_props (
@@ -375,6 +377,8 @@ sub run_randomisation {
             function => $randomise_group_props_by,
             rand_object => $rand_object,
         );
+
+        my %randomised_arg_object_cache;
 
         TARGET:
         foreach my $target (@targets) {
@@ -388,9 +392,8 @@ sub run_randomisation {
                 #}
                 next TARGET;
             }
-            my $completed = $target->get_param ('COMPLETED');
-            #  allow for older data sets that did not flag this
-            $completed = 1 if not defined $completed;
+            #  allow for older versions that did not flag this
+            my $completed = $target->get_param ('COMPLETED') // 1;
 
             next TARGET if not $completed;  # skip this one, no analyses that worked
 
@@ -427,6 +430,14 @@ sub run_randomisation {
                 eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
                 $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
             }
+
+            $self->override_object_analysis_args (
+                %args,
+                randomised_arg_object_cache => \%randomised_arg_object_cache,
+                object      => $rand_analysis,
+                rand_object => $rand_object,
+                iteration   => $$total_iterations,
+            );
 
             eval {
                 $rand_analysis->run_analysis (
@@ -504,7 +515,7 @@ sub run_randomisation {
     $self->store_rand_state (rand_object => $rand_object);
 
     #  return the rand_bd's if told to
-    return wantarray ? \@rand_bd_array : \@rand_bd_array
+    return wantarray ? @rand_bd_array : \@rand_bd_array
       if $args{return_rand_bd_array};
     
     #  return 1 if successful and ran some iterations
@@ -512,7 +523,75 @@ sub run_randomisation {
     return $return_success_code;
 }
 
+#  here is where we can hack into the args and override any trees etc
+#  (but just trees for now)
+sub override_object_analysis_args {
+    my $self = shift;
+    my %args = @_;
 
+    my $object = $args{object};
+    my $cache  = $args{randomised_arg_object_cache};
+    my $iter   = $args{iteration};
+
+    #  get a shallow clone
+    my ($p_key, $new_analysis_args) = $self->get_analysis_args_from_object (
+        object => $object,
+    );
+
+    my $made_changes;
+
+    #  this could be generalised to handle any of the object types
+    my $tree_shuffle_method = $args{randomise_trees_by};
+    my $tree_ref_used = $new_analysis_args->{tree_ref};
+
+    if ($tree_ref_used && $tree_shuffle_method && $tree_shuffle_method !~ /no_change$/) {
+        my $shuffled_tree = $cache->{$tree_ref_used};
+        if (!$shuffled_tree) {  # shuffle and cache if we don't already have it
+            $shuffled_tree = $tree_ref_used->clone;
+            $shuffled_tree->$tree_shuffle_method (%args);
+            $shuffled_tree->rename (
+                new_name => $shuffled_tree->get_param ('NAME') . ' ' . $iter,
+            );
+            $cache->{$tree_ref_used} = $shuffled_tree;
+        }
+        $new_analysis_args->{tree_ref} = $shuffled_tree;
+        $made_changes++;
+    }
+
+    return 1 if ! $made_changes;
+
+    $object->set_param ($p_key => $new_analysis_args);
+
+    return 1;
+}
+
+#  should be in Biodiverse::Common, or have a method per class  
+sub get_analysis_args_from_object {
+    my $self = shift;
+    my %args = @_;
+    
+    my $object = $args{object};
+
+    my $get_copy = $args{get_copy} // 1;
+
+    my $analysis_args;
+    my $p_key;
+  ARGS_PARAM:
+    for my $key (qw /ANALYSIS_ARGS SP_CALC_ARGS/) {
+        $analysis_args = $object->get_param ($key);
+        $p_key = $key;
+        last ARGS_PARAM if defined $analysis_args;
+    }
+
+    my $return_hash = $get_copy ? {%$analysis_args} : $analysis_args;
+
+    my @results = (
+        $p_key,
+        $return_hash,
+    );
+
+    return wantarray ? @results : \@results;
+}
 
 #  need to ensure we re-use the original nodes for the randomisation test
 sub compare_cluster_calcs_per_node {
@@ -576,12 +655,14 @@ sub compare_cluster_calcs_per_node {
 sub get_metadata_rand_nochange {
     my $self = shift;
     
-    my $group_props_parameters = $self->get_group_prop_metadata;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
     my %args = (
         Description => 'No change - just a cloned data set',
         parameters  => [
             $group_props_parameters,
+            $tree_shuffle_parameters,
         ],
     );
 
@@ -606,12 +687,15 @@ sub rand_nochange {
 sub get_metadata_rand_csr_by_group {
     my $self = shift;
 
-    my $group_props_parameters = $self->get_group_prop_metadata;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
+
 
     my %args = (
         Description => 'Complete spatial randomisation by group (currently ignores labels without a group)',
         parameters  => [
             $group_props_parameters,
+            $tree_shuffle_parameters,
         ],
     ); 
 
@@ -711,7 +795,8 @@ This is applied after the multiplier parameter so you have:
 END_TOOLTIP_ADDN
 ;
 
-    my $group_props_parameters = $self->get_group_prop_metadata;
+    my $group_props_parameters  = $self->get_group_prop_metadata;
+    my $tree_shuffle_parameters = $self->get_tree_shuffle_metadata;
 
     my %args = (
         parameters  => [ 
@@ -728,6 +813,7 @@ END_TOOLTIP_ADDN
              tooltip    => $tooltip_addn,
              },
             $group_props_parameters,
+            $tree_shuffle_parameters,
         ],
         Description => "Randomly allocate labels to groups,\n"
                        . 'but keep the richness the same or within '
@@ -1466,11 +1552,40 @@ sub get_group_prop_metadata {
     return wantarray ? %metadata : \%metadata;
 }
 
+#  should build this from metadata
+my $randomise_trees_tooltip = <<"END_RANDOMISE_TREES_TOOLTIP"
+Trees used as arguments in the analyses will be randomised in these ways:
+shuffle_no_change:  Trees will be unchanged. 
+shuffle_terminal_names:  Terminal node names will be randomly re-assigned within each tree.
+END_RANDOMISE_TREES_TOOLTIP
+  ;
+
+sub get_tree_shuffle_metadata {
+    my $self = shift;
+
+    require Biodiverse::Tree;
+    my $tree = Biodiverse::Tree->new;
+    my @choices = sort keys %{$tree->get_subs_with_prefix (prefix => 'shuffle')};
+    my $default = first_index {$_ eq 'shuffle_no_change'} @choices;
+
+    my %metadata = (
+        name => 'randomise_trees_by',
+        type => 'choice',
+        choices => \@choices,
+        default => $default,
+        tooltip => $randomise_trees_tooltip,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
 
 #  these appear redundant but might help with mem leaks
-our $AUTOLOAD;
-sub AUTOLOAD {}
-sub DESTROY {}
+#our $AUTOLOAD;
+#sub AUTOLOAD { my $method = shift;
+#              croak "Cannot call method Autoloading not supported in this package";
+#              }
+#sub DESTROY {}
 
 1;
 

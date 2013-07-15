@@ -25,12 +25,11 @@ our $default_length = 0;
 #  create and manipulate tree elements in a cluster object
 #  structure was based on that used for the NEXUS library, but with some extra caching to help biodiverse methods
 #  base structure was a hash with keys for:
-#       PARENT => ref to parent node.  Null if root.
-#       LENGTH => length from parent
-#       DEPTH => depth in tree from root
-#       LABELHASH => hash of labels in nodes contained by this node (optional - if not exists then it builds the list by traversing the tree)
+#       PARENT    => ref to parent node.  Null if root.
+#       LENGTH    => length to parent
+#       DEPTH     => depth in tree from root
 #       _CHILDREN => array of nodes below this in the tree
-#       NAME => name of the element - link event number in the case of non-leaf nodes
+#       NAME      => name of the element - link event number in the case of non-leaf nodes
 
 sub new {
     my $class = shift;
@@ -1836,7 +1835,33 @@ sub get_node_range {
     return $range;
 }
 
-#sub min {$_[0] < $_[1] ? $_[0] : $_[1]}
+
+#  Could do as a Biodiverse::Tree method, but this allows us to work
+#  with clades within the tree.  B::Tree just has to modify its node hash.
+sub shuffle_terminal_names {
+    my $self = shift;
+    my %args = @_;
+
+    my $prng = $args{rand_object} // $self->initialise_rand (%args);
+
+    my %terminals = $self->get_terminal_node_refs;
+
+    #  Get names in consistent order for replication purposes
+    my @names = sort keys %terminals;
+    my @shuffled_names = @names;
+    $prng->shuffle(\@shuffled_names);  #  in-place re-ordering
+
+    my %reordered;
+    @reordered{@names} = @shuffled_names;
+    
+    foreach my $node_ref (values %terminals) {
+        my $name = $node_ref->get_name;
+        $node_ref->set_name (name => $reordered{$name});
+    }
+
+    return wantarray ? %reordered : \%reordered;
+}
+
 
 sub numerically {$a <=> $b}
 

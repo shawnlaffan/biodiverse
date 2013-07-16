@@ -74,11 +74,6 @@ sub update {
     elsif ( Biodiverse::GUI::ProgressDialog::Cancel->caught() ) {
         $EVAL_ERROR->rethrow;
     }
-    elsif ($EVAL_ERROR) {
-        croak $EVAL_ERROR;
-    }
-
-    #return if !$EVAL_ERROR;
 
     return if $self->{gui_only};
 

@@ -7,8 +7,8 @@ use warnings;
 
 our $VERSION = '0.18_007';
 
-use Data::Dumper;
-use Data::DumpXML::Parser;
+#use Data::Dumper;
+#use Data::DumpXML::Parser;
 use Carp;
 use Scalar::Util qw /blessed/;
 
@@ -24,10 +24,11 @@ require Biodiverse::GUI::Exclusions;
 require Biodiverse::GUI::Export;
 require Biodiverse::GUI::Tabs::Outputs;
 require Biodiverse::GUI::YesNoCancel;
-require Biodiverse::GUI::ProgressDialog;  #  needed?
+#require Biodiverse::GUI::ProgressDialog;
 
 require Biodiverse::BaseData;
 require Biodiverse::Matrix;
+require Biodiverse::Config;
 
 use base qw /Biodiverse::Common Biodiverse::GUI::Help/;
 
@@ -43,6 +44,7 @@ BEGIN {
         tabs     => [],       # Stores refs to Tabs objects. In order of page index.
     };
     bless $singleton, 'Biodiverse::GUI::GUIManager';
+    $Biodiverse::Config::running_under_gui = 1;
 }
 
 sub instance {
@@ -170,37 +172,37 @@ sub init {
     return;
 }
 
-sub progressTest {
-    my $self = shift;
-
-    my $dlg = Biodiverse::GUI::ProgressDialog->new;
-
-    #$dlg->update("0.5", 0.5);
-    #sleep(1);
-    #$dlg->update("0.5", 0.6);
-    #sleep(1);
-    $dlg->pulsate("pulsing first time", 0.7);
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-
-    sleep(1); $dlg->update("1/3", 0.1);
-    sleep(1); $dlg->update("2/3", 0.4);
-    sleep(1); $dlg->update("3/3", 0.7);
-
-    $dlg->pulsate("pulsing second time", 0.7);
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-
-    sleep(1); $dlg->update("1/3", 0.1);
-    sleep(1); $dlg->update("2/3", 0.4);
-    sleep(1); $dlg->update("3/3", 0.7);
-
-    $dlg->destroy;
-    
-    return;
-}
+#sub progressTest {
+#    my $self = shift;
+#
+#    my $dlg = Biodiverse::GUI::ProgressDialog->new;
+#
+#    #$dlg->update("0.5", 0.5);
+#    #sleep(1);
+#    #$dlg->update("0.5", 0.6);
+#    #sleep(1);
+#    $dlg->pulsate("pulsing first time", 0.7);
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#
+#    sleep(1); $dlg->update("1/3", 0.1);
+#    sleep(1); $dlg->update("2/3", 0.4);
+#    sleep(1); $dlg->update("3/3", 0.7);
+#
+#    $dlg->pulsate("pulsing second time", 0.7);
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#
+#    sleep(1); $dlg->update("1/3", 0.1);
+#    sleep(1); $dlg->update("2/3", 0.4);
+#    sleep(1); $dlg->update("3/3", 0.7);
+#
+#    $dlg->destroy;
+#    
+#    return;
+#}
 
 sub initCombobox {
     my ($self, $id) = @_;
@@ -1405,19 +1407,16 @@ sub do_convert_matrix_to_phylogeny {
         
         if ($response eq 'ok') {
             my $chosen_name = $txtName->get_text;
-            my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
             $matrix_ref->set_param (AS_TREE => undef);  #  clear the previous version
 
             eval {
                 $phylogeny = $matrix_ref->to_tree (
                     linkage_function => 'link_average',
-                    progress => $progress_bar,
                 );
             };
             if ($EVAL_ERROR) {
                 $self->report_error ($EVAL_ERROR);
                 $dlg->destroy;
-                $progress_bar->destroy;
                 return;
             }
 
@@ -1425,7 +1424,6 @@ sub do_convert_matrix_to_phylogeny {
             if ($self->get_param ('CACHE_MATRIX_AS_TREE')) {
                 $matrix_ref->set_param (AS_TREE => $phylogeny);
             }
-            $progress_bar->destroy;
         }
         $dlg->destroy;
     }

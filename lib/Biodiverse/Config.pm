@@ -19,10 +19,13 @@ our @EXPORT = qw /use_base add_lib_paths/;
 use Carp;
 use Data::Dumper qw /Dumper/;
 
+#  These global vars need to be converted to subroutines.
 #  update interval for progress bars  - need to check for tainting
 our $progress_update_interval     = $ENV{BIODIVERSE_PROGRESS_INTERVAL} || 0.3;
 our $progress_update_interval_pct = $ENV{BIODIVERSE_PROGRESS_INTERVAL_PCT} || 5;
 our $progress_no_use_gui          = $ENV{BIODIVERSE_PROGRESS_NO_USE_GUI} ? 1 : 0;
+
+our $running_under_gui = 0;
 
 our $license = << 'END_OF_LICENSE'
 This program is free software: you can redistribute it and/or modify

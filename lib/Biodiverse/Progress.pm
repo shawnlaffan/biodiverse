@@ -8,6 +8,7 @@ use List::Util qw /max min/;
 my $NULL_STRING = q{};
 
 require Biodiverse::Config;
+use Biodiverse::Exception;
 
 our $VERSION = '0.18_007';
 

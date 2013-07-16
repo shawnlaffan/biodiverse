@@ -754,10 +754,11 @@ sub add_matrices_to_basedata {
     my $self = shift;
     my %args = @_;
 
-    #  Don't add for randomisations
+    #  Don't add for randomisations or when we cluster a matrix directly
     return if $self->get_param ('NO_ADD_MATRICES_TO_BASEDATA');
 
-    my $bd = $self->get_param ('BASEDATA_REF');
+    my $bd = $self->get_basedata_ref;
+
     my %existing_outputs = $bd->get_matrix_outputs;
 
     my $orig_matrices = $args{matrices} || $self->get_param ('ORIGINAL_MATRICES');
@@ -1292,12 +1293,7 @@ sub cluster {
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
 
-    $self->process_spatial_conditions_and_def_query (%args);
-
-    my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
-    croak "[CLUSTER] $index not a valid clustering similarity index\n"
-        if ! exists ${$self->get_valid_indices}{$index};
-    $self->set_param (CLUSTER_INDEX => $index);
+    #$self->process_spatial_conditions_and_def_query (%args);
 
     my @matrices;
     #  if we were passed a matrix in the args  
@@ -1309,10 +1305,19 @@ sub cluster {
         #  save the matrices for later export
         #$self->set_param (ORIGINAL_SHADOW_MATRIX => $args{matrix});
         $self->set_param (ORIGINAL_MATRICES => [$args{matrix}]);
+        $self->set_param (NO_ADD_MATRICES_TO_BASEDATA => 1);
     }
     else {
         #  try to build the matrices.
+        my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
+        croak "[CLUSTER] $index not a valid clustering similarity index\n"
+            if ! exists ${$self->get_valid_indices}{$index};
+        $self->set_param (CLUSTER_INDEX => $index);
+
+        $self->process_spatial_conditions_and_def_query (%args);
+
         my $matrices_recycled;
+
         if (not $self->get_matrix_count) {
             #  can we get them from another output?
             my $bd = $self->get_basedata_ref;

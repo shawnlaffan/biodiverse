@@ -28,6 +28,9 @@ sub new {
 
     my $self = bless $hash_ref, $class;
 
+    return $self if $Biodiverse::Config::progress_no_use_gui;
+
+    #  if we are to use the GUI
     my $gui_progress;
     eval q{
         require Biodiverse::GUI::ProgressDialog;
@@ -70,6 +73,9 @@ sub update {
     }
     elsif ( Biodiverse::GUI::ProgressDialog::Cancel->caught() ) {
         $EVAL_ERROR->rethrow;
+    }
+    elsif ($EVAL_ERROR) {
+        croak $EVAL_ERROR;
     }
 
     #return if !$EVAL_ERROR;

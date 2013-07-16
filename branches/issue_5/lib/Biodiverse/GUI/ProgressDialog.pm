@@ -42,11 +42,22 @@ sub new {
         if ! $glade_file;
 
     my $window = Gtk2::Window->new;
-    $window->set_transient_for( $gui->getWidget('wndMain') );
-    $window->set_default_size (300, -1);
     my $vbox   = Gtk2::VBox->new (undef, 10);
     my $bar    = Gtk2::ProgressBar->new;
     my $label  = Gtk2::Label->new;
+    
+    # Make object
+    my $self = {
+        dlg          => $window,
+        label_widget => $label,
+        progress_bar => $bar,
+    };
+    bless $self, $class;
+
+    $window->set_transient_for( $gui->getWidget('wndMain') );
+    $window->set_default_size (300, -1);
+    $window->signal_connect ('delete-event' => \&destroy_callback, $self);
+    
     $window->set_title ('Please wait...');
     $label->set_line_wrap (1);
     $label->set_markup($text);
@@ -56,14 +67,7 @@ sub new {
     $vbox->pack_end ($label, 1, 0, 0);
     $window->show_all;
 
-    # Make object
-    my $self = {
-        dlg          => $window,
-        label_widget => $label,
-        progress_bar => $bar,
-    };
-    bless $self, $class;
-
+    
     $self->{progress_update_interval} = $progress_update_interval;
 
     $self->update ($text, 0, 1);
@@ -73,19 +77,27 @@ sub new {
 
 sub destroy {
     my $self = shift;
-say "Destroying progress bar";
+    #say "Destroying progress bar";
     $self->pulsate_stop;
-    
-    $self->{dlg}->destroy();
-    #$self->{progress_bar}->destroy();
-    #$self->{label_widget}->destroy();
-    
+
+    #  sometimes we have already been destroyed when this is called
+    if ($self->{dlg}) {
+        $self->{dlg}->destroy();
+    }
+
     foreach my $key (keys %$self) {
         #say "$key $self->{$key}";
         $self->{$key} = undef;
     }
 
     return;
+}
+
+#  wrapper for the destroy method
+sub destroy_callback {
+    my ($widget, $event, $self) = @_;
+    #say 'Destroy callback';
+    return $self->destroy;
 }
 
 sub update {  

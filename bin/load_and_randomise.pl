@@ -70,10 +70,17 @@ if (! defined $rest_of_args{iterations}) {
     $rest_of_args{iterations} = 10;
 }
 
-my $success = $rand->run_analysis (
-    save_checkpoint => 99,
-    %rest_of_args,
-);
+my $success = eval {
+    $rand->run_analysis (
+        save_checkpoint => 99,
+        %rest_of_args,
+    );
+};
+if ($EVAL_ERROR) {
+    report_error ($EVAL_ERROR);
+    exit;
+}
+
 
 croak "Analysis not successful\n"
   if ! $success;
@@ -85,9 +92,22 @@ if ($success == 1) {
         #die "checking";
     };
     if ($EVAL_ERROR) {
-        warn $EVAL_ERROR;
+        report_error ($EVAL_ERROR);
         exit;
     }
 }
 
 exit $success;
+
+
+sub report_error {
+    my $error = shift;
+    
+    if (blessed $error) {
+        warn $error->error, "\n\n", $error->trace->as_string, "\n";
+        
+    }
+    else {
+        warn $error;
+    }
+}

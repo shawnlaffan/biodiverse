@@ -1743,7 +1743,7 @@ sub AUTOLOAD {
         return $root_node->$method (@_);
     }
     else {
-        Biodiverse::NoMethod->throw (method => $method);
+        Biodiverse::NoMethod->throw (method => $method, message => "$self cannot call method $method");
         #croak "[$type (TREE)] No root node and/or cannot access method $method, "
         #    . "tried AUTOLOADER and failed\n";
     }

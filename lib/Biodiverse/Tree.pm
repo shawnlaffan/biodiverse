@@ -1248,20 +1248,11 @@ sub get_range_table {
 
         # progress feedback for text window and GUI        
         $progress ++;
-        #if ($progress_bar) {
-            $progress_bar->update(
-                "Converting tree $name to matrix\n"
-                . "($progress / $to_do)",
-                $progress / $to_do);
-        #}
-        #my $progress_percent = int (100 * $progress / $to_do);
-        #if ($progress_percent % 5 == 0) {
-        #    if ($printed_progress != $progress_percent) {
-        #        print "$progress_percent% ";
-        #        print "\n" if $progress_percent == 100;
-        #        $printed_progress = $progress_percent;
-        #    }
-        #}
+        $progress_bar->update(
+            "Converting tree $name to matrix\n"
+            . "($progress / $to_do)",
+            $progress / $to_do,
+        );
 
         LOOP_NODE2:
         foreach my $node2 (values %nodes) {

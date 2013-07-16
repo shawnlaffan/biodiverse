@@ -316,6 +316,7 @@ sub run_randomisation {
         }
     }
     $single_level_args =~ s/,$//;  #  remove any trailing comma
+    say 'Scalar arguments are ' . $single_level_args;
 
     my $results_list_name
         = $self->get_param ('NAME')
@@ -327,6 +328,7 @@ sub run_randomisation {
                 : $EMPTY_STRING)
             );
     
+    #  need to stop these being overridden by later calls
     my $randomise_group_props_by = $args{randomise_group_props_by} // 'no_change';
     my $randomise_trees_by       = $args{randomise_trees_by};
 

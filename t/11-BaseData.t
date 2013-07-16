@@ -110,7 +110,7 @@ my @setup = (
         );
     };
 
-    $bd->save (filename => "bd_test_1.bds");
+    #$bd->save (filename => "bd_test_1.bds");
 
     my $bounds = $bd->get_coord_bounds;
     my $min_bounds = $bounds->{MIN};
@@ -140,7 +140,7 @@ my @setup = (
             );
         };
         
-        $bd->save (filename => "bd_test_$min.bds");
+        #$bd->save (filename => "bd_test_$min.bds");
     
         #  clunky...
         #my @groups = ('0.5:0.5', '-0.5:0.5', '0.5:-0.5', '-0.5:-0.5', '-1.5:-1.5');

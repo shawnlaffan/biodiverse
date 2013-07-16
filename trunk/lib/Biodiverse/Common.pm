@@ -581,16 +581,13 @@ sub save_to {
     my $result = eval {$self->$method (filename => $tmp_file_name)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
-    #if ($result) {  #  should always be true if we get this far
-        print "[COMMON] Renaming $tmp_file_name to $file_name...";
-        my $success = rename ($tmp_file_name, $file_name);
-        croak "Unable to rename $tmp_file_name to $file_name\n"
-          if !$success;
-        print "Done\n";
-        return $file_name;
-    #}
+    print "[COMMON] Renaming $tmp_file_name to $file_name ... ";
+    my $success = rename ($tmp_file_name, $file_name);
+    croak "Unable to rename $tmp_file_name to $file_name\n"
+      if !$success;
+    print "Done\n";
 
-    return;
+    return $file_name;
 }
 
 #  Dump the whole object to a Storable file.

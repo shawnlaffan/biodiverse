@@ -45,6 +45,8 @@ sub main {
     
     test_save_and_reload_no_suffix ($bd);
     test_save_and_reload_non_existent_folder ($bd);
+    
+    test_save_and_reload_yaml ($bd);
 
     done_testing;
     return 0;
@@ -109,6 +111,8 @@ sub test_save_and_reload {
     my $fname = $tmp_obj->filename;
     $tmp_obj->close;
     
+    $fname .= ".$suffix";
+    
     my $suffix_feedback = $suffix || 'a null string';
 
     lives_ok {
@@ -137,6 +141,12 @@ sub test_save_and_reload_no_suffix {
     my $bd = shift;
     test_save_and_reload ($bd, '');
 }
+
+sub test_save_and_reload_yaml {
+    my $bd = shift;
+    test_save_and_reload ($bd, 'bdy');
+}
+
 
 sub test_save_and_reload_non_existent_folder {
     my $bd = shift;

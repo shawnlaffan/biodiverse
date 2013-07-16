@@ -4,6 +4,7 @@ package Biodiverse::Randomise;
 
 use strict;
 use warnings;
+use 5.010;
 
 use English ( -no_match_vars );
 
@@ -316,7 +317,9 @@ sub run_randomisation {
         }
     }
     $single_level_args =~ s/,$//;  #  remove any trailing comma
-    say 'Scalar arguments are ' . $single_level_args;
+    say "\n\n++++++++++++++++++++++++";
+    say '[RANDOMISE] Scalar arguments are ' . $single_level_args;
+    say "++++++++++++++++++++++++\n\n";
 
     my $results_list_name
         = $self->get_param ('NAME')

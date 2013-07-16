@@ -34,54 +34,39 @@ sub new {
     my $text     = shift || $NULL_STRING;
     my $progress = shift || 0;
 
-    #  debug
-    #use Devel::StackTrace;
-    #my $trace = Devel::StackTrace->new;
-    #print $trace->as_string; # like carp
-
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    # Load the widgets from Glade's XML
+    # Load the widgets from Glade's XML - need a better method of detecting if we are run from a GUI
     my $glade_file = $gui->getGladeFile;
     Biodiverse::GUI::ProgressDialog::NotInGUI->throw
         if ! $glade_file;
 
-    my $dlgxml = Gtk2::GladeXML->new($glade_file, 'wndProgress');
-    my $dlg = $dlgxml->get_widget('wndProgress');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    my $window = Gtk2::Window->new;
+    $window->set_transient_for( $gui->getWidget('wndMain') );
+    $window->set_default_size (300, -1);
+    my $vbox   = Gtk2::VBox->new (undef, 10);
+    my $bar    = Gtk2::ProgressBar->new;
+    my $label  = Gtk2::Label->new;
+    $window->set_title ('Please wait...');
+    $label->set_line_wrap (1);
+    $label->set_markup($text);
 
-    $dlg->set_position('GTK_WIN_POS_MOUSE');
-
-    # Show the dialog
-    #$dlg->set_modal(1);
-    $dlg->show_all();
-    #$dlg->present();  #  raise to top
-
-    my $label_widget = $dlgxml->get_widget('label');
-    if ($label_widget) {
-        $label_widget->set_markup($text);
-    }
-    my $bar = $dlgxml->get_widget('progressbar');
+    $window->add ($vbox);
+    $vbox->pack_end ($bar,   1, 0, 0);
+    $vbox->pack_end ($label, 1, 0, 0);
+    $window->show_all;
 
     # Make object
     my $self = {
-        #dlgxml       => $dlgxml,
-        dlg          => $dlg,
-        label_widget => $label_widget,
+        dlg          => $window,
+        label_widget => $label,
         progress_bar => $bar,
     };
     bless $self, $class;
 
-    #$dlg->signal_connect (
-    #    'stop_pulsing'   => \&pulsate_stop,
-    #    $self,
-    #);
-
     $self->{progress_update_interval} = $progress_update_interval;
 
     $self->update ($text, 0, 1);
-
-    #$self->{last_update_time} = [gettimeofday];
 
     return $self;
 }
@@ -92,10 +77,11 @@ say "Destroying progress bar";
     $self->pulsate_stop;
     
     $self->{dlg}->destroy();
-    $self->{progress_bar}->destroy;
-    $self->{label_widget}->destroy;
-
+    #$self->{progress_bar}->destroy();
+    #$self->{label_widget}->destroy();
+    
     foreach my $key (keys %$self) {
+        #say "$key $self->{$key}";
         $self->{$key} = undef;
     }
 

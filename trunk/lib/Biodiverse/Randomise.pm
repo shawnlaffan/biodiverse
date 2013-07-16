@@ -308,17 +308,17 @@ sub run_randomisation {
 
     #  loop through and get all the key/value pairs that are not refs.
     #  Assume these are arguments to the randomisation
-    my $single_level_args = $EMPTY_STRING;
+    my $scalar_args = $EMPTY_STRING;
     foreach my $key (sort keys %args) {
         my $val = $args{$key};
         $val = 'undef' if not defined $val;
         if (not ref ($val)) {
-            $single_level_args .= "$key=>$val,";
+            $scalar_args .= "$key=>$val,";
         }
     }
-    $single_level_args =~ s/,$//;  #  remove any trailing comma
+    $scalar_args =~ s/,$//;  #  remove any trailing comma
     say "\n\n++++++++++++++++++++++++";
-    say '[RANDOMISE] Scalar arguments are ' . $single_level_args;
+    say '[RANDOMISE] Scalar arguments are ' . $scalar_args;
     say "++++++++++++++++++++++++\n\n";
 
     my $results_list_name
@@ -326,14 +326,14 @@ sub run_randomisation {
         || $args{results_list_name}
         || uc (
             $function   #  add the args to the list name
-            . (length $single_level_args
-                ? "_$single_level_args"
+            . (length $scalar_args
+                ? "_$scalar_args"
                 : $EMPTY_STRING)
             );
-    
+
     #  need to stop these being overridden by later calls
     my $randomise_group_props_by = $args{randomise_group_props_by} // 'no_change';
-    my $randomise_trees_by       = $args{randomise_trees_by};
+    my $randomise_trees_by       = $args{randomise_trees_by} // 'no_change';
 
     #  counts are stored on the outputs, as they can be different if
     #    an output is created after some randomisations have been run
@@ -436,13 +436,16 @@ sub run_randomisation {
                 $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
             }
 
-            $self->override_object_analysis_args (
-                %args,
-                randomised_arg_object_cache => \%randomised_arg_object_cache,
-                object      => $rand_analysis,
-                rand_object => $rand_object,
-                iteration   => $$total_iterations,
-            );
+            eval {
+                $self->override_object_analysis_args (
+                    %args,
+                    randomised_arg_object_cache => \%randomised_arg_object_cache,
+                    object      => $rand_analysis,
+                    rand_object => $rand_object,
+                    iteration   => $$total_iterations,
+                );
+            };
+            croak $EVAL_ERROR if $EVAL_ERROR;
 
             eval {
                 $rand_analysis->run_analysis (
@@ -548,7 +551,7 @@ sub override_object_analysis_args {
     #  The following process could be generalised to handle any of the object types
 
     my $tree_shuffle_method = $args{randomise_trees_by} // q{};
-    if (not $tree_shuffle_method =~ /^shuffle_/) {  #  add the shuffle prefix if needed
+    if ($tree_shuffle_method && $tree_shuffle_method !~ /^shuffle_/) {  #  add the shuffle prefix if needed
         $tree_shuffle_method = 'shuffle_' . $tree_shuffle_method;
     }
 

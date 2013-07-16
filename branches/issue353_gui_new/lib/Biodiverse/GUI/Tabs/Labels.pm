@@ -48,7 +48,7 @@ sub new {
         selected_rows => [],
         selected_cols => [],
     };
-    $self->{tool} = 'Select';
+    #$self->{tool} = 'Select';
     $self->{project} = $self->{gui}->getProject();
     bless $self, $class;
     
@@ -131,8 +131,11 @@ sub new {
             clicked => $f, $self);
     };
 
-    $sig_clicked->('btnZoomTool', \&onZoomTool);
     $sig_clicked->('btnSelectTool', \&onSelectTool);
+    $sig_clicked->('btnZoomTool', \&onZoomTool);
+    $sig_clicked->('btnOptionsTool', \&onOptionsTool);
+
+    $self->{xmlPage}->get_widget("btnSelectTool")->set_active(1);
 
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     my $xml = $self->{xmlPage};
@@ -927,6 +930,8 @@ sub onGridSelect {
         $canvas->scroll_to($canvas->w2c(
                 $rect->[0], $rect->[1]));
         $grid->updateScrollbars;
+    } elsif ($self->{tool} eq 'Options') {
+        $self->onOverlays();
     }
 
     return;
@@ -1302,6 +1307,12 @@ sub onZoomTool {
     my $self = shift;
     return if $self->{ignore_tool_click};
     $self->choose_tool('Zoom');
+}
+
+sub onOptionsTool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Options');
 }
 
 sub onZoomIn {

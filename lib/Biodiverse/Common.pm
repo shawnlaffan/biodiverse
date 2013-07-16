@@ -12,6 +12,7 @@ use Data::Dumper  qw /Dumper/;
 use YAML::Syck;
 use Text::CSV_XS;
 use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
+use List::MoreUtils qw /none/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
 use Path::Class;
@@ -559,44 +560,33 @@ sub save_to {
 
     croak "Argument 'filename' not specified\n" if ! defined $file_name;
 
-    my @suffixes = ($self -> get_param ('OUTSUFFIX'),
-                    #$self -> get_param ('OUTSUFFIX_XML'),
-                    $self -> get_param ('OUTSUFFIX_YAML'),
-                   );
+    my $storable_suffix = $self->get_param ('OUTSUFFIX');
+    my $yaml_suffix     = $self->get_param ('OUTSUFFIX_YAML');
 
-    my ($null, $null2, $suffix) = fileparse ( $file_name, @suffixes ); 
-    if ($suffix eq $EMPTY_STRING || ! defined $suffix) {
-        $suffix = $self -> get_param ('OUTSUFFIX');
+    my @suffixes = ($storable_suffix, $yaml_suffix);
+
+    my ($null1, $null2, $suffix) = fileparse ( $file_name, @suffixes ); 
+    if ($suffix eq $EMPTY_STRING
+        || ! defined $suffix
+        || none  {$suffix eq $_} @suffixes
+        ) {
+        $suffix = $storable_suffix;
         $file_name .= '.' . $suffix;
     }
 
     my $tmp_file_name = $file_name . '.tmp';
 
-    my $result;
-    if ($suffix eq $self -> get_param ('OUTSUFFIX')) {
-        $result = eval {
-            $self -> save_to_storable (filename => $tmp_file_name)
-        };
-    }
-    elsif ($suffix eq $self -> get_param ('OUTSUFFIX_YAML')) {
-        $result = eval {
-            $self -> save_to_yaml (filename => $tmp_file_name)
-        };
-    }
-    #elsif ($suffix eq $self -> get_param ('OUTSUFFIX_XML')) {
-    #    return $self -> save_to_xml (filename => "$filename"); 
-    #}
-    else {  #  default to storable, adding the suffix
-        $file_name .= "." . $self -> get_param ('OUTSUFFIX');
-        $result = eval {
-            $self -> save_to_storable (filename => $tmp_file_name)
-        };
-    }
+    my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
+
+    my $result = eval {$self->$method (filename => $tmp_file_name)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     if ($result) {
-        print "[COMMON] Renaming $tmp_file_name to $file_name\n";
-        rename ($tmp_file_name, $file_name);
+        print "[COMMON] Renaming $tmp_file_name to $file_name...";
+        my $success = rename ($tmp_file_name, $file_name);
+        croak "Unable to rename $tmp_file_name to $file_name\n"
+          if !$success;
+        print "Done\n";
         return $file_name;
     }
 
@@ -618,7 +608,7 @@ sub save_to_storable {
 
     print "[COMMON] WRITING TO FILE $file\n";
 
-    local $Storable::Deparse = 0;  #  for code refs
+    local $Storable::Deparse = 0;     #  for code refs
     local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
     eval { nstore $self, $file };
     croak $EVAL_ERROR if $EVAL_ERROR;

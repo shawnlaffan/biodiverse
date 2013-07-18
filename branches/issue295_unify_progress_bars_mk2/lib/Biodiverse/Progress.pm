@@ -41,6 +41,7 @@ sub new {
             require Biodiverse::GUI::ProgressDialog;
             $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  #  should pass on all relevant args
         };
+        warn $EVAL_ERROR if $EVAL_ERROR;
         if (! $EVAL_ERROR and defined $gui_progress) {
             #  if we are in the GUI then we can use a GUI progress dialogue
             $self->{gui_progress} = $gui_progress;

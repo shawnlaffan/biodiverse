@@ -28,46 +28,49 @@ use Biodiverse::Exception;
 
 no warnings 'redefine';
 
+my $gui = Biodiverse::GUI::GUIManager->instance;
+my $window = Gtk2::Window->new;
+$window->set_transient_for( $gui->getWidget('wndMain') );
+$window->set_default_size (300, -1);
+$window->set_title ('Please wait...');
+my $vbox = Gtk2::VBox->new (undef, 10);
+$window->add ($vbox);
+$window->signal_connect ('delete-event' => \&Gtk2::Widget::hide_on_delete, $vbox);
+$window->signal_connect (hide => \&window_hide_callback);
 
 sub new {
     my $class    = shift;
     my $text     = shift || $NULL_STRING;
     my $progress = shift || 0;
 
-    my $gui = Biodiverse::GUI::GUIManager->instance;
-
     # Load the widgets from Glade's XML - need a better method of detecting if we are run from a GUI
     my $glade_file = $gui->getGladeFile;
     Biodiverse::GUI::ProgressDialog::NotInGUI->throw
         if ! $glade_file;
 
-    my $window = Gtk2::Window->new;
-    my $vbox   = Gtk2::VBox->new (undef, 10);
     my $bar    = Gtk2::ProgressBar->new;
     my $label  = Gtk2::Label->new;
     
     # Make object
     my $self = {
-        dlg          => $window,
+        dlg          => $window,  #  should not need this to be stored
+        vbox         => $vbox,    #  should not need this to be stored
         label_widget => $label,
         progress_bar => $bar,
+        init_text    => $text,
     };
     bless $self, $class;
 
-    $window->set_transient_for( $gui->getWidget('wndMain') );
-    $window->set_default_size (300, -1);
-    $window->signal_connect ('delete-event' => \&destroy_callback, $self);
-    
-    $window->set_title ('Please wait...');
+    #$window->signal_connect ('delete-event' => \&destroy_callback, $self);
+    #$window->signal_connect (hide => \&destroy_callback, $self);
+
     $label->set_line_wrap (1);
     $label->set_markup($text);
 
-    $window->add ($vbox);
-    $vbox->pack_end ($bar,   1, 0, 0);
-    $vbox->pack_end ($label, 1, 0, 0);
+    $vbox->pack_start ($label, 1, 0, 0);
+    $vbox->pack_start ($bar,   1, 0, 0);
     $window->show_all;
 
-    
     $self->{progress_update_interval} = $progress_update_interval;
 
     $self->update ($text, 0, 1);
@@ -77,17 +80,20 @@ sub new {
 
 sub destroy {
     my $self = shift;
-    #say "Destroying progress bar";
+
     $self->pulsate_stop;
 
-    #  sometimes we have already been destroyed when this is called
-    if ($self->{dlg}) {
-        $self->{dlg}->destroy();
+    if (my $pbar = $self->{progress_bar}) {
+        #$self->{vbox}->remove ($pbar);
+        $pbar->destroy;
+    }
+    if (my $label = $self->{label_widget}) {
+        $label->destroy;
     }
 
-    foreach my $key (keys %$self) {
-        #say "$key $self->{$key}";
-        $self->{$key} = undef;
+    my @children = $vbox->get_children;
+    if (!scalar @children) {
+        $window->hide;
     }
 
     return;
@@ -97,7 +103,20 @@ sub destroy {
 sub destroy_callback {
     my ($widget, $event, $self) = @_;
     #say 'Destroy callback';
-    return $self->destroy;
+    return $self->destroy if $self;
+    return;
+}
+
+sub window_hide_callback {
+    my ($widget, $event, undef) = @_;
+
+    my @children = $vbox->get_children;
+
+    foreach my $child (@children) {
+        $child->destroy;
+    }
+    
+    return;
 }
 
 sub update {  

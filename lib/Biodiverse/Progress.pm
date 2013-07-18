@@ -34,7 +34,7 @@ sub new {
         || !$Biodiverse::Config::running_under_gui;
 
     #  if we are to use the GUI
-    print "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui\n";
+    #print "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui\n";
     if ($Biodiverse::Config::running_under_gui) {
         my $gui_progress;
         eval q{

@@ -757,9 +757,10 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
     my $count = 0;
     print "[PD INDICES] Progress (% of $toDo nodes): ";
 
-    my $progress = int (100 * $count / $toDo);
+    my $progress      = $count / $toDo;
+    my $progress_text = int (100 * $progress);
     $progress_bar->update(
-        "Calculating node ranges\n($progress)",
+        "Calculating node ranges\n($progress_text %)",
         $progress,
     );
 
@@ -784,9 +785,10 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
             }
         }
         $count ++;
-        my $progress = $count / $toDo;
+        $progress     = $count / $toDo;
+        $progress_text = int (100 * $progress);
         $progress_bar->update(
-            "Calculating node ranges\n($progress)",
+            "Calculating node ranges\n($progress_text)",
             $progress,
         );
     }

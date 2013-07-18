@@ -1323,8 +1323,8 @@ sub default_mpd_mntd_results {
 
     my $abcnum = $args{abcnum} || 1;
     
-    my $mpd_pfx  = 'MPD' . $abcnum;
-    my $mntd_pfx = 'NTD' . $abcnum;
+    my $mpd_pfx  = 'PMPD' . $abcnum;
+    my $mntd_pfx = 'PNTD' . $abcnum;
     my %results;
     foreach my $pfx ($mpd_pfx, $mntd_pfx) {
         $results{$pfx . '_SD'}   = undef;

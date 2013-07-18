@@ -121,6 +121,8 @@ sub new {
     # its max size before hpaneLabelsTop is resized
 
     # Connect signals
+    my $xml = $self->{xmlPage};
+
     $self->{xmlLabel}->get_widget('btnLabelsClose')->signal_connect_swapped(clicked => \&onClose, $self);
 
     # Connect signals for new side tool chooser
@@ -135,12 +137,12 @@ sub new {
     $sig_clicked->('btnZoomTool', \&onZoomTool);
     $sig_clicked->('btnZoomOutTool', \&onZoomOutTool);
     $sig_clicked->('btnZoomFitTool', \&onZoomFitTool);
-    $sig_clicked->('btnOptionsTool', \&onOptionsTool);
+
+    $xml->get_widget('menuitem_labels_overlays')->signal_connect_swapped(activate => \&onOverlays, $self);
 
     $self->{xmlPage}->get_widget("btnSelectTool")->set_active(1);
 
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
-    my $xml = $self->{xmlPage};
     #$xml->get_widget('btnZoomInVL')->signal_connect_swapped(clicked => \&onZoomIn, $self->{grid});
     #$xml->get_widget('btnZoomOutVL')->signal_connect_swapped(clicked => \&onZoomOut, $self->{grid});
     #$xml->get_widget('btnZoomFitVL')->signal_connect_swapped(clicked => \&onZoomFit, $self->{grid});
@@ -150,7 +152,6 @@ sub new {
     $xml->get_widget('btnPhylogenyZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{dendrogram});
     $xml->get_widget('btnPhylogenyZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{dendrogram});
     $xml->get_widget('btnPhylogenyZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{dendrogram});
-    #$xml->get_widget('btnOverlaysVL')->signal_connect_swapped(clicked => \&onOverlays, $self);
     $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped('toggled' => \&onPhylogenyPlotModeChanged, $self);
     #$xml->get_widget('phylogeny_plot_range_weighted')->signal_connect_swapped('toggled' => \&onPhylogenyPlotModeChanged, $self);
     $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped('toggled' => \&on_highlight_groups_on_map_changed, $self);
@@ -440,21 +441,35 @@ sub makeLabelsModel {
     return;
 }
 
+sub setPhylogenyOptionsSensitive {
+    my $self = shift;
+    my $enabled = shift;
+
+    my $page = $self->{xmlPage};
+
+    for my $widget (
+            'phylogeny_plot_length',
+            'phylogeny_plot_depth',
+            'highlight_groups_on_map_labels_tab',
+            'use_highlight_path_changed1') {
+        $page->get_widget($widget)->set_sensitive($enabled);
+    }
+}
+
 sub onSelectedPhylogenyChanged {
     my $self = shift;
 
     # phylogenies
     my $phylogeny = $self->{project}->getSelectedPhylogeny;
 
-    my $plot_menu = $self->{xmlPage}->get_widget('menubar_phylogeny_plot_mode');
     $self->{dendrogram}->clear;
     if ($phylogeny) {
         $self->{dendrogram}->setCluster($phylogeny, 'length');  #  now storing tree objects directly
-        $plot_menu->set_sensitive(1);
+        $self->setPhylogenyOptionsSensitive(1);
     }
     else {
         #$self->{dendrogram}->clear;
-        $plot_menu->set_sensitive(0);
+        $self->setPhylogenyOptionsSensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);
     }
@@ -932,8 +947,6 @@ sub onGridSelect {
         $canvas->scroll_to($canvas->w2c(
                 $rect->[0], $rect->[1]));
         $grid->updateScrollbars;
-    } elsif ($self->{tool} eq 'Options') {
-        $self->onOverlays();
     }
 
     return;
@@ -1332,8 +1345,19 @@ sub onZoomFitTool {
 
 sub onOptionsTool {
     my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Options');
+    # Not really a tool, but a popup menu.
+
+    my $grid_dummy_item = Gtk2::MenuItem->new('Grid');
+    $grid_dummy_item->set_sensitive(0);
+
+    my $overlays_item = Gtk2::MenuItem->new('_Overlays');
+    $overlays_item->signal_connect_swapped(activate => \&onOverlays, $self);
+
+    my $popup_menu = Gtk2::Menu->new();
+    $popup_menu->append($grid_dummy_item);
+    $popup_menu->append($overlays_item);
+    $popup_menu->show_all();
+    $popup_menu->popup(undef, undef, undef, undef, 0, 0);
 }
 
 sub onZoomIn {

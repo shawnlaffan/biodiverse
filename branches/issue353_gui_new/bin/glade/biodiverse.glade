@@ -485,6 +485,12 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1078,6 +1084,12 @@
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1131,8 +1143,8 @@
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1149,8 +1161,8 @@
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -6457,20 +6469,111 @@ Both</property>
                   <widget class="GtkToolItem" id="toolitemLabelsOptions">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Options</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnOptionsTool">
+                      <widget class="GtkMenuBar" id="menubarLabelsOptions">
                         <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Options</property>
+                        <property name="can_focus">False</property>
+                        <property name="pack_direction">ttb</property>
                         <child>
-                          <widget class="GtkImage" id="imageOptionsTool">
+                          <widget class="GtkImageMenuItem" id="menuitem9">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="stock">gtk-index</property>
+                            <property name="use_stock">False</property>
+                            <property name="always_show_image">True</property>
+                            <child>
+                              <widget class="GtkMenu" id="menuitem9_menu">
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_labels_grid">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">False</property>
+                                    <property name="label" translatable="yes">Grid</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="sensitive">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_labels_overlays">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">False</property>
+                                    <property name="label" translatable="yes">Overlays...</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="menuitem_labels_separator1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_labels_tree">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">False</property>
+                                    <property name="label" translatable="yes">Tree</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="sensitive">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="phylogeny_plot_length">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">True</property>
+                                    <property name="tooltip" translatable="yes">Plot branches using their lengths.</property>
+                                    <property name="label" translatable="yes">Length</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <signal name="activate" handler="on_plot_length_activate"/>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="phylogeny_plot_depth">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">True</property>
+                                    <property name="tooltip" translatable="yes">Plot branches as a function of depth from the root node.</property>
+                                    <property name="label" translatable="yes">Depth</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="group">phylogeny_plot_length</property>
+                                    <signal name="activate" handler="on_plot_depth_activate"/>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="highlight_groups_on_map_labels_tab">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Highlight groups under this node when hovering on the node</property>
+                                    <property name="label" translatable="yes">Highlight groups on map?</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <signal name="activate" handler="on_highlight_groups_on_map"/>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="use_highlight_path_changed1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Highlight paths on the tree for groups when you hover the mouse on them</property>
+                                    <property name="label" translatable="yes">Highlight node paths for groups?</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <signal name="activate" handler="on_use_highlight_path_changed_activate"/>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                            <child internal-child="image">
+                              <widget class="GtkImage" id="image1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-index</property>
+                              </widget>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -7046,81 +7149,6 @@ Both</property>
                                   <widget class="GtkSeparatorToolItem" id="separatortoolitem13">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkToolItem" id="toolitem83">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <child>
-                                      <widget class="GtkMenuBar" id="menubar_phylogeny_plot_mode">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="child_pack_direction">btt</property>
-                                        <child>
-                                          <widget class="GtkMenuItem" id="menuitem9">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">Options</property>
-                                            <property name="use_underline">True</property>
-                                            <child>
-                                              <widget class="GtkMenu" id="menuitem9_menu">
-                                                <property name="can_focus">False</property>
-                                                <child>
-                                                  <widget class="GtkRadioMenuItem" id="phylogeny_plot_length">
-                                                    <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
-                                                    <property name="has_tooltip">True</property>
-                                                    <property name="tooltip" translatable="yes">Plot branches using their lengths.</property>
-                                                    <property name="label" translatable="yes">Length</property>
-                                                    <property name="use_underline">True</property>
-                                                    <property name="active">True</property>
-                                                    <signal name="activate" handler="on_plot_length_activate"/>
-                                                  </widget>
-                                                </child>
-                                                <child>
-                                                  <widget class="GtkRadioMenuItem" id="phylogeny_plot_depth">
-                                                    <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
-                                                    <property name="has_tooltip">True</property>
-                                                    <property name="tooltip" translatable="yes">Plot branches as a function of depth from the root node.</property>
-                                                    <property name="label" translatable="yes">Depth</property>
-                                                    <property name="use_underline">True</property>
-                                                    <property name="group">phylogeny_plot_length</property>
-                                                    <signal name="activate" handler="on_plot_depth_activate"/>
-                                                  </widget>
-                                                </child>
-                                                <child>
-                                                  <widget class="GtkCheckMenuItem" id="highlight_groups_on_map_labels_tab">
-                                                    <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
-                                                    <property name="tooltip" translatable="yes">Highlight groups under this node when hovering on the node</property>
-                                                    <property name="label" translatable="yes">Highlight groups on map?</property>
-                                                    <property name="use_underline">True</property>
-                                                    <property name="active">True</property>
-                                                    <signal name="activate" handler="on_highlight_groups_on_map"/>
-                                                  </widget>
-                                                </child>
-                                                <child>
-                                                  <widget class="GtkCheckMenuItem" id="use_highlight_path_changed1">
-                                                    <property name="visible">True</property>
-                                                    <property name="can_focus">False</property>
-                                                    <property name="tooltip" translatable="yes">Highlight paths on the tree for groups when you hover the mouse on them</property>
-                                                    <property name="label" translatable="yes">Highlight node paths for groups?</property>
-                                                    <property name="use_underline">True</property>
-                                                    <property name="active">True</property>
-                                                    <signal name="activate" handler="on_use_highlight_path_changed_activate"/>
-                                                  </widget>
-                                                </child>
-                                              </widget>
-                                            </child>
-                                          </widget>
-                                        </child>
-                                      </widget>
-                                    </child>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
@@ -8991,6 +9019,12 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

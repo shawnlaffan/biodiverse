@@ -317,9 +317,9 @@ sub run_randomisation {
         }
     }
     $scalar_args =~ s/,$//;  #  remove any trailing comma
-    say "\n\n++++++++++++++++++++++++";
-    say '[RANDOMISE] Scalar arguments are ' . $scalar_args;
-    say "++++++++++++++++++++++++\n\n";
+    #say "\n\n++++++++++++++++++++++++";
+    #say '[RANDOMISE] Scalar arguments are ' . $scalar_args;
+    #say "++++++++++++++++++++++++\n\n";
 
     my $results_list_name
         = $self->get_param ('NAME')

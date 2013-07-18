@@ -23,10 +23,10 @@ use Biodiverse::Config;
 use Gtk2 qw/-init/;
 use Gtk2::GladeXML;
 
+my $max_load_count = $ARGV[0] // 10;
 
 do {
     my $gladefile = get_gladefile();
-    my $max_load_count = 10;
 
     for my $i (1 .. $max_load_count) {
         
@@ -34,12 +34,18 @@ do {
             Gtk2::GladeXML->new( $gladefile, 'wndProgress' );
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
+        my $dlg = $gladexml->get_widget('wndProgress');
 
-        #my $methods = Class::Inspector->methods (blessed $gladexml);
-        #print join "\n", @$methods;
+
+        if ($i == 1) {
+            my $methods = Class::Inspector->methods (blessed $gladexml);
+            #print join "\n", @$methods;
+            my @children = $dlg->get_children;  #  there is only one
+            print $children[0]->get_children;
+        }
 
         #say Dumper $gladexml;
-
+        $dlg->destroy;
         $gladexml->DESTROY;  #  has no effect
         $gladexml = undef;
     }

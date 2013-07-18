@@ -1327,11 +1327,11 @@ sub default_mpd_mntd_results {
     my $mntd_pfx = 'PNTD' . $abcnum;
     my %results;
     foreach my $pfx ($mpd_pfx, $mntd_pfx) {
-        $results{$pfx . '_SD'}   = undef;
+        $results{$pfx . '_RMSD'}   = undef;
         $results{$pfx . '_N'}    = 0;
         $results{$pfx . '_MIN'}  = undef;
         $results{$pfx . '_MAX'}  = undef;
-        $results{$pfx . '_SUM'}  = undef;
+        #$results{$pfx . '_SUM'}  = undef;
         $results{$pfx . '_MEAN'} = undef;
     };
     

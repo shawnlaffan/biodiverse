@@ -6335,7 +6335,7 @@ Both</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Select</property>
                         <child>
-                          <widget class="GtkImage" id="image2">
+                          <widget class="GtkImage" id="imageSelectTool">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="pixbuf">selector.png</property>
@@ -6349,22 +6349,101 @@ Both</property>
                   </packing>
                 </child>
                 <child>
+                  <widget class="GtkToolItem" id="toolitemLabelsPan">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip" translatable="yes">Pan</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnPanTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Pan</property>
+                        <child>
+                          <widget class="GtkImage" id="imagePanTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="pixbuf">drag-resize.png</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
                   <widget class="GtkToolItem" id="toolitemLabelsZoom">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="tooltip" translatable="yes">Zoom</property>
+                    <property name="tooltip" translatable="yes">Zoom In</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnZoomTool">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Zoom</property>
+                        <property name="tooltip" translatable="yes">Zoom In</property>
                         <child>
-                          <widget class="GtkImage" id="image1">
+                          <widget class="GtkImage" id="imageZoomTool">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-zoom-in</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemLabelsZoomOut">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">Zoom Out</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnZoomOutTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Zoom Out</property>
+                        <child>
+                          <widget class="GtkImage" id="imageZoomOutTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-zoom-out</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemLabelsZoomFit">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">Zoom to Fit</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnZoomFitTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Zoom to Fit</property>
+                        <child>
+                          <widget class="GtkImage" id="imageZoomFitTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-zoom-fit</property>
                           </widget>
                         </child>
                       </widget>
@@ -6388,7 +6467,7 @@ Both</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Options</property>
                         <child>
-                          <widget class="GtkImage" id="image3">
+                          <widget class="GtkImage" id="imageOptionsTool">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-index</property>

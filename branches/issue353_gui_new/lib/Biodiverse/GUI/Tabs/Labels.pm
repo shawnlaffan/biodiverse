@@ -131,7 +131,10 @@ sub new {
     };
 
     $sig_clicked->('btnSelectTool', \&onSelectTool);
+    $sig_clicked->('btnPanTool', \&onPanTool);
     $sig_clicked->('btnZoomTool', \&onZoomTool);
+    $sig_clicked->('btnZoomOutTool', \&onZoomOutTool);
+    $sig_clicked->('btnZoomFitTool', \&onZoomFitTool);
     $sig_clicked->('btnOptionsTool', \&onOptionsTool);
 
     $self->{xmlPage}->get_widget("btnSelectTool")->set_active(1);
@@ -1296,16 +1299,35 @@ sub choose_tool {
     $self->{tool} = $tool;
 }
 
+# Called from GTK
 sub onSelectTool {
     my $self = shift;
     return if $self->{ignore_tool_click};
     $self->choose_tool('Select');
 }
 
+sub onPanTool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Pan');
+}
+
 sub onZoomTool {
     my $self = shift;
     return if $self->{ignore_tool_click};
     $self->choose_tool('Zoom');
+}
+
+sub onZoomOutTool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomOut');
+}
+
+sub onZoomFitTool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomFit');
 }
 
 sub onOptionsTool {

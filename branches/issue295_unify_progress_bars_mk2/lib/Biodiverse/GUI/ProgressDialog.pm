@@ -48,21 +48,18 @@ sub new {
     Biodiverse::GUI::ProgressDialog::NotInGUI->throw
         if ! $glade_file;
 
-    my $bar    = Gtk2::ProgressBar->new;
-    my $label  = Gtk2::Label->new;
-    
+    my $bar   = Gtk2::ProgressBar->new;
+    my $label = Gtk2::Label->new;
+
     # Make object
     my $self = {
-        dlg          => $window,  #  should not need this to be stored
-        vbox         => $vbox,    #  should not need this to be stored
+        #dlg          => $window,  #  should not need this to be stored
+        #vbox         => $vbox,    #  should not need this to be stored
         label_widget => $label,
         progress_bar => $bar,
-        init_text    => $text,
+        #init_text    => $text,
     };
     bless $self, $class;
-
-    #$window->signal_connect ('delete-event' => \&destroy_callback, $self);
-    #$window->signal_connect (hide => \&destroy_callback, $self);
 
     $label->set_line_wrap (1);
     $label->set_markup($text);
@@ -84,10 +81,11 @@ sub destroy {
     $self->pulsate_stop;
 
     if (my $pbar = $self->{progress_bar}) {
-        #$self->{vbox}->remove ($pbar);
+        #$vbox->remove ($pbar);
         $pbar->destroy;
     }
     if (my $label = $self->{label_widget}) {
+        #$vbox->remove ($label);
         $label->destroy;
     }
 
@@ -96,13 +94,15 @@ sub destroy {
         $window->hide;
     }
 
+    delete @$self{keys %$self};
+
     return;
 }
 
 #  wrapper for the destroy method
 sub destroy_callback {
     my ($widget, $event, $self) = @_;
-    #say 'Destroy callback';
+
     return $self->destroy if $self;
     return;
 }
@@ -110,12 +110,15 @@ sub destroy_callback {
 sub window_hide_callback {
     my ($widget, $event, undef) = @_;
 
-    my @children = $vbox->get_children;
-
-    foreach my $child (@children) {
-        $child->destroy;
+    if (my @children = $vbox->get_children) {  #  closed while we still have children
+        foreach my $child (@children) {
+            $child->destroy;
+        }
+        Biodiverse::GUI::ProgressDialog::Cancel->throw(
+            message  => "Progress bar closed, operation cancelled",
+        );
     }
-    
+
     return;
 }
 

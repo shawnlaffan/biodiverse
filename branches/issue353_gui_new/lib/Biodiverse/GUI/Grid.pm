@@ -1441,7 +1441,7 @@ sub onEvent {
             return 1;  #  Don't propagate the events
         }
         
-        elsif ($self->{drag_mode} eq 'select') { # left click and drag
+        elsif ($self->{drag_mode} eq 'select' and $event->button == 1) { # left click and drag
             
             if (defined $self->{select_func}
                 and not $self->{selecting}

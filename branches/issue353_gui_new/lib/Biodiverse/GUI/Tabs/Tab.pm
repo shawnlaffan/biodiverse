@@ -223,6 +223,14 @@ sub hotkeyHandler {
                 $self->{gui}->switchTab (undef, $page_index - 1); #  go left
             }
         }
+        elsif ($event->state == []) {
+            # Catch alphabetic keys only for now.
+            my $keyval = $event->keyval;
+            if (($keyval >= ord('a') && $keyval <= ord('z')) or (
+                    $keyval >= ord('A') && $keyval <= ord('Z'))) {
+                $self->onBareKey(uc chr $event->keyval);
+            }
+        }
     }
 
     $handler_entered = 0;
@@ -235,6 +243,12 @@ sub hotkeyHandler {
 
 
 sub onRun {} # default for tabs that don't implement onRun
+
+# Default for tabs that don't implement onBareKey
+sub onBareKey {
+    my ($self, $keyval, ) = @_;
+    #print "default bare key: ", $keyval, "\n";
+}
 
 sub getRemovable { return 1; } # default - tabs removable
 

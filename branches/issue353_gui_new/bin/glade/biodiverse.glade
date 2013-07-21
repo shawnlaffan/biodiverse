@@ -6365,14 +6365,14 @@ Both</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Pan</property>
+                    <property name="tooltip" translatable="yes">Pan (C)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnPanTool">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Pan</property>
+                        <property name="tooltip" translatable="yes">Pan (C)</property>
                         <child>
                           <widget class="GtkImage" id="imagePanTool">
                             <property name="visible">True</property>
@@ -6391,14 +6391,14 @@ Both</property>
                   <widget class="GtkToolItem" id="toolitemLabelsZoom">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="tooltip" translatable="yes">Zoom In</property>
+                    <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnZoomTool">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Zoom In</property>
+                        <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                         <child>
                           <widget class="GtkImage" id="imageZoomTool">
                             <property name="visible">True</property>
@@ -6417,14 +6417,14 @@ Both</property>
                   <widget class="GtkToolItem" id="toolitemLabelsZoomOut">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="tooltip" translatable="yes">Zoom Out</property>
+                    <property name="tooltip" translatable="yes">Zoom Out (X)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnZoomOutTool">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Zoom Out</property>
+                        <property name="tooltip" translatable="yes">Zoom Out (X)</property>
                         <child>
                           <widget class="GtkImage" id="imageZoomOutTool">
                             <property name="visible">True</property>

@@ -1306,9 +1306,11 @@ sub choose_tool {
     my $old_tool = $self->{tool};
 
     if ($old_tool) {
-        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}Tool");
         $self->{ignore_tool_click} = 1;
-        $widget->set_active($old_tool eq $tool);
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}Tool");
+        $widget->set_active(0);
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}Tool");
+        $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }
 
@@ -1348,21 +1350,20 @@ sub onZoomFitTool {
     $self->choose_tool('ZoomFit');
 }
 
-sub onOptionsTool {
-    my $self = shift;
-    # Not really a tool, but a popup menu.
+my %key_tool_map = (
+    Z => 'Zoom',
+    X => 'ZoomOut',
+    C => 'Pan'
+);
 
-    my $grid_dummy_item = Gtk2::MenuItem->new('Grid');
-    $grid_dummy_item->set_sensitive(0);
-
-    my $overlays_item = Gtk2::MenuItem->new('_Overlays');
-    $overlays_item->signal_connect_swapped(activate => \&onOverlays, $self);
-
-    my $popup_menu = Gtk2::Menu->new();
-    $popup_menu->append($grid_dummy_item);
-    $popup_menu->append($overlays_item);
-    $popup_menu->show_all();
-    $popup_menu->popup(undef, undef, undef, undef, 0, 0);
+# Override from tab
+sub onBareKey {
+    my ($self, $keyval) = @_;
+    # TODO: Add other tools
+    # TODO: For non-selection tools (zoom out, fit, options), we should do
+    # something instantly based on currently moused over box rather than
+    # requiring user to click.
+    $self->choose_tool($key_tool_map{$keyval}) if exists $key_tool_map{$keyval};
 }
 
 sub onZoomIn {

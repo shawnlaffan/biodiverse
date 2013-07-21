@@ -7145,15 +7145,6 @@ Both</property>
                                     <property name="expand">False</property>
                                   </packing>
                                 </child>
-                                <child>
-                                  <widget class="GtkSeparatorToolItem" id="separatortoolitem13">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                  </packing>
-                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>

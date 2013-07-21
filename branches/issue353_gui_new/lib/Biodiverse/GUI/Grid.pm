@@ -98,7 +98,7 @@ whenever cell is hovered over or clicked
 
 =item select_func
 
-=item right_click_func
+=item grid_click_func
 
 Closure that will be called whenever the grid has been right clicked, but not
 dragged
@@ -128,7 +128,7 @@ sub new {
     #$self->{use_hover_func} = 1;          #  we should use the hover func by default
     $self->{click_func}  = shift || undef; # Callback function for when users click on a cell
     $self->{select_func} = shift || undef; # Callback function for when users select a set of elements
-    $self->{right_click_func} = shift || undef; # Callback function for when the user right clicks anywhere
+    $self->{grid_click_func} = shift || undef; # Callback function for when the user right clicks anywhere
     my $g = 0;
     $self->{colour_none} = Gtk2::Gdk::Color->new($g, $g, $g);
 
@@ -184,6 +184,8 @@ sub new {
     #if ($show_legend) {
         $self->showLegend;
     #}
+
+    $self->{drag_mode} = 'select';
 
     return $self;
 }
@@ -267,7 +269,7 @@ sub destroy {
     delete $self->{hover_func};  #??? not sure if helps
     delete $self->{click_func};  #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
-    delete $self->{right_click_func};
+    delete $self->{grid_click_func};
     
     delete $self->{cells_group}; #!!!! Without this, GnomeCanvas __crashes__
                                 # Apparently, a reference cycle prevents it
@@ -1430,7 +1432,7 @@ sub onEvent {
                 and not $self->{selecting}
                 and $event->state >= [ 'control-mask' ])
             ) {
-            #print "===========Cell popup\n";
+            print "===========Cell popup\n";
             # Show/Hide the labels popup dialog
             my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
             my $f = $self->{click_func};
@@ -1439,13 +1441,12 @@ sub onEvent {
             return 1;  #  Don't propagate the events
         }
         
-        elsif ($event->button == 1) { # left click and drag
+        elsif ($self->{drag_mode} eq 'select') { # left click and drag
             
             if (defined $self->{select_func}
                 and not $self->{selecting}
                 and not ($event->state >= [ 'control-mask' ])
                 ) {
-                
                 ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
                 
                 # Grab mouse
@@ -1484,7 +1485,6 @@ sub onEvent {
     }
     elsif ($event->type eq 'button-release') {
         $cell->ungrab ($event->time);
-
         if ($self->{selecting} and defined $self->{select_func}) {
 
             $cell->ungrab ($event->time);
@@ -1545,15 +1545,18 @@ my $type = $event->type;
 my $state = $event->state;
 #print "BK Event is $type, state is $state \n";
 
+    # Do everything with left clck now.
+    if ($event->type =~ m/^button-/ && $event->button != 1) {
+        return;
+    }
 
-    if ( $event->type eq 'button-press') {
-        if ($event->button == 1 and defined $self->{select_func} and not $self->{selecting}) {
-#print "COMMENCING SELECTION  $self->{select_func}\n";
+    if ($event->type eq 'button-press') {
+        if ($self->{drag_mode} eq 'select' and not $self->{selecting}) {
             ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
 
             # Grab mouse
             $cell->grab (
-                [qw /pointer-motion-mask button-release-mask/ ],
+                [qw/pointer-motion-mask button-release-mask/],
                 Gtk2::Gdk::Cursor->new ('fleur'),
                 $event->time,
             );
@@ -1565,14 +1568,14 @@ my $state = $event->state;
                 'Gnome2::Canvas::Rect',
                 x1 => $event->x,
                 y1 => $event->y,
-                x2 => $event->x,
-                y2 => $event->y,
+                x2 => $event->x + 1,
+                y2 => $event->y + 1,
                 fill_color_gdk => undef,
                 outline_color_gdk => CELL_BLACK,
                 width_pixels => 0,
             );
         }
-        elsif ($event->button == 3) { # Right button only
+        elsif ($self->{drag_mode} eq 'pan') {
             ($self->{pan_start_x}, $self->{pan_start_y}) = $event->coords;
 
             # Grab mouse
@@ -1582,12 +1585,15 @@ my $state = $event->state;
                 $event->time,
             );
             $self->{dragging} = 1;
-            $self->{has_moved} = 0;
         }
-
+        elsif ($self->{drag_mode} eq 'click') {
+            if (defined $self->{grid_click_func}) {
+                $self->{grid_click_func}->();
+            }
+        }
     }
-    elsif ( $event->type eq 'button-release') {
-        if ($self->{selecting} and $event->button == 1) {
+    elsif ($event->type eq 'button-release') {
+        if ($self->{selecting}) {
             # Establish the selection
             my ($x_start, $y_start) = ($self->{sel_start_x}, $self->{sel_start_y});
             my ($x_end, $y_end)     = ($event->x, $event->y);
@@ -1615,13 +1621,6 @@ my $state = $event->state;
             $cell->ungrab ($event->time);
             $self->{dragging} = 0;
             $self->updateScrollbars(); #FIXME: If we do this for motion-notify - get great flicker!?!?
-
-            # Mouse wasn't moved at all during the click.
-            if (not $self->{has_moved}) {
-                if (defined $self->{right_click_func}) {
-                    $self->{right_click_func}->();
-                }
-            }
         }
 
     }
@@ -1629,15 +1628,11 @@ my $state = $event->state;
 #        print "Background Event\tMotion\n";
         
         if ($self->{selecting}) {
-
             # Resize selection rectangle
             $self->{sel_rect}->set(x2 => $event->x, y2 => $event->y);
 
         }
         elsif ($self->{dragging}) {
-            # Mark as an actual pan, so we don't treat the event as a right
-            # click.
-            $self->{has_moved} = 1;
             # Work out how much we've moved away from pan_start (world coords)
             my ($x, $y) = $event->coords;
             my ($dx, $dy) = ($x - $self->{pan_start_x}, $y - $self->{pan_start_y});
@@ -1649,7 +1644,7 @@ my $state = $event->state;
         }
     }
 
-    return 0;    
+    return 0;
 }
 
 # Called to complete selection. Finds selected elements and calls callback

@@ -175,7 +175,7 @@ sub initGrid {
     my $hover_closure  = sub { $self->onGridHover(@_); };
     my $click_closure  = sub { Biodiverse::GUI::CellPopup::cellClicked($_[0], $self->{base_ref}); };
     my $select_closure = sub { $self->onGridSelect(@_); };
-    my $right_click_closure = sub { $self->onGridRightClick(@_); };
+    my $grid_click_closure = sub { $self->onGridClick(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         $frame,
@@ -186,7 +186,7 @@ sub initGrid {
         $hover_closure,
         $click_closure,
         $select_closure,
-        $right_click_closure
+        $grid_click_closure
     );
 
     eval {$self->{grid}->setBaseStruct($self->{base_ref}->get_groups_ref)};
@@ -872,7 +872,8 @@ sub onGridSelect {
             delete $self->{ignore_selected_change};
         }
         onSelectedLabelsChanged($hselection, [$self, 'listLabels1']);
-    } elsif ($self->{tool} eq 'Zoom') {
+    }
+    elsif ($self->{tool} eq 'Zoom') {
         my $grid = $self->{grid};
         my $canvas = $grid->{canvas};
         rectCanonicalise ($rect);
@@ -906,7 +907,6 @@ sub onGridSelect {
         print "New PPU: $ppu\n";
         $canvas->set_pixels_per_unit($ppu);
 
-        $grid->postZoom;
 
         # Now pan so that the selection is centered. There are two cases.
         # +------------------------------------------+
@@ -935,7 +935,8 @@ sub onGridSelect {
             my $width = $rect->[2] - $rect->[0];
             $rect->[1] = $mid - 0.5 * $width / $window_aspect;
             $rect->[3] = $mid + 0.5 * $width / $window_aspect;
-        } else {
+        }
+        else {
             # 1st case illustracted above. We need to change the width.
             my $mid = ($rect->[0] + $rect->[2]) / 2;
             my $height = $rect->[3] - $rect->[1];
@@ -943,7 +944,8 @@ sub onGridSelect {
             $rect->[2] = $mid + 0.5 * $height * $window_aspect;
         }
 
-        # Pan
+        # Apply and pan
+        $grid->postZoom;
         $canvas->scroll_to($canvas->w2c(
                 $rect->[0], $rect->[1]));
         $grid->updateScrollbars;
@@ -952,21 +954,14 @@ sub onGridSelect {
     return;
 }
 
-sub onGridRightClick {
+sub onGridClick {
     my $self = shift;
-    #my $groups = shift;
-    #my $ignore_change = shift;
 
-    print "onGridRightClick\n";
-
-    if ($self->{tool} eq 'Zoom') {
-        my $grid = $self->{grid};
-        my $canvas = $grid->{canvas};
-        # Zoom out a level. Keep current centre.
-        my $oppu = $canvas->get_pixels_per_unit;
-        my $ppu = 0.5 * $oppu;
-        $canvas->set_pixels_per_unit($ppu);
-        $grid->postZoom;
+    if ($self->{tool} eq 'ZoomOut') {
+        $self->{grid}->zoomOut();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{grid}->zoomFit();
     }
 }
 
@@ -1296,6 +1291,14 @@ sub remove {
     return;
 }
 
+my %drag_modes = (
+    Select  => 'select',
+    Pan     => 'pan',
+    Zoom    => 'select',
+    ZoomOut => 'click',
+    ZoomFit => 'click',
+);
+
 sub choose_tool {
     my $self = shift;
     my ($tool, ) = @_;
@@ -1310,6 +1313,8 @@ sub choose_tool {
     }
 
     $self->{tool} = $tool;
+
+    $self->{grid}->{drag_mode} = $drag_modes{$tool};
 }
 
 # Called from GTK

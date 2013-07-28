@@ -135,6 +135,8 @@ sub new {
 
     $self->showLegend;
 
+    $self->{drag_mode} = 'select';
+
     return $self;
 }
 
@@ -766,7 +768,7 @@ sub onEvent {
     }
     elsif ($event->type eq 'button-press') {
 
-        if ($event->button == 1) {
+        if ($self->{drag_mode} eq 'select') {
 
             ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt}) = ($horez_elt, $vert_elt);
 
@@ -869,10 +871,21 @@ sub onSizeAllocate {
 sub onBackgroundEvent {
     my ($self, $event, $item) = @_;
 
-    if ( $event->type eq 'button-press') {
+    # Do everything with left clck now.
+    if ($event->type =~ m/^button-/ && $event->button != 1) {
+        return;
+    }
+
+    if ($event->type eq 'enter-notify') {
+        $self->{page}->setActivePane('MatrixGrid');
+    }
+    elsif ($event->type eq 'leave-notify') {
+        $self->{page}->setActivePane('');
+    }
+    elsif ( $event->type eq 'button-press') {
 #        print "Background Event\tPress\n";
 
-        if ($event->button != 1) {
+        if ($self->{drag_mode} eq 'pan') {
             ($self->{pan_start_x}, $self->{pan_start_y}) = $event->coords;
 
             # Grab mouse
@@ -886,7 +899,7 @@ sub onBackgroundEvent {
     elsif ( $event->type eq 'button-release') {
 #        print "Background Event\tRelease\n";
 
-        if ($event->button != 1) {
+        if ($self->{dragging}) {
             $item->ungrab ($event->time);
             $self->{dragging} = 0;
             $self->updateScrollbars(); #FIXME: If we do this for motion-notify - get great flicker!?!?

@@ -222,6 +222,7 @@ sub initMatrixGrid {
         $hover_closure,
         $click_closure
     );
+    $self->{matrix_grid}->{page} = $self; # Hacky
 
     $self->{matrix_drawn} = 0;
     
@@ -1326,6 +1327,7 @@ sub choose_tool {
     $self->{tool} = $tool;
 
     $self->{grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{matrix_grid}->{drag_mode} = $drag_modes{$tool};
 }
 
 # Called from GTK
@@ -1378,12 +1380,18 @@ sub onBareKey {
         if ($self->{active_pane} eq 'Grid') {
             $self->{grid}->zoomOut();
         }
+        elsif ($self->{active_pane} eq 'MatrixGrid') {
+            $self->{matrix_grid}->zoomOut();
+        }
         # TODO: Implement other panes
     }
     elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
         # Do an instant zoom fit and keep the current tool.
         if ($self->{active_pane} eq 'Grid') {
             $self->{grid}->zoomFit();
+        }
+        elsif ($self->{active_pane} eq 'MatrixGrid') {
+            $self->{matrix_grid}->zoomFit();
         }
         # TODO: Implement other panes
     }

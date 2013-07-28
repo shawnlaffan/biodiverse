@@ -6338,14 +6338,14 @@ Both</property>
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="has_tooltip">True</property>
-                    <property name="tooltip" translatable="yes">Select</property>
+                    <property name="tooltip" translatable="yes">Select (B)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnSelectTool">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Select</property>
+                        <property name="tooltip" translatable="yes">Select (B)</property>
                         <child>
                           <widget class="GtkImage" id="imageSelectTool">
                             <property name="visible">True</property>
@@ -6443,14 +6443,14 @@ Both</property>
                   <widget class="GtkToolItem" id="toolitemLabelsZoomFit">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <property name="tooltip" translatable="yes">Zoom to Fit</property>
+                    <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
                     <child>
                       <widget class="GtkToggleButton" id="btnZoomFitTool">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip" translatable="yes">Zoom to Fit</property>
+                        <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
                         <child>
                           <widget class="GtkImage" id="imageZoomFitTool">
                             <property name="visible">True</property>

@@ -120,6 +120,10 @@ sub new {
     # vpaneLists is done after hpaneLabelsTop, since this panel isn't able to get
     # its max size before hpaneLabelsTop is resized
 
+    # Panes will modify this to keep track of which one the mouse is currently
+    # over
+    $self->{active_pane} = '';
+
     # Connect signals
     my $xml = $self->{xmlPage};
 
@@ -188,6 +192,7 @@ sub initGrid {
         $select_closure,
         $grid_click_closure
     );
+    $self->{grid}->{page} = $self; # Hacky
 
     eval {$self->{grid}->setBaseStruct($self->{base_ref}->get_groups_ref)};
     if ($EVAL_ERROR) {
@@ -260,6 +265,10 @@ sub initDendrogram {
     return 1;
 }
 
+sub setActivePane {
+    my ($self, $active_pane) = @_;
+    $self->{active_pane} = $active_pane;
+}
 
 ##################################################
 # Labels list
@@ -1353,17 +1362,34 @@ sub onZoomFitTool {
 my %key_tool_map = (
     Z => 'Zoom',
     X => 'ZoomOut',
-    C => 'Pan'
+    C => 'Pan',
+    V => 'ZoomFit',
+    B => 'Select'
 );
 
 # Override from tab
 sub onBareKey {
     my ($self, $keyval) = @_;
     # TODO: Add other tools
-    # TODO: For non-selection tools (zoom out, fit, options), we should do
-    # something instantly based on currently moused over box rather than
-    # requiring user to click.
-    $self->choose_tool($key_tool_map{$keyval}) if exists $key_tool_map{$keyval};
+    my $tool = $key_tool_map{$keyval};
+
+    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
+        # Do an instant zoom out and keep the current tool.
+        if ($self->{active_pane} eq 'Grid') {
+            $self->{grid}->zoomOut();
+        }
+        # TODO: Implement other panes
+    }
+    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
+        # Do an instant zoom fit and keep the current tool.
+        if ($self->{active_pane} eq 'Grid') {
+            $self->{grid}->zoomFit();
+        }
+        # TODO: Implement other panes
+    }
+    else {
+        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+    }
 }
 
 sub onZoomIn {

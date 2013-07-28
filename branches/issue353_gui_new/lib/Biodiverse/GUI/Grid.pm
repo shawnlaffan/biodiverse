@@ -187,6 +187,8 @@ sub new {
 
     $self->{drag_mode} = 'select';
 
+    # Labels::initGrid will set {page} (hacky)
+
     return $self;
 }
 
@@ -1541,8 +1543,8 @@ sub onSizeAllocate {
 sub onBackgroundEvent {
     my ($self, $event, $cell) = @_;
 
-my $type = $event->type;
-my $state = $event->state;
+#my $type = $event->type;
+#my $state = $event->state;
 #print "BK Event is $type, state is $state \n";
 
     # Do everything with left clck now.
@@ -1550,7 +1552,13 @@ my $state = $event->state;
         return;
     }
 
-    if ($event->type eq 'button-press') {
+    if ($event->type eq 'enter-notify') {
+        $self->{page}->setActivePane('Grid');
+    }
+    elsif ($event->type eq 'leave-notify') {
+        $self->{page}->setActivePane('');
+    }
+    elsif ($event->type eq 'button-press') {
         if ($self->{drag_mode} eq 'select' and not $self->{selecting}) {
             ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
 

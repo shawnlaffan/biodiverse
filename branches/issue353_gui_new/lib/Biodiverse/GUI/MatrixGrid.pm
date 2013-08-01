@@ -69,6 +69,7 @@ sub new {
 
     $self->{hover_func}  = shift || undef; #Callback function for when users move mouse over a cell
     $self->{select_func} = shift || undef; #Callback function for when users click on a cell
+    $self->{grid_click_func} = shift || undef; #Callback function for when users click on a cell
 
     # Make the canvas and hook it up
     $self->{canvas} = Gnome2::Canvas->new();
@@ -210,6 +211,7 @@ sub destroy {
 
     delete $self->{hover_func}; #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
+    delete $self->{click_func}; #??? not sure if helps
     
     delete $self->{cells_group}; #!!!! Without this, GnomeCanvas __crashes__
                                 # Apparently, a reference cycle prevents it from being destroyed properly,
@@ -794,6 +796,11 @@ sub onEvent {
             );
 
             return 0;
+        }
+        elsif ($self->{drag_mode} eq 'click') {
+            if (defined $self->{grid_click_func}) {
+                $self->{grid_click_func}->();
+            }
         }
     }
     elsif ($event->type eq 'button-release') {

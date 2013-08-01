@@ -727,6 +727,11 @@ sub maxmin {
 sub onEvent {
     my ($self, $event, $cell) = @_;
 
+    # Do everything with left clck now.
+    if ($event->type =~ m/^button-/ && $event->button != 1) {
+        return;
+    }
+
     my ($x, $y) = ($event->x, $event->y);
 
     #print $event->x . "\n";

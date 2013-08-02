@@ -260,9 +260,11 @@ sub get_indices_object_for_matrix_and_clustering {
              )
         );
     }  # determines if we cluster on higher or lower values
+    
+    my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
 
     $indices_object->get_valid_calculations (
-        %args,
+        %$analysis_args,
         calculations    => [$index_function],
         nbr_list_count  => 2,
         element_list1   => [], #  dummy values for validity checks
@@ -273,7 +275,7 @@ sub get_indices_object_for_matrix_and_clustering {
       if not scalar keys %$valid_calcs;
 
     #  run the global pre_calcs
-    $indices_object->run_precalc_globals(%args);
+    $indices_object->run_precalc_globals(%$analysis_args);
     
     return $indices_object;
 }

@@ -40,7 +40,7 @@ foreach my $bd_file (@bd_files) {
     foreach my $sp ($bd->get_spatial_output_refs) {
         my $filename = ($out_prefix // $bd_name) . '_' . ($out_suffix // $sp->get_param('NAME')) . '_' . $list_name;
         $filename =~ s/$strip/$1/;
-        $filename =~ s/$dots//;
+        $filename =~ s/$dots//;  #  should only be used if we used $bd_name
         $sp->export (format => $export_type, file => $filename, list => $list_name);
     }
 

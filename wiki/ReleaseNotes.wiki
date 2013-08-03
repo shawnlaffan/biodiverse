@@ -15,11 +15,11 @@ Main changes since previous version (0.17) are:
     *  The phylogenetic diversity and phylogenetic endemism measures now use only the labels on the tree.  The main change for users is that the PD_per_taxon index will now divide PD by the number of labels in the sample that are on the tree, not the number in the sample.  Previously, if your sample contained labels not on the tree then the values returned were too low.  Issue #320.
     *  calc_pd_node_list returns a hash with the node lengths (index PD_INCLUDED_NODE_LIST).  Previously it just had values of 1.  Issue #321.
     *  The PE_WE index is now undefined when no tree branches occur in the neighbour sets.
-    *  New calculations have been added to replicate some of the analyses in PhyloCom.  These are available under the PhyloCom category in the calculations lists.  Issue #331 and Issue #332.
+    *  New calculations have been added to replicate some of the analyses in !PhyloCom.  These are available under the !PhyloCom category in the calculations lists.  Issue #331 and Issue #332.
     *  New calculation to obtain a list of the nodes not on the selected tree.  Issue #334
   *  Spatial conditions
-    *  The sp_match_text() and sp_match_regex() conditions now match against the whole label by default.  Specifying the axis argument will make them behave as in previous releases.  Issue #325
-    *  New condition sp_select_element() which will match only one element (group).  This is the same as sp_match_text() but has been optimised to make it considerably faster since it can only ever match one element.  Issue #326
+    *  The `sp_match_text()` and `sp_match_regex()` conditions now match against the whole label by default.  Specifying the axis argument will make them behave as in previous releases.  Issue #325
+    *  New condition `sp_select_element()` which will match only one element (group).  This is the same as sp_match_text() but has been optimised to make it considerably faster since it can only ever match one element.  Issue #326
     *  Analyses using point in polygon conditions for neighbour sets 1 & 2 now work correctly.  Previously no groups were identified in neighbour set 2.  Issue #380
     *  The assessment of spatial conditions is now considerably faster.  This will substantially speed up analyses with complex conditions.  (But note that analyses using `sp_self_only()` will not show any difference because the system knows it does not need to run any comparisons, thus avoiding needless computation).  Issue #381
   *  GUI
@@ -30,7 +30,7 @@ Main changes since previous version (0.17) are:
       *  Labels can be deleted using a list from a file (issue #348) or using a text match (issue #347).  
       *  Groups can be excluded using a definition query, using the same syntax as for a spatial analysis (issue #370).
   *  Exports
-    *  Delimited text exports now write directly to file, avoiding large memory usage.  Issue #350 
+    *  Delimited text exports for BaseStruct objects (groups, labels, spatial analyses) now write directly to file, avoiding large memory usage.  Issue #350 
     *  All tree nodes can now be optionally exported when using the Table Grouped type.  Issue #312
   *  Data structures
     *  The matrices are now less memory hungry.  Previously matrices with many unique values would require large amounts of storage due to the value indexing used.  This was a particular problem for phylogenetic turnover measures.  Issue #328

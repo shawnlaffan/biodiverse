@@ -245,12 +245,13 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
 sub get_param { 
     my $self = shift;
     my $param = shift;
-    if (! exists $self->{PARAMS}{$param}) {
-        carp "get_param WARNING: Parameter $param does not exist in $self.\n"
-            if $self->{PARAMS}{PARAM_CHANGE_WARN};
-        return;
-    }
-    
+    #if (! exists $self->{PARAMS}{$param}) {
+    #    carp "get_param WARNING: Parameter $param does not exist in $self.\n"
+    #        if $self->{PARAMS}{PARAM_CHANGE_WARN};
+    #    return;
+    #}
+
+    return if ! exists $self->{PARAMS}{$param};
     return $self->{PARAMS}{$param};
 }
 

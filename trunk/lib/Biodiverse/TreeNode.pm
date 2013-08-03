@@ -1118,8 +1118,8 @@ sub is_tree_node {  #  check if a node is a TreeNode - used to check children fo
 
 sub is_terminal_node {
     my $self = shift;
-    return 1 if $#{$self->get_children} == -1;  #  no children - must be terminal
-    return 0;
+    my $children = $self->get_children;
+    return !scalar @$children;  #  terminal if it has no children
 }
 
 #  check if it is a "named" node, or internal (name ends in three underscores)

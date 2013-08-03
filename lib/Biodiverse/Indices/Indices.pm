@@ -1919,25 +1919,28 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     LISTNAME:
     while (($listname, $iter) = each (%hash)) {
         #print "$listname, $iter\n";
-        next LISTNAME if ! defined $args{$listname};
-        if ((ref $args{$listname}) =~ /HASH/) {  #  silently convert the hash to an array
-            $args{$listname} = [keys %{$args{$listname}}];
+        my $el_listref = $args{$listname}
+          // next LISTNAME;
+
+        if ((ref $el_listref) =~ /HASH/) {  #  silently convert the hash to an array
+            $el_listref = [keys %$el_listref];
         }
-        elsif (! ref ($args{$listname})) {
+        elsif (! ref $el_listref) {
             croak "_calc_abc argument $listname is not a list ref\n";
         }
 
         my @checked_elements;
         my @label_list;
-        
+
         ELEMENT:
-        foreach my $element (@{$args{$listname}}) {
+        foreach my $element (@$el_listref) {
             #  Deal with lazy array refs pointing
             #  to longer lists than we have elements.
             #  Should really croak these days.
-            next ELEMENT if ! defined $element;
+            #next ELEMENT if ! defined $element;
 
-            push (@label_list, $bd->get_labels_in_group_as_hash (group => $element));
+            my $sublist = $bd->get_labels_in_group_as_hash (group => $element);
+            push @label_list, %$sublist;
             push @checked_elements, $element;
         }
         if ($args{count_labels}) {
@@ -1979,39 +1982,42 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     %hash = (label_list1 => 1, label_list2 => 2);
     while (($listname, $iter) = each (%hash)) {
         next if ! defined $args{$listname};
-        if ((ref $args{$listname}) !~ /ARRAY/) {
-            carp "[INDICES] $args{$listname} is not an array ref\n";
+        my $label_listref = $args{$listname};
+        if ((ref $label_listref) !~ /ARRAY/) {
+            carp "[INDICES] $label_listref is not an array ref\n";
             next;
         }
 
         if ($args{count_labels} || $args{count_samples}) {
-            foreach my $lbl (@{$args{$listname}}) {
+            foreach my $lbl (@$label_listref) {
                 $label_list_master{$lbl}++;
                 $label_list{$iter}{$lbl}++;
             }
         }
         else {
-            @label_list_master{@{$args{$listname}}} = (1) x scalar @{$args{$listname}};
-            @{$label_list{$iter}}{@{$args{$listname}}} = (1) x scalar @{$args{$listname}};
+            @label_list_master{@$label_listref} = (1) x scalar @$label_listref;
+            @{$label_list{$iter}}{@$label_listref} = (1) x scalar @$label_listref;
         }
     }
 
     %hash = (label_hash1 => 1, label_hash2 => 2);
     while (($listname, $iter) = each (%hash)) {
         next if ! defined $args{$listname};
-        if ((ref $args{$listname}) !~ /HASH/) {
-            croak "[INDICES] $args{$listname} is not a hash ref\n";
+        my $label_hashref = $args{$listname};
+
+        if ((ref $label_hashref) !~ /HASH/) {
+            croak "[INDICES] $label_hashref is not a hash ref\n";
         }
 
         if ($args{count_labels} || $args{count_samples}) {
-            while (($label, $value) = each %{$args{$listname}}) {
+            while (($label, $value) = each %$label_hashref) {
                 $label_list_master{$label} += $value;
                 $label_list{$iter}{$label} += $value;
             }
         }
         else {  #  don't care about counts yet - assign using a slice
-            @label_list_master{keys %{$args{$listname}}} = (1) x scalar keys %{$args{$listname}};
-            @{$label_list{$iter}}{keys %{$args{$listname}}} = (1) x scalar keys %{$args{$listname}};
+            @label_list_master{keys %$label_hashref} = (1) x scalar keys %$label_hashref;
+            @{$label_list{$iter}}{keys %$label_hashref} = (1) x scalar keys %$label_hashref;
         }
     }
 
@@ -2050,9 +2056,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         element_count_all => $element_count_master,
     );
 
-    return wantarray
-        ? %results
-        : \%results;
+    return wantarray ? %results : \%results;
 }
 
 

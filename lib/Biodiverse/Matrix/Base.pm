@@ -39,7 +39,7 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
     my %args = @_;
     
     my ($element1, $element2);
-    my $exists = $self -> element_pair_exists (@_);
+    my $exists = $self->element_pair_exists (@_);
     if (! $exists) {
         if ($args{element1} eq $args{element2} and $self->element_is_in_matrix (element => $args{element1})) {
             return $self->get_param ('SELF_SIMILARITY');  #  defaults to undef
@@ -68,18 +68,21 @@ sub element_pair_exists {
     my $self = shift;
     my %args = @_;
 
-    Biodiverse::MissingArgument->throw ('element1 or element2 not defined')
-      if ! defined $args{element1} || ! defined $args{element2};
-
     my $element1 = $args{element1};
     my $element2 = $args{element2};
-    
+
+    Biodiverse::MissingArgument->throw ('element1 or element2 not defined')
+      if ! defined $element1 || ! defined $element2;
+
+    #  avoid some excess hash lookups
+    my $hash_ref = $self->{BYELEMENT};
+
     #  need to stop autovivification of element1 or 2
-    if (exists $self->{BYELEMENT}{$element1}) {
-        return 1 if exists $self->{BYELEMENT}{$element1}{$element2};
+    if (exists $hash_ref->{$element1}) {
+        return 1 if exists $hash_ref->{$element1}{$element2};
     }
-    if (exists $self->{BYELEMENT}{$element2}) {
-        return 2 if exists $self->{BYELEMENT}{$element2}{$element1};
+    if (exists $hash_ref->{$element2}) {
+        return 2 if exists $hash_ref->{$element2}{$element1};
     }
     return 0;
 }

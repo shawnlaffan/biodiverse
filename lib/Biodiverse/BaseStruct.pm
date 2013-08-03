@@ -9,6 +9,7 @@ package Biodiverse::BaseStruct;
 use strict;
 use warnings;
 use Carp;
+use 5.010;
 
 use English ( -no_match_vars );
 
@@ -1952,42 +1953,36 @@ sub get_sub_element_list {
     my $self = shift;
     my %args = @_;
 
-    croak "element not specified\n"
-        if ! defined $args{element};
+    my $element = $args{element} // croak "argument 'element' not specified\n";
 
-    my $element = $args{element};
+    my $el_hash = $self->{ELEMENTS};
 
-    return if ! exists $self->{ELEMENTS}{$element};
-    return if ! exists $self->{ELEMENTS}{$element}{SUBELEMENTS};
+    return if ! exists $el_hash->{$element};
+    return if ! exists $el_hash->{$element}{SUBELEMENTS};
 
     return wantarray
-        ?  keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}
-        : [keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}];
+        ?  keys %{$el_hash->{$element}{SUBELEMENTS}}
+        : [keys %{$el_hash->{$element}{SUBELEMENTS}}];
 }
 
 sub get_sub_element_hash {
     my $self = shift;
     my %args = (@_);
 
-    croak "argument 'element' not specified\n"
-        if ! defined $args{element};
+    my $element = $args{element} // croak "argument 'element' not specified\n";
 
-    my $element = $args{element};
+    my $el_hash = $self->{ELEMENTS};
 
-    #croak "element and/or subelement hash does not exist\n"
+    if (exists $el_hash->{$element}
+        && exists $el_hash->{$element}{SUBELEMENTS}) {
 
-    if (exists $self->{ELEMENTS}{$element}
-        && exists $self->{ELEMENTS}{$element}{SUBELEMENTS}) {
+        my $hash = $el_hash->{$element}{SUBELEMENTS};
 
-        my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS};
-
-        return wantarray
-            ? %$hash
-            : $hash;
+        return wantarray ? %$hash : $hash;
     }
 
     #  should really croak on this, but some calling code expects empty lists
-    #  (which chould be changed)
+    #  (which should be changed)
     return wantarray ? () : {};
 }
 

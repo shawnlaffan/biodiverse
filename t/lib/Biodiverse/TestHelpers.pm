@@ -208,7 +208,11 @@ sub compare_hash_vals {
         my %h2 = %$hash_exp;
         delete @h2{keys %$hash_got};
         is (scalar keys %h2, 0, 'No missing keys');
-    };
+    }
+    elsif (scalar keys %$hash_got == scalar keys %$hash_exp && scalar keys %$hash_exp == 0) {
+        #  but if both are zero then we need to run at least one test to get a pass
+        is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
+    }
 
     BY_KEY:
     foreach my $key (sort keys %targets) {
@@ -744,7 +748,7 @@ sub run_indices_test1 {
             "RESULTS_${nbr_list_count}_NBR_LISTS"
         );
         diag "Problem with data section: $EVAL_ERROR" if $EVAL_ERROR;
-        if ($expected_results_overlay) {
+        if ($expected_results_overlay && $expected_results_overlay->{$nbr_list_count}) {
             my $hash = $expected_results_overlay->{$nbr_list_count};
             @$expected{keys %$hash} = values %$hash;
         }

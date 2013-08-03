@@ -325,6 +325,10 @@ sub to_table_sparse {
     
     my @data;
     my @elements = sort $self->get_elements_as_array;
+
+    my $lower_left  = $args{lower_left};
+    my $upper_right = $args{upper_right};
+    my $symmetric = $args{symmetric};
     
     push @data, [qw /Row Column Value/];  #  header line
     
@@ -338,15 +342,15 @@ sub to_table_sparse {
         E2:
         foreach my $element2 (@elements) {
             $j++;
-            next E1 if $args{lower_left}  and $j > $i;
-            next E2 if $args{upper_right} and $j < $i;
+            next E1 if $lower_left  and $j > $i;
+            next E2 if $upper_right and $j < $i;
             my $exists = $self->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2,
             );
             
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
-            if (($args{symmetric} and $exists) or $exists == 1) {
+            if ($exists == 1 || ($symmetric && $exists)) {
                 my $value = $self->get_value (
                     element1 => $element1,
                     element2 => $element2,

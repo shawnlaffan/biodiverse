@@ -21,7 +21,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster/;
+use Biodiverse::TestHelpers qw /:cluster :tree/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
@@ -250,6 +250,60 @@ sub check_order_is_same_given_same_prng {
 }
 
 
+#  Need to use an index that needs arguments
+#  so we exercise the whole shebang.
+sub test_matrix_recycling {
+    my %args = @_;
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tree_ref  = get_tree_object_from_sample_data();
+    my $tie_breaker = [ENDW_WE => 'max'];
+
+    my %analysis_args = (
+        tree_ref    => $tree_ref,
+        index       => 'PHYLO_SORENSON',
+        linkage_function => 'link_recalculate',
+    );
+
+    my $cl1 = $bd->add_cluster_output (name => 'cl1');
+    $cl1->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl1->run_analysis (%analysis_args);
+
+    my $cl2 = $bd->add_cluster_output (name => 'cl2');
+    $cl2->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl2->run_analysis (%analysis_args);
+
+    ok (
+        $cl1->trees_are_same (comparison => $cl2),
+        'Clustering using reycled matrices'
+    );
+
+    my $cl3 = $bd->add_cluster_output (name => 'cl3');
+    $cl3->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl3->run_analysis (%analysis_args);
+
+    ok (
+        $cl1->trees_are_same (comparison => $cl3),
+        'Clustering using reycled matrices, 2nd time round'
+    );
+
+    #  now check what happens when we destroy the matrix in the clustering
+    $bd->delete_all_outputs;
+
+    my $cl4 = $bd->add_cluster_output (name => 'cl4');
+    $cl4->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl4->run_analysis (%analysis_args, no_clone_matrices => 1);
+
+    my $cl5 = $bd->add_cluster_output (name => 'cl5');
+    $cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl5->run_analysis (%analysis_args);
+
+    ok (
+        $cl4->trees_are_same (comparison => $cl5),
+        'Clustering using reycled matrices when matrix is destroyed in clustering'
+    );
+
+}
 
 ######################################
 

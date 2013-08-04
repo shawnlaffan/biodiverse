@@ -33,13 +33,14 @@ my @calcs = qw/
             calc_pe_lists
             calc_taxonomic_distinctness
             calc_taxonomic_distinctness_binary
+            calc_pe_single
         /;
 
 {
     run_indices_test1 (
         calcs_to_test      => [@calcs],
         calc_topic_to_test => 'Phylogenetic Indices',
-        generate_result_sets => 1,
+        #generate_result_sets => 1,
     );
 }
 

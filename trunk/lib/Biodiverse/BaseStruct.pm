@@ -1965,25 +1965,18 @@ sub get_sub_element_list {
         : [keys %{$el_hash->{$element}{SUBELEMENTS}}];
 }
 
+use autovivification;
 sub get_sub_element_hash {
     my $self = shift;
-    my %args = (@_);
+    my %args = @_;
 
     my $element = $args{element} // croak "argument 'element' not specified\n";
 
-    my $el_hash = $self->{ELEMENTS};
-
-    if (exists $el_hash->{$element}
-        && exists $el_hash->{$element}{SUBELEMENTS}) {
-
-        my $hash = $el_hash->{$element}{SUBELEMENTS};
-
-        return wantarray ? %$hash : $hash;
-    }
-
-    #  should really croak on this, but some calling code expects empty lists
-    #  (which should be changed)
-    return wantarray ? () : {};
+    no autovivification;
+    
+    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+#say 'get_sub_element_hash called in list context' if wantarray;
+    return wantarray ? %$hash : $hash;
 }
 
 sub get_subelement_count {

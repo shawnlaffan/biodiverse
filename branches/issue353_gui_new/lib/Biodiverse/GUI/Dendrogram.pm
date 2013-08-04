@@ -168,6 +168,10 @@ sub new {
         );
     }
 
+    $self->{drag_mode} = 'click';
+
+    # Labels::initMatrixGrid will set {page} (hacky}
+
     return $self;
 }
 
@@ -1708,6 +1712,11 @@ sub drawLine {
 sub onEvent {
     my ($self, $event, $line) = @_;
 
+    # If not in click mode, pass through button events to background
+    if ($event->type =~ m/^button-/ && $self->{drag_mode} ne 'click') {
+        return 0;
+    }
+
     my $node = $line->{node};
     my $f;
 
@@ -1802,15 +1811,23 @@ sub onEvent {
 sub onBackgroundEvent {
     my ($self, $event, $item) = @_;
 
-    if ( $event->type eq 'button-press') {
-        if ($event->button == 1) {
+    # Do everything with left clck now.
+    if ($event->type =~ m/^button-/ && $event->button != 1) {
+        return;
+    }
+
+    if ($event->type eq 'enter-notify') {
+        $self->{page}->set_active_pane('dendrogram');
+    }
+    elsif ( $event->type eq 'button-press') {
+        if ($self->{drag_mode} eq 'click') {
             $self->doColourNodesBelow;  #  no arg will clear colouring
             if (defined $self->{click_func}) {
                 my $f = $self->{click_func};
                 &$f();
             }
         }
-        else {
+        elsif ($self->{drag_mode} eq 'pan') {
             ($self->{drag_x}, $self->{drag_y}) = $event->coords;
 
             # Grab mouse

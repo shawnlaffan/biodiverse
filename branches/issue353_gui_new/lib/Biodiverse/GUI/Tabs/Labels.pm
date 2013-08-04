@@ -261,6 +261,7 @@ sub initDendrogram {
         $click_closure,
         $self->{base_ref},
     );
+    $self->{dendrogram}->{page} = $self;
     
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->setNumClusters (1);
@@ -268,7 +269,7 @@ sub initDendrogram {
     return 1;
 }
 
-sub setActivePane {
+sub set_active_pane {
     my ($self, $active_pane) = @_;
     $self->{active_pane} = $active_pane;
 }
@@ -1334,6 +1335,11 @@ my %drag_modes = (
     ZoomFit => 'click',
 );
 
+my %dendogram_drag_modes = (
+    %drag_modes,
+    Select  => 'click',
+);
+
 sub choose_tool {
     my $self = shift;
     my ($tool, ) = @_;
@@ -1353,6 +1359,7 @@ sub choose_tool {
 
     $self->{grid}->{drag_mode} = $drag_modes{$tool};
     $self->{matrix_grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{dendrogram}->{drag_mode} = $dendogram_drag_modes{$tool};
 }
 
 # Called from GTK
@@ -1406,23 +1413,10 @@ sub onBareKey {
 
     if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
         # Do an instant zoom out and keep the current tool.
-        if ($self->{active_pane} eq 'Grid') {
-            $self->{grid}->zoomOut();
-        }
-        elsif ($self->{active_pane} eq 'MatrixGrid') {
-            $self->{matrix_grid}->zoomOut();
-        }
-        # TODO: Implement other panes
+        $self->{$self->{active_pane}}->zoomOut();
     }
     elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-        # Do an instant zoom fit and keep the current tool.
-        if ($self->{active_pane} eq 'Grid') {
-            $self->{grid}->zoomFit();
-        }
-        elsif ($self->{active_pane} eq 'MatrixGrid') {
-            $self->{matrix_grid}->zoomFit();
-        }
-        # TODO: Implement other panes
+        $self->{$self->{active_pane}}->zoomFit();
     }
     else {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};

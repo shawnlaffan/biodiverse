@@ -138,6 +138,8 @@ sub new {
 
     $self->{drag_mode} = 'select';
 
+    # Labels::initMatrixGrid will set {page} (hacky}
+
     return $self;
 }
 
@@ -889,10 +891,10 @@ sub onBackgroundEvent {
     }
 
     if ($event->type eq 'enter-notify') {
-        $self->{page}->setActivePane('MatrixGrid');
+        $self->{page}->set_active_pane('matrix_grid');
     }
     elsif ($event->type eq 'leave-notify') {
-        $self->{page}->setActivePane('');
+        $self->{page}->set_active_pane('');
     }
     elsif ( $event->type eq 'button-press') {
 #        print "Background Event\tPress\n";

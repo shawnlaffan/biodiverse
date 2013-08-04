@@ -1553,10 +1553,7 @@ sub onBackgroundEvent {
     }
 
     if ($event->type eq 'enter-notify') {
-        $self->{page}->setActivePane('Grid');
-    }
-    elsif ($event->type eq 'leave-notify') {
-        $self->{page}->setActivePane('');
+        $self->{page}->set_active_pane('grid');
     }
     elsif ($event->type eq 'button-press') {
         if ($self->{drag_mode} eq 'select' and not $self->{selecting}) {

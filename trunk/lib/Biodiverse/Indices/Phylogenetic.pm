@@ -326,8 +326,7 @@ sub get_metadata_calc_pe {
                             . 'BaseData object.',
         name            => 'Phylogenetic Endemism',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
-        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
-        #pre_calc_global => [qw /get_node_range_hash get_trimmed_tree get_pe_element_cache/],
+        type            => 'Phylogenetic Indices',
         pre_calc        => ['_calc_pe'],  
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
@@ -336,17 +335,6 @@ sub get_metadata_calc_pe {
             },
             PE_WE_P         => {
                 description => 'Phylogenetic weighted endemism as a proportion of the total tree length'
-            },
-            PE_WE_SINGLE    => {
-                description => "Phylogenetic endemism unweighted by the number of neighbours.\n"
-                               . "Counts each label only once, regardless of how many groups in the neighbourhood it is found in.\n"
-                               . 'Useful if your data have sampling biases. '
-                               . 'Better with small sample windows.'
-            },
-            PE_WE_SINGLE_P  => {
-                description => "Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length.\n"
-                               . "Counts each label only once, regardless of how many groups in the neighbourhood it is found.\n"
-                               . "Useful if your data have sampling biases."
             },
         },
     );
@@ -358,7 +346,7 @@ sub calc_pe {
     my $self = shift;
     my %args = @_;
     
-    my @keys = qw /PE_WE PE_WE_P PE_WE_SINGLE PE_WE_SINGLE_P/;
+    my @keys = qw /PE_WE PE_WE_P/;
     my %results;
     @results{@keys} = @args{@keys};
     
@@ -396,13 +384,69 @@ sub get_metadata_calc_pe_lists {
 sub calc_pe_lists {
     my $self = shift;
     my %args = @_;
-    
+
     my @keys = qw /PE_WTLIST PE_RANGELIST PE_LOCAL_RANGELIST/;
     my %results;
     @results{@keys} = @args{@keys};
-    
+
     return wantarray ? %results : \%results;
 }
+
+sub get_metadata_calc_pe_single {
+
+    my %arguments = (
+        description     => 'PE scores, but not weighted by local ranges.',
+        name            => 'Phylogenetic Endemism single',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        type            => 'Phylogenetic Indices',
+        pre_calc        => ['_calc_pe'],
+        pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PE_WE_SINGLE    => {
+                description => "Phylogenetic endemism unweighted by the number of neighbours.\n"
+                               . "Counts each label only once, regardless of how many groups in the neighbourhood it is found in.\n"
+                               . 'Useful if your data have sampling biases. '
+                               . 'Better with small sample windows.'
+            },
+            PE_WE_SINGLE_P  => {
+                description => "Phylogenetic endemism unweighted by the number of neighbours as a proportion of the total tree length.\n"
+                               . "Counts each label only once, regardless of how many groups in the neighbourhood it is found.\n"
+                               . "Useful if your data have sampling biases."
+            },
+        },
+    );
+    
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_single {
+    my $self = shift;
+    my %args = @_;
+    
+    my $node_ranges = $args{PE_RANGELIST};
+    #my %wts;
+    my $tree = $args{trimmed_tree};
+    my $pe_single;
+
+    foreach my $node_name (keys %$node_ranges) {
+        my $range    = $node_ranges->{$node_name};
+        my $node_ref = $tree->get_node_ref (node => $node_name);
+        #$wts{$node_name} = $node_ref->get_length;
+        $pe_single += $node_ref->get_length / $range;
+    }
+    
+    my $tree_length = $tree->get_total_tree_length;
+    my $pe_single_p = defined $pe_single ? ($pe_single / $tree_length) : undef;
+    
+    my %results = (
+        PE_WE_SINGLE   => $pe_single,
+        PE_WE_SINGLE_P => $pe_single_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 
 sub get_metadata_calc_pd_endemism {
 
@@ -473,14 +517,10 @@ sub get_metadata__calc_pe {
     return wantarray ? %arguments : \%arguments;
 }
 
-sub _calc_pe { #  calculate the phylogenetic endemism of the species in the central elements only
-              #  this function expects a tree reference as an argument.
-              #  private method.  
+sub _calc_pe {
     my $self = shift;
-    my %args = @_;
-    
+    my %args = @_;    
 
-    #my $label_list       = $args{label_hash1};
     my $tree_ref         = $args{trimmed_tree};
     my $node_ranges      = $args{node_range};
     my $results_cache    = $args{PE_RESULTS_CACHE};
@@ -494,7 +534,7 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
     my $root_node = $tree_ref->get_tree_ref;
 
     #  default these to undef - more meaningful than zero
-    my ($PE_WE, $PE_WE_P, $PE_CWE, $PE_WE_SINGLE, $PE_WE_SINGLE_P);
+    my ($PE_WE, $PE_WE_P);
 
     my %ranges;
     my %wts;
@@ -549,13 +589,10 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
 
         # nodes are also invariant
         $hash_ref = $results->{nodes_in_path};
-        @nodes_in_path{keys %$hash_ref} =  values %$hash_ref;
-
-        # unweighted weights are invariant
-        $hash_ref = $results->{wts};
-        @unweighted_wts{keys %$hash_ref} = values %$hash_ref;
+        @nodes_in_path{keys %$hash_ref} = values %$hash_ref;
 
         # weights need to be summed
+        $hash_ref = $results->{wts};
         foreach my $node (keys %$hash_ref) {
             $wts{$node} += $hash_ref->{$node};
             $local_ranges{$node}++;
@@ -568,25 +605,10 @@ sub _calc_pe { #  calculate the phylogenetic endemism of the species in the cent
 
         #Phylogenetic endemism = sum for all nodes of: (branch length/total tree length) / node range
         $PE_WE_P = eval {$PE_WE / $total_tree_length};
-
-        #Phylogenetic corrected weighted endemism = (sum for all nodes of branch length / node range) / path length
-        #where path length is actually PD
-        #my $path_length;
-        #foreach my $length (values %nodes_in_path) {  #  PE_CWE should be pulled out to its own sub, but need to fix the pre_calcs first
-        #    $path_length += $length;
-        #}
-
-        #  NEED TO PULL THESE OUT TO THEIR OWN SUB - they are not needed for
-        #  many of the calcs that depend on this sub and slow things down
-        #  for large data sets with large trees
-        $PE_WE_SINGLE = sum (values %unweighted_wts);
-        $PE_WE_SINGLE_P = eval {$PE_WE_SINGLE / $total_tree_length};
     }
 
     my %results = (
         PE_WE          => $PE_WE,
-        PE_WE_SINGLE   => $PE_WE_SINGLE,
-        PE_WE_SINGLE_P => $PE_WE_SINGLE_P,
         PE_WE_P        => $PE_WE_P,
         PE_WTLIST      => \%wts,
         PE_RANGELIST   => \%ranges,

@@ -706,23 +706,26 @@ sub get_terminal_elements { #  get all the elements in the terminal nodes
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told otherwise
 
-    if ($self->is_terminal_node) {
-        return wantarray ? ($self->get_name, 1) : {$self->get_name, 1};
-    }
-    
     #  we have cached values from a previous pass - return them unless told not to
     if ($args{cache}) {
-        my $elRef = $self->get_cached_value ('TERMINAL_ELEMENTS');
-        if (defined $elRef) {
-            return wantarray ? %{$elRef} : $elRef;
+        my $cache_ref = $self->get_cached_value ('TERMINAL_ELEMENTS');
+
+        return wantarray ? %$cache_ref : $cache_ref
+          if defined $cache_ref;
+    }
+    
+    my @list;
+    
+    if ($self->is_terminal_node) {
+        push @list, ($self->get_name, 1);
+    }
+    else {
+        foreach my $child ($self->get_children) {
+            push @list, $child->get_terminal_elements (%args);
         }
     }
-    my @list;
-    foreach my $child ($self->get_children) {
-        push @list, $child->get_terminal_elements (%args);
-    }
+
     #  the values are really a hash, and need to be coerced into one when used
-    #  hashes save memory when using globally repeated keys and are more flexible
     my %list = @list;
     if ($args{cache}) {
         $self->set_cached_value (TERMINAL_ELEMENTS => \%list);

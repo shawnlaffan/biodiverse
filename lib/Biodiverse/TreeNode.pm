@@ -812,11 +812,12 @@ sub get_path_to_root_node {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told not to
 
-    return wantarray ? ($self) : [$self] if $self->is_root_node;
+    #return wantarray ? ($self) : [$self] if $self->is_root_node;
 
     #  don't cache internals 
-    my $use_cache = $self->is_internal_node ? 0 : $args{cache};
+    #my $use_cache = $self->is_internal_node ? 0 : $args{cache};
     #my $use_cache = 1; # - override
+    my $use_cache = $args{cache};
 
     my $path;
 

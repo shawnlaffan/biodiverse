@@ -1970,11 +1970,13 @@ sub get_sub_element_hash {
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element} // croak "argument 'element' not specified\n";
+    my $element = $args{element}
+      // croak "argument 'element' not specified\n";
 
     no autovivification;
     
-    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS}
+      // croak "no subelement called $element\n";
 #say 'get_sub_element_hash called in list context' if wantarray;
     return wantarray ? %$hash : $hash;
 }

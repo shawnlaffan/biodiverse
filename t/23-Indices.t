@@ -101,8 +101,8 @@ use Scalar::Util qw /blessed/;
     $is_error = $EVAL_ERROR ? 1 : 0;
     is ($is_error, 0, "Obtained valid calcs to run without error");
     
-    #  need to us the basedata object for these next few
-    my @el_list1 = qw /10_1 10_2/;
+    #  need to use the basedata object for these next few
+    my @el_list1 = qw /15:15 15:25/;
     #my @el_list2 = qw /10_3 10_4/;
     my %elements = (
         element_list1 => \@el_list1,
@@ -113,10 +113,11 @@ use Scalar::Util qw /blessed/;
     eval {$indices->run_precalc_globals(%$calc_args); print "\n"};
     $e = $EVAL_ERROR;
     ok (!$e, 'pre_calc_globals had no eval errors');
-    
+
     my %sp_calc_values = eval {$indices->run_calculations(%$calc_args, %elements)};
     $e = $EVAL_ERROR;
     ok (!$e, 'run_calculations had no eval errors');
+    diag $e if $e;
 
     eval {$indices->run_postcalc_globals (%$calc_args)};
     $e = $EVAL_ERROR;

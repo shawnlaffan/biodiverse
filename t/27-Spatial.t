@@ -1,6 +1,8 @@
 #  test the spatial outputs
 
 
+### need to test for basedatas with empty groups
+
 require 5.010;
 use strict;
 use warnings;

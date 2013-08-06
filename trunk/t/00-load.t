@@ -9,6 +9,9 @@ use File::Find;
 
 use rlib;
 
+#  need to move GUI modules into their own test file
+use Biodiverse::GUI::GUIManager;  #  trigger loading of Gtk libs on Windows
+
 #  list of files
 our @files;
 

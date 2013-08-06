@@ -1976,8 +1976,10 @@ sub get_sub_element_hash {
     no autovivification;
     
     my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS}
-      // croak "no subelement called $element\n";
-#say 'get_sub_element_hash called in list context' if wantarray;
+      // Biodiverse::NoSubElementHash->throw (
+            message => "Element $element does not exist or has no SUBELEMENT hash\n",
+        );
+
     return wantarray ? %$hash : $hash;
 }
 

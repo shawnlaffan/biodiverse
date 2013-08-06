@@ -868,11 +868,13 @@ sub onPhylogenyHighlight {
     my ($iter, $label, $hash);
 
     my $bd = $self->{base_ref};
+
+    LABEL:
     foreach my $label (keys %$terminal_elements) {
-        my $containing = $bd->get_groups_with_label_as_hash(label => $label);
-        if ($containing) {
-            @groups{keys %$containing} = values %$containing;
-        }
+        my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
+        next LABEL if !$containing;
+
+        @groups{keys %$containing} = values %$containing;
     }
 
     $self->{grid}->markIfExists( \%groups, 'circle' );

@@ -1974,11 +1974,13 @@ sub get_sub_element_hash {
       // croak "argument 'element' not specified\n";
 
     no autovivification;
-    
-    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS}
-      // Biodiverse::NoSubElementHash->throw (
-            message => "Element $element does not exist or has no SUBELEMENT hash\n",
-        );
+
+    #  Ideally we should throw an exception, but at the moment too many other
+    #  things need a result and we aren't testing for them.
+    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS};
+      #// Biodiverse::NoSubElementHash->throw (
+      #      message => "Element $element does not exist or has no SUBELEMENT hash\n",
+      #  );
 
     return wantarray ? %$hash : $hash;
 }

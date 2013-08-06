@@ -2232,7 +2232,7 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
     }
 
     #  Not sure why the rest is here - is it used anywhere?
-    #  violates the guide'ine that subs should do one thing only
+    #  violates the guideline that subs should do one thing only
 
     #  make a copy - don't want to delete the original
     my %results = $self->get_labels_ref->get_sub_element_hash (element => $args{label});

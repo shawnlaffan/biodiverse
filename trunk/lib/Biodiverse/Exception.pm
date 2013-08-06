@@ -33,6 +33,9 @@ use Exception::Class (
     'Biodiverse::ReadNexus::IncorrectFormat' => {
         description => 'Not in valid format',
         fields      => [ 'type' ],
+    },    
+    'Biodiverse::NoSubElementHash' => {
+        description => 'Element does not exist or does not have a SUBELEMENT hash',
     },
     'Biodiverse::GUI::ProgressDialog::Cancel' => {
         description => 'User closed the progress dialog',

@@ -2,6 +2,7 @@ package Biodiverse::GUI::GUIManager;
 
 use strict;
 use warnings;
+use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
@@ -13,6 +14,40 @@ use Carp;
 use Scalar::Util qw /blessed/;
 
 use English ( -no_match_vars );
+
+#use Cwd;
+use FindBin qw ( $Bin );
+use Path::Class ();
+
+BEGIN {  #  add the gtk libs if using windows - brittle? 
+    if ($OSNAME eq 'MSWin32') {
+        #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
+        my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
+        my $origin_dir = Path::Class::file($prog_name)->dir;
+
+        my @paths;
+        use Config;
+        my $gtk_dir = $Config{archname} =~ /x86/ ? 'gtk_win32' : 'gtk_win64';
+
+        foreach my $gtk_path (
+          Path::Class::dir($origin_dir, $gtk_dir, 'bin'),
+          Path::Class::dir($origin_dir, $gtk_dir, 'c', 'bin'),
+          Path::Class::dir($origin_dir->parent, $gtk_dir, 'bin'),
+          Path::Class::dir($origin_dir->parent, $gtk_dir, 'c', 'bin'),
+          ) {
+            if (-d $gtk_path) {
+                say "Adding $gtk_path to the path";
+                push @paths, $gtk_path;
+            }
+        }
+
+        my $sep = ';';
+        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
+        #say "Path is:\n", $ENV{PATH};
+    }
+}
+
+
 
 require Biodiverse::GUI::Project;
 require Biodiverse::GUI::BasedataImport;
@@ -2336,6 +2371,8 @@ sub report_error {
         $title = 'PROCESSING ERRORS';
     }
     
+    my $e = $error;  # keeps a copy of the object
+
     #  messy - should check for $error->isa('Exception::Class')
     if (blessed $error and (blessed $error) !~ /ProgressDialog::Cancel/) {
         warn $error->error, "\n", $error->trace->as_string, "\n";
@@ -2349,7 +2386,10 @@ sub report_error {
 
     #  and now strip out message from the error class
     if (blessed $error) {
-        $error = $error->message;
+        $error = $error->message . "\n";
+        if ($e->{Error}) {
+            $error .= $e->{Error};  #  nasty hack at error internals
+        }
     }
     my @error_array = $use_all_text
         ? $error

@@ -19,34 +19,6 @@ use Cwd;
 use FindBin qw ( $Bin );
 use Path::Class ();
 
-
-BEGIN {  #  add the gtk libs if using windows - brittle? 
-    if ($OSNAME eq 'MSWin32') {
-        #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
-        my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
-        my $origin_dir = Path::Class::file($prog_name)->dir;
-
-        my @paths;
-        use Config;
-        my $gtk_dir = $Config{archname} =~ /x86/ ? 'gtk_win32' : 'gtk_win64';
-
-        foreach my $gtk_path (
-          Path::Class::dir($origin_dir, $gtk_dir, 'bin'),
-          Path::Class::dir($origin_dir, $gtk_dir, 'c', 'bin'),
-          Path::Class::dir($origin_dir->parent, $gtk_dir, 'bin'),
-          Path::Class::dir($origin_dir->parent, $gtk_dir, 'c', 'bin'),
-          ) {
-            if (-d $gtk_path) {
-                push @paths, $gtk_path;
-            }
-        }
-
-        my $sep = ';';
-        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
-        say "Path is:\n", $ENV{PATH};
-    }
-}
-
 #  need this for the pp build to work
 if ($ENV{BDV_PP_BUILDING}) {
     say 'Building pp file';
@@ -64,12 +36,12 @@ use rlib;
 
 #  load up the user defined libs and settings
 use Biodiverse::Config;
+use Biodiverse::GUI::GUIManager;
 
 #  load Gtk
 use Gtk2 qw/-init/;
 
 use Gtk2::GladeXML;
-use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Callbacks;
 
 

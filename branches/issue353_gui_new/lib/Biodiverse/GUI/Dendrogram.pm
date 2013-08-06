@@ -89,6 +89,7 @@ sub new {
     $self->{use_highlight_func} = 1;  #  should we highlight?
     $self->{ctrl_click_func}    = shift || undef; #Callback function for when users control-click on a cell
     $self->{click_func}         = shift || undef; #Callback function for when users click on a cell
+    $self->{select_func}        = shift || undef; #Callback function for when users drag a selection rectangle on the background
     $self->{parent_tab}         = shift;
 
     if (defined $self->{parent_tab}) {
@@ -1781,7 +1782,6 @@ sub onEvent {
         # Just click - colour nodes
         }
         elsif ($event->button == 1) {
-            $self->doColourNodesBelow($node);
             if (defined $self->{click_func}) {
                 $f = $self->{click_func};
                 &$f($node);
@@ -1821,7 +1821,6 @@ sub onBackgroundEvent {
     }
     elsif ( $event->type eq 'button-press') {
         if ($self->{drag_mode} eq 'click') {
-            $self->doColourNodesBelow;  #  no arg will clear colouring
             if (defined $self->{click_func}) {
                 my $f = $self->{click_func};
                 &$f();
@@ -1838,29 +1837,71 @@ sub onBackgroundEvent {
             $self->{dragging} = 1;
             $self->{dragged}  = 0;
         }
+        elsif ($self->{drag_mode} eq 'select') {
+            my ($x, $y) = $event->coords;
 
+            $self->{sel_x} = $x;
+            $self->{sel_y} = $y;
+
+            # Grab mouse
+            $item->grab (
+                [qw/pointer-motion-mask button-release-mask/],
+                Gtk2::Gdk::Cursor->new ('fleur'),
+                $event->time,
+            );
+            $self->{selecting} = 1;
+
+            $self->{sel_rect} = Gnome2::Canvas::Item->new (
+                $self->{canvas}->root,
+                'Gnome2::Canvas::Rect',
+                x1 => $x,
+                y1 => $y,
+                x2 => $x,
+                y2 => $y,
+
+                fill_color_gdk    => undef,
+                outline_color_gdk => COLOUR_BLACK,
+                width_pixels      => 0,
+            );
+        }
     }
     elsif ( $event->type eq 'button-release') {
+        if ($self->{drag_mode} eq 'pan') {
+            $item->ungrab ($event->time);
+            $self->{dragging} = 0;
 
-        $item->ungrab ($event->time);
-        $self->{dragging} = 0;
-
-        # FIXME: WHAT IS THIS (obsolete??)
-        # If clicked without dragging, we also remove the element mark (see onEvent)
-        if (not $self->{dragged}) {
-            #$self->markElements(undef);
-            if ($self->{click_line}) {
-                $self->{click_line}->set(fill_color => 'black');
+            # FIXME: WHAT IS THIS (obsolete??)
+            # If clicked without dragging, we also remove the element mark (see onEvent)
+            if (not $self->{dragged}) {
+                #$self->markElements(undef);
+                if ($self->{click_line}) {
+                    $self->{click_line}->set(fill_color => 'black');
+                }
+                $self->{click_line} = undef;
             }
-            $self->{click_line} = undef;
+        }
+        elsif ($self->{selecting}) {
+            $self->{sel_rect}->destroy;
+            delete $self->{sel_rect};
+            $item->ungrab ($event->time);
+            $self->{selecting} = 0;
+
+            # Establish the selection
+            my ($x_start, $y_start) = ($self->{sel_x}, $self->{sel_y});
+            my ($x_end, $y_end) = $event->coords;
+
+            if (defined $self->{select_func}) {
+                my $f = $self->{select_func};
+                &$f([$x_start, $y_start, $x_end, $y_end]);
+            }
         }
     }
     elsif ( $event->type eq 'motion-notify') {
+        my ($x, $y) = $event->coords;
 
         #if ($self->{dragging} && $event->state >= 'button1-mask' ) {
         if ($self->{dragging}) {
             # Work out how much we've moved away from last time
-            my ($x, $y) = $event->coords;
             my ($dx, $dy) = ($x - $self->{drag_x}, $y - $self->{drag_y});
             $self->{drag_x} = $x;
             $self->{drag_y} = $y;
@@ -1890,6 +1931,12 @@ sub onBackgroundEvent {
             $self->updateScrollbars();
 
             $self->{dragged} = 1;
+        }
+        elsif ($self->{selecting}) {
+            # Resize selection rectangle
+            if ($self->{selecting}) {
+                $self->{sel_rect}->set(x2 => $x, y2 => $y);
+            }
         }
     }
 

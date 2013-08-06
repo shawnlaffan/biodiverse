@@ -153,9 +153,9 @@ sub new {
     #$xml->get_widget('btnMatrixZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{matrix_grid});
     #$xml->get_widget('btnMatrixZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{matrix_grid});
     #$xml->get_widget('btnMatrixZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{matrix_grid});
-    $xml->get_widget('btnPhylogenyZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{dendrogram});
-    $xml->get_widget('btnPhylogenyZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{dendrogram});
-    $xml->get_widget('btnPhylogenyZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{dendrogram});
+    #$xml->get_widget('btnPhylogenyZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{dendrogram});
+    #$xml->get_widget('btnPhylogenyZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{dendrogram});
+    #$xml->get_widget('btnPhylogenyZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{dendrogram});
     $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped('toggled' => \&onPhylogenyPlotModeChanged, $self);
     #$xml->get_widget('phylogeny_plot_range_weighted')->signal_connect_swapped('toggled' => \&onPhylogenyPlotModeChanged, $self);
     $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped('toggled' => \&on_highlight_groups_on_map_changed, $self);
@@ -246,6 +246,7 @@ sub initDendrogram {
     my $highlight_closure  = sub { $self->onPhylogenyHighlight(@_); };
     my $ctrl_click_closure = sub { $self->onPhylogenyPopup(@_); };
     my $click_closure      = sub { $self->onPhylogenyClick(@_); };
+    my $select_closure      = sub { $self->on_phylogeny_select(@_); };
     
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
         $frame,
@@ -259,6 +260,7 @@ sub initDendrogram {
         $highlight_closure,
         $ctrl_click_closure,
         $click_closure,
+        $select_closure,
         $self->{base_ref},
     );
     $self->{dendrogram}->{page} = $self;
@@ -868,12 +870,17 @@ sub handle_grid_drag_zoom {
                 $xc + $width_s / 2, $yc + $height_s / 2);
     }
 
-    my $oppu = $canvas->get_pixels_per_unit;
-    print "Old PPU: $oppu\n";
     my $ratio = min ($width_px / $width_s, $height_px / $height_s);
-    my $ppu = $oppu * $ratio;
-    print "New PPU: $ppu\n";
-    $canvas->set_pixels_per_unit($ppu);
+    if (exists $grid->{render_width}) {
+        $grid->{render_width} *= $ratio;
+        $grid->{render_height} *= $ratio;
+    } else {
+        my $oppu = $canvas->get_pixels_per_unit;
+        print "Old PPU: $oppu\n";
+        my $ppu = $oppu * $ratio;
+        print "New PPU: $ppu\n";
+        $canvas->set_pixels_per_unit($ppu);
+    }
 
 
     # Now pan so that the selection is centered. There are two cases.
@@ -1048,36 +1055,57 @@ sub onPhylogenyHighlight {
 
 sub onPhylogenyClick {
     my $self = shift;
-    my $node_ref = shift;
-    my $terminal_elements = (defined $node_ref) ? $node_ref->get_terminal_elements : {};
+    if ($self->{tool} eq 'Select') {
+        my $node_ref = shift;
+        $self->{dendrogram}->doColourNodesBelow($node_ref);
+        my $terminal_elements = (defined $node_ref) ? $node_ref->get_terminal_elements : {};
 
-    # Select all terminal labels
-    my $model      = $self->{labels_model};
-    my $hmodel     = $self->{xmlPage}->get_widget('listLabels1')->get_model();
-    my $hselection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
+        # Select all terminal labels
+        my $model      = $self->{labels_model};
+        my $hmodel     = $self->{xmlPage}->get_widget('listLabels1')->get_model();
+        my $hselection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
 
-    $hselection->unselect_all();
-    my $iter = $hmodel->get_iter_first();
-    my $elt;
+        $hselection->unselect_all();
+        my $iter = $hmodel->get_iter_first();
+        my $elt;
 
-    $self->{ignore_selected_change} = 'listLabels1';
-    while ($iter) {
-        my $hi = $hmodel->convert_iter_to_child_iter($iter);
-        $elt = $model->get($hi, 0);
-        #print "[onPhylogenyClick] selected: $elt\n";
+        $self->{ignore_selected_change} = 'listLabels1';
+        while ($iter) {
+            my $hi = $hmodel->convert_iter_to_child_iter($iter);
+            $elt = $model->get($hi, 0);
+            #print "[onPhylogenyClick] selected: $elt\n";
 
-        if (exists $terminal_elements->{ $elt } ) {
-            $hselection->select_iter($iter);
+            if (exists $terminal_elements->{ $elt } ) {
+                $hselection->select_iter($iter);
+            }
+
+            $iter = $hmodel->iter_next($iter);
         }
+        delete $self->{ignore_selected_change};
+        onSelectedLabelsChanged($hselection, [$self, 'listLabels1']);
 
-        $iter = $hmodel->iter_next($iter);
+        # Remove the hover marks
+        $self->{grid}->markIfExists( {}, 'circle' );
     }
-    delete $self->{ignore_selected_change};
-    onSelectedLabelsChanged($hselection, [$self, 'listLabels1']);
+    elsif ($self->{tool} eq 'ZoomOut') {
+        $self->{dendrogram}->zoomOut();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{dendrogram}->zoomFit();
+    }
 
-    # Remove the hover marks
-    $self->{grid}->markIfExists( {}, 'circle' );
-    
+    return;
+}
+
+sub on_phylogeny_select {
+    my $self = shift;
+    my $rect = shift; # [x1, y1, x2, y2]
+
+    if ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{dendrogram};
+        handle_grid_drag_zoom ($grid, $rect);
+    }
+
     return;
 }
 

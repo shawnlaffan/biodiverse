@@ -19,7 +19,10 @@ use English ( -no_match_vars );
 use FindBin qw ( $Bin );
 use Path::Class ();
 
-BEGIN {  #  add the gtk libs if using windows - brittle? 
+BEGIN {
+    #  Add the gtk libs if using windows - brittle?
+    #  Search up the tree until we find a dir of the requisite name
+    #  and which contains a bin folder
     if ($OSNAME eq 'MSWin32') {
         #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
         my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
@@ -28,21 +31,28 @@ BEGIN {  #  add the gtk libs if using windows - brittle?
         my @paths;
         use Config;
         my $gtk_dir = $Config{archname} =~ /x86/ ? 'gtk_win32' : 'gtk_win64';
+        
+        ORIGIN_DIR:
+        while ($origin_dir) {
 
-        foreach my $gtk_path (
-          Path::Class::dir($origin_dir, $gtk_dir, 'bin'),
-          Path::Class::dir($origin_dir, $gtk_dir, 'c', 'bin'),
-          Path::Class::dir($origin_dir->parent, $gtk_dir, 'bin'),
-          Path::Class::dir($origin_dir->parent, $gtk_dir, 'c', 'bin'),
-          ) {
-            if (-d $gtk_path) {
-                say "Adding $gtk_path to the path";
-                push @paths, $gtk_path;
+            foreach my $inner_path (
+              Path::Class::dir($origin_dir, $gtk_dir,),
+              Path::Class::dir($origin_dir, $gtk_dir, 'c'),
+              ) {
+                my $gtk_path = Path::Class::dir($inner_path, 'bin');
+                if (-d $gtk_path) {
+                    say "Adding $gtk_path to the path";
+                    push @paths, $gtk_path;
+                }
             }
+
+            my $old_dir = $origin_dir;
+            $origin_dir = $origin_dir->parent;
+            last ORIGIN_DIR if $old_dir eq $origin_dir;
         }
 
-        my $sep = ';';
-        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
+        my $sep = ';';  #  should get from system, but this block only works on windows anyway
+        $ENV{PATH} = join $sep, $ENV{PATH}, @paths;
         #say "Path is:\n", $ENV{PATH};
     }
 }

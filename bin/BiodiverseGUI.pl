@@ -19,15 +19,6 @@ use Cwd;
 use FindBin qw ( $Bin );
 use Path::Class ();
 
-#  need this for the pp build to work
-if ($ENV{BDV_PP_BUILDING}) {
-    say 'Building pp file';
-    use File::BOM qw / :subs /;          #  we need File::BOM.
-    open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
-      or croak "Cannot open $Bin via File::BOM\n";
-    $fh->close;
-}
-
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;
 
@@ -105,8 +96,13 @@ if ( defined $filename ) {
 #$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
 #print join "\n", $ic->get_search_path;
 
-# Go!
-Gtk2->main;
+if ($ENV{BDV_PP_BUILDING}) {
+    Gtk2->main_quit();
+}
+else {
+    # Go!
+    Gtk2->main;
+}
 
 #  go back home (unless it has been deleted while we were away)
 $eval_result = eval { chdir($caller_dir) };

@@ -31,7 +31,7 @@ BEGIN {
         my @paths;
         use Config;
         my $gtk_dir = $Config{archname} =~ /x86/ ? 'gtk_win32' : 'gtk_win64';
-        
+
         ORIGIN_DIR:
         while ($origin_dir) {
 
@@ -52,7 +52,8 @@ BEGIN {
         }
 
         my $sep = ';';  #  should get from system, but this block only works on windows anyway
-        $ENV{PATH} = join $sep, $ENV{PATH}, @paths;
+        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
+        #$ENV{PATH} .= $sep . join $sep, @paths;
         #say "Path is:\n", $ENV{PATH};
     }
 }
@@ -263,7 +264,10 @@ sub initCombobox {
 # Called when Project is to be deleted
 sub closeProject {
     my $self = shift;
-    if (defined $self->{project}) {
+    
+    return 1 if !defined $self->{project};
+
+    #if (defined $self->{project}) {
 
         if ($self->{project}->isDirty()) {
             # Show "Save changes?" dialog
@@ -297,7 +301,7 @@ sub closeProject {
         Biodiverse::GUI::Popup::onCloseAll();
 
         $self->{project} = undef;
-    }
+    #}
 
     return 1;
 }

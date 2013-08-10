@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 package Biodiverse::Config;
-
+use 5.010;
 use strict;
 use warnings;
 
@@ -18,6 +18,7 @@ our @EXPORT = qw /use_base add_lib_paths/;
 
 use Carp;
 use Data::Dumper qw /Dumper/;
+use FindBin qw ( $Bin );
 
 #  These global vars need to be converted to subroutines.
 #  update interval for progress bars  - need to check for tainting
@@ -136,6 +137,17 @@ sub use_base {
 
 add_lib_paths();
 use_base();
+
+#  need this for the pp build to work
+if ($ENV{BDV_PP_BUILDING}) {
+    use utf8;
+    say 'Building pp file';
+    say "using $0";
+    use File::BOM qw / :subs /;          #  we need File::BOM.
+    open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
+      or croak "Cannot open $Bin via File::BOM\n";
+    $fh->close;
+}
 
 
 1;

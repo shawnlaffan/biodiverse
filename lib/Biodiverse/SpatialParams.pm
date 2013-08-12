@@ -374,8 +374,9 @@ sub parse_distances {
     #  add $self -> to each condition that does not have it
     my $re_object_call = qr {
                 (
-                  (?<!\-\>\s)    #  negative lookbehind for method call, eg '$self-> '
-                  (?<!\-\>)      #  negative lookbehind for method call, eg '$self->'
+                  (?<!\w)     #  negative lookbehind for any non-punctuation in case a valid sub name is used in text 
+                  (?<!\-\>\s) #  negative lookbehind for method call, eg '$self-> '
+                  (?<!\-\>)   #  negative lookbehind for method call, eg '$self->'
                   (?:$re_sub_names)\b  #  one of our valid sp_ subs - should require a "("?
                 )
             }xms;

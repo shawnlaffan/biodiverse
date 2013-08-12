@@ -342,6 +342,8 @@ sub initGrid {
         $hover_closure,
         $click_closure
     );
+    $self->{grid}->{page} = $self;
+    $self->{grid}->{drag_mode} = 'select';
 
     if ($self->{existing}) {
         my $data = $self->{output_ref};

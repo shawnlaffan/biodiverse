@@ -316,4 +316,9 @@ sub set_legend_ltgt_flags {
     return;
 }
 
+sub set_active_pane {
+    my ($self, $active_pane) = @_;
+    $self->{active_pane} = $active_pane;
+}
+
 1;

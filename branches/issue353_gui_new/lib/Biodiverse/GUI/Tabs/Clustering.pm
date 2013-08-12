@@ -288,7 +288,6 @@ sub new {
     return $self;
 }
 
-
 sub setup_tie_breaker_widgets {
     my $self     = shift;
     my $existing = shift;
@@ -485,6 +484,7 @@ sub initMap {
         $hover_closure,
         $click_closure
     );
+    $self->{grid}->{page} = $self;
 
     $self->{grid}->setBaseStruct($self->{basedata_ref}->get_groups_ref);
 
@@ -520,6 +520,7 @@ sub initDendrogram {
         undef,
         $self,
     );
+    $self->{dendrogram}->{page} = $self;
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};

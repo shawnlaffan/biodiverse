@@ -1556,7 +1556,7 @@ sub onBackgroundEvent {
         $self->{page}->set_active_pane('grid');
     }
     elsif ($event->type eq 'button-press') {
-        if ($self->{drag_mode} eq 'select' and not $self->{selecting}) {
+        if ($self->{drag_mode} eq 'select' and not $self->{selecting} and defined $self->{select_func}) {
             ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
 
             # Grab mouse

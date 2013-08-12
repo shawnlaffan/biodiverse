@@ -271,11 +271,6 @@ sub initDendrogram {
     return 1;
 }
 
-sub set_active_pane {
-    my ($self, $active_pane) = @_;
-    $self->{active_pane} = $active_pane;
-}
-
 ##################################################
 # Labels list
 ##################################################
@@ -285,25 +280,25 @@ sub addColumn {
     my $tree = shift;
     my $title = shift;
     my $model_id = shift;
-    
+
     my $col = Gtk2::TreeViewColumn->new();
     my $renderer = Gtk2::CellRendererText->new();
-    #$title = Glib::Markup::escape_text($title);
-    #  Double the underscores so they display without acting as hints.
-    #  Need to find out how to disable that hint setting.
+#$title = Glib::Markup::escape_text($title);
+#  Double the underscores so they display without acting as hints.
+#  Need to find out how to disable that hint setting.
     $title =~ s/_/__/g;  
     $col->set_title($title);
     my $a = $col->get_title;
-    #$col->set_sizing('fixed');
+#$col->set_sizing('fixed');
     $col->pack_start($renderer, 0);
     $col->add_attribute($renderer,  text => $model_id);
     $col->set_sort_column_id($model_id);
     $col->signal_connect_swapped(clicked => \&onSorted, $self);
-    #$col->set('autosize' => 'True');
+#$col->set('autosize' => 'True');
     $col->set (resizable => 1);
-    
+
     $tree->insert_column($col, -1);
-    
+
     return;
 }
 
@@ -311,7 +306,7 @@ sub initList {
     my $self = shift;
     my $id   = shift;
     my $tree = $self->{xmlPage}->get_widget($id);
-    
+
 
     my $labels_ref = $self->{base_ref}->get_labels_ref;
     my $stats_metadata = $labels_ref->get_args (sub => 'get_base_stats');
@@ -326,8 +321,8 @@ sub initList {
     }
     $self->addColumn ($tree, $selected_list1_name, ++$i);
     $self->addColumn ($tree, $selected_list2_name, ++$i);
-    
-    # Set model to a wrapper that lets this list have independent sorting
+
+# Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
@@ -337,24 +332,24 @@ sub initList {
         $sort_func = \&sort_by_column_numeric_labels;
         $start_col = 0;
     }
-    
-    #  set a special sort func for all cols (except the labels if not numeric)
+
+#  set a special sort func for all cols (except the labels if not numeric)
     foreach my $col_id ($start_col .. $i) {
         $wrapper_model->set_sort_func ($col_id, $sort_func, [$col_id, $wrapper_model]);
     }
 
-    # Monitor selections
+# Monitor selections
     $tree->get_selection->set_mode('multiple');
     $tree->get_selection->signal_connect(
-        changed => \&onSelectedLabelsChanged,
-        [$self, $id],
-    );
-    
-    #$tree->signal_connect_swapped(
-    #    'start-interactive-search' => \&on_interactive_search,
-    #    [$self, $id],
-    #);
-    
+            changed => \&onSelectedLabelsChanged,
+            [$self, $id],
+            );
+
+#$tree->signal_connect_swapped(
+#    'start-interactive-search' => \&on_interactive_search,
+#    [$self, $id],
+#);
+
     return;
 }
 
@@ -365,7 +360,7 @@ sub sort_by_column {
     my ($liststore, $itera, $iterb, $args) = @_;
     my $col_id = $args->[0];
     my $wrapper_model = $args->[1];
-    
+
     my $label_order = 1;
     my ($sort_column_id, $order) = $wrapper_model->get_sort_column_id;
     if ($order eq 'descending') {
@@ -373,24 +368,24 @@ sub sort_by_column {
     }
 
     return
-         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-      || $label_order * ($liststore->get($itera, 0) cmp $liststore->get($iterb, 0));
+        $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
+        || $label_order * ($liststore->get($itera, 0) cmp $liststore->get($iterb, 0));
 }
 
 sub sort_by_column_numeric_labels {
     my ($liststore, $itera, $iterb, $args) = @_;
     my $col_id = $args->[0];
     my $wrapper_model = $args->[1];
-    
+
     my $label_order = 1;
     my ($sort_column_id, $order) = $wrapper_model->get_sort_column_id;
     if ($order eq 'descending') {
         $label_order = -1;  #  ensure ascending order
     }
-    
+
     return
-         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-      || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));    
+        $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
+        || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));    
 }
 
 #sub on_interactive_search {
@@ -409,20 +404,20 @@ sub makeLabelsModel {
     my $labels_ref = $base_ref->get_labels_ref();
 
     my $basestats_indices = $labels_ref->get_args (sub => 'get_base_stats');
-    
+
     my @column_order;
-    
-    #  the selection cols
+
+#  the selection cols
     my @selection_cols = (
-        {$selected_list1_name => 'Int'},
-        {$selected_list2_name => 'Int'},
-    );
-    
-    #my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
+            {$selected_list1_name => 'Int'},
+            {$selected_list2_name => 'Int'},
+            );
+
+#my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
     my $label_type = 'Glib::String';
-    
+
     my @types = ($label_type);
-    #my $i = 0;
+#my $i = 0;
     foreach my $column (@$basestats_indices, @selection_cols) {
         my ($key, $value) = %{$column};
         push @types, 'Glib::' . $value;
@@ -433,14 +428,14 @@ sub makeLabelsModel {
     my $model = $self->{labels_model};
 
     my @labels = $base_ref->get_labels();
-    
+
     my $sort_func = $base_ref->labels_are_numeric ? sub {$a <=> $b} : sub {$a cmp $b};
 
     foreach my $label (sort $sort_func @labels) {
         my $iter = $model->append();
         $model->set($iter, 0, $label);
 
-        #  set the values - selection cols will be undef
+#  set the values - selection cols will be undef
         my %stats = $labels_ref->get_base_stats (element => $label);
 
         my $i = 1;
@@ -449,7 +444,7 @@ sub makeLabelsModel {
             $i++;
         }
     }
-    
+
     $labels_model_list1_sel_col = scalar @column_order - 1;
     $labels_model_list2_sel_col = scalar @column_order;
 
@@ -474,16 +469,16 @@ sub setPhylogenyOptionsSensitive {
 sub onSelectedPhylogenyChanged {
     my $self = shift;
 
-    # phylogenies
+# phylogenies
     my $phylogeny = $self->{project}->getSelectedPhylogeny;
 
     $self->{dendrogram}->clear;
     if ($phylogeny) {
         $self->{dendrogram}->setCluster($phylogeny, 'length');  #  now storing tree objects directly
-        $self->setPhylogenyOptionsSensitive(1);
+            $self->setPhylogenyOptionsSensitive(1);
     }
     else {
-        #$self->{dendrogram}->clear;
+#$self->{dendrogram}->clear;
         $self->setPhylogenyOptionsSensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);
@@ -495,7 +490,7 @@ sub onSelectedPhylogenyChanged {
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
     $self->{dendrogram}->set_use_highlight_func;
-    
+
     return;
 }
 
@@ -503,33 +498,33 @@ sub onSelectedMatrixChanged {
     my $self = shift;
 
     my $matrix_ref = $self->{project}->getSelectedMatrix;
-    
+
     $self->{matrix_ref} = $matrix_ref;
-    
+
     my $xml_page = $self->{xmlPage};
 
-    #  hide the second list if no matrix selected
+#  hide the second list if no matrix selected
     my $list_window = $xml_page->get_widget('scrolledwindow_labels2');
-    
+
     my $list = $xml_page->get_widget('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
-    
+
     if (! defined $matrix_ref) {
         $list_window->hide;     #  hide the second list
-        $col->set_visible (0);  #  hide the list 2 selection
-                                #    col from list 1
+            $col->set_visible (0);  #  hide the list 2 selection
+#    col from list 1
     }
     else {
         $list_window->show;
         $col->set_visible (1);
     }
-    
+
     $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
-    # matrix
+# matrix
     $self->onSorted(); # (this reloads the whole matrix anyway)    
-    $self->{matrix_grid}->zoomFit();
-    
+        $self->{matrix_grid}->zoomFit();
+
     return;
 }
 
@@ -540,38 +535,38 @@ sub onSelectedLabelsChanged {
     my $args = shift;
     my ($self, $id) = @$args;
 
-    # Ignore waste-of-time events fired on onPhylogenyClick as it
-    # selects labels one-by-one
+# Ignore waste-of-time events fired on onPhylogenyClick as it
+# selects labels one-by-one
     return if (defined $self->{ignore_selected_change});
 
-    # are we changing the row or col list?
+# are we changing the row or col list?
     my $rowcol = $id eq 'listLabels1' ? 'rows' : 'cols';
     my $select_list_name = 'selected_' . $rowcol;
 
-    # Select rows/cols in the matrix
+# Select rows/cols in the matrix
     my @paths = $selection->get_selected_rows();
     my @selected = map { ($_->get_indices)[0] } @paths;
     $self->{$select_list_name} = \@selected;
-    
+
     if ($self->{matrix_ref}) {
         $self->{matrix_grid}->highlight(
-            $self->{selected_rows},
-            $self->{selected_cols},
-        );
+                $self->{selected_rows},
+                $self->{selected_cols},
+                );
     }
-    
-    #  need to avoid changing paths due to re-sorts
-    #  the run for listLabels1 is at the end.
+
+#  need to avoid changing paths due to re-sorts
+#  the run for listLabels1 is at the end.
     if ($id eq 'listLabels2') {
         $self->set_selected_list_cols ($selection, $rowcol);
     }
-    
+
     return if $id ne 'listLabels1';
-    
-    # Now, for the top list, colour the grid, based on how many labels occur in a given cell
+
+# Now, for the top list, colour the grid, based on how many labels occur in a given cell
     my %group_richness; # analysis list
-    #my $max_value;
-    my ($iter, $iter1, $label, $hash);
+#my $max_value;
+        my ($iter, $iter1, $label, $hash);
 
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
@@ -583,14 +578,14 @@ sub onSelectedLabelsChanged {
 
     foreach my $path (@paths) {
 
-        # don't know why all this is needed (gtk bug?)
+# don't know why all this is needed (gtk bug?)
         $iter  = $sorted_model->get_iter($path);
         $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
         $label = $global_model->get($iter1, LABELS_MODEL_NAME);
 
-        # find phylogeny nodes to colour
+# find phylogeny nodes to colour
         if (defined $tree) {
-            #  not all will match
+#  not all will match
             eval {
                 my $node_ref = $tree->get_node_ref (node => $label);
                 if (defined $node_ref) {
@@ -598,20 +593,20 @@ sub onSelectedLabelsChanged {
                 }
             }
         }
-        
-        #FIXME: This copies the hash (???recheck???) - not very fast...
-        #my %hash = $self->{base_ref}->get_groups_with_label_as_hash(label => $label);
-        #  SWL - just use a ref.  Unless Eugene was thinking of what the sub does...
+
+#FIXME: This copies the hash (???recheck???) - not very fast...
+#my %hash = $self->{base_ref}->get_groups_with_label_as_hash(label => $label);
+#  SWL - just use a ref.  Unless Eugene was thinking of what the sub does...
         my $hash = $bd->get_groups_with_label_as_hash (label => $label);
 
-        # groups contains count of how many different labels occur in it
+# groups contains count of how many different labels occur in it
         foreach my $group (keys %$hash) {
             $group_richness{$group}++;
         }
     }
-    
-    #  richness is the number of labels selected,
-    #  which is the number of items in @paths
+
+#  richness is the number of labels selected,
+#  which is the number of items in @paths
     my $max_value = scalar @paths;
 
     my $grid = $self->{grid};
@@ -626,14 +621,14 @@ sub onSelectedLabelsChanged {
     $grid->setLegendMinMax(0, $max_value);
 
     if (defined $tree) {
-        #print "[Labels] Recolouring cluster lines\n";
+#print "[Labels] Recolouring cluster lines\n";
         $self->{dendrogram}->recolourClusterLines(\@phylogeny_colour_nodes);
     }
 
-    # have to run this after everything else is updated
-    # otherwise incorrect nodes are selected.
+# have to run this after everything else is updated
+# otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
-    
+
     return;
 }
 
@@ -646,66 +641,66 @@ sub set_selected_list_cols {
         ? 'listLabels1'
         : 'listLabels2';
 
-    # Select all terminal labels
-    #my $model      = $self->{labels_model};
-    #my $widget     = $self->{xmlPage}->get_widget($widget_name);
-    
+# Select all terminal labels
+#my $model      = $self->{labels_model};
+#my $widget     = $self->{xmlPage}->get_widget($widget_name);
+
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
 
     my $change_col
         = $rowcol eq 'rows'
-          ? $labels_model_list1_sel_col
-          : $labels_model_list2_sel_col;
+        ? $labels_model_list1_sel_col
+        : $labels_model_list2_sel_col;
 
-    #my $selection_array
-    #    = $rowcol eq 'rows'
-    #        ? $self->{selected_rows}
-    #        : $self->{selected_cols};
+#my $selection_array
+#    = $rowcol eq 'rows'
+#        ? $self->{selected_rows}
+#        : $self->{selected_cols};
 
-    #my %selection_hash;
-    #@selection_hash{@$selection_array} = (1) x scalar @$selection_array;
+#my %selection_hash;
+#@selection_hash{@$selection_array} = (1) x scalar @$selection_array;
 
     my $max_iter = $self->{base_ref}-> get_label_count() - 1;
-    
-    #  get the selection changes
+
+#  get the selection changes
     my @changed_iters;
     foreach my $cell_iter (0..$max_iter) {
 
         my $iter = $sorted_model->iter_nth_child(undef,$cell_iter);
-        
+
         my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
         my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
         my $orig_value = $global_model->get($iter1, $change_col);
-    
+
         my $value = $selection->iter_is_selected ($iter) || 0;
-        
+
         if ($value != $orig_value) {
-            #print "[Labels] $rowcol : ",
-            #      "Changing $orig_label to $value, ",
-            #      "Cell iter $cell_iter\n"
-            #      #$iter . ' ' . $sorted_iter,
-            #      ;
+#print "[Labels] $rowcol : ",
+#      "Changing $orig_label to $value, ",
+#      "Cell iter $cell_iter\n"
+#      #$iter . ' ' . $sorted_iter,
+#      ;
             push (@changed_iters, [$iter1, $value]);
-            #$global_model->set($iter1, $change_col, $value);
+#$global_model->set($iter1, $change_col, $value);
         }
     }
-    
+
     $self->{ignore_selected_change} = 'listLabels1';
-    
-    #  and now loop over the iters and change the selection values
+
+#  and now loop over the iters and change the selection values
     foreach my $array_ref (@changed_iters) {
         $global_model->set($array_ref->[0], $change_col, $array_ref->[1]);
     }
 
     delete $self->{ignore_selected_change};
-    
-    #print "[Labels] \n";
-    
+
+#print "[Labels] \n";
+
     return;    
 }
-    
-    
+
+
 sub onSorted {
     my $self = shift;
 
@@ -719,12 +714,12 @@ sub onSorted {
     my $values_func = sub {
         my ($h, $v) = @_; # integer indices
 
-        my $hiter = $hmodel->iter_nth_child(undef,$h);
+            my $hiter = $hmodel->iter_nth_child(undef,$h);
         my $viter = $vmodel->iter_nth_child(undef,$v);
 
-        # some bug in gtk2-perl stops me from just doing
-        # $hlabel = $hmodel->get($hiter, 0)
-        #
+# some bug in gtk2-perl stops me from just doing
+# $hlabel = $hmodel->get($hiter, 0)
+#
         my $hi = $hmodel->convert_iter_to_child_iter($hiter);
         my $vi = $vmodel->convert_iter_to_child_iter($viter);
 
@@ -732,9 +727,9 @@ sub onSorted {
         my $vlabel = $model->get($vi, 0);
 
         return $matrix_ref->get_value(
-            element1 => $hlabel,
-            element2 => $vlabel,
-        );
+                element1 => $hlabel,
+                element2 => $vlabel,
+                );
     };
 
     my $label_widget = $self->{xmlPage}->get_widget('lblMatrix');
@@ -749,9 +744,9 @@ sub onSorted {
             }
             $self->{matrix_grid}->setValues($values_func);
             $self->{matrix_grid}->setColouring(
-                $matrix_ref->get_min_value,
-                $matrix_ref->get_max_value,
-            );
+                    $matrix_ref->get_min_value,
+                    $matrix_ref->get_max_value,
+                    );
         }
         else {
             my $str = '<i>No matrix elements in basedata</i>';
@@ -759,7 +754,7 @@ sub onSorted {
         }
     }
     else {
-        # clear matrix
+# clear matrix
         $self->{matrix_grid}->drawMatrix( 0 );
         $self->{matrix_drawn} = 0;
         $self->{matrix_drawable} = 0;
@@ -772,23 +767,23 @@ sub onSorted {
         $self->{matrix_grid}->setColouring(0, 0);
         $self->{matrix_grid}->highlight(undef, undef);
     }
-    
+
     return;
 }
 
 #  how many labels are in the matrix?  We don't draw it if there are none.
 sub get_label_count_in_matrix {
     my $self = shift;
-    
+
     return if !$self->{matrix_ref};
-    
-    #  should probably use List::MoreUtils::any 
+
+#  should probably use List::MoreUtils::any 
     my %labels      = $self->{base_ref}->get_labels_ref->get_element_hash;
     my %mx_elements = $self->{matrix_ref}->get_elements;
     my $mx_count    = scalar keys %mx_elements;
     delete @mx_elements{keys %labels};
-    
-    #  if the counts differ then we have commonality
+
+#  if the counts differ then we have commonality
     return $mx_count != scalar keys %mx_elements;
 }
 
@@ -810,13 +805,13 @@ sub onGridHover {
 
     return if ! defined $group;
 
-    # get labels in the group
+# get labels in the group
     my $bd = $self->{base_ref};
     my $labels = $bd->get_labels_in_group_as_hash(group => $group);
 
-    # highlight in the tree
+# highlight in the tree
     foreach my $label (keys %$labels) {
-        # Might not match some or all nodes
+# Might not match some or all nodes
         eval {
             my $node_ref = $tree->get_node_ref (node => $label);
             if ($self->{use_highlight_path}) {
@@ -824,7 +819,7 @@ sub onGridHover {
             }
         }
     }
-    
+
     return;
 }
 
@@ -848,27 +843,27 @@ sub handle_grid_drag_zoom {
     my $canvas = $grid->{canvas};
     rect_canonicalise ($rect);
 
-    # Scale
+# Scale
     my $width_px  = $grid->{width_px}; # Viewport/window size
-    my $height_px = $grid->{height_px};
+        my $height_px = $grid->{height_px};
     my ($xc, $yc) = $canvas->world_to_window(rect_centre ($rect));
     print "Centre: $xc $yc\n";
     my ($x1, $y1) = $canvas->world_to_window($rect->[0], $rect->[1]);
     my ($x2, $y2) = $canvas->world_to_window($rect->[2], $rect->[3]);
     print "Window Rect: $x1 $x2 $y1 $y2\n";
     my $width_s   = max ($x2 - $x1, 1); # Selected box width
-    my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
+        my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
 
-    # Special case: If the rect is tiny, the user probably just clicked
-    # and released. Do something sensible, like just double the zoom level.
-    if ($width_s <= 2 || $height_s <= 2) {
-        $width_s = $width_px / 2;
-        $height_s = $height_px / 2;
-        ($rect->[0], $rect->[1]) = $canvas->window_to_world(
-                $xc - $width_s / 2, $yc - $height_s / 2);
-        ($rect->[2], $rect->[3]) = $canvas->window_to_world(
-                $xc + $width_s / 2, $yc + $height_s / 2);
-    }
+# Special case: If the rect is tiny, the user probably just clicked
+# and released. Do something sensible, like just double the zoom level.
+        if ($width_s <= 2 || $height_s <= 2) {
+            $width_s = $width_px / 2;
+            $height_s = $height_px / 2;
+            ($rect->[0], $rect->[1]) = $canvas->window_to_world(
+                    $xc - $width_s / 2, $yc - $height_s / 2);
+            ($rect->[2], $rect->[3]) = $canvas->window_to_world(
+                    $xc + $width_s / 2, $yc + $height_s / 2);
+        }
 
     my $ratio = min ($width_px / $width_s, $height_px / $height_s);
     if (exists $grid->{render_width}) {
@@ -883,16 +878,16 @@ sub handle_grid_drag_zoom {
     }
 
 
-    # Now pan so that the selection is centered. There are two cases.
-    # +------------------------------------------+
-    # |                +-----+                   |
-    # |                |     |                   |
-    # |                |     |                   |
-    # |                +-----+                   |
-    # +------------------------------------------+
-    # or
-    # +------------------------------------------+
-    # |                                          |
+# Now pan so that the selection is centered. There are two cases.
+# +------------------------------------------+
+# |                +-----+                   |
+# |                |     |                   |
+# |                |     |                   |
+# |                +-----+                   |
+# +------------------------------------------+
+# or
+# +------------------------------------------+
+# |                                          |
     # |                                          |
     # |+----------------------------------------+|
     # ||                                        ||

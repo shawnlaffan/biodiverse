@@ -2755,9 +2755,12 @@ sub get_spatial_output_ref {  #  return the reference for a specified output
     my $self = shift;
     my %args = @_;
 
-    return if ! exists $self->{SPATIAL_OUTPUTS}{$args{name}};
+    my $name = $args{name};
 
-    return $self->{SPATIAL_OUTPUTS}{$args{name}};
+    croak "Spatial output $name does not exist in the basedata\n"
+      if ! exists $self->{SPATIAL_OUTPUTS}{$name};
+
+    return $self->{SPATIAL_OUTPUTS}{$name};
 }
 
 sub get_spatial_output_list {

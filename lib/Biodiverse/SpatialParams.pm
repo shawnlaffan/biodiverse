@@ -376,7 +376,7 @@ sub parse_distances {
                 (
                   (?<!\-\>\s)    #  negative lookbehind for method call, eg '$self-> '
                   (?<!\-\>)      #  negative lookbehind for method call, eg '$self->'
-                  sp_(?:.+?)\b
+                  (?:$re_sub_names)\b  #  one of our valid sp_ subs - should require a "("?
                 )
             }xms;
 

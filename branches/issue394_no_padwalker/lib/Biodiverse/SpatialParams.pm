@@ -6,7 +6,7 @@ use strict;
 use English qw ( -no_match_vars );
 
 use Carp;
-use PadWalker qw /peek_my/;
+#use PadWalker qw /peek_my/;
 use POSIX qw /fmod floor ceil/;
 use Math::Trig;
 use Math::Trig ':pi';
@@ -718,7 +718,7 @@ sub {
         $Csqr = $dists{Csqr};
 
         if ($self->get_param ('KEEP_LAST_DISTANCES')) {
-            $self -> set_param (LAST_DISTS => \%dists);
+            $self->set_param (LAST_DISTS => \%dists);
         }
     }
 
@@ -736,7 +736,37 @@ sub {
     my ( $nbr_x, $nbr_y, $nbr_z ) =
       ( $nbrcoord[0], $nbrcoord[1], $nbrcoord[2] );
 
-    $self->set_param( CURRENT_ARGS => peek_my(0) );
+    #  how many of these are actually used in subs?
+    #  The subroutines also need to be weaned off most of these and use \%dists directly.
+    #  This explains the duplicates below.  
+    my $current_args = {
+        '%args'    => \%args,
+        #'$basedata' => \$basedata,
+        basedata   => $basedata,
+        dists      => \%dists,
+        '%dists'   => \%dists,
+        '@d'    => \@d,
+        '@D'    => \@D,
+        '$D'    => \$D,
+        #'$Dsqr' => $Dsqr,
+        '@c'    => \@c,
+        '@C'    => \@C,
+        '$C'    => \$C,
+        #'$Csqr' => \$Csqr,
+        #'$x'    => \$x,
+        #'$y'    => \$y,
+        #'$z'    => \$z,
+        '@coord'     => \@coord,
+        '@nbrcoord'  => \@nbrcoord,
+        #'$nbr_x'     => \$nbr_x,
+        #'$nbr_y'     => \$nbr_y,
+        #'$nbr_z'     => \$nbr_z,
+        '$coord_id1' => \$coord_id1,
+        '$coord_id2' => \$coord_id2,
+    };
+
+    #$self->set_param( CURRENT_ARGS => peek_my(0) );
+    $self->set_param( CURRENT_ARGS => $current_args );
 
     my $result = eval { CONDITIONS_STRING_GOES_HERE };
     my $error  = $EVAL_ERROR;
@@ -2161,7 +2191,7 @@ sub sp_point_in_poly_shape {
     my $pointshape = Geo::ShapeFile::Point->new(X => $x_coord, Y => $y_coord);
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
-    my $bd = ${$h->{'$basedata'}};
+    my $bd = $h->{basedata};
     my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
     my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
     my @rect = (
@@ -2258,7 +2288,7 @@ sub sp_points_in_same_poly_shape {
     my $pointshape2 = Geo::ShapeFile::Point->new(X => $x_coord2, Y => $y_coord2);
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
-    my $bd = ${$h->{'$basedata'}};
+    my $bd = $h->{basedata};
     my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
     my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
     
@@ -2515,7 +2545,7 @@ sub sp_group_not_empty {
         $element = ${$element};  #  deref it
     }
 
-    my $bd  = ${$h->{'$basedata'}};
+    my $bd  = $h->{basedata};
 
     return $bd->get_richness (element => $element) ? 1 : 0;
 }
@@ -2561,7 +2591,7 @@ sub sp_in_label_range {
         $group = ${$h->{'$coord_id2'}};
     }
 
-    my $bd  = ${$h->{'$basedata'}};
+    my $bd  = $h->{basedata};
 
     my $labels_in_group = $bd->get_labels_in_group_as_hash (group => $group);
 
@@ -2638,7 +2668,7 @@ sub sp_get_spatial_output_list_value {
 
     my $element = $args{element} // $default_element;
 
-    my $bd      = eval {$self->get_basedata_ref} || $caller_args->{basedata_ref} || $caller_args->{caller_object} || $h->{'$basedata'};
+    my $bd      = eval {$self->get_basedata_ref} || $caller_args->{basedata_ref} || $caller_args->{caller_object} || $h->{basedata};
     my $sp_name = $args{output};
     croak "Spatial output name not defined\n" if not defined $sp_name;
 

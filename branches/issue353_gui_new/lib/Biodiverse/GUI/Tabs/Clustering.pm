@@ -520,8 +520,8 @@ sub initDendrogram {
         $popup_closure,
         $click_closure, # click_func
         undef, # select_func
-        undef,
         $self,
+        undef # basedata_ref
     );
     $self->{dendrogram}->{page} = $self;
 

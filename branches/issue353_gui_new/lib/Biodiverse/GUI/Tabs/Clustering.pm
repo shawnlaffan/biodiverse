@@ -504,7 +504,8 @@ sub initDendrogram {
 
     my $hover_closure       = sub { $self->onDendrogramHover(@_); };
     my $highlight_closure   = sub { $self->onDendrogramHighlight(@_); };
-    my $click_closure       = sub { $self->onDendrogramPopup(@_); };
+    my $popup_closure       = sub { $self->onDendrogramPopup(@_); };
+    my $click_closure       = sub { $self->onDendrogramClick(@_); };
 
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
         $frame,
@@ -516,7 +517,9 @@ sub initDendrogram {
         $index_combo,
         $hover_closure,
         $highlight_closure,
-        $click_closure,
+        $popup_closure,
+        $click_closure, # click_func
+        undef, # select_func
         undef,
         $self,
     );
@@ -1314,6 +1317,11 @@ sub onDendrogramPopup {
     Biodiverse::GUI::Popup::showPopup($node_ref->get_name, $sources, $default_source);
     
     return;
+}
+
+sub onDendrogramClick {
+    my ($self, $node) = @_;
+    $self->{dendrogram}->doColourNodesBelow($node);
 }
 
 # Returns which coloured node the given element is under

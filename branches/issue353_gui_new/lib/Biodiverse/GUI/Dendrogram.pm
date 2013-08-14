@@ -1713,6 +1713,7 @@ sub drawLine {
 sub onEvent {
     my ($self, $event, $line) = @_;
 
+my $type = $event->type;
     # If not in click mode, pass through button events to background
     if ($event->type =~ m/^button-/ && $self->{drag_mode} ne 'click') {
         return 0;

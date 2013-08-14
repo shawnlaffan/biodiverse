@@ -24,9 +24,30 @@ use Test::More;
 use Biodiverse::TestHelpers qw /:basedata/;
 use Biodiverse::Spatial;
 
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    test_def_queries();
+    
+    done_testing;
+    return 0;
+}
+
 
 #  check the def queries
-{
+sub test_def_queries {
     my $cell_sizes   = [100000, 100000];
     my $bd = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
 
@@ -84,6 +105,37 @@ use Biodiverse::Spatial;
     }
     
 }
+
+
+sub test_empty_groups {
+    my $cell_sizes = [10, 10];
+    my $bd = get_basedata_object (x_max => 10, y_max => 10, CELL_SIZES => $cell_sizes);
+    
+
+    my @coord = map {$_ * -1} @$cell_sizes;
+    my $csv_object = $bd->get_csv_object (
+        quote_char => $bd->get_param ('QUOTES'),
+        sep_char   => $bd->get_param ('JOIN_CHAR')
+    );
+    my $group_name = $bd->list2csv (list => \@coord, csv_object => $csv_object);
+
+    $bd->add_element (
+        allow_empty_groups => 1,
+        group => $group_name,
+        count => 0,
+    );
+    
+    my $calculations = [qw /calc_hierarchical_label_ratios calc_richness/];
+
+    my $sp = $bd->add_spatial_output (name => 'sp_empty_groups');
+    $sp->run_analysis (
+        calculations       => $calculations,
+        spatial_conditions => ['sp_self_only'],
+    );
+    
+    #  NEED TO TEST THAT NO ERRORS HAPPENED
+}
+
 
 done_testing;
 

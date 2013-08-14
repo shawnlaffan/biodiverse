@@ -1022,18 +1022,18 @@ sub showPhylogenyGroups {
     # For each element, get its groups and put into %total_groups
     my %total_groups;
     foreach my $element (sort keys %{$elements}) {
-        my @groups = $basedata_ref->get_groups_with_label_as_hash(label => $element);
-        if ($#groups > 0) {
-            my %groups = @groups;
-            @total_groups{keys %groups} = undef;
-        }
+        my $ref = eval {$basedata_ref->get_groups_with_label_as_hash(label => $element)};
+
+        next if !$ref || !scalar keys %$ref;
+
+        @total_groups{keys %$ref} = undef;
     }
 
     # Add each label into the model
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
     foreach my $label (sort keys %total_groups) {
         my $iter = $model->append;
-        $model->set($iter, 0, $label, 1, "");
+        $model->set($iter, 0, $label, 1, q{});
     }
 
     $popup->setListModel($model);

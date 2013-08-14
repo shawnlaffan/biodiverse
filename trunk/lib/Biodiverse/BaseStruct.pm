@@ -13,6 +13,8 @@ use 5.010;
 
 use English ( -no_match_vars );
 
+use autovivification;
+
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
 use Scalar::Util qw/looks_like_number/;
@@ -1965,15 +1967,14 @@ sub get_sub_element_list {
         : [keys %{$el_hash->{$element}{SUBELEMENTS}}];
 }
 
-use autovivification;
 sub get_sub_element_hash {
     my $self = shift;
     my %args = @_;
 
+    no autovivification;
+    
     my $element = $args{element}
       // croak "argument 'element' not specified\n";
-
-    no autovivification;
 
     #  Ideally we should throw an exception, but at the moment too many other
     #  things need a result and we aren't testing for them.

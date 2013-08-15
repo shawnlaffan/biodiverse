@@ -252,6 +252,12 @@ sub new {
         btnClusterZoomFit   => {clicked => \&onClusterZoomFit},
         spinClusters        => {'value-changed' => \&onClustersChanged},
 
+        btnSelectTool       => {clicked => \&on_select_tool},
+        btnPanTool          => {clicked => \&on_pan_tool},
+        btnZoomTool         => {clicked => \&on_zoom_tool},
+        btnZoomOutTool      => {clicked => \&on_zoom_out_tool},
+        btnZoomFitTool      => {clicked => \&on_zoom_fit_tool},
+
         plot_length         => {toggled => \&onPlotModeChanged},
         group_length        => {toggled => \&onGroupModeChanged},
 
@@ -1623,6 +1629,74 @@ sub onPlotModeChanged {
     print "[Clustering tab] Changing mode to $mode\n";
     $self->{plot_mode} = $mode;
     $self->{dendrogram}->setPlotMode($mode) if defined $self->{output_ref};
+}
+
+####
+# TODO: This whole section needs to be deduplicated between Labels.pm
+####
+my %drag_modes = (
+    Select  => 'select',
+    Pan     => 'pan',
+    Zoom    => 'select',
+    ZoomOut => 'click',
+    ZoomFit => 'click',
+);
+
+my %dendogram_drag_modes = (
+    %drag_modes,
+    Select  => 'click',
+);
+
+sub choose_tool {
+    my $self = shift;
+    my ($tool, ) = @_;
+
+    my $old_tool = $self->{tool};
+
+    if ($old_tool) {
+        $self->{ignore_tool_click} = 1;
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}Tool");
+        $widget->set_active(0);
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}Tool");
+        $new_widget->set_active(1);
+        $self->{ignore_tool_click} = 0;
+    }
+
+    $self->{tool} = $tool;
+
+    $self->{grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{dendrogram}->{drag_mode} = $dendogram_drag_modes{$tool};
+}
+
+# Called from GTK
+sub on_select_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Select');
+}
+
+sub on_pan_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Pan');
+}
+
+sub on_zoom_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Zoom');
+}
+
+sub on_zoom_out_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomOut');
+}
+
+sub on_zoom_fit_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomFit');
 }
 
 sub on_highlight_groups_on_map_changed {

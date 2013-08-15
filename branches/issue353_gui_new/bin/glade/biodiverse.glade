@@ -7010,10 +7010,269 @@ Both</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
+              <widget class="GtkToolbar" id="toolbarClustering">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <property name="toolbar_style">icons</property>
+                <property name="tooltips">False</property>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemClusteringSelect">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip" translatable="yes">Select (B)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnSelectTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Select (B)</property>
+                        <child>
+                          <widget class="GtkImage" id="imageSelectTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="pixbuf">selector.png</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemClusteringPan">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip" translatable="yes">Pan (C)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnPanTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Pan (C)</property>
+                        <child>
+                          <widget class="GtkImage" id="imagePanTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="pixbuf">drag-resize.png</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemClusteringZoom">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">Zoom In (Z)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnZoomTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Zoom In (Z)</property>
+                        <child>
+                          <widget class="GtkImage" id="imageZoomTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-zoom-in</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemClusteringZoomOut">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">Zoom Out (X)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnZoomOutTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Zoom Out (X)</property>
+                        <child>
+                          <widget class="GtkImage" id="imageZoomOutTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-zoom-out</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemClusteringZoomFit">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnZoomFitTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
+                        <child>
+                          <widget class="GtkImage" id="imageZoomFitTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-zoom-fit</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemClusteringOptions">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <widget class="GtkMenuBar" id="menubarClusteringOptions">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="pack_direction">ttb</property>
+                        <child>
+                          <widget class="GtkImageMenuItem" id="menuitem9">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="use_stock">False</property>
+                            <property name="always_show_image">True</property>
+                            <child>
+                              <widget class="GtkMenu" id="menuitem9_menu">
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_labels_grid">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Grid</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_labels_overlays">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Overlays...</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="menuitem_labels_separator1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_labels_tree">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Tree</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="phylogeny_plot_length">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">True</property>
+                                    <property name="tooltip" translatable="yes">Plot branches using their lengths.</property>
+                                    <property name="label" translatable="yes">Length</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <signal name="activate" handler="on_plot_length_activate"/>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="phylogeny_plot_depth">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="has_tooltip">True</property>
+                                    <property name="tooltip" translatable="yes">Plot branches as a function of depth from the root node.</property>
+                                    <property name="label" translatable="yes">Depth</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="group">phylogeny_plot_length</property>
+                                    <signal name="activate" handler="on_plot_depth_activate"/>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="highlight_groups_on_map_labels_tab">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Highlight groups under this node when hovering on the node</property>
+                                    <property name="label" translatable="yes">Highlight groups on map?</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <signal name="activate" handler="on_highlight_groups_on_map"/>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="use_highlight_path_changed1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Highlight paths on the tree for groups when you hover the mouse on them</property>
+                                    <property name="label" translatable="yes">Highlight node paths for groups?</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                    <signal name="activate" handler="on_use_highlight_path_changed_activate"/>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                            <child internal-child="image">
+                              <widget class="GtkImage" id="image1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <property name="stock">gtk-index</property>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
               <widget class="GtkVPaned" id="vpaneClustering">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="position">181</property>
                 <child>
                   <widget class="GtkVBox" id="vbox22">
                     <property name="visible">True</property>
@@ -8502,7 +8761,7 @@ Does not affect the slider bar.  It always groups using the plot method.</proper
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="position">0</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>

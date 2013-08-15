@@ -722,6 +722,8 @@ sub {
         }
     }
 
+    #  Should only generate the shorthands when they are actually needed.
+
     my $coord_id1 = $args{coord_id1};
     my $coord_id2 = $args{coord_id2};
 
@@ -736,36 +738,16 @@ sub {
     my ( $nbr_x, $nbr_y, $nbr_z ) =
       ( $nbrcoord[0], $nbrcoord[1], $nbrcoord[2] );
 
-    #  how many of these are actually used in subs?
-    #  The subroutines also need to be weaned off most of these and use \%dists directly.
-    #  This explains the duplicates below.  
+    #  These are used by the sp_* subs
     my $current_args = {
-        '%args'    => \%args,
-        #'$basedata' => \$basedata,
         basedata   => $basedata,
         dists      => \%dists,
-        '%dists'   => \%dists,
-        '@d'    => \@d,
-        '@D'    => \@D,
-        '$D'    => \$D,
-        #'$Dsqr' => $Dsqr,
-        '@c'    => \@c,
-        '@C'    => \@C,
-        '$C'    => \$C,
-        #'$Csqr' => \$Csqr,
-        #'$x'    => \$x,
-        #'$y'    => \$y,
-        #'$z'    => \$z,
-        '@coord'     => \@coord,
-        '@nbrcoord'  => \@nbrcoord,
-        #'$nbr_x'     => \$nbr_x,
-        #'$nbr_y'     => \$nbr_y,
-        #'$nbr_z'     => \$nbr_z,
-        '$coord_id1' => \$coord_id1,
-        '$coord_id2' => \$coord_id2,
+        coord_array    => \@coord,
+        nbrcoord_array => \@nbrcoord,
+        coord_id1 => $coord_id1,
+        coord_id2 => $coord_id2,
     };
 
-    #$self->set_param( CURRENT_ARGS => peek_my(0) );
     $self->set_param( CURRENT_ARGS => $current_args );
 
     my $result = eval { CONDITIONS_STRING_GOES_HERE };
@@ -935,7 +917,7 @@ sub sp_circle {
     my $dist;
     if ( $args{axes} ) {
         my $axes  = $args{axes};
-        my $dists = $h->{'@D'};
+        my $dists = $h->{dists}{D_list};
         my $d_sqr = 0;
         foreach my $axis (@$axes) {
 
@@ -948,8 +930,7 @@ sub sp_circle {
         $dist = sqrt $d_sqr;
     }
     else {
-        #  PadWalker gives hashrefs of scalar refs, so need to de-ref to get the value
-        $dist = ${ $h->{'$D'} }; 
+        $dist = $h->{dists}{D}; 
     }
 
     #  could put into the return, but this helps debugging
@@ -990,7 +971,7 @@ sub sp_circle_cell {
     my $dist;
     if ( $args{axes} ) {
         my $axes  = $args{axes};
-        my $dists = $h->{'@C'};
+        my $dists = $h->{dists}{C_list};
         my $d_sqr = 0;
         foreach my $axis (@$axes) {
             $d_sqr += $dists->[$axis]**2;
@@ -998,8 +979,7 @@ sub sp_circle_cell {
         $dist = sqrt $d_sqr;
     }
     else {
-        #  PadWalker gives hash of refs, so need to de-ref scalars to get the value
-        $dist = ${ $h->{'$C'} };
+        $dist = $h->{dists}{C};
     }
 
     #  could put into the return, but still debugging
@@ -1044,7 +1024,7 @@ sub sp_annulus {
     my $dist;
     if ( $args{axes} ) {
         my $axes  = $args{axes};
-        my $dists = $h->{'@D'};
+        my $dists = $h->{dists}{D_list};
         my $d_sqr = 0;
         foreach my $axis (@$axes) {
 
@@ -1057,7 +1037,7 @@ sub sp_annulus {
         $dist = sqrt $d_sqr;
     }
     else {
-        $dist = ${ $h->{'$D'} };
+        $dist = $h->{dists}{D};
     }
 
     my $test =
@@ -1101,12 +1081,12 @@ sub sp_square {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{'@D'} }; 
-    foreach my $dist (@x) {    #  should use List::Util::any for speed
+    my @x = @{ $h->{dists}{D_list} }; 
+    foreach my $dist (@x) {
         return 0 if $dist > $size;
     }
 
-    return 1;                  #  if we get this far then we are OK.
+    return 1;  #  if we get this far then we are OK.
 }
 
 sub get_metadata_sp_square_cell {
@@ -1137,8 +1117,8 @@ sub sp_square_cell {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my @x = @{ $h->{'@C'} };
-    foreach my $dist (@x) {    #  could use List::Util::any for speed?
+    my @x = @{ $h->{dists}{C_list} };
+    foreach my $dist (@x) {
         return 0 if $dist > $size;
     }
 
@@ -1178,8 +1158,8 @@ sub sp_block {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    my $coord    = $h->{'@coord'};
-    my $nbrcoord = $h->{'@nbrcoord'};
+    my $coord    = $h->{coord_array};
+    my $nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
     if ( ( ref $size ) !~ /ARRAY/ ) {
@@ -1268,9 +1248,7 @@ sub sp_ellipse {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    #  PadWalker gives hashrefs of scalar refs,
-    #  so need to de-ref to get the value
-    my @d = @{ $h->{'@d'} };
+    my @d = @{ $h->{dists}{d_list} };
 
     my $major_radius = $args{major_radius};    #  longest axis
     my $minor_radius = $args{minor_radius};    #  shortest axis
@@ -1360,9 +1338,10 @@ sub sp_self_only {
     my %args = @_;
 
     my $h           = $self->get_param('CURRENT_ARGS');
-    my $caller_args = $h->{'%args'};
+    #my $caller_args = $h->{'%args'};
 
-    return $caller_args->{coord_id1} eq $caller_args->{coord_id2};
+    #return $caller_args->{coord_id1} eq $caller_args->{coord_id2};
+    return $h->{coord_id1} eq $h->{coord_id2};
 }
 
 sub get_metadata_sp_select_element {
@@ -1523,10 +1502,10 @@ sub get_comparator_for_text_matching {
     if (defined $axis) { #  check against one axis
 
         if ( $type eq 'proc' ) {
-            $compcoord = $h->{'@coord'};
+            $compcoord = $h->{coord_array};
         }
         elsif ( $type eq 'nbr' ) {
-            $compcoord = $h->{'@nbrcoord'};
+            $compcoord = $h->{nbrcoord_array};
         }
 
         croak ("axis argument $args{axis} beyond array bounds, comparing with "
@@ -1538,13 +1517,13 @@ sub get_comparator_for_text_matching {
     }
 
     if ( $type eq 'proc' ) {
-        $compcoord = $h->{'$coord_id1'};
+        $compcoord = $h->{coord_id1};
     }
     elsif ( $type eq 'nbr' ) {
-        $compcoord = $h->{'$coord_id2'};
+        $compcoord = $h->{coord_id2};
     }
     
-    return $$compcoord;  #  deref scalar reference
+    return $compcoord;  #  deref scalar reference
 }
 
 sub get_metadata_sp_is_left_of {
@@ -1674,8 +1653,8 @@ sub _sp_side {
 
     #  PadWalker gives hashrefs of scalar refs,
     #  so need to de-ref to get the value
-    my @coord     = @{ $h->{'@coord'} };
-    my @nbr_coord = @{ $h->{'@nbrcoord'} };
+    my @coord     = @{ $h->{coord_array} };
+    my @nbr_coord = @{ $h->{nbrcoord_array} };
 
     #  coincident points are in line
     return 0 if (
@@ -1755,13 +1734,10 @@ sub sp_select_sequence {
     my %args = @_;
 
     my $h           = $self->get_param('CURRENT_ARGS');
-    my $caller_args = $h->{'%args'};
 
-    my $bd        = $args{caller_object} || $caller_args->{caller_object};
-    my $coord_id1 = $caller_args->{coord_id1};
-    my $coord_id2 = $caller_args->{coord_id2};
-
-    #my $self = ${$h->{'$self'}};
+    my $bd        = $args{caller_object} || $h->{basedata};
+    my $coord_id1 = $h->{coord_id1};
+    my $coord_id2 = $h->{coord_id2};
 
     my $verifying = $self->get_param('VERIFYING');
 
@@ -1962,12 +1938,11 @@ sub sp_select_block {
     my %args = @_;
 
     #  do stuff here
-    my $h           = $self->get_param('CURRENT_ARGS');
-    my $caller_args = $h->{'%args'};
+    my $h = $self->get_param('CURRENT_ARGS');
 
-    my $bd        = $args{caller_object} || $caller_args->{caller_object};
-    my $coord_id1 = $caller_args->{coord_id1};
-    my $coord_id2 = $caller_args->{coord_id2};
+    my $bd        = $args{caller_object} || $h->{basedata};
+    my $coord_id1 = $h->{coord_id1};
+    my $coord_id2 = $h->{coord_id2};
 
     my $verifying = $self->get_param('VERIFYING');
 
@@ -2101,7 +2076,7 @@ sub sp_point_in_poly {
 
     my $vertices = $args{polygon};
     my $point = $args{point};
-    $point ||= eval {$self->is_def_query} ? $h->{'@coord'} : $h->{'@nbrcoord'};
+    $point ||= eval {$self->is_def_query} ? $h->{coord_array} : $h->{nbrcoord_array};
 
     my $poly = (blessed ($vertices) || $NULL_STRING) eq 'Math::Polygon'
                 ? $vertices
@@ -2170,10 +2145,10 @@ sub sp_point_in_poly_shape {
     my $point = $args{point};
     if (!defined $point) {  #  convoluted, but syntax highlighting plays up with ternary op
         if (eval {$self->is_def_query}) {
-            $point = $h->{'@coord'};
+            $point = $h->{coord_array};
         }
         else {
-            $point = $h->{'@nbrcoord'};
+            $point = $h->{nbrcoord_array};
         }
     }
 
@@ -2262,8 +2237,8 @@ sub sp_points_in_same_poly_shape {
     my $no_cache = $args{no_cache};
     my $axes = $args{axes} || [0,1];
 
-    my $point1 = $args{point1} // $h->{'@coord'};
-    my $point2 = $args{point2} // $h->{'@nbrcoord'};
+    my $point1 = $args{point1} // $h->{coord_array};
+    my $point2 = $args{point2} // $h->{nbrcoord_array};
 
     my $x_coord1 = $point1->[$axes->[0]];
     my $y_coord1 = $point1->[$axes->[1]];
@@ -2541,8 +2516,8 @@ sub sp_group_not_empty {
     
     my $element = $args{element};
     if (not defined $element) {
-        $element = eval {$self->is_def_query()} ? $h->{'$coord_id1'} : $h->{'$coord_id2'};
-        $element = ${$element};  #  deref it
+        $element = eval {$self->is_def_query()} ? $h->{coord_id1} : $h->{coord_id2};
+        #$element = ${$element};  #  deref it
     }
 
     my $bd  = $h->{basedata};
@@ -2585,10 +2560,10 @@ sub sp_in_label_range {
 
     my $group;
     if ( $type eq 'proc' ) {
-        $group = ${$h->{'$coord_id1'}};
+        $group = $h->{coord_id1};
     }
     elsif ( $type eq 'nbr' ) {
-        $group = ${$h->{'$coord_id2'}};
+        $group = $h->{coord_id2};
     }
 
     my $bd  = $h->{basedata};
@@ -2658,17 +2633,16 @@ sub sp_get_spatial_output_list_value {
     my $list_name = $args{list} // 'SPATIAL_RESULTS';
     my $index     = $args{index};
     
-    my $h           = $self->get_param('CURRENT_ARGS');
-    my $caller_args = $h->{'%args'};
+    my $h = $self->get_param('CURRENT_ARGS');
 
     my $default_element
       = eval {$self->is_def_query}
-      ? $caller_args->{coord_id1}
-      : $caller_args->{coord_id2};
+      ? $h->{coord_id1}
+      : $h->{coord_id2};
 
     my $element = $args{element} // $default_element;
 
-    my $bd      = eval {$self->get_basedata_ref} || $caller_args->{basedata_ref} || $caller_args->{caller_object} || $h->{basedata};
+    my $bd      = eval {$self->get_basedata_ref} || $h->{basedata} || $h->{caller_object};
     my $sp_name = $args{output};
     croak "Spatial output name not defined\n" if not defined $sp_name;
 

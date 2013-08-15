@@ -287,6 +287,8 @@ sub new {
         );
     }
 
+    $self->choose_tool('Select');
+
     $self->set_frame_label_widget;
     
     print "[Clustering tab] - Loaded tab - Clustering Analysis\n";
@@ -480,6 +482,8 @@ sub initMap {
 
     my $click_closure = sub { $self->onGridPopup(@_); };
     my $hover_closure = sub { $self->onGridHover(@_); };
+    my $select_closure = sub { $self->on_grid_select(@_); };
+    my $grid_click_closure = sub { $self->on_grid_click(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         $frame,
@@ -488,7 +492,9 @@ sub initMap {
         1,
         0,
         $hover_closure,
-        $click_closure
+        $click_closure,
+        $select_closure,
+        $grid_click_closure
     );
     $self->{grid}->{page} = $self;
 
@@ -1635,16 +1641,11 @@ sub onPlotModeChanged {
 # TODO: This whole section needs to be deduplicated between Labels.pm
 ####
 my %drag_modes = (
-    Select  => 'select',
+    Select  => 'click',
     Pan     => 'pan',
     Zoom    => 'select',
     ZoomOut => 'click',
     ZoomFit => 'click',
-);
-
-my %dendogram_drag_modes = (
-    %drag_modes,
-    Select  => 'click',
 );
 
 sub choose_tool {
@@ -1665,7 +1666,7 @@ sub choose_tool {
     $self->{tool} = $tool;
 
     $self->{grid}->{drag_mode} = $drag_modes{$tool};
-    $self->{dendrogram}->{drag_mode} = $dendogram_drag_modes{$tool};
+    $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
 }
 
 # Called from GTK
@@ -1699,11 +1700,63 @@ sub on_zoom_fit_tool {
     $self->choose_tool('ZoomFit');
 }
 
+sub on_grid_select {
+    my ($self, $groups, $ignore_change, $rect) = @_;
+
+    if ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{grid};
+        handle_grid_drag_zoom ($grid, $rect);
+    }
+
+    return;
+}
+
+sub on_grid_click {
+    my $self = shift;
+
+    if ($self->{tool} eq 'ZoomOut') {
+        $self->{grid}->zoomOut();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{grid}->zoomFit();
+    }
+}
+
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
     $self->{dendrogram}->set_use_highlight_func;
 
     return;
+}
+
+my %key_tool_map = (
+    Z => 'Zoom',
+    X => 'ZoomOut',
+    C => 'Pan',
+    V => 'ZoomFit',
+    B => 'Select'
+);
+
+# Override from tab
+sub on_bare_key {
+    my ($self, $keyval) = @_;
+    # TODO: Add other tools
+    my $tool = $key_tool_map{$keyval};
+
+    if (not defined $tool) {
+        return;
+    }
+
+    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
+        # Do an instant zoom out and keep the current tool.
+        $self->{$self->{active_pane}}->zoomOut();
+    }
+    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
+        $self->{$self->{active_pane}}->zoomFit();
+    }
+    else {
+        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+    }
 }
 
 sub on_use_highlight_path_changed {

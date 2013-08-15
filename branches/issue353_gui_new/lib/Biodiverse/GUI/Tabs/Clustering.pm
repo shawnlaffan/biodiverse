@@ -49,13 +49,13 @@ sub new {
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example.
     # These have different objects/widgets)
-    my $xml_page  = Gtk2::GladeXML->new($gui->getGladeFile, 'vpaneClustering');
+    my $xml_page  = Gtk2::GladeXML->new($gui->getGladeFile, 'hboxClusteringPage');
     my $xml_label = Gtk2::GladeXML->new($gui->getGladeFile, 'hboxClusteringLabel');
 
     $self->{xmlPage}  = $xml_page;
     $self->{xmlLabel} = $xml_label;
 
-    my $page  = $xml_page->get_widget('vpaneClustering');
+    my $page  = $xml_page->get_widget('hboxClusteringPage');
     my $label = $xml_label->get_widget('hboxClusteringLabel');
 
 

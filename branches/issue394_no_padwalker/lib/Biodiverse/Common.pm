@@ -300,7 +300,8 @@ sub set_param {
     return 1;
 }
 
-#*set_params = \&set_param;
+#  Could use a slice for speed, but it's not used very often.
+#  Could also return 1 if it is ever used in hot paths.
 sub set_params {
     my $self = shift;
     my %args = @_;

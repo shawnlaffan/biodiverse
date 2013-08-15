@@ -58,7 +58,7 @@ sub new {
         'TREE_ARRAY' => [],
     }, $class;
     
-    $self->set_param (%PARAMS, @_);
+    $self->set_params (%PARAMS, @_);
     $self->set_default_params;  #  and any user overrides
     
     return $self;

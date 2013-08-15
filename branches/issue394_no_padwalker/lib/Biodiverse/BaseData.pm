@@ -95,7 +95,8 @@ sub new {
     );
 
     my %args_for = (%PARAMS, @_);
-    my $x = $self->set_param (%args_for);
+    #my $x = $self->set_param (%args_for);
+    $self->set_params (%args_for);
     
     #  create the groups and labels
     my %params_hash = $self->get_params_hash;

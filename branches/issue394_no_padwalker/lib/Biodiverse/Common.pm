@@ -61,7 +61,7 @@ sub rename_object {
     my $new_name = $args{name};
     my $old_name = $self->get_param ('NAME');
     
-    $self -> set_param (NAME => $new_name);
+    $self->set_param (NAME => $new_name);
     
     my $type = blessed $self;
 
@@ -291,25 +291,25 @@ sub get_params_hash {
     return wantarray ? %$params : $params;
 }
 
+#  set a single parameter
 sub set_param {
     my $self = shift;
-#croak join (" ", @_, "\n") if (scalar @_ % 2) == 1;
-    my %args = @_;
 
-    while (my ($param, $value) = each %args) {
-        $self->{PARAMS}{$param} = $value;
-        #$value = $EMPTY_STRING if ! defined $value;  #  just to cope with warnings
-        #print "Set ". $self->get_param('NAME') . " param $param to $value, $self\n";
-    }
-    #%args = ();  #  clears memory leak?  (hoping against hope)
+    $self->{PARAMS}{$_[0]} = $_[1];
 
-    return scalar keys %args;
+    return 1;
 }
 
 #*set_params = \&set_param;
 sub set_params {
     my $self = shift;
-    return $self->set_param(@_);
+    my %args = @_;
+
+    while (my ($param, $value) = each %args) {
+        $self->{PARAMS}{$param} = $value;
+    }
+
+    return scalar keys %args;
 }
 
 sub delete_param {  #  just passes everything through to delete_params
@@ -2091,7 +2091,7 @@ OUTPFX and the like.
 
 =item  $self->set_param(PARAMNAME => $param)
 
-Set a parameter.  For example,
+Set a single parameter.  For example,
 "$self-E<gt>set_param(NAME => 'hernando')" will set the parameter NAME to the
 value 'hernando'
 

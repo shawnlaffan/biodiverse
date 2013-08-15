@@ -17,7 +17,7 @@ use autovivification;
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
-use Scalar::Util qw/looks_like_number/;
+use Scalar::Util qw/looks_like_number reftype/;
 use List::Util qw /min max/;
 use File::Basename;
 use Path::Class;
@@ -2277,26 +2277,22 @@ sub get_array_list_values {
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element};
+    no autovivification;
 
-    croak "Element not specified\n"
-      if not defined $element;
+    my $element = $args{element} // croak "Element not specified\n";
+    my $list    = $args{list}    // croak "List not specified\n";
 
-    my $list = $args{list};
-    croak  "List not specified\n"
-      if not defined $list;
+    #croak "Element $element does not exist.  Do you need to rebuild the spatial index?\n"
+    #  if ! exists $self->{ELEMENTS}{$element};
 
-    croak "Element $element does not exist.  Do you need to rebuild the spatial index?\n"
-      if ! exists $self->{ELEMENTS}{$element};
+    my $list_ref = $self->{ELEMENTS}{$element}{$list}
+      // croak "Element $element does not exist or does not have a list ref for $list\n";
 
-    return if ! exists $self->{ELEMENTS}{$element}{$list};
-
+    #  does this need to be tested for?  Maybe caller beware is needed?
     croak "List is not an array\n"
-      if ! ref($self->{ELEMENTS}{$element}{$list}) =~ /ARRAY/;
+      if reftype ($list_ref) ne 'ARRAY';
 
-    return wantarray
-        ? @{$self->{ELEMENTS}{$element}{$list}}
-        : $self->{ELEMENTS}{$element}{$list};
+    return wantarray ? @$list_ref : $list_ref;
 }
 
 #  does a list exist in an element?

@@ -1499,12 +1499,6 @@ sub get_args {
     my $sub_args;
     #  use an eval to trap subs that don't allow the get_args option
     if (blessed $self) {
-        #if ($self->can ($metadata_sub)) {
-        #    $sub_args = eval {$self->$metadata_sub (%args)};
-        #}
-        #elsif ($self->can ($sub)) {  #  don't allow for error prone old system
-        #    croak "Metadata sub $metadata_sub does not exist\n";
-        #}
         $sub_args = eval {$self->$metadata_sub (%args)};
         my $error = $EVAL_ERROR;
         if (blessed $error) {
@@ -1518,14 +1512,6 @@ sub get_args {
     else {  #  called in non-OO manner  - not ideal (old style)
         croak "get_args called in non-OO manner - this is deprecated.\n";
     }
-    #my $error = $EVAL_ERROR;
-    #if (blessed $error) {
-    #    $error->rethrow;
-    #}
-    #elsif ($error) {
-    #    croak "$sub does not seem to have valid get_args metadata\n"
-    #          . $error;
-    #}
 
     if (! defined $sub_args) {
         $sub_args = {} ;

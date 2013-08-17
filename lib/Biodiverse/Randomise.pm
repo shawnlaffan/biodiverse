@@ -251,7 +251,7 @@ sub export_prng_current_state {
 }
 
 #  get a list of the all the publicly available randomisations.
-sub get_randomisations {
+sub get_randomisation_functions {
     my $self = shift || __PACKAGE__;
 
     my %analyses = $self->get_subs_with_prefix (
@@ -260,6 +260,24 @@ sub get_randomisations {
     );
     
     return wantarray ? %analyses : \%analyses;
+}
+
+sub check_rand_function_is_valid {
+    my $self = shift;
+    my %args = @_;
+    
+    my $function = $args{function} // '';
+
+    my %rand_functions = $self->get_randomisation_functions;
+
+    my $valid = exists $rand_functions{$function};
+
+    croak "Randomisation function $function is not one of "
+          . join (' ', keys %rand_functions)
+          . "\n"
+      if !$valid;
+
+    return 1;
 }
 
 #####################################################################
@@ -285,6 +303,8 @@ sub run_randomisation {
     my $function = $self->get_param ('FUNCTION')
                    || $args{function}
                    || croak "Randomisation function not specified\n";
+    $self->check_rand_function_is_valid (function => $function);
+
     delete $args{function};  #  don't want to pass unnecessary args on to the function
     $self->set_param (FUNCTION => $function);  #  store it
 

@@ -322,7 +322,7 @@ sub makeFunctionModel {
     my $model = $self->{function_model};
 
     # Add each randomisation function
-    my $functions = Biodiverse::Randomise::get_randomisations;
+    my $functions = Biodiverse::Randomise::get_randomisation_functions;
         my %functions = %$functions;
         my @funcs;
         #  SWL: put the selected one first

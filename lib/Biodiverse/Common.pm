@@ -1606,9 +1606,6 @@ sub get_surrounding_elements {  #  generate a list of values around a single poi
     my $precision = $args{precision} || [('%.10f') x scalar @$coordRef];
 
     foreach my $i (0..$#{$coordRef}) {
-        #$minima[$i] = sprintf ($precision->[$i], $coordRef->[$i] - ($resolutions->[$i] * $distance)) + 0;
-        #$maxima[$i] = sprintf ($precision->[$i], $coordRef->[$i] + ($resolutions->[$i] * $distance)) + 0;
-        
         $minima[$i] = 0
             + $self -> set_precision (
                 precision => $precision->[$i],
@@ -1715,22 +1712,9 @@ sub get_subs_with_prefix {
 
     my $prefix = $args{prefix};
     croak "prefix not defined\n" if not defined $prefix;
-
-    #my $tree = mro::get_linear_isa($args{class} or blessed ($self));
-    #
-    #my $syms = Devel::Symdump->rnew(@$tree);
-    #my %subs;
-    #my @subs_array = sort $syms->functions;
-    #foreach my $sub_name (@subs_array) {
-    #    next if $sub_name !~ /^.*::$prefix/;
-    #    $sub_name =~ s/(.*::)*//;  #  clear the package stuff
-    #    $subs{$sub_name} ++;
-    #}
     
-    my $methods   = Class::Inspector->methods ($args{class} or blessed ($self));
-    #my @sub_names = grep {$_ =~ /^$prefix/} @$methods;
-    #my %subs;
-    #@subs{@sub_names} = (1) x scalar @sub_names;
+    my $methods = Class::Inspector->methods ($args{class} or blessed ($self));
+
     my %subs = map {$_ => 1} grep {$_ =~ /^$prefix/} @$methods;
 
     return wantarray ? %subs : \%subs;

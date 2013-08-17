@@ -1756,7 +1756,7 @@ sub initialise_rand {
     my $self = shift;
     my %args = @_;
     my $seed  = $args{seed};
-    my $state = $self -> get_param ('RAND_LAST_STATE')
+    my $state = $self->get_param ('RAND_LAST_STATE')
                 || $args{state};
 
     warn "[COMMON] Ignoring PRNG seed argument ($seed) because the PRNG state is defined\n"
@@ -1764,13 +1764,20 @@ sub initialise_rand {
 
     #  don't already have one, generate a new object using seed and/or state params.
     #  the system will initialise in the order of state and seed, followed by its own methods
-    my $rand = Math::Random::MT::Auto->new (
-        seed  => $seed,
-        state => $state,  #  will use this if it is defined
-    );
-
+    my $rand = eval {
+        Math::Random::MT::Auto->new (
+            seed  => $seed,
+            state => $state,  #  will use this if it is defined
+        );
+    };
+    my $e = $EVAL_ERROR;
+    if (OIO->caught() && $e =~ 'Invalid state vector') {
+        Biodiverse::PRNG::InvalidStateVector->throw (Biodiverse::PRNG::InvalidStateVector->description);
+    }
+    croak $e if $e;
+ 
     if (! defined $self->get_param ('RAND_INIT_STATE')) {
-        $self -> store_rand_state_init (rand_object => $rand);
+        $self->store_rand_state_init (rand_object => $rand);
     }
 
     return $rand;

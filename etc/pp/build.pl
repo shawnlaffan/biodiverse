@@ -27,7 +27,7 @@ if ($opt->help) {
 }
 
 my $script     = $opt->script;
-my $out_folder = $opt->out_folder // cwd;
+my $out_folder = $opt->out_folder // cwd();
 my $verbose    = $opt->verbose ? ' -v' : q{};
 
 my $perlpath     = $Config{perlpath};
@@ -47,11 +47,11 @@ if ($OSNAME eq 'MSWin32') {
     $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
 
     for my $fname ($lib_expat, 'libgcc_s_sjlj-1.dll', 'libstdc++-6.dll') {
-        my $source = Path::Class::file ($c_bin, $fname);
-        $source = $source->stringify;
-        #say -e $source;
-        copy ($source, $fname) or die "Copy of $source failed: $!";
-        say "Copied $source to fname";
+        my $source = Path::Class::file ($c_bin, $fname)->stringify;
+        my $target = Path::Class::file ($out_folder, $fname)->stringify;
+
+        copy ($source, $target) or die "Copy of $source failed: $!";
+        say "Copied $source to $target";
     }
 
     $output_binary .= '.exe';
@@ -75,7 +75,7 @@ if ($script =~ 'BiodiverseGUI.pl') {
 my $icon_file_base = basename ($icon_file);
 my $icon_file_arg  = qq{-a "$icon_file;$icon_file_base"};
 
-my $output_binary_fullpath = Path::Class::file ($output_binary)->absolute;
+my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->absolute;
 
 $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;

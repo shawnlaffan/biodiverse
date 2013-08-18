@@ -273,7 +273,7 @@ sub check_rand_function_is_valid {
     my $valid = exists $rand_functions{$function};
 
     croak "Randomisation function $function is not one of "
-          . join (' ', keys %rand_functions)
+          . join (', ', keys %rand_functions)
           . "\n"
       if !$valid;
 
@@ -301,8 +301,8 @@ sub run_randomisation {
     my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
 
     my $function = $self->get_param ('FUNCTION')
-                   || $args{function}
-                   || croak "Randomisation function not specified\n";
+                   // $args{function}
+                   // croak "Randomisation function not specified\n";
     $self->check_rand_function_is_valid (function => $function);
 
     delete $args{function};  #  don't want to pass unnecessary args on to the function
@@ -312,8 +312,18 @@ sub run_randomisation {
     delete $args{iterations};
 
     my $max_iters = $args{max_iters};
+    delete $args{max_iters};
 
     #print "\n\n\nMAXITERS IS $max_iters\n\n\n";
+
+    #  load any predefined args - overriding user specified ones
+    my $ref = $self->get_param ('ARGS');
+    if (defined $ref) {
+        %args = %$ref;
+    }
+    else {
+        $self->set_param (ARGS => \%args);
+    }
 
     my $rand_object = $self->initialise_rand (%args);
 
@@ -746,15 +756,6 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
     delete $args{rand_object};
 
-    #  load any predefined args - overriding user specified ones
-    my $ref = $self->get_param ('ARGS');
-    if (defined $ref) {
-        %args = %$ref;
-    }
-    else {
-        $self->set_param (ARGS => \%args);
-    }
-
     my $progress_text = "rand_csr_by_group: complete spatial randomisation\n";
 
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
@@ -871,16 +872,7 @@ sub rand_structured {
     my $rand = $args{rand_object};  #  can't store to all output formats and then recreate
     delete $args{rand_object};
 
-    #  load any predefined args - overriding user specified ones
-    my $ref = $self->get_param ('ARGS');
-    if (defined $ref) {
-        %args = %$ref;
-    }
-    else {
-        $self->set_param (ARGS => \%args);
-    }
-
-    #  need to get these from the params if available
+    #  need to get these from the ARGS param if available - should also croak if negative
     my $multiplier = $args{richness_multiplier} || 1;
     my $addition = $args{richness_addition} || 0;
     my $name = $self->get_param ('NAME');

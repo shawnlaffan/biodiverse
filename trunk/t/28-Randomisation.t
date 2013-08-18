@@ -42,6 +42,8 @@ sub main {
         return 0;
     }
 
+    test_stability_given_prng();
+
     test_same_results_given_same_prng_seed();
 
     test_rand_calc_per_node_uses_orig_bd();
@@ -81,6 +83,86 @@ sub check_order_is_same_given_same_prng {
     my $prng_seed = $args{prng_seed} || $default_prng_seed;
     
 }
+
+
+#  Should get same result for two iterations run in one go as we do for
+#  two run sequentially (first, pause, second)
+#  Need to rename this sub
+sub test_stability_given_prng {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    #  name is short for test_rand_calc_per_node_uses_orig_bd
+    my $sp = $bd->add_spatial_output (name => 'sp');
+    
+    $sp->run_analysis (
+        spatial_conditions => ['sp_self_only()'],
+        calculations => [qw /calc_richness calc_element_lists_used calc_elements_used/],
+    );
+
+    my $prng_seed = 2345;
+
+    my $rand_name_2in1 = '2in1';
+    my $rand_name_1x1 = '1x1';
+
+    my $rand_2in1 = $bd->add_randomisation_output (name => $rand_name_2in1);
+    $rand_2in1->run_analysis (
+        function   => 'rand_csr_by_group',
+        iterations => 3,
+        seed       => $prng_seed,
+    );
+
+    my $rand_1x1 = $bd->add_randomisation_output (name => $rand_name_1x1);
+    for my $i (0..2) {
+        $rand_1x1->run_analysis (
+            function   => 'rand_csr_by_group',
+            iterations => 1,
+            seed       => $prng_seed,
+        );
+    }
+
+    #  these should be the same as the PRNG sequence will be maintained across iterations
+    my $table_2in1 = $sp->to_table (list => $rand_name_2in1 . '>>SPATIAL_RESULTS');
+    my $table_1x1  = $sp->to_table (list => $rand_name_1x1  . '>>SPATIAL_RESULTS');
+
+    is_deeply (
+        $table_2in1,
+        $table_1x1,
+        'Results same when init PRNG seed same and iteration counts same'
+    );
+
+    #  now we should see a difference if we run another
+    $rand_1x1->run_analysis (
+        function   => 'rand_csr_by_group',
+        iterations => 1,
+        seed       => $prng_seed,
+    );
+    $table_1x1 = $sp->to_table (list => $rand_name_1x1  . '>>SPATIAL_RESULTS');
+    isnt (
+        eq_deeply (
+            $table_2in1,
+            $table_1x1,
+        ),
+        'Results different when init PRNG seed same but iteration counts differ',
+    );
+
+    #  Now catch up the other one, but change some more args.
+    #  Most should be ignored.
+    $rand_2in1->run_analysis (
+        function   => 'rand_nochange',
+        iterations => 1,
+        seed       => $prng_seed,
+    );
+    $table_2in1 = $sp->to_table (list => $rand_name_2in1 . '>>SPATIAL_RESULTS');
+
+    is_deeply (
+        $table_2in1,
+        $table_1x1,
+        'Changed function arg ignored in analysis with an iter completed'
+    );
+    
+    return;
+}
+
 
 
 sub test_rand_calc_per_node_uses_orig_bd {

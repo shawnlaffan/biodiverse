@@ -38,12 +38,16 @@ GetOptions (
 
 
 my @usage_array = (
-    $0
-    , '--basedata <file name>'
-    , '--rand_name <randomisation name>'
-    , '--iterations {iterations [default is 10]}'
-    , '--args Rest of randomisation args as key=value pairs, with pairs separated by spaces'
-    , '--help Print this usage and exit',
+    "\nUsage:",
+    $0,
+    '--basedata  --bd Basedata file name',
+    '--rand_name  --r Randomisation output name',
+    '--iterations --i Number of randomisation iterations [default is 10]',
+    '--args           Rest of randomisation args as',
+    '                 key=value pairs,',
+    '                 with pairs separated by spaces',
+    q{},
+    '--help       Print this usage and exit',
 );
 
 my $usage = join "\n", @usage_array;
@@ -53,14 +57,12 @@ if ($print_usage) {
     exit (0);
 }
 
-if ($ENV{BDV_PP_BUILDING}) {
-    say 'Building pp file';
-    use File::BOM qw / :subs /;          #  we need File::BOM.
-    open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
-      or croak "Cannot open $0 via File::BOM\n";
-    $fh->close;
-    exit ;
-}
+exit (0) if $ENV{BDV_PP_BUILDING};
+
+die "\nError: Basedata file not specified\n$usage\n"
+  if !defined $in_file;
+die "\nError: Randomisation name not specified\n$usage\n"
+  if !defined $rand_name;
 
 my $tmp_bd     = Biodiverse::BaseData->new();
 my $extensions = join ('|', $tmp_bd->get_param('OUTSUFFIX'), $tmp_bd->get_param('OUTSUFFIX_YAML'));

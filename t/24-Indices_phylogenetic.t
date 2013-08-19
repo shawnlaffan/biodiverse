@@ -50,12 +50,13 @@ my @calcs = qw/
         my %args = @_;
         my $bd = $args{basedata_ref};
         my $el_list1 = $args{element_list1};
-        my $group = $el_list1->[0];
-        
-        $bd->add_element (
-            group => $group,
-            label => 'namenotontree:atall',
-        );
+        #  add a new label to all of the groups to be sure we get coverage
+        foreach my $group ($bd->get_groups) {  
+            $bd->add_element (
+                group => $group,
+                label => 'namenotontree:atall',
+            );
+        }
     };
     
     my $overlay1 = {

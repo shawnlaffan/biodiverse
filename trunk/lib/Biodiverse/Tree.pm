@@ -1621,6 +1621,22 @@ sub trees_are_same {
     return $trees_match;
 }
 
+#  does this tree contain a second tree as a sub-tree
+sub contains_tree {
+    my $self = shift;
+    my %args = @_;
+    
+    my $exact_match_count = $self->compare (%args, no_track_matches => 1);
+
+    my $comparison = $args{comparison}
+        || croak "Comparison not specified\n";
+
+    my $node_count_comp = $comparison->get_node_count;
+    my $contains = $exact_match_count == $node_count_comp;
+    
+    return $contains;
+}
+
 #  trim a tree to remove nodes from a set of names, or those not in a set of names
 sub trim {
     my $self = shift;

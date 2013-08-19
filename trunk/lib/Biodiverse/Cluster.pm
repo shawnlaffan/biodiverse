@@ -240,7 +240,7 @@ sub get_indices_object_for_matrix_and_clustering {
     my $index_params = $indices_object->get_args (sub => $index_function);
     my $index_order  = $index_params->{indices}{$index}{cluster};
     # cache unless told otherwise
-    my $cache_abc = 1;
+    my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
         $cache_abc = not $args{no_cache_abc};
     }
@@ -1844,7 +1844,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $matrix_array    = $self->get_matrices_ref;
     my $current_mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
 
-    my $new_node_ref = $self->get_node_ref (node => $new_node);
+    my $new_node_ref    = $self->get_node_ref (node => $new_node);
     my $nodes_under_new = $new_node_ref->get_all_descendents;
 
     #  generate the neighbour set for the new node

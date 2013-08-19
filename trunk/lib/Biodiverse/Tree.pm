@@ -1522,6 +1522,7 @@ sub compare {
                         if ($len_comp eq $len_base) {
                             $found_perfect_match{$compare_node_name} = $len_base;
                         }
+                        #else {say "$compare_node_name, $len_comp, $len_base"}
                     }
                     last COMP;
                 }
@@ -1632,6 +1633,12 @@ sub contains_tree {
         || croak "Comparison not specified\n";
 
     my $node_count_comp = $comparison->get_node_count;
+    if ($args{ignore_root}) {
+        $node_count_comp --;
+    }
+    my $correction += $args{correction} // 0;
+    $node_count_comp += $correction;
+
     my $contains = $exact_match_count == $node_count_comp;
     
     return $contains;

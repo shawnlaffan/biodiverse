@@ -1,4 +1,4 @@
-#summary Documentation for the load_and_randomise_wrapper utlility
+#summary Documentation for the load_and_randomise_wrapper utility
 #sidebar TOC
 
 <wiki:toc max_depth="4" />

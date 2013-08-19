@@ -1861,10 +1861,13 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
         foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
             my $mx = $matrix_array->[$mx_iter];
 
-            next MX_ITER if $mx->element_pair_exists (  #  does this ever happen?
-                element1 => $new_node,
-                element2 => $check_node
-            );
+            #if ($mx->element_pair_exists (  #  does this ever happen?
+            #    element1 => $new_node,
+            #    element2 => $check_node,
+            #)) {
+            #    warn "FOUND AN ELEMENT PAIR THAT WAS ALREADY CREATED $new_node and $check_node";
+            #    next MX_ITER;
+            #};
 
             next MX_ITER
               if ! (

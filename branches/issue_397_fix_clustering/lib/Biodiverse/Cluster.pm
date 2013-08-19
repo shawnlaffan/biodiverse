@@ -1466,9 +1466,12 @@ sub cluster {
 
     #  now stitch the root nodes together into one
     #  (needs to be after flattening or nodes get pulled up too far)
-    $self->join_root_nodes (%args);
+    if (scalar keys %root_nodes > 1) {
+        $self->join_root_nodes (%args);
+        %root_nodes = $self->get_root_nodes;
+    }
 
-    my $root_node_name = [keys %{$self->get_root_nodes}]->[0];
+    my $root_node_name = [keys %root_nodes]->[0];
     my $root_node = $self->get_node_ref (node => $root_node_name);
 
     my $tot_length = $self->get_param('MIN_VALUE');   #  GET THE FIRST CHILD AND THE LENGTH FROM IT?
@@ -1477,6 +1480,9 @@ sub cluster {
         TOTAL_LENGTH => $self->get_param('MIN_VALUE'),
         JOIN_NUMBER  => $self->get_param('JOIN_NUMBER'),
     );
+    if (!defined $root_node->get_value('MATRIX_ITER_USED')) {
+        $root_node->set_value (MATRIX_ITER_USED => undef);
+    }
 
     if (! $args{retain_nbr_matrix}) {
         $self->delete_nbr_matrices;
@@ -1844,27 +1850,27 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $matrix_array    = $self->get_matrices_ref;
     my $current_mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
 
-    my $new_node_ref    = $self->get_node_ref (node => $new_node);
-    my $nodes_under_new = $new_node_ref->get_all_descendents;
+    #my $new_node_ref    = $self->get_node_ref (node => $new_node);
+    #my $nodes_under_new = $new_node_ref->get_all_descendents;
 
-    #  generate the neighbour set for the new node
-    foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
-        my $nbr_matrix = $self->get_nbr_matrix_ref (iter => $mx_iter);  #  hash of neighbours
-
-        #  skip if this pair isn't in this matrix
-        my $nbrs_node1 = $nbr_matrix->{$node1} || {};
-        #next if ! defined $nbrs_node1;
-        my $nbrs_node2 = $nbr_matrix->{$node2} || {};
-        #next if ! defined $nbrs_node2;
-
-        my %joint_nbrs = (%$nbrs_node1, %$nbrs_node2);
-        next if ! scalar keys %joint_nbrs;  #  there were no neighbours
-
-        #  don't consider those that are already merged under us
-        delete @joint_nbrs{keys %$nodes_under_new};
-
-        $nbr_matrix->{$new_node} = \%joint_nbrs;
-    }
+    #  generate the neighbour set for the new node  - NOT USED ATM
+    #foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
+    #    my $nbr_matrix = $self->get_nbr_matrix_ref (iter => $mx_iter);  #  hash of neighbours
+    #
+    #    #  skip if this pair isn't in this matrix
+    #    my $nbrs_node1 = $nbr_matrix->{$node1} || {};
+    #    #next if ! defined $nbrs_node1;
+    #    my $nbrs_node2 = $nbr_matrix->{$node2} || {};
+    #    #next if ! defined $nbrs_node2;
+    #
+    #    my %joint_nbrs = (%$nbrs_node1, %$nbrs_node2);
+    #    next if ! scalar keys %joint_nbrs;  #  there were no neighbours
+    #
+    #    #  don't consider those that are already merged under us
+    #    delete @joint_nbrs{keys %$nodes_under_new};
+    #
+    #    $nbr_matrix->{$new_node} = \%joint_nbrs;
+    #}
 
     my $matrix_with_elements = $shadow_matrix || $matrix_array->[0];
 
@@ -1875,10 +1881,10 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     foreach my $check_node (sort $matrix_with_elements->get_elements_as_array) {  
 
         #  skip the mergees
-        next if $check_node eq $node1 || $check_node eq $node2;
+        next CHECK_NODE if $check_node eq $node1 || $check_node eq $node2;
 
         #  skip if we don't have both pairs check node with node1 and node2
-        next if !(
+        next CHECK_NODE if !(
             $matrix_with_elements->element_pair_exists (
                 element1 => $check_node,
                 element2 => $node1,
@@ -1896,6 +1902,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             compare_node => $check_node,
             matrix       => $matrix_with_elements,
         );
+
         if ($shadow_matrix) {
             $shadow_matrix->add_element  (
                 element1 => $new_node,
@@ -1905,13 +1912,13 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
         }
 
         #  add those values that are now nbrs
-        my $check_node_ref
-            = $self->get_node_ref (node => $check_node);
-
-        my $check_node_elements
-            = defined $check_node_ref
-                ? $check_node_ref->get_terminal_elements
-                : {$check_node => 1};
+        #my $check_node_ref
+        #    = $self->get_node_ref (node => $check_node);
+        #
+        #my $check_node_elements
+        #    = defined $check_node_ref
+        #        ? $check_node_ref->get_terminal_elements
+        #        : {$check_node => 1};
 
         #  work from the current mx forwards
         MX_ITER:
@@ -1922,33 +1929,47 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             #       add it to the current matrix if it is not already there.
             #  We get the value from the shadow matrix.
 
-            my $nbr_mx  #  hash of neighbours
-                = $self->get_nbr_matrix_ref (iter => $mx_iter);  
+            #my $nbr_mx  #  hash of neighbours
+            #    = $self->get_nbr_matrix_ref (iter => $mx_iter);
 
-            my $count;
-            my %nbrs;
+            #my $count;
+            #my %nbrs;
 
-            if ($nbr_mx) {
-                %nbrs = %{$nbr_mx->{$new_node}};  #  make a dereferenced copy
-                $count = scalar keys %nbrs;
-                delete @nbrs{keys %$check_node_elements};
-            }
+            #if ($nbr_mx) {
+            #    %nbrs = %{$nbr_mx->{$new_node}};  #  make a dereferenced copy
+            #    $count = scalar keys %nbrs;
+            #    delete @nbrs{keys %$check_node_elements};
+            #}
 
             #  if no nbr_mx or we are a neighbour
-            if (!defined $nbr_mx || $count != scalar keys %nbrs) {  
-                #  we had a deletion so check_node is a neighbour of new_node
+            #if (!defined $nbr_mx || $count != scalar keys %nbrs) {
+            if (1) {
+                ###  we had a deletion so check_node is a neighbour of new_node
 
-                my $exists = $mx->element_pair_exists (
+                my $already_exists = $mx->element_pair_exists (
                     element1 => $new_node,
                     element2 => $check_node
                 );
                 #  get it from the shadow matrix, which we calculated above
-                if (! $exists) {
-                    $mx->add_element (
-                        element1    => $new_node,
-                        element2    => $check_node,
-                        value       => $values{value},
-                    );
+                if (! $already_exists) {
+                    my $contains_mergees
+                      = $mx->element_pair_exists (
+                            element1 => $node1,
+                            element2 => $check_node,
+                        )
+                      &&
+                        $mx->element_pair_exists (
+                            element1 => $node2,
+                            element2 => $check_node,
+                        );
+                    if ($contains_mergees) {
+                        $mx->add_element (
+                            element1    => $new_node,
+                            element2    => $check_node,
+                            value       => $values{value},
+                        );
+                        last MX_ITER;
+                    }
                 }
             }
         }

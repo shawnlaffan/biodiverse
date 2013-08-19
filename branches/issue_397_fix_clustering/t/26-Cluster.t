@@ -320,11 +320,10 @@ sub test_two_spatial_conditions {
         linkage_function   => 'link_average',
     );
 
-    my $spatial_conditions1 = [
-        '$nbr_y > 1350000 && $y > 1350000',
-    ];
+    my $cond1 = '$nbr_y > 1500000 && $y > 1500000';
+    my $spatial_conditions1 = [$cond1];
     my $spatial_conditions2 = [
-        '$nbr_y > 1350000 && $y > 1350000',
+        $cond1,
         'sp_select_all()',
     ];
 
@@ -351,9 +350,12 @@ sub test_two_spatial_conditions {
         'contains_tree works - cluster 1 contains itself'
     );
 
+    #  Ignore the root node since it can have a different length
+    #  and thus won't always match.
     ok (
-        $cl1->contains_tree (comparison => $cl2),
-        'Cluster 1 contains cluster 2 when using same first spatial condition'
+        $cl2->contains_tree (comparison => $cl1, ignore_root => 1),
+        'Cluster with two conditions contains cluster with one condition '
+        . 'when first spatial condition is same'
     );
 
 }

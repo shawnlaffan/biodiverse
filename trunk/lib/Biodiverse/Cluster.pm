@@ -1445,9 +1445,9 @@ sub cluster {
     #  (needs to be after flattening or nodes get pulled up too far)
     if (scalar keys %root_nodes > 1) {
         $self->join_root_nodes (%args);
-        %root_nodes = $self->get_root_nodes;
     }
 
+    %root_nodes = $self->get_root_nodes;
     my $root_node_name = [keys %root_nodes]->[0];
     my $root_node = $self->get_node_ref (node => $root_node_name);
 

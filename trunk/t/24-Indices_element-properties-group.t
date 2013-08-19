@@ -36,7 +36,7 @@ __DATA__
                             'PROP2' => '-0.0219908030260867',
                             'PROP3' => '1.50256200660814'
                           },
-  'GPPROP_QUANTILES' => {
+  'GPPROP_QUANTILE_LIST' => {
                           'GPPROP_STATS_PROP1_Q05' => '771.8167',
                           'GPPROP_STATS_PROP1_Q10' => '771.8167',
                           'GPPROP_STATS_PROP1_Q20' => '893.2959',
@@ -71,7 +71,7 @@ __DATA__
                           'GPPROP_STATS_PROP3_Q90' => 2036,
                           'GPPROP_STATS_PROP3_Q95' => 2036
                         },
-  'GPPROP_STATS' => {
+  'GPPROP_STATS_LIST' => {
                       'PROP1_COUNT'  => 5,
                       'PROP1_IQR'    => '107.68711850792',
                       'PROP1_MAX'    => '1168.8379',
@@ -148,7 +148,7 @@ __DATA__
                             'PROP2' => '-0.470216283178489',
                             'PROP3' => '0.781087839068424'
                           },
-  'GPPROP_QUANTILES' => {
+  'GPPROP_QUANTILE_LIST' => {
                           'GPPROP_STATS_PROP1_Q05' => '771.8167',
                           'GPPROP_STATS_PROP1_Q10' => '771.8167',
                           'GPPROP_STATS_PROP1_Q20' => '771.8167',
@@ -183,7 +183,7 @@ __DATA__
                           'GPPROP_STATS_PROP3_Q90' => 1315,
                           'GPPROP_STATS_PROP3_Q95' => 1315
                         },
-  'GPPROP_STATS' => {
+  'GPPROP_STATS_LIST' => {
                       'PROP1_COUNT'  => 1,
                       'PROP1_IQR'    => '0',
                       'PROP1_MAX'    => '771.8167',

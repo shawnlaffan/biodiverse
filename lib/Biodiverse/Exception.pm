@@ -78,6 +78,9 @@ use Exception::Class (
     'Biodiverse::PRNG::InvalidStateVector' => {
         description => $prng_init_descr,
     },
+    'Biodiverse::BaseStruct::ListDoesNotExist' => {
+        description => 'The requested list does not exist for this element',
+    },
 );
 
 

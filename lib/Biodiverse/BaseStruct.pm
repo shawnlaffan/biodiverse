@@ -1887,9 +1887,10 @@ sub get_element_name_coord {
     defined $args{element} || croak "element not specified\n";
     my $element = $args{element};
 
-    my $values = $self->get_array_list_values (element => $element, list => '_ELEMENT_COORD');
-
-    if (! defined $values) {  #  doesn't exist, so generate it 
+    my $values = eval {
+        $self->get_array_list_values (element => $element, list => '_ELEMENT_COORD');
+    };
+    if (Biodiverse::BaseStruct::ListDoesNotExist->caught) {  #  doesn't exist, so generate it 
         $self->generate_element_coords;
         $values = $self->get_element_name_coord (element => $element);
     }
@@ -2286,7 +2287,9 @@ sub get_array_list_values {
     #  if ! exists $self->{ELEMENTS}{$element};
 
     my $list_ref = $self->{ELEMENTS}{$element}{$list}
-      // croak "Element $element does not exist or does not have a list ref for $list\n";
+      // Biodiverse::BaseStruct::ListDoesNotExist->throw (
+            message => "Element $element does not exist or does not have a list ref for $list\n",
+        );
 
     #  does this need to be tested for?  Maybe caller beware is needed?
     croak "List is not an array\n"

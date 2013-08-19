@@ -400,7 +400,6 @@ sub build_matrices {
     $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => \%cache);
 
     my %done;
-    #my @nbr_matrices;  #  cache of each set of neighbours
     my $valid_count = 0;
 
     # only those that passed the def query (if set) will be considered
@@ -434,7 +433,6 @@ sub build_matrices {
         );
 
         my @neighbours;  #  store the neighbours of this element
-        my %all_nbrs_this_element;
         foreach my $i (0 .. $#matrices) {
             my $nbr_list_name = '_NBR_SET' . ($i+1);
             my $neighours = $sp->get_list_values (
@@ -446,11 +444,6 @@ sub build_matrices {
             delete $neighbour_hash{$element1};  #  exclude ourselves
             $neighbours[$i] = \%neighbour_hash;
 
-            @all_nbrs_this_element{@$neighours} = (1) x scalar @$neighours;
-            #if ($i) {  #  matrices should not be exclusive?
-            #    #  merge $i-1
-            #}
-            #$nbr_matrices[$i]{$element1} = $neighbours[$i];
         }
 
         #  loop over the neighbours and add them to the appropriate matrix
@@ -865,23 +858,6 @@ sub delete_shadow_matrix {
     return if not exists $self->{SHADOW_MATRIX}; #  avoid autovivification
     $self->{SHADOW_MATRIX} = undef;
     delete $self->{SHADOW_MATRIX};
-    return;
-}
-
-#  redundant? 
-sub get_nbr_matrix_ref {
-    my $self = shift;
-    return if not exists $self->{NBR_MATRICES}; #  avoid autovivification
-    my %args = @_;
-    my $i = $args{iter};
-    return $self->{NBR_MATRICES}[$i];
-}
-
-#  redundant? 
-sub delete_nbr_matrices {
-    my $self = shift;
-    return if not exists $self->{NBR_MATRIX}; #  avoid autovivification
-    delete $self->{NBR_MATRICES};
     return;
 }
 
@@ -1484,9 +1460,6 @@ sub cluster {
         $root_node->set_value (MATRIX_ITER_USED => undef);
     }
 
-    if (! $args{retain_nbr_matrix}) {
-        $self->delete_nbr_matrices;
-    }
     if ($args{clear_cached_values}) {
         $root_node->delete_cached_values_below;
     }
@@ -1829,12 +1802,6 @@ sub link_recalculate {
     return wantarray ? %r : \%r;
 }
 
-#  THIS IS CURRENTLY ARSE ABOUT
-#  Need to generate the linkage value for the shadow matrix and then assign
-#  to the relevant matrices.  This will avoid pollution and shifting of values.
-#  We want non-overlapping neighbour sets to not interact outside their boundaries.
-#  Currently we get shenanigans with non-overlapping and a second nbr set.
-#  And also stop calling them nbr_matrices?  No longer relevant to the approach?
 sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $self = shift;
     my %args = @_;
@@ -1849,28 +1816,6 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $shadow_matrix   = $self->get_shadow_matrix;
     my $matrix_array    = $self->get_matrices_ref;
     my $current_mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
-
-    #my $new_node_ref    = $self->get_node_ref (node => $new_node);
-    #my $nodes_under_new = $new_node_ref->get_all_descendents;
-
-    #  generate the neighbour set for the new node  - NOT USED ATM
-    #foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
-    #    my $nbr_matrix = $self->get_nbr_matrix_ref (iter => $mx_iter);  #  hash of neighbours
-    #
-    #    #  skip if this pair isn't in this matrix
-    #    my $nbrs_node1 = $nbr_matrix->{$node1} || {};
-    #    #next if ! defined $nbrs_node1;
-    #    my $nbrs_node2 = $nbr_matrix->{$node2} || {};
-    #    #next if ! defined $nbrs_node2;
-    #
-    #    my %joint_nbrs = (%$nbrs_node1, %$nbrs_node2);
-    #    next if ! scalar keys %joint_nbrs;  #  there were no neighbours
-    #
-    #    #  don't consider those that are already merged under us
-    #    delete @joint_nbrs{keys %$nodes_under_new};
-    #
-    #    $nbr_matrix->{$new_node} = \%joint_nbrs;
-    #}
 
     my $matrix_with_elements = $shadow_matrix || $matrix_array->[0];
 
@@ -1911,67 +1856,35 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             );
         }
 
-        #  add those values that are now nbrs
-        #my $check_node_ref
-        #    = $self->get_node_ref (node => $check_node);
-        #
-        #my $check_node_elements
-        #    = defined $check_node_ref
-        #        ? $check_node_ref->get_terminal_elements
-        #        : {$check_node => 1};
-
         #  work from the current mx forwards
         MX_ITER:
         foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
             my $mx = $matrix_array->[$mx_iter];
 
-            #  If $check_node is a neighbour of the new node then we need to
-            #       add it to the current matrix if it is not already there.
-            #  We get the value from the shadow matrix.
+            next MX_ITER if $mx->element_pair_exists (  #  does this ever happen?
+                element1 => $new_node,
+                element2 => $check_node
+            );
 
-            #my $nbr_mx  #  hash of neighbours
-            #    = $self->get_nbr_matrix_ref (iter => $mx_iter);
-
-            #my $count;
-            #my %nbrs;
-
-            #if ($nbr_mx) {
-            #    %nbrs = %{$nbr_mx->{$new_node}};  #  make a dereferenced copy
-            #    $count = scalar keys %nbrs;
-            #    delete @nbrs{keys %$check_node_elements};
-            #}
-
-            #  if no nbr_mx or we are a neighbour
-            #if (!defined $nbr_mx || $count != scalar keys %nbrs) {
-            if (1) {
-                ###  we had a deletion so check_node is a neighbour of new_node
-
-                my $already_exists = $mx->element_pair_exists (
-                    element1 => $new_node,
-                    element2 => $check_node
+            next MX_ITER
+              if ! (
+                    $mx->element_pair_exists (
+                        element1 => $node1,
+                        element2 => $check_node,
+                    )
+                    &&
+                    $mx->element_pair_exists (
+                        element1 => $node2,
+                        element2 => $check_node,
+                    )
                 );
-                #  get it from the shadow matrix, which we calculated above
-                if (! $already_exists) {
-                    my $contains_mergees
-                      = $mx->element_pair_exists (
-                            element1 => $node1,
-                            element2 => $check_node,
-                        )
-                      &&
-                        $mx->element_pair_exists (
-                            element1 => $node2,
-                            element2 => $check_node,
-                        );
-                    if ($contains_mergees) {
-                        $mx->add_element (
-                            element1    => $new_node,
-                            element2    => $check_node,
-                            value       => $values{value},
-                        );
-                        last MX_ITER;
-                    }
-                }
-            }
+
+            $mx->add_element (
+                element1    => $new_node,
+                element2    => $check_node,
+                value       => $values{value},
+            );
+            last MX_ITER;
         }
     }
 

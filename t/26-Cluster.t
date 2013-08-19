@@ -305,6 +305,59 @@ sub test_matrix_recycling {
 
 }
 
+
+#  shadow matrix should contain all pair combinations across both matrices?
+#  No - let user do so explicitly using sp_select_all() as final condition.
+sub test_two_spatial_conditions {
+    my %args = @_;
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tie_breaker = [ENDW_WE => 'max'];
+
+    my %analysis_args = (
+        cache_abc          => 0,
+        index              => 'SORENSON',
+        linkage_function   => 'link_average',
+    );
+
+    my $spatial_conditions1 = [
+        '$nbr_y > 1350000 && $y > 1350000',
+    ];
+    my $spatial_conditions2 = [
+        '$nbr_y > 1350000 && $y > 1350000',
+        'sp_select_all()',
+    ];
+
+    #  run cl2 before cl1 for debugging purposes
+    my $cl2 = $bd->add_cluster_output (name => 'cl2');
+    $cl2->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl2->set_param (CACHE_ABC => 0);
+    $cl2->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions2,
+    );
+
+
+    my $cl1 = $bd->add_cluster_output (name => 'cl1');
+    $cl1->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl1->set_param (CACHE_ABC => 0);
+    $cl1->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions1,
+    );
+
+    ok (
+        $cl1->contains_tree (comparison => $cl1),
+        'contains_tree works - cluster 1 contains itself'
+    );
+
+    ok (
+        $cl1->contains_tree (comparison => $cl2),
+        'Cluster 1 contains cluster 2 when using same first spatial condition'
+    );
+
+}
+
 ######################################
 
 

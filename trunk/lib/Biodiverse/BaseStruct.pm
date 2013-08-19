@@ -1894,6 +1894,7 @@ sub get_element_name_coord {
         $self->generate_element_coords;
         $values = $self->get_element_name_coord (element => $element);
     }
+    #croak $EVAL_ERROR if $EVAL_ERROR;  #  need tests before putting this in.  
 
     return wantarray ? @$values : $values;
 }

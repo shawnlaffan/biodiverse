@@ -279,7 +279,7 @@ sub calc_gpprop_stats {
         }
     }
 
-    my %results = (GPPROP_STATS => \%res);
+    my %results = (GPPROP_STATS_LIST => \%res);
 
     return wantarray ? %results : \%results;
 }
@@ -324,7 +324,7 @@ sub calc_gpprop_quantiles {
         }
     }
 
-    my %results = (GPPROP_QUANTILES => \%res);
+    my %results = (GPPROP_QUANTILE_LIST => \%res);
 
     return wantarray ? %results : \%results;
 }

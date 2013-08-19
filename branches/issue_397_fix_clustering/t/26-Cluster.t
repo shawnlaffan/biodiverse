@@ -358,6 +358,45 @@ sub test_two_spatial_conditions {
         . 'when first spatial condition is same'
     );
 
+    my $block_cond = 'sp_block (size => 400000)';
+    my $spatial_conditions3 = [$block_cond];
+    my $spatial_conditions4 = [$block_cond, 'sp_select_all()'];
+    
+    my $cl3 = $bd->add_cluster_output (name => 'cl3');
+    $cl3->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl3->set_param (CACHE_ABC => 0);
+    $cl3->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions3,
+    );
+    
+    my $cl4 = $bd->add_cluster_output (name => 'cl4');
+    $cl4->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl4->set_param (CACHE_ABC => 0);
+    $cl4->run_analysis (
+        %analysis_args,
+        spatial_conditions => $spatial_conditions4,
+    );
+    
+    ok (
+        $cl3->contains_tree (comparison => $cl3),
+        'contains_tree works for sp_block - cluster 3 contains itself'
+    );
+    my $cl3_root_child_count = $cl3->get_child_count;
+
+    #  Ignore the root node and its immediate children
+    #  since they can have different lengths
+    #  and thus won't always match.
+    ok (
+        $cl4->contains_tree (
+            comparison  => $cl3,
+            ignore_root => 1,
+            correction  => -$cl3_root_child_count,
+        ),
+        'Cluster with two conditions contains cluster with condition '
+        . 'when first spatial condition is same (sp_block)'
+    );
+    
 }
 
 ######################################

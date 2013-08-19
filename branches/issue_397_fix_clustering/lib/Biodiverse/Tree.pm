@@ -1636,6 +1636,8 @@ sub contains_tree {
     if ($args{ignore_root}) {
         $node_count_comp --;
     }
+    my $correction += $args{correction} // 0;
+    $node_count_comp += $correction;
 
     my $contains = $exact_match_count == $node_count_comp;
     

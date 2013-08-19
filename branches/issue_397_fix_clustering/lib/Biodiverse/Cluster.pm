@@ -1062,7 +1062,8 @@ sub get_most_similar_pair {
         my %tmp = @$tie_breaker;
         my @tie_keys = keys %tmp;
 
-        foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { #  ensures same order each time, thus stabilising random results
+        #  Sort ensures same order each time, thus stabilising random results
+        foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
             no autovivification;
 
             my $calc_results = $tie_breaker_cache->{$pair->[0]}{$pair->[1]}

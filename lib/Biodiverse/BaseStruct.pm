@@ -357,7 +357,7 @@ sub export_table_delimited_text {
 
     my $table = $self->to_table (symmetric => 1, %args, file_handle => $fh);
 
-    if (scalar @$table) {  #  won;t ned this once issue #350 is fixed
+    if (scalar @$table) {  #  won't ned this once issue #350 is fixed
         $self->write_table_csv (%args, data => $table);
     }
 

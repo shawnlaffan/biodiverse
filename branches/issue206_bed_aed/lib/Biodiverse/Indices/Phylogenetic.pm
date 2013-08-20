@@ -8,7 +8,7 @@ use English qw /-no_match_vars/;
 use Carp;
 use Biodiverse::Progress;
 
-use List::Util qw /sum min max/;
+use List::Util qw /sum0 sum min max/;
 use List::MoreUtils qw /pairwise any/;
 use Math::BigInt;
 #use POSIX qw /floor/;
@@ -29,10 +29,9 @@ sub get_metadata_calc_pd {
                            . "lengths back to the root of the tree.\n"
                            . 'Uses labels in both neighbourhoods.',
         name            => 'Phylogenetic Diversity',
-        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        type            => 'Phylogenetic Indices',
         pre_calc        => '_calc_pd',
         uses_nbr_lists  => 1,  #  how many lists it must have
-        #required_args   => {'tree_ref' => 1},
         indices         => {
             PD              => {
                 cluster       => undef,
@@ -1723,8 +1722,6 @@ sub _calc_phylo_abc {
     my $label_hash1 = $args{label_hash1};
     my $label_hash2 = $args{label_hash2};
 
-    my ($phylo_A, $phylo_B, $phylo_C, $phylo_ABC)= (0, 0, 0, 0);    
-
     my $tree = $args{trimmed_tree};
 
     my $nodes_in_path1 = $self->get_path_lengths_to_root_node (
@@ -1747,40 +1744,40 @@ sub _calc_phylo_abc {
     # then get length of B
     my %B = %A;
     delete @B{keys %$nodes_in_path2};
-    $phylo_B = sum (0, values %B);
+    my $phylo_B = sum (0, values %B);
 
     # create a new hash %C for nodes in label hash 2 but not 1
     # then get length of C
     my %C = %A;
     delete @C{keys %$nodes_in_path1};
-    $phylo_C = sum (0, values %C);
+    my $phylo_C = sum (0, values %C);
 
     # get length of %A = branches not in %B or %C
     delete @A{keys %B, keys %C};
-    $phylo_A = sum (0, values %A);
+    my $phylo_A = sum (0, values %A);
 
-    $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
+    my $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
     
-    $phylo_A = $self->set_precision (
+    #  return the values but reduce the precision to avoid
+    #  floating point problems later on
+
+    $phylo_A = 0 + $self->set_precision (
         precision => $_calc_phylo_abc_precision,
         value     => $phylo_A,
     );
-    $phylo_B = $self->set_precision (
+    $phylo_B = 0 + $self->set_precision (
         precision => $_calc_phylo_abc_precision,
         value     => $phylo_B,
     );
-    $phylo_C = $self->set_precision (
+    $phylo_C = 0 + $self->set_precision (
         precision => $_calc_phylo_abc_precision,
         value     => $phylo_C,
     );
-    $phylo_ABC = $self->set_precision (
+    $phylo_ABC = 0 + $self->set_precision (
         precision => $_calc_phylo_abc_precision,
         value     => $phylo_ABC,
     );
 
-    #  return the values but reduce the precision to avoid
-    #  floating point problems later on
-    #my $precision = "%.10f";
     my %results = (
         PHYLO_A   => $phylo_A,
         PHYLO_B   => $phylo_B,

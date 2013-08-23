@@ -287,20 +287,21 @@ sub get_length_to_tip {
     return $self->get_tree_length;
 }
 
-sub get_terminal_elements {  #  get the terminal elements below this node
-                           #  if not a TreeNode reference, then return a
-                           #  hash ref containing only this node
+#  Get the terminal elements below this node
+#  If not a TreeNode reference, then return a
+#  hash ref containing only this node
+sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache by default
+
     my $node = $args{node} || croak "node not specified\n";
     my $nodeRef = $self->get_node_ref(node => $node);
-    if (defined $nodeRef) {
-        return $nodeRef->get_terminal_elements (cache => $args{cache});
-    }
-    else {
-        my %hash = ($node => $nodeRef);
-        return wantarray ? %hash : \%hash;
-    }
+
+    return $nodeRef->get_terminal_elements (cache => $args{cache})
+      if defined $nodeRef;
+
+    my %hash = ($node => $nodeRef);
+    return wantarray ? %hash : \%hash;
 }
 
 sub get_node_ref {

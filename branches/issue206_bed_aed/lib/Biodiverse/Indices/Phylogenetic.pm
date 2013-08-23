@@ -1794,16 +1794,22 @@ sub _calc_phylo_abc {
 
 
 sub get_metadata_calc_phylo_aed_t {
+    
+    my $descr = 'Abundance weighted ED_t '
+              . '(sum of values in PHYLO_AED_LIST times their abundances).'
+              . ' This is equivalent to a phylogenetic rarity score '
+              . '(see phylogenetic endemism)';
+
     my %arguments = (
         name            =>  'Evolutionary distinctiveness per site',
         description     =>  'Site level evolutionary distinctiveness',
         type            =>  'Phylogenetic Indices',
-        pre_calc        => [qw /calc_abc3 calc_phylo_aed/],
+        pre_calc        => [qw /_calc_phylo_aed_t/],
         uses_nbr_lists  =>  1,
         reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
             PHYLO_AED_T => {
-                description  => 'Abundance weighted ED_t (sum of values in PHYLO_AED_LIST times their abundances)',
+                description  => $descr,
                 reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
         },
@@ -1816,18 +1822,90 @@ sub calc_phylo_aed_t {
     my $self = shift;
     my %args = @_;
 
+    my %results = (PHYLO_AED_T => $args{PHYLO_AED_T});
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_phylo_aed_t_wtlists {
+    my %arguments = (
+        name            =>  'Evolutionary distinctiveness per terminal taxon per site',
+        description     =>  'Site level evolutionary distinctiveness per terminal taxon',
+        type            =>  'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_phylo_aed_t/],
+        uses_nbr_lists  =>  1,
+        reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+        indices         => {
+            PHYLO_AED_T_WTLIST => {
+                description  => 'Abundance weighted ED per terminal taxon '
+                              . '(the AED score of each taxon multiplied by its '
+                              . 'abundance in the sample)',
+                reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+                type         => 'list',
+            },
+            PHYLO_AED_T_WTLIST_P => {
+                description  => 'Proportional contribution of each terminal taxon to the AED_T score',
+                reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+                type         => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_phylo_aed_t_wtlists {
+    my $self = shift;
+    my %args = @_;
+
+    my $wt_list   = $args{PHYLO_AED_T_WTLIST};
+    my $aed_t     = $args{PHYLO_AED_T};
+    my $p_wt_list = {};
+
+    foreach my $label (keys %$wt_list) {
+        $p_wt_list->{$label} = $wt_list->{$label} / $aed_t;
+    }
+
+    my %results = (
+        PHYLO_AED_T_WTLIST   => $wt_list,
+        PHYLO_AED_T_WTLIST_P => $p_wt_list,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata__calc_phylo_aed_t {
+    my %arguments = (
+        name            => 'Inner sub for AED_T calcs',
+        pre_calc        => [qw /calc_abc3 calc_phylo_aed/],
+        uses_nbr_lists  =>  1,
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub _calc_phylo_aed_t {
+    my $self = shift;
+    my %args = @_;
+
     my $aed_hash   = $args{PHYLO_AED_LIST};
     my $label_hash = $args{label_hash_all};
     my $aed_t;
+    my %scores;
 
     foreach my $label (keys %$label_hash) {
         my $abundance = $label_hash->{$label};
         my $aed_score = $aed_hash->{$label};
+        my $weight    = $abundance * $aed_score;
 
-        $aed_t += $abundance * $aed_score;
+        $scores{$label} = $weight;
+        $aed_t += $weight;
     }
 
-    my %results = (PHYLO_AED_T => $aed_t);
+    my %results = (
+        PHYLO_AED_T        => $aed_t,
+        PHYLO_AED_T_WTLIST => \%scores,
+    );
 
     return wantarray ? %results : \%results;
 }
@@ -1850,7 +1928,7 @@ sub get_metadata_calc_phylo_aed {
             PHYLO_AED_LIST => {
                 description  =>  'Abundance weighted ED per terminal label',
                 list         => 1,
-                reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+                reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
             PHYLO_ES_LIST => {
                 description  =>  'Equal splits partitioning of PD per terminal label',

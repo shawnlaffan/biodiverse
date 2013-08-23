@@ -22,6 +22,7 @@ my @calcs = qw/
     calc_phylo_aed
     calc_phylo_aed_t
     calc_phylo_aed_t_wtlists
+    calc_phylo_corrected_weighted_rarity
     calc_labels_not_on_tree
     calc_labels_on_tree
     calc_pd_endemism
@@ -34,6 +35,7 @@ my @calcs = qw/
     calc_pd_terminal_node_list
     calc_pe
     calc_pe_lists
+    calc_phylo_corrected_weighted_endemism
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
     calc_pe_single
@@ -90,6 +92,8 @@ sub test_sum_to_pd {
         calc_pe
         calc_phylo_aed_t
         calc_phylo_aed_t_wtlists
+        calc_phylo_corrected_weighted_rarity
+        calc_phylo_corrected_weighted_endemism
         calc_pd
     /;
 
@@ -113,12 +117,19 @@ sub test_sum_to_pd {
 
     my $pd = $results_list->{PD};
     
-    my @indices = qw /PE_WE PHYLO_AED_T/;  #  add more
-    my @lists_sum_to_one = qw /PHYLO_AED_T_WTLIST_P/;  #   these need to sum to 1 for each nbrhood
+    my @indices_sum_to_pd = qw /PE_WE PHYLO_AED_T/;  #  add more
+    #  these need to equal 1 for sp_select_all()
+    my @indices_should_be_one = qw /PHYLO_RARITY_CWR PE_CWE/;
+    #   these need to sum to 1 across nbrhoods
+    my @lists_sum_to_one = qw /PHYLO_AED_T_WTLIST_P/;  
 
-    foreach my $index (@indices) {
-        is ($results_list->{$index}, $pd, "$index sums to PD, sp_select_all()");
+    foreach my $index (@indices_sum_to_pd) {
+        is ($results_list->{$index}, $pd, "$index equals PD, sp_select_all()");
     }
+    foreach my $index (@indices_should_be_one) {
+        is ($results_list->{$index}, 1, "$index is 1, sp_select_all()");
+    }
+
     foreach my $list_name (@lists_sum_to_one) {
         my $list = $sp->get_list_ref (
             list    => $list_name,
@@ -127,6 +138,7 @@ sub test_sum_to_pd {
         my $sum  = sum values %$list;
         is ($sum, 1, "$list_name sums to 1, sp_select_all()");
     }
+    
 
     #  should also do an sp_self_only and then sum the values across all elements
     $sp = $bd->add_spatial_output (name => 'should sum to PD, self_only');
@@ -142,12 +154,12 @@ sub test_sum_to_pd {
             list    => 'SPATIAL_RESULTS',
             element => $element,
         );
-        foreach my $index (@indices) {
+        foreach my $index (@indices_sum_to_pd) {
             $sums{$index} += $results_list->{$index};
         }
     }
 
-    foreach my $index (@indices) {
+    foreach my $index (@indices_sum_to_pd) {
         is ($sums{$index}, $pd, "$index sums to PD, sp_self_only()");
     }
     
@@ -159,7 +171,7 @@ sub test_sum_to_pd {
                     element => $element,
                 );
                 my $sum = sum values %$list;
-                $sum //= 1;  #  undef is valid for cases with no tree terminals
+                $sum //= 1;  #  undef is valid for samples with no tree terminals
                 is ($sum, 1, "$list_name sums to 1 for $element, sp_self_only()");
             }
         };
@@ -172,7 +184,7 @@ sub test_indices {
     run_indices_test1 (
         calcs_to_test      => [@calcs],
         calc_topic_to_test => 'Phylogenetic Indices',
-        #generate_result_sets => 1,
+        generate_result_sets => 1,
     );
 }
 
@@ -287,6 +299,7 @@ __DATA__
   'PD_P' => '0.451163454880594',
   'PD_P_per_taxon' => '0.0322259610628996',
   'PD_per_taxon' => '0.682618105875523',
+  'PE_CWE' => '0.165652822722154',
   'PE_LOCAL_RANGELIST' => {
                             '30___' => 1,
                             '31___' => 2,
@@ -504,6 +517,7 @@ __DATA__
                               'Genus:sp30' => 1,
                               'Genus:sp5' => 1
                             },
+  'PHYLO_RARITY_CWR' => '0.144409172195734',
   'PHYLO_S2' => 0,
   'PHYLO_SORENSON' => '0.729801407809261',
   'TDB_DENOMINATOR' => 182,
@@ -515,6 +529,7 @@ __DATA__
   'TD_NUMERATOR' => '1904.32533432037',
   'TD_VARIATION' => '8.14607553623072'
 }
+
 
 
 @@ RESULTS_1_NBR_LISTS
@@ -542,6 +557,7 @@ __DATA__
   'PD_P' => '0.0704726738019399',
   'PD_P_per_taxon' => '0.0352363369009699',
   'PD_per_taxon' => '0.746384615384616',
+  'PE_CWE' => '0.175417769804782',
   'PE_LOCAL_RANGELIST' => {
                             '34___' => 1,
                             '35___' => 1,
@@ -613,6 +629,7 @@ __DATA__
                               'Genus:sp20' => 1,
                               'Genus:sp26' => 1
                             },
+  'PHYLO_RARITY_CWR' => '0.175683424689984',
   'TDB_DENOMINATOR' => 2,
   'TDB_DISTINCTNESS' => '0.341398923434153',
   'TDB_NUMERATOR' => '0.682797846868306',
@@ -622,4 +639,3 @@ __DATA__
   'TD_NUMERATOR' => '5.46238277494645',
   'TD_VARIATION' => '0.815872574453991'
 }
-

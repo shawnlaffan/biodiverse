@@ -1792,6 +1792,85 @@ sub _calc_phylo_abc {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_phylo_corrected_weighted_endemism{
+    
+    my $descr = 'Corrected weighted endemism.  '
+              . 'This is the phylogenetic analogue of corrected '
+              . 'weighted endemism.';
+
+    my %arguments = (
+        name            => 'Corrected weighted phylogenetic endemism',
+        description     => q{What proportion of the PD is range-restricted to this neighbour set?},
+        type            => 'Phylogenetic Indices',
+        pre_calc        => [qw /calc_pe calc_pd/],
+        uses_nbr_lists  =>  1,
+        reference       => '',
+        indices         => {
+            PE_CWE => {
+                description  => $descr,
+                reference    => '',
+                formula      => ['PE_WE / PD'],
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_phylo_corrected_weighted_endemism {
+    my $self = shift;
+    my %args = @_;
+
+    my $pe = $args{PE_WE};
+    my $pd = $args{PD};
+    no warnings 'uninitialized';
+
+    my %results = (
+        PE_CWE => eval {$pe / $pd},
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_phylo_corrected_weighted_rarity {
+    
+    my $descr = 'Corrected weighted phylogenetic rarity.  '
+              . 'This is the phylogenetic rarity analogue of corrected '
+              . 'weighted endemism.';
+
+    my %arguments = (
+        name            =>  'Corrected weighted phylogenetic rarity',
+        description     =>  q{What proportion of the PD is abundance-restricted to this neighbour set?},
+        type            =>  'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_phylo_aed_t calc_pd/],
+        uses_nbr_lists  =>  1,
+        reference       => '',
+        indices         => {
+            PHYLO_RARITY_CWR => {
+                description  => $descr,
+                reference    => '',
+                formula      => ['AED_T / PD'],
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_phylo_corrected_weighted_rarity {
+    my $self = shift;
+    my %args = @_;
+
+    my $aed_t = $args{PHYLO_AED_T};
+    my $pd    = $args{PD};
+    no warnings 'uninitialized';
+
+    my %results = (
+        PHYLO_RARITY_CWR => eval {$aed_t / $pd},
+    );
+
+    return wantarray ? %results : \%results;
+}
 
 sub get_metadata_calc_phylo_aed_t {
     

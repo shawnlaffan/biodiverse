@@ -10,15 +10,19 @@ local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 use rlib;
 use Test::More;
+use List::Util qw /sum/;
 
 use Biodiverse::TestHelpers qw{
     :runners
+    :basedata
+    :tree
 };
 
 my @calcs = qw/
     calc_phylo_aed
     calc_phylo_aed_t
-    calc_phylo_aed_proportional
+    calc_phylo_aed_t_wtlists
+    calc_phylo_corrected_weighted_rarity
     calc_labels_not_on_tree
     calc_labels_on_tree
     calc_pd_endemism
@@ -31,21 +35,161 @@ my @calcs = qw/
     calc_pd_terminal_node_list
     calc_pe
     calc_pe_lists
+    calc_phylo_corrected_weighted_endemism
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
     calc_pe_single
 /;
 
-{
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+
+    test_indices();
+    #test_calc_phylo_aed();
+    test_extra_labels_in_bd();
+    test_sum_to_pd();
+
+    
+    done_testing;
+    return 0;
+}
+
+
+sub test_calc_phylo_aed {
+    note "LOCAL OVERRIDE TO ONLY DO AED CALCS - REMOVE BEFORE REINTEGRATION\n";
+
+    my @calcs = qw/
+        calc_phylo_aed
+        calc_phylo_aed_t
+        calc_phylo_aed_t_wtlists
+    /;
+
+    run_indices_test1 (
+        calcs_to_test   => [@calcs],
+        no_strict_match => 1,
+        generate_result_sets => 1,
+    );
+}
+
+sub test_sum_to_pd {
+    #  these indices should sum to PD when all groups are used in the analysis
+    #  some lists should also sum to 1 - need to change the subroutine name
+
+    my @calcs = qw/
+        calc_pe
+        calc_phylo_aed_t
+        calc_phylo_aed_t_wtlists
+        calc_phylo_corrected_weighted_rarity
+        calc_phylo_corrected_weighted_endemism
+        calc_pd
+    /;
+
+    my $cell_sizes   = [200000, 200000];
+    my $bd = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $tree = get_tree_object_from_sample_data();
+
+    my $sp = $bd->add_spatial_output (name => 'should sum to PD, select_all');
+    $sp->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_select_all()'],
+        tree_ref           => $tree,
+    );
+
+    my $elts = $sp->get_element_list;
+    my $elt_to_check = $elts->[0];  #  they will all be the same value
+    my $results_list = $sp->get_list_ref (
+        list    => 'SPATIAL_RESULTS',
+        element => $elt_to_check,
+    );
+
+    my $pd = $results_list->{PD};
+    
+    my @indices_sum_to_pd = qw /PE_WE PHYLO_AED_T/;  #  add more
+    #  these need to equal 1 for sp_select_all()
+    my @indices_should_be_one = qw /PHYLO_RARITY_CWR PE_CWE/;
+    #   these need to sum to 1 across nbrhoods
+    my @lists_sum_to_one = qw /PHYLO_AED_T_WTLIST_P/;  
+
+    foreach my $index (@indices_sum_to_pd) {
+        is ($results_list->{$index}, $pd, "$index equals PD, sp_select_all()");
+    }
+    foreach my $index (@indices_should_be_one) {
+        is ($results_list->{$index}, 1, "$index is 1, sp_select_all()");
+    }
+
+    foreach my $list_name (@lists_sum_to_one) {
+        my $list = $sp->get_list_ref (
+            list    => $list_name,
+            element => $elt_to_check,
+        );
+        my $sum  = sum values %$list;
+        is ($sum, 1, "$list_name sums to 1, sp_select_all()");
+    }
+    
+
+    #  should also do an sp_self_only and then sum the values across all elements
+    $sp = $bd->add_spatial_output (name => 'should sum to PD, self_only');
+    $sp->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_self_only()'],
+        tree_ref           => $tree,
+    );
+    
+    my %sums;
+    foreach my $element (@$elts) {
+        my $results_list = $sp->get_list_ref (
+            list    => 'SPATIAL_RESULTS',
+            element => $element,
+        );
+        foreach my $index (@indices_sum_to_pd) {
+            $sums{$index} += $results_list->{$index};
+        }
+    }
+
+    foreach my $index (@indices_sum_to_pd) {
+        is ($sums{$index}, $pd, "$index sums to PD, sp_self_only()");
+    }
+    
+    foreach my $list_name (@lists_sum_to_one) {
+        subtest "$list_name sums to 1 or undef, sp_self_only()" => sub {
+            foreach my $element (@$elts) {
+                my $list = $sp->get_list_ref (
+                    list    => $list_name,
+                    element => $element,
+                );
+                my $sum = sum values %$list;
+                $sum //= 1;  #  undef is valid for samples with no tree terminals
+                is ($sum, 1, "$list_name sums to 1 for $element, sp_self_only()");
+            }
+        };
+    }
+
+}
+
+
+sub test_indices {
     run_indices_test1 (
         calcs_to_test      => [@calcs],
         calc_topic_to_test => 'Phylogenetic Indices',
-        #generate_result_sets => 1,
+        generate_result_sets => 1,
     );
 }
 
 #  now try with extra labels that aren't on the tree
-{
+sub test_extra_labels_in_bd {
     my $cb = sub {
         my %args = @_;
         my $bd = $args{basedata_ref};
@@ -155,6 +299,7 @@ __DATA__
   'PD_P' => '0.451163454880594',
   'PD_P_per_taxon' => '0.0322259610628996',
   'PD_per_taxon' => '0.682618105875523',
+  'PE_CWE' => '0.165652822722154',
   'PE_LOCAL_RANGELIST' => {
                             '30___' => 1,
                             '31___' => 2,
@@ -270,39 +415,55 @@ __DATA__
   'PHYLO_A' => '1.4927692308',
   'PHYLO_ABC' => '9.5566534823',
   'PHYLO_AED_LIST' => {
-                        'Genus:sp1' => '0.0503930969345596',
-                        'Genus:sp10' => '0.0281896757943279',
-                        'Genus:sp11' => '0.0494076062574589',
-                        'Genus:sp12' => '0.050539886453687',
-                        'Genus:sp15' => '0.040524675881928',
-                        'Genus:sp20' => '0.041893941667476',
-                        'Genus:sp23' => '0.148203607227373',
-                        'Genus:sp24' => '0.305963938866254',
-                        'Genus:sp25' => '0.368463938866254',
-                        'Genus:sp26' => '0.0627272750008093',
-                        'Genus:sp27' => '0.599310252633764',
-                        'Genus:sp29' => '0.0728869137531598',
-                        'Genus:sp30' => '0.256899259401286',
-                        'Genus:sp5' => '0.386675699373672'
+                        'Genus:sp1' => '0.0107499482131097',
+                        'Genus:sp10' => '0.00545225560494617',
+                        'Genus:sp11' => '0.00207155382856306',
+                        'Genus:sp12' => '0.00450677503945796',
+                        'Genus:sp15' => '0.0124251431448835',
+                        'Genus:sp20' => '0.0252759553987262',
+                        'Genus:sp23' => '0.00327355381530656',
+                        'Genus:sp24' => '0.0336871540660519',
+                        'Genus:sp25' => '0.0505953666264384',
+                        'Genus:sp26' => '0.0805754945692332',
+                        'Genus:sp27' => '0.0230520172760593',
+                        'Genus:sp29' => '0.0116977777714026',
+                        'Genus:sp30' => '0.00499599356630484',
+                        'Genus:sp5' => '0.0176398692951442'
                       },
-  'PHYLO_AED_P' => {
-                     'Genus:sp1' => undef,
-                     'Genus:sp10' => undef,
-                     'Genus:sp11' => undef,
-                     'Genus:sp12' => undef,
-                     'Genus:sp15' => undef,
-                     'Genus:sp20' => undef,
-                     'Genus:sp23' => undef,
-                     'Genus:sp24' => undef,
-                     'Genus:sp25' => undef,
-                     'Genus:sp26' => undef,
-                     'Genus:sp27' => undef,
-                     'Genus:sp29' => undef,
-                     'Genus:sp30' => undef,
-                     'Genus:sp5' => undef
-                   },
-  'PHYLO_AED_T' => '2.46207976811201',
-  'PHYLO_B' => '0.0000000000',
+  'PHYLO_AED_T' => '1.38006841833426',
+  'PHYLO_AED_T_WTLIST' => {
+                            'Genus:sp1' => '0.0859995857048772',
+                            'Genus:sp10' => '0.0872360896791387',
+                            'Genus:sp11' => '0.0186439844570675',
+                            'Genus:sp12' => '0.0360542003156637',
+                            'Genus:sp15' => '0.136676574593719',
+                            'Genus:sp20' => '0.303311464784715',
+                            'Genus:sp23' => '0.00654710763061312',
+                            'Genus:sp24' => '0.0673743081321039',
+                            'Genus:sp25' => '0.0505953666264384',
+                            'Genus:sp26' => '0.483452967415399',
+                            'Genus:sp27' => '0.0230520172760593',
+                            'Genus:sp29' => '0.0584888888570131',
+                            'Genus:sp30' => '0.00499599356630484',
+                            'Genus:sp5' => '0.0176398692951442'
+                          },
+  'PHYLO_AED_T_WTLIST_P' => {
+                              'Genus:sp1' => '0.0623154508590804',
+                              'Genus:sp10' => '0.063211423810736',
+                              'Genus:sp11' => '0.0135094638855448',
+                              'Genus:sp12' => '0.0261249368775362',
+                              'Genus:sp15' => '0.0990360860215086',
+                              'Genus:sp20' => '0.219780020146256',
+                              'Genus:sp23' => '0.00474404568906481',
+                              'Genus:sp24' => '0.0488195420147536',
+                              'Genus:sp25' => '0.0366614915277222',
+                              'Genus:sp26' => '0.350310869369018',
+                              'Genus:sp27' => '0.0167035322088474',
+                              'Genus:sp29' => '0.0423811516008817',
+                              'Genus:sp30' => '0.00362010571355224',
+                              'Genus:sp5' => '0.0127818802754979'
+                            },
+  'PHYLO_B' => '0',
   'PHYLO_C' => '8.0638842515',
   'PHYLO_ED_LIST' => {
                        'Genus:sp1' => '0.678240495563069',
@@ -320,22 +481,6 @@ __DATA__
                        'Genus:sp30' => '0.557265280898026',
                        'Genus:sp5' => '0.688766811352542'
                      },
-  'PHYLO_ED_P' => {
-                    'Genus:sp1' => undef,
-                    'Genus:sp10' => undef,
-                    'Genus:sp11' => undef,
-                    'Genus:sp12' => undef,
-                    'Genus:sp15' => undef,
-                    'Genus:sp20' => undef,
-                    'Genus:sp23' => undef,
-                    'Genus:sp24' => undef,
-                    'Genus:sp25' => undef,
-                    'Genus:sp26' => undef,
-                    'Genus:sp27' => undef,
-                    'Genus:sp29' => undef,
-                    'Genus:sp30' => undef,
-                    'Genus:sp5' => undef
-                  },
   'PHYLO_ES_LIST' => {
                        'Genus:sp1' => '0.66656052363853',
                        'Genus:sp10' => '0.830685020049678',
@@ -352,22 +497,6 @@ __DATA__
                        'Genus:sp30' => '0.506327788030815',
                        'Genus:sp5' => '0.677086839428004'
                      },
-  'PHYLO_ES_P' => {
-                    'Genus:sp1' => undef,
-                    'Genus:sp10' => undef,
-                    'Genus:sp11' => undef,
-                    'Genus:sp12' => undef,
-                    'Genus:sp15' => undef,
-                    'Genus:sp20' => undef,
-                    'Genus:sp23' => undef,
-                    'Genus:sp24' => undef,
-                    'Genus:sp25' => undef,
-                    'Genus:sp26' => undef,
-                    'Genus:sp27' => undef,
-                    'Genus:sp29' => undef,
-                    'Genus:sp30' => undef,
-                    'Genus:sp5' => undef
-                  },
   'PHYLO_JACCARD' => '0.84379791173084',
   'PHYLO_LABELS_NOT_ON_TREE' => {},
   'PHYLO_LABELS_NOT_ON_TREE_N' => 0,
@@ -388,6 +517,7 @@ __DATA__
                               'Genus:sp30' => 1,
                               'Genus:sp5' => 1
                             },
+  'PHYLO_RARITY_CWR' => '0.144409172195734',
   'PHYLO_S2' => 0,
   'PHYLO_SORENSON' => '0.729801407809261',
   'TDB_DENOMINATOR' => 182,
@@ -399,6 +529,8 @@ __DATA__
   'TD_NUMERATOR' => '1904.32533432037',
   'TD_VARIATION' => '8.14607553623072'
 }
+
+
 
 @@ RESULTS_1_NBR_LISTS
 {
@@ -425,6 +557,7 @@ __DATA__
   'PD_P' => '0.0704726738019399',
   'PD_P_per_taxon' => '0.0352363369009699',
   'PD_per_taxon' => '0.746384615384616',
+  'PE_CWE' => '0.175417769804782',
   'PE_LOCAL_RANGELIST' => {
                             '34___' => 1,
                             '35___' => 1,
@@ -469,30 +602,26 @@ __DATA__
                    'Genus:sp26' => '0.166666666666667'
                  },
   'PHYLO_AED_LIST' => {
-                        'Genus:sp20' => '0.144628205128205',
-                        'Genus:sp26' => '0.207128205128205'
+                        'Genus:sp20' => '0.0252759553987262',
+                        'Genus:sp26' => '0.0805754945692332'
                       },
-  'PHYLO_AED_P' => {
-                     'Genus:sp20' => undef,
-                     'Genus:sp26' => undef
-                   },
-  'PHYLO_AED_T' => '0.35175641025641',
+  'PHYLO_AED_T' => '0.262254810733371',
+  'PHYLO_AED_T_WTLIST' => {
+                            'Genus:sp20' => '0.101103821594905',
+                            'Genus:sp26' => '0.161150989138466'
+                          },
+  'PHYLO_AED_T_WTLIST_P' => {
+                              'Genus:sp20' => '0.385517509906406',
+                              'Genus:sp26' => '0.614482490093594'
+                            },
   'PHYLO_ED_LIST' => {
                        'Genus:sp20' => '0.682552763166875',
                        'Genus:sp26' => '0.682552763166875'
                      },
-  'PHYLO_ED_P' => {
-                    'Genus:sp20' => undef,
-                    'Genus:sp26' => undef
-                  },
   'PHYLO_ES_LIST' => {
                        'Genus:sp20' => '0.688503612046397',
                        'Genus:sp26' => '0.688503612046397'
                      },
-  'PHYLO_ES_P' => {
-                    'Genus:sp20' => undef,
-                    'Genus:sp26' => undef
-                  },
   'PHYLO_LABELS_NOT_ON_TREE' => {},
   'PHYLO_LABELS_NOT_ON_TREE_N' => 0,
   'PHYLO_LABELS_NOT_ON_TREE_P' => 0,
@@ -500,6 +629,7 @@ __DATA__
                               'Genus:sp20' => 1,
                               'Genus:sp26' => 1
                             },
+  'PHYLO_RARITY_CWR' => '0.175683424689984',
   'TDB_DENOMINATOR' => 2,
   'TDB_DISTINCTNESS' => '0.341398923434153',
   'TDB_NUMERATOR' => '0.682797846868306',
@@ -509,4 +639,3 @@ __DATA__
   'TD_NUMERATOR' => '5.46238277494645',
   'TD_VARIATION' => '0.815872574453991'
 }
-

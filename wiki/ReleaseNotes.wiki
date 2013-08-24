@@ -15,13 +15,13 @@ Main changes since previous version (0.17) are:
     *  Randomisations:  New options to perturb the trees and group properties.  Issue #388, Issue #389
   *  Indices and Calculations
     *  Add new calculation to obtain the list of labels that occur on the tree.  Issue #319
-    *  The phylogenetic diversity and phylogenetic endemism measures now use only the labels on the tree.  The main change for users is that the PD_per_taxon index will now divide PD by the number of labels in the sample that are on the tree, not the number in the sample.  Previously, if your sample contained labels not on the tree then the values returned were too low.  Issue #320.
+    *  The phylogenetic diversity and phylogenetic endemism measures now use only the labels on the tree.  The main change for users is that the PD_per_taxon index will now divide PD by the number of labels in the sample that are on the tree, not the species richness of the sample.  Previously, if your sample contained labels not on the tree then the values returned were too low.  Issue #320.
     *  calc_pd_node_list returns a hash with the node lengths (index PD_INCLUDED_NODE_LIST).  Previously it just had values of 1.  Issue #321.
     *  The PE_WE index is now undefined when no tree branches occur in the neighbour sets.
     *  New calculations have been added to replicate some of the analyses in !PhyloCom.  These are available under the !PhyloCom category in the calculations lists.  Issue #331 and Issue #332.
     *  New calculation to obtain a list of the nodes not on the selected tree.  Issue #334
     *  The AED and related indices should now be calculated correctly.  Issue #206
-    *  New indices for corrected weighted phylogenetic endemism and rarity (indices are called PE_CWE and PHLO_RARITY_CWR).  These are phylogenetic analogues of the corrected weighted endemism index.  
+    *  New indices for corrected weighted phylogenetic endemism and rarity (PE_CWE and PHLO_RARITY_CWR).  These are phylogenetic analogues of the corrected weighted endemism index and can be interpreted as the degree to which the ranges or abundances of branches found in a neighbour set are restricted to that neighbour set.  A value of 1 is completely restricted, values approaching zero have very little restriction.
   *  Spatial conditions
     *  The `sp_match_text()` and `sp_match_regex()` conditions now match against the whole label by default.  Specifying the axis argument will make them behave as in previous releases.  Issue #325
     *  New condition `sp_select_element()` which will match only one element (group).  This is the same as sp_match_text() but has been optimised to make it considerably faster since it can only ever match one element.  Issue #326

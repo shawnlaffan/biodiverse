@@ -20,8 +20,8 @@ Main changes since previous version (0.17) are:
     *  The PE_WE index is now undefined when no tree branches occur in the neighbour sets.
     *  New calculations have been added to replicate some of the analyses in !PhyloCom.  These are available under the !PhyloCom category in the calculations lists.  Issue #331 and Issue #332.
     *  New calculation to obtain a list of the nodes not on the selected tree.  Issue #334
-	*  The AED and related indices should now be calculated correctly.  Issue #206
-	*  New indices for corrected weighted phylogenetic endemism and rarity (indices are called PE_CWE and PHLO_RARITY_CWR).  These are phylogenetic analogues of the corrected weighted endemism index.  
+    *  The AED and related indices should now be calculated correctly.  Issue #206
+    *  New indices for corrected weighted phylogenetic endemism and rarity (indices are called PE_CWE and PHLO_RARITY_CWR).  These are phylogenetic analogues of the corrected weighted endemism index.  
   *  Spatial conditions
     *  The `sp_match_text()` and `sp_match_regex()` conditions now match against the whole label by default.  Specifying the axis argument will make them behave as in previous releases.  Issue #325
     *  New condition `sp_select_element()` which will match only one element (group).  This is the same as sp_match_text() but has been optimised to make it considerably faster since it can only ever match one element.  Issue #326

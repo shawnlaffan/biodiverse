@@ -1855,14 +1855,19 @@ sub test_locale_numeric {
     return 1;
 }
 
+my $locale_uses_comma_radix = (sprintf ('%.6f', 0.5) =~ /,/) ? 1 : undef;
+
 #  need to handle locale issues in string conversions using sprintf
 sub set_precision {
     my $self = shift;
     my %args = @_;
     
     my $num = sprintf ($args{precision}, $args{value});
-    $num =~ s{,}{\.};  #  replace any comma with a decimal
-    
+
+    if ($locale_uses_comma_radix) {
+        $num =~ s{,}{\.};  #  replace any comma with a decimal
+    }
+
     return $num;
 }
 

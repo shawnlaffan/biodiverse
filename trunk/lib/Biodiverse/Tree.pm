@@ -304,6 +304,22 @@ sub get_terminal_elements {
     return wantarray ? %hash : \%hash;
 }
 
+sub get_terminal_element_count {
+    my $self = shift;
+    my %args = (cache => 1, @_);  #  cache by default
+
+    my $node = $args{node} || croak "node not specified\n";
+    my $nodeRef = $self->get_node_ref(node => $node);
+
+    #  follow logic of get_terminal_elements, which returns a hash of
+    #  node if not a ref - good or bad idea?  Ever used?  
+    return 1 if !defined $nodeRef;
+
+    return $nodeRef->get_terminal_element_count (cache => $args{cache});
+}
+
+
+
 sub get_node_ref {
     my $self = shift;
     my %args = @_;

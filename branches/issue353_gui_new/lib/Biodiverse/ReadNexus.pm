@@ -16,7 +16,7 @@ use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 use base qw /Biodiverse::Common/;
 
@@ -58,7 +58,7 @@ sub new {
         'TREE_ARRAY' => [],
     }, $class;
     
-    $self->set_param (%PARAMS, @_);
+    $self->set_params (%PARAMS, @_);
     $self->set_default_params;  #  and any user overrides
     
     return $self;

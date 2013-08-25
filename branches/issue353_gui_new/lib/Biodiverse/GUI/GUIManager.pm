@@ -2,17 +2,63 @@ package Biodiverse::GUI::GUIManager;
 
 use strict;
 use warnings;
+use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
-use Data::Dumper;
-use Data::DumpXML::Parser;
+#use Data::Dumper;
+#use Data::DumpXML::Parser;
 use Carp;
 use Scalar::Util qw /blessed/;
 
 use English ( -no_match_vars );
+
+#use Cwd;
+use FindBin qw ( $Bin );
+use Path::Class ();
+
+BEGIN {
+    #  Add the gtk libs if using windows - brittle?
+    #  Search up the tree until we find a dir of the requisite name
+    #  and which contains a bin folder
+    if ($OSNAME eq 'MSWin32') {
+        #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
+        my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
+        my $origin_dir = Path::Class::file($prog_name)->dir;
+
+        my @paths;
+        use Config;
+        my $gtk_dir = $Config{archname} =~ /x86/ ? 'gtk_win32' : 'gtk_win64';
+
+        ORIGIN_DIR:
+        while ($origin_dir) {
+
+            foreach my $inner_path (
+              Path::Class::dir($origin_dir, $gtk_dir,),
+              Path::Class::dir($origin_dir, $gtk_dir, 'c'),
+              ) {
+                my $gtk_path = Path::Class::dir($inner_path, 'bin');
+                if (-d $gtk_path) {
+                    say "Adding $gtk_path to the path";
+                    push @paths, $gtk_path;
+                }
+            }
+
+            my $old_dir = $origin_dir;
+            $origin_dir = $origin_dir->parent;
+            last ORIGIN_DIR if $old_dir eq $origin_dir;
+        }
+
+        my $sep = ';';  #  should get from system, but this block only works on windows anyway
+        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
+        #$ENV{PATH} .= $sep . join $sep, @paths;
+        #say "Path is:\n", $ENV{PATH};
+    }
+}
+
+
 
 require Biodiverse::GUI::Project;
 require Biodiverse::GUI::BasedataImport;
@@ -24,10 +70,11 @@ require Biodiverse::GUI::Exclusions;
 require Biodiverse::GUI::Export;
 require Biodiverse::GUI::Tabs::Outputs;
 require Biodiverse::GUI::YesNoCancel;
-require Biodiverse::GUI::ProgressDialog;  #  needed?
+#require Biodiverse::GUI::ProgressDialog;
 
 require Biodiverse::BaseData;
 require Biodiverse::Matrix;
+require Biodiverse::Config;
 
 use base qw /Biodiverse::Common Biodiverse::GUI::Help/;
 
@@ -43,6 +90,7 @@ BEGIN {
         tabs     => [],       # Stores refs to Tabs objects. In order of page index.
     };
     bless $singleton, 'Biodiverse::GUI::GUIManager';
+    $Biodiverse::Config::running_under_gui = 1;
 }
 
 sub instance {
@@ -170,37 +218,37 @@ sub init {
     return;
 }
 
-sub progressTest {
-    my $self = shift;
-
-    my $dlg = Biodiverse::GUI::ProgressDialog->new;
-
-    #$dlg->update("0.5", 0.5);
-    #sleep(1);
-    #$dlg->update("0.5", 0.6);
-    #sleep(1);
-    $dlg->pulsate("pulsing first time", 0.7);
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-
-    sleep(1); $dlg->update("1/3", 0.1);
-    sleep(1); $dlg->update("2/3", 0.4);
-    sleep(1); $dlg->update("3/3", 0.7);
-
-    $dlg->pulsate("pulsing second time", 0.7);
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
-
-    sleep(1); $dlg->update("1/3", 0.1);
-    sleep(1); $dlg->update("2/3", 0.4);
-    sleep(1); $dlg->update("3/3", 0.7);
-
-    $dlg->destroy;
-    
-    return;
-}
+#sub progressTest {
+#    my $self = shift;
+#
+#    my $dlg = Biodiverse::GUI::ProgressDialog->new;
+#
+#    #$dlg->update("0.5", 0.5);
+#    #sleep(1);
+#    #$dlg->update("0.5", 0.6);
+#    #sleep(1);
+#    $dlg->pulsate("pulsing first time", 0.7);
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#
+#    sleep(1); $dlg->update("1/3", 0.1);
+#    sleep(1); $dlg->update("2/3", 0.4);
+#    sleep(1); $dlg->update("3/3", 0.7);
+#
+#    $dlg->pulsate("pulsing second time", 0.7);
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#    sleep(1); while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+#
+#    sleep(1); $dlg->update("1/3", 0.1);
+#    sleep(1); $dlg->update("2/3", 0.4);
+#    sleep(1); $dlg->update("3/3", 0.7);
+#
+#    $dlg->destroy;
+#    
+#    return;
+#}
 
 sub initCombobox {
     my ($self, $id) = @_;
@@ -216,7 +264,10 @@ sub initCombobox {
 # Called when Project is to be deleted
 sub closeProject {
     my $self = shift;
-    if (defined $self->{project}) {
+    
+    return 1 if !defined $self->{project};
+
+    #if (defined $self->{project}) {
 
         if ($self->{project}->isDirty()) {
             # Show "Save changes?" dialog
@@ -250,7 +301,7 @@ sub closeProject {
         Biodiverse::GUI::Popup::onCloseAll();
 
         $self->{project} = undef;
-    }
+    #}
 
     return 1;
 }
@@ -1405,19 +1456,16 @@ sub do_convert_matrix_to_phylogeny {
         
         if ($response eq 'ok') {
             my $chosen_name = $txtName->get_text;
-            my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
             $matrix_ref->set_param (AS_TREE => undef);  #  clear the previous version
 
             eval {
                 $phylogeny = $matrix_ref->to_tree (
                     linkage_function => 'link_average',
-                    progress => $progress_bar,
                 );
             };
             if ($EVAL_ERROR) {
                 $self->report_error ($EVAL_ERROR);
                 $dlg->destroy;
-                $progress_bar->destroy;
                 return;
             }
 
@@ -1425,7 +1473,6 @@ sub do_convert_matrix_to_phylogeny {
             if ($self->get_param ('CACHE_MATRIX_AS_TREE')) {
                 $matrix_ref->set_param (AS_TREE => $phylogeny);
             }
-            $progress_bar->destroy;
         }
         $dlg->destroy;
     }
@@ -1550,6 +1597,18 @@ sub do_range_weight_tree {
     );
 }
 
+sub do_tree_equalise_branch_lengths {
+    my $self = shift;
+
+    return $self->do_trim_tree_to_basedata (
+        do_equalise_branch_lengths => 1,
+        suffix  => 'EQ',
+        no_trim => 1,
+    );
+}
+
+#  Should probably rename this sub as it is being used for more purposes,
+#  some of which do not involve trimming.  
 sub do_trim_tree_to_basedata {
     my $self = shift;
     my %args = @_;
@@ -1595,12 +1654,20 @@ sub do_trim_tree_to_basedata {
     return if $response ne 'ok';  #  they chickened out
 
     my $new_tree = $phylogeny->clone;
-    $new_tree->trim (keep => scalar $bd->get_labels);
+    if (!$args{no_trim}) {
+        $new_tree->trim (keep => scalar $bd->get_labels);
+    }
 
     if ($args{do_range_weighting}) {
         foreach my $node ($new_tree->get_node_refs) {
             my $range = $node->get_node_range (basedata_ref => $bd);
             $node->set_length (length => $node->get_length / $range);
+        }
+    }
+    elsif ($args{do_equalise_branch_lengths}) {
+        foreach my $node ($new_tree->get_node_refs) {
+            my $len = $node->get_length == 0 ? 0 : 1;
+            $node->set_length (length => $len);
         }
     }
 
@@ -2318,6 +2385,8 @@ sub report_error {
         $title = 'PROCESSING ERRORS';
     }
     
+    my $e = $error;  # keeps a copy of the object
+
     #  messy - should check for $error->isa('Exception::Class')
     if (blessed $error and (blessed $error) !~ /ProgressDialog::Cancel/) {
         warn $error->error, "\n", $error->trace->as_string, "\n";
@@ -2331,7 +2400,10 @@ sub report_error {
 
     #  and now strip out message from the error class
     if (blessed $error) {
-        $error = $error->message;
+        $error = $error->message . "\n";
+        if ($e->{Error}) {
+            $error .= $e->{Error};  #  nasty hack at error internals
+        }
     }
     my @error_array = $use_all_text
         ? $error

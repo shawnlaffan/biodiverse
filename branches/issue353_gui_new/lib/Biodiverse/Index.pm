@@ -26,7 +26,7 @@ use Scalar::Util qw /blessed reftype/;
 
 use Biodiverse::Progress;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 use base qw /Biodiverse::Common/;
 
@@ -41,7 +41,7 @@ sub new {
         JOIN_CHAR => q{:},
         QUOTES    => q{'},
     );
-    $self->set_param (%PARAMS);  #  set the defaults
+    $self->set_params (%PARAMS);  #  set the defaults
 
     my $csv_object = $self->get_csv_object (
         sep_char   => $self->get_param ('JOIN_CHAR'),

@@ -8,8 +8,9 @@ use List::Util qw /max min/;
 my $NULL_STRING = q{};
 
 require Biodiverse::Config;
+use Biodiverse::Exception;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 sub new {
     my $class = shift;
@@ -28,14 +29,22 @@ sub new {
 
     my $self = bless $hash_ref, $class;
 
-    my $gui_progress;
-    eval q{
-        use Biodiverse::GUI::ProgressDialog;
-        $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  #  should pass on all relevant args
-    };
-    if (! $EVAL_ERROR and defined $gui_progress) {
-        #  if we are in the GUI then we can use a GUI progress dialogue
-        $self->{gui_progress} = $gui_progress;
+    return $self
+      if    $Biodiverse::Config::progress_no_use_gui
+        || !$Biodiverse::Config::running_under_gui;
+
+    #  if we are to use the GUI
+    #print "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui\n";
+    if ($Biodiverse::Config::running_under_gui) {
+        my $gui_progress;
+        eval q{
+            require Biodiverse::GUI::ProgressDialog;
+            $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  #  should pass on all relevant args
+        };
+        if (! $EVAL_ERROR and defined $gui_progress) {
+            #  if we are in the GUI then we can use a GUI progress dialogue
+            $self->{gui_progress} = $gui_progress;
+        }
     }
 
     return $self;
@@ -71,8 +80,6 @@ sub update {
     elsif ( Biodiverse::GUI::ProgressDialog::Cancel->caught() ) {
         $EVAL_ERROR->rethrow;
     }
-
-    #return if !$EVAL_ERROR;
 
     return if $self->{gui_only};
 

@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Gtk2;
 use Biodiverse::Randomise;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -16,6 +16,7 @@ use Biodiverse::GUI::ParametersTable;
 use Biodiverse::GUI::YesNoCancel;
 
 use Scalar::Util qw /looks_like_number/;
+use List::MoreUtils qw /first_index/;
 
 use base qw {Biodiverse::GUI::Tabs::Tab};
 
@@ -321,7 +322,7 @@ sub makeFunctionModel {
     my $model = $self->{function_model};
 
     # Add each randomisation function
-    my $functions = Biodiverse::Randomise::get_randomisations;
+    my $functions = Biodiverse::Randomise::get_randomisation_functions;
         my %functions = %$functions;
         my @funcs;
         #  SWL: put the selected one first
@@ -396,10 +397,18 @@ sub onFunctionChanged {
     if ($self->{output_ref}) {
         my $args = $self->{output_ref}->get_param ('ARGS') || {};
         foreach my $arg (keys %$args) {
-            foreach my $param (@$params) {
-                next if $param->{name} ne $arg;
-                $param->{default} = $args->{$arg};
-                $param->{sensitive} = 0;  #  cannot change the value
+            foreach my $parameter (@$params) {
+                next if $parameter->{name} ne $arg;
+                my $def_val = $args->{$arg};
+                if ($parameter->{type} eq 'choice') {
+                    my $def_val = first_index {$_ eq $args->{$arg}} @{$parameter->{choices}};
+                    #  if no full match then get the first suffix match - allows for shorthand options
+                    if ($def_val < 0) {  
+                        $def_val = first_index {$_ =~ /$args->{$arg}$/} @{$parameter->{choices}};
+                    }
+                }
+                $parameter->{default} = $def_val;
+                $parameter->{sensitive} = 0;  #  cannot change the value
             }
         }
     }

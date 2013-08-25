@@ -1,7 +1,23 @@
 package Biodiverse::Exception;
 use strict;
 use warnings;
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
+
+use Config;
+my ($bit_size, $prng_init_descr, $other_bit_size);
+
+BEGIN {
+    $bit_size = $Config{archname} =~ /x86/ ? 32 : 64;  #  will 128 bits ever be needed for this work?
+    $other_bit_size = $bit_size == 64 ? 32 : 64;
+    $prng_init_descr = <<"PRNG_INIT_DESCR"
+PRNG initialisation has been passed a state vector for the wrong architecture.
+This is a $bit_size bit perl but one or more analyses were
+built on a $other_bit_size bit architecture.
+Rebuilding each analysis on this architecture 
+(including randomisations) is unfortunately the only solution.
+PRNG_INIT_DESCR
+  ;
+}
 
 #  Exceptions for the Biodiverse system,
 #  both GUI and non-GUI
@@ -33,6 +49,9 @@ use Exception::Class (
     'Biodiverse::ReadNexus::IncorrectFormat' => {
         description => 'Not in valid format',
         fields      => [ 'type' ],
+    },    
+    'Biodiverse::NoSubElementHash' => {
+        description => 'Element does not exist or does not have a SUBELEMENT hash',
     },
     'Biodiverse::GUI::ProgressDialog::Cancel' => {
         description => 'User closed the progress dialog',
@@ -55,6 +74,12 @@ use Exception::Class (
     },
     'Biodiverse::Tree::NotExistsNode' => {
         description => 'Specified node does not exist',
+    },
+    'Biodiverse::PRNG::InvalidStateVector' => {
+        description => $prng_init_descr,
+    },
+    'Biodiverse::BaseStruct::ListDoesNotExist' => {
+        description => 'The requested list does not exist for this element',
     },
 );
 

@@ -29,7 +29,7 @@ use Biodiverse::Randomise;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 use base qw {Biodiverse::Common};
 
@@ -95,7 +95,8 @@ sub new {
     );
 
     my %args_for = (%PARAMS, @_);
-    my $x = $self->set_param (%args_for);
+    #my $x = $self->set_param (%args_for);
+    $self->set_params (%args_for);
     
     #  create the groups and labels
     my %params_hash = $self->get_params_hash;
@@ -2232,7 +2233,7 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
     }
 
     #  Not sure why the rest is here - is it used anywhere?
-    #  violates the guide'ine that subs should do one thing only
+    #  violates the guideline that subs should do one thing only
 
     #  make a copy - don't want to delete the original
     my %results = $self->get_labels_ref->get_sub_element_hash (element => $args{label});
@@ -2755,9 +2756,12 @@ sub get_spatial_output_ref {  #  return the reference for a specified output
     my $self = shift;
     my %args = @_;
 
-    return if ! exists $self->{SPATIAL_OUTPUTS}{$args{name}};
+    my $name = $args{name};
 
-    return $self->{SPATIAL_OUTPUTS}{$args{name}};
+    croak "Spatial output $name does not exist in the basedata\n"
+      if ! exists $self->{SPATIAL_OUTPUTS}{$name};
+
+    return $self->{SPATIAL_OUTPUTS}{$name};
 }
 
 sub get_spatial_output_list {

@@ -7,7 +7,7 @@ package Biodiverse::Matrix;
 use strict;
 use warnings;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 use English ( -no_match_vars );
 
@@ -81,25 +81,33 @@ sub rename {
 }
 
 
-#  avoid needless cloning of the basedata
+#  avoid needless cloning of the basedata, but don't create the parameter if it is not already there
 sub clone {
     my $self = shift;
     my %args = @_;
     
-    my $bd = $self->get_param('BASEDATA_REF');
-    $self->set_param(BASEDATA_REF => undef);
+    my $bd;
+    my $exists = $self->exists_param('BASEDATA_REF');
+    if ($exists) {
+        $bd = $self->get_param('BASEDATA_REF');
+        $self->set_param(BASEDATA_REF => undef);
+    }
 
     my $clone_ref = eval {
         $self->SUPER::clone(%args);
     };
     if ($EVAL_ERROR) {
-        $self->set_param(BASEDATA_REF => $bd);  #  put it back
+        if ($exists) {
+            $self->set_param(BASEDATA_REF => $bd);  #  put it back if needed
+        }
         croak $EVAL_ERROR;
     }
 
-    $self->set_param(BASEDATA_REF => $bd);
-    $clone_ref->set_param(BASEDATA_REF => $bd);
-    
+    if ($exists) {
+        $self->set_param(BASEDATA_REF => $bd);
+        $clone_ref->set_param(BASEDATA_REF => $bd);
+    }
+
     return $clone_ref;
 }
 
@@ -317,6 +325,10 @@ sub to_table_sparse {
     
     my @data;
     my @elements = sort $self->get_elements_as_array;
+
+    my $lower_left  = $args{lower_left};
+    my $upper_right = $args{upper_right};
+    my $symmetric = $args{symmetric};
     
     push @data, [qw /Row Column Value/];  #  header line
     
@@ -330,15 +342,15 @@ sub to_table_sparse {
         E2:
         foreach my $element2 (@elements) {
             $j++;
-            next E1 if $args{lower_left}  and $j > $i;
-            next E2 if $args{upper_right} and $j < $i;
+            next E1 if $lower_left  and $j > $i;
+            next E2 if $upper_right and $j < $i;
             my $exists = $self->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2,
             );
             
             #  if we are symmetric then list it regardless, otherwise only if we have this exact pair-order
-            if (($args{symmetric} and $exists) or $exists == 1) {
+            if ($exists == 1 || ($symmetric && $exists)) {
                 my $value = $self->get_value (
                     element1 => $element1,
                     element2 => $element2,

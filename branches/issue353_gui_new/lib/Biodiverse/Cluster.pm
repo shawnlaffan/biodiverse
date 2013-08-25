@@ -14,7 +14,7 @@ use Time::HiRes qw /gettimeofday tv_interval time/;
 use List::Util qw /first reduce/;
 use List::MoreUtils qw /any natatime/;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -240,7 +240,7 @@ sub get_indices_object_for_matrix_and_clustering {
     my $index_params = $indices_object->get_args (sub => $index_function);
     my $index_order  = $index_params->{indices}{$index}{cluster};
     # cache unless told otherwise
-    my $cache_abc = 1;
+    my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
         $cache_abc = not $args{no_cache_abc};
     }
@@ -260,9 +260,11 @@ sub get_indices_object_for_matrix_and_clustering {
              )
         );
     }  # determines if we cluster on higher or lower values
+    
+    my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
 
     $indices_object->get_valid_calculations (
-        %args,
+        %$analysis_args,
         calculations    => [$index_function],
         nbr_list_count  => 2,
         element_list1   => [], #  dummy values for validity checks
@@ -273,7 +275,7 @@ sub get_indices_object_for_matrix_and_clustering {
       if not scalar keys %$valid_calcs;
 
     #  run the global pre_calcs
-    $indices_object->run_precalc_globals(%args);
+    $indices_object->run_precalc_globals(%$analysis_args);
     
     return $indices_object;
 }
@@ -398,7 +400,6 @@ sub build_matrices {
     $self->set_param (MATRIX_ELEMENT_LABEL_CACHE => \%cache);
 
     my %done;
-    #my @nbr_matrices;  #  cache of each set of neighbours
     my $valid_count = 0;
 
     # only those that passed the def query (if set) will be considered
@@ -432,7 +433,6 @@ sub build_matrices {
         );
 
         my @neighbours;  #  store the neighbours of this element
-        my %all_nbrs_this_element;
         foreach my $i (0 .. $#matrices) {
             my $nbr_list_name = '_NBR_SET' . ($i+1);
             my $neighours = $sp->get_list_values (
@@ -444,11 +444,6 @@ sub build_matrices {
             delete $neighbour_hash{$element1};  #  exclude ourselves
             $neighbours[$i] = \%neighbour_hash;
 
-            @all_nbrs_this_element{@$neighours} = (1) x scalar @$neighours;
-            #if ($i) {  #  matrices should not be exclusive?
-            #    #  merge $i-1
-            #}
-            #$nbr_matrices[$i]{$element1} = $neighbours[$i];
         }
 
         #  loop over the neighbours and add them to the appropriate matrix
@@ -754,7 +749,11 @@ sub add_matrices_to_basedata {
     my $self = shift;
     my %args = @_;
 
-    my $bd = $self->get_param ('BASEDATA_REF');
+    #  Don't add for randomisations or when we cluster a matrix directly
+    return if $self->get_param ('NO_ADD_MATRICES_TO_BASEDATA');
+
+    my $bd = $self->get_basedata_ref;
+
     my %existing_outputs = $bd->get_matrix_outputs;
 
     my $orig_matrices = $args{matrices} || $self->get_param ('ORIGINAL_MATRICES');
@@ -840,7 +839,6 @@ sub clone_matrices {
     return wantarray ? @cloned_matrices : \@cloned_matrices;
 }
 
-
 sub set_shadow_matrix {
     my $self = shift;
     my %args = @_;
@@ -860,23 +858,6 @@ sub delete_shadow_matrix {
     return if not exists $self->{SHADOW_MATRIX}; #  avoid autovivification
     $self->{SHADOW_MATRIX} = undef;
     delete $self->{SHADOW_MATRIX};
-    return;
-}
-
-#  redundant? 
-sub get_nbr_matrix_ref {
-    my $self = shift;
-    return if not exists $self->{NBR_MATRICES}; #  avoid autovivification
-    my %args = @_;
-    my $i = $args{iter};
-    return $self->{NBR_MATRICES}[$i];
-}
-
-#  redundant? 
-sub delete_nbr_matrices {
-    my $self = shift;
-    return if not exists $self->{NBR_MATRIX}; #  avoid autovivification
-    delete $self->{NBR_MATRICES};
     return;
 }
 
@@ -1081,7 +1062,8 @@ sub get_most_similar_pair {
         my %tmp = @$tie_breaker;
         my @tie_keys = keys %tmp;
 
-        foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { #  ensures same order each time, thus stabilising random results
+        #  Sort ensures same order each time, thus stabilising random results
+        foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
             no autovivification;
 
             my $calc_results = $tie_breaker_cache->{$pair->[0]}{$pair->[1]}
@@ -1219,6 +1201,26 @@ sub run_tie_breaker {
     return $pair1;  #  we only had ties
 }
 
+#  Needed for randomisations.
+#  Has no effect if it is not already set and args have not been cached.
+#  Should perhaps generalise to any arg.
+sub override_cached_spatial_calculations_arg {
+    my $self = shift;
+    my %args = @_;
+    my $spatial_calculations = $args{spatial_calculations};
+
+    my $analysis_args = $self->get_param('ANALYSIS_ARGS');
+
+    return if ! defined $analysis_args;  #  should we croak instead?
+
+    #  make sure we work on a copy, as these can be shallow copies from another object
+    my %new_analysis_args = %$analysis_args;
+    $new_analysis_args{spatial_calculations} = $spatial_calculations;
+    $self->set_param (ANALYSIS_ARGS => \%new_analysis_args);
+
+    return $spatial_calculations;
+}
+
 sub run_analysis {
     my $self = shift;
     return $self->cluster(@_);
@@ -1270,12 +1272,7 @@ sub cluster {
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
 
-    $self->process_spatial_conditions_and_def_query (%args);
-
-    my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
-    croak "[CLUSTER] $index not a valid clustering similarity index\n"
-        if ! exists ${$self->get_valid_indices}{$index};
-    $self->set_param (CLUSTER_INDEX => $index);
+    #$self->process_spatial_conditions_and_def_query (%args);
 
     my @matrices;
     #  if we were passed a matrix in the args  
@@ -1287,10 +1284,19 @@ sub cluster {
         #  save the matrices for later export
         #$self->set_param (ORIGINAL_SHADOW_MATRIX => $args{matrix});
         $self->set_param (ORIGINAL_MATRICES => [$args{matrix}]);
+        $self->set_param (NO_ADD_MATRICES_TO_BASEDATA => 1);
     }
     else {
         #  try to build the matrices.
+        my $index = $args{index} || $self->get_param ('CLUSTER_INDEX') || $self->get_default_cluster_index;
+        croak "[CLUSTER] $index not a valid clustering similarity index\n"
+            if ! exists ${$self->get_valid_indices}{$index};
+        $self->set_param (CLUSTER_INDEX => $index);
+
+        $self->process_spatial_conditions_and_def_query (%args);
+
         my $matrices_recycled;
+
         if (not $self->get_matrix_count) {
             #  can we get them from another output?
             my $bd = $self->get_basedata_ref;
@@ -1437,9 +1443,12 @@ sub cluster {
 
     #  now stitch the root nodes together into one
     #  (needs to be after flattening or nodes get pulled up too far)
-    $self->join_root_nodes (%args);
+    if (scalar keys %root_nodes > 1) {
+        $self->join_root_nodes (%args);
+    }
 
-    my $root_node_name = [keys %{$self->get_root_nodes}]->[0];
+    %root_nodes = $self->get_root_nodes;
+    my $root_node_name = [keys %root_nodes]->[0];
     my $root_node = $self->get_node_ref (node => $root_node_name);
 
     my $tot_length = $self->get_param('MIN_VALUE');   #  GET THE FIRST CHILD AND THE LENGTH FROM IT?
@@ -1448,10 +1457,10 @@ sub cluster {
         TOTAL_LENGTH => $self->get_param('MIN_VALUE'),
         JOIN_NUMBER  => $self->get_param('JOIN_NUMBER'),
     );
-
-    if (! $args{retain_nbr_matrix}) {
-        $self->delete_nbr_matrices;
+    if (!defined $root_node->get_value('MATRIX_ITER_USED')) {
+        $root_node->set_value (MATRIX_ITER_USED => undef);
     }
+
     if ($args{clear_cached_values}) {
         $root_node->delete_cached_values_below;
     }
@@ -1794,12 +1803,6 @@ sub link_recalculate {
     return wantarray ? %r : \%r;
 }
 
-#  THIS IS CURRENTLY ARSE ABOUT
-#  Need to generate the linkage value for the shadow matrix and then assign
-#  to the relevant matrices.  This will avoid pollution and shifting of values.
-#  We want non-overlapping neighbour sets to not interact outside their boundaries.
-#  Currently we get shenanigans with non-overlapping and a second nbr set.
-#  And also stop calling them nbr_matrices?  No longer relevant to the approach?
 sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $self = shift;
     my %args = @_;
@@ -1815,28 +1818,6 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $matrix_array    = $self->get_matrices_ref;
     my $current_mx_iter = $self->get_param ('CURRENT_MATRIX_ITER');
 
-    my $new_node_ref = $self->get_node_ref (node => $new_node);
-    my $nodes_under_new = $new_node_ref->get_all_descendents;
-
-    #  generate the neighbour set for the new node
-    foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
-        my $nbr_matrix = $self->get_nbr_matrix_ref (iter => $mx_iter);  #  hash of neighbours
-
-        #  skip if this pair isn't in this matrix
-        my $nbrs_node1 = $nbr_matrix->{$node1} || {};
-        #next if ! defined $nbrs_node1;
-        my $nbrs_node2 = $nbr_matrix->{$node2} || {};
-        #next if ! defined $nbrs_node2;
-
-        my %joint_nbrs = (%$nbrs_node1, %$nbrs_node2);
-        next if ! scalar keys %joint_nbrs;  #  there were no neighbours
-
-        #  don't consider those that are already merged under us
-        delete @joint_nbrs{keys %$nodes_under_new};
-
-        $nbr_matrix->{$new_node} = \%joint_nbrs;
-    }
-
     my $matrix_with_elements = $shadow_matrix || $matrix_array->[0];
 
     #  Now we need to loop over the respective nodes across
@@ -1846,10 +1827,10 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     foreach my $check_node (sort $matrix_with_elements->get_elements_as_array) {  
 
         #  skip the mergees
-        next if $check_node eq $node1 || $check_node eq $node2;
+        next CHECK_NODE if $check_node eq $node1 || $check_node eq $node2;
 
         #  skip if we don't have both pairs check node with node1 and node2
-        next if !(
+        next CHECK_NODE if !(
             $matrix_with_elements->element_pair_exists (
                 element1 => $check_node,
                 element2 => $node1,
@@ -1867,6 +1848,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             compare_node => $check_node,
             matrix       => $matrix_with_elements,
         );
+
         if ($shadow_matrix) {
             $shadow_matrix->add_element  (
                 element1 => $new_node,
@@ -1875,53 +1857,38 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
             );
         }
 
-        #  add those values that are now nbrs
-        my $check_node_ref
-            = $self->get_node_ref (node => $check_node);
-
-        my $check_node_elements
-            = defined $check_node_ref
-                ? $check_node_ref->get_terminal_elements
-                : {$check_node => 1};
-
         #  work from the current mx forwards
         MX_ITER:
         foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
             my $mx = $matrix_array->[$mx_iter];
 
-            #  If $check_node is a neighbour of the new node then we need to
-            #       add it to the current matrix if it is not already there.
-            #  We get the value from the shadow matrix.
+            #if ($mx->element_pair_exists (  #  does this ever happen?
+            #    element1 => $new_node,
+            #    element2 => $check_node,
+            #)) {
+            #    warn "FOUND AN ELEMENT PAIR THAT WAS ALREADY CREATED $new_node and $check_node";
+            #    next MX_ITER;
+            #};
 
-            my $nbr_mx  #  hash of neighbours
-                = $self->get_nbr_matrix_ref (iter => $mx_iter);  
-
-            my $count;
-            my %nbrs;
-
-            if ($nbr_mx) {
-                %nbrs = %{$nbr_mx->{$new_node}};  #  make a dereferenced copy
-                $count = scalar keys %nbrs;
-                delete @nbrs{keys %$check_node_elements};
-            }
-
-            #  if no nbr_mx or we are a neighbour
-            if (!defined $nbr_mx || $count != scalar keys %nbrs) {  
-                #  we had a deletion so check_node is a neighbour of new_node
-
-                my $exists = $mx->element_pair_exists (
-                    element1 => $new_node,
-                    element2 => $check_node
+            next MX_ITER
+              if ! (
+                    $mx->element_pair_exists (
+                        element1 => $node1,
+                        element2 => $check_node,
+                    )
+                    &&
+                    $mx->element_pair_exists (
+                        element1 => $node2,
+                        element2 => $check_node,
+                    )
                 );
-                #  get it from the shadow matrix, which we calculated above
-                if (! $exists) {
-                    $mx->add_element (
-                        element1    => $new_node,
-                        element2    => $check_node,
-                        value       => $values{value},
-                    );
-                }
-            }
+
+            $mx->add_element (
+                element1    => $new_node,
+                element2    => $check_node,
+                value       => $values{value},
+            );
+            last MX_ITER;
         }
     }
 

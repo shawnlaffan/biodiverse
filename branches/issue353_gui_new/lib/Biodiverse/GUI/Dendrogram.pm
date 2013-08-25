@@ -15,7 +15,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 use Scalar::Util qw /blessed/;
 
@@ -61,7 +61,6 @@ sub new {
     my $map             = shift;    # Grid.pm object of the dataset to link in
     my $map_list_combo  = shift;    # Combo for selecting how to colour the grid (based on spatial result or cluster)
     my $map_index_combo = shift;    # Combo for selecting how to colour the grid (which spatial result)
-    my $basedata_ref    = pop;
 
     my $grey = 0.9 * 255 * 257;
 
@@ -92,6 +91,8 @@ sub new {
     $self->{select_func}        = shift || undef; #Callback function for when users drag a selection rectangle on the background
     $self->{parent_tab}         = shift;
 
+    my $basedata_ref = shift;
+
     if (defined $self->{parent_tab}) {
         weaken $self->{parent_tab};
     }
@@ -103,7 +104,7 @@ sub new {
 
     # starting off with the "clustering" view, not a spatial analysis
     $self->{sp_list}  = undef;
-    $self->{sp_index} = undef; 
+    $self->{sp_index} = undef;
     bless $self, $class;
 
     # Make and hook up the canvases

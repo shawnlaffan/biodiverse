@@ -9,7 +9,7 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '0.18003';
+our $VERSION = '0.18_007';
 
 use Data::Section::Simple qw(get_data_section);
 
@@ -39,6 +39,7 @@ use Exporter::Easy (
                 compare_arr_vals
                 get_all_calculations
                 transform_element
+                is_or_isnt
             ),
         ],
         basedata => [
@@ -54,6 +55,7 @@ use Exporter::Easy (
         element_properties => [
             qw(
                 get_element_properties_test_data
+                get_group_properties_site_data_object
                 :utils
             ),
         ],
@@ -171,6 +173,19 @@ sub verify_set_contents {
     return;
 }
 
+#  use is or isnt
+sub is_or_isnt {
+    my ($got, $expected, $msg, $isnt) = @_;
+
+    $isnt //= 'is';
+
+    my $result = $isnt eq 'isnt'
+      ? isnt ($got, $expected, $msg)
+      : is   ($got, $expected, $msg);
+
+    return $result;
+}
+
 sub compare_hash_vals {
     my %args = @_;
 
@@ -193,7 +208,11 @@ sub compare_hash_vals {
         my %h2 = %$hash_exp;
         delete @h2{keys %$hash_got};
         is (scalar keys %h2, 0, 'No missing keys');
-    };
+    }
+    elsif (scalar keys %$hash_got == scalar keys %$hash_exp && scalar keys %$hash_exp == 0) {
+        #  but if both are zero then we need to run at least one test to get a pass
+        is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
+    }
 
     BY_KEY:
     foreach my $key (sort keys %targets) {
@@ -524,6 +543,13 @@ sub get_group_properties_site_data {
     return get_data_section('GROUP_PROPERTIES_DATA');
 }
 
+sub get_group_properties_site_data_object {
+    my $data  = get_group_properties_site_data;
+    my $props = element_properties_from_string($data);
+
+    return $props;
+}
+
 sub element_properties_from_string {
     my ($data, ) = @_;
     my $file = write_data_to_temp_file($data);
@@ -722,7 +748,7 @@ sub run_indices_test1 {
             "RESULTS_${nbr_list_count}_NBR_LISTS"
         );
         diag "Problem with data section: $EVAL_ERROR" if $EVAL_ERROR;
-        if ($expected_results_overlay) {
+        if ($expected_results_overlay && $expected_results_overlay->{$nbr_list_count}) {
             my $hash = $expected_results_overlay->{$nbr_list_count};
             @$expected{keys %$hash} = values %$hash;
         }

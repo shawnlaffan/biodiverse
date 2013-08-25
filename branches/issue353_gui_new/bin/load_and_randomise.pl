@@ -8,20 +8,15 @@ use FindBin qw { $Bin };
 use Carp;
 use English qw { -no_match_vars };
 use Path::Class;
+use Scalar::Util qw /blessed/;
 
 #use lib Path::Class::dir ( $Bin, '..', 'lib')->stringify;
 use rlib;
 
 local $| = 1;
 
-our $VERSION = '0.18_004';
+our $VERSION = '0.18_007';
 
-#  load up the user defined libs
-#use Biodiverse::Config qw /use_base add_lib_paths/;
-#BEGIN {
-#    add_lib_paths();
-#    use_base();
-#}
 use Biodiverse::Config;
 
 use Biodiverse::BaseData;
@@ -70,10 +65,17 @@ if (! defined $rest_of_args{iterations}) {
     $rest_of_args{iterations} = 10;
 }
 
-my $success = $rand->run_analysis (
-    save_checkpoint => 99,
-    %rest_of_args,
-);
+my $success = eval {
+    $rand->run_analysis (
+        save_checkpoint => 99,
+        %rest_of_args,
+    );
+};
+if ($EVAL_ERROR) {
+    report_error ($EVAL_ERROR);
+    exit;
+}
+
 
 croak "Analysis not successful\n"
   if ! $success;
@@ -85,9 +87,22 @@ if ($success == 1) {
         #die "checking";
     };
     if ($EVAL_ERROR) {
-        warn $EVAL_ERROR;
+        report_error ($EVAL_ERROR);
         exit;
     }
 }
 
 exit $success;
+
+
+sub report_error {
+    my $error = shift;
+    
+    if (blessed $error) {
+        warn $error->error, "\n\n", $error->trace->as_string, "\n";
+        
+    }
+    else {
+        warn $error;
+    }
+}

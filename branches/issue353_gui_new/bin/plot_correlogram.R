@@ -2,7 +2,10 @@
 
 plot_correlogram = function (data, fld='Value', dist_fld="distance", modifier=1, max_dist=0, lag=0, xlab='distance', ylab='dissimilarity', ...) {  
   #browser()
-  if (! dist_fld %in% colnames (data)) {
+  dist_fld_text = dist_fld
+  if (is.numeric (dist_fld)) {dist_fld_text = names(data)[dist_fld]}
+
+  if (! (dist_fld_text %in% colnames (data))) {
     stop (paste ("data frame does not have the specified distance field:", dist_fld))
   }
   if (max_dist && max_dist < min (data[[dist_fld]])) {
@@ -20,6 +23,12 @@ plot_correlogram = function (data, fld='Value', dist_fld="distance", modifier=1,
   mod_lag  = lag / modifier
   mod_lag2 = mod_lag / 2
   lag_vector = floor (data2[[dist_fld]] / lag) * mod_lag #+ mod_lag2
+
+  fld_text = fld  
+  if (is.numeric (fld)) {fld_text = names(data2)[fld]}
+
+  print (paste0 ("Plotting ", fld_text, " against ", dist_fld_text))
+
   boxplot(data2[[fld]] ~ lag_vector, xlab=xlab, ylab=ylab, ...)
 }
 

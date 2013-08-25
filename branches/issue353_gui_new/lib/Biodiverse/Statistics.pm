@@ -3,7 +3,7 @@ package Biodiverse::Statistics;
 use strict;
 use warnings;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 use Carp;
 
@@ -135,21 +135,16 @@ sub _delete_all_cached_keys
     
     my %keys = %{ $self };
 
-    # If it's a reserved key for this class, don't delete it
+    # Remove reserved keys for this class from the deletion list
     delete @keys{keys %{$self->_reserved}};
     delete @keys{keys %{$self->_permitted}};
     delete $keys{_trimmed_mean_cache};
 
     KEYS_LOOP:
     foreach my $key (keys %keys) { # Check each key in the object
-        ## If it's a reserved key for this class, keep it
-        #if ($self->_is_reserved($key) || $self->_is_permitted($key))
-        #{
-        #    next KEYS_LOOP;
-        #}
         delete $self->{$key};  # Delete any out of date cached key
     }
-    $self->{_trimmed_mean_cache} = {};
+    $self->{_trimmed_mean_cache} = {};  #  just reset this one
     return;
 }
 

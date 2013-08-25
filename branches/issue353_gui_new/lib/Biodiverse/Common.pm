@@ -12,6 +12,7 @@ use Data::Dumper  qw /Dumper/;
 use YAML::Syck;
 use Text::CSV_XS;
 use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
+use List::MoreUtils qw /none/;
 use Storable qw /nstore retrieve dclone/;
 use File::Basename;
 use Path::Class;
@@ -30,7 +31,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 my $EMPTY_STRING = q{};
 
@@ -60,7 +61,7 @@ sub rename_object {
     my $new_name = $args{name};
     my $old_name = $self->get_param ('NAME');
     
-    $self -> set_param (NAME => $new_name);
+    $self->set_param (NAME => $new_name);
     
     my $type = blessed $self;
 
@@ -192,8 +193,8 @@ sub set_basedata_ref {
 
 sub get_basedata_ref {
     my $self = shift;
-    
-    my $bd = $self -> get_param ('BASEDATA_REF')
+
+    my $bd = $self->get_param ('BASEDATA_REF')
            || Biodiverse::MissingBasedataRef->throw (
               message => 'Parameter BASEDATA_REF not set'
             );
@@ -244,12 +245,13 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
 sub get_param { 
     my $self = shift;
     my $param = shift;
-    if (! exists $self->{PARAMS}{$param}) {
-        carp "get_param WARNING: Parameter $param does not exist in $self.\n"
-            if $self->{PARAMS}{PARAM_CHANGE_WARN};
-        return;
-    }
-    
+    #if (! exists $self->{PARAMS}{$param}) {
+    #    carp "get_param WARNING: Parameter $param does not exist in $self.\n"
+    #        if $self->{PARAMS}{PARAM_CHANGE_WARN};
+    #    return;
+    #}
+
+    return if ! exists $self->{PARAMS}{$param};
     return $self->{PARAMS}{$param};
 }
 
@@ -289,25 +291,26 @@ sub get_params_hash {
     return wantarray ? %$params : $params;
 }
 
+#  set a single parameter
 sub set_param {
     my $self = shift;
-#croak join (" ", @_, "\n") if (scalar @_ % 2) == 1;
+
+    $self->{PARAMS}{$_[0]} = $_[1];
+
+    return 1;
+}
+
+#  Could use a slice for speed, but it's not used very often.
+#  Could also return 1 if it is ever used in hot paths.
+sub set_params {
+    my $self = shift;
     my %args = @_;
 
     while (my ($param, $value) = each %args) {
         $self->{PARAMS}{$param} = $value;
-        #$value = $EMPTY_STRING if ! defined $value;  #  just to cope with warnings
-        #print "Set ". $self->get_param('NAME') . " param $param to $value, $self\n";
     }
-    #%args = ();  #  clears memory leak?  (hoping against hope)
 
     return scalar keys %args;
-}
-
-#*set_params = \&set_param;
-sub set_params {
-    my $self = shift;
-    return $self->set_param(@_);
 }
 
 sub delete_param {  #  just passes everything through to delete_params
@@ -559,48 +562,34 @@ sub save_to {
 
     croak "Argument 'filename' not specified\n" if ! defined $file_name;
 
-    my @suffixes = ($self -> get_param ('OUTSUFFIX'),
-                    #$self -> get_param ('OUTSUFFIX_XML'),
-                    $self -> get_param ('OUTSUFFIX_YAML'),
-                   );
+    my $storable_suffix = $self->get_param ('OUTSUFFIX');
+    my $yaml_suffix     = $self->get_param ('OUTSUFFIX_YAML');
 
-    my ($null, $null2, $suffix) = fileparse ( $file_name, @suffixes ); 
-    if ($suffix eq $EMPTY_STRING || ! defined $suffix) {
-        $suffix = $self -> get_param ('OUTSUFFIX');
+    my @suffixes = ($storable_suffix, $yaml_suffix);
+
+    my ($null1, $null2, $suffix) = fileparse ( $file_name, @suffixes ); 
+    if ($suffix eq $EMPTY_STRING
+        || ! defined $suffix
+        || none  {$suffix eq $_} @suffixes
+        ) {
+        $suffix = $storable_suffix;
         $file_name .= '.' . $suffix;
     }
 
     my $tmp_file_name = $file_name . '.tmp';
 
-    my $result;
-    if ($suffix eq $self -> get_param ('OUTSUFFIX')) {
-        $result = eval {
-            $self -> save_to_storable (filename => $tmp_file_name)
-        };
-    }
-    elsif ($suffix eq $self -> get_param ('OUTSUFFIX_YAML')) {
-        $result = eval {
-            $self -> save_to_yaml (filename => $tmp_file_name)
-        };
-    }
-    #elsif ($suffix eq $self -> get_param ('OUTSUFFIX_XML')) {
-    #    return $self -> save_to_xml (filename => "$filename"); 
-    #}
-    else {  #  default to storable, adding the suffix
-        $file_name .= "." . $self -> get_param ('OUTSUFFIX');
-        $result = eval {
-            $self -> save_to_storable (filename => $tmp_file_name)
-        };
-    }
+    my $method = $suffix eq $yaml_suffix ? 'save_to_yaml' : 'save_to_storable';
+
+    my $result = eval {$self->$method (filename => $tmp_file_name)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
-    if ($result) {
-        print "[COMMON] Renaming $tmp_file_name to $file_name\n";
-        rename ($tmp_file_name, $file_name);
-        return $file_name;
-    }
+    print "[COMMON] Renaming $tmp_file_name to $file_name ... ";
+    my $success = rename ($tmp_file_name, $file_name);
+    croak "Unable to rename $tmp_file_name to $file_name\n"
+      if !$success;
+    print "Done\n";
 
-    return;
+    return $file_name;
 }
 
 #  Dump the whole object to a Storable file.
@@ -618,7 +607,7 @@ sub save_to_storable {
 
     print "[COMMON] WRITING TO FILE $file\n";
 
-    local $Storable::Deparse = 0;  #  for code refs
+    local $Storable::Deparse = 0;     #  for code refs
     local $Storable::forgive_me = 1;  #  don't croak on GLOBs, regexps etc.
     eval { nstore $self, $file };
     croak $EVAL_ERROR if $EVAL_ERROR;
@@ -1510,12 +1499,6 @@ sub get_args {
     my $sub_args;
     #  use an eval to trap subs that don't allow the get_args option
     if (blessed $self) {
-        #if ($self->can ($metadata_sub)) {
-        #    $sub_args = eval {$self->$metadata_sub (%args)};
-        #}
-        #elsif ($self->can ($sub)) {  #  don't allow for error prone old system
-        #    croak "Metadata sub $metadata_sub does not exist\n";
-        #}
         $sub_args = eval {$self->$metadata_sub (%args)};
         my $error = $EVAL_ERROR;
         if (blessed $error) {
@@ -1529,14 +1512,6 @@ sub get_args {
     else {  #  called in non-OO manner  - not ideal (old style)
         croak "get_args called in non-OO manner - this is deprecated.\n";
     }
-    #my $error = $EVAL_ERROR;
-    #if (blessed $error) {
-    #    $error->rethrow;
-    #}
-    #elsif ($error) {
-    #    croak "$sub does not seem to have valid get_args metadata\n"
-    #          . $error;
-    #}
 
     if (! defined $sub_args) {
         $sub_args = {} ;
@@ -1631,9 +1606,6 @@ sub get_surrounding_elements {  #  generate a list of values around a single poi
     my $precision = $args{precision} || [('%.10f') x scalar @$coordRef];
 
     foreach my $i (0..$#{$coordRef}) {
-        #$minima[$i] = sprintf ($precision->[$i], $coordRef->[$i] - ($resolutions->[$i] * $distance)) + 0;
-        #$maxima[$i] = sprintf ($precision->[$i], $coordRef->[$i] + ($resolutions->[$i] * $distance)) + 0;
-        
         $minima[$i] = 0
             + $self -> set_precision (
                 precision => $precision->[$i],
@@ -1740,22 +1712,9 @@ sub get_subs_with_prefix {
 
     my $prefix = $args{prefix};
     croak "prefix not defined\n" if not defined $prefix;
-
-    #my $tree = mro::get_linear_isa($args{class} or blessed ($self));
-    #
-    #my $syms = Devel::Symdump->rnew(@$tree);
-    #my %subs;
-    #my @subs_array = sort $syms->functions;
-    #foreach my $sub_name (@subs_array) {
-    #    next if $sub_name !~ /^.*::$prefix/;
-    #    $sub_name =~ s/(.*::)*//;  #  clear the package stuff
-    #    $subs{$sub_name} ++;
-    #}
     
-    my $methods   = Class::Inspector->methods ($args{class} or blessed ($self));
-    #my @sub_names = grep {$_ =~ /^$prefix/} @$methods;
-    #my %subs;
-    #@subs{@sub_names} = (1) x scalar @sub_names;
+    my $methods = Class::Inspector->methods ($args{class} or blessed ($self));
+
     my %subs = map {$_ => 1} grep {$_ =~ /^$prefix/} @$methods;
 
     return wantarray ? %subs : \%subs;
@@ -1767,7 +1726,7 @@ sub initialise_rand {
     my $self = shift;
     my %args = @_;
     my $seed  = $args{seed};
-    my $state = $self -> get_param ('RAND_LAST_STATE')
+    my $state = $self->get_param ('RAND_LAST_STATE')
                 || $args{state};
 
     warn "[COMMON] Ignoring PRNG seed argument ($seed) because the PRNG state is defined\n"
@@ -1775,13 +1734,20 @@ sub initialise_rand {
 
     #  don't already have one, generate a new object using seed and/or state params.
     #  the system will initialise in the order of state and seed, followed by its own methods
-    my $rand = Math::Random::MT::Auto->new (
-        seed  => $seed,
-        state => $state,  #  will use this if it is defined
-    );
-
+    my $rand = eval {
+        Math::Random::MT::Auto->new (
+            seed  => $seed,
+            state => $state,  #  will use this if it is defined
+        );
+    };
+    my $e = $EVAL_ERROR;
+    if (OIO->caught() && $e =~ 'Invalid state vector') {
+        Biodiverse::PRNG::InvalidStateVector->throw (Biodiverse::PRNG::InvalidStateVector->description);
+    }
+    croak $e if $e;
+ 
     if (! defined $self->get_param ('RAND_INIT_STATE')) {
-        $self -> store_rand_state_init (rand_object => $rand);
+        $self->store_rand_state_init (rand_object => $rand);
     }
 
     return $rand;
@@ -1889,14 +1855,19 @@ sub test_locale_numeric {
     return 1;
 }
 
+my $locale_uses_comma_radix = (sprintf ('%.6f', 0.5) =~ /,/) ? 1 : undef;
+
 #  need to handle locale issues in string conversions using sprintf
 sub set_precision {
     my $self = shift;
     my %args = @_;
     
     my $num = sprintf ($args{precision}, $args{value});
-    $num =~ s{,}{\.};  #  replace any comma with a decimal
-    
+
+    if ($locale_uses_comma_radix) {
+        $num =~ s{,}{\.};  #  replace any comma with a decimal
+    }
+
     return $num;
 }
 
@@ -2103,7 +2074,7 @@ OUTPFX and the like.
 
 =item  $self->set_param(PARAMNAME => $param)
 
-Set a parameter.  For example,
+Set a single parameter.  For example,
 "$self-E<gt>set_param(NAME => 'hernando')" will set the parameter NAME to the
 value 'hernando'
 

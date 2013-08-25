@@ -128,7 +128,7 @@ __DATA__
   'ABC_B'          => 0,
   'ABC_C'          => 12,
   'ABC_D'          => 17,
-  'COMPL'          => 14,
+  #'COMPL'          => 14,
   'EL_COUNT_ALL'   => 5,
   'EL_COUNT_SET1'  => 1,
   'EL_COUNT_SET2'  => 4,

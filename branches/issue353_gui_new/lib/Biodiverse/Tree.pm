@@ -17,7 +17,7 @@ use List::Util qw /sum/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 our $AUTOLOAD;
 
@@ -35,6 +35,11 @@ use base qw /
 /;
 
 my $EMPTY_STRING = q{};
+
+#  useful for analyses that are of type tree - could be too generic a name?
+sub is_tree_object {
+    return 1;
+}
 
 sub new {
     my $class = shift;
@@ -282,20 +287,21 @@ sub get_length_to_tip {
     return $self->get_tree_length;
 }
 
-sub get_terminal_elements {  #  get the terminal elements below this node
-                           #  if not a TreeNode reference, then return a
-                           #  hash ref containing only this node
+#  Get the terminal elements below this node
+#  If not a TreeNode reference, then return a
+#  hash ref containing only this node
+sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache by default
+
     my $node = $args{node} || croak "node not specified\n";
     my $nodeRef = $self->get_node_ref(node => $node);
-    if (defined $nodeRef) {
-        return $nodeRef->get_terminal_elements (cache => $args{cache});
-    }
-    else {
-        my %hash = ($node => $nodeRef);
-        return wantarray ? %hash : \%hash;
-    }
+
+    return $nodeRef->get_terminal_elements (cache => $args{cache})
+      if defined $nodeRef;
+
+    my %hash = ($node => $nodeRef);
+    return wantarray ? %hash : \%hash;
 }
 
 sub get_node_ref {
@@ -1243,20 +1249,11 @@ sub get_range_table {
 
         # progress feedback for text window and GUI        
         $progress ++;
-        #if ($progress_bar) {
-            $progress_bar->update(
-                "Converting tree $name to matrix\n"
-                . "($progress / $to_do)",
-                $progress / $to_do);
-        #}
-        #my $progress_percent = int (100 * $progress / $to_do);
-        #if ($progress_percent % 5 == 0) {
-        #    if ($printed_progress != $progress_percent) {
-        #        print "$progress_percent% ";
-        #        print "\n" if $progress_percent == 100;
-        #        $printed_progress = $progress_percent;
-        #    }
-        #}
+        $progress_bar->update(
+            "Converting tree $name to matrix\n"
+            . "($progress / $to_do)",
+            $progress / $to_do,
+        );
 
         LOOP_NODE2:
         foreach my $node2 (values %nodes) {
@@ -1401,7 +1398,10 @@ sub get_last_shared_ancestor_for_nodes {
 #  Creates a new list in the tree object containing values based on the rand_compare
 #  argument in the relevant indices
 #  This is really designed for the randomisation procedure, but has more
-#  general applicability
+#  general applicability.
+#  As of issue #284, we optionally skip tracking the stats,
+#  thus avoiding double counting since we compare the calculations per
+#  node using a cloned tree
 sub compare {
     my $self = shift;
     my %args = @_;
@@ -1412,9 +1412,10 @@ sub compare {
     my $comparison = $args{comparison}
       || croak "Comparison not specified\n";
 
-    my $track_matches  = !$args{no_track_matches};
-    my $terminals_only = $args{terminals_only};
-    my $comp_precision = $args{comp_precision} // '%.10f';
+    my $track_matches    = !$args{no_track_matches};
+    my $track_node_stats = !$args{no_track_node_stats};
+    my $terminals_only   = $args{terminals_only};
+    my $comp_precision   = $args{comp_precision} // '%.10f';
 
     my $result_list_pfx = $args{result_list_name};
     if (!$track_matches) {  #  avoid some warnings lower down
@@ -1429,18 +1430,12 @@ sub compare {
 
     my $progress = Biodiverse::Progress->new();
     my $progress_text
-        = "Comparing "
-        . $self->get_param ("NAME")
-        . " with "
-        . $comparison->get_param ("NAME")
-        . "\n";
+      = sprintf "Comparing %s with %s\n",
+        $self->get_param ('NAME'),
+        $comparison->get_param ('NAME');
     $progress->update ($progress_text, 0);
 
-    print "[TREE] Comparing "
-        . $self->get_param ('NAME')
-        . ' with '
-        . $comparison->get_param ('NAME')
-        . "\n";
+    #print "\n[TREE] " . $progress_text;
 
     #  set up the comparison operators if it has spatial results
     my $has_spatial_results = defined $self->get_list_ref (
@@ -1483,9 +1478,16 @@ sub compare {
         my $min_val = $max_poss_value;
         my $most_similar_node;
 
-        #  also need to get the spatial list from the most similar
+        #  A small optimisation - if they have the same name then
+        #  they can often have the same terminals so this will
+        #  reduce the search times
+        my @compare_name_list = keys %compare_nodes;
+        if (exists $compare_nodes{$base_node_name}) {
+            unshift @compare_name_list, $base_node_name;
+        }
+
         COMP:
-        foreach my $compare_node_name (keys %compare_nodes) {
+        foreach my $compare_node_name (@compare_name_list) {
             next if exists $found_perfect_match{$compare_node_name};
             my $sorenson = $done{$compare_node_name}{$base_node_name}
                         // $done{$base_node_name}{$compare_node_name};
@@ -1521,6 +1523,7 @@ sub compare {
                         if ($len_comp eq $len_base) {
                             $found_perfect_match{$compare_node_name} = $len_base;
                         }
+                        #else {say "$compare_node_name, $len_comp, $len_base"}
                     }
                     last COMP;
                 }
@@ -1528,40 +1531,42 @@ sub compare {
             carp "$compare_node_name $sorenson $min_val"
                 if ! defined $most_similar_node;
         }
-        
+
         next BASE_NODE if !$track_matches;
 
-        $base_node->add_to_lists ($result_data_list => [$min_val]);
-        my $stats = $stats_class->new;
-
-        $stats->add_data ($base_node->get_list_ref (list => $result_data_list));
-        my $prev_stat   = $base_node->get_list_ref (list => $result_list_pfx);
-        my %stats = (
-            MEAN   => $stats->mean,
-            SD     => $stats->standard_deviation,
-            MEDIAN => $stats->median,
-            Q25    => scalar $stats->percentile (25),
-            Q05    => scalar $stats->percentile (5),
-            Q01    => scalar $stats->percentile (1),
-            COUNT_IDENTICAL
-                   =>   ($prev_stat->{COUNT_IDENTICAL} || 0)
-                      + ($min_val == $min_poss_value ?  1 : 0),
-            COMPARISONS
-                   => ($prev_stat->{COMPARISONS} || 0) + 1,
-        );
-        $stats{PCT_IDENTICAL} = 100 * $stats{COUNT_IDENTICAL} / $stats{COMPARISONS};
-
-        my $length_diff = ($min_val == $min_poss_value)
-                        ? [  $base_node->get_total_length
-                           - $most_similar_node->get_total_length
-                          ]
-                        : [];  #  empty array by default
-
-        $base_node->add_to_lists (
-            $result_identical_node_length_list => $length_diff
-        );
-
-        $base_node->add_to_lists ($result_list_pfx => \%stats);
+        if ($track_node_stats) {
+            $base_node->add_to_lists ($result_data_list => [$min_val]);
+            my $stats = $stats_class->new;
+    
+            $stats->add_data ($base_node->get_list_ref (list => $result_data_list));
+            my $prev_stat   = $base_node->get_list_ref (list => $result_list_pfx);
+            my %stats = (
+                MEAN   => $stats->mean,
+                SD     => $stats->standard_deviation,
+                MEDIAN => $stats->median,
+                Q25    => scalar $stats->percentile (25),
+                Q05    => scalar $stats->percentile (5),
+                Q01    => scalar $stats->percentile (1),
+                COUNT_IDENTICAL
+                       =>   ($prev_stat->{COUNT_IDENTICAL} || 0)
+                          + ($min_val == $min_poss_value ?  1 : 0),
+                COMPARISONS
+                       => ($prev_stat->{COMPARISONS} || 0) + 1,
+            );
+            $stats{PCT_IDENTICAL} = 100 * $stats{COUNT_IDENTICAL} / $stats{COMPARISONS};
+    
+            my $length_diff = ($min_val == $min_poss_value)
+                            ? [  $base_node->get_total_length
+                               - $most_similar_node->get_total_length
+                              ]
+                            : [];  #  empty array by default
+    
+            $base_node->add_to_lists (
+                $result_identical_node_length_list => $length_diff
+            );
+    
+            $base_node->add_to_lists ($result_list_pfx => \%stats);
+        }
 
         if ($has_spatial_results) {
             BY_INDEX_LIST:
@@ -1616,6 +1621,28 @@ sub trees_are_same {
         && $exact_match_count == $node_count_self;
     
     return $trees_match;
+}
+
+#  does this tree contain a second tree as a sub-tree
+sub contains_tree {
+    my $self = shift;
+    my %args = @_;
+    
+    my $exact_match_count = $self->compare (%args, no_track_matches => 1);
+
+    my $comparison = $args{comparison}
+        || croak "Comparison not specified\n";
+
+    my $node_count_comp = $comparison->get_node_count;
+    if ($args{ignore_root}) {
+        $node_count_comp --;
+    }
+    my $correction += $args{correction} // 0;
+    $node_count_comp += $correction;
+
+    my $contains = $exact_match_count == $node_count_comp;
+    
+    return $contains;
 }
 
 #  trim a tree to remove nodes from a set of names, or those not in a set of names
@@ -1740,7 +1767,7 @@ sub AUTOLOAD {
         return $root_node->$method (@_);
     }
     else {
-        Biodiverse::NoMethod->throw (method => $method);
+        Biodiverse::NoMethod->throw (method => $method, message => "$self cannot call method $method");
         #croak "[$type (TREE)] No root node and/or cannot access method $method, "
         #    . "tried AUTOLOADER and failed\n";
     }
@@ -1896,6 +1923,34 @@ sub root_unrooted_tree {
     croak "failure\n" if scalar @root_nodes > 1;
 
     return;
+}
+
+sub shuffle_no_change {
+    my $self = shift;
+    return $self;
+}
+
+#  users should make a clone before doing this...
+sub shuffle_terminal_names {
+    my $self = shift;
+    my %args = @_;
+    
+    my $target_node = $args{target_node} // $self->get_root_node;
+
+    my $node_hash = $self->get_node_hash;
+    my %reordered = $target_node->shuffle_terminal_names (%args);
+
+    #  place holder for nodes that will change
+    my %tmp;
+    while (my ($old, $new) = each %reordered) {
+        $tmp{$new} = $node_hash->{$old};
+    }
+
+    #  and now we override the old with the new
+    @{$node_hash}{keys %tmp} = values %tmp;
+
+    return if !defined wantarray;
+    return wantarray ? %reordered : \%reordered;
 }
 
 #  Let the system take care of most of the memory stuff.  

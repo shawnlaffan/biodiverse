@@ -10,7 +10,7 @@ use 5.010;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.18_004';
+our $VERSION = '0.18_007';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -18,43 +18,6 @@ local $OUTPUT_AUTOFLUSH = 1;
 use Cwd;
 use FindBin qw ( $Bin );
 use Path::Class ();
-
-
-BEGIN {  #  add the gtk libs if using windows - brittle? 
-    if ($OSNAME eq 'MSWin32') {
-        #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
-        my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
-        my $origin_dir = Path::Class::file($prog_name)->dir;
-
-        my @paths;
-        use Config;
-        my $gtk_dir = $Config{archname} =~ /x86/ ? 'gtk_win32' : 'gtk_win64';
-
-        foreach my $gtk_path (
-          Path::Class::dir($origin_dir, $gtk_dir, 'bin'),
-          Path::Class::dir($origin_dir, $gtk_dir, 'c', 'bin'),
-          Path::Class::dir($origin_dir->parent, $gtk_dir, 'bin'),
-          Path::Class::dir($origin_dir->parent, $gtk_dir, 'c', 'bin'),
-          ) {
-            if (-d $gtk_path) {
-                push @paths, $gtk_path;
-            }
-        }
-
-        my $sep = ';';
-        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
-        say "Path is:\n", $ENV{PATH};
-    }
-}
-
-#  need this for the pp build to work
-if ($ENV{BDV_PP_BUILDING}) {
-    say 'Building pp file';
-    use File::BOM qw / :subs /;          #  we need File::BOM.
-    open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
-      or croak "Cannot open $Bin via File::BOM\n";
-    $fh->close;
-}
 
 #  are we running as a PerlApp executable?
 my $perl_app_tool = $PerlApp::TOOL;
@@ -64,12 +27,12 @@ use rlib;
 
 #  load up the user defined libs and settings
 use Biodiverse::Config;
+use Biodiverse::GUI::GUIManager;
 
 #  load Gtk
 use Gtk2 qw/-init/;
 
 use Gtk2::GladeXML;
-use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Callbacks;
 
 
@@ -133,8 +96,13 @@ if ( defined $filename ) {
 #$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
 #print join "\n", $ic->get_search_path;
 
-# Go!
-Gtk2->main;
+if ($ENV{BDV_PP_BUILDING}) {
+    Gtk2->main_quit();
+}
+else {
+    # Go!
+    Gtk2->main;
+}
 
 #  go back home (unless it has been deleted while we were away)
 $eval_result = eval { chdir($caller_dir) };

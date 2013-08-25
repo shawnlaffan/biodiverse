@@ -9,19 +9,22 @@ package Biodiverse::BaseStruct;
 use strict;
 use warnings;
 use Carp;
+use 5.010;
 
 use English ( -no_match_vars );
 
+use autovivification;
+
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
-use Scalar::Util qw/looks_like_number/;
+use Scalar::Util qw/looks_like_number reftype/;
 use List::Util qw /min max/;
 use File::Basename;
 use Path::Class;
 use POSIX qw /fmod/;
 use Time::localtime;
 
-our $VERSION = '0.18_006';
+our $VERSION = '0.18_007';
 
 #require Biodiverse::Config;
 #my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -354,7 +357,7 @@ sub export_table_delimited_text {
 
     my $table = $self->to_table (symmetric => 1, %args, file_handle => $fh);
 
-    if (scalar @$table) {  #  won;t ned this once issue #350 is fixed
+    if (scalar @$table) {  #  won't ned this once issue #350 is fixed
         $self->write_table_csv (%args, data => $table);
     }
 
@@ -1884,12 +1887,14 @@ sub get_element_name_coord {
     defined $args{element} || croak "element not specified\n";
     my $element = $args{element};
 
-    my $values = $self->get_array_list_values (element => $element, list => '_ELEMENT_COORD');
-
-    if (! defined $values) {  #  doesn't exist, so generate it 
+    my $values = eval {
+        $self->get_array_list_values (element => $element, list => '_ELEMENT_COORD');
+    };
+    if (Biodiverse::BaseStruct::ListDoesNotExist->caught) {  #  doesn't exist, so generate it 
         $self->generate_element_coords;
         $values = $self->get_element_name_coord (element => $element);
     }
+    #croak $EVAL_ERROR if $EVAL_ERROR;  #  need tests before putting this in.  
 
     return wantarray ? @$values : $values;
 }
@@ -1952,43 +1957,35 @@ sub get_sub_element_list {
     my $self = shift;
     my %args = @_;
 
-    croak "element not specified\n"
-        if ! defined $args{element};
+    my $element = $args{element} // croak "argument 'element' not specified\n";
 
-    my $element = $args{element};
+    my $el_hash = $self->{ELEMENTS};
 
-    return if ! exists $self->{ELEMENTS}{$element};
-    return if ! exists $self->{ELEMENTS}{$element}{SUBELEMENTS};
+    return if ! exists $el_hash->{$element};
+    return if ! exists $el_hash->{$element}{SUBELEMENTS};
 
     return wantarray
-        ?  keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}
-        : [keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}}];
+        ?  keys %{$el_hash->{$element}{SUBELEMENTS}}
+        : [keys %{$el_hash->{$element}{SUBELEMENTS}}];
 }
 
 sub get_sub_element_hash {
     my $self = shift;
-    my %args = (@_);
+    my %args = @_;
 
-    croak "argument 'element' not specified\n"
-        if ! defined $args{element};
+    no autovivification;
+    
+    my $element = $args{element}
+      // croak "argument 'element' not specified\n";
 
-    my $element = $args{element};
+    #  Ideally we should throw an exception, but at the moment too many other
+    #  things need a result and we aren't testing for them.
+    my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS} // {};
+      #// Biodiverse::NoSubElementHash->throw (
+      #      message => "Element $element does not exist or has no SUBELEMENT hash\n",
+      #  );
 
-    #croak "element and/or subelement hash does not exist\n"
-
-    if (exists $self->{ELEMENTS}{$element}
-        && exists $self->{ELEMENTS}{$element}{SUBELEMENTS}) {
-
-        my $hash = $self->{ELEMENTS}{$element}{SUBELEMENTS};
-
-        return wantarray
-            ? %$hash
-            : $hash;
-    }
-
-    #  should really croak on this, but some calling code expects empty lists
-    #  (which chould be changed)
-    return wantarray ? () : {};
+    return wantarray ? %$hash : $hash;
 }
 
 sub get_subelement_count {
@@ -2282,26 +2279,24 @@ sub get_array_list_values {
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element};
+    no autovivification;
 
-    croak "Element not specified\n"
-      if not defined $element;
+    my $element = $args{element} // croak "Element not specified\n";
+    my $list    = $args{list}    // croak "List not specified\n";
 
-    my $list = $args{list};
-    croak  "List not specified\n"
-      if not defined $list;
+    #croak "Element $element does not exist.  Do you need to rebuild the spatial index?\n"
+    #  if ! exists $self->{ELEMENTS}{$element};
 
-    croak "Element $element does not exist.  Do you need to rebuild the spatial index?\n"
-      if ! exists $self->{ELEMENTS}{$element};
+    my $list_ref = $self->{ELEMENTS}{$element}{$list}
+      // Biodiverse::BaseStruct::ListDoesNotExist->throw (
+            message => "Element $element does not exist or does not have a list ref for $list\n",
+        );
 
-    return if ! exists $self->{ELEMENTS}{$element}{$list};
-
+    #  does this need to be tested for?  Maybe caller beware is needed?
     croak "List is not an array\n"
-      if ! ref($self->{ELEMENTS}{$element}{$list}) =~ /ARRAY/;
+      if reftype ($list_ref) ne 'ARRAY';
 
-    return wantarray
-        ? @{$self->{ELEMENTS}{$element}{$list}}
-        : $self->{ELEMENTS}{$element}{$list};
+    return wantarray ? @$list_ref : $list_ref;
 }
 
 #  does a list exist in an element?
@@ -2415,7 +2410,7 @@ sub delete_lists {
     croak "argument 'lists' not specified\n" if not defined $args{lists};
 
     my $element = $args{element};
-    my $lists = $args{lists};
+    my $lists   = $args{lists};
     croak "argument 'lists' is not an array ref\n" if not (ref $lists) =~ /ARRAY/;
 
     foreach my $list (@$lists) {
@@ -2892,6 +2887,14 @@ sub get_element_properties_summary_stats {
     }
 
     return wantarray ? %results : \%results;
+}
+
+sub has_element_properties {
+    my $self = shift;
+    
+    my @keys = $self->get_element_property_keys;
+    
+    return scalar @keys;
 }
 
 #  return true if the labels are all numeric

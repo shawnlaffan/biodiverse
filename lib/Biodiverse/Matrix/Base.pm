@@ -40,27 +40,30 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
     
     my ($element1, $element2);
     my $exists = $self->element_pair_exists (@_);
-    if (! $exists) {
-        if ($args{element1} eq $args{element2} and $self->element_is_in_matrix (element => $args{element1})) {
+
+    if ($exists == 1) {
+        $element1 = $args{element1};
+        $element2 = $args{element2};
+        return $self->{BYELEMENT}{$element1}{$element2};
+    }
+    elsif ($exists == 2) {  #  elements exist, but in different order - switch them
+        $element1 = $args{element2};
+        $element2 = $args{element1};
+        return $self->{BYELEMENT}{$element1}{$element2};
+    }
+    elsif (! $exists) {
+        if ($args{element1} eq $args{element2}
+            and $self->element_is_in_matrix (element => $args{element1})
+            ) {
             return $self->get_param ('SELF_SIMILARITY');  #  defaults to undef
         }
         else {
             return; #  combination does not exist - cannot get the value
         }
     }
-    elsif ($exists == 2) {  #  elements exist, but in different order - switch them
-        $element1 = $args{element2};
-        $element2 = $args{element1};
-    }
-    elsif ($exists == 1) {
-        $element1 = $args{element1};
-        $element2 = $args{element2};
-    }
-    else {
-        croak   "[MATRICES] You seem to have added an extra result (value $exists) to" .
-                " sub element_pair_exists.  What were you thinking?\n";
-    }
-    return $self->{BYELEMENT}{$element1}{$element2};
+
+    croak   "[MATRICES] You seem to have added an extra result (value $exists) to" .
+            " sub element_pair_exists.  What were you thinking?\n";
 }
 
 #  check an element pair exists, returning 1 if yes, 2 if yes, but in different order, undef otherwise
@@ -78,12 +81,9 @@ sub element_pair_exists {
     my $hash_ref = $self->{BYELEMENT};
 
     #  need to stop autovivification of element1 or 2
-    if (exists $hash_ref->{$element1}) {
-        return 1 if exists $hash_ref->{$element1}{$element2};
-    }
-    if (exists $hash_ref->{$element2}) {
-        return 2 if exists $hash_ref->{$element2}{$element1};
-    }
+    return 1 if exists $hash_ref->{$element1} && exists $hash_ref->{$element1}{$element2};
+    return 2 if exists $hash_ref->{$element2} && exists $hash_ref->{$element2}{$element1};
+
     return 0;
 }
 

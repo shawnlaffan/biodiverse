@@ -986,6 +986,13 @@ sub setProcessedNodes {
 # This is the one that selects how to colour the map
 ##########################################################
 
+# Provides list of results for tab to use as it sees fit
+sub get_map_lists {
+    my $self = shift;
+    my $lists = scalar $self->{tree_node}->get_hash_lists();
+    return [sort @$lists];
+}
+
 # Combo-box for the list of results (eg: REDUNDANCY or ENDC_SINGLE) to use for the map
 sub setupMapListModel {
     my $self  = shift;
@@ -1009,6 +1016,19 @@ sub setupMapListModel {
     $self->{map_list_combo}->set_active_iter($iter);
 
     return;
+}
+
+# Provides list of map indices for tab to use as it sees fit.
+# Context sensitive on currently selected map list.
+sub get_map_indices {
+    my $self = shift;
+    if (not defined $self->{analysis_list_name}) {
+        return [];
+    }
+
+    my @indices = keys $self->{tree_node}->get_list_ref(
+            list => $self->{analysis_list_name});
+    return [sort @indices];
 }
 
 # Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_SINGLE)
@@ -1086,6 +1106,38 @@ sub onMapListComboChanged {
     return;
 }
 
+# Called by the tab to indicate the user has changed the desired list to
+# display on the map.
+# Can either be the Cluster "list" (coloured by node, indicated by undef) or a
+# spatial analysis list
+# Update our display accordingly.
+sub select_map_list {
+    my ($self, $list) = @_;
+
+    if (not defined $list) {
+        # Selected cluster-palette-colouring mode
+        #print "[Dendrogram] Setting grid to use palette-based cluster colours\n";
+
+        $self->{analysis_list_name}  = undef;
+        $self->{analysis_list_index} = undef;
+        $self->{analysis_min}        = undef;
+        $self->{analysis_max}        = undef;
+
+        $self->{cluster_colour_mode} = 'palette';
+        $self->recolourClusterElements();
+
+        $self->recolourClusterLines($self->{processed_nodes});
+
+        # blanking out the other combo left to tab
+    }
+    else {
+        # Selected analysis-colouring mode
+        $self->{analysis_list_name} = $list;
+
+        # updating the map index menu left to tab
+    }
+}
+
 sub onMapIndexComboChanged {
     my $self = shift;
     my $combo = shift || $self->{map_index_combo};
@@ -1094,8 +1146,17 @@ sub onMapIndexComboChanged {
     my $iter = $combo->get_active_iter;
 
     if ($iter) {
-
         $index = $combo->get_model->get($iter, 0);
+    }
+    $self->select_map_index($index);
+
+    return;
+}
+
+sub select_map_index {
+    my ($self, $index) = @_;
+
+    if (defined $index) {
         $self->{analysis_list_index} = $index;
 
         $self->{parent_tab}->onColourModeChanged;
@@ -1115,8 +1176,6 @@ sub onMapIndexComboChanged {
         $self->{analysis_min}        = undef;
         $self->{analysis_max}        = undef;
     }
-
-    return;
 }
 
 sub set_plot_min_max_values {
@@ -1421,7 +1480,14 @@ sub setCluster {
 
     # Initialise map analysis-selection comboboxen
     if ($self->{map_list_combo}) {
+        print "Calling setupMapListModel\n";
         $self->setupMapListModel( scalar $self->{tree_node}->get_hash_lists() );
+    }
+
+    # TODO: Abstract this properly
+    if (exists $self->{map_lists_ready_cb}) {
+        print "Calling map_lists_ready_cb\n";
+        $self->{map_lists_ready_cb}->($self->get_map_lists());
     }
 
     return;

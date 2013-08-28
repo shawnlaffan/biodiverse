@@ -5,7 +5,7 @@ use English qw( -no_match_vars );
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed isweak weaken/;
+use Scalar::Util qw /blessed isweak weaken refaddr/;
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
 use Biodiverse::GUI::Grid;
@@ -201,6 +201,9 @@ sub new {
     $self->queueSetPane(0.5, 'hpaneClustering');
     $self->queueSetPane(1  , 'vpaneDendrogram');
 
+    # Set up options menu
+    $self->{toolbar_menu} = $xml_page->get_widget('menu_clustering_options');
+
     $self->makeIndicesModel($cluster_ref);
     $self->makeLinkageModel($cluster_ref);
     $self->initIndicesCombo();
@@ -244,6 +247,7 @@ sub new {
     my %widgets_and_signals = (
         btnCluster          => {clicked => \&onRun},
         btnMapOverlays      => {clicked => \&onOverlays},
+        menuitem_cluster_overlays => {activate => \&onOverlays},
         btnMapZoomIn        => {clicked => \&onMapZoomIn},
         btnMapZoomOut       => {clicked => \&onMapZoomOut},
         btnMapZoomFit       => {clicked => \&onMapZoomFit},
@@ -536,6 +540,10 @@ sub initDendrogram {
         $self,
         undef # basedata_ref
     );
+
+    # TODO: Abstract this properly
+    $self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
+
     $self->{dendrogram}->{page} = $self;
 
     if ($self->{existing}) {
@@ -617,6 +625,146 @@ sub onComboMapListChanged {
     }
 
     return;
+}
+
+# Called by Dendrogram when it has the map list.
+# We then update the toolbar menu so the user can select them.
+sub on_map_lists_ready {
+    my ($self, $lists) = @_;
+
+    my $menu = $self->{toolbar_menu};
+
+    # Beneath 'Overlays...' and 'Cluster'
+    my $first_pos = 2;
+    my $pos = 2;
+
+    # Delete old menu items
+    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
+    my @menu_items = $menu->get_children();
+    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
+        my $menu_item = $menu_items[$pos++];
+        $menu->remove($menu_item);
+        $menu_item->destroy();
+    }
+
+    $pos = $first_pos;
+
+    # Establish radio group with first item.
+    my $first = Gtk2::RadioMenuItem->new(undef, '(Cluster)');
+    $first->signal_connect_swapped(toggled => \&on_map_list_changed, $self);
+    $menu->insert($first, $pos++);
+    my $group = $first->get_group();
+
+    # Add to the toolbar menu
+    for my $item (@$lists) {
+        my $menu_item = Gtk2::RadioMenuItem->new($group, $item);
+        $menu_item->signal_connect_swapped(toggled => \&on_map_list_changed,
+                $self);
+        $menu->insert($menu_item, $pos++);
+    }
+
+    $menu->show_all();
+}
+
+sub on_map_list_changed {
+    my ($self, $menu_item) = @_;
+    #print "on_map_list_changed called\n";
+    #print "Widget: ", $menu_item->get_label(), "\n";
+    #print "Active: ", $menu_item->get_active(), "\n";
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    # Got signal for newly selected option.
+    my $list = $menu_item->get_label();
+    if ($list eq '(Cluster)') {
+        undef $list;
+    }
+
+    if (not defined $list) {
+        $self->{grid}->hideLegend();
+    }
+    else {
+        $self->{grid}->showLegend();
+    }
+
+    $self->{dendrogram}->select_map_list($list);
+
+    # TODO: Update "map index" options in menu
+    print "on_map_list_changed new indices:\n";
+
+    my $indices = $self->{dendrogram}->get_map_indices();
+
+    # Default to the first in the list, if it exists
+    if (@$indices) {
+        $self->{dendrogram}->select_map_index($indices->[0]);
+    }
+
+    $self->update_menu_map_indices($indices);
+}
+
+sub update_menu_map_indices {
+    my ($self, $indices) = @_;
+
+    # Clear out old entries from menu.
+    my $menu = $self->{toolbar_menu};
+
+    my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
+    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_separator1');
+
+    my @menu_items = $menu->get_children();
+
+    my $pos = 0;
+    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
+        $pos++;
+    }
+    print "Heading found at $pos\n";
+    $pos++;
+
+    my $first_pos = $pos;
+
+    # Remove everything until the end
+    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
+        my $menu_item = $menu_items[$pos++];
+        $menu->remove($menu_item);
+        $menu_item->destroy();
+    }
+
+    # Start inserting at $first_pos
+    $pos = $first_pos;
+    my $first_item = undef;
+    for my $index (@$indices) {
+        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $index);
+        if (not defined $first_item) {
+            $first_item = $menu_item;
+        }
+        $menu_item->signal_connect_swapped(toggled => \&on_map_index_changed,
+                $self);
+        $menu->insert($menu_item, $pos++);
+    }
+
+    $menu->show_all();
+}
+
+sub on_map_index_changed {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    # Got signal for newly selected option.
+    my $index = $menu_item->get_label();
+
+    print "on_map_index_changed to $index\n";
+
+    # Pass it on to the dendrogram.
+    $self->{dendrogram}->select_map_index($index);
 }
 
 ##################################################

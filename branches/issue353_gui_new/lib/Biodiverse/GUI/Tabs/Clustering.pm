@@ -518,6 +518,7 @@ sub initDendrogram {
     my $highlight_closure   = sub { $self->onDendrogramHighlight(@_); };
     my $popup_closure       = sub { $self->onDendrogramPopup(@_); };
     my $click_closure       = sub { $self->onDendrogramClick(@_); };
+    my $select_closure      = sub { $self->on_dendrogram_select(@_); };
 
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
         $frame,
@@ -531,7 +532,7 @@ sub initDendrogram {
         $highlight_closure,
         $popup_closure,
         $click_closure, # click_func
-        undef, # select_func
+        $select_closure, # select_func
         $self,
         undef # basedata_ref
     );
@@ -1246,6 +1247,18 @@ sub onDendrogramHighlight {
     return;
 }
 
+sub on_dendrogram_select {
+    my $self = shift;
+    my $rect = shift; # [x1, y1, x2, y2]
+
+    if ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{dendrogram};
+        handle_grid_drag_zoom ($grid, $rect);
+    }
+
+    return;
+}
+
 ##################################################
 # Popup dialogs
 ##################################################
@@ -1333,7 +1346,15 @@ sub onDendrogramPopup {
 
 sub onDendrogramClick {
     my ($self, $node) = @_;
-    $self->{dendrogram}->doColourNodesBelow($node);
+    if ($self->{tool} eq 'Select') {
+        $self->{dendrogram}->doColourNodesBelow($node);
+    }
+    elsif ($self->{tool} eq 'ZoomOut') {
+        $self->{dendrogram}->zoomOut();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{dendrogram}->zoomFit();
+    }
 }
 
 # Returns which coloured node the given element is under

@@ -1,6 +1,7 @@
 package Biodiverse::Indices::Indices;
 use strict;
 use warnings;
+use 5.010;
 
 use Carp;
 
@@ -945,11 +946,6 @@ sub get_metadata_calc_overlap_mx  {
                     '= \frac {MXO\_MEAN - MXO\_TMEAN }{ \sqrt { MXO\_TVARIANCE} }',
                 ]
             },
-            #MXO_WARD       => {
-            #    cluster => 1,
-            #    description => "Ward's dissimilarity metric - set1 versus set2",
-            #    uses_nbr_lists => 2
-            #},
             MXO_MEAN       => {description => 'Mean of neighbour set 1', lumper => 0,},
             MXO_TMEAN      => {
                 description => 'Mean of both neighbour sets',
@@ -960,14 +956,14 @@ sub get_metadata_calc_overlap_mx  {
             MXO_TVARIANCE  => {description => 'Variance of both neighbour sets (mean squared difference from zero)', lumper => 1,},
             MXO_N          => {description => 'Count of labels used in neighbour set 1', lumper => 0,},
             MXO_TN         => {description => 'Count of all labels used', lumper => 1,},
-            MXO_LABELS     => {
-                description => 'List of labels in neighbour set 1.',
-                type        => 'list',
-            },
-            MXO_TLABELS    => {
-                description => 'List of all labels used (across both neighbour sets).',
-                type        => 'list',
-            },
+            #MXO_LABELS     => {
+            #    description => 'List of labels in neighbour set 1.',
+            #    type        => 'list',
+            #},
+            #MXO_TLABELS    => {
+            #    description => 'List of all labels used (across both neighbour sets).',
+            #    type        => 'list',
+            #},
         },
     );
 
@@ -984,25 +980,23 @@ sub calc_overlap_mx {
     );
 
     my %results = exists $r->{MXO}
-                ? (MXO => undef)
-                : (MXO_M_RATIO      => $r->{M_RATIO},
-                   MXO_V_RATIO      => $r->{V_RATIO},
-                   MXO_Z_RATIO      => $r->{Z_RATIO},
-                   MXO_Z_SCORE      => $r->{Z_SCORE},
-                   #MXO_WARD         => $r->{WARD},
-                   MXO_MEAN         => $r->{MEAN},
-                   MXO_TMEAN        => $r->{TMEAN},
-                   MXO_VARIANCE     => $r->{VARIANCE},
-                   MXO_TVARIANCE    => $r->{TVARIANCE},
-                   MXO_N            => $r->{N},
-                   MXO_TN           => $r->{TN},
-                   MXO_TLABELS      => $r->{TLABELS},
-                   MXO_LABELS       => $r->{LABELS},
-                   );
+        ? (MXO => undef)
+        : (
+           MXO_M_RATIO      => $r->{M_RATIO},
+           MXO_V_RATIO      => $r->{V_RATIO},
+           MXO_Z_RATIO      => $r->{Z_RATIO},
+           MXO_Z_SCORE      => $r->{Z_SCORE},
+           MXO_MEAN         => $r->{MEAN},
+           MXO_TMEAN        => $r->{TMEAN},
+           MXO_VARIANCE     => $r->{VARIANCE},
+           MXO_TVARIANCE    => $r->{TVARIANCE},
+           MXO_N            => $r->{N},
+           MXO_TN           => $r->{TN},
+           #MXO_TLABELS      => $r->{TLABELS},
+           #MXO_LABELS       => $r->{LABELS},
+        );
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 #  calculate the degree of overlap between two sets of groups, use matrix values if specified
@@ -1016,8 +1010,6 @@ sub _calc_overlap {
     my $full_label_list = $args{label_hash_all};
     my $label_list1     = $args{label_hash1};
     my $label_list2     = $args{label_hash2};
-
-    #my $ward_valid = 1;
 
     my $matrix;
     if ($use_matrix) {
@@ -1036,14 +1028,6 @@ sub _calc_overlap {
         %tmp = %$label_list1;
         my $count = scalar keys %tmp;
         delete @tmp{%$labels_in_matrix};
-        #$ward_valid = ($count > scalar keys %tmp);  #  we have matrix elements if some were deleted
-
-        #if ($ward_valid) {  #  check the second set of labels
-        #    %tmp = %$label_list2;
-        #    $count = scalar keys %tmp;
-        #    delete @tmp{%$labels_in_matrix};
-        #    $ward_valid = ($count > scalar keys %tmp);  #  we have matrix elements here too if some were deleted
-        #}
     }
 
     #  we need to get the distance between and across two groups
@@ -1051,23 +1035,22 @@ sub _calc_overlap {
     my ($totalSumX, $totalSumXsqr, $totalCount) = (undef, undef, 0);
 
     my (%done, %compared, %centre_compared);
+    
+    my @labels_to_check = keys %$full_label_list;
 
     BY_LABEL1:
-    foreach my $label1 (keys %{$full_label_list}) {
+    foreach my $label1 (@labels_to_check) {
 
         BY_LABEL2:
-        foreach my $label2 (keys %{$full_label_list}) {
+        foreach my $label2 (@labels_to_check) {
 
-            next BY_LABEL2 if $done{$label2};  #  we've already looped through these 
+            next BY_LABEL2 if $done{$label2};  #  we've already looped through these
 
             my $value = 1;
 
             if (defined $matrix) {
-                $value = $matrix->get_value(element1 => $label1, element2 => $label2);
-                #  trap self-self values not in matrix but don't override ones that are
-                if (! defined $value) {
-                    $value = $self_similarity;
-                }
+                $value = $matrix->get_value(element1 => $label1, element2 => $label2)
+                      // $self_similarity;
             }
             elsif ($label1 eq $label2) {
                 $value = $self_similarity;
@@ -1092,8 +1075,8 @@ sub _calc_overlap {
 
     my %results;
 
-    $results{TLABELS} = \%compared;
-    $results{LABELS} = \%centre_compared;
+    #$results{TLABELS} = \%compared;
+    #$results{LABELS} = \%centre_compared;
 
     #  all the variances are predicated on the "mean" being zero,
     #  as we assume a dissimilarity matrix ranging from zero
@@ -1128,14 +1111,9 @@ sub _calc_overlap {
                 ($results{MEAN} - $results{TMEAN}) / ($results{TVARIANCE} ** 0.5)
             };
 
-        #  differs from TVARIANCE because it compares values in both nbr sets
-        #$results{WARD}      = $ward_valid ? eval {$totalSumXsqr / $totalCount} : undef;
-
     };
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 sub get_formula_qe {

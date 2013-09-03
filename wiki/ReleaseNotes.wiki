@@ -2,9 +2,11 @@
 #labels Featured
 #sidebar TOC
 
-= Version 0.18006 = 
+= Version 0.18 = 
 
 This is a development version, with periodic releases of test versions. 
+
+The current development version is 0.18_007
 
 Main changes since previous version (0.17) are:
   *  Analyses
@@ -20,8 +22,8 @@ Main changes since previous version (0.17) are:
     *  The PE_WE index is now undefined when no tree branches occur in the neighbour sets.
     *  New calculations have been added to replicate some of the analyses in !PhyloCom.  These are available under the !PhyloCom category in the calculations lists.  Issue #331 and Issue #332.
     *  New calculation to obtain a list of the nodes not on the selected tree.  Issue #334
-    *  The AED and related indices should now be calculated correctly.  Issue #206
-    *  New indices for corrected weighted phylogenetic endemism and rarity (PE_CWE and PHLO_RARITY_CWR).  These are phylogenetic analogues of the corrected weighted endemism index and can be interpreted as the degree to which the ranges or abundances of branches found in a neighbour set are restricted to that neighbour set.  A value of 1 is completely restricted, values approaching zero have very little restriction.
+    *  The AED and related indices are now calculated correctly.  Issue #206
+    *  New indices for corrected weighted phylogenetic endemism and rarity (PE_CWE and PHYLO_RARITY_CWR).  These are phylogenetic analogues of the corrected weighted endemism index and can be interpreted as the degree to which the ranges or abundances of branches found in a neighbour set are restricted to that neighbour set.  A value of 1 is completely restricted, values approaching zero have very little restriction.
     *  The taxonomic and matrix overlap calculations have been removed.  They never worked properly in any case.  Issue #400
   *  Spatial conditions
     *  The `sp_match_text()` and `sp_match_regex()` conditions now match against the whole label by default.  Specifying the axis argument will make them behave as in previous releases.  Issue #325

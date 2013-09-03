@@ -52,34 +52,34 @@ __DATA__
                  },
   'MXD_MEAN'     => '0.0473457692307692',
   'MXD_VARIANCE' => '0.00253374386538462',
-  'MXO_LABELS'   => {
-                    'Genus:sp10' => 2,
-                    'Genus:sp11' => 2,
-                    'Genus:sp20' => 2,
-                    'Genus:sp24' => 2,
-                    'Genus:sp25' => 2,
-                    'Genus:sp26' => 1,
-                    'Genus:sp29' => 2,
-                    'Genus:sp30' => 2
-                  },
+  #'MXO_LABELS'   => {
+  #                  'Genus:sp10' => 2,
+  #                  'Genus:sp11' => 2,
+  #                  'Genus:sp20' => 2,
+  #                  'Genus:sp24' => 2,
+  #                  'Genus:sp25' => 2,
+  #                  'Genus:sp26' => 1,
+  #                  'Genus:sp29' => 2,
+  #                  'Genus:sp30' => 2
+  #                },
   'MXO_MEAN'    => '0.0512613333333333',
   'MXO_M_RATIO' => '1.12102637799785',
   'MXO_N'       => 15,
-  'MXO_TLABELS' => {
-                     'Genus:sp10' => 13,
-                     'Genus:sp11' => 12,
-                     'Genus:sp12' => 2,
-                     'Genus:sp15' => 3,
-                     'Genus:sp20' => 7,
-                     'Genus:sp23' => 4,
-                     'Genus:sp24' => 9,
-                     'Genus:sp25' => 11,
-                     'Genus:sp26' => 6,
-                     'Genus:sp27' => 1,
-                     'Genus:sp29' => 8,
-                     'Genus:sp30' => 10,
-                     'Genus:sp5'  => 5
-                   },
+  #'MXO_TLABELS' => {
+  #                   'Genus:sp10' => 13,
+  #                   'Genus:sp11' => 12,
+  #                   'Genus:sp12' => 2,
+  #                   'Genus:sp15' => 3,
+  #                   'Genus:sp20' => 7,
+  #                   'Genus:sp23' => 4,
+  #                   'Genus:sp24' => 9,
+  #                   'Genus:sp25' => 11,
+  #                   'Genus:sp26' => 6,
+  #                   'Genus:sp27' => 1,
+  #                   'Genus:sp29' => 8,
+  #                   'Genus:sp30' => 10,
+  #                   'Genus:sp5'  => 5
+  #                 },
   'MXO_TMEAN'     => '0.0457271428571428',
   'MXO_TN'        => 91,
   'MXO_TVARIANCE' => '0.00227831727582418',
@@ -229,14 +229,14 @@ __DATA__
 
 @@ RESULTS_1_NBR_LISTS
 {
-  'MXO_LABELS'  => {},
+  #'MXO_LABELS'  => {},
   'MXO_MEAN'    => undef,
   'MXO_M_RATIO' => '0',
   'MXO_N'       => 0,
-  'MXO_TLABELS' => {
-                     'Genus:sp20' => 2,
-                     'Genus:sp26' => 1
-                   },
+  #'MXO_TLABELS' => {
+  #                   'Genus:sp20' => 2,
+  #                   'Genus:sp26' => 1
+  #                 },
   'MXO_TMEAN'     => '0.05565',
   'MXO_TN'        => 3,
   'MXO_TVARIANCE' => '0.00313230136666667',

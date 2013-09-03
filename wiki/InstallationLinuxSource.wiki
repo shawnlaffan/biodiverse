@@ -5,7 +5,7 @@ These instructions apply to version 0.17.
 
 Note that they have been tested on Ubuntu.  The package manager will differ for other Linux flavours, but the cpan command will be the same.
 
-These also assume you have [http://code.google.com/p/biodiverse/downloads/list downloaded] the Biodiverse source code to your home directory and renamed it from `biodiverse_0.17_source` to `biodiverse`.  If you have saved it somewhere else then the following so any references to `$HOME/biodiverse/lib` use the appropriate directory.
+These also assume you have [http://code.google.com/p/biodiverse/downloads/list downloaded] the Biodiverse source code to your home directory and renamed it from whatever it was, e.g. `biodiverse_0.17_source`, to `biodiverse`.  If you have saved it somewhere else then you will need to adjust the following so any references to `$HOME/biodiverse/lib` use the appropriate directory.
 
 
 = Installation =

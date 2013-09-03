@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Tue Sep  3 05:38:20 2013 using build_indices_table.pl, Biodiverse version 0.18_007._
+_Generated GMT Tue Sep  3 06:08:51 2013 using build_indices_table.pl, Biodiverse version 0.18_007._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -247,7 +247,7 @@ Table of contents:
 
 *Subroutine:*   calc_endemism_central_hier_part
 
-*Reference:*   Laffan et al. (in press) J Biogeog. http://dx.doi.org/10.1111/jbi.12001
+*Reference:*   Laffan et al. (2013) J Biogeog. http://dx.doi.org/10.1111/jbi.12001
  
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
@@ -324,7 +324,7 @@ Table of contents:
 
 *Subroutine:*   calc_endemism_whole_hier_part
 
-*Reference:*   Laffan et al. (in press) J Biogeog. http://dx.doi.org/10.1111/jbi.12001
+*Reference:*   Laffan et al. (2013) J Biogeog. http://dx.doi.org/10.1111/jbi.12001
  
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||

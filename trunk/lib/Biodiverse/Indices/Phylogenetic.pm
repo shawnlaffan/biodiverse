@@ -8,7 +8,7 @@ use English qw /-no_match_vars/;
 use Carp;
 use Biodiverse::Progress;
 
-use List::Util qw /sum0 sum min max/;
+use List::Util qw /sum min max/;
 use List::MoreUtils qw /pairwise any/;
 use Math::BigInt;
 #use POSIX qw /floor/;

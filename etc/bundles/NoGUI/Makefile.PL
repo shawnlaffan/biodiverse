@@ -20,7 +20,7 @@ WriteMakefile(
         "DBD::XBase" => "0",
         "HTML::QuickTable" => "0",
         "YAML::Syck" => "0",
-        "PadWalker" => "0",
+        #"PadWalker" => "0",  #  redundant from 0.18_007
         "Clone" => "0",
         "Regexp::Common" => "0",
         "rlib" => "0",
@@ -28,7 +28,7 @@ WriteMakefile(
         "parent" => "0",
         "Readonly" => "0",
         "URI::Escape::XS" => "0",
-        "Statistics::Descriptive" => "3.04",
+        "Statistics::Descriptive" => "3.06",
         "Geo::Converter::dms2dd" => "0",
         "Text::Wrapper" => "0",
         "Exporter::Easy" => "0",
@@ -41,10 +41,13 @@ WriteMakefile(
         "Tree::R" => "0",
         "Geo::ShapeFile" => "0",
         "List::MoreUtils" => "0",
+        "List::Util" => "1.32",
         "Class::Inspector" => "0",
         "autovivification" => "0.11",
     },
     BUILD_REQUIRES => {
         "Data::Section::Simple" => "0",
+        "Test::Deep" => "0",
+        "Test::NoWarnings" => "0",
     },
 );

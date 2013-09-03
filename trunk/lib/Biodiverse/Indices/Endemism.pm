@@ -351,7 +351,7 @@ sub metadata_for_calc_endemism_hier_part {
         description     => $descr,
         name            => "Endemism $endemism_type hierarchical partition",
         type            => 'Endemism',
-        reference       => 'Laffan et al. (in press) J Biogeog. http://dx.doi.org/10.1111/jbi.12001',
+        reference       => 'Laffan et al. (2013) J Biogeog. http://dx.doi.org/10.1111/jbi.12001',
         formula         => $formula,
         pre_calc        => [
             "_calc_endemism_$endemism_type",

@@ -3,7 +3,12 @@ use strict;
 use warnings;
 use Carp;
 
+BEGIN {
+    $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
+    $ENV{BIODIVERSE_EXTENSIONS} = q{};
+}
 
+use Biodiverse::Config;
 use Biodiverse::BaseData;
 use Biodiverse::Indices;
 use Data::Dumper;
@@ -23,7 +28,7 @@ $lb_ref->set_param (CELL_SIZES => [-1,-1]);
 
 my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
-my $html = $indices -> get_calculation_metadata_as_wiki;
+my $html = $indices->get_calculation_metadata_as_wiki;
 
 #  The YAML version
 #use YAML::Syck;

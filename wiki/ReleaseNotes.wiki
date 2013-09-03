@@ -22,6 +22,7 @@ Main changes since previous version (0.17) are:
     *  New calculation to obtain a list of the nodes not on the selected tree.  Issue #334
     *  The AED and related indices should now be calculated correctly.  Issue #206
     *  New indices for corrected weighted phylogenetic endemism and rarity (PE_CWE and PHLO_RARITY_CWR).  These are phylogenetic analogues of the corrected weighted endemism index and can be interpreted as the degree to which the ranges or abundances of branches found in a neighbour set are restricted to that neighbour set.  A value of 1 is completely restricted, values approaching zero have very little restriction.
+    *  The taxonomic and matrix overlap calculations have been removed.  They never worked properly in any case.  Issue #400
   *  Spatial conditions
     *  The `sp_match_text()` and `sp_match_regex()` conditions now match against the whole label by default.  Specifying the axis argument will make them behave as in previous releases.  Issue #325
     *  New condition `sp_select_element()` which will match only one element (group).  This is the same as sp_match_text() but has been optimised to make it considerably faster since it can only ever match one element.  Issue #326

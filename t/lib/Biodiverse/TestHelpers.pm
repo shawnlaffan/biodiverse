@@ -143,7 +143,7 @@ sub snap_to_precision {
     my $precision = $args{precision} // '%.11f';
 
     return defined $value && looks_like_number $value
-        ? sprintf ($precision, $value)
+        ? 0 + sprintf ($precision, $value)
         : $value;
 }
 

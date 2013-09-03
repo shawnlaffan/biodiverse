@@ -194,6 +194,7 @@ sub compare_hash_vals {
     my $precision  = $args{precision};
     my $not_strict = $args{no_strict_match};
     my $descr_suffix = $args{descr_suffix} // q{};
+    my $sort_array_lists = $args{sort_array_lists};
 
     #  check union of the two hashes
     my %targets = (%$hash_exp, %$hash_got);
@@ -231,13 +232,24 @@ sub compare_hash_vals {
             #say join ' ', sort keys %$hash_exp;
         }
         elsif (ref $hash_exp->{$key} eq 'ARRAY') {
-            subtest "Got expected array for $key" => sub {
-                compare_arr (
-                    arr_got => $hash_got->{$key},
-                    arr_exp => $hash_exp->{$key},
-                    #  add no_strict_match option??
-                );
-            };
+            if ($sort_array_lists) {
+                subtest "Got expected array for $key" => sub {
+                    compare_arr_sorted (
+                        arr_got => $hash_got->{$key},
+                        arr_exp => $hash_exp->{$key},
+                        #  add no_strict_match option??
+                    );
+                };
+            }
+            else {
+                subtest "Got expected array for $key" => sub {
+                    compare_arr (
+                        arr_got => $hash_got->{$key},
+                        arr_exp => $hash_exp->{$key},
+                        #  add no_strict_match option??
+                    );
+                };
+            }
         }
         else {
             my $val_got = snap_to_precision (
@@ -306,6 +318,30 @@ sub compare_arr {
     for (my $i = 0; $i != @$arr_exp; ++$i) {
         my $val_got = snap_to_precision (value => $arr_got->[$i], precision => $precision);
         my $val_exp = snap_to_precision (value => $arr_exp->[$i], precision => $precision);
+        is ($val_got, $val_exp, "Got expected value for [$i]");
+    }
+
+    return;
+}
+
+=item compare_arr
+
+Checks that arr_got and arr_exp contain the same elements
+
+=cut
+
+sub compare_arr_sorted {
+    my %args = @_;
+
+    my @arr_got = sort @{$args{arr_got}};
+    my @arr_exp = sort @{$args{arr_exp}};
+    my $precision = $args{precision};
+
+    is (scalar @arr_got, scalar @arr_exp, 'Arrays are same size');
+
+    for (my $i = 0; $i != @arr_exp; ++$i) {
+        my $val_got = snap_to_precision (value => $arr_got[$i], precision => $precision);
+        my $val_exp = snap_to_precision (value => $arr_exp[$i], precision => $precision);
         is ($val_got, $val_exp, "Got expected value for [$i]");
     }
 
@@ -587,6 +623,7 @@ sub run_indices_test1 {
     my $use_label_properties_binomial = $args{use_label_properties_binomial};  # boolean
     my $callbacks              = $args{callbacks};
     my $expected_results_overlay = $args{expected_results_overlay};
+    my $sort_array_lists       = $args{sort_array_lists};
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -759,6 +796,7 @@ sub run_indices_test1 {
                 hash_got => \%results,
                 hash_exp => \%{$expected},
                 descr_suffix => "$nbr_list_count nbr sets",
+                sort_array_lists => $sort_array_lists,
             );
         };
     }

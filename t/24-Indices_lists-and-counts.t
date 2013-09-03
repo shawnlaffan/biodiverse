@@ -26,6 +26,7 @@ run_indices_test1 (
         calc_local_sample_count_stats
     /],
     calc_topic_to_test => 'Lists and Counts',
+    sort_array_lists   => 1,
 );
 
 done_testing;

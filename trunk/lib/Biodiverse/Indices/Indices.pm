@@ -1014,10 +1014,10 @@ sub _calc_overlap {
     my $matrix;
     if ($use_matrix) {
         $matrix = $args{matrix_ref};
-        croak if ! defined $matrix;
+        croak "matrix_ref argument is undefined" if ! defined $matrix;
 
         #  delete elements from full_label_list that are not in the matrix
-        my $labels_in_matrix = $matrix -> get_elements;
+        my $labels_in_matrix = $matrix->get_elements;
         my %tmp = %$full_label_list;  #  don't want to disturb original data, as it is used elsewhere
         my %tmp2 = %tmp;
         delete @tmp{keys %$labels_in_matrix};  #  get a list of those not in the matrix
@@ -1025,9 +1025,9 @@ sub _calc_overlap {
         $full_label_list = \%tmp2;
 
         #  check list1 for matrix elements
-        %tmp = %$label_list1;
-        my $count = scalar keys %tmp;
-        delete @tmp{%$labels_in_matrix};
+        #%tmp = %$label_list1;
+        #my $count = scalar keys %tmp;
+        #delete @tmp{%$labels_in_matrix};
     }
 
     #  we need to get the distance between and across two groups
@@ -1035,8 +1035,9 @@ sub _calc_overlap {
     my ($totalSumX, $totalSumXsqr, $totalCount) = (undef, undef, 0);
 
     my (%done, %compared, %centre_compared);
+    my %pair_done;
     
-    my @labels_to_check = keys %$full_label_list;
+    my @labels_to_check = sort keys %$full_label_list;
 
     BY_LABEL1:
     foreach my $label1 (@labels_to_check) {
@@ -1044,7 +1045,8 @@ sub _calc_overlap {
         BY_LABEL2:
         foreach my $label2 (@labels_to_check) {
 
-            next BY_LABEL2 if $done{$label2};  #  we've already looped through these
+            #next BY_LABEL2 if $done{$label2};  #  we've already looped through these
+            #next BY_LABEL2 if $pair_done{$label2}{$label1} || $pair_done{$label2}{$label1};
 
             my $value = 1;
 
@@ -1057,7 +1059,9 @@ sub _calc_overlap {
             }
 
             #  count labels shared between groups
-            if (exists $label_list1->{$label1} && exists ($label_list2->{$label2})) {
+            if (   exists $label_list1->{$label1} && exists $label_list2->{$label1}
+                && exists $label_list1->{$label2} && exists $label_list2->{$label2}
+                ) {
                 $sumX    += $value;
                 $sumXsqr += $value**2;
                 $count   ++;
@@ -1069,6 +1073,7 @@ sub _calc_overlap {
             $totalSumXsqr += $value**2;
             $totalCount   ++;
             $compared{$label2} ++;
+            $pair_done{$label1}{$label2}++;
         }
         $done{$label1}++;
     }

@@ -1,4 +1,10 @@
-#summary <<DRAFT DOCUMENT>> This page explains the steps involved in importing Base Data into Biodiverse (up to step 2).
+#summary <<DRAFT DOCUMENT>>
+
+Table of contents:
+<wiki:toc max_depth="4" />
+
+
+This page explains the steps involved in importing Base Data into Biodiverse (up to step 2).
 
 = Importing Base Data  =
 Biodiverse can import !BaseData in one of two data formats, spreadsheet format or matrix format.  Examples of each format are provided in the data folder included with the Biodiverse download.
@@ -26,6 +32,7 @@ http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step1.png
 
 http://biodiverse.googlecode.com/svn/wiki/screenshots/import_basedata_step2.png
 
+==Import Options==
 *Set label/group properties and remap:*  Allows properties to be specified for the labels and groups (see [DataStructures#Element_property_tables]).  If this option is selected you will be able to select your remapping file(s) after the parameters for the main Basedata import have been set. 
 
 *Allow labels with no groups:*  Permits the inclusion of labels in the analyses which are not assigned to a group. An example might be where you wish to include species that occur outside your study area when comparing a local region with a broader region. 

@@ -35,6 +35,8 @@ use Gtk2 qw/-init/;
 use Gtk2::GladeXML;
 use Biodiverse::GUI::Callbacks;
 
+use Data::Dumper;
+use Scalar::Util qw/blessed/;
 
 # Load filename specified in the arguments
 my $numargs = scalar @ARGV;
@@ -100,6 +102,18 @@ if ($ENV{BDV_PP_BUILDING}) {
     Gtk2->main_quit();
 }
 else {
+    # Sniff events so they can be replayed for keeping menus open
+    Gtk2::Gdk::Event->handler_set(sub {
+        my $event = $_[0];
+        if (blessed($event) eq 'Gtk2::Gdk::Event::Button') {
+            $gui->{current_event} = $event->copy;
+            Gtk2->main_do_event($event);
+            $gui->{current_event} = undef;
+        }
+        else {
+            Gtk2->main_do_event($event);
+        }
+    }, undef);
     # Go!
     Gtk2->main;
 }

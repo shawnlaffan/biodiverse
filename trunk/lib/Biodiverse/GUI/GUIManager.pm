@@ -30,7 +30,7 @@ BEGIN {
 
         my @paths;
         use Config;
-        my $gtk_dir = $Config{archname} =~ /x86\b/ ? 'gtk_win32' : 'gtk_win64';
+        my $gtk_dir = $Config{archname} =~ /x(?:86_)?64/ ? 'gtk_win64' : 'gtk_win32';
 
         ORIGIN_DIR:
         while ($origin_dir) {

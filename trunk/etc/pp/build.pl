@@ -31,7 +31,7 @@ my $out_folder = $opt->out_folder // cwd();
 my $verbose    = $opt->verbose ? ' -v' : q{};
 
 my $perlpath     = $Config{perlpath};
-my $bits         = $Config{archname} =~ /x86\b/ ? 32 : 64;
+my $bits         = $Config{archname} =~ /x(?:86_)?64/ ? 64 : 32;
 my $using_64_bit = $bits == 64;
 
 my $script_fullname = Path::Class::file($script)->absolute;

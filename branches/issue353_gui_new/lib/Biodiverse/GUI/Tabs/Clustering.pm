@@ -203,7 +203,6 @@ sub new {
 
     # Set up options menu
     $self->{toolbar_menu} = $xml_page->get_widget('menu_clustering_options');
-    $self->{toolbar_menu_bar} = $xml_page->get_widget('menubar_clustering_options');
     $self->{toolbar_menu_button} = $xml_page->get_widget('imagemenu_clustering_options');
 
     # Save event so it can be replayed to keep the menu open
@@ -289,6 +288,9 @@ sub new {
         comboMetric         => {changed => \&on_combo_metric_changed},
         
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
+        
+        menuitem_cluster_tearoff => {activate => \&on_toolbar_menu_tearoff},
+        imagemenu_clustering_options => {activate => \&on_toolbar_menu_open},
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
@@ -712,7 +714,9 @@ sub on_map_list_changed {
 
     $self->update_menu_map_indices($indices);
 
-    Gtk2::Gdk::Event->put($self->{toolbar_menu_event});
+    if (defined $self->{toolbar_menu_event}) {
+        Gtk2::Gdk::Event->put($self->{toolbar_menu_event});
+    }
 }
 
 sub update_menu_map_indices {
@@ -774,6 +778,16 @@ sub on_map_index_changed {
 
     # Pass it on to the dendrogram.
     $self->{dendrogram}->select_map_index($index);
+}
+
+sub on_toolbar_menu_open {
+    my $self = shift;
+    $self->{toolbar_menu_event} = $self->{gui}->{current_event}->copy;
+}
+
+sub on_toolbar_menu_tearoff {
+    my $self = shift;
+    $self->{toolbar_menu_event} = undef;
 }
 
 ##################################################

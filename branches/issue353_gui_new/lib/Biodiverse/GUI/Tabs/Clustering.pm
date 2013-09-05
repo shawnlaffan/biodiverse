@@ -667,6 +667,7 @@ sub on_map_lists_ready {
     # Add to the toolbar menu
     for my $item (@$lists) {
         my $menu_item = Gtk2::RadioMenuItem->new($group, $item);
+        $menu_item =~ s/_/__/g;
         $menu_item->signal_connect_swapped(toggled => \&on_map_list_changed,
                 $self);
         $menu->insert($menu_item, $pos++);
@@ -689,6 +690,7 @@ sub on_map_list_changed {
 
     # Got signal for newly selected option.
     my $list = $menu_item->get_label();
+    $list =~ s/__/_/g;
     if ($list eq '(Cluster)') {
         undef $list;
     }
@@ -750,6 +752,7 @@ sub update_menu_map_indices {
     $pos = $first_pos;
     my $first_item = undef;
     for my $index (@$indices) {
+        $index =~ s/_/__/g;
         my $menu_item = Gtk2::RadioMenuItem->new($first_item, $index);
         if (not defined $first_item) {
             $first_item = $menu_item;
@@ -773,6 +776,7 @@ sub on_map_index_changed {
 
     # Got signal for newly selected option.
     my $index = $menu_item->get_label();
+    $index =~ s/__/_/g;
 
     print "on_map_index_changed to $index\n";
 

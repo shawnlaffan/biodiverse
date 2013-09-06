@@ -7,7 +7,6 @@ Installation instructions.
   *  Windows
     *  Executable:  InstallationWindowsBinary
     *  Source code:  InstallationWindowsSource
-    *  Source code, 64 bit: InstallationWindowsSource64bit
   *  Macintosh
     *  Binary:  InstallationMacBinary
     *  Source code:  InstallationMacSource

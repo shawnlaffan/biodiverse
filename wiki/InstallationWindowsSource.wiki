@@ -1,7 +1,7 @@
 #summary Windows source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.17.  
+These instructions apply to version 0.18.
 
 These assume you have saved the Biodiverse source code to C:\biodiverse.  If you have not then change the `C:\biodiverse\lib` path in the following to the appropriate path.
 
@@ -9,100 +9,64 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 
 If you don't like the window theme it uses then you can change it using the GTK+ Preference Tool from http://sourceforge.net/userapps/mediawiki/alex-sh/index.php?title=Main_Page
 
-There are two options you can pursue here.  Both will work, but the !CamelBox install uses an older version of Perl.
+The instructions in this file are based on the Strawberry Perl distribution.  It is possible to use other perl distributions on Wndows, but you will need to compile several of the dependencies yourself.
 
 <wiki:toc max_depth="4" />
 
+= !Strawberry Perl =
 
-= !ActivePerl = 
-
-
-== Installation (AS) ==
-
-  * [http://code.google.com/p/biodiverse/downloads/list Download] the Biodiverse windows executable version for this, as it includes the Gtk binaries needed for the GUI.
-  * Unzip the biodiverse directory onto your hard drive. These instructions assume you have placed it in C:\Biodiverse, but it can go anywhere on the file system.  (If you do locate it elsewhere then make sure you adjust the paths in the following to reflect that).
-  * Edit your system's PATH variable to include C:\Biodiverse\bin and C:\Biodiverse\gtk\bin.  For an example of how to set the path, see http://www.computerhope.com/issues/ch000549.htm.
-  * Download and install Perl 5.14 (the Community Edition, *NOT 5.16 YET*) from http://www.activestate.com/activeperl/downloads.  If you are on a 64 bit machine then make sure you use the 32 bit installation, as the Gnome2::Canvas library needed for the GUI is not yet compiled for 64 bit.
-
-  * Once that's done, copy and paste the following commands into a command window. These install additional perl libraries needed by Biodiverse.
-{{{
-ppm repo add http://www.sisyphusion.tk/ppm/
-ppm repo add http://www.biodiverse.unsw.edu.au/ppm
-ppm install Task-Biodiverse-NoGUI
-ppm install Task-Biodiverse
-ppm install mylib
-ppm install Gnome2-Canvas
-}}}
-
-== Updating (AS) ==
-
-  *  If you are updating an existing installation then it is for the most part a repeat the ppm steps from the installation process.
-{{{
-ppm repo add http://www.sisyphusion.tk/ppm/
-ppm repo add http://www.biodiverse.unsw.edu.au/ppm
-ppm update Task-Biodiverse-NoGUI
-ppm update Task-Biodiverse
-}}}
-
-== Running it (AS) ==
-
-  *  You should now be able to run Biodiverse by executing `C:\Biodiverse\bin\BiodiverseGUI.bat` (or `C:\Biodiverse\bin\BiodiverseGUI.pl` if your system runs Perl files when they are double clicked).
-  *  See the [#Trouble_shooting trouble shooting] section below if you encounter problems.  
-
-= !CamelBox =
-
-== Installation (CB) ==
+== Installation ==
 
 This will require some interaction when it downloads additional packages, depending on your CPAN settings.  
 
-  *  [http://code.google.com/p/biodiverse/downloads/list Download] the Biodiverse source code and save it to your hard drive.  
-  *  Download and install !CamelBox from http://code.google.com/p/camelbox/ .  Install everything (the "Bloatware - Whole Enchilada" option).  This will install all the Gtk dependencies.
-  *  Now you need to install the Biodiverse specific dependencies.  
+  *  [http://code.google.com/p/biodiverse/downloads/list Download] the Biodiverse source code and save it to your hard drive.  Alternately, use a subversion client to obtain the main development version or one of the release tags.  http://code.google.com/p/biodiverse/source/checkout
+  *  Download and install !Strawberry perl http://strawberryperl.com/ .
+  *  Download the Gtk binaries for windows.  Use a Subversion client to access this branch:  http://code.google.com/p/biodiverse/source/browse/#svn%2Fbranches%2Fgtk_win_builds%2Fetc
+  *  Now you need to install the Biodiverse specific dependencies.
 {{{
-C:\camelbox\bin\perl -MCPAN -e "install Task::Biodiverse::NoGUI"
-C:\camelbox\bin\perl -MCPAN -e "install Task::Biodiverse"
-C:\camelbox\bin\perl -MCPAN -e "install Gnome2::Canvas"
+:: Add the Gtk bin folder to the front of your path, making sure you use the path where you put it.  
+:: If this is not done correctly then the installation will not complete properly.  
+set PATH=C:\gtk_win64\c\bin;%PATH%
+
+:: Install the precompiled binaries needed for the GUI.
+:: Edit the next line to match the perl version you are using, e.g. 5.16_x64 for the 64 bit version.
+cd C:\biodiverse\etc\ppm\516
+ppm install Cairo.ppd Glib.ppd Gnome2-Canvas.ppd Gtk2-GladeXML.ppd Gtk2.ppd Pango.ppd
+
+:: Now install the libs needed for the GUI
+cd C:\biodiverse\etc\bundles\NoGUI
+cpanm -i .
+cd ..\GUI
+cpanm -i .
+cpanm -i .
 }}}
 
-== Updating (CB) ==
+== Updating ==
 
-  *  If you are updating an existing installation then repeat the cpan step from the installation process.
-{{{
-C:\camelbox\bin\perl -MCPAN -e "upgrade Task::BiodiverseNoGUI"
-C:\camelbox\bin\perl -MCPAN -e "upgrade Task::Biodiverse"
-}}}
+  *  If you are updating an existing installation then you can repeat the command line steps from the installation process above.
 
   
-== Running it (CB) ==
+== Running it ==
 
   * To run Biodiverse, open a terminal window and change directory to the biodiverse\bin folder.  If it is in C:\biodiverse\bin:
 {{{
 cd C:\biodiverse\bin
 }}}
-  * Once you have done this, type the following command to open Biodiverse.  This assumes you installed !CamelBox into C:\CamelBox, so change the following as necessary.
+  * Once you have done this, type the following command to open Biodiverse.  This assumes you are using the perl version from the C:\strawberry folder, so edit as appropriate (see above).
 {{{
-C:\CamelBox\bin\perl BiodiverseGUI.pl
+C:\strawberry\perl\bin\perl BiodiverseGUI.pl
 }}}
   *  Alternately, you could give the full path to both Perl and Biodiverse if you want to start in a particular directory (i.e. where all your files are).
 {{{
-C:\camelbox\bin\perl C:\biodiverse\bin\BiodiverseGUI.pl
+C:\strawberry\perl\bin\perl C:\biodiverse\bin\BiodiverseGUI.pl
 }}}
-
-The full path to perl is used to ensure the !CamelBox version is used.
-
-= Other Perls =
-
-  *  It should be possible to run Biodiverse using other Perl implementations, for example Strawberry Perl or Cava Perl.  In these cases, download and install as instructed by the provider.  
-  *  You should then be able to adapt the installation steps above (the cpan bits) for all except the Gnome project modules.
-  *  For the Gnome project modules (Gtk, Glib, Gnome2::Canvas etc.), see the installation scripts at http://code.google.com/p/biodiverse/source/browse/#svn%2Ftrunk%2Fetc%2Fwin32_gtk 
 
 
 = Trouble shooting =
 
-  *  If you have more than one Perl and/or GTK installed on your system then you need to ensure that the versions you want to use are first in the PATH environment variable.  This is because the CamelBox binaries are not compatible with the ActiveState binaries.  You can manually edit the paths, but it is probably best to create a batch script to do this so it is easy to change things back and forth.
-  *  !ActivePerl
-    *  If, when using the !ActivePerl version, Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively using the ppm utility.  The complaint will contain text like `Can't locate Fred/Fred.pm in @INC (@INC contains:...)`  In this case, install package Fred-Fred (substitute a hyphen for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate). You can use the GUI version that comes with !ActivePerl, or install from the command line, e.g.: `ppm install Fred-Fred` . This can happen if one or more of the modules listed in the bundle failed to install.
-  *  !CamelBox
-    *  If, when using the !CamelBox version, Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively using cpan. The complaint will contain text like `Can't locate Fred/Fred.pm in @INC (@INC contains:...)`  In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate). E.g.: `C:\camelbox\bin\perl -MCPAN -e "install Fred::Fred"` . This can happen if one or more of the modules listed in the bundle failed to install.
+  *  If things don't work then the first thing to check is that you are using the correct perl (or at least the one you think you should be using).  Check your path to see which perl is at the front of the list.  You can also type `perl -v` to see basic information about the perl version in use.  
+  *  If you have more than one Perl and/or GTK installed on your system then you need to ensure that the versions you want to use are first in the PATH environment variable.  This is because the binaries are not compatible between major perl versions and often also distributions.  You can manually edit the paths, but it is probably best to create a batch script to do this so it is easy to change things back and forth.
+  *  If, Perl complains that it cannot locate a file when running Biodiverse then this library will need to be installed interactively using cpanm. The complaint will contain text like `Can't locate Fred/Fred.pm in @INC (@INC contains:...)`  In this case, install module Fred::Fred (substitute a double colon "::" for each forward slash "/", and remove the trailing ".pm" from the module it cannot locate). E.g.: `C:\strawberry\perl\bin\cpanm  Fred::Fred` . This can happen if one or more of the modules listed in the bundle failed to install.
 
   *  Please report any other issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]
+  

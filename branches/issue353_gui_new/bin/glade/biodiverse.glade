@@ -7201,6 +7201,46 @@ Both</property>
                                   </widget>
                                 </child>
                                 <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_colour_mode">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Colour mode</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_hue">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="no">Hue</property>
+                                    <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
+
+Colours are scaled relative to all index values across all nodes in the dendrogram.</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_sat">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="no">Sat</property>
+                                    <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="group">menuitem_cluster_colour_mode_hue</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_grey">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="no">Grey</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="group">menuitem_cluster_colour_mode_hue</property>
+                                  </widget>
+                                </child>
+                                <child>
                                   <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_separator1">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>

@@ -282,6 +282,9 @@ sub new {
         clusterColourButton => {color_set => \&onHueSet},
     
         comboClusterColours => {changed => \&onColourModeChanged},
+        menuitem_cluster_colour_mode_hue => {toggled => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_sat => {toggled => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_grey => {toggled => \&on_colour_mode_changed},
         comboMapList        => {changed => \&onComboMapListChanged},
         txtClusterName      => {changed => \&onNameChanged},
         
@@ -606,6 +609,16 @@ sub initMapListCombo {
 sub init_clusters_to_colour {
     my $self = shift;
 
+    my $tooltip = <<END;
+This value determines how many descendent nodes will be selected to be coloured when you click on a node.
+
+All siblings are included in the selection, so if the tree topology results in more than this number then the next lowest number will be selected.
+For example, if 7 nodes are to be coloured but the system finds a 7th and 8th node are siblings then it will select their parent instead, resulting in 6 selected nodes.
+
+This setting has no effect on the slider bar.
+END
+    chomp $tooltip;
+
     my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_clusters');
 
     my $menu = $self->{toolbar_menu};
@@ -629,6 +642,7 @@ sub init_clusters_to_colour {
         if ($amount == 6) {
             $menu_item->set_active(1);
         }
+        $menu_item->set_tooltip_text($tooltip);
         $menu_item->signal_connect_swapped(toggled => \&on_clusters_to_colour_changed,
                 $self);
         $menu->insert($menu_item, $pos++);
@@ -707,7 +721,7 @@ sub on_map_lists_ready {
 
     # Establish radio group with first item.
     my $first = Gtk2::RadioMenuItem->new(undef, '(Cluster)');
-    $first->set_tooltip_text('Use contrasting colours to display classes');
+    $first->set_tooltip_text('Uses contrasting colours to display classes');
     $first->signal_connect_swapped(toggled => \&on_map_list_changed, $self);
     $menu->insert($first, $pos++);
     my $group = $first->get_group();
@@ -715,7 +729,7 @@ sub on_map_lists_ready {
     # Add to the toolbar menu
     for my $item (@$lists) {
         my $menu_item = Gtk2::RadioMenuItem->new($group, $item);
-        $menu_item->set_tooltip_text('Use a continuous colour scale to display classes');
+        $menu_item->set_tooltip_text('Uses a continuous colour scale to display classes');
         $menu_item =~ s/_/__/g;
         $menu_item->signal_connect_swapped(toggled => \&on_map_list_changed,
                 $self);
@@ -774,7 +788,7 @@ sub update_menu_map_indices {
     my $menu = $self->{toolbar_menu};
 
     my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
-    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_separator1');
+    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_colour_mode');
 
     my @menu_items = $menu->get_children();
 
@@ -2061,6 +2075,20 @@ sub onColourModeChanged {
     $self->{dendrogram}->recolour();
 
     return;
+}
+
+sub on_colour_mode_changed {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    $self->set_plot_min_max_values;
+    $self->{grid}->setLegendMode($menu_item->get_label());
+    $self->{dendrogram}->recolour();
 }
 
 sub set_plot_min_max_values {

@@ -7206,6 +7206,15 @@ Both</property>
                                     <property name="can_focus">False</property>
                                   </widget>
                                 </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_cluster_clusters">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Clusters to colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
                               </widget>
                             </child>
                             <child internal-child="image">

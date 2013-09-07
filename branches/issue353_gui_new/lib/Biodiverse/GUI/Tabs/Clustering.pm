@@ -225,6 +225,7 @@ sub new {
     }
     $self->initMapShowCombo();
     $self->initMapListCombo();
+    $self->init_clusters_to_colour();
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::makeCalculationsModel(
@@ -602,6 +603,52 @@ sub initMapListCombo {
     return;
 }
 
+sub init_clusters_to_colour {
+    my $self = shift;
+
+    my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_clusters');
+
+    my $menu = $self->{toolbar_menu};
+    my @menu_items = $menu->get_children();
+
+    my $pos = 0;
+    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
+        $pos++;
+    }
+    $pos++;
+
+    # Start inserting
+    my $first_item = undef;
+    for my $amount (1..13) {
+        $amount =~ s/_/__/g;
+        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $amount);
+        if (not defined $first_item) {
+            $first_item = $menu_item;
+        }
+        # Default to 6
+        if ($amount == 6) {
+            $menu_item->set_active(1);
+        }
+        $menu_item->signal_connect_swapped(toggled => \&on_clusters_to_colour_changed,
+                $self);
+        $menu->insert($menu_item, $pos++);
+    }
+
+    $menu->show_all();
+}
+
+sub on_clusters_to_colour_changed {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    $self->{dendrogram}->setNumClusters($menu_item->get_label());
+}
+
 #  if the list combo is "cluster" then desensitise several other widgets
 sub onComboMapListChanged {
     my $self = shift;
@@ -644,8 +691,8 @@ sub on_map_lists_ready {
     my $menu = $self->{toolbar_menu};
 
     # Beneath 'Overlays...' and 'Cluster'
-    my $first_pos = 2;
-    my $pos = 2;
+    my $first_pos = 3;
+    my $pos = 3;
 
     # Delete old menu items
     my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
@@ -660,6 +707,7 @@ sub on_map_lists_ready {
 
     # Establish radio group with first item.
     my $first = Gtk2::RadioMenuItem->new(undef, '(Cluster)');
+    $first->set_tooltip_text('Use contrasting colours to display classes');
     $first->signal_connect_swapped(toggled => \&on_map_list_changed, $self);
     $menu->insert($first, $pos++);
     my $group = $first->get_group();
@@ -667,6 +715,7 @@ sub on_map_lists_ready {
     # Add to the toolbar menu
     for my $item (@$lists) {
         my $menu_item = Gtk2::RadioMenuItem->new($group, $item);
+        $menu_item->set_tooltip_text('Use a continuous colour scale to display classes');
         $menu_item =~ s/_/__/g;
         $menu_item->signal_connect_swapped(toggled => \&on_map_list_changed,
                 $self);
@@ -704,9 +753,6 @@ sub on_map_list_changed {
 
     $self->{dendrogram}->select_map_list($list);
 
-    # TODO: Update "map index" options in menu
-    print "on_map_list_changed new indices:\n";
-
     my $indices = $self->{dendrogram}->get_map_indices();
 
     # Default to the first in the list, if it exists
@@ -736,7 +782,6 @@ sub update_menu_map_indices {
     while (refaddr($menu_items[$pos]) != refaddr($heading)) {
         $pos++;
     }
-    print "Heading found at $pos\n";
     $pos++;
 
     my $first_pos = $pos;

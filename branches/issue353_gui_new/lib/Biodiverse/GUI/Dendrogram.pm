@@ -1480,13 +1480,11 @@ sub setCluster {
 
     # Initialise map analysis-selection comboboxen
     if ($self->{map_list_combo}) {
-        print "Calling setupMapListModel\n";
         $self->setupMapListModel( scalar $self->{tree_node}->get_hash_lists() );
     }
 
     # TODO: Abstract this properly
     if (exists $self->{map_lists_ready_cb}) {
-        print "Calling map_lists_ready_cb\n";
         $self->{map_lists_ready_cb}->($self->get_map_lists());
     }
 

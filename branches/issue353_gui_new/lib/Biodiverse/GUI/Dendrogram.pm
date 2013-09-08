@@ -1159,7 +1159,7 @@ sub select_map_index {
     if (defined $index) {
         $self->{analysis_list_index} = $index;
 
-        $self->{parent_tab}->onColourModeChanged;
+        $self->{parent_tab}->recolour;
 
         my @minmax = $self->get_plot_min_max_values;
         $self->{analysis_min} = $minmax[0];

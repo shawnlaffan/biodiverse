@@ -223,10 +223,9 @@ sub new {
         $self->onClose;
         return;
     }
-    $self->initMapShowCombo();
-    $self->initMapListCombo();
     $self->init_clusters_to_colour();
-    $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0);
+    $self->{colour_mode} = 'Hue';
+    $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # For Sat mode
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::makeCalculationsModel(
@@ -236,12 +235,6 @@ sub new {
     Biodiverse::GUI::Tabs::CalculationsTree::initCalculationsTree(
         $xml_page->get_widget('treeSpatialCalculations'),
         $self->{calculations_model}
-    );
-
-    # select hue colour mode, red
-    $xml_page->get_widget('comboClusterColours')->set_active(0);
-    $xml_page->get_widget('clusterColourButton')->set_color(
-        Gtk2::Gdk::Color->new(65535,0,0),  # red
     );
 
     # Connect signals
@@ -254,11 +247,7 @@ sub new {
 
     my %widgets_and_signals = (
         btnCluster          => {clicked => \&onRun},
-        btnMapOverlays      => {clicked => \&onOverlays},
         menuitem_cluster_overlays => {activate => \&onOverlays},
-        btnMapZoomIn        => {clicked => \&onMapZoomIn},
-        btnMapZoomOut       => {clicked => \&onMapZoomOut},
-        btnMapZoomFit       => {clicked => \&onMapZoomFit},
         btnClusterZoomIn    => {clicked => \&onClusterZoomIn},
         btnClusterZoomOut   => {clicked => \&onClusterZoomOut},
         btnClusterZoomFit   => {clicked => \&onClusterZoomFit},
@@ -280,27 +269,23 @@ sub new {
         menu_use_slider_to_select_nodes =>
             {toggled => \&on_menu_use_slider_to_select_nodes},
 
-        clusterColourButton => {color_set => \&onHueSet},
-    
-        comboClusterColours => {changed => \&onColourModeChanged},
         menuitem_cluster_colour_mode_hue => {toggled => \&on_colour_mode_changed},
         menuitem_cluster_colour_mode_sat => {activate => \&on_colour_mode_changed},
         menuitem_cluster_colour_mode_grey => {toggled => \&on_colour_mode_changed},
-        comboMapList        => {changed => \&onComboMapListChanged},
         txtClusterName      => {changed => \&onNameChanged},
-        
+
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
-        
+
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
-        
+
         menuitem_cluster_tearoff => {activate => \&on_toolbar_menu_tearoff},
         imagemenu_clustering_options => {activate => \&on_toolbar_menu_open},
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
         $xml_page->get_widget($widget)->signal_connect_swapped(
-            %$args, 
+            %$args,
             $self,
         );
     }
@@ -582,31 +567,6 @@ sub initDendrogram {
     return;
 }
 
-sub initMapShowCombo {
-    my $self = shift;
-
-    my $combo = $self->{xmlPage}->get_widget('comboMapShow');
-    my $renderer = Gtk2::CellRendererText->new();
-    $combo->pack_start($renderer, 1);
-    $combo->add_attribute($renderer, markup => 0);
-
-    return;
-}
-
-sub initMapListCombo {
-    my $self = shift;
-
-    my $combo = $self->{xmlPage}->get_widget('comboMapList');
-    my $renderer = Gtk2::CellRendererText->new();
-    $combo->pack_start($renderer, 1);
-    $combo->add_attribute($renderer, markup => 0);
-
-    #  trigger sensitivity
-    $self->onComboMapListChanged;
-
-    return;
-}
-
 sub init_clusters_to_colour {
     my $self = shift;
 
@@ -662,40 +622,6 @@ sub on_clusters_to_colour_changed {
     }
 
     $self->{dendrogram}->setNumClusters($menu_item->get_label());
-}
-
-#  if the list combo is "cluster" then desensitise several other widgets
-sub onComboMapListChanged {
-    my $self = shift;
-
-    my $combo = $self->{xmlPage}->get_widget('comboMapList');
-
-    my $iter = $combo->get_active_iter;
-    return if ! defined $iter; # this can occur if we are a new cluster output
-                                #  as there are no map lists
-
-    my $model = $combo->get_model;
-    my $list = $model->get($iter, 0);
-
-    my $sensitive = 1;
-    if ($list eq '<i>Cluster</i>') {
-        $sensitive = 0;
-        $self->{grid}->hideLegend;
-    }
-    else {
-        $self->{grid}->showLegend;
-    }
-
-    my @widgets = qw {
-        comboMapShow
-        comboClusterColours
-        clusterColourButton
-    };
-    foreach my $widget (@widgets) {
-        $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
-    }
-
-    return;
 }
 
 # Called by Dendrogram when it has the map list.
@@ -1849,21 +1775,6 @@ sub onNameChanged {
     return;
 }
 
-sub onMapZoomIn {
-    my $self = shift;
-    $self->{grid}->zoomIn();
-}
-
-sub onMapZoomOut {
-    my $self = shift;
-    $self->{grid}->zoomOut();
-}
-
-sub onMapZoomFit {
-    my $self = shift;
-    $self->{grid}->zoomFit();
-}
-
 sub onClusterZoomIn {
     my $self = shift;
     $self->{dendrogram}->zoomIn();
@@ -2076,19 +1987,6 @@ sub onGroupModeChanged {
     $self->{dendrogram}->setGroupMode($mode);
 }
 
-sub onColourModeChanged {
-    my $self = shift;
-    
-    $self->set_plot_min_max_values;
-
-    my $colours = $self->{xmlPage}->get_widget('comboClusterColours')->get_active_text();
-
-    $self->{grid}->setLegendMode($colours);
-    $self->{dendrogram}->recolour();
-
-    return;
-}
-
 sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 
@@ -2123,8 +2021,14 @@ sub on_colour_mode_changed {
         $colour_dialog->show_all();
     }
 
+    $self->{colour_mode} = $mode;
+    $self->recolour();
+}
+
+sub recolour {
+    my $self = shift;
     $self->set_plot_min_max_values;
-    $self->{grid}->setLegendMode($mode);
+    $self->{grid}->setLegendMode($self->{colour_mode});
     $self->{dendrogram}->recolour();
 }
 
@@ -2175,26 +2079,7 @@ sub onStretchChanged {
     $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
     $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
 
-    $self->onColourModeChanged;
-
-    return;
-}
-
-#  should be onSatSet?
-sub onHueSet {
-    my $self = shift;
-    my $button = shift;
-
-    my $combo_colours_hue_choice = 1;
-
-    my $widget = $self->{xmlPage}->get_widget('comboClusterColours');
-
-    #  a bodge to set the active colour mode to Hue
-    my $active = $widget->get_active;
-
-    $widget->set_active($combo_colours_hue_choice);
-    $self->{grid}->setLegendHue($button->get_color());
-    $self->{dendrogram}->recolour();
+    $self->recolour;
 
     return;
 }
@@ -2221,6 +2106,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = "SUPER::" . $method;
+    print 'Trying to call ', $method, "\n";
     return $self->$method(@_);
 }
 

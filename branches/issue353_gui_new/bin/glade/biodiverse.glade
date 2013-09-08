@@ -7212,6 +7212,7 @@ Both</property>
                                 <child>
                                   <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_hue">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="no">Hue</property>
                                     <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
@@ -7224,9 +7225,12 @@ Colours are scaled relative to all index values across all nodes in the dendrogr
                                 <child>
                                   <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_sat">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
-                                    <property name="label" translatable="no">Sat</property>
-                                    <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum</property>
+                                    <property name="label" translatable="no">Sat...</property>
+                                    <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
+
+Colours are currently taken from the outer ring.</property>
                                     <property name="use_underline">True</property>
                                     <property name="group">menuitem_cluster_colour_mode_hue</property>
                                   </widget>
@@ -7234,6 +7238,7 @@ Colours are scaled relative to all index values across all nodes in the dendrogr
                                 <child>
                                   <widget class="GtkRadioMenuItem" id="menuitem_cluster_colour_mode_grey">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
                                     <property name="label" translatable="no">Grey</property>
                                     <property name="use_underline">True</property>

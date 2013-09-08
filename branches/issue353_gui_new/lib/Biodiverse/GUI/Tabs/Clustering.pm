@@ -226,6 +226,7 @@ sub new {
     $self->initMapShowCombo();
     $self->initMapListCombo();
     $self->init_clusters_to_colour();
+    $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0);
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::makeCalculationsModel(
@@ -283,7 +284,7 @@ sub new {
     
         comboClusterColours => {changed => \&onColourModeChanged},
         menuitem_cluster_colour_mode_hue => {toggled => \&on_colour_mode_changed},
-        menuitem_cluster_colour_mode_sat => {toggled => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_sat => {activate => \&on_colour_mode_changed},
         menuitem_cluster_colour_mode_grey => {toggled => \&on_colour_mode_changed},
         comboMapList        => {changed => \&onComboMapListChanged},
         txtClusterName      => {changed => \&onNameChanged},
@@ -775,6 +776,17 @@ sub on_map_list_changed {
     }
 
     $self->update_menu_map_indices($indices);
+
+    # Desensitise some options if (Cluster) is selected.
+    my @widgets = qw{
+        menuitem_cluster_colour_mode_hue
+        menuitem_cluster_colour_mode_sat
+        menuitem_cluster_colour_mode_grey
+    };
+    my $sensitive = defined $list;
+    foreach my $widget (@widgets) {
+        $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
+    }
 
     if (defined $self->{toolbar_menu_event}) {
         Gtk2::Gdk::Event->put($self->{toolbar_menu_event});
@@ -2086,8 +2098,33 @@ sub on_colour_mode_changed {
         return;
     }
 
+    my $mode = $menu_item->get_label();
+    if ($mode eq 'Sat...') {
+        $mode = 'Sat';
+
+        # Pop up dialog for choosing the hue to use in saturation mode
+        my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+        my $colour_select = $colour_dialog->get_color_selection();
+        $colour_select->set_previous_color($self->{hue});
+        $colour_select->set_current_color($self->{hue});
+        my $on_response = sub {
+            my ($_ignore, $response, $_ignore) = @_;
+            if ($response eq 'ok') {
+                $self->{hue} = $colour_select->get_current_color();
+                $self->{grid}->setLegendHue($self->{hue});
+                $self->{dendrogram}->recolour();
+            }
+            $colour_dialog->destroy();
+        };
+        $colour_dialog->signal_connect_swapped(
+            response => $on_response,
+            undef
+        );
+        $colour_dialog->show_all();
+    }
+
     $self->set_plot_min_max_values;
-    $self->{grid}->setLegendMode($menu_item->get_label());
+    $self->{grid}->setLegendMode($mode);
     $self->{dendrogram}->recolour();
 }
 

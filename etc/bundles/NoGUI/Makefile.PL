@@ -21,7 +21,7 @@ WriteMakefile(
         "HTML::QuickTable" => "0",
         "YAML::Syck" => "0",
         #"PadWalker" => "0",  #  redundant from 0.18_007
-        "Clone" => "0",
+        "Clone" => "0.35",
         "Regexp::Common" => "0",
         "rlib" => "0",
         #"mylib" => "0",

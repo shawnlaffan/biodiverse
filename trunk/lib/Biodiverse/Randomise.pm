@@ -29,7 +29,7 @@ my $EMPTY_STRING = q{};
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
 
-use base qw {Biodiverse::Common};
+use parent qw {Biodiverse::Common};
 
 sub new {
     my $class = shift;

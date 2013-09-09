@@ -24,7 +24,7 @@ use Biodiverse::Progress;
 use Biodiverse::Indices;
 use Biodiverse::Exception;
 
-use base qw /
+use parent qw /
     Biodiverse::Tree
     Biodiverse::Common
 /;

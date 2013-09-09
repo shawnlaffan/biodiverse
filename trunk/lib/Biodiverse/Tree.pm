@@ -30,7 +30,7 @@ use Biodiverse::BaseStruct;
 use Biodiverse::Progress;
 use Biodiverse::Exception;
 
-use base qw /
+use parent qw /
     Biodiverse::Common
 /;
 

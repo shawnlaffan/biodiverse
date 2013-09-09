@@ -18,7 +18,7 @@ use Biodiverse::Exception;
 
 our $VERSION = '0.18_007';
 
-use base qw /Biodiverse::Common/;
+use parent qw /Biodiverse::Common/;
 
 #  hunt for any decimal number format
 use Regexp::Common qw /number delimited/;

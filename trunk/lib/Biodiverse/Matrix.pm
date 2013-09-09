@@ -20,7 +20,7 @@ use File::BOM qw /:subs/;
 my $EMPTY_STRING = q{};
 
 #  access the miscellaneous functions as methods
-use base qw /Biodiverse::Common Biodiverse::Matrix::Base/; 
+use parent qw /Biodiverse::Common Biodiverse::Matrix::Base/; 
 
 sub new {
     my $class = shift;

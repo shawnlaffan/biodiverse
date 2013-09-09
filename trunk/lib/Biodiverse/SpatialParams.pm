@@ -16,7 +16,7 @@ use Tree::R;
 use Biodiverse::Progress;
 use Scalar::Util qw /looks_like_number blessed reftype/;
 
-use base qw /Biodiverse::Common/;
+use parent qw /Biodiverse::Common/;
 
 our $VERSION = '0.18_007';
 

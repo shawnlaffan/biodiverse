@@ -19,7 +19,7 @@ use Biodiverse::GUI::Project;
 use Biodiverse::Matrix;  #  needed?
 use Data::Dumper;
 
-use base qw {
+use parent qw {
     Biodiverse::GUI::Tabs::Spatial
     Biodiverse::GUI::Tabs::Tab
 };

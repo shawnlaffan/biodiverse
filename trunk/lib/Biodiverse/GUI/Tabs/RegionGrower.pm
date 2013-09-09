@@ -7,7 +7,7 @@ use warnings;
 
 our $VERSION = '0.18_007';
 
-use base qw /
+use parent qw /
     Biodiverse::GUI::Tabs::Clustering
 /;
 

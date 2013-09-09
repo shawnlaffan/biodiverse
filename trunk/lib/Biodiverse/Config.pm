@@ -126,7 +126,7 @@ sub use_base {
 
         foreach my $pk (@packs) {
             my $cmd = "package $package;\n"
-                    . "use base qw/$pk/;";
+                    . "use parent qw/$pk/;";
             eval $cmd;
             warn $EVAL_ERROR if $EVAL_ERROR;
         }

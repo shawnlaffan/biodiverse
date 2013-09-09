@@ -18,7 +18,7 @@ use Biodiverse::GUI::YesNoCancel;
 use Scalar::Util qw /looks_like_number/;
 use List::MoreUtils qw /first_index/;
 
-use base qw {Biodiverse::GUI::Tabs::Tab};
+use parent qw {Biodiverse::GUI::Tabs::Tab};
 
 use constant OUTPUT_CHECKED => 0;
 use constant OUTPUT_NAME    => 1;

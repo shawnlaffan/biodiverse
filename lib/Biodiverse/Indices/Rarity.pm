@@ -5,7 +5,7 @@ use warnings;
 our $VERSION = '0.18_007';
 
 #  we need access to one sub from Endemism.pm
-use base qw /Biodiverse::Indices::Endemism/;
+use parent qw /Biodiverse::Indices::Endemism/;
 
 sub get_metadata_calc_rarity_central {
 

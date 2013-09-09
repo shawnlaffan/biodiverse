@@ -14,7 +14,7 @@ use Biodiverse::GUI::Overlays;
 
 our $VERSION = '0.18_007';
 
-use base qw {
+use parent qw {
     Biodiverse::GUI::Tabs::Tab
     Biodiverse::Common
 };

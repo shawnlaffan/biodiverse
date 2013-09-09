@@ -21,7 +21,7 @@ our $VERSION = '0.18_007';
 my $EMPTY_STRING = q{};
 
 #  The Biodiverse::Indices::* modules are the indices themselves 
-use base qw {
+use parent qw {
     Biodiverse::Indices::Indices
     Biodiverse::Indices::Numeric_Labels
     Biodiverse::Indices::IEI

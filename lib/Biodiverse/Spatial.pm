@@ -18,7 +18,7 @@ use Biodiverse::SpatialParams::DefQuery;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 
-use base qw /Biodiverse::BaseStruct/;
+use parent qw /Biodiverse::BaseStruct/;
 
 my $EMPTY_STRING = q{};
 

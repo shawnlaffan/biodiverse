@@ -13,7 +13,7 @@ use List::Util qw /min/;
 
 use Biodiverse::BaseStruct;
 
-use base qw /Biodiverse::Common/;
+use parent qw /Biodiverse::Common/;
 
 our $VERSION = '0.18_007';
 

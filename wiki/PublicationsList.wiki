@@ -12,7 +12,7 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 ==Publications using Biodiverse (or its ancestors)==
   (Publications are listed in reverse chronological order).  
 
-  *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (in press) Biogeographical regions and phytogeography of the eucalypts. Diversity and Distributions, Accepted 22Jul2013.
+  *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (in press) Biogeographical regions and phytogeography of the eucalypts. [http://dx.doi.org/10.1111/ddi.12129 Diversity and Distributions].
 
   *  González-Orozco, C.E., Laffan, S.W., Knerr, N. & Miller, J.T. (in press) A biogeographic regionalisation of Australian _Acacia_ species. [http://dx.doi.org/10.1111/jbi.12153 Journal of Biogeography].
 

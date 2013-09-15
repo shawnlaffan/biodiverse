@@ -27,7 +27,7 @@ use Biodiverse::GUI::GUIManager;
 use Biodiverse::SpatialParams;
 use Biodiverse::SpatialParams::DefQuery;
 
-use base qw /Biodiverse::Common/;  #  need get/set_param
+use parent qw /Biodiverse::Common/;  #  need get/set_param
 
 sub new {
     my $class = shift;

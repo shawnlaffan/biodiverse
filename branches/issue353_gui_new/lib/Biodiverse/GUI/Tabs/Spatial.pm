@@ -21,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 use Biodiverse::Spatial;
 use Data::Dumper;
 
-use base qw {
+use parent qw {
     Biodiverse::GUI::Tabs::Tab
     Biodiverse::GUI::Tabs::Labels
 };

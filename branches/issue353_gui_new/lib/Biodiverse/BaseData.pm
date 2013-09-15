@@ -31,7 +31,7 @@ use Biodiverse::Indices;
 
 our $VERSION = '0.18_007';
 
-use base qw {Biodiverse::Common};
+use parent qw {Biodiverse::Common};
 
 #  how much input file to read in one go
 our $input_file_chunk_size   = 10000000;

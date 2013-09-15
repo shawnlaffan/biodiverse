@@ -16,6 +16,7 @@ use Biodiverse::TestHelpers qw{
     :runners
     :basedata
     :tree
+    :utils
 };
 
 my @calcs = qw/
@@ -115,19 +116,21 @@ sub test_sum_to_pd {
         element => $elt_to_check,
     );
 
-    my $pd = $results_list->{PD};
+    my $pd = snap_to_precision (value => $results_list->{PD}, precision => '%.10f');
     
     my @indices_sum_to_pd = qw /PE_WE PHYLO_AED_T/;  #  add more
     #  these need to equal 1 for sp_select_all()
     my @indices_should_be_one = qw /PHYLO_RARITY_CWR PE_CWE/;
     #   these need to sum to 1 across nbrhoods
-    my @lists_sum_to_one = qw /PHYLO_AED_T_WTLIST_P/;  
+    my @lists_sum_to_one = qw /PHYLO_AED_T_WTLIST_P/;
 
     foreach my $index (@indices_sum_to_pd) {
-        is ($results_list->{$index}, $pd, "$index equals PD, sp_select_all()");
+        my $result = snap_to_precision (value => $results_list->{$index}, precision => '%.10f');
+        is ($result, $pd, "$index equals PD, sp_select_all()");
     }
     foreach my $index (@indices_should_be_one) {
-        is ($results_list->{$index}, 1, "$index is 1, sp_select_all()");
+        my $result = snap_to_precision (value => $results_list->{$index}, precision => '%.10f');
+        is ($result, 1, "$index is 1, sp_select_all()");
     }
 
     foreach my $list_name (@lists_sum_to_one) {
@@ -160,7 +163,8 @@ sub test_sum_to_pd {
     }
 
     foreach my $index (@indices_sum_to_pd) {
-        is ($sums{$index}, $pd, "$index sums to PD, sp_self_only()");
+        my $result = snap_to_precision (value => $sums{$index}, precision => '%.10f');
+        is ($result, $pd, "$index sums to PD, sp_self_only()");
     }
     
     foreach my $list_name (@lists_sum_to_one) {
@@ -172,7 +176,8 @@ sub test_sum_to_pd {
                 );
                 my $sum = sum values %$list;
                 $sum //= 1;  #  undef is valid for samples with no tree terminals
-                is ($sum, 1, "$list_name sums to 1 for $element, sp_self_only()");
+                my $result = snap_to_precision (value => $sum, precision => '%.10f');
+                is ($result, 1, "$list_name sums to 1 for $element, sp_self_only()");
             }
         };
     }

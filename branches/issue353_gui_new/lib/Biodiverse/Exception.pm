@@ -7,7 +7,7 @@ use Config;
 my ($bit_size, $prng_init_descr, $other_bit_size);
 
 BEGIN {
-    $bit_size = $Config{archname} =~ /x86/ ? 32 : 64;  #  will 128 bits ever be needed for this work?
+    $bit_size = $Config{archname} =~ /x(?:86_)?64/ ? 64 : 32;  #  will 128 bits ever be needed for this work?
     $other_bit_size = $bit_size == 64 ? 32 : 64;
     $prng_init_descr = <<"PRNG_INIT_DESCR"
 PRNG initialisation has been passed a state vector for the wrong architecture.

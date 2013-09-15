@@ -21,6 +21,7 @@ run_indices_test1 (
         calc_gpprop_stats
     /],
     use_element_properties => 'group',
+    sort_array_lists   => 1,
 );
 
 done_testing;

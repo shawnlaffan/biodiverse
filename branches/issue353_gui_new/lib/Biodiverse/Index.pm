@@ -28,7 +28,7 @@ use Biodiverse::Progress;
 
 our $VERSION = '0.18_007';
 
-use base qw /Biodiverse::Common/;
+use parent qw /Biodiverse::Common/;
 
 
 sub new {

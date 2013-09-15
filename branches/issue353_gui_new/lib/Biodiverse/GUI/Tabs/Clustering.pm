@@ -25,7 +25,7 @@ use Biodiverse::RegionGrower;
 
 use Data::Dumper;
 
-use base qw {Biodiverse::GUI::Tabs::Tab};
+use parent qw {Biodiverse::GUI::Tabs::Tab};
 
 use constant MODEL_NAME => 0;
 

@@ -2,6 +2,10 @@ package Biodiverse::GUI::Exclusions;
 
 use strict;
 use warnings;
+use 5.010;
+use English qw /-no_match_vars/;
+use Carp;
+
 use Gtk2;
 
 our $VERSION = '0.18_007';
@@ -96,6 +100,7 @@ sub showDialog {
     my $file_list_checkbox = $dlgxml->get_widget('chk_label_exclude_use_file');
     my @file_list_filter_widget_names = qw /
         chk_label_exclusion_label_file
+        filechooserbutton_exclusions
     /;
 
     foreach my $widget_name (@file_list_filter_widget_names ) {
@@ -158,21 +163,30 @@ sub showDialog {
         }
 
         if ($file_list_checkbox->get_active) {
-            print "";
             my $negate_widget = $dlgxml->get_widget('chk_label_exclusion_label_file');
             my $negate        = $negate_widget->get_active;
+            my $file_widget   = $dlgxml->get_widget('filechooserbutton_exclusions');
+            my $filename      = $file_widget->get_filename;
 
-            my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
-                $gui,
-                undef,
-                undef,
-                undef,
-                ['Input_element'],
-            );
+            #  This has the side-effect of prompting the user for a filename if one was not specified.
+            my %options = eval {
+                Biodiverse::GUI::BasedataImport::getRemapInfo (
+                    $gui,
+                    undef,
+                    undef,
+                    undef,
+                    ['Input_element'],
+                    $filename,
+                );
+            };
+            if ($EVAL_ERROR) {
+                $dlg->destroy();
+                croak $EVAL_ERROR;
+            }
+            
 
             ##  now do something with them...
             if ($options{file}) {
-
                 my $check_list = Biodiverse::ElementProperties->new;
                 $check_list->import_data (%options);
 
@@ -182,8 +196,6 @@ sub showDialog {
         }
 
         if (my $defq = &$defq_extractor) {
-            #  do stuff
-            #print $defq;
             $exclusions_hash->{GROUPS}{definition_query} = $defq;
         }
     }

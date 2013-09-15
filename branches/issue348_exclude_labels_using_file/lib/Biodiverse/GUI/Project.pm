@@ -16,7 +16,7 @@ use English ( -no_match_vars );
 our $VERSION = '0.18_007';
 
 require      Exporter;
-use base qw /Exporter Biodiverse::Common/;
+use parent qw /Exporter Biodiverse::Common/;
 our @EXPORT    = qw(
     MODEL_BASEDATA
     MODEL_OUTPUT

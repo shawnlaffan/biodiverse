@@ -30,7 +30,7 @@ BEGIN {
 
         my @paths;
         use Config;
-        my $gtk_dir = $Config{archname} =~ /x86/ ? 'gtk_win32' : 'gtk_win64';
+        my $gtk_dir = $Config{archname} =~ /x(?:86_)?64/ ? 'gtk_win64' : 'gtk_win32';
 
         ORIGIN_DIR:
         while ($origin_dir) {
@@ -76,7 +76,7 @@ require Biodiverse::BaseData;
 require Biodiverse::Matrix;
 require Biodiverse::Config;
 
-use base qw /Biodiverse::Common Biodiverse::GUI::Help/;
+use parent qw /Biodiverse::Common Biodiverse::GUI::Help/;
 
 
 ##########################################################

@@ -23,7 +23,6 @@ run_indices_test1 (
         calc_s2
         calc_simpson_shannon
         calc_sorenson
-        calc_overlap_tx
     /],
     calc_topic_to_test => 'Taxonomic Dissimilarity and Comparison',
 );
@@ -53,43 +52,6 @@ __DATA__
   'SHANNON_HMAX'     => '2.63905732961526',
   'SIMPSON_D'        => '0.883437363913485',
   'SORENSON'         => '0.75',
-  'TXO_LABELS'       => {
-                    'Genus:sp1'  => 2,
-                    'Genus:sp10' => 2,
-                    'Genus:sp11' => 2,
-                    'Genus:sp20' => 2,
-                    'Genus:sp24' => 2,
-                    'Genus:sp25' => 2,
-                    'Genus:sp26' => 1,
-                    'Genus:sp29' => 2,
-                    'Genus:sp30' => 2
-                  },
-  'TXO_MEAN'    => '0.882352941176471',
-  'TXO_M_RATIO' => '1.01809954751131',
-  'TXO_N'       => 17,
-  'TXO_TLABELS' => {
-                     'Genus:sp1'  => 14,
-                     'Genus:sp10' => 13,
-                     'Genus:sp11' => 12,
-                     'Genus:sp12' => 2,
-                     'Genus:sp15' => 3,
-                     'Genus:sp20' => 7,
-                     'Genus:sp23' => 4,
-                     'Genus:sp24' => 9,
-                     'Genus:sp25' => 11,
-                     'Genus:sp26' => 6,
-                     'Genus:sp27' => 1,
-                     'Genus:sp29' => 8,
-                     'Genus:sp30' => 10,
-                     'Genus:sp5'  => 5
-                   },
-  'TXO_TMEAN'      => '0.866666666666667',
-  'TXO_TN'         => 105,
-  'TXO_TVARIANCE'  => '0.866666666666667',
-  'TXO_VARIANCE'   => '0.882352941176471',
-  'TXO_V_RATIO'    => '1.01809954751131',
-  'TXO_Z_RATIO'    => '1.00900919099447',
-  'TXO_Z_SCORE'    => '0.0168497617421042',
   'TX_RAO_QE'      => '0.883437363913485',
   'TX_RAO_TLABELS' => {
                         'Genus:sp1'  => '0.0963855421686747',
@@ -116,21 +78,6 @@ __DATA__
   'SHANNON_H'    => '0.636514168294813',
   'SHANNON_HMAX' => '0.693147180559945',
   'SIMPSON_D'    => '0.444444444444444',
-  'TXO_LABELS'   => {},
-  'TXO_MEAN'     => undef,
-  'TXO_M_RATIO'  => '0',
-  'TXO_N'        => 0,
-  'TXO_TLABELS'  => {
-                     'Genus:sp20' => 2,
-                     'Genus:sp26' => 1
-                   },
-  'TXO_TMEAN'      => '0.333333333333333',
-  'TXO_TN'         => 3,
-  'TXO_TVARIANCE'  => '0.333333333333333',
-  'TXO_VARIANCE'   => undef,
-  'TXO_V_RATIO'    => '0',
-  'TXO_Z_RATIO'    => undef,
-  'TXO_Z_SCORE'    => '-0.577350269189626',
   'TX_RAO_QE'      => '0.444444444444444',
   'TX_RAO_TLABELS' => {
                         'Genus:sp20' => '0.666666666666667',

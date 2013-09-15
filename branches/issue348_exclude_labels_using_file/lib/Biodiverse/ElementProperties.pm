@@ -10,7 +10,7 @@ use Biodiverse::Exception;
 
 our $VERSION = '0.18_007';
 
-use base qw /Biodiverse::BaseStruct Biodiverse::Common/;
+use parent qw /Biodiverse::BaseStruct Biodiverse::Common/;
 
 our %PARAMS = (  #  default parameters to load.  These will be overwritten if needed.
     OUTPFX            =>  "BIODIVERSE_PROPERTIES",

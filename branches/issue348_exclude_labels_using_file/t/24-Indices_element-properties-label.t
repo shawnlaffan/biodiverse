@@ -21,6 +21,7 @@ run_indices_test1 (
         calc_lbprop_stats
     /],
     use_element_properties => 'label',
+    sort_array_lists   => 1,
 );
 
 done_testing;

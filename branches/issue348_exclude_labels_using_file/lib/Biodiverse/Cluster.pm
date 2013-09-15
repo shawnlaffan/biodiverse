@@ -24,7 +24,7 @@ use Biodiverse::Progress;
 use Biodiverse::Indices;
 use Biodiverse::Exception;
 
-use base qw /
+use parent qw /
     Biodiverse::Tree
     Biodiverse::Common
 /;
@@ -1620,8 +1620,8 @@ sub link_average {
     my $node1 = $args{node1};
     my $node2 = $args{node2};
 
-    my $el1_count = scalar keys %{$self->get_terminal_elements (node => $node1)};
-    my $el2_count = scalar keys %{$self->get_terminal_elements (node => $node2)};
+    my $el1_count = $self->get_terminal_element_count (node => $node1);
+    my $el2_count = $self->get_terminal_element_count (node => $node2);
 
     my ($tmp1, $tmp2) = $self->get_values_for_linkage (%args);
 
@@ -1806,11 +1806,13 @@ sub link_recalculate {
 sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     my $self = shift;
     my %args = @_;
-    croak "one of the nodes not specified\n"
-        if ! (defined $args{node1} and defined $args{node2} and defined $args{new_node_name});
+
     my $node1 = $args{node1};
     my $node2 = $args{node2};
     my $new_node = $args{new_node_name};  #  don't calculate linkages to new node
+
+    croak "one of the nodes not specified\n"
+      if ! (defined $node1 and defined $node2 and defined $new_node);
 
     my $linkage_function = $args{linkage_function} || $PARAMS{DEFAULT_LINKAGE};
 
@@ -1823,13 +1825,13 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     #  Now we need to loop over the respective nodes across
     #  the matrices and merge as appropriate.
     #  The sort guarantees same order each time.
-    CHECK_NODE:         
+    CHECK_NODE:
     foreach my $check_node (sort $matrix_with_elements->get_elements_as_array) {  
 
         #  skip the mergees
         next CHECK_NODE if $check_node eq $node1 || $check_node eq $node2;
 
-        #  skip if we don't have both pairs check node with node1 and node2
+        #  skip if we don't have both pairs check_node with node1 and with node2
         next CHECK_NODE if !(
             $matrix_with_elements->element_pair_exists (
                 element1 => $check_node,
@@ -1862,14 +1864,6 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
         foreach my $mx_iter ($current_mx_iter .. $#$matrix_array) {
             my $mx = $matrix_array->[$mx_iter];
 
-            #if ($mx->element_pair_exists (  #  does this ever happen?
-            #    element1 => $new_node,
-            #    element2 => $check_node,
-            #)) {
-            #    warn "FOUND AN ELEMENT PAIR THAT WAS ALREADY CREATED $new_node and $check_node";
-            #    next MX_ITER;
-            #};
-
             next MX_ITER
               if ! (
                     $mx->element_pair_exists (
@@ -1884,9 +1878,9 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
                 );
 
             $mx->add_element (
-                element1    => $new_node,
-                element2    => $check_node,
-                value       => $values{value},
+                element1 => $new_node,
+                element2 => $check_node,
+                value    => $values{value},
             );
             last MX_ITER;
         }
@@ -1916,25 +1910,30 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
 sub delete_links_from_matrix {
     my $self = shift;
     my %args = @_;
-    croak "one of the elements not specified\n"
-        if ! defined $args{node1} || ! defined $args{node2};
+
     my $element1 = $args{node1};
     my $element2 = $args{node2};
+
+    croak "one of the elements not specified\n"
+      if ! (defined $element1 && defined $element2);
 
     #  remove elements1&2 entries from the matrix
     my $matrix = $args{matrix} || $self->get_matrix_ref;
 
     my $compare_nodes = $args{compare_nodes} || $matrix->get_elements_as_array;
     my $expected = 2 * scalar @$compare_nodes;  #  we expect two deletions per comparison
-    #print "\n";  #  for debug
 
     #  clean up links from compare_nodes to elements1&2
     my $deletion_count = 0;
     foreach my $check_element (sort @$compare_nodes) {
-        $deletion_count += $matrix->delete_element (element1 => $check_element, element2 => $element1);
-            #|| print "element1 => $check_element, element2 => $element1\n";
-        $deletion_count += $matrix->delete_element (element1 => $check_element, element2 => $element2);
-            #|| print "element1 => $check_element, element2 => $element1\n";
+        $deletion_count += $matrix->delete_element (
+            element1 => $check_element,
+            element2 => $element1,
+        );
+        $deletion_count += $matrix->delete_element (
+            element1 => $check_element,
+            element2 => $element2,
+        );
     }
 
     return $expected - $deletion_count;

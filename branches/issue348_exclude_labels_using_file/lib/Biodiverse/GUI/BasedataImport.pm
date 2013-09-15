@@ -1217,16 +1217,17 @@ sub onTypeComboChanged {
 sub getRemapInfo {
     my $gui              = shift;
     my $data_filename    = shift;
-    my $type             = shift || "";
+    my $type             = shift // "";
     my $other_properties = shift || [];
     my $column_overrides = shift;
+    my $filename         = shift;
     
     my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
         ? fileparse($data_filename)
         : ();
 
     # Get filename for the name-translation file
-    my $filename = $gui->showOpenDialog("Select $type properties file", '*', $data_dir);
+    $filename //= $gui->showOpenDialog("Select $type properties file", '*', $data_dir);
     if (! defined $filename) {
         return wantarray ? () : {}
     };

@@ -7251,15 +7251,6 @@ Colours are currently taken from the outer ring.</property>
                                     <property name="can_focus">False</property>
                                   </widget>
                                 </child>
-                                <child>
-                                  <widget class="GtkMenuItem" id="menuitem_cluster_clusters">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Clusters to colour</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
                               </widget>
                             </child>
                             <child internal-child="image">
@@ -7277,6 +7268,32 @@ Colours are currently taken from the outer ring.</property>
                   <packing>
                     <property name="expand">False</property>
                   </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitem_clustering_spin_clusters">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <widget class="GtkSpinButton" id="spinClusters">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="tooltip" translatable="yes">This value determines how many descendent nodes will be selected to be coloured when you click on a node.
+
+All siblings are included in the selection, so if the tree topology results in more than this number then the next lowest number will be selected.
+For example, if 7 nodes are to be coloured but the system finds a 7th and 8th node are siblings then it will select their parent instead, resulting in 6 selected nodes.
+
+This setting has no effect on the slider bar.</property>
+                        <property name="width_chars">2</property>
+                        <property name="primary_icon_activatable">False</property>
+                        <property name="secondary_icon_activatable">False</property>
+                        <property name="primary_icon_sensitive">True</property>
+                        <property name="secondary_icon_sensitive">True</property>
+                        <property name="adjustment">6 1 13 1 1 0</property>
+                        <property name="climb_rate">1</property>
+                        <property name="numeric">True</property>
+                      </widget>
+                    </child>
+                  </widget>
                 </child>
               </widget>
               <packing>
@@ -8226,60 +8243,6 @@ Select a set of indices to determine the ordering of clustering when there is mo
                                 </child>
                                 <child>
                                   <widget class="GtkSeparatorToolItem" id="separatortoolitem9">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkToolItem" id="toolitem65">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <child>
-                                      <widget class="GtkLabel" id="label117">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <property name="tooltip" translatable="yes">This value determines how many descendent nodes will be selected to be coloured when you click on a node.
-
-All siblings are included in the selection, so if the tree topology results in more than this number then the next lowest number will be selected.
-For example, if 7 nodes are to be coloured but the system finds a 7th and 8th node are siblings then it will select their parent instead, resulting in 6 selected nodes.
-
-This setting has no effect on the slider bar.</property>
-                                        <property name="xpad">3</property>
-                                        <property name="label" translatable="yes">Clusters to colour</property>
-                                      </widget>
-                                    </child>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkToolItem" id="toolitem64">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <child>
-                                      <widget class="GtkSpinButton" id="spinClusters">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="primary_icon_activatable">False</property>
-                                        <property name="secondary_icon_activatable">False</property>
-                                        <property name="primary_icon_sensitive">True</property>
-                                        <property name="secondary_icon_sensitive">True</property>
-                                        <property name="adjustment">6 1 13 1 1 0</property>
-                                        <property name="climb_rate">1</property>
-                                        <property name="numeric">True</property>
-                                      </widget>
-                                    </child>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkSeparatorToolItem" id="separatortoolitem11">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                   </widget>

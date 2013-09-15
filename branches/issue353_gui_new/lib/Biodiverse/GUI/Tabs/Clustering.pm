@@ -223,7 +223,6 @@ sub new {
         $self->onClose;
         return;
     }
-    $self->init_clusters_to_colour();
     $self->{colour_mode} = 'Hue';
     $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # For Sat mode
 
@@ -565,63 +564,6 @@ sub initDendrogram {
     $spinbutton->set_value( $self->{dendrogram}->getNumClusters );
 
     return;
-}
-
-sub init_clusters_to_colour {
-    my $self = shift;
-
-    my $tooltip = <<END;
-This value determines how many descendent nodes will be selected to be coloured when you click on a node.
-
-All siblings are included in the selection, so if the tree topology results in more than this number then the next lowest number will be selected.
-For example, if 7 nodes are to be coloured but the system finds a 7th and 8th node are siblings then it will select their parent instead, resulting in 6 selected nodes.
-
-This setting has no effect on the slider bar.
-END
-    chomp $tooltip;
-
-    my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_clusters');
-
-    my $menu = $self->{toolbar_menu};
-    my @menu_items = $menu->get_children();
-
-    my $pos = 0;
-    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
-        $pos++;
-    }
-    $pos++;
-
-    # Start inserting
-    my $first_item = undef;
-    for my $amount (1..13) {
-        $amount =~ s/_/__/g;
-        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $amount);
-        if (not defined $first_item) {
-            $first_item = $menu_item;
-        }
-        # Default to 6
-        if ($amount == 6) {
-            $menu_item->set_active(1);
-        }
-        $menu_item->set_tooltip_text($tooltip);
-        $menu_item->signal_connect_swapped(toggled => \&on_clusters_to_colour_changed,
-                $self);
-        $menu->insert($menu_item, $pos++);
-    }
-
-    $menu->show_all();
-}
-
-sub on_clusters_to_colour_changed {
-    my ($self, $menu_item) = @_;
-
-    # Just got the signal for the deselected option. Wait for signal for
-    # selected one.
-    if (!$menu_item->get_active()) {
-        return;
-    }
-
-    $self->{dendrogram}->setNumClusters($menu_item->get_label());
 }
 
 # Called by Dendrogram when it has the map list.

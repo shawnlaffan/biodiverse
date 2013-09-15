@@ -202,12 +202,13 @@ sub new {
     $self->queueSetPane(1  , 'vpaneDendrogram');
 
     # Set up options menu
-    $self->{toolbar_menu} = $xml_page->get_widget('menu_clustering_options');
-    $self->{toolbar_menu_button} = $xml_page->get_widget('imagemenu_clustering_options');
+    $self->{toolbar_menu} = $xml_page->get_widget('menu_clustering_data');
+    $self->{toolbar_menu_button} = $xml_page->get_widget('menuitem_clustering_data');
 
     # Save event so it can be replayed to keep the menu open
     $self->{toolbar_menu_button}->signal_connect_swapped(activate => sub {
-        $self->{toolbar_menu_event} = $gui->{current_event}->copy;
+        $self->{toolbar_menu_event} = $gui->{current_event} if defined
+                $gui->{current_event};
     }, undef);
 
     $self->makeIndicesModel($cluster_ref);
@@ -247,9 +248,6 @@ sub new {
     my %widgets_and_signals = (
         btnCluster          => {clicked => \&onRun},
         menuitem_cluster_overlays => {activate => \&onOverlays},
-        btnClusterZoomIn    => {clicked => \&onClusterZoomIn},
-        btnClusterZoomOut   => {clicked => \&onClusterZoomOut},
-        btnClusterZoomFit   => {clicked => \&onClusterZoomFit},
         spinClusters        => {'value-changed' => \&onClustersChanged},
 
         btnSelectTool       => {clicked => \&on_select_tool},
@@ -278,11 +276,12 @@ sub new {
 
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
 
-        menuitem_cluster_tearoff => {activate => \&on_toolbar_menu_tearoff},
-        imagemenu_clustering_options => {activate => \&on_toolbar_menu_open},
+        menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
+        menuitem_clustering_data => {activate => \&on_toolbar_data_menu_open},
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
+        print $widget, "\n";
         $xml_page->get_widget($widget)->signal_connect_swapped(
             %$args,
             $self,
@@ -573,12 +572,11 @@ sub on_map_lists_ready {
 
     my $menu = $self->{toolbar_menu};
 
-    # Beneath 'Overlays...' and 'Cluster'
-    my $first_pos = 3;
-    my $pos = 3;
+    my $first_pos = 2; # Beneath (Cluster)
+    my $pos = 2;
 
     # Delete old menu items
-    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
+    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_lists_end');
     my @menu_items = $menu->get_children();
     while (refaddr($menu_items[$pos]) != refaddr($ending)) {
         my $menu_item = $menu_items[$pos++];
@@ -668,7 +666,7 @@ sub update_menu_map_indices {
     my $menu = $self->{toolbar_menu};
 
     my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
-    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_colour_mode');
+    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices_end');
 
     my @menu_items = $menu->get_children();
 
@@ -723,12 +721,13 @@ sub on_map_index_changed {
     $self->{dendrogram}->select_map_index($index);
 }
 
-sub on_toolbar_menu_open {
+sub on_toolbar_data_menu_open {
     my $self = shift;
-    $self->{toolbar_menu_event} = $self->{gui}->{current_event}->copy;
+    $self->{toolbar_menu_event} = $self->{gui}->{current_event} if defined
+            $self->{gui}->{current_event};
 }
 
-sub on_toolbar_menu_tearoff {
+sub on_toolbar_data_menu_tearoff {
     my $self = shift;
     $self->{toolbar_menu_event} = undef;
 }
@@ -1717,21 +1716,6 @@ sub onNameChanged {
     return;
 }
 
-sub onClusterZoomIn {
-    my $self = shift;
-    $self->{dendrogram}->zoomIn();
-}
-
-sub onClusterZoomOut {
-    my $self = shift;
-    $self->{dendrogram}->zoomOut();
-}
-
-sub onClusterZoomFit {
-    my $self = shift;
-    $self->{dendrogram}->zoomFit();
-}
-
 sub onClustersChanged {
     my $self = shift;
     my $spinbutton = $self->{xmlPage}->get_widget('spinClusters');
@@ -1948,7 +1932,7 @@ sub on_colour_mode_changed {
         $colour_select->set_previous_color($self->{hue});
         $colour_select->set_current_color($self->{hue});
         my $on_response = sub {
-            my ($_ignore, $response, $_ignore) = @_;
+            my ($_ignore, $response, $_ignore2) = @_;
             if ($response eq 'ok') {
                 $self->{hue} = $colour_select->get_current_color();
                 $self->{grid}->setLegendHue($self->{hue});

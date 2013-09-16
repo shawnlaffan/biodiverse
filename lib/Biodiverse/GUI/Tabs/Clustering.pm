@@ -238,6 +238,8 @@ sub new {
         clicked => \&onClose,
         $self,
     );
+    
+    $self->{xmlPage}->get_widget('chk_output_gdm_format')->set_sensitive (0);
 
     $self->set_colour_stretch_widgets_and_signals;
 
@@ -270,7 +272,8 @@ sub new {
         
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
-        
+        chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
+
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
     );
 
@@ -288,6 +291,18 @@ sub new {
     return $self;
 }
 
+#  change sensitivity of the GDM output widget
+sub on_chk_output_to_file_changed {
+    my $self = shift;
+
+    my $widget = $self->{xmlPage}->get_widget('chk_output_to_file');
+    my $active = $widget->get_active;
+    
+    my $gdm_widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
+    $gdm_widget->set_sensitive($active);
+
+    return;
+}
 
 sub setup_tie_breaker_widgets {
     my $self     = shift;

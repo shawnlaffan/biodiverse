@@ -5,4 +5,4 @@ Version numbers for Biodiverse releases.
 0.17
 
 [development]
-0.18_006
+0.18_007

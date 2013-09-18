@@ -1,5 +1,6 @@
 package Biodiverse::Spatial;
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -328,16 +329,19 @@ sub sp_calc {
 
             if ($result_type eq 'always_true') {
                 #  no point using the index if we have to get them all
-                print "[SPATIAL] All groups are neighbours.  Index will be ignored for neighbour set $set_i.\n";
+                say "[SPATIAL] All groups are neighbours.  Index will be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
             elsif ($result_type eq 'self_only') {
-                print "[SPATIAL] No neighbours, processing group only.  Index will be ignored for neighbour set $set_i.\n";
+                say "[SPATIAL] No neighbours, processing group only.  Index will be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
             elsif ($spatial_params_ref->[$i]->get_param ('INDEX_NO_USE')) { #  or if the conditions won't cooperate with the index
-                print "[SPATIAL] Index set to be ignored for neighbour set $set_i.\n";  #  put this feedback in the spatialparams?
+                say "[SPATIAL] Index set to be ignored for neighbour set $set_i.";  #  put this feedback in the spatialparams?
                 next SPATIAL_PARAMS_LOOP;
+            }
+            else {
+                say "[SPATIAL] Result type for neighbour set $set_i is $result_type."
             }
 
             my $searchBlocks = $search_blocks_ref->[$i];

@@ -16,6 +16,7 @@ Class that implements the widgets for entering spatial params, with:
 
 use strict;
 use warnings;
+use Carp;
 
 use English qw { -no_match_vars };
 
@@ -152,6 +153,8 @@ sub onSyntaxCheck {
     my $spatial_params = eval {
         $class->new (conditions => $expr);
     };
+    #croak $EVAL_ERROR if $EVAL_ERROR;
+    #croak "AAAAAAAAAARRRRRRGGGGHHHH" if !$spatial_params;
 
     #  Get the baedata associated with this output.  If none then use the selected.
     my $bd = $self->get_param ('BASEDATA_REF') || $gui->getProject->getSelectedBaseData;

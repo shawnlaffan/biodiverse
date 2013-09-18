@@ -10,7 +10,6 @@ dist_measure            geographic
 directory               C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae
 basedata_file           Hylids_Feb10_001deg_5000_IBRA
 output_file_prefix      basic_
-output_file_prefix      devel_
 nexus_file              hylid_relaxed alltaxa 27apr09.nex
 nexus_remap             Translate_Hylid_Names_aug08.csv
 remap_input             3

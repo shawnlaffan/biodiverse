@@ -10,7 +10,7 @@ use 5.010;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.18_007';
+our $VERSION = '0.18_008';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -96,13 +96,13 @@ if ( defined $filename ) {
 #$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
 #print join "\n", $ic->get_search_path;
 
-if ($ENV{BDV_PP_BUILDING}) {
-    Gtk2->main_quit();
-}
-else {
-    # Go!
-    Gtk2->main;
-}
+# DEBUG
+#$Carp::Verbose = 1;
+#say "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui";
+
+# Go!
+Gtk2->main;
+
 
 #  go back home (unless it has been deleted while we were away)
 $eval_result = eval { chdir($caller_dir) };

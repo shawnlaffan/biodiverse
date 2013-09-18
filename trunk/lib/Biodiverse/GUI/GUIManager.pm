@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.18_008';
 
 #use Data::Dumper;
 #use Data::DumpXML::Parser;
@@ -70,7 +70,7 @@ require Biodiverse::GUI::Exclusions;
 require Biodiverse::GUI::Export;
 require Biodiverse::GUI::Tabs::Outputs;
 require Biodiverse::GUI::YesNoCancel;
-#require Biodiverse::GUI::ProgressDialog;
+use Biodiverse::GUI::ProgressDialog;
 
 require Biodiverse::BaseData;
 require Biodiverse::Matrix;

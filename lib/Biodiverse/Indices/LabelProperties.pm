@@ -106,6 +106,63 @@ sub _get_lbprop_stats_hash_keynames {
     return wantarray ? %keys : \%keys;
 }
 
+sub get_metadata_calc_lbprop_lists {
+    my $self = shift;
+
+    my $desc = 'Lists of the labels and their property values '
+             . 'within the neighbour sets';
+
+    my %indices;
+    my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
+    while (my ($prop, $list_name) = each %prop_hash_names) {
+        my $l = $list_name;
+        $l =~ s/STATS/LIST/;
+        $l =~ s/_DATA$//;
+        $indices{$l} = {
+            $list_name => 'List of data for property ' . $prop,
+            type       => 'list',
+        };
+    }
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Label property lists',
+        type            => 'Element Properties',
+        pre_calc        => ['calc_abc'],
+        uses_nbr_lists  => 1,
+        indices         => \%indices,
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_lbprop_lists {
+    my $self = shift;
+    my %args = @_;
+
+    my $bd = $self->get_basedata_ref;
+    my $lb = $bd->get_labels_ref;
+
+    my $label_hash = $args{label_hash_all};
+
+    my $props = {};
+
+    foreach my $label (keys %$label_hash) {
+        my $properties = $lb->get_element_properties (element => $label);
+
+        next LABEL if ! defined $properties;
+
+        foreach my $prop (keys %$properties) {
+            my $key = 'LBPROP_LIST_' . $prop;
+            
+            $props->{$key}{$label} = $properties->{$prop};
+        }
+    }
+
+    my %results = %$props;
+
+    return wantarray ? %results : \%results;
+}
 
 sub get_metadata_calc_lbprop_data {
     my $self = shift;

@@ -82,41 +82,41 @@ sub rename {
 
 
 #  avoid needless cloning of the basedata, but don't create the parameter if it is not already there
-sub clone {
-    my $self = shift;
-    my %args = @_;
-    
-    my $bd;
-    my $exists = $self->exists_param('BASEDATA_REF');
-    if ($exists) {
-        $bd = $self->get_param('BASEDATA_REF');
-        $self->set_param(BASEDATA_REF => undef);
-    }
-
-    my $clone_ref = eval {
-        $self->SUPER::clone(%args);
-    };
-    if ($EVAL_ERROR) {
-        if ($exists) {
-            $self->set_param(BASEDATA_REF => $bd);  #  put it back if needed
-        }
-        croak $EVAL_ERROR;
-    }
-
-    if ($exists) {
-        $self->set_param(BASEDATA_REF => $bd);
-        $clone_ref->set_param(BASEDATA_REF => $bd);
-    }
-
-    return $clone_ref;
-}
-
 #sub clone {
 #    my $self = shift;
-#    return $self->duplicate (@_);
+#    my %args = @_;
+#    
+#    my $bd;
+#    my $exists = $self->exists_param('BASEDATA_REF');
+#    if ($exists) {
+#        $bd = $self->get_param('BASEDATA_REF');
+#        $self->set_param(BASEDATA_REF => undef);
+#    }
+#
+#    my $clone_ref = eval {
+#        $self->SUPER::clone(%args);
+#    };
+#    if ($EVAL_ERROR) {
+#        if ($exists) {
+#            $self->set_param(BASEDATA_REF => $bd);  #  put it back if needed
+#        }
+#        croak $EVAL_ERROR;
+#    }
+#
+#    if ($exists) {
+#        $self->set_param(BASEDATA_REF => $bd);
+#        $clone_ref->set_param(BASEDATA_REF => $bd);
+#    }
+#
+#    return $clone_ref;
 #}
 
-sub duplicate {
+sub clone {
+    my $self = shift;
+    return $self->_duplicate (@_);
+}
+
+sub _duplicate {
     my $self = shift;
     my %args = @_;
     

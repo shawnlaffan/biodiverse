@@ -30,21 +30,22 @@ my $cl = $bd->add_cluster_output (
     name => 'clus',
 );
 $cl->run_analysis (
-    prng_seed        => 2345,
+    #prng_seed        => 2345,
+    build_matrices_only => 1,
 );
 
-my $matrices_ref = $cl->get_matrices_ref;
+my $matrices_ref = $cl->get_orig_matrices;
 my $mx = $matrices_ref->[0];
 
 my $xx = use_copy($mx);
 
-cmpthese (
-    -10,
-    {
-        use_clone => sub {use_clone($mx)},
-        use_copy  => sub {use_copy($mx)},
-    }
-);
+#cmpthese (
+#    -10,
+#    {
+#        use_clone => sub {use_clone($mx)},
+#        use_copy  => sub {use_copy($mx)},
+#    }
+#);
 
 
 

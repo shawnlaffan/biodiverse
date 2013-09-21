@@ -127,6 +127,13 @@ sub duplicate {
     };
     
     my $clone_ref = blessed ($self)->new(%$params);
+    
+    my $elements = $self->get_elements_ref;
+    
+    my $c_elements_ref = $clone_ref->get_elements_ref;
+    @{$c_elements_ref}{keys %$elements} = values %$elements;
+    
+    
 
     if ($EVAL_ERROR) {
         if ($exists) {
@@ -870,6 +877,12 @@ sub get_elements {
     return if (scalar keys %{$self->{ELEMENTS}}) == 0;
 
     return wantarray ? %{$self->{ELEMENTS}} : $self->{ELEMENTS};
+}
+
+sub get_elements_ref {
+    my $self = shift;
+
+    return $self->{ELEMENTS} // do {$self->{ELEMENTS} = {}};
 }
 
 sub get_elements_as_array {

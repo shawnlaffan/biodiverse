@@ -13,7 +13,7 @@ use English ( -no_match_vars );
 
 use Carp;
 use Data::Dumper;
-use Scalar::Util qw /looks_like_number/;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
@@ -96,6 +96,38 @@ sub clone {
     my $clone_ref = eval {
         $self->SUPER::clone(%args);
     };
+    if ($EVAL_ERROR) {
+        if ($exists) {
+            $self->set_param(BASEDATA_REF => $bd);  #  put it back if needed
+        }
+        croak $EVAL_ERROR;
+    }
+
+    if ($exists) {
+        $self->set_param(BASEDATA_REF => $bd);
+        $clone_ref->set_param(BASEDATA_REF => $bd);
+    }
+
+    return $clone_ref;
+}
+
+sub duplicate {
+    my $self = shift;
+    my %args = @_;
+    
+    my $bd;
+    my $exists = $self->exists_param('BASEDATA_REF');
+    if ($exists) {
+        $bd = $self->get_param('BASEDATA_REF');
+        $self->set_param(BASEDATA_REF => undef);
+    }
+
+    my $params = eval {
+        $self->SUPER::clone(data => $self->{PARAMS});
+    };
+    
+    my $clone_ref = blessed ($self)->new(%$params);
+
     if ($EVAL_ERROR) {
         if ($exists) {
             $self->set_param(BASEDATA_REF => $bd);  #  put it back if needed

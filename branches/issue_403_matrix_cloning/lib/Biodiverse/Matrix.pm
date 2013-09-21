@@ -111,6 +111,11 @@ sub clone {
     return $clone_ref;
 }
 
+#sub clone {
+#    my $self = shift;
+#    return $self->duplicate (@_);
+#}
+
 sub duplicate {
     my $self = shift;
     my %args = @_;
@@ -125,15 +130,50 @@ sub duplicate {
     my $params = eval {
         $self->SUPER::clone(data => $self->{PARAMS});
     };
-    
+
     my $clone_ref = blessed ($self)->new(%$params);
-    
+
     my $elements = $self->get_elements_ref;
-    
+
     my $c_elements_ref = $clone_ref->get_elements_ref;
-    @{$c_elements_ref}{keys %$elements} = values %$elements;
-    
-    
+    %$c_elements_ref = %$elements;
+
+    #  should add methods to access these
+    my $byelement = $self->{BYELEMENT};
+    my $byvalue   = $self->{BYVALUE};
+
+    my (%c_byelement, %c_byvalue);
+    keys %c_byelement = keys %$byelement;  #  pre-allocate the buckets - the pay-off is for many-key hashes
+    keys %c_byvalue   = keys %$byvalue;
+
+    foreach my $key (keys %$byelement) {
+        my $hashref = $byelement->{$key};
+        my %c_hash;
+        keys %c_hash = keys %$hashref;  #  pre-allocate the buckets
+        %c_hash = %$hashref;
+        $c_byelement{$key} = \%c_hash;
+    }
+
+    $clone_ref->{BYELEMENT} = \%c_byelement;
+
+    foreach my $val_key (keys %$byvalue) {
+        my $val_hashref = $byvalue->{$val_key};
+        my %c_val_hash;
+        keys %c_val_hash = keys %$val_hashref;  #  pre-allocate the buckets
+
+        foreach my $e_key (keys %$val_hashref) {
+            my $hashref = $val_hashref->{$e_key};
+            my %c_hash;
+            keys %c_hash = keys %$hashref;  #  pre-allocate the buckets
+            %c_hash = %$hashref;
+            $c_val_hash{$e_key} = \%c_hash;
+        }
+
+        $c_byvalue{$val_key} = \%c_val_hash;
+    }
+
+    $clone_ref->{BYVALUE} = \%c_byvalue;
+
 
     if ($EVAL_ERROR) {
         if ($exists) {

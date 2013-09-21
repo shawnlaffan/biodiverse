@@ -25,7 +25,7 @@ use Biodiverse::Cluster;
 use Benchmark qw {:all};
 
 
-my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+my $bd = get_basedata_object_from_site_data(CELL_SIZES => [10000, 10000]);
 my $cl = $bd->add_cluster_output (
     name => 'clus',
 );
@@ -37,15 +37,20 @@ $cl->run_analysis (
 my $matrices_ref = $cl->get_orig_matrices;
 my $mx = $matrices_ref->[0];
 
-my $xx = use_copy($mx);
+#my $cx = use_clone($mx);
+#my $dx = use_copy($mx);
 
-#cmpthese (
-#    -10,
-#    {
-#        use_clone => sub {use_clone($mx)},
-#        use_copy  => sub {use_copy($mx)},
-#    }
-#);
+#$cx->export (format => 'Delimited text', type => 'sparse', file => 'cx.csv');
+#$dx->export (format => 'Delimited text', type => 'sparse', file => 'dx.csv');
+
+
+cmpthese (
+    -10,
+    {
+        use_clone => sub {use_clone($mx)},
+        use_copy  => sub {use_copy($mx)},
+    }
+);
 
 
 

@@ -1915,9 +1915,12 @@ sub trim {
         }
     }
     elsif ((ref $keep) =~ /ARRAY/) {  #  convert to hash if needed
-        @keep_or_trim{@$data} = 1 x scalar @$data;
+        @keep_or_trim{@$data} = (1) x scalar @$data;
     }
-    
+    elsif ((ref $keep) =~ /HASH/) {
+        %keep_or_trim = %$keep;
+    }
+
     my $delete_count = 0;
     my $delete_sub_count = 0;
     

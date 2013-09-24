@@ -1,6 +1,7 @@
 package Biodiverse::Matrix::Base;
 use strict;
 use warnings;
+use 5.010;
 
 use Carp;
 use Scalar::Util qw /looks_like_number blessed/;
@@ -19,13 +20,11 @@ my $normal_class   = 'Biodiverse::Matrix';
 sub element_is_in_matrix { 
     my $self = shift;
     my %args = @_;
-    
-    croak "element not defined\n" if ! defined $args{element};
 
-    my $element = $args{element};
-    
-    return $self->{ELEMENTS}{$element} if exists $self->{ELEMENTS}{$element};
-    return;
+    my $element = $args{element}
+      // croak "argument element not defined\n";
+
+    return exists $self->{ELEMENTS}{$element};
 }
 
 #  syntactic sugar

@@ -6,6 +6,7 @@ package Biodiverse::Matrix;
 
 use strict;
 use warnings;
+use 5.010;
 
 our $VERSION = '0.18_007';
 
@@ -16,6 +17,8 @@ use Carp;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 #use File::BOM qw /:subs/;
+
+use Biodiverse::Progress;
 
 my $EMPTY_STRING = q{};
 
@@ -90,7 +93,9 @@ sub clone {
 sub _duplicate {
     my $self = shift;
     my %args = @_;
-    
+
+    say '[MATRIX] Duplicating matrix ' . $self->get_param('NAME');
+
     my $bd;
     my $exists = $self->exists_param('BASEDATA_REF');
     if ($exists) {
@@ -117,6 +122,12 @@ sub _duplicate {
     keys %c_byelement = keys %$byelement;  #  pre-allocate the buckets - the pay-off is for many-key hashes
     keys %c_byvalue   = keys %$byvalue;
 
+    my $progress;
+    if (scalar keys %$byelement > 500) {
+        $progress = Biodiverse::Progress->new(text => 'Cloning matrix ' . $self->get_param('NAME'));
+    }
+
+
     foreach my $key (keys %$byelement) {
         my $hashref = $byelement->{$key};
         my %c_hash;
@@ -127,10 +138,19 @@ sub _duplicate {
 
     $clone_ref->{BYELEMENT} = \%c_byelement;
 
+    my $i = 0;
+    my $to_do = scalar keys %$byvalue;
+    my $target_text = "Target is $to_do value index keys";
+
     foreach my $val_key (keys %$byvalue) {
         my $val_hashref = $byvalue->{$val_key};
         my %c_val_hash;
         keys %c_val_hash = keys %$val_hashref;  #  pre-allocate the buckets
+
+        if ($progress) {
+            $i++;
+            $progress->update ($target_text, $i / $to_do);
+        }
 
         foreach my $e_key (keys %$val_hashref) {
             my $hashref = $val_hashref->{$e_key};
@@ -145,6 +165,9 @@ sub _duplicate {
 
     $clone_ref->{BYVALUE} = \%c_byvalue;
 
+    if ($progress) {
+        $progress->destroy();
+    };
 
     if ($EVAL_ERROR) {
         if ($exists) {

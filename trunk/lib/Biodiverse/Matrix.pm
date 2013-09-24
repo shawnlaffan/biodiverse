@@ -12,10 +12,10 @@ our $VERSION = '0.18_007';
 use English ( -no_match_vars );
 
 use Carp;
-use Data::Dumper;
+#use Data::Dumper;
 use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
-use File::BOM qw /:subs/;
+#use File::BOM qw /:subs/;
 
 my $EMPTY_STRING = q{};
 

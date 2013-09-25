@@ -205,10 +205,16 @@ sub compare_hash_vals {
         my %h1 = %$hash_got;
         delete @h1{keys %$hash_exp};
         is (scalar keys %h1, 0, 'No extra keys');
+        if (scalar keys %h1) {
+            diag 'Extra keys: ', join q{ }, sort keys %h1;
+        };
 
         my %h2 = %$hash_exp;
         delete @h2{keys %$hash_got};
         is (scalar keys %h2, 0, 'No missing keys');
+        if (scalar keys %h2) {
+            diag 'Missing keys: ', join q{ }, sort keys %h2;
+        }
     }
     elsif (scalar keys %$hash_got == scalar keys %$hash_exp && scalar keys %$hash_exp == 0) {
         #  but if both are zero then we need to run at least one test to get a pass

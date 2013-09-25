@@ -31,6 +31,7 @@ use parent qw {
     Biodiverse::Indices::Endemism
     Biodiverse::Indices::Rarity
     Biodiverse::Indices::LabelProperties
+    Biodiverse::Indices::LabelPropertiesRangeWtd
     Biodiverse::Indices::GroupProperties
     Biodiverse::Common
 };
@@ -414,7 +415,8 @@ sub parse_dependencies_for_calc {
                 $metadata = $metadata_hash{$calc};
             }
             else {
-                $metadata = $self->get_args (sub => $calc);
+                $metadata = eval {$self->get_args (sub => $calc)};
+                croak $EVAL_ERROR if $EVAL_ERROR;
                 $metadata_hash{$calc} = $metadata;
             }
 

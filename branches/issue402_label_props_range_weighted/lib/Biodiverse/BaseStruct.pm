@@ -2860,6 +2860,14 @@ sub get_element_properties {
 
 sub get_element_properties_summary_stats {
     my $self = shift;
+    my %args = @_;
+
+    my $bd = $self->get_basedata_ref;
+    if (Biodiverse::MissingBasedataRef->caught) {
+        $bd = undef;
+    }
+
+    my $range_weighted = defined $bd ? $args{range_weighted} : undef;
 
     my %results;
 
@@ -2872,7 +2880,8 @@ sub get_element_properties_summary_stats {
         my %p = $self->get_element_properties(element => $element);
         while (my ($prop, $data) = each %stats_data) {
             next if ! defined $p{$prop};
-            push @$data, $p{$prop};
+            my $weight = $range_weighted ? $bd->get_range (element => $element) : 1;
+            push @$data, ($p{$prop}) x $weight;
         }
     }
 

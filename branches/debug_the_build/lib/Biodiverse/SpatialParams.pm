@@ -2,11 +2,13 @@ package Biodiverse::SpatialParams;
 
 use warnings;
 use strict;
+use 5.016;
+
+use feature 'unicode_strings';
 
 use English qw ( -no_match_vars );
 
 use Carp;
-#use PadWalker qw /peek_my/;
 use POSIX qw /fmod floor ceil/;
 use Math::Trig;
 use Math::Trig ':pi';
@@ -22,10 +24,16 @@ our $VERSION = '0.18_007';
 
 our $NULL_STRING = q{};
 
-use Regexp::Common qw /number/;
+use Regexp::Common qw /comment number/;
 my $RE_NUMBER  = qr /$RE{num}{real}/xms;
 my $RE_INT     = qr /$RE{num}{int}/xms;
 my $RE_COMMENT = $RE{comment}{Perl};
+
+#my $qr_digits = '[0123456789]';
+#my $RE_COMMENT = qr /(?:(?:#)(?:[^\n]*)(?:\n))/;
+#my $RE_INT     = qr /(?^msx:(?:(?:[-+]?)(?:[0123456789]+)))/;
+#my $RE_NUMBER  = qr /(?^msx:(?:(?i)(?:[-+]?)(?:(?=[.]?[0123456789])(?:[0123456789]*)(?:(?:[.])(?:[0123456789]{0,}))?)(?:(?:[E])(?:(?:[-+]?)(?:[0123456789]+))|)))/;
+
 
 my $BOUNDED_COND_RE = qr {
     \$nbr                   #  leading variable sigil
@@ -136,6 +144,8 @@ sub parse_distances {
     $conditions .= "\n";
     $conditions =~ s/$RE_COMMENT//g;
 
+say 'Parsing distances';
+
     my %params;
     my %missing_args;
     my %missing_opt_args;
@@ -157,6 +167,8 @@ sub parse_distances {
     my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
 
     $params{use_euc_distance} = undef;
+
+say 'Parsing distance matches';
 
     #  match $D with no trailing subscript, any amount of whitespace
     #  check all possible matches
@@ -217,12 +229,13 @@ sub parse_distances {
     #  need to trap sets, eg:
     #  sp_circle (dist => sp_square (c => 5), radius => (f => 10))
 
+say 'Parsing distance checking subs';
 
     #  search for all relevant subs
     my %subs_to_check     = $self->get_subs_with_prefix( prefix => 'sp_' );
     my @subs_to_check     = keys %subs_to_check;
     my $re_sub_names_text = '\b(?:' . join( q{|}, @subs_to_check ) . ')\b';
-    my $re_sub_names      = qr /$re_sub_names_text/xsm;
+    my $re_sub_names      = qr /$re_sub_names_text/xsmu;
 
     my $str_len = length $conditions;
     pos($conditions) = 0;
@@ -231,6 +244,8 @@ sub parse_distances {
 
     CHECK_CONDITIONS:
     while ( not $conditions =~ m/ \G \z /xgcs ) {
+
+say 'Parsing distances: in conditions loop';
 
         #  haven't hit the end of line yet
 
@@ -246,6 +261,8 @@ sub parse_distances {
         elsif ( $conditions =~ m/ \G ( $re_sub_names ) \s* /xgcs ) {
 
             my $sub = $1;
+
+say 'Found a sub name: ', $sub;
 
             my $sub_args = $NULL_STRING;
 
@@ -364,6 +381,9 @@ sub parse_distances {
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES           => \%params );
 
+say 'Parsing distances:  setting calc_distances flags';
+
+
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );
     foreach my $value ( values %params ) {
@@ -382,24 +402,52 @@ sub parse_distances {
 
     }
 
+say 'Parsing distances:  adding $self';
+
     #  add $self -> to each condition that does not have it
     my $re_object_call = qr {
                 (
                   (?<!\w)     #  negative lookbehind for any non-punctuation in case a valid sub name is used in text 
                   (?<!\-\>\s) #  negative lookbehind for method call, eg '$self-> '
                   (?<!\-\>)   #  negative lookbehind for method call, eg '$self->'
-                  (?:$re_sub_names)\b  #  one of our valid sp_ subs - should require a "("?
+                  (?:$re_sub_names)  #  one of our valid sp_ subs - should require a "("?
                 )
             }xms;
 
-    #my $xtest = $conditions =~ $re_object_call;
+say $re_sub_names;
+say $re_object_call;
 
-    #  add $self -> to all the sp_ object calls
+say 'Refs: ', ref ($re_sub_names), ' ', ref ($re_object_call);
+
+    #my $xtest = $conditions =~ $re_object_call;
+say 'Conditions: ',   $conditions;
+say 'Has condition:', $conditions =~ $re_sub_names;
+say 'Has call:     ', $conditions =~ $re_object_call;
+say 'Has sp_:      ', $conditions =~ /sp_/xms;
+say 'Has sp_self_only xms: ', $conditions =~ /(?:sp_self_only)/xms;
+say 'Has sp_self_only: ', $conditions =~ /(?:sp_self_only)/;
+$conditions =~ s/\n\z//;
+
+    #  add $self-> to all the sp_ object calls
     $conditions =~ s{$re_object_call}
                     {\$self->$1}gxms;
-
+say 'Conditions: ', $conditions;
     #print $conditions;
     $self->set_param( PARSED_CONDITIONS => $conditions );
+
+    {
+        local $Data::Dumper::Purity   = 1;
+        local $Data::Dumper::Terse    = 1;
+        local $Data::Dumper::Sortkeys = 1;
+        local $self->{PARAMS}{BASEDATA_REF} = undef;
+        say Data::Dumper::Dumper $self;
+    }
+
+#say $RE_COMMENT;
+#say $RE_INT;
+#say $RE_NUMBER;
+
+say 'Parsing distances:  Over';
 
     return;
 }
@@ -775,7 +823,7 @@ END_OF_CONDITIONS_CODE
       ;
 
     my $conditions = $self->get_conditions_parsed;
-print "CONDITIONS:  $conditions\n";
+    say "PARSED CONDITIONS:  $conditions";
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 
     $code_ref = eval $conditions_code;

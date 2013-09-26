@@ -147,6 +147,32 @@ if ($ENV{BDV_PP_BUILDING}) {
     open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
       or croak "Cannot open $Bin via File::BOM\n";
     $fh->close;
+
+    use Biodiverse::BaseData;
+    my $bd = Biodiverse::BaseData->new;
+    $bd->set_param (CELL_SIZES => [1,1]);
+    $bd->add_element (                    
+        label => 'a:b',
+        group => '1:1',
+        count => 1,
+    );
+    my $lb_ref = $bd->get_labels_ref;
+    $lb_ref->set_param (CELL_SIZES => [-1,-1]);
+
+    use Biodiverse::SpatialParams;
+    my $sp = Biodiverse::SpatialParams->new (
+        conditions => "sp_self_only () and \N{WHITE SMILING FACE}",
+        #conditions => 'sp_self_only ()',
+        basedata_ref => $bd,
+    );
+    $sp->verify (basedata => $bd);
+    #$sp->parse_distances;
+    #my $sp = Biodiverse::SpatialParams->new (
+    #    conditions => '$D < 50000',
+    #);
+    #$sp->verify;
+    #$sp->parse_distances;
+
 }
 
 

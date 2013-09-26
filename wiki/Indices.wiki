@@ -626,8 +626,8 @@ These form the basis of the sample indices.
 || 104 || ABC3_MEAN_SET2 || Mean of label sample counts in neighbour set 2. ||   || 2 ||
 || 105 || ABC3_SD_ALL || Standard deviation of label sample counts in both element sets. ||   || 2 ||
 || 106 || ABC3_SD_SET1 || Standard deviation of sample counts in neighbour set 1. ||   || 1 ||
-|| 107 || ABC3_SD_SET2 || Standard deviation of label sample counts in both element sets. ||   || 2 ||
-|| 108 || ABC3_SUM_ALL || Sum of the label sample counts in neighbour set2. ||   || 2 ||
+|| 107 || ABC3_SD_SET2 || Standard deviation of label sample counts in in neighbour set2. ||   || 2 ||
+|| 108 || ABC3_SUM_ALL || Sum of the label sample counts in both element sets. ||   || 2 ||
 || 109 || ABC3_SUM_SET1 || Sum of the label sample counts in neighbour set1. ||   || 1 ||
 || 110 || ABC3_SUM_SET2 || Sum of the label sample counts in neighbour set2. ||   || 2 ||
 

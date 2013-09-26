@@ -109,7 +109,7 @@ if ($success == 1) {
     }
 }
 
-exit $success;
+exit 0 if $success;
 
 
 sub report_error {

@@ -24,8 +24,8 @@ use Biodiverse::Cluster;
 
 use Benchmark qw {:all};
 
-
-my $bd = get_basedata_object_from_site_data(CELL_SIZES => [10000, 10000]);
+my $cellsize = 10000;
+my $bd = get_basedata_object_from_site_data(CELL_SIZES => [$cellsize, $cellsize]);
 my $cl = $bd->add_cluster_output (
     name => 'clus',
 );
@@ -63,5 +63,5 @@ sub use_clone {
 sub use_copy {
     my $mx = shift;
     
-    my $success = $mx->duplicate;
+    my $success = $mx->_duplicate;
 }

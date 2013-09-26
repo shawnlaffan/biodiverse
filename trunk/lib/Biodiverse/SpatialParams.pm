@@ -2,11 +2,13 @@ package Biodiverse::SpatialParams;
 
 use warnings;
 use strict;
+use 5.016;
+
+use feature 'unicode_strings';
 
 use English qw ( -no_match_vars );
 
 use Carp;
-#use PadWalker qw /peek_my/;
 use POSIX qw /fmod floor ceil/;
 use Math::Trig;
 use Math::Trig ':pi';
@@ -22,7 +24,7 @@ our $VERSION = '0.18_007';
 
 our $NULL_STRING = q{};
 
-use Regexp::Common qw /number/;
+use Regexp::Common qw /comment number/;
 my $RE_NUMBER  = qr /$RE{num}{real}/xms;
 my $RE_INT     = qr /$RE{num}{int}/xms;
 my $RE_COMMENT = $RE{comment}{Perl};
@@ -217,7 +219,6 @@ sub parse_distances {
     #  need to trap sets, eg:
     #  sp_circle (dist => sp_square (c => 5), radius => (f => 10))
 
-
     #  search for all relevant subs
     my %subs_to_check     = $self->get_subs_with_prefix( prefix => 'sp_' );
     my @subs_to_check     = keys %subs_to_check;
@@ -364,6 +365,7 @@ sub parse_distances {
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES           => \%params );
 
+
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );
     foreach my $value ( values %params ) {
@@ -388,13 +390,11 @@ sub parse_distances {
                   (?<!\w)     #  negative lookbehind for any non-punctuation in case a valid sub name is used in text 
                   (?<!\-\>\s) #  negative lookbehind for method call, eg '$self-> '
                   (?<!\-\>)   #  negative lookbehind for method call, eg '$self->'
-                  (?:$re_sub_names)\b  #  one of our valid sp_ subs - should require a "("?
+                  (?:$re_sub_names)  #  one of our valid sp_ subs - should require a "("?
                 )
             }xms;
 
-    #my $xtest = $conditions =~ $re_object_call;
-
-    #  add $self -> to all the sp_ object calls
+    #  add $self-> to all the sp_ object calls
     $conditions =~ s{$re_object_call}
                     {\$self->$1}gxms;
 
@@ -775,7 +775,7 @@ END_OF_CONDITIONS_CODE
       ;
 
     my $conditions = $self->get_conditions_parsed;
-print "CONDITIONS:  $conditions\n";
+    say "PARSED CONDITIONS:  $conditions";
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 
     $code_ref = eval $conditions_code;

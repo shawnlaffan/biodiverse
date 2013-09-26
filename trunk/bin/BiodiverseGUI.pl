@@ -25,6 +25,8 @@ my $perl_app_tool = $PerlApp::TOOL;
 #  add the lib folder if needed
 use rlib;
 
+say '@INC: ', join q{ }, @INC;
+
 #  load up the user defined libs and settings
 use Biodiverse::Config;
 use Biodiverse::GUI::GUIManager;

@@ -29,12 +29,6 @@ my $RE_NUMBER  = qr /$RE{num}{real}/xms;
 my $RE_INT     = qr /$RE{num}{int}/xms;
 my $RE_COMMENT = $RE{comment}{Perl};
 
-#my $qr_digits = '[0123456789]';
-#my $RE_COMMENT = qr /(?:(?:#)(?:[^\n]*)(?:\n))/;
-#my $RE_INT     = qr /(?^msx:(?:(?:[-+]?)(?:[0123456789]+)))/;
-#my $RE_NUMBER  = qr /(?^msx:(?:(?i)(?:[-+]?)(?:(?=[.]?[0123456789])(?:[0123456789]*)(?:(?:[.])(?:[0123456789]{0,}))?)(?:(?:[E])(?:(?:[-+]?)(?:[0123456789]+))|)))/;
-
-
 my $BOUNDED_COND_RE = qr {
     \$nbr                   #  leading variable sigil
     (?:
@@ -229,7 +223,7 @@ sub parse_distances {
     my %subs_to_check     = $self->get_subs_with_prefix( prefix => 'sp_' );
     my @subs_to_check     = keys %subs_to_check;
     my $re_sub_names_text = '\b(?:' . join( q{|}, @subs_to_check ) . ')\b';
-    my $re_sub_names      = qr /$re_sub_names_text/xsmu;
+    my $re_sub_names      = qr /$re_sub_names_text/xsm;
 
     my $str_len = length $conditions;
     pos($conditions) = 0;

@@ -781,6 +781,7 @@ sub run_indices_test1 {
             local $Data::Dumper::Terse    = 1;
             local $Data::Dumper::Sortkeys = 1;
             say '#' x 20;
+            say "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
             say Dumper(\%results);
             say '#' x 20;
         }

@@ -144,8 +144,6 @@ sub parse_distances {
     $conditions .= "\n";
     $conditions =~ s/$RE_COMMENT//g;
 
-say 'Parsing distances';
-
     my %params;
     my %missing_args;
     my %missing_opt_args;
@@ -167,8 +165,6 @@ say 'Parsing distances';
     my ( $nbr_x, $nbr_y, $nbr_z ) = ( 1, 1, 1 );
 
     $params{use_euc_distance} = undef;
-
-say 'Parsing distance matches';
 
     #  match $D with no trailing subscript, any amount of whitespace
     #  check all possible matches
@@ -229,8 +225,6 @@ say 'Parsing distance matches';
     #  need to trap sets, eg:
     #  sp_circle (dist => sp_square (c => 5), radius => (f => 10))
 
-say 'Parsing distance checking subs';
-
     #  search for all relevant subs
     my %subs_to_check     = $self->get_subs_with_prefix( prefix => 'sp_' );
     my @subs_to_check     = keys %subs_to_check;
@@ -244,8 +238,6 @@ say 'Parsing distance checking subs';
 
     CHECK_CONDITIONS:
     while ( not $conditions =~ m/ \G \z /xgcs ) {
-
-say 'Parsing distances: in conditions loop';
 
         #  haven't hit the end of line yet
 
@@ -261,8 +253,6 @@ say 'Parsing distances: in conditions loop';
         elsif ( $conditions =~ m/ \G ( $re_sub_names ) \s* /xgcs ) {
 
             my $sub = $1;
-
-say 'Found a sub name: ', $sub;
 
             my $sub_args = $NULL_STRING;
 
@@ -381,8 +371,6 @@ say 'Found a sub name: ', $sub;
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES           => \%params );
 
-say 'Parsing distances:  setting calc_distances flags';
-
 
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );
@@ -402,8 +390,6 @@ say 'Parsing distances:  setting calc_distances flags';
 
     }
 
-say 'Parsing distances:  adding $self';
-
     #  add $self -> to each condition that does not have it
     my $re_object_call = qr {
                 (
@@ -414,40 +400,12 @@ say 'Parsing distances:  adding $self';
                 )
             }xms;
 
-say $re_sub_names;
-say $re_object_call;
-
-say 'Refs: ', ref ($re_sub_names), ' ', ref ($re_object_call);
-
-    #my $xtest = $conditions =~ $re_object_call;
-say 'Conditions: ',   $conditions;
-say 'Has condition:', $conditions =~ $re_sub_names;
-say 'Has call:     ', $conditions =~ $re_object_call;
-say 'Has sp_:      ', $conditions =~ /sp_/xms;
-say 'Has sp_self_only xms: ', $conditions =~ /(?:sp_self_only)/xms;
-say 'Has sp_self_only: ', $conditions =~ /(?:sp_self_only)/;
-$conditions =~ s/\n\z//;
-
     #  add $self-> to all the sp_ object calls
     $conditions =~ s{$re_object_call}
                     {\$self->$1}gxms;
-say 'Conditions: ', $conditions;
+
     #print $conditions;
     $self->set_param( PARSED_CONDITIONS => $conditions );
-
-    {
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
-        local $Data::Dumper::Sortkeys = 1;
-        local $self->{PARAMS}{BASEDATA_REF} = undef;
-        say Data::Dumper::Dumper $self;
-    }
-
-#say $RE_COMMENT;
-#say $RE_INT;
-#say $RE_NUMBER;
-
-say 'Parsing distances:  Over';
 
     return;
 }

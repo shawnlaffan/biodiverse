@@ -1191,12 +1191,12 @@ sub get_metadata_calc_local_sample_count_stats {
                 lumper      => 0,
             },
             ABC3_SUM_ALL       => {
-                description     => 'Sum of the label sample counts in neighbour set2.',
+                description     => 'Sum of the label sample counts across both neighbour sets.',
                 uses_nbr_lists  => 2,
                 lumper      => 1,
             },
             ABC3_SUM_SET1      => {
-                description     => 'Sum of the label sample counts in neighbour set1.',
+                description     => 'Sum of the label sample counts across both neighbour sets.',
                 lumper      => 0,
             },
             ABC3_SUM_SET2      => {

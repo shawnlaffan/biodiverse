@@ -36,13 +36,13 @@ sub Run {
 
     # Add filters
     foreach my $suffix (@suffixes) {
-    
+
         my $filter = Gtk2::FileFilter->new();
         if ((ref $suffix) =~ /ARRAY/) {
             foreach my $suff (@$suffix) {
                 $filter->add_pattern("*.$suff");
             }
-            $filter->set_name(join (" and ", @$suffix) . " files");
+            $filter->set_name(join (' and ', @$suffix) . ' files');
         }
         else {
             $filter->add_pattern("*.$suffix");

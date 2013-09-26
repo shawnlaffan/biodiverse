@@ -125,6 +125,9 @@ sub use_base {
         print "$package inherits from $pack_list\n";
 
         foreach my $pk (@packs) {
+            croak "INVALID PACKAGE NAME $package"
+              if not $package =~ /^[\w\d]+(?:::[\w\d]+)*$/;  #  pretty basic checking
+
             my $cmd = "package $package;\n"
                     . "use parent qw/$pk/;";
             eval $cmd;

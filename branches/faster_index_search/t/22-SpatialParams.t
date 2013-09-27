@@ -119,13 +119,31 @@ exit main( @ARGV );
 sub main {
     my @args  = @_;
 
+    my %conditions_to_run = %conditions;
+
     if (@args) {
+        my @res_sub;
+        my %cond_sub;
         for my $res (@args) {
-            die "Res index $res is not numeric\n"
-                if not looks_like_number ($res);
+            if (looks_like_number $res && $res < $#res_pairs) {
+                push @res_sub, $res;
+            }
+            elsif (exists $conditions{$res} && exists $conditions{$res}) {
+                $cond_sub{$res}++;
+            }
+            else {
+                die "Invalid argument $res";
+            }
         }
-        diag 'Using res pair subset: ' . join ", ", @args;
-        @res_pairs = @res_pairs[@args];
+        if (scalar @res_sub) {
+            diag 'Using res pair subset: ' . join ", ", @res_sub;
+            @res_pairs = @res_pairs[@res_sub];
+        }
+        if (scalar keys %cond_sub) {
+            %conditions_to_run = ();
+            @conditions_to_run{keys %cond_sub} = @conditions{keys %cond_sub};
+            diag 'Using conditions subset: ' . join ", ", sort keys %cond_sub;
+        }
     }
 
     #my $condition_count = sum map {scalar keys $conditions{$_}} keys %conditions;

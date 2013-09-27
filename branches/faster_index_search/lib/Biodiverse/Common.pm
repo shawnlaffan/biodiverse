@@ -473,9 +473,11 @@ sub set_cached_value {
 sub get_cached_value {
     my $self = shift;
     my $key = shift;
-    return if ! exists $self->{_cache};
-    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
-    return;
+#    return if ! exists $self->{_cache};
+#    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
+#    return;
+    return if ! exists $self->{_cache}{$key};
+    return $self->{_cache}{$key};
 }
 
 sub get_cached_value_keys {
@@ -1063,7 +1065,9 @@ sub list2csv {  #  return a csv string from a list of values
     );
 
     my $csvLine = $args{csv_object};
-    if (not defined $csvLine or (blessed $csvLine) !~ /Text::CSV_XS/) {
+    if (!defined $csvLine
+        #or (blessed $csvLine) !~ /Text::CSV_XS/
+        ) {
         $csvLine = $self->get_csv_object (@_);
     }
 
@@ -1530,7 +1534,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $maxima      = $args{maxima};
     my $resolutions = $args{resolutions};
     my $precision   = $args{precision} || [("%.10f") x scalar @$minima];
-    my $sep_char    = $args{sep_char} || $self -> get_param('JOIN_CHAR');
+    my $sep_char    = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  need to add rule to cope with zero resolution
 

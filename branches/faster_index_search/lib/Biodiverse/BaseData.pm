@@ -2399,7 +2399,7 @@ sub build_spatial_index {  #  builds GROUPS, not LABELS
     my $index = Biodiverse::Index->new (@_, element_hash => \%groups);
     $self->set_param (SPATIAL_INDEX => $index);
     
-    return;
+    return $index;
 }
 
 #sub delete_spatial_index {
@@ -3067,7 +3067,7 @@ sub get_neighbours {
     my $groupsRef = $self->get_groups_ref;
 
     my @compare_list;  #  get the list of possible neighbours - should allow this as an arg?
-    if (not defined $args{index}) {
+    if (!defined $args{index} || !defined $args{index_offsets}) {
         @compare_list = $self->get_groups;
     }
     else {  #  we have a spatial index defined - get the possible list of neighbours
@@ -3078,13 +3078,13 @@ sub get_neighbours {
             element_array => $element_array,
             as_array      => 1,
         );
-        foreach my $offset (keys %{$args{index_offsets}}) {
+        foreach my $offset (values %{$args{index_offsets}}) {
             #  need to get an array from the index to fit
             #  with the get_groups results
             push @compare_list,
               $index->get_index_elements_as_array (
                     element => $index_coord,
-                    offset  => $offset
+                    offset  => $offset,
             );
         }
     }

@@ -22,55 +22,65 @@ use Biodiverse::TestHelpers qw {:basedata};
 #  need to add more
 #  the ##1 notation is odd, but is changed for each test using regexes
 my %conditions = (
-    'sp_circle (radius => ##1)' => 5,
-    'sp_circle (radius => ##2)' => 13,
-    'sp_circle (radius => ##3)' => 29,
-    'sp_circle (radius => ##4)' => 49,
+    circle => {
+        'sp_circle (radius => ##1)' => 5,
+        'sp_circle (radius => ##2)' => 13,
+        'sp_circle (radius => ##3)' => 29,
+        'sp_circle (radius => ##4)' => 49,
+        '$D <= ##1' => 5,
+        '$D <= ##4' => 49,
+        #'$d[0] <= ##4 && $d[0] >= -##4 && $D <= ##4' => 49,  #  exercise the spatial index offset search
+    },
+    selectors => {
+        'sp_select_all()' => 900,
+        'sp_self_only()'  => 1,
+        'sp_select_all() && ! sp_circle (radius => ##1)' => 895,
+        '! sp_circle (radius => ##1) && sp_select_all()' => 895,
+    },
+    ellipse => {
+        'sp_ellipse (major_radius =>  ##4, minor_radius =>  ##2)' => 25,
+        'sp_ellipse (major_radius =>  ##2, minor_radius =>  ##2)' => 13,
+        'sp_ellipse (major_radius =>  ##4, minor_radius =>  ##2, rotate_angle => 1.308996939)' => 25,
     
-    'sp_select_all()' => 900,
-    'sp_self_only()'  => 1,
+        'sp_ellipse (major_radius => ##10, minor_radius => ##5)' => 159,
+        'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => 0)'   => 159,
+        'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pi)'   => 159,
+        'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip2)' => 159,
+        'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip4)' => 153,
+    },
+    block => {
+        'sp_block (size => ##3)' => 9,
+        'sp_block (size => [##3, ##3])' => 9,
+    },
+    block_select => {
+        'sp_select_block (size => ##5, count => 2)' => 2,
+        'sp_select_block (size => ##3, count => 3)' => 3,
+    },
+    sides => {
+        'sp_is_left_of()' => 420,
+        'sp_is_left_of(vector_angle => 0)' => 420,
+        'sp_is_left_of(vector_angle => Math::Trig::pip2)' => 450,
+        'sp_is_left_of(vector_angle => Math::Trig::pip4)' => 435,
+        'sp_is_left_of(vector_angle_deg => 0)'  => 420,
+        'sp_is_left_of(vector_angle_deg => 45)' => 435,
+        'sp_is_left_of(vector_angle_deg => 90)' => 450,
     
-    'sp_ellipse (major_radius =>  ##4, minor_radius =>  ##2)' => 25,
-    'sp_ellipse (major_radius =>  ##2, minor_radius =>  ##2)' => 13,
-    'sp_ellipse (major_radius =>  ##4, minor_radius =>  ##2, rotate_angle => 1.308996939)' => 25,
-    
-    'sp_ellipse (major_radius => ##10, minor_radius => ##5)' => 159,
-    'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => 0)'   => 159,
-    'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pi)'   => 159,
-    'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip2)' => 159,
-    'sp_ellipse (major_radius => ##10, minor_radius => ##5, rotate_angle => Math::Trig::pip4)' => 153,
-
-    'sp_select_all() && ! sp_circle (radius => ##1)' => 895,
-    '! sp_circle (radius => ##1) && sp_select_all()' => 895,
-    
-    'sp_block (size => ##3)' => 9,
-    'sp_block (size => [##3, ##3])' => 9,
-    'sp_select_block (size => ##5, count => 2)' => 2,
-    'sp_select_block (size => ##3, count => 3)' => 3,
-    
-    'sp_is_left_of()' => 420,
-    'sp_is_left_of(vector_angle => 0)' => 420,
-    'sp_is_left_of(vector_angle => Math::Trig::pip2)' => 450,
-    'sp_is_left_of(vector_angle => Math::Trig::pip4)' => 435,
-    'sp_is_left_of(vector_angle_deg => 0)'  => 420,
-    'sp_is_left_of(vector_angle_deg => 45)' => 435,
-    'sp_is_left_of(vector_angle_deg => 90)' => 450,
-
-    'sp_is_right_of()' => 450,
-    'sp_is_right_of(vector_angle => 0)' => 450,
-    'sp_is_right_of(vector_angle => Math::Trig::pip2)' => 420,
-    'sp_is_right_of(vector_angle => Math::Trig::pip4)' => 435,
-    'sp_is_right_of(vector_angle_deg => 0)'  => 450,
-    'sp_is_right_of(vector_angle_deg => 45)' => 435,
-    'sp_is_right_of(vector_angle_deg => 90)' => 420,
-    
-    'sp_in_line_with()' => 30,
-    'sp_in_line_with(vector_angle => 0)' => 30,
-    'sp_in_line_with(vector_angle => Math::Trig::pip2)' => 30,
-    'sp_in_line_with(vector_angle => Math::Trig::pip4)' => 30,
-    'sp_in_line_with(vector_angle_deg => 0)'  => 30,
-    'sp_in_line_with(vector_angle_deg => 45)' => 30,
-    'sp_in_line_with(vector_angle_deg => 90)' => 30,
+        'sp_is_right_of()' => 450,
+        'sp_is_right_of(vector_angle => 0)' => 450,
+        'sp_is_right_of(vector_angle => Math::Trig::pip2)' => 420,
+        'sp_is_right_of(vector_angle => Math::Trig::pip4)' => 435,
+        'sp_is_right_of(vector_angle_deg => 0)'  => 450,
+        'sp_is_right_of(vector_angle_deg => 45)' => 435,
+        'sp_is_right_of(vector_angle_deg => 90)' => 420,
+        
+        'sp_in_line_with()' => 30,
+        'sp_in_line_with(vector_angle => 0)' => 30,
+        'sp_in_line_with(vector_angle => Math::Trig::pip2)' => 30,
+        'sp_in_line_with(vector_angle => Math::Trig::pip4)' => 30,
+        'sp_in_line_with(vector_angle_deg => 0)'  => 30,
+        'sp_in_line_with(vector_angle_deg => 45)' => 30,
+        'sp_in_line_with(vector_angle_deg => 90)' => 30,
+    },
 );
 
 
@@ -117,19 +127,23 @@ sub main {
         diag 'Using res pair subset: ' . join ", ", @args;
         @res_pairs = @res_pairs[@args];
     }
-    
-    plan tests =>  3 * @res_pairs * keys %conditions;
 
-    test_res_pairs(@res_pairs);
-    
-    #done_testing;
+    #my $condition_count = sum map {scalar keys $conditions{$_}} keys %conditions;
+    #plan tests =>  3 * @res_pairs * $condition_count;
+
+    foreach my $key (sort keys %conditions) {
+        test_res_pairs($conditions{$key}, @res_pairs);
+    }
+
+    done_testing;
     return 0;
 }
 
 
 
 sub test_res_pairs {
-    my @res_pairs = @_;
+    my $conditions = shift;
+    my @res_pairs  = @_;
 
     SKIP:
     {
@@ -153,8 +167,9 @@ sub test_res_pairs {
             my $element = join ":", $element_x, $element_y;
     
             run_tests (
-                basedata => $bd,
-                element  => $element,
+                basedata   => $bd,
+                element    => $element,
+                conditions => $conditions,
             );
         }
     }
@@ -165,13 +180,15 @@ sub run_tests {
     my %args = @_;
     my $bd      = $args{basedata};
     my $element = $args{element};
+    my $conditions = $args{conditions};
 
     my $res = $bd->get_param('CELL_SIZES');
+    my ($index, $index_offsets);
 
     foreach my $i (1 .. 3) {
 
-        foreach my $condition (sort keys %conditions) {
-            my $expected = $conditions{$condition};
+        foreach my $condition (sort keys %$conditions) {
+            my $expected = $conditions->{$condition};
 
             my $cond = $condition;
             #print $cond . "\n";
@@ -186,11 +203,21 @@ sub run_tests {
             my $sp_params = Biodiverse::SpatialParams->new (
                 conditions => $cond,
             );
+            
+            if ($index) {
+                $index_offsets = $index->predict_offsets (
+                    spatial_params    => $sp_params,
+                    cellsizes         => $bd->get_param ('CELL_SIZES'),
+                    #progress_text_pfx => $progress_text_pfx,
+                );
+            }
 
             my $nbrs = eval {
                 $bd->get_neighbours (
                     element        => $element,
                     spatial_params => $sp_params,
+                    index          => $index,
+                    index_offsets  => $index_offsets,
                 );
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
@@ -202,7 +229,7 @@ sub run_tests {
         foreach my $r (@$res) {
             push @index_res, $r * $i;
         }
-        $bd->build_spatial_index (resolutions => [@index_res]);
+        $index = $bd->build_spatial_index (resolutions => [@index_res]);
     }
 
     return;

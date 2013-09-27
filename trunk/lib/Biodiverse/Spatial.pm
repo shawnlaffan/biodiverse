@@ -436,6 +436,11 @@ sub sp_calc {
 
     my $failed_def_query_sp_res_hash = {};
     my $elt_count = -1;
+    my $csv_object = $self->get_csv_object (
+        quote_char => $self->get_param ('QUOTES'),
+        sep_char   => $self->get_param ('JOIN_CHAR'),
+    );
+
     GET_ELEMENTS_TO_CALC:
     foreach my $element (@elements_to_calc) {
         $elt_count ++;
@@ -459,7 +464,7 @@ sub sp_calc {
         }
 
 
-        $self->add_element (element => $element);
+        $self->add_element (element => $element, csv_object => $csv_object);
 
         # initialise the spatial_results with an empty hash
         $self->add_to_lists (

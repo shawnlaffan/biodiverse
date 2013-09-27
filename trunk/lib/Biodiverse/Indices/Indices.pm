@@ -473,10 +473,11 @@ sub calc_bray_curtis {
     #  up with auto-vivification
     my %l1 = %{$args{label_hash1}};
     my %l2 = %{$args{label_hash2}};
-    my %labels = (%l1, %l2);
+    #my %labels = (%l1, %l2);
+    my $labels_all = $args{label_hash_all};
 
     my ($A, $B, $W) = (0, 0, 0);
-    foreach my $label (keys %labels) {
+    foreach my $label (keys %$labels_all) {
         #  treat undef as zero, and don't complain
         no warnings 'uninitialized';
 
@@ -561,12 +562,14 @@ sub calc_bray_curtis_norm_by_gp_counts {
     #  up with auto-vivification
     my %l1 = %{$args{label_hash1}};
     my %l2 = %{$args{label_hash2}};
-    my %labels = (%l1, %l2);
+    #my %labels = (%l1, %l2);
+    my $labels_all = $args{label_hash_all};
+
     my $counts1 = $args{EL_COUNT_SET1};
     my $counts2 = $args{EL_COUNT_SET2};
 
     my ($A, $B, $W) = (0, 0, 0);
-    foreach my $label (keys %labels) {
+    foreach my $label (keys %$labels_all) {
         #  treat undef as zero, and don't complain
         no warnings 'uninitialized';
 

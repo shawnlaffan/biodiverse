@@ -210,8 +210,9 @@ sub get_index_keys {
 sub element_exists {
     my $self = shift;
     my %args = @_;
-    croak "Argument 'element' missing\n" if ! defined $args{element};
-    return exists $self->{ELEMENTS}{$args{element}};
+    my $element = $args{element}
+      // croak "Argument 'element' is undefined\n";
+    return exists $self->{ELEMENTS}{$element};
 }
 
 sub get_index_elements {

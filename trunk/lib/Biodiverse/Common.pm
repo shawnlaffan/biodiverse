@@ -1085,7 +1085,7 @@ sub csv2list {  #  return a list of values from a csv string
 
     my $csv_obj = $args{csv_object};
     if (! defined $csv_obj
-        || (blessed $csv_obj) !~ /Text::CSV_XS/
+        #|| (blessed $csv_obj) !~ /Text::CSV_XS/
         ) {
         $csv_obj = $self->get_csv_object (%args);
     }

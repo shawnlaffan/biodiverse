@@ -507,7 +507,7 @@ sub delete_cached_values {
     #warn "Cache deletion problem\n$EVAL_ERROR\n"
     #  if $EVAL_ERROR;
 
-    warn "XXXXXXX "  . $self -> get_name . "\n" if exists $self->{_cache};
+    #warn "XXXXXXX "  . $self->get_name . "\n" if exists $self->{_cache};
 
     return;
 }

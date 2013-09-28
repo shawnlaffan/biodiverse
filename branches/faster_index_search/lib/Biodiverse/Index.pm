@@ -219,10 +219,8 @@ sub get_index_elements {
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element};
-
-    croak "Argument 'element' not defined in call to get_index_elements\n"
-      if ! defined $element;
+    my $element = $args{element}
+      // croak "Argument 'element' not defined in call to get_index_elements\n";
 
     my $offset = $args{offset};
 
@@ -255,7 +253,23 @@ sub get_index_elements {
             $elements[$i] += $offsets[$i];
         }
 
-        $element = $self->list2csv(list => \@elements, csv_object => $csv_object);
+        #  cache the elements in a hash-tree - could use that approach for the index itself
+        my $hashref = $self->get_cached_value ('EL_LIST2CSV_CACHE')
+          // do {my $x = {}; $self->set_cached_value (EL_LIST2CSV_CACHE => $x); $x};
+        my $prev_hashref;
+
+        foreach my $col (@elements) {
+            $prev_hashref = $hashref;
+            $hashref = $hashref->{$col}
+              // do {$hashref->{$col} = {}};
+        }
+        if (reftype ($hashref)) {
+            $element = $self->list2csv(list => \@elements, csv_object => $csv_object);
+            $prev_hashref->{$elements[-1]} = $element;
+        }
+        else {
+            $element  = $prev_hashref->{$elements[-1]};
+        }
     }
 
     return wantarray ? () : {}  #  check this after any offset is applied

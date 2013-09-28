@@ -34,6 +34,8 @@ my %conditions = (
     selectors => {
         'sp_select_all()' => 900,
         'sp_self_only()'  => 1,
+    },
+    combined => {
         'sp_select_all() && ! sp_circle (radius => ##1)' => 895,
         '! sp_circle (radius => ##1) && sp_select_all()' => 895,
     },
@@ -149,7 +151,8 @@ sub main {
     #my $condition_count = sum map {scalar keys $conditions{$_}} keys %conditions;
     #plan tests =>  3 * @res_pairs * $condition_count;
 
-    foreach my $key (sort keys %conditions) {
+    foreach my $key (sort keys %conditions_to_run) {
+        diag $key;
         test_res_pairs($conditions{$key}, @res_pairs);
     }
 
@@ -202,6 +205,9 @@ sub run_tests {
 
     my $res = $bd->get_param('CELL_SIZES');
     my ($index, $index_offsets);
+    my $index_text = q{};
+
+$SIG{__WARN__}=sub{die};
 
     foreach my $i (1 .. 3) {
 
@@ -209,7 +215,7 @@ sub run_tests {
             my $expected = $conditions->{$condition};
 
             my $cond = $condition;
-            #print $cond . "\n";
+
             while ($condition =~ /##(\d+)/gc) {
                 my $from = $1;
                 my $to = $from * $res->[0];  #  assuming square groups
@@ -217,6 +223,8 @@ sub run_tests {
                 #print "Matched $from to $to\n";
                 #print $cond . "\n";
             }
+
+            #diag $cond;
 
             my $sp_params = Biodiverse::SpatialParams->new (
                 conditions => $cond,
@@ -240,7 +248,7 @@ sub run_tests {
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
 
-            is (keys %$nbrs, $expected, $cond);
+            is (keys %$nbrs, $expected, $cond . $index_text);
         }
 
         my @index_res;
@@ -248,6 +256,7 @@ sub run_tests {
             push @index_res, $r * $i;
         }
         $index = $bd->build_spatial_index (resolutions => [@index_res]);
+        $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
     }
 
     return;

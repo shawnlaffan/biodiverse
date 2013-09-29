@@ -242,17 +242,20 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
     return;
 }
 
-sub get_param { 
-    my $self = shift;
-    my $param = shift;
-    #if (! exists $self->{PARAMS}{$param}) {
-    #    carp "get_param WARNING: Parameter $param does not exist in $self.\n"
-    #        if $self->{PARAMS}{PARAM_CHANGE_WARN};
-    #    return;
-    #}
-
-    return if ! exists $self->{PARAMS}{$param};
-    return $self->{PARAMS}{$param};
+#  hot path, so needs to be lean and mean, even if less readable
+sub get_param {
+    return if ! exists $_[0]->{PARAMS}{$_[1]};
+    return $_[0]->{PARAMS}{$_[1]};
+    #my $self = shift;
+    #my $param = shift;
+    ##if (! exists $self->{PARAMS}{$param}) {
+    ##    carp "get_param WARNING: Parameter $param does not exist in $self.\n"
+    ##        if $self->{PARAMS}{PARAM_CHANGE_WARN};
+    ##    return;
+    ##}
+    #
+    #return if ! exists $self->{PARAMS}{$param};
+    #return $self->{PARAMS}{$param};
 }
 
 #  sometimes we want a reference to the parameter to allow direct manipulation.
@@ -466,18 +469,21 @@ sub set_cached_value {
     my $self = shift;
     my %args = @_;
     @{$self->{_cache}}{keys %args} = values %args;
-    
+
     return;
 }
 
+#  hot path, so needs to be lean and mean, even if less readable
 sub get_cached_value {
-    my $self = shift;
-    my $key = shift;
-#    return if ! exists $self->{_cache};
-#    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
-#    return;
-    return if ! exists $self->{_cache}{$key};
-    return $self->{_cache}{$key};
+    return if ! exists $_[0]->{_cache}{$_[1]};
+    return $_[0]->{_cache}{$_[1]};
+#    my $self = shift;
+#    my $key = shift;
+##    return if ! exists $self->{_cache};
+##    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
+##    return;
+#    return if ! exists $self->{_cache}{$key};
+#    return $self->{_cache}{$key};
 }
 
 sub get_cached_value_keys {

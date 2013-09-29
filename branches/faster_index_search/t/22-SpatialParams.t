@@ -8,7 +8,7 @@ use FindBin qw/$Bin/;
 
 use rlib;
 use Scalar::Util qw /looks_like_number/;
-
+use Data::Dumper qw /Dumper/;
 #use Test::More tests => 255;
 use Test::More;
 
@@ -140,6 +140,11 @@ sub main {
         if (scalar @res_sub) {
             diag 'Using res pair subset: ' . join ", ", @res_sub;
             @res_pairs = @res_pairs[@res_sub];
+
+            local $Data::Dumper::Purity   = 1;
+            local $Data::Dumper::Terse    = 1;
+            local $Data::Dumper::Sortkeys = 1;
+            diag Dumper \@res_pairs;
         }
         if (scalar keys %cond_sub) {
             %conditions_to_run = ();
@@ -181,7 +186,7 @@ sub test_res_pairs {
                 x_min      => $x[0],
                 y_min      => $y[0],
             );
-    
+#$bd->save_to (filename => 'ghgh.bds');
             #  should sub this - get centre_group or something
             my $element_x = $res->[0] * (($x[0] + $x[1]) / 2) + $res->[0];
             my $element_y = $res->[1] * (($y[0] + $y[1]) / 2) + $res->[1];
@@ -207,7 +212,7 @@ sub run_tests {
     my ($index, $index_offsets);
     my $index_text = q{};
 
-$SIG{__WARN__}=sub{die};
+#$SIG{__WARN__}=sub{die};
 
     foreach my $i (1 .. 3) {
 

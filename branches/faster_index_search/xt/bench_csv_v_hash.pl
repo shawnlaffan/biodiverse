@@ -66,7 +66,7 @@ sub use_hash_cache {
     my $cache = {};
     my $csv_object = $bd->get_csv_object (
         quote_char => $bd->get_param ('QUOTES'),
-        sep_char => $bd->get_param ('JOIN_CHAR'),
+        sep_char   => $bd->get_param ('JOIN_CHAR'),
     );
     
     my $res = q{};

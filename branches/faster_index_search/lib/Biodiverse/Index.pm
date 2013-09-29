@@ -249,8 +249,18 @@ sub get_index_elements {
             ? @$offset
             : $self->csv2list (string => $offset, csv_object => $csv_object);
 
+        #  Comment out bounds checks as it the problem they adress
+        #  is not common enough to warrant the time cost.
+        #  Poss could have a separate branch for cases where index offsets will
+        #  result in extremely large list2csv caches.
+        #my $maxima = $self->get_param('MAXIMA');  
+        #my $minima = $self->get_param('MINIMA');
+
         foreach my $i ( 0 .. $#elements) {
+            #next if !$offsets[$i];
             $elements[$i] += $offsets[$i];
+            #return wantarray ? () : {}
+            #  if ($elements[$i] < $minima->[$i] || $elements[$i] > $maxima->[$i]);
         }
 
         #  cache the elements in a hash-tree - could use that approach for the index itself

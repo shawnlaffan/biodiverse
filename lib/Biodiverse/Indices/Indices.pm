@@ -421,7 +421,7 @@ sub get_metadata_calc_bray_curtis {
     my %arguments = (
         name            => 'Bray-Curtis non-metric',
         description     => "Bray-Curtis dissimilarity between two sets of labels.\n"
-                         . "Reduces to the Jaccard metric for binary data (where sample counts are 1 or 0).",
+                         . "Reduces to the Sorenson metric for binary data (where sample counts are 1 or 0).",
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         pre_calc        => 'calc_abc3',

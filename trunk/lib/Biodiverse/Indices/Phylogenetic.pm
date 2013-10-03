@@ -1885,11 +1885,11 @@ sub get_metadata_calc_phylo_aed_t {
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /_calc_phylo_aed_t/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
             PHYLO_AED_T => {
                 description  => $descr,
-                reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+                reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
         },
     );
@@ -1913,7 +1913,7 @@ sub get_metadata_calc_phylo_aed_t_wtlists {
         type            =>  'Phylogenetic Indices',
         pre_calc        => [qw /_calc_phylo_aed_t/],
         uses_nbr_lists  =>  1,
-        reference    => 'Cadotte & Davies (2010) dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
+        reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
         indices         => {
             PHYLO_AED_T_WTLIST => {
                 description  => 'Abundance weighted ED per terminal taxon '

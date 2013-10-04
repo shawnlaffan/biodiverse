@@ -201,6 +201,8 @@ sub delete_from_index {
     #  clear this index key if it is empty
     if (keys %{$self->{ELEMENTS}{$index_key}} == 0) {
         delete $self->{ELEMENTS}{$index_key};
+        #  and the cached tree if it exists
+        $self->delete_cached_values (keys => 'EL_LIST2CSV_CACHE');
     }
 
     return;    
@@ -254,7 +256,7 @@ sub get_index_elements {
             ? @$offset
             : $self->csv2list (string => $offset, csv_object => $csv_object);
 
-        #  Comment out bounds checks as it the problem they adress
+        #  Comment out bounds checks as the problem they adress
         #  is not common enough to warrant the time cost.
         #  Poss could have a separate branch for cases where index offsets will
         #  result in extremely large list2csv caches.

@@ -136,6 +136,11 @@ sub build {
     return;
 }
 
+sub get_element_count {
+    my $self = shift;
+    my $el_hash = $self->{ELEMENTS};
+    return scalar keys %$el_hash;
+}
 
 sub snap_to_index {
     my $self = shift;
@@ -264,14 +269,24 @@ sub get_index_elements {
         }
 
         #  cache the elements in a hash-tree - could use that approach for the index itself
+        my $index_element_count = $self->get_element_count;
         my $hashref = $self->get_cached_value ('EL_LIST2CSV_CACHE')
-          // do {my $x = {}; $self->set_cached_value (EL_LIST2CSV_CACHE => $x); $x};
+          // do {
+                my $x = {};
+                keys %$x = $index_element_count;  #  avoid some later rehashing
+                $self->set_cached_value (EL_LIST2CSV_CACHE => $x);
+                $x;
+            };
         my $prev_hashref;
 
         foreach my $col (@elements) {
             $prev_hashref = $hashref;
             $hashref = $hashref->{$col}
-              // do {$hashref->{$col} = {}};
+              // do {
+                    my $x = {};
+                    keys %$x = $index_element_count;
+                    $hashref->{$col} = $x;
+                };
         }
         if (reftype ($hashref)) {
             $element = $self->list2csv(list => \@elements, csv_object => $csv_object);

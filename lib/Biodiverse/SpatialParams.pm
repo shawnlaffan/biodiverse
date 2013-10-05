@@ -1649,7 +1649,7 @@ sub _sp_side {
     my $self = shift;
     my %args = @_;
 
-    my $axes = $args{axes} // [0,1];
+    my $axes = $args{axes};
     if ( defined $axes ) {
         croak "_sp_side:  axes arg is not an array ref\n"
             if ( ref $axes ) !~ /ARRAY/;
@@ -1657,6 +1657,9 @@ sub _sp_side {
         croak
           "_sp_side:  axes array needs two axes, you have given $axis_count\n"
           if $axis_count != 2;
+    }
+    else {
+        $axes = [0,1];
     }
 
     my $h = $self->get_param('CURRENT_ARGS');
@@ -1674,7 +1677,7 @@ sub _sp_side {
 
     #  set the default offset as east in radians
     my $vector_angle = $args{vector_angle};
-    if ( defined $args{vector_angle_deg} and not defined $args{vector_angle} ) {
+    if ( defined $args{vector_angle_deg} && !defined $args{vector_angle} ) {
         $vector_angle = deg2rad ( $args{vector_angle_deg} );
     }
     else {

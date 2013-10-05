@@ -13,7 +13,7 @@ use Biodiverse::TestHelpers qw /:basedata/;
 my $build_bd = 0;
 
 my $cell_sizes   = [50000, 50000];
-my $size = 100;
+my $size = 20;
 #my $bd = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
 my $bd;
 if ($build_bd) {
@@ -39,7 +39,7 @@ my $conditions   = ['sp_circle (radius => 200000)'];
 #$conditions   = ['$d[0] > -100000 && $d[0] < 100000', 'sp_circle (radius => 200000)'];
 my $calculations = [qw /calc_richness/];
 
-for my $i (1..1) {
+for my $i (1..5) {
     my $sp = $bd->add_spatial_output (name => $i);
     $sp->run_analysis (
         spatial_conditions => $conditions,

@@ -271,10 +271,11 @@ sub get_index_elements {
         }
 
         #  cache the elements in a hash-tree - could use that approach for the index itself
-        my $index_element_count = $self->get_element_count;
+        my $index_element_count;
         my $hashref = $self->get_cached_value ('EL_LIST2CSV_CACHE')
           // do {
                 my $x = {};
+                $index_element_count //= $self->get_element_count;
                 keys %$x = $index_element_count;  #  avoid some later rehashing
                 $self->set_cached_value (EL_LIST2CSV_CACHE => $x);
                 $x;
@@ -286,6 +287,7 @@ sub get_index_elements {
             $hashref = $hashref->{$col}
               // do {
                     my $x = {};
+                    $index_element_count //= $self->get_element_count;
                     keys %$x = $index_element_count;
                     $hashref->{$col} = $x;
                 };

@@ -244,17 +244,20 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
     return;
 }
 
-sub get_param { 
-    my $self = shift;
-    my $param = shift;
-    #if (! exists $self->{PARAMS}{$param}) {
-    #    carp "get_param WARNING: Parameter $param does not exist in $self.\n"
-    #        if $self->{PARAMS}{PARAM_CHANGE_WARN};
-    #    return;
-    #}
-
-    return if ! exists $self->{PARAMS}{$param};
-    return $self->{PARAMS}{$param};
+#  hot path, so needs to be lean and mean, even if less readable
+sub get_param {
+    return if ! exists $_[0]->{PARAMS}{$_[1]};
+    return $_[0]->{PARAMS}{$_[1]};
+    #my $self = shift;
+    #my $param = shift;
+    ##if (! exists $self->{PARAMS}{$param}) {
+    ##    carp "get_param WARNING: Parameter $param does not exist in $self.\n"
+    ##        if $self->{PARAMS}{PARAM_CHANGE_WARN};
+    ##    return;
+    ##}
+    #
+    #return if ! exists $self->{PARAMS}{$param};
+    #return $self->{PARAMS}{$param};
 }
 
 #  sometimes we want a reference to the parameter to allow direct manipulation.
@@ -468,16 +471,21 @@ sub set_cached_value {
     my $self = shift;
     my %args = @_;
     @{$self->{_cache}}{keys %args} = values %args;
-    
+
     return;
 }
 
+#  hot path, so needs to be lean and mean, even if less readable
 sub get_cached_value {
-    my $self = shift;
-    my $key = shift;
-    return if ! exists $self->{_cache};
-    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
-    return;
+    return if ! exists $_[0]->{_cache}{$_[1]};
+    return $_[0]->{_cache}{$_[1]};
+#    my $self = shift;
+#    my $key = shift;
+##    return if ! exists $self->{_cache};
+##    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
+##    return;
+#    return if ! exists $self->{_cache}{$key};
+#    return $self->{_cache}{$key};
 }
 
 sub get_cached_value_keys {
@@ -507,7 +515,7 @@ sub delete_cached_values {
     #warn "Cache deletion problem\n$EVAL_ERROR\n"
     #  if $EVAL_ERROR;
 
-    warn "XXXXXXX "  . $self -> get_name . "\n" if exists $self->{_cache};
+    #warn "XXXXXXX "  . $self->get_name . "\n" if exists $self->{_cache};
 
     return;
 }
@@ -1065,7 +1073,9 @@ sub list2csv {  #  return a csv string from a list of values
     );
 
     my $csvLine = $args{csv_object};
-    if (not defined $csvLine or (blessed $csvLine) !~ /Text::CSV_XS/) {
+    if (!defined $csvLine
+        #or (blessed $csvLine) !~ /Text::CSV_XS/
+        ) {
         $csvLine = $self->get_csv_object (@_);
     }
 
@@ -1532,7 +1542,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $maxima      = $args{maxima};
     my $resolutions = $args{resolutions};
     my $precision   = $args{precision} || [("%.10f") x scalar @$minima];
-    my $sep_char    = $args{sep_char} || $self -> get_param('JOIN_CHAR');
+    my $sep_char    = $args{sep_char} || $self->get_param('JOIN_CHAR');
 
     #  need to add rule to cope with zero resolution
 

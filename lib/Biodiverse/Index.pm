@@ -136,6 +136,11 @@ sub build {
     return;
 }
 
+sub get_element_count {
+    my $self = shift;
+    my $el_hash = $self->{ELEMENTS};
+    return scalar keys %$el_hash;
+}
 
 sub snap_to_index {
     my $self = shift;
@@ -196,6 +201,8 @@ sub delete_from_index {
     #  clear this index key if it is empty
     if (keys %{$self->{ELEMENTS}{$index_key}} == 0) {
         delete $self->{ELEMENTS}{$index_key};
+        #  and the cached tree if it exists
+        $self->delete_cached_values (keys => 'EL_LIST2CSV_CACHE');
     }
 
     return;    
@@ -219,10 +226,8 @@ sub get_index_elements {
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element};
-
-    croak "Argument 'element' not defined in call to get_index_elements\n"
-      if ! defined $element;
+    my $element = $args{element}
+      // croak "Argument 'element' not defined in call to get_index_elements\n";
 
     my $offset = $args{offset};
 
@@ -240,8 +245,8 @@ sub get_index_elements {
             $self->set_cached_value (CSV_OBJECT => $csv_object);
         }
 
-        my $reftype_el = reftype $element // q{};
-        my $reftype_of = reftype $offset  // q{};
+        my $reftype_el = reftype ($element) // q{};
+        my $reftype_of = reftype ($offset)  // q{};
 
         my @elements = ($reftype_el eq 'ARRAY')  #  is it an array already?
             ? @$element
@@ -251,19 +256,56 @@ sub get_index_elements {
             ? @$offset
             : $self->csv2list (string => $offset, csv_object => $csv_object);
 
+        #  Comment out bounds checks as the problem they adress
+        #  is not common enough to warrant the time cost.
+        #  Poss could have a separate branch for cases where index offsets will
+        #  result in extremely large list2csv caches.
+        #my $maxima = $self->get_param('MAXIMA');  
+        #my $minima = $self->get_param('MINIMA');
+
         foreach my $i ( 0 .. $#elements) {
+            #next if !$offsets[$i];
             $elements[$i] += $offsets[$i];
+            #return wantarray ? () : {}
+            #  if ($elements[$i] < $minima->[$i] || $elements[$i] > $maxima->[$i]);
         }
 
-        $element = $self->list2csv(list => \@elements, csv_object => $csv_object);
+        #  cache the elements in a hash-tree - could use that approach for the index itself
+        my $index_element_count;
+        my $hashref = $self->get_cached_value ('EL_LIST2CSV_CACHE')
+          // do {
+                my $x = {};
+                $index_element_count //= $self->get_element_count;
+                keys %$x = $index_element_count;  #  avoid some later rehashing
+                $self->set_cached_value (EL_LIST2CSV_CACHE => $x);
+                $x;
+            };
+        my $prev_hashref;
+
+        foreach my $col (@elements) {
+            $prev_hashref = $hashref;
+            $hashref = $hashref->{$col}
+              // do {
+                    my $x = {};
+                    $index_element_count //= $self->get_element_count;
+                    keys %$x = $index_element_count;
+                    $hashref->{$col} = $x;
+                };
+        }
+        if (reftype ($hashref)) {
+            $element = $self->list2csv(list => \@elements, csv_object => $csv_object);
+            $prev_hashref->{$elements[-1]} = $element;
+        }
+        else {
+            $element  = $prev_hashref->{$elements[-1]};
+        }
     }
 
     return wantarray ? () : {}  #  check this after any offset is applied
       if !$self->element_exists (element => $element);
 
-    return wantarray
-        ? %{$self->{ELEMENTS}{$element}}
-        :   $self->{ELEMENTS}{$element};
+    my $elref = $self->{ELEMENTS}{$element};
+    return wantarray ? %$elref : $elref;
 }
 
 sub get_index_elements_as_array {
@@ -361,11 +403,12 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my $subset_dist       = $args{index_search_dist};
     #  insert a shortcut for no neighbours
     if ($spatial_params->get_result_type eq 'self_only') {
+        my $off_array = [(0) x scalar @$index_resolutions];  #  all zeroes
         my $offsets = $self->list2csv (
-            list       => [0 x scalar @$index_resolutions],  #  all zeroes
+            list       => $off_array,
             csv_object => $csv_object,
         );
-        my %valid_offsets = ($offsets => $offsets);
+        my %valid_offsets = ($offsets => $off_array);
         print "Done (and what's more I cheated)\n";
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
@@ -385,14 +428,19 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             # minima will be the negated max, so we can get ranges like -2..2.
             $min_off->[$i] = -1 * $max_off->[$i];
         }
+        my $sep_char = $args{sep_char} || $self->get_param('JOIN_CHAR');
         my $offsets = $self->get_poss_elements (
             minima      => $min_off,
             maxima      => $max_off,
             resolutions => $index_resolutions,
             precision   => \@index_res_precision,
+            sep_char    => $sep_char,
         );
         my %offsets;
-        @offsets{@$offsets} = @$offsets;
+        foreach my $offset (@$offsets) {
+            $offsets{$offset} = [split $sep_char, $offset];
+        }
+        #@offsets{@$offsets} = @$offsets;
         return wantarray ? %offsets : \%offsets;
     }
 
@@ -531,10 +579,10 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 #  get the correct offset (we are assessing the corners of the one we want)
                 # need to snap to precision of the original index
                 # or we get floating point difference problems
-                my @list;
+                my @offset_list;
                 foreach my $i (0 .. $#$extreme_ref) {
                     #push @list, sprintf ($index_res_precision[$i], $element_ref->[$i] - $extreme_ref->[$i]) + 0;
-                    push @list,
+                    push @offset_list,
                         0
                         + $self->set_precision (
                             precision => $index_res_precision[$i],
@@ -542,7 +590,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                         );
                 }
                 my $offsets = $self->list2csv (
-                    list        => \@list,
+                    list        => \@offset_list,
                     csv_object  => $csv_object,
                 );
 
@@ -563,7 +611,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                         cellsizes    => $cellsizes,
                     );
 
-                $valid_index_offsets{$offsets}++;
+                $valid_index_offsets{$offsets} = \@offset_list;
             }  #  :COMPARE
         }
     }

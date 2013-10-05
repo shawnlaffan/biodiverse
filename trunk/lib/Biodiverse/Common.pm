@@ -4,6 +4,8 @@ package Biodiverse::Common;
 
 use strict;
 use warnings;
+use 5.010;
+
 use Carp;
 use English ( -no_match_vars );
 
@@ -1729,7 +1731,7 @@ sub initialise_rand {
     my $state = $self->get_param ('RAND_LAST_STATE')
                 || $args{state};
 
-    warn "[COMMON] Ignoring PRNG seed argument ($seed) because the PRNG state is defined\n"
+    say "[COMMON] Ignoring PRNG seed argument ($seed) because the PRNG state is defined"
         if defined $seed and defined $state;
 
     #  don't already have one, generate a new object using seed and/or state params.

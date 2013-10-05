@@ -21,7 +21,7 @@ use strict;
 use warnings;
 use Carp;
 use English qw / -no_match_vars /;
-use POSIX qw /fmod ceil/;
+use POSIX qw /fmod ceil floor/;
 use Scalar::Util qw /blessed reftype/;
 
 use Biodiverse::Progress;
@@ -49,6 +49,8 @@ sub new {
     );
     $self->set_cached_value (CSV_OBJECT => $csv_object);
 
+    $self->{VERSION} = $args{version} // $VERSION;
+    
     $self->build (@_);
 
     return $self;
@@ -115,18 +117,8 @@ sub build {
     }    
     
     #  and finally we calculate the minima and maxima for each index axis
-    #  a value of undef indicates no indexing
-    my (@minima, @maxima);
-    foreach my $i (0 .. $#resolutions) {
-        if ($resolutions[$i] > 0) {
-            push (@minima, $bounds{min}[$i] - fmod ($bounds{min}[$i], $resolutions[$i]));
-            push (@maxima, $bounds{max}[$i] - fmod ($bounds{max}[$i], $resolutions[$i]));
-        }
-        else {
-            push (@minima, 0);
-            push (@maxima, 0);
-        }
-    }
+    my @minima = $self->snap_to_index (element_array => $bounds{min}, as_array => 1);
+    my @maxima = $self->snap_to_index (element_array => $bounds{max}, as_array => 1);
 
     $self->set_param(MAXIMA => \@maxima);
     $self->set_param(MINIMA => \@minima);
@@ -145,23 +137,43 @@ sub get_element_count {
 sub snap_to_index {
     my $self = shift;
     my %args = @_;
-    my $element_array = $args{element_array} || croak "element_array not specified\n";
-    (ref ($element_array)) =~ /ARRAY/ || croak "element_array is not an array ref\n";
+    my $element_array = $args{element_array}
+      || croak "element_array not specified\n";
 
-    my @columns = @$element_array;
+    croak "element_array is not an array ref\n"
+      if ! ref ($element_array) =~ /ARRAY/;
+
+    my @columns   = @$element_array;
     my @index_res = @{$self->get_param('RESOLUTIONS')};
 
     my @index;
     foreach my $i (0 .. $#columns) {
-        my $indexValue = 0;
-        if ($index_res[$i] > 0) {  #  should update to avoid fmod
-            $indexValue = $columns[$i] - fmod ($columns[$i], $index_res[$i]);
-            $indexValue += $index_res[$i] if $columns[$i] < 0;
+        my $index_value = 0;
+        if ($index_res[$i] > 0) {
+            if ($self->{VERSION}) {
+                #  how many cells away from the origin are we?
+                #  snap to 10dp precision to avoid floating point precision issues
+                my $tmp_prec = $self->set_precision(
+                    value     => $columns[$i] / $index_res[$i],
+                    precision => '%.10f',
+                );
+                my $offset = floor ($tmp_prec);
+                #  and shift back to index units
+                $index_value = $offset * $index_res[$i];
+            }
+            #  Old version used fmod.
+            #  Buggy but need to support for now since such data sets still exist.
+            else {
+                $index_value = $columns[$i] - fmod ($columns[$i], $index_res[$i]);
+                if ($columns[$i] < 0) {
+                    $index_value += $index_res[$i];
+                }
+            }
         }
         else {
-            $indexValue = 0;
+            $index_value = 0;
         }
-        push @index, $indexValue;
+        push @index, $index_value;
     }
 
     if ($args{as_array}) {

@@ -196,6 +196,7 @@ sub test_res_pairs {
                 basedata   => $bd,
                 element    => $element,
                 conditions => $conditions,
+                index_version => undef,  #  this arg is for debug
             );
         }
     }
@@ -207,6 +208,7 @@ sub run_tests {
     my $bd      = $args{basedata};
     my $element = $args{element};
     my $conditions = $args{conditions};
+    my $index_version = $args{index_version};
 
     my $res = $bd->get_param('CELL_SIZES');
     my ($index, $index_offsets);
@@ -260,7 +262,7 @@ sub run_tests {
         foreach my $r (@$res) {
             push @index_res, $r * $i;
         }
-        $index = $bd->build_spatial_index (resolutions => [@index_res]);
+        $index = $bd->build_spatial_index (resolutions => [@index_res], version => $index_version);
         $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
     }
 

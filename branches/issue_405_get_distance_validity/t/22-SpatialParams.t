@@ -94,10 +94,10 @@ my @res_pairs = (
         min_x => 1,
     },
     ##  now try for negative coords
-    {
-        res =>   [10, 10],
-        min_x => -30,
-    },
+    #{
+    #    res =>   [10, 10],
+    #    min_x => -30,
+    #},
     ##  now try for a mix of +ve and -ve coords
     {
         res =>   [10, 10],

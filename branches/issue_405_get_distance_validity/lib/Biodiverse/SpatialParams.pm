@@ -580,18 +580,17 @@ sub get_distances {
         @cellsize = @$cellsizes;
     }
 
-    my $params = $self->get_param('USES');
+    my $params    = $self->get_param('USES');
+    my $verifying = $self->get_param('VERIFYING');
 
     my ( @d, $sumDsqr, @D );
     my ( @c, $sumCsqr, @C );
     my @iters;
 
-#if ((not $params->{use_euc_distance}) and (not $params->{use_cell_distance})) {
     if (not(   $params->{use_euc_distance}
             or $params->{use_cell_distance} )
         )
     {
-
         # don't need all dists, so only calculate the distances we need,
         # as determined when parsing the spatial params
         my %all_distances = (
@@ -617,14 +616,14 @@ sub get_distances {
             'coord1 value is not numeric (if you think it is numeric then check your locale): '
             . ( defined $coord1 ? $coord1 : 'undef' )
             . "\n"
-            if !looks_like_number($coord1);
+            if $verifying && !looks_like_number($coord1);
 
         my $coord2 = $element2[$i];
         croak
             'coord2 value is not numeric (if you think it is numeric then check your locale): '
             . ( defined $coord2 ? $coord2 : 'undef' )
             . "\n"
-            if !looks_like_number($coord2);
+            if $verifying && !looks_like_number($coord2);
 
         $d[$i] =
             eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
@@ -638,7 +637,7 @@ sub get_distances {
         {
 
             croak "Cannot use cell distances with cellsize of $cellsize[$i]\n"
-                if $cellsize[$i] <= 0;
+                if $verifying && $cellsize[$i] <= 0;
 
             $c[$i] = eval { $d[$i] / $cellsize[$i] };
             $C[$i] = eval { abs $c[$i] };
@@ -662,11 +661,6 @@ sub get_distances {
             value     => sqrt($sumCsqr),
         )
         : undef;
-
-    #  and now trim off any extraneous zeroes after the decimal point
-    #  ...now handled by the 0+ on conversion
-    #$D += 0 if defined $D;
-    #$C += 0 if defined $C;
 
     my %hash = (
         d_list => \@d,
@@ -1650,7 +1644,7 @@ sub _sp_side {
     my %args = @_;
 
     my $axes = $args{axes};
-    if ( defined $axes ) {
+    if ( defined $axes && $self->get_param('VERIFYING')) {
         croak "_sp_side:  axes arg is not an array ref\n"
             if ( ref $axes ) !~ /ARRAY/;
         my $axis_count = scalar @$axes;
@@ -1664,8 +1658,7 @@ sub _sp_side {
 
     my $h = $self->get_param('CURRENT_ARGS');
 
-    #  PadWalker gives hashrefs of scalar refs,
-    #  so need to de-ref to get the value
+    #  need to de-ref to get the value
     my @coord     = @{ $h->{coord_array} };
     my @nbr_coord = @{ $h->{nbrcoord_array} };
 

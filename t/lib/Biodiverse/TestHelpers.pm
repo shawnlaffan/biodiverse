@@ -627,7 +627,7 @@ sub run_indices_test1 {
     delete $args{callbacks};
 
     # Used for acquiring sample results
-    my $generate_result_sets = $args{generate_result_sets};
+    my $generate_result_sets = get_indices_result_set_fh ($args{generate_result_sets});
 
     my $element_list1 = $args{element_list1} || ['3350000:850000'];
     my $element_list2
@@ -768,17 +768,6 @@ sub run_indices_test1 {
             %results = run_indices_test1_inner (%indices_args);
         }
 
-        # Used for acquiring sample results
-        if ($generate_result_sets) {
-            use Data::Dumper;
-            local $Data::Dumper::Purity   = 1;
-            local $Data::Dumper::Terse    = 1;
-            local $Data::Dumper::Sortkeys = 1;
-            say '#' x 20;
-            say Dumper(\%results);
-            say '#' x 20;
-        }
-
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
         my $expected = eval $dss->get_data_section(
@@ -799,7 +788,31 @@ sub run_indices_test1 {
                 sort_array_lists => $sort_array_lists,
             );
         };
+
+        # Used for acquiring sample results
+        if ($generate_result_sets) {
+            use Data::Dumper;
+            local $Data::Dumper::Purity   = 1;
+            local $Data::Dumper::Terse    = 1;
+            local $Data::Dumper::Sortkeys = 1;
+            #say '#' x 20;
+            say {$generate_result_sets} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
+            say {$generate_result_sets} Dumper(\%results);
+            print {$generate_result_sets} "\n";
+            #say '#' x 20;
+        }
     }
+}
+
+#  put the results sets into a file
+#  returns null if not needed
+sub get_indices_result_set_fh {
+    return if !shift;
+    
+    my $file_name = $0 . '.results';
+    open(my $fh, '>', $file_name) or die "Unable to open $file_name to write results sets to";
+    
+    return $fh;
 }
 
 sub run_indices_test1_inner {

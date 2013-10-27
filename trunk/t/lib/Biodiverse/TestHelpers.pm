@@ -788,19 +788,9 @@ sub run_indices_test1 {
                 sort_array_lists => $sort_array_lists,
             );
         };
+        
+        print_indices_result_set ($generate_result_sets, \%results, $nbr_list_count);
 
-        # Used for acquiring sample results
-        if ($generate_result_sets) {
-            use Data::Dumper;
-            local $Data::Dumper::Purity   = 1;
-            local $Data::Dumper::Terse    = 1;
-            local $Data::Dumper::Sortkeys = 1;
-            #say '#' x 20;
-            say {$generate_result_sets} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
-            say {$generate_result_sets} Dumper(\%results);
-            print {$generate_result_sets} "\n";
-            #say '#' x 20;
-        }
     }
 }
 
@@ -813,6 +803,49 @@ sub get_indices_result_set_fh {
     open(my $fh, '>', $file_name) or die "Unable to open $file_name to write results sets to";
     
     return $fh;
+}
+
+
+# Used for acquiring indices results
+sub print_indices_result_set {
+    my ($fh, $results_hash, $nbr_list_count) = @_;
+
+    return if !$fh;
+
+    use Perl::Tidy;
+    use Data::Dumper;
+
+    local $Data::Dumper::Purity    = 1;
+    local $Data::Dumper::Terse     = 1;
+    local $Data::Dumper::Sortkeys  = 1;
+    local $Data::Dumper::Indent    = 1;
+    local $Data::Dumper::Quotekeys = 0;
+    #say '#' x 20;
+
+    my $source_string = Dumper($results_hash);
+    my $dest_string;
+    my $stderr_string;
+    my $errorfile_string;
+    my $argv = "-npro";   # Ignore any .perltidyrc at this site
+    $argv .= " -pbp";     # Format according to perl best practices
+    $argv .= " -nst";     # Must turn off -st in case -pbp is specified
+    $argv .= " -se";      # -se appends the errorfile to stderr
+
+    my $error = Perl::Tidy::perltidy(
+        argv        => $argv,
+        source      => \$source_string,
+        destination => \$dest_string,
+        stderr      => \$stderr_string,
+        errorfile   => \$errorfile_string,    # ignored when -se flag is set
+        ##phasers   => 'stun',                # uncomment to trigger an error
+    );
+
+    say {$fh} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
+    say {$fh} $dest_string;
+    print {$fh} "\n";
+    #say '#' x 20;
+
+    return;   
 }
 
 sub run_indices_test1_inner {

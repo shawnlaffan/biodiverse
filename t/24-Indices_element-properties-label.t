@@ -19,9 +19,11 @@ run_indices_test1 (
         calc_lbprop_hashes
         calc_lbprop_quantiles
         calc_lbprop_stats
+        calc_lbprop_lists
     /],
     use_element_properties => 'label',
-    sort_array_lists   => 1,
+    sort_array_lists       => 1,
+    #generate_result_sets   => 1,
 );
 
 done_testing;
@@ -38,6 +40,70 @@ __DATA__
                             'LBPROP3' => '2.30649714125927',
                             'LBPROP4' => '2.30649714125927'
                           },
+  'LBPROP_LIST_LBPROP1' => {
+                             'Genus:sp1' => '0.640625',
+                             'Genus:sp10' => '0.816993464052288',
+                             'Genus:sp11' => '0.850609756097561',
+                             'Genus:sp12' => '0.80794701986755',
+                             'Genus:sp15' => '0.722222222222222',
+                             'Genus:sp20' => '0.709677419354839',
+                             'Genus:sp23' => '0.85632183908046',
+                             'Genus:sp24' => '0.782608695652174',
+                             'Genus:sp25' => '0.666666666666667',
+                             'Genus:sp26' => '0.571428571428571',
+                             'Genus:sp27' => '0.861111111111111',
+                             'Genus:sp29' => '0.773584905660377',
+                             'Genus:sp30' => '0.796116504854369',
+                             'Genus:sp5' => '0.736842105263158'
+                           },
+  'LBPROP_LIST_LBPROP2' => {
+                             'Genus:sp1' => '0.640625',
+                             'Genus:sp10' => '0.816993464052288',
+                             'Genus:sp11' => '0.850609756097561',
+                             'Genus:sp12' => '0.80794701986755',
+                             'Genus:sp15' => '0.722222222222222',
+                             'Genus:sp20' => '0.709677419354839',
+                             'Genus:sp23' => '0.85632183908046',
+                             'Genus:sp24' => '0.782608695652174',
+                             'Genus:sp25' => '0.666666666666667',
+                             'Genus:sp26' => '0.571428571428571',
+                             'Genus:sp27' => '0.861111111111111',
+                             'Genus:sp29' => '0.773584905660377',
+                             'Genus:sp30' => '0.796116504854369',
+                             'Genus:sp5' => '0.736842105263158'
+                           },
+  'LBPROP_LIST_LBPROP3' => {
+                             'Genus:sp1' => '23',
+                             'Genus:sp10' => '28',
+                             'Genus:sp11' => '49',
+                             'Genus:sp12' => '29',
+                             'Genus:sp15' => '15',
+                             'Genus:sp20' => '9',
+                             'Genus:sp23' => '25',
+                             'Genus:sp24' => '5',
+                             'Genus:sp25' => '3',
+                             'Genus:sp26' => '3',
+                             'Genus:sp27' => '5',
+                             'Genus:sp29' => '12',
+                             'Genus:sp30' => '21',
+                             'Genus:sp5' => '10'
+                           },
+  'LBPROP_LIST_LBPROP4' => {
+                             'Genus:sp1' => '23',
+                             'Genus:sp10' => '28',
+                             'Genus:sp11' => '49',
+                             'Genus:sp12' => '29',
+                             'Genus:sp15' => '15',
+                             'Genus:sp20' => '9',
+                             'Genus:sp23' => '25',
+                             'Genus:sp24' => '5',
+                             'Genus:sp25' => '3',
+                             'Genus:sp26' => '3',
+                             'Genus:sp27' => '5',
+                             'Genus:sp29' => '12',
+                             'Genus:sp30' => '21',
+                             'Genus:sp5' => '10'
+                           },
   'LBPROP_QUANTILES' => {
                           'LBPROP1_Q05' => '0.640625',
                           'LBPROP1_Q10' => '0.640625',
@@ -85,46 +151,46 @@ __DATA__
                           'LBPROP4_Q95' => 29
                         },
   'LBPROP_STATS' => {
-                      'LBPROP1_COUNT'    => 14,
-                      'LBPROP1_IQR'      => '0.107316044697449',
-                      'LBPROP1_KURTOSIS' => '-0.084467686388916',
-                      'LBPROP1_MAX'      => '0.861111111111111',
-                      'LBPROP1_MEAN'     => '0.756625377236525',
-                      'LBPROP1_MEDIAN'   => '0.778096800656275',
-                      'LBPROP1_MIN'      => '0.571428571428571',
-                      'LBPROP1_SD'       => '0.0868756054758619',
+                      'LBPROP1_COUNT' => 14,
+                      'LBPROP1_IQR' => '0.107316044697449',
+                      'LBPROP1_KURTOSIS' => '-0.0844676863889156',
+                      'LBPROP1_MAX' => '0.861111111111111',
+                      'LBPROP1_MEAN' => '0.756625377236525',
+                      'LBPROP1_MEDIAN' => '0.778096800656275',
+                      'LBPROP1_MIN' => '0.571428571428571',
+                      'LBPROP1_SD' => '0.0868756054758619',
                       'LBPROP1_SKEWNESS' => '-0.737968413124927',
-                      'LBPROP1_SUM'      => '10.5927552813113',
-                      'LBPROP2_COUNT'    => 14,
-                      'LBPROP2_IQR'      => '0.107316044697449',
-                      'LBPROP2_KURTOSIS' => '-0.084467686388916',
-                      'LBPROP2_MAX'      => '0.861111111111111',
-                      'LBPROP2_MEAN'     => '0.756625377236525',
-                      'LBPROP2_MEDIAN'   => '0.778096800656275',
-                      'LBPROP2_MIN'      => '0.571428571428571',
-                      'LBPROP2_SD'       => '0.0868756054758619',
+                      'LBPROP1_SUM' => '10.5927552813113',
+                      'LBPROP2_COUNT' => 14,
+                      'LBPROP2_IQR' => '0.107316044697449',
+                      'LBPROP2_KURTOSIS' => '-0.0844676863889156',
+                      'LBPROP2_MAX' => '0.861111111111111',
+                      'LBPROP2_MEAN' => '0.756625377236525',
+                      'LBPROP2_MEDIAN' => '0.778096800656275',
+                      'LBPROP2_MIN' => '0.571428571428571',
+                      'LBPROP2_SD' => '0.0868756054758619',
                       'LBPROP2_SKEWNESS' => '-0.737968413124927',
-                      'LBPROP2_SUM'      => '10.5927552813113',
-                      'LBPROP3_COUNT'    => 14,
-                      'LBPROP3_IQR'      => 20,
+                      'LBPROP2_SUM' => '10.5927552813113',
+                      'LBPROP3_COUNT' => 14,
+                      'LBPROP3_IQR' => 20,
                       'LBPROP3_KURTOSIS' => '1.25837080448576',
-                      'LBPROP3_MAX'      => 49,
-                      'LBPROP3_MEAN'     => '16.9285714285714',
-                      'LBPROP3_MEDIAN'   => '13.5',
-                      'LBPROP3_MIN'      => 3,
-                      'LBPROP3_SD'       => '13.088246551857',
+                      'LBPROP3_MAX' => 49,
+                      'LBPROP3_MEAN' => '16.9285714285714',
+                      'LBPROP3_MEDIAN' => '13.5',
+                      'LBPROP3_MIN' => 3,
+                      'LBPROP3_SD' => '13.088246551857',
                       'LBPROP3_SKEWNESS' => '1.08731660256672',
-                      'LBPROP3_SUM'      => 237,
-                      'LBPROP4_COUNT'    => 14,
-                      'LBPROP4_IQR'      => 20,
+                      'LBPROP3_SUM' => 237,
+                      'LBPROP4_COUNT' => 14,
+                      'LBPROP4_IQR' => 20,
                       'LBPROP4_KURTOSIS' => '1.25837080448576',
-                      'LBPROP4_MAX'      => 49,
-                      'LBPROP4_MEAN'     => '16.9285714285714',
-                      'LBPROP4_MEDIAN'   => '13.5',
-                      'LBPROP4_MIN'      => 3,
-                      'LBPROP4_SD'       => '13.088246551857',
+                      'LBPROP4_MAX' => 49,
+                      'LBPROP4_MEAN' => '16.9285714285714',
+                      'LBPROP4_MEDIAN' => '13.5',
+                      'LBPROP4_MIN' => 3,
+                      'LBPROP4_SD' => '13.088246551857',
                       'LBPROP4_SKEWNESS' => '1.08731660256672',
-                      'LBPROP4_SUM'      => 237
+                      'LBPROP4_SUM' => 237
                     },
   'LBPROP_STATS_LBPROP1_DATA' => [
                                    '0.861111111111111',
@@ -144,7 +210,7 @@ __DATA__
                                  ],
   'LBPROP_STATS_LBPROP1_HASH' => {
                                    '0.571428571428571' => 1,
-                                   '0.640625'          => 1,
+                                   '0.640625' => 1,
                                    '0.666666666666667' => 1,
                                    '0.709677419354839' => 1,
                                    '0.722222222222222' => 1,
@@ -152,10 +218,10 @@ __DATA__
                                    '0.773584905660377' => 1,
                                    '0.782608695652174' => 1,
                                    '0.796116504854369' => 1,
-                                   '0.80794701986755'  => 1,
+                                   '0.80794701986755' => 1,
                                    '0.816993464052288' => 1,
                                    '0.850609756097561' => 1,
-                                   '0.85632183908046'  => 1,
+                                   '0.85632183908046' => 1,
                                    '0.861111111111111' => 1
                                  },
   'LBPROP_STATS_LBPROP2_DATA' => [
@@ -176,7 +242,7 @@ __DATA__
                                  ],
   'LBPROP_STATS_LBPROP2_HASH' => {
                                    '0.571428571428571' => 1,
-                                   '0.640625'          => 1,
+                                   '0.640625' => 1,
                                    '0.666666666666667' => 1,
                                    '0.709677419354839' => 1,
                                    '0.722222222222222' => 1,
@@ -184,10 +250,10 @@ __DATA__
                                    '0.773584905660377' => 1,
                                    '0.782608695652174' => 1,
                                    '0.796116504854369' => 1,
-                                   '0.80794701986755'  => 1,
+                                   '0.80794701986755' => 1,
                                    '0.816993464052288' => 1,
                                    '0.850609756097561' => 1,
-                                   '0.85632183908046'  => 1,
+                                   '0.85632183908046' => 1,
                                    '0.861111111111111' => 1
                                  },
   'LBPROP_STATS_LBPROP3_DATA' => [
@@ -215,10 +281,10 @@ __DATA__
                                    '25' => 1,
                                    '28' => 1,
                                    '29' => 1,
-                                   '3'  => 2,
+                                   '3' => 2,
                                    '49' => 1,
-                                   '5'  => 2,
-                                   '9'  => 1
+                                   '5' => 2,
+                                   '9' => 1
                                  },
   'LBPROP_STATS_LBPROP4_DATA' => [
                                    5,
@@ -245,12 +311,13 @@ __DATA__
                                    '25' => 1,
                                    '28' => 1,
                                    '29' => 1,
-                                   '3'  => 2,
+                                   '3' => 2,
                                    '49' => 1,
-                                   '5'  => 2,
-                                   '9'  => 1
+                                   '5' => 2,
+                                   '9' => 1
                                  }
 }
+
 
 @@ RESULTS_1_NBR_LISTS
 {
@@ -260,6 +327,22 @@ __DATA__
                             'LBPROP3' => '-0.747729379232734',
                             'LBPROP4' => '-0.747729379232734'
                           },
+  'LBPROP_LIST_LBPROP1' => {
+                             'Genus:sp20' => '0.709677419354839',
+                             'Genus:sp26' => '0.571428571428571'
+                           },
+  'LBPROP_LIST_LBPROP2' => {
+                             'Genus:sp20' => '0.709677419354839',
+                             'Genus:sp26' => '0.571428571428571'
+                           },
+  'LBPROP_LIST_LBPROP3' => {
+                             'Genus:sp20' => '9',
+                             'Genus:sp26' => '3'
+                           },
+  'LBPROP_LIST_LBPROP4' => {
+                             'Genus:sp20' => '9',
+                             'Genus:sp26' => '3'
+                           },
   'LBPROP_QUANTILES' => {
                           'LBPROP1_Q05' => '0.571428571428571',
                           'LBPROP1_Q10' => '0.571428571428571',
@@ -307,46 +390,46 @@ __DATA__
                           'LBPROP4_Q95' => 9
                         },
   'LBPROP_STATS' => {
-                      'LBPROP1_COUNT'    => 2,
-                      'LBPROP1_IQR'      => '0.138248847926268',
+                      'LBPROP1_COUNT' => 2,
+                      'LBPROP1_IQR' => '0.138248847926268',
                       'LBPROP1_KURTOSIS' => undef,
-                      'LBPROP1_MAX'      => '0.709677419354839',
-                      'LBPROP1_MEAN'     => '0.640552995391705',
-                      'LBPROP1_MEDIAN'   => '0.640552995391705',
-                      'LBPROP1_MIN'      => '0.571428571428571',
-                      'LBPROP1_SD'       => '0.0977566978598919',
+                      'LBPROP1_MAX' => '0.709677419354839',
+                      'LBPROP1_MEAN' => '0.640552995391705',
+                      'LBPROP1_MEDIAN' => '0.640552995391705',
+                      'LBPROP1_MIN' => '0.571428571428571',
+                      'LBPROP1_SD' => '0.0977566978598919',
                       'LBPROP1_SKEWNESS' => undef,
-                      'LBPROP1_SUM'      => '1.28110599078341',
-                      'LBPROP2_COUNT'    => 2,
-                      'LBPROP2_IQR'      => '0.138248847926268',
+                      'LBPROP1_SUM' => '1.28110599078341',
+                      'LBPROP2_COUNT' => 2,
+                      'LBPROP2_IQR' => '0.138248847926268',
                       'LBPROP2_KURTOSIS' => undef,
-                      'LBPROP2_MAX'      => '0.709677419354839',
-                      'LBPROP2_MEAN'     => '0.640552995391705',
-                      'LBPROP2_MEDIAN'   => '0.640552995391705',
-                      'LBPROP2_MIN'      => '0.571428571428571',
-                      'LBPROP2_SD'       => '0.0977566978598919',
+                      'LBPROP2_MAX' => '0.709677419354839',
+                      'LBPROP2_MEAN' => '0.640552995391705',
+                      'LBPROP2_MEDIAN' => '0.640552995391705',
+                      'LBPROP2_MIN' => '0.571428571428571',
+                      'LBPROP2_SD' => '0.0977566978598919',
                       'LBPROP2_SKEWNESS' => undef,
-                      'LBPROP2_SUM'      => '1.28110599078341',
-                      'LBPROP3_COUNT'    => 2,
-                      'LBPROP3_IQR'      => 6,
+                      'LBPROP2_SUM' => '1.28110599078341',
+                      'LBPROP3_COUNT' => 2,
+                      'LBPROP3_IQR' => 6,
                       'LBPROP3_KURTOSIS' => undef,
-                      'LBPROP3_MAX'      => 9,
-                      'LBPROP3_MEAN'     => '6',
-                      'LBPROP3_MEDIAN'   => '6',
-                      'LBPROP3_MIN'      => 3,
-                      'LBPROP3_SD'       => '4.24264068711928',
+                      'LBPROP3_MAX' => 9,
+                      'LBPROP3_MEAN' => '6',
+                      'LBPROP3_MEDIAN' => '6',
+                      'LBPROP3_MIN' => '3',
+                      'LBPROP3_SD' => '4.24264068711928',
                       'LBPROP3_SKEWNESS' => undef,
-                      'LBPROP3_SUM'      => 12,
-                      'LBPROP4_COUNT'    => 2,
-                      'LBPROP4_IQR'      => 6,
+                      'LBPROP3_SUM' => 12,
+                      'LBPROP4_COUNT' => 2,
+                      'LBPROP4_IQR' => 6,
                       'LBPROP4_KURTOSIS' => undef,
-                      'LBPROP4_MAX'      => 9,
-                      'LBPROP4_MEAN'     => '6',
-                      'LBPROP4_MEDIAN'   => '6',
-                      'LBPROP4_MIN'      => 3,
-                      'LBPROP4_SD'       => '4.24264068711928',
+                      'LBPROP4_MAX' => 9,
+                      'LBPROP4_MEAN' => '6',
+                      'LBPROP4_MEDIAN' => '6',
+                      'LBPROP4_MIN' => '3',
+                      'LBPROP4_SD' => '4.24264068711928',
                       'LBPROP4_SKEWNESS' => undef,
-                      'LBPROP4_SUM'      => 12
+                      'LBPROP4_SUM' => 12
                     },
   'LBPROP_STATS_LBPROP1_DATA' => [
                                    '0.571428571428571',
@@ -381,3 +464,5 @@ __DATA__
                                    '9' => 1
                                  }
 }
+
+

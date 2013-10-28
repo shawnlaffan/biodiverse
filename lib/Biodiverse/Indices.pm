@@ -672,10 +672,19 @@ sub get_index_source_hash {
     my %args = @_;
     my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
     my %list2;
+    my $using_nbr_list_count = $args{uses_nbr_lists} // 1;
 
+    CALC:
     foreach my $calculations (keys %$list) {
         my $args = $self->get_args (sub => $calculations);
+
+        next CALC if $using_nbr_list_count < $args->{uses_nbr_lists};
+
+        INDEX:
         foreach my $index (keys %{$args->{indices}}) {
+            my $index_uses_nbr_lists = $args->{indices}{$index}{uses_nbr_lists} // 1;
+            next INDEX if $using_nbr_list_count < $index_uses_nbr_lists;
+
             $list2{$index}{$calculations}++;
         }
     }

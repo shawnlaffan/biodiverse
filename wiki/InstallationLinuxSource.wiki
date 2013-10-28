@@ -21,14 +21,16 @@ These also assume you have [http://code.google.com/p/biodiverse/downloads/list d
 # Assuming you are currently in the base biodiverse directory.
 sudo apt-get install libcairo2-dev libpango1.0-dev libgtk+2.0-dev libgnomecanvas2-dev libglade2-dev
 
-cd etc/bundles/NoGUI
-cpan -i .
-cd ../GUI
-cpan -i .
-cpan -i .  
-#  The last cpan command might need to be run twice 
-#  to get Gnome::Canvas and Gtk2::GladeXML to install after
-#  their dependencies.
+#  skip this if you already have cpanm installed
+cpan App::cpanminus
+
+# Now install the rest of the dependencies
+cpanm Task::Biodiverse::NoGUI~0.19
+cpanm Task::Biodiverse~0.19
+cpanm Task::Biodiverse~0.19
+
+#  The last cpan command is listed twice to get Gnome::Canvas
+#  and Gtk2::GladeXML to install after their dependencies.
 }}}
 
 If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).

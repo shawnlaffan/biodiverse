@@ -56,12 +56,9 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   ppm install %BDV_PPM%/Gtk2.ppd 
   ppm install %BDV_PPM%/Pango.ppd
 
-  :: Now install the libs needed for the GUI
-  cd C:\biodiverse\etc\bundles\NoGUI
-  cpanm -i .
-  cd ..\GUI
-  cpanm -i .
-  cpanm -i .
+  :: Now install the rest of the dependencies
+  cpanm Task::Biodiverse::NoGUI~0.19
+  cpanm Task::Biodiverse~0.19
 }}}
 
 

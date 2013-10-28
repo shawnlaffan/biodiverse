@@ -1,5 +1,9 @@
 Revision history for Task::Biodiverse
 
+0.19 28Oct2013
+        - Explicitly depends on 0.19 of Task::Biodiverse::NoGUI
+        - Add BUILD_REQUIRES content
+
 0.17 05Jul2012
         - Geo::ShapeFile and Tree:R are now in Task::Biodiverse::NoGUI
 

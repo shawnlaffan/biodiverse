@@ -100,26 +100,6 @@ if ( defined $filename ) {
 #$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
 #print join "\n", $ic->get_search_path;
 
-if ($ENV{BDV_PP_BUILDING}) {
-    Gtk2->main_quit();
-}
-else {
-    # Sniff events so they can be replayed for keeping menus open
-    Gtk2::Gdk::Event->handler_set(sub {
-        my $event = $_[0];
-        if (blessed($event) eq 'Gtk2::Gdk::Event::Button') {
-            $gui->{current_event} = $event->copy;
-            Gtk2->main_do_event($event);
-            $gui->{current_event} = undef;
-        }
-        else {
-            Gtk2->main_do_event($event);
-        }
-    }, undef);
-    # Go!
-    Gtk2->main;
-}
-
 # Go!
 Gtk2->main;
 

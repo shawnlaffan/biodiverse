@@ -205,12 +205,6 @@ sub new {
     $self->{toolbar_menu} = $xml_page->get_widget('menu_clustering_data');
     $self->{toolbar_menu_button} = $xml_page->get_widget('menuitem_clustering_data');
 
-    # Save event so it can be replayed to keep the menu open
-    $self->{toolbar_menu_button}->signal_connect_swapped(activate => sub {
-        $self->{toolbar_menu_event} = $gui->{current_event} if defined
-                $gui->{current_event};
-    }, undef);
-
     $self->makeIndicesModel($cluster_ref);
     $self->makeLinkageModel($cluster_ref);
     $self->initIndicesCombo();
@@ -279,7 +273,6 @@ sub new {
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
 
         menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
-        menuitem_clustering_data => {activate => \&on_toolbar_data_menu_open},
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
@@ -668,10 +661,6 @@ sub on_map_list_changed {
     foreach my $widget (@widgets) {
         $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
     }
-
-    if (defined $self->{toolbar_menu_event}) {
-        Gtk2::Gdk::Event->put($self->{toolbar_menu_event});
-    }
 }
 
 sub update_menu_map_indices {
@@ -736,15 +725,8 @@ sub on_map_index_changed {
     $self->{dendrogram}->select_map_index($index);
 }
 
-sub on_toolbar_data_menu_open {
-    my $self = shift;
-    $self->{toolbar_menu_event} = $self->{gui}->{current_event} if defined
-            $self->{gui}->{current_event};
-}
-
 sub on_toolbar_data_menu_tearoff {
     my $self = shift;
-    $self->{toolbar_menu_event} = undef;
 }
 
 ##################################################

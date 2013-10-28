@@ -789,7 +789,7 @@ sub run_indices_test1 {
             );
         };
         
-        print_indices_result_set ($generate_result_sets, \%results, $nbr_list_count);
+        print_indices_result_set_to_fh ($generate_result_sets, \%results, $nbr_list_count);
 
     }
 }
@@ -800,6 +800,7 @@ sub get_indices_result_set_fh {
     return if !shift;
     
     my $file_name = $0 . '.results';
+    $file_name =~ s/\.t\./\./;  #  remove the .t 
     open(my $fh, '>', $file_name) or die "Unable to open $file_name to write results sets to";
     
     return $fh;
@@ -807,7 +808,7 @@ sub get_indices_result_set_fh {
 
 
 # Used for acquiring indices results
-sub print_indices_result_set {
+sub print_indices_result_set_to_fh {
     my ($fh, $results_hash, $nbr_list_count) = @_;
 
     return if !$fh;
@@ -876,6 +877,25 @@ sub run_indices_test1_inner {
     note $e if $e;
     ok (!$e, "Obtained valid calcs without eval error");
 
+    my %tmp_hash;
+    @tmp_hash{@$calcs_to_test} = 1 x @$calcs_to_test;
+    my $expected_indices = $indices->get_indices (
+        calculations   => \%tmp_hash,
+        uses_nbr_lists => $nbr_list_count,
+    );
+
+    if ($nbr_list_count != 1) {
+        #  skip if nbrs == 1 as otherwise we throw errors when calcs have been validly removed
+        #  due to insufficient nbrs
+        my $valid_calc_list = $indices->get_valid_calculations_to_run;
+        is_deeply (
+            [sort @$calcs_to_test],
+            [sort keys %$valid_calc_list],
+            "Requested calculations are all valid, nbr list count = $nbr_list_count",
+        );
+    }
+    
+
     eval {
         $indices->run_precalc_globals(%$calc_args);
     };
@@ -906,6 +926,14 @@ sub run_indices_test1_inner {
     $e = $EVAL_ERROR;
     note $e if $e;
     ok (!$e, "Ran global postcalcs without eval error");
+    
+    
+    is_deeply (
+        [sort keys %results],
+        [sort keys %$expected_indices],
+        "Expected indices obtained, nbr list count = $nbr_list_count",
+    );
+
     
     return wantarray ? %results : \%results;
 }

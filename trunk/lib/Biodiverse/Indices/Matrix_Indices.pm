@@ -51,6 +51,10 @@ sub get_metadata_calc_matrix_stats {
                 description => 'List of the matrix values',
                 type        => 'list'
             },
+            MX_LABELS    => {
+                description => 'List of the matrix labels in the neighbour sets',
+                type        => 'list'
+            },
         },
     );
 

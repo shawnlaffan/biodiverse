@@ -9,7 +9,7 @@ use Scalar::Util qw /blessed weaken/;
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';

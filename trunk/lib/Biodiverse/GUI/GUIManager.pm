@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.18_008';
+our $VERSION = '0.19';
 
 #use Data::Dumper;
 #use Data::DumpXML::Parser;
@@ -30,7 +30,7 @@ BEGIN {
 
         my @paths;
         use Config;
-        my $gtk_dir = $Config{archname} =~ /x(?:86_)?64/ ? 'gtk_win64' : 'gtk_win32';
+        my $gtk_dir = $Config{archname} =~ /x(?:86_)?64/ ? 'gtk_win64' : 'gtk_win32';  #  maybe should use ivsize?
 
         ORIGIN_DIR:
         while ($origin_dir) {

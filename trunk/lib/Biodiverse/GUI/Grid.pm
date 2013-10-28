@@ -962,11 +962,14 @@ sub grayoutElements {
 
 # Places a circle/cross inside a cell if it exists in a hash
 sub markIfExists {
-    my $self = shift;
-    my $hash = shift;
+    my $self  = shift;
+    my $hash  = shift;
     my $shape = shift; # "circle" or "cross"
 
     foreach my $cell (values %{$self->{cells}}) {
+        #  hackish, but sometimes we are called before the data are populated
+        return if !$cell || ! $cell->[INDEX_RECT];
+
         my $group = $cell->[INDEX_RECT]->parent;
 
         if (exists $hash->{$cell->[INDEX_ELEMENT]}) {

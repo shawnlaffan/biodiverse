@@ -152,6 +152,9 @@ sub main {
             diag 'Using conditions subset: ' . join ", ", sort keys %cond_sub;
         }
     }
+    else {  #  run a subset by default
+        @res_pairs = @res_pairs[2, 4];
+    }
 
     #my $condition_count = sum map {scalar keys $conditions{$_}} keys %conditions;
     #plan tests =>  3 * @res_pairs * $condition_count;

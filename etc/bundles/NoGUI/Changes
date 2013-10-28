@@ -1,5 +1,11 @@
 Revision history for Perl bundle Task::Biodiverse::NoGUI
 
+0.19 28Oct2013
+        - Statistics::Descriptive, List::Util and Clone now specify minimum versions.
+	- Added several new dependencies (rlib, Class::Inspector, List::MoreUtils)
+	- Removed redundant dependencies (Pad::Walker, MRO::Compat, Devel::SymDump)
+	- Min version is now 5.010
+
 0.17001 28Jul2012
 	- Set Math::Random::MT::Auto minimum version to 6.19 to handle crashes
 	    when initialised with state vectors from different architectures

@@ -3,7 +3,7 @@ package Task::Biodiverse::NoGUI;
 use strict;
 use warnings;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 
 1;
@@ -16,12 +16,8 @@ Task::Biodiverse::NoGUI - Task to install Biodiverse dependencies for non-GUI us
 
 =head1 SYNOPSIS
 
-  #  on Windows:
   perl -MCPAN -e "install Task::Biodiverse::NoGUI"
   
-  #  on most other platforms:
-  sudo perl -MCPAN -e 'install Task::Biodiverse::NoGUI'
-
 
 =head1 DESCRIPTION
 

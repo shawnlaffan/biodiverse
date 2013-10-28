@@ -14,7 +14,7 @@ use Time::HiRes qw /gettimeofday tv_interval time/;
 use List::Util qw /first reduce/;
 use List::MoreUtils qw /any natatime/;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;

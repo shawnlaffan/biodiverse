@@ -21,7 +21,7 @@ use Biodiverse::Indices;
 
 use Text::Wrapper;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 #use Readonly;
 my $i;

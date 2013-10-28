@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use English ( -no_match_vars );
 

@@ -49,5 +49,6 @@ WriteMakefile(
         "Data::Section::Simple" => "0",
         "Test::Deep" => "0",
         "Test::NoWarnings" => "0",
+        "Perl::Tidy" => 0,
     },
 );

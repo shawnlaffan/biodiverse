@@ -1,7 +1,7 @@
 package Biodiverse::Exception;
 use strict;
 use warnings;
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use Config;
 my ($bit_size, $prng_init_descr, $other_bit_size);

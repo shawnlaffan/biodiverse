@@ -81,7 +81,7 @@ sub test_calc_phylo_aed {
     run_indices_test1 (
         calcs_to_test   => [@calcs],
         no_strict_match => 1,
-        generate_result_sets => 1,
+        #generate_result_sets => 1,
     );
 }
 
@@ -189,7 +189,7 @@ sub test_indices {
     run_indices_test1 (
         calcs_to_test      => [@calcs],
         calc_topic_to_test => 'Phylogenetic Indices',
-        generate_result_sets => 1,
+        #generate_result_sets => 1,
     );
 }
 

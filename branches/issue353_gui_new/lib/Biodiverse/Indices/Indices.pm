@@ -9,7 +9,7 @@ use Scalar::Util qw /blessed weaken/;
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -600,15 +600,6 @@ sub get_metadata_calc_beta_diversity {
         name            => 'Beta diversity',
         description     => "Beta diversity between neighbour sets 1 and 2.\n",
         indices         => {
-            BETA_W => {
-                cluster     => 1,
-                description => qq{Whittaker's beta\n}
-                             . "(Note that this is numerically the same as the Sorenson index.)",
-                formula         => [  #'ABC / ((A+B + A+C) / 2) - 1'
-                    '= \frac{A + B + C}{(\frac{(A+B) + (A+C)}{2})} - 1',
-                    $self -> get_formula_explanation_ABC,
-                ],
-            },
             BETA_2 => {
                 cluster     => 1,
                 description => 'The other beta',
@@ -627,63 +618,23 @@ sub get_metadata_calc_beta_diversity {
     return wantarray ? %arguments : \%arguments;
 }
 
-sub calc_beta_diversity {  # calculate the beta diversity dissimilarity index between two label lists.
+# calculate the beta diversity dissimilarity index between two label lists.
+sub calc_beta_diversity {  
     my $self = shift;
     my %abc = @_;
 
     no warnings 'numeric';
 
-    #my $beta_w = eval {$abc{ABC} / (($abc{A} * 2 + $abc{B} + $abc{C}) / 2) - 1};
     my $beta_2 = eval {
         $abc{ABC} / max ($abc{A} + $abc{B}, $abc{A} + $abc{C}) - 1
     };
     my %results = (
-        #BETA_W => $beta_w,
         BETA_2 => $beta_2,
     );
 
     return wantarray ? %results : \%results;
 }
 
-#  this is identical to the more commonly used Sorenson index
-#sub _calc_s1 {  #  calculate the Sorenson species turnover between two element sets.
-#                    #  This is identical to calcCzechanowski
-#                    #  name derived from
-#                    #    Lennon, J.J., Koleff, P., Greenwood, J.J.D. & Gaston, K.J. (2001)
-#                    #    The geographical structure of British bird distributions:
-#                    #    diversity, spatial turnover and scale.
-#                    #    Journal of Animal Ecology, 70, 966-979
-#    my $self = shift;
-#    my %abc = @_;
-#
-#    if ($abc{get_args}) {
-#        my %arguments = (name => 'S1',
-#                         description => "Sorenson dissimilarity between two sets of labels.\n" .
-#                                          "This is actually identical to the Czechanowski index.  Source:\n" .
-#                                          "Lennon, J.J., Koleff, P., Greenwood, J.J.D. and Gaston, K.J. (2001)\n" .
-#                                          "The geographical structure of British bird distributions: " .
-#                                          "diversity, spatial turnover and scale.\n" .
-#                                          "Journal of Animal Ecology, 70, 966-979.",
-#                         Formula => 'S1 = 1 - (2A / (2A + B + C))',
-#                         indices => {S1 => {cluster => 1,
-#                                            description => '= 1 - (2A / (2A + B + C))'
-#                                            }
-#                                     },
-#                         type => 'Taxonomic Dissimilarity and Comparison',
-#                         uses_nbr_lists => 2,  #  how many sets of lists it must have
-#                         pre_calc => 'calc_abc',
-#                        );  #  add to if needed
-#        return wantarray ? %arguments : \%arguments;
-#    }
-#
-#
-#    my $value = 1 - ((2 * $abc{A}) / ($abc{A} + $abc{ABC}));
-#
-#    return wantarray
-#            ? (S1 => $value)
-#            : {S1 => $value};
-#
-#}
 
 sub get_metadata_calc_s2 {
     my $self = shift;

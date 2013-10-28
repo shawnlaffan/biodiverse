@@ -4,7 +4,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use Gtk2;
 use Carp;
@@ -719,7 +719,10 @@ sub onRun {
         # Update output display if we are a new result
         # or grid is not defined yet (this can happen)
         if ($new_result || !defined $self->{grid}) {
-            $self->initGrid();
+            eval {$self->initGrid()};
+            if ($EVAL_ERROR) {
+                $self->{gui}->report_error ($EVAL_ERROR);
+            }
         }
         #  else reuse the grid and just reset the basestruct
         elsif (defined $output_ref) {

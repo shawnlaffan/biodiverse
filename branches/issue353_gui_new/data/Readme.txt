@@ -14,8 +14,8 @@ Data files that have already been imported (easier to start off with):
 
 example_data_x32.bps	Example project file for use on 32 bit systems.
 example_data_x32.bds	Example basedata file.  This is the first basedata object from the 32 bit project file.  
-example_data_x32.bps	Example project file for use on 64 bit systems.
-example_data_x32.bds	Example basedata file.  This is the first basedata object from the 64 bit project file.  
+example_data_x64.bps	Example project file for use on 64 bit systems.
+example_data_x64.bds	Example basedata file.  This is the first basedata object from the 64 bit project file.  
 example_matrix.bms	Example matrix file
 example_tree.bts	Example tree file
 

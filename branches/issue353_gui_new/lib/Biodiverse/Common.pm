@@ -33,7 +33,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 my $EMPTY_STRING = q{};
 

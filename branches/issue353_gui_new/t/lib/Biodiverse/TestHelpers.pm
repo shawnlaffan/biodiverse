@@ -9,7 +9,7 @@ use Carp;
 
 $| = 1;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use Data::Section::Simple qw(get_data_section);
 
@@ -627,7 +627,7 @@ sub run_indices_test1 {
     delete $args{callbacks};
 
     # Used for acquiring sample results
-    my $generate_result_sets = $args{generate_result_sets};
+    my $generate_result_sets = get_indices_result_set_fh ($args{generate_result_sets});
 
     my $element_list1 = $args{element_list1} || ['3350000:850000'];
     my $element_list2
@@ -768,17 +768,6 @@ sub run_indices_test1 {
             %results = run_indices_test1_inner (%indices_args);
         }
 
-        # Used for acquiring sample results
-        if ($generate_result_sets) {
-            use Data::Dumper;
-            local $Data::Dumper::Purity   = 1;
-            local $Data::Dumper::Terse    = 1;
-            local $Data::Dumper::Sortkeys = 1;
-            say '#' x 20;
-            say Dumper(\%results);
-            say '#' x 20;
-        }
-
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
         my $expected = eval $dss->get_data_section(
@@ -799,7 +788,65 @@ sub run_indices_test1 {
                 sort_array_lists => $sort_array_lists,
             );
         };
+        
+        print_indices_result_set_to_fh ($generate_result_sets, \%results, $nbr_list_count);
+
     }
+}
+
+#  put the results sets into a file
+#  returns null if not needed
+sub get_indices_result_set_fh {
+    return if !shift;
+    
+    my $file_name = $0 . '.results';
+    $file_name =~ s/\.t\./\./;  #  remove the .t 
+    open(my $fh, '>', $file_name) or die "Unable to open $file_name to write results sets to";
+    
+    return $fh;
+}
+
+
+# Used for acquiring indices results
+sub print_indices_result_set_to_fh {
+    my ($fh, $results_hash, $nbr_list_count) = @_;
+
+    return if !$fh;
+
+    use Perl::Tidy;
+    use Data::Dumper;
+
+    local $Data::Dumper::Purity    = 1;
+    local $Data::Dumper::Terse     = 1;
+    local $Data::Dumper::Sortkeys  = 1;
+    local $Data::Dumper::Indent    = 1;
+    local $Data::Dumper::Quotekeys = 0;
+    #say '#' x 20;
+
+    my $source_string = Dumper($results_hash);
+    my $dest_string;
+    my $stderr_string;
+    my $errorfile_string;
+    my $argv = "-npro";   # Ignore any .perltidyrc at this site
+    $argv .= " -pbp";     # Format according to perl best practices
+    $argv .= " -nst";     # Must turn off -st in case -pbp is specified
+    $argv .= " -se";      # -se appends the errorfile to stderr
+
+    my $error = Perl::Tidy::perltidy(
+        argv        => $argv,
+        source      => \$source_string,
+        destination => \$dest_string,
+        stderr      => \$stderr_string,
+        errorfile   => \$errorfile_string,    # ignored when -se flag is set
+        ##phasers   => 'stun',                # uncomment to trigger an error
+    );
+
+    say {$fh} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
+    say {$fh} $dest_string;
+    print {$fh} "\n";
+    #say '#' x 20;
+
+    return;   
 }
 
 sub run_indices_test1_inner {
@@ -829,6 +876,25 @@ sub run_indices_test1_inner {
     $e = $EVAL_ERROR;
     note $e if $e;
     ok (!$e, "Obtained valid calcs without eval error");
+
+    my %tmp_hash;
+    @tmp_hash{@$calcs_to_test} = 1 x @$calcs_to_test;
+    my $expected_indices = $indices->get_indices (
+        calculations   => \%tmp_hash,
+        uses_nbr_lists => $nbr_list_count,
+    );
+
+    if ($nbr_list_count != 1) {
+        #  skip if nbrs == 1 as otherwise we throw errors when calcs have been validly removed
+        #  due to insufficient nbrs
+        my $valid_calc_list = $indices->get_valid_calculations_to_run;
+        is_deeply (
+            [sort @$calcs_to_test],
+            [sort keys %$valid_calc_list],
+            "Requested calculations are all valid, nbr list count = $nbr_list_count",
+        );
+    }
+    
 
     eval {
         $indices->run_precalc_globals(%$calc_args);
@@ -860,6 +926,14 @@ sub run_indices_test1_inner {
     $e = $EVAL_ERROR;
     note $e if $e;
     ok (!$e, "Ran global postcalcs without eval error");
+    
+    
+    is_deeply (
+        [sort keys %results],
+        [sort keys %$expected_indices],
+        "Expected indices obtained, nbr list count = $nbr_list_count",
+    );
+
     
     return wantarray ? %results : \%results;
 }

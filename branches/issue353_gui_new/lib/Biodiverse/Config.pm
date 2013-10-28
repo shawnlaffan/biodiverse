@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.18_008';
+our $VERSION = '0.19';
 
 #use Exporter;
 #use Devel::Symdump;

@@ -1,13 +1,17 @@
-Revision history for Task::Biodiverse
+Revision history for Perl module Task::Biodiverse
 
-0.17 05Jul2012
-        - Geo::ShapeFile and Tree:R are now in Task::Biodiverse::NoGUI
+0.19 2013-10-28
+    - Explicitly depends on 0.19 of Task::Biodiverse::NoGUI
+    - Add BUILD_REQUIRES content
 
-0.16001 23Jan2012
-        - Move from Bundle to Task namespace
+0.17 2012-07-05
+    - Geo::ShapeFile and Tree:R are now in Task::Biodiverse::NoGUI
 
-0.16 15Jan2012
-        - Update module list for 0.16 release of Biodiverse
+0.16001 2012-01-23
+    - Move from Bundle to Task namespace
 
-0.15  06Nov2010
-        - Get ready for CPAN
+0.16 2012-01-15
+    - Update module list for 0.16 release of Biodiverse
+
+0.15 2010-11-06
+    - Get ready for CPAN

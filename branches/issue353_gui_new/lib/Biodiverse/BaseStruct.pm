@@ -24,7 +24,7 @@ use Path::Class;
 use POSIX qw /fmod/;
 use Time::localtime;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 #require Biodiverse::Config;
 #my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -1905,11 +1905,17 @@ sub generate_element_coords {
 
     $self->delete_param ('AXIS_LIST_ORDER');  #  force recalculation for first one
 
-    my @is_text;
+    #my @is_text;
     foreach my $element ($self->get_element_list) {
         my $element_coord = [];  #  make a copy
         my $cell_sizes = $self->get_param ('CELL_SIZES');
-        my $element_array = $self->get_array_list_values (element => $element, list => '_ELEMENT_ARRAY');
+        #my $element_array = $self->get_array_list_values (element => $element, list => '_ELEMENT_ARRAY');
+        my $element_array = eval {$self->get_element_name_as_array (element => $element)};
+        if ($EVAL_ERROR) {
+            print "PRIBBLEMMS";
+            say Data::Dumper::Dump $self->{ELEMENTS}{$element};
+        }
+        
 
         foreach my $i (0 .. $#$cell_sizes) {
             if ($cell_sizes->[$i] >= 0) {
@@ -2012,7 +2018,9 @@ sub add_element {
 
     croak "element not specified\n" if ! defined $args{element};
 
-    return if $self->exists_element (@_);  #  don't re-create
+    #  don't re-create
+    my $el_array = eval {$self->get_element_array};
+    return if $el_array;
 
     my $element = $args{element};
     my $quote_char = $self->get_param('QUOTES');
@@ -2286,6 +2294,11 @@ sub get_array_list_values {
 
     #croak "Element $element does not exist.  Do you need to rebuild the spatial index?\n"
     #  if ! exists $self->{ELEMENTS}{$element};
+
+#if (!$self->{ELEMENTS}{$element}{$list}) {
+#    print "PRIBLEMS";
+#    say Data::Dumper::Dumper $self->{ELEMENTS}{$element};
+#}
 
     my $list_ref = $self->{ELEMENTS}{$element}{$list}
       // Biodiverse::BaseStruct::ListDoesNotExist->throw (

@@ -16,7 +16,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 my $EMPTY_STRING = q{};
 
@@ -661,7 +661,7 @@ sub get_index_source {  #  return the source sub for an index
     croak "index argument not specified\n" if ! defined $args{index};
 
     my $source = $self->get_index_source_hash;
-    my @tmp = %{$source->{$args{index}}}; 
+    my @tmp = %{$source->{$args{index}}};
     return $tmp[0];  #  the hash key is the first value.  Messy, but it works.
 }
 
@@ -672,10 +672,19 @@ sub get_index_source_hash {
     my %args = @_;
     my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
     my %list2;
+    my $using_nbr_list_count = $args{uses_nbr_lists} // 2;  #  need to use 2 for back compat
 
+    CALC:
     foreach my $calculations (keys %$list) {
         my $args = $self->get_args (sub => $calculations);
+
+        next CALC if $using_nbr_list_count < $args->{uses_nbr_lists};
+
+        INDEX:
         foreach my $index (keys %{$args->{indices}}) {
+            my $index_uses_nbr_lists = $args->{indices}{$index}{uses_nbr_lists} // 1;
+            next INDEX if $using_nbr_list_count < $index_uses_nbr_lists;
+
             $list2{$index}{$calculations}++;
         }
     }

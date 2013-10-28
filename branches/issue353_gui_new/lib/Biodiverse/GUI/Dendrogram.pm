@@ -15,7 +15,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use Scalar::Util qw /blessed/;
 

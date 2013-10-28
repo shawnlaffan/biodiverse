@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 #use Statistics::Descriptive;
 #my $stats_class = 'Statistics::Descriptive::Full';
@@ -49,6 +49,10 @@ sub get_metadata_calc_matrix_stats {
             MX_PCT75     => {description => 'Third quartile (75th percentile)'},
             MX_VALUES    => {
                 description => 'List of the matrix values',
+                type        => 'list'
+            },
+            MX_LABELS    => {
+                description => 'List of the matrix labels in the neighbour sets',
                 type        => 'list'
             },
         },

@@ -4,7 +4,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
@@ -281,7 +281,7 @@ sub get_metadata_calc_lbprop_stats {
         pre_calc        => ['get_lbp_stats_objects'],
         uses_nbr_lists  => 1,
         indices         => {
-            LBPROP_STATS_LIST => {
+            LBPROP_STATS => {
                 description => 'List of summary statistics ' . $stats_list_text,
                 type        => 'list',
             }
@@ -332,7 +332,7 @@ sub get_metadata_calc_lbprop_quantiles {
         pre_calc        => ['get_lbp_stats_objects'],
         uses_nbr_lists  => 1,
         indices         => {
-            LBPROP_QUANTILE_LIST => {
+            LBPROP_QUANTILES => {
                 description => 'List of quantiles for the label properties: ' . $quantile_list_text,
                 type        => 'list',
             }

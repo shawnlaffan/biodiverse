@@ -26,7 +26,7 @@ use Scalar::Util qw /blessed reftype/;
 
 use Biodiverse::Progress;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.19';
 
 use parent qw /Biodiverse::Common/;
 

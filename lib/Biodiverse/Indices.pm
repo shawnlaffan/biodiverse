@@ -661,7 +661,7 @@ sub get_index_source {  #  return the source sub for an index
     croak "index argument not specified\n" if ! defined $args{index};
 
     my $source = $self->get_index_source_hash;
-    my @tmp = %{$source->{$args{index}}}; 
+    my @tmp = %{$source->{$args{index}}};
     return $tmp[0];  #  the hash key is the first value.  Messy, but it works.
 }
 
@@ -672,7 +672,7 @@ sub get_index_source_hash {
     my %args = @_;
     my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
     my %list2;
-    my $using_nbr_list_count = $args{uses_nbr_lists} // 1;
+    my $using_nbr_list_count = $args{uses_nbr_lists} // 2;  #  need to use 2 for back compat
 
     CALC:
     foreach my $calculations (keys %$list) {

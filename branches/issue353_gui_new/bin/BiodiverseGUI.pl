@@ -10,7 +10,7 @@ use 5.010;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.18_007';
+our $VERSION = '0.18_008';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -24,6 +24,8 @@ my $perl_app_tool = $PerlApp::TOOL;
 
 #  add the lib folder if needed
 use rlib;
+
+say '@INC: ', join q{ }, @INC;
 
 #  load up the user defined libs and settings
 use Biodiverse::Config;
@@ -117,6 +119,10 @@ else {
     # Go!
     Gtk2->main;
 }
+
+# Go!
+Gtk2->main;
+
 
 #  go back home (unless it has been deleted while we were away)
 $eval_result = eval { chdir($caller_dir) };

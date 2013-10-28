@@ -308,8 +308,14 @@ sub get_terminal_element_count {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache by default
 
-    my $node = $args{node} || croak "node not specified\n";
-    my $nodeRef = $self->get_node_ref(node => $node);
+    my $nodeRef;
+    if (defined $args{node}) {
+        my $node = $args{node};
+        $nodeRef = $self->get_node_ref(node => $node);
+    }
+    else {
+        $nodeRef = $self->get_root_node;
+    }
 
     #  follow logic of get_terminal_elements, which returns a hash of
     #  node if not a ref - good or bad idea?  Ever used?  

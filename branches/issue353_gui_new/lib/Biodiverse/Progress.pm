@@ -54,7 +54,9 @@ sub new {
 sub destroy {
     my $self = shift;
     
-    eval {$self->{gui_progress}->destroy};
+    if ($self->{gui_progress}) {
+        eval {$self->{gui_progress}->destroy};
+    }
 
     $self->reset();
 
@@ -73,12 +75,14 @@ sub update {
     #  make it tolerant
     $progress = max (0, min (1, $progress));
 
-    eval {$self->{gui_progress}->update ($text, $progress)};
-    if ( Biodiverse::GUI::ProgressDialog::Bounds->caught() ) {
-        $EVAL_ERROR->rethrow;
-    }
-    elsif ( Biodiverse::GUI::ProgressDialog::Cancel->caught() ) {
-        $EVAL_ERROR->rethrow;
+    if ($self->{gui_progress}) {
+        eval {$self->{gui_progress}->update ($text, $progress)};
+        if ( Biodiverse::GUI::ProgressDialog::Bounds->caught() ) {
+            $EVAL_ERROR->rethrow;
+        }
+        elsif ( Biodiverse::GUI::ProgressDialog::Cancel->caught() ) {
+            $EVAL_ERROR->rethrow;
+        }
     }
 
     return if $self->{gui_only};

@@ -421,7 +421,7 @@ sub get_metadata_calc_bray_curtis {
     my %arguments = (
         name            => 'Bray-Curtis non-metric',
         description     => "Bray-Curtis dissimilarity between two sets of labels.\n"
-                         . "Reduces to the Jaccard metric for binary data (where sample counts are 1 or 0).",
+                         . "Reduces to the Sorenson metric for binary data (where sample counts are 1 or 0).",
         type            => 'Taxonomic Dissimilarity and Comparison',
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
         pre_calc        => 'calc_abc3',
@@ -473,10 +473,11 @@ sub calc_bray_curtis {
     #  up with auto-vivification
     my %l1 = %{$args{label_hash1}};
     my %l2 = %{$args{label_hash2}};
-    my %labels = (%l1, %l2);
+    #my %labels = (%l1, %l2);
+    my $labels_all = $args{label_hash_all};
 
     my ($A, $B, $W) = (0, 0, 0);
-    foreach my $label (keys %labels) {
+    foreach my $label (keys %$labels_all) {
         #  treat undef as zero, and don't complain
         no warnings 'uninitialized';
 
@@ -561,12 +562,14 @@ sub calc_bray_curtis_norm_by_gp_counts {
     #  up with auto-vivification
     my %l1 = %{$args{label_hash1}};
     my %l2 = %{$args{label_hash2}};
-    my %labels = (%l1, %l2);
+    #my %labels = (%l1, %l2);
+    my $labels_all = $args{label_hash_all};
+
     my $counts1 = $args{EL_COUNT_SET1};
     my $counts2 = $args{EL_COUNT_SET2};
 
     my ($A, $B, $W) = (0, 0, 0);
-    foreach my $label (keys %labels) {
+    foreach my $label (keys %$labels_all) {
         #  treat undef as zero, and don't complain
         no warnings 'uninitialized';
 
@@ -1191,12 +1194,12 @@ sub get_metadata_calc_local_sample_count_stats {
                 lumper      => 0,
             },
             ABC3_SUM_ALL       => {
-                description     => 'Sum of the label sample counts in neighbour set2.',
+                description     => 'Sum of the label sample counts across both neighbour sets.',
                 uses_nbr_lists  => 2,
                 lumper      => 1,
             },
             ABC3_SUM_SET1      => {
-                description     => 'Sum of the label sample counts in neighbour set1.',
+                description     => 'Sum of the label sample counts across both neighbour sets.',
                 lumper      => 0,
             },
             ABC3_SUM_SET2      => {

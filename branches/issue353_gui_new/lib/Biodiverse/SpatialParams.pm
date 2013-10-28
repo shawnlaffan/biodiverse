@@ -2,11 +2,13 @@ package Biodiverse::SpatialParams;
 
 use warnings;
 use strict;
+use 5.016;
+
+use feature 'unicode_strings';
 
 use English qw ( -no_match_vars );
 
 use Carp;
-#use PadWalker qw /peek_my/;
 use POSIX qw /fmod floor ceil/;
 use Math::Trig;
 use Math::Trig ':pi';
@@ -22,7 +24,7 @@ our $VERSION = '0.18_007';
 
 our $NULL_STRING = q{};
 
-use Regexp::Common qw /number/;
+use Regexp::Common qw /comment number/;
 my $RE_NUMBER  = qr /$RE{num}{real}/xms;
 my $RE_INT     = qr /$RE{num}{int}/xms;
 my $RE_COMMENT = $RE{comment}{Perl};
@@ -74,7 +76,9 @@ sub new {
         KEEP_LAST_DISTANCES => $args{keep_last_distances},
     );
 
-    $self->parse_distances;
+    eval {$self->parse_distances};
+    croak $EVAL_ERROR if $EVAL_ERROR;
+
     $self->get_result_type;
 
     return $self;
@@ -92,13 +96,22 @@ sub get_conditions {
         if $args{unparsed};
 
     return $self->get_param('PARSED_CONDITIONS')
-        || $self->get_param('CONDITIONS');
+        || $self->get_param('CONDITIONS');  #  THIS NEEDS TO CHANGE
 }
 
 sub get_conditions_unparsed {
     my $self = shift;
 
     return $self->get_conditions( @_, unparsed => 1 );
+}
+
+sub get_conditions_parsed {
+    my $self = shift;
+
+    my $conditions = $self->get_param('PARSED_CONDITIONS');
+    croak "Conditions have not been parsed\n" if !defined $conditions;
+    
+    return $conditions;
 }
 
 sub has_conditions {
@@ -121,7 +134,7 @@ sub parse_distances {
     my $self = shift;
     my %args = @_;
 
-    my $conditions = $self->get_conditions;
+    my $conditions = $self->get_conditions;  #  should call unparsed??
     $conditions .= "\n";
     $conditions =~ s/$RE_COMMENT//g;
 
@@ -205,7 +218,6 @@ sub parse_distances {
     #$levelN = qr /\(( [^()] | (??{ $levelN }) )* \) /x;
     #  need to trap sets, eg:
     #  sp_circle (dist => sp_square (c => 5), radius => (f => 10))
-
 
     #  search for all relevant subs
     my %subs_to_check     = $self->get_subs_with_prefix( prefix => 'sp_' );
@@ -353,6 +365,7 @@ sub parse_distances {
     $self->set_param( MISSING_OPT_ARGS => \%missing_opt_args );
     $self->set_param( USES           => \%params );
 
+
     #  do we need to calculate the distances?  NEEDS A BIT MORE THOUGHT
     $self->set_param( CALC_DISTANCES => undef );
     foreach my $value ( values %params ) {
@@ -377,13 +390,11 @@ sub parse_distances {
                   (?<!\w)     #  negative lookbehind for any non-punctuation in case a valid sub name is used in text 
                   (?<!\-\>\s) #  negative lookbehind for method call, eg '$self-> '
                   (?<!\-\>)   #  negative lookbehind for method call, eg '$self->'
-                  (?:$re_sub_names)\b  #  one of our valid sp_ subs - should require a "("?
+                  (?:$re_sub_names)  #  one of our valid sp_ subs - should require a "("?
                 )
             }xms;
 
-    #my $xtest = $conditions =~ $re_object_call;
-
-    #  add $self -> to all the sp_ object calls
+    #  add $self-> to all the sp_ object calls
     $conditions =~ s{$re_object_call}
                     {\$self->$1}gxms;
 
@@ -473,8 +484,8 @@ sub verify {
 
         $self->set_param( VERIFYING => 1 );
 
-        my $conditions = $self->get_conditions;
-        
+        #my $conditions = $self->get_conditions;  #  not used in this block
+
         #  Get the first two elements
         my $elements = $bd->get_groups;
         my $element1 = $elements->[0];
@@ -673,7 +684,7 @@ sub get_distances {
 
 #  evaluate a pair of coords
 sub evaluate {
-    my $self = shift;
+    my $self = shift // croak "\$self is undefined";
     my %args = (
         calc_distances => $self->get_param('CALC_DISTANCES'),
         @_,
@@ -763,7 +774,8 @@ sub {
 END_OF_CONDITIONS_CODE
       ;
 
-    my $conditions = $self->get_conditions;
+    my $conditions = $self->get_conditions_parsed;
+    say "PARSED CONDITIONS:  $conditions";
     $conditions_code =~ s/CONDITIONS_STRING_GOES_HERE/$conditions/m;
 
     $code_ref = eval $conditions_code;
@@ -1315,7 +1327,7 @@ sub get_metadata_sp_select_all {
 
 sub sp_select_all {
     my $self = shift;
-    my %args = @_;
+    #my %args = @_;
 
     return 1;    #  always returns true
 }
@@ -1337,10 +1349,8 @@ sub sp_self_only {
     my $self = shift;
     my %args = @_;
 
-    my $h           = $self->get_param('CURRENT_ARGS');
-    #my $caller_args = $h->{'%args'};
+    my $h = $self->get_param('CURRENT_ARGS');
 
-    #return $caller_args->{coord_id1} eq $caller_args->{coord_id2};
     return $h->{coord_id1} eq $h->{coord_id2};
 }
 
@@ -1639,7 +1649,7 @@ sub _sp_side {
     my $self = shift;
     my %args = @_;
 
-    my $axes = $args{axes} // [0,1];
+    my $axes = $args{axes};
     if ( defined $axes ) {
         croak "_sp_side:  axes arg is not an array ref\n"
             if ( ref $axes ) !~ /ARRAY/;
@@ -1647,6 +1657,9 @@ sub _sp_side {
         croak
           "_sp_side:  axes array needs two axes, you have given $axis_count\n"
           if $axis_count != 2;
+    }
+    else {
+        $axes = [0,1];
     }
 
     my $h = $self->get_param('CURRENT_ARGS');
@@ -1664,7 +1677,7 @@ sub _sp_side {
 
     #  set the default offset as east in radians
     my $vector_angle = $args{vector_angle};
-    if ( defined $args{vector_angle_deg} and not defined $args{vector_angle} ) {
+    if ( defined $args{vector_angle_deg} && !defined $args{vector_angle} ) {
         $vector_angle = deg2rad ( $args{vector_angle_deg} );
     }
     else {

@@ -1,5 +1,6 @@
 package Biodiverse::Spatial;
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -328,16 +329,19 @@ sub sp_calc {
 
             if ($result_type eq 'always_true') {
                 #  no point using the index if we have to get them all
-                print "[SPATIAL] All groups are neighbours.  Index will be ignored for neighbour set $set_i.\n";
+                say "[SPATIAL] All groups are neighbours.  Index will be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
             elsif ($result_type eq 'self_only') {
-                print "[SPATIAL] No neighbours, processing group only.  Index will be ignored for neighbour set $set_i.\n";
+                say "[SPATIAL] No neighbours, processing group only.  Index will be ignored for neighbour set $set_i.";
                 next SPATIAL_PARAMS_LOOP;
             }
             elsif ($spatial_params_ref->[$i]->get_param ('INDEX_NO_USE')) { #  or if the conditions won't cooperate with the index
-                print "[SPATIAL] Index set to be ignored for neighbour set $set_i.\n";  #  put this feedback in the spatialparams?
+                say "[SPATIAL] Index set to be ignored for neighbour set $set_i.";  #  put this feedback in the spatialparams?
                 next SPATIAL_PARAMS_LOOP;
+            }
+            else {
+                say "[SPATIAL] Result type for neighbour set $set_i is $result_type."
             }
 
             my $searchBlocks = $search_blocks_ref->[$i];
@@ -432,6 +436,11 @@ sub sp_calc {
 
     my $failed_def_query_sp_res_hash = {};
     my $elt_count = -1;
+    my $csv_object = $self->get_csv_object (
+        quote_char => $self->get_param ('QUOTES'),
+        sep_char   => $self->get_param ('JOIN_CHAR'),
+    );
+
     GET_ELEMENTS_TO_CALC:
     foreach my $element (@elements_to_calc) {
         $elt_count ++;
@@ -455,7 +464,7 @@ sub sp_calc {
         }
 
 
-        $self->add_element (element => $element);
+        $self->add_element (element => $element, csv_object => $csv_object);
 
         # initialise the spatial_results with an empty hash
         $self->add_to_lists (

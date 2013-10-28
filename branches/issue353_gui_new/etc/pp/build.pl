@@ -31,7 +31,7 @@ my $out_folder = $opt->out_folder // cwd();
 my $verbose    = $opt->verbose ? ' -v' : q{};
 
 my $perlpath     = $Config{perlpath};
-my $bits         = $Config{archname} =~ /x(?:86_)?64/ ? 64 : 32;
+my $bits         = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
 my $using_64_bit = $bits == 64;
 
 my $script_fullname = Path::Class::file($script)->absolute;
@@ -46,7 +46,9 @@ if ($OSNAME eq 'MSWin32') {
     my $strawberry_base = Path::Class::dir ($perlpath)->parent->parent->parent;  #  clunky
     $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
 
-    for my $fname ($lib_expat, 'libgcc_s_sjlj-1.dll', 'libstdc++-6.dll') {
+    my @fnames = ($lib_expat, 'libgcc_s_sjlj-1.dll', 'libstdc++-6.dll');
+    #my @fnames = ($lib_expat);  #  should only need this with recent versions of PAR
+    for my $fname (@fnames) {
         my $source = Path::Class::file ($c_bin, $fname)->stringify;
         my $target = Path::Class::file ($out_folder, $fname)->stringify;
 
@@ -81,6 +83,9 @@ $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my $cmd = "pp$verbose -B -z 9 -i $icon_file $glade_arg $icon_file_arg -x -o $output_binary_fullpath $script_fullname";
+
+#  At the moment the build is incomplete if the progress dialog has not been run.
+say 'MAKE SURE TO RUN A SPATIAL ANALYSIS SO WE GET ALL THE REQUISITE STUFF';
 
 say $cmd;
 system $cmd;

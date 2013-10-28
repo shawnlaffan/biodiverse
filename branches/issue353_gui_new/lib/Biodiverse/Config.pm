@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.18_008';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -125,6 +125,9 @@ sub use_base {
         print "$package inherits from $pack_list\n";
 
         foreach my $pk (@packs) {
+            croak "INVALID PACKAGE NAME $package"
+              if not $package =~ /^[\w\d]+(?:::[\w\d]+)*$/;  #  pretty basic checking
+
             my $cmd = "package $package;\n"
                     . "use parent qw/$pk/;";
             eval $cmd;
@@ -147,6 +150,12 @@ if ($ENV{BDV_PP_BUILDING}) {
     open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
       or croak "Cannot open $Bin via File::BOM\n";
     $fh->close;
+
+    #  exercide the unicode regexp matching - needed for the spatial conditions
+    use 5.016;
+    use feature 'unicode_strings';
+    my $string = "sp_self_only () and \N{WHITE SMILING FACE}";
+    $string =~ /\bsp_self_only\b/;
 }
 
 

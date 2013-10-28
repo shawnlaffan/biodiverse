@@ -6,16 +6,19 @@ package Biodiverse::Matrix;
 
 use strict;
 use warnings;
+use 5.010;
 
 our $VERSION = '0.18_007';
 
 use English ( -no_match_vars );
 
 use Carp;
-use Data::Dumper;
-use Scalar::Util qw /looks_like_number/;
+#use Data::Dumper;
+use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
-use File::BOM qw /:subs/;
+#use File::BOM qw /:subs/;
+
+use Biodiverse::Progress;
 
 my $EMPTY_STRING = q{};
 
@@ -81,11 +84,18 @@ sub rename {
 }
 
 
-#  avoid needless cloning of the basedata, but don't create the parameter if it is not already there
 sub clone {
     my $self = shift;
+    return $self->_duplicate (@_);
+}
+
+#  avoid needless cloning of the basedata, but don't create the parameter if it is not already there
+sub _duplicate {
+    my $self = shift;
     my %args = @_;
-    
+
+    say '[MATRIX] Duplicating matrix ' . $self->get_param('NAME');
+
     my $bd;
     my $exists = $self->exists_param('BASEDATA_REF');
     if ($exists) {
@@ -93,9 +103,72 @@ sub clone {
         $self->set_param(BASEDATA_REF => undef);
     }
 
-    my $clone_ref = eval {
-        $self->SUPER::clone(%args);
+    my $params = eval {
+        $self->SUPER::clone(data => $self->{PARAMS});
     };
+
+    my $clone_ref = blessed ($self)->new(%$params);
+
+    my $elements = $self->get_elements_ref;
+
+    my $c_elements_ref = $clone_ref->get_elements_ref;
+    %$c_elements_ref = %$elements;
+
+    #  should add methods to access these
+    my $byelement = $self->{BYELEMENT};
+    my $byvalue   = $self->{BYVALUE};
+
+    my (%c_byelement, %c_byvalue);
+    keys %c_byelement = keys %$byelement;  #  pre-allocate the buckets - the pay-off is for many-key hashes
+    keys %c_byvalue   = keys %$byvalue;
+
+    my $progress;
+    if (scalar keys %$byelement > 500) {
+        $progress = Biodiverse::Progress->new(text => 'Cloning matrix ' . $self->get_param('NAME'));
+    }
+
+
+    foreach my $key (keys %$byelement) {
+        my $hashref = $byelement->{$key};
+        my %c_hash;
+        keys %c_hash = keys %$hashref;  #  pre-allocate the buckets
+        %c_hash = %$hashref;
+        $c_byelement{$key} = \%c_hash;
+    }
+
+    $clone_ref->{BYELEMENT} = \%c_byelement;
+
+    my $i = 0;
+    my $to_do = scalar keys %$byvalue;
+    my $target_text = "Target is $to_do value index keys";
+
+    foreach my $val_key (keys %$byvalue) {
+        my $val_hashref = $byvalue->{$val_key};
+        my %c_val_hash;
+        keys %c_val_hash = keys %$val_hashref;  #  pre-allocate the buckets
+
+        if ($progress) {
+            $i++;
+            $progress->update ($target_text, $i / $to_do);
+        }
+
+        foreach my $e_key (keys %$val_hashref) {
+            my $hashref = $val_hashref->{$e_key};
+            my %c_hash;
+            keys %c_hash = keys %$hashref;  #  pre-allocate the buckets
+            %c_hash = %$hashref;
+            $c_val_hash{$e_key} = \%c_hash;
+        }
+
+        $c_byvalue{$val_key} = \%c_val_hash;
+    }
+
+    $clone_ref->{BYVALUE} = \%c_byvalue;
+
+    if ($progress) {
+        $progress->destroy();
+    };
+
     if ($EVAL_ERROR) {
         if ($exists) {
             $self->set_param(BASEDATA_REF => $bd);  #  put it back if needed
@@ -838,6 +911,12 @@ sub get_elements {
     return if (scalar keys %{$self->{ELEMENTS}}) == 0;
 
     return wantarray ? %{$self->{ELEMENTS}} : $self->{ELEMENTS};
+}
+
+sub get_elements_ref {
+    my $self = shift;
+
+    return $self->{ELEMENTS} // do {$self->{ELEMENTS} = {}};
 }
 
 sub get_elements_as_array {

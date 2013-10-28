@@ -86,8 +86,14 @@ sub test_linkages_no_delete_outputs {
 
 sub test_linkages {
     my %args = @_;
+    
+    use Config;
+    my $bits = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
+
+    local $TODO = 'These tests only pass on 64 bit architectures' if $bits != 64;
 
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+
     foreach my $linkage (@linkages) {
         my $cl = $bd->add_cluster_output (
             name => $linkage,

@@ -32,7 +32,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   set STRAWPATH=c:\strawberry
   :: Change gtk_win64 to gtk_win32 if you are using a 32 bit installation.
   set GTK_PATH=c:\gtk_win64
-  set PATH=%GTK_PATH%\c\bin;%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%PATH%
+  set PATH=%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%GTK_PATH%\c\bin;%PATH%
 }}}
 
 5.  Download the gtk_win64 components using an svn checkout. TortoiseSVN is the easiest way, but this command line will work if you installed the shell options with TortoiseSVN (or you have a different svn client).  _Remember to change gtk_win64 to gtk_win32 if you are using a 32 bit installation_.  
@@ -72,7 +72,7 @@ The above installation process *should* install all the relevant files, so we ca
   set BDV_PATH=c:\biodiverse
   set STRAWPATH=c:\strawberry
   set GTK_PATH=c:\gtk_win64
-  set PATH=%GTK_PATH%\c\bin;%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%PATH%
+  set PATH=%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%GTK_PATH%\c\bin;%PATH%
 }}}
 
 2.  Now you can run it.  

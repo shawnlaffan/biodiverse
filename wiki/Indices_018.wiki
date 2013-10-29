@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Tue Sep  3 06:08:51 2013 using build_indices_table.pl, Biodiverse version 0.18_007._
+_Generated GMT Wed Sep 18 23:12:10 2013 using build_indices_table.pl, Biodiverse version 0.18_008._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -140,6 +140,20 @@ Table of contents:
 *Description:*   Hashes of the labels and their property values used in the label properties calculations. Hash keys are the property values, hash values are the property value frequencies.
 
 *Subroutine:*   calc_lbprop_hashes
+
+|| *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
+
+
+
+ 
+ 
+
+ 
+  ===Label property lists===
+ 
+*Description:*   Lists of the labels and their property values within the neighbour sets
+
+*Subroutine:*   calc_lbprop_lists
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
 

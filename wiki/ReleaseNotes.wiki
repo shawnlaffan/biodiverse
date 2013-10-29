@@ -4,7 +4,7 @@
 
 = Version 0.19 = 
 
-This was released on 28-Oct-2013.  It is a stable release and contains all changes from the 0.18 development series.  See the list here [here #Version_0.18]
+This was released on 28-Oct-2013.  It is a stable release and contains all changes from the 0.18 development series.  See the list [#Version_0.18 here].
 
 To see the full list of issues and changes in this release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release0.18
 

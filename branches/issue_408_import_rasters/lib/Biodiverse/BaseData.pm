@@ -98,6 +98,9 @@ sub new {
     #my $x = $self->set_param (%args_for);
     $self->set_params (%args_for);
 
+    croak 'CELL_SIZES parameter not specified'
+      if !defined $self->get_param ('CELL_SIZES');
+
     #  create the groups and labels
     my %params_hash = $self->get_params_hash;
     my $name = $self->get_param ('NAME') // $EMPTY_STRING;
@@ -557,25 +560,24 @@ sub get_metadata_import_data {
 
 *load_data = \&import_data;
 
-sub import_data {  #  load a data file into the selected BaseData object.
-    #  Evolved from the (very) old Organise routine from the original anlayses.
+#  import data from a delimited text file
+sub import_data {
     my $self = shift;
     my %args = @_;
     
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
-    $args{input_files} //= $self->get_param('INPUT_FILES');
     croak "Input files array not provided\n"
-      if not $args{input_files};
+      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
 
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');
     $args{group_columns} //= $self->get_param('GROUP_COLUMNS');
-    
-    #  disallow any cell_size, cell_origin or sample_count_columns overrides
+
+    #  disallow any cell_size or cell_origin overrides
     $args{cell_sizes}
         = $self->get_param('CELL_SIZES')
-            || $args{cell_sizes}
-            || croak "Cell sizes must be specified\n";
+            #|| $args{cell_sizes}
+            || croak "Cell sizes parameter must be specified\n";
 
     $args{cell_origins}
         = $self->get_param('CELL_ORIGINS')
@@ -594,7 +596,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
 
     $args{sample_count_columns}
         = $args{sample_count_columns}
-            || $self->get_param('SAMPLE_COUNT_COLUMNS')
+            #|| $self->get_param('SAMPLE_COUNT_COLUMNS')
             || [];
 
     

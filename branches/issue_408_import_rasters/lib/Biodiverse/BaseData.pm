@@ -98,8 +98,21 @@ sub new {
     #my $x = $self->set_param (%args_for);
     $self->set_params (%args_for);
 
+    #  check the cell sizes
+    my $cell_sizes = $self->get_param ('CELL_SIZES');
     croak 'CELL_SIZES parameter not specified'
-      if !defined $self->get_param ('CELL_SIZES');
+      if !defined $cell_sizes;
+    croak 'CELL_SIZES parameter is not an array ref'
+      if reftype ($cell_sizes) ne 'ARRAY';
+
+    foreach my $size (@$cell_sizes) {
+        croak "Cell size $size is not numeric, you might need to check the locale\n"
+            if ! looks_like_number ($size);
+    }
+
+    my $cell_origins = $self->get_cell_origins;
+    croak 'CELL_ORIGINS do not align with CELL_SIZES'
+      if scalar @$cell_origins != scalar @$cell_sizes;
 
     #  create the groups and labels
     my %params_hash = $self->get_params_hash;
@@ -125,6 +138,20 @@ sub new {
     %params_hash = ();  #  (vainly) hunting memory leaks
 
     return $self;
+}
+
+#  allows for back-compat
+sub get_cell_origins {
+    my $self = shift;
+
+    my $origins = $self->get_param ('CELL_ORIGINS');
+    if (!defined $origins) {
+        my $cell_sizes = $self->get_param ('CELL_SIZES');
+        $origins = [(0) x scalar @$cell_sizes];
+        $self->set_param (CELL_ORIGINS => $origins);
+    }
+
+    return wantarray ? @$origins : $origins;
 }
 
 sub rename {
@@ -573,17 +600,6 @@ sub import_data {
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');
     $args{group_columns} //= $self->get_param('GROUP_COLUMNS');
 
-    #  disallow any cell_size or cell_origin overrides
-    $args{cell_sizes}
-        = $self->get_param('CELL_SIZES')
-            #|| $args{cell_sizes}
-            || croak "Cell sizes parameter must be specified\n";
-
-    $args{cell_origins}
-        = $self->get_param('CELL_ORIGINS')
-            || $args{cell_origins}
-            || [(0) x scalar @{$args{cell_sizes}}];
-
     $args{cell_is_lat}
         = $self->get_param('CELL_IS_LAT')
             || $args{cell_is_lat}
@@ -594,11 +610,7 @@ sub import_data {
             || $args{cell_is_lon}
             || [];
 
-    $args{sample_count_columns}
-        = $args{sample_count_columns}
-            #|| $self->get_param('SAMPLE_COUNT_COLUMNS')
-            || [];
-
+    $args{sample_count_columns} //= [];
     
     #  load the properties tables from the args, or use the ones we already have
     #  labels first
@@ -631,8 +643,8 @@ sub import_data {
 
     my @label_columns        = @{$args{label_columns}};
     my @group_columns        = @{$args{group_columns}};
-    my @cell_sizes           = @{$args{cell_sizes}};  
-    my @cell_origins         = @{$args{cell_origins}};
+    my @cell_sizes           = @{$self->get_param('CELL_SIZES')};
+    my @cell_origins         = @{$self->get_cell_origins};
     my @cell_is_lat_array    = @{$args{cell_is_lat}};
     my @cell_is_lon_array    = @{$args{cell_is_lon}};
     my @sample_count_columns = @{$args{sample_count_columns}};
@@ -645,11 +657,6 @@ sub import_data {
           ? $args{skip_lines_with_undef_groups}
           : 1;
 
-    #  check the cell sizes
-    foreach my $size (@cell_sizes) {
-        croak "Cell size $size is not numeric, you might need to check the locale\n"
-            if ! looks_like_number ($size);
-    }
 
     #  check the exclude and include args
     $exclude_columns //= [];
@@ -665,15 +672,7 @@ sub import_data {
 
     #  croak if we have differing array lengths
     croak "Number of group columns differs from cellsizes ($#group_columns != $#cell_sizes)"
-      if $#group_columns != $#cell_sizes;
-
-    #  if incorrect number of cell_origins
-    croak "Number of cell origins differs from cellsizes ($#cell_origins != $#cell_sizes)"
-      if scalar @cell_origins != scalar @cell_sizes;
-
-    if (!$self->get_param ('CELL_ORIGINS')) {
-        $self->set_param (CELL_ORIGINS => \@cell_origins)
-    }
+      if scalar @group_columns != scalar @cell_sizes;
 
     my @half_cellsize = map {$_ / 2} @cell_sizes;
 

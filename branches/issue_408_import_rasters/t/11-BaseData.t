@@ -159,16 +159,20 @@ sub test_import_small {
     ok ($e, q{Exception when group and cell_size col counts don't match});
     
     #  cell sizes don't match origins
-    my $bd_x2 = Biodiverse::BaseData->new (%bd_args);
-    eval {
-        $bd_x2->import_data(
-            input_files   => [$fname],
-            group_columns => [3, 4, 5],
-            label_columns => [1, 2],
-            cell_origins  => [0, 0, 0, 0, 0],
+    my $bd_x2 = eval {
+        Biodiverse::BaseData->new (
+            %bd_args,
+            CELL_ORIGINS  => [0, 0, 0, 0, 0],
         );
-        1;
     };
+    #eval {
+    #    $bd_x2->import_data(
+    #        input_files   => [$fname],
+    #        group_columns => [3, 4, 5],
+    #        label_columns => [1, 2],
+    #    );
+    #    1;
+    #};
     $e = $EVAL_ERROR;
     ok ($e, q{Exception when cell_size and cell_origin col counts don't match});
     
@@ -182,7 +186,7 @@ sub test_import_small {
         1;
     };
     $e = $EVAL_ERROR;
-    ok (!$e, 'cell_origins argument overridden for second import');
+    ok (!$e, 'cell_origins argument ignored for second import');
 
     #  using inclusions columns
     my @incl_cols_data = (

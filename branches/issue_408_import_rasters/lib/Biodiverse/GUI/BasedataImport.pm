@@ -319,7 +319,7 @@ sub run {
     }
 
 
-    $params->{INPUT_FILES} = \@filenames;
+    #$params->{INPUT_FILES} = \@filenames;
 
     #########
     # 4. Load the data
@@ -369,6 +369,7 @@ sub run {
             #progress                => $progress,
             %import_params,
             %rest_of_options,
+            input_files             => \@filenames,
             #label_remap            => $remap,
             include_columns         => \@include_columns,
             exclude_columns         => \@exclude_columns,

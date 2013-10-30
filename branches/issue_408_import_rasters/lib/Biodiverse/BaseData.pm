@@ -619,7 +619,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
             $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
         }
     }
-    
+
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
@@ -638,8 +638,11 @@ sub import_data {  #  load a data file into the selected BaseData object.
     my $include_columns      = $args{include_columns};
     my $binarise_counts      = $args{binarise_counts};  #  make sample counts 1 or 0
     
-    my $skip_lines_with_undef_groups = $args{skip_lines_with_undef_groups} // 1;
-    
+    my $skip_lines_with_undef_groups
+      = exists $args{skip_lines_with_undef_groups}
+          ? $args{skip_lines_with_undef_groups}
+          : 1;
+
     #  check the cell sizes
     foreach my $size (@cell_sizes) {
         croak "Cell size $size is not numeric, you might need to check the locale\n"
@@ -693,9 +696,9 @@ sub import_data {  #  load a data file into the selected BaseData object.
         allow_empty_labels   => $args{allow_empty_labels},
     );
 
-
     my $line_count_all_input_files = 0;
     my $orig_group_count = $self->get_group_count;
+    my $orig_label_count = $self->get_label_count;
 
     #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file (@{$args{input_files}}) {
@@ -854,9 +857,6 @@ sub import_data {  #  load a data file into the selected BaseData object.
                 
                 $line_count += scalar @$lines;
 
-                #$chunk_count = $self->get_param ('IMPORT_CHUNK_COUNT') || 0;
-                #$total_chunk_text = $self->get_param ('IMPORT_TOTAL_CHUNK_TEXT');
-                #$total_chunk_text = ">$chunk_count" if not defined $$total_chunk_text;
                 $chunk_count ++;
                 $total_chunk_text
                     = $file_handle->eof ? $chunk_count : ">$chunk_count";
@@ -1006,14 +1006,12 @@ sub import_data {  #  load a data file into the selected BaseData object.
                     element => $group,
                 );
 
-                my $include =  $group_properties->get_element_include (element => $group);
-                if (defined $include and not $include) {
-                    print "Skipping $group\n";
-                    next BYLINE;
-                }
+                my $include = $group_properties->get_element_include (element => $group)
+                              // 1;
+                next BYLINE if !$include;
 
                 if (defined $remapped) {
-                    $group = $remapped ;
+                    $group = $remapped;
                 }
             }
 
@@ -1040,7 +1038,6 @@ sub import_data {  #  load a data file into the selected BaseData object.
                     );
             }
 
-            
             ADD_ELEMENTS:
             while (my ($el, $count) = each %elements) {
                 if (defined $count) {
@@ -1070,71 +1067,77 @@ sub import_data {  #  load a data file into the selected BaseData object.
         }
 
         $file_handle->close;
-        print "\tDONE (used $line_count_used_this_file of $line_count lines)\n";
+        say "\tDONE (used $line_count_used_this_file of $line_count lines)";
     }
 
-    #  add the range and sample_count to the label properties
-    #  (actually it sets whatever properties are in the table)
-    if ($use_label_properties) {
+    $self->run_import_post_processes (
+        %line_parse_args,
+        orig_group_count => $orig_group_count,
+        orig_label_count => $orig_label_count,
+    );
+
+    return 1;  #  success
+}
+
+sub run_import_post_processes {
+    my $self = shift;
+    my %args = @_;
+    
+    my $orig_group_count = $args{orig_group_count};
+    my $orig_label_count = $args{orig_label_count};
+    my $label_columns    = $args{label_columns};  #  should be able to work this one out from the data
+
+    my $groups_ref = $self->get_groups_ref;
+    my $labels_ref = $self->get_labels_ref;
+
+    #  set whatever label properties are in the table
+    if ($args{use_label_properties}) {
         $self->assign_element_properties (
             type              => 'labels',
-            properties_object => $label_properties,
+            properties_object => $args{label_properties},
         );
     }
     #  add the group properties
-    if ($use_group_properties) {
+    if ($args{use_group_properties}) {
         $self->assign_element_properties (
             type              => 'groups',
-            properties_object => $group_properties,
+            properties_object => $args{group_properties},
         );
     }
 
     # Set CELL_SIZE on the GROUPS BaseStruct
     $groups_ref->set_param (CELL_SIZES => $self->get_param('CELL_SIZES'));
-    
+
     #  check if the labels are numeric (or still numeric)
     #  set flags and cell sizes accordingly
-    if ($self->get_param('NUMERIC_LABELS')
-        or not defined $self->get_param('NUMERIC_LABELS')
-        ) {
-        $self->set_param(      #  set a value from undef returns
-            NUMERIC_LABELS => ($labels_ref->elements_are_numeric || 0)
-        );  
+    if ($self->get_param('NUMERIC_LABELS') // 1) {
+        my $is_numeric = $labels_ref->elements_are_numeric || 0;
+        $self->set_param(NUMERIC_LABELS => ($is_numeric));  
     }
 
-    my @label_cell_sizes;
-    if ($labels_ref->element_arrays_are_numeric) {
-        @label_cell_sizes = (0) x scalar @label_columns;  #  numbers
-    }
-    else {
-        @label_cell_sizes = (-1) x scalar @label_columns;  #  text
-    }
+    #  set the labels cell size in case we are transposed at some point
+    my $label_cellsize = $labels_ref->element_arrays_are_numeric ? 0 : -1;
+    my @label_cell_sizes = ($label_cellsize) x scalar @$label_columns;
     $labels_ref->set_param (CELL_SIZES => \@label_cell_sizes);
 
-    if ($labels_ref->get_element_count) {
-        $labels_ref->generate_element_coords;
-    }
-
-    if ($groups_ref->get_element_count) {
-        $groups_ref->generate_element_coords;
-    }
-
-    #  clear the rtree if one exists (used for plotting)
+    #  clear some params (should these be cached?)
     $groups_ref->delete_param ('RTREE');
-
-    #  clear this also
     $labels_ref->delete_param ('SAMPLE_COUNTS_ARE_FLOATS');
     $groups_ref->delete_param ('SAMPLE_COUNTS_ARE_FLOATS');
 
-    #  now rebuild the index if need be
-    if (    $orig_group_count != $self->get_group_count
-        and $self->get_param ('SPATIAL_INDEX')
-        ) {
-        $self->rebuild_spatial_index();
+    if ($orig_label_count != $self->get_label_count) {
+        $labels_ref->generate_element_coords;
     }
 
+    if ($orig_group_count != $self->get_group_count) {
+        $groups_ref->generate_element_coords;
 
-    return 1;  #  success
+        if ($self->get_param ('SPATIAL_INDEX')) {
+            $self->rebuild_spatial_index();
+        }
+    }
+
+    return 1;    
 }
 
 sub assign_element_properties {

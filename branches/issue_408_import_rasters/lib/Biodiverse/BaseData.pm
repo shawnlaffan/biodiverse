@@ -97,11 +97,10 @@ sub new {
     my %args_for = (%PARAMS, @_);
     #my $x = $self->set_param (%args_for);
     $self->set_params (%args_for);
-    
+
     #  create the groups and labels
     my %params_hash = $self->get_params_hash;
-    my $name = $self->get_param ('NAME');
-    $name = $EMPTY_STRING if not defined $name;
+    my $name = $self->get_param ('NAME') // $EMPTY_STRING;
     $self->{GROUPS} = Biodiverse::BaseStruct->new(
         %params_hash,
         TYPE => 'GROUPS',
@@ -564,21 +563,14 @@ sub import_data {  #  load a data file into the selected BaseData object.
     my %args = @_;
     
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
-    
-    if (not defined $args{input_files}) {
-        $args{input_files}   = $self->get_param('INPUT_FILES');
-        croak "Input files array not provided\n"
-          if not $args{input_files};
-    }
-    if (not defined $args{label_columns}
-        and defined $self->get_param('LABEL_COLUMNS')) {
-        $args{label_columns} = $self->get_param('LABEL_COLUMNS');
-    }
-    if (not defined $args{group_columns}
-        and defined $self->get_param('GROUP_COLUMNS')) {
-        $args{group_columns} = $self->get_param('GROUP_COLUMNS');
-    }
 
+    $args{input_files} //= $self->get_param('INPUT_FILES');
+    croak "Input files array not provided\n"
+      if not $args{input_files};
+
+    $args{label_columns} //= $self->get_param('LABEL_COLUMNS');
+    $args{group_columns} //= $self->get_param('GROUP_COLUMNS');
+    
     #  disallow any cell_size, cell_origin or sample_count_columns overrides
     $args{cell_sizes}
         = $self->get_param('CELL_SIZES')
@@ -588,7 +580,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
     $args{cell_origins}
         = $self->get_param('CELL_ORIGINS')
             || $args{cell_origins}
-            || [];  #  default to an empty array which will be padded out below
+            || [(0) x scalar @{$args{cell_sizes}}];
 
     $args{cell_is_lat}
         = $self->get_param('CELL_IS_LAT')
@@ -646,7 +638,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
     my $include_columns      = $args{include_columns};
     my $binarise_counts      = $args{binarise_counts};  #  make sample counts 1 or 0
     
-    my $skip_lines_with_undef_groups = $args{skip_lines_with_undef_groups};
+    my $skip_lines_with_undef_groups = $args{skip_lines_with_undef_groups} // 1;
     
     #  check the cell sizes
     foreach my $size (@cell_sizes) {
@@ -654,54 +646,31 @@ sub import_data {  #  load a data file into the selected BaseData object.
             if ! looks_like_number ($size);
     }
 
-    #  make them an array if they are a scalar
-    #  if they are not an array or scalar then it is the caller's fault
-    if (not defined reftype ($exclude_columns)
-        or reftype ($exclude_columns) ne 'ARRAY') {
+    #  check the exclude and include args
+    $exclude_columns //= [];
+    $include_columns //= [];
+    croak "exclude_columns argument is not an array reference"
+      if reftype ($exclude_columns) ne 'ARRAY';
+    croak "include_columns argument is not an array reference"
+      if reftype ($include_columns) ne 'ARRAY';
 
-        if (defined $exclude_columns) {
-            $exclude_columns = [$exclude_columns];
-        }
-        else {
-            $exclude_columns = [];
-        }
-    }
-    #  clear out any undef columns.  work from the end to make splicing easier
-    foreach my $col (reverse 0 .. $#$exclude_columns) {
-        splice (@$exclude_columns, $col, 1) if ! defined $$exclude_columns[$col];
-    }
-    if (not defined reftype ($include_columns) or reftype ($include_columns) ne 'ARRAY') {
-        if (defined $include_columns) {
-            $include_columns = [$include_columns];
-        }
-        else {
-            $include_columns = [];
-        }
-    }
     #  clear out any undef columns
-    foreach my $col (reverse 0 .. $#$include_columns) {
-        splice (@$include_columns, $col, 1) if ! defined $$include_columns[$col];
+    $exclude_columns = [grep {defined $_} @$exclude_columns];
+    $include_columns = [grep {defined $_} @$include_columns];
+
+    #  croak if we have differing array lengths
+    croak "Number of group columns differs from cellsizes ($#group_columns != $#cell_sizes)"
+      if $#group_columns != $#cell_sizes;
+
+    #  if incorrect number of cell_origins
+    croak "Number of cell origins differs from cellsizes ($#cell_origins != $#cell_sizes)"
+      if scalar @cell_origins != scalar @cell_sizes;
+
+    if (!$self->get_param ('CELL_ORIGINS')) {
+        $self->set_param (CELL_ORIGINS => \@cell_origins)
     }
 
-    #  now we guarantee we get the correct array lengths
-    if ($#group_columns < $#cell_sizes) {
-        splice (@cell_sizes, $#group_columns - $#cell_sizes);
-        $self->set_param(CELL_SIZES => \@cell_sizes);
-    }
-    elsif ($#group_columns > $#cell_sizes) {
-        push (@cell_sizes, (0) x ($#group_columns - $#cell_sizes));
-    }
-    if ($#group_columns < $#cell_origins) {
-        splice (@cell_origins, $#group_columns - $#cell_origins);
-        $self->set_param(CELL_ORIGINS => \@cell_origins);
-    }
-    #  pad with zeroes in case not enough origins are specified
-    push (@cell_origins, (0) x ($#cell_sizes - $#cell_origins));  
-
-    my @half_cellsize;  #  precalculate to save a few computations
-    for (my $i = 0; $i <= $#cell_sizes; $i++) {
-        $half_cellsize[$i] = $cell_sizes[$i] / 2;
-    }
+    my @half_cellsize = map {$_ / 2} @cell_sizes;
 
     my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
     my $el_sep = $self->get_param ('JOIN_CHAR');
@@ -750,10 +719,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
             )
             / $bytes_per_MB;
 
-        my $input_binary = $args{binary};  #  a boolean flag for Text::CSV_XS
-        if (not defined $input_binary) {
-            $input_binary = 1;
-        }
+        my $input_binary = $args{binary} // 1;  #  a boolean flag for Text::CSV_XS
 
         #  Get the header line, assumes no binary chars in it.
         #  If there are then there is something really wrong with the file.
@@ -927,7 +893,7 @@ sub import_data {  #  load a data file into the selected BaseData object.
             #  skip blank lines or those that failed
             next BYLINE if not defined $fields_ref;
             next BYLINE if scalar @$fields_ref == 0;
-            
+
             #  should we explicitly exclude or include this record?
             if (scalar @$exclude_columns) {
                 foreach my $col (@$exclude_columns) {
@@ -935,22 +901,20 @@ sub import_data {  #  load a data file into the selected BaseData object.
                 }
             }
             if (scalar @$include_columns) {
-                my $incl = 0;
-                
+                my $incl;
+
                 CHECK_INCLUDE_COLS:
                 foreach my $col (@$include_columns) {
-                    next CHECK_INCLUDE_COLS if ! defined $col;
+                    #  check no more if we get a true value
                     if ($fields_ref->[$col]) {
                         $incl = 1;
+                        last CHECK_INCLUDE_COLS;
                     }
-                    #  check no more if we get a true value
-                    last CHECK_INCLUDE_COLS if $incl;
                 }
                 #print "not including \n$line" if ! $incl;
-                next BYLINE if not $incl;  #  skip if none are to be kept
+                next BYLINE if !$incl;  #  skip if none are to be kept
             }
-        
-        
+
             #  get the group for this row
             my @group;
             my $i = 0;

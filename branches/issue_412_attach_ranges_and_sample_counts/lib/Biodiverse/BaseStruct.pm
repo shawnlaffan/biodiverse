@@ -2623,9 +2623,7 @@ sub get_numeric_hash_lists {
         }
     }
 
-    return wantarray
-            ? %lists
-            : \%lists;
+    return wantarray ? %lists : \%lists;
 }
 
 sub get_array_lists {
@@ -2689,7 +2687,9 @@ sub get_hash_list_keys_across_elements {
     return wantarray ? keys %hash_keys : [keys %hash_keys];
 }
 
-sub get_list_ref {  #  return a reference to the specified list - allows for direct operation on its values
+#  return a reference to the specified list
+#  - allows for direct operation on its values
+sub get_list_ref {  
     my $self = shift;
     my %args = (
         autovivify => 1,
@@ -2941,13 +2941,6 @@ sub element_arrays_are_numeric {
     return 1;  # if we get this far then they must all be numbers
 }
 
-#sub min {
-#    return $_[0] < $_[1] ? $_[0] : $_[1];
-#}
-#
-#sub max {
-#    return $_[0] > $_[1] ? $_[0] : $_[1];
-#}
 
 sub DESTROY {
     my $self = shift;

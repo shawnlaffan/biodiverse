@@ -117,7 +117,7 @@ sub get_metadata_calc_lbprop_stats_abc2 {
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         uses_nbr_lists  => 1,
         indices         => {
-            LBPROP_STATS_LIST_ABC2 => {
+            LBPROP_STATS_ABC2 => {
                 description => 'List of summary statistics ' . $stats_list_text,
                 type        => 'list',
             }

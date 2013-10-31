@@ -87,6 +87,7 @@ sub main {
     test_rename_labels();
     test_multidimensional_import();
     test_reorder_axes();
+    test_attach_ranges_and_sample_counts();
 
     done_testing;
     return 0;
@@ -304,6 +305,74 @@ sub test_import_small {
 
     }
     
+}
+
+sub test_attach_ranges_and_sample_counts {
+    my $bd = get_small_bd();
+    
+    #  add a new label to all groups
+    my $last_group;
+    foreach my $group ($bd->get_groups) {
+        $bd->add_element (
+            group => $group,
+            label => 'new_label',
+            count => 25,
+        );
+        $last_group = $group;
+    }
+
+    $bd->attach_label_ranges_as_properties;
+    $bd->attach_label_abundances_as_properties;
+
+    #  now delete the new label from one of the groups
+    $bd->delete_sub_element (label => 'new_label', group => $last_group);
+
+    #  ...and the label ranges and sample counts should not be affected
+    is ($bd->get_range (element => 'new_label'), 3, 'range is correct');
+    is ($bd->get_label_abundance (element => 'new_label'), 75, 'sample count is correct');
+    
+    #  the others should be values of 1
+    foreach my $label ($bd->get_labels) {
+        next if $label eq 'new_label';
+
+        is ($bd->get_range (element => $label), 1, 'range is correct');
+        is ($bd->get_label_sample_count (element => $label), 1, 'sample count is correct');    
+    }
+
+    #  and the variety and sample_counts should be different for new_label
+    my $lb = $bd->get_labels_ref;
+    is ($lb->get_variety (element => 'new_label'), 2, 'new_label variety is 2');
+    is ($bd->get_label_sample_count (element => 'new_label'), 50, 'new_label sample count is 50');
+
+    return;
+}
+
+
+sub get_small_bd {
+    
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+
+    my $e;
+
+    #  vanilla import
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    diag $e if $e;
+    
+    return $bd;
 }
 
 sub test_bounds {

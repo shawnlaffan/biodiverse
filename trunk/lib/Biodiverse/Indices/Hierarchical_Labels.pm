@@ -149,7 +149,8 @@ sub get_basedatas_by_label_hierarchy {
     #  generate a set of new basedata objects
     foreach my $i (0 .. $label_max_index) {
         #  just to allow greater abstraction, eg we may extend the basedata types
-        push @{$results{BD_HIERARCHY}}, blessed ($bd) -> new;  
+        my $cell_sizes = $bd->get_param('CELL_SIZES');
+        push @{$results{BD_HIERARCHY}}, blessed ($bd)->new (CELL_SIZES => [@$cell_sizes]);  
     }
 
     my $targets = $results{BD_HIERARCHY};

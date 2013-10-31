@@ -6,7 +6,7 @@ use warnings;
 local $| = 1;
 
 use rlib;
-use Test::More;
+use Test::Most;
 
 use Biodiverse::TestHelpers qw{
     :runners

@@ -2941,13 +2941,6 @@ sub element_arrays_are_numeric {
     return 1;  # if we get this far then they must all be numbers
 }
 
-#sub min {
-#    return $_[0] < $_[1] ? $_[0] : $_[1];
-#}
-#
-#sub max {
-#    return $_[0] > $_[1] ? $_[0] : $_[1];
-#}
 
 sub DESTROY {
     my $self = shift;

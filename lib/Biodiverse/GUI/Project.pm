@@ -551,7 +551,10 @@ sub addBaseData {
     my $no_select = shift;
     
     if (not ref $basedata_ref) {
-        $basedata_ref = Biodiverse::BaseData->new (NAME => $basedata_ref);
+        $basedata_ref = Biodiverse::BaseData->new (
+            NAME       => $basedata_ref,
+            CELL_SIZES => [],  #  default, gets overridden later
+        );
     }
 
     push (@{$self->{BASEDATA}}, $basedata_ref);

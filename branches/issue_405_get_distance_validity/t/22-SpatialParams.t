@@ -127,7 +127,7 @@ sub main {
         my @res_sub;
         my %cond_sub;
         for my $res (@args) {
-            if (looks_like_number $res && $res < $#res_pairs) {
+            if (looks_like_number $res && $res <= $#res_pairs) {
                 push @res_sub, $res;
             }
             elsif (exists $conditions{$res} && exists $conditions{$res}) {

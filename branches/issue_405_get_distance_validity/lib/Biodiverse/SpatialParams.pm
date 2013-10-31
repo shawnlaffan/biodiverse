@@ -612,21 +612,24 @@ sub get_distances {
         #use warnings FATAL => qw { numeric };
 
         my $coord1 = $element1[$i];
-        croak
-            'coord1 value is not numeric (if you think it is numeric then check your locale): '
-            . ( defined $coord1 ? $coord1 : 'undef' )
-            . "\n"
-            if $verifying && !looks_like_number($coord1);
-
         my $coord2 = $element2[$i];
-        croak
-            'coord2 value is not numeric (if you think it is numeric then check your locale): '
-            . ( defined $coord2 ? $coord2 : 'undef' )
-            . "\n"
-            if $verifying && !looks_like_number($coord2);
 
-        $d[$i] =
-            eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
+        if ($verifying) {
+            croak
+                'coord1 value is not numeric (if you think it is numeric then check your locale): '
+                . ( defined $coord1 ? $coord1 : 'undef' )
+                . "\n"
+                if !looks_like_number($coord1);
+    
+            croak
+                'coord2 value is not numeric (if you think it is numeric then check your locale): '
+                . ( defined $coord2 ? $coord2 : 'undef' )
+                . "\n"
+                if !looks_like_number($coord2);
+        }
+
+        #  trap errors from non-numeric coords
+        $d[$i] = eval { $coord2 - $coord1 }; 
 
         $D[$i] = abs $d[$i];
         $sumDsqr += $d[$i]**2;

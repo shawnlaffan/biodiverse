@@ -165,7 +165,7 @@ sub get_metadata_calc_lbprop_quantiles_abc2 {
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         uses_nbr_lists  => 1,
         indices         => {
-            LBPROP_QUANTILE_LIST_ABC2 => {
+            LBPROP_QUANTILES_ABC2 => {
                 description => 'List of quantiles for the label properties: ' . $quantile_list_text,
                 type        => 'list',
             }

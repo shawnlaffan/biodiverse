@@ -397,12 +397,6 @@ sub run {
         return $basedata_ref;
     }
 
-    # Delete new basedata if there's a cancel and we get this far
-    # (which we should not)
-    if ($use_new && $basedata_ref) {
-        $gui->getProject->deleteBaseData($basedata_ref);
-    }
-
     return;
 }
 

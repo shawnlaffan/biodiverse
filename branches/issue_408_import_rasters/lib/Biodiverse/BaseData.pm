@@ -636,9 +636,9 @@ sub import_data {
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
-    print "[BASEDATA] Loading from files "
-            . join (q{ }, @{$args{input_files}})
-            . "\n";
+    say "[BASEDATA] Loading from files "
+            . join (q{ }, @{$args{input_files}});
+
 
     my @label_columns        = @{$args{label_columns}};
     my @group_columns        = @{$args{group_columns}};
@@ -703,7 +703,7 @@ sub import_data {
     #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file (@{$args{input_files}}) {
         $file = Path::Class::file($file)->absolute;
-        print "[BASEDATA] INPUT FILE: $file\n";
+        say "[BASEDATA] INPUT FILE: $file";
         my $file_base = $file->basename;
 
         my $file_handle = IO::File->new;
@@ -833,8 +833,8 @@ sub import_data {
         #my $total_chunk_text = $self->get_param_as_ref ('IMPORT_TOTAL_CHUNK_TEXT');
         my $total_chunk_text = '>0';
         
-        print "[BASEDATA] Line number: 1\n";
-        print "[BASEDATA]  Chunk size $line_count lines\n";
+        say '[BASEDATA] Line number: 1';
+        say "[BASEDATA]  Chunk size $line_count lines";
         
         #  destroy @lines as we go, saves a bit of memory for big files
         #  keep going if we have lines to process or haven't hit the end of file

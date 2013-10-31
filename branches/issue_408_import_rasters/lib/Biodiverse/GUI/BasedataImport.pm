@@ -63,7 +63,11 @@ sub run {
         # Add it
         # FIXME: why am i adding it now?? better at the end?
         my $basedata_name = $dlgxml->get_widget($txtImportNew)->get_text();
-        $basedata_ref = $gui->getProject->addBaseData($basedata_name);
+        #$basedata_ref = $gui->getProject->addBaseData($basedata_name);
+        $basedata_ref = Biodiverse::BaseData->new (
+            NAME       => $basedata_name,
+            CELL_SIZES => [],  #  default, gets overridden later
+        );
     }
     else {
         # Get selected basedata
@@ -225,7 +229,6 @@ sub run {
             else {
                 $num_labels = scalar @{$column_settings->{labels}};
             }
-            #$num_labels = 1 if $use_matrix;  #  sidestep the next check for labels
 
             if ($num_groups == 0 || $num_labels == 0) {
                 my $text = $use_matrix
@@ -318,17 +321,15 @@ sub run {
         }
     }
 
-
-    #$params->{INPUT_FILES} = \@filenames;
-
     #########
     # 4. Load the data
     #########
-    # Set the parameters   #  SWL - need to rethink this to work with args instead
-    foreach my $param (keys %$params) {
-        $basedata_ref->set_param($param, $params->{$param});
+    # Set the cellsize and origins parameters if we are new
+    if ($use_new) {
+        $basedata_ref->set_param(CELL_SIZES   => $params->{CELL_SIZES});
+        $basedata_ref->set_param(CELL_ORIGINS => $params->{CELL_ORIGINS});
     }
-    
+
     #  get the sample count columns.  could do in fillParams, but these are
     #    not reordered while fillParams deals with the re-ordering.  
     my @sample_count_columns;
@@ -363,14 +364,19 @@ sub run {
         $rest_of_options{$key} = $array_ref;
     }
 
-    #my $progress = Biodiverse::GUI::ProgressDialog->new;
+    #  get the various columns    
+    my %gp_lb_cols;
+    while (my ($key, $value) = each %$params) {
+        next if $key =~ /^CELL_(?:SIZE|ORIGINS)/;
+        $gp_lb_cols{lc $key} = $value;
+    }
+
     my $success = eval {
         $basedata_ref->load_data(
-            #progress                => $progress,
             %import_params,
             %rest_of_options,
+            %gp_lb_cols,
             input_files             => \@filenames,
-            #label_remap            => $remap,
             include_columns         => \@include_columns,
             exclude_columns         => \@exclude_columns,
             sample_count_columns    => \@sample_count_columns,
@@ -381,23 +387,22 @@ sub run {
         if (not $use_new) {
             $text .= "\tWarning: Records prior to this line have been imported.\n";
         }
-        #$progress->destroy;
         $gui->report_error ($text);
     }
-    #else {
-        #$progress->destroy;
-    #}
 
-    return $basedata_ref if $success;
-    
+    if ($success) {
+        if ($use_new) {
+            $gui->getProject->addBaseData($basedata_ref);
+        }
+        return $basedata_ref;
+    }
+
     # Delete new basedata if there's a cancel and we get this far
     # (which we should not)
     if ($use_new && $basedata_ref) {
         $gui->getProject->deleteBaseData($basedata_ref);
     }
 
-    #$dlg->destroy();
-    
     return;
 }
 

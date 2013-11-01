@@ -2623,9 +2623,7 @@ sub get_numeric_hash_lists {
         }
     }
 
-    return wantarray
-            ? %lists
-            : \%lists;
+    return wantarray ? %lists : \%lists;
 }
 
 sub get_array_lists {
@@ -2689,7 +2687,9 @@ sub get_hash_list_keys_across_elements {
     return wantarray ? keys %hash_keys : [keys %hash_keys];
 }
 
-sub get_list_ref {  #  return a reference to the specified list - allows for direct operation on its values
+#  return a reference to the specified list
+#  - allows for direct operation on its values
+sub get_list_ref {  
     my $self = shift;
     my %args = (
         autovivify => 1,

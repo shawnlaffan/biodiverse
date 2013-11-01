@@ -30,8 +30,35 @@ my @classes = qw /
     Biodiverse::Matrix::LowMem
 /;
 
-foreach my $class (@classes) {
-    run_main_tests($class);
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    test_main_tests();
+    test_lower_precision();
+    test_class_substitution();
+    test_deletions();
+    test_cluster_analysis();
+
+    done_testing;
+    return 0;
+}
+
+sub test_main_tests {
+    foreach my $class (@classes) {
+        run_main_tests($class);
+    }
 }
 
 foreach my $class (@classes) {
@@ -39,14 +66,14 @@ foreach my $class (@classes) {
 }
 
 #  now check with lower precision
-{
+sub test_lower_precision {
     my $class = 'Biodiverse::Matrix';
     my $precision = '%.1f';
     run_with_site_data ($class, VAL_INDEX_PRECISION => $precision);
 }
 
 #  can one class substitute for the other?
-{
+sub test_class_substitution {
     my $normal_class = 'Biodiverse::Matrix';
     my $lowmem_class = 'Biodiverse::Matrix::LowMem';
 
@@ -68,16 +95,53 @@ foreach my $class (@classes) {
 
 
 #  NEED TO TEST EFFECT OF DELETIONS
-foreach my $class (@classes) {
-    run_deletions($class);
+sub test_deletions {
+    foreach my $class (@classes) {
+        run_deletions($class);
+    }
 }
 
-{
-    test_cluster_analysis();
+sub test_cluster_analysis {
+    #  make sure we get the same cluster result using each type of matrix
+    #my $data = get_cluster_mini_data();
+    #my $bd   = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my $prng_seed = 123456;
+
+    my $class1 = 'Biodiverse::Matrix';
+    my $cl1 = $bd->add_cluster_output (
+        name => $class1,
+        CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
+        MATRIX_CLASS        => $class1,
+    );
+    $cl1->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    my $nwk1 = $cl1->to_newick;
+
+    #  make sure we build a new matrix
+    $bd->delete_all_outputs();
+
+    my $class2 = 'Biodiverse::Matrix::LowMem';
+    my $cl2 = $bd->add_cluster_output (
+        name => $class2,
+        CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
+        MATRIX_CLASS        => $class2,
+    );
+    $cl2->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    my $nwk2 = $cl2->to_newick;
+
+    
+    is (
+        $nwk1,
+        $nwk2,
+        "Cluster analyses using matrices of classes $class1 and $class2 are the same"
+    );
 }
 
-
-done_testing();
 
 sub run_deletions {
     my ($class, $mx) = @_;
@@ -291,46 +355,6 @@ sub run_with_site_data {
     #$mx->save_to_yaml (filename => $mx =~ /LowMem/ ? 'xx_LowMem.bmy' : 'xx_normal.bmy');
 }
 
-sub test_cluster_analysis {
-    #  make sure we get the same cluster result using each type of matrix
-    #my $data = get_cluster_mini_data();
-    #my $bd   = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
-
-    my $prng_seed = 123456;
-
-    my $class1 = 'Biodiverse::Matrix';
-    my $cl1 = $bd->add_cluster_output (
-        name => $class1,
-        CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
-        MATRIX_CLASS        => $class1,
-    );
-    $cl1->run_analysis (
-        prng_seed => $prng_seed,
-    );
-    my $nwk1 = $cl1->to_newick;
-
-    #  make sure we build a new matrix
-    $bd->delete_all_outputs();
-
-    my $class2 = 'Biodiverse::Matrix::LowMem';
-    my $cl2 = $bd->add_cluster_output (
-        name => $class2,
-        CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],
-        MATRIX_CLASS        => $class2,
-    );
-    $cl2->run_analysis (
-        prng_seed => $prng_seed,
-    );
-    my $nwk2 = $cl2->to_newick;
-
-    
-    is (
-        $nwk1,
-        $nwk2,
-        "Cluster analyses using matrices of classes $class1 and $class2 are the same"
-    );
-}
 
 
 sub create_matrix_object {

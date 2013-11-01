@@ -11,7 +11,7 @@ use Test::More;
 #my @files;
 use FindBin qw { $Bin };
 use File::Spec;
-use File::Find;
+use File::Find;  #  should switch to use File::Next
 
 use rlib;
 

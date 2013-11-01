@@ -50,6 +50,7 @@ sub main {
     test_class_substitution();
     test_deletions();
     test_cluster_analysis();
+    test_import_sparse_format();
 
     done_testing;
     return 0;
@@ -94,7 +95,7 @@ sub test_class_substitution {
 }
 
 
-#  NEED TO TEST EFFECT OF DELETIONS
+#  Test the effect of deletions
 sub test_deletions {
     foreach my $class (@classes) {
         run_deletions($class);
@@ -147,27 +148,28 @@ sub test_cluster_analysis {
 sub test_import_sparse_format {
     my $mx = create_matrix_object();
 
-    my $tmp_obj = File::Temp->new (UNLINK => 0);
-    my $fname = $tmp_obj->filename;
-    $tmp_obj = undef;
+    my $fname = rand() . 'tmp_mx.csv';
 
     $mx->export (
         format => 'Delimited text',
         file   => $fname,
         type   => 'sparse',
     );
-    
+
     foreach my $class (@classes) {
-        my $mx_from_sp = Biodiverse::Matrix->new(
+        my $mx_from_sp = $class->new(
             name => $class,
         );
-        $mx_from_sp->import_data (
+        $mx_from_sp->import_data_sparse (
             file => $fname,
+            label_row_columns => [0],
+            label_col_columns => [1],
+            value_column      => 2,
         );
         run_main_tests ($class, $mx_from_sp);
     }
     
-    
+    unlink $fname;
 }
 
 sub run_deletions {

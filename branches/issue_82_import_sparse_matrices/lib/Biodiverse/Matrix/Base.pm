@@ -56,13 +56,12 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
             ) {
             return $self->get_param ('SELF_SIMILARITY');  #  defaults to undef
         }
-        else {
-            return; #  combination does not exist - cannot get the value
-        }
+
+        return; #  if we get this far then the combination does not exist - cannot get the value
     }
 
-    croak   "[MATRICES] You seem to have added an extra result (value $exists) to" .
-            " sub element_pair_exists.  What were you thinking?\n";
+    croak "[MATRICES] You seem to have added an extra result (value $exists) to" .
+          " sub element_pair_exists.  What were you thinking?\n";
 }
 
 #  check an element pair exists, returning 1 if yes, 2 if yes, but in different order, undef otherwise
@@ -130,7 +129,6 @@ sub load_data {
     my $input_quote_char = $args{input_quote_char}
                         // $self->guess_quote_char (string => \$whole_file)
                         // $self->get_param ('QUOTES');
-    }
 
     my $IDcount = 0;
     my %labelList;
@@ -256,6 +254,139 @@ sub load_data {
             );
         }
         $label_count ++;
+    }
+
+    return;
+}
+
+#  import a sparse format file
+#  Cargo culted from load_data, so some refactoring is in order
+sub import_data_sparse {
+    my $self = shift;
+    my %args = @_;
+
+    my $file = $args{file}
+                || $self->get_param('FILE')
+                || croak "FILE NOT SPECIFIED in call to load_data\n";
+
+    my $element_properties = $args{element_properties};
+    my @label_row_columns  = @{$args{label_row_columns}};
+    my @label_col_columns  = @{$args{label_col_columns}};
+    my $value_column       = $args{value_column};
+
+    print "[MATRICES] INPUT MATRIX FILE: $file\n";
+
+    my $fh1 = IO::File->new;
+    $fh1->open ($file, '<:via(File::BOM)') or croak "Unable to open $file";
+    my $header = <$fh1>;  #  get header line
+    my $first_10000_chars;
+    my $count_chars = $fh1->read ($first_10000_chars, 10000);
+    $fh1->close;
+
+    my $in_sep_char = $args{sep_char} // $self->guess_field_separator (string => $header);
+    my $eol         = $self->guess_eol (string => $header);
+
+    my $input_quote_char = $args{input_quote_char}
+                        // $self->guess_quote_char (string => \$first_10000_chars)
+                        // $self->get_param ('QUOTES');
+
+    my $out_sep_char   = $self->get_param('JOIN_CHAR');
+    my $out_quote_char = $self->get_param('QUOTES');
+
+    my $in_csv = $self->get_csv_object (
+        sep_char   => $in_sep_char,
+        quote_char => $input_quote_char,
+    );
+    my $out_csv = $self->get_csv_object (
+        sep_char   => $out_sep_char,
+        quote_char => $out_quote_char,
+    );
+
+    my $lines_to_read_per_chunk = 50000;  #  needs to be a big matrix to go further than this
+
+    #  Re-open the file as the header is often important to us
+    #  (seeking back to zero causes probs between File::BOM and Text::CSV_XS)
+    my $fh = IO::File->new;
+    $fh->open ($file, '<:via(File::BOM)') or croak "Unable to open $file";
+
+    my $lines = $self->get_next_line_set (
+        file_handle         => $fh,
+        target_line_count   => $lines_to_read_per_chunk,
+        file_name           => $file,
+        csv_object          => $in_csv,
+    );
+
+    #  now we build the matrix, skipping values that are already in the matrix
+    my $text_allowed   = $self->get_param ('ALLOW_TEXT');
+    my $undef_allowed  = $self->get_param ('ALLOW_UNDEF');
+    my $blank_as_undef = $self->get_param ('BLANK_AS_UNDEF');
+    my $label_count    = 0;
+
+    shift @$lines;  #  first one is the header, which we don't need here
+
+    BY_LINE:
+    while (my $flds_ref = shift @$lines) {
+
+        if (scalar @$lines == 0) {
+            $lines = $self->get_next_line_set (
+                file_handle        => $fh,
+                file_name          => $file,
+                target_line_count  => $lines_to_read_per_chunk,
+                csv_object         => $in_csv,
+            );
+        }
+
+        next BY_LINE if scalar @$flds_ref == 0;  #  skip empty lines
+
+        #  get the label for this row
+        my @tmp = @$flds_ref[@label_row_columns];  #  build the row label from the relevant slice
+        my $col_label = $self->list2csv (
+            list       => \@tmp,
+            csv_object => $out_csv,
+        );
+        @tmp = @$flds_ref[@label_col_columns];  #  build the col label from the relevant slice
+        my $row_label = $self->list2csv (
+            list       => \@tmp,
+            csv_object => $out_csv,
+        );
+
+        if ($element_properties) {
+
+            my $remapped_col_label = $element_properties->get_element_remapped (element => $col_label);
+            my $remapped_row_label = $element_properties->get_element_remapped (element => $row_label);
+
+            next BY_LINE if $element_properties->get_element_exclude (element => $col_label);
+            next BY_LINE if $element_properties->get_element_exclude (element => $row_label);
+
+            #  test include and exclude before remapping
+            my $include =
+                   ($element_properties->get_element_include (element => $col_label)
+                &&  $element_properties->get_element_include (element => $row_label))
+                // 1;
+            next BY_LINE if !$include;
+
+            if (defined $remapped_col_label) {
+                $col_label = $remapped_col_label;
+            }
+            if (defined $remapped_row_label) {
+                $col_label = $remapped_row_label;
+            }
+        }
+
+        my $val = $flds_ref->[$value_column];
+
+        next BY_LINE  #  skip if in the matrix and already defined
+            if defined 
+                $self->get_value (
+                    element1 => $row_label,
+                    element2 => $col_label,
+                );
+
+        $self->add_element (
+            element1 => $row_label,  #  matches non-sparse import
+            element2 => $col_label,
+            value    => $val,
+        );
     }
 
     return;

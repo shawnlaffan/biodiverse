@@ -241,6 +241,12 @@ my %data_funcs = (
     on_basedata_attach_properties => {
         METHOD => 'do_basedata_attach_properties',
     },
+    on_basedata_attach_label_abundances_as_properties => {
+        METHOD => 'do_basedata_attach_label_abundances_as_properties',
+    },
+    on_basedata_attach_ranges_as_properties => {
+        METHOD => 'do_basedata_attach_label_ranges_as_properties',
+    },
     on_matrix_save => {
         METHOD => 'doSaveMatrix',
     },

@@ -106,73 +106,58 @@ sub load_data {
                 || croak "FILE NOT SPECIFIED in call to load_data\n";
 
     my $element_properties = $args{element_properties};
-
-    my @label_columns = @{$self->get_param('ELEMENT_COLUMNS')};
-
-    my @orig_label_columns = @{$self->get_param('ELEMENT_COLUMNS')};
-
-    warn "[MATRICES] WARNING: Different numbers of matrix columns (".($#label_columns + 1).") and cell snaps (".($#orig_label_columns+1).")\n"
-            if $#label_columns != $#orig_label_columns;
-
-    my $values_start_col = ($self->get_param('MATRIX_STARTCOL') || $label_columns[-1] + 1);
+    my @label_columns      = @{$self->get_param('ELEMENT_COLUMNS')};
+    my $values_start_col   = $self->get_param('MATRIX_STARTCOL') // ($label_columns[-1] + 1);
 
     print "[MATRICES] INPUT MATRIX FILE: $file\n";
     open (my $fh1, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
     my $header = <$fh1>;  #  get header line
     $fh1->close;
 
-    my $in_sep_char = $args{sep_char};
-    if (! defined $in_sep_char) {
-        $in_sep_char = $self -> guess_field_separator (string => $header);
-    }
-    my $eol = $self -> guess_eol (string => $header);
+    my $in_sep_char = $args{sep_char} // $self->guess_field_separator (string => $header);
+    my $eol         = $self->guess_eol (string => $header);
 
     #  Re-open the file as the header is often important to us
     #  (seeking back to zero causes probs between File::BOM and Text::CSV_XS)
     open (my $fh2, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
     my $whole_file;
     do {
-        local $/ = undef;  #  slurp whole file
+        local $/ = undef;  #  slurp whole file  IS THIS A GOOD IDEA???
         $whole_file = <$fh2>;
     };
     $fh2->close();  #  go back to the beginning
 
-    my $input_quote_char = $args{input_quote_char};
-    if (! defined $input_quote_char) {  #  guess the quotes character
-        $input_quote_char = $self -> guess_quote_char (string => \$whole_file);
-        #  if all else fails...
-        $input_quote_char = $self -> get_param ('QUOTES') if ! defined $input_quote_char;
+    my $input_quote_char = $args{input_quote_char}
+                        // $self->guess_quote_char (string => \$whole_file)
+                        // $self->get_param ('QUOTES');
     }
 
     my $IDcount = 0;
     my %labelList;
     my %labelInMatrix;
-    my $out_sep_char = $self->get_param('JOIN_CHAR');
+    my $out_sep_char   = $self->get_param('JOIN_CHAR');
     my $out_quote_char = $self->get_param('QUOTES');
-    
-    my $in_csv = $self -> get_csv_object (
-        sep_char    => $in_sep_char,
-        quote_char  => $input_quote_char,
+
+    my $in_csv = $self->get_csv_object (
+        sep_char   => $in_sep_char,
+        quote_char => $input_quote_char,
     );
-    my $out_csv = $self -> get_csv_object (
-        sep_char    => $out_sep_char,
-        quote_char  => $out_quote_char,
+    my $out_csv = $self->get_csv_object (
+        sep_char   => $out_sep_char,
+        quote_char => $out_quote_char,
     );
-    
+
     my $lines_to_read_per_chunk = 50000;  #  needs to be a big matrix to go further than this
 
-    open (my $fh, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
+    open (my $fh, '<:via(File::BOM)', $file) or croak "Could not open $file for reading\n";
 
-    my $lines = $self -> get_next_line_set (
-        progress            => $args{progress_bar},
+    my $lines = $self->get_next_line_set (
         file_handle         => $fh,
         target_line_count   => $lines_to_read_per_chunk,
         file_name           => $file,
         csv_object          => $in_csv,
     );
 
-    #$fh -> close;
-    
     #  two pass system - one reads in the labels and data
     #  the other puts them into the matrix
     #  this allows for upper right matrices where we need to know the label
@@ -187,8 +172,7 @@ sub load_data {
     while (my $flds_ref = shift @$lines) {
 
         if (scalar @$lines == 0) {
-            $lines = $self -> get_next_line_set (
-                progress           => $args{progress_bar},
+            $lines = $self->get_next_line_set (
                 file_handle        => $fh,
                 file_name          => $file,
                 target_line_count  => $lines_to_read_per_chunk,
@@ -210,27 +194,25 @@ sub load_data {
         if ($element_properties) {
 
             my $remapped_label
-                = $element_properties -> get_element_remapped (element => $label);
+                = $element_properties->get_element_remapped (element => $label);
 
-            next BY_LINE if $element_properties -> get_element_exclude (element => $label);
+            next BY_LINE if $element_properties->get_element_exclude (element => $label);
 
             #  test include and exclude before remapping
-            my $include = $element_properties -> get_element_include (element => $label);
-            next BY_LINE if defined $include and not $include;
+            my $include = $element_properties->get_element_include (element => $label) // 1;
+            next BY_LINE if !$include;
 
             if (defined $remapped_label) {
                 $label = $remapped_label;
             }
         }
-        
-        #print "IDcount is $IDcount\n";
 
         $labelList{$IDcount} = $label;
         $labelInMatrix{$label}++;
 
         #  strip the leading labels and other data
         splice (@$flds_ref, 0, $values_start_col);  
-        
+
         push @data, $flds_ref;
         push @cols_to_use, $valid_col_index;
 
@@ -247,7 +229,7 @@ sub load_data {
       BY_FIELD:
         foreach my $i (@cols_to_use) {
             my $val = $flds_ref->[$i];
-#my $a = defined $val;  #  debug - hang a break on this
+
             if (defined $val && $blank_as_undef && $val eq $EMPTY_STRING) {
                 $val = undef;
             }
@@ -256,18 +238,18 @@ sub load_data {
             next BY_FIELD if !$undef_allowed && !defined $val;
             next BY_FIELD if defined $val && $val eq $EMPTY_STRING;  
             next BY_FIELD if defined $val && !$text_allowed && !looks_like_number ($val);
-            
-            my $label = $labelList{$label_count};
+
+            my $label  = $labelList{$label_count};
             my $label2 = $labelList{$i};
-            
+
             next BY_FIELD  #  skip if in the matrix and already defined
                 if defined 
-                    $self -> get_value (
+                    $self->get_value (
                         element1 => $label,
                         element2 => $label2,
                     );
 
-            $self -> add_element (
+            $self->add_element (
                 element1 => $label,
                 element2 => $label2,
                 value    => $val,

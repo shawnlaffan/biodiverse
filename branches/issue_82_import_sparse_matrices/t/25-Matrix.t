@@ -143,6 +143,33 @@ sub test_cluster_analysis {
 }
 
 
+#  generate a matrix, export to sparse format, and then try to import it
+sub test_import_sparse_format {
+    my $mx = create_matrix_object();
+
+    my $tmp_obj = File::Temp->new (UNLINK => 0);
+    my $fname = $tmp_obj->filename;
+    $tmp_obj = undef;
+
+    $mx->export (
+        format => 'Delimited text',
+        file   => $fname,
+        type   => 'sparse',
+    );
+    
+    foreach my $class (@classes) {
+        my $mx_from_sp = Biodiverse::Matrix->new(
+            name => $class,
+        );
+        $mx_from_sp->import_data (
+            file => $fname,
+        );
+        run_main_tests ($class, $mx_from_sp);
+    }
+    
+    
+}
+
 sub run_deletions {
     my ($class, $mx) = @_;
     

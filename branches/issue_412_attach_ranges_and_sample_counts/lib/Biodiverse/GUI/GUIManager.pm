@@ -652,6 +652,26 @@ sub do_basedata_reorder_axes {
     return;
 }
 
+sub do_basedata_attach_label_abundances_as_properties {
+    my $self = shift;
+
+    my $bd = $self->{project}->getSelectedBaseData();
+    
+    $bd->attach_label_abundances_as_properties;
+
+    return;
+}
+
+sub do_basedata_attach_label_ranges_as_properties {
+    my $self = shift;
+
+    my $bd = $self->{project}->getSelectedBaseData();
+
+    $bd->attach_label_ranges_as_properties;
+
+    return;
+}
+
 sub do_basedata_attach_properties {
     my $self = shift;
 

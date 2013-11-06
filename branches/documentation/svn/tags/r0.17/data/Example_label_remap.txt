@@ -1,4 +1,0 @@
-rec_num,genus,species,new_genus,new_species,range,sample_count,exclude
-1,Genus,sp1,Genus,sp2,,,1
-10,Genus,sp18,Genus,sp2,,
-2000,Genus,sp2,,,200,1000

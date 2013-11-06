@@ -1,8 +1,0 @@
-[explanation]
-Version numbers for Biodiverse releases. 
-
-[release]
-0.16
-
-[development]
-0.17

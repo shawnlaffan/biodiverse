@@ -1,5 +1,0 @@
-#summary Stub page - do not use
-
-This is a stub.
-
-All the content is now in the [Indices] page.

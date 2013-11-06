@@ -1,0 +1,25 @@
+var classBiodiverse_1_1Indices_1_1GroupProperties =
+[
+    [ "_get_gistar_score", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a60e2c6848add758740446165d932ec07", null ],
+    [ "_get_gpprop_global_summary_stats", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a048350a95d220bdb9fbda8dffe99d28d", null ],
+    [ "_get_gpprop_names", "classBiodiverse_1_1Indices_1_1GroupProperties.html#aa42be29d57c04885e57189abbf29761c", null ],
+    [ "_get_gpprop_stats_hash_key", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a7d8ce9d47e4070cb0eeff26de8ad5d33", null ],
+    [ "_get_gpprop_stats_hash_keynames", "classBiodiverse_1_1Indices_1_1GroupProperties.html#ae5d69ed960e973c84647b3ebc751ac75", null ],
+    [ "calc_gpprop_gistar", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a4bd09f885868ce91d97d5bd205b513a8", null ],
+    [ "calc_gpprop_hashes", "classBiodiverse_1_1Indices_1_1GroupProperties.html#ace69c2694332e58fb0aa0ba48cf06981", null ],
+    [ "calc_gpprop_lists", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a7dd50a13641e3c0b24a5475a773b19e4", null ],
+    [ "calc_gpprop_quantiles", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a2668798202af599c62aa55283a41a9b3", null ],
+    [ "calc_gpprop_stats", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a49b0487dcd0207597694fa233a7cf35b", null ],
+    [ "get_gpp_stats_objects", "classBiodiverse_1_1Indices_1_1GroupProperties.html#aa970e5aa84946533b2ba357a47423971", null ],
+    [ "get_metadata__get_gpprop_global_summary_stats", "classBiodiverse_1_1Indices_1_1GroupProperties.html#aa37fc1a8609bf11508d98f31a1ee6e2f", null ],
+    [ "get_metadata_calc_gpprop_gistar", "classBiodiverse_1_1Indices_1_1GroupProperties.html#ad50ad56e3a597699bf3f82eed4f53e83", null ],
+    [ "get_metadata_calc_gpprop_hashes", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a65b55af494c57908419e1a97a9bc7aeb", null ],
+    [ "get_metadata_calc_gpprop_lists", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a755168603b8a84793ff21420e659bc99", null ],
+    [ "get_metadata_calc_gpprop_quantiles", "classBiodiverse_1_1Indices_1_1GroupProperties.html#ae73e463b013c5805f566eb625cb1f5f3", null ],
+    [ "get_metadata_calc_gpprop_stats", "classBiodiverse_1_1Indices_1_1GroupProperties.html#af1907e3099942e4cf043403db2cdc32c", null ],
+    [ "get_metadata_get_gpp_stats_objects", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a0b0c83af2004588adb8efd6b1f1ceed8", null ],
+    [ "quantiles", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a6e9f4b63363b7b73474c56980e818b0e", null ],
+    [ "stat_name_short", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a5eb4cc5eb51d1d855812e433d43bd834", null ],
+    [ "stats", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a93c6a5b497b713ac6f296903340d40f1", null ],
+    [ "stats_class", "classBiodiverse_1_1Indices_1_1GroupProperties.html#a3096b3c64581bd0a32d51b7fd48330c4", null ]
+];

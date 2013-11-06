@@ -1,0 +1,16 @@
+#summary Installation instructions
+#labels Featured,Phase-Deploy
+#sidebar TOC
+
+Installation instructions.
+
+  *  Windows
+    *  Executable:  InstallationWindowsBinary
+    *  Source code:  InstallationWindowsSource
+  *  Macintosh
+    *  Binary:  InstallationMacBinary
+    *  Source code:  InstallationMacSource
+  *  Linux
+    *  Binary:  InstallationLinuxBinary
+    *  Source code:  InstallationLinuxSource
+  *  [TOC Back to main table of contents]

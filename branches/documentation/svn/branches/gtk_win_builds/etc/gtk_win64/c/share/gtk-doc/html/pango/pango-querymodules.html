@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>pango-querymodules</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="Pango Reference Manual">
+<link rel="up" href="tools.html" title="Pango Tools">
+<link rel="prev" href="tools.html" title="Pango Tools">
+<link rel="next" href="pango-hierarchy.html" title="Object Hierarchy">
+<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2"><tr valign="middle">
+<td><a accesskey="p" href="tools.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="tools.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">Pango Reference Manual</th>
+<td><a accesskey="n" href="pango-hierarchy.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr></table>
+<div class="refentry">
+<a name="pango-querymodules"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle">pango-querymodules</span></h2>
+<p>pango-querymodules — Module registration utility</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<h2>Synopsis</h2>
+<div class="cmdsynopsis"><p><code class="command">pango-querymodules</code>  [OPTION...] [MODULE...]</p></div>
+</div>
+<div class="refsect1">
+<a name="Description"></a><h2>Description</h2>
+<p>
+<span class="command"><strong>pango-querymodules</strong></span> collects information about loadable
+modules for Pango and writes it to <code class="filename">stdout</code>.
+</p>
+<p>
+If called without MODULE arguments, it looks for modules in the Pango
+module path, which is specified by the key <code class="literal">Pango/ModulesPath</code>
+in the Pango configuration database.
+</p>
+<p>
+If called with MODULE arguments, it looks for the specified modules. The
+arguments may be absolute or relative paths.
+</p>
+<p>
+At runtime, Pango looks for the loadable module information (i.e. the output
+of pango-querymodules) in <code class="filename"><em class="replaceable"><code>libdir</code></em>/pango/1.8.0/modules.cache</code>.
+</p>
+</div>
+<div class="refsect1">
+<a name="id-1.5.2.6"></a><h2>Options</h2>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="option">-?</code>, <code class="option">--help</code></span></p></td>
+<td><p>Prints a short help text and exits.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">--version</code></span></p></td>
+<td><p>Prints version information.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">--system</code></span></p></td>
+<td><p>Do not load user-specific configuration.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="option">--update-cache</code></span></p></td>
+<td><p>Update the Pango module cache file directly,
+instead of writing the information to <code class="filename">stdout</code>.</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="Environment"></a><h2>Environment</h2>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody><tr>
+<td><p><span class="term"><code class="envar">PANGO_RC_FILE</code></span></p></td>
+<td><p>Specifies an additional rc file for the Pango configuration
+database, in addition to the system-wide and per-user files.</p></td>
+</tr></tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="id-1.5.2.8"></a><h2>Files</h2>
+<div class="variablelist"><table border="0" class="variablelist">
+<colgroup>
+<col align="left" valign="top">
+<col>
+</colgroup>
+<tbody>
+<tr>
+<td><p><span class="term"><code class="filename"><em class="replaceable"><code>sysconfdir</code></em>/pango/pangorc</code></span></p></td>
+<td><p>System-wide Pango configuration file.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="filename"><code class="envar">$XDG_CONFIG_HOME</code>/pango/pangorc</code></span></p></td>
+<td><p>User-specific Pango configuration file.</p></td>
+</tr>
+<tr>
+<td><p><span class="term"><code class="filename"><em class="replaceable"><code>libdir</code></em>/pango/1.8.0/modules.cache</code></span></p></td>
+<td><p>Location of the module cache file read by Pango.</p></td>
+</tr>
+</tbody>
+</table></div>
+</div>
+<div class="refsect1">
+<a name="Bugs"></a><h2>Bugs</h2>
+<p>
+None known yet.
+</p>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18.1</div>
+</body>
+</html>

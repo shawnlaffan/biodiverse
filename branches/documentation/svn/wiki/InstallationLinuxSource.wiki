@@ -1,0 +1,64 @@
+#summary Linux source code install instructions
+#sidebar Installation
+
+These instructions apply to version 0.17.
+
+Note that they have been tested on Ubuntu.  The package manager will differ for other Linux flavours, but the cpan command will be the same.
+
+These also assume you have [http://code.google.com/p/biodiverse/downloads/list downloaded] the Biodiverse source code to your home directory and renamed it from whatever it was, e.g. `biodiverse_0.17_source`, to `biodiverse`.  If you have saved it somewhere else then you will need to adjust the following so any references to `$HOME/biodiverse/lib` use the appropriate directory.
+
+
+= Installation =
+
+  * This will require some interaction when it downloads additional packages, depending on your CPAN settings.
+
+  * It is also a very good idea to *not* use the system perl for this.  The operating system assumes specific versions of files are in the system perl.  Download and install one of the many available perls, for example from !ActiveState.  http://www.activestate.com/activeperl/downloads .  You could also try perlbrew.  http://perlbrew.pl/
+
+  * Once you have installed the other perl, you need to make sure it is the one you call in subsequent steps.  You will probably need to give the full path name to the perl binary in each line, rather than just saying `perl`.  If you installed perl to your home directory then you won't need to prepend each perl command with `sudo`.  
+
+
+{{{
+# Assuming you are currently in the base biodiverse directory.
+sudo apt-get install libcairo2-dev libpango1.0-dev libgtk+2.0-dev libgnomecanvas2-dev libglade2-dev
+
+#  skip this if you already have cpanm installed
+cpan App::cpanminus
+
+# Now install the rest of the dependencies
+cpanm Task::Biodiverse::NoGUI~0.19
+cpanm Task::Biodiverse~0.19
+cpanm Task::Biodiverse~0.19
+
+#  The last cpan command is listed twice to get Gnome::Canvas
+#  and Gtk2::GladeXML to install after their dependencies.
+}}}
+
+If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).
+
+You can download and install more themes from http://art.gnome.org/themes/gtk2
+
+= Running it =
+
+  * To run Biodiverse, open a terminal window and change directory to the biodiverse/bin folder.  If it is in your home folder and called `biodiverse` then type:
+{{{
+cd ~/biodiverse/bin
+}}}
+  * Once you have done this, type the following command to open Biodiverse.
+{{{
+perl BiodiverseGUI.pl
+}}}
+  *  Alternately, you could give the full path to Biodiverse if you want to start in a particular directory (i.e. where all your files are).
+{{{
+perl ~/biodiverse/bin/BiodiverseGUI.pl
+}}}
+  *  If you want your command prompt back after opening Biodiverse then run it as a background job.  However, the log output will then be mixed with any other commands you type.
+{{{
+perl BiodiverseGUI.pl &
+}}}
+  
+
+  * You can also add the `biodiverse/bin` folder to your PATH variable to save some typing. You might also need to edit the shebang line in BiodiverseGUI.pl to point to the correct perl executable.
+
+= Troubleshooting =
+  *  Ubuntu 11 appears to need this before running the other installer commands:  `sudo apt-get install libgnome2-canvas-perl`
+  *  Please report any issues using the [http://code.google.com/p/biodiverse/issues/list project issue tracker]

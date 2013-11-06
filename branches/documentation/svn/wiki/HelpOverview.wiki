@@ -1,0 +1,11 @@
+#summary Help overview
+#labels Featured
+#sidebar TOC
+
+= Introduction =
+
+This is an overview of the help system.  At this stage the system is very much a work in progress.  Any constructive feedback is appreciated, either through comments on the pages themselves, or by raising a new issue (http://code.google.com/p/biodiverse/issues/list).  
+
+Use the side bar at the left to navigate between most pages.  
+
+At this stage the main reference is the SampleSession file.  It can get pretty heavy in parts, and there are plans to separate the content into their own pages, leaving an easier to read overview.  

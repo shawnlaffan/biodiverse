@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Versioning macros</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="ATK - Accessibility Toolkit">
+<link rel="up" href="atk.html" title="Utilities">
+<link rel="prev" href="atk.html" title="Utilities">
+<link rel="next" href="api-index-full.html" title="Index of all symbols">
+<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="atk.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="atk.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">ATK - Accessibility Toolkit</th>
+<td><a accesskey="n" href="api-index-full.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#atk-Versioning-Utilities.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#atk-Versioning-Utilities.description" class="shortcut">Description</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="atk-Versioning-Utilities"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="atk-Versioning-Utilities.top_of_page"></a>Versioning macros</span></h2>
+<p>Versioning macros — Variables and functions to check the ATK version</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="atk-Versioning-Utilities.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis"><span class="returnvalue">guint</span>               <a class="link" href="atk-Versioning-Utilities.html#atk-get-major-version" title="atk_get_major_version ()">atk_get_major_version</a>               (<em class="parameter"><code><span class="type">void</span></code></em>);
+<span class="returnvalue">guint</span>               <a class="link" href="atk-Versioning-Utilities.html#atk-get-minor-version" title="atk_get_minor_version ()">atk_get_minor_version</a>               (<em class="parameter"><code><span class="type">void</span></code></em>);
+<span class="returnvalue">guint</span>               <a class="link" href="atk-Versioning-Utilities.html#atk-get-micro-version" title="atk_get_micro_version ()">atk_get_micro_version</a>               (<em class="parameter"><code><span class="type">void</span></code></em>);
+<span class="returnvalue">guint</span>               <a class="link" href="atk-Versioning-Utilities.html#atk-get-binary-age" title="atk_get_binary_age ()">atk_get_binary_age</a>                  (<em class="parameter"><code><span class="type">void</span></code></em>);
+<span class="returnvalue">guint</span>               <a class="link" href="atk-Versioning-Utilities.html#atk-get-interface-age" title="atk_get_interface_age ()">atk_get_interface_age</a>               (<em class="parameter"><code><span class="type">void</span></code></em>);
+#define             <a class="link" href="atk-Versioning-Utilities.html#ATK-MAJOR-VERSION:CAPS" title="ATK_MAJOR_VERSION">ATK_MAJOR_VERSION</a>
+#define             <a class="link" href="atk-Versioning-Utilities.html#ATK-MINOR-VERSION:CAPS" title="ATK_MINOR_VERSION">ATK_MINOR_VERSION</a>
+#define             <a class="link" href="atk-Versioning-Utilities.html#ATK-MICRO-VERSION:CAPS" title="ATK_MICRO_VERSION">ATK_MICRO_VERSION</a>
+#define             <a class="link" href="atk-Versioning-Utilities.html#ATK-CHECK-VERSION:CAPS" title="ATK_CHECK_VERSION()">ATK_CHECK_VERSION</a>                   (major,
+                                                         minor,
+                                                         micro)
+</pre>
+</div>
+<div class="refsect1">
+<a name="atk-Versioning-Utilities.description"></a><h2>Description</h2>
+<p>
+ATK provides a set of macros and methods for checking the version
+of the library at compile and run time.
+</p>
+</div>
+<div class="refsect1">
+<a name="atk-Versioning-Utilities.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="atk-get-major-version"></a><h3>atk_get_major_version ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>               atk_get_major_version               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Returns the major version number of the ATK library.  (e.g. in ATK
+version 2.7.4 this is 2.)
+</p>
+<p>
+This function is in the library, so it represents the ATK library
+your code is running against. In contrast, the <a class="link" href="atk-Versioning-Utilities.html#ATK-MAJOR-VERSION:CAPS" title="ATK_MAJOR_VERSION"><span class="type">ATK_MAJOR_VERSION</span></a>
+macro represents the major version of the ATK headers you have
+included when compiling your code.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the major version number of the ATK library</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.7.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="atk-get-minor-version"></a><h3>atk_get_minor_version ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>               atk_get_minor_version               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Returns the minor version number of the ATK library.  (e.g. in ATK
+version 2.7.4 this is 7.)
+</p>
+<p>
+This function is in the library, so it represents the ATK library
+your code is are running against. In contrast, the
+<a class="link" href="atk-Versioning-Utilities.html#ATK-MINOR-VERSION:CAPS" title="ATK_MINOR_VERSION"><span class="type">ATK_MINOR_VERSION</span></a> macro represents the minor version of the ATK
+headers you have included when compiling your code.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the minor version number of the ATK library</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.7.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="atk-get-micro-version"></a><h3>atk_get_micro_version ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>               atk_get_micro_version               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Returns the micro version number of the ATK library.  (e.g. in ATK
+version 2.7.4 this is 4.)
+</p>
+<p>
+This function is in the library, so it represents the ATK library
+your code is are running against. In contrast, the
+<a class="link" href="atk-Versioning-Utilities.html#ATK-MICRO-VERSION:CAPS" title="ATK_MICRO_VERSION"><span class="type">ATK_MICRO_VERSION</span></a> macro represents the micro version of the ATK
+headers you have included when compiling your code.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the micro version number of the ATK library</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.7.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="atk-get-binary-age"></a><h3>atk_get_binary_age ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>               atk_get_binary_age                  (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Returns the binary age as passed to libtool when building the ATK
+library the process is running against.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the binary age of the ATK library</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.7.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="atk-get-interface-age"></a><h3>atk_get_interface_age ()</h3>
+<pre class="programlisting"><span class="returnvalue">guint</span>               atk_get_interface_age               (<em class="parameter"><code><span class="type">void</span></code></em>);</pre>
+<p>
+Returns the interface age as passed to libtool when building the
+ATK library the process is running against.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody><tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>the interface age of the ATK library</td>
+</tr></tbody>
+</table></div>
+<p class="since">Since 2.7.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ATK-MAJOR-VERSION:CAPS"></a><h3>ATK_MAJOR_VERSION</h3>
+<pre class="programlisting">#define ATK_MAJOR_VERSION (2)
+</pre>
+<p>
+Like <a class="link" href="atk-Versioning-Utilities.html#atk-get-major-version" title="atk_get_major_version ()"><code class="function">atk_get_major_version()</code></a>, but from the headers used at
+application compile time, rather than from the library linked
+against at application run time.
+</p>
+<p class="since">Since 2.7.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ATK-MINOR-VERSION:CAPS"></a><h3>ATK_MINOR_VERSION</h3>
+<pre class="programlisting">#define ATK_MINOR_VERSION (8)
+</pre>
+<p>
+Like <a class="link" href="atk-Versioning-Utilities.html#atk-get-minor-version" title="atk_get_minor_version ()"><code class="function">atk_get_minor_version()</code></a>, but from the headers used at
+application compile time, rather than from the library linked
+against at application run time.
+</p>
+<p class="since">Since 2.7.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ATK-MICRO-VERSION:CAPS"></a><h3>ATK_MICRO_VERSION</h3>
+<pre class="programlisting">#define ATK_MICRO_VERSION (0)
+</pre>
+<p>
+Like <a class="link" href="atk-Versioning-Utilities.html#atk-get-micro-version" title="atk_get_micro_version ()"><code class="function">atk_get_micro_version()</code></a>, but from the headers used at
+application compile time, rather than from the library linked
+against at application run time.
+</p>
+<p class="since">Since 2.7.4</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="ATK-CHECK-VERSION:CAPS"></a><h3>ATK_CHECK_VERSION()</h3>
+<pre class="programlisting">#define             ATK_CHECK_VERSION(major,minor,micro)</pre>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>major</code></em> :</span></p></td>
+<td>major version (e.g. 1 for version 1.2.5)</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>minor</code></em> :</span></p></td>
+<td>minor version (e.g. 2 for version 1.2.5)</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>micro</code></em> :</span></p></td>
+<td>micro version (e.g. 5 for version 1.2.5)</td>
+</tr>
+<tr>
+<td><p><span class="term"><span class="emphasis"><em>Returns</em></span> :</span></p></td>
+<td>
+<code class="literal">TRUE</code> if the version of the ATK header files is the same as
+or newer than the passed-in version.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.7.4</p>
+</div>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18.1</div>
+</body>
+</html>

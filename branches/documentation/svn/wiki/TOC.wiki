@@ -1,0 +1,15 @@
+#summary Table of contents for the help files
+
+  * HelpOverview
+  * AnalysisTypes
+  * DataStructures
+  * [FAQ]
+  * [Indices]
+  * [Installation]
+  * KeyConcepts
+  * PublicationsList
+  * ReleaseNotes
+  * SampleSession
+  * ScreenShots
+  * SpatialConditions
+  * LoadAndRandomise

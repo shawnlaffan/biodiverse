@@ -1,0 +1,328 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>AtkWindow</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.76.1">
+<link rel="home" href="index.html" title="ATK - Accessibility Toolkit">
+<link rel="up" href="atk.html" title="ATK Library">
+<link rel="prev" href="AtkValue.html" title="AtkValue">
+<link rel="next" href="atk.html" title="Utilities">
+<meta name="generator" content="GTK-Doc V1.18.1 (XML mode)">
+<link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" id="top" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2">
+<tr valign="middle">
+<td><a accesskey="p" href="AtkValue.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="atk.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<th width="100%" align="center">ATK - Accessibility Toolkit</th>
+<td><a accesskey="n" href="atk.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+</tr>
+<tr><td colspan="5" class="shortcuts">
+<a href="#AtkWindow.synopsis" class="shortcut">Top</a>
+                   | 
+                  <a href="#AtkWindow.description" class="shortcut">Description</a>
+                   | 
+                  <a href="#AtkWindow.object-hierarchy" class="shortcut">Object Hierarchy</a>
+                   | 
+                  <a href="#AtkWindow.prerequisites" class="shortcut">Prerequisites</a>
+                   | 
+                  <a href="#AtkWindow.implementations" class="shortcut">Known Implementations</a>
+                   | 
+                  <a href="#AtkWindow.signals" class="shortcut">Signals</a>
+</td></tr>
+</table>
+<div class="refentry">
+<a name="AtkWindow"></a><div class="titlepage"></div>
+<div class="refnamediv"><table width="100%"><tr>
+<td valign="top">
+<h2><span class="refentrytitle"><a name="AtkWindow.top_of_page"></a>AtkWindow</span></h2>
+<p>AtkWindow — The ATK Interface provided by UI components that represent a top-level window.</p>
+</td>
+<td valign="top" align="right"></td>
+</tr></table></div>
+<div class="refsynopsisdiv">
+<a name="AtkWindow.synopsis"></a><h2>Synopsis</h2>
+<pre class="synopsis">                    <a class="link" href="AtkWindow.html#AtkWindow-struct" title="AtkWindow">AtkWindow</a>;
+</pre>
+</div>
+<div class="refsect1">
+<a name="AtkWindow.object-hierarchy"></a><h2>Object Hierarchy</h2>
+<pre class="synopsis">
+  GInterface
+   +----AtkWindow
+</pre>
+</div>
+<div class="refsect1">
+<a name="AtkWindow.prerequisites"></a><h2>Prerequisites</h2>
+<p>
+AtkWindow requires
+ <a class="link" href="AtkObject.html" title="AtkObject">AtkObject</a>.</p>
+</div>
+<div class="refsect1">
+<a name="AtkWindow.implementations"></a><h2>Known Implementations</h2>
+<p>
+AtkWindow is implemented by
+ <a class="link" href="AtkNoOpObject.html" title="AtkNoOpObject">AtkNoOpObject</a>.</p>
+</div>
+<div class="refsect1">
+<a name="AtkWindow.signals"></a><h2>Signals</h2>
+<pre class="synopsis">
+  "<a class="link" href="AtkWindow.html#AtkWindow-activate" title='The "activate" signal'>activate</a>"                                       : <code class="literal">Run Last</code>
+  "<a class="link" href="AtkWindow.html#AtkWindow-create" title='The "create" signal'>create</a>"                                         : <code class="literal">Run Last</code>
+  "<a class="link" href="AtkWindow.html#AtkWindow-deactivate" title='The "deactivate" signal'>deactivate</a>"                                     : <code class="literal">Run Last</code>
+  "<a class="link" href="AtkWindow.html#AtkWindow-destroy" title='The "destroy" signal'>destroy</a>"                                        : <code class="literal">Run Last</code>
+  "<a class="link" href="AtkWindow.html#AtkWindow-maximize" title='The "maximize" signal'>maximize</a>"                                       : <code class="literal">Run Last</code>
+  "<a class="link" href="AtkWindow.html#AtkWindow-minimize" title='The "minimize" signal'>minimize</a>"                                       : <code class="literal">Run Last</code>
+  "<a class="link" href="AtkWindow.html#AtkWindow-move" title='The "move" signal'>move</a>"                                           : <code class="literal">Run Last</code>
+  "<a class="link" href="AtkWindow.html#AtkWindow-resize" title='The "resize" signal'>resize</a>"                                         : <code class="literal">Run Last</code>
+  "<a class="link" href="AtkWindow.html#AtkWindow-restore" title='The "restore" signal'>restore</a>"                                        : <code class="literal">Run Last</code>
+</pre>
+</div>
+<div class="refsect1">
+<a name="AtkWindow.description"></a><h2>Description</h2>
+<p>
+<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> should be implemented by the UI elements that represent
+a top-level window, such as the main window of an application or
+dialog.
+</p>
+</div>
+<div class="refsect1">
+<a name="AtkWindow.details"></a><h2>Details</h2>
+<div class="refsect2">
+<a name="AtkWindow-struct"></a><h3>AtkWindow</h3>
+<pre class="programlisting">typedef struct _AtkWindow AtkWindow;</pre>
+<p>
+</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="AtkWindow.signal-details"></a><h2>Signal Details</h2>
+<div class="refsect2">
+<a name="AtkWindow-activate"></a><h3>The <code class="literal">"activate"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-activate" title='The "activate" signal'><span class="type">"activate"</span></a> is emitted when a window
+becomes the active window of the application or session.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="AtkWindow-create"></a><h3>The <code class="literal">"create"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-create" title='The "create" signal'><span class="type">"create"</span></a> is emitted when a new window
+is created.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="AtkWindow-deactivate"></a><h3>The <code class="literal">"deactivate"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-deactivate" title='The "deactivate" signal'><span class="type">"deactivate"</span></a> is emitted when a window is
+no longer the active window of the application or session.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="AtkWindow-destroy"></a><h3>The <code class="literal">"destroy"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-destroy" title='The "destroy" signal'><span class="type">"destroy"</span></a> is emitted when a window is
+destroyed.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="AtkWindow-maximize"></a><h3>The <code class="literal">"maximize"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-maximize" title='The "maximize" signal'><span class="type">"maximize"</span></a> is emitted when a window
+is maximized.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="AtkWindow-minimize"></a><h3>The <code class="literal">"minimize"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-minimize" title='The "minimize" signal'><span class="type">"minimize"</span></a> is emitted when a window
+is minimized.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="AtkWindow-move"></a><h3>The <code class="literal">"move"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-move" title='The "move" signal'><span class="type">"move"</span></a> is emitted when a window
+is moved.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="AtkWindow-resize"></a><h3>The <code class="literal">"resize"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-resize" title='The "resize" signal'><span class="type">"resize"</span></a> is emitted when a window
+is resized.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+<hr>
+<div class="refsect2">
+<a name="AtkWindow-restore"></a><h3>The <code class="literal">"restore"</code> signal</h3>
+<pre class="programlisting"><span class="returnvalue">void</span>                user_function                      (<a class="link" href="AtkWindow.html" title="AtkWindow"><span class="type">AtkWindow</span></a> *object,
+                                                        <span class="type">gpointer</span>   user_data)      : <code class="literal">Run Last</code></pre>
+<p>
+The signal <a class="link" href="AtkWindow.html#AtkWindow-restore" title='The "restore" signal'><span class="type">"restore"</span></a> is emitted when a window
+is restored.
+</p>
+<div class="variablelist"><table border="0">
+<col align="left" valign="top">
+<tbody>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>object</code></em> :</span></p></td>
+<td>the object which received the signal</td>
+</tr>
+<tr>
+<td><p><span class="term"><em class="parameter"><code>user_data</code></em> :</span></p></td>
+<td>user data set when the signal handler was connected.</td>
+</tr>
+</tbody>
+</table></div>
+<p class="since">Since 2.1.5</p>
+</div>
+</div>
+<div class="refsect1">
+<a name="AtkWindow.see-also"></a><h2>See Also</h2>
+<a class="link" href="AtkObject.html" title="AtkObject"><span class="type">AtkObject</span></a>
+</div>
+</div>
+<div class="footer">
+<hr>
+          Generated by GTK-Doc V1.18.1</div>
+</body>
+</html>

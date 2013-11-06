@@ -1,0 +1,25 @@
+var classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix =
+[
+    [ "AUTOLOAD", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#ae30293f3d19b1ebfd7364fe71867c056", null ],
+    [ "DESTROY", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#aada0398f3653c274d4541ac616230bda", null ],
+    [ "getType", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a360adc9377a1976ca7d4c371f7dda40c", null ],
+    [ "initGrid", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#ae0e663cf0c324d27fcd5e04e75837cf9", null ],
+    [ "initListsCombo", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a21396a3d3cdcf648f26c858f6328aadf", null ],
+    [ "makeListsModel", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#aec6e0ca26d8f4b8e89f1d2921a081abf", null ],
+    [ "makeOutputIndicesModel", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a3403013a7832229065eb1c29571712ad", null ],
+    [ "new", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#ad0ceb03d9a39c5f6c7907275ae118565", null ],
+    [ "on_cell_selected", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a909638b0ec278a6f46a9b6e3acead8cf", null ],
+    [ "on_show_hide_parameters", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a66367cda1f5e1cafe841029d4b41ae0b", null ],
+    [ "onActiveIndexChanged", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#ac638a5e5b1ec8b246bedb40bd3266a1d", null ],
+    [ "onGridHover", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a10cdc63f1ebda68ce3b8ba043d40af1d", null ],
+    [ "onNeighboursChanged", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#ab4fd062050497d5c8aa2b1719b661fa7", null ],
+    [ "onRun", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a027e7c7bb7a99ecf1e5ab8ab1a4efdfb", null ],
+    [ "recolour", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#ac06f5a053591b4e0c82a1b2422ec52ed", null ],
+    [ "set_frame_label_widget", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#ad8c5f9284a77ffd49a331f4827cf38e9", null ],
+    [ "set_plot_min_max_values", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#abe88616fd845d42cf5031378fbcf054b", null ],
+    [ "showAnalysis", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a488695056bbbf59da1288ab24049e590", null ],
+    [ "updateListsCombo", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a4b9a81994cb438c5ac93e84757a57096", null ],
+    [ "AUTOLOAD", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a293ac477c8105f472f65b0cbd2f1ae67", null ],
+    [ "elements_list_name", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#aa67041f1961f7702bf5f3c8c1bb08a5a", null ],
+    [ "NULL_STRING", "classBiodiverse_1_1GUI_1_1Tabs_1_1SpatialMatrix.html#a0c03a1db334994e6bab7c72609f8f2c7", null ]
+];

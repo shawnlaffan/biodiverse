@@ -1,0 +1,25 @@
+var classBiodiverse_1_1ReadNexus =
+[
+    [ "add_node_to_tree", "classBiodiverse_1_1ReadNexus.html#a327cc1d8cb432247d2394e8622307b0e", null ],
+    [ "add_tree", "classBiodiverse_1_1ReadNexus.html#a428a01d2e66d36bfdfce70d1150c58a1", null ],
+    [ "assign_parents_for_tabular_tree_import", "classBiodiverse_1_1ReadNexus.html#a01ee2726b454cfb916c1df568f3dedf6", null ],
+    [ "get_csv_object_for_tabular_tree_import", "classBiodiverse_1_1ReadNexus.html#a9501fe58066c092e93ad3df1a9c540a2", null ],
+    [ "get_tree_array", "classBiodiverse_1_1ReadNexus.html#a4c636a89ad3b20e01a6eff484537fdbb", null ],
+    [ "import_data", "classBiodiverse_1_1ReadNexus.html#a10ee8e1bb121e9031796d13201201f0e", null ],
+    [ "import_newick", "classBiodiverse_1_1ReadNexus.html#a258afc560ac07ba549f816bc3fd71c95", null ],
+    [ "import_nexus", "classBiodiverse_1_1ReadNexus.html#ac16f72d6e484889d0d8e8ebaf8838a83", null ],
+    [ "import_phylip", "classBiodiverse_1_1ReadNexus.html#a71600be08fe7abdff7ac30ead3f31bc3", null ],
+    [ "import_tabular_tree", "classBiodiverse_1_1ReadNexus.html#acbcb87e41f5ad16229e873038fb8b9fc", null ],
+    [ "new", "classBiodiverse_1_1ReadNexus.html#a9bbeec85aa09937f72f5424d3ea799fa", null ],
+    [ "numerically", "classBiodiverse_1_1ReadNexus.html#a806b2eddd4f19932fe98de34480e6ea0", null ],
+    [ "parse_newick", "classBiodiverse_1_1ReadNexus.html#a337903aec0a356f16b1b5720049b31db", null ],
+    [ "process_unrooted_trees", "classBiodiverse_1_1ReadNexus.html#a09695bbaa9640cae23b0f92ee01b8160", null ],
+    [ "process_zero_length_trees", "classBiodiverse_1_1ReadNexus.html#a208954625c8cc2d2a3b714cd41bc190b", null ],
+    [ "read_whole_file", "classBiodiverse_1_1ReadNexus.html#af5ed3758333e3bab3eb51e41113e2c9b", null ],
+    [ "EMPTY_STRING", "classBiodiverse_1_1ReadNexus.html#ae444e63f7dd2fa1fca825a56306f14e3", null ],
+    [ "RE_NUMBER", "classBiodiverse_1_1ReadNexus.html#a399ddb116ed550285db4bb0b4012c5bb", null ],
+    [ "RE_QUOTED", "classBiodiverse_1_1ReadNexus.html#aea93d63d26ae5ac4ceaf05272e8090d5", null ],
+    [ "re_text_in_brackets", "classBiodiverse_1_1ReadNexus.html#ae6e0a2d86d92d8acd040338edd1b44a5", null ],
+    [ "RE_TEXT_IN_QUOTES", "classBiodiverse_1_1ReadNexus.html#a9b456ff36bf06bf9da9484d2ff240628", null ],
+    [ "re_text_in_square_brackets", "classBiodiverse_1_1ReadNexus.html#a70de15ceee8b8919abf982c099887a97", null ]
+];

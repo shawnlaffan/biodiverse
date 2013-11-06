@@ -1,0 +1,25 @@
+var classBiodiverse_1_1GUI_1_1Tabs_1_1Tab =
+[
+    [ "add_to_notebook", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#aca01f3cbc391e850d061225cf367c5f3", null ],
+    [ "format_number_for_display", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a3469cd73a407401638291d167cdd8c7d", null ],
+    [ "get_base_ref", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#af89fd1de3874e02dbbb9df1d9b393f4d", null ],
+    [ "get_current_registration", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#aaee62cbbd736a4a4c6d731aaaa50990f", null ],
+    [ "get_display_stretch_codes", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a623640a817bad5a653bc9915df0f83ed", null ],
+    [ "get_plot_min_max_values", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#afaaa098162e936544c1b2990001c0a6e", null ],
+    [ "getPageIndex", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#aa322037ae3af16034bc57a56e38f4255", null ],
+    [ "getRemovable", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a19c0f2e2bcb98a530ca32904a4b19aae", null ],
+    [ "hotkeyHandler", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a0d84a83944987b34277d001883d9fb9c", null ],
+    [ "onClose", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a50d66c3c410076c33a230a13948a545a", null ],
+    [ "onRun", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a2deff4707384a1f7da87ca9a91bdd026", null ],
+    [ "registerInOutputsModel", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a1f3f3891596b8051e6165363828aed59", null ],
+    [ "remove", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a72c93b86a5fd971ccde07592d48a6e7c", null ],
+    [ "removeKeyboardHandler", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#acb8144e8fcdbd8a44297cab657ace365", null ],
+    [ "set_legend_ltgt_flags", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a2a51c0e7ffa9d302c055ff04abe59617", null ],
+    [ "set_tab_reorderable", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a1ce2b2568fd1505a243675d18d7036e4", null ],
+    [ "setKeyboardHandler", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#ac66bd13ada31f69bda0d4aab2771a837", null ],
+    [ "setPageIndex", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a30e8ae8f005fd11660d40ef1d083316f", null ],
+    [ "update_current_registration", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a963b5a6936c5c192a990bf233214d655", null ],
+    [ "update_name", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a6e24253caf422b35ed2a2b6dc39f7621", null ],
+    [ "handler_entered", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a04cabb62187c5cad942ffe20a0e06cc3", null ],
+    [ "snooper_id", "classBiodiverse_1_1GUI_1_1Tabs_1_1Tab.html#a0f9fe75c00869233932f8d6ac5768ed9", null ]
+];

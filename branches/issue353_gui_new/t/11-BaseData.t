@@ -17,7 +17,7 @@ use Data::Section::Simple qw(
 local $| = 1;
 
 #use Test::More tests => 5;
-use Test::More;
+use Test::Most;
 
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
@@ -65,7 +65,36 @@ my @setup = (
 );
 
 
-{
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+    
+    test_import();
+    test_import_small();
+    test_bounds();
+    test_coords_near_zero();
+    test_rename_labels();
+    test_multidimensional_import();
+    test_reorder_axes();
+    test_attach_ranges_and_sample_counts();
+
+    done_testing;
+    return 0;
+}
+
+
+sub test_import {
     foreach my $this_run (@setup ) {
         my $expected = $this_run->{expected} || 'pass';  
         my $args     = $this_run->{args};
@@ -92,11 +121,265 @@ my @setup = (
 }
 
 
-{
+#  need to change the name
+sub test_import_small {
+
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+
+    my $e;
+
+    #  vanilla import
+    my $bd_vanilla = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_vanilla->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4, 5],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+
+    #  cell sizes don't match groups
+    my $bd_x1 = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_vanilla->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok ($e, q{Exception when group and cell_size col counts don't match});
+    
+    #  cell sizes don't match origins
+    my $bd_x2 = eval {
+        Biodiverse::BaseData->new (
+            %bd_args,
+            CELL_ORIGINS  => [0, 0, 0, 0, 0],
+        );
+    };
+    #eval {
+    #    $bd_x2->import_data(
+    #        input_files   => [$fname],
+    #        group_columns => [3, 4, 5],
+    #        label_columns => [1, 2],
+    #    );
+    #    1;
+    #};
+    $e = $EVAL_ERROR;
+    ok ($e, q{Exception when cell_size and cell_origin col counts don't match});
+    
+    eval {
+        $bd_vanilla->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4, 5],
+            label_columns => [1, 2],
+            cell_origins  => [0, 0, 0, 0, 0],
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'cell_origins argument ignored for second import');
+
+    #  using inclusions columns
+    my @incl_cols_data = (
+        [1, [6]],
+        [2, [8]],
+        [3, [6,8]],
+        [3, [6,8,10]],
+    );
+
+    foreach my $params (@incl_cols_data) {
+        my $expected_count = $params->[0];
+        my $incl_cols      = $params->[1];
+
+        my $bd = Biodiverse::BaseData->new (%bd_args);
+        eval {
+            $bd->import_data(
+                input_files     => [$fname],
+                group_columns   => [3, 4, 5],
+                label_columns   => [1, 2],
+                include_columns => $incl_cols,
+            );
+            1;
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, q{No exception when include_columns specified});
+
+        my $cols_text = join q{,}, @$incl_cols;
+        #  need to check what was imported
+        is ($bd->get_group_count, $expected_count, "$expected_count groups for include cols $cols_text");
+        is ($bd->get_label_count, $expected_count, "$expected_count labels for include cols $cols_text");
+
+        next if scalar @$incl_cols > 1 || $expected_count != 1;
+
+        my $groups = $bd->get_groups;
+        is ($groups->[0], '1.5:1.5:1.5', "Only remaining group is '1.5:1.5:1.5'");
+        
+        my $labels = $bd->get_labels;
+        is ($labels->[0], 'g1:sp1', "Only remaining label is 'g1:sp1'");
+    }
+
+    #  using exclusions columns
+    my @excl_cols_data = (
+        [2, [7]],
+        [1, [9]],
+        [3, [11]],
+        [0, [7,9]],
+        [0, [7,9,11]],
+        [1, [9,11]],
+    );
+
+    foreach my $params (@excl_cols_data) {
+        my $expected_count = $params->[0];
+        my $excl_cols      = $params->[1];
+
+        my $bd = Biodiverse::BaseData->new (%bd_args);
+        eval {
+            $bd->import_data(
+                input_files     => [$fname],
+                group_columns   => [3, 4, 5],
+                label_columns   => [1, 2],
+                exclude_columns => $excl_cols,
+            );
+            1;
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, q{No exception when exclude_columns specified});
+
+        my $cols_text = join q{,}, @$excl_cols;
+        #  need to check what was imported
+        is ($bd->get_group_count, $expected_count, "$expected_count groups for exclude cols $cols_text");
+        is ($bd->get_label_count, $expected_count, "$expected_count labels for exclude cols $cols_text");
+
+        next if $excl_cols->[0] != 9;
+
+        my $groups = $bd->get_groups;
+        is ($groups->[0], '1.5:1.5:1.5', "Only remaining group is '1.5:1.5:1.5'");
+        
+        my $labels = $bd->get_labels;
+        is ($labels->[0], 'g1:sp1', "Only remaining label is 'g1:sp1'");
+    }
+
+    #  now check some interactions between exclude and include cols
+    #  exclude trumps include
+    my @incl_excl_cols_data = (
+        [0, [6], [7]],  #  expected, incl, excl
+        [0, [6], [1]],
+        [2, [8], [11]],
+        [0, [8], [9]],
+        [1, [6], [9]],
+    );
+
+    foreach my $params (@incl_excl_cols_data) {
+        my $expected_count = $params->[0];
+        my $incl_cols      = $params->[1];
+        my $excl_cols      = $params->[2];
+
+        my $bd = Biodiverse::BaseData->new (%bd_args);
+        eval {
+            $bd->import_data(
+                input_files     => [$fname],
+                group_columns   => [3, 4, 5],
+                label_columns   => [1, 2],
+                exclude_columns => $excl_cols,
+                include_columns => $incl_cols,
+            );
+            1;
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, q{No exception when include and exclude_columns specified});
+
+        my $cols_text = join (q{,}, @$incl_cols) . '&' . join (q{,}, @$excl_cols);
+        #  need to check what was imported
+        is ($bd->get_group_count, $expected_count, "$expected_count groups for incl/excl cols $cols_text");
+        is ($bd->get_label_count, $expected_count, "$expected_count labels for incl/excl cols $cols_text");
+
+    }
+    
+}
+
+sub test_attach_ranges_and_sample_counts {
+    my $bd = get_small_bd();
+    
+    #  add a new label to all groups
+    my $last_group;
+    foreach my $group ($bd->get_groups) {
+        $bd->add_element (
+            group => $group,
+            label => 'new_label',
+            count => 25,
+        );
+        $last_group = $group;
+    }
+
+    $bd->attach_label_ranges_as_properties;
+    $bd->attach_label_abundances_as_properties;
+
+    #  now delete the new label from one of the groups
+    $bd->delete_sub_element (label => 'new_label', group => $last_group);
+
+    #  ...and the label ranges and sample counts should not be affected
+    is ($bd->get_range (element => 'new_label'), 3, 'range is correct');
+    is ($bd->get_label_abundance (element => 'new_label'), 75, 'sample count is correct');
+    
+    #  the others should be values of 1
+    foreach my $label ($bd->get_labels) {
+        next if $label eq 'new_label';
+
+        is ($bd->get_range (element => $label), 1, 'range is correct');
+        is ($bd->get_label_sample_count (element => $label), 1, 'sample count is correct');    
+    }
+
+    #  and the variety and sample_counts should be different for new_label
+    my $lb = $bd->get_labels_ref;
+    is ($lb->get_variety (element => 'new_label'), 2, 'new_label variety is 2');
+    is ($bd->get_label_sample_count (element => 'new_label'), 50, 'new_label sample count is 50');
+
+    return;
+}
+
+
+sub get_small_bd {
+    
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+
+    my $e;
+
+    #  vanilla import
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    diag $e if $e;
+    
+    return $bd;
+}
+
+sub test_bounds {
     # testing mins and maxes
 
-    # the cells are indexed using their centroids, so the min bound for x_min being 1 will be 1.5
-
+    # the cells are indexed using their centroids,
+    # so the min bound for x_min being 1 will be 1.5
 
     my $bd = eval {
         get_basedata_object (
@@ -122,7 +405,7 @@ my @setup = (
     ok (@$max_bounds[0] == 100.5, "max is correctly 100.5");
 }
 
-{
+sub test_coords_near_zero {
     #  check values near zero are imported correctly
     #    - was getting issues with negative values one cell left/lower than
     #    they should have been for coords on the cell edge
@@ -181,15 +464,14 @@ my @setup = (
 
 
 #  need to test multidimensional data import, including text axes
-TODO:
-{
+sub test_multidimensional_import {
     local $TODO = 'need to test multidimensional data import, including text axes';
 
     is (0, 1, 'need to test multidimensional data import, including text axes');
 }
 
 #  rename labels
-{
+sub test_rename_labels {
     my $bd = get_basedata_object_from_site_data(
         CELL_SIZES => [100000, 100000],
     );
@@ -264,8 +546,7 @@ TODO:
 }
 
 #  reordering of axes
-REORDER:
-{
+sub test_reorder_axes {
     my $bd = eval {
             get_basedata_object (
                 x_spacing  => 1,
@@ -291,11 +572,13 @@ REORDER:
 }
 
 
-done_testing();
-
 
 sub get_label_remap_data {
     return get_data_section('LABEL_REMAP');
+}
+
+sub get_import_data_small {
+    return get_data_section('BASEDATA_IMPORT_SMALL');
 }
 
 1;
@@ -308,3 +591,10 @@ id,gen_name_in,sp_name_in,gen_name_out,sp_name_out
 10,Genus,sp18,Genus,sp2
 2000,Genus,sp2,,
 1,Genus,sp11,nominal_new_name,
+
+@@ BASEDATA_IMPORT_SMALL
+id,gen_name_in,sp_name_in,x,y,z,incl1,excl1,incl2,excl2,incl3,excl3
+1,g1,sp1,1,1,1,1,1,,,1,0
+2,g2,sp2,1,2,2,0,,1,1,1,0
+3,g2,sp3,1,3,3,,,1,1,1,0
+

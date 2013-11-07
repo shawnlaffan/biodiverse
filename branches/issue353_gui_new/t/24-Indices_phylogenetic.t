@@ -9,7 +9,7 @@ local $| = 1;
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 use rlib;
-use Test::More;
+use Test::Most;
 use List::Util qw /sum/;
 
 use Biodiverse::TestHelpers qw{

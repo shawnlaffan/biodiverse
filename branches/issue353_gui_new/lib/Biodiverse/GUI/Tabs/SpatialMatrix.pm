@@ -58,10 +58,10 @@ sub new {
 
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'vpaneSpatial');
+    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'hboxSpatialPage');
     $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'hboxSpatialLabel');
 
-    my $page  = $self->{xmlPage}->get_widget('vpaneSpatial');
+    my $page  = $self->{xmlPage}->get_widget('hboxSpatialPage');
     my $label = $self->{xmlLabel}->get_widget('hboxSpatialLabel');
     my $label_text = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);

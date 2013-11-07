@@ -129,22 +129,35 @@ sub new {
     }
 
 
-    #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     # Connect signals
-    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(clicked   => \&onClose,                 $self);
-    $self->{xmlPage} ->get_widget('btnSpatialRun')  ->signal_connect_swapped(clicked   => \&onRun,                   $self);
-    $self->{xmlPage} ->get_widget('btnOverlays')    ->signal_connect_swapped(clicked   => \&onOverlays,              $self);
-    $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&onNameChanged,           $self);
-    $self->{xmlPage} ->get_widget('comboIndices')  ->signal_connect_swapped(changed   => \&onActiveIndexChanged, $self);
-    #$self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&onActiveListChanged,     $self);
-    $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&onColoursChanged,        $self);
-    $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed => \&onStretchChanged,      $self);
+    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
+            clicked => \&onClose, $self);
+    my %widgets_and_signals = (
+        btnSpatialRun => { clicked => \&onRun},
+        btnOverlays => { clicked => \&onOverlays},
+        txtSpatialName => { changed => \&onNameChanged},
+        comboIndices => { changed => \&onActiveIndexChanged},
+        comboLists => { changed => \&onActiveListChanged},
+        comboColours => { changed => \&onColoursChanged},
+        comboSpatialStretch => { changed => \&onStretchChanged},
 
-    $self->{xmlPage} ->get_widget('btnZoomIn')      ->signal_connect_swapped(clicked   => \&onZoomIn,                $self);
-    $self->{xmlPage} ->get_widget('btnZoomOut')     ->signal_connect_swapped(clicked   => \&onZoomOut,               $self);
-    $self->{xmlPage} ->get_widget('btnZoomFit')     ->signal_connect_swapped(clicked   => \&onZoomFit,               $self);
-    $self->{xmlPage} ->get_widget('colourButton')   ->signal_connect_swapped(color_set => \&onColourSet,             $self);
-    
+        btnSelectTool       => {clicked => \&on_select_tool},
+        btnPanTool          => {clicked => \&on_pan_tool},
+        btnZoomTool         => {clicked => \&on_zoom_tool},
+        btnZoomOutTool      => {clicked => \&on_zoom_out_tool},
+        btnZoomFitTool      => {clicked => \&on_zoom_fit_tool},
+
+        colourButton => { color_set => \&onColourSet},
+    );
+
+    while (my ($widget, $args) = each %widgets_and_signals) {
+        print $widget, "\n";
+        $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
+            %$args,
+            $self,
+        );
+    }
+
     #  do some hiding
     my @to_hide = qw /
         comboLists
@@ -162,9 +175,10 @@ sub new {
     }
 
     $self->initOutputIndicesCombo();
-    
 
     $self->set_frame_label_widget;
+
+    $self->choose_tool('Select');
 
     print "[SpatialMatrix tab] - Loaded tab \n";
 
@@ -217,15 +231,12 @@ sub initGrid {
 
     # Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->onGridHover(@_); };
-    my $click_closure = sub {
-        Biodiverse::GUI::CellPopup::cellClicked(
-            $_[0],
-            $self->{groups_ref},
-        );
-    };
-    my $select_closure = sub {
-        $self->on_cell_selected ( @_ );
-    };
+    my $click_closure = sub { Biodiverse::GUI::CellPopup::cellClicked(
+        $_[0],
+        $self->{groups_ref},
+    ); };
+    my $grid_click_closure = sub { $self->on_grid_click(@_); };
+    my $select_closure = sub { $self->on_grid_select(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         $frame,
@@ -234,8 +245,9 @@ sub initGrid {
         1,
         0,
         $hover_closure,
-        $click_closure,
+        $click_closure, # Middle click
         $select_closure,
+        $grid_click_closure, # Left click
     );
 
     my $data = $self->{groups_ref};  #  should be the groups?
@@ -248,7 +260,8 @@ sub initGrid {
         $self->{grid}->setBaseStruct ($data);
     }
 
-    
+    $self->{grid}->{page} = $self; # Hacky
+
     return;
 }
 
@@ -514,6 +527,94 @@ sub onNeighboursChanged {
     return;
 }
 
+####
+# TODO: This whole section needs to be deduplicated between Labels.pm
+####
+my %drag_modes = (
+    Select  => 'select',
+    Pan     => 'pan',
+    Zoom    => 'select',
+    ZoomOut => 'click',
+    ZoomFit => 'click',
+);
+
+sub choose_tool {
+    my $self = shift;
+    my ($tool, ) = @_;
+
+    my $old_tool = $self->{tool};
+
+    if ($old_tool) {
+        $self->{ignore_tool_click} = 1;
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}Tool");
+        $widget->set_active(0);
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}Tool");
+        $new_widget->set_active(1);
+        $self->{ignore_tool_click} = 0;
+    }
+
+    $self->{tool} = $tool;
+
+    $self->{grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
+}
+
+# Called from GTK
+sub on_select_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Select');
+}
+
+sub on_pan_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Pan');
+}
+
+sub on_zoom_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Zoom');
+}
+
+sub on_zoom_out_tool {
+    # TODO: Since there is only one pane here, it'd probably make sense to just
+    # immediately zoom out
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomOut');
+}
+
+sub on_zoom_fit_tool {
+    # TODO: Since there is only one pane here, it'd probably make sense to just
+    # immediately zoom fit
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomFit');
+}
+
+sub on_grid_select {
+    my ($self, $groups, $ignore_change, $rect) = @_;
+    if ($self->{tool} eq 'Select') {
+        shift;
+        $self->on_cell_selected(@_);
+    }
+    elsif ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{grid};
+        handle_grid_drag_zoom($grid, $rect);
+    }
+}
+
+sub on_grid_click {
+    my $self = shift;
+    if ($self->{tool} eq 'ZoomOut') {
+        $self->{grid}->zoomOut();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{grid}->zoomFit();
+    }
+}
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::
 our $AUTOLOAD;

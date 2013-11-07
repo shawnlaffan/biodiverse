@@ -5554,6 +5554,152 @@ Merely closes the window if no file is selected.</property>
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <child>
+              <widget class="GtkToolbar" id="toolbarSpatial">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
+                <property name="toolbar_style">icons</property>
+                <property name="tooltips">False</property>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemSpatialSelect">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip" translatable="yes">Select (B)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnSelectTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Select (B)</property>
+                        <child>
+                          <widget class="GtkImage" id="imageSelectTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="pixbuf">selector.png</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemSpatialPan">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="has_tooltip">True</property>
+                    <property name="tooltip" translatable="yes">Pan (C)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnPanTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Pan (C)</property>
+                        <child>
+                          <widget class="GtkImage" id="imagePanTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="pixbuf">drag-resize.png</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemSpatialZoom">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">Zoom In (Z)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnZoomTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Zoom In (Z)</property>
+                        <child>
+                          <widget class="GtkImage" id="imageZoomTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-zoom-in</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemSpatialZoomOut">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">Zoom Out (X)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnZoomOutTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Zoom Out (X)</property>
+                        <child>
+                          <widget class="GtkImage" id="imageZoomOutTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-zoom-out</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitemSpatialZoomFit">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
+                    <child>
+                      <widget class="GtkToggleButton" id="btnZoomFitTool">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
+                        <child>
+                          <widget class="GtkImage" id="imageZoomFitTool">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="stock">gtk-zoom-fit</property>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
               <widget class="GtkVPaned" id="vpaneSpatial">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>

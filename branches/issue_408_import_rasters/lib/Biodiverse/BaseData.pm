@@ -9,6 +9,7 @@ use warnings;
 use Data::Dumper;
 use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
+use List::Util qw /max min/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use IO::File;
 use File::BOM qw /:subs/;
@@ -1140,6 +1141,70 @@ sub run_import_post_processes {
     return 1;    
 }
 
+#  attach the current ranges as RANGE properties
+sub attach_label_ranges_as_properties {
+    my $self = shift;
+
+    return $self->_attach_label_ranges_or_counts_as_properties (
+        @_,
+        type => 'ranges',
+    );
+}
+
+#  attach the current sample counts as ABUNDANCE properties
+sub attach_label_abundances_as_properties {
+    my $self = shift;
+    
+    return $self->_attach_label_ranges_or_counts_as_properties (
+        @_,
+        type => 'sample_counts',
+    );
+}
+
+sub _attach_label_ranges_or_counts_as_properties {
+    my $self = shift;
+    my %args = @_;
+
+    my $override = $args{override};
+    my $type = $args{type};
+    
+    my ($method, $key);
+    if (lc $type eq 'sample_counts') {
+        $method = 'get_label_sample_count';
+        $key = 'ABUNDANCE';
+    }
+    elsif (lc $type eq 'ranges') {
+        $method = 'get_range';
+        $key = 'RANGE';
+    }
+
+    my $lb = $self->get_labels_ref;
+
+  LABEL:
+    foreach my $label ($args{target_labels} || $self->get_labels) {
+
+        if (!$override) {
+            my $list_ref = $lb->get_list_ref (
+                element => $label,
+                list    => 'PROPERTIES',
+            );
+            next LABEL
+              if exists $list_ref->{$key} && defined $list_ref->{$key};
+        }
+
+        my $value = $self->$method (element => $label);
+        $lb->add_to_lists (
+            element    => $label,
+            PROPERTIES => {$key => $value},
+        );
+    }
+
+    return;
+}
+
+
+
+
 sub assign_element_properties {
     my $self = shift;
     my %args = @_;
@@ -2081,27 +2146,39 @@ sub get_group_sample_count {
     return $self->get_groups_ref->get_sample_count(@_);
 }
 
+#  get the abundance for a label as defined by the user,
+#  or based on the variety of groups this labels occurs in
+#  take the max if abundance < sample_count
+sub get_label_abundance {
+    my $self = shift;
+
+    no autovivification;
+
+    my $labels_ref = $self->get_labels_ref;
+    my $props = $labels_ref->get_list_values (@_, list => 'PROPERTIES');
+
+    my $sample_count = $self->get_label_sample_count(@_);
+
+    my $abundance = max (($props->{ABUNDANCE} // -1), $sample_count);
+
+    return $abundance;
+}
+
 #  get the range as defined by the user,
 #  or based on the variety of groups this labels occurs in
 #  take the max if range is < variety
 sub get_range {
     my $self = shift;
-    
+
+    no autovivification;
+
     my $labels_ref = $self->get_labels_ref;
-    
     my $props = $labels_ref->get_list_values (@_, list => 'PROPERTIES');
-    my %props;
-    if ((ref $props) =~ /HASH/) {
-        %props = %$props ; #  make a copy - avoid auto-viv.  break otherwise
-    }
-    
+
     my $variety = $labels_ref->get_variety (@_);
-    
-    my $range = $variety;
-    if (defined $props{RANGE}) {
-        $range = $props{RANGE} > $variety ? $props{RANGE} : $variety;
-    }
-    
+
+    my $range = max (($props->{RANGE} // -1), $variety);
+
     return $range;
 }
 

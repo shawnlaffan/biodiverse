@@ -5692,6 +5692,82 @@ Merely closes the window if no file is selected.</property>
                     <property name="expand">False</property>
                   </packing>
                 </child>
+                <child>
+                  <widget class="GtkSeparatorToolItem" id="toolitem_spatial_sep1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkToolItem" id="toolitem_spatial">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <child>
+                      <widget class="GtkMenuBar" id="menubar_spatial">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="pack_direction">ttb</property>
+                        <child>
+                          <widget class="GtkMenuItem" id="menuitem_spatial_data">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="use_stock">False</property>
+                            <property name="label" translatable="yes">Data</property>
+                            <child>
+                              <widget class="GtkMenu" id="menu_spatial_data">
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <widget class="GtkTearoffMenuItem" id="menuitem_spatial_data_tearoff">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes"></property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_map_list">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Lists</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_map_lists_end">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_indices">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Indices</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_indices_end">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
+                      </widget>
+                    </child>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
+                </child>
               </widget>
               <packing>
                 <property name="expand">False</property>

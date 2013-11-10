@@ -8,7 +8,7 @@ our $VERSION = '0.19';
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed looks_like_number/;
+use Scalar::Util qw /blessed looks_like_number refaddr/;
 
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
@@ -51,6 +51,9 @@ sub new {
     my $label_text = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
+
+    # Set up options menu
+    $self->{toolbar_menu} = $self->{xmlPage}->get_widget('menu_spatial_data');
 
     # Add to notebook
     $self->add_to_notebook (
@@ -387,7 +390,8 @@ sub initOutputIndicesCombo {
 
     # Only do this if we aren't a new spatial analysis...
     if ($self->{existing}) {
-        $self->updateOutputIndicesCombo();
+        #$self->updateOutputIndicesCombo();
+        $self->update_output_indices_menu();
     }
     
     return;
@@ -422,6 +426,7 @@ sub updateListsCombo {
     return;
 }
 
+=for comment
 sub updateOutputIndicesCombo {
     my $self = shift;
 
@@ -451,8 +456,101 @@ sub updateOutputIndicesCombo {
     
     return;
 }
+=cut
 
+sub update_output_indices_menu {
+    my $self = shift;
+    my $indices = $self->make_output_indices_array();
+    $self->{output_indices_array} = $indices;
 
+    # Clear out old entries from menu.
+    my $menu = $self->{toolbar_menu};
+
+    my $heading = $self->{xmlPage}->get_widget('menuitem_spatial_indices');
+    my $ending = $self->{xmlPage}->get_widget('menuitem_spatial_indices_end');
+
+    my @menu_items = $menu->get_children();
+
+    my $pos = 0;
+    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
+        $pos++;
+    }
+    $pos++;
+
+    my $first_pos = $pos;
+
+    # Remove everything until the end
+    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
+        my $menu_item = $menu_items[$pos++];
+        $menu->remove($menu_item);
+        $menu_item->destroy();
+    }
+
+    # Start inserting at $first_pos
+    $pos = $first_pos;
+    my $first_item = undef;
+    for my $index (@$indices) {
+        if (not defined $first_item) {
+            $self->{selected_index} = $index;
+        }
+        $index =~ s/_/__/g;
+        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $index);
+        if (not defined $first_item) {
+            $first_item = $menu_item;
+        }
+        $menu_item->signal_connect_swapped(
+                toggled => \&on_output_index_toggled, $self);
+        $menu->insert($menu_item, $pos++);
+    }
+
+    $menu->show_all();
+
+    $self->onActiveIndexChanged();
+}
+
+# Generates Perl array with analyses
+# (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
+sub make_output_indices_array {
+    my $self = shift;
+    my $list_name = $self->{selected_list};
+    my $output_ref = $self->{output_ref};
+
+    # SWL: Get possible analyses by sampling all elements - this allows for asymmetric lists
+    #my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
+    my $elements = $output_ref->get_element_hash() || {};
+    
+    my %analyses_tmp;
+    foreach my $elt (keys %$elements) {
+        #%analyses_tmp = (%analyses_tmp, %{$elements->{$elt}{$list_name}});
+        next if ! exists $elements->{$elt}{$list_name};
+        my $hash = $elements->{$elt}{$list_name};
+        if (scalar keys %$hash) {
+            @analyses_tmp{keys %$hash} = values %$hash;
+        }
+    }
+    
+    #  are they numeric?  if so then we sort differently.
+    my $numeric = 1;
+    
+    CHECK_NUMERIC:
+    foreach my $model (keys %analyses_tmp) {
+        if (not looks_like_number ($model)) {
+            $numeric = 0;
+            last CHECK_NUMERIC;
+        }
+    }
+    
+    my @analyses;
+    if (scalar keys %analyses_tmp) {
+        @analyses = $numeric
+            ? sort {$a <=> $b} keys %analyses_tmp   #  numeric
+            : sort {$a cmp $b} keys %analyses_tmp;  #  text
+    }
+
+    return [@analyses];
+}
+
+=for comment
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
 sub makeOutputIndicesModel {
@@ -506,6 +604,7 @@ sub makeOutputIndicesModel {
 
     return $model;
 }
+=cut
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
@@ -873,7 +972,8 @@ sub showAnalysis {
 
     $self->{selected_index} = $name;
     $self->updateListsCombo();
-    $self->updateOutputIndicesCombo();
+    #$self->updateOutputIndicesCombo();
+    $self->update_output_indices_menu();
     
     return;
 }
@@ -886,20 +986,36 @@ sub onActiveListChanged {
     my ($list) = $self->{output_lists_model}->get($iter, 0);
 
     $self->{selected_list} = $list;
-    $self->updateOutputIndicesCombo();
+    #$self->updateOutputIndicesCombo();
+    $self->update_output_indices_menu();
     
     return;
+}
+
+sub on_output_index_toggled {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    # Got signal for newly selected option.
+    my $index = $menu_item->get_label();
+    $index =~ s/__/_/g;
+
+    print "on_map_index_changed to $index\n";
+
+    $self->{selected_index} = $index;
+
+    # Process
+    $self->onActiveIndexChanged();
 }
 
 #  should be called onActiveIndexChanged, but many such occurrences need to be edited
 sub onActiveIndexChanged {
     my $self = shift;
-    my $combo = shift
-              ||  $self->{xmlPage}->get_widget('comboIndices');
-
-    my $iter = $combo->get_active_iter() || return;
-    my ($index) = $self->{output_indices_model}->get($iter, 0);
-    $self->{selected_index} = $index;  #  should be called calculation
 
     $self->set_plot_min_max_values;
 

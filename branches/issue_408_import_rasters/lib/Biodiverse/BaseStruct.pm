@@ -227,9 +227,12 @@ sub export {
     #  get our own metadata...
     my %metadata = $self->get_args (sub => 'export');
 
-    my $sub_to_use
-        = $metadata{format_labels}{$args{format}}
-            || croak "Argument 'format' not specified\n";
+    my %valid_subs = reverse %{$metadata{format_labels}};
+    my $format     = $args{format};
+
+    my $sub_to_use = exists $valid_subs{$format} ? $format : $metadata{format_labels}{$format};
+    croak "Argument 'format=>$format' not specified or not valid\n"
+      if !$sub_to_use;
 
     #  convert no_data_values if appropriate
     if (defined $args{no_data_value}) {
@@ -357,7 +360,7 @@ sub export_table_delimited_text {
 
     my $table = $self->to_table (symmetric => 1, %args, file_handle => $fh);
 
-    if (scalar @$table) {  #  won't ned this once issue #350 is fixed
+    if (scalar @$table) {  #  won't need this once issue #350 is fixed
         $self->write_table_csv (%args, data => $table);
     }
 
@@ -655,18 +658,18 @@ sub to_table {
     my $data;
 
     if (! $as_symmetric and $is_asym) {
-        print "[BASESTRUCT] Converting asymmetric data from $list "
-              . "to asymmetric table\n";
+        say "[BASESTRUCT] Converting asymmetric data from $list "
+              . "to asymmetric table";
         $data = $self->to_table_asym (%args);
     }
     elsif ($as_symmetric && $is_asym) {
-        print "[BASESTRUCT] Converting asymmetric data from $list "
-              . "to symmetric table\n";
+        say "[BASESTRUCT] Converting asymmetric data from $list "
+              . "to symmetric table";
         $data = $self->to_table_asym_as_sym (%args);
     }
     else {
-        print "[BASESTRUCT] Converting symmetric data from $list "
-              . "to symmetric table\n";
+        say "[BASESTRUCT] Converting symmetric data from $list "
+              . "to symmetric table";
         $data = $self->to_table_sym (%args);
     }
 

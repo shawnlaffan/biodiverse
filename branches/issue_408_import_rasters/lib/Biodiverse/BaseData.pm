@@ -599,6 +599,11 @@ sub import_data {
 
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');
     $args{group_columns} //= $self->get_param('GROUP_COLUMNS');
+    
+    if ($args{data_in_matrix_form}) {  #  clunky but needed for lower down
+        $args{label_columns} //= [];
+    }
+    
 
     $args{cell_is_lat}
         = $self->get_param('CELL_IS_LAT')
@@ -1045,7 +1050,7 @@ sub import_data {
                     next ADD_ELEMENTS
                       if $args{data_in_matrix_form}
                          && $count eq $EMPTY_STRING;
-                         
+
                     next ADD_ELEMENTS
                       if $count == 0 and ! $args{allow_empty_groups};
                 }
@@ -1053,6 +1058,14 @@ sub import_data {
                     next ADD_ELEMENTS
                       if $args{data_in_matrix_form};
                 }
+                #  single label col or matrix form data need extra quotes to be stripped
+                #  should clean up mx form on first pass
+                #  or do as a post-processing step
+                if (scalar @label_columns <= 1 && $el =~ /^$quotes(?:.*)$quotes$/) {
+                    $el = substr ($el, 1);
+                    chop $el;
+                }
+
                 $self->add_element (
                     %args,
                     label      => $el,
@@ -1345,8 +1358,9 @@ sub get_labels_from_line {
     #  get the sample count
     my $sample_count;
     foreach my $column (@$sample_count_columns) {
-        my $col_value = $fields_ref->[$column];
+        my $col_value = $fields_ref->[$column] // 0;
 
+        #  need this check now?  Not sure it worked properly anyway, as it could return early
         if ($args{allow_empty_groups} or $args{allow_empty_labels}) {
             return if not defined $col_value;  #  only skip undefined records
         }
@@ -1359,7 +1373,7 @@ sub get_labels_from_line {
     }
     
     #  set default count - should only get valid records if we get this far
-    $sample_count = 1 if not defined $sample_count;
+    $sample_count //= 1;
     
     #$elements{$label} = $sample_count if $sample_count;
     $elements{$label} = $sample_count;

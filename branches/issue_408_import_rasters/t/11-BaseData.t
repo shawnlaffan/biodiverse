@@ -4,9 +4,11 @@
 #  Need to add tests for the number of elements returned,
 #  amongst the myriad of other things that a basedata object does.
 
+use 5.010;
 use strict;
 use warnings;
 use English qw { -no_match_vars };
+use Data::Dumper;
 
 use rlib;
 
@@ -166,14 +168,6 @@ sub test_import_small {
             CELL_ORIGINS  => [0, 0, 0, 0, 0],
         );
     };
-    #eval {
-    #    $bd_x2->import_data(
-    #        input_files   => [$fname],
-    #        group_columns => [3, 4, 5],
-    #        label_columns => [1, 2],
-    #    );
-    #    1;
-    #};
     $e = $EVAL_ERROR;
     ok ($e, q{Exception when cell_size and cell_origin col counts don't match});
     
@@ -303,6 +297,108 @@ sub test_import_small {
         is ($bd->get_group_count, $expected_count, "$expected_count groups for incl/excl cols $cols_text");
         is ($bd->get_label_count, $expected_count, "$expected_count labels for incl/excl cols $cols_text");
 
+    }
+    
+}
+
+#  can we reimport delimited text files after exporting and get the same answer
+sub test_roundtrip_delimited_text {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+
+    my $e;
+
+    #  get the original - should add some labels with special characters
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    $bd->add_element (group => '1.5:1.5', label => 'bazungalah smith', count => 25);
+    
+    my $lb = $bd->get_labels_ref;
+    my $gp = $bd->get_groups_ref;
+
+    #  export should return file names?  Or should we cache them on the object?
+
+    my $format = 'export_table_delimited_text';
+    my @out_options = (
+        {symmetric => 0, one_value_per_line => 1},
+        {symmetric => 1, one_value_per_line => 1},
+        #{symmetric => 0, one_value_per_line => 0},  #  cannot import this format
+        {symmetric => 1, one_value_per_line => 0},
+    );
+    my @in_options = (
+        {label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
+        {label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
+        #{label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
+        {label_start_col => 3,   group_columns => [1,2], data_in_matrix_form  =>  1, },
+    );
+
+    my $i = 0;
+    foreach my $out_options_hash (@out_options) {
+        local $Data::Dumper::Sortkeys = 1;
+        local $Data::Dumper::Purity   = 1;
+        local $Data::Dumper::Terse    = 1;
+        say Dumper $out_options_hash;
+
+        #  need to use a better approach for the name
+        my $fname = 'delimtxt' . $i
+                   . ($out_options_hash->{symmetric} ? '_symm' : '_asym')
+                   . ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
+                   . '.txt';  
+        my $success = eval {
+            $gp->export (
+                format    => $format,
+                file      => $fname,
+                list      => 'SUBELEMENTS',
+                %$out_options_hash,
+            );
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions exporting $format to $fname");
+        diag $e if $e;
+
+        #  Now we re-import and check we get the same numbers
+        #  We do not yet guarantee the labels will be the same due to the csv quoting rules.
+        my $new_bd = Biodiverse::BaseData->new (
+            name         => $fname,
+            CELL_SIZES   => $bd->get_param ('CELL_SIZES'),
+            CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
+        );
+        my $in_options_hash = $in_options[$i];
+        $success = eval {
+            $new_bd->import_data (input_files => [$fname], %$in_options_hash);
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions importing $fname");
+        diag $e if $e;
+
+        my @new_labels  = sort $new_bd->get_labels;
+        my @orig_labels = sort $bd->get_labels;
+        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        
+        my $new_lb = $new_bd->get_labels_ref;
+        subtest "sample counts match for $fname" => sub {
+            foreach my $label (sort $bd->get_labels) {
+                my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+            }
+        };
+
+        $i++;
     }
     
 }

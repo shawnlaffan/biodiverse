@@ -5761,6 +5761,178 @@ Merely closes the window if no file is selected.</property>
                             </child>
                           </widget>
                         </child>
+                        <child>
+                          <widget class="GtkMenuItem" id="menuitem_spatial_desplay">
+                            <property name="visible">True</property>
+                            <property name="can_focus">False</property>
+                            <property name="label" translatable="yes">Display</property>
+                            <property name="use_underline">True</property>
+                            <child>
+                              <widget class="GtkMenu" id="menu_spatial_display">
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <widget class="GtkTearoffMenuItem" id="menuitem_spatial_display_tearoff">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes"></property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_overlays">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Overlays...</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_display_sep1">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menu_item_colour_stretch">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the display stretch.
+Uses minimum to maximum by default
+but you can also set percentile ranges.</property>
+                                    <property name="label" translatable="yes">Colour stretch</property>
+                                    <property name="use_underline">True</property>
+                                    <child>
+                                      <widget class="GtkMenu" id="menu_colour_stretch">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_colour_stretch0">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">min-max</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="active">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_colour_stretch1">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">5-95</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_colour_stretch2">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">2.5-97.5</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="group">radio_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_colour_stretch3">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">min-95</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_colour_stretch4">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">min-97.5</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_colour_stretch5">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">5-max</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_colour_stretch6">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">2.5-max</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_display_sep2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_colour_mode">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="yes">Colour mode</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_hue">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="no">Hue</property>
+                                    <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
+
+Colours are scaled using pecentiles defined in the chooser to the left.</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_sat">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="no">Sat...</property>
+                                    <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
+
+Colours are scaled using pecentiles defined in the chooser to the left.</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="group">menuitem_spatial_colour_mode_hue</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkRadioMenuItem" id="menuitem_spatial_colour_mode_grey">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="label" translatable="no">Grey</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="group">menuitem_spatial_colour_mode_hue</property>
+                                  </widget>
+                                </child>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
                       </widget>
                     </child>
                   </widget>
@@ -6175,6 +6347,128 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                               <widget class="GtkSeparatorToolItem" id="separatortoolitem1">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkToolItem" id="toolitem17">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <widget class="GtkAlignment" id="alignment18">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <child>
+                                      <widget class="GtkButton" id="btnZoomIn">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="has_tooltip">True</property>
+                                        <property name="tooltip" translatable="yes">Zoom In</property>
+                                        <property name="relief">none</property>
+                                        <child>
+                                          <widget class="GtkImage" id="image9">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="stock">gtk-zoom-in</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkToolItem" id="toolitem18">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <widget class="GtkAlignment" id="alignment19">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <child>
+                                      <widget class="GtkButton" id="btnZoomOut">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="has_tooltip">True</property>
+                                        <property name="tooltip" translatable="yes">Zoom Out</property>
+                                        <property name="relief">none</property>
+                                        <child>
+                                          <widget class="GtkImage" id="image10">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="stock">gtk-zoom-out</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkToolItem" id="toolitem19">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <widget class="GtkAlignment" id="alignment20">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <child>
+                                      <widget class="GtkButton" id="btnZoomFit">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">False</property>
+                                        <property name="has_tooltip">True</property>
+                                        <property name="tooltip" translatable="yes">Zoom to Fit</property>
+                                        <property name="relief">none</property>
+                                        <child>
+                                          <widget class="GtkImage" id="image11">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="stock">gtk-zoom-fit</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkSeparatorToolItem" id="separatortoolitem2">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkToolItem" id="toolitem21">
+                                <property name="visible">True</property>
+                                <property name="can_focus">False</property>
+                                <child>
+                                  <widget class="GtkLabel" id="label58">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="xpad">5</property>
+                                    <property name="label" translatable="yes">Colours</property>
+                                  </widget>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>

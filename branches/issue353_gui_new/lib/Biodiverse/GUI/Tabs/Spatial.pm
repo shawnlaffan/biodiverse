@@ -1204,10 +1204,38 @@ sub get_options_menu {
     return $menu;
 }
 
+my %key_tool_map = (
+    Z => 'Zoom',
+    X => 'ZoomOut',
+    C => 'Pan',
+    V => 'ZoomFit',
+    B => 'Select'
+);
+
+# Override from tab
+sub on_bare_key {
+    my ($self, $keyval) = @_;
+    my $tool = $key_tool_map{$keyval};
+
+    if (not defined $tool) {
+        return;
+    }
+
+    if ($tool eq 'ZoomOut') {
+        # Do an instant zoom out and keep the current tool.
+        $self->{grid}->zoomOut();
+    }
+    elsif ($tool eq 'ZoomFit') {
+        $self->{grid}->zoomFit();
+    }
+    else {
+        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+    }
+}
+
 ####
 # TODO: This whole section needs to be deduplicated between Labels.pm
 ####
-
 sub choose_tool {
     my $self = shift;
     my ($tool, ) = @_;

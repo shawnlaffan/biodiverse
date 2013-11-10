@@ -489,15 +489,16 @@ sub update_output_indices_menu {
     # Start inserting at $first_pos
     $pos = $first_pos;
     my $first_item = undef;
+    $self->{index_menu_items} = {};
     for my $index (@$indices) {
-        if (not defined $first_item) {
-            $self->{selected_index} = $index;
-        }
-        $index =~ s/_/__/g;
-        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $index);
+        my $gui_index = $index;
+        $gui_index =~ s/_/__/g;
+        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $gui_index);
         if (not defined $first_item) {
             $first_item = $menu_item;
+            $self->{selected_index} = $index;
         }
+        $self->{index_menu_items}->{$index} = $menu_item;
         $menu_item->signal_connect_swapped(
                 toggled => \&on_output_index_toggled, $self);
         $menu->insert($menu_item, $pos++);
@@ -506,6 +507,13 @@ sub update_output_indices_menu {
     $menu->show_all();
 
     $self->onActiveIndexChanged();
+}
+
+# Changes which index is displayed as selected in the menu
+sub change_selected_index {
+    my ($self, $index) = @_;
+
+    $self->{index_menu_items}->{$index}->activate();
 }
 
 # Generates Perl array with analyses
@@ -1004,8 +1012,6 @@ sub on_output_index_toggled {
     # Got signal for newly selected option.
     my $index = $menu_item->get_label();
     $index =~ s/__/_/g;
-
-    print "on_map_index_changed to $index\n";
 
     $self->{selected_index} = $index;
 

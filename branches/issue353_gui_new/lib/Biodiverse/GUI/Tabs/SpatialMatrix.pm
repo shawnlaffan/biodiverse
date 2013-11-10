@@ -393,7 +393,7 @@ CHECK_SORTED:
     $self->{selected_index} = $element;
 
     $self->onActiveIndexChanged();
-#$self->change_selected_index($selected); # TODO: Implement
+    $self->change_selected_index($element);
 
     return;
 }
@@ -626,7 +626,6 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = 'SUPER::' . $method;
-    print $method, "\n";
     return $self->$method (@_);
 }
 

@@ -5828,9 +5828,9 @@ Merely closes the window if no file is selected.</property>
                                                     <property name="can_focus">False</property>
                                                     <property name="has_tooltip">True</property>
                                                     <property name="tooltip" translatable="yes">Define a second set of neighbours for use in the analyses.
-    A typical use is for comparative analyses like species turnover.
+A typical use is for comparative analyses like species turnover.
 
-    Use the checkbox to show/hide the edit box to free up screen real estate.</property>
+Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                     <property name="xalign">0</property>
                                                     <property name="yalign">1</property>
                                                     <property name="label" translatable="yes">Neighbour set 2</property>
@@ -5918,9 +5918,9 @@ Merely closes the window if no file is selected.</property>
                                                     <property name="can_focus">False</property>
                                                     <property name="has_tooltip">True</property>
                                                     <property name="tooltip" translatable="yes">Use this to run the analysis for only a subset of the groups.
-    Note that it will still search the full data set for neighbours. 
+Note that it will still search the full data set for neighbours. 
 
-    Use the checkbox to show/hide the edit box to free up screen real estate.</property>
+Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                     <property name="xalign">0</property>
                                                     <property name="yalign">1</property>
                                                     <property name="label" translatable="yes">Definition query</property>
@@ -5959,7 +5959,7 @@ Merely closes the window if no file is selected.</property>
                                                     <property name="has_tooltip">True</property>
                                                     <property name="tooltip" translatable="yes">Specify the first set of neighbours to use in the analysis.
 
-    Use the checkbox to show/hide the edit box to free up screen real estate.</property>
+Use the checkbox to show/hide the edit box to free up screen real estate.</property>
                                                     <property name="xalign">0</property>
                                                     <property name="yalign">1</property>
                                                     <property name="label" translatable="yes">Neighbour set 1</property>
@@ -6327,16 +6327,16 @@ Merely closes the window if no file is selected.</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="tooltip" translatable="yes">Set the display stretch.
-    Uses minimum to maximum by default
-    but you can also set percentile ranges.</property>
+Uses minimum to maximum by default
+but you can also set percentile ranges.</property>
                                     <property name="active">1</property>
                                     <property name="items" translatable="yes">min-max
-    5-95
-    2.5-97.5
-    min-95
-    min-97.5
-    5-max
-    2.5-max</property>
+5-95
+2.5-97.5
+min-95
+min-97.5
+5-max
+2.5-max</property>
                                   </widget>
                                 </child>
                               </widget>
@@ -6355,13 +6355,13 @@ Merely closes the window if no file is selected.</property>
                                     <property name="can_focus">False</property>
                                     <property name="tooltip" translatable="yes">Hue will display all hues (colours) from blue to red.
 
-    Sat will display a single colour with saturation varying from 
-    white to a maximum saturation at the selected colour.
+Sat will display a single colour with saturation varying from 
+white to a maximum saturation at the selected colour.
 
-    Colours are scaled using pecentiles defined in the chooser to the left. </property>
+Colours are scaled using pecentiles defined in the chooser to the left. </property>
                                     <property name="items" translatable="yes">Hue
-    Sat
-    Grey</property>
+Sat
+Grey</property>
                                   </widget>
                                 </child>
                               </widget>
@@ -6385,7 +6385,7 @@ Merely closes the window if no file is selected.</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">False</property>
                                         <property name="tooltip" translatable="yes">Pick maximum colour for saturation mode.
-    Colours are currently taken from the outer ring.</property>
+Colours are currently taken from the outer ring.</property>
                                         <property name="title" translatable="yes">Pick Hue</property>
                                       </widget>
                                     </child>
@@ -6431,9 +6431,9 @@ Merely closes the window if no file is selected.</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="items" translatable="yes">Off
-    Set1
-    Set2
-    Both</property>
+Set1
+Set2
+Both</property>
                                   </widget>
                                 </child>
                               </widget>

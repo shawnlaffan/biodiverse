@@ -12,15 +12,116 @@ use Biodiverse::TestHelpers qw{
     :runners
 };
 
-run_indices_test1 (
-    calcs_to_test  => [qw/
-        calc_rarity_central
-        calc_rarity_central_lists
-        calc_rarity_whole
-        calc_rarity_whole_lists
-    /],
-    calc_topic_to_test => 'Rarity',
-);
+use Data::Section::Simple qw(get_data_section);
+
+exit main( @ARGV );
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+
+    test_indices();
+    test_doubled_abundance();
+
+    
+    done_testing;
+    return 0;
+}
+
+sub test_indices {
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_rarity_central
+            calc_rarity_central_lists
+            calc_rarity_whole
+            calc_rarity_whole_lists
+        /],
+        calc_topic_to_test => 'Rarity',
+    );
+}
+
+sub test_doubled_abundance {
+    
+    my $exp1_text = get_data_section ('RESULTS_1_NBR_LISTS');
+    my $exp2_text = get_data_section ('RESULTS_2_NBR_LISTS');
+    
+    my $exp1 = eval $exp1_text;
+    my $exp2 = eval $exp2_text;
+
+    #  these results will halve
+    foreach my $key (qw /RAREW_CWE RAREW_WE RAREC_WE RAREC_CWE/) {
+        $exp1->{$key} = $exp1->{$key} / 2;
+        $exp2->{$key} = $exp2->{$key} / 2;
+    }
+
+    #  these also will halve
+    foreach my $list_name (qw /RAREW_WTLIST RAREC_WTLIST/) {
+        foreach my $key (keys %{$exp1->{$list_name}}) {
+            $exp1->{$list_name}{$key} = $exp1->{$list_name}{$key} / 2;
+        }
+        foreach my $key (keys %{$exp2->{$list_name}}) {
+            $exp2->{$list_name}{$key} = $exp2->{$list_name}{$key} / 2;
+        }
+    }
+
+    #  the range list values will double
+    foreach my $list_name (qw /RAREW_RANGELIST RAREC_RANGELIST/) {
+        foreach my $key (keys %{$exp1->{$list_name}}) {
+            $exp1->{$list_name}{$key} = $exp1->{$list_name}{$key} * 2;
+        }
+        foreach my $key (keys %{$exp2->{$list_name}}) {
+            $exp2->{$list_name}{$key} = $exp2->{$list_name}{$key} * 2;
+        }
+    }
+
+    my %expected_results_overlay = (
+        1 => $exp1,
+        2 => $exp2,
+    );
+
+    my $cb = sub {
+        my %args = @_;
+        my $bd = $args{basedata_ref};
+        my $lb = $bd->get_labels_ref;
+
+        #  add a new label to all of the groups to be sure we get coverage
+        foreach my $label ($bd->get_labels) {  
+            my $value = 2 * $bd->get_label_sample_count (element => $label);
+            $lb->add_to_lists (
+                element    => $label,
+                PROPERTIES => {ABUNDANCE => $value},
+            );
+        }
+
+        return;
+    };
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_rarity_central
+            calc_rarity_central_lists
+            calc_rarity_whole
+            calc_rarity_whole_lists
+        /],
+        calc_topic_to_test => 'Rarity',
+        expected_results_overlay => \%expected_results_overlay,
+        callbacks       => [$cb],
+    );
+
+    return;
+}
+
+
 
 done_testing;
 

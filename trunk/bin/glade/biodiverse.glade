@@ -4709,7 +4709,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Add new BaseData from Biodiverse format file</property>
+                    <property name="tooltip" translatable="yes">Add new BaseData from Biodiverse file (.bds)</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_basedata_open"/>
                     <child>
@@ -4859,7 +4859,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Add new matrix from Biodiverse format file</property>
+                    <property name="tooltip" translatable="yes">Add new matrix from Biodiverse file (.bms)</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_matrix_open"/>
                     <child>
@@ -5040,7 +5040,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Add new tree from Biodiverse format file</property>
+                    <property name="tooltip" translatable="yes">Add new tree from Biodiverse file (.bts)</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_phylogeny_open"/>
                     <child>

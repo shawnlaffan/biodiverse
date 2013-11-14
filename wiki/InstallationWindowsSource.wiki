@@ -52,9 +52,9 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   ppm install %BDV_PPM%/Cairo.ppd 
   ppm install %BDV_PPM%/Glib.ppd 
   ppm install %BDV_PPM%/Gnome2-Canvas.ppd 
-  ppm install %BDV_PPM%/Gtk2-GladeXML.ppd 
-  ppm install %BDV_PPM%/Gtk2.ppd 
   ppm install %BDV_PPM%/Pango.ppd
+  ppm install %BDV_PPM%/Gtk2.ppd
+  ppm install %BDV_PPM%/Gtk2-GladeXML.ppd  
 
   :: Now install the rest of the dependencies
   cpanm Task::Biodiverse::NoGUI~0.19

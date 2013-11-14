@@ -23,7 +23,7 @@ liblzma-dev
 
 Compilation might need to go through the normal  steps.  Download and uncompress the tarball (maybe using cpanm).  Then inthe relevant folder:
 {{{
-perl Makefile.PL
+perl Makefile.PL --no-version-check
 make
 make test
 make install

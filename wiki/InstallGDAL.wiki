@@ -1,0 +1,30 @@
+#summary Notes for the installation of GDAL on Ubuntu
+= Introduction =
+
+These are notes for the installation of GDAL on Ubuntu.  
+
+The latest GDAL package can be obtained from https://launchpad.net/~ubuntugis/+archive/ppa
+
+These commands will add that repo to the apt-get list:
+{{{
+sudo add-apt-repository ppa:ubuntugis/ppa 
+sudo apt-get update
+}}}
+
+
+The following extra libs need to be installed:
+{{{
+libarmadillo-dev
+libpoppler-dev
+libepsilon-dev
+liblzma-dev
+}}}
+
+
+Compilation might need to go through the normal  steps.  Download and uncompress the tarball (maybe using cpanm).  Then inthe relevant folder:
+{{{
+perl Makefile.PL
+make
+make test
+make install
+}}}

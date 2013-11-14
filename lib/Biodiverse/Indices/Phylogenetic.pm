@@ -175,6 +175,39 @@ sub calc_pd_terminal_node_list {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_terminal_node_count {
+
+    my %arguments = (
+        description     => 'Number of terminal nodes in neighbour sets 1 and 2.',
+        name            => 'Phylogenetic Diversity terminal node count',
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc        => 'calc_pd_terminal_node_list',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PD_INCLUDED_TERMINAL_NODE_COUNT => {
+                description   => 'Count of tree terminal nodes included in the PD calculations',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pd_terminal_node_count {
+    my $self = shift;
+    my %args = @_;
+
+
+    #  loop over nodes and just keep terminals
+    my $node_list = $args{PD_INCLUDED_TERMINAL_NODE_LIST};
+    
+    my %results = (
+        PD_INCLUDED_TERMINAL_NODE_COUNT => scalar keys %$node_list,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata__calc_pd {
         my %arguments = (
         description     => 'Phylogenetic diversity (PD) base calcs.',

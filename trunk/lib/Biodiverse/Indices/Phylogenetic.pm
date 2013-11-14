@@ -617,6 +617,36 @@ sub _calc_pe {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_count_labels_on_tree {
+    my $self = shift;
+
+    my %arguments = (
+        description     => 'Count the number of labels that are on the tree',
+        name            => 'Count labels on tree',
+        indices         => {
+            PHYLO_LABELS_ON_TREE_COUNT => {
+                description => 'The number of labels that are found on the tree, across both neighbour sets',
+            },
+        },
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc        => ['calc_labels_on_tree'],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_count_labels_on_tree {
+    my $self = shift;
+    my %args = @_;
+    
+    my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
+    
+    my %results = (PHYLO_LABELS_ON_TREE_COUNT => scalar keys %$labels_on_tree);
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_labels_on_tree {
     my $self = shift;
 

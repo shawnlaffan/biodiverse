@@ -1,6 +1,8 @@
 package Biodiverse::GUI::Tabs::Clustering;
 use strict;
 use warnings;
+use 5.010;
+
 use English qw( -no_match_vars );
 
 use Gtk2;
@@ -30,7 +32,7 @@ use parent qw {Biodiverse::GUI::Tabs::Tab};
 use constant MODEL_NAME => 0;
 
 my $empty_string = q{};
-my $NULL_STRING = q{};
+my $NULL_STRING  = q{};
 
 ##################################################
 # Initialisation
@@ -104,9 +106,11 @@ sub new {
             $self->{basedata_ref},
             $self->getType,
         );
-        print "[Clustering tab] New cluster output "
-                . $self->{output_name}
-                . "\n";
+        say "[Clustering tab] New cluster output " . $self->{output_name};
+
+        if (!$bd->has_empty_groups) {
+            $def_query_init1 = $empty_string;
+        }
 
         $self->queueSetPane(1, 'vpaneClustering');
         $self->{existing} = 0;
@@ -145,11 +149,8 @@ sub new {
             ? $spatial_params->[1]->get_conditions_unparsed()
             : $NULL_STRING;
 
-        $def_query_init1 = $cluster_ref->get_param ('DEFINITION_QUERY');
-        if (not defined $def_query_init1) {
-            $def_query_init1 = $empty_string;
-        }
-        elsif (blessed $def_query_init1) { #  get the text if already an object 
+        $def_query_init1 = $cluster_ref->get_param ('DEFINITION_QUERY') //  $empty_string;
+        if (blessed $def_query_init1) { #  get the text if already an object 
             $def_query_init1 = $def_query_init1->get_conditions_unparsed();
         }
         if (my $prng_seed = $cluster_ref->get_prng_seed_argument()) {

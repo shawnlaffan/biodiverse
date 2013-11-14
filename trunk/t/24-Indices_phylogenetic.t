@@ -41,6 +41,7 @@ my @calcs = qw/
     calc_taxonomic_distinctness_binary
     calc_pe_single
     calc_count_labels_on_tree
+    calc_pd_terminal_node_count
 /;
 
 exit main( @ARGV );
@@ -524,6 +525,7 @@ __DATA__
                               'Genus:sp5' => 1
                             },
     'PHYLO_LABELS_ON_TREE_COUNT' => 14,
+    PD_INCLUDED_TERMINAL_NODE_COUNT => 14,
   'PHYLO_RARITY_CWR' => '0.144409172195734',
   'PHYLO_S2' => 0,
   'PHYLO_SORENSON' => '0.729801407809261',
@@ -637,6 +639,7 @@ __DATA__
                               'Genus:sp26' => 1
                             },
     'PHYLO_LABELS_ON_TREE_COUNT' => 2,
+    'PD_INCLUDED_TERMINAL_NODE_COUNT' => 2,
   'PHYLO_RARITY_CWR' => '0.175683424689984',
   'TDB_DENOMINATOR' => 2,
   'TDB_DISTINCTNESS' => '0.341398923434153',

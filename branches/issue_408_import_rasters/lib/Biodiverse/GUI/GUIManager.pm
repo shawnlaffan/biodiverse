@@ -76,7 +76,7 @@ require Biodiverse::BaseData;
 require Biodiverse::Matrix;
 require Biodiverse::Config;
 
-use parent qw /Biodiverse::Common Biodiverse::GUI::Help/;
+use parent qw /Biodiverse::Common Biodiverse::GUI::Help/; #/
 
 
 ##########################################################

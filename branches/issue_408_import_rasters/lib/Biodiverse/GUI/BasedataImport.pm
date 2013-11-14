@@ -30,6 +30,8 @@ my $import_n = ""; #  use "" for orig, 3 for the one with embedded params table
 my $dlg_name = "dlgImport1";
 my $chkNew = "chkNew$import_n";
 my $btnNext = "btnNext$import_n";
+my $file_format = "format_box$import_n";
+my $raster_idx = 1; # index in combo box of raster format
 my $comboImportBasedatas = "comboImportBasedatas$import_n";
 my $filechooserInput = "filechooserInput$import_n";
 my $txtImportNew = "txtImportNew$import_n";
@@ -83,8 +85,21 @@ sub run {
         push @file_names_tmp, '... plus ' . (scalar @filenames - 5) . ' others';
     }
     my $file_list_as_text = join ("\n", @file_names_tmp);
-    $dlg->destroy();
     
+    # interpret if raster or text depending on format box
+    my $read_raster;
+    #if (defined $dlgxml->get_widget($comboImportBasedatas)) {
+    #	print "$comboImportBasedatas defined\n";
+    #} else { print "nope\n"; }  
+    
+    #if (defined $dlgxml->get_widget($file_format)) {
+        $read_raster = ($dlgxml->get_widget($file_format)->get_active() == $raster_idx);
+    #} else {
+    #	print "widget $file_format not defined\n";
+    #}
+
+    $dlg->destroy();
+
     #########
     # 1a. Get parameters to use
     #########
@@ -110,6 +125,16 @@ sub run {
     my %args = $basedata_ref->get_args (sub => 'import_data');
     my $params = $args{parameters};
 
+    # set some default values (a bit of a hack)
+    my @cell_sizes           = @{$basedata_ref->get_param('CELL_SIZES')};
+    my @cell_origins         = @{$basedata_ref->get_cell_origins};
+    foreach my $thisp (@$params) {
+        $thisp->{default} = $cell_origins[0] if ($thisp->{name} eq 'raster_origin_e');
+        $thisp->{default} = $cell_origins[1] if ($thisp->{name} eq 'raster_origin_n');
+        $thisp->{default} = $cell_sizes[0] if ($thisp->{name} eq 'raster_cellsize_e');
+        $thisp->{default} = $cell_sizes[1] if ($thisp->{name} eq 'raster_cellsize_n');        
+    }
+    
     # Build widgets for parameters
     my $table = $dlgxml->get_widget ('tableImportParameters');
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
@@ -127,6 +152,34 @@ sub run {
     }
     my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     my %import_params = @$import_params;
+
+    # if we are reading as raster, just call import function here and exit 
+    if ($read_raster) {
+    	my $labels_as_bands = $import_params{raster_labels_as_bands};
+    	my $success = eval {
+	        $basedata_ref->import_data_raster(
+	            %import_params,
+	            #%rest_of_options,
+	            #%gp_lb_cols,
+	            labels_as_bands			=> $labels_as_bands,
+	            input_files             => \@filenames
+	        )
+	    };
+	    if ($EVAL_ERROR) {
+	        my $text = $EVAL_ERROR;
+	        if (not $use_new) {
+	            $text .= "\tWarning: Records prior to this line have been imported.\n";
+	        }
+	        $gui->report_error ($text);
+	    }
+	
+	    if ($success) {
+	        if ($use_new) {
+	            $gui->getProject->addBaseData($basedata_ref);
+	        }
+	        return $basedata_ref;
+	    } else { return; }
+    }
 
 
     # Get header columns
@@ -916,6 +969,8 @@ sub makeFilenameDialog {
 
     $dlgxml->get_widget($chkNew)->signal_connect(toggled => \&onNewToggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txtImportNew)->signal_connect(changed => \&onNewChanged, [$gui, $dlgxml]);
+    
+    $dlgxml->get_widget($file_format)->set_active(0);
     
     return ($dlgxml, $dlg);
 }

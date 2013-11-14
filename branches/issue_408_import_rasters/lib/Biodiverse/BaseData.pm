@@ -16,6 +16,7 @@ use File::BOM qw /:subs/;
 use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
+use Geo::GDAL;
 
 use English qw { -no_match_vars };
 
@@ -268,7 +269,7 @@ sub describe {
         JOIN_CHAR
         QUOTES
         NUMERIC_LABELS
-    /;
+    /; #/
 
     foreach my $key (@keys) {
         my $desc = $self->get_param ($key);
@@ -505,7 +506,7 @@ sub get_metadata_import_data {
                   : (q{,}, 'tab', q{;}, 'space', q{:});
     my @input_sep_chars = ('guess', @sep_chars);
     
-    my @quote_chars = qw /" ' + $/;
+    my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
     my @input_quote_chars = ('guess', @quote_chars);
     
     #  these parameters are only for the GUI, so are not a full set
@@ -578,6 +579,36 @@ sub get_metadata_import_data {
                           . 'Applies to each record, not to groups.',
               type       => 'boolean',
               default    => 0,
+            },
+            { name       => 'raster_labels_as_bands',
+              label_text => 'Read bands as labels? (raster only)',
+              tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
+              type       => 'boolean',
+              default    => 0,
+            },
+            { name       => 'raster_origin_e',
+              label_text => 'Cell origin east/long (raster only)',
+              tooltip    => 'Origin of group cells (Eastings/Longitude)',
+              type       => 'float',
+              default    => 0,
+            },
+            { name       => 'raster_origin_n',
+              label_text => 'Cell origin north/lat (raster only)',
+              tooltip    => 'Origin of group cells (Northings/Latitude)',
+              type       => 'float',
+              default    => 0,
+            },
+            { name       => 'raster_cellsize_e',
+              label_text => 'Cell size east/long (raster only)',
+              tooltip    => 'Size of group cells (Eastings/Longitude)',
+              type       => 'float',
+              default    => 100000,
+            },
+            { name       => 'raster_cellsize_n',
+              label_text => 'Cell size north/lat (raster only)',
+              tooltip    => 'Size of group cells (Northings/Latitude)',
+              type       => 'float',
+              default    => 100000,
             },
         ]
     );
@@ -1093,6 +1124,207 @@ sub import_data {
     return 1;  #  success
 }
 
+# subroutine to read a data file using GDAL library.  arguments
+# input_files: list of files to read(?)
+# labels_as_bands: if true, read each band as a label, and each cell value as count.
+#   otherwise read a single raster band (?), and interpret numeric values as labels
+# further questions: interpreting coordinates, assume values are UTM? provide other options?
+sub import_data_raster {
+    my $self = shift;
+    my %args = @_;
+    
+    my $orig_group_count = $self->get_group_count;
+    my $orig_label_count = $self->get_label_count;
+
+    my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
+
+    croak "Input files array not provided\n"
+      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+    my $labels_as_bands = $args{labels_as_bands};
+    my $cellorigin_e = $args{raster_origin_e};
+    my $cellorigin_n = $args{raster_origin_n};
+    my $cellsize_e = $args{raster_cellsize_e};
+    my $cellsize_n = $args{raster_cellsize_n};
+    
+    my $labels_ref = $self->get_labels_ref;
+    my $groups_ref = $self->get_groups_ref;
+    
+    say "[BASEDATA] Loading from files as GDAL "
+            . join (q{ }, @{$args{input_files}});
+
+    # hack, set parameters here? using local ref arrays?
+    my @cell_sizes = ($cellsize_e, $cellsize_n);
+    my @cell_origins = ($cellorigin_e, $cellorigin_n);
+    $self->set_param('CELL_SIZES', \@cell_sizes);
+    $self->set_param('CELL_ORIGINS', \@cell_origins);
+    
+    #my @cell_sizes           = @{$self->get_param('CELL_SIZES')};
+    #my @cell_origins         = @{$self->get_cell_origins};
+    my @half_cellsize = map {$_ / 2} @cell_sizes;
+
+    my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
+    my $el_sep = $self->get_param ('JOIN_CHAR');
+
+    my $out_csv = $self->get_csv_object (
+        sep_char   => $el_sep,
+        quote_char => $quotes,
+    );
+    
+	# load each file, using same arguments/parameters
+    #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
+    foreach my $file (@{$args{input_files}}) {
+        $file = Path::Class::file($file)->absolute;
+        say "[BASEDATA] INPUT FILE: $file";
+
+        if (! (-e $file and -r $file)) {
+	        croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
+        }
+
+		# process using GDAL library		
+		my $data = Geo::GDAL::Open("$file", q/Update/); #, GA_Update); #'ReadOnly'); #'Update'); #GA_Update) ;
+		#my $data = Geo::GDAL::Open('sample.tif', 'Update'); #'Update');
+
+        croak "[BASEDATA] Failed to read $file with GDAL\n"
+           if (! defined($data));
+		
+		print 'Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName},"\n";
+		print 'Size is ', $data->{RasterXSize},'x',$data->{RasterXSize}, 'x',$data->{RasterCount},"\n";
+		print "Projection is ", $data->GetProjection(), "\n";
+		
+		my @tf = $data->GetGeoTransform();
+		print "Transform is ", @tf, "\n";		
+		printf "Origin = (%.6f,%.6f)\n", $tf[0], $tf[3];
+		printf "Pixel Size = (%.6f,%.6f)\n", $tf[1], $tf[5];
+		
+		# read and display all data (?)
+		
+		# iterate over each band
+		foreach my $b (1..$data->{RasterCount}) {
+			my $band = $data->Band($b);
+			my $blockw, my $blockh, my $maxw, my $maxh;
+			my $wpos = 0, my $hpos = 0;
+			my $this_label;
+			
+			print "Band $b $band ",$band->{DataType},"\n";
+			if ($labels_as_bands) { $this_label = "band$b"; }
+			
+			# get category names for this band, which will attempt
+			# to be used as labels based on cell values (if ! labels_as_bands)
+			my @catnames = $band->CategoryNames();			
+
+			# record if numeric values are being used for labels
+			if (scalar @catnames == 0 && ! $labels_as_bands) {
+				$labels_ref->{element_arrays_are_numeric} = 1;
+			}	
+		
+			# read as preferred size blocks?
+			($blockw, $blockh) = $band->GetBlockSize();
+            printf "Block size ($blockw, $blockh)\n";
+            
+            # read a "block" at a time
+            # assume @cell_sizes is ($xsize, $ysize)
+            $hpos = 0;
+            while ($hpos < $data->{RasterYSize}) {
+                $wpos = 0;          
+                while ($wpos < $data->{RasterXSize}) {
+                    $maxw = min($data->{RasterXSize}, $wpos + $blockw);
+                    $maxh = min($data->{RasterYSize}, $hpos + $blockh);
+
+                    printf "reading tile at origin $wpos, $hpos, to $maxw, $maxh\n";                    
+                    my $lr = $band->ReadTile($wpos,$hpos,$maxw-$wpos,$maxh-$hpos); #,$band->{DataType});
+                    my @tile = @$lr;
+                    my $y=$hpos;    
+                    foreach my $lineref (@tile) {
+                        my $x=$wpos;
+                        foreach my $entry (@$lineref) {
+                            
+                            # find transformed position (see GDAL specs)        
+                            #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
+                            #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
+                            my $egeo = $tf[0] + $x * $tf[1] + $y * $tf[2];
+                            my $ngeo = $tf[3] + $x * $tf[4] + $y * $tf[5];
+
+                            # calculate "group" from this position. (defined as csv string of central points of group)
+                            my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e); 
+                            my $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
+                            my $grpe = $ecell * $cellsize_e + ($cellsize_e / 2.0); 
+                            my $grpn = $ncell * $cellsize_n + ($cellsize_n / 2.0);
+                            my @grplist = ($grpe, $grpn);
+	                        my $grpstring = $self->list2csv (
+	                            list        => \@grplist,
+	                            csv_object  => $out_csv,
+	                        );
+                            print "($x,$y) ($egeo,$ngeo) $entry ($ecell,$ncell) ($grpe, $grpn)\n";
+	                        
+	                        # set label if determined at cell level
+	                        my $count = 1;
+	                        if ($labels_as_bands) {
+	                            # set count to cell value if using band as label 
+	                            $count = $entry;
+	                        } else {
+	                            # set label from cell value
+	                            
+	                            # if entry is integer and within category list, just use label from list
+	                            if ($entry =~ /^[-+]\d+$/ && $entry <= $#catnames) {
+	                                $this_label = $catnames[$entry];
+	                            } else {
+	                                $this_label = $entry;
+	                            }
+	                        } 
+	                        
+	                        # add to elements
+	                        $self->add_element (
+	                            label      => $this_label,
+	                            group      => $grpstring,
+	                            count      => $count,
+	                            csv_object => $out_csv,
+	                        );
+                            
+                            ++$x;
+                        } # each entry on line
+                        ++$y;
+                    } # each line in block
+                    $wpos += $blockw;
+                } # each block in width
+                $hpos += $blockh;
+            } # each block in height
+		} # each raster band
+    } # each file
+
+#				# progress bar stuff
+#				my $frac = eval {
+#                    ($line_num   - $line_num_end_prev_chunk) /
+#                    ($line_count - $line_num_end_prev_chunk)
+#                };
+#                $progress_bar->update(
+#                    "Loading $file_base\n" .
+#                    "Line $line_num of $line_count_text\n" .
+#                    "Chunk #$chunk_count",
+#                    $frac
+#                );
+#
+#                if ($line_num % 10000 == 0) {
+#                    print "Loading $file_base line "
+#                          . "$line_num of $line_count_text, "
+#                          . "chunk $chunk_count\n" ;
+#                }
+
+    #print "note: import_raster, run_import_post_processes not used\n";
+    my @label_columns = qw{1}; # hack
+    $self->run_import_post_processes (
+        #%line_parse_args,
+        label_columns        => \@label_columns,
+        #group_columns        => \@group_columns,
+        cell_sizes           => \@cell_sizes,
+        half_cellsize        => \@half_cellsize,
+        cell_origins         => \@cell_origins,
+        orig_group_count => $orig_group_count,
+        orig_label_count => $orig_label_count,
+    );
+
+    return 1;  #  success
+}
+
 sub run_import_post_processes {
     my $self = shift;
     my %args = @_;
@@ -1243,7 +1475,7 @@ sub assign_element_properties {
         my %props = $prop_obj->get_element_properties (element => $element);
 
         #  but don't add these ones
-        delete @props{qw /INCLUDE EXCLUDE/};
+        delete @props{qw /INCLUDE EXCLUDE/}; #/
 
         $gp_lb_ref->add_to_lists (
             element    => $element,

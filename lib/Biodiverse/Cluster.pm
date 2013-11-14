@@ -1431,9 +1431,7 @@ sub cluster {
             #  now we clean up all the empty nodes in the other indexes
             if (scalar @now_empty) {
 
-                print '[CLUSTER] Deleting '
-                      . scalar @now_empty
-                      . " empty nodes\n";
+                say '[CLUSTER] Deleting ' . scalar @now_empty . ' empty nodes';
 
                 $self->delete_from_node_hash (nodes => \@now_empty);
             }

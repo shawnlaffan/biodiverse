@@ -3243,15 +3243,15 @@ sub get_neighbours_as_array {
 sub get_outputs_with_same_conditions {
     my $self = shift;
     my %args = @_;
-    
+
     my $compare = $args{compare_with} || croak "[BASEDATA] compare_with argument not specified\n";
-    
+
     my $sp_params = $compare->get_param ('SPATIAL_PARAMS');
     my $def_query = $compare->get_param ('DEFINITION_QUERY');
     if (defined $def_query && (length $def_query) == 0) {
         $def_query = undef;
     }
-    
+
     my $def_conditions;
     if (blessed $def_query) {
         $def_conditions = $def_query->get_conditions_unparsed();
@@ -3305,7 +3305,17 @@ sub get_outputs_with_same_conditions {
     return;
 }
 
+sub has_empty_groups {
+    my $self = shift;
 
+    foreach my $group ($self->get_groups) {
+        my $labels = $self->get_labels_in_group (group => $group);
+
+        return 0 if scalar @$labels;
+    }
+    
+    return 1;
+}
 
 sub numerically {$a <=> $b};
 

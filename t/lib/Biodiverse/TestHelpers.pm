@@ -951,10 +951,10 @@ sub run_indices_test1_inner {
                 my $reftype = reftype ($results{$index}) // 'scalar';
                 my $is_list = ($reftype =~ /HASH|ARRAY/);
                 if ($list_indices->{$index}) {
-                    ok ($is_list, "$index marked as a list");
+                    ok ($is_list, "index $index is a list");
                 }
                 else {
-                    ok (!$is_list, "$index not marked as a list");
+                    ok (!$is_list, "index $index is not a list");
                 }
             }
         };

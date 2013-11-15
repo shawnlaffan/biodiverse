@@ -940,7 +940,7 @@ sub get_definition_query {
     my $self = shift;
     my %args = @_;
     
-    my $definition_query = $self->get_param ('DEFINITION_QUERY')
+    my $definition_query = $self->get_def_query
                            || $args{definition_query};
 
     return if ! defined $definition_query;
@@ -948,6 +948,7 @@ sub get_definition_query {
     if (length ($definition_query) == 0) {
         $definition_query = undef ;
     }
+
     #  now parse the query into an object if needed
     elsif (not blessed $definition_query) {
         $definition_query = Biodiverse::SpatialConditions::DefQuery->new (

@@ -168,7 +168,7 @@ sub process_spatial_conditions_and_def_query {
         }
     }
 
-    #  now generate the spatial_params
+    #  now generate the spatial_conditions
     my $spatial_conditions_array = [];
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
@@ -194,10 +194,9 @@ sub process_spatial_conditions_and_def_query {
 
     #  let the spatial object handle the conditions stuff
     my $definition_query
-        = $self->get_param ('DEFINITION_QUERY')
-          || $args{definition_query};
+        = $self->get_def_query || $args{definition_query};
 
-    if (not defined $self->get_param ('DEFINITION_QUERY')) {
+    if (!defined $self->get_def_query) {
         $self->set_param (DEFINITION_QUERY => $definition_query);
     }
 
@@ -311,7 +310,7 @@ sub build_matrices {
     my $name = $args{name} || $self->get_param ('NAME') || "CLUSTERMATRIX_$index";
 
     my @spatial_conditions = @{$self->get_spatial_conditions};
-    my $definition_query = $self->get_param ('DEFINITION_QUERY');
+    my $definition_query   = $self->get_def_query;
     
     my $bd = $self->get_basedata_ref;
 

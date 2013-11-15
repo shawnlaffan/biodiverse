@@ -445,6 +445,15 @@ sub get_spatial_conditions {
     return $conditions;
 }
 
+#  Get the def query for this object if set
+sub get_def_query {
+    my $self = shift;
+
+    my $def_q =  $self->get_param ('DEFINITION_QUERY');
+
+    return $def_q;
+}
+
 
 sub delete_spatial_index {
     my $self = shift;

@@ -25,8 +25,8 @@ our $VERSION = '0.19';
 use Glib;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
-use Biodiverse::SpatialParams;
-use Biodiverse::SpatialParams::DefQuery;
+use Biodiverse::SpatialConditions;
+use Biodiverse::SpatialConditions::DefQuery;
 
 use parent qw /Biodiverse::Common/;  #  need get/set_param
 
@@ -148,17 +148,17 @@ sub onSyntaxCheck {
 
     my $expr  = $self->get_text;
     my $class = $self->{is_def_query}
-                ? 'Biodiverse::SpatialParams::DefQuery'
-                : 'Biodiverse::SpatialParams';
-    my $spatial_params = eval {
+                ? 'Biodiverse::SpatialConditions::DefQuery'
+                : 'Biodiverse::SpatialConditions';
+    my $spatial_conditions = eval {
         $class->new (conditions => $expr);
     };
     #croak $EVAL_ERROR if $EVAL_ERROR;
-    #croak "AAAAAAAAAARRRRRRGGGGHHHH" if !$spatial_params;
+    #croak "AAAAAAAAAARRRRRRGGGGHHHH" if !$spatial_conditions;
 
     #  Get the baedata associated with this output.  If none then use the selected.
     my $bd = $self->get_param ('BASEDATA_REF') || $gui->getProject->getSelectedBaseData;
-    my $result_hash = $spatial_params->verify (basedata => $bd);
+    my $result_hash = $spatial_conditions->verify (basedata => $bd);
 
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {
         my $dlg = Gtk2::MessageDialog->new(

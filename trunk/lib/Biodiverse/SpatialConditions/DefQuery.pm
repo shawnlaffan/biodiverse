@@ -1,4 +1,4 @@
-package Biodiverse::SpatialParams::DefQuery;
+package Biodiverse::SpatialConditions::DefQuery;
 
 use warnings;
 use strict;
@@ -20,19 +20,19 @@ sub is_def_query {return 1};
 
 =head1 NAME
 
-Biodiverse::SpatialParams::DefQuery
+Biodiverse::SpatialConditions::DefQuery
 
 =head1 SYNOPSIS
 
-  use Biodiverse::SpatialParams::DefQuery;
-  $object = Biodiverse::SpatialParams::DefQuery->new();
+  use Biodiverse::SpatialConditions::DefQuery;
+  $object = Biodiverse::SpatialConditions::DefQuery->new();
 
 =head1 DESCRIPTION
 
-This is just a special SpatialParams object that allows better behavious
+This is just a special SpatialConditions object that allows better behaviour
 as a definition query.  
 
-It inherits from Biodiverse::SpatialParams so has all of those methods.
+It inherits from Biodiverse::SpatialConditions so has all of those methods.
 
 =head1 METHODS
 

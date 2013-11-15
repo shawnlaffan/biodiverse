@@ -117,7 +117,7 @@ sub showDialog {
     }
     
     #  and the groups def query
-    my $specs = { name => 'Definition_query', type => 'spatial_params', default => '' };
+    my $specs = { name => 'Definition_query', type => 'spatial_conditions', default => '' };
     my ($defq_widget, $defq_extractor) = Biodiverse::GUI::ParametersTable::generateWidget ($specs);
     my $groups_vbox = $dlgxml->get_widget('vbox_group_exclusions_defq');
     $groups_vbox->pack_start ($defq_widget, 0, 0, 0);

@@ -44,7 +44,7 @@ This just calls the extractor functions and combines the results
    { name => 'format', type => 'choice', choices => ['CSV', 'Newick'], default => 0 },
    { name => 'max_clusters', type => 'float', default => 20 },
    { name => 'increment', type => 'integer', default => 5 },
-   { name => 'Spatial', type => 'spatial_params', default => '$D < 5' },
+   { name => 'Spatial', type => 'spatial_conditions', default => '$D < 5' },
    { name => 'use_length', type => 'boolean', default => 1 } ]
 
 =cut
@@ -145,7 +145,7 @@ sub generateWidget {
         float
         boolean
         choice
-        spatial_params
+        spatial_conditions
     };
     my %valid_choices_hash;
     @valid_choices_hash{@valid_choices} = (1) x scalar @valid_choices;
@@ -236,7 +236,7 @@ sub generate_boolean {
     return ($checkbox, $extract);
 }
 
-sub generate_spatial_params {
+sub generate_spatial_conditions {
     my $param = shift;
     my $default = $param->{default} || '';
 

@@ -19,6 +19,7 @@ package Biodiverse::Index;
 
 use strict;
 use warnings;
+use 5.010;
 use Carp;
 use English qw / -no_match_vars /;
 use POSIX qw /fmod ceil floor/;
@@ -366,23 +367,24 @@ sub round_up_to_resolution {
 sub predict_offsets {  #  predict the maximum spatial distances needed to search based on the index entries
     my $self = shift;
     my %args = @_;
-    if (! $args{spatial_params}) {
-        croak "[INDEX] No spatial params object specified in predict_distances\n";
-    }
-    
+
+    my $spatial_conditions = $args{spatial_conditions} // $args{spatial_params};
+
+    croak "[INDEX] No spatial conditions object passed to predict_offsets\n"
+      if !$spatial_conditions;
+
     my $progress_text_pfx = $args{progress_text_pfx} || q{};
     
     #  Derive the full parameter set.  We may not need it, but just in case...
     #  (and it doesn't take overly long)
     #  should add it as an argument
 
-    my $spatial_params = $args{spatial_params};
-    my $conditions = $spatial_params->get_conditions_unparsed();
+    my $conditions = $spatial_conditions->get_conditions_unparsed();
     $self->update_log (text => "[INDEX] PREDICTING SPATIAL INDEX NEIGHBOURS\n$conditions\n");
 
     my $csv_object = $self->get_cached_value ('CSV_OBJECT');
     #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
-    if (not defined $csv_object) {
+    if (!$csv_object) {
         my $sep     = $self->get_param('JOIN_CHAR');
         my $quotes  = $self->get_param('QUOTES');
         $csv_object = $self->get_csv_object (
@@ -414,7 +416,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my $using_cell_units  = undef;
     my $subset_dist       = $args{index_search_dist};
     #  insert a shortcut for no neighbours
-    if ($spatial_params->get_result_type eq 'self_only') {
+    if ($spatial_conditions->get_result_type eq 'self_only') {
         my $off_array = [(0) x scalar @$index_resolutions];  #  all zeroes
         my $offsets = $self->list2csv (
             list       => $off_array,
@@ -425,8 +427,8 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
         return wantarray ? %valid_offsets : \%valid_offsets;
     }
 
-    #elsif (my $i_dist = $spatial_params->get_index_max_dist) {
-    if (my $i_dist = $spatial_params->get_index_max_dist) {
+    #elsif (my $i_dist = $spatial_conditions->get_index_max_dist) {
+    if (my $i_dist = $spatial_conditions->get_index_max_dist) {
         print "[INDEX] Max search dist is $i_dist - using shortcut\n";
         $use_subset_search = 1;
         my $max_off = $self->round_up_to_resolution (values => $i_dist);
@@ -615,7 +617,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                 #  No - there might be cases where it fails for one origin, but not for others
 
                 next COMPARE
-                    if not $spatial_params->evaluate (
+                    if not $spatial_conditions->evaluate (
                         coord_array1 => $check_ref,
                         coord_array2 => $element_ref,
                         coord_id1    => $check_element,

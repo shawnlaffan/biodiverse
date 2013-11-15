@@ -11,7 +11,7 @@ use rlib;
 use Test::More;
 
 use Biodiverse::BaseData;
-use Biodiverse::SpatialParams;
+use Biodiverse::SpatialConditions;
 use Biodiverse::TestHelpers qw{
     :basedata
     compare_arr_vals
@@ -56,7 +56,7 @@ sub test_case {
     my $expected      = $args{expected}; # array of expected cells as strings
     my $print_results = $args{print_results} || 0;
 
-    my $spatial_params = Biodiverse::SpatialParams->new (
+    my $spatial_params = Biodiverse::SpatialConditions->new (
         conditions => $cond,
     );
 

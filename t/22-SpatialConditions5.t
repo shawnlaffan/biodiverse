@@ -12,7 +12,7 @@ use rlib;
 use Test::More;
 
 use Biodiverse::BaseData;
-use Biodiverse::SpatialParams;
+use Biodiverse::SpatialConditions;
 use Biodiverse::TestHelpers qw{
     :basedata
     compare_arr_vals
@@ -32,7 +32,7 @@ sub test_sp_group_not_empty {
         CELL_SIZES => [100000, 100000],
     );
     
-    my $spatial_params = Biodiverse::SpatialParams->new (
+    my $spatial_params = Biodiverse::SpatialConditions->new (
         conditions => 'sp_group_not_empty',
     );
 
@@ -48,7 +48,7 @@ sub test_sp_group_not_empty {
     is (scalar keys %$neighbours, scalar @groups, "Found correct number of non-empty groups");
     
     #  and now as a def query
-    my $def_q = Biodiverse::SpatialParams::DefQuery->new (
+    my $def_q = Biodiverse::SpatialConditions::DefQuery->new (
         conditions => 'sp_group_not_empty',
     );
     

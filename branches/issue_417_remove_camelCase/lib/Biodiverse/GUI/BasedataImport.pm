@@ -28,12 +28,12 @@ use Biodiverse::Common;
 #  a few name setups for a change-over that never happened
 my $import_n = ""; #  use "" for orig, 3 for the one with embedded params table
 my $dlg_name = "dlgImport1";
-my $chkNew = "chkNew$import_n";
-my $btnNext = "btnNext$import_n";
-my $comboImportBasedatas = "comboImportBasedatas$import_n";
-my $filechooserInput = "filechooserInput$import_n";
-my $txtImportNew = "txtImportNew$import_n";
-my $tableParameters = "tableParameters$import_n";
+my $chk_new = "chkNew$import_n";
+my $btn_next = "btnNext$import_n";
+my $combo_import_basedatas = "comboImportBasedatas$import_n";
+my $filechooser_input = "filechooserInput$import_n";
+my $txt_import_new = "txtImportNew$import_n";
+my $table_parameters = "tableParameters$import_n";
 
 
 ##################################################
@@ -58,11 +58,11 @@ sub run {
 
     #if ($response eq 'ok') {
 
-    $use_new = $dlgxml->get_widget($chkNew)->get_active();
+    $use_new = $dlgxml->get_widget($chk_new)->get_active();
     if ($use_new) {
         # Add it
         # FIXME: why am i adding it now?? better at the end?
-        my $basedata_name = $dlgxml->get_widget($txtImportNew)->get_text();
+        my $basedata_name = $dlgxml->get_widget($txt_import_new)->get_text();
         #$basedata_ref = $gui->getProject->addBaseData($basedata_name);
         $basedata_ref = Biodiverse::BaseData->new (
             NAME       => $basedata_name,
@@ -71,12 +71,12 @@ sub run {
     }
     else {
         # Get selected basedata
-        my $selected = $dlgxml->get_widget($comboImportBasedatas)->get_active_iter();
+        my $selected = $dlgxml->get_widget($combo_import_basedatas)->get_active_iter();
         $basedata_ref = $gui->getProject->getBasedataModel->get($selected, MODEL_OBJECT);
     }
 
     # Get selected filenames
-    my @filenames = $dlgxml->get_widget($filechooserInput)->get_filenames();
+    my @filenames = $dlgxml->get_widget($filechooser_input)->get_filenames();
     my @file_names_tmp = @filenames;
     if (scalar @filenames > 5) {
         @file_names_tmp = @filenames[0..5];
@@ -540,8 +540,8 @@ sub getColumnSettings {
 sub fillParams {
     my $dlgxml = shift;
 
-    my $labelsModel = $dlgxml->get_widget('labels')->get_model();
-    my $groupsModel = $dlgxml->get_widget('groups')->get_model();
+    my $labels_model = $dlgxml->get_widget('labels')->get_model();
+    my $groups_model = $dlgxml->get_widget('groups')->get_model();
     my $iter;
 
     my %params = (
@@ -554,19 +554,19 @@ sub fillParams {
     );
 
     # Do labels
-    $iter = $labelsModel->get_iter_first();
+    $iter = $labels_model->get_iter_first();
     while ($iter) {
-        my $info = $labelsModel->get($iter, 1);
+        my $info = $labels_model->get($iter, 1);
 
         push (@{$params{'LABEL_COLUMNS'}}, $info->{id});
     
-        $iter = $labelsModel->iter_next($iter);
+        $iter = $labels_model->iter_next($iter);
     }
 
     # Do groups
-    $iter = $groupsModel->get_iter_first();
+    $iter = $groups_model->get_iter_first();
     while ($iter) {
-        my $info2 = $groupsModel->get($iter, 1);
+        my $info2 = $groups_model->get($iter, 1);
 
         push (@{$params{'GROUP_COLUMNS'}}, $info2->{id});
         push (@{$params{'CELL_SIZES'}},    $info2->{cell_size});
@@ -574,7 +574,7 @@ sub fillParams {
         push (@{$params{'CELL_IS_LAT'}},   $info2->{is_lat});
         push (@{$params{'CELL_IS_LON'}},   $info2->{is_lon});
 
-        $iter = $groupsModel->iter_next($iter);
+        $iter = $groups_model->iter_next($iter);
     }
 
     return \%params;
@@ -748,27 +748,27 @@ sub makeReorderDialog {
     my $dlg = $dlgxml->get_widget('dlgReorderColumns');
     $dlg->set_transient_for( $gui->getWidget('wndMain') );
     
-    my $listGroups = setupReorderList('groups', $dlgxml, $columns->{groups});
-    my $listLabels = setupReorderList('labels', $dlgxml, $columns->{labels});
+    my $list_groups = setupReorderList('groups', $dlgxml, $columns->{groups});
+    my $list_labels = setupReorderList('labels', $dlgxml, $columns->{labels});
 
     # Make the selections mutually exclusive (if selection made, unselect selection in other list)
-    $listGroups->get_selection->signal_connect(
+    $list_groups->get_selection->signal_connect(
         changed => \&unselectOther,
-        $listLabels,
+        $list_labels,
     );
-    $listLabels->get_selection->signal_connect(
+    $list_labels->get_selection->signal_connect(
         changed => \&unselectOther,
-        $listGroups,
+        $list_groups,
     );
 
     # Connect up/down buttons
     $dlgxml->get_widget('btnUp')->signal_connect(
         clicked => \&onUpDown,
-        ['up', $listGroups, $listLabels],
+        ['up', $list_groups, $list_labels],
     );
     $dlgxml->get_widget('btnDown')->signal_connect(
         clicked => \&onUpDown,
-        ['down', $listGroups, $listLabels],
+        ['down', $list_groups, $list_labels],
     );
 
     return ($dlgxml, $dlg);
@@ -791,13 +791,13 @@ sub setupReorderList {
     # Initialise the list
     my $list = $dlgxml->get_widget($type);
     
-    my $colName = Gtk2::TreeViewColumn->new();
-    my $nameRenderer = Gtk2::CellRendererText->new();
-    $colName->set_sizing('fixed');
-    $colName->pack_start($nameRenderer, 1);
-    $colName->add_attribute($nameRenderer,  text => 0);
+    my $col_name = Gtk2::TreeViewColumn->new();
+    my $name_renderer = Gtk2::CellRendererText->new();
+    $col_name->set_sizing('fixed');
+    $col_name->pack_start($name_renderer, 1);
+    $col_name->add_attribute($name_renderer,  text => 0);
     
-    $list->insert_column($colName, -1);
+    $list->insert_column($col_name, -1);
     $list->set_headers_visible(0);
     $list->set_reorderable(1);
     $list->set_model( $model );
@@ -876,27 +876,27 @@ sub makeFilenameDialog {
 #    my $params = $args{parameters};
 #
 #    # Build widgets for parameters
-#    my $table = $dlgxml->get_widget($tableParameters);
+#    my $table = $dlgxml->get_widget($table_parameters);
 #    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
 #    my $extractors = Biodiverse::GUI::ParametersTable::fill($params, $table, $dlgxml); 
 
 
     # Initialise the basedatas combo
-    $dlgxml->get_widget($comboImportBasedatas)->set_model($gui->getProject->getBasedataModel());
+    $dlgxml->get_widget($combo_import_basedatas)->set_model($gui->getProject->getBasedataModel());
     my $selected = $gui->getProject->getSelectedBaseDataIter();
     if (defined $selected) {
-        $dlgxml->get_widget($comboImportBasedatas)->set_active_iter($selected);
+        $dlgxml->get_widget($combo_import_basedatas)->set_active_iter($selected);
     }
 
     # If there are no basedatas, force "New" checkbox on
     if (not $selected) {
-        $dlgxml->get_widget($chkNew)->set_sensitive(0);
-        $dlgxml->get_widget($btnNext)->set_sensitive(0);
+        $dlgxml->get_widget($chk_new)->set_sensitive(0);
+        $dlgxml->get_widget($btn_next)->set_sensitive(0);
     }
 
     # Default to new
-    $dlgxml->get_widget($chkNew)->set_active(1);
-    $dlgxml->get_widget($comboImportBasedatas)->set_sensitive(0);
+    $dlgxml->get_widget($chk_new)->set_active(1);
+    $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
 
 
     # Init the file chooser
@@ -905,17 +905,17 @@ sub makeFilenameDialog {
     $filter->add_pattern('*.txt');
     #$filter->add_pattern("*");
     $filter->set_name('txt and csv files');
-    $dlgxml->get_widget($filechooserInput)->add_filter($filter);
+    $dlgxml->get_widget($filechooser_input)->add_filter($filter);
     $filter = Gtk2::FileFilter->new();
     $filter->add_pattern('*');
     $filter->set_name('all files');
-    $dlgxml->get_widget($filechooserInput)->add_filter($filter);
+    $dlgxml->get_widget($filechooser_input)->add_filter($filter);
     
-    $dlgxml->get_widget($filechooserInput)->set_select_multiple(1);
-    $dlgxml->get_widget($filechooserInput)->signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
+    $dlgxml->get_widget($filechooser_input)->set_select_multiple(1);
+    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
 
-    $dlgxml->get_widget($chkNew)->signal_connect(toggled => \&onNewToggled, [$gui, $dlgxml]);
-    $dlgxml->get_widget($txtImportNew)->signal_connect(changed => \&onNewChanged, [$gui, $dlgxml]);
+    $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&onNewToggled, [$gui, $dlgxml]);
+    $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&onNewChanged, [$gui, $dlgxml]);
     
     return ($dlgxml, $dlg);
 }
@@ -950,14 +950,14 @@ sub onNewChanged {
     my $name = $text->get_text();
     if ($name ne "") {
 
-        $dlgxml->get_widget($btnNext)->set_sensitive(1);
+        $dlgxml->get_widget($btn_next)->set_sensitive(1);
     }
     else {
 
         # Disable Next if have no basedatas
         my $selected = $gui->getProject->getSelectedBaseDataIter();
         if (not $selected) {
-            $dlgxml->get_widget($btnNext)->set_sensitive(0);
+            $dlgxml->get_widget($btn_next)->set_sensitive(0);
         }
     }
     
@@ -972,14 +972,14 @@ sub onNewToggled {
     if ($checkbox->get_active) {
         # New basedata
 
-        $dlgxml->get_widget($txtImportNew)->set_sensitive(1);
-        $dlgxml->get_widget($comboImportBasedatas)->set_sensitive(0);
+        $dlgxml->get_widget($txt_import_new)->set_sensitive(1);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
     }
     else {
         # Must select existing - NOTE: checkbox is disabled if there aren't any
 
-        $dlgxml->get_widget($txtImportNew)->set_sensitive(0);
-        $dlgxml->get_widget($comboImportBasedatas)->set_sensitive(1);
+        $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(1);
     }
 
     return;
@@ -994,7 +994,7 @@ sub makeColumnsDialog {
     # the number of columns is unknown
 
     my $header      = shift; # ref to column header array
-    my $wndMain     = shift;
+    my $wnd_main     = shift;
     my $row_options = shift;
     my $file_list   = shift;
 
@@ -1004,7 +1004,7 @@ sub makeColumnsDialog {
     # Make dialog
     my $dlg = Gtk2::Dialog->new(
         'Choose columns',
-        $wndMain,
+        $wnd_main,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',
@@ -1405,7 +1405,7 @@ sub getRemapInfo {
 # the number of columns is unknown
 sub makeRemapColumnsDialog {
     my $header           = shift; # ref to column header array
-    my $wndMain          = shift;
+    my $wnd_main          = shift;
     my $other_props      = shift || [];
     my $column_overrides = shift;
 
@@ -1415,7 +1415,7 @@ sub makeRemapColumnsDialog {
     # Make dialog
     my $dlg = Gtk2::Dialog->new(
         'Choose columns',
-        $wndMain,
+        $wnd_main,
         'modal',
         'gtk-cancel' => 'cancel',
         'gtk-ok'     => 'ok',

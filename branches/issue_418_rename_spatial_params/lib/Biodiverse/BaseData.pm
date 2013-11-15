@@ -1764,10 +1764,10 @@ sub run_exclusions {
         my $defq_progress = Biodiverse::Progress->new(text => 'def query');
         $group_check_list
             = $self->get_neighbours(
-                  element        => $element,
-                  spatial_params => $definition_query,
-                  is_def_query   => 1,
-                  progress       => $defq_progress,
+                  element            => $element,
+                  spatial_conditions => $definition_query,
+                  is_def_query       => 1,
+                  progress           => $defq_progress,
               );
     }
 
@@ -3091,8 +3091,7 @@ sub get_neighbours {
 
     my $spatial_conditions = $args{spatial_conditions}
                           // $args{spatial_params}
-                          || $self->get_param ('SPATIAL_CONDITIONS')
-                          || croak "[BASEDATA] No spatial conditions\n";
+                          || croak "[BASEDATA] No spatial_conditions argument\n";
     my $index = $args{index};
     my $is_def_query = $args{is_def_query};  #  some processing changes if a def query
     my $cellsizes = $self->get_param ('CELL_SIZES');
@@ -3169,7 +3168,7 @@ sub get_neighbours {
             next NBR;
         }
 
-        #  make the neighbour coord available to the spatial_params
+        #  make the neighbour coord available to the spatial_conditions
         my @coord =
            $self->get_group_element_as_array (element => $element2);
            
@@ -3214,7 +3213,7 @@ sub get_neighbours {
         next NBR if not $success;
 
         # If it has survived then it must be valid.
-        #$valid_nbrs{$element2} = $spatial_params->get_param ('LAST_DISTS');  #  store the distances for possible later use
+        #$valid_nbrs{$element2} = $spatial_conditions->get_param ('LAST_DISTS');  #  store the distances for possible later use
         #  Don't store the dists - serious memory issues for large files
         #  But could store $success if we later want to support weighted calculations
         $valid_nbrs{$element2} = 1;

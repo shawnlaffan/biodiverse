@@ -1011,9 +1011,6 @@ sub get_spatial_conditions_ref {
         }
     }
     $self->set_param (SPATIAL_CONDITIONS => $spatial_conditions_ref);
-    delete $args{spatial_params};
-    delete $args{spatial_conditions};
-    $spatial_conditions_ref = $self->get_param ('SPATIAL_CONDITIONS');
 
     return $spatial_conditions_ref;
 }

@@ -367,23 +367,24 @@ sub round_up_to_resolution {
 sub predict_offsets {  #  predict the maximum spatial distances needed to search based on the index entries
     my $self = shift;
     my %args = @_;
-    if (! ($args{spatial_conditions} // $args{spatial_params})) {
-        croak "[INDEX] No spatial params object specified in predict_distances\n";
-    }
-    
+
+    my $spatial_conditions = $args{spatial_conditions} // $args{spatial_params};
+
+    croak "[INDEX] No spatial conditions object passed to predict_offsets\n"
+      if !$spatial_conditions;
+
     my $progress_text_pfx = $args{progress_text_pfx} || q{};
     
     #  Derive the full parameter set.  We may not need it, but just in case...
     #  (and it doesn't take overly long)
     #  should add it as an argument
 
-    my $spatial_conditions = $args{spatial_conditions} // $args{spatial_params};
     my $conditions = $spatial_conditions->get_conditions_unparsed();
     $self->update_log (text => "[INDEX] PREDICTING SPATIAL INDEX NEIGHBOURS\n$conditions\n");
 
     my $csv_object = $self->get_cached_value ('CSV_OBJECT');
     #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
-    if (not defined $csv_object) {
+    if (!$csv_object) {
         my $sep     = $self->get_param('JOIN_CHAR');
         my $quotes  = $self->get_param('QUOTES');
         $csv_object = $self->get_csv_object (

@@ -139,14 +139,14 @@ sub new {
             $self->{existing} = 0;
         }
 
-        my $spatial_params = $cluster_ref->get_spatial_conditions || [];
+        my $spatial_conditions = $cluster_ref->get_spatial_conditions || [];
         $sp_initial1
-            = defined $spatial_params->[0]
-            ? $spatial_params->[0]->get_conditions_unparsed()
+            = defined $spatial_conditions->[0]
+            ? $spatial_conditions->[0]->get_conditions_unparsed()
             : $NULL_STRING;
         $sp_initial2
-            = defined $spatial_params->[1]
-            ? $spatial_params->[1]->get_conditions_unparsed()
+            = defined $spatial_conditions->[1]
+            ? $spatial_conditions->[1]->get_conditions_unparsed()
             : $NULL_STRING;
 
         $def_query_init1 = $cluster_ref->get_param ('DEFINITION_QUERY') //  $empty_string;

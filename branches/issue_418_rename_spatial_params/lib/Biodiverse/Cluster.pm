@@ -19,7 +19,7 @@ our $VERSION = '0.19';
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
 use Biodiverse::TreeNode;
-use Biodiverse::SpatialParams;
+use Biodiverse::SpatialConditions;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 use Biodiverse::Exception;
@@ -169,12 +169,12 @@ sub process_spatial_conditions_and_def_query {
     }
 
     #  now generate the spatial_params
-    my $spatial_params_array = [];
+    my $spatial_conditions_array = [];
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
-        if (! defined $spatial_params_array->[$i]) {
-            $spatial_params_array->[$i]
-              = Biodiverse::SpatialParams->new (
+        if (! defined $spatial_conditions_array->[$i]) {
+            $spatial_conditions_array->[$i]
+              = Biodiverse::SpatialConditions->new (
                     conditions   => $spatial_conditions[$i],
                     basedata_ref => $self->get_basedata_ref,
             );
@@ -182,14 +182,14 @@ sub process_spatial_conditions_and_def_query {
         $i++;
     }
     #  add true condition if needed, and always add it if user doesn't specify
-    if (scalar @$spatial_params_array == 0) {  
-        push (@$spatial_params_array, Biodiverse::SpatialParams->new (conditions => 1));
+    if (scalar @$spatial_conditions_array == 0) {  
+        push (@$spatial_conditions_array, Biodiverse::SpatialConditions->new (conditions => 1));
         push (@spatial_conditions, 1);
     }
 
     #  store for later
-    if (not defined $self->get_param ('SPATIAL_PARAMS')) {
-        $self->set_param (SPATIAL_PARAMS => $spatial_params_array)
+    if (not defined $self->get_spatial_conditions) {
+        $self->set_param (SPATIAL_CONDITIONS => $spatial_conditions_array)
     }
 
     #  let the spatial object handle the conditions stuff
@@ -310,7 +310,7 @@ sub build_matrices {
 
     my $name = $args{name} || $self->get_param ('NAME') || "CLUSTERMATRIX_$index";
 
-    my @spatial_conditions = @{$self->get_param ('SPATIAL_PARAMS')};
+    my @spatial_conditions = @{$self->get_spatial_conditions};
     my $definition_query = $self->get_param ('DEFINITION_QUERY');
     
     my $bd = $self->get_basedata_ref;

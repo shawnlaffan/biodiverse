@@ -1755,7 +1755,7 @@ sub run_exclusions {
     my $group_check_list;
     if (my $definition_query = $exclusion_hash{GROUPS}{definition_query}) {
         if (!blessed $definition_query) {
-            $definition_query = Biodiverse::SpatialParams::DefQuery->new (
+            $definition_query = Biodiverse::SpatialConditions::DefQuery->new (
                 conditions => $definition_query,
             );
         }
@@ -3089,9 +3089,10 @@ sub get_neighbours {
     my $element1 = $args{element};
     croak "argument element not specified\n" if ! defined $element1;
 
-    my $spatial_params = $args{spatial_params}
-                       || $self->get_param ('SPATIAL_PARAMS')
-                       || croak "[BASEDATA] No spatial params\n";
+    my $spatial_conditions = $args{spatial_conditions}
+                          // $args{spatial_params}
+                          || $self->get_param ('SPATIAL_CONDITIONS')
+                          || croak "[BASEDATA] No spatial conditions\n";
     my $index = $args{index};
     my $is_def_query = $args{is_def_query};  #  some processing changes if a def query
     my $cellsizes = $self->get_param ('CELL_SIZES');
@@ -3135,7 +3136,7 @@ sub get_neighbours {
     
     #  Do we have a shortcut where we don't have to deal
     #  with all of the comparisons? (messy at the moment)
-    my $type_is_subset = $spatial_params->get_result_type eq 'subset'
+    my $type_is_subset = $spatial_conditions->get_result_type eq 'subset'
                        ? 1
                        : undef;
 
@@ -3192,19 +3193,19 @@ sub get_neighbours {
             );
         }
 
-        my $success = $spatial_params->evaluate (
+        my $success = $spatial_conditions->evaluate (
             %eval_args,
             cellsizes     => $cellsizes,
             caller_object => $self,  #  pass self on by default
         );
 
         if ($type_is_subset) {  
-            my $subset_nbrs = $spatial_params->get_cached_subset_nbrs (coord_id => $element1);
+            my $subset_nbrs = $spatial_conditions->get_cached_subset_nbrs (coord_id => $element1);
             if ($subset_nbrs) {
                 %valid_nbrs = %$subset_nbrs;
                 #print "Found ", scalar keys %valid_nbrs, " valid nbrs\n";
                 delete @valid_nbrs{keys %exclude_hash};
-                $spatial_params->clear_cached_subset_nbrs(coord_id => $element1);
+                $spatial_conditions->clear_cached_subset_nbrs(coord_id => $element1);
                 last NBR;
             }
         }
@@ -3246,7 +3247,7 @@ sub get_outputs_with_same_conditions {
 
     my $compare = $args{compare_with} || croak "[BASEDATA] compare_with argument not specified\n";
 
-    my $sp_params = $compare->get_param ('SPATIAL_PARAMS');
+    my $sp_params = $compare->get_spatial_conditions;
     my $def_query = $compare->get_param ('DEFINITION_QUERY');
     if (defined $def_query && (length $def_query) == 0) {
         $def_query = undef;
@@ -3283,7 +3284,7 @@ sub get_outputs_with_same_conditions {
             next LOOP_OUTPUTS if defined $def_query_comp;
         }
 
-        my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS') || [];
+        my $sp_params_comp = $output->get_spatial_conditions || [];
 
         #  must have same number of conditions
         next LOOP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;

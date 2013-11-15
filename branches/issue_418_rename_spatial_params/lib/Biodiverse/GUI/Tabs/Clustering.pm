@@ -139,7 +139,7 @@ sub new {
             $self->{existing} = 0;
         }
 
-        my $spatial_params = $cluster_ref->get_param ('SPATIAL_PARAMS') || [];
+        my $spatial_params = $cluster_ref->get_spatial_conditions || [];
         $sp_initial1
             = defined $spatial_params->[0]
             ? $spatial_params->[0]->get_conditions_unparsed()

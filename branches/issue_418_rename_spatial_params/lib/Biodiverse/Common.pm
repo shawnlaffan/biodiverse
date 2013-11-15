@@ -434,6 +434,18 @@ sub set_default_params {
     return;
 }
 
+#  Get the spatial conditions for this object if set
+#  Allow for back-compat.
+sub get_spatial_conditions {
+    my $self = shift;
+    
+    my $conditions =  $self->get_param ('SPATIAL_CONDITIONS')
+                   // $self->get_param ('SPATIAL_PARAMS');
+
+    return $conditions;
+}
+
+
 sub delete_spatial_index {
     my $self = shift;
     
@@ -525,7 +537,7 @@ sub clear_spatial_condition_caches {
     my %args = @_;
 
     eval {
-        foreach my $sp (@{$self->get_param ('SPATIAL_PARAMS')}) {
+        foreach my $sp (@{$self->get_spatial_conditions}) {
             $sp->delete_cached_values (keys => $args{keys});
         }
     };

@@ -2678,11 +2678,11 @@ sub sp_get_spatial_output_list_value {
 
 =head1 NAME
 
-Biodiverse::SpatialParams
+Biodiverse::SpatialConditions
 
 =head1 SYNOPSIS
 
-  use Biodiverse::SpatialParams;
+  use Biodiverse::SpatialConditions;
   $object = Biodiverse::SpatialParams->new();
 
 =head1 DESCRIPTION

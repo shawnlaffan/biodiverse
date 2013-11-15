@@ -419,7 +419,7 @@ sub findNeighbours {
 
     my @exclude;
     my @nbr_list;
-    my $parsed_spatial_params = $output_ref->get_param ('SPATIAL_PARAMS');
+    my $parsed_spatial_params = $output_ref->get_spatial_conditions;
     my $sp_index = $output_ref->get_param ('SPATIAL_INDEX');
     my $search_blocks_ref = $output_ref->get_param ('INDEX_SEARCH_BLOCKS');
 

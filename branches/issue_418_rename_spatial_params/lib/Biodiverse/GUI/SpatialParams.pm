@@ -25,8 +25,8 @@ our $VERSION = '0.19';
 use Glib;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
-use Biodiverse::SpatialParams;
-use Biodiverse::SpatialParams::DefQuery;
+use Biodiverse::SpatialConditions;
+use Biodiverse::SpatialConditions::DefQuery;
 
 use parent qw /Biodiverse::Common/;  #  need get/set_param
 
@@ -148,8 +148,8 @@ sub onSyntaxCheck {
 
     my $expr  = $self->get_text;
     my $class = $self->{is_def_query}
-                ? 'Biodiverse::SpatialParams::DefQuery'
-                : 'Biodiverse::SpatialParams';
+                ? 'Biodiverse::SpatialConditions::DefQuery'
+                : 'Biodiverse::SpatialConditions';
     my $spatial_params = eval {
         $class->new (conditions => $expr);
     };

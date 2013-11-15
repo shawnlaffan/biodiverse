@@ -135,15 +135,15 @@ sub new {
     my $initial_def1 = $NULL_STRING;
     if ($self->{existing}) {
         
-        my $spatial_params = $output_ref->get_param ('SPATIAL_PARAMS');
+        my $spatial_conditions = $output_ref->get_spatial_conditions;
         #  allow for empty conditions
         $initial_sp1
-            = defined $spatial_params->[0]
-            ? $spatial_params->[0]->get_conditions_unparsed()
+            = defined $spatial_conditions->[0]
+            ? $spatial_conditions->[0]->get_conditions_unparsed()
             : $NULL_STRING;
         $initial_sp2
-            = defined $spatial_params->[1]
-            ? $spatial_params->[1]->get_conditions_unparsed()
+            = defined $spatial_conditions->[1]
+            ? $spatial_conditions->[1]->get_conditions_unparsed()
             : $NULL_STRING;
         
         my $definition_query = $output_ref->get_param ('DEFINITION_QUERY');

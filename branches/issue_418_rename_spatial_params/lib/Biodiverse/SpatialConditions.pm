@@ -1,4 +1,4 @@
-package Biodiverse::SpatialParams;
+package Biodiverse::SpatialConditions;
 
 use warnings;
 use strict;

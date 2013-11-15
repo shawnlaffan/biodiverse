@@ -498,6 +498,7 @@ sub get_metadata_calc_pd_endemism {
             },
             PD_ENDEMISM_WTS => {
                 description => 'Phylogenetic Diversity Endemism weights per node found only in the neighbour set',
+                type        => 'list',
             }
         },
     );
@@ -689,6 +690,7 @@ sub get_metadata_calc_labels_on_tree {
         indices         => {
             PHYLO_LABELS_ON_TREE => {
                 description => 'A hash of labels that are found on the tree, across both neighbour sets',
+                type        => 'list',
             },  #  should poss also do nbr sets 1 and 2
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -2069,17 +2071,17 @@ sub get_metadata_calc_phylo_aed {
         indices         => {
             PHYLO_AED_LIST => {
                 description  =>  'Abundance weighted ED per terminal label',
-                list         => 1,
+                type         => 'list',
                 reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
             PHYLO_ES_LIST => {
                 description  =>  'Equal splits partitioning of PD per terminal label',
-                list         => 1,
+                type         => 'list',
                 reference    => 'Redding & Mooers (2006) http://dx.doi.org/10.1111%2Fj.1523-1739.2006.00555.x',
             },
             PHYLO_ED_LIST => {
                 description  =>  q{"Fair proportion" partitioning of PD per terminal label},
-                list         => 1,
+                type         => 'list',
                 reference    => 'Isaac et al. (2007) http://dx.doi.org/10.1371/journal.pone.0000296',
             },
         },

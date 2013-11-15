@@ -799,11 +799,9 @@ sub get_metadata_calc_tx_rao_qe {
         indices => {
             TX_RAO_QE       => {
                 description => 'Taxonomically weighted quadratic entropy',
-                
             },
             TX_RAO_TN       => {
                 description => 'Count of comparisons used to calculate TX_RAO_QE',
-                type        => 'list',
             },
             TX_RAO_TLABELS  => {
                 description => 'List of labels and values used in the TX_RAO_QE calculations',
@@ -820,10 +818,11 @@ sub calc_tx_rao_qe {
     my %args = @_;
 
     my $r = $self -> _calc_rao_qe (@_, use_matrix => 0);
-    my %results = (TX_RAO_TN        => $r->{RAO_TN},
-                   TX_RAO_TLABELS   => $r->{RAO_TLABELS},
-                   TX_RAO_QE        => $r->{RAO_QE},
-                   );
+    my %results = (
+        TX_RAO_TN        => $r->{RAO_TN},
+        TX_RAO_TLABELS   => $r->{RAO_TLABELS},
+        TX_RAO_QE        => $r->{RAO_QE},
+    );
 
     return wantarray ? %results : \%results;
 }

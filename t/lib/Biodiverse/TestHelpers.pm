@@ -25,7 +25,7 @@ use Biodiverse::ElementProperties;
 
 
 use File::Temp;
-use Scalar::Util qw /looks_like_number/;
+use Scalar::Util qw /looks_like_number reftype/;
 use Test::More;
 
 use Exporter::Easy (
@@ -630,6 +630,7 @@ sub run_indices_test1 {
     my $callbacks              = $args{callbacks};
     my $expected_results_overlay = $args{expected_results_overlay};
     my $sort_array_lists       = $args{sort_array_lists};
+    my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.  
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -787,14 +788,15 @@ sub run_indices_test1 {
 
         subtest $subtest_name => sub {
             compare_hash_vals (
-                no_strict_match => $args{no_strict_match},
                 hash_got => \%results,
                 hash_exp => \%{$expected},
-                descr_suffix => "$nbr_list_count nbr sets",
+                no_strict_match  => $args{no_strict_match},
+                descr_suffix     => "$nbr_list_count nbr sets",
                 sort_array_lists => $sort_array_lists,
+                precision        => $precision,
             );
         };
-        
+
         print_indices_result_set_to_fh ($generate_result_sets, \%results, $nbr_list_count);
 
     }
@@ -932,15 +934,27 @@ sub run_indices_test1_inner {
     $e = $EVAL_ERROR;
     note $e if $e;
     ok (!$e, "Ran global postcalcs without eval error");
-    
-    
+
+
     is_deeply (
         [sort keys %results],
         [sort keys %$expected_indices],
         "Expected indices obtained, nbr list count = $nbr_list_count",
     );
 
-    
+    #  does the metadata flag list indices correctly?
+    my $list_indices = $indices->get_list_indices (calculations => scalar $indices->get_valid_calculations_to_run);
+    foreach my $index (sort keys %results) {
+        my $reftype = reftype ($results{$index}) // 'scalar';
+        my $is_list = ($reftype =~ /HASH|ARRAY/);
+        if ($list_indices->{$index}) {
+            ok ($is_list, "$index marked as a list");
+        }
+        else {
+            ok (!$is_list, "$index not marked as a list");
+        }
+    }
+
     return wantarray ? %results : \%results;
 }
 

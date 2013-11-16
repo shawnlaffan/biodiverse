@@ -110,6 +110,24 @@ sub test_node_hash_keys_match_node_names {
     return;
 }
 
+sub test_export_shapefile {
+    my $tree = shift // get_site_data_as_tree();
+
+    my $fname = 'tree_export_' . int (1000 * rand()) . '.shp';
+
+    my $success = eval {
+        $tree->export_shapefile (
+            file => $fname,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    diag $e if $e;
+    ok (!$e, 'exported to shapefile without error');
+
+    #  need some more rigorous tests, e.g. round trip consistency if we ever re-import them.
+    return;
+}
+
 ######################################
 
 

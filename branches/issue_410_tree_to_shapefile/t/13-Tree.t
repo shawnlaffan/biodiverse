@@ -118,6 +118,7 @@ sub test_export_shapefile {
     my $success = eval {
         $tree->export_shapefile (
             file => $fname,
+            vertical_scale_factor => undef,
         );
     };
     my $e = $EVAL_ERROR;

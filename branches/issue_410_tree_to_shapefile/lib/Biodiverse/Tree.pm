@@ -820,9 +820,10 @@ sub get_metadata_export_shapefile {
             {
                 name        => 'vertical_scale_factor',
                 label_text  => 'Vertical scale factor',
-                tooltip     => 'Control the tree plot height relative to its width (total length)',
+                tooltip     => 'Control the tree plot height relative to its width (total length).  '
+                             . 'A zero value will make the height equal the width.',
                 type        => 'float',
-                default     => 1,
+                default     => 0,
             },
             {
                 type => 'comment',
@@ -849,7 +850,10 @@ sub export_shapefile {
 
     $file =~ s/\.shp$//;  #  the shp extension is added by the writer object
 
-    $self->assign_plot_coords;
+    $self->assign_plot_coords (
+        plot_coords_left_to_right => $args{plot_left_to_right},
+        plot_coords_scale_factor  => $args{vertical_scale_factor},
+    );
 
     use Geo::Shapefile::Writer;
 
@@ -889,7 +893,7 @@ sub export_shapefile {
         );
 
         next NODE
-          if (0 == ($v_coords->{vplot_y2} - $v_coords->{vplot_y1}));
+          if ($v_coords->{vplot_y1} == $v_coords->{vplot_y2});
 
         $shp_writer->add_shape(
             [$v_line],

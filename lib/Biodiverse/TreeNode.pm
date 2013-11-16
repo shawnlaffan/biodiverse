@@ -1215,7 +1215,7 @@ sub assign_plot_coords {
     my $y_len = $self->get_terminal_element_count;
     my $x_len = $self->get_max_total_length;
     my $scale_factor = $args{plot_coords_scale_factor};
-    if (not $scale_factor or $scale_factor < 0) {
+    if (!$scale_factor or $scale_factor < 0) {
         #$scale_factor =
         #    $y_len < $x_len
         #  ? $y_len / $x_len
@@ -1234,6 +1234,7 @@ sub assign_plot_coords {
     return;
 }
 
+
 sub assign_plot_coords_inner {
     my $self = shift;
     my %args = @_;
@@ -1246,7 +1247,9 @@ sub assign_plot_coords_inner {
     if ($self->is_terminal_node) {
         $y1 = $max_y - $self->get_value('TERMINAL_NODE_FIRST');
         $y2 = $max_y - $self->get_value('TERMINAL_NODE_LAST');
-        $y_pos = $scale_factor * ($y1 + $y2) / 2;
+        $y1 *= $scale_factor;
+        $y2 *= $scale_factor;
+        $y_pos = ($y1 + $y2) / 2;
     }
     else {
         my @ch_y_pos;

@@ -29,9 +29,6 @@ sub Run {
     
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    # Load the widgets from Glade's XML
-    #my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgExport');
-
     # Get the Parameters metadata
     my %args = $object->get_args (sub => 'export');
     
@@ -89,7 +86,7 @@ sub Run {
     my $table = $dlgxml->get_widget('tableParameters');
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
     my $extractors
-        = Biodiverse::GUI::ParametersTable::fill(
+        = Biodiverse::GUI::ParametersTable::fill (
             $params,
             $table,
             $dlgxml
@@ -115,22 +112,18 @@ sub Run {
             header => "Overwrite file $filename?"})
                 eq 'yes'
         ) {
-        #  progress bar for some processes
-        #my $progress = Biodiverse::GUI::ProgressDialog->new;
-        
+
         eval {
             $object->export(
                 format   => $selected_format,
                 file     => $filename,
                 @$params,
-                #progress => $progress
             )
         };
         if ($EVAL_ERROR) {
             $gui->report_error ($EVAL_ERROR);
         }
-        
-        #$progress->destroy;  #  clean up the progress bar
+
     }
     else {
         goto RUN_DIALOG; # my first ever goto!

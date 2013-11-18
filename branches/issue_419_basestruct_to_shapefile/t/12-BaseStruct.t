@@ -77,7 +77,7 @@ sub test_export_shape {
         => sub {subtest_for_polygon_shapefile_export ($gp, $fname)};
 
     if ($subtest_success) {
-        #unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
+        unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
     }
 
     #  now check labels can also be exported

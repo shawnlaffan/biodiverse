@@ -813,7 +813,8 @@ sub get_metadata_export_shapefile {
             {
                 name        => 'plot_left_to_right',
                 label_text  => 'Plot left to right',
-                tooltip     => 'Should terminals be to the right?',
+                tooltip     => 'Should terminals be to the right of the root node? '
+                             . '(default is to the left, with the root node at the right).',
                 type        => 'boolean',
                 default     => 0,
             },
@@ -828,7 +829,7 @@ sub get_metadata_export_shapefile {
             {
                 type => 'comment',
                 label_text => 'Note: To attach node lists you will need to run a second '
-                            .  'export to the delimited text format.  '
+                            .  'export to the delimited text format and then join them.  '
                             .  'This is needed because shapefile field names '
                             .  'can only be 11 characters long',
             }

@@ -20,6 +20,8 @@ local $| = 1;
 
 use Test::Most;
 
+use Scalar::Util qw /looks_like_number/;
+
 use Biodiverse::BaseData;
 use Biodiverse::ElementProperties;
 use Biodiverse::TestHelpers qw /:basedata/;
@@ -41,6 +43,7 @@ sub main {
 
     test_export_shape();
     test_export_shape_point();
+    test_export_shape_3d();
 
     done_testing;
     return 0;
@@ -74,7 +77,7 @@ sub test_export_shape {
         => sub {subtest_for_polygon_shapefile_export ($gp, $fname)};
 
     if ($subtest_success) {
-        unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
+        #unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
     }
 
     #  now check labels can also be exported
@@ -110,8 +113,14 @@ sub subtest_for_polygon_shapefile_export {
     use Geo::ShapeFile;
     my $shapefile = Geo::ShapeFile->new($fname);
 
-    my $shape_count = $shapefile->shapes;
+    my $shape_count  = $shapefile->shapes;
     my %element_hash = $basestruct->get_element_hash;
+    
+    my $cell_sizes = $basestruct->get_param ('CELL_SIZES');
+    my @expected_axes;
+    for my $i (0 .. $#$cell_sizes) {
+        push @expected_axes, 'AXIS_' . $i;
+    }
 
     is ($shape_count, $basestruct->get_element_count, 'correct number of shapes');
 
@@ -123,13 +132,45 @@ sub subtest_for_polygon_shapefile_export {
 
         ok (exists $element_hash{$element_name}, "$element_name exists");
         
+        if ($i == 1) {
+            foreach my $expected_axis_name (@expected_axes) {
+                ok (exists $db{$expected_axis_name}, "Field $expected_axis_name exists");
+            }
+        }
+        my @el_name_array = $basestruct->get_element_name_as_array (element => $element_name);
+        my $i = 0;
+        foreach my $expected_axis_name (@expected_axes) {
+            my $db_axis_val = $db{$expected_axis_name};
+            if (looks_like_number $db_axis_val) {
+                $db_axis_val += 0;
+            }
+            
+            is (
+                $db_axis_val,
+                $el_name_array[$i],
+                "$expected_axis_name matches, $element_name",
+            );
+            $i ++;
+        }
+        
         my $centroid = $shape->area_centroid;
-        my $el_array = $basestruct->get_element_name_coord (element => $element_name);
+        my @el_coord_array = $basestruct->get_element_name_coord (element => $element_name);
         my @centroid_coords = @$centroid{qw /X Y/};
-        is_deeply (\@centroid_coords, $el_array, "Centroid matches for $element_name");
+        is_deeply (\@centroid_coords, [@el_coord_array[0,1]], "Centroid matches for $element_name");
     }
 
     return;
+}
+
+
+# want the attribute table to match, as the polygons will be 2d
+sub test_export_shape_3d {
+    my $bd //= get_basedata_object_from_site_data (
+        CELL_SIZES    => [100000, 100000, 100],
+        group_columns => [3, 4, 0],
+    );
+
+    return test_export_shape ($bd);
 }
 
 

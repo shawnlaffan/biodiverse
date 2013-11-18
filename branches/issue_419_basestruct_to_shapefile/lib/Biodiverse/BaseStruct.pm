@@ -571,9 +571,20 @@ sub get_metadata_export_shapefile {
     my %args = (
         format => 'Shapefile',
         parameters => [
-            $self->get_common_export_metadata(),
+            {
+                name => 'file',
+                type => 'file'
+            }, # GUI supports just one of these
+            {
+                type => 'comment',
+                label_text =>
+                      'Note: To attach any lists you will need to run a second '
+                    . 'export to the delimited text format and then join them.  '
+                    . 'This is needed because shapefiles do not have an undefined value '
+                    . 'and field names can only be 11 characters long.',
+            }
         ],
-    ); 
+    );
 
     return wantarray ? %args : \%args;
 }
@@ -582,7 +593,7 @@ sub export_shapefile {
     my $self = shift;
     my %args = @_;
 
-    my $file = $args{file};
+    $args{file} =~ s/\.shp$//;
 
     use Geo::Shapefile::Writer;
 
@@ -614,6 +625,8 @@ sub export_shapefile {
             push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
         }
     }
+
+    my $file = $args{file};
 
     my $shp_writer = Geo::Shapefile::Writer->new (
         $file, 'POLYGON',

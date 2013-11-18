@@ -69,35 +69,69 @@ sub test_export_shape {
     ok (!$e, 'No exceptions in export to shapefile');
     diag $e if $e;
     
-    my $subtest_success = subtest 'shapefile matches basestruct' => sub {
-        use Geo::ShapeFile;
-        my $shapefile = Geo::ShapeFile->new($fname);
+    my $subtest_success =
+      subtest 'polygon shapefile matches basestruct'
+        => sub {subtest_for_polygon_shapefile_export ($gp, $fname)};
 
-        my $shape_count = $shapefile->shapes;
-        my %element_hash = $gp->get_element_hash;
+    if ($subtest_success) {
+        unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
+    }
 
-        is ($shape_count, $gp->get_element_count, 'correct number of shapes');
+    #  now check labels can also be exported
+    #  (a test of text axes)
+    my $lb = $bd->get_labels_ref;
+    $fname = 'export_basestruct_labels_' . int (rand() * 1000);
 
-        for my $i (1 .. $shape_count) {
-            my $shape = $shapefile->get_shp_record($i);
-    
-            my %db = $shapefile->get_dbf_record($i);
-            my $element_name = $db{ELEMENT};
+    say "Exporting to $fname";
 
-            ok (exists $element_hash{$element_name}, "$element_name exists");
-            
-            my $centroid = $shape->area_centroid;
-            my $el_array = $gp->get_element_name_coord (element => $element_name);
-            my @centroid_coords = @$centroid{qw /X Y/};
-            is_deeply (\@centroid_coords, $el_array, "Centroid matches for $element_name");
-        }
+    $success = eval {
+        $lb->export (
+            format => 'Shapefile',
+            file   => $fname,
+        );
     };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'No exceptions in export labels to shapefile');
+    diag $e if $e;
+
+    $subtest_success =
+      subtest 'polygon shapefile matches label basestruct'
+        => sub {subtest_for_polygon_shapefile_export ($lb, $fname)};
 
     if ($subtest_success) {
         unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
     }
 
 }
+
+sub subtest_for_polygon_shapefile_export {
+    my ($basestruct, $fname) = @_;
+
+    use Geo::ShapeFile;
+    my $shapefile = Geo::ShapeFile->new($fname);
+
+    my $shape_count = $shapefile->shapes;
+    my %element_hash = $basestruct->get_element_hash;
+
+    is ($shape_count, $basestruct->get_element_count, 'correct number of shapes');
+
+    for my $i (1 .. $shape_count) {
+        my $shape = $shapefile->get_shp_record($i);
+
+        my %db = $shapefile->get_dbf_record($i);
+        my $element_name = $db{ELEMENT};
+
+        ok (exists $element_hash{$element_name}, "$element_name exists");
+        
+        my $centroid = $shape->area_centroid;
+        my $el_array = $basestruct->get_element_name_coord (element => $element_name);
+        my @centroid_coords = @$centroid{qw /X Y/};
+        is_deeply (\@centroid_coords, $el_array, "Centroid matches for $element_name");
+    }
+
+    return;
+}
+
 
 sub test_export_shape_point {
     my $bd = shift;
@@ -135,9 +169,7 @@ sub test_export_shape_point {
     
             my %db = $shapefile->get_dbf_record($i);
             my $element_name = $db{ELEMENT};
-            
-            #diag $element_name;
-            
+
             ok (exists $element_hash{$element_name}, "$element_name exists");
 
             my $el_array = $gp->get_element_name_coord (element => $element_name);

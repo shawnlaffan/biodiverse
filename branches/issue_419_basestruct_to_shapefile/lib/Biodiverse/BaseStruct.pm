@@ -564,6 +564,94 @@ sub export_divagis {
     return;
 }
 
+
+sub get_metadata_export_shapefile {
+    my $self = shift;
+
+    my %args = (
+        format => 'Shapefile',
+        parameters => [
+            $self->get_common_export_metadata(),
+        ],
+    ); 
+
+    return wantarray ? %args : \%args;
+}
+
+sub export_shapefile {
+    my $self = shift;
+    my %args = @_;
+
+    my $file = $args{file};
+
+    use Geo::Shapefile::Writer;
+
+    my @elements    = $self->get_element_list;
+    my $cell_sizes  = $self->get_param ('CELL_SIZES');
+    my @axes_to_use = (0, 1);
+    
+    my $half_csizes = [];
+    foreach my $size (@{$cell_sizes}[@axes_to_use]) {
+        my $half_size;
+        if ($size > 0) {
+            $half_size = $size / 2;
+        }
+        elsif ($size < 0) {
+            $half_size = 0.5;
+        }
+        else {
+            croak "Point data not yet supported";
+        }
+        push @$half_csizes, $half_size;
+    }
+
+    my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
+
+    my @axis_col_specs;
+    foreach my $axis (0 .. $#$first_el_coord) {
+        push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];  #  width and decimals needs automation
+    }
+
+    my $shp_writer = Geo::Shapefile::Writer->new (
+        $file, 'POLYGON',
+        [ element => 'C', 100 ],
+        @axis_col_specs,
+    );
+
+  NODE:
+    foreach my $element (@elements) {
+        my $axes = $self->get_element_name_coord (element => $element);
+
+        my %axis_col_data;
+        foreach my $axis (0 .. $#$first_el_coord) {
+            $axis_col_data{'axis_' . $axis} = $axes->[$axis];
+        }
+
+        my $min_x = $axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
+        my $max_x = $axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
+        my $min_y = $axes->[$axes_to_use[1]] - $half_csizes->[$axes_to_use[1]];
+        my $max_y = $axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
+
+        my $shape = [
+            [$min_x, $min_y], [$max_x, $min_y],
+            [$max_x, $max_y], [$min_x, $max_y],
+            [$min_x, $min_y],  #  close off
+        ];
+
+        $shp_writer->add_shape(
+            [$shape],
+            {
+                element => $element,
+                %axis_col_data,
+            },
+        );
+    }
+
+    $shp_writer->finalize();
+
+    return;
+}
+
 sub get_lists_for_export {
     my $self = shift;
 

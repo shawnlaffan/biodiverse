@@ -40,6 +40,7 @@ sub main {
     }
 
     test_export_shape();
+    test_export_shape_point();
 
     done_testing;
     return 0;
@@ -68,9 +69,9 @@ sub test_export_shape {
     ok (!$e, 'No exceptions in export to shapefile');
     diag $e if $e;
     
-    my $subtest_success = subtest 'shapefile matches tree' => sub {
+    my $subtest_success = subtest 'shapefile matches basestruct' => sub {
         use Geo::ShapeFile;
-        my $shapefile = new Geo::ShapeFile($fname);
+        my $shapefile = Geo::ShapeFile->new($fname);
 
         my $shape_count = $shapefile->shapes;
         my %element_hash = $gp->get_element_hash;
@@ -82,12 +83,69 @@ sub test_export_shape {
     
             my %db = $shapefile->get_dbf_record($i);
             my $element_name = $db{ELEMENT};
+
             ok (exists $element_hash{$element_name}, "$element_name exists");
             
             my $centroid = $shape->area_centroid;
             my $el_array = $gp->get_element_name_coord (element => $element_name);
             my @centroid_coords = @$centroid{qw /X Y/};
             is_deeply (\@centroid_coords, $el_array, "Centroid matches for $element_name");
+        }
+    };
+
+    if ($subtest_success) {
+        unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
+    }
+
+}
+
+sub test_export_shape_point {
+    my $bd = shift;
+    $bd //= get_basedata_object_from_site_data(
+        CELL_SIZES => [0, 0],
+    );
+    
+    my $gp = $bd->get_groups_ref;
+
+    my $fname = 'export_point_basestruct_' . int (rand() * 1000);
+
+    say "Exporting to $fname";
+
+    my $success = eval {
+        $gp->export (
+            format => 'Shapefile',
+            file   => $fname,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    ok (!$e, 'No exceptions in export to point shapefile');
+    diag $e if $e;
+    
+    my $subtest_success = subtest 'point shapefile matches basestruct' => sub {
+        use Geo::ShapeFile;
+        my $shapefile = Geo::ShapeFile->new ($fname);
+
+        my $shape_count = $shapefile->shapes;
+        my %element_hash = $gp->get_element_hash;
+
+        is ($shape_count, $gp->get_element_count, 'correct number of shapes');
+
+        for my $i (1 .. $shape_count) {
+            my $shape = $shapefile->get_shp_record($i);
+    
+            my %db = $shapefile->get_dbf_record($i);
+            my $element_name = $db{ELEMENT};
+            
+            #diag $element_name;
+            
+            ok (exists $element_hash{$element_name}, "$element_name exists");
+
+            my $el_array = $gp->get_element_name_coord (element => $element_name);
+            my $el_point = Geo::ShapeFile::Point->new (X => $el_array->[0], Y => $el_array->[1]);
+            my $shape_points = $shape->points;
+            my $shp_pnt = $shape_points->[0];
+
+            is ($shp_pnt->distance_from ($el_point), 0, "Point coord matches for $element_name");
         }
     };
 

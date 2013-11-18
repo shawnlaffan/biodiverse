@@ -592,16 +592,11 @@ sub export_shapefile {
     
     my $half_csizes = [];
     foreach my $size (@cell_sizes[@axes_to_use]) {
-        my $half_size;
-        if ($size > 0) {
-            $half_size = $size / 2;
-        }
-        elsif ($size < 0) {
-            $half_size = 0.5;
-        }
-        else {
-            croak "Point data not yet supported";  #  should call a separate sub and return
-        }
+        return $self->_export_shape_point (%args)
+          if $size == 0;  #  we are a point file
+
+        my $half_size = $size > 0 ? $size / 2 : 0.5;
+
         push @$half_csizes, $half_size;
     }
 
@@ -660,6 +655,62 @@ sub export_shapefile {
 
     return;
 }
+
+sub _export_shape_point {
+    my $self = shift;
+    my %args = @_;
+    
+    my $file = $args{file};
+
+    my @elements    = $self->get_element_list;
+    my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
+    my @axes_to_use = (0, 1);
+
+    my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
+
+    my @axis_col_specs;
+    foreach my $axis (0 .. $#$first_el_coord) {
+        #  width and decimals needs automation
+        push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
+    }
+
+    my $shp_writer = Geo::Shapefile::Writer->new (
+        $file, 'POINT',
+        [ element => 'C', 100 ],
+        @axis_col_specs,
+    );
+
+  NODE:
+    foreach my $element (@elements) {
+        my $coord_axes = $self->get_element_name_coord (element => $element);
+        my $name_axes  = $self->get_element_name_as_array (element => $element);
+
+        my %axis_col_data;
+        foreach my $axis (0 .. $#$first_el_coord) {
+            $axis_col_data{'axis_' . $axis} = $name_axes->[$axis];
+        }
+
+        my $shape = [
+            $coord_axes->[$axes_to_use[0]],
+            $coord_axes->[$axes_to_use[1]]
+        ];
+
+        $shp_writer->add_shape(
+            $shape,
+            {
+                element => $element,
+                %axis_col_data,
+            },
+        );
+    }
+
+    $shp_writer->finalize();
+
+    return;
+}
+
+
+
 
 sub get_lists_for_export {
     my $self = shift;

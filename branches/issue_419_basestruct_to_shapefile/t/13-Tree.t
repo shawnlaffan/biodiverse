@@ -125,7 +125,7 @@ sub test_export_shapefile {
     my $e = $EVAL_ERROR;
     diag $e if $e;
     ok (!$e, 'exported to shapefile without error');
-    
+
     my $subtest_success = subtest 'shapefile matches tree' => sub {
         use Geo::ShapeFile;
         my $shapefile = new Geo::ShapeFile($fname);

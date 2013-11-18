@@ -18,7 +18,6 @@ use Data::Section::Simple qw(
 
 local $| = 1;
 
-#use Test::More tests => 5;
 use Test::Most;
 
 use Biodiverse::BaseData;
@@ -67,7 +66,33 @@ sub test_export_shape {
     };
     my $e = $EVAL_ERROR;
     ok (!$e, 'No exceptions in export to shapefile');
+    diag $e if $e;
     
+    my $subtest_success = subtest 'shapefile matches tree' => sub {
+        use Geo::ShapeFile;
+        my $shapefile = new Geo::ShapeFile($fname);
+
+        my $shape_count = $shapefile->shapes;
+        my %element_hash = $gp->get_element_hash;
+
+        is ($shape_count, $gp->get_element_count, 'correct number of shapes');
+
+        for my $i (1 .. $shape_count) {
+            my $shape = $shapefile->get_shp_record($i);
     
-    
+            my %db = $shapefile->get_dbf_record($i);
+            my $element_name = $db{ELEMENT};
+            ok (exists $element_hash{$element_name}, "$element_name exists");
+            
+            my $centroid = $shape->area_centroid;
+            my $el_array = $gp->get_element_name_coord (element => $element_name);
+            my @centroid_coords = @$centroid{qw /X Y/};
+            is_deeply (\@centroid_coords, $el_array, "Centroid matches for $element_name");
+        }
+    };
+
+    if ($subtest_success) {
+        unlink $fname . '.shp', $fname . '.shx', $fname . '.dbf';
+    }
+
 }

@@ -587,11 +587,11 @@ sub export_shapefile {
     use Geo::Shapefile::Writer;
 
     my @elements    = $self->get_element_list;
-    my $cell_sizes  = $self->get_param ('CELL_SIZES');
+    my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
     my @axes_to_use = (0, 1);
     
     my $half_csizes = [];
-    foreach my $size (@{$cell_sizes}[@axes_to_use]) {
+    foreach my $size (@cell_sizes[@axes_to_use]) {
         my $half_size;
         if ($size > 0) {
             $half_size = $size / 2;
@@ -600,7 +600,7 @@ sub export_shapefile {
             $half_size = 0.5;
         }
         else {
-            croak "Point data not yet supported";
+            croak "Point data not yet supported";  #  should call a separate sub and return
         }
         push @$half_csizes, $half_size;
     }
@@ -609,7 +609,15 @@ sub export_shapefile {
 
     my @axis_col_specs;
     foreach my $axis (0 .. $#$first_el_coord) {
-        push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];  #  width and decimals needs automation
+        my $csize = $cell_sizes[$axis];
+        if ($csize < 0) {
+            #  should check actual sizes
+            push @axis_col_specs, [ ('axis_' . $axis) => 'C', 100];
+        }
+        else {
+            #  width and decimals needs automation
+            push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
+        }
     }
 
     my $shp_writer = Geo::Shapefile::Writer->new (
@@ -620,17 +628,18 @@ sub export_shapefile {
 
   NODE:
     foreach my $element (@elements) {
-        my $axes = $self->get_element_name_coord (element => $element);
+        my $coord_axes = $self->get_element_name_coord (element => $element);
+        my $name_axes  = $self->get_element_name_as_array (element => $element);
 
         my %axis_col_data;
         foreach my $axis (0 .. $#$first_el_coord) {
-            $axis_col_data{'axis_' . $axis} = $axes->[$axis];
+            $axis_col_data{'axis_' . $axis} = $name_axes->[$axis];
         }
 
-        my $min_x = $axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
-        my $max_x = $axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
-        my $min_y = $axes->[$axes_to_use[1]] - $half_csizes->[$axes_to_use[1]];
-        my $max_y = $axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
+        my $min_x = $coord_axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
+        my $max_x = $coord_axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
+        my $min_y = $coord_axes->[$axes_to_use[1]] - $half_csizes->[$axes_to_use[1]];
+        my $max_y = $coord_axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
 
         my $shape = [
             [$min_x, $min_y], [$max_x, $min_y],

@@ -828,10 +828,11 @@ sub get_metadata_export_shapefile {
             },
             {
                 type => 'comment',
-                label_text => 'Note: To attach node lists you will need to run a second '
-                            .  'export to the delimited text format and then join them.  '
-                            .  'This is needed because shapefile field names '
-                            .  'can only be 11 characters long',
+                label_text =>
+                      'Note: To attach any lists you will need to run a second '
+                    . 'export to the delimited text format and then join them.  '
+                    . 'This is needed because shapefiles do not have an undefined value '
+                    . 'and field names can only be 11 characters long.',
             }
         ],
     );

@@ -595,6 +595,6 @@ id,gen_name_in,sp_name_in,gen_name_out,sp_name_out
 @@ BASEDATA_IMPORT_SMALL
 id,gen_name_in,sp_name_in,x,y,z,incl1,excl1,incl2,excl2,incl3,excl3
 1,g1,sp1,1,1,1,1,1,,,1,0
-2,g2,sp2,1,2,2,0,,1,1,1,0
+2,g2,sp2,2,2,2,0,,1,1,1,0
 3,g2,sp3,1,3,3,,,1,1,1,0
 

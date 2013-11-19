@@ -564,6 +564,167 @@ sub export_divagis {
     return;
 }
 
+
+sub get_metadata_export_shapefile {
+    my $self = shift;
+
+    my %args = (
+        format => 'Shapefile',
+        parameters => [
+            {
+                name => 'file',
+                type => 'file'
+            }, # GUI supports just one of these
+            {
+                type => 'comment',
+                label_text =>
+                      'Note: To attach any lists you will need to run a second '
+                    . 'export to the delimited text format and then join them.  '
+                    . 'This is needed because shapefiles do not have an undefined value '
+                    . 'and field names can only be 11 characters long.',
+            }
+        ],
+    );
+
+    return wantarray ? %args : \%args;
+}
+
+sub export_shapefile {
+    my $self = shift;
+    my %args = @_;
+
+    $args{file} =~ s/\.shp$//;
+
+    use Geo::Shapefile::Writer;
+
+    my @elements    = $self->get_element_list;
+    my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
+    my @axes_to_use = (0, 1);
+    
+    my $half_csizes = [];
+    foreach my $size (@cell_sizes[@axes_to_use]) {
+        return $self->_export_shape_point (%args)
+          if $size == 0;  #  we are a point file
+
+        my $half_size = $size > 0 ? $size / 2 : 0.5;
+
+        push @$half_csizes, $half_size;
+    }
+
+    my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
+
+    my @axis_col_specs;
+    foreach my $axis (0 .. $#$first_el_coord) {
+        my $csize = $cell_sizes[$axis];
+        if ($csize < 0) {
+            #  should check actual sizes
+            push @axis_col_specs, [ ('axis_' . $axis) => 'C', 100];
+        }
+        else {
+            #  width and decimals needs automation
+            push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
+        }
+    }
+
+    my $file = $args{file};
+
+    my $shp_writer = Geo::Shapefile::Writer->new (
+        $file, 'POLYGON',
+        [ element => 'C', 100 ],
+        @axis_col_specs,
+    );
+
+  NODE:
+    foreach my $element (@elements) {
+        my $coord_axes = $self->get_element_name_coord (element => $element);
+        my $name_axes  = $self->get_element_name_as_array (element => $element);
+
+        my %axis_col_data;
+        foreach my $axis (0 .. $#$first_el_coord) {
+            $axis_col_data{'axis_' . $axis} = $name_axes->[$axis];
+        }
+
+        my $min_x = $coord_axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
+        my $max_x = $coord_axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
+        my $min_y = $coord_axes->[$axes_to_use[1]] - $half_csizes->[$axes_to_use[1]];
+        my $max_y = $coord_axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
+
+        my $shape = [
+            [$min_x, $min_y], [$max_x, $min_y],
+            [$max_x, $max_y], [$min_x, $max_y],
+            [$min_x, $min_y],  #  close off
+        ];
+
+        $shp_writer->add_shape(
+            [$shape],
+            {
+                element => $element,
+                %axis_col_data,
+            },
+        );
+    }
+
+    $shp_writer->finalize();
+
+    return;
+}
+
+sub _export_shape_point {
+    my $self = shift;
+    my %args = @_;
+    
+    my $file = $args{file};
+
+    my @elements    = $self->get_element_list;
+    my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
+    my @axes_to_use = (0, 1);
+
+    my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
+
+    my @axis_col_specs;
+    foreach my $axis (0 .. $#$first_el_coord) {
+        #  width and decimals needs automation
+        push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
+    }
+
+    my $shp_writer = Geo::Shapefile::Writer->new (
+        $file, 'POINT',
+        [ element => 'C', 100 ],
+        @axis_col_specs,
+    );
+
+  NODE:
+    foreach my $element (@elements) {
+        my $coord_axes = $self->get_element_name_coord (element => $element);
+        my $name_axes  = $self->get_element_name_as_array (element => $element);
+
+        my %axis_col_data;
+        foreach my $axis (0 .. $#$first_el_coord) {
+            $axis_col_data{'axis_' . $axis} = $name_axes->[$axis];
+        }
+
+        my $shape = [
+            $coord_axes->[$axes_to_use[0]],
+            $coord_axes->[$axes_to_use[1]]
+        ];
+
+        $shp_writer->add_shape(
+            $shape,
+            {
+                element => $element,
+                %axis_col_data,
+            },
+        );
+    }
+
+    $shp_writer->finalize();
+
+    return;
+}
+
+
+
+
 sub get_lists_for_export {
     my $self = shift;
 

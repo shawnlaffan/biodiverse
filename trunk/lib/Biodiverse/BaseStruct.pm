@@ -990,7 +990,7 @@ sub write_table_asciigrid {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, '.asc', '.txt');
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.asc/, qr/\.txt/);
 
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .asc and store it
         $suffix = '.asc';
@@ -1093,7 +1093,7 @@ sub write_table_floatgrid {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, '.flt');
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.flt/);
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .flt and store it
         $suffix = '.flt';
     }
@@ -1200,7 +1200,7 @@ sub write_table_divagis {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->stringify, '.gri');
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->stringify, qr'\.gri');
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .gri and store it
         $suffix = '.gri';
     }
@@ -1336,7 +1336,7 @@ sub write_table_ers {
     my $file = $args{file} || croak "file arg not specified\n";
 
     my ($name, $path, $suffix)
-        = fileparse (Path::Class::file($file)->absolute, '.ers');
+        = fileparse (Path::Class::file($file)->absolute, qr/\.ers/);
 
     #  add suffix if not specified
     if (!defined $suffix || $suffix eq q{}) {

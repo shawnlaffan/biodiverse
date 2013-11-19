@@ -925,7 +925,7 @@ sub run_indices_test1_inner {
     };
 
     $e = $EVAL_ERROR;
-    note $e if $e;
+    diag $e if $e;
     ok (!$e, "Ran calculations without eval error");
 
     eval {
@@ -936,11 +936,23 @@ sub run_indices_test1_inner {
     ok (!$e, "Ran global postcalcs without eval error");
 
 
-    is_deeply (
+    my $pass = is_deeply (
         [sort keys %results],
         [sort keys %$expected_indices],
-        "Expected indices obtained, nbr list count = $nbr_list_count",
+        "Obtained indices as per metadata, nbr list count = $nbr_list_count",
     );
+    if (!$pass) {
+        local $Data::Dumper::Purity    = 1;
+        local $Data::Dumper::Terse     = 1;
+        local $Data::Dumper::Sortkeys  = 1;
+        local $Data::Dumper::Indent    = 1;
+        local $Data::Dumper::Quotekeys = 0;
+        diag 'Got:';
+        diag Data::Dumper::Dumper [sort keys %results];
+        diag 'Expected from metadata:';
+        diag Data::Dumper::Dumper [sort keys %$expected_indices];
+    }
+    
 
     
     if ($nbr_list_count != 1) {  #  only need to check when we have >1 nbr set

@@ -1002,8 +1002,7 @@ sub get_trimmed_tree { # create a copy of the current tree, including only those
     #  keep only those that match the basedata object
     my $trimmed_tree = $args{tree_ref}->clone;
     $trimmed_tree->trim (keep => scalar $bd->get_labels);
-    my $name = $trimmed_tree->get_param('NAME');
-    if (!defined $name) {$name = 'noname'};
+    my $name = $trimmed_tree->get_param('NAME') // 'noname';
     $trimmed_tree->rename(new_name => $name . ' trimmed');
 
     my %results = (trimmed_tree => $trimmed_tree);

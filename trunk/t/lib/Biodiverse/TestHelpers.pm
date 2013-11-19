@@ -423,6 +423,7 @@ sub get_basedata_object_from_site_data {
     my %args = @_;
 
     my $file = write_data_to_temp_file(get_basedata_site_data());
+    my $group_columns = $args{group_columns} // [3, 4];
 
     print "Temp file is $file\n";
 
@@ -432,7 +433,7 @@ sub get_basedata_object_from_site_data {
     );
     $bd->import_data(
         input_files   => [$file],
-        group_columns => [3, 4],
+        group_columns => $group_columns,
         label_columns => [1, 2],
         skip_lines_with_undef_groups => 1,
     );

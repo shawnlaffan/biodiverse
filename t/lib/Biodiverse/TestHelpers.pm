@@ -49,6 +49,7 @@ use Exporter::Easy (
                 get_basedata_object
                 get_basedata_object_from_site_data
                 get_numeric_labels_basedata_object_from_site_data
+                get_basedata_object_from_mx_format
                 :utils
             ),
         ],
@@ -360,7 +361,7 @@ sub get_basedata_import_data_file {
     my $tmp_obj = File::Temp->new;
     my $ep_f = $tmp_obj->filename;
     print $tmp_obj $args{data} || get_basedata_test_data(@_);
-    $tmp_obj -> close;
+    $tmp_obj->close;
 
     return $tmp_obj;
 }
@@ -414,6 +415,27 @@ sub get_basedata_object {
         group_columns => [1, 2],
         label_columns => [0],
         sample_count_columns => [3],
+    );
+
+    return $bd;
+}
+
+sub get_basedata_object_from_mx_format {
+    my %args = @_;
+
+    my $bd_f = get_basedata_import_data_file(@_);
+
+    print "Temp file is $bd_f\n";
+
+    my $bd = Biodiverse::BaseData->new(
+        CELL_SIZES => $args{CELL_SIZES},
+        NAME       => 'Test basedata',
+    );
+    $bd->import_data(
+        input_files   => [$bd_f],
+        label_columns => [],
+        group_columns => [0],
+        %args,
     );
 
     return $bd;

@@ -1,0 +1,12 @@
+<SOFTPKG NAME="Pango" VERSION="1.223">
+    <ABSTRACT>Layout and render international text</ABSTRACT>
+    <AUTHOR></AUTHOR>
+    <IMPLEMENTATION>
+        <REQUIRE NAME="Cairo::" VERSION="1" />
+        <REQUIRE NAME="ExtUtils::Depends" VERSION="0.3" />
+        <REQUIRE NAME="ExtUtils::PkgConfig" VERSION="1.03" />
+        <REQUIRE NAME="Glib::" VERSION="1.22" />
+        <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.16" />
+        <CODEBASE HREF="Pango-516.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>

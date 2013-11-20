@@ -58,6 +58,7 @@ sub test_indices {
         element_list2      => \@groups,
     );
 
+    return;
 }
 
 sub test_indices_1col {
@@ -67,33 +68,23 @@ sub test_indices_1col {
     my @groups = grep {$_ ne $focal_gp} $bd->get_groups;
     $bd->delete_groups (groups => \@groups);
     
-    #  NEED CALCULATION
     my $results_overlay2 = {
-        CHAO1          => 10.83,
+        CHAO1          => 15.5555555555556,
         CHAO1_F1_COUNT => 4,
         CHAO1_F2_COUNT => 1,
-        CHAO1_VARIANCE => 3.97 ** 2,
-        CHAO2          => 10.83,
-        CHAO2_Q1_COUNT => 4,
-        CHAO2_Q2_COUNT => 1,
-        CHAO2_VARIANCE => 3.97 ** 2,
+        CHAO1_VARIANCE => 136,
+        CHAO2          => 8,
+        CHAO2_Q1_COUNT => 8,
+        CHAO2_Q2_COUNT => 0,
+        CHAO2_VARIANCE => undef
     };
-    my $results_overlay1 = {
-        CHAO1          => undef,
-        CHAO1_F1_COUNT => undef,
-        CHAO1_F2_COUNT => undef,
-        CHAO1_VARIANCE => undef,
-        CHAO2          => undef,
-        CHAO2_Q1_COUNT => undef,
-        CHAO2_Q2_COUNT => undef,
-        CHAO2_VARIANCE => undef,
-    };
-    
+    # copy of overlay2 since we have only one group
+    my $results_overlay1 = {%$results_overlay2}; 
+
     my %expected_results_overlay = (
         1 => $results_overlay1,
         2 => $results_overlay2,
     );
-
 
     run_indices_test1 (
         calcs_to_test  => [qw/
@@ -106,8 +97,10 @@ sub test_indices_1col {
         element_list1      => ['Broad_Meadow_Brook'],
         element_list2      => [],
         expected_results_overlay => \%expected_results_overlay,
+        #generate_result_sets => 1,
     );
 
+    return;
 }
 
 
@@ -183,24 +176,26 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 @@ RESULTS_2_NBR_LISTS
 {
-    CHAO1          => 26.99,
+    CHAO1          => '27.5951367781155',
     CHAO1_F1_COUNT => 4,
     CHAO1_F2_COUNT => 5,
-    CHAO1_VARIANCE => 2.4649,
-    CHAO2          => 26.99,
-    CHAO2_Q1_COUNT => 4,
-    CHAO2_Q2_COUNT => 5,
-    CHAO2_VARIANCE => 2.4649,
+    CHAO1_VARIANCE => '4.672',
+    CHAO2          => '28.0454545454545',
+    CHAO2_Q1_COUNT => 6,
+    CHAO2_Q2_COUNT => 8,
+    CHAO2_VARIANCE => '5.35769628099174'
 }
+
 
 @@ RESULTS_1_NBR_LISTS
 {
-    CHAO1          => undef,
-    CHAO1_F1_COUNT => undef,
-    CHAO1_F2_COUNT => undef,
-    CHAO1_VARIANCE => undef,
-    CHAO2          => undef,
-    CHAO2_Q1_COUNT => undef,
-    CHAO2_Q2_COUNT => undef,
-    CHAO2_VARIANCE => undef,
+    CHAO1          => '15.5555555555556',
+    CHAO1_F1_COUNT => 4,
+    CHAO1_F2_COUNT => 1,
+    CHAO1_VARIANCE => 136,
+    CHAO2          => 8,
+    CHAO2_Q1_COUNT => 8,
+    CHAO2_Q2_COUNT => 0,
+    CHAO2_VARIANCE => undef
 }
+

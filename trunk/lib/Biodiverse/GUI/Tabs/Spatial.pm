@@ -987,7 +987,7 @@ sub recolour {
     my $index = $self->{selected_index};
 
     my $colour_func = sub {
-        my $elt = shift;
+        my $elt = shift // return;
         my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
             ? $grid->getColour($val, $min, $max)

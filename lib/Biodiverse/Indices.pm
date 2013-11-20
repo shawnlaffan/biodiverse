@@ -33,6 +33,7 @@ use parent qw {
     Biodiverse::Indices::LabelProperties
     Biodiverse::Indices::LabelPropertiesRangeWtd
     Biodiverse::Indices::GroupProperties
+    Biodiverse::Indices::EstimateS
     Biodiverse::Common
 };
 

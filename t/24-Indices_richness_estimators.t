@@ -19,20 +19,21 @@ exit main( @ARGV );
 sub main {
     my @args  = @_;
 
+    my $bd = get_basedata();
+
+
     if (@args) {
         for my $name (@args) {
             die "No test method test_$name\n"
                 if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
-            $func->();
+            $func->($bd);
         }
         done_testing;
         return 0;
     }
 
-
-    my $bd = get_basedata();
-
     test_indices($bd);
+    test_indices_1col($bd);
     
     done_testing;
     return 0;
@@ -41,14 +42,70 @@ sub main {
 
 sub test_indices {
     my $bd = shift;
+    
+    my $focal_gp = 'Broad_Meadow_Brook';
+    my @groups = grep {$_ ne $focal_gp} $bd->get_groups;
 
     run_indices_test1 (
         calcs_to_test  => [qw/
             calc_chao1
+            calc_chao2
         /],
         calc_topic_to_test => 'Richness estimators',
         sort_array_lists   => 1,
         basedata_ref       => $bd,
+        element_list1      => ['Broad_Meadow_Brook'],
+        element_list2      => \@groups,
+    );
+
+}
+
+sub test_indices_1col {
+    my $bd = shift;
+
+    my $focal_gp = 'Broad_Meadow_Brook';
+    my @groups = grep {$_ ne $focal_gp} $bd->get_groups;
+    $bd->delete_groups (groups => \@groups);
+    
+    #  NEED CALCULATION
+    my $results_overlay2 = {
+        CHAO1          => 10.83,
+        CHAO1_F1_COUNT => 4,
+        CHAO1_F2_COUNT => 1,
+        CHAO1_VARIANCE => 3.97 ** 2,
+        CHAO2          => 10.83,
+        CHAO2_Q1_COUNT => 4,
+        CHAO2_Q2_COUNT => 1,
+        CHAO2_VARIANCE => 3.97 ** 2,
+    };
+    my $results_overlay1 = {
+        CHAO1          => undef,
+        CHAO1_F1_COUNT => undef,
+        CHAO1_F2_COUNT => undef,
+        CHAO1_VARIANCE => undef,
+        CHAO2          => undef,
+        CHAO2_Q1_COUNT => undef,
+        CHAO2_Q2_COUNT => undef,
+        CHAO2_VARIANCE => undef,
+    };
+    
+    my %expected_results_overlay = (
+        1 => $results_overlay1,
+        2 => $results_overlay2,
+    );
+
+
+    run_indices_test1 (
+        calcs_to_test  => [qw/
+            calc_chao1
+            calc_chao2
+        /],
+        calc_topic_to_test => 'Richness estimators',
+        sort_array_lists   => 1,
+        basedata_ref       => $bd,
+        element_list1      => ['Broad_Meadow_Brook'],
+        element_list2      => [],
+        expected_results_overlay => \%expected_results_overlay,
     );
 
 }
@@ -77,7 +134,7 @@ __DATA__
 
 
 @@ SAMPLE_DATA
-sp	Broad Meadow Brook	Cold Brook	Doyle Center	Drumlin Farm	Graves Farm	Ipswich River	Laughing Brook	Lowell Holly	Moose Hill	Nashoba Brook	Old Town Hill
+sp	Broad_Meadow_Brook	Cold_Brook	Doyle_Center	Drumlin_Farm	Graves_Farm	Ipswich_River	Laughing_Brook	Lowell_Holly	Moose_Hill	Nashoba_Brook	Old_Town_Hill
 aphful	0	0	0	0	0	0	0	1	0	0	1
 aphrud	4	13	5	4	7	7	10	16	8	12	13
 bradep	0	0	0	0	0	0	0	0	0	0	0
@@ -126,149 +183,24 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 @@ RESULTS_2_NBR_LISTS
 {
-  'ABC2_LABELS_ALL' => {
-                         'Genus:sp1'  => 2,
-                         'Genus:sp10' => 1,
-                         'Genus:sp11' => 2,
-                         'Genus:sp12' => 2,
-                         'Genus:sp15' => 2,
-                         'Genus:sp20' => 4,
-                         'Genus:sp23' => 1,
-                         'Genus:sp24' => 1,
-                         'Genus:sp25' => 1,
-                         'Genus:sp26' => 2,
-                         'Genus:sp27' => 1,
-                         'Genus:sp29' => 1,
-                         'Genus:sp30' => 1,
-                         'Genus:sp5'  => 1
-                       },
-  'ABC2_LABELS_SET1' => {
-                          'Genus:sp20' => 1,
-                          'Genus:sp26' => 1
-                        },
-  'ABC2_LABELS_SET2' => {
-                          'Genus:sp1'  => 2,
-                          'Genus:sp10' => 1,
-                          'Genus:sp11' => 2,
-                          'Genus:sp12' => 2,
-                          'Genus:sp15' => 2,
-                          'Genus:sp20' => 3,
-                          'Genus:sp23' => 1,
-                          'Genus:sp24' => 1,
-                          'Genus:sp25' => 1,
-                          'Genus:sp26' => 1,
-                          'Genus:sp27' => 1,
-                          'Genus:sp29' => 1,
-                          'Genus:sp30' => 1,
-                          'Genus:sp5'  => 1
-                        },
-  'ABC2_MEAN_ALL'   => '1.57142857142857',
-  'ABC2_MEAN_SET1'  => '1',
-  'ABC2_MEAN_SET2'  => '1.42857142857143',
-  'ABC2_SD_ALL'     => '0.85163062725264',
-  'ABC2_SD_SET1'    => '0',
-  'ABC2_SD_SET2'    => '0.646206172658864',
-  'ABC3_LABELS_ALL' => {
-                         'Genus:sp1'  => 8,
-                         'Genus:sp10' => 16,
-                         'Genus:sp11' => 9,
-                         'Genus:sp12' => 8,
-                         'Genus:sp15' => 11,
-                         'Genus:sp20' => 12,
-                         'Genus:sp23' => 2,
-                         'Genus:sp24' => 2,
-                         'Genus:sp25' => 1,
-                         'Genus:sp26' => 6,
-                         'Genus:sp27' => 1,
-                         'Genus:sp29' => 5,
-                         'Genus:sp30' => 1,
-                         'Genus:sp5'  => 1
-                       },
-  'ABC3_LABELS_SET1' => {
-                          'Genus:sp20' => 4,
-                          'Genus:sp26' => 2
-                        },
-  'ABC3_LABELS_SET2' => {
-                          'Genus:sp1'  => 8,
-                          'Genus:sp10' => 16,
-                          'Genus:sp11' => 9,
-                          'Genus:sp12' => 8,
-                          'Genus:sp15' => 11,
-                          'Genus:sp20' => 8,
-                          'Genus:sp23' => 2,
-                          'Genus:sp24' => 2,
-                          'Genus:sp25' => 1,
-                          'Genus:sp26' => 4,
-                          'Genus:sp27' => 1,
-                          'Genus:sp29' => 5,
-                          'Genus:sp30' => 1,
-                          'Genus:sp5'  => 1
-                        },
-  'ABC3_MEAN_ALL'  => '5.92857142857143',
-  'ABC3_MEAN_SET1' => '3',
-  'ABC3_MEAN_SET2' => '5.5',
-  'ABC3_SD_ALL'    => '4.89056054226736',
-  'ABC3_SD_SET1'   => '1.4142135623731',
-  'ABC3_SD_SET2'   => '4.63680924774785',
-  'ABC3_SUM_ALL'   => 83,
-  'ABC3_SUM_SET1'  => 6,
-  'ABC3_SUM_SET2'  => 77,
-  'ABC_A'          => 2,
-  'ABC_ABC'        => 14,
-  'ABC_B'          => 0,
-  'ABC_C'          => 12,
-  'ABC_D'          => 17,
-  #'COMPL'          => 14,
-  'EL_COUNT_ALL'   => 5,
-  'EL_COUNT_SET1'  => 1,
-  'EL_COUNT_SET2'  => 4,
-  'EL_LIST_ALL'    => [
-                     '3250000:850000',
-                     '3350000:850000',
-                     '3350000:750000',
-                     '3350000:950000',
-                     '3450000:850000'
-                   ],
-  'EL_LIST_SET1' => {
-                      '3350000:850000' => 1
-                    },
-  'EL_LIST_SET2' => {
-                      '3250000:850000' => 1,
-                      '3350000:750000' => 1,
-                      '3350000:950000' => 1,
-                      '3450000:850000' => 1
-                    },
-  'REDUNDANCY_ALL'  => '0.831325301204819',
-  'REDUNDANCY_SET1' => '0.666666666666667',
-  'REDUNDANCY_SET2' => '0.818181818181818',
-  'RICHNESS_ALL'    => 14,
-  'RICHNESS_SET1'   => 2,
-  'RICHNESS_SET2'   => 14
+    CHAO1          => 26.99,
+    CHAO1_F1_COUNT => 4,
+    CHAO1_F2_COUNT => 5,
+    CHAO1_VARIANCE => 2.4649,
+    CHAO2          => 26.99,
+    CHAO2_Q1_COUNT => 4,
+    CHAO2_Q2_COUNT => 5,
+    CHAO2_VARIANCE => 2.4649,
 }
 
 @@ RESULTS_1_NBR_LISTS
 {
-  'ABC2_LABELS_SET1' => {
-                          'Genus:sp20' => 1,
-                          'Genus:sp26' => 1
-                        },
-  'ABC2_MEAN_ALL'    => '1',
-  'ABC2_MEAN_SET1'   => '1',
-  'ABC2_SD_SET1'     => '0',
-  'ABC3_LABELS_SET1' => {
-                          'Genus:sp20' => 4,
-                          'Genus:sp26' => 2
-                        },
-  'ABC3_MEAN_SET1' => '3',
-  'ABC3_SD_SET1'   => '1.4142135623731',
-  'ABC3_SUM_SET1'  => 6,
-  'ABC_D'          => 29,
-  'EL_COUNT_SET1'  => 1,
-  'EL_LIST_SET1'   => {
-                      '3350000:850000' => 1
-                    },
-  'REDUNDANCY_ALL'  => '0.666666666666667',
-  'REDUNDANCY_SET1' => '0.666666666666667',
-  'RICHNESS_ALL'    => 2,
-  'RICHNESS_SET1'   => 2
+    CHAO1          => undef,
+    CHAO1_F1_COUNT => undef,
+    CHAO1_F2_COUNT => undef,
+    CHAO1_VARIANCE => undef,
+    CHAO2          => undef,
+    CHAO2_Q1_COUNT => undef,
+    CHAO2_Q2_COUNT => undef,
+    CHAO2_VARIANCE => undef,
 }

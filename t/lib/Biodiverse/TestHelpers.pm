@@ -674,13 +674,14 @@ sub run_indices_test1 {
 
     my %bd_args = (%args, CELL_SIZES => $cell_sizes);
 
-    my $bd = $use_numeric_labels
-      ? get_numeric_labels_basedata_object_from_site_data (
-            %bd_args,
-        )
-      : get_basedata_object_from_site_data (
-            %bd_args,
-        );
+    my $bd = $args{basedata_ref} or
+        $use_numeric_labels
+          ? get_numeric_labels_basedata_object_from_site_data (
+                %bd_args,
+            )
+          : get_basedata_object_from_site_data (
+                %bd_args,
+            );
 
     my $tree = get_tree_object_from_sample_data();
 

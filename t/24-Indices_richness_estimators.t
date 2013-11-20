@@ -56,6 +56,7 @@ sub test_indices {
         basedata_ref       => $bd,
         element_list1      => ['Broad_Meadow_Brook'],
         element_list2      => \@groups,
+        #generate_result_sets => 1,
     );
 
     return;
@@ -73,12 +74,14 @@ sub test_indices_1col {
         CHAO1_F1_COUNT => 4,
         CHAO1_F2_COUNT => 1,
         CHAO1_VARIANCE => 136,
+        CHAO1_UNDETECTED => 7.5555555555556,
         CHAO2          => 8,
         CHAO2_Q1_COUNT => 8,
         CHAO2_Q2_COUNT => 0,
-        CHAO2_VARIANCE => undef
+        CHAO2_VARIANCE => undef,
+        CHAO2_UNDETECTED => 0,
     };
-    # copy of overlay2 since we have only one group
+    # identical to overlay2 since we have only one group in the basedata
     my $results_overlay1 = {%$results_overlay2}; 
 
     my %expected_results_overlay = (
@@ -173,29 +176,31 @@ temcur	0	0	0	2	0	0	0	0	0	1	0
 temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
-
 @@ RESULTS_2_NBR_LISTS
-{
-    CHAO1          => '27.5951367781155',
-    CHAO1_F1_COUNT => 4,
-    CHAO1_F2_COUNT => 5,
-    CHAO1_VARIANCE => '4.672',
-    CHAO2          => '28.0454545454545',
-    CHAO2_Q1_COUNT => 6,
-    CHAO2_Q2_COUNT => 8,
-    CHAO2_VARIANCE => '5.35769628099174'
+{   CHAO1            => '27.5951367781155',
+    CHAO1_F1_COUNT   => 4,
+    CHAO1_F2_COUNT   => 5,
+    CHAO1_UNDETECTED => '1.5951367781155',
+    CHAO1_VARIANCE   => '4.672',
+    CHAO2            => '28.0454545454545',
+    CHAO2_Q1_COUNT   => 6,
+    CHAO2_Q2_COUNT   => 8,
+    CHAO2_UNDETECTED => '2.04545454545455',
+    CHAO2_VARIANCE   => '5.35769628099174'
 }
 
 
 @@ RESULTS_1_NBR_LISTS
-{
-    CHAO1          => '15.5555555555556',
-    CHAO1_F1_COUNT => 4,
-    CHAO1_F2_COUNT => 1,
-    CHAO1_VARIANCE => 136,
-    CHAO2          => 8,
-    CHAO2_Q1_COUNT => 8,
-    CHAO2_Q2_COUNT => 0,
-    CHAO2_VARIANCE => undef
+{   CHAO1            => '15.5555555555556',
+    CHAO1_F1_COUNT   => 4,
+    CHAO1_F2_COUNT   => 1,
+    CHAO1_UNDETECTED => '7.55555555555556',
+    CHAO1_VARIANCE   => 136,
+    CHAO2            => 8,
+    CHAO2_Q1_COUNT   => 8,
+    CHAO2_Q2_COUNT   => 0,
+    CHAO2_UNDETECTED => 0,
+    CHAO2_VARIANCE   => undef
 }
+
 

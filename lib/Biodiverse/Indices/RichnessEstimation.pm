@@ -27,9 +27,10 @@ sub get_metadata_calc_chao1 {
             },
             CHAO1_VARIANCE    => {
                 description => 'Variance of the Chao1 estimator',
+            },
+            CHAO1_UNDETECTED  => {
+                description   => 'Estimated number of undetected species',
             }
-            #  need to add the partial calcs,
-            #  unless they can be hived off into their own calc
         },
     );
 
@@ -56,7 +57,8 @@ sub calc_chao1 {
 
     my $richness = scalar keys %$label_hash;
 
-    my ($chao1_partial, $variance);
+    my $chao1_partial = 0;
+    my $variance;
 
     #  if $f1 == $f2 == 0 then the partial is zero.
     if ($f1) {
@@ -67,18 +69,22 @@ sub calc_chao1 {
                                     + $f12_ratio ** 3
                                     + $f12_ratio ** 4 / 4);
         }
-        else {   #  no doubletons, but singletons
+        elsif ($f1 > 1) {   #  no doubletons, but singletons
             $chao1_partial = $f1 * ($f1 - 1) / 2;
         }
+        #  if only one singleton and no doubletons then the estimate stays zero
     }
 
-    my $chao1 = $richness + $chao1_partial * ($n-1) / $n;
+    $chao1_partial *= ($n - 1) / $n;
+
+    my $chao1 = $richness + $chao1_partial;
 
     my %results = (
         CHAO1          => $chao1,
         CHAO1_F1_COUNT => $f1,
         CHAO1_F2_COUNT => $f2,
         CHAO1_VARIANCE => $variance,
+        CHAO1_UNDETECTED => $chao1_partial,
     );
 
     return wantarray ? %results : \%results;    
@@ -99,16 +105,17 @@ sub get_metadata_calc_chao2 {
                 formula     => [],
             },
             CHAO2_Q1_COUNT    => {
-                description => 'Number of singletons in the sample',
+                description => 'Number of uniques in the sample',
             },
             CHAO2_Q2_COUNT    => {
-                description => 'Number of doubletons in the sample',
+                description => 'Number of duplicates in the sample',
             },
             CHAO2_VARIANCE    => {
                 description => 'Variance of the Chao1 estimator',
-            }
-            #  need to add the partial calcs,
-            #  unless they can be hived off into their own calc
+            },
+            CHAO2_UNDETECTED  => {
+                description   => 'Estiumated nmber of undetected species',
+            },
         },
     );
 
@@ -139,7 +146,8 @@ sub calc_chao2 {
 
     my $richness = scalar keys %$label_hash;
 
-    my ($chao2_partial, $variance);
+    my $chao2_partial = 0;
+    my $variance;
 
     #  if $f1 == $f2 == 0 then the partial is zero.
     if ($Q1) {
@@ -150,18 +158,21 @@ sub calc_chao2 {
                                     + $Q12_ratio ** 3 * $correction ** 2
                                     + $Q12_ratio ** 4 * $correction ** 2 / 4);
         }
-        else {   #  no doubletons, but singletons
+        elsif ($Q1 > 1) {   #  no doubletons, but singletons
             $chao2_partial = $Q1 * ($Q1 - 1) / 2;
         }
+        #  if only one singleton and no doubletons then it stays zero
     }
 
-    my $chao2 = $richness + $chao2_partial * $correction;
+    $chao2_partial *= $correction;
+    my $chao2 = $richness + $chao2_partial;
 
     my %results = (
         CHAO2          => $chao2,
         CHAO2_Q1_COUNT => $Q1,
         CHAO2_Q2_COUNT => $Q2,
         CHAO2_VARIANCE => $variance,
+        CHAO2_UNDETECTED => $chao2_partial,
     );
 
     return wantarray ? %results : \%results;    

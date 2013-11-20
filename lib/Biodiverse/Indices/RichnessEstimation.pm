@@ -30,7 +30,13 @@ sub get_metadata_calc_chao1 {
             },
             CHAO1_UNDETECTED  => {
                 description   => 'Estimated number of undetected species',
-            }
+            },
+            CHAO1_CI_LOWER    => {
+                description => 'Lower confidence interval for the Chao1 estimate',
+            },
+            CHAO1_CI_UPPER    => {
+                description => 'Upper confidence interval for the Chao1 estimate',
+            },
         },
     );
 
@@ -57,34 +63,46 @@ sub calc_chao1 {
 
     my $richness = scalar keys %$label_hash;
 
-    my $chao1_partial = 0;
+    my $chao_partial = 0;
     my $variance;
 
     #  if $f1 == $f2 == 0 then the partial is zero.
     if ($f1) {
         if ($f2) {      #  one or more doubletons
-            $chao1_partial = $f1 ** 2 / (2 * $f2);
-            my $f12_ratio  = $f1 / $f2;
-            $variance      = $f2 * (  $f12_ratio ** 2 / 2
+            $chao_partial = $f1 ** 2 / (2 * $f2);
+            my $f12_ratio = $f1 / $f2;
+            $variance     = $f2 * (  $f12_ratio ** 2 / 2
                                     + $f12_ratio ** 3
                                     + $f12_ratio ** 4 / 4);
         }
         elsif ($f1 > 1) {   #  no doubletons, but singletons
-            $chao1_partial = $f1 * ($f1 - 1) / 2;
+            $chao_partial = $f1 * ($f1 - 1) / 2;
         }
         #  if only one singleton and no doubletons then the estimate stays zero
     }
 
-    $chao1_partial *= ($n - 1) / $n;
+    $chao_partial *= ($n - 1) / $n;
 
-    my $chao1 = $richness + $chao1_partial;
+    my $chao = $richness + $chao_partial;
+    
+    #  and now the confidence interval
+    my ($K, $lower, $upper);
+    my $T = $chao - $richness;
+    eval {
+        no warnings qw /numeric uninitialized/;
+        $K = exp (1.96 * sqrt (log (1 + ($variance // 0) / $T ** 2)));
+        $lower = $richness + $T / $K;
+        $upper = $richness + $T * $K;
+    };
 
     my %results = (
-        CHAO1          => $chao1,
+        CHAO1          => $chao,
         CHAO1_F1_COUNT => $f1,
         CHAO1_F2_COUNT => $f2,
         CHAO1_VARIANCE => $variance,
-        CHAO1_UNDETECTED => $chao1_partial,
+        CHAO1_UNDETECTED => $chao_partial,
+        CHAO1_CI_LOWER => $lower,
+        CHAO1_CI_UPPER => $upper,
     );
 
     return wantarray ? %results : \%results;    
@@ -113,8 +131,14 @@ sub get_metadata_calc_chao2 {
             CHAO2_VARIANCE    => {
                 description => 'Variance of the Chao1 estimator',
             },
+            CHAO2_CI_LOWER    => {
+                description => 'Lower confidence interval for the Chao2 estimate',
+            },
+            CHAO2_CI_UPPER    => {
+                description => 'Upper confidence interval for the Chao2 estimate',
+            },
             CHAO2_UNDETECTED  => {
-                description   => 'Estiumated nmber of undetected species',
+                description   => 'Estimated number of undetected species',
             },
         },
     );
@@ -146,33 +170,45 @@ sub calc_chao2 {
 
     my $richness = scalar keys %$label_hash;
 
-    my $chao2_partial = 0;
+    my $chao_partial = 0;
     my $variance;
 
     #  if $f1 == $f2 == 0 then the partial is zero.
     if ($Q1) {
         if ($Q2) {      #  one or more doubletons
-            $chao2_partial = $Q1 ** 2 / (2 * $Q2);
+            $chao_partial = $Q1 ** 2 / (2 * $Q2);
             my $Q12_ratio  = $Q1 / $Q2;
             $variance      = $Q2 * (  $Q12_ratio ** 2 * $correction / 2
                                     + $Q12_ratio ** 3 * $correction ** 2
                                     + $Q12_ratio ** 4 * $correction ** 2 / 4);
         }
         elsif ($Q1 > 1) {   #  no doubletons, but singletons
-            $chao2_partial = $Q1 * ($Q1 - 1) / 2;
+            $chao_partial = $Q1 * ($Q1 - 1) / 2;
         }
         #  if only one singleton and no doubletons then it stays zero
     }
 
-    $chao2_partial *= $correction;
-    my $chao2 = $richness + $chao2_partial;
+    $chao_partial *= $correction;
+    my $chao = $richness + $chao_partial;
+
+    #  and now the confidence interval
+    my ($K, $lower, $upper);
+    my $T = $chao - $richness;
+    eval {
+        no warnings qw /numeric uninitialized/;
+        $K = exp (1.96 * sqrt (log (1 + ($variance // 0) / $T ** 2)));
+        $lower = $richness + $T / $K;
+        $upper = $richness + $T * $K;
+    };
 
     my %results = (
-        CHAO2          => $chao2,
+        CHAO2          => $chao,
         CHAO2_Q1_COUNT => $Q1,
         CHAO2_Q2_COUNT => $Q2,
         CHAO2_VARIANCE => $variance,
-        CHAO2_UNDETECTED => $chao2_partial,
+        CHAO2_UNDETECTED => $chao_partial,
+        CHAO2_CI_LOWER => $lower,
+        CHAO2_CI_UPPER => $upper,
     );
 
     return wantarray ? %results : \%results;    

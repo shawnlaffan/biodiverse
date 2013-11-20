@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use Carp;
 
+use List::Util qw /max min/;
+
 our $VERSION = '0.19';
 
 
@@ -86,14 +88,14 @@ sub calc_chao1 {
     my $chao = $richness + $chao_partial;
     
     #  and now the confidence interval
-    my ($K, $lower, $upper);
-    my $T = $chao - $richness;
-    eval {
-        no warnings qw /numeric uninitialized/;
-        $K = exp (1.96 * sqrt (log (1 + ($variance // 0) / $T ** 2)));
-        $lower = $richness + $T / $K;
-        $upper = $richness + $T * $K;
-    };
+    my $ci_scores = $self->_calc_chao_confidence_intervals (
+        F1 => $f1,
+        F2 => $f2,
+        chao_score => $chao,
+        richness   => $richness,
+        variance   => $variance,
+        label_hash => $label_hash,
+    );
 
     my %results = (
         CHAO1          => $chao,
@@ -101,8 +103,8 @@ sub calc_chao1 {
         CHAO1_F2_COUNT => $f2,
         CHAO1_VARIANCE => $variance,
         CHAO1_UNDETECTED => $chao_partial,
-        CHAO1_CI_LOWER => $lower,
-        CHAO1_CI_UPPER => $upper,
+        CHAO1_CI_LOWER => $ci_scores->{ci_lower},
+        CHAO1_CI_UPPER => $ci_scores->{ci_upper},
     );
 
     return wantarray ? %results : \%results;    
@@ -192,14 +194,14 @@ sub calc_chao2 {
     my $chao = $richness + $chao_partial;
 
     #  and now the confidence interval
-    my ($K, $lower, $upper);
-    my $T = $chao - $richness;
-    eval {
-        no warnings qw /numeric uninitialized/;
-        $K = exp (1.96 * sqrt (log (1 + ($variance // 0) / $T ** 2)));
-        $lower = $richness + $T / $K;
-        $upper = $richness + $T * $K;
-    };
+    my $ci_scores = $self->_calc_chao_confidence_intervals (
+        F1 => $Q1,
+        F2 => $Q2,
+        chao_score => $chao,
+        richness   => $richness,
+        variance   => $variance,
+        label_hash => $label_hash,
+    );
 
     my %results = (
         CHAO2          => $chao,
@@ -207,13 +209,59 @@ sub calc_chao2 {
         CHAO2_Q2_COUNT => $Q2,
         CHAO2_VARIANCE => $variance,
         CHAO2_UNDETECTED => $chao_partial,
-        CHAO2_CI_LOWER => $lower,
-        CHAO2_CI_UPPER => $upper,
+        CHAO2_CI_LOWER => $ci_scores->{ci_lower},
+        CHAO2_CI_UPPER => $ci_scores->{ci_upper},
     );
 
     return wantarray ? %results : \%results;    
 }
 
+
+sub _calc_chao_confidence_intervals {
+    my $self = shift;
+    my %args = @_;
+    
+    my $f1 = $args{F1};
+    my $f2 = $args{F2};
+    my $chao     = $args{chao_score};
+    my $richness = $args{richness};
+    my $variance = $args{variance};
+    my $label_hash = $args{label_hash};
+
+    #  and now the confidence interval
+    my ($lower, $upper);
+    if ($f1 && $f2) {
+        my $T = $chao - $richness;
+        my $K;
+        eval {
+            no warnings qw /numeric uninitialized/;
+            $K = exp (1.96 * sqrt (log (1 + ($variance // 0) / $T ** 2)));
+            $lower = $richness + $T / $K;
+            $upper = $richness + $T * $K;
+        };
+    }
+    elsif (defined $variance) {  #  skip undef variances for now
+        my $P = 0;
+        my %sums;
+        foreach my $freq (values %$label_hash) {
+            $sums{$freq} ++;
+        }
+        while (my ($f, $count) = each %sums) {
+            $P += $count * exp (-1 * $f);
+        }
+        my $part1 = $richness / (1 - $P);
+        my $part2 = 1.96 * sqrt ($variance) / (1 - $P);
+        $lower = max ($richness, $part1 - $part2);
+        $upper = $part1 + $part2;
+    }
+
+    my %results = (
+        ci_lower => $lower,
+        ci_upper => $upper,
+    );
+
+    return wantarray ? %results : \%results;
+}
 
 
 1;

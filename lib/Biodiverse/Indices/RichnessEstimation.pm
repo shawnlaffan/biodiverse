@@ -64,9 +64,13 @@ sub calc_chao1 {
     }
 
     my $richness = scalar keys %$label_hash;
-
+    my $correction = ($n - 1) / $n;
+    
     my $chao_partial = 0;
     my $variance;
+    #  flags to use variance formaulae from EstimateS website
+    my $variance_uses_eq8 = !$f1;  #  no singletons
+    my $variance_uses_eq7;
 
     #  if $f1 == $f2 == 0 then the partial is zero.
     if ($f1) {
@@ -79,14 +83,37 @@ sub calc_chao1 {
         }
         elsif ($f1 > 1) {   #  no doubletons, but singletons
             $chao_partial = $f1 * ($f1 - 1) / 2;
+            $variance_uses_eq7 = 1;  # need the chao score to estimate this variance
         }
-        #  if only one singleton and no doubletons then the estimate stays zero
+        else {
+            #  if only one singleton and no doubletons then the estimate stays zero
+            $variance_uses_eq8 = 1;
+        }
     }
-
+    
     $chao_partial *= ($n - 1) / $n;
 
     my $chao = $richness + $chao_partial;
     
+    if ($variance_uses_eq7) {
+        $variance = $correction      * ($f1 * ($f1 - 1)) / 2
+                  + $correction ** 2 * ($f1 * (2 * $f1 - 1)) ** 2
+                  - $correction ** 2 * $f1 ** 4 / (4 * $chao);
+    }
+    elsif ($variance_uses_eq8) {
+        my %sums;
+        foreach my $freq (values %$label_hash) {
+            $sums{$freq} ++;
+        }
+        my ($part1, $part2);
+        while (my ($i, $f) = each %sums) {
+            $part1 += $f * (exp -$i - exp (-2 * $i));
+            $part2 += $i * exp (-$i) * $f;
+        }
+        $variance = $part1 - $part2 ** 2 / $n;
+    }
+
+
     #  and now the confidence interval
     my $ci_scores = $self->_calc_chao_confidence_intervals (
         F1 => $f1,

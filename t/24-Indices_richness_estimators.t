@@ -69,20 +69,30 @@ sub test_indices_1col {
     $bd->delete_groups (groups => \@groups);
     
     my $results_overlay2 = {
-        CHAO1            => '15.5555555555556',
-        CHAO1_CI_LOWER   => '8.86819414903085',
-        CHAO1_CI_UPPER   => '73.7530574432125',
-        CHAO1_F1_COUNT   => 4,
-        CHAO1_F2_COUNT   => 1,
+        CHAO1          => '15.5555555555556',
+        CHAO1_CI_LOWER => '8.86819414903085',
+        CHAO1_CI_UPPER => '73.7530574432125',
+        CHAO1_F1_COUNT => 4,
+        CHAO1_F2_COUNT => 1,
+        CHAO1_META     => {
+            CHAO_FORMULA     => 2,
+            CI_FORMULA       => 13,
+            VARIANCE_FORMULA => 6
+        },
         CHAO1_UNDETECTED => '7.55555555555556',
         CHAO1_VARIANCE   => 136,
         CHAO2            => 8,
         CHAO2_CI_LOWER   => undef,
         CHAO2_CI_UPPER   => undef,
+        CHAO2_META       => {
+            CHAO_FORMULA     => 4,
+            CI_FORMULA       => 13,
+            VARIANCE_FORMULA => 11
+        },
         CHAO2_Q1_COUNT   => 8,
         CHAO2_Q2_COUNT   => 0,
         CHAO2_UNDETECTED => 0,
-        CHAO2_VARIANCE   => undef
+        CHAO2_VARIANCE   => 0
     };
     # identical to overlay2 since we have only one group in the basedata
     my $results_overlay1 = {%$results_overlay2}; 
@@ -180,16 +190,26 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_2_NBR_LISTS
-{   CHAO1            => '27.5951367781155',
-    CHAO1_CI_LOWER   => '26.2156270330022',
-    CHAO1_CI_UPPER   => '37.8002891635121',
-    CHAO1_F1_COUNT   => 4,
-    CHAO1_F2_COUNT   => 5,
+{   CHAO1          => '27.5951367781155',
+    CHAO1_CI_LOWER => '26.2156270330022',
+    CHAO1_CI_UPPER => '37.8002891635121',
+    CHAO1_F1_COUNT => 4,
+    CHAO1_F2_COUNT => 5,
+    CHAO1_META     => {
+        CHAO_FORMULA     => 2,
+        CI_FORMULA       => 13,
+        VARIANCE_FORMULA => 6
+    },
     CHAO1_UNDETECTED => '1.5951367781155',
     CHAO1_VARIANCE   => '4.672',
     CHAO2            => '28.0454545454545',
     CHAO2_CI_LOWER   => '26.3450687940336',
     CHAO2_CI_UPPER   => '38.124783144296',
+    CHAO2_META       => {
+        CHAO_FORMULA     => 4,
+        CI_FORMULA       => 13,
+        VARIANCE_FORMULA => 10
+    },
     CHAO2_Q1_COUNT   => 6,
     CHAO2_Q2_COUNT   => 8,
     CHAO2_UNDETECTED => '2.04545454545455',
@@ -198,18 +218,29 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_1_NBR_LISTS
-{   CHAO1            => '15.5555555555556',
-    CHAO1_CI_LOWER   => '8.86819414903085',
-    CHAO1_CI_UPPER   => '73.7530574432125',
-    CHAO1_F1_COUNT   => 4,
-    CHAO1_F2_COUNT   => 1,
+{   CHAO1          => '15.5555555555556',
+    CHAO1_CI_LOWER => '8.86819414903085',
+    CHAO1_CI_UPPER => '73.7530574432125',
+    CHAO1_F1_COUNT => 4,
+    CHAO1_F2_COUNT => 1,
+    CHAO1_META     => {
+        CHAO_FORMULA     => 2,
+        CI_FORMULA       => 13,
+        VARIANCE_FORMULA => 6
+    },
     CHAO1_UNDETECTED => '7.55555555555556',
     CHAO1_VARIANCE   => 136,
     CHAO2            => 8,
     CHAO2_CI_LOWER   => undef,
     CHAO2_CI_UPPER   => undef,
+    CHAO2_META       => {
+        CHAO_FORMULA     => 4,
+        CI_FORMULA       => 13,
+        VARIANCE_FORMULA => 11
+    },
     CHAO2_Q1_COUNT   => 8,
     CHAO2_Q2_COUNT   => 0,
     CHAO2_UNDETECTED => 0,
-    CHAO2_VARIANCE   => undef
+    CHAO2_VARIANCE   => 0
 }
+

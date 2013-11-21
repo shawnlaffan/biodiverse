@@ -39,6 +39,12 @@ sub get_metadata_calc_chao1 {
             CHAO1_CI_UPPER    => {
                 description => 'Upper confidence interval for the Chao1 estimate',
             },
+            CHAO1_META        => {
+                description => 'Metadata indicating which formulae were used in the '
+                            . 'calculations. Numbers refer to EstimateS equations at '
+                            . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
+                type        => 'list',
+            },
         },
     );
 
@@ -66,6 +72,7 @@ sub calc_chao1 {
     my $richness = scalar keys %$label_hash;
     my $correction = ($n - 1) / $n;
     
+    my $chao_formula = 2;
     my $chao_partial = 0;
     my $variance;
     #  flags to use variance formaulae from EstimateS website
@@ -88,6 +95,7 @@ sub calc_chao1 {
         else {
             #  if only one singleton and no doubletons then the estimate stays zero
             $variance_uses_eq8 = 1;
+            $chao_formula      = undef;
         }
     }
     
@@ -99,6 +107,7 @@ sub calc_chao1 {
         $variance = $correction      * ($f1 * ($f1 - 1)) / 2
                   + $correction ** 2 * ($f1 * (2 * $f1 - 1)) ** 2
                   - $correction ** 2 *  $f1 ** 4 / (4 * $chao);
+        $chao_formula = undef;
     }
     elsif ($variance_uses_eq8) {
         my %sums;
@@ -111,6 +120,7 @@ sub calc_chao1 {
             $part2 += $i * exp (-$i) * $f;
         }
         $variance = $part1 - $part2 ** 2 / $n;
+        $chao_formula = undef;
     }
 
 
@@ -124,6 +134,13 @@ sub calc_chao1 {
         label_hash => $label_hash,
     );
 
+    my $chao_meta = {
+        VARIANCE_FORMULA => $variance_uses_eq7 ? 7 :
+                            $variance_uses_eq8 ? 8 : 6,
+        CHAO_FORMULA     => $chao_formula,
+        CI_FORMULA       => $variance_uses_eq8 ? 14 : 13,
+    };
+
     my %results = (
         CHAO1          => $chao,
         CHAO1_F1_COUNT => $f1,
@@ -132,6 +149,7 @@ sub calc_chao1 {
         CHAO1_UNDETECTED => $chao_partial,
         CHAO1_CI_LOWER => $ci_scores->{ci_lower},
         CHAO1_CI_UPPER => $ci_scores->{ci_upper},
+        CHAO1_META     => $chao_meta,
     );
 
     return wantarray ? %results : \%results;    
@@ -169,6 +187,12 @@ sub get_metadata_calc_chao2 {
             CHAO2_UNDETECTED  => {
                 description   => 'Estimated number of undetected species',
             },
+            CHAO2_META        => {
+                description => 'Metadata indicating which formulae were used in the '
+                            . 'calculations. Numbers refer to EstimateS equations at '
+                            . 'http://viceroy.eeb.uconn.edu/EstimateS/EstimateSPages/EstSUsersGuide/EstimateSUsersGuide.htm',
+                type        => 'list',
+            },
         },
     );
 
@@ -203,7 +227,8 @@ sub calc_chao2 {
     #  flags to use variance formaulae from EstimateS website
     my $variance_uses_eq12 = !$Q1;  #  no uniques
     my $variance_uses_eq11;
-
+    
+    my $chao_formula = 4;  #  eq 2 from EstimateS
 
     #  if $f1 == $f2 == 0 then the partial is zero.
     if ($Q1) {
@@ -220,6 +245,7 @@ sub calc_chao2 {
         }
         elsif ($Q1) {
             $variance_uses_eq12 = 1;
+            $chao_formula       = undef;
         }
         #  if only one singleton and no doubletons then chao stays zero
     }
@@ -229,18 +255,24 @@ sub calc_chao2 {
 
     
     if ($variance_uses_eq11) {
-        $variance = $correction      * ($Q1 * ($Q1 - 1)) / (2 * ($Q2 + 1))
-                  + $correction ** 2 * ($Q1 * (2 * $Q1 - 1) ** 2) / (4 * ($Q2 + 1) ** 2)
-                  + $correction ** 2 * ($Q1 ** 2 * $Q2 * ($Q1 -1) ** 2) / (4 * ($Q2 + 1) ** 4);
+        $variance = $correction      * ($Q1 * ($Q1 - 1)) / 2
+                  + $correction ** 2 * ($Q1 * (2 * $Q1 - 1) ** 2) / 4
+                  - $correction ** 2 *  $Q1 ** 4 / (4 * $chao);
     }
-    elsif ($variance_uses_eq12) {
-        $variance = $correction      * ($Q1 * ($Q1 - 1)) / (2 * ($Q2 + 1))
-                  + $correction ** 2 * ($Q1 * (2 * $Q1 - 1) ** 2) / (4 * ($Q2 + 1) ** 2)
-                  + $correction ** 2 * ($Q1 ** 2 * $Q2 * ($Q1 -1) ** 2) / (4 * ($Q2 + 1) ** 4);
+    elsif ($variance_uses_eq12) {  #  same structure as eq8 - could refactor
+        my %sums;
+        foreach my $freq (values %$label_hash) {
+            $sums{$freq} ++;
+        }
+        my ($part1, $part2);
+        while (my ($i, $Q) = each %sums) {
+            $part1 += $Q * (exp (-$i) - exp (-2 * $i));
+            $part2 += $i *  exp (-$i) * $Q;
+        }
+        $variance = $part1 - $part2 ** 2 / $R;
+        $chao_formula = undef;
     }
-    
-    
-    
+
     #  and now the confidence interval
     my $ci_scores = $self->_calc_chao_confidence_intervals (
         F1 => $Q1,
@@ -251,6 +283,13 @@ sub calc_chao2 {
         label_hash => $label_hash,
     );
 
+    my $chao_meta = {
+        VARIANCE_FORMULA => $variance_uses_eq11 ? 11 :
+                            $variance_uses_eq12 ? 12 : 10,
+        CHAO_FORMULA     => $chao_formula,
+        CI_FORMULA       => $variance_uses_eq12 ? 14 : 13,
+    };
+
     my %results = (
         CHAO2          => $chao,
         CHAO2_Q1_COUNT => $Q1,
@@ -259,6 +298,7 @@ sub calc_chao2 {
         CHAO2_UNDETECTED => $chao_partial,
         CHAO2_CI_LOWER => $ci_scores->{ci_lower},
         CHAO2_CI_UPPER => $ci_scores->{ci_upper},
+        CHAO2_META     => $chao_meta,
     );
 
     return wantarray ? %results : \%results;    
@@ -283,24 +323,28 @@ sub _calc_chao_confidence_intervals {
         my $K;
         eval {
             no warnings qw /numeric uninitialized/;
-            $K = exp (1.96 * sqrt (log (1 + ($variance // 0) / $T ** 2)));
+            $K = exp (1.96 * sqrt (log (1 + $variance / $T ** 2)));
             $lower = $richness + $T / $K;
             $upper = $richness + $T * $K;
         };
     }
-    elsif (defined $variance) {  #  skip undef variances for now
+    else {
         my $P = 0;
         my %sums;
         foreach my $freq (values %$label_hash) {
             $sums{$freq} ++;
         }
-        while (my ($f, $count) = each %sums) {
-            $P += $count * exp (-1 * $f);
+        #  set CIs to undefined if we only have singletons/uniques
+        if (! (scalar keys %sums == 1 && exists $sums{1})) {
+            while (my ($f, $count) = each %sums) {
+                $P += $count * exp -$f;
+            }
+            $P /= $richness;
+            my $part1 = $richness / (1 - $P);
+            my $part2 = 1.96 * sqrt ($variance) / (1 - $P);
+            $lower = max ($richness, $part1 - $part2);
+            $upper = $part1 + $part2;
         }
-        my $part1 = $richness / (1 - $P);
-        my $part2 = 1.96 * sqrt ($variance) / (1 - $P);
-        $lower = max ($richness, $part1 - $part2);
-        $upper = $part1 + $part2;
     }
 
     my %results = (

@@ -650,6 +650,7 @@ sub run_indices_test1 {
     my $use_label_properties_extra = $args{use_label_properties_extra};  #  boolean
     my $use_label_properties_binomial = $args{use_label_properties_binomial};  # boolean
     my $callbacks              = $args{callbacks};
+    my $expected_results       = $args{expected_results} // {};
     my $expected_results_overlay = $args{expected_results_overlay};
     my $sort_array_lists       = $args{sort_array_lists};
     my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.  
@@ -800,9 +801,10 @@ sub run_indices_test1 {
 
         #  now we need to check the results
         my $subtest_name = "Result set matches for neighbour count $nbr_list_count";
-        my $expected = eval $dss->get_data_section(
-            "RESULTS_${nbr_list_count}_NBR_LISTS"
-        );
+        my $expected = $expected_results->{$nbr_list_count}
+                     // eval $dss->get_data_section(
+                            "RESULTS_${nbr_list_count}_NBR_LISTS"
+                        );
         diag "Problem with data section: $EVAL_ERROR" if $EVAL_ERROR;
         if ($expected_results_overlay && $expected_results_overlay->{$nbr_list_count}) {
             my $hash = $expected_results_overlay->{$nbr_list_count};

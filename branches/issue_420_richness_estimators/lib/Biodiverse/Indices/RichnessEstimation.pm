@@ -98,7 +98,7 @@ sub calc_chao1 {
     if ($variance_uses_eq7) {
         $variance = $correction      * ($f1 * ($f1 - 1)) / 2
                   + $correction ** 2 * ($f1 * (2 * $f1 - 1)) ** 2
-                  - $correction ** 2 * $f1 ** 4 / (4 * $chao);
+                  - $correction ** 2 *  $f1 ** 4 / (4 * $chao);
     }
     elsif ($variance_uses_eq8) {
         my %sums;
@@ -183,8 +183,6 @@ sub calc_chao2 {
     my $label_hash = $args{label_hash_all};
     my $R = $args{element_count_all};
 
-    my $correction = ($R - 1) / $R;
-
     my ($Q1, $Q2) = (0, 0, 0);  #  singletons and doubletons
 
     foreach my $freq (values %$label_hash) {
@@ -194,13 +192,18 @@ sub calc_chao2 {
         elsif ($freq == 2) {
             $Q2 ++;
         }
-        #$n += $freq;
     }
 
     my $richness = scalar keys %$label_hash;
+    my $correction = ($R - 1) / $R;
 
     my $chao_partial = 0;
     my $variance;
+
+    #  flags to use variance formaulae from EstimateS website
+    my $variance_uses_eq12 = !$Q1;  #  no uniques
+    my $variance_uses_eq11;
+
 
     #  if $f1 == $f2 == 0 then the partial is zero.
     if ($Q1) {
@@ -213,13 +216,31 @@ sub calc_chao2 {
         }
         elsif ($Q1 > 1) {   #  no doubletons, but singletons
             $chao_partial = $Q1 * ($Q1 - 1) / 2;
+            $variance_uses_eq11 = 1;
         }
-        #  if only one singleton and no doubletons then it stays zero
+        elsif ($Q1) {
+            $variance_uses_eq12 = 1;
+        }
+        #  if only one singleton and no doubletons then chao stays zero
     }
 
     $chao_partial *= $correction;
     my $chao = $richness + $chao_partial;
 
+    
+    if ($variance_uses_eq11) {
+        $variance = $correction      * ($Q1 * ($Q1 - 1)) / (2 * ($Q2 + 1))
+                  + $correction ** 2 * ($Q1 * (2 * $Q1 - 1) ** 2) / (4 * ($Q2 + 1) ** 2)
+                  + $correction ** 2 * ($Q1 ** 2 * $Q2 * ($Q1 -1) ** 2) / (4 * ($Q2 + 1) ** 4);
+    }
+    elsif ($variance_uses_eq12) {
+        $variance = $correction      * ($Q1 * ($Q1 - 1)) / (2 * ($Q2 + 1))
+                  + $correction ** 2 * ($Q1 * (2 * $Q1 - 1) ** 2) / (4 * ($Q2 + 1) ** 2)
+                  + $correction ** 2 * ($Q1 ** 2 * $Q2 * ($Q1 -1) ** 2) / (4 * ($Q2 + 1) ** 4);
+    }
+    
+    
+    
     #  and now the confidence interval
     my $ci_scores = $self->_calc_chao_confidence_intervals (
         F1 => $Q1,

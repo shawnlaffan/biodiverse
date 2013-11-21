@@ -355,6 +355,77 @@ sub _calc_chao_confidence_intervals {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_ace {
+    my %metadata = (
+        description     => 'Abundance Coverage-based Estimator os species richness',
+        name            => 'ACE',
+        type            => 'Richness estimators',
+        pre_calc        => 'calc_abc3',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            ACE_SCORE => {
+                description => 'ACE score',
+                reference   => 'NEEDED',
+                formula     => [],
+            },
+            
+        },
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub calc_ace {
+    my $self = shift;
+    my %args = @_;
+
+    my $label_hash = $args{label_hash_all};
+    #my $R = $args{element_count_all};
+
+    my %f_rare;
+    my $S_abundants = 0;
+    my $S_rare      = 0;
+    my $f1     = 0;
+    my $n_rare = 0;
+
+    foreach my $freq (values %$label_hash) {
+        if ($freq <= 10) {
+            $f_rare{$freq} += $freq;
+            $n_rare += $freq;
+            $S_rare ++;
+            if ($freq == 1) {
+                $f1 ++;
+            }
+        }
+        else {
+            $S_abundants += $freq;
+        }
+    }
+    
+    my $C_ace = 1 - $f1 / $n_rare;
+
+    my $fnurble;  #  need to use a better name here...
+    for my $i (2 .. 10) {
+        $fnurble += $i * ($i-1) * $f_rare{$i};
+    }
+
+    my $gamma = $S_rare  /  $C_ace
+              * $fnurble / ($n_rare * ($n_rare - 1))
+              - 1;
+    $gamma = max ($gamma, 0);
+
+    my $S_ace = $S_abundants
+              + $S_rare / $C_ace
+              + $f1 / $C_ace * $gamma ** 2;
+
+    my %results = (
+        ACE_SCORE => $S_ace,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 
 1;
 

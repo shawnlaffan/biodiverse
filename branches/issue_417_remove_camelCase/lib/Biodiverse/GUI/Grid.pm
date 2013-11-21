@@ -466,17 +466,17 @@ sub setBaseStruct {
     $self->{base_struct} = $data;
     $self->{cells} = {};
     
-    my ($minX, $maxX, $minY, $maxY) = $self->findMaxMin($data);
-    print join (q{ }, ($minX, $maxX, $minY, $maxY)) . "\n";
+    my ($min_x, $max_x, $min_y, $max_y) = $self->findMaxMin($data);
+    print join (q{ }, ($min_x, $max_x, $min_y, $max_y)) . "\n";
 
     my @res = $self->getCellSizes($data);  #  handles zero and text
     
-    my $cellX = shift @res;  #  just grab first two for now
-    my $cellY = shift @res || $cellX;  #  default to a square if not defined or zero
+    my $cell_x = shift @res;  #  just grab first two for now
+    my $cell_y = shift @res || $cell_x;  #  default to a square if not defined or zero
     
     #  save some coords stuff for later transforms
-    $self->{base_struct_cellsizes} = [$cellX, $cellY];
-    $self->{base_struct_bounds}    = [$minX, $minY, $maxX, $maxY];
+    $self->{base_struct_cellsizes} = [$cell_x, $cell_y];
+    $self->{base_struct_bounds}    = [$min_x, $min_y, $max_x, $max_y];
 
     my $sizes = $data->get_param ('CELL_SIZES');
     my @sizes = @$sizes;
@@ -487,14 +487,14 @@ sub setBaseStruct {
         $width_pixels = 1
     }
 
-#    my ($cellX, $cellY, $width_pixels) = $self->getCellSizes($data);
-    #$cellY = 1 if ! defined $cellY; #  catcher for single axis data sets
+#    my ($cell_x, $cell_y, $width_pixels) = $self->getCellSizes($data);
+    #$cell_y = 1 if ! defined $cell_y; #  catcher for single axis data sets
     
-    #print "[GRID] Cellsizes:  $cellX, $cellY, (width: $width_pixels)\n";
+    #print "[GRID] Cellsizes:  $cell_x, $cell_y, (width: $width_pixels)\n";
     #print "[GRID] Basedata cell size is: ", join (" ", @{$data->get_param ('CELL_SIZES')}), "\n";
 
     # Configure cell heights and y-offsets for the marks (circles, lines,...)
-    my $ratio = eval {$cellY / $cellX} || 1;  #  trap divide by zero
+    my $ratio = eval {$cell_y / $cell_x} || 1;  #  trap divide by zero
     my $cell_size_y = CELL_SIZE_X * $ratio;
     $self->{cell_size_y} = $cell_size_y;
     
@@ -533,8 +533,8 @@ sub setBaseStruct {
 
 ##  DEBUG add a background rect - should buffer the extents by 2 cells or more
 ## Make container group ("cell") for the rectangle and any marks
-#my $xx = eval {($maxX - $minX) / $cellX};
-#my $yy = eval {($maxY - $minY) / $cellY};
+#my $xx = eval {($max_x - $min_x) / $cell_x};
+#my $yy = eval {($max_y - $min_y) / $cell_y};
 #my $container_xx = Gnome2::Canvas::Item->new (
 #    $cells_group,
 #    'Gnome2::Canvas::Group',
@@ -571,8 +571,8 @@ sub setBaseStruct {
         my ($x_bd, $y_bd) = $data->get_element_name_coord (element => $element);
 
         # Transform into number of cells in X and Y directions
-        my $x = eval {($x_bd - $minX) / $cellX};
-        my $y = eval {($y_bd - $minY) / $cellY};
+        my $x = eval {($x_bd - $min_x) / $cell_x};
+        my $y = eval {($y_bd - $min_y) / $cell_y};
 
         # We shift by half the cell size to make the coordinate hits cells center
         my $xcoord = $x * CELL_SIZE_X  - CELL_SIZE_X  / 2;
@@ -614,10 +614,10 @@ sub setBaseStruct {
         if (defined $self->{select_func} && $self->{build_rtree}) {
             $self->{rtree}->insert( #  Tree::R method
                 $element,
-                $x_bd - $cellX / 2,  #  basestruct units
-                $y_bd - $cellY / 2,
-                $x_bd + $cellX / 2,
-                $y_bd + $cellY / 2,
+                $x_bd - $cell_x / 2,  #  basestruct units
+                $y_bd - $cell_y / 2,
+                $x_bd + $cell_x / 2,
+                $y_bd + $cell_y / 2,
             );
         }
     }
@@ -627,9 +627,9 @@ sub setBaseStruct {
     #  THIS SHOULD BE ABOVE THE init_grid CALL to display properly from first?
     # Flip the y-axis (default has origin top-left with y going down)
     # Add border
-    my $total_cells_X   = eval {($maxX - $minX) / $cellX} || 1;  #  default to one cell if undef
-    my $total_cells_Y   = defined $maxY
-        ? eval {($maxY - $minY) / $cellY} || 1
+    my $total_cells_X   = eval {($max_x - $min_x) / $cell_x} || 1;  #  default to one cell if undef
+    my $total_cells_Y   = defined $max_y
+        ? eval {($max_y - $min_y) / $cell_y} || 1
         : 1;
     my $width           = $total_cells_X * CELL_SIZE_X;
     my $height          = $total_cells_Y * $cell_size_y;
@@ -662,7 +662,7 @@ sub setBaseStruct {
     $self->showLegend;
 
     # Store info needed by loadShapefile
-    $self->{dataset_info} = [$minX, $minY, $maxX, $maxY, $cellX, $cellY];
+    $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
 
     return 1;
 }
@@ -693,13 +693,13 @@ sub setOverlay {
 }
 
 sub loadShapefile {
-    my ($self, $minX, $minY, $maxX, $maxY, $cellX, $cellY, $shapefile, $colour) = @_;
+    my ($self, $min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y, $shapefile, $colour) = @_;
 
     my @rect = (
-        $minX - $cellX,
-        $minY - $cellY,
-        $maxX + $cellX,
-        $maxY + $cellY,
+        $min_x - $cell_x,
+        $min_y - $cell_y,
+        $max_x + $cell_x,
+        $max_y + $cell_y,
     );
 
     # Get shapes within visible region - allow for cell extents
@@ -719,8 +719,8 @@ sub loadShapefile {
     #my $min_distance2 = $min_distance * $min_distance;
     ##print "[Grid] minimum point distance - $min_distance\n";
     #
-    my $unit_multiplier_x = CELL_SIZE_X / $cellX;
-    my $unit_multiplier_y = $self->{cell_size_y} / $cellY;
+    my $unit_multiplier_x = CELL_SIZE_X / $cell_x;
+    my $unit_multiplier_y = $self->{cell_size_y} / $cell_y;
     my $unit_multiplier2  = $unit_multiplier_x * $unit_multiplier_x; #FIXME: maybe take max of _x,_y
 
     # Put it into a group so that it can be deleted more easily
@@ -752,16 +752,16 @@ sub loadShapefile {
             POINT_TO_ADD:
             foreach my $vertex (@segments) {
                 push @plot_points, (
-                    ($vertex->[0]->{X} - $minX) * $unit_multiplier_x,
-                    ($vertex->[0]->{Y} - $minY) * $unit_multiplier_y,
+                    ($vertex->[0]->{X} - $min_x) * $unit_multiplier_x,
+                    ($vertex->[0]->{Y} - $min_y) * $unit_multiplier_y,
                 );
             }
 
             #  get the end of the line
             my $current_vertex = $segments[-1];
             push @plot_points, (
-                ($current_vertex->[1]->{X} - $minX) * $unit_multiplier_x,
-                ($current_vertex->[1]->{Y} - $minY) * $unit_multiplier_y,
+                ($current_vertex->[1]->{X} - $min_x) * $unit_multiplier_x,
+                ($current_vertex->[1]->{Y} - $min_y) * $unit_multiplier_y,
             );
 
             #print "@plot_points\n";
@@ -1299,25 +1299,25 @@ sub maxmin {
 sub findMaxMin {
     my $self = shift;
     my $data = shift;
-    my ($minX, $maxX, $minY, $maxY);
+    my ($min_x, $max_x, $min_y, $max_y);
 
     foreach ($data->get_element_list) {
 
         my ($x, $y) = $data->get_element_name_coord (element => $_);
 
-        $minX = $x if ( (not defined $minX) || $x < $minX);
-        $minY = $y if ( (not defined $minY) || $y < $minY);
+        $min_x = $x if ( (not defined $min_x) || $x < $min_x);
+        $min_y = $y if ( (not defined $min_y) || $y < $min_y);
 
-        $maxX = $x if ( (not defined $maxX) || $x > $maxX);
-        $maxY = $y if ( (not defined $maxY) || $y > $maxY);
+        $max_x = $x if ( (not defined $max_x) || $x > $max_x);
+        $max_y = $y if ( (not defined $max_y) || $y > $max_y);
     }
 
-    return ($minX, $maxX, $minY, $maxY);
+    return ($min_x, $max_x, $min_y, $max_y);
 }
 
 sub getCellSizes {
     my $data = $_[1];
-    #my ($cellX, $cellY) = @{$data->get_param("CELL_SIZES")};
+    #my ($cell_x, $cell_y) = @{$data->get_param("CELL_SIZES")};
     my @cell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
     #my $cellWidth = 0;
 
@@ -1364,8 +1364,8 @@ sub getCellSizes {
         $i++;
     }
     print "[Grid]   using cellsizes ", join (", ", @cell_sizes) , "\n";
-    #my ($cellX, $cellY) = @cell_sizes;
-    #return ($cellX, $cellY, $cellWidth);
+    #my ($cell_x, $cell_y) = @cell_sizes;
+    #return ($cell_x, $cell_y, $cellWidth);
     return wantarray ? @cell_sizes : \@cell_sizes;
 }
 

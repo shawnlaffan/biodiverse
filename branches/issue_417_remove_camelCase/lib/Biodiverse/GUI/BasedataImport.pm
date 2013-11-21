@@ -1106,7 +1106,7 @@ sub makeColumnsDialog {
 }
 
 sub addRow {
-    my ($row_widgets, $table, $colId, $header, $row_options) = @_;
+    my ($row_widgets, $table, $col_id, $header, $row_options) = @_;
     
     if (!defined $header) {
         $header = q{};
@@ -1125,7 +1125,7 @@ sub addRow {
     }
 
     #  column number
-    my $i_label = Gtk2::Label->new($colId);
+    my $i_label = Gtk2::Label->new($col_id);
     $i_label->set_alignment(0.5, 1);
     $i_label->set_use_markup(1);
 
@@ -1171,8 +1171,8 @@ sub addRow {
             $option,
             $i,
             $i + 1,
-            $colId + 1,
-            $colId + 2,
+            $col_id + 1,
+            $col_id + 2,
             'shrink',
             'shrink',
             0,
@@ -1188,7 +1188,7 @@ sub addRow {
     );
 
     # Store widgets
-    $row_widgets->[$colId] = [$combo, $spin1, $spin2, $combo_dms];
+    $row_widgets->[$col_id] = [$combo, $spin1, $spin2, $combo_dms];
     
     return;
 }
@@ -1495,10 +1495,10 @@ sub getRemapColumnSettings {
 }
 
 sub addRemapRow {
-    my ($row_widgets, $table, $colId, $header, $other_props, $column_overrides) = @_;
+    my ($row_widgets, $table, $col_id, $header, $other_props, $column_overrides) = @_;
 
     #  column number
-    my $i_label = Gtk2::Label->new($colId);
+    my $i_label = Gtk2::Label->new($col_id);
     $i_label->set_alignment(0.5, 1);
     $i_label->set_use_markup(1);
 
@@ -1520,12 +1520,12 @@ sub addRemapRow {
 
 
     # Attach to table
-    $table->attach($i_label, 0, 1, $colId + 1, $colId + 2, 'shrink', 'shrink', 0, 0);
-    $table->attach($label, 1, 2, $colId + 1, $colId + 2, 'shrink', 'shrink', 0, 0);
-    $table->attach($combo, 2, 3, $colId + 1, $colId + 2, 'shrink', 'shrink', 0, 0);
+    $table->attach($i_label, 0, 1, $col_id + 1, $col_id + 2, 'shrink', 'shrink', 0, 0);
+    $table->attach($label, 1, 2, $col_id + 1, $col_id + 2, 'shrink', 'shrink', 0, 0);
+    $table->attach($combo, 2, 3, $col_id + 1, $col_id + 2, 'shrink', 'shrink', 0, 0);
     
     # Store widgets
-    $row_widgets->[$colId] = [$combo];
+    $row_widgets->[$col_id] = [$combo];
     
     return;
 }

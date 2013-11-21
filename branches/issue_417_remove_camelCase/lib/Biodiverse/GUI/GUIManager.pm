@@ -290,9 +290,9 @@ sub closeProject {
         }
 
         # Close all analysis tabs (ie: except output tab)
-        my @toRemove = @{$self->{tabs}};
-        shift @toRemove;
-        foreach my $tab (reverse @toRemove) {
+        my @to_remove = @{$self->{tabs}};
+        shift @to_remove;
+        foreach my $tab (reverse @to_remove) {
             next if (blessed $tab) =~ /Outputs$/;
             $self->removeTab($tab);
         }
@@ -568,7 +568,7 @@ sub get_new_basedata_name {
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-    my $txtName = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $bd->get_param('NAME');
 
     # If it ends with $suffix followed by a number then increment it
@@ -578,12 +578,12 @@ sub get_new_basedata_name {
     else {
         $name .= $suffix . 1;
     }
-    $txtName->set_text($name);
+    $txt_name->set_text($name);
 
     my $response = $dlg->run();
     my $chosen_name;
     if ($response eq 'ok') {
-        $chosen_name = $txtName->get_text;
+        $chosen_name = $txt_name->get_text;
     }
     $dlg->destroy;
     
@@ -773,15 +773,15 @@ sub doRenameBasedata {
     $dlg->set_title ('Rename Basedata object');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-    my $txtName = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $bd->get_param('NAME');
 
-    $txtName->set_text($name);
+    $txt_name->set_text($name);
 
     my $response = $dlg->run();
     
     if ($response eq 'ok') {
-        my $chosen_name = $txtName->get_text;
+        my $chosen_name = $txt_name->get_text;
         $self->{project}->renameBaseData($chosen_name);
 
         my $tab_was_open;
@@ -820,17 +820,17 @@ sub doRenameOutput {
     $dlg->set_title ('Rename output');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-    my $txtName = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $object->get_param('NAME');
 
-    $txtName->set_text($name);
+    $txt_name->set_text($name);
 
     my $response = $dlg->run();
     
-    my $chosen_name = $txtName->get_text;
+    my $chosen_name = $txt_name->get_text;
     
     if ($response eq 'ok' and $chosen_name ne $name) {
-        #my $chosen_name = $txtName->get_text;
+        #my $chosen_name = $txt_name->get_text;
         
         #  Go find it in any of the open tabs and update it
         #  The update triggers a rename in the output tab, so
@@ -879,15 +879,15 @@ sub doRenameMatrix {
     $dlg->set_title ('Rename matrix object');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-    my $txtName = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $ref->get_param('NAME');
 
-    $txtName->set_text($name);
+    $txt_name->set_text($name);
 
     my $response = $dlg->run();
     
     if ($response eq 'ok') {
-        my $chosen_name = $txtName->get_text;
+        my $chosen_name = $txt_name->get_text;
         $self->{project}->renameMatrix($chosen_name, $ref);
     }
 
@@ -907,15 +907,15 @@ sub doRenamePhylogeny {
     $dlg->set_title ('Rename tree object');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-    my $txtName = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $ref->get_param('NAME');
 
-    $txtName->set_text($name);
+    $txt_name->set_text($name);
 
     my $response = $dlg->run();
     
     if ($response eq 'ok') {
-        my $chosen_name = $txtName->get_text;
+        my $chosen_name = $txt_name->get_text;
         $self->{project}->renamePhylogeny($chosen_name, $ref);
     }
 
@@ -1112,7 +1112,7 @@ sub doDuplicateBasedata {
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-    my $txtName = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $object->get_param('NAME');
 
     # If ends with a number increment it
@@ -1122,11 +1122,11 @@ sub doDuplicateBasedata {
     else {
         $name .= '1';
     }
-    $txtName->set_text($name);
+    $txt_name->set_text($name);
 
     my $response = $dlg->run();
     if ($response eq 'ok') {
-        my $chosen_name = $txtName->get_text;
+        my $chosen_name = $txt_name->get_text;
         # This uses the dclone method from Storable
         my $cloned = $object->clone (@_);  #  pass on the args
         $cloned->set_param (NAME => $chosen_name || $object->get_param ('NAME') . "_CLONED");
@@ -1384,7 +1384,7 @@ sub do_convert_labels_to_phylogeny {
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-    my $txtName = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $bd->get_param('NAME');
 
     # If ends with _T followed by a number then increment it
@@ -1394,11 +1394,11 @@ sub do_convert_labels_to_phylogeny {
     #else {
         $name .= '_AS_TREE';
     #}
-    $txtName->set_text($name);
+    $txt_name->set_text($name);
 
     my $response = $dlg->run();
     if ($response eq 'ok') {
-        my $chosen_name = $txtName->get_text;
+        my $chosen_name = $txt_name->get_text;
         my $phylogeny = $bd->to_tree (name => $chosen_name);
         #$phylogeny->set_param (NAME => $chosen_name);
         if (defined $phylogeny) {
@@ -1460,7 +1460,7 @@ sub do_convert_matrix_to_phylogeny {
         my $dlg = $dlgxml->get_widget('dlgDuplicate');
         $dlg->set_transient_for( $self->getWidget('wndMain') );
     
-        my $txtName = $dlgxml->get_widget('txtName');
+        my $txt_name = $dlgxml->get_widget('txtName');
         my $name = $matrix_ref->get_param('NAME');
     
         # If ends with _T followed by a number then increment it
@@ -1470,12 +1470,12 @@ sub do_convert_matrix_to_phylogeny {
         else {
             $name .= '_AS_TREE1';
         }
-        $txtName->set_text($name);
+        $txt_name->set_text($name);
     
         $response = $dlg->run();
         
         if ($response eq 'ok') {
-            my $chosen_name = $txtName->get_text;
+            my $chosen_name = $txt_name->get_text;
             $matrix_ref->set_param (AS_TREE => undef);  #  clear the previous version
 
             eval {
@@ -1553,7 +1553,7 @@ sub do_convert_phylogeny_to_matrix {
         my $dlg = $dlgxml->get_widget('dlgDuplicate');
         $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-        my $txtName = $dlgxml->get_widget('txtName');
+        my $txt_name = $dlgxml->get_widget('txtName');
         my $name = $phylogeny->get_param('NAME');
 
         # If ends with _AS_MX followed by a number then increment it
@@ -1563,12 +1563,12 @@ sub do_convert_phylogeny_to_matrix {
         else {
             $name .= '_AS_MX1';
         }
-        $txtName->set_text($name);
+        $txt_name->set_text($name);
 
         $response = $dlg->run();
 
         if ($response eq 'ok') {
-            my $chosen_name = $txtName->get_text;
+            my $chosen_name = $txt_name->get_text;
             $dlg->destroy;
 
             eval {
@@ -1653,7 +1653,7 @@ sub do_trim_tree_to_basedata {
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_transient_for( $self->getWidget('wndMain') );
 
-    my $txtName = $dlgxml->get_widget('txtName');
+    my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $phylogeny->get_param('NAME');
 
     my $suffix = $args{suffix} || 'TRIMMED';
@@ -1664,10 +1664,10 @@ sub do_trim_tree_to_basedata {
     else {
         $name .= "_${suffix}1";
     }
-    $txtName->set_text($name);
+    $txt_name->set_text($name);
 
     my $response = $dlg->run();
-    my $chosen_name = $txtName->get_text;
+    my $chosen_name = $txt_name->get_text;
 
     $dlg->destroy;
 
@@ -2289,9 +2289,9 @@ sub doRunExclusions {
         return;
     }
 
-    my $exclusionsHash = $basedata->get_param('EXCLUSION_HASH');
-    if (Biodiverse::GUI::Exclusions::showDialog($exclusionsHash)) {
-        #print Data::Dumper::Dumper($exclusionsHash);
+    my $exclusions_hash = $basedata->get_param('EXCLUSION_HASH');
+    if (Biodiverse::GUI::Exclusions::showDialog($exclusions_hash)) {
+        #print Data::Dumper::Dumper($exclusions_hash);
         my $tally = eval {$basedata->run_exclusions()};
         my $feedback = $tally->{feedback};
         if ($EVAL_ERROR) {

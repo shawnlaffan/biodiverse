@@ -128,22 +128,22 @@ sub makeDialog {
     # Set up the list
     my $list = $dlgxml->get_widget('lstData');
 
-    my $nameRenderer = Gtk2::CellRendererText->new();
-    my $valueRenderer = Gtk2::CellRendererText->new();
-    my $colName = Gtk2::TreeViewColumn->new();
-    my $colValue = Gtk2::TreeViewColumn->new();
+    my $name_renderer = Gtk2::CellRendererText->new();
+    my $value_renderer = Gtk2::CellRendererText->new();
+    my $col_name = Gtk2::TreeViewColumn->new();
+    my $col_value = Gtk2::TreeViewColumn->new();
 
-    $colName->pack_start($nameRenderer, 1);
-    $colValue->pack_start($valueRenderer, 1);
-    $colName->add_attribute($nameRenderer, text => 0);
+    $col_name->pack_start($name_renderer, 1);
+    $col_value->pack_start($value_renderer, 1);
+    $col_name->add_attribute($name_renderer, text => 0);
 
-    $list->insert_column($colName, -1);
-    $list->insert_column($colValue, -1);
+    $list->insert_column($col_name, -1);
+    $list->insert_column($col_value, -1);
     $list->set_headers_visible(0);
 
     # Save col/renderer so that we can choose different count columns
-    $list->{colValue} = $colValue;
-    $list->{valueRenderer} = $valueRenderer;
+    $list->{colValue} = $col_value;
+    $list->{valueRenderer} = $value_renderer;
 
     return $dlgxml;
 }

@@ -71,7 +71,7 @@ sub calc_chao1 {
 
     my $richness = scalar keys %$label_hash;
     my $correction = ($n - 1) / $n;
-    
+
     my $chao_formula = 2;
     my $chao_partial = 0;
     my $variance;
@@ -89,7 +89,7 @@ sub calc_chao1 {
                                     + $f12_ratio ** 4 / 4);
         }
         elsif ($f1 > 1) {   #  no doubletons, but singletons
-            $chao_partial = $f1 * ($f1 - 1) / 2;
+            $chao_partial      = $f1 * ($f1 - 1) / 2;
             $variance_uses_eq7 = 1;  # need the chao score to estimate this variance
         }
         else {
@@ -381,7 +381,10 @@ sub calc_ace {
     my %args = @_;
 
     my $label_hash = $args{label_hash_all};
-    #my $R = $args{element_count_all};
+
+    #  Only the gamma differs between the two
+    #  (apart from the inputs)
+    my $calc_ice = $args{calc_ice};
 
     my %f_rare;
     my $S_abundants = 0;
@@ -391,7 +394,7 @@ sub calc_ace {
 
     foreach my $freq (values %$label_hash) {
         if ($freq <= 10) {
-            $f_rare{$freq} += $freq;
+            $f_rare{$freq} ++;
             $n_rare += $freq;
             $S_rare ++;
             if ($freq == 1) {
@@ -399,20 +402,37 @@ sub calc_ace {
             }
         }
         else {
-            $S_abundants += $freq;
+            $S_abundants ++;
         }
     }
-    
+
     my $C_ace = 1 - $f1 / $n_rare;
+    
+    if (!$C_ace) {
+        my %results = (
+            ACE_SCORE => undef,
+        );
+        return wantarray ? %results : \%results;
+    }
 
     my $fnurble;  #  need to use a better name here...
     for my $i (2 .. 10) {
+        next if !$f_rare{$i};
         $fnurble += $i * ($i-1) * $f_rare{$i};
     }
 
-    my $gamma = $S_rare  /  $C_ace
-              * $fnurble / ($n_rare * ($n_rare - 1))
-              - 1;
+    my $gamma;
+    if ($calc_ice) {
+        $gamma = ($S_rare  /  $C_ace)
+               * ($n_rare  / ($n_rare - 1))
+               * ($fnurble /  $n_rare ** 2) 
+               - 1;
+    }
+    else {
+        $gamma = ($S_rare  /  $C_ace)
+               * ($fnurble / ($n_rare * ($n_rare - 1)))
+               - 1;
+    }
     $gamma = max ($gamma, 0);
 
     my $S_ace = $S_abundants
@@ -423,6 +443,39 @@ sub calc_ace {
         ACE_SCORE => $S_ace,
     );
 
+    return wantarray ? %results : \%results;
+}
+
+
+sub get_metadata_calc_ice {
+    my %metadata = (
+        description     => 'Incidence Coverage-based Estimator of species richness',
+        name            => 'ICE',
+        type            => 'Richness estimators',
+        pre_calc        => 'calc_abc2',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            ICE_SCORE => {
+                description => 'ICE score',
+                reference   => 'NEEDED',
+                formula     => [],
+            },
+            
+        },
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub calc_ice {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tmp_results = $self->calc_ace (%args, calc_ice => 1);
+    my %results = (
+        ICE_SCORE => $tmp_results->{ACE_SCORE},
+    );
+    
     return wantarray ? %results : \%results;
 }
 

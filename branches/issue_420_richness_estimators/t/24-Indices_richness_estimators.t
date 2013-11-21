@@ -49,6 +49,8 @@ sub test_indices {
         calcs_to_test  => [qw/
             calc_chao1
             calc_chao2
+            calc_ace
+            calc_ice
         /],
         calc_topic_to_test => 'Richness estimators',
         sort_array_lists   => 1,
@@ -107,12 +109,12 @@ sub test_indices_1col {
             calc_chao1
             calc_chao2
         /],
-        calc_topic_to_test => 'Richness estimators',
+        #calc_topic_to_test => 'Richness estimators',
         sort_array_lists   => 1,
         basedata_ref       => $bd,
         element_list1      => ['Broad_Meadow_Brook'],
         element_list2      => [],
-        expected_results_overlay => \%expected_results_overlay,
+        expected_results   => \%expected_results_overlay,
         #generate_result_sets => 1,
     );
 
@@ -190,7 +192,8 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
 
 
 @@ RESULTS_2_NBR_LISTS
-{   CHAO1          => '27.5951367781155',
+{   ACE_SCORE      => '27.5917083918918',
+    CHAO1          => '27.5951367781155',
     CHAO1_CI_LOWER => '26.2156270330022',
     CHAO1_CI_UPPER => '37.8002891635121',
     CHAO1_F1_COUNT => 4,
@@ -213,12 +216,14 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO2_Q1_COUNT   => 6,
     CHAO2_Q2_COUNT   => 8,
     CHAO2_UNDETECTED => '2.04545454545455',
-    CHAO2_VARIANCE   => '5.35769628099174'
+    CHAO2_VARIANCE   => '5.35769628099174',
+    ICE_SCORE        => '28.5012110113422'
 }
 
 
 @@ RESULTS_1_NBR_LISTS
-{   CHAO1          => '15.5555555555556',
+{   ACE_SCORE      => '10.6812069365561',
+    CHAO1          => '15.5555555555556',
     CHAO1_CI_LOWER => '8.86819414903085',
     CHAO1_CI_UPPER => '73.7530574432125',
     CHAO1_F1_COUNT => 4,
@@ -241,6 +246,8 @@ temlon	0	1	0	4	0	0	1	4	0	0	0
     CHAO2_Q1_COUNT   => 8,
     CHAO2_Q2_COUNT   => 0,
     CHAO2_UNDETECTED => 0,
-    CHAO2_VARIANCE   => 0
+    CHAO2_VARIANCE   => 0,
+    ICE_SCORE        => undef
 }
+
 

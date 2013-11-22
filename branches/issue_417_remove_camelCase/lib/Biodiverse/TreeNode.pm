@@ -221,20 +221,20 @@ sub get_length_above {
 sub set_child_lengths {
     my $self = shift;
     my %args = @_;
-    my $minValue = $args{total_length};
-    defined $minValue || croak "[TREENODE] argument total_length not specified\n";
+    my $min_value = $args{total_length};
+    defined $min_value || croak "[TREENODE] argument total_length not specified\n";
     
     foreach my $child ($self->get_children) {
-        #if ($child->get_total_length != $minValue) {
+        #if ($child->get_total_length != $min_value) {
         #    print "Length already defined, node ", $child->get_name, "\n";
         #}
-        $child->set_value (TOTAL_LENGTH => $minValue);
+        $child->set_value (TOTAL_LENGTH => $min_value);
         if ($child->is_terminal_node) {
-            $child->set_length (length => $minValue);
+            $child->set_length (length => $min_value);
         }
         else {
-            my $grandChild = @{$child->get_children}[0];  #ERROR ERROR???
-            $child->set_length (length => $minValue - $grandChild->get_total_length);
+            my $grand_child = @{$child->get_children}[0];  #ERROR ERROR???
+            $child->set_length (length => $min_value - $grand_child->get_total_length);
         }
     }
 
@@ -358,15 +358,15 @@ sub get_depth_below {  #  gets the deepest depth below the caller in total tree 
         return $cached_value if defined $cached_value;
     }
 
-    my $maxDepthBelow = 0;
+    my $max_depth_below = 0;
     foreach my $child (@{$self->get_children}) {
-        my $depthBelowChild = $child->get_depth_below;
-        $maxDepthBelow = $depthBelowChild if $depthBelowChild > $maxDepthBelow;
+        my $depth_below_child = $child->get_depth_below;
+        $max_depth_below = $depth_below_child if $depth_below_child > $max_depth_below;
     }
     
-    $self->set_cached_value (DEPTH_BELOW => $maxDepthBelow) if $args{cache};
+    $self->set_cached_value (DEPTH_BELOW => $max_depth_below) if $args{cache};
     
-    return $maxDepthBelow;
+    return $max_depth_below;
 }
 
 sub add_children {
@@ -1314,12 +1314,12 @@ sub number_terminal_nodes {
     #  get an array of the terminal elements (this will also cache them)
     my @te = keys %{$self->get_terminal_elements};
 
-    my $prevChildElements = $args{count_sofar} || 1;
-    $self->set_value (TERMINAL_NODE_FIRST => $prevChildElements);
-    $self->set_value (TERMINAL_NODE_LAST => $prevChildElements + $#te);
+    my $prev_child_elements = $args{count_sofar} || 1;
+    $self->set_value (TERMINAL_NODE_FIRST => $prev_child_elements);
+    $self->set_value (TERMINAL_NODE_LAST => $prev_child_elements + $#te);
     foreach my $child ($self->get_children) {
-        my $count = $child->number_terminal_nodes ('count_sofar' => $prevChildElements);
-        $prevChildElements += $count;
+        my $count = $child->number_terminal_nodes ('count_sofar' => $prev_child_elements);
+        $prev_child_elements += $count;
     }
 
     return $#te + 1;  #  return the number of terminal elements below this node

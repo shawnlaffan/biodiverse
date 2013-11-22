@@ -322,9 +322,9 @@ sub get_index_elements {
 
 sub get_index_elements_as_array {
     my $self = shift;
-    my $tmpRef = eval {$self->get_index_elements (@_)};
+    my $tmp_ref = eval {$self->get_index_elements (@_)};
     croak $EVAL_ERROR if $EVAL_ERROR;
-    return wantarray ? keys %{$tmpRef} : [keys %{$tmpRef}];
+    return wantarray ? keys %{$tmp_ref} : [keys %{$tmp_ref}];
 }
 
 #  snap a set of coords (or a single value) to the index
@@ -485,13 +485,13 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             string     => $element,
             csv_object => $csv_object,
         );
-        my $nbrsRef = $self->get_surrounding_elements (
+        my $nbrs_ref = $self->get_surrounding_elements (
             coord       => $element_array,
             resolutions => $index_resolutions,
             precision   => \@index_res_precision,
         );
 
-        $element_search_list{$element} = $nbrsRef;
+        $element_search_list{$element} = $nbrs_ref;
         $element_search_arrays{$element} = $element_array;
 
         if ($use_subset_search) {  #  only want to search a few nearby index cells
@@ -522,7 +522,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
             $index_elements_to_search{$element} = $poss_elements_ref;
         }
 
-        $total_elements_to_search += scalar @$nbrsRef;
+        $total_elements_to_search += scalar @$nbrs_ref;
         $corner_case_count ++;
     }
 
@@ -540,7 +540,7 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     my $progress_bar = Biodiverse::Progress->new();
     my $to_do = $total_elements_to_search;
     my $resolutions_text = join (q{ }, @{$self->get_param ('RESOLUTIONS')});
-    my ($count, $printedProgress) = (0, -1);
+    my ($count, $printed_progress) = (0, -1);
     my %index_element_arrays;  #  keep a cache of the arrays to save converting them
     print "[INDEX] Case of $to_do: ";
 

@@ -1773,7 +1773,7 @@ sub run_exclusions {
 
     #  check the labels first, then the groups
     #  equivalent to range then richness
-    my @deleteList;
+    my @delete_list;
     
     my $excluded = 0;
     my %tally;
@@ -1788,9 +1788,9 @@ sub run_exclusions {
 
         my $base_type_ref = $self->{$type};
 
-        my $cutCount = 0;
-        my $subCutCount = 0;
-        @deleteList = ();
+        my $cut_count = 0;
+        my $sub_cut_count = 0;
+        @delete_list = ();
         
         BY_ELEMENT:
         foreach my $element ($base_type_ref->get_element_list) {
@@ -1845,18 +1845,18 @@ sub run_exclusions {
 
             next BY_ELEMENT if not $failed_a_test;  #  no fails, so check next element
 
-            $cutCount++;
-            push (@deleteList, $element);
+            $cut_count++;
+            push (@delete_list, $element);
         }
 
-        foreach my $element (@deleteList) {  #  having it out here means all are checked against the initial state
-            $subCutCount += $self->delete_element (type => $type, element => $element);
+        foreach my $element (@delete_list) {  #  having it out here means all are checked against the initial state
+            $sub_cut_count += $self->delete_element (type => $type, element => $element);
         }
 
         my $lctype = lc ($type);
-        if ($cutCount || $subCutCount) {
+        if ($cut_count || $sub_cut_count) {
             $feedback .=
-                "Cut $cutCount $lctype on exclusion criteria, deleting $subCutCount "
+                "Cut $cut_count $lctype on exclusion criteria, deleting $sub_cut_count "
                 . lc($other_type)
                 . " in the process\n\n";
             $feedback .=
@@ -1865,8 +1865,8 @@ sub run_exclusions {
                 " groups with "
                 . $self->get_label_count
                 . " unique labels\n\n";
-            $tally{$type . '_count'} += $cutCount;
-            $tally{$other_type . '_count'} += $subCutCount;
+            $tally{$type . '_count'} += $cut_count;
+            $tally{$other_type . '_count'} += $sub_cut_count;
             $excluded ++;
         }
         else {
@@ -3108,7 +3108,7 @@ sub get_neighbours {
     my $centre_coord_ref =
       $self->get_group_element_as_array (element => $element1);
     
-    my $groupsRef = $self->get_groups_ref;
+    my $groups_ref = $self->get_groups_ref;
 
     my @compare_list;  #  get the list of possible neighbours - should allow this as an arg?
     if (!defined $args{index} || !defined $args{index_offsets}) {

@@ -222,8 +222,8 @@ sub add_node {
 sub add_to_node_hash {
     my $self = shift;
     my %args = @_;
-    my $nodeRef = $args{node_ref};
-    my $name = $nodeRef->get_name;
+    my $node_ref = $args{node_ref};
+    my $name = $node_ref->get_name;
 
     if ($self->exists_node (@_)) {
         Biodiverse::Tree::NodeAlreadyExists->throw(
@@ -232,8 +232,8 @@ sub add_to_node_hash {
         );
     }
 
-    $self->{TREE_BY_NAME}{$name} = $nodeRef;
-    return $nodeRef if defined wantarray;
+    $self->{TREE_BY_NAME}{$name} = $node_ref;
+    return $node_ref if defined wantarray;
 }
 
 #  does this node exist already?
@@ -268,9 +268,9 @@ sub get_tree_ref {
 sub get_tree_depth {  #  traverse the tree and calculate the maximum depth
                       #  need ref to the root node
     my $self = shift;
-    my $treeRef = $self->get_tree_ref;
-    return if ! defined $treeRef ;
-    return $treeRef->get_depth_below;
+    my $tree_ref = $self->get_tree_ref;
+    return if ! defined $tree_ref ;
+    return $tree_ref->get_depth_below;
 }
 
 sub get_tree_length {  # need ref to the root node
@@ -295,12 +295,12 @@ sub get_terminal_elements {
     my %args = (cache => 1, @_);  #  cache by default
 
     my $node = $args{node} || croak "node not specified\n";
-    my $nodeRef = $self->get_node_ref(node => $node);
+    my $node_ref = $self->get_node_ref(node => $node);
 
-    return $nodeRef->get_terminal_elements (cache => $args{cache})
-      if defined $nodeRef;
+    return $node_ref->get_terminal_elements (cache => $args{cache})
+      if defined $node_ref;
 
-    my %hash = ($node => $nodeRef);
+    my %hash = ($node => $node_ref);
     return wantarray ? %hash : \%hash;
 }
 
@@ -308,20 +308,20 @@ sub get_terminal_element_count {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache by default
 
-    my $nodeRef;
+    my $node_ref;
     if (defined $args{node}) {
         my $node = $args{node};
-        $nodeRef = $self->get_node_ref(node => $node);
+        $node_ref = $self->get_node_ref(node => $node);
     }
     else {
-        $nodeRef = $self->get_root_node;
+        $node_ref = $self->get_root_node;
     }
 
     #  follow logic of get_terminal_elements, which returns a hash of
     #  node if not a ref - good or bad idea?  Ever used?  
-    return 1 if !defined $nodeRef;
+    return 1 if !defined $node_ref;
 
-    return $nodeRef->get_terminal_element_count (cache => $args{cache});
+    return $node_ref->get_terminal_element_count (cache => $args{cache});
 }
 
 
@@ -341,9 +341,9 @@ sub get_node_ref {
 #  not anymore - let the destroy method handle it
 sub weaken_parent_refs {
     my $self = shift;
-    my $nodeList = $self->get_node_hash;
-    foreach my $nodeRef (values %$nodeList) {
-        $nodeRef->weaken_parent_ref;
+    my $node_list = $self->get_node_hash;
+    foreach my $node_ref (values %$node_list) {
+        $node_ref->weaken_parent_ref;
     }
 }
 
@@ -475,41 +475,41 @@ sub node_is_in_tree {
 
 sub get_terminal_nodes {
     my $self = shift;
-    my %nodeList;
+    my %node_list;
 
-    while ((my $node, my $nodeRef) = each (%{$self->get_node_hash})) {
-        next if ! $nodeRef->is_terminal_node;
-        $nodeList{$node} = $nodeRef;
+    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+        next if ! $node_ref->is_terminal_node;
+        $node_list{$node} = $node_ref;
     }
 
-    return wantarray ? %nodeList : \%nodeList;
+    return wantarray ? %node_list : \%node_list;
 }
 
 sub get_terminal_node_refs {
     my $self = shift;
-    my @nodeList;
+    my @node_list;
 
-    while ((my $node, my $nodeRef) = each (%{$self->get_node_hash})) {
-        next if ! $nodeRef->is_terminal_node;
-        push @nodeList, $nodeRef;
+    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+        next if ! $node_ref->is_terminal_node;
+        push @node_list, $node_ref;
     }
 
-    return wantarray ? @nodeList : \@nodeList;
+    return wantarray ? @node_list : \@node_list;
 }
 
 sub get_root_nodes {  #  if there are several root nodes
     my $self = shift;
-    my %nodeList;
+    my %node_list;
     my $node_hash = $self->get_node_hash;
 
-    while ((my $node, my $nodeRef) = each (%$node_hash)) {
-        next if (! defined $nodeRef);
-        $nodeList{$node} = $nodeRef if $nodeRef->is_root_node;
-        #my $check = $nodeRef->is_root_node;
+    while ((my $node, my $node_ref) = each (%$node_hash)) {
+        next if (! defined $node_ref);
+        $node_list{$node} = $node_ref if $node_ref->is_root_node;
+        #my $check = $node_ref->is_root_node;
         #print "";
     }
 
-    return wantarray ? %nodeList : \%nodeList;
+    return wantarray ? %node_list : \%node_list;
 }
 
 sub get_root_node_refs {
@@ -558,12 +558,12 @@ sub get_branch_nodes {
 
 sub get_branch_node_refs {
     my $self = shift;
-    my @nodeList;
-    while ((my $node, my $nodeRef) = each (%{$self->get_node_hash})) {
-        next if $nodeRef->is_terminal_node;
-        push @nodeList, $nodeRef;
+    my @node_list;
+    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+        next if $node_ref->is_terminal_node;
+        push @node_list, $node_ref;
     }
-    return wantarray ? @nodeList : \@nodeList;
+    return wantarray ? @node_list : \@node_list;
 }
 
 #  get an internal node name that is not currently used

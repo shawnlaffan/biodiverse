@@ -1072,19 +1072,19 @@ sub list2csv {  #  return a csv string from a list of values
         @_,
     );
 
-    my $csvLine = $args{csv_object};
-    if (!defined $csvLine
-        #or (blessed $csvLine) !~ /Text::CSV_XS/
+    my $csv_line = $args{csv_object};
+    if (!defined $csv_line
+        #or (blessed $csv_line) !~ /Text::CSV_XS/
         ) {
-        $csvLine = $self->get_csv_object (@_);
+        $csv_line = $self->get_csv_object (@_);
     }
 
-    if ($csvLine->combine(@{$args{list}})) {
-        return $csvLine->string;
+    if ($csv_line->combine(@{$args{list}})) {
+        return $csv_line->string;
     }
     else {
         croak "list2csv CSV combine() failed for some reason: "
-              . $csvLine->error_input
+              . $csv_line->error_input
               . ", line $.\n";
     }
 
@@ -1536,7 +1536,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $self = shift;
     my %args = @_;
 
-    my $soFar       = $args{soFar} || [];  #  reference to an array of values
+    my $so_far       = $args{soFar} || [];  #  reference to an array of values
     my $depth       = $args{depth} || 0;
     my $minima      = $args{minima};  #  should really be extrema1 and extrema2 not min and max
     my $maxima      = $args{maxima};
@@ -1546,8 +1546,8 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
     #  need to add rule to cope with zero resolution
 
-    #  go through each element of @$soFar and append one of the values from this level
-    my @thisDepth;
+    #  go through each element of @$so_far and append one of the values from this level
+    my @this_depth;
 
     my $min = min ($minima->[$depth], $maxima->[$depth]);
     my $max = max ($minima->[$depth], $maxima->[$depth]);
@@ -1577,56 +1577,56 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
                 value     => $value,
             );
         if ($depth > 0) {
-            foreach my $element (@$soFar) {
+            foreach my $element (@$so_far) {
                 #print "$element . $sep_char . $value\n";
-                push @thisDepth, $element . $sep_char . $val;
+                push @this_depth, $element . $sep_char . $val;
             }
         }
         else {
-            push (@thisDepth, $val);
+            push (@this_depth, $val);
         }
         last if $min == $max;  #  avoid infinite loop
     }
 
-    $soFar = \@thisDepth;
+    $so_far = \@this_depth;
 
     if ($depth < $#$minima) {
-        my $nextDepth = $depth + 1;
-        $soFar = $self -> get_poss_elements (
+        my $next_depth = $depth + 1;
+        $so_far = $self -> get_poss_elements (
             %args,
             sep_char  => $sep_char,
             precision => $precision,
-            depth     => $nextDepth,
-            soFar     => $soFar
+            depth     => $next_depth,
+            soFar     => $so_far
         );
     }
 
-    return $soFar;
+    return $so_far;
 }
 
 sub get_surrounding_elements {  #  generate a list of values around a single point at a specified resolution
                               #  calculates the min and max and call getPossIndexValues
     my $self = shift;
     my %args = @_;
-    my $coordRef = $args{coord};
+    my $coord_ref = $args{coord};
     my $resolutions = $args{resolutions};
     my $sep_char = $args{sep_char} || $self -> get_param('JOIN_CHAR') || $self -> get_param('JOIN_CHAR');
     my $distance = $args{distance} || 1; #  number of cells distance to check
 
     my (@minima, @maxima);
     #  precision snap them to make comparisons easier
-    my $precision = $args{precision} || [('%.10f') x scalar @$coordRef];
+    my $precision = $args{precision} || [('%.10f') x scalar @$coord_ref];
 
-    foreach my $i (0..$#{$coordRef}) {
+    foreach my $i (0..$#{$coord_ref}) {
         $minima[$i] = 0
             + $self -> set_precision (
                 precision => $precision->[$i],
-                value     => $coordRef->[$i] - ($resolutions->[$i] * $distance)
+                value     => $coord_ref->[$i] - ($resolutions->[$i] * $distance)
             );
         $maxima[$i] = 0
             + $self -> set_precision (
                 precision => $precision->[$i],
-                value     => $coordRef->[$i] + ($resolutions->[$i] * $distance)
+                value     => $coord_ref->[$i] + ($resolutions->[$i] * $distance)
             );
     }
 

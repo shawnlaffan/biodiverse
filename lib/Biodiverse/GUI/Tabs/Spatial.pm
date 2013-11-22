@@ -154,9 +154,9 @@ sub new {
     }
     else {
         my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
-        my $cellX = $cell_sizes->[0];
+        my $cell_x = $cell_sizes->[0];
         $initial_sp1 = 'sp_self_only ()';
-        $initial_sp2 = "sp_circle (radius => $cellX)";
+        $initial_sp2 = "sp_circle (radius => $cell_x)";
     }
 
     $self->{spatial1} = Biodiverse::GUI::SpatialParams->new($initial_sp1);
@@ -542,9 +542,9 @@ sub setPane {
 
     my $pane = $self->{xmlPage}->get_widget("vpaneSpatial");
     
-    my $maxPos = $pane->get('max-position');
-    $pane->set_position( $maxPos * $pos );
-    #print "[Spatial tab] Updating pane: maxPos = $maxPos, pos = $pos\n";
+    my $max_pos = $pane->get('max-position');
+    $pane->set_position( $max_pos * $pos );
+    #print "[Spatial tab] Updating pane: maxPos = $max_pos, pos = $pos\n";
     
     return;
 }
@@ -609,10 +609,10 @@ sub onRun {
     $self->{output_name} = $self->{xmlPage}->get_widget('txtSpatialName')->get_text();
 
     # Get calculations to run
-    my @toRun
+    my @to_run
         = Biodiverse::GUI::Tabs::CalculationsTree::getCalculationsToRun( $self->{calculations_model} );
 
-    if (scalar @toRun == 0) {
+    if (scalar @to_run == 0) {
         my $dlg = Gtk2::MessageDialog->new(
             undef,
             'modal',
@@ -673,13 +673,13 @@ sub onRun {
             $self->{spatial2}->get_text(),
         ],
         definition_query    => $self->{definition_query1}->get_text(),
-        calculations        => \@toRun,
+        calculations        => \@to_run,
         matrix_ref          => $self->{project}->getSelectedMatrix,
         tree_ref            => $self->{project}->getSelectedPhylogeny,
     );
 
     # Perform the analysis
-    print "[Spatial tab] Running @toRun\n";
+    print "[Spatial tab] Running @to_run\n";
     #$self->{output_ref}->sp_calc(%args);
     my $success = eval {
         $output_ref->sp_calc(%args)

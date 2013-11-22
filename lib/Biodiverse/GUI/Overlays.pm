@@ -68,12 +68,12 @@ sub initOverlayList {
     my $model = shift;
     my $tree = $dlgxml->get_widget('treeOverlays');
     
-    my $colName = Gtk2::TreeViewColumn->new();
-    my $nameRenderer = Gtk2::CellRendererText->new();
-    $colName->set_title('Filename');
-    $colName->pack_start($nameRenderer, 1);
-    $colName->add_attribute($nameRenderer,  text => 0);
-    $tree->insert_column($colName, -1);
+    my $col_name = Gtk2::TreeViewColumn->new();
+    my $name_renderer = Gtk2::CellRendererText->new();
+    $col_name->set_title('Filename');
+    $col_name->pack_start($name_renderer, 1);
+    $col_name->add_attribute($name_renderer,  text => 0);
+    $tree->insert_column($col_name, -1);
     
     #  fiddling around with colour selection
     #my $colColour = Gtk2::TreeViewColumn->new();

@@ -511,7 +511,7 @@ sub initDendrogram {
     my $self = shift;
 
     my $frame       =  $self->{xmlPage}->get_widget('clusterFrame');
-    my $graphFrame  =  $self->{xmlPage}->get_widget('graphFrame');
+    my $graph_frame  =  $self->{xmlPage}->get_widget('graphFrame');
     my $hscroll     =  $self->{xmlPage}->get_widget('clusterHScroll');
     my $vscroll     =  $self->{xmlPage}->get_widget('clusterVScroll');
     my $list_combo  =  $self->{xmlPage}->get_widget('comboMapList');
@@ -524,7 +524,7 @@ sub initDendrogram {
 
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
         $frame,
-        $graphFrame,
+        $graph_frame,
         $hscroll,
         $vscroll,
         $self->{grid},
@@ -760,9 +760,9 @@ sub setPane {
     my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
-    my $maxPos = $pane->get('max-position');
-    $pane->set_position( $maxPos * $pos );
-    #print "[Clustering tab] Updating pane $id: maxPos = $maxPos, pos = $pos\n";
+    my $max_pos = $pane->get('max-position');
+    $pane->set_position( $max_pos * $pos );
+    #print "[Clustering tab] Updating pane $id: maxPos = $max_pos, pos = $pos\n";
     
     return;
 }

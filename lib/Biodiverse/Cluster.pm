@@ -405,19 +405,19 @@ sub build_matrices {
     # sort to ensure consistent order - easier for debug
     my @elements_to_calc = sort keys %{$sp->get_element_hash};
 
-    my $toDo = scalar @elements_to_calc;
+    my $to_do = scalar @elements_to_calc;
 
     croak "No elements to cluster, check your spatial conditions and def query\n"
-      if not scalar $toDo;
+      if not scalar $to_do;
 
     my $progress_bar = Biodiverse::Progress->new();
     my $count = 0;
-    my $printedProgress = -1;
-    my $target_element_count = $toDo * ($toDo - 1) / 2; # n(n-1)/2
+    my $printed_progress = -1;
+    my $target_element_count = $to_do * ($to_do - 1) / 2; # n(n-1)/2
     my $progress_pfx = "Building matrix\n"
                         . "$name\n"
                         . "Target is $target_element_count matrix elements\n";
-    #print "[CLUSTER] Progress (% of $toDo elements):     ";
+    #print "[CLUSTER] Progress (% of $to_do elements):     ";
     my @processed_elements;
 
     #  Use $sp for the groups so any def query will have an effect
@@ -425,9 +425,9 @@ sub build_matrices {
     foreach my $element1 (sort @elements_to_calc) {
 
         $count ++;
-        my $progress = $count / $toDo;
+        my $progress = $count / $to_do;
         $progress_bar->update(
-            $progress_pfx . "(row $count / $toDo)",
+            $progress_pfx . "(row $count / $to_do)",
             $progress,
         );
 
@@ -480,11 +480,11 @@ sub build_matrices {
     my $element_check = $self->get_param ('ELEMENT_CHECK');
 
     $progress_bar->update(
-        "Building matrix\n$name\n(row $count / $toDo)",
-        $count / $toDo
+        "Building matrix\n$name\n(row $count / $to_do)",
+        $count / $to_do
     );
     $progress_bar->reset;
-    print "[CLUSTER] Completed $count of $toDo groups\n";
+    print "[CLUSTER] Completed $count of $to_do groups\n";
 
     print "[CLUSTER] Valid value count is $valid_count\n";
     if (! $valid_count) {
@@ -922,7 +922,7 @@ sub cluster_matrix_elements {
     local $| = 1;  #  write to screen as we go
 
     my $count = 0;
-    my $printedProgress = -1;
+    my $printed_progress = -1;
     
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
@@ -956,10 +956,10 @@ sub cluster_matrix_elements {
         #  use node refs for children that are nodes
         #  use original name if not a node
         #  - this is where the name for $el1 comes from (a historical leftover)
-        my $lengthBelow = 0;
-        my $nodeNames = $self->get_node_hash;
-        my $el1 = defined $nodeNames->{$node1} ? $nodeNames->{$node1} : $node1;
-        my $el2 = defined $nodeNames->{$node2} ? $nodeNames->{$node2} : $node2;
+        my $length_below = 0;
+        my $node_names = $self->get_node_hash;
+        my $el1 = defined $node_names->{$node1} ? $node_names->{$node1} : $node1;
+        my $el2 = defined $node_names->{$node2} ? $node_names->{$node2} : $node2;
 
         my $new_node_name = $join_number . "___";
 
@@ -1672,10 +1672,10 @@ sub get_values_for_linkage {
     }
     else {
         warn "two node linkage case\n";
-        my $nodeRef1 = $self->get_node_ref (node => $node1);
-        my $nodeRef2 = $self->get_node_ref (node => $node2);
-        $tmp1 = $nodeRef1->get_length_below;
-        $tmp2 = $nodeRef2->get_length_below;
+        my $node_ref_1 = $self->get_node_ref (node => $node1);
+        my $node_ref_2 = $self->get_node_ref (node => $node2);
+        $tmp1 = $node_ref_1->get_length_below;
+        $tmp2 = $node_ref_2->get_length_below;
     }
 
     return wantarray ? ($tmp1, $tmp2) : [$tmp1, $tmp2];
@@ -1996,11 +1996,11 @@ sub sp_calc {
     $indices_object->run_precalc_globals(%args);
 
     local $| = 1;  #  write to screen as we go
-    my $toDo = $self->get_node_count;
-    my ($count, $printedProgress) = (0, -1);
+    my $to_do = $self->get_node_count;
+    my ($count, $printed_progress) = (0, -1);
     my $tree_name = $self->get_param ('NAME');
 
-    print "[CLUSTER] Progress (% of $toDo nodes):     ";
+    print "[CLUSTER] Progress (% of $to_do nodes):     ";
     my $progress_bar = Biodiverse::Progress->new();
 
     #  loop though the nodes and calculate the outputs
@@ -2009,8 +2009,8 @@ sub sp_calc {
 
         $progress_bar->update (
             "Cluster spatial analysis\n"
-            . "$tree_name\n(node $count / $toDo)",
-            $count / $toDo,
+            . "$tree_name\n(node $count / $to_do)",
+            $count / $to_do,
         );
 
         my %elements = (element_list1 => [keys %{$node->get_terminal_elements}]);

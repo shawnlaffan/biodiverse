@@ -148,10 +148,10 @@ sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
     my $label_count_outer = keys %{$label_list2};
     my ($sample_count_all, $sample_count_inner, $sample_count_outer);
 
-    foreach my $subLabel (keys %{$label_list_all}) {
-        $sample_count_all += $label_list_all->{$subLabel};
-        $sample_count_inner += $label_list1->{$subLabel} if exists $label_list1->{$subLabel};
-        $sample_count_outer += $label_list2->{$subLabel} if exists $label_list2->{$subLabel};
+    foreach my $sub_label (keys %{$label_list_all}) {
+        $sample_count_all += $label_list_all->{$sub_label};
+        $sample_count_inner += $label_list1->{$sub_label} if exists $label_list1->{$sub_label};
+        $sample_count_outer += $label_list2->{$sub_label} if exists $label_list2->{$sub_label};
     }
 
     my %results;
@@ -914,7 +914,7 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
         $n += $value;
     }
 
-    my ($totalCount, $qe) = (undef, undef);
+    my ($total_count, $qe) = (undef, undef);
     my (%done, %p_values);
 
     BY_LABEL1:

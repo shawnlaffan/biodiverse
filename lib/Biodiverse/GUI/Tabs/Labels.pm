@@ -207,7 +207,7 @@ sub initDendrogram {
     my $self = shift;
     
     my $frame      = $self->{xmlPage}->get_widget('phylogenyFrame');
-    my $graphFrame = $self->{xmlPage}->get_widget('phylogenyGraphFrame');
+    my $graph_frame = $self->{xmlPage}->get_widget('phylogenyGraphFrame');
     my $hscroll    = $self->{xmlPage}->get_widget('phylogenyHScroll');
     my $vscroll    = $self->{xmlPage}->get_widget('phylogenyVScroll');
 
@@ -220,7 +220,7 @@ sub initDendrogram {
     
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
         $frame,
-        $graphFrame,
+        $graph_frame,
         $hscroll,
         $vscroll,
         undef,
@@ -1191,9 +1191,9 @@ sub setPane {
     my $id = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
-    my $maxPos = $pane->get('max-position');
-    $pane->set_position( $maxPos * $pos );
-    #print "[Labels tab] Updating pane $id: maxPos = $maxPos, pos = $pos\n";
+    my $max_pos = $pane->get('max-position');
+    $pane->set_position( $max_pos * $pos );
+    #print "[Labels tab] Updating pane $id: maxPos = $max_pos, pos = $pos\n";
     
     return;
 }

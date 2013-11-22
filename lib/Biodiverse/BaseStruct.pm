@@ -775,7 +775,7 @@ sub to_table {
 
     my $list = $args{list};
 
-    my $checkElements = $self->get_element_list;
+    my $check_elements = $self->get_element_list;
 
     #  check if the file is symmetric or not.  Check the list type as well.
     my $last_contents_count = -1;
@@ -785,11 +785,11 @@ sub to_table {
 
     #print "[BASESTRUCT] Checking elements for list contents\n";
     CHECK_ELEMENTS:
-    foreach my $i (0 .. $#$checkElements) {  # sample the lot
-        my $checkElement = $checkElements->[$i];
-        last CHECK_ELEMENTS if ! defined $checkElement;
+    foreach my $i (0 .. $#$check_elements) {  # sample the lot
+        my $check_element = $check_elements->[$i];
+        last CHECK_ELEMENTS if ! defined $check_element;
 
-        my $values = $self->get_list_values (element => $checkElement, list => $list);
+        my $values = $self->get_list_values (element => $check_element, list => $list);
         if ((ref $values) =~ /HASH/) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
                 $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
@@ -867,11 +867,11 @@ sub to_table_sym {
     my @data;
     my @elements = sort $self->get_element_list;
 
-    my $listHashRef = $self->get_hash_list_values(
+    my $list_hash_ref = $self->get_hash_list_values(
         element => $elements[0],
         list    => $args{list},
     );
-    my @print_order = sort keys %$listHashRef;
+    my @print_order = sort keys %$list_hash_ref;
 
     my $max_element_array_len;  #  used in some sections, set below if needed
 
@@ -909,7 +909,7 @@ sub to_table_sym {
             push @basic, @array;
         }
 
-        my $listRef = $self->get_hash_list_values(
+        my $list_ref = $self->get_hash_list_values(
             element => $element,
             list    => $args{list},
         );
@@ -918,22 +918,22 @@ sub to_table_sym {
             #  repeat the elements, once for each value or key/value pair
             if (!defined $no_data_value) {
                 foreach my $key (@print_order) {
-                    push @data, [@basic, $key, $listRef->{$key}];
+                    push @data, [@basic, $key, $list_ref->{$key}];
                 }
             }
             else {  #  need to change some values
                 foreach my $key (@print_order) {
-                    my $val = $listRef->{$key} // $no_data_value;
+                    my $val = $list_ref->{$key} // $no_data_value;
                     push @data, [@basic, $key, $val];
                 }
             }
         }
         else {
             if (!defined $no_data_value) {
-                push @data, [@basic, @{$listRef}{@print_order}];
+                push @data, [@basic, @{$list_ref}{@print_order}];
             }
             else {
-                my @vals = map {defined $_ ? $_ : $no_data_value} @{$listRef}{@print_order};
+                my @vals = map {defined $_ ? $_ : $no_data_value} @{$list_ref}{@print_order};
                 push @data, [@basic, @vals];
             }
         }
@@ -2185,20 +2185,20 @@ sub add_element {
 
     my $element = $args{element};
     my $quote_char = $self->get_param('QUOTES');
-    my $elementListRef = $self->csv2list(
+    my $element_list_ref = $self->csv2list(
         string     => $element,
         sep_char   => $self->get_param('JOIN_CHAR'),
         quote_char => $quote_char,
         csv_object => $args{csv_object},
     );
 
-    for (my $i = 0; $i <= $#$elementListRef; $i ++) {
-        if (! defined $elementListRef->[$i]) {
-            $elementListRef->[$i] = ($quote_char . $quote_char);
+    for (my $i = 0; $i <= $#$element_list_ref; $i ++) {
+        if (! defined $element_list_ref->[$i]) {
+            $element_list_ref->[$i] = ($quote_char . $quote_char);
         }
     }
 
-    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $elementListRef;
+    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref;
 
     return;
 }
@@ -2210,7 +2210,7 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     croak "element not specified\n" if ! defined $args{element};
     croak "subelement not specified\n" if ! defined $args{subelement};
     my $element = $args{element};
-    my $subElement = $args{subelement};
+    my $sub_element = $args{subelement};
 
     if (! exists $self->{ELEMENTS}{$element}) {
         $self->add_element (
@@ -2224,7 +2224,7 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
         delete $self->{ELEMENTS}{$element}{BASE_STATS};
     }
 
-    $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement} += $args{count};
+    $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element} += $args{count};
 
     return;
 }
@@ -2298,14 +2298,14 @@ sub delete_element {
 
     my $element = $args{element};
 
-    my @deletedSubElements =
+    my @deleted_sub_elements =
         $self->get_sub_element_list(element => $element);
 
     %{$self->{ELEMENTS}{$element}{SUBELEMENTS}} = ();
     %{$self->{ELEMENTS}{$element}} = ();
     delete $self->{ELEMENTS}{$element};
 
-    return wantarray ? @deletedSubElements : \@deletedSubElements;
+    return wantarray ? @deleted_sub_elements : \@deleted_sub_elements;
 }
 
 #  remove a sub element label or group from within
@@ -2319,7 +2319,7 @@ sub delete_sub_element {
     croak "element not specified\n" if ! defined $args{element};
     croak "subelement not specified\n" if ! defined $args{subelement};
     my $element = $args{element};
-    my $subElement = $args{subelement};
+    my $sub_element = $args{subelement};
 
     return if ! exists $self->{ELEMENTS}{$element};
 
@@ -2327,11 +2327,11 @@ sub delete_sub_element {
         delete $self->{ELEMENTS}{$element}{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
         delete $self->{ELEMENTS}{$element}{BASE_STATS}{VARIETY};
         if (exists $self->{ELEMENTS}{$element}{BASE_STATS}{SAMPLECOUNT}) {
-            $self->{ELEMENTS}{$element}{BASE_STATS}{SAMPLECOUNT} -= $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement};
+            $self->{ELEMENTS}{$element}{BASE_STATS}{SAMPLECOUNT} -= $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
         }
     }
     if (exists $self->{ELEMENTS}{$element}{SUBELEMENTS}) {
-        delete $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement};
+        delete $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
     }
 
     return;
@@ -2880,8 +2880,8 @@ sub get_sample_count {
     return if ! $self->exists_element (element => $args{element});
 
     my $count = 0;
-    foreach my $subElement ($self->get_sub_element_list(element => $element)) {
-        $count += $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement};
+    foreach my $sub_element ($self->get_sub_element_list(element => $element)) {
+        $count += $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
     }
 
     return $count;

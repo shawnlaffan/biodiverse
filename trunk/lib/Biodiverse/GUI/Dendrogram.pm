@@ -54,8 +54,8 @@ use constant HOVER_CURSOR => 'hand2';
 sub new {
     #  FIXME FIXME this sub desperately needs to use a hash of key-value pairs
     my $class           = shift;
-    my $mainFrame       = shift;    # GTK frame to add dendrogram
-    my $graphFrame      = shift;    # GTK frame for the graph (below!)
+    my $main_frame       = shift;    # GTK frame to add dendrogram
+    my $graph_frame      = shift;    # GTK frame for the graph (below!)
     my $hscroll         = shift;
     my $vscroll         = shift;
     my $map             = shift;    # Grid.pm object of the dataset to link in
@@ -109,8 +109,8 @@ sub new {
     # Make and hook up the canvases
     $self->{canvas} = Gnome2::Canvas->new();
     $self->{graph}  = Gnome2::Canvas->new();
-    $mainFrame->add( $self->{canvas} );
-    $graphFrame->add( $self->{graph} );
+    $main_frame->add( $self->{canvas} );
+    $graph_frame->add( $self->{graph} );
     $self->{canvas}->signal_connect_swapped (
         size_allocate => \&onResize,
         $self,

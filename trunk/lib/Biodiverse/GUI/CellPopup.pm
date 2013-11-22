@@ -107,26 +107,26 @@ sub showNeighbourElements {
     my $model = $popup->{neighbours_models}{elements};
 
     # Choose model to set
-    my $newModel;
+    my $new_model;
     if ($type eq 'set1') {
         # Central - filter the original model
         #print "[Cell popup] Setting elements model to filtered (set 1)\n";
-        $newModel = Gtk2::TreeModelFilter->new($model);
-        $newModel->set_visible_column(ELEMENTS_MODEL_INNER);
-        $popup->setListModel($newModel);
+        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model->set_visible_column(ELEMENTS_MODEL_INNER);
+        $popup->setListModel($new_model);
     }
     elsif ($type eq 'set2') {
         # Other - filter the original model
         #print "[Cell popup] Setting elements model to filtered (set 2)\n";
-        $newModel = Gtk2::TreeModelFilter->new($model);
-        $newModel->set_visible_column(ELEMENTS_MODEL_OUTER);
-        $popup->setListModel($newModel);
+        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model->set_visible_column(ELEMENTS_MODEL_OUTER);
+        $popup->setListModel($new_model);
     }
     elsif ($type eq 'all') {
         # All - use original
         #print "[Cell popup] Setting elements model to original\n";
-        $newModel = $model;
-        $popup->setListModel($newModel);
+        $new_model = $model;
+        $popup->setListModel($new_model);
     }
 
     $popup->setValueColumn(undef);
@@ -146,30 +146,30 @@ sub showNeighbourLabels {
     my $model = $popup->{neighbours_models}{labels};
 
     # Choose model to set
-    my $newModel;
+    my $new_model;
     if ($type eq 'set1') {
         # Central - filter the original model
         #print "[Cell popup] Setting labels model to filtered (inner)\n";
-        $newModel = Gtk2::TreeModelFilter->new($model);
-        $newModel->set_visible_column(LABELS_MODEL_SET1);
-        $popup->setListModel($newModel);
+        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model->set_visible_column(LABELS_MODEL_SET1);
+        $popup->setListModel($new_model);
 
         $popup->setValueColumn(LABELS_MODEL_COUNT_SET1);
     }
     elsif ($type eq 'set2') {
         # Other - filter the original model
         #print "[Cell popup] Setting labels model to filtered (outer)\n";
-        $newModel = Gtk2::TreeModelFilter->new($model);
-        $newModel->set_visible_column(LABELS_MODEL_SET2);
-        $popup->setListModel($newModel);
+        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model->set_visible_column(LABELS_MODEL_SET2);
+        $popup->setListModel($new_model);
 
         $popup->setValueColumn(LABELS_MODEL_COUNT_SET2);
     }
     elsif ($type eq 'all') {
         # All - use original
         #print "[Cell popup] Setting labels model to original\n";
-        $newModel = $model;
-        $popup->setListModel($newModel);
+        $new_model = $model;
+        $popup->setListModel($new_model);
 
         $popup->setValueColumn(LABELS_MODEL_COUNT_ALL);
     }

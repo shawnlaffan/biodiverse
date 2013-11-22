@@ -370,7 +370,7 @@ sub calc_numeric_label_dissimilarity {
         $list2 = $args{label_hash1};
     }
 
-    my ($sum_absX, $sumXsqr, $sum_wts) = (undef, undef, 0);
+    my ($sum_absX, $sum_X_sqr, $sum_wts) = (undef, undef, 0);
 
     my @val1_arr = sort {$a <=> $b} keys %$list1;
     my @val2_arr = sort {$a <=> $b} keys %$list2;
@@ -397,7 +397,7 @@ sub calc_numeric_label_dissimilarity {
         my $wt1 = $list1->{$val1};
 
         ###  the variance code
-        $sumXsqr  += $wt1 * ($ssq_v2 - 2 * $val1 * $sum_v2 + $sum_wt2 * $val1**2);
+        $sum_X_sqr  += $wt1 * ($ssq_v2 - 2 * $val1 * $sum_v2 + $sum_wt2 * $val1**2);
 
         ###  sum the wts
         $sum_wts  += $wt1 * $sum_wt2;
@@ -440,7 +440,7 @@ sub calc_numeric_label_dissimilarity {
         no warnings qw /uninitialized numeric/;
 
         $results{NUMD_ABSMEAN}  = eval {$sum_absX / $sum_wts};
-        $results{NUMD_VARIANCE} = eval {$sumXsqr / $sum_wts};
+        $results{NUMD_VARIANCE} = eval {$sum_X_sqr / $sum_wts};
         $results{NUMD_COUNT}    = $sum_wts;
     }
 

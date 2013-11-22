@@ -1182,7 +1182,7 @@ sub getSelectedPhylogenyIter {
 sub manageEmptyModel {
     my $self = shift;
     my $model = shift;
-    my $buttonIDs = shift;
+    my $button_IDs = shift;
     my $func = shift;
 
     my $sensitive;
@@ -1213,7 +1213,7 @@ sub manageEmptyModel {
 
     # enable/disable buttons
     my $instance = Biodiverse::GUI::GUIManager->instance;
-    foreach (@{$buttonIDs}) {
+    foreach (@{$button_IDs}) {
         warn "$_\n" if ! defined $instance->getWidget($_);
         $instance->getWidget($_)->set_sensitive($sensitive);
     }

@@ -892,12 +892,12 @@ sub delete_element {
 sub is_symmetric {  #  check if the matrix is symmetric (each element has an equal number of entries)
     my $self = shift;
     
-    my $prevCount = undef;
+    my $prev_count = undef;
     foreach my $count (values %{$self->{ELEMENTS}}) {
-        if (defined $prevCount) {
-            return if $count != $prevCount;
+        if (defined $prev_count) {
+            return if $count != $prev_count;
         }
-        $prevCount = $count;
+        $prev_count = $count;
     }
     return 1;  #  if we get this far then it is symmetric
 }

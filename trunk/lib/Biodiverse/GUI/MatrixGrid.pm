@@ -299,7 +299,7 @@ sub drawMatrix {
 
     $self->{cells} = {};
 
-    my ($cellX, $cellY, $width_pixels) = (10, 10, 0);
+    my ($cell_x, $cell_y, $width_pixels) = (10, 10, 0);
 
     # Delete any old cells
     if ($self->{cells_group}) {

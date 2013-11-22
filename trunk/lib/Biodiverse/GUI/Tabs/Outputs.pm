@@ -62,14 +62,14 @@ sub new {
     #while (my ($column_type, $text) = each %columns_hash) {
     foreach my $column_type (@column_order) {
         my $text = $columns_hash{$column_type};
-        my $textRenderer = Gtk2::CellRendererText->new();
+        my $text_renderer = Gtk2::CellRendererText->new();
         if ($column_type eq 'Type') {
-            $textRenderer->set(style => 'italic');
+            $text_renderer->set(style => 'italic');
         }
         $tree->insert_column_with_attributes(
             -1,
             $column_type,
-            $textRenderer,
+            $text_renderer,
             text => $text,
         );
     }

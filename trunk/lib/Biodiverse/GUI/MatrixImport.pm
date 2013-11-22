@@ -207,7 +207,7 @@ sub makeColumnsDialog {
     # the number of columns is unknown
 
     my $header = shift; # ref to column header array
-    my $wndMain = shift;
+    my $wnd_main = shift;
     my $type_options = shift;  #  array of types
     if (not defined $type_options or (ref $type_options) !~ /ARRAY/) {
         $type_options = ['Ignore', 'Label', 'Matrix Start'];
@@ -217,7 +217,7 @@ sub makeColumnsDialog {
     print "[GUI] Generating make columns dialog for $num_columns columns\n";
 
     # Make dialog
-    my $dlg = Gtk2::Dialog->new("Choose columns", $wndMain, "modal", "gtk-cancel", "cancel", "gtk-ok", "ok");
+    my $dlg = Gtk2::Dialog->new("Choose columns", $wnd_main, "modal", "gtk-cancel", "cancel", "gtk-ok", "ok");
     my $label = Gtk2::Label->new("<b>Select column types</b>\n(choose only one start matrix column)");
     $label->set_use_markup(1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);
@@ -274,7 +274,7 @@ sub makeColumnsDialog {
 }
 
 sub addColumn {
-    my ($col_widgets, $table, $colId, $header) = @_;
+    my ($col_widgets, $table, $col_id, $header) = @_;
 
     # Column header
     my $label = Gtk2::Label->new("<tt>$header</tt>");
@@ -289,13 +289,13 @@ sub addColumn {
     $radio3->set('can-focus', 0);
 
     # Attack to table
-    $table->attach_defaults($label, $colId + 1, $colId + 2, 0, 1);
-    $table->attach($radio1, $colId + 1, $colId + 2, 1, 2, 'shrink', 'shrink', 0, 0);
-    $table->attach($radio2, $colId + 1, $colId + 2, 2, 3, 'shrink', 'shrink', 0, 0);
-    $table->attach($radio3, $colId + 1, $colId + 2, 3, 4, 'shrink', 'shrink', 0, 0);
+    $table->attach_defaults($label, $col_id + 1, $col_id + 2, 0, 1);
+    $table->attach($radio1, $col_id + 1, $col_id + 2, 1, 2, 'shrink', 'shrink', 0, 0);
+    $table->attach($radio2, $col_id + 1, $col_id + 2, 2, 3, 'shrink', 'shrink', 0, 0);
+    $table->attach($radio3, $col_id + 1, $col_id + 2, 3, 4, 'shrink', 'shrink', 0, 0);
 
     # Store widgets
-    $col_widgets->[$colId] = [$radio1, $radio2, $radio3];
+    $col_widgets->[$col_id] = [$radio1, $radio2, $radio3];
 }
 
 1;

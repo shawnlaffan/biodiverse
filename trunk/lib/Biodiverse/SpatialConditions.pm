@@ -582,8 +582,8 @@ sub get_distances {
 
     my $params = $self->get_param('USES');
 
-    my ( @d, $sumDsqr, @D );
-    my ( @c, $sumCsqr, @C );
+    my ( @d, $sum_D_sqr, @D );
+    my ( @c, $sum_C_sqr, @C );
     my @iters;
 
 #if ((not $params->{use_euc_distance}) and (not $params->{use_cell_distance})) {
@@ -630,7 +630,7 @@ sub get_distances {
             eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
 
         $D[$i] = abs $d[$i];
-        $sumDsqr += $d[$i]**2;
+        $sum_D_sqr += $d[$i]**2;
 
         #  won't need these most of the time
         if ( $params->{use_cell_distance}
@@ -642,7 +642,7 @@ sub get_distances {
 
             $c[$i] = eval { $d[$i] / $cellsize[$i] };
             $C[$i] = eval { abs $c[$i] };
-            $sumCsqr += eval { $c[$i]**2 } || 0;
+            $sum_C_sqr += eval { $c[$i]**2 } || 0;
         }
     }
 
@@ -652,14 +652,14 @@ sub get_distances {
         $params->{use_euc_distance}
         ? 0 + $self->set_precision(
             precision => '%.10f',
-            value     => sqrt($sumDsqr),
+            value     => sqrt($sum_D_sqr),
         )
         : undef;
     my $C =
         $params->{use_cell_distance}
         ? 0 + $self->set_precision(
             precision => '%.10f',
-            value     => sqrt($sumCsqr),
+            value     => sqrt($sum_C_sqr),
         )
         : undef;
 
@@ -672,9 +672,9 @@ sub get_distances {
         d_list => \@d,
         D_list => \@D,
         D      => $D,
-        Dsqr   => $sumDsqr,
+        Dsqr   => $sum_D_sqr,
         C      => $C,
-        Csqr   => $sumCsqr,
+        Csqr   => $sum_C_sqr,
         C_list => \@C,
         c_list => \@c,
     );

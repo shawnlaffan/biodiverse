@@ -1215,11 +1215,13 @@ sub assign_plot_coords {
     my $y_len = $self->get_terminal_element_count;
     my $x_len = $self->get_max_total_length;
     my $scale_factor = $args{plot_coords_scale_factor};
+
+    if ($scale_factor && $args{scale_factor_is_relative}) {
+        #  Scale factor is user-interpretable when this is set, so 4 means 4 times higher than wide.
+        #  We just need to adjust for the actual ratio.  
+        $scale_factor *= $x_len / $y_len;  
+    }
     if (!$scale_factor or $scale_factor < 0) {
-        #$scale_factor =
-        #    $y_len < $x_len
-        #  ? $y_len / $x_len
-        #  : $x_len / $y_len;
         $scale_factor = $x_len / $y_len;
     }
 

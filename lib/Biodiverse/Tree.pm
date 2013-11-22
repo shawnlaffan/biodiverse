@@ -855,6 +855,7 @@ sub export_shapefile {
     $self->assign_plot_coords (
         plot_coords_left_to_right => $args{plot_left_to_right},
         plot_coords_scale_factor  => $args{vertical_scale_factor},
+        scale_factor_is_relative  => 1,
     );
 
     use Geo::Shapefile::Writer;

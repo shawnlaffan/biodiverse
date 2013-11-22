@@ -915,7 +915,7 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
         $n += $value;
     }
 
-    my ($totalCount, $qe) = (undef, undef);
+    my ($total_count, $qe) = (undef, undef);
     my (%done, %p_values);
 
     BY_LABEL1:

@@ -145,8 +145,8 @@ sub load_data {
     }
 
     my $IDcount = 0;
-    my %labelList;
-    my %labelInMatrix;
+    my %label_list;
+    my %label_in_matrix;
     my $out_sep_char = $self->get_param('JOIN_CHAR');
     my $out_quote_char = $self->get_param('QUOTES');
     

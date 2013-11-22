@@ -837,11 +837,11 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
     my $nodes = $tree->get_node_hash;
     my %node_range;
   
-    my $toDo = scalar keys %$nodes;
+    my $to_do = scalar keys %$nodes;
     my $count = 0;
-    print "[PD INDICES] Progress (% of $toDo nodes): ";
+    print "[PD INDICES] Progress (% of $to_do nodes): ";
 
-    my $progress      = $count / $toDo;
+    my $progress      = $count / $to_do;
     my $progress_text = int (100 * $progress);
     $progress_bar->update(
         "Calculating node ranges\n($progress_text %)",
@@ -869,7 +869,7 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
             }
         }
         $count ++;
-        $progress     = $count / $toDo;
+        $progress     = $count / $to_do;
         $progress_text = int (100 * $progress);
         $progress_bar->update(
             "Calculating node ranges\n($progress_text)",
@@ -926,10 +926,10 @@ sub get_global_node_abundance_hash {
     my $nodes = $tree->get_node_hash;
     my %node_hash;
 
-    my $toDo = scalar keys %$nodes;
+    my $to_do = scalar keys %$nodes;
     my $count = 0;
 
-    my $progress = int (100 * $count / $toDo);
+    my $progress = int (100 * $count / $to_do);
     $progress_bar->update(
         "Calculating node abundances\n($progress)",
         $progress,
@@ -947,7 +947,7 @@ sub get_global_node_abundance_hash {
         }
 
         $count ++;
-        my $progress = $count / $toDo;
+        my $progress = $count / $to_do;
         $progress_bar->update(
             "Calculating node abundances\n($progress)",
             $progress,

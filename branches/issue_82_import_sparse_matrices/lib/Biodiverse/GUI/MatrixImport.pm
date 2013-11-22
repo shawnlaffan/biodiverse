@@ -31,6 +31,13 @@ sub run {
 
     return if ! ($filename && $name);
 
+    #####
+    #
+    #  Add option to use normal or sparse
+    #  - simpler than autodetection which is fraught with possible problems.
+    #  branch off into different sub if sparse format
+    
+    
     # Get header columns
     print "[GUI] Discovering columns from $filename\n";
     

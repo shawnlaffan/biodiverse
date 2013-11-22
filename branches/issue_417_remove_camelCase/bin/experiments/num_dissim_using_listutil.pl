@@ -53,7 +53,7 @@ sub old_school {
     my %label_list1     = %{$args{label_hash1}};
     my %label_list2     = %{$args{label_hash2}};
 
-    my ($sumX, $sum_absX, $sumXsqr, $count) = (undef, undef, undef, 0);
+     my ($sum_X, $sum_abs_X, $sum_X_sqr, $count) = (undef, undef, undef, 0);
     my $i = 0;
     
     BY_LABEL1:
@@ -70,14 +70,14 @@ sub old_school {
 
             #  tally the stats
             my $x      = $value * $joint_count;
-            #$sumX     += $x;
-            $sum_absX += abs($x);
-            $sumXsqr  += $value ** 2 * $joint_count;
+            #$sum_X     += $x;
+            $sum_abs_X += abs($x);
+            $sum_X_sqr  += $value ** 2 * $joint_count;
             $count    += $joint_count;
         }
     }
     
-    return (sum_absX => $sum_absX, sumXsqr => $sumXsqr, count => $count);
+    return (sum_absX => $sum_abs_X, sumXsqr => $sum_X_sqr, count => $count);
 }
 
 sub new_school {
@@ -94,7 +94,7 @@ sub new_school {
     my %label_list1 = %$list1;
     my %label_list2 = %$list2;
 
-    my ($sum_absX, $sumXsqr, $count) = (undef, undef, 0);
+    my ($sum_abs_X, $sum_X_sqr, $count) = (undef, undef, 0);
 
 
     BY_LABEL1:
@@ -106,12 +106,12 @@ sub new_school {
         my @wtd_adiff_list = List::MoreUtils::pairwise {$a * $b} @abs_diff_list, @joint_count;
         my @wtd_ssq_list   = List::MoreUtils::pairwise {$a * $b} @ssq_list, @joint_count;
 
-        $sum_absX += List::Util::sum @wtd_adiff_list;
-        $sumXsqr  += List::Util::sum @wtd_ssq_list;
+        $sum_abs_X += List::Util::sum @wtd_adiff_list;
+        $sum_X_sqr  += List::Util::sum @wtd_ssq_list;
         $count    += List::Util::sum @joint_count;
     }
     
-    return (sum_absX => $sum_absX, sumXsqr => $sumXsqr, count => $count);
+    return (sum_absX => $sum_abs_X, sumXsqr => $sum_X_sqr, count => $count);
 }
 
 

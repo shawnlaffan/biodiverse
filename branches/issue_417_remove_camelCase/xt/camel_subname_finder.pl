@@ -21,9 +21,9 @@ if (!@ARGV) {
 
 my $re_pfx = qr /
     (
-          (?:sub\s+)
-        | \&
-        | (?:METHOD\s*=>\s*')
+          (?:^sub\s+)          #  sub declarations
+        | &(?:[a-zA-Z]+::])*   #  refs to fully qualified subs
+        | (?:METHOD\s*=>\s*')  #  method declarations in Callbacks.pm
     )
 /x;
 
@@ -96,8 +96,12 @@ sub wanted {
                     $new_subname =~ s/$old_text/$new_text/;
                 }
 
-                croak "File $File::Find::name sub name $subname already has non-camel variant $new_subname at line $line_num\n"
-                  if clashes ($File::Find::name, $new_subname);
+                my @clash_lines = clashes ($File::Find::name, $new_subname);
+                croak "File $File::Find::name uses sub name $subname at line $line_num "
+                        . "but already uses non-camel variant $new_subname\n"
+                        . 'Check lines '
+                        . join (q{ }, @clash_lines, "\n")
+                  if scalar @clash_lines;
 
                 push (@camels, "Line $line_num: $subname\n");
                 next;
@@ -108,25 +112,37 @@ sub wanted {
     }
     close $fh;
 
-    print @camels, "\n" if @camels > 1;
+    say @camels if scalar @camels > 1;
 }
 
-#  does the non-camel form already exist?
+#  is the non-camel form already in use?
 sub clashes {
     my ($file, $subname) = @_;
 
     return if ! -f $file;
-    my $re_subname = qr /
-        (?:^sub\s+)
-        $subname\b
-    /x;
 
     open (my $fh, '<', $file) or die "$! $file";
+
+    my @clash_lines;
+
+    my $line_num = 0;
     while (my $line = <$fh>) {
-        return 1 if $line =~ /$re_subname/;
+        my $match = ($line =~ /\b$subname\b/);
+        if ($match) {
+            $match &&= not ($line =~ /\{\s*$subname\s*\}/);  #  skup hash keys
+            $match &&= not ($line =~ /$subname\s*=>/);       #  skip hash key assignment
+            $match &&= not ($line =~ /^=item/);              #  skip POD
+            $match &&= not ($line =~ /[\$%@]$subname\b/);    #  skip variable names
+            $match &&= not ($line =~ /->\s*$subname\b/);     #  skip method calls
+
+            if ($match) {
+                push @clash_lines, $line_num
+            }
+        }
+        $line_num ++;
     }
     close $fh;
 
-    return;
+    return @clash_lines;
 }
 

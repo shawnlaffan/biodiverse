@@ -44,11 +44,11 @@ my %g_widget_map = (
     GroupsMinRedundancy => ['GROUPS', 'minRedundancy'],
 );
 
-sub showDialog {
+sub show_dialog {
     my $exclusions_hash = shift;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, DLG_NAME);
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, DLG_NAME);
     my $dlg = $dlgxml->get_widget(DLG_NAME);
 
     # Put it on top of main window
@@ -72,7 +72,7 @@ sub showDialog {
         }
 
         # Set up the toggle checkbox signals
-        $checkbox->signal_connect(toggled => \&onToggled, $spinbutton);
+        $checkbox->signal_connect(toggled => \&on_toggled, $spinbutton);
     }
     
     #  and the text matching
@@ -118,7 +118,7 @@ sub showDialog {
     
     #  and the groups def query
     my $specs = { name => 'Definition_query', type => 'spatial_params', default => '' };
-    my ($defq_widget, $defq_extractor) = Biodiverse::GUI::ParametersTable::generateWidget ($specs);
+    my ($defq_widget, $defq_extractor) = Biodiverse::GUI::ParametersTable::generate_widget ($specs);
     my $groups_vbox = $dlgxml->get_widget('vbox_group_exclusions_defq');
     $groups_vbox->pack_start ($defq_widget, 0, 0, 0);
 
@@ -205,7 +205,7 @@ sub showDialog {
 }
 
 
-sub onToggled {
+sub on_toggled {
     my ($checkbox, $spinbutton) = @_;
     $spinbutton->set_sensitive( $checkbox->get_active );
 }

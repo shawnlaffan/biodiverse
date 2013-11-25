@@ -44,7 +44,7 @@ my $DESC_COLUMN_WIDTH = 90;
 
 #use Smart::Comments;
 
-sub initCalculationsTree {
+sub init_calculations_tree {
     my $tree  = shift;
     my $model = shift;
     
@@ -52,7 +52,7 @@ sub initCalculationsTree {
     my $col_name       = Gtk2::TreeViewColumn->new();
     my $check_renderer = Gtk2::CellRendererToggle->new();
     my $name_renderer  = Gtk2::CellRendererText->new();
-    $check_renderer->signal_connect_swapped(toggled => \&onCalculationToggled, $model);
+    $check_renderer->signal_connect_swapped(toggled => \&on_calculation_toggled, $model);
 
     $col_name->pack_start($check_renderer, 0);
     $col_name->pack_start($name_renderer,  1);
@@ -79,7 +79,7 @@ sub initCalculationsTree {
     $tree->set_headers_visible(0);
     $tree->set_model( $model );
     
-    $tree->signal_connect_swapped('row-collapsed' => \&onRowCollapsed, $tree);
+    $tree->signal_connect_swapped('row-collapsed' => \&on_row_collapsed, $tree);
 
     #  set vertical alignment of cells
     foreach my $renderer (
@@ -95,7 +95,7 @@ sub initCalculationsTree {
 }
 
 #  resize the contents - this reclaims unused horizontal space 
-sub onRowCollapsed {
+sub on_row_collapsed {
     my $tree = shift;
     
     $tree->columns_autosize();
@@ -104,7 +104,7 @@ sub onRowCollapsed {
 }
 
 # Creates a TreeView model of available calculations
-sub makeCalculationsModel {
+sub make_calculations_model {
     my $base_ref   = shift;
     my $output_ref = shift;
 
@@ -239,7 +239,7 @@ sub makeCalculationsModel {
         }
 
         # Check it if all calculations are checked
-        updateTypeCheckbox($model, $type_iter);
+        update_type_checkbox($model, $type_iter);
     }
 
     return $model;
@@ -260,7 +260,7 @@ sub member_of {
     return 0;
 }
 
-sub getCalculationsToRun {
+sub get_calculations_to_run {
     my $model = shift;
     my @to_run;
 
@@ -285,7 +285,7 @@ sub getCalculationsToRun {
 }
 
 # Called to set the analysis type checkbox depending on whether all children are set
-sub updateTypeCheckbox {
+sub update_type_checkbox {
     my $model = shift;
     my $iter_top = shift || return;
 
@@ -312,7 +312,7 @@ sub updateTypeCheckbox {
 }
 
 # Called when the user clicks on a checkbox
-sub onCalculationToggled {
+sub on_calculation_toggled {
     my $model = shift;
     my $path = shift;
     
@@ -339,7 +339,7 @@ sub onCalculationToggled {
     }
 
     # update state of any parent
-    updateTypeCheckbox($model, $model->iter_parent($iter) );
+    update_type_checkbox($model, $model->iter_parent($iter) );
 
     return;
 }

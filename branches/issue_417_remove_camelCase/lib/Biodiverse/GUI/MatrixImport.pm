@@ -48,10 +48,10 @@ sub run {
     $line = <$fh>; #  don't test on the header - can sometimes have one column
     $fh->close;
     
-    my $sep_char = $gui->getProject->guess_field_separator (string => $line);
-    my $eol = $gui->getProject->guess_eol (string => $line);
+    my $sep_char = $gui->get_project->guess_field_separator (string => $line);
+    my $eol = $gui->get_project->guess_eol (string => $line);
     my @headers_full
-        = $gui->getProject->csv2list(
+        = $gui->get_project->csv2list(
             string   => $header,
             sep_char => $sep_char,
             eol      => $eol
@@ -78,7 +78,7 @@ sub run {
     #########
     # 2. Get column types
     #########
-    my ($dlg, $col_widgets) = makeColumnsDialog(\@headers, $gui->get_widget('wndMain'));
+    my ($dlg, $col_widgets) = make_columns_dialog(\@headers, $gui->get_widget('wndMain'));
     my ($column_settings, $response);
     
     GET_RESPONSE:
@@ -87,7 +87,7 @@ sub run {
 
         last GET_RESPONSE if $response ne 'ok';
 
-        $column_settings = getColumnSettings($col_widgets, \@headers);
+        $column_settings = get_column_settings($col_widgets, \@headers);
         my $num_labels = @{$column_settings->{labels}};
         my $num_start  = @{$column_settings->{start}};
 
@@ -123,7 +123,7 @@ sub run {
     
     if (lc $remap_response eq 'yes') {
         my %remap_data
-            = Biodiverse::GUI::BasedataImport::getRemapInfo ($gui, $filename, 'remap');
+            = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $filename, 'remap');
     
         #  now do something with them...
         if ($remap_data{file}) {
@@ -160,7 +160,7 @@ sub run {
         sep_char           => $sep_char,
     );
 
-    $gui->getProject->addMatrix ($matrix_ref);
+    $gui->get_project->add_matrix ($matrix_ref);
 
     return $matrix_ref;
 
@@ -173,7 +173,7 @@ sub run {
 
 # Extract column types and sizes into lists that can be passed to the reorder dialog
 #  NEED TO GENERALISE TO HANDLE ANY NUMBER
-sub getColumnSettings {
+sub get_column_settings {
     my $cols = shift;
     my $headers = shift;
     my $num = @$cols;
@@ -202,7 +202,7 @@ sub getColumnSettings {
 # Column selection dialog
 ##################################################
 
-sub makeColumnsDialog {
+sub make_columns_dialog {
     # We have to dynamically generate the choose columns dialog since
     # the number of columns is unknown
 
@@ -264,7 +264,7 @@ sub makeColumnsDialog {
     my $col_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
         my $header = ${$header}[$i];
-        addColumn($col_widgets, $table, $i, $header);
+        add_column($col_widgets, $table, $i, $header);
     }
 
     $dlg->set_resizable(1);
@@ -273,7 +273,7 @@ sub makeColumnsDialog {
     return ($dlg, $col_widgets);
 }
 
-sub addColumn {
+sub add_column {
     my ($col_widgets, $table, $col_id, $header) = @_;
 
     # Column header

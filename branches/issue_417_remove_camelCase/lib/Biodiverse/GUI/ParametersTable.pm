@@ -80,7 +80,7 @@ sub fill {
         # The extractor will be called at the end to get the parameter value
         # It returns (param_name, value)
         
-        my ($widget, $extractor) = generateWidget($param, $dlgxml);
+        my ($widget, $extractor) = generate_widget($param, $dlgxml);
 
         if ($widget) { # might not be putting into table (eg: using the filechooser)
 
@@ -134,7 +134,7 @@ sub extract {
 }
 
 # Generates widget + extractor for some parameter
-sub generateWidget {
+sub generate_widget {
     my $param = $_[0];
     
     my $type = $param->{type};

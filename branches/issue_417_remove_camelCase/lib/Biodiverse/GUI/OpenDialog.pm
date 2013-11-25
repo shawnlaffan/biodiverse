@@ -26,13 +26,13 @@ sub Run {
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     # Load the widgets from Glade's XML
-    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgOpenWithName');
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgOpenWithName');
     my $dlg = $dlgxml->get_widget('dlgOpenWithName');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_title($title);
 
     # Connect file selected event - to automatically update name based on filename
-    $dlgxml->get_widget('filechooser')->signal_connect('selection-changed' => \&onFileSelection, $dlgxml);
+    $dlgxml->get_widget('filechooser')->signal_connect('selection-changed' => \&on_file_selection, $dlgxml);
 
     # Add filters
     foreach my $suffix (@suffixes) {
@@ -70,7 +70,7 @@ sub Run {
 
 
 # Automatically update name based on filename
-sub onFileSelection {
+sub on_file_selection {
     my $chooser = shift;
     my $dlgxml = shift;
 

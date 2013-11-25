@@ -101,11 +101,11 @@ sub instance {
 ##########################################################
 # Getters / Setters
 ##########################################################
-sub getVersion {
+sub get_version {
     return $VERSION;
 }
 
-sub setGladeXML {
+sub set_glade_xml {
     my $self = shift;
     my $gladexml = shift;
     $self->{gladexml} = $gladexml;
@@ -113,7 +113,7 @@ sub setGladeXML {
     return;
 }
 
-sub setGladeFile {
+sub set_glade_file {
     my $self = shift;
     my $gladefile = shift;
     $self->{gladefile} = $gladefile;
@@ -121,7 +121,7 @@ sub setGladeFile {
     return;
 }
 
-sub getGladeFile {
+sub get_glade_file {
     my $self = shift;
     return $self->{gladefile};
 }
@@ -131,29 +131,29 @@ sub get_widget {
     return $self->{gladexml}->get_widget($id);
 }
 
-sub getStatusBar {
+sub get_status_bar {
     my $self = shift;
     return $self->{gladexml}->get_widget('statusbar');
 }
 
-sub getNotebook {
+sub get_notebook {
     my $self = shift;
     return $self->{notebook};
 }
 
-sub getProject {
+sub get_project {
     my $self = shift;
     return $self->{project};
 }
 
-sub getBaseDataOutputModel {
+sub get_base_data_output_model {
     my $self = shift;
     return $self->{basedata_output_model};
 }
 
 sub set_dirty {
     my $self = shift;
-    $self->{project}->setDirty;
+    $self->{project}->set_dirty;
     return;
 }
 
@@ -166,7 +166,7 @@ sub init {
     # title
     $self->{gladexml}->get_widget('wndMain')->set_title(
         'Biodiverse '
-        . $self->getVersion
+        . $self->get_version
     );
 
     # Notebook...
@@ -175,7 +175,7 @@ sub init {
     #$self->{notebook}->popup_enable;
     $self->{notebook}->signal_connect_swapped(
         'switch-page',
-        \&onSwitchTab,
+        \&on_switch_tab,
         $self,
     );
     $self->{gladexml}->get_widget('vbox1')->pack_start(
@@ -187,9 +187,9 @@ sub init {
     $self->{notebook}->show();
 
     # Hook up the models
-    $self->initCombobox('comboBasedata');
-    $self->initCombobox('comboMatrices');
-    $self->initCombobox('comboPhylogenies');
+    $self->init_combobox('comboBasedata');
+    $self->init_combobox('comboMatrices');
+    $self->init_combobox('comboPhylogenies');
 
     # Make the basedata-output model
     # (global - so that new projects use the same one.
@@ -207,18 +207,18 @@ sub init {
         'Glib::String',
     );
 
-    $self->doNew;
+    $self->do_new;
 
     # Show outputs tab
     Biodiverse::GUI::Tabs::Outputs->new();
 
-    #$self->progressTest();
-    #$self->getStatusBar->hide();
+    #$self->progress_test();
+    #$self->get_status_bar->hide();
     
     return;
 }
 
-#sub progressTest {
+#sub progress_test {
 #    my $self = shift;
 #
 #    my $dlg = Biodiverse::GUI::ProgressDialog->new;
@@ -250,7 +250,7 @@ sub init {
 #    return;
 #}
 
-sub initCombobox {
+sub init_combobox {
     my ($self, $id) = @_;
 
     my $combo = $self->{gladexml}->get_widget($id);
@@ -262,16 +262,16 @@ sub initCombobox {
 }
 
 # Called when Project is to be deleted
-sub closeProject {
+sub close_project {
     my $self = shift;
     
     return 1 if !defined $self->{project};
 
     #if (defined $self->{project}) {
 
-        if ($self->{project}->isDirty()) {
+        if ($self->{project}->is_dirty()) {
             # Show "Save changes?" dialog
-            my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgClose');
+            my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgClose');
             my $dlg = $dlgxml->get_widget('dlgClose');
             $dlg->set_transient_for( $self->get_widget('wndMain') );
             $dlg->set_modal(1);
@@ -281,7 +281,7 @@ sub closeProject {
             # Check response
             if ($response eq 'yes') {
                 # Save
-                return 0 if not $self->doSave();
+                return 0 if not $self->do_save();
             }
             elsif ($response eq 'cancel' or $response ne 'no') {
                 # Stop closing
@@ -294,11 +294,11 @@ sub closeProject {
         shift @to_remove;
         foreach my $tab (reverse @to_remove) {
             next if (blessed $tab) =~ /Outputs$/;
-            $self->removeTab($tab);
+            $self->remove_tab($tab);
         }
 
         # Close all label popups
-        Biodiverse::GUI::Popup::onCloseAll();
+        Biodiverse::GUI::Popup::on_close_all();
 
         $self->{project} = undef;
     #}
@@ -309,7 +309,7 @@ sub closeProject {
 ##########################################################
 # Opening / Creating / Saving
 ##########################################################
-sub doOpen {
+sub do_open {
 
     # Show the file selection dialogbox
     my $self = shift;
@@ -369,7 +369,7 @@ sub open {
 
     my $object;
     
-    if ($self->closeProject()) {
+    if ($self->close_project()) {
         print "[GUI] Loading Biodiverse data from $filename...\n";
 
         #  using generalised load method
@@ -397,7 +397,7 @@ sub update_title_bar {
     my $name = $self->{filename} || q{};
     
     my $title = 'Biodiverse '
-                . $self->getVersion
+                . $self->get_version
                 . '          '
                 . $name;
 
@@ -406,9 +406,9 @@ sub update_title_bar {
     return;
 }
 
-sub doNew {
+sub do_new {
     my $self = shift;
-    if ($self->closeProject()) {
+    if ($self->close_project()) {
         $self->{project} = Biodiverse::GUI::Project->new();
         print "[GUI] Created new Biodiverse project\n";
         delete $self->{filename};
@@ -419,10 +419,10 @@ sub doNew {
     return;
 }
 
-sub doSaveAs {
+sub do_save_as {
     # Show the file selection dialogbox (if no existing filename)
     my $self = shift;
-    my $filename = shift || $self->showSaveDialog('Save Project', 'bps');
+    my $filename = shift || $self->show_save_dialog('Save Project', 'bps');
 
     if (defined $filename) {
 
@@ -432,12 +432,12 @@ sub doSaveAs {
         $self->{filename} = $file;
 
         my $title = 'Biodiverse '
-                    . $self->getVersion
+                    . $self->get_version
                     . '          '
                     . $file;
         $self->{gladexml}->get_widget('wndMain')->set_title($title);
 
-        $self->{project}->clearDirty(); # Mark as having no changes
+        $self->{project}->clear_dirty(); # Mark as having no changes
 
         return 1;
     }
@@ -445,20 +445,20 @@ sub doSaveAs {
     return 0;
 }
 
-sub doSave {
+sub do_save {
     my $self = shift;
     
-    return $self->doSaveAs($self->{filename}) 
+    return $self->do_save_as($self->{filename}) 
         if (exists $self->{filename} );
 
-    return $self->doSaveAs()
+    return $self->do_save_as()
 }
 
 
 ##########################################################
 # Adding/Removing Matrices and Basedata
 ##########################################################
-sub doImport {
+sub do_import {
     my $self = shift;
     
     eval {
@@ -471,7 +471,7 @@ sub doImport {
     return;
 }
 
-sub doAddMatrix {
+sub do_add_matrix {
     my $self = shift;
     
     eval {
@@ -484,7 +484,7 @@ sub doAddMatrix {
     return;
 }
 
-sub doAddPhylogeny {
+sub do_add_phylogeny {
     my $self = shift;
     
     eval {
@@ -499,7 +499,7 @@ sub doAddPhylogeny {
 
 
 
-sub doOpenMatrix {
+sub do_open_matrix {
     my $self = shift;
     my $object = shift;
     
@@ -515,12 +515,12 @@ sub doOpenMatrix {
     
     return if !$object;
 
-    $self->{project}->addMatrix($object);
+    $self->{project}->add_matrix($object);
 
     return;
 }
 
-sub doOpenPhylogeny {
+sub do_open_phylogeny {
     my $self   = shift;
     my $object = shift;
     
@@ -536,20 +536,20 @@ sub doOpenPhylogeny {
     
     return if !$object;
 
-    $self->{project}->addPhylogeny($object);
+    $self->{project}->add_phylogeny($object);
 
     return;
 }
 
 
-sub doOpenBasedata {
+sub do_open_basedata {
     my $self = shift;
 
     my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run('Open Object', 'bds');
     if (defined $filename && -f $filename) {
         my $object = Biodiverse::BaseData->new(file => $filename);
         $object->set_param (NAME => $name);  #  override the name if the user says to
-        $self->{project}->addBaseData($object);
+        $self->{project}->add_base_data($object);
     }
     
     return;
@@ -561,10 +561,10 @@ sub get_new_basedata_name {
     
     my $suffix = $args{suffix} || q{};
 
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
     
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
@@ -597,10 +597,10 @@ sub do_transpose_basedata {
 
     return if not $new_name;
 
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
     my $t_bd = $bd->transpose;
     $t_bd->set_param ('NAME' => $new_name);
-    $self->{project}->addBaseData($t_bd);
+    $self->{project}->add_base_data($t_bd);
     
     return;
 }
@@ -611,7 +611,7 @@ sub do_basedata_reorder_axes {
     my $new_name = $self->get_new_basedata_name (suffix => '_R');
     return if not $new_name;
     
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
 
     #  construct the label and group column settings
     my @lb_axes = 0 .. ($bd->get_labels_ref->get_axis_count - 1);
@@ -632,7 +632,7 @@ sub do_basedata_reorder_axes {
     };
 
     #  need to factor the reorder dialogues out of BasedataImport.pm
-    my ($dlgxml, $dlg) = Biodiverse::GUI::BasedataImport::makeReorderDialog($self, $column_settings);
+    my ($dlgxml, $dlg) = Biodiverse::GUI::BasedataImport::make_reorder_dialog($self, $column_settings);
     my $response = $dlg->run();
 
     if ($response ne 'ok') {
@@ -645,7 +645,7 @@ sub do_basedata_reorder_axes {
 
     my $new_bd = $bd->new_with_reordered_element_axes (%$params);
     $new_bd->set_param (NAME => $new_name);
-    $self->{project}->addBaseData($new_bd);
+    $self->{project}->add_base_data($new_bd);
 
     $self->set_dirty();
 
@@ -655,7 +655,7 @@ sub do_basedata_reorder_axes {
 sub do_basedata_attach_label_abundances_as_properties {
     my $self = shift;
 
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
     
     $bd->attach_label_abundances_as_properties;
 
@@ -665,7 +665,7 @@ sub do_basedata_attach_label_abundances_as_properties {
 sub do_basedata_attach_label_ranges_as_properties {
     my $self = shift;
 
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
 
     $bd->attach_label_ranges_as_properties;
 
@@ -675,14 +675,14 @@ sub do_basedata_attach_label_ranges_as_properties {
 sub do_basedata_attach_properties {
     my $self = shift;
 
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
     croak "Cannot add proerties to Basedata with existing outputs\n"
         . "Use the Duplicate Without Outputs option to create a copy without deleting the outputs.\n"
       if $bd->get_output_ref_count;
 
     # are we attaching groups or labels?
     my $gui = $self;  #  copied code from elsewhere
-    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgGroupsLabels');
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgGroupsLabels');
     my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_modal(1);
@@ -696,7 +696,7 @@ sub do_basedata_attach_properties {
 
     my $type = $response eq 'yes' ? 'labels' : 'groups';
 
-    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo(
+    my %options = Biodiverse::GUI::BasedataImport::get_remap_info(
         $self,
         undef,
         $type,
@@ -734,10 +734,10 @@ sub do_basedata_attach_properties {
     return;
 }
 
-sub doDeleteBasedata {
+sub do_delete_basedata {
     my $self = shift;
  
-    my $bd = $self->{project}->getSelectedBaseData;
+    my $bd = $self->{project}->get_selected_base_data;
     my $name = $bd->get_param('NAME');
 
     my $response = Biodiverse::GUI::YesNoCancel->run({
@@ -752,23 +752,23 @@ sub doDeleteBasedata {
     foreach my $tab (@tabs) {
         next if (blessed $tab) =~ /Outputs$/;
         if ($tab->get_base_ref eq $bd) {
-            $tab->onClose;
+            $tab->on_close;
         }
         $i++;
     }
 
-    $self->{project}->deleteBaseData();
+    $self->{project}->delete_base_data();
 
     return;
 }
 
-sub doRenameBasedata {
+sub do_rename_basedata {
     #return;  # TEMP
     my $self = shift;
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
     
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_title ('Rename Basedata object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
@@ -782,7 +782,7 @@ sub doRenameBasedata {
     
     if ($response eq 'ok') {
         my $chosen_name = $txt_name->get_text;
-        $self->{project}->renameBaseData($chosen_name);
+        $self->{project}->rename_base_data($chosen_name);
 
         my $tab_was_open;
         foreach my $tab (@{$self->{tabs}}) {
@@ -807,7 +807,7 @@ sub doRenameBasedata {
     return;
 }
 
-sub doRenameOutput {
+sub do_rename_output {
     #return;  # TEMP
     my $self = shift;
     my $selection = shift; #  should really get from system
@@ -815,7 +815,7 @@ sub doRenameOutput {
     my $object = $selection->{output_ref};
     
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_title ('Rename output');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
@@ -860,7 +860,7 @@ sub doRenameOutput {
                 $self->report_error ($EVAL_ERROR);
             }
             else {
-                $self->{project}->updateOutputName( $object );
+                $self->{project}->update_output_name( $object );
             }
         }
     }
@@ -869,12 +869,12 @@ sub doRenameOutput {
     return;
 }
 
-sub doRenameMatrix {
+sub do_rename_matrix {
     my $self = shift;
-    my $ref = $self->{project}->getSelectedMatrix();
+    my $ref = $self->{project}->get_selected_matrix();
     
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_title ('Rename matrix object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
@@ -888,7 +888,7 @@ sub doRenameMatrix {
     
     if ($response eq 'ok') {
         my $chosen_name = $txt_name->get_text;
-        $self->{project}->renameMatrix($chosen_name, $ref);
+        $self->{project}->rename_matrix($chosen_name, $ref);
     }
 
     $dlg->destroy;
@@ -896,13 +896,13 @@ sub doRenameMatrix {
     return;
 }
 
-sub doRenamePhylogeny {
+sub do_rename_phylogeny {
     #return;  # TEMP
     my $self = shift;
-    my $ref = $self->{project}->getSelectedPhylogeny();
+    my $ref = $self->{project}->get_selected_phylogeny();
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_title ('Rename tree object');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
@@ -916,7 +916,7 @@ sub doRenamePhylogeny {
     
     if ($response eq 'ok') {
         my $chosen_name = $txt_name->get_text;
-        $self->{project}->renamePhylogeny($chosen_name, $ref);
+        $self->{project}->rename_phylogeny($chosen_name, $ref);
     }
 
     $dlg->destroy;
@@ -927,7 +927,7 @@ sub doRenamePhylogeny {
 sub do_phylogeny_delete_cached_values {
     my $self = shift;
     
-    my $object = $self->{project}->getSelectedPhylogeny || return;
+    my $object = $self->{project}->get_selected_phylogeny || return;
     $object->get_root_node->delete_cached_values;
 
     $self->set_dirty;
@@ -935,10 +935,10 @@ sub do_phylogeny_delete_cached_values {
     return;    
 }
 
-sub doDescribeBasedata {
+sub do_describe_basedata {
     my $self = shift;
 
-    my $bd = $self->{project}->getSelectedBaseData;
+    my $bd = $self->{project}->get_selected_base_data;
     
     $self->print_describe ($bd);
     
@@ -949,10 +949,10 @@ sub doDescribeBasedata {
     return;
 }
 
-sub doDescribeMatrix {
+sub do_describe_matrix {
     my $self = shift;
 
-    my $mx = $self->{project}->getSelectedMatrix;
+    my $mx = $self->{project}->get_selected_matrix;
     
     $self->print_describe ($mx);
     
@@ -963,10 +963,10 @@ sub doDescribeMatrix {
     return;
 }
 
-sub doDescribePhylogeny {
+sub do_describe_phylogeny {
     my $self = shift;
 
-    my $tree = $self->{project}->getSelectedPhylogeny;
+    my $tree = $self->{project}->get_selected_phylogeny;
     
     $self->print_describe ($tree);
     
@@ -1039,10 +1039,10 @@ sub show_describe_dialog {
     return;    
 }
 
-sub doDeleteMatrix {
+sub do_delete_matrix {
     my $self = shift;
     
-    my $mx = $self->{project}->getSelectedMatrix;
+    my $mx = $self->{project}->get_selected_matrix;
 
     croak "no selected matrix\n" if ! defined $mx;
 
@@ -1055,15 +1055,15 @@ sub doDeleteMatrix {
 
     return if lc ($response) ne 'yes';
 
-    $self->{project}->deleteMatrix();
+    $self->{project}->delete_matrix();
 
     return;
 }
 
-sub doDeletePhylogeny {
+sub do_delete_phylogeny {
     my $self = shift;
     
-    my $tree = $self->{project}->getSelectedPhylogeny;
+    my $tree = $self->{project}->get_selected_phylogeny;
     my $name = $tree->get_param('NAME');
 
     my $response = Biodiverse::GUI::YesNoCancel->run({
@@ -1073,42 +1073,42 @@ sub doDeletePhylogeny {
 
     return if lc ($response) ne 'yes';
 
-    $self->{project}->deletePhylogeny();
+    $self->{project}->delete_phylogeny();
     
     return;
 }
 
-sub doSaveMatrix {
+sub do_save_matrix {
     my $self = shift;
-    my $object = $self->{project}->getSelectedMatrix();
-    $self->saveObject($object);
+    my $object = $self->{project}->get_selected_matrix();
+    $self->save_object($object);
     
     return;
 }
 
-sub doSaveBasedata {
+sub do_save_basedata {
     my $self = shift;
-    my $object = $self->{project}->getSelectedBaseData();
-    $self->saveObject($object);
+    my $object = $self->{project}->get_selected_base_data();
+    $self->save_object($object);
     
     return;
 }
 
-sub doSavePhylogeny {
+sub do_save_phylogeny {
     my $self = shift;
-    my $object = $self->{project}->getSelectedPhylogeny();
-    $self->saveObject($object);
+    my $object = $self->{project}->get_selected_phylogeny();
+    $self->save_object($object);
     
     return;
 }
 
-sub doDuplicateBasedata {
+sub do_duplicate_basedata {
     my $self = shift;
     
-    my $object = $self->{project}->getSelectedBaseData();
+    my $object = $self->{project}->get_selected_base_data();
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
@@ -1130,7 +1130,7 @@ sub doDuplicateBasedata {
         # This uses the dclone method from Storable
         my $cloned = $object->clone (@_);  #  pass on the args
         $cloned->set_param (NAME => $chosen_name || $object->get_param ('NAME') . "_CLONED");
-        $self->{project}->addBaseData($cloned);
+        $self->{project}->add_base_data($cloned);
     }
 
     $dlg->destroy();
@@ -1141,8 +1141,8 @@ sub doDuplicateBasedata {
 sub do_rename_basedata_labels {
     my $self = shift;
     
-    my $bd = $self->{project}->getSelectedBaseData();
-    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+    my $bd = $self->{project}->get_selected_base_data();
+    my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
         $self,
         undef,
         undef,
@@ -1164,8 +1164,8 @@ sub do_rename_basedata_labels {
 sub do_add_basedata_label_properties {
     my $self = shift;
     
-    my $bd = $self->{project}->getSelectedBaseData();
-    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+    my $bd = $self->{project}->get_selected_base_data();
+    my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
         $self,
     );
 
@@ -1186,8 +1186,8 @@ sub do_add_basedata_label_properties {
 sub do_add_basedata_group_properties {
     my $self = shift;
     
-    my $bd = $self->{project}->getSelectedBaseData();
-    my %options = Biodiverse::GUI::BasedataImport::getRemapInfo (
+    my $bd = $self->{project}->get_selected_base_data();
+    my %options = Biodiverse::GUI::BasedataImport::get_remap_info (
         $self,
     );
 
@@ -1205,19 +1205,19 @@ sub do_add_basedata_group_properties {
     return;
 }
 
-sub doExportGroups {
+sub do_export_groups {
     my $self = shift;
     
-    my $base_ref = $self->{project}->getSelectedBaseData();
+    my $base_ref = $self->{project}->get_selected_base_data();
     Biodiverse::GUI::Export::Run($base_ref->get_groups_ref);
     
     return;
 }
 
-sub doExportLabels {
+sub do_export_labels {
     my $self = shift;
     
-    my $base_ref = $self->{project}->getSelectedBaseData();
+    my $base_ref = $self->{project}->get_selected_base_data();
     Biodiverse::GUI::Export::Run($base_ref->get_labels_ref);
     
     return;
@@ -1226,7 +1226,7 @@ sub doExportLabels {
 sub do_export_matrix {
     my $self = shift;
     
-    my $object = $self->{project}->getSelectedMatrix || return;
+    my $object = $self->{project}->get_selected_matrix || return;
     Biodiverse::GUI::Export::Run($object);
     
     return;
@@ -1235,21 +1235,21 @@ sub do_export_matrix {
 sub do_export_phylogeny {
     my $self = shift;
     
-    my $object = $self->{project}->getSelectedPhylogeny || return;
+    my $object = $self->{project}->get_selected_phylogeny || return;
     Biodiverse::GUI::Export::Run($object);
     
     return;
 }
 
 # Saves an object in native format
-sub saveObject {
+sub save_object {
     my $self = shift;
     my $object = shift;
 
     my $suffix_str = $object->get_param('OUTSUFFIX');
     #my $suffix_xml = $object->get_param('OUTSUFFIX_XML');
     my $suffix_yaml = $object->get_param('OUTSUFFIX_YAML');
-    my $filename = $self->showSaveDialog('Save Object', $suffix_str, $suffix_yaml);
+    my $filename = $self->show_save_dialog('Save Object', $suffix_str, $suffix_yaml);
 
     if (defined $filename) {
 
@@ -1290,7 +1290,7 @@ sub set_active_iter {
     return;
 }
 
-sub setBasedataModel {
+sub set_basedata_model {
     my $self  = shift;
     my $model = shift;
     
@@ -1299,7 +1299,7 @@ sub setBasedataModel {
     return;
 }
 
-sub setMatrixModel {
+sub set_matrix_model {
     my $self  = shift;
     my $model = shift;
     
@@ -1308,7 +1308,7 @@ sub setMatrixModel {
     return;
 }
 
-sub setPhylogenyModel {
+sub set_phylogeny_model {
     my $self  = shift;
     my $model = shift;
 
@@ -1317,7 +1317,7 @@ sub setPhylogenyModel {
     return;
 }
 
-sub setBasedataIter {
+sub set_basedata_iter {
     my $self = shift;
     my $iter = shift;
 
@@ -1328,7 +1328,7 @@ sub setBasedataIter {
     return;
 }
 
-sub setMatrixIter {
+sub set_matrix_iter {
     my $self = shift;
     my $iter = shift;
 
@@ -1339,7 +1339,7 @@ sub setMatrixIter {
     return;
 }
 
-sub setPhylogenyIter {
+sub set_phylogeny_iter {
     my $self = shift;
     my $iter = shift;
 
@@ -1352,7 +1352,7 @@ sub setPhylogenyIter {
     return;
 }
 
-sub doBasedataChanged {
+sub do_basedata_changed {
     my $self = shift;
     my $combo = $self->{gladexml}->get_widget('comboBasedata');
     my $iter = $combo->get_active_iter();
@@ -1366,7 +1366,7 @@ sub doBasedataChanged {
         defined $self->{active_basedata} and 
         $combo->get_model->get_string_from_iter($iter) ne $self->{active_basedata}
         ) {
-        $self->{project}->selectBaseDataIter( $iter ) if not ($text eq '(none)');
+        $self->{project}->select_base_data_iter( $iter ) if not ($text eq '(none)');
     }
     
     return;
@@ -1375,12 +1375,12 @@ sub doBasedataChanged {
 sub do_convert_labels_to_phylogeny {
     my $self = shift;
     
-    my $bd = $self->{project}->getSelectedBaseData;
+    my $bd = $self->{project}->get_selected_base_data;
     
     return if ! defined $bd;
     
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
@@ -1404,7 +1404,7 @@ sub do_convert_labels_to_phylogeny {
         if (defined $phylogeny) {
             #  now we add it if it is not already in the list
             # otherwise we select it
-            my $phylogenies = $self->{project}->getPhylogenyList;
+            my $phylogenies = $self->{project}->get_phylogeny_list;
             my $in_list = 0;
             foreach my $ph (@$phylogenies) {
                 if ($ph eq $phylogeny) {
@@ -1413,10 +1413,10 @@ sub do_convert_labels_to_phylogeny {
                 }
             }
             if ($in_list) {
-                $self->{project}->selectPhylogeny ($phylogeny);
+                $self->{project}->select_phylogeny ($phylogeny);
             }
             else {
-                $self->{project}->addPhylogeny ($phylogeny, 0);
+                $self->{project}->add_phylogeny ($phylogeny, 0);
             }
         }
     }
@@ -1428,7 +1428,7 @@ sub do_convert_labels_to_phylogeny {
 sub do_convert_matrix_to_phylogeny {
     my $self = shift;
     
-    my $matrix_ref = $self->{project}->getSelectedMatrix;
+    my $matrix_ref = $self->{project}->get_selected_matrix;
     
     if (! defined $matrix_ref) {
         Biodiverse::GUI::YesNoCancel->run({
@@ -1456,7 +1456,7 @@ sub do_convert_matrix_to_phylogeny {
     if ($response eq 'no') {  #  get a new one
         
         # Show the Get Name dialog
-        my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+        my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
         my $dlg = $dlgxml->get_widget('dlgDuplicate');
         $dlg->set_transient_for( $self->get_widget('wndMain') );
     
@@ -1499,7 +1499,7 @@ sub do_convert_matrix_to_phylogeny {
     
     #  now we add it if it is not already in the list
     #  otherwise we select it
-    my $phylogenies = $self->{project}->getPhylogenyList;
+    my $phylogenies = $self->{project}->get_phylogeny_list;
     my $in_list = 0;
     foreach my $mx (@$phylogenies) {
         if ($mx eq $phylogeny) {
@@ -1508,10 +1508,10 @@ sub do_convert_matrix_to_phylogeny {
         }
     }
     if ($in_list) {
-        $self->{project}->selectPhylogeny ($phylogeny);
+        $self->{project}->select_phylogeny ($phylogeny);
     }
     else {
-        $self->{project}->addPhylogeny ($phylogeny, 0);
+        $self->{project}->add_phylogeny ($phylogeny, 0);
     }
 
     return;
@@ -1519,7 +1519,7 @@ sub do_convert_matrix_to_phylogeny {
 
 sub do_convert_phylogeny_to_matrix {
     my $self = shift;
-    my $phylogeny = $self->{project}->getSelectedPhylogeny;
+    my $phylogeny = $self->{project}->get_selected_phylogeny;
 
     if (! defined $phylogeny ) {
         Biodiverse::GUI::YesNoCancel->run(
@@ -1549,7 +1549,7 @@ sub do_convert_phylogeny_to_matrix {
 
     if ($response eq 'no') {  #  get a new one
         # Show the Get Name dialog
-        my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+        my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
         my $dlg = $dlgxml->get_widget('dlgDuplicate');
         $dlg->set_transient_for( $self->get_widget('wndMain') );
 
@@ -1590,7 +1590,7 @@ sub do_convert_phylogeny_to_matrix {
     
     #  now we add it if it is not already in the list
     #  otherwise we select it
-    my $matrices = $self->{project}->getMatrixList;
+    my $matrices = $self->{project}->get_matrix_list;
     my $in_list = 0;
     foreach my $mx (@$matrices) {
         if ($mx eq $matrix_ref) {
@@ -1599,10 +1599,10 @@ sub do_convert_phylogeny_to_matrix {
         }
     }
     if ($in_list) {
-        $self->{project}->selectMatrix ($matrix_ref);
+        $self->{project}->select_matrix ($matrix_ref);
     }
     else {
-        $self->{project}->addMatrix ($matrix_ref, 0);
+        $self->{project}->add_matrix ($matrix_ref, 0);
     }
 
     return;
@@ -1633,8 +1633,8 @@ sub do_trim_tree_to_basedata {
     my $self = shift;
     my %args = @_;
 
-    my $phylogeny = $self->{project}->getSelectedPhylogeny;
-    my $bd = $self->{project}->getSelectedBaseData || return 0;
+    my $phylogeny = $self->{project}->get_selected_phylogeny;
+    my $bd = $self->{project}->get_selected_base_data || return 0;
     
     if (! defined $phylogeny) {
         Biodiverse::GUI::YesNoCancel->run({
@@ -1649,7 +1649,7 @@ sub do_trim_tree_to_basedata {
     }
 
     # Show the Get Name dialog
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
 
@@ -1695,7 +1695,7 @@ sub do_trim_tree_to_basedata {
 
     #  now we add it if it is not already in the list
     #  otherwise we select it
-    my $phylogenies = $self->{project}->getPhylogenyList;
+    my $phylogenies = $self->{project}->get_phylogeny_list;
     my $in_list = 0;
     foreach my $ph (@$phylogenies) {
         if ($new_tree eq $phylogeny) {
@@ -1704,10 +1704,10 @@ sub do_trim_tree_to_basedata {
         }
     }
     if ($in_list) {
-        $self->{project}->selectPhylogeny ($new_tree);
+        $self->{project}->select_phylogeny ($new_tree);
     }
     else {
-        $self->{project}->addPhylogeny ($new_tree, 0);
+        $self->{project}->add_phylogeny ($new_tree, 0);
     }
 
     return;
@@ -1716,14 +1716,14 @@ sub do_trim_tree_to_basedata {
 sub do_basedata_extract_embedded_trees {
     my $self = shift;
     
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
     
     return if !defined $bd;
     
     my @objects = $bd->get_embedded_trees;
 
     foreach my $object (@objects) {
-        $self->doOpenPhylogeny($object);
+        $self->do_open_phylogeny($object);
     }
 
     return;
@@ -1732,14 +1732,14 @@ sub do_basedata_extract_embedded_trees {
 sub do_basedata_extract_embedded_matrices {
     my $self = shift;
     
-    my $bd = $self->{project}->getSelectedBaseData();
+    my $bd = $self->{project}->get_selected_base_data();
     
     return if !defined $bd;
     
     my @objects = $bd->get_embedded_matrices;
     
     foreach my $object (@objects) {
-        $self->doOpenMatrix($object);
+        $self->do_open_matrix($object);
     }
     
     return;
@@ -1749,8 +1749,8 @@ sub do_basedata_trim_to_tree {
     my $self = shift;
     my %args = @_;  #  keep or trim flag
 
-    my $bd   = $self->{project}->getSelectedBaseData;
-    my $tree = $self->{project}->getSelectedPhylogeny;
+    my $bd   = $self->{project}->get_selected_base_data;
+    my $tree = $self->{project}->get_selected_phylogeny;
 
     return if !defined $bd || ! defined $tree;
 
@@ -1763,8 +1763,8 @@ sub do_basedata_trim_to_matrix {
     my $self = shift;
     my %args = @_;  #  keep or trim flag
 
-    my $bd = $self->{project}->getSelectedBaseData;
-    my $mx = $self->{project}->getSelectedMatrix;
+    my $bd = $self->{project}->get_selected_base_data;
+    my $mx = $self->{project}->get_selected_matrix;
 
     return if !defined $bd || ! defined $mx;
 
@@ -1808,7 +1808,7 @@ sub do_trim_basedata {
     return;
 }
 
-sub doMatrixChanged {
+sub do_matrix_changed {
     my $self = shift;
     my $combo = $self->{gladexml}->get_widget('comboMatrices');
     my $iter = $combo->get_active_iter();
@@ -1821,13 +1821,13 @@ sub doMatrixChanged {
         $combo->get_model->get_string_from_iter($iter) ne $self->{active_matrix}
         ) {
         #warn $text . "\n";
-        $self->{project}->selectMatrixIter( $iter );
+        $self->{project}->select_matrix_iter( $iter );
     }
     
     return;
 }
 
-sub doPhylogenyChanged {
+sub do_phylogeny_changed {
     my $self = shift;
     my $combo = $self->{gladexml}->get_widget('comboPhylogenies');
     my $iter = $combo->get_active_iter();
@@ -1838,7 +1838,7 @@ sub doPhylogenyChanged {
         defined $self->{active_phylogeny} and 
         $combo->get_model->get_string_from_iter($iter) ne $self->{active_phylogeny}
         ) {
-        $self->{project}->selectPhylogenyIter( $iter );
+        $self->{project}->select_phylogeny_iter( $iter );
     }
 
     return;
@@ -1848,48 +1848,48 @@ sub doPhylogenyChanged {
 # Tabs
 ##########################################################
 
-sub addTab {
+sub add_tab {
     my $self = shift;
     my $tab = shift;
-    my $page = $tab->getPageIndex;
+    my $page = $tab->get_page_index;
     
     # Add tab to our array at the right position
     push @{$self->{tabs}}, $tab;
 
     # Enable keyboard shortcuts (CTRL-G)
-    $tab->setKeyboardHandler();
+    $tab->set_keyboard_handler();
 
     # Switch to added tab
-    $self->switchTab($tab);
+    $self->switch_tab($tab);
     
     return;
 }
 
-sub switchTab {
+sub switch_tab {
     my $self = shift;
     my $tab  = shift; # Expecting the tab object
     my $page = shift;
     
     if ($tab) {
-        my $index = $tab->getPageIndex;
-        $self->getNotebook->set_current_page($tab->getPageIndex);
+        my $index = $tab->get_page_index;
+        $self->get_notebook->set_current_page($tab->get_page_index);
     }
     else {
-        my $last_page = $self->getNotebook->get_nth_page(-1);
-        my $max_page_index = $self->getNotebook->page_num($last_page);
+        my $last_page = $self->get_notebook->get_nth_page(-1);
+        my $max_page_index = $self->get_notebook->page_num($last_page);
         if ($page > $max_page_index) {
             $page = 0;
         }
         elsif ($page < 0) {
             $page = $max_page_index;
         }
-        $self->getNotebook->set_current_page($page);
+        $self->get_notebook->set_current_page($page);
     }
     
     return;
 }
 
-sub removeTab {
+sub remove_tab {
     my $self = shift;
     my $tab = shift;
     
@@ -1908,20 +1908,20 @@ sub removeTab {
     }
     undef @tabs;
 
-    $tab->removeKeyboardHandler();
+    $tab->remove_keyboard_handler();
     $tab->remove();
 
     return;
 }
 
-sub onSwitchTab {
+sub on_switch_tab {
     my $self = shift;
     my $page = shift;  #  passed by Gtk, not needed here
     my $page_index = shift;  #  passed by gtk
 
     foreach my $tab (@{$self->{tabs}}) {
-        next if $page_index != $tab->getPageIndex;
-        $tab->setKeyboardHandler();
+        next if $page_index != $tab->get_page_index;
+        $tab->set_keyboard_handler();
         last;
     }
 
@@ -1935,7 +1935,7 @@ sub onSwitchTab {
 sub delete_index {
     my $self = shift;
     my $bd = shift
-        || $self->{project}->getSelectedBaseData;
+        || $self->{project}->get_selected_base_data;
     
     my $result = $bd->delete_spatial_index;
 
@@ -1961,13 +1961,13 @@ sub delete_index {
 
 #  show the spatial index dialogue
 #  need to add buttons to increment/decrement all by the step size
-sub showIndexDialog {
+sub show_index_dialog {
     my $self = shift;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     #  get an array of the cellsizes
-    my $bd = $self->{project}->getSelectedBaseData;
+    my $bd = $self->{project}->get_selected_base_data;
     my $cellsizes = $bd->get_param ('CELL_SIZES');
     my @cellsize_array = @$cellsizes;  #  make a copy
 
@@ -1981,7 +1981,7 @@ sub showIndexDialog {
 
     #  create the table and window
     #  we really should generate one from scratch...
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgImportParameters');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgImportParameters');
     my $tooltip_group = Gtk2::Tooltips->new;
     my $table = $dlgxml->get_widget('tableImportParameters');
 
@@ -2208,16 +2208,16 @@ sub on_index_dlg_change_all {
     return;
 }
 
-sub showIndexDialog_orig {
+sub show_index_dialog_orig {
     my $self = shift;
 
-    my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgIndex');
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgIndex');
     my $dlg = $dlgxml->get_widget('dlgIndex');
     $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_modal(1);
         
     # set existing settings
-    my $base_ref = $self->getProject->getSelectedBaseData();
+    my $base_ref = $self->get_project->get_selected_base_data();
     return if not defined $base_ref;
     
     my $cell_sizes = $base_ref->get_param ('CELL_SIZES');
@@ -2273,10 +2273,10 @@ sub showIndexDialog_orig {
 # Misc
 ##########################################################
 
-sub doRunExclusions {
+sub do_run_exclusions {
     my $self = shift;
 
-    my $basedata = $self->{project}->getSelectedBaseData();
+    my $basedata = $self->{project}->get_selected_base_data();
 
     return if not defined $basedata;
 
@@ -2290,7 +2290,7 @@ sub doRunExclusions {
     }
 
     my $exclusions_hash = $basedata->get_param('EXCLUSION_HASH');
-    if (Biodiverse::GUI::Exclusions::showDialog($exclusions_hash)) {
+    if (Biodiverse::GUI::Exclusions::show_dialog($exclusions_hash)) {
         #print Data::Dumper::Dumper($exclusions_hash);
         my $tally = eval {$basedata->run_exclusions()};
         my $feedback = $tally->{feedback};
@@ -2321,7 +2321,7 @@ sub doRunExclusions {
 }
 
 
-sub showSaveDialog {
+sub show_save_dialog {
     my $self = shift;
     my $title = shift;
     my @suffixes = @_;
@@ -2348,7 +2348,7 @@ sub showSaveDialog {
 }
 
 #FIXME merge with above
-sub showOpenDialog {
+sub show_open_dialog {
     my $self = shift;
     my $title = shift;
     my $suffix = shift;

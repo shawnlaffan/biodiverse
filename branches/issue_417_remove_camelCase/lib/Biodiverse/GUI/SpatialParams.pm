@@ -53,7 +53,7 @@ sub new {
     # Syntax-check button
     my $syntax_button = Gtk2::Button->new;
     $syntax_button->set_image ( Gtk2::Image->new_from_stock('gtk-apply', 'button') );
-    $syntax_button->signal_connect_swapped(clicked => \&onSyntaxCheck, $self);
+    $syntax_button->signal_connect_swapped(clicked => \&on_syntax_check, $self);
 
     # Scrolled window
     my $scroll = Gtk2::ScrolledWindow->new;
@@ -137,10 +137,10 @@ sub get_show_hide_tooltip {
 
 sub syntax_check {
     my $self = shift;
-    return $self->onSyntaxCheck(@_);
+    return $self->on_syntax_check(@_);
 }
 
-sub onSyntaxCheck {
+sub on_syntax_check {
     my $self = shift;
     my $show_ok = shift || 'ok';
 
@@ -157,7 +157,7 @@ sub onSyntaxCheck {
     #croak "AAAAAAAAAARRRRRRGGGGHHHH" if !$spatial_params;
 
     #  Get the baedata associated with this output.  If none then use the selected.
-    my $bd = $self->get_param ('BASEDATA_REF') || $gui->getProject->getSelectedBaseData;
+    my $bd = $self->get_param ('BASEDATA_REF') || $gui->get_project->get_selected_base_data;
     my $result_hash = $spatial_params->verify (basedata => $bd);
 
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {

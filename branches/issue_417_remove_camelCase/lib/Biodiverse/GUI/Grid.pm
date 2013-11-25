@@ -87,7 +87,7 @@ Used when spatial indices are plotted
 =item show_value
 
 Whether to show a label in the top-left corner.
-It can be changed by calling setValueLabel
+It can be changed by calling set_value_label
 
 =item hover_func
 
@@ -127,7 +127,7 @@ sub new {
     # Make the canvas and hook it up
     $self->{canvas} = Gnome2::Canvas->new();
     $frame->add($self->{canvas});
-    $self->{canvas}->signal_connect_swapped (size_allocate => \&onSizeAllocate, $self);
+    $self->{canvas}->signal_connect_swapped (size_allocate => \&on_size_allocate, $self);
 
     # Set up custom scrollbars due to flicker problems whilst panning..
     $self->{hadjust} = Gtk2::Adjustment->new(0, 0, 1, 1, 1, 1);
@@ -136,11 +136,11 @@ sub new {
     $hscroll->set_adjustment( $self->{hadjust} );
     $vscroll->set_adjustment( $self->{vadjust} );
     
-    $self->{hadjust}->signal_connect_swapped('value-changed', \&onScrollbarsScroll, $self);
-    $self->{vadjust}->signal_connect_swapped('value-changed', \&onScrollbarsScroll, $self);
+    $self->{hadjust}->signal_connect_swapped('value-changed', \&on_scrollbars_scroll, $self);
+    $self->{vadjust}->signal_connect_swapped('value-changed', \&on_scrollbars_scroll, $self);
 
-    $self->{canvas}->get_vadjustment->signal_connect_swapped('value-changed', \&onScroll, $self);
-    $self->{canvas}->get_hadjustment->signal_connect_swapped('value-changed', \&onScroll, $self);
+    $self->{canvas}->get_vadjustment->signal_connect_swapped('value-changed', \&on_scroll, $self);
+    $self->{canvas}->get_hadjustment->signal_connect_swapped('value-changed', \&on_scroll, $self);
 
     # Set up canvas
     $self->{canvas}->set_center_scroll_region(0);
@@ -149,7 +149,7 @@ sub new {
     $self->{dragging} = 0;
     
     if ($show_value) {
-        $self->setupValueLabel();
+        $self->setup_value_label();
     }
 
     # Create background rectangle to receive mouse events for panning
@@ -167,26 +167,26 @@ sub new {
     $rect->lower_to_bottom();
 
     $self->{canvas}->root->signal_connect_swapped (
-        event => \&onBackgroundEvent,
+        event => \&on_background_event,
         $self,
     );
 
     $self->{back_rect} = $rect;
 
     #if ($show_legend) {
-        $self->showLegend;
+        $self->show_legend;
     #}
 
     return $self;
 }
 
-sub showLegend {
+sub show_legend {
     my $self = shift;
     #print "already have legend!\n" if $self->{legend};
     return if $self->{legend};
 
     # Create legend
-    my $pixbuf = $self->makeLegendPixbuf;
+    my $pixbuf = $self->make_legend_pixbuf;
     
     $self->{legend} = Gnome2::Canvas::Item->new (
         $self->{canvas}->root,
@@ -201,10 +201,10 @@ sub showLegend {
     $self->{legend}->raise_to_top();
     $self->{back_rect}->lower_to_bottom();
 
-    $self->{marks}[0] = $self->makeMark( 'nw' );
-    $self->{marks}[1] = $self->makeMark( 'w'  );
-    $self->{marks}[2] = $self->makeMark( 'w'  );
-    $self->{marks}[3] = $self->makeMark( 'sw' );
+    $self->{marks}[0] = $self->make_mark( 'nw' );
+    $self->{marks}[1] = $self->make_mark( 'w'  );
+    $self->{marks}[2] = $self->make_mark( 'w'  );
+    $self->{marks}[3] = $self->make_mark( 'sw' );
     
     eval {
         $self->reposition;  #  trigger a redisplay of the legend
@@ -213,7 +213,7 @@ sub showLegend {
     return;
 }
 
-sub hideLegend {
+sub hide_legend {
     my $self = shift;
 
     if ($self->{legend}) {
@@ -278,7 +278,7 @@ sub destroy {
 # Setting up the canvas
 ##########################################################
 
-sub makeMark {
+sub make_mark {
     my $self   = shift;
     my $anchor = shift;
 
@@ -295,7 +295,7 @@ sub makeMark {
     return $mark;
 }
 
-sub makeLegendPixbuf {
+sub make_legend_pixbuf {
     my $self = shift;
     my ($width, $height);
     my @pixels;
@@ -357,7 +357,7 @@ sub makeLegendPixbuf {
     return $pixbuf;
 }
 
-sub setupValueLabel {
+sub setup_value_label {
     my $self = shift;
     my $group = shift;
 
@@ -398,7 +398,7 @@ sub setupValueLabel {
     return;
 }
 
-sub setValueLabel {
+sub set_value_label {
     my $self = shift;
     my $val = shift;
 
@@ -459,17 +459,17 @@ sub get_rtree {
 
 # Draw cells coming from elements in a BaseStruct
 # This can come either from a BaseData or a Spatial Output
-sub setBaseStruct {
+sub set_base_struct {
     my $self = shift;
     my $data = shift;
 
     $self->{base_struct} = $data;
     $self->{cells} = {};
     
-    my ($min_x, $max_x, $min_y, $max_y) = $self->findMaxMin($data);
+    my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
     print join (q{ }, ($min_x, $max_x, $min_y, $max_y)) . "\n";
 
-    my @res = $self->getCellSizes($data);  #  handles zero and text
+    my @res = $self->get_cell_sizes($data);  #  handles zero and text
     
     my $cell_x = shift @res;  #  just grab first two for now
     my $cell_y = shift @res || $cell_x;  #  default to a square if not defined or zero
@@ -487,7 +487,7 @@ sub setBaseStruct {
         $width_pixels = 1
     }
 
-#    my ($cell_x, $cell_y, $width_pixels) = $self->getCellSizes($data);
+#    my ($cell_x, $cell_y, $width_pixels) = $self->get_cell_sizes($data);
     #$cell_y = 1 if ! defined $cell_y; #  catcher for single axis data sets
     
     #print "[GRID] Cellsizes:  $cell_x, $cell_y, (width: $width_pixels)\n";
@@ -603,7 +603,7 @@ sub setBaseStruct {
             width_pixels        => $width_pixels
         );
 
-        $container->signal_connect_swapped (event => \&onEvent, $self);
+        $container->signal_connect_swapped (event => \&on_event, $self);
 
         $self->{cells}{$container}[INDEX_COLOUR]  = CELL_WHITE;
         $self->{cells}{$container}[INDEX_ELEMENT] = $element;
@@ -655,25 +655,25 @@ sub setBaseStruct {
     );
 
     # Update
-    $self->setupScrollbars();
-    $self->resizeBackgroundRect();
+    $self->setup_scrollbars();
+    $self->resize_background_rect();
     
     #  show legend by default - gets hidden by caller if needed
-    $self->showLegend;
+    $self->show_legend;
 
-    # Store info needed by loadShapefile
+    # Store info needed by load_shapefile
     $self->{dataset_info} = [$min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y];
 
     return 1;
 }
 
-sub getBaseStruct {
+sub get_base_struct {
     my $self = shift;
     return $self->{base_struct};
 }
 
 # Draws a polygonal shapefile
-sub setOverlay {
+sub set_overlay {
     my $self      = shift;
     my $shapefile = shift;
     my $colour    = shift || OVERLAY_COLOUR;
@@ -686,13 +686,13 @@ sub setOverlay {
     
     if ($shapefile) {
         my @args = @{ $self->{dataset_info} };
-        $self->loadShapefile(@args, $shapefile, $colour);
+        $self->load_shapefile(@args, $shapefile, $colour);
     }
 
     return;
 }
 
-sub loadShapefile {
+sub load_shapefile {
     my ($self, $min_x, $min_y, $max_x, $max_y, $cell_x, $cell_y, $shapefile, $colour) = @_;
 
     my @rect = (
@@ -847,7 +847,7 @@ sub get_colour_from_chooser {
 }
 
 # Sets the values of the textboxes next to the legend */
-sub setLegendMinMax {
+sub set_legend_min_max {
     my ($self, $min, $max) = @_;
     
     return if ! ($self->{marks}
@@ -921,7 +921,7 @@ sub set_legend_lt_flag {
 
 # Sets list to use for colouring (eg: SPATIAL_RESULTS, RAND_COMPARE, ...)
 # Is this ever called?
-sub setCalculationList {
+sub set_calculation_list {
     my $self = shift;
     my $list_name = shift;
     print "[Grid] Setting calculation list to $list_name\n";
@@ -941,7 +941,7 @@ sub setCalculationList {
 # Marking out certain elements by colour, circles, etc...
 ##########################################################
 
-sub grayoutElements {
+sub grayout_elements {
     my $self = shift;
 
     # ed: actually just white works better - leaving this in just in case is handy elsewhere
@@ -961,7 +961,7 @@ sub grayoutElements {
 }
 
 # Places a circle/cross inside a cell if it exists in a hash
-sub markIfExists {
+sub mark_if_exists {
     my $self  = shift;
     my $hash  = shift;
     my $shape = shift; # "circle" or "cross"
@@ -975,18 +975,18 @@ sub markIfExists {
         if (exists $hash->{$cell->[INDEX_ELEMENT]}) {
             # Circle
             if ($shape eq 'circle' && not $cell->[INDEX_CIRCLE]) {
-                $cell->[INDEX_CIRCLE] = $self->drawCircle($group);
-                #$group->signal_handlers_disconnect_by_func(\&onEvent);
+                $cell->[INDEX_CIRCLE] = $self->draw_circle($group);
+                #$group->signal_handlers_disconnect_by_func(\&on_event);
             }
 
             # Cross
-            if ($shape eq 'cross' && not $cell->[INDEX_CROSS]) {
-                $cell->[INDEX_CROSS] = $self->drawCross($group);
-            } 
+            #if ($shape eq 'cross' && not $cell->[INDEX_CROSS]) {
+            #    $cell->[INDEX_CROSS] = $self->draw_cross($group);
+            #} 
             
             # Minus
             if ($shape eq 'minus' && not $cell->[INDEX_MINUS]) {
-                $cell->[INDEX_MINUS] = $self->drawMinus($group);
+                $cell->[INDEX_MINUS] = $self->draw_minus($group);
             } 
 
         }
@@ -994,12 +994,12 @@ sub markIfExists {
             if ($shape eq 'circle' && $cell->[INDEX_CIRCLE]) {
                 $cell->[INDEX_CIRCLE]->destroy;
                 $cell->[INDEX_CIRCLE] = undef;
-                #$group->signal_connect_swapped(event => \&onEvent, $self);
+                #$group->signal_connect_swapped(event => \&on_event, $self);
             }
-            if ($shape eq 'cross' && $cell->[INDEX_CROSS]) {
-                $cell->[INDEX_CROSS]->destroy;
-                $cell->[INDEX_CROSS] = undef;
-            }    
+            #if ($shape eq 'cross' && $cell->[INDEX_CROSS]) {
+            #    $cell->[INDEX_CROSS]->destroy;
+            #    $cell->[INDEX_CROSS] = undef;
+            #}    
             if ($shape eq 'minus' && $cell->[INDEX_MINUS]) {
                 $cell->[INDEX_MINUS]->destroy;
                 $cell->[INDEX_MINUS] = undef;
@@ -1010,7 +1010,7 @@ sub markIfExists {
     return;
 }
 
-sub drawCircle {
+sub draw_circle {
     my ($self, $group) = @_;
     my $offset_x = (CELL_SIZE_X - CIRCLE_DIAMETER) / 2;
     my $offset_y = ($self->{cell_size_y} - CIRCLE_DIAMETER) / 2;
@@ -1025,19 +1025,19 @@ sub drawCircle {
         fill_color_gdk    => CELL_BLACK,
         outline_color_gdk => CELL_BLACK,
     );
-    #$item->signal_connect_swapped(event => \&onMarkerEvent, $self);
+    #$item->signal_connect_swapped(event => \&on_marker_event, $self);
     return $item;
 }
 
-sub onMarkerEvent {
+sub on_marker_event {
     # FIXME FIXME FIXME All this stuff has serious problems between Windows/Linux
     my ($self, $event, $cell) = @_;
     print "Marker event: " . $event->type .  "\n";
-    $self->onEvent($event, $cell->parent);
+    $self->on_event($event, $cell->parent);
     return 1;
 }
 
-# sub drawCross {
+# sub draw_cross {
 #         my ($self, $group) = @_;
 #         # Use a group to hold the two lines
 #         my $cross_group = Gnome2::Canvas::Item->new ($group,
@@ -1057,7 +1057,7 @@ sub onMarkerEvent {
 #         return $cross_group;
 # }
 
-sub drawMinus {
+sub draw_minus {
     my ($self, $group) = @_;
     my $offset_y = ($self->{cell_size_y} - 1) / 2;
 
@@ -1083,7 +1083,7 @@ sub drawMinus {
 # Colouring based on an analysis value
 ##########################################################
 
-sub colourCells {
+sub colour_cells {
     my $self = shift;
     
     #  default to black if an analysis is specified, white otherwise
@@ -1093,7 +1093,7 @@ sub colourCells {
     foreach my $cell (values %{$self->{cells}}) {
         my $val = defined $self->{analysis} ? $cell->[INDEX_VALUES]{$self->{analysis}} : undef;
         my $rect = $cell->[INDEX_RECT];
-        my $colour = defined $val ? $self->getColour($val, $self->{min}, $self->{max}) : $colour_none;
+        my $colour = defined $val ? $self->get_colour($val, $self->{min}, $self->{max}) : $colour_none;
         $rect->set('fill-color-gdk',  $colour);
     }
 
@@ -1113,7 +1113,7 @@ sub get_colour_none {
     return $colour_none;    
 }
 
-sub getColour {
+sub get_colour {
     my ($self, $val, $min, $max) = @_;
 
     if (defined $min and $val < $min) {
@@ -1125,13 +1125,13 @@ sub getColour {
     my @args = ($val, $min, $max);
     
     if    ($self->{legend_mode} eq 'Hue') {
-        return $self->getColourHue(@args);
+        return $self->get_colour_hue(@args);
     }
     elsif ($self->{legend_mode} eq 'Sat') {
-        return $self->getColourSaturation(@args);
+        return $self->get_colour_saturation(@args);
     }
     elsif ($self->{legend_mode} eq 'Grey') {
-        return $self->getColourGrey(@args);
+        return $self->get_colour_grey(@args);
     }
     else {
         croak "Unknown colour system: " . $self->{legend_mode} . "\n";
@@ -1140,7 +1140,7 @@ sub getColour {
     return;
 }
 
-sub getColourHue {
+sub get_colour_hue {
     my ($self, $val, $min, $max) = @_;
     # We use the following system:
     #   Linear interpolation between min...max
@@ -1167,7 +1167,7 @@ sub getColourHue {
     return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
-sub getColourSaturation {
+sub get_colour_saturation {
     my ($self, $val, $min, $max) = @_;
     #   Linear interpolation between min...max
     #   SATURATION goes from 0 to 1 as val goes from min to max
@@ -1190,7 +1190,7 @@ sub getColourSaturation {
     return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
-sub getColourGrey {
+sub get_colour_grey {
     my ($self, $val, $min, $max) = @_;
     
     my $sat;
@@ -1296,7 +1296,7 @@ sub maxmin {
 # Data extraction utilities
 ##########################################################
 
-sub findMaxMin {
+sub find_max_min {
     my $self = shift;
     my $data = shift;
     my ($min_x, $max_x, $min_y, $max_y);
@@ -1315,7 +1315,7 @@ sub findMaxMin {
     return ($min_x, $max_x, $min_y, $max_y);
 }
 
-sub getCellSizes {
+sub get_cell_sizes {
     my $data = $_[1];
     #my ($cell_x, $cell_y) = @{$data->get_param("CELL_SIZES")};
     my @cell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
@@ -1376,7 +1376,7 @@ sub getCellSizes {
 
 # Implements pop-ups and hover-markers
 # FIXME FIXME FIXME Horrible problems between windows / linux due to the markers being on top...
-sub onEvent {
+sub on_event {
     my ($self, $event, $cell) = @_;
 
 #my $type = $event->type;
@@ -1489,7 +1489,7 @@ sub onEvent {
             my ($x_start, $y_start) = ($self->{sel_start_x}, $self->{sel_start_y});
             my ($x_end, $y_end)     = ($event->x, $event->y);
 
-            $self->endSelection($x_start, $y_start, $x_end, $y_end);
+            $self->end_selection($x_start, $y_start, $x_end, $y_end);
 
             #  Try to get rid of the dot that appears when selecting.
             #  Lowering at least stops it getting in the way.
@@ -1514,17 +1514,17 @@ sub onEvent {
 }
 
 # Implements resizing
-sub onSizeAllocate {
+sub on_size_allocate {
     my ($self, $size, $canvas) = @_;
     $self->{width_px}  = $size->width;
     $self->{height_px} = $size->height;
 
     if (exists $self->{width_units}) {
-        $self->fitGrid() if ($self->{zoom_fit});
+        $self->fit_grid() if ($self->{zoom_fit});
 
         $self->reposition();
-        $self->setupScrollbars();
-        $self->resizeBackgroundRect();
+        $self->setup_scrollbars();
+        $self->resize_background_rect();
 
     }
     
@@ -1532,7 +1532,7 @@ sub onSizeAllocate {
 }
 
 # Implements panning
-sub onBackgroundEvent {
+sub on_background_event {
     my ($self, $event, $cell) = @_;
 
 my $type = $event->type;
@@ -1601,7 +1601,7 @@ my $state = $event->state;
                 $sel_rect->destroy;
                 
                 #if (! $event->state >= ["control-mask" ]) {  #  not if control key is pressed
-                    $self->endSelection($x_start, $y_start, $x_end, $y_end);
+                    $self->end_selection($x_start, $y_start, $x_end, $y_end);
                 #}
             }
 
@@ -1609,7 +1609,7 @@ my $state = $event->state;
         elsif ($self->{dragging}) {
             $cell->ungrab ($event->time);
             $self->{dragging} = 0;
-            $self->updateScrollbars(); #FIXME: If we do this for motion-notify - get great flicker!?!?
+            $self->update_scrollbars(); #FIXME: If we do this for motion-notify - get great flicker!?!?
         }
 
     }
@@ -1638,7 +1638,7 @@ my $state = $event->state;
 }
 
 # Called to complete selection. Finds selected elements and calls callback
-sub endSelection {
+sub end_selection {
     my $self = shift;
     my ($x_start, $y_start, $x_end, $y_end) = @_;
 
@@ -1673,7 +1673,7 @@ sub endSelection {
     my $elements = [];
     #$self->{rtree}->query_partly_within_rect(@rect, $elements);
     $self->{rtree}->query_partly_within_rect(@rect_baseunits, $elements);
-    #my $elements = $self->{rtree}->getEnclosedObjects (@rect);
+    #my $elements = $self->{rtree}->get_enclosed_objects (@rect);
     if (0) {
         print "[Grid] selection rect: @rect\n";
         for my $element (@$elements) {
@@ -1692,7 +1692,7 @@ sub endSelection {
 # Scrolling
 ##########################################################
 
-sub setupScrollbars {
+sub setup_scrollbars {
     my $self = shift;
     my ($total_width, $total_height) = $self->{canvas}->w2c($self->{width_units}, $self->{height_units});
 
@@ -1713,7 +1713,7 @@ sub setupScrollbars {
     return;
 }
 
-sub updateScrollbars {
+sub update_scrollbars {
     my $self = shift;
 
     my ($scrollx, $scrolly) = $self->{canvas}->get_scroll_offsets();
@@ -1723,7 +1723,7 @@ sub updateScrollbars {
     return;
 }
 
-sub onScrollbarsScroll {
+sub on_scrollbars_scroll {
     my $self = shift;
 
     if (not $self->{dragging}) {
@@ -1741,7 +1741,7 @@ sub onScrollbarsScroll {
 ##########################################################
 
 # Calculate pixels-per-unit to make image fit
-sub fitGrid {
+sub fit_grid {
     my $self = shift;
 
     my $ppu_width = $self->{width_px} / $self->{width_units};
@@ -1754,7 +1754,7 @@ sub fitGrid {
 }
 
 # Resize background rectangle which is dragged for panning
-sub resizeBackgroundRect {
+sub resize_background_rect {
     my $self = shift;
 
     if ($self->{width_px}) {
@@ -1832,7 +1832,7 @@ sub max {
     return ($_[0] > $_[1]) ? $_[0] : $_[1];
 }
 
-sub onScroll {
+sub on_scroll {
     my $self = shift;
     #FIXME: check if this helps reduce flicker
     $self->reposition();
@@ -1844,40 +1844,40 @@ sub onScroll {
 # More public functions (zoom/colours)
 ##########################################################
 
-sub zoomIn {
+sub zoom_in {
     my $self = shift;
     my $ppu = $self->{canvas}->get_pixels_per_unit();
     $self->{canvas}->set_pixels_per_unit( $ppu * 1.5 );
     $self->{zoom_fit} = 0;
-    $self->postZoom();
+    $self->post_zoom();
     
     return;
 }
 
-sub zoomOut {
+sub zoom_out {
     my $self = shift;
     my $ppu = $self->{canvas}->get_pixels_per_unit();
     $self->{canvas}->set_pixels_per_unit( $ppu / 1.5 );
     $self->{zoom_fit} = 0;
-    $self->postZoom();
+    $self->post_zoom();
     
     return;
 }
 
-sub zoomFit {
+sub zoom_fit {
     my $self = shift;
     $self->{zoom_fit} = 1;
-    $self->fitGrid();
-    $self->postZoom();
+    $self->fit_grid();
+    $self->post_zoom();
     
     return;
 }
 
-sub postZoom {
+sub post_zoom {
     my $self = shift;
-    $self->setupScrollbars();
+    $self->setup_scrollbars();
     $self->reposition();
-    $self->resizeBackgroundRect();
+    $self->resize_background_rect();
     
     return;
 }
@@ -1886,7 +1886,7 @@ sub postZoom {
 
 
 # Set colouring mode - 'Hue' or 'Sat'
-sub setLegendMode {
+sub set_legend_mode {
     my $self = shift;
     my $mode = shift;
     
@@ -1895,11 +1895,11 @@ sub setLegendMode {
     
     $self->{legend_mode} = $mode;
 
-    $self->colourCells();
+    $self->colour_cells();
 
     # Update legend
     if ($self->{legend}) { 
-        $self->{legend}->set(pixbuf => $self->makeLegendPixbuf() );
+        $self->{legend}->set(pixbuf => $self->make_legend_pixbuf() );
     }
     
     return;
@@ -1911,7 +1911,7 @@ Sets the hue for the saturation (constant-hue) colouring mode
 
 =cut
 
-sub setLegendHue {
+sub set_legend_hue {
     my $self = shift;
     my $rgb = shift;
 
@@ -1923,11 +1923,11 @@ sub setLegendHue {
 
     $self->{hue} = $hue;
 
-    $self->colourCells();
+    $self->colour_cells();
 
     # Update legend
     if ($self->{legend}) { 
-        $self->{legend}->set(pixbuf => $self->makeLegendPixbuf() );
+        $self->{legend}->set(pixbuf => $self->make_legend_pixbuf() );
     }
     
     return;

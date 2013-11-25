@@ -51,7 +51,7 @@ sub run {
     }
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::GladeXML->new ($gui->getGladeFile, DLG_NAME);
+    my $dlgxml = Gtk2::GladeXML->new ($gui->get_glade_file, DLG_NAME);
     my $dlg = $dlgxml->get_widget(DLG_NAME);
 
     # Put it on top of main window

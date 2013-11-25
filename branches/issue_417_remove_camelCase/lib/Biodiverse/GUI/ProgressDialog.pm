@@ -37,7 +37,7 @@ sub new {
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
     # Load the widgets from Glade's XML - need a better method of detecting if we are run from a GUI
-    my $glade_file = $gui->getGladeFile;
+    my $glade_file = $gui->get_glade_file;
     Biodiverse::GUI::ProgressDialog::NotInGUI->throw
         if ! $glade_file;
 

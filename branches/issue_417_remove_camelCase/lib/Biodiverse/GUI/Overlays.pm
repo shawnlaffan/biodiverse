@@ -14,45 +14,45 @@ use Biodiverse::GUI::Project;
 my $default_colour       = Gtk2::Gdk::Color->parse('#001169');
 my $last_selected_colour = $default_colour;
 
-sub showDialog {
+sub show_dialog {
     my $grid = shift;
 
     # Create dialog
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'wndOverlays');
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'wndOverlays');
     my $dlg = $dlgxml->get_widget('wndOverlays');
     my $colour_button = $dlgxml->get_widget('colorbutton_overlays');
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
     
     $colour_button->set_color($last_selected_colour);
 
-    my $project = $gui->getProject;
-    my $model = makeOverlayModel($project);
-    my $list = initOverlayList($dlgxml, $model);
+    my $project = $gui->get_project;
+    my $model = make_overlay_model($project);
+    my $list = init_overlay_list($dlgxml, $model);
 
     # Connect buttons
     $dlgxml->get_widget('btnAdd')->signal_connect(
-        clicked => \&onAdd,
+        clicked => \&on_add,
         [$list, $project],
     );
     $dlgxml->get_widget('btnDelete')->signal_connect(
-        clicked => \&onDelete,
+        clicked => \&on_delete,
         [$list, $project],
     );
     $dlgxml->get_widget('btnClear')->signal_connect(
-        clicked => \&onClear,
+        clicked => \&on_clear,
         [$list, $project, $grid, $dlg],
     );
     $dlgxml->get_widget('btnSet')->signal_connect(
-        clicked => \&onSet,
+        clicked => \&on_set,
         [$list, $project, $grid, $dlg, $colour_button],
     );
     $dlgxml->get_widget('btnOverlayCancel')->signal_connect(
-        clicked => \&onCancel,
+        clicked => \&on_cancel,
         $dlg,
     );
     $dlgxml->get_widget('btn_overlay_set_default_colour')->signal_connect(
-        clicked => \&onSetDefaultColour,
+        clicked => \&on_set_default_colour,
         $colour_button,
     );
     
@@ -63,7 +63,7 @@ sub showDialog {
     return;
 }
 
-sub initOverlayList {
+sub init_overlay_list {
     my $dlgxml = shift;
     my $model = shift;
     my $tree = $dlgxml->get_widget('treeOverlays');
@@ -90,14 +90,14 @@ sub initOverlayList {
 }
 
 # Make the object tree that appears on the left
-sub makeOverlayModel {
+sub make_overlay_model {
     my $model = Gtk2::ListStore->new(
         'Glib::String',
         #'Glib::Boolean',  #  fiddling around with colour selection
     );
     my $project = shift;
 
-    my $overlays = $project->getOverlayList();
+    my $overlays = $project->get_overlay_list();
 
     foreach my $name (@{$overlays}) {
         my $iter = $model->append;
@@ -110,7 +110,7 @@ sub makeOverlayModel {
 
 
 # Get what was selected..
-sub getSelection {
+sub get_selection {
     my $tree = shift;
 
     my $selection = $tree->get_selection();
@@ -125,7 +125,7 @@ sub getSelection {
 }
 
 
-sub onSetDefaultColour {
+sub on_set_default_colour {
     my $button = shift;
     my $colour_button = shift;
     
@@ -134,7 +134,7 @@ sub onSetDefaultColour {
     return;
 }
 
-sub onAdd {
+sub on_add {
     my $button = shift;
     my $args = shift;
     my ($list, $project) = @$args;
@@ -165,44 +165,44 @@ sub onAdd {
         my $sel = $list->get_selection;
         $sel->select_iter($iter);
         
-        $project->addOverlay($filename);
+        $project->add_overlay($filename);
     }
     $open->destroy();
     
     return;
 }
 
-sub onDelete {
+sub on_delete {
     my $button = shift;
     my $args = shift;
     my ($list, $project) = @$args;
 
-    my ($filename, $iter) = getSelection($list);
+    my ($filename, $iter) = get_selection($list);
     return if not $filename;
-    $project->deleteOverlay($filename);
+    $project->delete_overlay($filename);
     $list->get_model->remove($iter);
     
     return;
 }
 
 
-sub onClear {
+sub on_clear {
     my $button = shift;
     my $args = shift;
     my ($list, $project, $grid, $dlg) = @$args;
 
-    $grid->setOverlay(undef);
+    $grid->set_overlay(undef);
     $dlg->destroy();
     
     return;
 }
 
-sub onSet {
+sub on_set {
     my $button = shift;
     my $args = shift;
     my ($list, $project, $grid, $dlg, $colour_button) = @$args;
 
-    my $filename = getSelection($list);
+    my $filename = get_selection($list);
     
     my $colour = $colour_button->get_color;
     
@@ -213,7 +213,7 @@ sub onSet {
     }
 
     print "[Overlay] Setting overlay to $filename\n";
-    $grid->setOverlay( $project->getOverlay($filename), $colour );
+    $grid->set_overlay( $project->get_overlay($filename), $colour );
     #$dlg->destroy();
     
     $last_selected_colour = $colour;
@@ -221,7 +221,7 @@ sub onSet {
     return;
 }
 
-sub onCancel {
+sub on_cancel {
     my $button = shift;
     my $dlg    = shift;
 

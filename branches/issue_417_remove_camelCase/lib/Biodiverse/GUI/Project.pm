@@ -46,12 +46,12 @@ use constant MODEL_BASEDATA_ROW => 5;        # TRUE if this is a basedata row.
                                              # Use to filter these out for comboboxes
 use constant MODEL_OUTPUT_TYPE  => 6;        # Display the object type
 
-sub init_models {
-    my $self = shift;
-    $self->initModels();
-    $self->initOverlayHash();
-    $self->clearDirty();
-}
+#sub init_models {
+#    my $self = shift;
+#    $self->initModels();
+#    $self->initOverlayHash();
+#    $self->clearDirty();
+#}
 
 sub new {
     my $class = shift;

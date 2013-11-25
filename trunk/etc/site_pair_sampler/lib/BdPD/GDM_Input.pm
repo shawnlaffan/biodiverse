@@ -601,7 +601,7 @@ sub do_sampling {
     my ($geog_dist, $geog_dist_output, $regions_output, $output_row, $all_sitepairs_done, $proportion_needed);
     my ($all_sitepairs_kept,$regions_done);
     my $result_file_handle = $self->{result_file_handle};
-    my ($printedProgress_all, $storedProgress_all) = (0,0);
+    my ($printed_progress_all, $stored_progress_all) = (0,0);
     my $dist_output;
     my $measure_count = $self->{measure_count};
     my $dist_exceeded;
@@ -639,7 +639,7 @@ sub do_sampling {
         my $groupcount1 = $region_stats{$region1}{group_count};
         my $groupcount2 = $region_stats{$region2}{group_count};
 
-        my ($count, $loops, $toDo, $progress, $printedProgress, $storedProgress, $diss_quotas_reached) = (0,0,0,0,0,0,0);
+        my ($count, $loops, $to_do, $progress, $printed_progress, $stored_progress, $diss_quotas_reached) = (0,0,0,0,0,0,0);
         my $region_completed =0;
         my $region_pair_quota = $region_pair{quota};
         my $total_samples = $region_pair_quota;
@@ -659,7 +659,7 @@ sub do_sampling {
 
         #add proportion needed to the hash for feedback
         $region_pair{proportion_needed} = $proportion_needed;
-        $toDo = min($total_samples,$all_comparisons);
+        $to_do = min($total_samples,$all_comparisons);
         
  ### DECIDE HERE BETWEEN TWO SAMPLING STRATEGIES WHICH ARE EFFICIENT IN DIFFERENT CIRCUMSTANCES:
  ###  (A) COMPLETE MATRIX: GENERATE ALL POSSIBLE PAIRS, SHUFFLE AND USE; OR
@@ -935,16 +935,16 @@ sub do_sampling {
             $sum = q{};
             
             if ($self->{verbosity} == 3) {
-                $progress = int (100 * $loops / $toDo);
+                $progress = int (100 * $loops / $to_do);
                 if (($progress % 5 == 0) or (($diss_quotas_reached == $bin_count) and $bin_count>1)) {
-                    if ($printedProgress != $progress) {
-                        $storedProgress = int (100 * $count / $region_pair_quota);
+                    if ($printed_progress != $progress) {
+                        $stored_progress = int (100 * $count / $region_pair_quota);
                         my $percent_sampled = int(1000 * ($loops / $all_comparisons)) / 10;
-                        print "Sampled: $percent_sampled% \t$loops \t\tStored: $count \t$storedProgress% of target\n";
-                        $printedProgress = $progress;
+                        print "Sampled: $percent_sampled% \t$loops \t\tStored: $count \t$stored_progress% of target\n";
+                        $printed_progress = $progress;
                     };
                 };
-                print "\n" if $count == $toDo;    
+                print "\n" if $count == $to_do;    
             };
         };
 
@@ -987,7 +987,7 @@ sub do_sampling {
             $progress_all = int (100 * $regions_done / $region_pair_count);
         }
         else {
-            $progress_all = int (100 * $all_sitepairs_done / $toDo);
+            $progress_all = int (100 * $all_sitepairs_done / $to_do);
         }
 
         # Feedback on completed region after each region
@@ -1019,8 +1019,8 @@ sub do_sampling {
         # Feedback on global progress after each region
         if ($self->{verbosity} == 0 or ($regions_done == $region_pair_count)) {
             if (($progress_all % 5 == 0) or ($regions_done == $region_pair_count)) {
-                if ($printedProgress_all != $progress_all) {
-                    $storedProgress_all = int (100 * $regions_done / $region_pair_count);
+                if ($printed_progress_all != $progress_all) {
+                    $stored_progress_all = int (100 * $regions_done / $region_pair_count);
                     print "Done: $progress_all%      Sites pairs done: $all_sitepairs_done   Site pairs stored: $all_sitepairs_kept";
                     if ($self->{sample_by_regions}) {
                         print "     Region pairs: $regions_done\n";
@@ -1028,7 +1028,7 @@ sub do_sampling {
                     else {
                         print "\n";
                     }
-                    $printedProgress_all = $progress_all;
+                    $printed_progress_all = $progress_all;
                 };
             };
         };

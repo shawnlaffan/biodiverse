@@ -25,8 +25,8 @@ require Biodiverse::GUI::Tabs::SpatialMatrix;
 ##########################################################
 # Quitting
 ##########################################################
-sub on_wndMain_delete_event {
-    if (Biodiverse::GUI::GUIManager->instance->closeProject()) {
+sub on_wnd_main_delete_event {
+    if (Biodiverse::GUI::GUIManager->instance->close_project()) {
         Gtk2->main_quit();
         return FALSE;
     }
@@ -37,7 +37,7 @@ sub on_wndMain_delete_event {
 }
 
 sub on_quit_activate {
-    on_wndMain_delete_event();
+    on_wnd_main_delete_event();
     
     return;
 }
@@ -115,7 +115,7 @@ sub on_about_activate {
         comments => 'A tool for the spatial analysis of diversity.',
         name     => 'Biodiverse',
         program_name => 'Biodiverse',
-        version => $gui->getVersion(),
+        version => $gui->get_version(),
         license => $Biodiverse::Config::license,
         website => 'http://www.purl.org/biodiverse',
         #locale  => $locale_text,
@@ -137,16 +137,16 @@ sub on_about_activate {
 
 my %open_funcs = (
     on_open_activate => {
-        METHOD => 'doOpen',
+        METHOD => 'do_open',
     },
     on_new_activate => {
-        METHOD => 'doNew',
+        METHOD => 'do_new',
     },
     on_save_activate => {
-        METHOD => 'doSave',
+        METHOD => 'do_save',
     },
     on_save_as_activate => {
-        METHOD => 'doSaveAs',
+        METHOD => 'do_save_as',
     },
 );
 
@@ -162,59 +162,59 @@ __PACKAGE__->_make_callbacks( %open_funcs );
 #  using loops, thus shortening the code
 my %data_funcs = (
     on_basedata_import => {
-        METHOD => 'doImport',
+        METHOD => 'do_import',
     },
     on_matrix_import => {
-        METHOD => 'doAddMatrix',
+        METHOD => 'do_add_matrix',
     },
     on_phylogeny_import => {
-        METHOD => 'doAddPhylogeny',
+        METHOD => 'do_add_phylogeny',
     },
     on_basedata_delete => {
-        METHOD => 'doDeleteBasedata',
+        METHOD => 'do_delete_basedata',
     },
     on_basedata_rename => {
-        METHOD => 'doRenameBasedata',
+        METHOD => 'do_rename_basedata',
     },
     on_matrix_rename => {
-        METHOD => 'doRenameMatrix',
+        METHOD => 'do_rename_matrix',
     },
     on_phylogeny_rename => {
-        METHOD => 'doRenamePhylogeny',
+        METHOD => 'do_rename_phylogeny',
     },
     on_matrix_delete => {
-        METHOD => 'doDeleteMatrix',
+        METHOD => 'do_delete_matrix',
     },
     on_phylogeny_delete => {
-        METHOD => 'doDeletePhylogeny',
+        METHOD => 'do_delete_phylogeny',
     },
     on_basedata_save => {
-        METHOD => 'doSaveBasedata',
+        METHOD => 'do_save_basedata',
     },
     on_basedata_describe => {
-        METHOD => 'doDescribeBasedata',
+        METHOD => 'do_describe_basedata',
     },
     on_matrix_describe => {
-        METHOD => 'doDescribeMatrix',
+        METHOD => 'do_describe_matrix',
     },
     on_phylogeny_describe => {
-        METHOD => 'doDescribePhylogeny',
+        METHOD => 'do_describe_phylogeny',
     },
     on_basedata_duplicate => {
-        METHOD => 'doDuplicateBasedata',
+        METHOD => 'do_duplicate_basedata',
     },
     on_basedata_duplicate_no_outputs => {
-        METHOD => 'doDuplicateBasedata',
+        METHOD => 'do_duplicate_basedata',
         ARGS   => {no_outputs => 1,}
     },
     on_basedata_export_groups => {
-        METHOD => 'doExportGroups',
+        METHOD => 'do_export_groups',
     },
     on_rename_basedata_labels => {
         METHOD => 'do_rename_basedata_labels',
     },
     on_basedata_export_labels => {
-        METHOD => 'doExportLabels',
+        METHOD => 'do_export_labels',
     },
     on_basedata_extract_embedded_trees => {
         METHOD => 'do_basedata_extract_embedded_trees',
@@ -248,28 +248,28 @@ my %data_funcs = (
         METHOD => 'do_basedata_attach_label_ranges_as_properties',
     },
     on_matrix_save => {
-        METHOD => 'doSaveMatrix',
+        METHOD => 'do_save_matrix',
     },
     on_phylogeny_save => {
-        METHOD => 'doSavePhylogeny',
+        METHOD => 'do_save_phylogeny',
     },
     on_basedata_open => {
-        METHOD => 'doOpenBasedata',
+        METHOD => 'do_open_basedata',
     },
     on_matrix_open => {
-        METHOD => 'doOpenMatrix',
+        METHOD => 'do_open_matrix',
     },
     on_phylogeny_open => {
-        METHOD => 'doOpenPhylogeny',
+        METHOD => 'do_open_phylogeny',
     },
     on_combo_basedata_changed => {
-        METHOD => 'doBasedataChanged',
+        METHOD => 'do_basedata_changed',
     },
     on_combo_matrices_changed => {
-        METHOD => 'doMatrixChanged',
+        METHOD => 'do_matrix_changed',
     },
     on_combo_phylogenies_changed => {
-        METHOD => 'doPhylogenyChanged',
+        METHOD => 'do_phylogeny_changed',
     },
     on_convert_labels_to_phylogeny => {
         METHOD => 'do_convert_labels_to_phylogeny',
@@ -350,13 +350,13 @@ __PACKAGE__->_make_tab_callbacks (%tabs);
 
 my %misc_dialogs = (
     on_run_exclusions_activate => {
-        METHOD => 'doRunExclusions',
+        METHOD => 'do_run_exclusions',
     },
     on_set_working_directory_activate => {
         METHOD => 'do_set_working_directory',
     },
     on_index_activate => {
-        METHOD => 'showIndexDialog',
+        METHOD => 'show_index_dialog',
     },
     on_index_delete => {
         METHOD => 'delete_index',

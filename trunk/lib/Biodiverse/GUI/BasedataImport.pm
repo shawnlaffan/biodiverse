@@ -46,7 +46,7 @@ sub run {
     #########
     # 1. Get the target basedata & filename
     #########
-    my ($dlgxml, $dlg) = makeFilenameDialog($gui);
+    my ($dlgxml, $dlg) = make_filename_dialog($gui);
     my $response = $dlg->run();
     
     if ($response ne 'ok') {  #  clean up and drop out
@@ -63,7 +63,7 @@ sub run {
         # Add it
         # FIXME: why am i adding it now?? better at the end?
         my $basedata_name = $dlgxml->get_widget($txt_import_new)->get_text();
-        #$basedata_ref = $gui->getProject->addBaseData($basedata_name);
+        #$basedata_ref = $gui->get_project->add_base_data($basedata_name);
         $basedata_ref = Biodiverse::BaseData->new (
             NAME       => $basedata_name,
             CELL_SIZES => [],  #  default, gets overridden later
@@ -72,7 +72,7 @@ sub run {
     else {
         # Get selected basedata
         my $selected = $dlgxml->get_widget($combo_import_basedatas)->get_active_iter();
-        $basedata_ref = $gui->getProject->getBasedataModel->get($selected, MODEL_OBJECT);
+        $basedata_ref = $gui->get_project->get_basedata_model->get($selected, MODEL_OBJECT);
     }
 
     # Get selected filenames
@@ -88,7 +88,7 @@ sub run {
     #########
     # 1a. Get parameters to use
     #########
-    $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgImportParameters');
+    $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
     $dlg = $dlgxml->get_widget('dlgImportParameters');
     
     #  add file name labels to display
@@ -121,7 +121,7 @@ sub run {
     
     if ($response ne 'ok') {  #  clean up and drop out
         if ($use_new) {
-            $gui->getProject->deleteBaseData($basedata_ref);
+            $gui->get_project->delete_base_data($basedata_ref);
         }
         return;
     }
@@ -154,16 +154,16 @@ sub run {
     close ($fh);
 
     my $sep     = $import_params{input_sep_char} eq 'guess' 
-                ? $gui->getProject->guess_field_separator (string => $line)
+                ? $gui->get_project->guess_field_separator (string => $line)
                 : $import_params{input_sep_char};
 
     my $quotes  = $import_params{input_quote_char} eq 'guess'
-                ? $gui->getProject->guess_quote_char (string => $line)
+                ? $gui->get_project->guess_quote_char (string => $line)
                 : $import_params{input_quote_char};
             
-    my $eol     = $gui->getProject->guess_eol (string => $line);
+    my $eol     = $gui->get_project->guess_eol (string => $line);
 
-    my @header  = $gui->getProject->csv2list(
+    my @header  = $gui->get_project->csv2list(
         string      => $line,
         quote_char  => $quotes,
         sep_char    => $sep,
@@ -201,9 +201,9 @@ sub run {
     # 2. Get column types (using first file...)
     #########
     my $row_widgets;
-    ($dlg, $row_widgets) = makeColumnsDialog (
+    ($dlg, $row_widgets) = make_columns_dialog (
         $col_names_for_dialog,
-        $gui->getWidget('wndMain'),
+        $gui->get_widget('wndMain'),
         $col_options,
         $file_list_as_text,
     );
@@ -218,7 +218,7 @@ sub run {
             explain_import_col_options($dlg, $use_matrix);
         }
         elsif ($response eq 'ok') {
-            $column_settings = getColumnSettings($row_widgets, $col_names_for_dialog);
+            $column_settings = get_column_settings($row_widgets, $col_names_for_dialog);
             my $num_groups = scalar @{$column_settings->{groups}};
             my $num_labels = 0;
             if ($use_matrix) {
@@ -259,7 +259,7 @@ sub run {
     
     if (not $column_settings) {  #  clean up and drop out
         if ($use_new) {
-            $gui->getProject->deleteBaseData ($basedata_ref) ;
+            $gui->get_project->delete_base_data ($basedata_ref) ;
         }
         return;
     }
@@ -273,15 +273,15 @@ sub run {
             = [{name => 'From file', id => 0}];
     }
     
-    ($dlgxml, $dlg) = makeReorderDialog($gui, $column_settings);
+    ($dlgxml, $dlg) = make_reorder_dialog($gui, $column_settings);
     $response = $dlg->run();
     
-    $params = fillParams($dlgxml);
+    $params = fill_params($dlgxml);
     $dlg->destroy();
 
     if ($response ne 'ok') {  #  clean up and drop out
         if ($use_new) {
-            $gui->getProject->deleteBaseData ($basedata_ref);
+            $gui->get_project->delete_base_data ($basedata_ref);
         }
         return;
     }
@@ -300,7 +300,7 @@ sub run {
     
     foreach my $type (qw /label group/) {
         if ($import_params{"use_$type\_properties"}) {
-            my %remap_data = getRemapInfo (
+            my %remap_data = get_remap_info (
                 $gui,
                 $filenames[0],
                 $type,
@@ -330,8 +330,8 @@ sub run {
         $basedata_ref->set_param(CELL_ORIGINS => $params->{CELL_ORIGINS});
     }
 
-    #  get the sample count columns.  could do in fillParams, but these are
-    #    not reordered while fillParams deals with the re-ordering.  
+    #  get the sample count columns.  could do in fill_params, but these are
+    #    not reordered while fill_params deals with the re-ordering.  
     my @sample_count_columns;
     foreach my $index (@{$column_settings->{sample_counts}}) {
         push @sample_count_columns, $index->{id};
@@ -392,7 +392,7 @@ sub run {
 
     if ($success) {
         if ($use_new) {
-            $gui->getProject->addBaseData($basedata_ref);
+            $gui->get_project->add_base_data($basedata_ref);
         }
         return $basedata_ref;
     }
@@ -438,7 +438,7 @@ sub check_if_r_data_frame {
 
 # Extract column types and sizes into lists that can be passed to the reorder dialog
 #  special handling for groups, the rest are returned "as-is"
-sub getColumnSettings {
+sub get_column_settings {
     my $cols = shift;
     my $headers = shift;
     #my $num = @$cols;
@@ -537,7 +537,7 @@ sub getColumnSettings {
 }
 
 # Set the column parameters based on the reorder dialog
-sub fillParams {
+sub fill_params {
     my $dlgxml = shift;
 
     my $labels_model = $dlgxml->get_widget('labels')->get_model();
@@ -740,41 +740,41 @@ sub show_expl_dialog {
 # Column reorder dialog
 ##################################################
 
-sub makeReorderDialog {
+sub make_reorder_dialog {
     my $gui = shift;
     my $columns = shift;
 
-    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgReorderColumns');
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgReorderColumns');
     my $dlg = $dlgxml->get_widget('dlgReorderColumns');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
     
-    my $list_groups = setupReorderList('groups', $dlgxml, $columns->{groups});
-    my $list_labels = setupReorderList('labels', $dlgxml, $columns->{labels});
+    my $list_groups = setup_reorder_list('groups', $dlgxml, $columns->{groups});
+    my $list_labels = setup_reorder_list('labels', $dlgxml, $columns->{labels});
 
     # Make the selections mutually exclusive (if selection made, unselect selection in other list)
     $list_groups->get_selection->signal_connect(
-        changed => \&unselectOther,
+        changed => \&unselect_other,
         $list_labels,
     );
     $list_labels->get_selection->signal_connect(
-        changed => \&unselectOther,
+        changed => \&unselect_other,
         $list_groups,
     );
 
     # Connect up/down buttons
     $dlgxml->get_widget('btnUp')->signal_connect(
-        clicked => \&onUpDown,
+        clicked => \&on_up_down,
         ['up', $list_groups, $list_labels],
     );
     $dlgxml->get_widget('btnDown')->signal_connect(
-        clicked => \&onUpDown,
+        clicked => \&on_up_down,
         ['down', $list_groups, $list_labels],
     );
 
     return ($dlgxml, $dlg);
 }
 
-sub setupReorderList {
+sub setup_reorder_list {
     my $type = shift;
     my $dlgxml = shift;
     my $columns = shift;
@@ -807,7 +807,7 @@ sub setupReorderList {
 
 
 # If selected something, clear the other lists' selection
-sub unselectOther {
+sub unselect_other {
     my $selection = shift;
     my $other_list = shift;
 
@@ -818,7 +818,7 @@ sub unselectOther {
     return;
 }
 
-sub onUpDown {
+sub on_up_down {
     shift;
     my $args = shift;
     my ($btn, $list1, $list2) = @$args;
@@ -861,13 +861,13 @@ sub onUpDown {
 # First (choose filename) dialog
 ##################################################
     
-sub makeFilenameDialog {
+sub make_filename_dialog {
     my $gui = shift;
     #my $object = shift || return;
     
-    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, $dlg_name);
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, $dlg_name);
     my $dlg = $dlgxml->get_widget($dlg_name);
-    my $x = $gui->getWidget('wndMain');
+    my $x = $gui->get_widget('wndMain');
     $dlg->set_transient_for( $x );
     
 #    # Get the Parameters metadata
@@ -882,8 +882,8 @@ sub makeFilenameDialog {
 
 
     # Initialise the basedatas combo
-    $dlgxml->get_widget($combo_import_basedatas)->set_model($gui->getProject->getBasedataModel());
-    my $selected = $gui->getProject->getSelectedBaseDataIter();
+    $dlgxml->get_widget($combo_import_basedatas)->set_model($gui->get_project->get_basedata_model());
+    my $selected = $gui->get_project->get_selected_base_data_iter();
     if (defined $selected) {
         $dlgxml->get_widget($combo_import_basedatas)->set_active_iter($selected);
     }
@@ -912,15 +912,15 @@ sub makeFilenameDialog {
     $dlgxml->get_widget($filechooser_input)->add_filter($filter);
     
     $dlgxml->get_widget($filechooser_input)->set_select_multiple(1);
-    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
+    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
 
-    $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&onNewToggled, [$gui, $dlgxml]);
-    $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&onNewChanged, [$gui, $dlgxml]);
+    $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
+    $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
     
     return ($dlgxml, $dlg);
 }
 
-sub onFileChanged {
+sub on_file_changed {
     my $chooser = shift;
     my $dlgxml = shift;
 
@@ -942,7 +942,7 @@ sub onFileChanged {
     return;
 }
 
-sub onNewChanged {
+sub on_new_changed {
     my $text = shift;
     my $args = shift;
     my ($gui, $dlgxml) = @{$args};
@@ -955,7 +955,7 @@ sub onNewChanged {
     else {
 
         # Disable Next if have no basedatas
-        my $selected = $gui->getProject->getSelectedBaseDataIter();
+        my $selected = $gui->get_project->get_selected_base_data_iter();
         if (not $selected) {
             $dlgxml->get_widget($btn_next)->set_sensitive(0);
         }
@@ -964,7 +964,7 @@ sub onNewChanged {
     return;
 }
 
-sub onNewToggled {
+sub on_new_toggled {
     my $checkbox = shift;
     my $args = shift;
     my ($gui, $dlgxml) = @{$args};
@@ -989,7 +989,7 @@ sub onNewToggled {
 # Column selection dialog
 ##################################################
 
-sub makeColumnsDialog {
+sub make_columns_dialog {
     # We have to dynamically generate the choose columns dialog since
     # the number of columns is unknown
 
@@ -1086,7 +1086,7 @@ sub makeColumnsDialog {
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
         my $row_label_text = $header->[$i] // q{};
-        addRow($row_widgets, $table, $i, $row_label_text, $row_options);
+        add_row($row_widgets, $table, $i, $row_label_text, $row_options);
     }
 
     $dlg->set_resizable(1);
@@ -1105,7 +1105,7 @@ sub makeColumnsDialog {
     return ($dlg, $row_widgets);
 }
 
-sub addRow {
+sub add_row {
     my ($row_widgets, $table, $col_id, $header, $row_options) = @_;
     
     if (!defined $header) {
@@ -1183,7 +1183,7 @@ sub addRow {
 
     # Signal to enable/disable spin buttons
     $combo->signal_connect_swapped(
-        changed => \&onTypeComboChanged,
+        changed => \&on_type_combo_changed,
         [$spin1, $spin2, $combo_dms],
     );
 
@@ -1193,7 +1193,7 @@ sub addRow {
     return;
 }
 
-sub onTypeComboChanged {
+sub on_type_combo_changed {
     my $spins = shift;
     my $combo = shift;
     
@@ -1214,7 +1214,7 @@ sub onTypeComboChanged {
 
 # Asks user whether remap is required
 #   returns (filename, in column, out column)
-sub getRemapInfo {
+sub get_remap_info {
     my $gui              = shift;
     my $data_filename    = shift;
     my $type             = shift // "";
@@ -1227,7 +1227,7 @@ sub getRemapInfo {
         : ();
 
     # Get filename for the name-translation file
-    $filename //= $gui->showOpenDialog("Select $type properties file", '*', $data_dir);
+    $filename //= $gui->show_open_dialog("Select $type properties file", '*', $data_dir);
     if (! defined $filename) {
         return wantarray ? () : {}
     };
@@ -1237,7 +1237,7 @@ sub getRemapInfo {
     my $params = $args{parameters};
     
     #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
-    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgImportParameters');
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
     my $dlg = $dlgxml->get_widget('dlgImportParameters');
     $dlg->set_title(ucfirst "$type property file options");
 
@@ -1274,16 +1274,16 @@ sub getRemapInfo {
     close ($input_fh);
     
     my $sep     = $properties_params{input_sep_char} eq 'guess' 
-                ? $gui->getProject->guess_field_separator (string => $line)
+                ? $gui->get_project->guess_field_separator (string => $line)
                 : $properties_params{input_sep_char};
                 
     my $quotes  = $properties_params{input_quote_char} eq 'guess'
-                ? $gui->getProject->guess_quote_char (string => $line)
+                ? $gui->get_project->guess_quote_char (string => $line)
                 : $properties_params{input_quote_char};
                 
-    my $eol     = $gui->getProject->guess_eol (string => $line_unchomped);
+    my $eol     = $gui->get_project->guess_eol (string => $line_unchomped);
     
-    my @headers_full = $gui->getProject->csv2list(
+    my @headers_full = $gui->get_project->csv2list(
         string     => $line_unchomped,
         quote_char => $quotes,
         sep_char   => $sep,
@@ -1299,9 +1299,9 @@ sub getRemapInfo {
         }
     }
 
-    ($dlg, my $col_widgets) = makeRemapColumnsDialog (
+    ($dlg, my $col_widgets) = make_remap_columns_dialog (
         \@headers,
-        $gui->getWidget('wndMain'),
+        $gui->get_widget('wndMain'),
         $other_properties,
         $column_overrides,
     );
@@ -1317,7 +1317,7 @@ sub getRemapInfo {
             next RUN_DLG;
         }
         elsif ($response eq 'ok') {
-            $column_settings = getRemapColumnSettings ($col_widgets, \@headers);
+            $column_settings = get_remap_column_settings ($col_widgets, \@headers);
         }
         else {
             $dlg->destroy();
@@ -1403,7 +1403,7 @@ sub getRemapInfo {
 
 # We have to dynamically generate the choose columns dialog since
 # the number of columns is unknown
-sub makeRemapColumnsDialog {
+sub make_remap_columns_dialog {
     my $header           = shift; # ref to column header array
     my $wnd_main          = shift;
     my $other_props      = shift || [];
@@ -1460,7 +1460,7 @@ sub makeRemapColumnsDialog {
     # use row_widgets to store the radio buttons, spinboxes
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
-        addRemapRow($row_widgets, $table, $i, $header->[$i], $other_props, $column_overrides);
+        add_remap_row($row_widgets, $table, $i, $header->[$i], $other_props, $column_overrides);
     }
 
     $dlg->set_resizable(1);
@@ -1470,7 +1470,7 @@ sub makeRemapColumnsDialog {
     return ($dlg, $row_widgets);
 }
 
-sub getRemapColumnSettings {
+sub get_remap_column_settings {
     my $cols = shift;
     my $headers = shift;
     my $num = @$cols;
@@ -1494,7 +1494,7 @@ sub getRemapColumnSettings {
     return wantarray ? %results : \%results;
 }
 
-sub addRemapRow {
+sub add_remap_row {
     my ($row_widgets, $table, $col_id, $header, $other_props, $column_overrides) = @_;
 
     #  column number

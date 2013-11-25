@@ -32,8 +32,8 @@ do {
     
     # Initialise the GUI Manager object
     my $gui = Biodiverse::GUI::GUIManager->instance;
-    $gui->setGladeXML($gladexml);
-    $gui->setGladeFile($gladefile);
+    $gui->set_glade_xml($gladexml);
+    $gui->set_glade_file($gladefile);
     
     # Go!
     #Gtk2->main;

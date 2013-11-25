@@ -31,7 +31,7 @@ sub sub2 {
     my $label_list1     = $args{label_hash1};
     my $label_list2     = $args{label_hash2};
 
-    my ($sumX, $sum_absX, $sumXsqr, $count) = (undef, undef, undef, 0);
+    my ($sum_X, $sum_abs_X, $sum_X_sqr, $count) = (undef, undef, undef, 0);
 
     #  should look into using PDL to handle this, as it will be much, much faster
     #  (but it will use more memory, which will be bad for large label lists)
@@ -45,9 +45,9 @@ sub sub2 {
             my $joint_count = $count1 * $count2;
 
             #  tally the stats
-            $sumX     += $value * $joint_count;
-            $sum_absX += abs($value) * $joint_count;
-            $sumXsqr  += $value ** 2 * $joint_count;
+            $sum_X     += $value * $joint_count;
+            $sum_abs_X += abs($value) * $joint_count;
+            $sum_X_sqr  += $value ** 2 * $joint_count;
             $count    += $joint_count;
         }
     }
@@ -59,7 +59,7 @@ sub sub1 {
     my $label_list1     = $args{label_hash1};
     my $label_list2     = $args{label_hash2};
 
-    my ($sumX, $sum_absX, $sumXsqr, $count) = (undef, undef, undef, 0);
+    my ($sum_X, $sum_abs_X, $sum_X_sqr, $count) = (undef, undef, undef, 0);
 
     #  should look into using PDL to handle this, as it will be much, much faster
     #  (but it will use more memory, which will be bad for large label lists)
@@ -74,9 +74,9 @@ sub sub1 {
 
             #  tally the stats
             my $x = $value * $joint_count;
-            $sumX     += $x;
-            $sum_absX += abs($x);
-            $sumXsqr  += $value ** 2 * $joint_count;
+            $sum_X     += $x;
+            $sum_abs_X += abs($x);
+            $sum_X_sqr  += $value ** 2 * $joint_count;
             $count    += $joint_count;
         }
     }

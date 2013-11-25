@@ -29,6 +29,9 @@ sub Run {
     
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
+    # Load the widgets from Glade's XML
+    #my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
+
     # Get the Parameters metadata
     my %args = $object->get_args (sub => 'export');
     
@@ -37,11 +40,11 @@ sub Run {
     
     my $format_choices = $args{format_choices};
     
-    my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgImportParameters');
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
     my $format_dlg = $dlgxml->get_widget('dlgImportParameters');
     
     #my $format_dlg = $dlgxml->get_widget('dlgExport');
-    $format_dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
     $format_dlg->set_title ('Export parameters');
     
     # Build widgets for parameters
@@ -76,17 +79,17 @@ sub Run {
 
     #####################    
     #  and now get the params for the selected format
-    $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgExport');
+    $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgExport');
 
     my $dlg = $dlgxml->get_widget('dlgExport');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_title ("Export format: $selected_format");
 
     # Build widgets for parameters
     my $table = $dlgxml->get_widget('tableParameters');
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
     my $extractors
-        = Biodiverse::GUI::ParametersTable::fill (
+        = Biodiverse::GUI::ParametersTable::fill(
             $params,
             $table,
             $dlgxml
@@ -112,18 +115,22 @@ sub Run {
             header => "Overwrite file $filename?"})
                 eq 'yes'
         ) {
-
+        #  progress bar for some processes
+        #my $progress = Biodiverse::GUI::ProgressDialog->new;
+        
         eval {
             $object->export(
                 format   => $selected_format,
                 file     => $filename,
                 @$params,
+                #progress => $progress
             )
         };
         if ($EVAL_ERROR) {
             $gui->report_error ($EVAL_ERROR);
         }
-
+        
+        #$progress->destroy;  #  clean up the progress bar
     }
     else {
         goto RUN_DIALOG; # my first ever goto!

@@ -37,7 +37,7 @@ sub new {
     return $self;
 }
 
-sub getType {
+sub get_type {
     return 'RegionGrower';
 }
 
@@ -53,14 +53,14 @@ sub get_objective_function {
     return $objective eq 'minimise' ? 'get_min_value' : 'get_max_value';
 }
 
-sub onRunAnalysis {
+sub on_run_analysis {
     my $self = shift;
     
     my %analysis_args = (
         objective_function => $self->get_objective_function,
     );
     
-    return $self->SUPER::onRunAnalysis (%analysis_args);
+    return $self->SUPER::on_run_analysis (%analysis_args);
 }
 
 1;

@@ -126,7 +126,7 @@ sub getGladeFile {
     return $self->{gladefile};
 }
 
-sub getWidget {
+sub get_widget {
     my ($self, $id) = @_;
     return $self->{gladexml}->get_widget($id);
 }
@@ -273,7 +273,7 @@ sub closeProject {
             # Show "Save changes?" dialog
             my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgClose');
             my $dlg = $dlgxml->get_widget('dlgClose');
-            $dlg->set_transient_for( $self->getWidget('wndMain') );
+            $dlg->set_transient_for( $self->get_widget('wndMain') );
             $dlg->set_modal(1);
             my $response = $dlg->run();
             $dlg->destroy();
@@ -566,7 +566,7 @@ sub get_new_basedata_name {
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
 
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $bd->get_param('NAME');
@@ -684,7 +684,7 @@ sub do_basedata_attach_properties {
     my $gui = $self;  #  copied code from elsewhere
     my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgGroupsLabels');
     my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_modal(1);
     my $label = $dlgxml->get_widget('label_dlg_groups_labels');
     $label->set_text ('Group or label properties?');
@@ -771,7 +771,7 @@ sub doRenameBasedata {
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_title ('Rename Basedata object');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
 
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $bd->get_param('NAME');
@@ -818,7 +818,7 @@ sub doRenameOutput {
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_title ('Rename output');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
 
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $object->get_param('NAME');
@@ -877,7 +877,7 @@ sub doRenameMatrix {
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_title ('Rename matrix object');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
 
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $ref->get_param('NAME');
@@ -905,7 +905,7 @@ sub doRenamePhylogeny {
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
     $dlg->set_title ('Rename tree object');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
 
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $ref->get_param('NAME');
@@ -1110,7 +1110,7 @@ sub doDuplicateBasedata {
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
 
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $object->get_param('NAME');
@@ -1382,7 +1382,7 @@ sub do_convert_labels_to_phylogeny {
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
 
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $bd->get_param('NAME');
@@ -1458,7 +1458,7 @@ sub do_convert_matrix_to_phylogeny {
         # Show the Get Name dialog
         my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
         my $dlg = $dlgxml->get_widget('dlgDuplicate');
-        $dlg->set_transient_for( $self->getWidget('wndMain') );
+        $dlg->set_transient_for( $self->get_widget('wndMain') );
     
         my $txt_name = $dlgxml->get_widget('txtName');
         my $name = $matrix_ref->get_param('NAME');
@@ -1551,7 +1551,7 @@ sub do_convert_phylogeny_to_matrix {
         # Show the Get Name dialog
         my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
         my $dlg = $dlgxml->get_widget('dlgDuplicate');
-        $dlg->set_transient_for( $self->getWidget('wndMain') );
+        $dlg->set_transient_for( $self->get_widget('wndMain') );
 
         my $txt_name = $dlgxml->get_widget('txtName');
         my $name = $phylogeny->get_param('NAME');
@@ -1651,7 +1651,7 @@ sub do_trim_tree_to_basedata {
     # Show the Get Name dialog
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgDuplicate');
     my $dlg = $dlgxml->get_widget('dlgDuplicate');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
 
     my $txt_name = $dlgxml->get_widget('txtName');
     my $name = $phylogeny->get_param('NAME');
@@ -1990,7 +1990,7 @@ sub showIndexDialog {
     #$window->set_resizable (1);
     #$window->set_modal (1);
     ##$window->set_position ('GTK_WIN_POS_CENTER_ON_PARENT');
-    #$window->set_transient_for ( $gui->getWidget('wndMain') );
+    #$window->set_transient_for ( $gui->get_widget('wndMain') );
     #my $table = Gtk2::Table->new (1,2);
     #$table->set_col_spacings (3);
     #$table->set_row_spacings (3);
@@ -1999,7 +1999,7 @@ sub showIndexDialog {
     #$table->set_homogeneous (0);
 
     my $dlg = $dlgxml->get_widget('dlgImportParameters');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_title ('Set index sizes');
     
     # Make the checkbox to use index or not
@@ -2213,7 +2213,7 @@ sub showIndexDialog_orig {
 
     my $dlgxml = Gtk2::GladeXML->new($self->getGladeFile, 'dlgIndex');
     my $dlg = $dlgxml->get_widget('dlgIndex');
-    $dlg->set_transient_for( $self->getWidget('wndMain') );
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
     $dlg->set_modal(1);
         
     # set existing settings
@@ -2300,7 +2300,7 @@ sub doRunExclusions {
         }
         my $dlg = Gtk2::Dialog->new(
             'Exclusion results',
-            $self->getWidget('wndMain'),
+            $self->get_widget('wndMain'),
             'modal',
             'gtk-ok' => 'ok',
         );
@@ -2433,7 +2433,7 @@ sub report_error {
 
     my $dlg = Gtk2::Dialog->new(
         $title,
-        $self->getWidget('wndMain'),
+        $self->get_widget('wndMain'),
         'modal',
         'show details' => $show_details_value,
         'gtk-ok' => 'ok',

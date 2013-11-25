@@ -147,7 +147,7 @@ sub getRemapInfo {
         push @headers, $header if $header;
     }
 
-    my ($dlg, $col_widgets) = makeColumnsDialog(\@headers, $gui->getWidget('wndMain'));
+    my ($dlg, $col_widgets) = makeColumnsDialog(\@headers, $gui->get_widget('wndMain'));
     my ($column_settings, $response);
     while (1) { # keep showing Dialog until have at least one Label & one matrix-start column
         $response = $dlg->run();

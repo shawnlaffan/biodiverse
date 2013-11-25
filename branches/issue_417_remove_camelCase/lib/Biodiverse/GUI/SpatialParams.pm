@@ -162,7 +162,7 @@ sub onSyntaxCheck {
 
     if (! ($result_hash->{ret} eq 'ok' and $show_ok eq 'no_ok')) {
         my $dlg = Gtk2::MessageDialog->new(
-            $gui->getWidget('wndMain'),
+            $gui->get_widget('wndMain'),
             'destroy-with-parent',
             $result_hash->{type},
             'ok',

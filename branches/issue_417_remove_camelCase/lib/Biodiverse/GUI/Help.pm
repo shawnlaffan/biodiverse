@@ -107,7 +107,7 @@ END_LINK_TEXT
     
     my $dlg = Gtk2::Dialog->new(
         'Help link',
-        $gui->getWidget('wndMain'),
+        $gui->get_widget('wndMain'),
         'modal',
         'gtk-ok'     => 'ok',
     );
@@ -150,7 +150,7 @@ sub help_show_check_for_updates {
 
     my $dlg = Gtk2::Dialog->new(
         'Check for updates',
-        $gui->getWidget('wndMain'),
+        $gui->get_widget('wndMain'),
         'modal',
         'gtk-ok'     => 'ok',
     );

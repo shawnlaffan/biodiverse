@@ -44,7 +44,7 @@ sub Run {
     my $format_dlg = $dlgxml->get_widget('dlgImportParameters');
     
     #my $format_dlg = $dlgxml->get_widget('dlgExport');
-    $format_dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
     $format_dlg->set_title ('Export parameters');
     
     # Build widgets for parameters
@@ -82,7 +82,7 @@ sub Run {
     $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgExport');
 
     my $dlg = $dlgxml->get_widget('dlgExport');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_title ("Export format: $selected_format");
 
     # Build widgets for parameters

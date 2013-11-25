@@ -22,7 +22,7 @@ sub showDialog {
     my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'wndOverlays');
     my $dlg = $dlgxml->get_widget('wndOverlays');
     my $colour_button = $dlgxml->get_widget('colorbutton_overlays');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
     
     $colour_button->set_color($last_selected_colour);
 

@@ -78,7 +78,7 @@ sub run {
     #########
     # 2. Get column types
     #########
-    my ($dlg, $col_widgets) = makeColumnsDialog(\@headers, $gui->getWidget('wndMain'));
+    my ($dlg, $col_widgets) = makeColumnsDialog(\@headers, $gui->get_widget('wndMain'));
     my ($column_settings, $response);
     
     GET_RESPONSE:

@@ -114,7 +114,7 @@ sub makeDialog {
     my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, DLG_NAME);
 
     # Put it on top of main window
-    $dlgxml->get_widget(DLG_NAME)->set_transient_for($gui->getWidget('wndMain'));
+    $dlgxml->get_widget(DLG_NAME)->set_transient_for($gui->get_widget('wndMain'));
 
     # Set height to be 1/3 of screen
     #$dlgxml->get_widget(DLG_NAME)->resize(1, Gtk2::Gdk->screen_height() / 3);

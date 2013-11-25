@@ -203,7 +203,7 @@ sub run {
     my $row_widgets;
     ($dlg, $row_widgets) = makeColumnsDialog (
         $col_names_for_dialog,
-        $gui->getWidget('wndMain'),
+        $gui->get_widget('wndMain'),
         $col_options,
         $file_list_as_text,
     );
@@ -746,7 +746,7 @@ sub makeReorderDialog {
 
     my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgReorderColumns');
     my $dlg = $dlgxml->get_widget('dlgReorderColumns');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
     
     my $list_groups = setupReorderList('groups', $dlgxml, $columns->{groups});
     my $list_labels = setupReorderList('labels', $dlgxml, $columns->{labels});
@@ -867,7 +867,7 @@ sub makeFilenameDialog {
     
     my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, $dlg_name);
     my $dlg = $dlgxml->get_widget($dlg_name);
-    my $x = $gui->getWidget('wndMain');
+    my $x = $gui->get_widget('wndMain');
     $dlg->set_transient_for( $x );
     
 #    # Get the Parameters metadata
@@ -1301,7 +1301,7 @@ sub getRemapInfo {
 
     ($dlg, my $col_widgets) = makeRemapColumnsDialog (
         \@headers,
-        $gui->getWidget('wndMain'),
+        $gui->get_widget('wndMain'),
         $other_properties,
         $column_overrides,
     );

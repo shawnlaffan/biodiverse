@@ -46,13 +46,6 @@ use constant MODEL_BASEDATA_ROW => 5;        # TRUE if this is a basedata row.
                                              # Use to filter these out for comboboxes
 use constant MODEL_OUTPUT_TYPE  => 6;        # Display the object type
 
-#sub init_models {
-#    my $self = shift;
-#    $self->initModels();
-#    $self->initOverlayHash();
-#    $self->clearDirty();
-#}
-
 sub new {
     my $class = shift;
     my %args = @_;
@@ -1214,8 +1207,8 @@ sub manageEmptyModel {
     # enable/disable buttons
     my $instance = Biodiverse::GUI::GUIManager->instance;
     foreach (@{$button_IDs}) {
-        warn "$_\n" if ! defined $instance->getWidget($_);
-        $instance->getWidget($_)->set_sensitive($sensitive);
+        warn "$_\n" if ! defined $instance->get_widget($_);
+        $instance->get_widget($_)->set_sensitive($sensitive);
     }
 }
 
@@ -1309,7 +1302,7 @@ sub setMatrixButtons {
                 menu_matrix_export
                 convert_matrix_to_phylogeny
                 /) {
-        $instance->getWidget($_)->set_sensitive($sensitive);
+        $instance->get_widget($_)->set_sensitive($sensitive);
     }
 }
 
@@ -1330,7 +1323,7 @@ sub setPhylogenyButtons {
                 menu_phylogeny_export
                 menu_phylogeny_delete_cached_values
                 /) {
-        $instance->getWidget($_)->set_sensitive($sensitive);
+        $instance->get_widget($_)->set_sensitive($sensitive);
     }
 }
 

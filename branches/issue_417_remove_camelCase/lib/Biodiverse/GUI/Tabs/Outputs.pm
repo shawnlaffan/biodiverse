@@ -325,7 +325,7 @@ sub onExport {
         my $gui = $self->{gui};
         my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgGroupsLabels');
         my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
-        $dlg->set_transient_for( $gui->getWidget('wndMain') );
+        $dlg->set_transient_for( $gui->get_widget('wndMain') );
         $dlg->set_modal(1);
         my $response = $dlg->run();
         $dlg->destroy();
@@ -405,7 +405,7 @@ sub onDelete {
 
         # Confirmation dialog
         $dialog = Gtk2::MessageDialog->new (
-            $self->{gui}->getWidget('wndMain'),
+            $self->{gui}->get_widget('wndMain'),
             'destroy-with-parent',
             'question',
             'yes-no',
@@ -440,7 +440,7 @@ sub onDelete {
 
         # Confirmation dialog
         $dialog = Gtk2::MessageDialog->new (
-            $self->{gui}->getWidget('wndMain'),
+            $self->{gui}->get_widget('wndMain'),
             'destroy-with-parent',
             'question',
             'yes-no',

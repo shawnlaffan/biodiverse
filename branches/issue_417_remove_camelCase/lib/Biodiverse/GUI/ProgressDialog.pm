@@ -54,7 +54,7 @@ sub new {
     };
     bless $self, $class;
 
-    $window->set_transient_for( $gui->getWidget('wndMain') );
+    $window->set_transient_for( $gui->get_widget('wndMain') );
     $window->set_default_size (300, -1);
     $window->signal_connect ('delete-event' => \&destroy_callback, $self);
     

@@ -28,7 +28,7 @@ sub Run {
     # Load the widgets from Glade's XML
     my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgOpenWithName');
     my $dlg = $dlgxml->get_widget('dlgOpenWithName');
-    $dlg->set_transient_for( $gui->getWidget('wndMain') );
+    $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_title($title);
 
     # Connect file selected event - to automatically update name based on filename

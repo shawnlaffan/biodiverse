@@ -215,8 +215,8 @@ sub new {
         $self->on_close;
         return;
     }
-    $self->init_mapShowCombo();
-    $self->init_mapListCombo();
+    $self->init_map_show_combo();
+    $self->init_map_list_combo();
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model(
@@ -559,7 +559,7 @@ sub init_dendrogram {
     return;
 }
 
-sub init_mapShowCombo {
+sub init_map_show_combo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_widget('comboMapShow');
@@ -570,7 +570,7 @@ sub init_mapShowCombo {
     return;
 }
 
-sub init_mapListCombo {
+sub init_map_list_combo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_widget('comboMapList');
@@ -779,16 +779,16 @@ sub queue_set_pane {
     # remember id so can disconnect later
     my $sig_id = $pane->signal_connect_swapped(
         'size-allocate',
-        \&Biodiverse::GUI::Tabs::Clustering::set_paneSignal,
+        \&Biodiverse::GUI::Tabs::Clustering::set_pane_signal,
         [$self, $id]
     );
-    $self->{"set_paneSignalID$id"} = $sig_id;
+    $self->{"set_paneSignalID$id"} = $sig_id;  #  ISSUE 417 ISSUES????
     $self->{"set_panePos$id"} = $pos;
     
     return;
 }
 
-sub set_paneSignal {
+sub set_pane_signal {
     my $args = shift;
     shift;
     my $pane = shift;
@@ -1033,7 +1033,7 @@ sub get_overwrite_response {
     return $response;
 }
 
-sub on_runAnalysis {
+sub on_run_analysis {
     my $self   = shift;
     my %args = @_;
 

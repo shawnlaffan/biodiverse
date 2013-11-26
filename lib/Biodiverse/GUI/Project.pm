@@ -736,7 +736,7 @@ sub select_phylogeny {
 }
 
 
-sub select_phylogenyIter {
+sub select_phylogeny_iter {
     my $self = shift;
     my $iter = shift;
 
@@ -1153,14 +1153,14 @@ sub get_selected_base_data_iter {
     return $iter;
 }
 
-sub get_selected_matrixIter {
+sub get_selected_matrix_iter {
     my $self = shift;
     my $ref = $self->get_selected_matrix();
     return if not defined $ref;
 
     return $self->{iters}{matrix_iters}{$ref};
 }
-sub get_selected_phylogenyIter {
+sub get_selected_phylogeny_iter {
     my $self = shift;
     my $ref = $self->get_selected_phylogeny();
     return if not defined $ref;

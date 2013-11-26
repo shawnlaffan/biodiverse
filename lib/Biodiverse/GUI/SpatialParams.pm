@@ -53,6 +53,7 @@ sub new {
     # Syntax-check button
     my $syntax_button = Gtk2::Button->new;
     $syntax_button->set_image ( Gtk2::Image->new_from_stock('gtk-apply', 'button') );
+    $syntax_button->signal_connect_swapped(clicked => \&on_syntax_check, $self);
 
     # Scrolled window
     my $scroll = Gtk2::ScrolledWindow->new;

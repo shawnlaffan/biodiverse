@@ -638,7 +638,7 @@ sub add_phylogeny {
 }
 
 # Add a phylogeny object
-#sub add_phylogenyOrig {
+#sub add_phylogeny_orig {
 #    my $self = shift;
 #    my $name = shift;
 #

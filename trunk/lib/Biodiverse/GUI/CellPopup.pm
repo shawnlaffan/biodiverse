@@ -402,13 +402,7 @@ sub show_output_list {
 sub is_neighbours_mode {
     my $data = shift;
 
-    #if ($data->get_param('SPATIAL_PARAMS1')) {\
-    if ((ref $data) =~ /Spatial/) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+    return ((ref $data) =~ /Spatial/) ? 1 : 0;
 }
 
 sub find_neighbours {
@@ -419,11 +413,11 @@ sub find_neighbours {
 
     my @exclude;
     my @nbr_list;
-    my $parsed_spatial_params = $output_ref->get_param ('SPATIAL_PARAMS');
+    my $parsed_spatial_conditions = $output_ref->get_spatial_conditions();
     my $sp_index = $output_ref->get_param ('SPATIAL_INDEX');
     my $search_blocks_ref = $output_ref->get_param ('INDEX_SEARCH_BLOCKS');
 
-    foreach my $i (0 .. $#$parsed_spatial_params) {
+    foreach my $i (0 .. $#$parsed_spatial_conditions) {
         if ($output_ref->exists_list (
                 element => $element,
                 list    => '_NBR_SET' . ($i+1),
@@ -438,7 +432,7 @@ sub find_neighbours {
         else {
             $nbr_list[$i] = $basedata_ref->get_neighbours_as_array (
                 element        => $element,
-                spatial_params => $parsed_spatial_params->[$i],
+                spatial_params => $parsed_spatial_conditions->[$i],
                 index          => $sp_index,
                 index_offsets  => $search_blocks_ref->[$i],
                 exclude_list   => \@exclude,

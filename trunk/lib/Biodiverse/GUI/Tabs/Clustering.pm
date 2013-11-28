@@ -999,7 +999,7 @@ sub on_run {
     my $self = shift;
     my $button = shift;
     
-    return $self->on_runAnalysis (@_);
+    return $self->on_run_analysis (@_);
 }
 
 sub get_overwrite_response {

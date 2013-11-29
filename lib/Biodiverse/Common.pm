@@ -1436,20 +1436,32 @@ sub guess_quote_char {
 
     my %q_count;
 
-    #my $i = 0;
     foreach my $q (@q_types) {
         my @cracked = split ($q, $string);
         if ($#cracked and $#cracked % 2 == 0) {
-            $q_count{$#cracked} = $q;
+            if (exists $q_count{$#cracked}) {  #  we have a tie so check for pairs
+                my $prev_q = $q_count{$#cracked};
+                #  override if we have e.g. "'...'" and $prev_q eq \'
+                my $left  = $q . $prev_q;
+                my $right = $prev_q . $q;
+                my $l_count = () = $string =~ /$left/gs;
+                my $r_count = () = $string =~ /$left.*?$right/gs;
+                if ($l_count && $l_count == $r_count) {
+                    $q_count{$#cracked} = $q;  
+                }
+            }
+            else {
+                $q_count{$#cracked} = $q;
+            }
         }
-        #$i++;
     }
+
     #  now we sort the keys, take the highest and use it as the
     #  index to use from q_count, thus giving us the most common
     #  quotes character
     my @sorted = reverse sort numerically keys %q_count;
     my $q = (defined $sorted[0]) ? $q_count{$sorted[0]} : $q_types[0];
-    print "[COMMON] Guessed quote char as $q\n";
+    say "[COMMON] Guessed quote char as $q";
     return $q;
 
     #  if we get this far then there is a quote issue to deal with
@@ -1501,7 +1513,7 @@ sub get_next_line_set {
             push @lines, $line;
         }
         elsif (not $csv->eof) {
-            print $csv->error_diag;
+            say $csv->error_diag;
             $csv->SetDiag (0);
         }
         if ($csv->eof) {

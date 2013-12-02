@@ -1181,7 +1181,7 @@ sub import_data_raster {
         }
 
 		# process using GDAL library		
-		my $data = Geo::GDAL::Open("$file", q/Update/); #, GA_Update); #'ReadOnly'); #'Update'); #GA_Update) ;
+		my $data = Geo::GDAL::Open($file->stringify(), q/Update/); #, GA_Update); #'ReadOnly'); #'Update'); #GA_Update) ;
 		#my $data = Geo::GDAL::Open('sample.tif', 'Update'); #'Update');
 
         croak "[BASEDATA] Failed to read $file with GDAL\n"

@@ -594,13 +594,16 @@ sub export_shapefile {
     my %args = @_;
 
     $args{file} =~ s/\.shp$//;
+    my $file = $args{file};
+
+    say "Exporting to shapefile $file";
 
     use Geo::Shapefile::Writer;
 
     my @elements    = $self->get_element_list;
     my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
     my @axes_to_use = (0, 1);
-    
+
     my $half_csizes = [];
     foreach my $size (@cell_sizes[@axes_to_use]) {
         return $self->_export_shape_point (%args)
@@ -626,8 +629,6 @@ sub export_shapefile {
         }
     }
 
-    my $file = $args{file};
-
     my $shp_writer = Geo::Shapefile::Writer->new (
         $file, 'POLYGON',
         [ element => 'C', 100 ],
@@ -650,8 +651,10 @@ sub export_shapefile {
         my $max_y = $coord_axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
 
         my $shape = [
-            [$min_x, $min_y], [$max_x, $min_y],
-            [$max_x, $max_y], [$min_x, $max_y],
+            [$min_x, $min_y],
+            [$min_x, $max_y],
+            [$max_x, $max_y],
+            [$max_x, $min_y],
             [$min_x, $min_y],  #  close off
         ];
 

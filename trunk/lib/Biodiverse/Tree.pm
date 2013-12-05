@@ -1923,7 +1923,7 @@ sub collapse_tree {
 
     my $total_tree_length = $self->get_tree_length;    
 
-    if ($args{cutoff_relative} >= 0) {
+    if (defined $args{cutoff_relative} ) {
         my $cutoff_relative = $args{cutoff_relative};
         if (($cutoff_relative >= 0) and ($cutoff_relative <= 1)) {
             $cutoff = $cutoff_relative * $total_tree_length;

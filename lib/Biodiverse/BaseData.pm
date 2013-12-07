@@ -1730,7 +1730,7 @@ sub run_exclusions {
     my ($label_regex, $label_regex_negate);
     if ($exclusion_hash{LABELS}{regex}) {
         my $re_text = $exclusion_hash{LABELS}{regex}{regex};
-        my $re_modifiers = $exclusion_hash{LABELS}{regex}{modifiers};
+        my $re_modifiers = $exclusion_hash{LABELS}{regex}{modifiers} // q{};
 
         $label_regex = eval qq{ qr /$re_text/$re_modifiers };
         $label_regex_negate = $exclusion_hash{LABELS}{regex}{negate};

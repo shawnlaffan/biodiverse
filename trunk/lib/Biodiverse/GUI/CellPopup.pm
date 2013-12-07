@@ -139,9 +139,7 @@ sub show_neighbour_labels {
     my $data    = shift;
 
     # Create neighbours model if don't have one..
-    if (not $popup->{neighbours_models}) {
-        $popup->{neighbours_models} = make_neighbours_model($element, $data);
-    }
+    $popup->{neighbours_models} ||= make_neighbours_model($element, $data);
 
     my $model = $popup->{neighbours_models}{labels};
 
@@ -402,7 +400,7 @@ sub show_output_list {
 sub is_neighbours_mode {
     my $data = shift;
 
-    return ((ref $data) =~ /Spatial/) ? 1 : 0;
+    return (ref $data) =~ /Spatial/;
 }
 
 sub find_neighbours {

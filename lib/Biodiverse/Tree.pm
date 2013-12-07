@@ -1907,41 +1907,46 @@ sub AUTOLOAD {
     return;
 }
 
-sub collapse_tree {
 #  collapse tree to a polytomy a set distance above the tips
 #  assumes ultrametric tree
+# the only args are:
+#   cutoff_absolute - the depth from the tips of the tree at which to cut in units of branch length
+#   or cutoff_relative - the depth from the tips of the tree at which to cut as a proportion
+#   of the total tree depth.
+#   if both parameters are given, cutoff_relative overrides cutoff_absolute
 
+sub collapse_tree {
     my $self = shift;   # expects a Tree object
     my %args = @_;
-    # the only args are:
-    #   cutoff_absolute - the depth from the tips of the tree at which to cut in units of branch length
-    #   or cutoff_relative - the depth from the tips of the tree at which to cut as a proportion
-    #   of the total tree depth.
-    #   if both parameters are given, cutoff_relative overrides cutoff_absolute
 
     my $cutoff = $args{cutoff_absolute};
+    my $verbose = $args{verbose} // 1;
 
     my $total_tree_length = $self->get_tree_length;    
 
     if (defined $args{cutoff_relative} ) {
         my $cutoff_relative = $args{cutoff_relative};
-        if (($cutoff_relative >= 0) and ($cutoff_relative <= 1)) {
-            $cutoff = $cutoff_relative * $total_tree_length;
-        }
+        croak 'cutoff_relative argument must be between 0 and 1'
+          if $cutoff_relative < 0 || $cutoff_relative > 1;
+
+        $cutoff = $cutoff_relative * $total_tree_length;
     }
 
     my ($zero_count, $shorter_count);
 
     my %node_hash = $self->get_node_hash;
 
-    print "[TREE] Total length: ".$total_tree_length."\n";
-    print "[TREE] Node count: ".(scalar keys %node_hash)."\n";
+    if ($verbose) {    
+        say "[TREE] Total length: $total_tree_length";
+        say '[TREE] Node count: ' . (scalar keys %node_hash);
+    }
 
     my $node;
 
     my %new_node_lengths;
 
     #  first pass - calculate the new lengths
+  NODE_NAME:
     foreach my $name (sort keys %node_hash) {
         $node = $node_hash{$name};
         #my $new_branch_length;
@@ -1953,11 +1958,10 @@ sub collapse_tree {
 
         my $type;
         # whole branch is inside the limit - no change
-        if ($upper_bound < $cutoff) {
-            next;
-        }
+        next NODE_NAME if $upper_bound < $cutoff;
+
         # whole of branch is outside limit - set branch length to 0
-        elsif ($lower_bound >= $cutoff) {
+        if ($lower_bound >= $cutoff) {
             $new_node_lengths{$name} = 0;
             $zero_count ++;
             $type = 1;
@@ -1977,20 +1981,17 @@ sub collapse_tree {
         my $new_length;
 
         if ($new_node_lengths{$name} == 0) {
-            if ($node->is_terminal_node) {
-                $new_length = ($total_tree_length / 10000);
-            }
-            else {
-                $new_length = 0;
-            }
+            $new_length = $node->is_terminal_node ? ($total_tree_length / 10000) : 0;
         }
         else {
             $new_length = $new_node_lengths{$name};
-        };
+        }
 
         $node->set_length (length => $new_length);
 
-        print "$name: new length is $new_length\n";
+        if ($verbose) {
+            say "$name: new length is $new_length";
+        }
     }
 
     $self->delete_cached_values;
@@ -2001,12 +2002,16 @@ sub collapse_tree {
 
     my @now_empty = $self->flatten_tree;
     #  now we clean up all the empty nodes in the other indexes
-    print "[TREE] Deleting " . scalar @now_empty . " empty nodes\n";
+    if ($verbose) {
+        say "[TREE] Deleting " . scalar @now_empty . ' empty nodes';
+    }
     #foreach my $now_empty (@now_empty) {
     $self->delete_from_node_hash (nodes => \@now_empty) if scalar @now_empty;
 
-    print "[TREE] Total length: " . $self->get_tree_length . "\n";
-    print "[TREE] Node count: " . $self->get_node_count . "\n";
+    if ($verbose) {
+        say '[TREE] Total length: ' . $self->get_tree_length;
+        say '[TREE] Node count: ' . $self->get_node_count;
+    }
 
     return $self;
 }
@@ -2021,15 +2026,17 @@ sub collapse_tree_below {
     foreach my $node (values %$target_hash) {
         my %terminals = $node->get_terminal_node_refs;
         my @children = $node->get_children;
+        CHILD_NODE:
         foreach my $desc_node (@children) {
-            next if $desc_node->is_terminal_node;
+            next CHILD_NODE if $desc_node->is_terminal_node;
             eval {
                 $self->delete_node (node => $desc_node->get_name);
             };
         }
-        $node->add_children (children => [values %terminals]);  #  still need to ensure they are in the node hash
+        #  still need to ensure they are in the node hash
+        $node->add_children (children => [values %terminals]);  
 
-        print "";
+        #print "";
     }
     
     

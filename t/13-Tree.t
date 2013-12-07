@@ -41,9 +41,46 @@ sub main {
     
     test_shuffle_terminal_names();
     test_node_hash_keys_match_node_names();
+    test_collapse_tree();
 
     done_testing;
     return 0;
+}
+
+
+sub test_collapse_tree {
+    my $tree1 = get_site_data_as_tree();
+    my $tree2 = $tree1->clone;
+    
+    $tree1->rename (new_name => 'absolute');
+    $tree2->rename (new_name => 'relative');
+
+    $tree1->collapse_tree(cutoff_absolute => 0.5, verbose => 0);
+    #say Data::Dumper::Dumper [$tree1->describe];
+    
+    is ($tree1->get_total_tree_length, 29.8407270588888, 'trimmed sum of branch lengths is correct');
+    is (
+        $tree1->get_terminal_element_count,
+        $tree2->get_terminal_element_count,
+        'terminal node count is unchanged',
+    );
+
+    eval {$tree2->collapse_tree (cutoff_relative => -1)};
+    my $e = $EVAL_ERROR;
+    ok ($e, 'Got eval error when cutoff_relative is outside [0,1]');
+
+    my $rel_cutoff = 0.5 / $tree2->get_tree_length;
+
+    $tree2->collapse_tree (cutoff_relative => $rel_cutoff, verbose => 0);
+
+    ok (
+        $tree1->trees_are_same (
+            comparison => $tree2,
+        ),
+        'Absolute and relative cutoffs give same result when scaled the same'
+    );
+    
+
 }
 
 

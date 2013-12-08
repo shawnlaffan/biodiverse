@@ -12,7 +12,7 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 ==Publications using Biodiverse (or its ancestors)==
   (Publications are listed in reverse chronological order).  
 
-  * Kooyman, R.M., Rossetto, M., Sauquet, H. & Laffan, S.W. (2013) Landscape Patterns in Rainforest Phylogenetic Signal: Isolated Islands of Refugia or Structured Continental Distributions?  PLoS One [http://dx.doi.org/10.1371/journal.pone.0080685 8, e80685]
+  * Kooyman, R.M., Rossetto, M., Sauquet, H. & Laffan, S.W. (2013) Landscape Patterns in Rainforest Phylogenetic Signal: Isolated Islands of Refugia or Structured Continental Distributions?  [http://dx.doi.org/10.1371/journal.pone.0080685 PLoS One 8, e80685]
 
   *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (in press) Biogeographical regions and phytogeography of the eucalypts. [http://dx.doi.org/10.1111/ddi.12129 Diversity and Distributions].
 

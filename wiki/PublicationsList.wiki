@@ -12,7 +12,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 ==Publications using Biodiverse (or its ancestors)==
   (Publications are listed in reverse chronological order).  
 
-  * Kooyman, R.M., Rossetto, M., Sauquet, H. & Laffan, S.W. (2013) Landscape Patterns in Rainforest Phylogenetic Signal: Isolated Islands of Refugia or Structured Continental Distributions?  [http://dx.doi.org/10.1371/journal.pone.0080685 PLoS One 8, e80685]
+
+  *  Weber, L.C., VanDerWal, J., Schmidt, S., McDonald, W.J.F. & Shoo, L.P. (in press) Patterns of rain forest plant endemism in subtropical Australia relate to stable mesic refugia and species dispersal limitations.  [http://dx.doi.org/10.1111/jbi.12219 Journal of Biogeography]
 
   *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (in press) Biogeographical regions and phytogeography of the eucalypts. [http://dx.doi.org/10.1111/ddi.12129 Diversity and Distributions].
 
@@ -21,6 +22,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
   *  Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (2013) Quantifying high resolution transitional breaks in plant and mammal distributions at regional extent and their association with climate, topography and geology.  [http://dx.doi.org/10.1371/journal.pone.0059227 PLoS ONE, 8, e59227].
 
   *  González-Orozco, C.E., Laffan, S.W., Knerr, N. & Miller, J.T. (2013) A biogeographic regionalisation of Australian _Acacia_ species. [http://dx.doi.org/10.1111/jbi.12153 Journal of Biogeography, 40, 2156-2166].
+
+  *  Kooyman, R.M., Rossetto, M., Sauquet, H. & Laffan, S.W. (2013) Landscape Patterns in Rainforest Phylogenetic Signal: Isolated Islands of Refugia or Structured Continental Distributions?  [http://dx.doi.org/10.1371/journal.pone.0080685 PLoS One 8, e80685]
 
   *  Laffan, S.W., Ramp, D. & Roger, E. (2013) Using endemism to assess representation of protected areas – the family Myrtaceae in the Greater Blue Mountains World Heritage Area. [http://dx.doi.org/10.1111/jbi.12001 Journal of Biogeography, 40, 570-578].
 

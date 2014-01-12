@@ -498,7 +498,7 @@ sub get_metadata_get_base_stats {
     return $self->{$type}->get_metadata_get_base_stats (@_);
 }
 
-sub get_metadata_import_data {
+sub get_metadata_import_data_text {
     my $self = shift;
     
     my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
@@ -579,33 +579,54 @@ sub get_metadata_import_data {
                           . 'Applies to each record, not to groups.',
               type       => 'boolean',
               default    => 0,
-            },
+            }
+        ]
+    );
+    
+    return wantarray ? %arg_hash : \%arg_hash;
+}
+
+sub get_metadata_import_data_raster {
+    my $self = shift;
+    
+    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
+                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
+                  : (q{,}, 'tab', q{;}, 'space', q{:});
+    my @input_sep_chars = ('guess', @sep_chars);
+    
+    my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
+    my @input_quote_chars = ('guess', @quote_chars);
+    
+    #  these parameters are only for the GUI, so are not a full set
+    my %arg_hash = (
+        parameters => [
+            #{ name => 'input_files', type => 'file' }, # not for the GUI
             { name       => 'raster_labels_as_bands',
-              label_text => 'Read bands as labels? (raster only)',
+              label_text => 'Read bands as labels?',
               tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
               type       => 'boolean',
               default    => 0,
             },
             { name       => 'raster_origin_e',
-              label_text => 'Cell origin east/long (raster only)',
+              label_text => 'Cell origin east/long',
               tooltip    => 'Origin of group cells (Eastings/Longitude)',
               type       => 'float',
               default    => 0,
             },
             { name       => 'raster_origin_n',
-              label_text => 'Cell origin north/lat (raster only)',
+              label_text => 'Cell origin north/lat',
               tooltip    => 'Origin of group cells (Northings/Latitude)',
               type       => 'float',
               default    => 0,
             },
             { name       => 'raster_cellsize_e',
-              label_text => 'Cell size east/long (raster only)',
+              label_text => 'Cell size east/long',
               tooltip    => 'Size of group cells (Eastings/Longitude)',
               type       => 'float',
               default    => 100000,
             },
             { name       => 'raster_cellsize_n',
-              label_text => 'Cell size north/lat (raster only)',
+              label_text => 'Cell size north/lat',
               tooltip    => 'Size of group cells (Northings/Latitude)',
               type       => 'float',
               default    => 100000,
@@ -615,7 +636,6 @@ sub get_metadata_import_data {
     
     return wantarray ? %arg_hash : \%arg_hash;
 }
-
 *load_data = \&import_data;
 
 #  import data from a delimited text file

@@ -5,3 +5,4 @@ yllcenter 1.5
 cellsize 1
 nodata_value -9999
 byteorder LSBFIRST
+NODATA         -9999

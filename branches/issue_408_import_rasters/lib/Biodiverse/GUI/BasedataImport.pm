@@ -71,7 +71,7 @@ sub run {
         #$basedata_ref = $gui->getProject->addBaseData($basedata_name);
         $basedata_ref = Biodiverse::BaseData->new (
             NAME       => $basedata_name,
-            CELL_SIZES => [],  #  default, gets overridden later
+            CELL_SIZES => [1,1],  #  default, gets overridden later
         );
     }
     else {
@@ -139,8 +139,10 @@ sub run {
     my $params = $args{parameters};
 
     # set some default values (a bit of a hack)
-    my @cell_sizes           = @{$basedata_ref->get_param('CELL_SIZES')};
+    my $blurg = $basedata_ref->get_param('CELL_SIZES');
+    my @cell_sizes           = @$blurg;
     my @cell_origins         = @{$basedata_ref->get_cell_origins};
+    
     foreach my $thisp (@$params) {
         $thisp->{default} = $cell_origins[0] if ($thisp->{name} eq 'raster_origin_e');
         $thisp->{default} = $cell_origins[1] if ($thisp->{name} eq 'raster_origin_n');

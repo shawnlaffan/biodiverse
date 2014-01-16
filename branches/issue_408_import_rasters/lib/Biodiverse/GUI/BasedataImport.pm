@@ -35,11 +35,15 @@ my $combo_import_basedatas = "comboImportBasedatas$import_n";
 my $filechooser_input = "filechooserInput$import_n";
 my $txt_import_new = "txtImportNew$import_n";
 my $tableParameters = "tableParameters$import_n";
+my $importmethod_combo = "format_box$import_n"; # not sure about the suffix
 
 my $text_idx = 0;       # index in combo box 
 my $raster_idx = 1;     # index in combo box of raster format
 my $shapefile_idx = 2;  # index in combo box 
 
+my $txtcsv_filter; # maintain reference for these, to allow referring when import method changes
+my $allfiles_filter;  
+my $shapefiles_filter;  
 
 ##################################################
 # High-level procedure
@@ -969,16 +973,24 @@ sub makeFilenameDialog {
 
 
     # Init the file chooser
-    my $filter = Gtk2::FileFilter->new();
-    $filter->add_pattern('*.csv');
-    $filter->add_pattern('*.txt');
+    
+    # define file selection filters (stored in txtcsv_filter etc)
+    $txtcsv_filter = Gtk2::FileFilter->new();
+    $txtcsv_filter->add_pattern('*.csv');
+    $txtcsv_filter->add_pattern('*.txt');
     #$filter->add_pattern("*");
-    $filter->set_name('txt and csv files');
-    $dlgxml->get_widget($filechooser_input)->add_filter($filter);
-    $filter = Gtk2::FileFilter->new();
-    $filter->add_pattern('*');
-    $filter->set_name('all files');
-    $dlgxml->get_widget($filechooser_input)->add_filter($filter);
+    $txtcsv_filter->set_name('txt and csv files');
+    $dlgxml->get_widget($filechooser_input)->add_filter($txtcsv_filter);
+    
+    $allfiles_filter = Gtk2::FileFilter->new();
+    $allfiles_filter->add_pattern('*');
+    $allfiles_filter->set_name('all files');
+    $dlgxml->get_widget($filechooser_input)->add_filter($allfiles_filter);
+    
+    $shapefiles_filter = Gtk2::FileFilter->new();
+    $shapefiles_filter->add_pattern('*.shp');
+    $shapefiles_filter->set_name('shapefiles');
+    $dlgxml->get_widget($filechooser_input)->add_filter($shapefiles_filter);
     
     $dlgxml->get_widget($filechooser_input)->set_select_multiple(1);
     $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
@@ -987,8 +999,27 @@ sub makeFilenameDialog {
     $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&onNewChanged, [$gui, $dlgxml]);
     
     $dlgxml->get_widget($file_format)->set_active(0);
+    $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&onImportMethodChanged, [$gui, $dlgxml]);
     
     return ($dlgxml, $dlg);
+}
+
+sub onImportMethodChanged {
+    # change file filter used
+    my $format_combo = shift;
+    my $args = shift;
+    my ($gui, $dlgxml) = @{$args};
+    
+    # find which is selected
+    if ($format_combo->get_active() == $text_idx) {
+        $dlgxml->get_widget($filechooser_input)->set_filter($txtcsv_filter);
+    } elsif ($format_combo->get_active() == $raster_idx) {
+	    $dlgxml->get_widget($filechooser_input)->set_filter($allfiles_filter);
+    } elsif ($format_combo->get_active() == $shapefile_idx) {
+        $dlgxml->get_widget($filechooser_input)->set_filter($shapefiles_filter);
+    }    	
+    	 
+    	
 }
 
 sub onFileChanged {

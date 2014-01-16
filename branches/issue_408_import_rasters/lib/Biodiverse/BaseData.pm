@@ -1226,7 +1226,17 @@ sub import_data_raster {
 			my $this_label;
 			
 			print "Band $b $band ",$band->{DataType},"\n";
-			if ($labels_as_bands) { $this_label = "band$b"; }
+			if ($labels_as_bands) { 
+				# if single band, set label as filename
+				if ($data->{RasterCount} == 1) {
+					$this_label = $file->stringify;
+	                $this_label =~ s/.*\///;
+	                $this_label =~ s/\.[^.]*//;
+				} else {
+				    $this_label = "band$b";
+				} 
+			}
+			
 			
 			# get category names for this band, which will attempt
 			# to be used as labels based on cell values (if ! labels_as_bands)

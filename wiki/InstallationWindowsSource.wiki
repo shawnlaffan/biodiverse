@@ -56,6 +56,9 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   ppm install %BDV_PPM%/Gtk2.ppd
   ppm install %BDV_PPM%/Gtk2-GladeXML.ppd  
 
+  :: YAML::Syck has installation failures at v1.27 
+  cpanm YAML::Syck@1.23
+
   :: Now install the rest of the dependencies
   cpanm Task::Biodiverse::NoGUI~0.19
   cpanm Task::Biodiverse~0.19

@@ -14,7 +14,7 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (2014) Biogeographical regions and phytogeography of the eucalypts. [http://dx.doi.org/10.1111/ddi.12129 Diversity and Distributions, 20, 46-58].
 
-  *  Rosauer, D.F., Ferrier, S., Williams, K.J., Manion, G, Keogh, S & Laffan, S.W. (2014), Phylogenetic Generalised Dissimilarity Modelling: a new approach to analysing and predicting spatial turnover in the phylogenetic composition of communities.  [http://dx.doi.org/10.1111/j.1600-0587.2013.00466.x Ecography, 37, 21-32].
+  *  Rosauer, D.F., Ferrier, S., Williams, K.J., Manion, G, Keogh, S & Laffan, S.W. (2014) Phylogenetic Generalised Dissimilarity Modelling: a new approach to analysing and predicting spatial turnover in the phylogenetic composition of communities.  [http://dx.doi.org/10.1111/j.1600-0587.2013.00466.x Ecography, 37, 21-32].
 
   *  Weber, L.C., VanDerWal, J., Schmidt, S., McDonald, W.J.F. & Shoo, L.P. (2014) Patterns of rain forest plant endemism in subtropical Australia relate to stable mesic refugia and species dispersal limitations.  [http://dx.doi.org/10.1111/jbi.12219 Journal of Biogeography, 222-238].
 

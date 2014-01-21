@@ -19,6 +19,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (2014) Biogeographical regions and phytogeography of the eucalypts. [http://dx.doi.org/10.1111/ddi.12129 Diversity and Distributions, 20, 46-58].
 
+  *  Bitencourt, C. & Rapinia, A. (2013) Centres of Endemism in the Espinhaço Range: identifying cradles and museums of Asclepiadoideae (Apocynaceae).  [http://dx.doi.org/10.1080/14772000.2013.865681 Systematics and Biodiversity, 11, 525-536].
+
   *  Di Virgilio, G., Laffan, S.W. & Ebach, M.C. (2013) Quantifying high resolution transitional breaks in plant and mammal distributions at regional extent and their association with climate, topography and geology.  [http://dx.doi.org/10.1371/journal.pone.0059227 PLoS ONE, 8, e59227].
 
   *  González-Orozco, C.E., Laffan, S.W., Knerr, N. & Miller, J.T. (2013) A biogeographic regionalisation of Australian _Acacia_ species. [http://dx.doi.org/10.1111/jbi.12153 Journal of Biogeography, 40, 2156-2166].

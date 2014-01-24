@@ -1277,8 +1277,8 @@ sub import_data_raster {
                             # calculate "group" from this position. (defined as csv string of central points of group)
                             my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e); 
                             my $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
-                            my $grpe = $ecell * $cellsize_e + ($cellsize_e / 2.0); 
-                            my $grpn = $ncell * $cellsize_n + ($cellsize_n / 2.0);
+                            my $grpe = $cellorigin_e + $ecell * $cellsize_e + ($cellsize_e / 2.0); 
+                            my $grpn = $cellorigin_n + $ncell * $cellsize_n + ($cellsize_n / 2.0);
                             my @grplist = ($grpe, $grpn);
 	                        my $grpstring = $self->list2csv (
 	                            list        => \@grplist,
@@ -1351,6 +1351,172 @@ sub import_data_raster {
         orig_group_count => $orig_group_count,
         orig_label_count => $orig_label_count,
     );
+
+    return 1;  #  success
+}
+
+# subroutine to read a data file as shapefile.  arguments
+# input_files: list of files to read(?)
+# label_fields: fields which are read as labels (from ('x','y','z','m'))
+# group_fields: fields which are read as labels (from ('x','y','z','m'))
+sub import_data_shapefile {
+    my $self = shift;
+    my %args = @_;
+    
+    my $orig_group_count = $self->get_group_count;
+    my $orig_label_count = $self->get_label_count;
+
+    my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
+
+    croak "Input files array not provided\n"
+      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+    
+    my @group_fields = @{$args{group_fields}};
+    my @label_fields = @{$args{label_fields}};
+
+    #my @group_origins;
+    #my @group_sizes;
+    
+    my $labels_ref = $self->get_labels_ref;
+    my $groups_ref = $self->get_groups_ref;
+    
+    say "[BASEDATA] Loading from files as GDAL "
+            . join (q{ }, @{$args{input_files}});
+
+    my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
+    my $el_sep = $self->get_param ('JOIN_CHAR');
+
+    my $out_csv = $self->get_csv_object (
+        sep_char   => $el_sep,
+        quote_char => $quotes,
+    );
+    
+    # load each file, using same arguments/parameters
+    #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
+    foreach my $file (@{$args{input_files}}) {
+        $file = Path::Class::file($file)->absolute;
+        say "[BASEDATA] INPUT FILE: $file";
+
+        if (! (-e $file and -r $file)) {
+            croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
+        }
+
+        # open as shapefile
+        my $fnamebase = $file->stringify;
+        $fnamebase =~ s/\.[^.]*//;
+        my $shapefile = new Geo::ShapeFile($fnamebase);
+
+        croak "[BASEDATA] Failed to read $file with ShapeFile\n"
+           if (! defined($shapefile)); # assuming not defined on fail
+        
+        # iterate over shapes
+        foreach my $cnt (1 .. $shapefile->shapes()) {
+            my $shape = $shapefile->get_shp_record($cnt);
+            
+            # just get all the points from the shape
+            my @ptlist = $shape->points();
+            
+            foreach my $thispt (@ptlist) {
+            	# information will be stored in label and group strings
+            	
+            	# form label from label fields.  construct as text label 
+            	# for now
+            	my $this_label;
+            	my $first = 1;
+            	if (! @label_fields) {
+            		$this_label = 1;
+            	} else {
+	            	foreach my $lfield (@label_fields) {
+	           			$this_label .= ',' if (! $first);
+	                    if ($lfield->{name} eq 'x') { $this_label .= 'x_'.$thispt->X(); } 
+	                    elsif ($lfield->{name} eq 'y') { $this_label .= 'y_'.$thispt->Y(); } 
+	                    elsif ($lfield->{name} eq 'z') { $this_label .= 'z_'.$thispt->Z(); } 
+	                    elsif ($lfield->{name} eq 'm') { $this_label .= 'm_'.$thispt->M(); } 
+	                    else { croak (q/[Import shapefile] unexpected label field:/, %$lfield); }
+	            		$first = 0;
+	            	}
+            	}
+            	
+            	# form group text from group fields (defined as csv string of central points of group)
+                my @grplist;
+                foreach my $gfield (@group_fields) {
+                	my $val;
+                    if ($gfield->{name} eq 'x') { $val = $thispt->X(); } 
+                    elsif ($gfield->{name} eq 'y') { $val = $thispt->Y(); } 
+                    elsif ($gfield->{name} eq 'z') { $val = $thispt->Z(); } 
+                    elsif ($gfield->{name} eq 'm') { $val = $thispt->M(); }
+                    else { croak (q/[Import shapefile] unexpected group field:/, %$gfield); }
+
+                    
+                    my $cell = floor(($val - $gfield->{cell_origin}) / $gfield->{cell_size}); 
+                    my $grp_centre = $gfield->{cell_origin} + $cell * $gfield->{cell_size} + ($gfield->{cell_size} / 2.0);
+                    push @grplist, $grp_centre; 
+                }
+                my $grpstring = $self->list2csv (
+                    list        => \@grplist,
+                    csv_object  => $out_csv,
+                );             
+                #print "point label $this_label group $grpstring\n";       
+            	
+                # add to elements
+                $self->add_element (
+	                label      => $this_label,
+	                group      => $grpstring,
+	                count      => 1, # no count used
+	                csv_object => $out_csv,
+                );
+            } # each point
+
+        # progress bar stuff
+        my $shps = scalar ($shapefile->shapes());
+        my $frac = $cnt / $shps;
+        $progress_bar->update(
+            "Loading $file\n" .
+            "Shape $cnt of $shps\n",
+            $frac
+        );
+
+        if ($cnt % 10000 == 0) {
+            print "Loading $file\n" .
+            "Shape $cnt of $shps\n";
+        }
+
+        } # each shape
+    } # each file
+
+
+    #print "note: import_raster, run_import_post_processes not used\n";
+
+    # hacks to give data to post_processes
+    my @label_columns;
+    foreach my $lfield (@label_fields) {
+    	push(@label_columns, $lfield->{name});
+    }
+    my @cell_origins;
+    my @cell_sizes;
+    my @half_cellsize;
+    foreach my $gfield (@group_fields) {
+        push (@cell_origins, $gfield->{cell_origin});
+        push (@cell_sizes, $gfield->{cell_size});
+        push (@half_cellsize, $gfield->{cell_size} / 2.0);
+    }
+
+    $self->run_import_post_processes (
+        #%line_parse_args,
+        label_columns        => \@label_columns,
+        #group_columns        => \@group_columns,
+        cell_sizes           => \@cell_sizes,
+        half_cellsize        => \@half_cellsize,
+        cell_origins         => \@cell_origins,
+        orig_group_count => $orig_group_count,
+        orig_label_count => $orig_label_count,
+    );
+
+    if ($args{use_new}) {
+	    print "Have cell sizes ", join(',', @cell_sizes);
+	    $self->set_param(CELL_SIZES => \@cell_sizes);
+	    $self->set_param(CELL_ORIGINS => \@cell_origins);
+    }    
 
     return 1;  #  success
 }

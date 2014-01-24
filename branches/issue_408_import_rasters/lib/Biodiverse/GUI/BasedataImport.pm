@@ -77,7 +77,7 @@ sub run {
         #$basedata_ref = $gui->getProject->addBaseData($basedata_name);
         $basedata_ref = Biodiverse::BaseData->new (
             NAME       => $basedata_name,
-            CELL_SIZES => [1,1],  #  default, gets overridden later
+            CELL_SIZES => [100000,100000],  #  default, gets overridden later
         );
     }
     else {
@@ -336,7 +336,10 @@ sub run {
                 $num_labels = scalar @{$column_settings->{labels}};
             }
 
-            if ($num_groups == 0 || $num_labels == 0) {
+            # removed minimum label constraint for now, to allow "default" label to be used,
+            # for example for records which simply have x,y coords, and each is given a simple
+            # label ("1")
+            if ($num_groups == 0) { # || $num_labels == 0) {
                 my $text = $use_matrix
                      ? 'Please select at least one group and the label start column'
                      : 'Please select at least one label and one group';
@@ -372,19 +375,56 @@ sub run {
 
     if ($read_format == $shapefile_idx) {
         # process data
-        print "have groups: ";
-        my $href;
-        foreach $href (@{$column_settings->{groups}}) {
-            print $href->{name}, $href->{id}, "\n";
+        my $success = eval {
+            $basedata_ref->import_data_shapefile(
+                %import_params,
+                input_files             => \@filenames,
+                group_fields            => $column_settings->{groups},
+                label_fields            => $column_settings->{labels},
+                use_new                 => $use_new
+            )
+        };
+        if ($EVAL_ERROR) {
+            my $text = $EVAL_ERROR;
+            if (not $use_new) {
+                $text .= "\tWarning: Records prior to this line have been imported.\n";
+            }
+            $gui->report_error ($text);
         }
-        print "have labels: ";
-        foreach $href (@{$column_settings->{labels}}) {
-            print $href->{name}, $href->{id}, "\n";
-        }
+    
+        # not sure about use of 'cell_sizes' etc when groups defined on various fields
+        # ignore here, values set in import_data_shapefile
+        #if ($use_new) {
+        #    $basedata_ref->set_param(CELL_SIZES   => $import_params{CELL_SIZES});
+        #    $basedata_ref->set_param(CELL_ORIGINS => $import_params{CELL_ORIGINS});
+        #}
+        my @tmpcell_sizes = @{$basedata_ref->get_param("CELL_SIZES")};  #  work on a copy
+        print "checking set cell sizes: ", join(',',@tmpcell_sizes);
+        if ($success) {
+            if ($use_new) {
+                $gui->getProject->addBaseData($basedata_ref);
+            }
+            return $basedata_ref;
+        } else { return; }
         
+        
+        #print "have groups: ";
+        #my $href;
+        #my %dogrps;
+        #my %dolabels;
+        #foreach $href (@{$column_settings->{groups}}) {
+        #    print $href->{name},"\n";
+        #    $dogrps{$href->{name}} = 1;
+        #}
+        #print "have labels: ";
+        #foreach $href (@{$column_settings->{labels}}) {
+        #    print $href->{name}, "\n";
+        #    $dolabels{$href->{name}} = 1;
+        #}
+        #
         # read shapefile
-        
-        return;
+        #
+        #return;
     }
     
     #########

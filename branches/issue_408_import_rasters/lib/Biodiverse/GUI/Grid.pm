@@ -465,6 +465,9 @@ sub setBaseStruct {
 
     $self->{base_struct} = $data;
     $self->{cells} = {};
+
+    my @tmpcell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
+     print "setBaseStruct data $data checking set cell sizes: ", join(',',@tmpcell_sizes);
     
     my ($minX, $maxX, $minY, $maxY) = $self->findMaxMin($data);
     print join (q{ }, ($minX, $maxX, $minY, $maxY)) . "\n";
@@ -1320,7 +1323,7 @@ sub getCellSizes {
     #my ($cellX, $cellY) = @{$data->get_param("CELL_SIZES")};
     my @cell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
     #my $cellWidth = 0;
-
+    #print "cell sizes: ", join(/,/,@cell_sizes);
     my $i = 0;
     foreach my $axis (@cell_sizes) {
         if ($axis == 0) {  

@@ -1781,8 +1781,8 @@ sub calc_phylo_abc {
 
 my $_calc_phylo_abc_precision = '%.10f';
 
-#  Need to add a caching system for when it is building a matrix
-#  - should really speed things up
+
+
 sub _calc_phylo_abc {
     my $self = shift;
     my %args = @_;

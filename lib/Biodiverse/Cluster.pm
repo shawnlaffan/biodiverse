@@ -150,9 +150,7 @@ sub process_spatial_conditions_and_def_query {
     my %args = @_;
     
     #  we work with any number of spatial conditions, but default to consider everything
-    if (! defined $args{spatial_conditions}) {
-        $args{spatial_conditions} = ['sp_select_all ()'];
-    }
+    $args{spatial_conditions} //= ['sp_select_all ()'];
 
     my @spatial_conditions = @{$args{spatial_conditions}};
     #  and we remove any undefined or empty conditions
@@ -1092,13 +1090,14 @@ sub get_most_similar_pair {
                 $results{none}   = 0;
 
                 #  remove any keys we won't use for tie breakers
+                #  - should just grab a slice and add rand and none if needed
                 my %tmp = %results;
                 delete @tmp{@tie_keys};
                 delete @results{keys %tmp};
                 $calc_results = \%results;
                 $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $calc_results;
             }
-            my %calc_res = %$calc_results;
+            my %calc_res = %$calc_results; #  why is this being copied?
 
             my $itx = natatime 2, @$tie_breaker;
             my $sub_res = [];
@@ -1120,14 +1119,17 @@ sub get_most_similar_pair {
         #print "\nChosen = $node1, $node2\n";
         if ($tie_breaker_cache) {  #  cleanup
             no autovivification;
-            do {      delete $tie_breaker_cache->{$node1}{$node2}   #  delete our chosen pair
-                      && !$tie_breaker_cache->{$node1}              #  and, if parent is empty
-                      && delete $tie_breaker_cache->{$node1}}       #  then delete that too
-                //
-                do {  delete $tie_breaker_cache->{$node2}{$node1}   #  also the reverse
-                      && !$tie_breaker_cache->{$node2}
-                      && delete $tie_breaker_cache->{$node2}
-                };
+            do {
+                delete $tie_breaker_cache->{$node1}{$node2}   #  delete our chosen pair
+                && !$tie_breaker_cache->{$node1}              #  and, if parent is empty
+                && delete $tie_breaker_cache->{$node1}        #  then delete that too
+            }
+            //
+            do {
+                delete $tie_breaker_cache->{$node2}{$node1}   #  also the reverse
+                && !$tie_breaker_cache->{$node2}
+                && delete $tie_breaker_cache->{$node2}
+            };
         }
     }
 

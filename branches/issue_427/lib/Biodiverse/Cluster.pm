@@ -947,7 +947,7 @@ sub cluster_matrix_elements {
 
         my ($node1, $node2) = $self->get_most_similar_pair (
             sim_matrix  => $sim_matrix,
-            value       => $min_value,
+            min_value   => $min_value,
             rand_object => $rand,
         );
 
@@ -959,7 +959,7 @@ sub cluster_matrix_elements {
         my $el1 = defined $node_names->{$node1} ? $node_names->{$node1} : $node1;
         my $el2 = defined $node_names->{$node2} ? $node_names->{$node2} : $node2;
 
-        my $new_node_name = $join_number . "___";
+        my $new_node_name = $join_number . '___';
 
         #  create a new node using the elements - creates children as TreeNodes if needed
         $new_node = $self->add_node (
@@ -1021,7 +1021,7 @@ sub get_most_similar_pair {
     
     my $rand        = $args{rand_object} // croak "rand_object argument not passed\n";
     my $sim_matrix  = $args{sim_matrix}  // croak "sim_matrix argument not passed\n";
-    my $min_value   = $args{min_value}   // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+    my $min_value   = $args{min_value}   // $args{value} // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
     my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
 
     my $keys_ref = $sim_matrix->get_elements_with_value (value => $min_value);

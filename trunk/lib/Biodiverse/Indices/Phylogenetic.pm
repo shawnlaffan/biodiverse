@@ -1643,7 +1643,7 @@ sub calc_phylo_sorenson {
     my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - (2 * $A / ($A + $ABC))};
     }
 
@@ -1685,7 +1685,7 @@ sub calc_phylo_jaccard {
     my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};  
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - ($A / $ABC)};
     }    
 
@@ -1719,7 +1719,7 @@ sub get_metadata_calc_phylo_s2 {
     return wantarray ? %arguments : \%arguments;   
 }
 
-# calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+# calculate the phylogenetic S2 dissimilarity index between two label lists.
 sub calc_phylo_s2 {
     my $self = shift;
     my %args = @_;
@@ -1727,9 +1727,9 @@ sub calc_phylo_s2 {
     my ($A, $B, $C) = @args{qw /PHYLO_A PHYLO_B PHYLO_C/};  
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - ($A / ($A + min ($B, $C)))};
-    }    
+    }
 
     my %results = (PHYLO_S2 => $val);
 

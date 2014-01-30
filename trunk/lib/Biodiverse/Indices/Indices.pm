@@ -197,7 +197,7 @@ sub is_dissimilarity_valid {
     my %args = @_;
 
     my %result = (
-        DISSIMILARITY_IS_VALID => ($args{A} || $args{B}) && ($args{A} || $args{C}),
+        DISSIMILARITY_IS_VALID => ($args{A} || ($args{B} && $args{C})),
     );
 
     return wantarray ? %result : \%result;

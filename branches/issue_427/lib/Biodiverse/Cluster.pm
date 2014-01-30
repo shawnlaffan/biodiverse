@@ -1094,22 +1094,15 @@ sub get_most_similar_pair {
                 $results{random} = $rand->rand;  #  add values for non-index options, keep them consistent across all runs
                 $results{none}   = 0;
 
-                #  remove any keys we won't use for tie breakers
-                #  - could just grab a slice and add rand and none if needed
-                #  but profiling shows this does not take long
-                my %tmp = %results;
-                delete @tmp{@tie_keys};
-                delete @results{keys %tmp};
-                $calc_results = \%results;
+                #  Create an array of tie breaker results in the order they are needed
+                $calc_results = [@results{@$breaker_keys}, $pair];
                 $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $calc_results;
             }
-
-            my $sub_res = [@$calc_results{@$breaker_keys}, $pair];
 
             $current_pair = $self->run_tie_breaker (
                 tie_breaker => $tie_breaker,
                 pair1       => $current_pair,
-                pair2       => $sub_res,
+                pair2       => $calc_results,
                 breaker_keys   => $breaker_keys,
                 breaker_minmax => $breaker_minmax,
             );

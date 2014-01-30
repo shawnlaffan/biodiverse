@@ -1,0 +1,132 @@
+=head2 Fri Jan 24 12:55:01 2014: C<Module> L<Geo::GDAL::Const|Geo::GDAL::Const>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.9911>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Jan 24 12:55:02 2014: C<Module> L<Geo::OGR|Geo::OGR>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.9911>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Fri Jan 24 12:55:03 2014: C<Module> L<Geo::OSR|Geo::OSR>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.9911>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Jan 30 19:15:32 2014: C<Module> L<Geo::GDAL::Const|Geo::GDAL::Const>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.9911>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Jan 30 19:15:33 2014: C<Module> L<Geo::OGR|Geo::OGR>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.9911>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Thu Jan 30 19:15:33 2014: C<Module> L<Geo::OSR|Geo::OSR>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.9911>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

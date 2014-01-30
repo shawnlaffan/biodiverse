@@ -1,0 +1,22 @@
+=head2 Thu Jan 30 18:26:00 2014: C<Module> L<Geo::GDAL|Geo::GDAL>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/1.0/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.9911>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

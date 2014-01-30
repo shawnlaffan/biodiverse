@@ -1058,6 +1058,10 @@ sub get_most_similar_pair {
         my $current_pair;
         my %tmp = @$tie_breaker;
         my @tie_keys = keys %tmp;
+        
+        my $breaker_pairs  = $self->get_param ('CLUSTER_TIE_BREAKER_PAIRS');
+        my $breaker_keys   = $breaker_pairs->[0];
+        my $breaker_minmax = $breaker_pairs->[1];
 
         #  Sort ensures same order each time, thus stabilising random and "none" results
         #  should avoid sorting if they are not being used
@@ -1091,27 +1095,23 @@ sub get_most_similar_pair {
                 $results{none}   = 0;
 
                 #  remove any keys we won't use for tie breakers
-                #  - should just grab a slice and add rand and none if needed
+                #  - could just grab a slice and add rand and none if needed
+                #  but profiling shows this does not take long
                 my %tmp = %results;
                 delete @tmp{@tie_keys};
                 delete @results{keys %tmp};
                 $calc_results = \%results;
                 $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $calc_results;
             }
-            my %calc_res = %$calc_results; #  why is this being copied?
 
-            my $itx = natatime 2, @$tie_breaker;
-            my $sub_res = [];
-            while (my ($breaker, $optimisation) = $itx->()) {
-                push @$sub_res, $calc_res{$breaker};
-            }
-            #print "\n@$pair : @$sub_res";
-            push @$sub_res, $pair;
+            my $sub_res = [@$calc_results{@$breaker_keys}, $pair];
 
             $current_pair = $self->run_tie_breaker (
                 tie_breaker => $tie_breaker,
                 pair1       => $current_pair,
                 pair2       => $sub_res,
+                breaker_keys   => $breaker_keys,
+                breaker_minmax => $breaker_minmax,
             );
         }
 
@@ -1149,7 +1149,11 @@ sub setup_tie_breaker {
 
     my $it = natatime 2, @$tie_breaker;
     my @calc_subs;
+    my (@breaker_indices, @breaker_minmax);
     while (my ($breaker, $optimisation) = $it->()) {
+        push @breaker_indices, $breaker;
+        push @breaker_minmax,  $optimisation;
+
         next if $breaker eq 'random';  #  special handling for this - should change approach?
         next if $breaker eq 'none';
         next if !defined $breaker;
@@ -1172,29 +1176,34 @@ sub setup_tie_breaker {
     $indices_object->run_precalc_globals (%$analysis_args);
     
     $self->set_param (CLUSTER_TIE_BREAKER_INDICES_OBJECT => $indices_object);
+    $self->set_param (CLUSTER_TIE_BREAKER_PAIRS => [\@breaker_indices, \@breaker_minmax]);
+
+    return;
 }
 
 sub run_tie_breaker {
     my $self = shift;
     my %args = @_;
-    my $breaker = $args{tie_breaker};
+    #my $breaker = $args{tie_breaker};
+    my $breaker_keys   = $args{breaker_keys};
+    my $breaker_minmax = $args{breaker_minmax};
     my $pair1 = $args{pair1};
     my $pair2 = $args{pair2};
 
-    return $pair1 if !$pair2;
-    return $pair2 if !$pair1;
+    return $pair1 if !defined $pair2;
+    return $pair2 if !defined $pair1;
 
-    my $it = natatime 2, @$breaker;
     my $i = -1;
-    COMP:
-    while (my ($breaker, $optimisation) = $it->()) {
+
+  COMP:
+    foreach my $key (@$breaker_keys) {
         $i ++;
 
         my $comp_result = $pair1->[$i] <=> $pair2->[$i];
 
         next COMP if !$comp_result;
 
-        if ($optimisation =~ /^max/) {  #  need to reverse the comparison result
+        if ($breaker_minmax->[$i] =~ /^max/) {  #  need to reverse the comparison result
             $comp_result *= -1;
         }
 

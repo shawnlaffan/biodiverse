@@ -1086,7 +1086,7 @@ sub get_most_similar_pair {
                     element_list1 => $el_lists[0],
                     element_list2 => $el_lists[1],
                 );
-                $results{random} = $rand->rand;  #  add values for non-index options, keep them consistet across all runs
+                $results{random} = $rand->rand;  #  add values for non-index options, keep them consistent across all runs
                 $results{none}   = 0;
 
                 #  remove any keys we won't use for tie breakers
@@ -1188,15 +1188,16 @@ sub run_tie_breaker {
     COMP:
     while (my ($breaker, $optimisation) = $it->()) {
         $i ++;
-        my @comps = ($pair1->[$i], $pair2->[$i]);
-        if ($optimisation =~ '^max') {
-            @comps = reverse @comps;
-        }
-        my $comp_result = $comps[0] <=> $comps[1];
+
+        my $comp_result = $pair1->[$i] <=> $pair2->[$i];
 
         next COMP if !$comp_result;
-        return $pair1 if $comp_result < 0;
-        return $pair2;
+
+        if ($optimisation =~ /^max/) {  #  need to reverse the comparison result
+            $comp_result *= -1;
+        }
+
+        return $comp_result < 0 ? $pair1 : $pair2;
     }
 
     return $pair1;  #  we only had ties

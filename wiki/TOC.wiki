@@ -12,4 +12,4 @@
   * SampleSession
   * ScreenShots
   * SpatialConditions
-  * LoadAndRandomise
+  * RunRandomisation

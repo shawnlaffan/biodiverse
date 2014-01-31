@@ -1062,7 +1062,7 @@ sub get_most_similar_pair {
         my $current_lead_pair;
 
         #  Sort ensures same order each time, thus stabilising random and "none" results
-        #  should avoid sorting if they are not being used
+        #  as well as any tied index comparisons
         foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
             no autovivification;
 
@@ -1101,13 +1101,13 @@ sub get_most_similar_pair {
             }
 
             my $comparison = $self->run_tie_breaker (
-                pair1       => $current_lead_pair,
-                pair2       => $tie_scores,
+                pair1_scores   => $current_lead_pair,
+                pair2_scores   => $tie_scores,
                 breaker_keys   => $breaker_keys,
                 breaker_minmax => $breaker_minmax,
             );
 
-            if ($comparison < 0) {
+            if ($comparison > 0) {
                 $current_lead_pair = $tie_scores;
             }
         }
@@ -1188,11 +1188,11 @@ sub run_tie_breaker {
     my $breaker_keys   = $args{breaker_keys};
     my $breaker_minmax = $args{breaker_minmax};
 
-    my $pair1 = $args{pair1};
-    my $pair2 = $args{pair2};
+    my $pair1_scores = $args{pair1_scores};
+    my $pair2_scores = $args{pair2_scores};
 
-    return  1 if !defined $pair2;
-    return -1 if !defined $pair1;
+    return -1 if !defined $pair2_scores;
+    return  1 if !defined $pair1_scores;
 
     my $i = -1;
 
@@ -1200,7 +1200,7 @@ sub run_tie_breaker {
     foreach my $key (@$breaker_keys) {
         $i ++;
 
-        my $comp_result = $pair1->[$i] <=> $pair2->[$i];
+        my $comp_result = $pair1_scores->[$i] <=> $pair2_scores->[$i];
 
         next COMP if !$comp_result;
 

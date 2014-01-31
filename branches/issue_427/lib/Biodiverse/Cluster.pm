@@ -909,7 +909,7 @@ sub cluster_matrix_elements {
             "\n";
 
     my $new_node;
-    my $min_value;
+    my ($min_value, $prev_min_value);
     #  track the number of joins - use as element name for merged nodes
     my $join_number = $self->get_param ('JOIN_NUMBER') || -1;  
     my $total = $sim_matrix->get_element_count;
@@ -944,6 +944,13 @@ sub cluster_matrix_elements {
         $progress_bar->update ($text, 1 - $remaining / $total);
 
         $count ++;
+
+        #  clean up tie breakers if the min value has changed
+        if (defined $prev_min_value && $min_value != $prev_min_value) {
+            $self->delete_cached_values (
+                keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
+            );
+        }
 
         my ($node1, $node2) = $self->get_most_similar_pair (
             sim_matrix  => $sim_matrix,
@@ -995,6 +1002,7 @@ sub cluster_matrix_elements {
         ###  now we rebuild the similarity matrix to include the new linkages and destroy the old ones
         #  possibly we should return a list of other matrix elements where the length
         #  difference is 0 and which therefore could be merged now rather than next iteration
+        #  but that is not guaranteed to work for all combinations of index and linkage
         $self->run_linkage (
             node1            => $node1,
             node2            => $node2,
@@ -1002,6 +1010,8 @@ sub cluster_matrix_elements {
             linkage_function => $linkage_function,
             #merge_track_matrix => $merged_mx,
         );
+
+        $prev_min_value = $min_value;
     }
 
     #  finish off the progress
@@ -1021,7 +1031,9 @@ sub get_most_similar_pair {
     
     my $rand        = $args{rand_object} // croak "rand_object argument not passed\n";
     my $sim_matrix  = $args{sim_matrix}  // croak "sim_matrix argument not passed\n";
-    my $min_value   = $args{min_value}   // $args{value} // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+    my $min_value   = $args{min_value}
+                    // $args{value}
+                    // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
     my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
 
     my $keys_ref = $sim_matrix->get_elements_with_value (value => $min_value);
@@ -1038,10 +1050,15 @@ sub get_most_similar_pair {
     else {
         my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
         my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
-        my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHES');
+        my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHE');
         if (!$tie_breaker_cache) {
             $tie_breaker_cache = {};
-            $self->set_cached_value (TIEBREAKER_CACHES => $tie_breaker_cache);
+            $self->set_cached_value (TIEBREAKER_CACHE => $tie_breaker_cache);
+        }
+        my $tie_breaker_cmp_cache = $self->get_cached_value ('TIEBREAKER_CMP_CACHE');
+        if (!$tie_breaker_cmp_cache) {
+            $tie_breaker_cmp_cache = {};
+            $self->set_cached_value (TIEBREAKER_CMP_CACHE => $tie_breaker_cmp_cache);
         }
 
         #  need to get all the pairs
@@ -1063,6 +1080,7 @@ sub get_most_similar_pair {
 
         #  Sort ensures same order each time, thus stabilising random and "none" results
         #  as well as any tied index comparisons
+      TIE_COMP:
         foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
             no autovivification;
 
@@ -1100,35 +1118,38 @@ sub get_most_similar_pair {
                 $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $tie_scores;
             }
 
-            my $comparison = $self->run_tie_breaker (
-                pair1_scores   => $current_lead_pair,
-                pair2_scores   => $tie_scores,
-                breaker_keys   => $breaker_keys,
-                breaker_minmax => $breaker_minmax,
-            );
+            if (!defined $current_lead_pair) {
+                $current_lead_pair = $tie_scores;
+                next TIE_COMP;
+            }
 
-            if ($comparison > 0) {
+            #  comparison scores are order sensitive
+            my $tie_comparison = $tie_breaker_cmp_cache->{$current_lead_pair}{$tie_scores};
+            if (!defined $tie_comparison) {
+                $tie_comparison = $tie_breaker_cmp_cache->{$tie_scores}{$current_lead_pair};
+                if (defined $tie_comparison) {
+                    $tie_comparison *= -1;  #  allow for cmp order reversal in the cache
+                }
+            }
+
+            #  calculate and cache it if we still have not got a cmp score
+            if (!defined $tie_comparison) {
+                $tie_comparison = $self->run_tie_breaker (
+                    pair1_scores   => $current_lead_pair,
+                    pair2_scores   => $tie_scores,
+                    breaker_keys   => $breaker_keys,
+                    breaker_minmax => $breaker_minmax,
+                );
+                $tie_breaker_cmp_cache->{$current_lead_pair}{$tie_scores} = $tie_comparison;
+            }
+
+            if ($tie_comparison > 0) {
                 $current_lead_pair = $tie_scores;
             }
         }
 
-        my $chosen_pair = $current_lead_pair->[-1];  #  last item in array is the pair
-        ($node1, $node2) = @$chosen_pair;
-        #print "\nChosen = $node1, $node2\n";
-        if ($tie_breaker_cache) {  #  cleanup
-            no autovivification;
-            do {
-                delete $tie_breaker_cache->{$node1}{$node2}   #  delete our chosen pair
-                && !$tie_breaker_cache->{$node1}              #  and, if parent is empty
-                && delete $tie_breaker_cache->{$node1}        #  then delete that too
-            }
-            //
-            do {
-                delete $tie_breaker_cache->{$node2}{$node1}   #  also the reverse
-                && !$tie_breaker_cache->{$node2}
-                && delete $tie_breaker_cache->{$node2}
-            };
-        }
+        my $optimal_pair = $current_lead_pair->[-1];  #  last item in array is the pair
+        ($node1, $node2) = @$optimal_pair;
     }
 
     return wantarray ? ($node1, $node2) : [$node1, $node2];
@@ -1169,6 +1190,8 @@ sub setup_tie_breaker {
         element_list1  => [],  #  for validity checking only
         element_list2  => [],
     );
+    
+    $indices_object->set_pairwise_mode (1);  #  turn on some optimisations
 
     $indices_object->run_precalc_globals (%$analysis_args);
     

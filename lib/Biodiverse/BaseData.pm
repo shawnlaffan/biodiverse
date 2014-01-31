@@ -3247,7 +3247,7 @@ sub get_outputs_with_same_conditions {
     my $compare = $args{compare_with} || croak "[BASEDATA] compare_with argument not specified\n";
 
     my $sp_params = $compare->get_spatial_conditions;
-    my $def_query = $compare->get_param ('DEFINITION_QUERY');
+    my $def_query = $compare->get_def_query;
     if (defined $def_query && (length $def_query) == 0) {
         $def_query = undef;
     }
@@ -3267,20 +3267,19 @@ sub get_outputs_with_same_conditions {
 
         my $completed = $output->get_param ('COMPLETED');
         next LOOP_OUTPUTS if defined $completed and ! $completed;
-        
-        my $def_query_comp = $output->get_param ('DEFINITION_QUERY');
-        if (defined $def_query) {
-            #  only check further if both have def queries
-            next LOOP_OUTPUTS if ! defined $def_query_comp;
 
+        my $def_query_comp = $output->get_def_query;
+        if (defined $def_query_comp && (length $def_query_comp) == 0) {
+            $def_query_comp = undef;
+        }
+
+        next LOOP_OUTPUTS if (defined $def_query) ne (defined $def_query_comp);
+
+        if (defined $def_query) {    
             #  check their def queries match
             my $def_conditions_comp = eval {$def_query_comp->get_conditions_unparsed()} // $def_query_comp;
             my $def_conditions_text = eval {$def_query->get_conditions_unparsed()}      // $def_query;
             next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions_text;
-        }
-        else {
-            #  skip if one is defined but the other is not
-            next LOOP_OUTPUTS if defined $def_query_comp;
         }
 
         my $sp_params_comp = $output->get_spatial_conditions || [];

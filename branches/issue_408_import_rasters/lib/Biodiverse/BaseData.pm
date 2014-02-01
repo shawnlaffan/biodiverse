@@ -1196,39 +1196,40 @@ sub import_data_raster {
         say "[BASEDATA] INPUT FILE: $file";
 
         if (! (-e $file and -r $file)) {
-	        croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
+                croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
         }
 
-        # process using GDAL library		
+        # process using GDAL library
         my $data = Geo::GDAL::Open($file->stringify(), q/Update/); #, GA_Update); #'ReadOnly'); #'Update'); #GA_Update) ;
         #my $data = Geo::GDAL::Open('sample.tif', 'Update'); #'Update');
 
         croak "[BASEDATA] Failed to read $file with GDAL\n"
           if (! defined($data));
 
-            say 'Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName};
-            say 'Size is ', $data->{RasterXSize}, 'x', $data->{RasterXSize}, 'x', $data->{RasterCount};
-            say 'Projection is ', $data->GetProjection();
+        say 'Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName};
+        say 'Size is ', $data->{RasterXSize}, 'x', $data->{RasterXSize}, 'x', $data->{RasterCount};
+        say 'Projection is ', $data->GetProjection();
 
-            my @tf = $data->GetGeoTransform();
-            say 'Transform is ', @tf;		
-            printf "Origin = (%.6f,%.6f)\n", $tf[0], $tf[3];
-            printf "Pixel Size = (%.6f,%.6f)\n", $tf[1], $tf[5];
+        my @tf = $data->GetGeoTransform();
+        say 'Transform is ', join (' ', @tf);
+        say "Origin = ($tf[0], $tf[3])";
+        say "Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5]";  #  $tf[5] is negative to allow for line order
 
-            # read and display all data (?)
+        # read and display all data (?)
 
-            # iterate over each band
-            foreach my $b (1 .. $data->{RasterCount}) {
+        # iterate over each band
+        foreach my $b (1 .. $data->{RasterCount}) {
             my $band = $data->Band($b);
             my ($blockw, $blockh, $maxw, $maxh);
             my ($wpos, $hpos) = (0, 0);
+            my $nodata_value = $band->GetNoDataValue;
             my $this_label;
 
             say "Band $b $band ", $band->{DataType};
             if ($labels_as_bands) { 
                 # if single band, set label as filename
                 if ($data->{RasterCount} == 1) {
-                    $this_label = $file->stringify;  #  this gives the whole file path
+                    $this_label = $file->stringify;  #  this gives the whole file path on Windows - need to use Path::Class
                     $this_label =~ s/.*\///;
                     $this_label =~ s/\.[^.]*//;
                 }
@@ -1239,38 +1240,41 @@ sub import_data_raster {
 
             # get category names for this band, which will attempt
             # to be used as labels based on cell values (if ! labels_as_bands)
-            my @catnames = $band->CategoryNames();			
-            
+            my @catnames = $band->CategoryNames();
+
             # record if numeric values are being used for labels
+            # CHECK CHECK CHECK - should be set later, as we might be adding to an existing basedata
             if (scalar @catnames == 0 && ! $labels_as_bands) {
                 $labels_ref->{element_arrays_are_numeric} = 1;
-            }	
+            }
 
             # read as preferred size blocks?
             ($blockw, $blockh) = $band->GetBlockSize();
-            printf "Block size ($blockw, $blockh)\n";
-            
+            say "Block size ($blockw, $blockh)";
+
             # read a "block" at a time
             # assume @cell_sizes is ($xsize, $ysize)
             $hpos = 0;
             while ($hpos < $data->{RasterYSize}) {
-                $wpos = 0;          
+                $wpos = 0;
                 while ($wpos < $data->{RasterXSize}) {
                     $maxw = min($data->{RasterXSize}, $wpos + $blockw);
                     $maxh = min($data->{RasterYSize}, $hpos + $blockh);
 
-                    say "reading tile at origin $wpos, $hpos, to $maxw, $maxh";                    
-                    my $lr   = $band->ReadTile($wpos, $hpos, $maxw-$wpos, $maxh-$hpos); #,$band->{DataType});
+                    say "reading tile at origin $wpos, $hpos, to $maxw, $maxh";                 
+                    my $lr   = $band->ReadTile($wpos, $hpos, $maxw - $wpos, $maxh - $hpos);
                     my @tile = @$lr;
                     my $y    = $hpos;
 
                   ROW:
                     foreach my $lineref (@tile) {
-                        my $x = $wpos;
+                        my $x = $wpos - 1;
 
                       COLUMN:
                         foreach my $entry (@$lineref) {
-                            next COLUMN if !defined $entry;
+                            $x++;
+                            # need to add check for empty groups when it is added as an argument
+                            next COLUMN if $entry == $nodata_value;  
 
                             # find transformed position (see GDAL specs)        
                             #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
@@ -1288,10 +1292,10 @@ sub import_data_raster {
                                 list        => \@grplist,
                                 csv_object  => $out_csv,
                             );
-                            #say "($x,$y) ($egeo,$ngeo) $entry ($ecell,$ncell) ($grpe, $grpn)";
+                            say "($x, $y) ($egeo, $ngeo) ($ecell, $ncell) ($grpe, $grpn)";
 
                             # set label if determined at cell level
-                            my $count = 1;
+                             my $count = 1;
                             if ($labels_as_bands) {
                                 # set count to cell value if using band as label 
                                 $count = $entry;
@@ -1319,7 +1323,6 @@ sub import_data_raster {
                                 csv_object => $out_csv,
                             );
 
-                            $x++;
                         } # each entry on line
                         $y++;
                     } # each line in block
@@ -1327,11 +1330,11 @@ sub import_data_raster {
                 } # each block in width
                 $hpos += $blockh;
             } # each block in height
-	} # each raster band
+        } # each raster band
     } # each file
 
-#				# progress bar stuff
-#				my $frac = eval {
+#               # progress bar stuff
+#                my $frac = eval {
 #                    ($line_num   - $line_num_end_prev_chunk) /
 #                    ($line_count - $line_num_end_prev_chunk)
 #                };
@@ -1389,8 +1392,8 @@ sub import_data_shapefile {
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
-    say "[BASEDATA] Loading from files as GDAL "
-            . join (q{ }, @{$args{input_files}});
+    say '[BASEDATA] Loading from files as GDAL '
+        . join (q{ }, @{$args{input_files}});
 
     my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
     my $el_sep = $self->get_param ('JOIN_CHAR');
@@ -1417,46 +1420,46 @@ sub import_data_shapefile {
 
         croak "[BASEDATA] Failed to read $file with ShapeFile\n"
            if (! defined($shapefile)); # assuming not defined on fail
-        
+
         # iterate over shapes
         foreach my $cnt (1 .. $shapefile->shapes()) {
             my $shape = $shapefile->get_shp_record($cnt);
-            
+
             # just get all the points from the shape
             my @ptlist = $shape->points();
-            
+
             foreach my $thispt (@ptlist) {
-            	# information will be stored in label and group strings
-            	
-            	# form label from label fields.  construct as text label 
-            	# for now
-            	my $this_label;
-            	my $first = 1;
-            	if (! @label_fields) {
-            		$this_label = 1;
-            	} else {
-	            	foreach my $lfield (@label_fields) {
-	           			$this_label .= ',' if (! $first);
-	                    if ($lfield->{name} eq 'x') { $this_label .= 'x_'.$thispt->X(); } 
-	                    elsif ($lfield->{name} eq 'y') { $this_label .= 'y_'.$thispt->Y(); } 
-	                    elsif ($lfield->{name} eq 'z') { $this_label .= 'z_'.$thispt->Z(); } 
-	                    elsif ($lfield->{name} eq 'm') { $this_label .= 'm_'.$thispt->M(); } 
-	                    else { croak (q/[Import shapefile] unexpected label field:/, %$lfield); }
-	            		$first = 0;
-	            	}
-            	}
-            	
-            	# form group text from group fields (defined as csv string of central points of group)
+                # information will be stored in label and group strings
+
+                # form label from label fields.  construct as text label 
+                # for now
+                my $this_label;
+                my $first = 1;
+                if (! @label_fields) {
+                    $this_label = 1;
+                }
+                else {
+                    foreach my $lfield (@label_fields) {
+                        $this_label .= ',' if (! $first);
+                        if ($lfield->{name} eq 'x') { $this_label .= 'x_'.$thispt->X(); } 
+                        elsif ($lfield->{name} eq 'y') { $this_label .= 'y_'.$thispt->Y(); } 
+                        elsif ($lfield->{name} eq 'z') { $this_label .= 'z_'.$thispt->Z(); } 
+                        elsif ($lfield->{name} eq 'm') { $this_label .= 'm_'.$thispt->M(); } 
+                        else { croak (q/[Import shapefile] unexpected label field:/, %$lfield); }
+                        $first = 0;
+                    }
+                }
+
+                # form group text from group fields (defined as csv string of central points of group)
                 my @grplist;
                 foreach my $gfield (@group_fields) {
-                	my $val;
-                    if ($gfield->{name} eq 'x') { $val = $thispt->X(); } 
+                    my $val;
+                    if    ($gfield->{name} eq 'x') { $val = $thispt->X(); } 
                     elsif ($gfield->{name} eq 'y') { $val = $thispt->Y(); } 
                     elsif ($gfield->{name} eq 'z') { $val = $thispt->Z(); } 
                     elsif ($gfield->{name} eq 'm') { $val = $thispt->M(); }
                     else { croak (q/[Import shapefile] unexpected group field:/, %$gfield); }
 
-                    
                     my $cell = floor(($val - $gfield->{cell_origin}) / $gfield->{cell_size}); 
                     my $grp_centre = $gfield->{cell_origin} + $cell * $gfield->{cell_size} + ($gfield->{cell_size} / 2.0);
                     push @grplist, $grp_centre; 
@@ -1466,29 +1469,29 @@ sub import_data_shapefile {
                     csv_object  => $out_csv,
                 );             
                 #print "point label $this_label group $grpstring\n";       
-            	
+
                 # add to elements
                 $self->add_element (
-	                label      => $this_label,
-	                group      => $grpstring,
-	                count      => 1, # no count used
-	                csv_object => $out_csv,
+                    label      => $this_label,
+                    group      => $grpstring,
+                    count      => 1, # no count used
+                    csv_object => $out_csv,
                 );
             } # each point
 
-        # progress bar stuff
-        my $shps = scalar ($shapefile->shapes());
-        my $frac = $cnt / $shps;
-        $progress_bar->update(
-            "Loading $file\n" .
-            "Shape $cnt of $shps\n",
-            $frac
-        );
-
-        if ($cnt % 10000 == 0) {
-            print "Loading $file\n" .
-            "Shape $cnt of $shps\n";
-        }
+            # progress bar stuff
+            my $shps = scalar ($shapefile->shapes());
+            my $frac = $cnt / $shps;
+            $progress_bar->update(
+                "Loading $file\n" .
+                "Shape $cnt of $shps\n",
+                $frac
+            );
+    
+            if ($cnt % 10000 == 0) {
+                print "Loading $file\n" .
+                "Shape $cnt of $shps\n";
+            }
 
         } # each shape
     } # each file
@@ -1499,7 +1502,7 @@ sub import_data_shapefile {
     # hacks to give data to post_processes
     my @label_columns;
     foreach my $lfield (@label_fields) {
-    	push(@label_columns, $lfield->{name});
+        push(@label_columns, $lfield->{name});
     }
     my @cell_origins;
     my @cell_sizes;
@@ -1522,9 +1525,9 @@ sub import_data_shapefile {
     );
 
     if ($args{use_new}) {
-	    print "Have cell sizes ", join(',', @cell_sizes);
-	    $self->set_param(CELL_SIZES => \@cell_sizes);
-	    $self->set_param(CELL_ORIGINS => \@cell_origins);
+        say "Have cell sizes ", join(',', @cell_sizes);
+        $self->set_param(CELL_SIZES => \@cell_sizes);
+        $self->set_param(CELL_ORIGINS => \@cell_origins);
     }    
 
     return 1;  #  success

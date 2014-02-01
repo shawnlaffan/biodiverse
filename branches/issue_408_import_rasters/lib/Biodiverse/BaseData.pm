@@ -636,6 +636,7 @@ sub get_metadata_import_data_raster {
     
     return wantarray ? %arg_hash : \%arg_hash;
 }
+
 *load_data = \&import_data;
 
 #  import data from a delimited text file
@@ -1161,11 +1162,11 @@ sub import_data_raster {
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
     my $labels_as_bands = $args{labels_as_bands};
-    my $cellorigin_e = $args{raster_origin_e};
-    my $cellorigin_n = $args{raster_origin_n};
-    my $cellsize_e = $args{raster_cellsize_e};
-    my $cellsize_n = $args{raster_cellsize_n};
-    
+    my $cellorigin_e    = $args{raster_origin_e};
+    my $cellorigin_n    = $args{raster_origin_n};
+    my $cellsize_e      = $args{raster_cellsize_e};
+    my $cellsize_n      = $args{raster_cellsize_n};
+
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
@@ -1175,11 +1176,9 @@ sub import_data_raster {
     # hack, set parameters here? using local ref arrays?
     my @cell_sizes = ($cellsize_e, $cellsize_n);
     my @cell_origins = ($cellorigin_e, $cellorigin_n);
-    $self->set_param('CELL_SIZES', \@cell_sizes);
-    $self->set_param('CELL_ORIGINS', \@cell_origins);
-    
-    #my @cell_sizes           = @{$self->get_param('CELL_SIZES')};
-    #my @cell_origins         = @{$self->get_cell_origins};
+    $self->set_param(CELL_SIZES => \@cell_sizes);
+    $self->set_param(CELL_ORIGINS => \@cell_origins);
+
     my @half_cellsize = map {$_ / 2} @cell_sizes;
 
     my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
@@ -1190,7 +1189,7 @@ sub import_data_raster {
         quote_char => $quotes,
     );
     
-	# load each file, using same arguments/parameters
+    # load each file, using same arguments/parameters
     #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file (@{$args{input_files}}) {
         $file = Path::Class::file($file)->absolute;
@@ -1200,55 +1199,55 @@ sub import_data_raster {
 	        croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
         }
 
-		# process using GDAL library		
-		my $data = Geo::GDAL::Open($file->stringify(), q/Update/); #, GA_Update); #'ReadOnly'); #'Update'); #GA_Update) ;
-		#my $data = Geo::GDAL::Open('sample.tif', 'Update'); #'Update');
+        # process using GDAL library		
+        my $data = Geo::GDAL::Open($file->stringify(), q/Update/); #, GA_Update); #'ReadOnly'); #'Update'); #GA_Update) ;
+        #my $data = Geo::GDAL::Open('sample.tif', 'Update'); #'Update');
 
         croak "[BASEDATA] Failed to read $file with GDAL\n"
-           if (! defined($data));
-		
-		print 'Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName},"\n";
-		print 'Size is ', $data->{RasterXSize},'x',$data->{RasterXSize}, 'x',$data->{RasterCount},"\n";
-		print "Projection is ", $data->GetProjection(), "\n";
-		
-		my @tf = $data->GetGeoTransform();
-		print "Transform is ", @tf, "\n";		
-		printf "Origin = (%.6f,%.6f)\n", $tf[0], $tf[3];
-		printf "Pixel Size = (%.6f,%.6f)\n", $tf[1], $tf[5];
-		
-		# read and display all data (?)
-		
-		# iterate over each band
-		foreach my $b (1..$data->{RasterCount}) {
-			my $band = $data->Band($b);
-			my $blockw, my $blockh, my $maxw, my $maxh;
-			my $wpos = 0, my $hpos = 0;
-			my $this_label;
-			
-			print "Band $b $band ",$band->{DataType},"\n";
-			if ($labels_as_bands) { 
-				# if single band, set label as filename
-				if ($data->{RasterCount} == 1) {
-					$this_label = $file->stringify;
-	                $this_label =~ s/.*\///;
-	                $this_label =~ s/\.[^.]*//;
-				} else {
-				    $this_label = "band$b";
-				} 
-			}
-			
-			
-			# get category names for this band, which will attempt
-			# to be used as labels based on cell values (if ! labels_as_bands)
-			my @catnames = $band->CategoryNames();			
+          if (! defined($data));
 
-			# record if numeric values are being used for labels
-			if (scalar @catnames == 0 && ! $labels_as_bands) {
-				$labels_ref->{element_arrays_are_numeric} = 1;
-			}	
-		
-			# read as preferred size blocks?
-			($blockw, $blockh) = $band->GetBlockSize();
+            say 'Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName};
+            say 'Size is ', $data->{RasterXSize}, 'x', $data->{RasterXSize}, 'x', $data->{RasterCount};
+            say 'Projection is ', $data->GetProjection();
+
+            my @tf = $data->GetGeoTransform();
+            say 'Transform is ', @tf;		
+            printf "Origin = (%.6f,%.6f)\n", $tf[0], $tf[3];
+            printf "Pixel Size = (%.6f,%.6f)\n", $tf[1], $tf[5];
+
+            # read and display all data (?)
+
+            # iterate over each band
+            foreach my $b (1 .. $data->{RasterCount}) {
+            my $band = $data->Band($b);
+            my ($blockw, $blockh, $maxw, $maxh);
+            my ($wpos, $hpos) = (0, 0);
+            my $this_label;
+
+            say "Band $b $band ", $band->{DataType};
+            if ($labels_as_bands) { 
+                # if single band, set label as filename
+                if ($data->{RasterCount} == 1) {
+                    $this_label = $file->stringify;  #  this gives the whole file path
+                    $this_label =~ s/.*\///;
+                    $this_label =~ s/\.[^.]*//;
+                }
+                else {
+                    $this_label = "band$b";
+                } 
+            }
+
+            # get category names for this band, which will attempt
+            # to be used as labels based on cell values (if ! labels_as_bands)
+            my @catnames = $band->CategoryNames();			
+            
+            # record if numeric values are being used for labels
+            if (scalar @catnames == 0 && ! $labels_as_bands) {
+                $labels_ref->{element_arrays_are_numeric} = 1;
+            }	
+
+            # read as preferred size blocks?
+            ($blockw, $blockh) = $band->GetBlockSize();
             printf "Block size ($blockw, $blockh)\n";
             
             # read a "block" at a time
@@ -1260,14 +1259,19 @@ sub import_data_raster {
                     $maxw = min($data->{RasterXSize}, $wpos + $blockw);
                     $maxh = min($data->{RasterYSize}, $hpos + $blockh);
 
-                    printf "reading tile at origin $wpos, $hpos, to $maxw, $maxh\n";                    
-                    my $lr = $band->ReadTile($wpos,$hpos,$maxw-$wpos,$maxh-$hpos); #,$band->{DataType});
+                    say "reading tile at origin $wpos, $hpos, to $maxw, $maxh";                    
+                    my $lr   = $band->ReadTile($wpos, $hpos, $maxw-$wpos, $maxh-$hpos); #,$band->{DataType});
                     my @tile = @$lr;
-                    my $y=$hpos;    
+                    my $y    = $hpos;
+
+                  ROW:
                     foreach my $lineref (@tile) {
-                        my $x=$wpos;
+                        my $x = $wpos;
+
+                      COLUMN:
                         foreach my $entry (@$lineref) {
-                            
+                            next COLUMN if !defined $entry;
+
                             # find transformed position (see GDAL specs)        
                             #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
                             #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
@@ -1280,45 +1284,50 @@ sub import_data_raster {
                             my $grpe = $cellorigin_e + $ecell * $cellsize_e + ($cellsize_e / 2.0); 
                             my $grpn = $cellorigin_n + $ncell * $cellsize_n + ($cellsize_n / 2.0);
                             my @grplist = ($grpe, $grpn);
-	                        my $grpstring = $self->list2csv (
-	                            list        => \@grplist,
-	                            csv_object  => $out_csv,
-	                        );
-                            print "($x,$y) ($egeo,$ngeo) $entry ($ecell,$ncell) ($grpe, $grpn)\n";
-	                        
-	                        # set label if determined at cell level
-	                        my $count = 1;
-	                        if ($labels_as_bands) {
-	                            # set count to cell value if using band as label 
-	                            $count = $entry;
-	                        } else {
-	                            # set label from cell value
-	                            
-	                            # if entry is integer and within category list, just use label from list
-	                            if ($entry =~ /^[-+]\d+$/ && $entry <= $#catnames) {
-	                                $this_label = $catnames[$entry];
-	                            } else {
-	                                $this_label = $entry;
-	                            }
-	                        } 
-	                        
-	                        # add to elements
-	                        $self->add_element (
-	                            label      => $this_label,
-	                            group      => $grpstring,
-	                            count      => $count,
-	                            csv_object => $out_csv,
-	                        );
-                            
-                            ++$x;
+                            my $grpstring = $self->list2csv (
+                                list        => \@grplist,
+                                csv_object  => $out_csv,
+                            );
+                            #say "($x,$y) ($egeo,$ngeo) $entry ($ecell,$ncell) ($grpe, $grpn)";
+
+                            # set label if determined at cell level
+                            my $count = 1;
+                            if ($labels_as_bands) {
+                                # set count to cell value if using band as label 
+                                $count = $entry;
+                            }
+                            else {
+                                # set label from cell value
+
+                                # if entry is integer and within category list, just use label from list
+                                # should use Regexp::Common::Numeric for this
+                                #  Condition fails for negative values, and not sure why catnames is not a hash
+                                if (scalar @catnames && $entry =~ /^[-+]\d+$/ && $entry <= $#catnames) {
+                                    $this_label = $catnames[$entry];
+                                }
+                                else {
+                                    $this_label = $entry;
+                                }
+                            } 
+
+                            #  need to skip if the label is nodata
+                            # add to elements
+                            $self->add_element (
+                                label      => $this_label,
+                                group      => $grpstring,
+                                count      => $count,
+                                csv_object => $out_csv,
+                            );
+
+                            $x++;
                         } # each entry on line
-                        ++$y;
+                        $y++;
                     } # each line in block
                     $wpos += $blockw;
                 } # each block in width
                 $hpos += $blockh;
             } # each block in height
-		} # each raster band
+	} # each raster band
     } # each file
 
 #				# progress bar stuff

@@ -1062,11 +1062,15 @@ sub get_most_similar_pair {
         }
 
         #  need to get all the pairs
+        my $csv = $self->get_csv_object;
         my @pairs;
         foreach my $name1 (keys %$keys_ref) {
             my $ref = $keys_ref->{$name1};
             foreach my $name2 (keys %$ref) {
-                push @pairs, [$name1, $name2];  #  need to use terminal names - allows to link_recalculate
+                my $stringified = $self->list2csv (list => [$name1, $name2], csv_object => $csv);
+                #  need to use terminal names - allows to link_recalculate
+                #  stringified form is stripped at the end
+                push @pairs, [$name1, $name2, $stringified];  
             }
         }
         return (wantarray ? @{$pairs[0]} : $pairs[0])
@@ -1076,7 +1080,7 @@ sub get_most_similar_pair {
         my $breaker_keys   = $breaker_pairs->[0];
         my $breaker_minmax = $breaker_pairs->[1];
 
-        my $current_lead_pair;
+        my ($current_lead_pair, $current_lead_pair_str);
 
         #  Sort ensures same order each time, thus stabilising random and "none" results
         #  as well as any tied index comparisons
@@ -1120,13 +1124,17 @@ sub get_most_similar_pair {
 
             if (!defined $current_lead_pair) {
                 $current_lead_pair = $tie_scores;
+                $current_lead_pair_str = $current_lead_pair->[-1]->[2];
                 next TIE_COMP;
             }
 
-            #  comparison scores are order sensitive
-            my $tie_comparison = $tie_breaker_cmp_cache->{$current_lead_pair}{$tie_scores};
+            my $tie_cmp_pair_str = $tie_scores->[-1]->[2];
+
+            #  Comparison scores are order sensitive.
+            #  We also only need to compare against the current leader
+            my $tie_comparison = $tie_breaker_cmp_cache->{$current_lead_pair_str}{$tie_cmp_pair_str};
             if (!defined $tie_comparison) {
-                $tie_comparison = $tie_breaker_cmp_cache->{$tie_scores}{$current_lead_pair};
+                $tie_comparison = $tie_breaker_cmp_cache->{$tie_cmp_pair_str}{$current_lead_pair_str};
                 if (defined $tie_comparison) {
                     $tie_comparison *= -1;  #  allow for cmp order reversal in the cache
                 }
@@ -1140,16 +1148,17 @@ sub get_most_similar_pair {
                     breaker_keys   => $breaker_keys,
                     breaker_minmax => $breaker_minmax,
                 );
-                $tie_breaker_cmp_cache->{$current_lead_pair}{$tie_scores} = $tie_comparison;
+                $tie_breaker_cmp_cache->{$current_lead_pair_str}{$tie_cmp_pair_str} = $tie_comparison;
             }
 
             if ($tie_comparison > 0) {
-                $current_lead_pair = $tie_scores;
+                $current_lead_pair     = $tie_scores;
+                $current_lead_pair_str = $current_lead_pair->[-1]->[2];
             }
         }
 
         my $optimal_pair = $current_lead_pair->[-1];  #  last item in array is the pair
-        ($node1, $node2) = @$optimal_pair;
+        ($node1, $node2) = @$optimal_pair;  #  first two items are the element/node names
     }
 
     return wantarray ? ($node1, $node2) : [$node1, $node2];

@@ -205,20 +205,20 @@ sub run {
             }
             $gui->report_error ($text);
         }
+#my $a = ref $params;
+        #  this seems out of place - basedatas need these set prior to import
+        #  It is also crashing since $params is an array, not a hash.
+        #if ($use_new) {  
+        #    $basedata_ref->set_param(CELL_SIZES   => $params->{CELL_SIZES});
+        #    $basedata_ref->set_param(CELL_ORIGINS => $params->{CELL_ORIGINS});
+        #}
+
+        return if !$success;
 
         if ($use_new) {
-            $basedata_ref->set_param(CELL_SIZES   => $params->{CELL_SIZES});
-            $basedata_ref->set_param(CELL_ORIGINS => $params->{CELL_ORIGINS});
+            $gui->getProject->addBaseData($basedata_ref);
         }
-        if ($success) {
-            if ($use_new) {
-                $gui->getProject->addBaseData($basedata_ref);
-            }
-            return $basedata_ref;
-        }
-        else {
-            return;
-        }
+        return $basedata_ref;
     }
     elsif ($read_format == $shapefile_idx) {
         # process as shapefile

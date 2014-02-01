@@ -99,13 +99,15 @@ sub run {
     #my $read_raster;
     my $read_format = $dlgxml->get_widget($file_format)->get_active();
     #if (defined $dlgxml->get_widget($combo_import_basedatas)) {
-    #	print "$combo_import_basedatas defined\n";
-    #} else { print "nope\n"; }  
+    #    print "$combo_import_basedatas defined\n";
+    #}
+    #else { print "nope\n"; }  
     
     #if (defined $dlgxml->get_widget($file_format)) {
     # $read_raster = ($dlgxml->get_widget($file_format)->get_active() == $raster_idx);
-    #} else {
-    #	print "widget $file_format not defined\n";
+    #}
+    #else {
+    #    print "widget $file_format not defined\n";
     #}
 
     $dlg->destroy();
@@ -136,9 +138,11 @@ sub run {
     # set visible fields in import dialog
     if ($read_format == $text_idx) {
         %args = $basedata_ref->get_args (sub => 'import_data_text');        
-    } elsif ($read_format == $raster_idx) {
+    }
+    elsif ($read_format == $raster_idx) {
         %args = $basedata_ref->get_args (sub => 'import_data_raster');        
-    } #elsif ($read_format == $shapefile_idx) {
+    }
+    #elsif ($read_format == $shapefile_idx) {
         #croak('import for shapefiles not defined');
     #}
     
@@ -146,36 +150,36 @@ sub run {
     my %import_params;
     my $params;
     if (%args) {
-	    $params = $args{parameters};
-	
-	    # set some default values (a bit of a hack)
-	    my @cell_sizes           = @{$basedata_ref->get_param('CELL_SIZES')};
-	    my @cell_origins         = @{$basedata_ref->get_cell_origins};
-	    
-	    foreach my $thisp (@$params) {
-	        $thisp->{default} = $cell_origins[0] if ($thisp->{name} eq 'raster_origin_e');
-	        $thisp->{default} = $cell_origins[1] if ($thisp->{name} eq 'raster_origin_n');
-	        $thisp->{default} = $cell_sizes[0] if ($thisp->{name} eq 'raster_cellsize_e');
-	        $thisp->{default} = $cell_sizes[1] if ($thisp->{name} eq 'raster_cellsize_n');        
-	    }
-	    
-	    # Build widgets for parameters
-	    my $table = $dlgxml->get_widget ('tableImportParameters');
-	    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-	    my $extractors = Biodiverse::GUI::ParametersTable::fill ($params, $table, $dlgxml); 
-	    
-	    $dlg->show_all;
-	    $response = $dlg->run;
-	    $dlg->destroy;
-	    
-	    if ($response ne 'ok') {  #  clean up and drop out
-	        if ($use_new) {
-	            $gui->getProject->deleteBaseData($basedata_ref);
-	        }
-	        return;
-	    }
-	    my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
-	    %import_params = @$import_params;
+        $params = $args{parameters};
+
+        # set some default values (a bit of a hack)
+        my @cell_sizes           = @{$basedata_ref->get_param('CELL_SIZES')};
+        my @cell_origins         = @{$basedata_ref->get_cell_origins};
+        
+        foreach my $thisp (@$params) {
+            $thisp->{default} = $cell_origins[0] if ($thisp->{name} eq 'raster_origin_e');
+            $thisp->{default} = $cell_origins[1] if ($thisp->{name} eq 'raster_origin_n');
+            $thisp->{default} = $cell_sizes[0] if ($thisp->{name} eq 'raster_cellsize_e');
+            $thisp->{default} = $cell_sizes[1] if ($thisp->{name} eq 'raster_cellsize_n');        
+        }
+
+        # Build widgets for parameters
+        my $table = $dlgxml->get_widget ('tableImportParameters');
+        # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+        my $extractors = Biodiverse::GUI::ParametersTable::fill ($params, $table, $dlgxml); 
+
+        $dlg->show_all;
+        $response = $dlg->run;
+        $dlg->destroy;
+
+        if ($response ne 'ok') {  #  clean up and drop out
+            if ($use_new) {
+                $gui->getProject->deleteBaseData($basedata_ref);
+            }
+            return;
+        }
+        my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+        %import_params = @$import_params;
     }
     
     # next stage, if we are reading as raster, just call import function here and exit.
@@ -184,123 +188,124 @@ sub run {
     my $col_options = undef;
     my $use_matrix;
     if ($read_format == $raster_idx) {
-    	my $labels_as_bands = $import_params{raster_labels_as_bands};
-    	my $success = eval {
-	        $basedata_ref->import_data_raster(
-	            %import_params,
-	            #%rest_of_options,
-	            #%gp_lb_cols,
-	            labels_as_bands			=> $labels_as_bands,
-	            input_files             => \@filenames
-	        )
-	    };
-	    if ($EVAL_ERROR) {
-	        my $text = $EVAL_ERROR;
-	        if (not $use_new) {
-	            $text .= "\tWarning: Records prior to this line have been imported.\n";
-	        }
-	        $gui->report_error ($text);
-	    }
-	
-		if ($use_new) {
-	        $basedata_ref->set_param(CELL_SIZES   => $params->{CELL_SIZES});
-	        $basedata_ref->set_param(CELL_ORIGINS => $params->{CELL_ORIGINS});
-	    }
-	    if ($success) {
-	        if ($use_new) {
-	            $gui->getProject->addBaseData($basedata_ref);
-	        }
-	        return $basedata_ref;
-	    } else { return; }
-    } elsif ($read_format == $shapefile_idx) {
-    	# process as shapefile
-    	
-    	# find available columns from first file, assume all the same
-        croak ("no files given") if (scalar @filenames < 1);
+        my $labels_as_bands = $import_params{raster_labels_as_bands};
+        my $success = eval {
+            $basedata_ref->import_data_raster(
+                %import_params,
+                #%rest_of_options,
+                #%gp_lb_cols,
+                labels_as_bands => $labels_as_bands,
+                input_files     => \@filenames
+            )
+        };
+        if ($EVAL_ERROR) {
+            my $text = $EVAL_ERROR;
+            if (not $use_new) {
+                $text .= "\tWarning: Records prior to this line have been imported.\n";
+            }
+            $gui->report_error ($text);
+        }
+
+        if ($use_new) {
+            $basedata_ref->set_param(CELL_SIZES   => $params->{CELL_SIZES});
+            $basedata_ref->set_param(CELL_ORIGINS => $params->{CELL_ORIGINS});
+        }
+        if ($success) {
+            if ($use_new) {
+                $gui->getProject->addBaseData($basedata_ref);
+            }
+            return $basedata_ref;
+        }
+        else {
+            return;
+        }
+    }
+    elsif ($read_format == $shapefile_idx) {
+        # process as shapefile
+
+        # find available columns from first file, assume all the same
+        croak ('no files given') if !scalar @filenames;
+
         print $filenames[0];
         my $fnamebase = $filenames[0];
-        $fnamebase =~ s/\.[^.]*//;
-        my $shapefile = new Geo::ShapeFile($fnamebase);
+        $fnamebase =~ s/\.[^.]+?$//;  #  use lazy quantifier so we get chars from the last dot 
+        my $shapefile = Geo::ShapeFile->new($fnamebase);
 
-        # find if z and m coordinates defined
-        #my $use_m = defined($shapefile->m_min());
-        #my $use_z = defined($shapefile->z_min());
-        
-        my @field_names = qw(x y); # always have x,y data
-        push (@field_names, "z") if (defined($shapefile->z_min()));
-        push (@field_names, "m") if (defined($shapefile->m_min()));
+        my @field_names = qw /x y/; # we always have x,y data
+        push (@field_names, 'z') if defined($shapefile->z_min());
+        push (@field_names, 'm') if defined($shapefile->m_min());
         $col_names_for_dialog = \@field_names;
-    	
-    } else {
+    }
+    else {
         # process as text input, get columns from file
 
-	    # Get header columns
-	    print "[GUI] Discovering columns from $filenames[0]\n";
-	    my $fh;
-	    my $filename_utf8 = Glib::filename_display_name $filenames[0];
-	
-	    #use Path::Class::Unicode;
-	    #my $file = ufile("path", $filename_utf8);
-	    #print $file . "\n";
-	
-	    # have unicode filename issues - see http://code.google.com/p/biodiverse/issues/detail?id=272
-	    if (not open $fh, '<:via(File::BOM)', $filename_utf8) {
-	        my $exists = -e $filename_utf8 || 0;
-	        my $msg = "Unable to open $filenames[0].\n";
-	        $msg .= $exists
-	            ? "Check file read permissions."
-	            : "If the file name contains unicode characters then please rename the file so its name does not contain them.\n"
-	              . "See http://code.google.com/p/biodiverse/issues/detail?id=272";
-	        $msg .= "\n";
-	        croak $msg;
-	    }
-	
-	    my $line = <$fh>;
-	    close ($fh);
-	
-	    my $sep     = $import_params{input_sep_char} eq 'guess' 
-	                ? $gui->getProject->guess_field_separator (string => $line)
-	                : $import_params{input_sep_char};
-	
-	    my $quotes  = $import_params{input_quote_char} eq 'guess'
-	                ? $gui->getProject->guess_quote_char (string => $line)
-	                : $import_params{input_quote_char};
-	            
-	    my $eol     = $gui->getProject->guess_eol (string => $line);
-	
-	    my @header  = $gui->getProject->csv2list(
-	        string      => $line,
-	        quote_char  => $quotes,
-	        sep_char    => $sep,
-	        eol         => $eol,
-	    );
-	
-	    #  R data frames are saved missing the first field in the header
-	    my $is_r_data_frame = check_if_r_data_frame (
-	        file     => $filenames[0],
-	        quotes   => $quotes,
-	        sep_char => $sep,
-	    );
-	    #  add a field to the header if needed
-	    if ($is_r_data_frame) {
-	        unshift @header, 'R_data_frame_col_0';
-	    }
-	
-	    $use_matrix = $import_params{data_in_matrix_form};
-	    $col_names_for_dialog = \@header;
-	    $col_options = undef;
-	
-	    if ($use_matrix) {
-	        $col_options = [qw /
-	            Ignore
-	            Group
-	            Text_group
-	            Label_start_col
-	            Label_end_col
-	            Include_columns
-	            Exclude_columns
-	        /];
-	    }
+        # Get header columns
+        print "[GUI] Discovering columns from $filenames[0]\n";
+        my $fh;
+        my $filename_utf8 = Glib::filename_display_name $filenames[0];
+        
+        #use Path::Class::Unicode;
+        #my $file = ufile("path", $filename_utf8);
+        #print $file . "\n";
+        
+        # have unicode filename issues - see http://code.google.com/p/biodiverse/issues/detail?id=272
+        if (not open $fh, '<:via(File::BOM)', $filename_utf8) {
+            my $exists = -e $filename_utf8 || 0;
+            my $msg = "Unable to open $filenames[0].\n";
+            $msg .= $exists
+                ? "Check file read permissions."
+                : "If the file name contains unicode characters then please rename the file so its name does not contain them.\n"
+                  . "See http://code.google.com/p/biodiverse/issues/detail?id=272";
+            $msg .= "\n";
+            croak $msg;
+        }
+        
+        my $line = <$fh>;
+        close ($fh);
+        
+        my $sep = $import_params{input_sep_char} eq 'guess' 
+                ? $gui->getProject->guess_field_separator (string => $line)
+                : $import_params{input_sep_char};
+        
+        my $quotes  = $import_params{input_quote_char} eq 'guess'
+                    ? $gui->getProject->guess_quote_char (string => $line)
+                    : $import_params{input_quote_char};
+                
+        my $eol     = $gui->getProject->guess_eol (string => $line);
+        
+        my @header  = $gui->getProject->csv2list(
+            string      => $line,
+            quote_char  => $quotes,
+            sep_char    => $sep,
+            eol         => $eol,
+        );
+        
+        #  R data frames are saved missing the first field in the header
+        my $is_r_data_frame = check_if_r_data_frame (
+            file     => $filenames[0],
+            quotes   => $quotes,
+            sep_char => $sep,
+        );
+        #  add a field to the header if needed
+        if ($is_r_data_frame) {
+            unshift @header, 'R_data_frame_col_0';
+        }
+        
+        $use_matrix = $import_params{data_in_matrix_form};
+        $col_names_for_dialog = \@header;
+        $col_options = undef;
+        
+        if ($use_matrix) {
+            $col_options = [qw /
+                Ignore
+                Group
+                Text_group
+                Label_start_col
+                Label_end_col
+                Include_columns
+                Exclude_columns
+            /];
+        }
     }
     
     #########
@@ -1100,16 +1105,21 @@ sub onImportMethodChanged {
     my $args = shift;
     my ($gui, $dlgxml) = @{$args};
     
+    my $active_choice = $format_combo->get_active();
+    my $f_widget      = $dlgxml->get_widget($filechooser_input);
+    
     # find which is selected
-    if ($format_combo->get_active() == $text_idx) {
-        $dlgxml->get_widget($filechooser_input)->set_filter($txtcsv_filter);
-    } elsif ($format_combo->get_active() == $raster_idx) {
-	    $dlgxml->get_widget($filechooser_input)->set_filter($allfiles_filter);
-    } elsif ($format_combo->get_active() == $shapefile_idx) {
-        $dlgxml->get_widget($filechooser_input)->set_filter($shapefiles_filter);
-    }    	
-    	 
-    	
+    if ($active_choice == $text_idx) {
+        $f_widget->set_filter($txtcsv_filter);
+    }
+    elsif ($active_choice == $raster_idx) {
+        $f_widget->set_filter($allfiles_filter);
+    }
+    elsif ($active_choice == $shapefile_idx) {
+        $f_widget->set_filter($shapefiles_filter);
+    }
+
+    return;
 }
 
 sub onFileChanged {

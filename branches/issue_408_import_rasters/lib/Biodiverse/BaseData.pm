@@ -17,6 +17,7 @@ use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
 use Geo::GDAL;
+use Regexp::Common qw /number/;
 
 use English qw { -no_match_vars };
 
@@ -1193,6 +1194,7 @@ sub import_data_raster {
     #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
     foreach my $file (@{$args{input_files}}) {
         $file = Path::Class::file($file)->absolute;
+        my $file_base = Path::Class::File->new($file)->basename();
         say "[BASEDATA] INPUT FILE: $file";
 
         if (! (-e $file and -r $file)) {
@@ -1229,9 +1231,7 @@ sub import_data_raster {
             if ($labels_as_bands) { 
                 # if single band, set label as filename
                 if ($data->{RasterCount} == 1) {
-                    $this_label = $file->stringify;  #  this gives the whole file path on Windows - need to use Path::Class
-                    $this_label =~ s/.*\///;
-                    $this_label =~ s/\.[^.]*//;
+                    $this_label = Path::Class::File->new($file->stringify)->basename();
                 }
                 else {
                     $this_label = "band$b";
@@ -1306,7 +1306,7 @@ sub import_data_raster {
                                 # if entry is integer and within category list, just use label from list
                                 # should use Regexp::Common::Numeric for this
                                 #  Condition fails for negative values, and not sure why catnames is not a hash
-                                if (scalar @catnames && $entry =~ /^[-+]\d+$/ && $entry <= $#catnames) {
+                                if (scalar @catnames && $entry =~ /^$RE{num}{int}$/ && $entry <= $#catnames) {
                                     $this_label = $catnames[$entry];
                                 }
                                 else {
@@ -1314,42 +1314,39 @@ sub import_data_raster {
                                 }
                             } 
 
-                            #  need to skip if the label is nodata
-                            # add to elements
+                            # add to elements (skipped if the label is nodata)
                             $self->add_element (
                                 label      => $this_label,
                                 group      => $grpstring,
                                 count      => $count,
                                 csv_object => $out_csv,
                             );
-
+                            
                         } # each entry on line
                         $y++;
                     } # each line in block
                     $wpos += $blockw;
                 } # each block in width
+
+                # progress bar stuff
+                my $frac = $hpos / $data->{RasterYSize}; 
+                $progress_bar->update(
+                    "Loading $file_base\n" .
+                    "Line $hpos of " . ${data->{RasterYSize}} . "\n",
+                    $frac
+                );
+
+                if ($hpos % 10000 == 0) {
+                    say "Loading $file_base line "
+                          . "$hpos of $line_count_text, "
+                          . "chunk $chunk_count\n" ;
+                }
+                
+                
                 $hpos += $blockh;
             } # each block in height
         } # each raster band
     } # each file
-
-#               # progress bar stuff
-#                my $frac = eval {
-#                    ($line_num   - $line_num_end_prev_chunk) /
-#                    ($line_count - $line_num_end_prev_chunk)
-#                };
-#                $progress_bar->update(
-#                    "Loading $file_base\n" .
-#                    "Line $line_num of $line_count_text\n" .
-#                    "Chunk #$chunk_count",
-#                    $frac
-#                );
-#
-#                if ($line_num % 10000 == 0) {
-#                    print "Loading $file_base line "
-#                          . "$line_num of $line_count_text, "
-#                          . "chunk $chunk_count\n" ;
-#                }
 
     #print "note: import_raster, run_import_post_processes not used\n";
     my @label_columns = qw{1}; # hack

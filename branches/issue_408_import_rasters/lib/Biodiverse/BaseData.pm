@@ -1241,6 +1241,8 @@ sub import_data_raster {
             # get category names for this band, which will attempt
             # to be used as labels based on cell values (if ! labels_as_bands)
             my @catnames = $band->CategoryNames();
+            my %catname_hash;
+            @catname_hash{(1 .. scalar @catnames)} = @catnames;
 
             # record if numeric values are being used for labels
             # CHECK CHECK CHECK - should be set later, as we might be adding to an existing basedata
@@ -1292,26 +1294,19 @@ sub import_data_raster {
                                 list        => \@grplist,
                                 csv_object  => $out_csv,
                             );
-                            say "($x, $y) ($egeo, $ngeo) ($ecell, $ncell) ($grpe, $grpn)";
+                            #say "($x, $y) ($egeo, $ngeo) ($ecell, $ncell) ($grpe, $grpn)";
 
                             # set label if determined at cell level
-                             my $count = 1;
+                            my $count = 1;
                             if ($labels_as_bands) {
                                 # set count to cell value if using band as label 
                                 $count = $entry;
                             }
                             else {
-                                # set label from cell value
-
-                                # if entry is integer and within category list, just use label from list
-                                # should use Regexp::Common::Numeric for this
-                                #  Condition fails for negative values, and not sure why catnames is not a hash
-                                if (scalar @catnames && $entry =~ /^$RE{num}{int}$/ && $entry <= $#catnames) {
-                                    $this_label = $catnames[$entry];
-                                }
-                                else {
-                                    $this_label = $entry;
-                                }
+                                # set label from cell value or category if valid
+                                $this_label = exists $catname_hash{$entry}
+                                            ? $catname_hash{$entry}
+                                            : $entry;
                             } 
 
                             # add to elements (skipped if the label is nodata)

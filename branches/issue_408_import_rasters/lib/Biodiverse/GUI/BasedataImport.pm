@@ -175,7 +175,7 @@ sub run {
 
         if ($response ne 'ok') {  #  clean up and drop out
             if ($use_new) {
-                $gui->getProject->deleteBaseData($basedata_ref);
+                $gui->get_project->delete_base_data($basedata_ref);
             }
             return;
         }

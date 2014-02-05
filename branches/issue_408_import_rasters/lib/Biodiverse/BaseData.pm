@@ -608,29 +608,33 @@ sub get_metadata_import_data_raster {
               type       => 'boolean',
               default    => 0,
             },
-            { name       => 'raster_origin_e',
-              label_text => 'Cell origin east/long',
-              tooltip    => 'Origin of group cells (Eastings/Longitude)',
-              type       => 'float',
-              default    => 0,
-            },
-            { name       => 'raster_origin_n',
-              label_text => 'Cell origin north/lat',
-              tooltip    => 'Origin of group cells (Northings/Latitude)',
-              type       => 'float',
-              default    => 0,
-            },
             { name       => 'raster_cellsize_e',
               label_text => 'Cell size east/long',
               tooltip    => 'Size of group cells (Eastings/Longitude)',
               type       => 'float',
               default    => 100000,
+              digits     => 10,
             },
             { name       => 'raster_cellsize_n',
               label_text => 'Cell size north/lat',
               tooltip    => 'Size of group cells (Northings/Latitude)',
               type       => 'float',
               default    => 100000,
+              digits     => 10,
+            },
+            { name       => 'raster_origin_e',
+              label_text => 'Cell origin east/long',
+              tooltip    => 'Origin of group cells (Eastings/Longitude)',
+              type       => 'float',
+              default    => 0,
+              digits     => 10,
+            },
+            { name       => 'raster_origin_n',
+              label_text => 'Cell origin north/lat',
+              tooltip    => 'Origin of group cells (Northings/Latitude)',
+              type       => 'float',
+              default    => 0,
+              digits     => 10,
             },
         ]
     );
@@ -1201,7 +1205,7 @@ sub import_data_raster {
           if ! (-e $file and -r $file);
 
         # process using GDAL library
-        my $data = Geo::GDAL::Open($file->stringify(), q/Update/);
+        my $data = Geo::GDAL::Open($file->stringify(), 'ReadOnly');
 
         croak "[BASEDATA] Failed to read $file with GDAL\n"
           if !defined $data;
@@ -1233,7 +1237,7 @@ sub import_data_raster {
                 }
                 else {
                     $this_label = "band$b";
-                } 
+                }
             }
 
             # get category names for this band, which will attempt
@@ -1251,11 +1255,22 @@ sub import_data_raster {
             # read as preferred size blocks?
             ($blockw, $blockh) = $band->GetBlockSize();
             say "Block size ($blockw, $blockh)";
+            
+            my $target_count    = $data->{RasterXSize} * $data->{RasterYSize};
+            my $processed_count = 0;
 
             # read a "block" at a time
             # assume @cell_sizes is ($xsize, $ysize)
             $hpos = 0;
             while ($hpos < $data->{RasterYSize}) {
+                # progress bar stuff
+                my $frac = $hpos / $data->{RasterYSize}; 
+                $progress_bar->update(
+                      "Loading $file_base\n"
+                    . "Cell $processed_count of $target_count\n",
+                    $frac
+                );
+
                 $wpos = 0;
                 while ($wpos < $data->{RasterXSize}) {
                     $maxw = min($data->{RasterXSize}, $wpos + $blockw);
@@ -1273,8 +1288,9 @@ sub import_data_raster {
                       COLUMN:
                         foreach my $entry (@$lineref) {
                             $x++;
+                            $processed_count++;
                             # need to add check for empty groups when it is added as an argument
-                            next COLUMN if $entry == $nodata_value;  
+                            next COLUMN if defined $nodata_value && $entry == $nodata_value;  
 
                             # find transformed position (see GDAL specs)        
                             #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
@@ -1320,14 +1336,6 @@ sub import_data_raster {
                     } # each line in block
                     $wpos += $blockw;
                 } # each block in width
-
-                # progress bar stuff
-                my $frac = $hpos / $data->{RasterYSize}; 
-                $progress_bar->update(
-                      "Loading $file_base\n"
-                    . "Line $hpos of $data->{RasterYSize}\n",
-                    $frac
-                );
 
                 $hpos += $blockh;
             } # each block in height

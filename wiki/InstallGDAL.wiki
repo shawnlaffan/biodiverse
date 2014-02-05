@@ -1,7 +1,7 @@
 #summary Notes for the installation of GDAL on Ubuntu
 = Introduction =
 
-These are notes for the installation of GDAL on Ubuntu.  
+These are notes for the installation of Geo::GDAL on Ubuntu.  
 
 The latest GDAL package can be obtained from https://launchpad.net/~ubuntugis/+archive/ppa
 
@@ -21,9 +21,9 @@ liblzma-dev
 }}}
 
 
-Compilation might need to go through the normal  steps.  Download and uncompress the tarball (maybe using cpanm).  Then inthe relevant folder:
+Compilation might need to go through the normal  steps.  Download and uncompress the tarball (maybe using cpanm).  Then in the relevant folder (editing the config path):
 {{{
-perl Makefile.PL --no-version-check
+perl Makefile.PL --no-version-check --gdal-config=/path/to/headers
 make
 make test
 make install

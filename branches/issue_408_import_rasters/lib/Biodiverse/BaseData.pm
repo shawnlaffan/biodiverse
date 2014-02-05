@@ -1191,25 +1191,23 @@ sub import_data_raster {
     );
     
     # load each file, using same arguments/parameters
-    #print "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}}), "\n";
+    #say "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}});
     foreach my $file (@{$args{input_files}}) {
         $file = Path::Class::file($file)->absolute;
         my $file_base = Path::Class::File->new($file)->basename();
         say "[BASEDATA] INPUT FILE: $file";
 
-        if (! (-e $file and -r $file)) {
-                croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
-        }
+        croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
+          if ! (-e $file and -r $file);
 
         # process using GDAL library
-        my $data = Geo::GDAL::Open($file->stringify(), q/Update/); #, GA_Update); #'ReadOnly'); #'Update'); #GA_Update) ;
-        #my $data = Geo::GDAL::Open('sample.tif', 'Update'); #'Update');
+        my $data = Geo::GDAL::Open($file->stringify(), q/Update/);
 
         croak "[BASEDATA] Failed to read $file with GDAL\n"
-          if (! defined($data));
+          if !defined $data;
 
         say 'Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName};
-        say 'Size is ', $data->{RasterXSize}, 'x', $data->{RasterXSize}, 'x', $data->{RasterCount};
+        say 'Size is ', $data->{RasterXSize}, ' x ', $data->{RasterXSize}, ' x ', $data->{RasterCount};
         say 'Projection is ', $data->GetProjection();
 
         my @tf = $data->GetGeoTransform();
@@ -1242,7 +1240,7 @@ sub import_data_raster {
             # to be used as labels based on cell values (if ! labels_as_bands)
             my @catnames = $band->CategoryNames();
             my %catname_hash;
-            @catname_hash{(1 .. scalar @catnames)} = @catnames;
+            @catname_hash{(0 .. $#catnames)} = @catnames;
 
             # record if numeric values are being used for labels
             # CHECK CHECK CHECK - should be set later, as we might be adding to an existing basedata
@@ -1304,8 +1302,8 @@ sub import_data_raster {
                             }
                             else {
                                 # set label from cell value or category if valid
-                                $this_label = exists $catname_hash{$entry}
-                                            ? $catname_hash{$entry}
+                                $this_label = exists $catname_hash{$entry} && $catname_hash{$entry}
+                                            ? $catname_hash{$entry}say ''
                                             : $entry;
                             } 
 

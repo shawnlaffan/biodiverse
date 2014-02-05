@@ -175,6 +175,39 @@ sub calc_pd_terminal_node_list {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_terminal_node_count {
+
+    my %arguments = (
+        description     => 'Number of terminal nodes in neighbour sets 1 and 2.',
+        name            => 'Phylogenetic Diversity terminal node count',
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc        => 'calc_pd_terminal_node_list',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PD_INCLUDED_TERMINAL_NODE_COUNT => {
+                description   => 'Count of tree terminal nodes included in the PD calculations',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pd_terminal_node_count {
+    my $self = shift;
+    my %args = @_;
+
+
+    #  loop over nodes and just keep terminals
+    my $node_list = $args{PD_INCLUDED_TERMINAL_NODE_LIST};
+    
+    my %results = (
+        PD_INCLUDED_TERMINAL_NODE_COUNT => scalar keys %$node_list,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata__calc_pd {
         my %arguments = (
         description     => 'Phylogenetic diversity (PD) base calcs.',
@@ -465,6 +498,7 @@ sub get_metadata_calc_pd_endemism {
             },
             PD_ENDEMISM_WTS => {
                 description => 'Phylogenetic Diversity Endemism weights per node found only in the neighbour set',
+                type        => 'list',
             }
         },
     );
@@ -617,6 +651,36 @@ sub _calc_pe {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_count_labels_on_tree {
+    my $self = shift;
+
+    my %arguments = (
+        description     => 'Count the number of labels that are on the tree',
+        name            => 'Count labels on tree',
+        indices         => {
+            PHYLO_LABELS_ON_TREE_COUNT => {
+                description => 'The number of labels that are found on the tree, across both neighbour sets',
+            },
+        },
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc        => ['calc_labels_on_tree'],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_count_labels_on_tree {
+    my $self = shift;
+    my %args = @_;
+    
+    my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
+    
+    my %results = (PHYLO_LABELS_ON_TREE_COUNT => scalar keys %$labels_on_tree);
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_labels_on_tree {
     my $self = shift;
 
@@ -626,6 +690,7 @@ sub get_metadata_calc_labels_on_tree {
         indices         => {
             PHYLO_LABELS_ON_TREE => {
                 description => 'A hash of labels that are found on the tree, across both neighbour sets',
+                type        => 'list',
             },  #  should poss also do nbr sets 1 and 2
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -774,11 +839,11 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
     my $nodes = $tree->get_node_hash;
     my %node_range;
   
-    my $toDo = scalar keys %$nodes;
+    my $to_do = scalar keys %$nodes;
     my $count = 0;
-    print "[PD INDICES] Progress (% of $toDo nodes): ";
+    print "[PD INDICES] Progress (% of $to_do nodes): ";
 
-    my $progress      = $count / $toDo;
+    my $progress      = $count / $to_do;
     my $progress_text = int (100 * $progress);
     $progress_bar->update(
         "Calculating node ranges\n($progress_text %)",
@@ -806,7 +871,7 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
             }
         }
         $count ++;
-        $progress     = $count / $toDo;
+        $progress     = $count / $to_do;
         $progress_text = int (100 * $progress);
         $progress_bar->update(
             "Calculating node ranges\n($progress_text)",
@@ -863,10 +928,10 @@ sub get_global_node_abundance_hash {
     my $nodes = $tree->get_node_hash;
     my %node_hash;
 
-    my $toDo = scalar keys %$nodes;
+    my $to_do = scalar keys %$nodes;
     my $count = 0;
 
-    my $progress = int (100 * $count / $toDo);
+    my $progress = int (100 * $count / $to_do);
     $progress_bar->update(
         "Calculating node abundances\n($progress)",
         $progress,
@@ -884,7 +949,7 @@ sub get_global_node_abundance_hash {
         }
 
         $count ++;
-        my $progress = $count / $toDo;
+        my $progress = $count / $to_do;
         $progress_bar->update(
             "Calculating node abundances\n($progress)",
             $progress,
@@ -937,8 +1002,7 @@ sub get_trimmed_tree { # create a copy of the current tree, including only those
     #  keep only those that match the basedata object
     my $trimmed_tree = $args{tree_ref}->clone;
     $trimmed_tree->trim (keep => scalar $bd->get_labels);
-    my $name = $trimmed_tree->get_param('NAME');
-    if (!defined $name) {$name = 'noname'};
+    my $name = $trimmed_tree->get_param('NAME') // 'noname';
     $trimmed_tree->rename(new_name => $name . ' trimmed');
 
     my %results = (trimmed_tree => $trimmed_tree);
@@ -1579,7 +1643,7 @@ sub calc_phylo_sorenson {
     my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - (2 * $A / ($A + $ABC))};
     }
 
@@ -1621,7 +1685,7 @@ sub calc_phylo_jaccard {
     my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};  
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - ($A / $ABC)};
     }    
 
@@ -1655,7 +1719,7 @@ sub get_metadata_calc_phylo_s2 {
     return wantarray ? %arguments : \%arguments;   
 }
 
-# calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+# calculate the phylogenetic S2 dissimilarity index between two label lists.
 sub calc_phylo_s2 {
     my $self = shift;
     my %args = @_;
@@ -1663,9 +1727,9 @@ sub calc_phylo_s2 {
     my ($A, $B, $C) = @args{qw /PHYLO_A PHYLO_B PHYLO_C/};  
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - ($A / ($A + min ($B, $C)))};
-    }    
+    }
 
     my %results = (PHYLO_S2 => $val);
 
@@ -1717,8 +1781,8 @@ sub calc_phylo_abc {
 
 my $_calc_phylo_abc_precision = '%.10f';
 
-#  Need to add a caching system for when it is building a matrix
-#  - should really speed things up
+
+
 sub _calc_phylo_abc {
     my $self = shift;
     my %args = @_;
@@ -2006,17 +2070,17 @@ sub get_metadata_calc_phylo_aed {
         indices         => {
             PHYLO_AED_LIST => {
                 description  =>  'Abundance weighted ED per terminal label',
-                list         => 1,
+                type         => 'list',
                 reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
             PHYLO_ES_LIST => {
                 description  =>  'Equal splits partitioning of PD per terminal label',
-                list         => 1,
+                type         => 'list',
                 reference    => 'Redding & Mooers (2006) http://dx.doi.org/10.1111%2Fj.1523-1739.2006.00555.x',
             },
             PHYLO_ED_LIST => {
                 description  =>  q{"Fair proportion" partitioning of PD per terminal label},
-                list         => 1,
+                type         => 'list',
                 reference    => 'Isaac et al. (2007) http://dx.doi.org/10.1371/journal.pone.0000296',
             },
         },

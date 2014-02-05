@@ -14,13 +14,14 @@ use Getopt::Long::Descriptive;
 
 my ($opt, $usage) = describe_options(
   '%c <arguments>',
-  [ 'script=s',   'The input script', { required => 1 } ],
-  [ 'out_folder|out_dir=s',  'The output directory where the binary will be written'],
-  [ 'verbose|v!',            'Verbose building?', ],
+  [ 'script|s=s',             'The input script', { required => 1 } ],
+  [ 'out_folder|out_dir|o=s', 'The output directory where the binary will be written'],
+  [ 'verbose|v!',             'Verbose building?', ],
+  [ 'execute|x!',             'Execute the script to find dependencies?', {default => 1} ],
   [],
   [ 'help',       "print usage message and exit" ],
 );
- 
+
 if ($opt->help) {
     print($usage->text);
     exit;
@@ -29,6 +30,7 @@ if ($opt->help) {
 my $script     = $opt->script;
 my $out_folder = $opt->out_folder // cwd();
 my $verbose    = $opt->verbose ? ' -v' : q{};
+my $execute    = $opt->execute ? ' -x' : q{};
 
 my $perlpath     = $Config{perlpath};
 my $bits         = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
@@ -82,7 +84,7 @@ my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->ab
 $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $cmd = "pp$verbose -B -z 9 -i $icon_file $glade_arg $icon_file_arg -x -o $output_binary_fullpath $script_fullname";
+my $cmd = "pp$verbose -B -z 9 -i $icon_file $glade_arg $icon_file_arg $execute -o $output_binary_fullpath $script_fullname";
 
 #  At the moment the build is incomplete if the progress dialog has not been run.
 say 'MAKE SURE TO RUN A SPATIAL ANALYSIS SO WE GET ALL THE REQUISITE STUFF';

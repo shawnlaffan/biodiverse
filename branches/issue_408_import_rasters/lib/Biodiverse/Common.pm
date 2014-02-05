@@ -434,6 +434,27 @@ sub set_default_params {
     return;
 }
 
+#  Get the spatial conditions for this object if set
+#  Allow for back-compat.
+sub get_spatial_conditions {
+    my $self = shift;
+    
+    my $conditions =  $self->get_param ('SPATIAL_CONDITIONS')
+                   // $self->get_param ('SPATIAL_PARAMS');
+
+    return $conditions;
+}
+
+#  Get the def query for this object if set
+sub get_def_query {
+    my $self = shift;
+
+    my $def_q =  $self->get_param ('DEFINITION_QUERY');
+
+    return $def_q;
+}
+
+
 sub delete_spatial_index {
     my $self = shift;
     
@@ -525,7 +546,7 @@ sub clear_spatial_condition_caches {
     my %args = @_;
 
     eval {
-        foreach my $sp (@{$self->get_param ('SPATIAL_PARAMS')}) {
+        foreach my $sp (@{$self->get_spatial_conditions}) {
             $sp->delete_cached_values (keys => $args{keys});
         }
     };
@@ -1072,19 +1093,19 @@ sub list2csv {  #  return a csv string from a list of values
         @_,
     );
 
-    my $csvLine = $args{csv_object};
-    if (!defined $csvLine
-        #or (blessed $csvLine) !~ /Text::CSV_XS/
+    my $csv_line = $args{csv_object};
+    if (!defined $csv_line
+        #or (blessed $csv_line) !~ /Text::CSV_XS/
         ) {
-        $csvLine = $self->get_csv_object (@_);
+        $csv_line = $self->get_csv_object (@_);
     }
 
-    if ($csvLine->combine(@{$args{list}})) {
-        return $csvLine->string;
+    if ($csv_line->combine(@{$args{list}})) {
+        return $csv_line->string;
     }
     else {
         croak "list2csv CSV combine() failed for some reason: "
-              . $csvLine->error_input
+              . $csv_line->error_input
               . ", line $.\n";
     }
 
@@ -1415,20 +1436,32 @@ sub guess_quote_char {
 
     my %q_count;
 
-    #my $i = 0;
     foreach my $q (@q_types) {
         my @cracked = split ($q, $string);
         if ($#cracked and $#cracked % 2 == 0) {
-            $q_count{$#cracked} = $q;
+            if (exists $q_count{$#cracked}) {  #  we have a tie so check for pairs
+                my $prev_q = $q_count{$#cracked};
+                #  override if we have e.g. "'...'" and $prev_q eq \'
+                my $left  = $q . $prev_q;
+                my $right = $prev_q . $q;
+                my $l_count = () = $string =~ /$left/gs;
+                my $r_count = () = $string =~ /$left.*?$right/gs;
+                if ($l_count && $l_count == $r_count) {
+                    $q_count{$#cracked} = $q;  
+                }
+            }
+            else {
+                $q_count{$#cracked} = $q;
+            }
         }
-        #$i++;
     }
+
     #  now we sort the keys, take the highest and use it as the
     #  index to use from q_count, thus giving us the most common
     #  quotes character
     my @sorted = reverse sort numerically keys %q_count;
     my $q = (defined $sorted[0]) ? $q_count{$sorted[0]} : $q_types[0];
-    print "[COMMON] Guessed quote char as $q\n";
+    say "[COMMON] Guessed quote char as $q";
     return $q;
 
     #  if we get this far then there is a quote issue to deal with
@@ -1480,7 +1513,7 @@ sub get_next_line_set {
             push @lines, $line;
         }
         elsif (not $csv->eof) {
-            print $csv->error_diag;
+            say $csv->error_diag;
             $csv->SetDiag (0);
         }
         if ($csv->eof) {
@@ -1536,7 +1569,7 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
     my $self = shift;
     my %args = @_;
 
-    my $soFar       = $args{soFar} || [];  #  reference to an array of values
+    my $so_far       = $args{soFar} || [];  #  reference to an array of values
     my $depth       = $args{depth} || 0;
     my $minima      = $args{minima};  #  should really be extrema1 and extrema2 not min and max
     my $maxima      = $args{maxima};
@@ -1546,8 +1579,8 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
     #  need to add rule to cope with zero resolution
 
-    #  go through each element of @$soFar and append one of the values from this level
-    my @thisDepth;
+    #  go through each element of @$so_far and append one of the values from this level
+    my @this_depth;
 
     my $min = min ($minima->[$depth], $maxima->[$depth]);
     my $max = max ($minima->[$depth], $maxima->[$depth]);
@@ -1577,56 +1610,56 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
                 value     => $value,
             );
         if ($depth > 0) {
-            foreach my $element (@$soFar) {
+            foreach my $element (@$so_far) {
                 #print "$element . $sep_char . $value\n";
-                push @thisDepth, $element . $sep_char . $val;
+                push @this_depth, $element . $sep_char . $val;
             }
         }
         else {
-            push (@thisDepth, $val);
+            push (@this_depth, $val);
         }
         last if $min == $max;  #  avoid infinite loop
     }
 
-    $soFar = \@thisDepth;
+    $so_far = \@this_depth;
 
     if ($depth < $#$minima) {
-        my $nextDepth = $depth + 1;
-        $soFar = $self -> get_poss_elements (
+        my $next_depth = $depth + 1;
+        $so_far = $self -> get_poss_elements (
             %args,
             sep_char  => $sep_char,
             precision => $precision,
-            depth     => $nextDepth,
-            soFar     => $soFar
+            depth     => $next_depth,
+            soFar     => $so_far
         );
     }
 
-    return $soFar;
+    return $so_far;
 }
 
 sub get_surrounding_elements {  #  generate a list of values around a single point at a specified resolution
                               #  calculates the min and max and call getPossIndexValues
     my $self = shift;
     my %args = @_;
-    my $coordRef = $args{coord};
+    my $coord_ref = $args{coord};
     my $resolutions = $args{resolutions};
     my $sep_char = $args{sep_char} || $self -> get_param('JOIN_CHAR') || $self -> get_param('JOIN_CHAR');
     my $distance = $args{distance} || 1; #  number of cells distance to check
 
     my (@minima, @maxima);
     #  precision snap them to make comparisons easier
-    my $precision = $args{precision} || [('%.10f') x scalar @$coordRef];
+    my $precision = $args{precision} || [('%.10f') x scalar @$coord_ref];
 
-    foreach my $i (0..$#{$coordRef}) {
+    foreach my $i (0..$#{$coord_ref}) {
         $minima[$i] = 0
             + $self -> set_precision (
                 precision => $precision->[$i],
-                value     => $coordRef->[$i] - ($resolutions->[$i] * $distance)
+                value     => $coord_ref->[$i] - ($resolutions->[$i] * $distance)
             );
         $maxima[$i] = 0
             + $self -> set_precision (
                 precision => $precision->[$i],
-                value     => $coordRef->[$i] + ($resolutions->[$i] * $distance)
+                value     => $coord_ref->[$i] + ($resolutions->[$i] * $distance)
             );
     }
 

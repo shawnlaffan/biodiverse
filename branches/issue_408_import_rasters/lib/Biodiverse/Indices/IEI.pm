@@ -48,7 +48,7 @@ sub calc_iei_data {
     my $stats = $args{IEI_stats_object};
     
     my $data = defined $stats 
-                ? $stats -> get_data
+                ? [$stats->get_data]
                 : [];
 
     my %results = (

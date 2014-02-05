@@ -764,7 +764,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
 
     my @orig_groups = sort $bd->get_groups;
     #  make sure shuffle does not work on the original data
-    my $randOrder = $rand->shuffle ([@orig_groups]);
+    my $rand_order = $rand->shuffle ([@orig_groups]);
 
     print "[RANDOMISE] CSR Shuffling ".(scalar @orig_groups)." groups\n";
 
@@ -778,7 +778,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
         my $p_text
             = "$progress_text\n"
             . "Shuffling labels from\n"
-            . "\t$orig_groups[$i]\nto\n\t$randOrder->[$i]\n"
+            . "\t$orig_groups[$i]\nto\n\t$rand_order->[$i]\n"
             . "(element $i of $total_to_do)";
 
         $progress_bar->update (
@@ -787,7 +787,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
         );
 
         #  create the group (this allows for empty groups with no labels)
-        $new_bd->add_element(group => $randOrder->[$i]);
+        $new_bd->add_element(group => $rand_order->[$i]);
 
         #  get the labels from the original group and assign them to the random group
         my %tmp = $bd->get_labels_in_group_as_hash (group => $orig_groups[$i]);
@@ -795,7 +795,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
         while (my ($label, $counts) = each %tmp) {
             $new_bd->add_element(
                 label => $label,
-                group => $randOrder->[$i],
+                group => $rand_order->[$i],
                 count => $counts,
             );
         }

@@ -12,7 +12,7 @@ use Gtk2;
 # them to put their data onto the list
 ##########################################################
 
-sub setValueColumn {
+sub set_value_column {
     my $popup = shift;
     my $col = shift;
     my $list = $popup->{list};
@@ -22,7 +22,7 @@ sub setValueColumn {
     $popup->{value_column} = $col;
 }
 
-sub setListModel {
+sub set_list_model {
     my $popup = shift;
     my $model = shift;
     $popup->{list}->set_model($model);

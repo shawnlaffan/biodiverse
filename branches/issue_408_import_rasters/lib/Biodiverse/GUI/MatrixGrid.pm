@@ -75,7 +75,7 @@ sub new {
     $frame->add($self->{canvas});
     
     $self->{canvas}->signal_connect_swapped (
-        size_allocate => \&onSizeAllocate,
+        size_allocate => \&on_size_allocate,
         $self,
     );
 
@@ -88,23 +88,23 @@ sub new {
     
     $self->{hadjust}->signal_connect_swapped(
         'value-changed',
-        \&onScrollbarsScroll,
+        \&on_scrollbars_scroll,
         $self,
     );
     $self->{vadjust}->signal_connect_swapped(
         'value-changed',
-        \&onScrollbarsScroll,
+        \&on_scrollbars_scroll,
         $self,
     );
 
     $self->{canvas}->get_vadjustment->signal_connect_swapped(
         'value-changed',
-        \&onScroll,
+        \&on_scroll,
         $self,
     );
     $self->{canvas}->get_hadjustment->signal_connect_swapped(
         'value-changed',
-        \&onScroll,
+        \&on_scroll,
         $self,
     );
 
@@ -128,24 +128,24 @@ sub new {
 
     $rect->lower_to_bottom();
     $self->{canvas}->root->signal_connect_swapped (
-        event => \&onBackgroundEvent,
+        event => \&on_background_event,
         $self,
     );
     $self->{back_rect} = $rect;
 
-    $self->showLegend;
+    $self->show_legend;
 
     return $self;
 }
 
-sub showLegend {
+sub show_legend {
     my $self = shift;
     print "already have legend!\n" if $self->{legend};
     
     return if $self->{legend};
 
     # Create legend
-    my $pixbuf = $self->makeLegendPixbuf;
+    my $pixbuf = $self->make_legend_pixbuf;
     $self->{legend} = Gnome2::Canvas::Item->new (
         $self->{canvas}->root,
         'Gnome2::Canvas::Pixbuf',
@@ -159,15 +159,15 @@ sub showLegend {
     $self->{legend}->raise_to_top();
     $self->{back_rect}->lower_to_bottom();
 
-    $self->{marks}[0] = $self->makeMark('ne');
-    $self->{marks}[1] = $self->makeMark('e');
-    $self->{marks}[2] = $self->makeMark('e');
-    $self->{marks}[3] = $self->makeMark('se');
+    $self->{marks}[0] = $self->make_mark('ne');
+    $self->{marks}[1] = $self->make_mark('e');
+    $self->{marks}[2] = $self->make_mark('e');
+    $self->{marks}[3] = $self->make_mark('se');
     
     return;
 }
 
-sub hideLegend {
+sub hide_legend {
     my $self = shift;
 
     if ($self->{legend}) {
@@ -225,7 +225,7 @@ sub destroy {
 # Setting up the canvas
 ##########################################################
 
-sub makeMark {
+sub make_mark {
     my $self = shift;
     my $anchor = shift;
     my $mark = Gnome2::Canvas::Item->new (
@@ -239,7 +239,7 @@ sub makeMark {
     return $mark;
 }
 
-sub makeLegendPixbuf {
+sub make_legend_pixbuf {
     my $self = shift;
     my ($width, $height);
     my @pixels;
@@ -293,13 +293,13 @@ sub makeLegendPixbuf {
 
 # Draws a square matrix of specified length
 #
-sub drawMatrix {
+sub draw_matrix {
     my $self = shift;
     my $side_length = shift;
 
     $self->{cells} = {};
 
-    my ($cellX, $cellY, $width_pixels) = (10, 10, 0);
+    my ($cell_x, $cell_y, $width_pixels) = (10, 10, 0);
 
     # Delete any old cells
     if ($self->{cells_group}) {
@@ -346,7 +346,7 @@ sub drawMatrix {
                 width_pixels      => $width_pixels,
             );
 
-            $rect->signal_connect_swapped (event => \&onEvent, $self);
+            $rect->signal_connect_swapped (event => \&on_event, $self);
 
             $self->{cells}{$rect}[INDEX_ELEMENT] = [$x, $y];
             $self->{cells}{$rect}[INDEX_RECT]    = $rect;
@@ -375,8 +375,8 @@ sub drawMatrix {
     );
 
     # Update
-    $self->setupScrollbars();
-    $self->resizeBackgroundRect();
+    $self->setup_scrollbars();
+    $self->resize_background_rect();
     
     return;
 }
@@ -397,7 +397,7 @@ sub set_precision {
 # Gives each rectangle a value determined by a callback
 #
 # value_func : (h , v ) -> value for colouring
-sub setValues {
+sub set_values {
     my $self = shift;
     my $value_func = shift;
 
@@ -428,7 +428,7 @@ sub setValues {
 }
 
 # Colours elements based on value in the given analysis (eg: Jaccard, REDUNDANCY,...)
-sub setColouring {
+sub set_colouring {
     my $self = shift;
     my $min_value = shift;
     my $max_value = shift;
@@ -438,7 +438,7 @@ sub setColouring {
     $self->{max} = $max_value;
 
     # Colour each cell
-    $self->colourCells($colour_none);
+    $self->colour_cells($colour_none);
 
     # Set legend textbox markers
     if ($self->{marks} and defined $min_value) {
@@ -470,7 +470,7 @@ sub highlight {
         $self->{mask} = undef;
     }
 
-    my @mask_rects = $self->getMaskRects($sel_rows, $sel_cols);
+    my @mask_rects = $self->get_mask_rects($sel_rows, $sel_cols);
     return if not @mask_rects; # if nothing to mask, return
 
     # Create a GnomeCanvasPathDef for all the regions we have to mask
@@ -509,14 +509,14 @@ sub highlight {
         outline_color => 'black',
         width_pixels  => 0,
     );
-    $self->{mask}->signal_connect_swapped (event => \&onEvent, $self);
+    $self->{mask}->signal_connect_swapped (event => \&on_event, $self);
     $self->{mask}->set_path_def($mask_path);
     
     return;
 }
 
 # {all regions} - {selected cells}
-sub getMaskRects {
+sub get_mask_rects {
     my $self = shift;
     my $sel_rows = shift;
     my $sel_cols = shift;
@@ -562,7 +562,7 @@ sub getMaskRects {
 # Colouring based on an analysis value
 ##########################################################
 
-sub colourCells {
+sub colour_cells {
     my $self = shift;
     my $colour_none = shift || CELL_WHITE;
 
@@ -582,7 +582,7 @@ sub colourCells {
 
         my $val    = $cell->[INDEX_VALUES];
         my $rect   = $cell->[INDEX_RECT];
-        my $colour = defined $val ? $self->getColour($val, $self->{min}, $self->{max}) : $colour_none;
+        my $colour = defined $val ? $self->get_colour($val, $self->{min}, $self->{max}) : $colour_none;
         my $fill_colour = defined $val ? $colour : CELL_BLACK;
 
         $rect->set('fill-color-gdk' => $colour, 'outline-color-gdk' => $fill_colour);
@@ -591,14 +591,14 @@ sub colourCells {
     return;
 }
 
-sub getColour {
+sub get_colour {
     my $self = shift;
     
     if ($self->{colours} eq "Hue") {
-        return $self->getColourHue(@_);
+        return $self->get_colour_hue(@_);
     }
     elsif ($self->{colours} eq "Sat") {
-        return $self->getColourSaturation(@_);
+        return $self->get_colour_saturation(@_);
     }
     else {
         confess "Unknown colour system: " . $self->{colours} . "\n";
@@ -607,7 +607,7 @@ sub getColour {
     return;
 }
 
-sub getColourHue {
+sub get_colour_hue {
     my ($self, $val, $min, $max) = @_;
     # We use the following system:
     #   Linear interpolation between min...max
@@ -632,7 +632,7 @@ sub getColourHue {
     return Gtk2::Gdk::Color->new($r*257, $g*257, $b*257);
 }
 
-sub getColourSaturation {
+sub get_colour_saturation {
     my ($self, $val, $min, $max) = @_;
     #   Linear interpolation between min...max
     #   SATURATION goes from 0 to 1 as val goes from min to max
@@ -720,7 +720,7 @@ sub maxmin {
 
 # Events raised by little squares or the mask rect
 # Works out the target by the mouse coords (easy since have a square matrix)
-sub onEvent {
+sub on_event {
     my ($self, $event, $cell) = @_;
 
     my ($x, $y) = ($event->x, $event->y);
@@ -848,17 +848,17 @@ sub onEvent {
 }
 
 # Implements resizing
-sub onSizeAllocate {
+sub on_size_allocate {
     my ($self, $size, $canvas) = @_;
     $self->{width_px} = $size->width;
     $self->{height_px} = $size->height;
 
     if (exists $self->{width_units}) {
-        $self->fitGrid() if ($self->{zoom_fit});
+        $self->fit_grid() if ($self->{zoom_fit});
             
         $self->reposition();
-        $self->setupScrollbars();
-        $self->resizeBackgroundRect();
+        $self->setup_scrollbars();
+        $self->resize_background_rect();
 
     }
     
@@ -866,7 +866,7 @@ sub onSizeAllocate {
 }
 
 # Implements panning
-sub onBackgroundEvent {
+sub on_background_event {
     my ($self, $event, $item) = @_;
 
     if ( $event->type eq 'button-press') {
@@ -889,7 +889,7 @@ sub onBackgroundEvent {
         if ($event->button != 1) {
             $item->ungrab ($event->time);
             $self->{dragging} = 0;
-            $self->updateScrollbars(); #FIXME: If we do this for motion-notify - get great flicker!?!?
+            $self->update_scrollbars(); #FIXME: If we do this for motion-notify - get great flicker!?!?
         }
 
     }
@@ -916,7 +916,7 @@ sub onBackgroundEvent {
 # Scrolling
 ##########################################################
 
-sub setupScrollbars {
+sub setup_scrollbars {
     my $self = shift;
     return if !defined $self->{width_units} || !defined $self->{height_units};
 
@@ -939,7 +939,7 @@ sub setupScrollbars {
     return;
 }
 
-sub updateScrollbars {
+sub update_scrollbars {
     my $self = shift;
 
     my ($scrollx, $scrolly) = $self->{canvas}->get_scroll_offsets();
@@ -949,7 +949,7 @@ sub updateScrollbars {
     return;
 }
 
-sub onScrollbarsScroll {
+sub on_scrollbars_scroll {
     my $self = shift;
 
     if (not $self->{dragging}) {
@@ -967,7 +967,7 @@ sub onScrollbarsScroll {
 ##########################################################
 
 # Calculate pixels-per-unit to make image fit
-sub fitGrid {
+sub fit_grid {
     my $self = shift;
     if (! defined $self->{width_px} or ! defined $self->{height_px}) {
         #carp "width_px and/or height_px not defined\n";
@@ -983,7 +983,7 @@ sub fitGrid {
 }
 
 # Resize background rectangle which is dragged for panning
-sub resizeBackgroundRect {
+sub resize_background_rect {
     my $self = shift;
 
     if ($self->{width_px}) {
@@ -1047,7 +1047,7 @@ sub max {
     return ($_[0] > $_[1]) ? $_[0] : $_[1];
 }
 
-sub onScroll {
+sub on_scroll {
     my $self = shift;
     #FIXME: check if this helps reduce flicker
     $self->reposition();
@@ -1059,76 +1059,76 @@ sub onScroll {
 # More public functions (zoom/colours)
 ##########################################################
 
-sub zoomIn {
+sub zoom_in {
     my $self = shift;
     my $ppu = $self->{canvas}->get_pixels_per_unit();
     $self->{canvas}->set_pixels_per_unit( $ppu * 1.5 );
     $self->{zoom_fit} = 0;
-    $self->postZoom();
+    $self->post_zoom();
     
     return;
 }
 
-sub zoomOut {
+sub zoom_out {
     my $self = shift;
     my $ppu = $self->{canvas}->get_pixels_per_unit();
     $self->{canvas}->set_pixels_per_unit( $ppu / 1.5 );
     $self->{zoom_fit} = 0;
-    $self->postZoom();
+    $self->post_zoom();
     
     return;
 }
 
-sub zoomFit {
+sub zoom_fit {
     my $self = shift;
     $self->{zoom_fit} = 1;
-    $self->fitGrid();
-    $self->postZoom();
+    $self->fit_grid();
+    $self->post_zoom();
     
     return;
 }
 
-sub postZoom {
+sub post_zoom {
     my $self = shift;
-    $self->setupScrollbars();
-    $self->resizeBackgroundRect();
+    $self->setup_scrollbars();
+    $self->resize_background_rect();
     $self->reposition();
     
     return;
 }
 
 
-sub setColours {
+sub set_colours {
     my $self = shift;
     $self->{colours} = shift;
 
-    $self->colourCells();
+    $self->colour_cells();
 
     # Update legend
     if ($self->{legend}) { 
-        $self->{legend}->set(pixbuf => $self->makeLegendPixbuf() );
+        $self->{legend}->set(pixbuf => $self->make_legend_pixbuf() );
     }
     
     return;
 }
 
-=head2 setHue
+=head2 set_hue
 
 Sets the hue for the saturation (constant-hue) colouring mode
 
 =cut
 
-sub setHue {
+sub set_hue {
     my $self = shift;
     my $rgb = shift;
 
     $self->{hue} = (rgb_to_hsv($rgb->red / 257, $rgb->green /257, $rgb->blue / 257))[0];
 
-    $self->colourCells();
+    $self->colour_cells();
 
     # Update legend
     if ($self->{legend}) { 
-        $self->{legend}->set(pixbuf => $self->makeLegendPixbuf() );
+        $self->{legend}->set(pixbuf => $self->make_legend_pixbuf() );
     }
     
     return;

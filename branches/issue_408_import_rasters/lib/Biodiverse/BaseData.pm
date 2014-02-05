@@ -1303,7 +1303,7 @@ sub import_data_raster {
                             else {
                                 # set label from cell value or category if valid
                                 $this_label = exists $catname_hash{$entry} && $catname_hash{$entry}
-                                            ? $catname_hash{$entry}say ''
+                                            ? $catname_hash{$entry}
                                             : $entry;
                             } 
 
@@ -1324,18 +1324,11 @@ sub import_data_raster {
                 # progress bar stuff
                 my $frac = $hpos / $data->{RasterYSize}; 
                 $progress_bar->update(
-                    "Loading $file_base\n" .
-                    "Line $hpos of " . ${data->{RasterYSize}} . "\n",
+                      "Loading $file_base\n"
+                    . "Line $hpos of $data->{RasterYSize}\n",
                     $frac
                 );
 
-                if ($hpos % 10000 == 0) {
-                    say "Loading $file_base line "
-                          . "$hpos of $line_count_text, "
-                          . "chunk $chunk_count\n" ;
-                }
-                
-                
                 $hpos += $blockh;
             } # each block in height
         } # each raster band
@@ -2174,7 +2167,7 @@ sub run_exclusions {
     my ($label_regex, $label_regex_negate);
     if ($exclusion_hash{LABELS}{regex}) {
         my $re_text = $exclusion_hash{LABELS}{regex}{regex};
-        my $re_modifiers = $exclusion_hash{LABELS}{regex}{modifiers};
+        my $re_modifiers = $exclusion_hash{LABELS}{regex}{modifiers} // q{};
 
         $label_regex = eval qq{ qr /$re_text/$re_modifiers };
         $label_regex_negate = $exclusion_hash{LABELS}{regex}{negate};
@@ -2199,7 +2192,7 @@ sub run_exclusions {
     my $group_check_list;
     if (my $definition_query = $exclusion_hash{GROUPS}{definition_query}) {
         if (!blessed $definition_query) {
-            $definition_query = Biodiverse::SpatialParams::DefQuery->new (
+            $definition_query = Biodiverse::SpatialConditions::DefQuery->new (
                 conditions => $definition_query,
             );
         }
@@ -2208,16 +2201,16 @@ sub run_exclusions {
         my $defq_progress = Biodiverse::Progress->new(text => 'def query');
         $group_check_list
             = $self->get_neighbours(
-                  element        => $element,
-                  spatial_params => $definition_query,
-                  is_def_query   => 1,
-                  progress       => $defq_progress,
+                  element            => $element,
+                  spatial_conditions => $definition_query,
+                  is_def_query       => 1,
+                  progress           => $defq_progress,
               );
     }
 
     #  check the labels first, then the groups
     #  equivalent to range then richness
-    my @deleteList;
+    my @delete_list;
     
     my $excluded = 0;
     my %tally;
@@ -2232,9 +2225,9 @@ sub run_exclusions {
 
         my $base_type_ref = $self->{$type};
 
-        my $cutCount = 0;
-        my $subCutCount = 0;
-        @deleteList = ();
+        my $cut_count = 0;
+        my $sub_cut_count = 0;
+        @delete_list = ();
         
         BY_ELEMENT:
         foreach my $element ($base_type_ref->get_element_list) {
@@ -2289,18 +2282,18 @@ sub run_exclusions {
 
             next BY_ELEMENT if not $failed_a_test;  #  no fails, so check next element
 
-            $cutCount++;
-            push (@deleteList, $element);
+            $cut_count++;
+            push (@delete_list, $element);
         }
 
-        foreach my $element (@deleteList) {  #  having it out here means all are checked against the initial state
-            $subCutCount += $self->delete_element (type => $type, element => $element);
+        foreach my $element (@delete_list) {  #  having it out here means all are checked against the initial state
+            $sub_cut_count += $self->delete_element (type => $type, element => $element);
         }
 
         my $lctype = lc ($type);
-        if ($cutCount || $subCutCount) {
+        if ($cut_count || $sub_cut_count) {
             $feedback .=
-                "Cut $cutCount $lctype on exclusion criteria, deleting $subCutCount "
+                "Cut $cut_count $lctype on exclusion criteria, deleting $sub_cut_count "
                 . lc($other_type)
                 . " in the process\n\n";
             $feedback .=
@@ -2309,8 +2302,8 @@ sub run_exclusions {
                 " groups with "
                 . $self->get_label_count
                 . " unique labels\n\n";
-            $tally{$type . '_count'} += $cutCount;
-            $tally{$other_type . '_count'} += $subCutCount;
+            $tally{$type . '_count'} += $cut_count;
+            $tally{$other_type . '_count'} += $sub_cut_count;
             $excluded ++;
         }
         else {
@@ -3533,9 +3526,9 @@ sub get_neighbours {
     my $element1 = $args{element};
     croak "argument element not specified\n" if ! defined $element1;
 
-    my $spatial_params = $args{spatial_params}
-                       || $self->get_param ('SPATIAL_PARAMS')
-                       || croak "[BASEDATA] No spatial params\n";
+    my $spatial_conditions = $args{spatial_conditions}
+                          // $args{spatial_params}
+                          || croak "[BASEDATA] No spatial_conditions argument\n";
     my $index = $args{index};
     my $is_def_query = $args{is_def_query};  #  some processing changes if a def query
     my $cellsizes = $self->get_param ('CELL_SIZES');
@@ -3552,7 +3545,7 @@ sub get_neighbours {
     my $centre_coord_ref =
       $self->get_group_element_as_array (element => $element1);
     
-    my $groupsRef = $self->get_groups_ref;
+    my $groups_ref = $self->get_groups_ref;
 
     my @compare_list;  #  get the list of possible neighbours - should allow this as an arg?
     if (!defined $args{index} || !defined $args{index_offsets}) {
@@ -3579,7 +3572,7 @@ sub get_neighbours {
     
     #  Do we have a shortcut where we don't have to deal
     #  with all of the comparisons? (messy at the moment)
-    my $type_is_subset = $spatial_params->get_result_type eq 'subset'
+    my $type_is_subset = $spatial_conditions->get_result_type eq 'subset'
                        ? 1
                        : undef;
 
@@ -3612,7 +3605,7 @@ sub get_neighbours {
             next NBR;
         }
 
-        #  make the neighbour coord available to the spatial_params
+        #  make the neighbour coord available to the spatial_conditions
         my @coord =
            $self->get_group_element_as_array (element => $element2);
            
@@ -3636,19 +3629,19 @@ sub get_neighbours {
             );
         }
 
-        my $success = $spatial_params->evaluate (
+        my $success = $spatial_conditions->evaluate (
             %eval_args,
             cellsizes     => $cellsizes,
             caller_object => $self,  #  pass self on by default
         );
 
         if ($type_is_subset) {  
-            my $subset_nbrs = $spatial_params->get_cached_subset_nbrs (coord_id => $element1);
+            my $subset_nbrs = $spatial_conditions->get_cached_subset_nbrs (coord_id => $element1);
             if ($subset_nbrs) {
                 %valid_nbrs = %$subset_nbrs;
                 #print "Found ", scalar keys %valid_nbrs, " valid nbrs\n";
                 delete @valid_nbrs{keys %exclude_hash};
-                $spatial_params->clear_cached_subset_nbrs(coord_id => $element1);
+                $spatial_conditions->clear_cached_subset_nbrs(coord_id => $element1);
                 last NBR;
             }
         }
@@ -3657,7 +3650,7 @@ sub get_neighbours {
         next NBR if not $success;
 
         # If it has survived then it must be valid.
-        #$valid_nbrs{$element2} = $spatial_params->get_param ('LAST_DISTS');  #  store the distances for possible later use
+        #$valid_nbrs{$element2} = $spatial_conditions->get_param ('LAST_DISTS');  #  store the distances for possible later use
         #  Don't store the dists - serious memory issues for large files
         #  But could store $success if we later want to support weighted calculations
         $valid_nbrs{$element2} = 1;
@@ -3687,15 +3680,15 @@ sub get_neighbours_as_array {
 sub get_outputs_with_same_conditions {
     my $self = shift;
     my %args = @_;
-    
+
     my $compare = $args{compare_with} || croak "[BASEDATA] compare_with argument not specified\n";
-    
-    my $sp_params = $compare->get_param ('SPATIAL_PARAMS');
-    my $def_query = $compare->get_param ('DEFINITION_QUERY');
+
+    my $sp_params = $compare->get_spatial_conditions;
+    my $def_query = $compare->get_def_query;
     if (defined $def_query && (length $def_query) == 0) {
         $def_query = undef;
     }
-    
+
     my $def_conditions;
     if (blessed $def_query) {
         $def_conditions = $def_query->get_conditions_unparsed();
@@ -3711,23 +3704,22 @@ sub get_outputs_with_same_conditions {
 
         my $completed = $output->get_param ('COMPLETED');
         next LOOP_OUTPUTS if defined $completed and ! $completed;
-        
-        my $def_query_comp = $output->get_param ('DEFINITION_QUERY');
-        if (defined $def_query) {
-            #  only check further if both have def queries
-            next LOOP_OUTPUTS if ! defined $def_query_comp;
 
+        my $def_query_comp = $output->get_def_query;
+        if (defined $def_query_comp && (length $def_query_comp) == 0) {
+            $def_query_comp = undef;
+        }
+
+        next LOOP_OUTPUTS if (defined $def_query) ne (defined $def_query_comp);
+
+        if (defined $def_query) {    
             #  check their def queries match
             my $def_conditions_comp = eval {$def_query_comp->get_conditions_unparsed()} // $def_query_comp;
             my $def_conditions_text = eval {$def_query->get_conditions_unparsed()}      // $def_query;
             next LOOP_OUTPUTS if $def_conditions_comp ne $def_conditions_text;
         }
-        else {
-            #  skip if one is defined but the other is not
-            next LOOP_OUTPUTS if defined $def_query_comp;
-        }
 
-        my $sp_params_comp = $output->get_param ('SPATIAL_PARAMS') || [];
+        my $sp_params_comp = $output->get_spatial_conditions || [];
 
         #  must have same number of conditions
         next LOOP_OUTPUTS if scalar @$sp_params_comp != scalar @$sp_params;
@@ -3749,7 +3741,17 @@ sub get_outputs_with_same_conditions {
     return;
 }
 
+sub has_empty_groups {
+    my $self = shift;
 
+    foreach my $group ($self->get_groups) {
+        my $labels = $self->get_labels_in_group (group => $group);
+
+        return 0 if scalar @$labels;
+    }
+    
+    return 1;
+}
 
 sub numerically {$a <=> $b};
 

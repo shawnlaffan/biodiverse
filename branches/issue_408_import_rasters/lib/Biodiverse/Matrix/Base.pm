@@ -145,8 +145,8 @@ sub load_data {
     }
 
     my $IDcount = 0;
-    my %labelList;
-    my %labelInMatrix;
+    my %label_list;
+    my %label_in_matrix;
     my $out_sep_char = $self->get_param('JOIN_CHAR');
     my $out_quote_char = $self->get_param('QUOTES');
     
@@ -225,8 +225,8 @@ sub load_data {
         
         #print "IDcount is $IDcount\n";
 
-        $labelList{$IDcount} = $label;
-        $labelInMatrix{$label}++;
+        $label_list{$IDcount} = $label;
+        $label_in_matrix{$label}++;
 
         #  strip the leading labels and other data
         splice (@$flds_ref, 0, $values_start_col);  
@@ -257,8 +257,8 @@ sub load_data {
             next BY_FIELD if defined $val && $val eq $EMPTY_STRING;  
             next BY_FIELD if defined $val && !$text_allowed && !looks_like_number ($val);
             
-            my $label = $labelList{$label_count};
-            my $label2 = $labelList{$i};
+            my $label = $label_list{$label_count};
+            my $label2 = $label_list{$i};
             
             next BY_FIELD  #  skip if in the matrix and already defined
                 if defined 

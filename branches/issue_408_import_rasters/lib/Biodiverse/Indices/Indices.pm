@@ -148,10 +148,10 @@ sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
     my $label_count_outer = keys %{$label_list2};
     my ($sample_count_all, $sample_count_inner, $sample_count_outer);
 
-    foreach my $subLabel (keys %{$label_list_all}) {
-        $sample_count_all += $label_list_all->{$subLabel};
-        $sample_count_inner += $label_list1->{$subLabel} if exists $label_list1->{$subLabel};
-        $sample_count_outer += $label_list2->{$subLabel} if exists $label_list2->{$subLabel};
+    foreach my $sub_label (keys %{$label_list_all}) {
+        $sample_count_all += $label_list_all->{$sub_label};
+        $sample_count_inner += $label_list1->{$sub_label} if exists $label_list1->{$sub_label};
+        $sample_count_outer += $label_list2->{$sub_label} if exists $label_list2->{$sub_label};
     }
 
     my %results;
@@ -197,7 +197,7 @@ sub is_dissimilarity_valid {
     my %args = @_;
 
     my %result = (
-        DISSIMILARITY_IS_VALID => ($args{A} || $args{B}) && ($args{A} || $args{C}),
+        DISSIMILARITY_IS_VALID => ($args{A} || ($args{B} && $args{C})),
     );
 
     return wantarray ? %result : \%result;
@@ -799,11 +799,9 @@ sub get_metadata_calc_tx_rao_qe {
         indices => {
             TX_RAO_QE       => {
                 description => 'Taxonomically weighted quadratic entropy',
-                
             },
             TX_RAO_TN       => {
                 description => 'Count of comparisons used to calculate TX_RAO_QE',
-                type        => 'list',
             },
             TX_RAO_TLABELS  => {
                 description => 'List of labels and values used in the TX_RAO_QE calculations',
@@ -820,10 +818,11 @@ sub calc_tx_rao_qe {
     my %args = @_;
 
     my $r = $self -> _calc_rao_qe (@_, use_matrix => 0);
-    my %results = (TX_RAO_TN        => $r->{RAO_TN},
-                   TX_RAO_TLABELS   => $r->{RAO_TLABELS},
-                   TX_RAO_QE        => $r->{RAO_QE},
-                   );
+    my %results = (
+        TX_RAO_TN        => $r->{RAO_TN},
+        TX_RAO_TLABELS   => $r->{RAO_TLABELS},
+        TX_RAO_QE        => $r->{RAO_QE},
+    );
 
     return wantarray ? %results : \%results;
 }
@@ -915,7 +914,7 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
         $n += $value;
     }
 
-    my ($totalCount, $qe) = (undef, undef);
+    my ($total_count, $qe) = (undef, undef);
     my (%done, %p_values);
 
     BY_LABEL1:

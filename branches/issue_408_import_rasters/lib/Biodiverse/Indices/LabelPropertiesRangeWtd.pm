@@ -61,8 +61,8 @@ sub get_metadata_calc_lbprop_hashes_abc2 {
     while (my ($prop, $list_name) = each %prop_hash_names) {
         $list_name =~ s/DATA$/HASH2/;
         $indices{$list_name} = {
-            $list_name => 'Hash of values for property ' . $prop,
-            type       => 'list',
+            description => 'Hash of values for property ' . $prop,
+            type        => 'list',
         };
     }
 

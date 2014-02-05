@@ -54,8 +54,8 @@ use constant HOVER_CURSOR => 'hand2';
 sub new {
     #  FIXME FIXME this sub desperately needs to use a hash of key-value pairs
     my $class           = shift;
-    my $mainFrame       = shift;    # GTK frame to add dendrogram
-    my $graphFrame      = shift;    # GTK frame for the graph (below!)
+    my $main_frame       = shift;    # GTK frame to add dendrogram
+    my $graph_frame      = shift;    # GTK frame for the graph (below!)
     my $hscroll         = shift;
     my $vscroll         = shift;
     my $map             = shift;    # Grid.pm object of the dataset to link in
@@ -109,14 +109,14 @@ sub new {
     # Make and hook up the canvases
     $self->{canvas} = Gnome2::Canvas->new();
     $self->{graph}  = Gnome2::Canvas->new();
-    $mainFrame->add( $self->{canvas} );
-    $graphFrame->add( $self->{graph} );
+    $main_frame->add( $self->{canvas} );
+    $graph_frame->add( $self->{graph} );
     $self->{canvas}->signal_connect_swapped (
-        size_allocate => \&onResize,
+        size_allocate => \&on_resize,
         $self,
     );
     $self->{graph}->signal_connect_swapped(
-        size_allocate => \&onGraphResize,
+        size_allocate => \&on_graph_resize,
         $self,
     );
 
@@ -152,19 +152,19 @@ sub new {
     );
 
     $rect->lower_to_bottom();
-    $self->{canvas}->root->signal_connect_swapped (event => \&onBackgroundEvent, $self);
+    $self->{canvas}->root->signal_connect_swapped (event => \&on_background_event, $self);
     $self->{back_rect} = $rect;
 
     # Process changes for the map
     if ($map_index_combo) {
         $map_index_combo->signal_connect_swapped(
-            changed => \&onMapIndexComboChanged,
+            changed => \&on_map_index_combo_changed,
             $self,
         );
     }
     if ($map_list_combo) {
         $map_list_combo->signal_connect_swapped (
-            changed => \&onMapListComboChanged,
+            changed => \&on_map_list_combo_changed,
             $self
         );
     }
@@ -227,7 +227,7 @@ sub destroy {
 # The Slider
 ##########################################################
 
-sub makeSlider {
+sub make_slider {
     my $self = shift;
 
     # already exists?
@@ -246,7 +246,7 @@ sub makeSlider {
         y2 => 1,
         fill_color => 'blue',
     );
-    $self->{slider}->signal_connect_swapped (event => \&onSliderEvent, $self);
+    $self->{slider}->signal_connect_swapped (event => \&on_slider_event, $self);
 
     # Slider for the graph at the bottom
     $self->{graph_slider} = Gnome2::Canvas::Item->new (
@@ -258,7 +258,7 @@ sub makeSlider {
         y2 => 1,
         fill_color => 'blue',
     );
-    $self->{graph_slider}->signal_connect_swapped (event => \&onSliderEvent, $self);
+    $self->{graph_slider}->signal_connect_swapped (event => \&on_slider_event, $self);
 
     # Make the #Clusters textbox
     $self->{clusters_group} = Gnome2::Canvas::Item->new (
@@ -292,13 +292,13 @@ sub makeSlider {
 }
 
 # Resize slider (after zooming)
-sub repositionSliders {
+sub reposition_sliders {
     my $self = shift;
 
     my $xoffset = $self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2;
     my $slider_x = ($self->{unscaled_slider_x} * $self->{length_scale}) - $xoffset;
 
-    #print "[repositionSliders] centre_x=$self->{centre_x} length_scale=$self->{length_scale} unscaled_slider_x=$self->{unscaled_slider_x} width_px=$self->{width_px} slider_x=$slider_x\n";
+    #print "[reposition_sliders] centre_x=$self->{centre_x} length_scale=$self->{length_scale} unscaled_slider_x=$self->{unscaled_slider_x} width_px=$self->{width_px} slider_x=$slider_x\n";
 
     $self->{slider}->set(
         x1 => $slider_x,
@@ -312,12 +312,12 @@ sub repositionSliders {
         y2 => $self->{graph_height_units},
     );
 
-    $self->repositionClustersTextbox($slider_x);
+    $self->reposition_clusters_textbox($slider_x);
 
     return;
 }
 
-sub repositionClustersTextbox {
+sub reposition_clusters_textbox {
     my $self = shift;
     my $slider_x = shift;
 
@@ -338,7 +338,7 @@ sub repositionClustersTextbox {
     return;
 }
 
-sub onSliderEvent {
+sub on_slider_event {
     my ($self, $event, $item) = @_;
 
     if ($event->type eq 'enter-notify') {
@@ -417,11 +417,11 @@ sub onSliderEvent {
 
             $self->{unscaled_slider_x} = ($x + $xoffset) / $self->{length_scale};
 
-            #print "[doSliderMove] x=$x pos=$self->{unscaled_slider_x}\n";
+            #print "[do_slider_move] x=$x pos=$self->{unscaled_slider_x}\n";
 
-            $self->doSliderMove($self->{unscaled_slider_x});
+            $self->do_slider_move($self->{unscaled_slider_x});
 
-            $self->repositionClustersTextbox($x);
+            $self->reposition_clusters_textbox($x);
 
         }
         else {
@@ -447,12 +447,12 @@ sub set_use_highlight_func {
 # Colouring
 ##########################################################
 
-sub getNumClusters {
+sub get_num_clusters {
     my $self = shift;
     return $self->{num_clusters} || 1;
 }
 
-sub setNumClusters {
+sub set_num_clusters {
     my $self = shift;
     $self->{num_clusters} = shift || 1;
     # apply new setting
@@ -461,7 +461,7 @@ sub setNumClusters {
 }
 
 # whether to colour by 'length' or 'depth'
-sub setGroupMode {
+sub set_group_mode {
     my $self = shift;
     $self->{group_mode} = shift;
     # apply new setting
@@ -472,7 +472,7 @@ sub setGroupMode {
 sub recolour {
     my $self = shift;
     if ($self->{colour_start_node}) {
-        $self->doColourNodesBelow($self->{colour_start_node});
+        $self->do_colour_nodes_below($self->{colour_start_node});
     }
     return;
 }
@@ -480,7 +480,7 @@ sub recolour {
 # Gets a hash of nodes which have been coloured
 # Used by Spatial tab for getting an element's "cluster" (ie: coloured node that it's under)
 #     hash of names (with refs as values)
-sub getClusterNodeForElement {
+sub get_cluster_node_for_element {
     my $self = shift;
     my $element = shift;
     return $self->{element_to_cluster}{$element};
@@ -488,7 +488,7 @@ sub getClusterNodeForElement {
 
 # Returns a list of colours to use for colouring however-many clusters
 # returns STRING COLOURS
-sub getPalette {
+sub get_palette {
     my $self = shift;
     my $num_clusters = shift;
     #print "Choosing colour palette for $num_clusters clusters\n";
@@ -541,7 +541,7 @@ sub get_palette_max_colours {
 }
 
 # Finds which nodes the slider intersected and selects them for analysis
-sub doSliderMove {
+sub do_slider_move {
     my $self = shift;
     my $length_along = shift;
 
@@ -551,7 +551,7 @@ sub doSliderMove {
 
     # Find how far along the tree the slider is positioned
     # Saving slider position - to move it back in place after resize
-    #print "[doSliderMove] Slider @ $length_along\n";
+    #print "[do_slider_move] Slider @ $length_along\n";
 
     # Find nodes that intersect the slides
 
@@ -590,20 +590,20 @@ sub doSliderMove {
     $self->{clusters_text}->set( text => $text );
 
     # Highlight the lines in the dendrogram
-    $self->clearHighlights;
+    $self->clear_highlights;
     foreach my $node (values %$node_hash) {
-        $self->highlightNode($node);
+        $self->highlight_node($node);
     }
 
     return if ! $self->{use_slider_to_select_nodes};
 
     # Set up colouring
-    $self->assignClusterPaletteColours(\@intersecting_nodes);
-    $self->mapElementsToClusters(\@intersecting_nodes);
+    $self->assign_cluster_palette_colours(\@intersecting_nodes);
+    $self->map_elements_to_clusters(\@intersecting_nodes);
 
-    $self->recolourClusterElements();
-    $self->recolourClusterLines(\@intersecting_nodes);
-    $self->setProcessedNodes(\@intersecting_nodes);
+    $self->recolour_cluster_elements();
+    $self->recolour_cluster_lines(\@intersecting_nodes);
+    $self->set_processed_nodes(\@intersecting_nodes);
 
     #$self->{last_slide_time} = time;
     return;
@@ -618,12 +618,12 @@ sub toggle_use_slider_to_select_nodes {
 }
 
 # Colours a certain number of nodes below
-sub doColourNodesBelow {
+sub do_colour_nodes_below {
     my $self = shift;
     my $start_node = shift;
     $self->{colour_start_node} = $start_node;
 
-    my $num_clusters = $self->getNumClusters;
+    my $num_clusters = $self->get_num_clusters;
     my $original_num_clusters = $num_clusters;
     my $excess_flag = 0;
     my @colour_nodes;
@@ -681,18 +681,18 @@ sub doColourNodesBelow {
 
     # Set up colouring
     #print "num clusters = $num_clusters\n";
-    $self->assignClusterPaletteColours(\@colour_nodes);
-    $self->mapElementsToClusters(\@colour_nodes);
+    $self->assign_cluster_palette_colours(\@colour_nodes);
+    $self->map_elements_to_clusters(\@colour_nodes);
 
-    $self->recolourClusterElements();
-    $self->recolourClusterLines(\@colour_nodes);
-    $self->setProcessedNodes(\@colour_nodes);
+    $self->recolour_cluster_elements();
+    $self->recolour_cluster_lines(\@colour_nodes);
+    $self->set_processed_nodes(\@colour_nodes);
 
     return;
 }
 
 # Assigns palette-based colours to selected nodes
-sub assignClusterPaletteColours {
+sub assign_cluster_palette_colours {
     my $self = shift;
     my $cluster_nodes = shift;
 
@@ -709,7 +709,7 @@ sub assignClusterPaletteColours {
     }
     else {
 
-        my @palette = $self->getPalette (scalar @$cluster_nodes);
+        my @palette = $self->get_palette (scalar @$cluster_nodes);
 
         # so we sort them to make the colour order consistent
         my %sort_by_firstnode;
@@ -734,7 +734,7 @@ sub assignClusterPaletteColours {
     return;
 }
 
-sub mapElementsToClusters {
+sub map_elements_to_clusters {
     my $self = shift;
     my $cluster_nodes = shift;
 
@@ -746,7 +746,7 @@ sub mapElementsToClusters {
 
         foreach my $elt (keys %$terminal_elements) {
             $map{ $elt } = $node_ref;
-            #print "[mapElementsToClusters] $elt->$node_ref\n";
+            #print "[map_elements_to_clusters] $elt->$node_ref\n";
         }
 
     }
@@ -757,7 +757,7 @@ sub mapElementsToClusters {
 }
 
 # Colours the element map with colours for the established clusters
-sub recolourClusterElements {
+sub recolour_cluster_elements {
     my $self = shift;
 
     my $map = $self->{map};
@@ -807,7 +807,7 @@ sub recolourClusterElements {
                 : undef;  #  allows for missing lists
 
             if (defined $val) {
-                return $map->getColour ($val, $analysis_min, $analysis_max);
+                return $map->get_colour ($val, $analysis_min, $analysis_max);
             }
             else {
                 return COLOUR_LIST_UNDEF;
@@ -833,13 +833,13 @@ sub recolourClusterElements {
 
         $map->colour($palette_colour_func);
         #FIXME: should hide the legend (currently broken - legend never shows up again)
-        $map->setLegendMinMax(0, 0);
+        $map->set_legend_min_max(0, 0);
 
     }
     elsif ($self->{cluster_colour_mode} eq 'list-values') {
 
         $map->colour($list_value_colour_func);
-        $map->setLegendMinMax($analysis_min, $analysis_max);
+        $map->set_legend_min_max($analysis_min, $analysis_max);
     }
     else {
         die "bad cluster colouring mode: " . $self->{cluster_colour_mode};
@@ -858,7 +858,7 @@ sub get_colour_not_in_tree {
 
 
 # Colours the dendrogram lines with palette colours
-sub recolourClusterLines {
+sub recolour_cluster_lines {
     my $self = shift;
     my $cluster_nodes = shift;
 
@@ -885,7 +885,7 @@ sub recolourClusterLines {
                 : undef;  #  allows for missing lists
 
             if (defined $val) {
-                $colour_ref = $map->getColour ($val, $analysis_min, $analysis_max);
+                $colour_ref = $map->get_colour ($val, $analysis_min, $analysis_max);
             }
             else {
                 $colour_ref = undef;
@@ -904,7 +904,7 @@ sub recolourClusterLines {
 
         # And also colour all nodes below
         foreach my $child_ref (@{$node_ref->get_children}) {
-            $self->colourLines($child_ref, $colour_ref, \%coloured_nodes);
+            $self->colour_lines($child_ref, $colour_ref, \%coloured_nodes);
         }
 
         $coloured_nodes{$node_ref} = (); # mark as coloured
@@ -932,7 +932,7 @@ sub recolourClusterLines {
     return;
 }
 
-sub colourLines {
+sub colour_lines {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
     # We set the cached value to make it easier to recolour if the tree has to be re-rendered
@@ -944,13 +944,13 @@ sub colourLines {
     $coloured_nodes->{ $node_ref } = (); # mark as coloured
 
     foreach my $child_ref (@{$node_ref->get_children}) {
-        $self->colourLines($child_ref, $colour_ref, $coloured_nodes);
+        $self->colour_lines($child_ref, $colour_ref, $coloured_nodes);
     }
 
     return;
 }
 
-sub restoreLineColours {
+sub restore_line_colours {
     my $self = shift;
 
     if ($self->{recolour_nodes}) {
@@ -969,7 +969,7 @@ sub restoreLineColours {
     return;
 }
 
-sub setProcessedNodes {
+sub set_processed_nodes {
     my $self = shift;
     $self->{processed_nodes} = shift;
 
@@ -982,7 +982,7 @@ sub setProcessedNodes {
 ##########################################################
 
 # Combo-box for the list of results (eg: REDUNDANCY or ENDC_SINGLE) to use for the map
-sub setupMapListModel {
+sub setup_map_list_model {
     my $self  = shift;
     my $lists = shift;
 
@@ -1007,7 +1007,7 @@ sub setupMapListModel {
 }
 
 # Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_SINGLE)
-sub setupMapIndexModel {
+sub setup_map_index_model {
     my $self = shift;
     my $indices = shift;
 
@@ -1045,7 +1045,7 @@ sub setupMapIndexModel {
 
 # Change of list to display on the map
 # Can either be the Cluster "list" (coloured by node) or a spatial analysis list
-sub onMapListComboChanged {
+sub on_map_list_combo_changed {
     my $self = shift;
     my $combo = shift || $self->{map_list_combo};
 
@@ -1063,25 +1063,25 @@ sub onMapListComboChanged {
         $self->{analysis_max}        = undef;
 
         $self->{cluster_colour_mode} = 'palette';
-        $self->recolourClusterElements();
+        $self->recolour_cluster_elements();
 
-        $self->recolourClusterLines($self->{processed_nodes});
+        $self->recolour_cluster_lines($self->{processed_nodes});
 
         # blank out the other combo
-        $self->setupMapIndexModel(undef);
+        $self->setup_map_index_model(undef);
     }
     else {
         # Selected analysis-colouring mode
         $self->{analysis_list_name} = $list;
 
-        $self->setupMapIndexModel($self->{tree_node}->get_list_ref(list => $list));
-        $self->onMapIndexComboChanged();
+        $self->setup_map_index_model($self->{tree_node}->get_list_ref(list => $list));
+        $self->on_map_index_combo_changed();
     }
 
     return;
 }
 
-sub onMapIndexComboChanged {
+sub on_map_index_combo_changed {
     my $self = shift;
     my $combo = shift || $self->{map_index_combo};
 
@@ -1093,7 +1093,7 @@ sub onMapIndexComboChanged {
         $index = $combo->get_model->get($iter, 0);
         $self->{analysis_list_index} = $index;
 
-        $self->{parent_tab}->onColourModeChanged;
+        $self->{parent_tab}->on_colour_mode_changed;
 
         my @minmax = $self->get_plot_min_max_values;
         $self->{analysis_min} = $minmax[0];
@@ -1101,9 +1101,9 @@ sub onMapIndexComboChanged {
 
         #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
         $self->{cluster_colour_mode} = 'list-values';
-        $self->recolourClusterElements();
+        $self->recolour_cluster_elements();
 
-        $self->recolourClusterLines($self->{processed_nodes});
+        $self->recolour_cluster_lines($self->{processed_nodes});
     }
     else {
         $self->{analysis_list_index} = undef;
@@ -1144,7 +1144,7 @@ sub get_plot_min_max_values {
 ##########################################################
 
 # Remove any existing highlights
-sub clearHighlights {
+sub clear_highlights {
     my $self = shift;
     if ($self->{highlighted_lines}) {
         foreach my $line (@{$self->{highlighted_lines}}) {
@@ -1157,7 +1157,7 @@ sub clearHighlights {
     return;
 }
 
-sub highlightNode {
+sub highlight_node {
     my ($self, $node_ref) = @_;
 
     my $line = $self->{node_lines}->{$node_ref->get_name};
@@ -1168,7 +1168,7 @@ sub highlightNode {
 }
 
 # Highlights all nodes above and including the given node
-sub highlightPath {
+sub highlight_path {
     my ($self, $node_ref) = @_;
     my @highlighted_lines;
 
@@ -1184,12 +1184,12 @@ sub highlightPath {
 }
 
 # Circles a node's terminal elements. Clear marks if $node undef
-sub markElements {
+sub mark_elements {
     my $self = shift;
     my $node = shift;
 
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
-    $self->{map}->markIfExists( $terminal_elements, 'circle' );
+    $self->{map}->mark_if_exists( $terminal_elements, 'circle' );
 
     return;
 }
@@ -1202,11 +1202,11 @@ sub markElements {
 # This will calculate how far they're pushed back so that we may render them
 #
 # Returns an absolute value or zero
-sub getMaxNegativeLength {
+sub get_max_negative_length {
     my $treenode = shift;
     my $min_length = 0;
 
-    getMaxNegativeLengthInner($treenode, 0, \$min_length);
+    get_max_negative_length_inner($treenode, 0, \$min_length);
     if ($min_length < 0) {
         return -1 * $min_length;
     }
@@ -1217,14 +1217,14 @@ sub getMaxNegativeLength {
     return;
 }
 
-sub getMaxNegativeLengthInner {
+sub get_max_negative_length_inner {
     my ($node, $cur_len, $min_length_ref) = @_;
 
     if (${$min_length_ref} > $cur_len) {
         ${$min_length_ref} = $cur_len;
     }
     foreach my $child ($node->get_children) {
-        getMaxNegativeLengthInner($child, $cur_len + $node->get_length, $min_length_ref);
+        get_max_negative_length_inner($child, $cur_len + $node->get_length, $min_length_ref);
     }
 
     return;
@@ -1269,12 +1269,12 @@ sub initYCoordsInner {
 # These make an array out of the tree nodes
 # sorted based on total length up to the node
 #  (ie: excluding the node's own length)
-sub makeTotalLengthArray {
+sub make_total_length_array {
     my $self = shift;
     my @array;
     my $lf = $self->{length_func};
 
-    makeTotalLengthArrayInner($self->{tree_node}, 0, \@array, $lf);
+    make_total_length_array_inner($self->{tree_node}, 0, \@array, $lf);
 
     # Sort it
     @array = sort {
@@ -1286,7 +1286,7 @@ sub makeTotalLengthArray {
     return;
 }
 
-sub makeTotalLengthArrayInner {
+sub make_total_length_array_inner {
     my ($node, $length_so_far, $array, $lf) = @_;
 
     $node->set_value(total_length_gui => $length_so_far);
@@ -1295,7 +1295,7 @@ sub makeTotalLengthArrayInner {
     # Do the children
     my $length_total = &$lf($node) + $length_so_far;
     foreach my $child ($node->get_children) {
-        makeTotalLengthArrayInner($child, $length_total, $array, $lf);
+        make_total_length_array_inner($child, $length_total, $array, $lf);
     }
 
     return;
@@ -1306,7 +1306,7 @@ sub makeTotalLengthArrayInner {
 ##########################################################
 
 # whether to plot by 'length' or 'depth'
-sub setPlotMode {
+sub set_plot_mode {
     my ($self, $plot_mode) = @_;
 
     $self->{plot_mode} = $plot_mode;
@@ -1315,7 +1315,7 @@ sub setPlotMode {
     if ($plot_mode eq 'length') {
         $self->{length_func}     = \&Biodiverse::TreeNode::get_length;
         $self->{max_length_func} = \&Biodiverse::TreeNode::get_max_total_length;
-        $self->{neg_length_func} = \&getMaxNegativeLength;
+        $self->{neg_length_func} = \&get_max_negative_length;
     }
     elsif ($plot_mode eq 'depth') {
         $self->{length_func}     = sub { return 1; }; # each node is "1" depth level below the previous one
@@ -1327,7 +1327,7 @@ sub setPlotMode {
     #    my $bd = $self->{basedata_ref};
     #    $self->{length_func}     = sub {my ($node, %args) = @_; return $node->get_length / $node->get_node_range (basedata_ref => $bd)};
     #    $self->{max_length_func} = \&Biodiverse::TreeNode::get_max_total_length;
-    #    $self->{neg_length_func} = \&getMaxNegativeLength;
+    #    $self->{neg_length_func} = \&get_max_negative_length;
     #}
     else {
         die "Invalid cluster-plotting mode - $plot_mode";
@@ -1353,13 +1353,13 @@ sub setPlotMode {
     #print "[Dendrogram] unscaled width: $self->{unscaled_width}, unscaled height: $self->{unscaled_height}\n";
 
     # Make sorted total length array to make slider and graph fast
-    $self->makeTotalLengthArray;
+    $self->make_total_length_array;
 
     # (redraw)
-    $self->renderTree;
-    $self->renderGraph;
-    $self->setupScrollbars;
-    $self->resizeBackgroundRect;
+    $self->render_tree;
+    $self->render_graph;
+    $self->setup_scrollbars;
+    $self->resize_background_rect;
 
     return;
 }
@@ -1367,7 +1367,7 @@ sub setPlotMode {
 # Sets a new tree to draw (TreeNode)
 #   Performs once-off init such as getting number of leaves and
 #   setting up the Y coords
-sub setCluster {
+sub set_cluster {
     my $self = shift;
     my $cluster = shift;
     my $plot_mode = shift; # (cluster) 'length' or 'depth'
@@ -1409,14 +1409,14 @@ sub setCluster {
     $self->initYCoords($self->{tree_node});
 
     # Make slider
-    $self->makeSlider();
+    $self->make_slider();
 
     # draw
-    $self->setPlotMode($plot_mode);
+    $self->set_plot_mode($plot_mode);
 
     # Initialise map analysis-selection comboboxen
     if ($self->{map_list_combo}) {
-        $self->setupMapListModel( scalar $self->{tree_node}->get_hash_lists() );
+        $self->setup_map_list_model( scalar $self->{tree_node}->get_hash_lists() );
     }
 
     return;
@@ -1425,7 +1425,7 @@ sub setCluster {
 sub clear {
     my $self = shift;
 
-    $self->clearHighlights;
+    $self->clear_highlights;
 
     $self->{node_lines} = {};
     $self->{node_colours_cache} = {};
@@ -1451,7 +1451,7 @@ sub clear {
 }
 
 # (re)draws the tree (...every time canvas is resized)
-sub renderTree {
+sub render_tree {
     my $self = shift;
     my $tree = $self->{tree_node};
 
@@ -1459,7 +1459,7 @@ sub renderTree {
 
     # Remove any highlights. The lines highlightened are destroyed next,
     # and may cause a crash when they get unhighlighted
-    $self->clearHighlights;
+    $self->clear_highlights;
 
     $self->{node_lines} = {};
 
@@ -1492,7 +1492,7 @@ sub renderTree {
                       ;
     #print "[Dendrogram] root offset = $root_offset\n";
     #print "$self->{render_width} - ($self->{border_len} + $self->{neg_len}) * $self->{length_scale}\n";
-    $self->drawNode($tree, $root_offset, $length_func, $self->{length_scale}, $self->{height_scale});
+    $self->draw_node($tree, $root_offset, $length_func, $self->{length_scale}, $self->{height_scale});
 
     # Draw a circle to mark out the root node
     my $root_y = $tree->get_value('_y') * $self->{height_scale};
@@ -1507,7 +1507,7 @@ sub renderTree {
         fill_color => 'brown'
     );
     # Hook up the root-circle to the root!
-    $self->{root_circle}->signal_connect_swapped (event => \&onEvent, $self);
+    $self->{root_circle}->signal_connect_swapped (event => \&on_event, $self);
     $self->{root_circle}->{node} =  $tree; # Remember the root (for hovering, etc...)
 
     $lines_group->lower_to_bottom();
@@ -1533,7 +1533,7 @@ sub renderTree {
         $triangle->set_path_def($triangle_path);
     }
 
-    #$self->restoreLineColours();
+    #$self->restore_line_colours();
 
     return;
 }
@@ -1543,7 +1543,7 @@ sub renderTree {
 # Shows what percentage of nodes lie to the left
 ##########################################################
 
-sub renderGraph {
+sub render_graph {
     my $self = shift;
     my $lengths = $self->{total_lengths_array};
 
@@ -1584,7 +1584,7 @@ sub renderGraph {
     my $y_offset; # this puts the lowest y-value at the bottom of the graph - no wasted space
 
     my @num_lengths = map { $_->get_value('total_length_gui') } @$lengths;
-    #print "[renderGraph] lengths: @num_lengths\n";
+    #print "[render_graph] lengths: @num_lengths\n";
 
     #for (my $i = 0; $i <= $#{$lengths}; $i++) {
     foreach my $i (0 .. $#{$lengths}) {
@@ -1601,7 +1601,7 @@ sub renderGraph {
             # At the start, it is max to give value zero - the y-axis goes top-to-bottom
             $y_offset = $y_offset || $#{$lengths};
             my $segment_y = ($i * $graph_height_units) / $y_offset;
-            #print "[renderGraph] segment_y=$segment_y current_x=$current_x\n";
+            #print "[render_graph] segment_y=$segment_y current_x=$current_x\n";
 
             my $hline =  Gnome2::Canvas::Item->new (
                 $graph_group,
@@ -1633,7 +1633,7 @@ sub renderGraph {
     return;
 }
 
-sub resizeBackgroundRect {
+sub resize_background_rect {
     my $self = shift;
 
     $self->{back_rect}->set(    x2 => $self->{render_width}, y2 => $self->{render_height});
@@ -1646,7 +1646,7 @@ sub resizeBackgroundRect {
 # Drawing
 ##########################################################
 
-sub drawNode {
+sub draw_node {
     my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale) = @_;
 
     my $length = &$length_func($node) * $length_scale;
@@ -1655,8 +1655,8 @@ sub drawNode {
     my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
 
     # Draw our horizontal line
-    my $line = $self->drawLine($current_xpos, $y, $new_current_xpos, $y, $colour_ref);
-    $line->signal_connect_swapped (event => \&onEvent, $self);
+    my $line = $self->draw_line($current_xpos, $y, $new_current_xpos, $y, $colour_ref);
+    $line->signal_connect_swapped (event => \&on_event, $self);
     $line->{node} =  $node; # Remember the node (for hovering, etc...)
 
     # Remember line (for colouring, etc...)
@@ -1666,7 +1666,7 @@ sub drawNode {
     my ($ymin, $ymax);
 
     foreach my $child ($node->get_children) {
-        my $child_y = $self->drawNode($child, $new_current_xpos, $length_func, $length_scale, $height_scale);
+        my $child_y = $self->draw_node($child, $new_current_xpos, $length_func, $length_scale, $height_scale);
 
         $ymin = $child_y if ( (not defined $ymin) || $child_y <= $ymin);
         $ymax = $child_y if ( (not defined $ymax) || $child_y >= $ymax);
@@ -1674,12 +1674,12 @@ sub drawNode {
 
     # Vertical line
     if (defined $ymin) { 
-        $self->drawLine($new_current_xpos, $ymin, $new_current_xpos, $ymax, DEFAULT_LINE_COLOUR);
+        $self->draw_line($new_current_xpos, $ymin, $new_current_xpos, $ymax, DEFAULT_LINE_COLOUR);
     }
     return $y;
 }
 
-sub drawLine {
+sub draw_line {
     my ($self, $x1, $y1, $x2, $y2, $colour_ref) = @_;
     #print "Line ($x1,$y1) - ($x2,$y2)\n";
 
@@ -1706,7 +1706,7 @@ sub drawLine {
 # Call callback functions and mark elements under the node
 # If clicked on, marks will be retained. If only hovered, they're
 # cleared when user leaves node
-sub onEvent {
+sub on_event {
     my ($self, $event, $line) = @_;
 
     my $node = $line->{node};
@@ -1773,7 +1773,7 @@ sub onEvent {
         # Just click - colour nodes
         }
         elsif ($event->button == 1) {
-            $self->doColourNodesBelow($node);
+            $self->do_colour_nodes_below($node);
             if (defined $self->{click_func}) {
                 $f = $self->{click_func};
                 &$f($node);
@@ -1800,12 +1800,12 @@ sub onEvent {
 }
 
 # Implements panning the grid
-sub onBackgroundEvent {
+sub on_background_event {
     my ($self, $event, $item) = @_;
 
     if ( $event->type eq 'button-press') {
         if ($event->button == 1) {
-            $self->doColourNodesBelow;  #  no arg will clear colouring
+            $self->do_colour_nodes_below;  #  no arg will clear colouring
             if (defined $self->{click_func}) {
                 my $f = $self->{click_func};
                 &$f();
@@ -1830,9 +1830,9 @@ sub onBackgroundEvent {
         $self->{dragging} = 0;
 
         # FIXME: WHAT IS THIS (obsolete??)
-        # If clicked without dragging, we also remove the element mark (see onEvent)
+        # If clicked without dragging, we also remove the element mark (see on_event)
         if (not $self->{dragged}) {
-            #$self->markElements(undef);
+            #$self->mark_elements(undef);
             if ($self->{click_line}) {
                 $self->{click_line}->set(fill_color => 'black');
             }
@@ -1870,8 +1870,8 @@ sub onBackgroundEvent {
             $self->{centre_y} = $self->{centre_y} / $self->{height_scale};
 
             #print "[Pan] panned\n";
-            $self->centreTree();
-            $self->updateScrollbars();
+            $self->centre_tree();
+            $self->update_scrollbars();
 
             $self->{dragged} = 1;
         }
@@ -1881,26 +1881,26 @@ sub onBackgroundEvent {
 }
 
 #FIXME: we render our canvases twice!! 
-#  here and in the main dendrogram's onResize()
+#  here and in the main dendrogram's on_resize()
 #  as far as I remember, this was due to issues keeping both graphs in sync
-sub onGraphResize {
+sub on_graph_resize {
     my ($self, $size) = @_;
     $self->{graph_height_px} = $size->height;
 
     if (exists $self->{unscaled_width}) {
-        $self->renderTree;
-        $self->renderGraph;
-        $self->repositionSliders;
+        $self->render_tree;
+        $self->render_graph;
+        $self->reposition_sliders;
 
-        $self->centreTree;
-        $self->repositionSliders;
-        $self->setupScrollbars;
+        $self->centre_tree;
+        $self->reposition_sliders;
+        $self->setup_scrollbars;
     }
 
     return;
 }
 
-sub onResize {
+sub on_resize {
     my ($self, $size)  = @_;
     $self->{width_px}  = $size->width;
     $self->{height_px} = $size->height;
@@ -1913,28 +1913,28 @@ sub onResize {
     if ($self->{render_width} == 0 || $self->{zoom_fit} == 1) {
         $self->{render_width} = $size->width;
         $resize_bk = 1;
-        #$self->resizeBackgroundRect();
+        #$self->resize_background_rect();
     }
     if ($self->{render_height} == 0 || $self->{zoom_fit} == 1) {
         $self->{render_height} = $size->height;
         $resize_bk = 1;
-        #$self->resizeBackgroundRect();
+        #$self->resize_background_rect();
     }
 
-    $self->resizeBackgroundRect() if $resize_bk;
+    $self->resize_background_rect() if $resize_bk;
 
     if (exists $self->{unscaled_width}) {
 
-        #print "[onResize] width px=$self->{width_px} render=$self->{render_width}\n";
-        #print "[onResize] height px=$self->{height_px} render=$self->{render_height}\n";
+        #print "[on_resize] width px=$self->{width_px} render=$self->{render_width}\n";
+        #print "[on_resize] height px=$self->{height_px} render=$self->{render_height}\n";
 
-        $self->renderTree();
-        $self->renderGraph();
-        $self->centreTree();
+        $self->render_tree();
+        $self->render_graph();
+        $self->centre_tree();
 
-        $self->repositionSliders();
+        $self->reposition_sliders();
 
-        $self->setupScrollbars();
+        $self->setup_scrollbars();
 
         # Set visible region
         $self->{canvas}->set_scroll_region(0, 0, $size->width, $size->height);
@@ -1953,7 +1953,7 @@ sub clamp {
 ##########################################################
 # Scrolling
 ##########################################################
-sub setupScrollbars {
+sub setup_scrollbars {
     my $self = shift;
     return if not $self->{render_width};
 
@@ -1975,19 +1975,19 @@ sub setupScrollbars {
     return;
 }
 
-sub updateScrollbars {
+sub update_scrollbars {
     my $self = shift;
 
-    #print "[updateScrollbars] centre x:$self->{centre_x} y:$self->{centre_y}\n";
-    #print "[updateScrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}\n";
+    #print "[update_scrollbars] centre x:$self->{centre_x} y:$self->{centre_y}\n";
+    #print "[update_scrollbars] scale  x:$self->{length_scale} y:$self->{height_scale}\n";
 
     $self->{hadjust}->set_value($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
-    #print "[updateScrollbars] set hadjust to ";
+    #print "[update_scrollbars] set hadjust to ";
     #print ($self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2);
     #print "\n";
 
     $self->{vadjust}->set_value($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
-    #print "[updateScrollbars] set vadjust to ";
+    #print "[update_scrollbars] set vadjust to ";
     #print ($self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2);
     #print "\n";
 
@@ -2002,7 +2002,7 @@ sub onHScroll {
         $self->{centre_x} = ($h + $self->{width_px} / 2) / $self->{length_scale};
 
         #print "[onHScroll] centre x:$self->{centre_x}\n";
-        $self->centreTree;
+        $self->centre_tree;
     }
 
     return;
@@ -2016,20 +2016,20 @@ sub onVScroll {
         $self->{centre_y} = ($v + $self->{height_px} / 2) / $self->{height_scale};
 
         #print "[onVScroll] centre y:$self->{centre_y}\n";
-        $self->centreTree;
+        $self->centre_tree;
     }
 
     return;
 }
 
-sub centreTree {
+sub centre_tree {
     my $self = shift;
     return if !defined $self->{lines_group};
     
     my $xoffset = $self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2;
     my $yoffset = $self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2;
 
-    #print "[centreTree] scroll xoffset=$xoffset  yoffset=$yoffset\n";
+    #print "[centre_tree] scroll xoffset=$xoffset  yoffset=$yoffset\n";
 
     my $matrix = [1,0,0,1, -1 * $xoffset, -1 * $yoffset];
     eval {$self->{lines_group}->affine_absolute($matrix)};
@@ -2039,7 +2039,7 @@ sub centreTree {
     $matrix->[5] = 0;
     eval {$self->{graph_group}->affine_absolute($matrix)};
 
-    $self->repositionSliders();
+    $self->reposition_sliders();
 
     return;
 }
@@ -2048,47 +2048,47 @@ sub centreTree {
 # Zoom
 ##########################################################
 
-sub zoomIn {
+sub zoom_in {
     my $self = shift;
 
     $self->{render_width} = $self->{render_width} * 1.5;
     $self->{render_height} = $self->{render_height} * 1.5;
 
     $self->{zoom_fit} = 0;
-    $self->postZoom();
+    $self->post_zoom();
 
     return;
 }
 
-sub zoomOut {
+sub zoom_out {
     my $self = shift;
 
     $self->{render_width} = $self->{render_width} / 1.5;
     $self->{render_height} = $self->{render_height} / 1.5;
 
     $self->{zoom_fit} = 0;
-    $self->postZoom();
+    $self->post_zoom();
 
     return;
 }
 
-sub zoomFit {
+sub zoom_fit {
     my $self = shift;
     $self->{render_width} = $self->{width_px};
     $self->{render_height} = $self->{height_px};
     $self->{zoom_fit} = 1;
-    $self->postZoom();
+    $self->post_zoom();
 
     return;
 }
 
-sub postZoom {
+sub post_zoom {
     my $self = shift;
 
-    $self->renderTree();
-    $self->renderGraph();
-    $self->repositionSliders();
-    $self->resizeBackgroundRect();
+    $self->render_tree();
+    $self->render_graph();
+    $self->reposition_sliders();
+    $self->resize_background_rect();
 
     # Convert into scaled coords
     $self->{centre_x} = $self->{centre_x} * $self->{length_scale};
@@ -2102,9 +2102,9 @@ sub postZoom {
     $self->{centre_x} = $self->{centre_x} / $self->{length_scale};
     $self->{centre_y} = $self->{centre_y} / $self->{height_scale};
 
-    $self->centreTree();
-    $self->setupScrollbars();
-    $self->updateScrollbars();
+    $self->centre_tree();
+    $self->setup_scrollbars();
+    $self->update_scrollbars();
 
     return;
 }

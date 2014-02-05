@@ -789,6 +789,28 @@ sub get_valid_region_grower_indices {
     return wantarray ? %indices : \%indices;
 }
 
+sub get_list_indices {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
+
+    my %indices;
+    foreach my $calculations (keys %$list) {
+        my $ref = $self->get_args (sub => $calculations);
+        INDEX:
+        foreach my $index (keys %{$ref->{indices}}) {
+            my $hash_ref = $ref->{indices}{$index};
+            my $type = $hash_ref->{type} // 'scalar';
+
+            next INDEX if $type ne 'list';
+
+            my $description = $ref->{indices}{$index}{description};
+            $indices{$index} = $description;
+        }
+    }
+
+    return wantarray ? %indices : \%indices;
+}
 
 sub get_valid_calculations_to_run {
     my $self = shift;

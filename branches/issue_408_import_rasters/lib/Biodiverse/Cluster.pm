@@ -19,7 +19,7 @@ our $VERSION = '0.19';
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
 use Biodiverse::TreeNode;
-use Biodiverse::SpatialParams;
+use Biodiverse::SpatialConditions;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
 use Biodiverse::Exception;
@@ -150,9 +150,7 @@ sub process_spatial_conditions_and_def_query {
     my %args = @_;
     
     #  we work with any number of spatial conditions, but default to consider everything
-    if (! defined $args{spatial_conditions}) {
-        $args{spatial_conditions} = ['sp_select_all ()'];
-    }
+    $args{spatial_conditions} //= ['sp_select_all ()'];
 
     my @spatial_conditions = @{$args{spatial_conditions}};
     #  and we remove any undefined or empty conditions
@@ -168,13 +166,13 @@ sub process_spatial_conditions_and_def_query {
         }
     }
 
-    #  now generate the spatial_params
-    my $spatial_params_array = [];
+    #  now generate the spatial_conditions
+    my $spatial_conditions_array = [];
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
-        if (! defined $spatial_params_array->[$i]) {
-            $spatial_params_array->[$i]
-              = Biodiverse::SpatialParams->new (
+        if (! defined $spatial_conditions_array->[$i]) {
+            $spatial_conditions_array->[$i]
+              = Biodiverse::SpatialConditions->new (
                     conditions   => $spatial_conditions[$i],
                     basedata_ref => $self->get_basedata_ref,
             );
@@ -182,22 +180,21 @@ sub process_spatial_conditions_and_def_query {
         $i++;
     }
     #  add true condition if needed, and always add it if user doesn't specify
-    if (scalar @$spatial_params_array == 0) {  
-        push (@$spatial_params_array, Biodiverse::SpatialParams->new (conditions => 1));
+    if (scalar @$spatial_conditions_array == 0) {  
+        push (@$spatial_conditions_array, Biodiverse::SpatialConditions->new (conditions => 1));
         push (@spatial_conditions, 1);
     }
 
     #  store for later
-    if (not defined $self->get_param ('SPATIAL_PARAMS')) {
-        $self->set_param (SPATIAL_PARAMS => $spatial_params_array)
+    if (not defined $self->get_spatial_conditions) {
+        $self->set_param (SPATIAL_CONDITIONS => $spatial_conditions_array)
     }
 
     #  let the spatial object handle the conditions stuff
     my $definition_query
-        = $self->get_param ('DEFINITION_QUERY')
-          || $args{definition_query};
+        = $self->get_def_query || $args{definition_query};
 
-    if (not defined $self->get_param ('DEFINITION_QUERY')) {
+    if (!defined $self->get_def_query) {
         $self->set_param (DEFINITION_QUERY => $definition_query);
     }
 
@@ -310,8 +307,8 @@ sub build_matrices {
 
     my $name = $args{name} || $self->get_param ('NAME') || "CLUSTERMATRIX_$index";
 
-    my @spatial_conditions = @{$self->get_param ('SPATIAL_PARAMS')};
-    my $definition_query = $self->get_param ('DEFINITION_QUERY');
+    my @spatial_conditions = @{$self->get_spatial_conditions};
+    my $definition_query   = $self->get_def_query;
     
     my $bd = $self->get_basedata_ref;
 
@@ -406,19 +403,19 @@ sub build_matrices {
     # sort to ensure consistent order - easier for debug
     my @elements_to_calc = sort keys %{$sp->get_element_hash};
 
-    my $toDo = scalar @elements_to_calc;
+    my $to_do = scalar @elements_to_calc;
 
     croak "No elements to cluster, check your spatial conditions and def query\n"
-      if not scalar $toDo;
+      if not scalar $to_do;
 
     my $progress_bar = Biodiverse::Progress->new();
     my $count = 0;
-    my $printedProgress = -1;
-    my $target_element_count = $toDo * ($toDo - 1) / 2; # n(n-1)/2
+    my $printed_progress = -1;
+    my $target_element_count = $to_do * ($to_do - 1) / 2; # n(n-1)/2
     my $progress_pfx = "Building matrix\n"
                         . "$name\n"
                         . "Target is $target_element_count matrix elements\n";
-    #print "[CLUSTER] Progress (% of $toDo elements):     ";
+    #print "[CLUSTER] Progress (% of $to_do elements):     ";
     my @processed_elements;
 
     #  Use $sp for the groups so any def query will have an effect
@@ -426,9 +423,9 @@ sub build_matrices {
     foreach my $element1 (sort @elements_to_calc) {
 
         $count ++;
-        my $progress = $count / $toDo;
+        my $progress = $count / $to_do;
         $progress_bar->update(
-            $progress_pfx . "(row $count / $toDo)",
+            $progress_pfx . "(row $count / $to_do)",
             $progress,
         );
 
@@ -481,11 +478,11 @@ sub build_matrices {
     my $element_check = $self->get_param ('ELEMENT_CHECK');
 
     $progress_bar->update(
-        "Building matrix\n$name\n(row $count / $toDo)",
-        $count / $toDo
+        "Building matrix\n$name\n(row $count / $to_do)",
+        $count / $to_do
     );
     $progress_bar->reset;
-    print "[CLUSTER] Completed $count of $toDo groups\n";
+    print "[CLUSTER] Completed $count of $to_do groups\n";
 
     print "[CLUSTER] Valid value count is $valid_count\n";
     if (! $valid_count) {
@@ -923,7 +920,7 @@ sub cluster_matrix_elements {
     local $| = 1;  #  write to screen as we go
 
     my $count = 0;
-    my $printedProgress = -1;
+    my $printed_progress = -1;
     
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
@@ -957,10 +954,10 @@ sub cluster_matrix_elements {
         #  use node refs for children that are nodes
         #  use original name if not a node
         #  - this is where the name for $el1 comes from (a historical leftover)
-        my $lengthBelow = 0;
-        my $nodeNames = $self->get_node_hash;
-        my $el1 = defined $nodeNames->{$node1} ? $nodeNames->{$node1} : $node1;
-        my $el2 = defined $nodeNames->{$node2} ? $nodeNames->{$node2} : $node2;
+        my $length_below = 0;
+        my $node_names = $self->get_node_hash;
+        my $el1 = defined $node_names->{$node1} ? $node_names->{$node1} : $node1;
+        my $el2 = defined $node_names->{$node2} ? $node_names->{$node2} : $node2;
 
         my $new_node_name = $join_number . "___";
 
@@ -1062,7 +1059,8 @@ sub get_most_similar_pair {
         my %tmp = @$tie_breaker;
         my @tie_keys = keys %tmp;
 
-        #  Sort ensures same order each time, thus stabilising random results
+        #  Sort ensures same order each time, thus stabilising random and "none" results
+        #  should avoid sorting if they are not being used
         foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
             no autovivification;
 
@@ -1089,17 +1087,18 @@ sub get_most_similar_pair {
                     element_list1 => $el_lists[0],
                     element_list2 => $el_lists[1],
                 );
-                $results{random} = $rand->rand;  #  add values for non-index options, keep them consistet across all runs
+                $results{random} = $rand->rand;  #  add values for non-index options, keep them consistent across all runs
                 $results{none}   = 0;
 
                 #  remove any keys we won't use for tie breakers
+                #  - should just grab a slice and add rand and none if needed
                 my %tmp = %results;
                 delete @tmp{@tie_keys};
                 delete @results{keys %tmp};
                 $calc_results = \%results;
                 $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $calc_results;
             }
-            my %calc_res = %$calc_results;
+            my %calc_res = %$calc_results; #  why is this being copied?
 
             my $itx = natatime 2, @$tie_breaker;
             my $sub_res = [];
@@ -1121,14 +1120,17 @@ sub get_most_similar_pair {
         #print "\nChosen = $node1, $node2\n";
         if ($tie_breaker_cache) {  #  cleanup
             no autovivification;
-            do {      delete $tie_breaker_cache->{$node1}{$node2}   #  delete our chosen pair
-                      && !$tie_breaker_cache->{$node1}              #  and, if parent is empty
-                      && delete $tie_breaker_cache->{$node1}}       #  then delete that too
-                //
-                do {  delete $tie_breaker_cache->{$node2}{$node1}   #  also the reverse
-                      && !$tie_breaker_cache->{$node2}
-                      && delete $tie_breaker_cache->{$node2}
-                };
+            do {
+                delete $tie_breaker_cache->{$node1}{$node2}   #  delete our chosen pair
+                && !$tie_breaker_cache->{$node1}              #  and, if parent is empty
+                && delete $tie_breaker_cache->{$node1}        #  then delete that too
+            }
+            //
+            do {
+                delete $tie_breaker_cache->{$node2}{$node1}   #  also the reverse
+                && !$tie_breaker_cache->{$node2}
+                && delete $tie_breaker_cache->{$node2}
+            };
         }
     }
 
@@ -1187,15 +1189,16 @@ sub run_tie_breaker {
     COMP:
     while (my ($breaker, $optimisation) = $it->()) {
         $i ++;
-        my @comps = ($pair1->[$i], $pair2->[$i]);
-        if ($optimisation =~ '^max') {
-            @comps = reverse @comps;
-        }
-        my $comp_result = $comps[0] <=> $comps[1];
+
+        my $comp_result = $pair1->[$i] <=> $pair2->[$i];
 
         next COMP if !$comp_result;
-        return $pair1 if $comp_result < 0;
-        return $pair2;
+
+        if ($optimisation =~ /^max/) {  #  need to reverse the comparison result
+            $comp_result *= -1;
+        }
+
+        return $comp_result < 0 ? $pair1 : $pair2;
     }
 
     return $pair1;  #  we only had ties
@@ -1431,9 +1434,7 @@ sub cluster {
             #  now we clean up all the empty nodes in the other indexes
             if (scalar @now_empty) {
 
-                print '[CLUSTER] Deleting '
-                      . scalar @now_empty
-                      . " empty nodes\n";
+                say '[CLUSTER] Deleting ' . scalar @now_empty . ' empty nodes';
 
                 $self->delete_from_node_hash (nodes => \@now_empty);
             }
@@ -1675,10 +1676,10 @@ sub get_values_for_linkage {
     }
     else {
         warn "two node linkage case\n";
-        my $nodeRef1 = $self->get_node_ref (node => $node1);
-        my $nodeRef2 = $self->get_node_ref (node => $node2);
-        $tmp1 = $nodeRef1->get_length_below;
-        $tmp2 = $nodeRef2->get_length_below;
+        my $node_ref_1 = $self->get_node_ref (node => $node1);
+        my $node_ref_2 = $self->get_node_ref (node => $node2);
+        $tmp1 = $node_ref_1->get_length_below;
+        $tmp2 = $node_ref_2->get_length_below;
     }
 
     return wantarray ? ($tmp1, $tmp2) : [$tmp1, $tmp2];
@@ -1999,11 +2000,11 @@ sub sp_calc {
     $indices_object->run_precalc_globals(%args);
 
     local $| = 1;  #  write to screen as we go
-    my $toDo = $self->get_node_count;
-    my ($count, $printedProgress) = (0, -1);
+    my $to_do = $self->get_node_count;
+    my ($count, $printed_progress) = (0, -1);
     my $tree_name = $self->get_param ('NAME');
 
-    print "[CLUSTER] Progress (% of $toDo nodes):     ";
+    print "[CLUSTER] Progress (% of $to_do nodes):     ";
     my $progress_bar = Biodiverse::Progress->new();
 
     #  loop though the nodes and calculate the outputs
@@ -2012,8 +2013,8 @@ sub sp_calc {
 
         $progress_bar->update (
             "Cluster spatial analysis\n"
-            . "$tree_name\n(node $count / $toDo)",
-            $count / $toDo,
+            . "$tree_name\n(node $count / $to_do)",
+            $count / $to_do,
         );
 
         my %elements = (element_list1 => [keys %{$node->get_terminal_elements}]);

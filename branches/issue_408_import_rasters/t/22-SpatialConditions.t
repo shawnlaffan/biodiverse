@@ -15,7 +15,7 @@ use Test::More;
 local $| = 1;
 
 use Biodiverse::BaseData;
-use Biodiverse::SpatialParams;
+use Biodiverse::SpatialConditions;
 use Biodiverse::TestHelpers qw {:basedata};
 
 #  need to build these from tables
@@ -236,24 +236,24 @@ sub run_tests {
 
             #diag $cond;
 
-            my $sp_params = Biodiverse::SpatialParams->new (
+            my $sp_conditions = Biodiverse::SpatialConditions->new (
                 conditions => $cond,
             );
             
             if ($index) {
                 $index_offsets = $index->predict_offsets (
-                    spatial_params    => $sp_params,
-                    cellsizes         => $bd->get_param ('CELL_SIZES'),
+                    spatial_conditions => $sp_conditions,
+                    cellsizes          => $bd->get_param ('CELL_SIZES'),
                     #progress_text_pfx => $progress_text_pfx,
                 );
             }
 
             my $nbrs = eval {
                 $bd->get_neighbours (
-                    element        => $element,
-                    spatial_params => $sp_params,
-                    index          => $index,
-                    index_offsets  => $index_offsets,
+                    element            => $element,
+                    spatial_conditions => $sp_conditions,
+                    index              => $index,
+                    index_offsets      => $index_offsets,
                 );
             };
             croak $EVAL_ERROR if $EVAL_ERROR;
@@ -265,7 +265,10 @@ sub run_tests {
         foreach my $r (@$res) {
             push @index_res, $r * $i;
         }
-        $index = $bd->build_spatial_index (resolutions => [@index_res], version => $index_version);
+        $index = $bd->build_spatial_index (
+            resolutions => [@index_res],
+            version     => $index_version,
+        );
         $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
     }
 

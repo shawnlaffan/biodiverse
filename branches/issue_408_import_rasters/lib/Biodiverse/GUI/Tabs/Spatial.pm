@@ -38,13 +38,13 @@ sub new {
     my $output_ref = shift; # will be undef if none specified
     
     my $self = {gui => Biodiverse::GUI::GUIManager->instance()};
-    $self->{project} = $self->{gui}->getProject();
+    $self->{project} = $self->{gui}->get_project();
     bless $self, $class;
 
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'vpaneSpatial');
-    $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'hboxSpatialLabel');
+    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'vpaneSpatial');
+    $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxSpatialLabel');
 
     my $page  = $self->{xmlPage}->get_widget('vpaneSpatial');
     my $label = $self->{xmlLabel}->get_widget('hboxSpatialLabel');
@@ -64,10 +64,10 @@ sub new {
     if (not defined $output_ref) {
         # We're being called as a NEW output
         # Generate a new output name
-        my $bd = $self->{basedata_ref} = $self->{project}->getSelectedBaseData;
+        my $bd = $self->{basedata_ref} = $self->{project}->get_selected_base_data;
         
         if (not blessed ($bd)) {  #  this should be fixed now
-            $self->onClose;
+            $self->on_close;
             croak "Basedata ref undefined - click on the basedata object in "
                     . "the outputs tab to select it (this is a bug)\n";
         }
@@ -79,25 +79,25 @@ sub new {
                     $self->{basedata_ref}->get_param ('NAME')
                 );
             if (not $response eq 'yes') {
-                $self->onClose;
+                $self->on_close;
                 croak "User cancelled operation\n";
             }
         }
 
-        $self->{output_name} = $self->{project}->makeNewOutputName(
+        $self->{output_name} = $self->{project}->make_new_output_name(
             $self->{basedata_ref},
             'Spatial'
         );
         print "[Spatial tab] New spatial output " . $self->{output_name} . "\n";
 
-        $self->queueSetPane(1);
+        $self->queue_set_pane(1);
         $self->{existing} = 0;
     }
     else {
         # We're being called to show an EXISTING output
 
         # Register as a tab for this output
-        $self->registerInOutputsModel($output_ref, $self);
+        $self->register_in_outputs_model($output_ref, $self);
         
         
         $elt_count = $output_ref->get_element_count;
@@ -113,10 +113,10 @@ sub new {
               . "\n";
 
         if ($elt_count and $completed) {
-            $self->queueSetPane(0.01);
+            $self->queue_set_pane(0.01);
         }
         else {
-            $self->queueSetPane(1);
+            $self->queue_set_pane(1);
         }
         $self->{existing} = 1;
     }
@@ -135,15 +135,15 @@ sub new {
     my $initial_def1 = $NULL_STRING;
     if ($self->{existing}) {
         
-        my $spatial_params = $output_ref->get_param ('SPATIAL_PARAMS');
+        my $spatial_conditions = $output_ref->get_spatial_conditions;
         #  allow for empty conditions
         $initial_sp1
-            = defined $spatial_params->[0]
-            ? $spatial_params->[0]->get_conditions_unparsed()
+            = defined $spatial_conditions->[0]
+            ? $spatial_conditions->[0]->get_conditions_unparsed()
             : $NULL_STRING;
         $initial_sp2
-            = defined $spatial_params->[1]
-            ? $spatial_params->[1]->get_conditions_unparsed()
+            = defined $spatial_conditions->[1]
+            ? $spatial_conditions->[1]->get_conditions_unparsed()
             : $NULL_STRING;
         
         my $definition_query = $output_ref->get_param ('DEFINITION_QUERY');
@@ -154,9 +154,9 @@ sub new {
     }
     else {
         my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
-        my $cellX = $cell_sizes->[0];
+        my $cell_x = $cell_sizes->[0];
         $initial_sp1 = 'sp_self_only ()';
-        $initial_sp2 = "sp_circle (radius => $cellX)";
+        $initial_sp2 = "sp_circle (radius => $cell_x)";
     }
 
     $self->{spatial1} = Biodiverse::GUI::SpatialParams->new($initial_sp1);
@@ -192,12 +192,12 @@ sub new {
     
 
     $self->{calculations_model}
-        = Biodiverse::GUI::Tabs::CalculationsTree::makeCalculationsModel (
+        = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model (
             $self->{basedata_ref},
             $output_ref,
     );
 
-    Biodiverse::GUI::Tabs::CalculationsTree::initCalculationsTree(
+    Biodiverse::GUI::Tabs::CalculationsTree::init_calculations_tree(
         $self->{xmlPage}->get_widget('treeCalculations'),
         $self->{calculations_model},
     );
@@ -205,35 +205,35 @@ sub new {
     #  only set it up if it exists (we get errors otherwise)
     if ($completed and $elt_count) {
         eval {
-            $self->initGrid();
+            $self->init_grid();
         };
         if ($EVAL_ERROR) {
             $self->{gui}->report_error ($EVAL_ERROR);
-            $self->onClose;
+            $self->on_close;
         }
     }
-    $self->initListsCombo();
-    $self->initOutputIndicesCombo();
+    $self->init_lists_combo();
+    $self->init_output_indices_combo();
     
 
     #  NEED TO CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     # Connect signals
-    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(clicked   => \&onClose,                 $self);
-    $self->{xmlPage} ->get_widget('btnSpatialRun')  ->signal_connect_swapped(clicked   => \&onRun,                   $self);
-    $self->{xmlPage} ->get_widget('btnOverlays')    ->signal_connect_swapped(clicked   => \&onOverlays,              $self);
+    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(clicked   => \&on_close,                 $self);
+    $self->{xmlPage} ->get_widget('btnSpatialRun')  ->signal_connect_swapped(clicked   => \&on_run,                   $self);
+    $self->{xmlPage} ->get_widget('btnOverlays')    ->signal_connect_swapped(clicked   => \&on_overlays,              $self);
     #  btnAddParam gone for now - retrieve from glade file pre svn 1206
-    #$self->{xmlPage} ->get_widget('btnAddParam')    ->signal_connect_swapped(clicked   => \&onAddParam,              $self);
-    $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&onNameChanged,           $self);
-    $self->{xmlPage} ->get_widget('comboIndices')->signal_connect_swapped(changed => \&onActiveIndexChanged, $self);
-    $self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&onActiveListChanged,     $self);
-    $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&onColoursChanged,        $self);
-    $self->{xmlPage} ->get_widget('comboNeighbours')->signal_connect_swapped(changed   => \&onNeighboursChanged,     $self);
-    $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed   => \&onStretchChanged,     $self);
+    #$self->{xmlPage} ->get_widget('btnAddParam')    ->signal_connect_swapped(clicked   => \&on_add_param,              $self);
+    $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&on_name_changed,           $self);
+    $self->{xmlPage} ->get_widget('comboIndices')->signal_connect_swapped(changed => \&on_active_index_changed, $self);
+    $self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&on_active_list_changed,     $self);
+    $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&on_colours_changed,        $self);
+    $self->{xmlPage} ->get_widget('comboNeighbours')->signal_connect_swapped(changed   => \&on_neighbours_changed,     $self);
+    $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed   => \&on_stretch_changed,     $self);
 
-    $self->{xmlPage} ->get_widget('btnZoomIn')      ->signal_connect_swapped(clicked   => \&onZoomIn,                $self);
-    $self->{xmlPage} ->get_widget('btnZoomOut')     ->signal_connect_swapped(clicked   => \&onZoomOut,               $self);
-    $self->{xmlPage} ->get_widget('btnZoomFit')     ->signal_connect_swapped(clicked   => \&onZoomFit,               $self);
-    $self->{xmlPage} ->get_widget('colourButton')   ->signal_connect_swapped(color_set => \&onColourSet,             $self);
+    $self->{xmlPage} ->get_widget('btnZoomIn')      ->signal_connect_swapped(clicked   => \&on_zoom_in,                $self);
+    $self->{xmlPage} ->get_widget('btnZoomOut')     ->signal_connect_swapped(clicked   => \&on_zoom_out,               $self);
+    $self->{xmlPage} ->get_widget('btnZoomFit')     ->signal_connect_swapped(clicked   => \&on_zoom_fit,               $self);
+    $self->{xmlPage} ->get_widget('colourButton')   ->signal_connect_swapped(color_set => \&on_colour_set,             $self);
     
 
     $self->set_frame_label_widget;
@@ -316,7 +316,7 @@ sub on_show_hide_parameters {
 }
 
 
-sub initGrid {
+sub init_grid {
     my $self = shift;
     my $frame   = $self->{xmlPage}->get_widget('gridFrame');
     my $hscroll = $self->{xmlPage}->get_widget('gridHScroll');
@@ -325,11 +325,11 @@ sub initGrid {
 #print "Initialising grid\n";
 
     # Use closure to automatically pass $self (which grid doesn't know)
-    my $hover_closure = sub { $self->onGridHover(@_); };
+    my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $click_closure = sub {
-        Biodiverse::GUI::CellPopup::cellClicked(
+        Biodiverse::GUI::CellPopup::cell_clicked(
             $_[0],
-            $self->{grid}->getBaseStruct,
+            $self->{grid}->get_base_struct,
         );
     };
 
@@ -351,14 +351,14 @@ sub initGrid {
         $completed = 1 if not defined $completed;  
         
         if (defined $data and $elt_count and $completed) {
-            $self->{grid}->setBaseStruct ($data);
+            $self->{grid}->set_base_struct ($data);
         }
     }
 
     return;
 }
 
-sub initListsCombo {
+sub init_lists_combo {
     my $self = shift;
 
 
@@ -369,13 +369,13 @@ sub initListsCombo {
 
     # Only do this if we aren't a new spatial analysis...
     if ($self->{existing}) {
-        $self->updateListsCombo();
+        $self->update_lists_combo();
     }
     
     return;
 }
 
-sub initOutputIndicesCombo {
+sub init_output_indices_combo {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_widget('comboIndices');
@@ -385,17 +385,17 @@ sub initOutputIndicesCombo {
 
     # Only do this if we aren't a new spatial analysis...
     if ($self->{existing}) {
-        $self->updateOutputIndicesCombo();
+        $self->update_output_indices_combo();
     }
     
     return;
 }
 
-sub updateListsCombo {
+sub update_lists_combo {
     my $self = shift;
 
     # Make the model
-    $self->{output_lists_model} = $self->makeListsModel();
+    $self->{output_lists_model} = $self->make_lists_model();
     my $combo = $self->{xmlPage}->get_widget('comboLists');
     $combo->set_model($self->{output_lists_model});
 
@@ -415,16 +415,16 @@ sub updateListsCombo {
     if ($selected) {
         $combo->set_active_iter($selected);
     }
-    $self->onActiveListChanged($combo);
+    $self->on_active_list_changed($combo);
     
     return;
 }
 
-sub updateOutputIndicesCombo {
+sub update_output_indices_combo {
     my $self = shift;
 
     # Make the model
-    $self->{output_indices_model} = $self->makeOutputIndicesModel();
+    $self->{output_indices_model} = $self->make_output_indices_model();
     my $combo = $self->{xmlPage}->get_widget('comboIndices');
     $combo->set_model($self->{output_indices_model});
 
@@ -445,7 +445,7 @@ sub updateOutputIndicesCombo {
     if ($selected) {
         $combo->set_active_iter($selected);
     }
-    $self->onActiveIndexChanged($combo);
+    $self->on_active_index_changed($combo);
     
     return;
 }
@@ -453,7 +453,7 @@ sub updateOutputIndicesCombo {
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub makeOutputIndicesModel {
+sub make_output_indices_model {
     my $self = shift;
     my $list_name = $self->{selected_list};
     my $output_ref = $self->{output_ref};
@@ -507,7 +507,7 @@ sub makeOutputIndicesModel {
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub makeListsModel {
+sub make_lists_model {
     my $self = shift;
     my $output_ref = $self->{output_ref};
 
@@ -536,42 +536,42 @@ sub makeListsModel {
 ##################################################
 
 # Sets the vertical pane's position (0 -> all the way down | 1 -> fully up)
-sub setPane {
+sub set_pane {
     my $self = shift;
     my $pos = shift;
 
     my $pane = $self->{xmlPage}->get_widget("vpaneSpatial");
     
-    my $maxPos = $pane->get('max-position');
-    $pane->set_position( $maxPos * $pos );
-    #print "[Spatial tab] Updating pane: maxPos = $maxPos, pos = $pos\n";
+    my $max_pos = $pane->get('max-position');
+    $pane->set_position( $max_pos * $pos );
+    #print "[Spatial tab] Updating pane: maxPos = $max_pos, pos = $pos\n";
     
     return;
 }
 
-# This will schedule setPane to be called from a temporary signal handler
+# This will schedule set_pane to be called from a temporary signal handler
 # Need when the pane hasn't got it's size yet and doesn't know its max position
-sub queueSetPane {
+sub queue_set_pane {
     my $self = shift;
     my $pos = shift;
 
     my $pane = $self->{xmlPage}->get_widget("vpaneSpatial");
 
     # remember id so can disconnect later
-    my $id = $pane->signal_connect_swapped("size-allocate", \&Biodiverse::GUI::Tabs::Spatial::setPaneSignal, $self);
-    $self->{setPaneSignalID} = $id;
-    $self->{setPanePos} = $pos;
+    my $id = $pane->signal_connect_swapped("size-allocate", \&Biodiverse::GUI::Tabs::Spatial::set_pane_signal, $self);
+    $self->{set_pane_signalID} = $id;
+    $self->{set_panePos} = $pos;
     
     return;
 }
 
-sub setPaneSignal {
+sub set_pane_signal {
     my $self = shift; shift;  #  FIXME FIXME - check why double shift, assign vars directly from list my ($self, undef, $pane) = @_;
     my $pane = shift;
-    $self->setPane( $self->{setPanePos} );
-    $pane->signal_handler_disconnect( $self->{setPaneSignalID} );
-    delete $self->{setPanePos};
-    delete $self->{setPaneSignalID};
+    $self->set_pane( $self->{set_panePos} );
+    $pane->signal_handler_disconnect( $self->{set_pane_signalID} );
+    delete $self->{set_panePos};
+    delete $self->{set_pane_signalID};
     
     return;
 }
@@ -581,7 +581,7 @@ sub setPaneSignal {
 ##################################################
 
 
-sub getType {
+sub get_type {
     return "spatial";
 }
 
@@ -602,17 +602,17 @@ sub remove {
 ##################################################
 # Running analyses
 ##################################################
-sub onRun {
+sub on_run {
     my $self = shift;
 
     # Load settings...
     $self->{output_name} = $self->{xmlPage}->get_widget('txtSpatialName')->get_text();
 
     # Get calculations to run
-    my @toRun
-        = Biodiverse::GUI::Tabs::CalculationsTree::getCalculationsToRun( $self->{calculations_model} );
+    my @to_run
+        = Biodiverse::GUI::Tabs::CalculationsTree::get_calculations_to_run( $self->{calculations_model} );
 
-    if (scalar @toRun == 0) {
+    if (scalar @to_run == 0) {
         my $dlg = Gtk2::MessageDialog->new(
             undef,
             'modal',
@@ -648,7 +648,7 @@ sub onRun {
         
         #  remove original object, we are recreating it
         $self->{basedata_ref}->delete_output(output => $self->{output_ref});
-        $self->{project}->deleteOutput($self->{output_ref});
+        $self->{project}->delete_output($self->{output_ref});
         $self->{existing} = 0;
         $new_result = 0;
     }
@@ -665,7 +665,7 @@ sub onRun {
     }
 
     $self->{output_ref} = $output_ref;
-    $self->{project}->addOutput($self->{basedata_ref}, $output_ref);
+    $self->{project}->add_output($self->{basedata_ref}, $output_ref);
 
     my %args = (
         spatial_conditions  => [
@@ -673,13 +673,13 @@ sub onRun {
             $self->{spatial2}->get_text(),
         ],
         definition_query    => $self->{definition_query1}->get_text(),
-        calculations        => \@toRun,
-        matrix_ref          => $self->{project}->getSelectedMatrix,
-        tree_ref            => $self->{project}->getSelectedPhylogeny,
+        calculations        => \@to_run,
+        matrix_ref          => $self->{project}->get_selected_matrix,
+        tree_ref            => $self->{project}->get_selected_phylogeny,
     );
 
     # Perform the analysis
-    print "[Spatial tab] Running @toRun\n";
+    print "[Spatial tab] Running @to_run\n";
     #$self->{output_ref}->sp_calc(%args);
     my $success = eval {
         $output_ref->sp_calc(%args)
@@ -689,13 +689,13 @@ sub onRun {
     }
     
     if ($success) {
-        $self->registerInOutputsModel($output_ref, $self);
+        $self->register_in_outputs_model($output_ref, $self);
     }
 
-    $self->{project}->updateIndicesRows($output_ref);
+    $self->{project}->update_indices_rows($output_ref);
 
     if (not $success) {
-        $self->onClose;  #  close the tab to avoid horrible problems with multiple instances
+        $self->on_close;  #  close the tab to avoid horrible problems with multiple instances
         return;  # sp_calc dropped out for some reason, eg no valid calculations.
     }
 
@@ -712,21 +712,21 @@ sub onRun {
 
     if ($response eq 'yes') {
         # If just ran a new analysis, pull up the pane
-        $self->setPane(0.01);
+        $self->set_pane(0.01);
     
         # Update output display if we are a new result
         # or grid is not defined yet (this can happen)
         if ($new_result || !defined $self->{grid}) {
-            eval {$self->initGrid()};
+            eval {$self->init_grid()};
             if ($EVAL_ERROR) {
                 $self->{gui}->report_error ($EVAL_ERROR);
             }
         }
         #  else reuse the grid and just reset the basestruct
         elsif (defined $output_ref) {
-            $self->{grid}->setBaseStruct($output_ref);
+            $self->{grid}->set_base_struct($output_ref);
         }
-        $self->updateListsCombo(); # will display first analysis as a side-effect...
+        $self->update_lists_combo(); # will display first analysis as a side-effect...
     }
 
     return;
@@ -738,7 +738,7 @@ sub onRun {
 
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
-sub onGridHover {
+sub on_grid_hover {
     my $self = shift;
     my $element = shift;
 
@@ -787,15 +787,15 @@ sub onGridHover {
 
 
         if ($neighbours eq 'Set1' || $neighbours eq 'Both') {
-            $self->{grid}->markIfExists(\%nbrs_hash_inner, 'circle');
+            $self->{grid}->mark_if_exists(\%nbrs_hash_inner, 'circle');
         }
         if ($neighbours eq 'Set2' || $neighbours eq 'Both') {
-            $self->{grid}->markIfExists(\%nbrs_hash_outer, 'minus');
+            $self->{grid}->mark_if_exists(\%nbrs_hash_outer, 'minus');
         }
     }
     else {
-        $self->{grid}->markIfExists({}, 'circle');
-        $self->{grid}->markIfExists({}, 'minus');
+        $self->{grid}->mark_if_exists({}, 'circle');
+        $self->{grid}->mark_if_exists({}, 'minus');
     }
     
     return;
@@ -803,7 +803,7 @@ sub onGridHover {
 
 # Keep name in sync with the tab label
 # and do a rename if the object exists
-sub onNameChanged {
+sub on_name_changed {
     my $self = shift;
     
     my $xml_page = $self->{xmlPage};
@@ -852,7 +852,7 @@ sub onNameChanged {
             return;
         }
 
-        $self->{project}->updateOutputName( $object );
+        $self->{project}->update_output_name( $object );
         $self->{output_name} = $name;
     }
     
@@ -861,7 +861,7 @@ sub onNameChanged {
 
 
 # Called by output tab to make us show an analysis result
-sub showAnalysis {
+sub show_analysis {
     my $self = shift;
     my $name = shift;
 
@@ -870,13 +870,13 @@ sub showAnalysis {
     # selecting what we want
 
     $self->{selected_index} = $name;
-    $self->updateListsCombo();
-    $self->updateOutputIndicesCombo();
+    $self->update_lists_combo();
+    $self->update_output_indices_combo();
     
     return;
 }
 
-sub onActiveListChanged {
+sub on_active_list_changed {
     my $self = shift;
     my $combo = shift;
 
@@ -884,13 +884,13 @@ sub onActiveListChanged {
     my ($list) = $self->{output_lists_model}->get($iter, 0);
 
     $self->{selected_list} = $list;
-    $self->updateOutputIndicesCombo();
+    $self->update_output_indices_combo();
     
     return;
 }
 
-#  should be called onActiveIndexChanged, but many such occurrences need to be edited
-sub onActiveIndexChanged {
+#  should be called on_active_index_changed, but many such occurrences need to be edited
+sub on_active_index_changed {
     my $self = shift;
     my $combo = shift
               ||  $self->{xmlPage}->get_widget('comboIndices');
@@ -958,7 +958,7 @@ sub set_plot_min_max_values {
 #    return;
 #}
 
-sub onStretchChanged {
+sub on_stretch_changed {
     my $self = shift;
     my $sel = $self->{xmlPage}->get_widget('comboSpatialStretch')->get_active_text();
     
@@ -969,7 +969,7 @@ sub onStretchChanged {
     $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
     $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
 
-    $self->onActiveIndexChanged;
+    $self->on_active_index_changed;
 
     return;
 }
@@ -987,62 +987,62 @@ sub recolour {
     my $index = $self->{selected_index};
 
     my $colour_func = sub {
-        my $elt = shift;
+        my $elt = shift // return;
         my $val = $elements_hash->{$elt}{$list}{$index};
         return defined $val
-            ? $grid->getColour($val, $min, $max)
+            ? $grid->get_colour($val, $min, $max)
             : undef;
     };
 
     $grid->colour($colour_func);
-    $grid->setLegendMinMax($min, $max);
+    $grid->set_legend_min_max($min, $max);
     
     return;
 }
 
-sub onZoomIn {
+sub on_zoom_in {
     my $self = shift;
     
-    $self->{grid}->zoomIn();
+    $self->{grid}->zoom_in();
     
     return;
 }
 
-sub onZoomOut {
+sub on_zoom_out {
     my $self = shift;
     
-    $self->{grid}->zoomOut();
+    $self->{grid}->zoom_out();
     
     return;
 }
 
-sub onZoomFit {
+sub on_zoom_fit {
     my $self = shift;
-    $self->{grid}->zoomFit();
+    $self->{grid}->zoom_fit();
     
     return;
 }
 
-sub onColoursChanged {
+sub on_colours_changed {
     my $self = shift;
     my $colours = $self->{xmlPage}->get_widget('comboColours')->get_active_text();
-    $self->{grid}->setLegendMode($colours);
+    $self->{grid}->set_legend_mode($colours);
     $self->recolour();
     
     return;
 }
 
-sub onNeighboursChanged {
+sub on_neighbours_changed {
     my $self = shift;
     my $sel = $self->{xmlPage}->get_widget('comboNeighbours')->get_active_text();
     $self->{hover_neighbours} = $sel;
 
     # Turn off markings if deselected
     if ($sel eq 'Set1' || $sel eq 'Off') {
-        $self->{grid}->markIfExists({}, 'minus');
+        $self->{grid}->mark_if_exists({}, 'minus');
     }
     if ($sel eq 'Set2' || $sel eq 'Off') {
-        $self->{grid}->markIfExists({}, 'circle');
+        $self->{grid}->mark_if_exists({}, 'circle');
     }
     
     ##  this is a dirty bodge for testing purposes
@@ -1054,7 +1054,7 @@ sub onNeighboursChanged {
 }
 
 #  should be called onSatSet
-sub onColourSet {
+sub on_colour_set {
     my $self = shift;
     my $button = shift;
 
@@ -1066,22 +1066,22 @@ sub onColourSet {
     my $active = $widget->get_active;
     
     $widget->set_active($combo_colours_hue_choice);
-    $self->{grid}->setLegendHue($button->get_color());
+    $self->{grid}->set_legend_hue($button->get_color());
     $self->recolour();
     
     return;
 }
 
-sub onOverlays {
+sub on_overlays {
     my $self = shift;
     my $button = shift;
 
-    Biodiverse::GUI::Overlays::showDialog( $self->{grid} );
+    Biodiverse::GUI::Overlays::show_dialog( $self->{grid} );
     
     return;
 }
 
-sub onAddParam {
+sub on_add_param {
     my $self = shift;
     my $button = shift; # the "add param" button
 

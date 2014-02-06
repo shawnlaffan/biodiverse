@@ -21,9 +21,9 @@ liblzma-dev
 }}}
 
 
-Compilation might need to go through the normal  steps.  Download and uncompress the tarball (maybe using cpanm).  Then in the relevant folder (editing the config path):
+Compilation might need to go through the normal  steps.  Download and uncompress the tarball (maybe using cpanm).  Then in the relevant folder (editing the config path to point to bin/gdal-config):
 {{{
-perl Makefile.PL --no-version-check --gdal-config=/path/to/headers
+perl Makefile.PL --no-version-check --gdal-config=/path/to/gdal-config
 make
 make test
 make install

@@ -225,12 +225,18 @@ sub run {
         $fnamebase =~ s/\.[^.]+?$//;  #  use lazy quantifier so we get chars from the last dot - should use Path::Class::File
         my $shapefile = Geo::ShapeFile->new($fnamebase);
 
-        my @field_names = qw /x y/; # we always have x,y data
+        my @field_names = qw {x y}; # we always have x,y data
         push (@field_names, 'z') if defined $shapefile->z_min();
         push (@field_names, 'm') if defined $shapefile->m_min();
-        $col_names_for_dialog = \@field_names;
 
-        #  need to get the remaining columns from the dbf
+        #  need to get the remaining columns from the dbf - read first record to get colnames from hash keys
+        #  these will then be fed into make_columns_dialog
+        if ($shapefile->records()) {
+        	%dbf_records = $shapefile->get_dbf_record(1); # grab first record
+        	push (@field_names, keys %dbf_records);
+        }
+
+        $col_names_for_dialog = \@field_names;
     }
     else {
         # process as text input, get columns from file

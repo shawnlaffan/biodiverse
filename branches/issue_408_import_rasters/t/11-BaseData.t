@@ -82,15 +82,17 @@ sub main {
         return 0;
     }
     
-    test_import();
-    test_import_small();
-    test_bounds();
-    test_coords_near_zero();
-    test_rename_labels();
-    test_multidimensional_import();
-    test_reorder_axes();
-    test_attach_ranges_and_sample_counts();
-
+#    test_import();
+#    test_import_small();
+#    test_bounds();
+#    test_coords_near_zero();
+#    test_rename_labels();
+#    test_multidimensional_import();
+#    test_reorder_axes();
+#    test_attach_ranges_and_sample_counts();
+#    test_roundtrip_delimited_text();
+    test_roundtrip_raster();
+    
     done_testing;
     return 0;
 }
@@ -394,6 +396,127 @@ sub test_roundtrip_delimited_text {
             foreach my $label (sort $bd->get_labels) {
                 my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
                 my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+            }
+        };
+
+        $i++;
+    }
+    
+}
+
+#  can we reimport raster files after exporting and get the same answer
+sub test_roundtrip_raster {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+    say "testing filename $fname";
+    my $e;
+
+    #  get the original - should add some labels with special characters
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    # not sure why this is used
+    $bd->add_element (group => '1.5:1.5', label => 'bazungalah smith', count => 25);
+    
+    my $lb = $bd->get_labels_ref;
+    my $gp = $bd->get_groups_ref;
+
+    #  export should return file names?  Or should we cache them on the object?
+
+    my $format = 'export_asciigrid';
+    my @out_options = ( { data => $bd } ); # not sure what parameters are needed for export
+    
+    # the raster data file won't specify the origin and cell size info, so pass as
+    # parameters.
+    # assume export was in format labels_as_bands = 0
+    my @cell_sizes           = @{$bd->get_param('CELL_SIZES')}; # probably not set anywhere, and is using the default
+    my @cell_origins         = @{$bd->get_cell_origins};    
+    my @in_options = (
+        {labels_as_bands => 0, raster_origin_e => $cell_origins[0], raster_origin_n => $cell_origins[1], 
+        raster_cellsize_e => $cell_sizes[0], raster_cellsize_n => $cell_sizes[1]}
+    );
+
+    my $i = 0;
+    foreach my $out_options_hash (@out_options) {
+        local $Data::Dumper::Sortkeys = 1;
+        local $Data::Dumper::Purity   = 1;
+        local $Data::Dumper::Terse    = 1;
+        say Dumper $out_options_hash;
+
+        #  need to use a better approach for the name
+        my $fname_base = 'asciigrid' . $i; 
+        my $suffix = '.txt';
+        my $fname = $fname_base 
+                   #. ($out_options_hash->{symmetric} ? '_symm' : '_asym')
+                   #. ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
+                   . $suffix;  
+        my @exported_files;
+        my $success = eval {
+            $gp->export (
+                format    => $format,
+                file      => $fname,
+                list      => 'SUBELEMENTS',
+                %$out_options_hash,
+                filelist  => \@exported_files
+            );
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions exporting $format to $fname");
+        diag $e if $e;
+
+        #  Now we re-import and check we get the same numbers
+        my $new_bd = Biodiverse::BaseData->new (
+            name         => $fname,
+            CELL_SIZES   => $bd->get_param ('CELL_SIZES'),
+            CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
+        );
+        my $in_options_hash = $in_options[$i];
+        
+        use URI::Escape::XS qw/uri_unescape/;
+
+        # each band was written to a separate file, load each in turn and add to
+        # the basedata object        
+        foreach my $this_file (@exported_files) {
+        	# find label name from file name
+        	my $this_label = Path::Class::File->new($this_file)->basename();
+            $this_label =~ s/.*${fname_base}_//; # assumed format- $fname then _ then label then suffix
+            $this_label =~ s/$suffix$//; 
+            $this_label = uri_unescape($this_label);
+        	say "got label $this_label\n";
+        	
+	        $success = eval {
+	            $new_bd->import_data_raster (input_files => [$this_file], %$in_options_hash, given_label => $this_label);
+	        };
+	        $e = $EVAL_ERROR;
+	        ok (!$e, "no exceptions importing $fname");
+	        diag $e if $e;
+        }
+        my @new_labels  = sort $new_bd->get_labels;
+        my @orig_labels = sort $bd->get_labels;
+        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        
+        my $new_lb = $new_bd->get_labels_ref;
+        subtest "sample counts match for $fname" => sub {
+            foreach my $label (sort $bd->get_labels) {
+                my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                
+                #say "new list: " . join(',', keys %$new_list) . join(',', values %$new_list) if ($new_list);
+                #say "orig list: " . join(',', keys %$orig_list) . join(',', values %$orig_list)if ($orig_list);
                 is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
             }
         };

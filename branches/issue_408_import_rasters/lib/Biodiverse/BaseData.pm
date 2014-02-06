@@ -1171,7 +1171,8 @@ sub import_data_raster {
     my $cellorigin_n    = $args{raster_origin_n};
     my $cellsize_e      = $args{raster_cellsize_e};
     my $cellsize_n      = $args{raster_cellsize_n};
-
+    my $given_label     = $args{given_label};
+    
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
@@ -1229,8 +1230,11 @@ sub import_data_raster {
             my $nodata_value = $band->GetNoDataValue;
             my $this_label;
 
-            say "Band $b $band ", $band->{DataType};
-            if ($labels_as_bands) { 
+            say "Band $b %$band ", $band->{DataType};
+            if ($given_label) {
+            	$this_label = $given_label;
+            }
+            elsif ($labels_as_bands) { 
                 # if single band, set label as filename
                 if ($data->{RasterCount} == 1) {
                     $this_label = Path::Class::File->new($file->stringify)->basename();
@@ -1254,7 +1258,7 @@ sub import_data_raster {
 
             # read as preferred size blocks?
             ($blockw, $blockh) = $band->GetBlockSize();
-            say "Block size ($blockw, $blockh)";
+            say "Block size ($blockw, $blockh), full size ($data->{RasterXSize}, $data->{RasterYSize})";
             
             my $target_count    = $data->{RasterXSize} * $data->{RasterYSize};
             my $processed_count = 0;
@@ -1271,49 +1275,65 @@ sub import_data_raster {
                     $frac
                 );
 
+                if ($hpos % 10000 == 0) {
+                    say "Loading $file_base "
+                    . "Cell $processed_count of $target_count\n",
+                    $frac
+                }
+
+
                 $wpos = 0;
                 while ($wpos < $data->{RasterXSize}) {
                     $maxw = min($data->{RasterXSize}, $wpos + $blockw);
                     $maxh = min($data->{RasterYSize}, $hpos + $blockh);
 
-                    say "reading tile at origin $wpos, $hpos, to $maxw, $maxh";                 
+                    #say "reading tile at origin ($wpos, $hpos), to max ($maxw, $maxh)";                 
                     my $lr   = $band->ReadTile($wpos, $hpos, $maxw - $wpos, $maxh - $hpos);
                     my @tile = @$lr;
-                    my $y    = $hpos;
+                    my $datay    = $hpos;
 
                   ROW:
                     foreach my $lineref (@tile) {
-                        my $x = $wpos - 1;
+                        my $datax = $wpos;
 
                       COLUMN:
                         foreach my $entry (@$lineref) {
-                            $x++;
                             $processed_count++;
                             # need to add check for empty groups when it is added as an argument
-                            next COLUMN if defined $nodata_value && $entry == $nodata_value;  
+                            if (defined $nodata_value && $entry == $nodata_value) {
+                            	$datax++; 
+	                            next COLUMN;
+                           	};  
 
+                            # data points are 0,0 at top-left of data, however grid coordinates used
+                            # for transformation start at bottom-left corner (transform handled by following
+                            # affine transformation, with y-pixel size = -1).
+                            my $gridy = $datay;
+                            my $gridx = $datax;
+                            
                             # find transformed position (see GDAL specs)        
                             #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
                             #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
-                            my $egeo = $tf[0] + $x * $tf[1] + $y * $tf[2];
-                            my $ngeo = $tf[3] + $x * $tf[4] + $y * $tf[5];
+                            my $egeo = $tf[0] + $gridx * $tf[1] + $gridy * $tf[2];
+                            my $ngeo = $tf[3] + $gridx * $tf[4] + $gridy * $tf[5];
 
                             # calculate "group" from this position. (defined as csv string of central points of group)
+                            # note "geo" coordinates are the top-left of the cell (NW)
                             my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e); 
                             my $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
                             my $grpe = $cellorigin_e + $ecell * $cellsize_e + ($cellsize_e / 2.0); 
-                            my $grpn = $cellorigin_n + $ncell * $cellsize_n + ($cellsize_n / 2.0);
+                            my $grpn = $cellorigin_n + $ncell * $cellsize_n - ($cellsize_n / 2.0); # subtract half cell width since position is top-left
                             my @grplist = ($grpe, $grpn);
                             my $grpstring = $self->list2csv (
                                 list        => \@grplist,
                                 csv_object  => $out_csv,
                             );
-                            #say "($x, $y) ($egeo, $ngeo) ($ecell, $ncell) ($grpe, $grpn)";
+                            say "data point($datax, $datay) grid ($gridx, $gridy) geo($egeo, $ngeo) cell($ecell, $ncell) group($grpe, $grpn)";
 
                             # set label if determined at cell level
                             my $count = 1;
-                            if ($labels_as_bands) {
-                                # set count to cell value if using band as label 
+                            if ($labels_as_bands || $given_label) {
+                                # set count to cell value if using band as label or provided label
                                 $count = $entry;
                             }
                             else {
@@ -1331,8 +1351,9 @@ sub import_data_raster {
                                 csv_object => $out_csv,
                             );
                             
+                            $datax++;
                         } # each entry on line
-                        $y++;
+                        $datay++;
                     } # each line in block
                     $wpos += $blockw;
                 } # each block in width
@@ -1342,7 +1363,6 @@ sub import_data_raster {
         } # each raster band
     } # each file
 
-    #print "note: import_raster, run_import_post_processes not used\n";
     my @label_columns = qw{1}; # hack
     $self->run_import_post_processes (
         #%line_parse_args,

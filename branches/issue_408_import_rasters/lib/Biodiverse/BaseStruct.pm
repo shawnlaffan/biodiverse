@@ -17,7 +17,7 @@ use autovivification;
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
-use Scalar::Util qw/looks_like_number reftype/;
+use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max/;
 use File::Basename;
 use Path::Class;
@@ -282,7 +282,7 @@ sub get_table_export_metadata {
             ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
             : (',', 'tab', ';', 'space', ':');
 
-    my @quote_chars = qw /" ' + $/;
+    my @quote_chars = qw /" ' + $/; #"
 
     my $mx_explanation = $self->get_tooltip_sparse_normal;
 
@@ -443,7 +443,7 @@ sub export_table_yaml {
 }
 
 sub get_nodata_values {
-    my @vals = qw /undef 0 -9 -9999 -99999 -2**31 -2**128 NA/;
+    my @vals = qw /undef 0 -9 -9999 -99999 -2**31 -2**128 NA/; #/
     return wantarray ? @vals : \@vals;
 }
 
@@ -896,7 +896,7 @@ sub to_table_sym {
     }
 
     if ($one_value_per_line) {
-        push @header, qw /Key Value/;
+        push @header, qw /Key Value/; #/
     }
     else {
         push @header, @print_order;
@@ -1158,7 +1158,8 @@ sub write_table_asciigrid {
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.asc/, qr/\.txt/);
-
+    my $file_list_ref = $args{filelist};
+    
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .asc and store it
         $suffix = '.asc';
     }
@@ -1190,6 +1191,7 @@ sub write_table_asciigrid {
         my $filename = Path::Class::file($path, $this_file)->stringify;
         $filename .= $suffix;
         $file_names[$i] = $filename;
+        push(@$file_list_ref, $filename) if ($file_list_ref); # record file in list if array ref provided
 
         my $fh;
         my $success = open ($fh, '>', $filename);

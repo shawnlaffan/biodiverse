@@ -445,9 +445,12 @@ sub test_roundtrip_raster {
     # assume export was in format labels_as_bands = 0
     my @cell_sizes           = @{$bd->get_param('CELL_SIZES')}; # probably not set anywhere, and is using the default
     my @cell_origins         = @{$bd->get_cell_origins};    
-    my @in_options = (
-        {labels_as_bands => 0, raster_origin_e => $cell_origins[0], raster_origin_n => $cell_origins[1], 
-        raster_cellsize_e => $cell_sizes[0], raster_cellsize_n => $cell_sizes[1]}
+    my %in_options_hash = (
+        labels_as_bands => 0,
+        raster_origin_e   => $cell_origins[0],
+        raster_origin_n   => $cell_origins[1], 
+        raster_cellsize_e => $cell_sizes[0],
+        raster_cellsize_n => $cell_sizes[1],
     );
 
     my $i = 0;
@@ -484,26 +487,29 @@ sub test_roundtrip_raster {
             CELL_SIZES   => $bd->get_param ('CELL_SIZES'),
             CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
         );
-        my $in_options_hash = $in_options[$i];
         
         use URI::Escape::XS qw/uri_unescape/;
 
         # each band was written to a separate file, load each in turn and add to
         # the basedata object        
         foreach my $this_file (@exported_files) {
-        	# find label name from file name
-        	my $this_label = Path::Class::File->new($this_file)->basename();
+            # find label name from file name
+            my $this_label = Path::Class::File->new($this_file)->basename();
             $this_label =~ s/.*${fname_base}_//; # assumed format- $fname then _ then label then suffix
             $this_label =~ s/$suffix$//; 
             $this_label = uri_unescape($this_label);
-        	say "got label $this_label\n";
-        	
-	        $success = eval {
-	            $new_bd->import_data_raster (input_files => [$this_file], %$in_options_hash, given_label => $this_label);
-	        };
-	        $e = $EVAL_ERROR;
-	        ok (!$e, "no exceptions importing $fname");
-	        diag $e if $e;
+            say 'got label $this_label';
+
+            $success = eval {
+                $new_bd->import_data_raster (
+                    input_files => [$this_file],
+                    %in_options_hash,
+                    given_label => $this_label,
+                );
+            };
+            $e = $EVAL_ERROR;
+            ok (!$e, "no exceptions importing $fname");
+            diag $e if $e;
         }
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
@@ -514,9 +520,7 @@ sub test_roundtrip_raster {
             foreach my $label (sort $bd->get_labels) {
                 my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
                 my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
-                
-                #say "new list: " . join(',', keys %$new_list) . join(',', values %$new_list) if ($new_list);
-                #say "orig list: " . join(',', keys %$orig_list) . join(',', values %$orig_list)if ($orig_list);
+
                 is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
             }
         };

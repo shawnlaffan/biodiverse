@@ -1403,7 +1403,7 @@ sub import_data_shapefile {
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
-    say '[BASEDATA] Loading from files as GDAL '
+    say '[BASEDATA] Loading from files as shapefile '
         . join (q{ }, @{$args{input_files}});
 
     my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
@@ -1446,17 +1446,21 @@ sub import_data_shapefile {
                 # for now
                 my $this_label;
                 my $first = 1;
-                if (! @label_fields) {
+                if (! @label_fields) {  #  we should croak if no label fields are passed
                     $this_label = 1;
                 }
                 else {
+                    #  SWL:  not sure what this code is doing
                     foreach my $lfield (@label_fields) {
-                        $this_label .= ',' if (! $first);
-                        if ($lfield->{name} eq 'x') { $this_label .= 'x_'.$thispt->X(); } 
-                        elsif ($lfield->{name} eq 'y') { $this_label .= 'y_'.$thispt->Y(); } 
-                        elsif ($lfield->{name} eq 'z') { $this_label .= 'z_'.$thispt->Z(); } 
-                        elsif ($lfield->{name} eq 'm') { $this_label .= 'm_'.$thispt->M(); } 
-                        else { croak (q/[Import shapefile] unexpected label field:/, %$lfield); }
+                        if (!$first) {
+                            $this_label .= ',';
+                        }
+                        my $lname = $lfield->{name};
+                        if    ($lname eq ':shape_x') { $this_label .= 'x_' . $thispt->X(); } 
+                        elsif ($lname eq ':shape_y') { $this_label .= 'y_' . $thispt->Y(); } 
+                        elsif ($lname eq ':shape_z') { $this_label .= 'z_' . $thispt->Z(); } 
+                        elsif ($lname eq ':shape_m') { $this_label .= 'm_' . $thispt->M(); } 
+                        #else { croak (q/[Import shapefile] unexpected label field:/, %$lfield); }
                         $first = 0;
                     }
                 }
@@ -1465,10 +1469,11 @@ sub import_data_shapefile {
                 my @grplist;
                 foreach my $gfield (@group_fields) {
                     my $val;
-                    if    ($gfield->{name} eq 'x') { $val = $thispt->X(); } 
-                    elsif ($gfield->{name} eq 'y') { $val = $thispt->Y(); } 
-                    elsif ($gfield->{name} eq 'z') { $val = $thispt->Z(); } 
-                    elsif ($gfield->{name} eq 'm') { $val = $thispt->M(); }
+                    my $gname = $gfield->{name};
+                    if    ($gname eq ':shape_x') { $val = $thispt->X(); } 
+                    elsif ($gname eq ':shape_y') { $val = $thispt->Y(); } 
+                    elsif ($gname eq ':shape_z') { $val = $thispt->Z(); } 
+                    elsif ($gname eq ':shape_m') { $val = $thispt->M(); }
                     else { croak (q/[Import shapefile] unexpected group field:/, %$gfield); }
 
                     my $cell = floor(($val - $gfield->{cell_origin}) / $gfield->{cell_size}); 

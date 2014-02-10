@@ -1382,6 +1382,7 @@ sub import_data_raster {
 # input_files: list of files to read(?)
 # label_fields: fields which are read as labels (from ('x','y','z','m'))
 # group_fields: fields which are read as labels (from ('x','y','z','m'))
+# use_dbf_label: looks for label entry in dbf record, use for labels (supercedes label fields)
 sub import_data_shapefile {
     my $self = shift;
     my %args = @_;
@@ -1420,36 +1421,75 @@ sub import_data_shapefile {
         $file = Path::Class::file($file)->absolute;
         say "[BASEDATA] INPUT FILE: $file";
 
-        if (! (-e $file and -r $file)) {
-            croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
-        }
+        # remove test, suffix not given, will fail on open
+        # if (! (-e $file and -r $file)) {
+        #    croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
+        #}
 
         # open as shapefile
         my $fnamebase = $file->stringify;
         $fnamebase =~ s/\.[^.]*//;
         my $shapefile = new Geo::ShapeFile($fnamebase);
+        say "have $shapefile";
 
         croak "[BASEDATA] Failed to read $file with ShapeFile\n"
            if (! defined($shapefile)); # assuming not defined on fail
 
+        say "have ". $shapefile->shapes() . " shapes";
         # iterate over shapes
         foreach my $cnt (1 .. $shapefile->shapes()) {
             my $shape = $shapefile->get_shp_record($cnt);
 
-            # just get all the points from the shape
+            # get database records for this shape
+            my %db_rec = %{$shapefile->get_dbf_record($cnt)};
+            say "db_rec:" . join(',',%db_rec);
+# code for multiple label->count entries per shape 
+# 
+#            my (%l_hash, %c_hash);
+#            foreach my $db_key (keys %db_rec) {
+#            	if ($db_key =~ /^axis_/) {
+#            		# have axis value (not used?)
+#            	}
+#            	elsif ($db_key =~ /^label_/) {
+#            		$l_hash{$db_key =~ s/^label_//} = $db_rec{$db_key}; 
+#            	}
+#            	elsif ($db_key =~ /^count_/) {
+#                    $c_hash{$db_key =~ s/^count_//} = $db_rec{$db_key};             		
+#            	}
+#            }
+#            # merge values into a label->count hash
+#            my %label_counts;
+#            foreach my $num (keys %l_hash) {
+#            	$label_counts{$l_hash{$num}} = $c_hash{$num};
+#            }
+
+            # assume one label->count record per shape,
+            # and multiple shapes used for various bands
+            my $dbf_label = $db_rec{LABEL};
+            my $dbf_count = $db_rec{COUNT};
+            say "read shape, label $dbf_label, count $dbf_count";
+                        
+            # just get all the points from the shape.  
             my @ptlist = $shape->points();
 
+            # read over all points, however not well defined if multiple
+            # points recorded.  DB records are based on assumption of one
+            # cell per shape entry, and records counts for each label for each
+            # point.  multiple points per shape will lead to repetition
+            # (the same label => count values used for each point)  
             foreach my $thispt (@ptlist) {
                 # information will be stored in label and group strings
 
                 # form label from label fields.  construct as text label 
                 # for now
-                my $this_label;
+                my $this_label = 1;
+                my $this_count = 1;
                 my $first = 1;
-                if (! @label_fields) {  #  we should croak if no label fields are passed
-                    $this_label = 1;
+                if ($args{use_dbf_label}) {
+                	$this_label = $dbf_label;
+                	$this_count = $dbf_count;
                 }
-                else {
+                elsif(@label_fields) {
                     #  SWL:  not sure what this code is doing
                     foreach my $lfield (@label_fields) {
                         if (!$first) {
@@ -1460,7 +1500,7 @@ sub import_data_shapefile {
                         elsif ($lname eq ':shape_y') { $this_label .= 'y_' . $thispt->Y(); } 
                         elsif ($lname eq ':shape_z') { $this_label .= 'z_' . $thispt->Z(); } 
                         elsif ($lname eq ':shape_m') { $this_label .= 'm_' . $thispt->M(); } 
-                        #else { croak (q/[Import shapefile] unexpected label field:/, %$lfield); }
+                        else { croak (q/[Import shapefile] unexpected label field:/, %$lfield); }
                         $first = 0;
                     }
                 }
@@ -1470,6 +1510,7 @@ sub import_data_shapefile {
                 foreach my $gfield (@group_fields) {
                     my $val;
                     my $gname = $gfield->{name};
+                    say "have gname $gname and point " . $thispt;
                     if    ($gname eq ':shape_x') { $val = $thispt->X(); } 
                     elsif ($gname eq ':shape_y') { $val = $thispt->Y(); } 
                     elsif ($gname eq ':shape_z') { $val = $thispt->Z(); } 
@@ -1484,13 +1525,13 @@ sub import_data_shapefile {
                     list        => \@grplist,
                     csv_object  => $out_csv,
                 );             
-                #print "point label $this_label group $grpstring\n";       
+                print "adding point label $this_label group $grpstring count $this_count\n";       
 
                 # add to elements
                 $self->add_element (
                     label      => $this_label,
                     group      => $grpstring,
-                    count      => 1, # no count used
+                    count      => $this_count,
                     csv_object => $out_csv,
                 );
             } # each point

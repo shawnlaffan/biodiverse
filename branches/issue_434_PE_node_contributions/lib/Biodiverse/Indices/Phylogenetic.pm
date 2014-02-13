@@ -424,6 +424,59 @@ sub calc_pe_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pe_clade_contributions {
+
+    my %arguments = (
+        description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
+        name            => 'Phylogenetic Endemism clade contributions',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => ['_calc_pe'],
+        pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PE_CLADE_WTLIST  => {
+                description => 'List of node contributions to the PE calculation',
+                type        => 'list',
+            },
+        },
+    );
+    
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree = $args{trimmed_tree};
+    my $wt_list = $args{PE_WTLIST};
+    my $PE_score = $args{PE_WE};
+
+    my $contr;
+
+  NODE_NAME:
+    foreach my $node_name (keys %$wt_list) {
+        next if defined $contr->{$node_name};
+
+        my $node_ref = $tree->get_node_ref (node => $node_name);
+
+        #  inefficient as we are not caching by node
+        #  shoulkd get a tree object for the nbrhood
+        my $node_hash = $node_ref->get_all_descendents_and_self;
+        my @node_list = grep {exists $wt_list->{$_}} keys %$node_hash;
+        my $wt_sum += sum @$wt_list{@node_list};
+
+        $contr->{$node_name} = $wt_sum / $PE_score;
+    }
+
+    my %results = (
+        PE_CLADE_WTLIST => $contr,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_pe_single {
 
     my %arguments = (

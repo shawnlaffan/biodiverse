@@ -36,6 +36,7 @@ my @calcs = qw/
     calc_pd_terminal_node_list
     calc_pe
     calc_pe_lists
+    calc_pe_clade_contributions
     calc_phylo_corrected_weighted_endemism
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
@@ -307,6 +308,7 @@ __DATA__
   'PD_P_per_taxon' => '0.0322259610628996',
   'PD_per_taxon' => '0.682618105875523',
   'PE_CWE' => '0.165652822722154',
+  'PE_CLADE_WTLIST' => {},
   'PE_LOCAL_RANGELIST' => {
                             '30___' => 1,
                             '31___' => 2,
@@ -567,6 +569,7 @@ __DATA__
   'PD_P_per_taxon' => '0.0352363369009699',
   'PD_per_taxon' => '0.746384615384616',
   'PE_CWE' => '0.175417769804782',
+  'PE_CLADE_WTLIST' => {},
   'PE_LOCAL_RANGELIST' => {
                             '34___' => 1,
                             '35___' => 1,

@@ -14,7 +14,7 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Di Virgilio, G. & Laffan, S.W. (in press) Using maps of continuous variation in species compositional turnover to supplement uniform polygon species range maps.  [http://dx.doi.org/10.1080/13658816.2013.871725 International Journal of Geographical Information Science].
 
-  *  Mendoza, A.M. and Arita, H.T. (in press) Priority setting by sites and by species using rarity, richness and phylogenetic diversity: the case of neotropical glassfrogs (Anura: Centrolenidae) [http://10.1007/s10531-014-0642-5 Biodiversity and Conservation]
+  *  Mendoza, A.M. and Arita, H.T. (in press) Priority setting by sites and by species using rarity, richness and phylogenetic diversity: the case of neotropical glassfrogs (Anura: Centrolenidae) [http://dx.doi.org/10.1007/s10531-014-0642-5 Biodiversity and Conservation]
 
 
   *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (2014) Biogeographical regions and phytogeography of the eucalypts. [http://dx.doi.org/10.1111/ddi.12129 Diversity and Distributions, 20, 46-58].

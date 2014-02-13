@@ -1396,8 +1396,8 @@ sub import_data_shapefile {
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
 
-    my @group_field_names = @{$args{group_fields}};
-    my @label_field_names = @{$args{label_fields}};
+    my @group_field_names = @{$args{group_fields} // $args{group_field_names}};
+    my @label_field_names = @{$args{label_fields} // $args{label_field_names}};
     my @smp_count_field_names = @{$args{sample_count_col_names} // []};
 
     my @group_origins = @{$self->get_param ('CELL_ORIGINS')};
@@ -1513,6 +1513,10 @@ sub import_data_shapefile {
                 foreach my $this_label (@these_labels) {
                     #print "adding point label $this_label group $grpstring count $this_count\n";       
 
+                    if (scalar @label_field_names <= 1 && $this_label =~ /^$quotes(?:.*)$quotes$/) {
+                        $this_label = substr ($this_label, 1);
+                        chop $this_label;
+                    }
                     # add to elements
                     $self->add_element (
                         label      => $this_label,

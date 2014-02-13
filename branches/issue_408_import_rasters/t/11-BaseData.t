@@ -573,11 +573,11 @@ sub test_roundtrip_shapefile {
     my @cell_origins         = @{$bd->get_cell_origins};    
     my @in_options = (
         {
-        # assume 'x' uses cell_origin and _size [0]
-        group_fields => [{name => ':shape_x', cell_origin => $cell_origins[0], cell_size => $cell_sizes[0]},
-        	{name => ':shape_y', cell_origin => $cell_origins[1], cell_size => $cell_sizes[1]}], 
-       	label_fields => [],
-        use_dbf_label => 1
+            # assume 'x' uses cell_origin and _size [0]
+            group_field_names => [':shape_x', ':shape_y'],
+            label_field_names => ['LABEL'],
+            sample_count_col_names => ['COUNT'],
+            #use_dbf_label => 1,
         }
     );
 

@@ -439,6 +439,10 @@ sub get_metadata_calc_pe_clade_contributions {
                 description => 'List of node contributions to the PE calculation',
                 type        => 'list',
             },
+            PE_CLADE_WTLIST_P => {
+                description => 'List of node contributions to the PE calculation, proportional to the entire tree',
+                type        => 'list',
+            },
         },
     );
     
@@ -452,8 +456,10 @@ sub calc_pe_clade_contributions {
     my $tree = $args{trimmed_tree};
     my $wt_list = $args{PE_WTLIST};
     my $PE_score = $args{PE_WE};
+    my $sum_of_branches = $tree->get_total_tree_length;
 
-    my $contr;
+    my $contr   = {};
+    my $contr_p = {};
 
   NODE_NAME:
     foreach my $node_name (keys %$wt_list) {
@@ -462,16 +468,22 @@ sub calc_pe_clade_contributions {
         my $node_ref = $tree->get_node_ref (node => $node_name);
 
         #  inefficient as we are not caching by node
-        #  shoulkd get a tree object for the nbrhood
+        #  should get a tree object for the nbrhood
         my $node_hash = $node_ref->get_all_descendents_and_self;
         my @node_list = grep {exists $wt_list->{$_}} keys %$node_hash;
-        my $wt_sum += sum @$wt_list{@node_list};
 
-        $contr->{$node_name} = $wt_sum / $PE_score;
+        my $wt_sum = sum @$wt_list{@node_list};
+
+
+        #### also need to track the fraction of the tree,
+        #### so divide by the tree length as well as by PE
+        $contr->{$node_name}   = $wt_sum / $PE_score;
+        $contr_p->{$node_name} = $wt_sum / $sum_of_branches;
     }
 
     my %results = (
-        PE_CLADE_WTLIST => $contr,
+        PE_CLADE_WTLIST   => $contr,
+        PE_CLADE_WTLIST_P => $contr_p,
     );
 
     return wantarray ? %results : \%results;

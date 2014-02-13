@@ -45,6 +45,9 @@ my @calcs = qw/
     calc_pd_terminal_node_count
 /;
 
+
+my $generate_result_sets = 1;
+
 exit main( @ARGV );
 
 sub main {
@@ -192,7 +195,7 @@ sub test_indices {
     run_indices_test1 (
         calcs_to_test      => [@calcs],
         calc_topic_to_test => 'Phylogenetic Indices',
-        #generate_result_sets => 1,
+        generate_result_sets => $generate_result_sets,
     );
 }
 

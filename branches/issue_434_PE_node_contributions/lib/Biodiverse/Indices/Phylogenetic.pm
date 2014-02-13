@@ -474,11 +474,9 @@ sub calc_pe_clade_contributions {
 
         my $wt_sum = sum @$wt_list{@node_list};
 
-
-        #### also need to track the fraction of the tree,
-        #### so divide by the tree length as well as by PE
-        $contr->{$node_name}   = $wt_sum / $PE_score;
-        $contr_p->{$node_name} = $wt_sum / $sum_of_branches;
+        #  round off to avoid spurious spatial variation.
+        $contr->{$node_name}   = sprintf '%.11f', $wt_sum / $PE_score;
+        $contr_p->{$node_name} = sprintf '%.11f', $wt_sum / $sum_of_branches;
     }
 
     my %results = (

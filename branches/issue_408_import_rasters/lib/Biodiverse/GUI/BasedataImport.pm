@@ -15,8 +15,8 @@ use Gtk2::GladeXML;
 use Glib;
 use Text::Wrapper;
 use File::BOM qw / :subs /;
-
 use Scalar::Util qw /reftype/;
+use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
 
@@ -26,7 +26,6 @@ use Biodiverse::ElementProperties;
 #  for use in check_if_r_data_frame
 use Biodiverse::Common;
 
-use Geo::ShapeFile;
 
 #  a few name setups for a change-over that never happened
 my $import_n = ""; #  use "" for orig, 3 for the one with embedded params table
@@ -97,19 +96,7 @@ sub run {
     my $file_list_as_text = join ("\n", @file_names_tmp);
     
     # interpret if raster or text depending on format box
-    #my $read_raster;
     my $read_format = $dlgxml->get_widget($file_format)->get_active();
-    #if (defined $dlgxml->get_widget($combo_import_basedatas)) {
-    #    print "$combo_import_basedatas defined\n";
-    #}
-    #else { print "nope\n"; }  
-    
-    #if (defined $dlgxml->get_widget($file_format)) {
-    # $read_raster = ($dlgxml->get_widget($file_format)->get_active() == $raster_idx);
-    #}
-    #else {
-    #    print "widget $file_format not defined\n";
-    #}
 
     $dlg->destroy();
 
@@ -143,9 +130,6 @@ sub run {
     elsif ($read_format == $raster_idx) {
         %args = $basedata_ref->get_args (sub => 'import_data_raster');        
     }
-    #elsif ($read_format == $shapefile_idx) {
-        #croak('import for shapefiles not defined');
-    #}
     
     # only show this dialog if args/parameters are defined (ignored for shapefile input)
     my %import_params;
@@ -223,21 +207,26 @@ sub run {
         say $filenames[0];
         my $fnamebase = $filenames[0];
         $fnamebase =~ s/\.[^.]+?$//;  #  use lazy quantifier so we get chars from the last dot - should use Path::Class::File
+
         my $shapefile = Geo::ShapeFile->new($fnamebase);
 
+        my $shape_type = $shapefile->type ($shapefile->shape_type);
+        croak '[BASEDATA] Import of non-point shapefiles is not supported.  '
+            . "$fnamebase is type $shape_type\n"
+          if not $shape_type =~ /Point/;
+
         my @field_names = qw {:shape_x :shape_y}; # we always have x,y data
-        push (@field_names, ':shape_z') if defined $shapefile->z_min();
-        push (@field_names, ':shape_m') if defined $shapefile->m_min();
+        if (defined $shapefile->z_min()) {
+            push (@field_names, ':shape_z');
+        }
+        if (defined $shapefile->m_min()) {
+            push (@field_names, ':shape_m');
+        }
 
         #  need to get the remaining columns from the dbf - read first record to get colnames from hash keys
         #  these will then be fed into make_columns_dialog
-        if ($shapefile->records()) {
-            #  DIRTY but Geo::Shapefile does not provide a method to do this
-            #  and the DBF hash will not return the keys in the file order
-            #  Issue filed as https://rt.cpan.org/Ticket/Display.html?id=92790
-            my $fld_names = $shapefile->{dbf_field_names} // [];  
-            push (@field_names, @$fld_names);
-        }
+        my $fld_names = $shapefile->get_dbf_field_names // [];  
+        push @field_names, @$fld_names;
 
         $col_names_for_dialog = \@field_names;
     }
@@ -299,7 +288,7 @@ sub run {
         $use_matrix = $import_params{data_in_matrix_form};
         $col_names_for_dialog = \@header;
         $col_options = undef;
-        
+
         if ($use_matrix) {
             $col_options = [qw /
                 Ignore
@@ -328,6 +317,10 @@ sub run {
     GET_COLUMN_TYPES:
     while (1) { # Keep showing dialog until have at least one label & group
         $response = $dlg->run();
+
+        last GET_COLUMN_TYPES
+          if $response ne 'help' && $response ne 'ok';
+
         if ($response eq 'help') {
             #  do stuff
             #print "hjelp me!\n";
@@ -346,32 +339,23 @@ sub run {
                 $num_labels = scalar @{$column_settings->{labels}};
             }
 
-            # removed minimum label constraint for now, to allow "default" label to be used,
-            # for example for records which simply have x,y coords, and each is given a simple
-            # label ("1")
-            if ($num_groups == 0) { # || $num_labels == 0) {
-                my $text = $use_matrix
-                     ? 'Please select at least one group and the label start column'
-                     : 'Please select at least one label and one group';
-                
-                my $msg = Gtk2::MessageDialog->new (
-                    undef,
-                    'modal',
-                    'error',
-                    'ok',
-                    $text
-                );
-                
-                $msg->run();
-                $msg->destroy();
-                $column_settings = undef;
-            }
-            else {
-                last GET_COLUMN_TYPES;
-            }
-        }
-        else {
-            last GET_COLUMN_TYPES;
+            last GET_COLUMN_TYPES if $num_groups;
+
+            my $text = $use_matrix
+                 ? 'Please select at least one group and the label start column'
+                 : 'Please select at least one label and one group';
+            
+            my $msg = Gtk2::MessageDialog->new (
+                undef,
+                'modal',
+                'error',
+                'ok',
+                $text
+            );
+            
+            $msg->run();
+            $msg->destroy();
+            $column_settings = undef;
         }
     }
     $dlg->destroy();
@@ -384,14 +368,26 @@ sub run {
     }
 
     if ($read_format == $shapefile_idx) {
+        #  shapefiles import based on names, so extract them
+        my (@group_col_names, @label_col_names);
+        foreach my $specs (@{$column_settings->{labels}}) {
+            push @label_col_names, $specs->{name};
+        }
+        foreach my $specs (@{$column_settings->{groups}}) {
+            push @group_col_names, $specs->{name};
+        }
+        my @sample_count_col_names;
+        foreach my $specs (@{$column_settings->{sample_counts}}) {
+            push @sample_count_col_names, $specs->{name};
+        }
         # process data
         my $success = eval {
             $basedata_ref->import_data_shapefile(
                 %import_params,
                 input_files             => \@filenames,
-                group_fields            => $column_settings->{groups},
-                label_fields            => $column_settings->{labels},
-                use_new                 => $use_new
+                group_fields            => \@group_col_names,
+                label_fields            => \@label_col_names,
+                sample_count_col_names  => \@sample_count_col_names,
             )
         };
         if ($EVAL_ERROR) {
@@ -401,9 +397,6 @@ sub run {
             }
             $gui->report_error ($text);
         }
-    
-        my @tmpcell_sizes = @{$basedata_ref->get_param("CELL_SIZES")};  #  work on a copy
-        say 'checking set cell sizes: ', join (',', @tmpcell_sizes);
 
         return if !$success;
 

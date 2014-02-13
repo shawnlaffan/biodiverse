@@ -1124,7 +1124,7 @@ sub get_options_menu {
     $menu->append(Gtk2::MenuItem->new('C_opy'));
     $menu->append(Gtk2::MenuItem->new('_Paste'));
 
-    $menu->show_all();	
+    $menu->show_all();
 
     return $menu;
 }

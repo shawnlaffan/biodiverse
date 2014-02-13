@@ -596,7 +596,7 @@ sub export_shapefile {
     my $self = shift;
     my %args = @_;
 
-    $args{file} =~ s/\.[sS][hH][pP]$//;
+    $args{file} =~ s/\.shp$//i;
     my $file = $args{file};
 
     say "Exporting to shapefile $file";

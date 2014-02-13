@@ -20,41 +20,49 @@ use FindBin qw ( $Bin );
 use Path::Class ();
 
 BEGIN {
-    #  Add the gtk libs if using windows - brittle?
+    #  Add the gtk and gdal libs if using windows - brittle?
     #  Search up the tree until we find a dir of the requisite name
     #  and which contains a bin folder
     if ($OSNAME eq 'MSWin32') {
         #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
         my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
-        my $origin_dir = Path::Class::file($prog_name)->dir;
+        
 
         my @paths;
         use Config;
-        my $gtk_dir = $Config{archname} =~ /x(?:86_)?64/ ? 'gtk_win64' : 'gtk_win32';  #  maybe should use ivsize?
+        my $use_x64 = $Config{archname} =~ /x(?:86_)?64/;
+        my $gtk_dir  = $use_x64 ? 'gtk_win64'  : 'gtk_win32';  #  maybe should use ivsize?
+        my $gdal_dir = $use_x64 ? 'gdal_win64' : 'gdal_win32';
 
-        ORIGIN_DIR:
-        while ($origin_dir) {
+        #  add the gtk and gdal bin dirs to the path
+        foreach my $g_dir ($gtk_dir, $gdal_dir) {
+            my $origin_dir = Path::Class::file($prog_name)->dir;
 
-            foreach my $inner_path (
-              Path::Class::dir($origin_dir, $gtk_dir,),
-              Path::Class::dir($origin_dir, $gtk_dir, 'c'),
-              ) {
-                my $gtk_path = Path::Class::dir($inner_path, 'bin');
-                if (-d $gtk_path) {
-                    say "Adding $gtk_path to the path";
-                    push @paths, $gtk_path;
+          ORIGIN_DIR:
+            while ($origin_dir) {
+
+                foreach my $inner_path (
+                  Path::Class::dir($origin_dir, $g_dir,),
+                  Path::Class::dir($origin_dir, $g_dir, 'c'),
+                  ) {
+                    #say "Checking $inner_path";
+                    my $bin_path = Path::Class::dir($inner_path, 'bin');
+                    if (-d $bin_path) {
+                        #say "Adding $bin_path to the path";
+                        push @paths, $bin_path;
+                    }
                 }
+    
+                my $old_dir = $origin_dir;
+                $origin_dir = $origin_dir->parent;
+                last ORIGIN_DIR if $old_dir eq $origin_dir;
             }
-
-            my $old_dir = $origin_dir;
-            $origin_dir = $origin_dir->parent;
-            last ORIGIN_DIR if $old_dir eq $origin_dir;
         }
 
         my $sep = ';';  #  should get from system, but this block only works on windows anyway
+        say 'Prepending to path: ', join ' ', @paths;
         $ENV{PATH} = join $sep, @paths, $ENV{PATH};
-        #$ENV{PATH} .= $sep . join $sep, @paths;
-        #say "Path is:\n", $ENV{PATH};
+
     }
 }
 

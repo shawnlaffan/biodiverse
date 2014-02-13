@@ -435,11 +435,11 @@ sub get_metadata_calc_pe_clade_contributions {
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {
-            PE_CLADE_WTLIST  => {
+            PE_CLADE_CONTR  => {
                 description => 'List of node contributions to the PE calculation',
                 type        => 'list',
             },
-            PE_CLADE_WTLIST_P => {
+            PE_CLADE_CONTR_P => {
                 description => 'List of node contributions to the PE calculation, proportional to the entire tree',
                 type        => 'list',
             },
@@ -468,7 +468,7 @@ sub calc_pe_clade_contributions {
         my $node_ref = $tree->get_node_ref (node => $node_name);
 
         #  inefficient as we are not caching by node
-        #  should get a tree object for the nbrhood
+        #  should get a tree object for the nbrhood so we can skip the grep
         my $node_hash = $node_ref->get_all_descendents_and_self;
         my @node_list = grep {exists $wt_list->{$_}} keys %$node_hash;
 
@@ -482,8 +482,8 @@ sub calc_pe_clade_contributions {
     }
 
     my %results = (
-        PE_CLADE_WTLIST   => $contr,
-        PE_CLADE_WTLIST_P => $contr_p,
+        PE_CLADE_CONTR   => $contr,
+        PE_CLADE_CONTR_P => $contr_p,
     );
 
     return wantarray ? %results : \%results;

@@ -8,6 +8,8 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
+my $generate_result_sets = 0;
+
 use rlib;
 use Test::Most;
 use List::Util qw /sum/;
@@ -45,8 +47,6 @@ my @calcs = qw/
     calc_pd_terminal_node_count
 /;
 
-
-my $generate_result_sets = 1;
 
 exit main( @ARGV );
 
@@ -310,7 +310,7 @@ __DATA__
     PD_P            => '0.451163454880594',
     PD_P_per_taxon  => '0.0322259610628996',
     PD_per_taxon    => '0.682618105875523',
-    PE_CLADE_WTLIST => {
+    PE_CLADE_CONTR => {
         '30___'      => '0.0419887708084825',
         '31___'      => '0.0847188193658499',
         '32___'      => '0.130792455496697',
@@ -346,7 +346,7 @@ __DATA__
         'Genus:sp30' => '0.0130782064727056',
         'Genus:sp5'  => '0.0379006423579008'
     },
-    PE_CLADE_WTLIST_P => {
+    PE_CLADE_CONTR_P => {
         '30___'      => '0.00313809376155235',
         '31___'      => '0.00633158802744345',
         '32___'      => '0.00977497032538482',
@@ -640,7 +640,7 @@ __DATA__
     PD_P            => '0.0704726738019399',
     PD_P_per_taxon  => '0.0352363369009699',
     PD_per_taxon    => '0.746384615384616',
-    PE_CLADE_WTLIST => {
+    PE_CLADE_CONTR => {
         '34___'      => '0.993497194141497',
         '35___'      => '0.995874569218127',
         '42___'      => '0.99792658490499',
@@ -653,7 +653,7 @@ __DATA__
         'Genus:sp20' => '0.212158890182696',
         'Genus:sp26' => '0.636476670548087'
     },
-    PE_CLADE_WTLIST_P => {
+    PE_CLADE_CONTR_P => {
         '34___'      => '0.0122817705487882',
         '35___'      => '0.0123111600381312',
         '42___'      => '0.0123365273828778',

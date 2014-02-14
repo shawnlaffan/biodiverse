@@ -406,8 +406,8 @@ sub calc_ace {
         }
     }
 
-    my $C_ace = 1 - $f1 / $n_rare;
-    
+    my $C_ace = $n_rare ? (1 - $f1 / $n_rare) : undef;
+
     if (!$C_ace) {
         my %results = (
             ACE_SCORE => undef,

@@ -1140,7 +1140,7 @@ sub get_most_similar_pair {
                 }
             }
 
-            #  calculate and cache it if we still have not got a cmp score
+            #  calculate and cache it if we did not find a cached cmp score
             if (!defined $tie_comparison) {
                 $tie_comparison = $self->run_tie_breaker (
                     pair1_scores   => $current_lead_pair,

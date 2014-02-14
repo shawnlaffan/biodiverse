@@ -435,12 +435,16 @@ sub get_metadata_calc_pe_clade_contributions {
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {
+            PE_CLADE_SCORE  => {
+                description => 'List of PE scores for each node (clade), being the sum of all descendent PE weights',
+                type        => 'list',
+            },
             PE_CLADE_CONTR  => {
-                description => 'List of node contributions to the PE calculation',
+                description => 'List of node (clade) contributions to the PE calculation',
                 type        => 'list',
             },
             PE_CLADE_CONTR_P => {
-                description => 'List of node contributions to the PE calculation, proportional to the entire tree',
+                description => 'List of node (clade) contributions to the PE calculation, proportional to the entire tree',
                 type        => 'list',
             },
         },
@@ -460,6 +464,7 @@ sub calc_pe_clade_contributions {
 
     my $contr   = {};
     my $contr_p = {};
+    my $clade_pe = {};
 
   NODE_NAME:
     foreach my $node_name (keys %$wt_list) {
@@ -475,11 +480,13 @@ sub calc_pe_clade_contributions {
         my $wt_sum = sum @$wt_list{@node_list};
 
         #  round off to avoid spurious spatial variation.
-        $contr->{$node_name}   = sprintf '%.11f', $wt_sum / $PE_score;
-        $contr_p->{$node_name} = sprintf '%.11f', $wt_sum / $sum_of_branches;
+        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $PE_score;
+        $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
+        $clade_pe->{$node_name} = $wt_sum;
     }
 
     my %results = (
+        PE_CLADE_SCORE   => $clade_pe,
         PE_CLADE_CONTR   => $contr,
         PE_CLADE_CONTR_P => $contr_p,
     );

@@ -54,35 +54,6 @@ my %conditions = (
         'sp_block (size => ##3)' => 9,
         'sp_block (size => [##3, ##3])' => 9,
     },
-    block_select => {
-        'sp_select_block (size => ##5, count => 2)' => 2,
-        'sp_select_block (size => ##3, count => 3)' => 3,
-    },
-    sides => {
-        'sp_is_left_of()' => 420,
-        'sp_is_left_of(vector_angle => 0)' => 420,
-        'sp_is_left_of(vector_angle => Math::Trig::pip2)' => 450,
-        'sp_is_left_of(vector_angle => Math::Trig::pip4)' => 435,
-        'sp_is_left_of(vector_angle_deg => 0)'  => 420,
-        'sp_is_left_of(vector_angle_deg => 45)' => 435,
-        'sp_is_left_of(vector_angle_deg => 90)' => 450,
-    
-        'sp_is_right_of()' => 450,
-        'sp_is_right_of(vector_angle => 0)' => 450,
-        'sp_is_right_of(vector_angle => Math::Trig::pip2)' => 420,
-        'sp_is_right_of(vector_angle => Math::Trig::pip4)' => 435,
-        'sp_is_right_of(vector_angle_deg => 0)'  => 450,
-        'sp_is_right_of(vector_angle_deg => 45)' => 435,
-        'sp_is_right_of(vector_angle_deg => 90)' => 420,
-        
-        'sp_in_line_with()' => 30,
-        'sp_in_line_with(vector_angle => 0)' => 30,
-        'sp_in_line_with(vector_angle => Math::Trig::pip2)' => 30,
-        'sp_in_line_with(vector_angle => Math::Trig::pip4)' => 30,
-        'sp_in_line_with(vector_angle_deg => 0)'  => 30,
-        'sp_in_line_with(vector_angle_deg => 45)' => 30,
-        'sp_in_line_with(vector_angle_deg => 90)' => 30,
-    },
 );
 
 

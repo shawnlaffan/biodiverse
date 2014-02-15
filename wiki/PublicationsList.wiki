@@ -10,7 +10,7 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
 
 ==Publications using Biodiverse (or its ancestors)==
-  (Publications are listed in reverse chronological order).  
+  (Publications are listed in reverse chronological order by year, then by author within years).
 
   *  Di Virgilio, G. & Laffan, S.W. (in press) Using maps of continuous variation in species compositional turnover to supplement uniform polygon species range maps.  [http://dx.doi.org/10.1080/13658816.2013.871725 International Journal of Geographical Information Science].
 

@@ -502,16 +502,8 @@ sub get_metadata_get_base_stats {
     return $self->{$type}->get_metadata_get_base_stats (@_);
 }
 
-sub get_metadata_import_data_text {
+sub get_metadata_import_data_common {
     my $self = shift;
-    
-    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  : (q{,}, 'tab', q{;}, 'space', q{:});
-    my @input_sep_chars = ('guess', @sep_chars);
-    
-    my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
-    my @input_quote_chars = ('guess', @quote_chars);
     
     #  these parameters are only for the GUI, so are not a full set
     my %arg_hash = (
@@ -548,20 +540,6 @@ sub get_metadata_import_data_text {
               type       => 'boolean',
               default    => 0,
             },
-            { name       => 'input_sep_char',
-              label_text => 'Input field separator',
-              tooltip    => 'Select character',
-              type       => 'choice',
-              choices    => \@input_sep_chars,
-              default    => 0,
-            },
-            { name       => 'input_quote_char',
-              label_text => 'Input quote character',
-              tooltip    => 'Select character',
-              type       => 'choice',
-              choices    => \@input_quote_chars,
-              default    => 0,
-            },
             { name       => 'data_in_matrix_form',
               label_text => 'Data are in matrix form?',
               tooltip    => 'Are the data in a form like a site by species matrix?',
@@ -584,6 +562,41 @@ sub get_metadata_import_data_text {
               type       => 'boolean',
               default    => 0,
             }
+        ]
+    );
+    
+    return wantarray ? %arg_hash : \%arg_hash;
+}
+
+sub get_metadata_import_data_text {
+    my $self = shift;
+    
+    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
+                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
+                  : (q{,}, 'tab', q{;}, 'space', q{:});
+    my @input_sep_chars = ('guess', @sep_chars);
+    
+    my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
+    my @input_quote_chars = ('guess', @quote_chars);
+    
+    #  these parameters are only for the GUI, so are not a full set
+    my %arg_hash = (
+        parameters => [
+            #{ name => 'input_files', type => 'file' }, # not for the GUI
+            { name       => 'input_sep_char',
+              label_text => 'Input field separator',
+              tooltip    => 'Select character',
+              type       => 'choice',
+              choices    => \@input_sep_chars,
+              default    => 0,
+            },
+            { name       => 'input_quote_char',
+              label_text => 'Input quote character',
+              tooltip    => 'Select character',
+              type       => 'choice',
+              choices    => \@input_quote_chars,
+              default    => 0,
+            },
         ]
     );
     
@@ -1179,6 +1192,29 @@ sub import_data_raster {
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
 
+    #  load the properties tables from the args, or use the ones we already have
+    #  labels first
+    my $label_properties;
+    my $use_label_properties = $args{use_label_properties};
+    if ($use_label_properties) {  # twisted - FIXFIXFIX
+        $label_properties = $args{label_properties}
+                            || $self->get_param ('LABEL_PROPERTIES');
+        if ($args{label_properties}) {
+            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
+        }
+    }
+    #  then groups
+    my $group_properties;
+    my $use_group_properties = $args{use_group_properties};
+    if ($use_group_properties) {
+        $group_properties = $args{group_properties}
+                            || $self->get_param ('GROUP_PROPERTIES');
+        if ($args{group_properties}) {
+            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
+        }
+    }
+    # QUESTION- do we need to do more than this with the properties?
+
     say "[BASEDATA] Loading from files as GDAL "
             . join (q{ }, @{$args{input_files}});
 
@@ -1235,7 +1271,7 @@ sub import_data_raster {
 
             say "Band $b %$band ", $band->{DataType};
             if ($given_label) {
-            	$this_label = $given_label;
+                $this_label = $given_label;
             }
             elsif ($labels_as_bands) { 
                 # if single band, set label as filename
@@ -1304,9 +1340,9 @@ sub import_data_raster {
                             $processed_count++;
                             # need to add check for empty groups when it is added as an argument
                             if (defined $nodata_value && $entry == $nodata_value) {
-                            	$datax++; 
-	                            next COLUMN;
-                           	};  
+                                $datax++; 
+                                next COLUMN;
+                               };  
 
                             # data points are 0,0 at top-left of data, however grid coordinates used
                             # for transformation start at bottom-left corner (transform handled by following
@@ -1391,7 +1427,29 @@ sub import_data_shapefile {
     my $orig_group_count = $self->get_group_count;
     my $orig_label_count = $self->get_label_count;
 
+    #  load the properties tables from the args, or use the ones we already have
+    #  labels first
+    my $label_properties;
+    my $use_label_properties = $args{use_label_properties};
+    if ($use_label_properties) {  # twisted - FIXFIXFIX
+        $label_properties = $args{label_properties}
+                            || $self->get_param ('LABEL_PROPERTIES');
+        if ($args{label_properties}) {
+            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
+        }
+    }
+    #  then groups
+    my $group_properties;
+    my $use_group_properties = $args{use_group_properties};
+    if ($use_group_properties) {
+        $group_properties = $args{group_properties}
+                            || $self->get_param ('GROUP_PROPERTIES');
+        if ($args{group_properties}) {
+            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
+        }
+    }
     my $progress_bar = Biodiverse::Progress->new();
+    # QUESTION- do we need to do more than this with the properties?
 
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';

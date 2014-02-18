@@ -122,81 +122,73 @@ sub run {
 
     #  get any options
     # Get the Parameters metadata
-    my %args;
+    # start with common parameters
+    my %args = $basedata_ref->get_args (sub => 'import_data_common');
+    
     # set visible fields in import dialog
     if ($read_format == $text_idx) {
-        %args = $basedata_ref->get_args (sub => 'import_data_text');        
+        my %text_args = $basedata_ref->get_args (sub => 'import_data_text');
+        
+        # add new params to args
+        push @{$args{parameters}}, @{$text_args{parameters}};         
     }
     elsif ($read_format == $raster_idx) {
-        %args = $basedata_ref->get_args (sub => 'import_data_raster');        
+        my %raster_args = $basedata_ref->get_args (sub => 'import_data_raster');        
+
+        # add new params to args
+        push @{$args{parameters}}, @{$raster_args{parameters}};
     }
     
-    # only show this dialog if args/parameters are defined (ignored for shapefile input)
     my %import_params;
-    my $params;
-    if (%args) {
-        $params = $args{parameters};
+    my $table_params;
+    $table_params = $args{parameters};
 
+    my @cell_sizes;
+    my @cell_origins;
+    if ($read_format == $raster_idx) {
         # set some default values (a bit of a hack)
-        my @cell_sizes   = @{$basedata_ref->get_param('CELL_SIZES')};
-        my @cell_origins = @{$basedata_ref->get_cell_origins};
+        @cell_sizes   = @{$basedata_ref->get_param('CELL_SIZES')};
+        @cell_origins = @{$basedata_ref->get_cell_origins};
 
-        foreach my $thisp (@$params) {
+        foreach my $thisp (@$table_params) {
             $thisp->{default} = $cell_origins[0] if ($thisp->{name} eq 'raster_origin_e');
             $thisp->{default} = $cell_origins[1] if ($thisp->{name} eq 'raster_origin_n');
             $thisp->{default} = $cell_sizes[0]   if ($thisp->{name} eq 'raster_cellsize_e');
             $thisp->{default} = $cell_sizes[1]   if ($thisp->{name} eq 'raster_cellsize_n');        
         }
-
-        # Build widgets for parameters
-        my $table = $dlgxml->get_widget ('tableImportParameters');
-        # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
-        my $extractors = Biodiverse::GUI::ParametersTable::fill ($params, $table, $dlgxml); 
-
-        $dlg->show_all;
-        $response = $dlg->run;
-        $dlg->destroy;
-
-        if ($response ne 'ok') {  #  clean up and drop out
-            if ($use_new) {
-                $gui->get_project->delete_base_data($basedata_ref);
-            }
-            return;
-        }
-        my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
-        %import_params = @$import_params;
     }
+    
+    # Build widgets for parameters
+    my $table = $dlgxml->get_widget ('tableImportParameters');
+    # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
+    my $extractors = Biodiverse::GUI::ParametersTable::fill ($table_params, $table, $dlgxml); 
+
+    $dlg->show_all;
+    $response = $dlg->run;
+    $dlg->destroy;
+
+    if ($response ne 'ok') {  #  clean up and drop out
+        if ($use_new) {
+            $gui->get_project->delete_base_data($basedata_ref);
+        }
+        return;
+    }
+    my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
+    %import_params = @$import_params;
+    
     
     # next stage, if we are reading as raster, just call import function here and exit.
     # for shapefile and text, find columns and ask how to interpret 
     my $col_names_for_dialog;
     my $col_options = undef;
     my $use_matrix;
+    
+    # (no pre-processing needed for raster)
+
     if ($read_format == $raster_idx) {
-        my $labels_as_bands = $import_params{raster_labels_as_bands};
-        my $success = eval {
-            $basedata_ref->import_data_raster(
-                %import_params,
-                #%rest_of_options,
-                #%gp_lb_cols,
-                labels_as_bands => $labels_as_bands,
-                input_files     => \@filenames
-            )
-        };
-        if ($EVAL_ERROR) {
-            my $text = $EVAL_ERROR;
-            if (not $use_new) {
-                $text .= "\tWarning: Records prior to this line have been imported.\n";
-            }
-            $gui->report_error ($text);
-        }
-
-        return if !$success;
-
-        if ($use_new) {
-            $gui->get_project->add_base_data($basedata_ref);
-        }
-        return $basedata_ref;
+    	# just set cell sizes etc values from dialog
+        @cell_origins = ($import_params{raster_origin_e}, $import_params{raster_origin_n});
+        @cell_sizes = ($import_params{raster_cellsize_e}, $import_params{raster_cellsize_n});
     }
     elsif ($read_format == $shapefile_idx) {
         # process as shapefile
@@ -204,7 +196,6 @@ sub run {
         # find available columns from first file, assume all the same
         croak ('no files given') if !scalar @filenames;
 
-        say $filenames[0];
         my $fnamebase = $filenames[0];
         $fnamebase =~ s/\.[^.]+?$//;  #  use lazy quantifier so we get chars from the last dot - should use Path::Class::File
 
@@ -230,7 +221,7 @@ sub run {
 
         $col_names_for_dialog = \@field_names;
     }
-    else {
+    elsif ($read_format == $text_idx) {
         # process as text input, get columns from file
 
         # Get header columns
@@ -301,137 +292,106 @@ sub run {
             /];
         }
     }
-    
+
     #########
     # 2. Get column types (using first file...)
     #########
-    my $row_widgets;
-    ($dlg, $row_widgets) = make_columns_dialog (
-        $col_names_for_dialog,
-        $gui->get_widget('wndMain'),
-        $col_options,
-        $file_list_as_text,
-    );
     my $column_settings;
+    if ($read_format == $shapefile_idx || $read_format == $text_idx) {
+        my $row_widgets;
+        ($dlg, $row_widgets) = make_columns_dialog (
+            $col_names_for_dialog,
+            $gui->get_widget('wndMain'),
+            $col_options,
+            $file_list_as_text,
+        );
+        
+        GET_COLUMN_TYPES:
+        while (1) { # Keep showing dialog until have at least one label & group
+            $response = $dlg->run();
     
-    GET_COLUMN_TYPES:
-    while (1) { # Keep showing dialog until have at least one label & group
-        $response = $dlg->run();
-
-        last GET_COLUMN_TYPES
-          if $response ne 'help' && $response ne 'ok';
-
-        if ($response eq 'help') {
-            #  do stuff
-            #print "hjelp me!\n";
-            explain_import_col_options($dlg, $use_matrix);
-        }
-        elsif ($response eq 'ok') {
-            $column_settings = get_column_settings($row_widgets, $col_names_for_dialog);
-            my $num_groups = scalar @{$column_settings->{groups}};
-            my $num_labels = 0;
-            if ($use_matrix) {
-                if (exists $column_settings->{Label_start_col}) {  #  not always present
-                    $num_labels = scalar @{$column_settings->{Label_start_col}};
+            last GET_COLUMN_TYPES
+              if $response ne 'help' && $response ne 'ok';
+    
+            if ($response eq 'help') {
+                #  do stuff
+                #print "hjelp me!\n";
+                explain_import_col_options($dlg, $use_matrix);
+            }
+            elsif ($response eq 'ok') {
+                $column_settings = get_column_settings($row_widgets, $col_names_for_dialog);
+                my $num_groups = scalar @{$column_settings->{groups}};
+                my $num_labels = 0;
+                if ($use_matrix) {
+                    if (exists $column_settings->{Label_start_col}) {  #  not always present
+                        $num_labels = scalar @{$column_settings->{Label_start_col}};
+                    }
                 }
-            }
-            else {
-                $num_labels = scalar @{$column_settings->{labels}};
-            }
-
-            last GET_COLUMN_TYPES if $num_groups;
-
-            my $text = $use_matrix
-                 ? 'Please select at least one group and the label start column'
-                 : 'Please select at least one label and one group';
-            
-            my $msg = Gtk2::MessageDialog->new (
-                undef,
-                'modal',
-                'error',
-                'ok',
-                $text
-            );
-            
-            $msg->run();
-            $msg->destroy();
-            $column_settings = undef;
-        }
-    }
-    $dlg->destroy();
+                else {
+                    $num_labels = scalar @{$column_settings->{labels}};
+                }
     
-    if (not $column_settings) {  #  clean up and drop out
-        if ($use_new) {
-            $gui->get_project->delete_base_data ($basedata_ref) ;
-        }
-        return;
-    }
-
-    if ($read_format == $shapefile_idx) {
-        #  shapefiles import based on names, so extract them
-        my (@group_col_names, @label_col_names);
-        foreach my $specs (@{$column_settings->{labels}}) {
-            push @label_col_names, $specs->{name};
-        }
-        foreach my $specs (@{$column_settings->{groups}}) {
-            push @group_col_names, $specs->{name};
-        }
-        my @sample_count_col_names;
-        foreach my $specs (@{$column_settings->{sample_counts}}) {
-            push @sample_count_col_names, $specs->{name};
-        }
-        # process data
-        my $success = eval {
-            $basedata_ref->import_data_shapefile(
-                %import_params,
-                input_files             => \@filenames,
-                group_fields            => \@group_col_names,
-                label_fields            => \@label_col_names,
-                sample_count_col_names  => \@sample_count_col_names,
-            )
-        };
-        if ($EVAL_ERROR) {
-            my $text = $EVAL_ERROR;
-            if (not $use_new) {
-                $text .= "\tWarning: Records prior to this line have been imported.\n";
-            }
-            $gui->report_error ($text);
-        }
-
-        return if !$success;
-
-        if ($use_new) {
-            $gui->get_project->add_base_data($basedata_ref);
-        }
-        return $basedata_ref;
-    }
+                last GET_COLUMN_TYPES if $num_groups;
     
+                my $text = $use_matrix
+                     ? 'Please select at least one group and the label start column'
+                     : 'Please select at least one label and one group';
+                
+                my $msg = Gtk2::MessageDialog->new (
+                    undef,
+                    'modal',
+                    'error',
+                    'ok',
+                    $text
+                );
+                
+                $msg->run();
+                $msg->destroy();
+                $column_settings = undef;
+            }
+        }
+        $dlg->destroy();
+        
+        if (not $column_settings) {  #  clean up and drop out
+            if ($use_new) {
+                $gui->get_project->delete_base_data ($basedata_ref) ;
+            }
+            return;
+        }
+    }
+
     #########
     # 3. Get column order
     #########
-    my $old_labels_array = $column_settings->{labels};
-    if ($use_matrix) {
-        $column_settings->{labels}
-            = [{name => 'From file', id => 0}];
-    }
-    
-    ($dlgxml, $dlg) = make_reorder_dialog($gui, $column_settings);
-    $response = $dlg->run();
-    
-    $params = fill_params($dlgxml);
-    $dlg->destroy();
-
-    if ($response ne 'ok') {  #  clean up and drop out
-        if ($use_new) {
-            $gui->get_project->delete_base_data ($basedata_ref);
+    my $reorder_params;
+    if ($read_format == $shapefile_idx || $read_format == $text_idx) {
+        my $old_labels_array = $column_settings->{labels};
+        if ($use_matrix) {
+            $column_settings->{labels}
+                = [{name => 'From file', id => 0}];
         }
-        return;
-    }
+        
+        ($dlgxml, $dlg) = make_reorder_dialog($gui, $column_settings);
+        $response = $dlg->run();
+        
+        $reorder_params = fill_params($dlgxml);
+        $dlg->destroy();
+    
+        if ($response ne 'ok') {  #  clean up and drop out
+            if ($use_new) {
+                $gui->get_project->delete_base_data ($basedata_ref);
+            }
+            return;
+        }
+    
+        if ($use_matrix) {
+            $column_settings->{labels} = $old_labels_array;
+        }
 
-    if ($use_matrix) {
-        $column_settings->{labels} = $old_labels_array;
+        @cell_sizes = $reorder_params->{CELL_SIZES};
+        @cell_origins = $reorder_params->{CELL_ORIGINS};
     }
-
+   
     #########
     # 3a. Load the label and group properties
     #########
@@ -468,8 +428,8 @@ sub run {
     #########
     # Set the cellsize and origins parameters if we are new
     if ($use_new) {
-        $basedata_ref->set_param(CELL_SIZES   => $params->{CELL_SIZES});
-        $basedata_ref->set_param(CELL_ORIGINS => $params->{CELL_ORIGINS});
+        $basedata_ref->set_param(CELL_SIZES   => @cell_sizes);
+        $basedata_ref->set_param(CELL_ORIGINS => @cell_origins);
     }
 
     #  get the sample count columns.  could do in fill_params, but these are
@@ -508,22 +468,62 @@ sub run {
 
     #  get the various columns    
     my %gp_lb_cols;
-    while (my ($key, $value) = each %$params) {
+    while (my ($key, $value) = each %$reorder_params) {
         next if $key =~ /^CELL_(?:SIZE|ORIGINS)/;
         $gp_lb_cols{lc $key} = $value;
     }
 
     my $success = eval {
-        $basedata_ref->load_data(
-            %import_params,
-            %rest_of_options,
-            %gp_lb_cols,
-            input_files             => \@filenames,
-            include_columns         => \@include_columns,
-            exclude_columns         => \@exclude_columns,
-            sample_count_columns    => \@sample_count_columns,
-        )
+        # run appropriate import routine
+        if ($read_format == $raster_idx) {
+            my $labels_as_bands = $import_params{raster_labels_as_bands};
+            my $success = eval {
+                $basedata_ref->import_data_raster(
+                    %import_params,
+                    #%rest_of_options,
+                    #%gp_lb_cols,
+                    labels_as_bands => $labels_as_bands,
+                    input_files     => \@filenames
+                )
+            };
+        }
+        elsif ($read_format == $shapefile_idx) {
+            #  shapefiles import based on names, so extract them
+            my (@group_col_names, @label_col_names);
+            foreach my $specs (@{$column_settings->{labels}}) {
+                push @label_col_names, $specs->{name};
+            }
+            foreach my $specs (@{$column_settings->{groups}}) {
+                push @group_col_names, $specs->{name};
+            }
+            my @sample_count_col_names;
+            foreach my $specs (@{$column_settings->{sample_counts}}) {
+                push @sample_count_col_names, $specs->{name};
+            }
+            # process data
+            my $success = eval {
+                $basedata_ref->import_data_shapefile(
+                    %import_params,
+                    input_files             => \@filenames,
+                    group_fields            => \@group_col_names,
+                    label_fields            => \@label_col_names,
+                    sample_count_col_names  => \@sample_count_col_names,
+                )
+            };            
+        } 
+        elsif ($read_format == $text_idx) {        
+            $basedata_ref->load_data(
+                %import_params,
+                %rest_of_options,
+                %gp_lb_cols,
+                input_files             => \@filenames,
+                include_columns         => \@include_columns,
+                exclude_columns         => \@exclude_columns,
+                sample_count_columns    => \@sample_count_columns,
+            )
+        }
     };
+    
     if ($EVAL_ERROR) {
         my $text = $EVAL_ERROR;
         if (not $use_new) {

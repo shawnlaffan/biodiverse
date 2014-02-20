@@ -1622,7 +1622,14 @@ sub run_import_post_processes {
     #  how many label axes do we have?
     my $labels = $self->get_labels;
     my $first_label = $labels->[0];
-    my @components = $self->csv2list (string => $first_label);
+    my $lb_csv_obj  = $labels_ref->get_csv_object (
+        quote_char => $labels_ref->get_param ('QUOTES'),
+        sep_char   => $labels_ref->get_param ('JOIN_CHAR'),
+    );
+    my @components = $self->csv2list (
+        string     => $first_label,
+        csv_object => $lb_csv_obj,
+    );
     my $label_axis_count = scalar @components;
 
     #  set whatever label properties are in the table

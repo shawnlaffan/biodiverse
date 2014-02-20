@@ -23,6 +23,7 @@ use File::Basename;
 use Path::Class;
 use POSIX qw /fmod/;
 use Time::localtime;
+use Geo::Shapefile::Writer;
 
 our $VERSION = '0.19';
 
@@ -598,14 +599,22 @@ sub export_shapefile {
 
     $args{file} =~ s/\.shp$//i;
     my $file = $args{file};
+    my $list_name = $args{list};
+
+    # we are writing as 2D or 3D points or polygons,
+    # only Point, PointZ or Polygon are used
+    my $shape_type = uc ($args{shapetype} // 'POLYGON');
+    croak "Invalid shapetype for shapefile export\n"
+      if $shape_type ne 'POINT' and $shape_type ne 'POLYGON';
 
     say "Exporting to shapefile $file";
-
-    use Geo::Shapefile::Writer;
 
     my @elements    = $self->get_element_list;
     my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
     my @axes_to_use = (0, 1);
+    if ($shape_type eq 'POINT' && scalar @cell_sizes > 2) {
+        @axes_to_use = (0, 1, 2);  #  we use Z in this case
+    }
 
     my $half_csizes = [];
     foreach my $size (@cell_sizes[@axes_to_use]) {
@@ -633,13 +642,7 @@ sub export_shapefile {
         }
     }
 
-    # we are writing as 2D points or polygons, only Point or Polygon
-    # are used, not PointZ etc
-    my $shape_type;
-    if ($args{shapetype} eq 'polygon')  { $shape_type = 'POLYGON'; }
-    elsif ($args{shapetype} eq 'point') { $shape_type = 'POINT'; }
-    else { croak 'invalid shapetype for shapefile export\n'; }
-    
+
 # code for multiple labels per shape
 # 
 #    # find all labels.  only possible by examining all the groups,
@@ -654,19 +657,26 @@ sub export_shapefile {
 #    my @label_count_specs;
 #    my $l_idx = 0;
 #    foreach my $this_label (keys %label_hash) {
-#    	$l_idx++;
+#        $l_idx++;
 #        push @label_count_specs, [ "label_${l_idx}" => 'C', 100];
 #        push @label_count_specs, [ "count_${l_idx}" => 'N', 8, 0];
 #    }
+
+    my @label_count_specs;
+    if (defined $list_name) {  # repeated polys per list item
+        push @label_count_specs, (
+            [ label => 'C', 100  ],
+            [ count => 'N', 8, 0 ],
+        );
+    }
+
     my $shp_writer = Geo::Shapefile::Writer->new (
         $file, $shape_type,
         [ element => 'C', 100 ],
         @axis_col_specs,
-        # @label_count_specs
-        [ label => 'C', 100 ],
-        [ count => 'N', 8, 0 ]
+        @label_count_specs,
     );
-    
+
   NODE:
     foreach my $element (@elements) {
         my $coord_axes = $self->get_element_name_coord (element => $element);
@@ -678,49 +688,55 @@ sub export_shapefile {
         }
 
         my $shape;
-        if ($args{shapetype} eq 'polygon')  { 
-	        my $min_x = $coord_axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
-	        my $max_x = $coord_axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
-	        my $min_y = $coord_axes->[$axes_to_use[1]] - $half_csizes->[$axes_to_use[1]];
-	        my $max_y = $coord_axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
-	
-        	$shape = [
+        if ($shape_type eq 'POLYGON')  { 
+            my $min_x = $coord_axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
+            my $max_x = $coord_axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
+            my $min_y = $coord_axes->[$axes_to_use[1]] - $half_csizes->[$axes_to_use[1]];
+            my $max_y = $coord_axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
+
+            $shape = [[
                 [$min_x, $min_y],
                 [$min_x, $max_y],
                 [$max_x, $max_y],
                 [$max_x, $min_y],
                 [$min_x, $min_y],  #  close off
-            ];
+            ]];
         }
-        elsif ($args{shapetype} eq 'point') { 
+        elsif ($shape_type eq 'POINT') { 
             $shape = [
                 $coord_axes->[$axes_to_use[0]],
-                $coord_axes->[$axes_to_use[1]]
+                $coord_axes->[$axes_to_use[1]],
             ];
         }
 
-        # get labels and counts in this cell
-	    my %label_counts = $self->get_sub_element_hash (
-	        element => $element
-	    );
-	    #foreach my $this_label (keys %label_counts) {
-		#    #say "$this_label count $label_counts{$this_label}";
-	    #   { name => $name, type => 'N', length => 8,  decimals => 0 } 
-	    #}
+        #  temporary - this needs to be handled differently
+        if ($list_name) {
+            my %list_data = $self->get_list_values (
+                element => $element,
+                list    => $list_name,
+            );
 
-        # write a separate shape for each label
-        foreach my $label (keys %label_counts) {
-        	
-	        $shp_writer->add_shape(
-	            $shape,
-	            {
-	                element => $element,
-	                %axis_col_data,
-	                label => $label,
-	                count => $label_counts{$label}
-#	                %label_counts
-	            },
-	        );
+            # write a separate shape for each label
+            foreach my $key (keys %list_data) {
+                $shp_writer->add_shape(
+                    $shape,
+                    {
+                        element => $element,
+                        %axis_col_data,
+                        label => $key,
+                        count => $list_data{$key}
+                    },
+                );
+            }
+        }
+        else {
+            $shp_writer->add_shape(
+                $shape,
+                {
+                    element => $element,
+                    %axis_col_data,
+                },
+            );
         }
     }
 

@@ -328,7 +328,7 @@ sub test_roundtrip_delimited_text {
     $e = $EVAL_ERROR;
     ok (!$e, 'import vanilla with no exceptions raised');
     
-    $bd->add_element (group => '1.5:1.5', label => 'bazungalah smith', count => 25);
+    $bd->add_element (group => '1.5:1.5', label => 'bazungalah:smith', count => 25);
     
     my $lb = $bd->get_labels_ref;
     my $gp = $bd->get_groups_ref;
@@ -431,7 +431,7 @@ sub test_roundtrip_raster {
     ok (!$e, 'import vanilla with no exceptions raised');
     
     # not sure why this is used
-    $bd->add_element (group => '1.5:1.5', label => 'bazungalah smith', count => 25);
+    $bd->add_element (group => '1.5:1.5', label => 'bazungalah:smith', count => 25);
     
     my $lb = $bd->get_labels_ref;
     my $gp = $bd->get_groups_ref;
@@ -557,9 +557,9 @@ sub test_roundtrip_shapefile {
     
     # add so there is multiple entries in some cells 
     # with different labels
-    $bd->add_element (group => '1.5:1.5', label => 'bazungalah smith', count => 25);
-    $bd->add_element (group => '1.5:1.5', label => 'repeat1', count => 14);
-    $bd->add_element (group => '1.5:1.5', label => 'repeat2', count => 12);
+    $bd->add_element (group => '1.5:1.5', label => 'bazungalah:smith', count => 25);
+    $bd->add_element (group => '1.5:1.5', label => 'repeat:1', count => 14);
+    $bd->add_element (group => '1.5:1.5', label => 'repeat:2', count => 12);
     
     my $lb = $bd->get_labels_ref;
     my $gp = $bd->get_groups_ref;

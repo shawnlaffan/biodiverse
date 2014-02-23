@@ -82,16 +82,16 @@ sub main {
         return 0;
     }
     
-#    test_import();
-#    test_import_small();
-#    test_bounds();
-#    test_coords_near_zero();
-#    test_rename_labels();
-#    test_multidimensional_import();
-#    test_reorder_axes();
-#    test_attach_ranges_and_sample_counts();
-#    test_roundtrip_delimited_text();
-#    test_roundtrip_raster();
+    test_import();
+    test_import_small();
+    test_bounds();
+    test_coords_near_zero();
+    test_rename_labels();
+    test_multidimensional_import();
+    test_reorder_axes();
+    test_attach_ranges_and_sample_counts();
+    test_roundtrip_delimited_text();
+    test_roundtrip_raster();
     test_roundtrip_shapefile();
     
     done_testing;
@@ -261,7 +261,7 @@ sub test_import_small {
 
         my $groups = $bd->get_groups;
         is ($groups->[0], '1.5:1.5:1.5', "Only remaining group is '1.5:1.5:1.5'");
-        
+
         my $labels = $bd->get_labels;
         is ($labels->[0], 'g1:sp1', "Only remaining label is 'g1:sp1'");
     }
@@ -555,12 +555,12 @@ sub test_roundtrip_shapefile {
     $e = $EVAL_ERROR;
     ok (!$e, 'import vanilla with no exceptions raised');
     
-    # add so there is multiple entries in some cells 
+    # add some labels so we have multiple entries in some cells 
     # with different labels
     $bd->add_element (group => '1.5:1.5', label => 'bazungalah:smith', count => 25);
     $bd->add_element (group => '1.5:1.5', label => 'repeat:1', count => 14);
     $bd->add_element (group => '1.5:1.5', label => 'repeat:2', count => 12);
-    
+
     my $lb = $bd->get_labels_ref;
     my $gp = $bd->get_groups_ref;
 
@@ -568,7 +568,7 @@ sub test_roundtrip_shapefile {
 
     my $format = 'export_shapefile';
     my @out_options = ( { data => $bd, shapetype => 'point' } ); # not sure what parameters are needed for export
-    
+
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
     # assume export was in format labels_as_bands = 0
@@ -589,15 +589,12 @@ sub test_roundtrip_shapefile {
         local $Data::Dumper::Sortkeys = 1;
         local $Data::Dumper::Purity   = 1;
         local $Data::Dumper::Terse    = 1;
-        say Dumper $out_options_hash;
+        #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
         my $fname_base = 'shapefile' . $i; 
         my $suffix = ''; # leave off, .shp will be added (or similar)
-        my $fname = $fname_base 
-                   #. ($out_options_hash->{symmetric} ? '_symm' : '_asym')
-                   #. ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
-                   . $suffix;  
+        my $fname = $fname_base . $suffix;  
         my @exported_files;
         my $success = eval {
             $gp->export (

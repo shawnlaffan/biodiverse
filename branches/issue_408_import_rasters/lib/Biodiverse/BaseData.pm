@@ -1620,8 +1620,9 @@ sub run_import_post_processes {
     my $labels_ref = $self->get_labels_ref;
 
     #  how many label axes do we have?
+    #  Assume 1 axis if no labels have yet been set.
     my $labels = $self->get_labels;
-    my $first_label = $labels->[0];
+    my $first_label = $labels->[0] // '';
     my $lb_csv_obj  = $labels_ref->get_csv_object (
         quote_char => $labels_ref->get_param ('QUOTES'),
         sep_char   => $labels_ref->get_param ('JOIN_CHAR'),

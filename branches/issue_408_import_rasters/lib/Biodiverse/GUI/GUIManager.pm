@@ -649,7 +649,7 @@ sub do_basedata_reorder_axes {
         return;
     }
 
-    my $params = Biodiverse::GUI::BasedataImport::fillParams($dlgxml);
+    my $params = Biodiverse::GUI::BasedataImport::fill_params($dlgxml);
     $dlg->destroy;
 
     my $new_bd = $bd->new_with_reordered_element_axes (%$params);
@@ -685,7 +685,7 @@ sub do_basedata_attach_properties {
     my $self = shift;
 
     my $bd = $self->{project}->get_selected_base_data();
-    croak "Cannot add proerties to Basedata with existing outputs\n"
+    croak "Cannot add properties to Basedata with existing outputs\n"
         . "Use the Duplicate Without Outputs option to create a copy without deleting the outputs.\n"
       if $bd->get_output_ref_count;
 

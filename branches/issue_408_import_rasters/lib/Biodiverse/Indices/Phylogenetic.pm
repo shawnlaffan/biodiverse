@@ -424,6 +424,76 @@ sub calc_pe_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pe_clade_contributions {
+
+    my %arguments = (
+        description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
+        name            => 'Phylogenetic Endemism clade contributions',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => ['_calc_pe'],
+        pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PE_CLADE_SCORE  => {
+                description => 'List of PE scores for each node (clade), being the sum of all descendent PE weights',
+                type        => 'list',
+            },
+            PE_CLADE_CONTR  => {
+                description => 'List of node (clade) contributions to the PE calculation',
+                type        => 'list',
+            },
+            PE_CLADE_CONTR_P => {
+                description => 'List of node (clade) contributions to the PE calculation, proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+    
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+    
+    my $tree = $args{trimmed_tree};
+    my $wt_list = $args{PE_WTLIST};
+    my $PE_score = $args{PE_WE};
+    my $sum_of_branches = $tree->get_total_tree_length;
+
+    my $contr   = {};
+    my $contr_p = {};
+    my $clade_pe = {};
+
+  NODE_NAME:
+    foreach my $node_name (keys %$wt_list) {
+        next if defined $contr->{$node_name};
+
+        my $node_ref = $tree->get_node_ref (node => $node_name);
+
+        #  inefficient as we are not caching by node
+        #  should get a tree object for the nbrhood so we can skip the grep
+        my $node_hash = $node_ref->get_all_descendents_and_self;
+        my @node_list = grep {exists $wt_list->{$_}} keys %$node_hash;
+
+        my $wt_sum = sum @$wt_list{@node_list};
+
+        #  round off to avoid spurious spatial variation.
+        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $PE_score;
+        $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
+        $clade_pe->{$node_name} = $wt_sum;
+    }
+
+    my %results = (
+        PE_CLADE_SCORE   => $clade_pe,
+        PE_CLADE_CONTR   => $contr,
+        PE_CLADE_CONTR_P => $contr_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_pe_single {
 
     my %arguments = (

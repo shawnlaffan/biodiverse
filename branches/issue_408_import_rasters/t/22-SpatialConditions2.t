@@ -94,20 +94,24 @@ Returns colon separated pair of x and y.
 
 =cut
 
-sub transform_element {
-    my %args = @_;
+{
+    no warnings 'redefine';  #  we are overriding an imported sub
 
-    my $element = $args{element};
-
-    if (not ($args{element} =~ m/^([-.0-9]+)([^-.0-9]+)([-.0-9]+)$/)) {
-        croak "Invalid element '$element' given to transform_element.";
+    sub transform_element {
+        my %args = @_;
+    
+        my $element = $args{element};
+    
+        if (not ($args{element} =~ m/^([-.0-9]+)([^-.0-9]+)([-.0-9]+)$/)) {
+            croak "Invalid element '$element' given to transform_element.";
+        }
+    
+        my ($x, $sep, $y)           = ($1, $2, $3);
+        my ($x_t, $y_t, $x_s, $y_s) = @{$args{transform}};
+    
+        return join $sep, $x_s * ($x + $x_t),
+                          $y_s * ($y + $y_t);
     }
-
-    my ($x, $sep, $y)           = ($1, $2, $3);
-    my ($x_t, $y_t, $x_s, $y_s) = @{$args{transform}};
-
-    return join $sep, $x_s * ($x + $x_t),
-                      $y_s * ($y + $y_t);
 }
 
 =item run_case_transformed

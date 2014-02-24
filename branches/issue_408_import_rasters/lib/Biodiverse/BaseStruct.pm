@@ -448,7 +448,7 @@ sub get_nodata_values {
     return wantarray ? @vals : \@vals;
 }
 
-sub get_raster_export_metadata {
+sub get_nodata_export_metadata {
     my $self = shift;
 
     my @no_data_values = $self->get_nodata_values;
@@ -457,7 +457,7 @@ sub get_raster_export_metadata {
         {
             name        => 'no_data_value',
             label_text  => 'NoData value',
-            tooltip    => 'Zero is not a safe value to use for nodata in most '
+            tooltip     => 'Zero is not a safe value to use for nodata in most '
                         . 'cases, so be warned',
             type        => 'choice',
             choices     => \@no_data_values,
@@ -466,6 +466,13 @@ sub get_raster_export_metadata {
     ];
 
     return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
+}
+
+
+sub get_raster_export_metadata {
+    my $self = shift;
+
+    return $self->get_nodata_export_metadata;
 }
 
 sub get_metadata_export_ers {
@@ -568,25 +575,54 @@ sub export_divagis {
     return;
 }
 
+my $shape_export_comment_text = <<'END_OF_SHAPE_COMMENT'
+Note: If you export a list then each shape (point or polygon) 
+will be repeated for each list item. 
+Choose the __no_list__ option to not do this,
+in which case to attach any lists you will need to run a second 
+export to the delimited text format and then join them.  
+This is needed because shapefile field names can only be
+11 characters long and cannot contain non-alphanumeric characters.
+Note also that shapefiles do not have an undefined value 
+so any undefined values will be converted to zeroes.
+END_OF_SHAPE_COMMENT
+  ;
 
 sub get_metadata_export_shapefile {
     my $self = shift;
+    #  get the available lists
+    my @lists = $self->get_lists_for_export;
+    unshift @lists, '__no_list__';
+
+    #  nodata won;t have much effect until we make the outputs symmetric
+    my @nodata_meta = $self->get_nodata_export_metadata;
 
     my %args = (
         format => 'Shapefile',
         parameters => [
-            {
+            {  # GUI supports just one of these
                 name => 'file',
                 type => 'file'
-            }, # GUI supports just one of these
+            },
             {
-                type => 'comment',
-                label_text =>
-                      'Note: To attach any lists you will need to run a second '
-                    . 'export to the delimited text format and then join them.  '
-                    . 'This is needed because shapefiles do not have an undefined value '
-                    . 'and field names can only be 11 characters long.',
-            }
+                name        => 'list',
+                label_text  => 'List to export',
+                type        => 'choice',
+                choices     => \@lists,
+                default     => 0
+            },
+            {
+                name        => 'shapetype',
+                label_text  => 'Shape type',
+                type        => 'choice',
+                choices     => [qw /POLYGON POINT/],
+                default     => 0,
+            },
+            @nodata_meta,
+            {
+                type        => 'comment',
+                label_text  => $shape_export_comment_text,
+            },
         ],
     );
 
@@ -595,11 +631,20 @@ sub get_metadata_export_shapefile {
 
 sub export_shapefile {
     my $self = shift;
-    my %args = @_;
+    my %args = (nodata_value => -2**128, @_);
 
     $args{file} =~ s/\.shp$//i;
-    my $file = $args{file};
+    my $file    = $args{file};
+
     my $list_name = $args{list};
+    if (defined $list_name && $list_name eq '__no_list__') {
+        $list_name = undef;
+    }
+
+    my $nodata = $args{nodata_value};
+    if (!looks_like_number $nodata) {
+        $nodata = -2**128;
+    }
 
     # we are writing as 2D or 3D points or polygons,
     # only Point, PointZ or Polygon are used
@@ -665,8 +710,8 @@ sub export_shapefile {
     my @label_count_specs;
     if (defined $list_name) {  # repeated polys per list item
         push @label_count_specs, (
-            [ label => 'C', 100  ],
-            [ count => 'N', 8, 0 ],
+            [ key   => 'C', 100  ],
+            [ value => 'N', 8, 0 ],
         );
     }
 
@@ -723,8 +768,8 @@ sub export_shapefile {
                     {
                         element => $element,
                         %axis_col_data,
-                        label => $key,
-                        count => $list_data{$key}
+                        key     => $key,
+                        value   => ($list_data{$key} // $nodata),
                     },
                 );
             }
@@ -2794,16 +2839,20 @@ sub get_lists_across_elements {
     my $self = shift;
     my %args = @_;
     my $max_search = $args{max_search} || $self->get_element_count;
-    my $no_private = $args{no_private};
+    my $no_private = $args{no_private} // 0;
     my $rerun = $args{rerun};
     my $list_method = $args{list_method} || 'get_hash_lists';
 
     croak "max_search arg is negative\n" if $max_search < 0;
 
     #  get from cache
-    my $cached_list = $self->get_param ('LISTS_ACROSS_ELEMENTS');
+    my $cache_name_listnames   = "LISTS_ACROSS_ELEMENTS_${list_method}_${no_private}";
+    my $cache_name_last_update = "LISTS_ACROSS_ELEMENTS_MAX_SEARCH_${list_method}_${no_private}";
+    my $cache_name_max_search  = "LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME_${list_method}_${no_private}";
+
+    my $cached_list = $self->get_cached_value ($cache_name_listnames);
     my $cached_list_max_search
-        = $self->get_param ('LISTS_ACROSS_ELEMENTS_LAST_MAX_SEARCH');
+        = $self->get_cached_value ($cache_name_max_search);
 
     my $last_update_time = $self->get_last_update_time;
 
@@ -2812,7 +2861,7 @@ sub get_lists_across_elements {
     }
 
     my $last_cache_time
-        = $self->get_param ('LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME')
+        = $self->get_cached_value ($cache_name_last_update)
           || time;
 
     my $time_diff = defined $last_update_time
@@ -2858,10 +2907,10 @@ sub get_lists_across_elements {
     my @lists = keys %tmp_hash;
 
     #  cache
-    $self->set_params (
-        LISTS_ACROSS_ELEMENTS                  => \@lists,
-        LISTS_ACROSS_ELEMENTS_LAST_MAX_SEARCH  => $max_search,
-        LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME => $last_cache_time,
+    $self->set_cached_values (
+        $cache_name_listnames   => \@lists,
+        $cache_name_max_search  => $max_search,
+        $cache_name_last_update => $last_cache_time,
     );
 
     return wantarray ? @lists : \@lists;

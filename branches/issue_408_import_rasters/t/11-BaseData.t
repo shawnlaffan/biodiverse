@@ -572,16 +572,14 @@ sub test_roundtrip_shapefile {
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
     # assume export was in format labels_as_bands = 0
-    my @cell_sizes           = @{$bd->get_param('CELL_SIZES')}; # probably not set anywhere, and is using the default
-    my @cell_origins         = @{$bd->get_cell_origins};    
+    my @cell_sizes   = @{$bd->get_param('CELL_SIZES')}; # probably not set anywhere, and is using the default
+    my @cell_origins = @{$bd->get_cell_origins};    
     my @in_options = (
         {
-            # assume 'x' uses cell_origin and _size [0]
             group_field_names => [':shape_x', ':shape_y'],
-            label_field_names => ['LABEL'],
-            sample_count_col_names => ['COUNT'],
-            #use_dbf_label => 1,
-        }
+            label_field_names => ['KEY'],
+            sample_count_col_names => ['VALUE'],
+        },
     );
 
     my $i = 0;
@@ -615,7 +613,7 @@ sub test_roundtrip_shapefile {
             CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
         );
         my $in_options_hash = $in_options[$i];
-        
+
         use URI::Escape::XS qw/uri_unescape/;
 
         # import as shapefile
@@ -629,7 +627,7 @@ sub test_roundtrip_shapefile {
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
         is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
-        
+
         my $new_lb = $new_bd->get_labels_ref;
         subtest "sample counts match for $fname" => sub {
             foreach my $label (sort $bd->get_labels) {

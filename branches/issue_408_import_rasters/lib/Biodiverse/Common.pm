@@ -496,6 +496,11 @@ sub set_cached_value {
     return;
 }
 
+sub set_cached_values {
+    my $self = shift;
+    $self->set_cached_value (@_);
+}
+
 #  hot path, so needs to be lean and mean, even if less readable
 sub get_cached_value {
     return if ! exists $_[0]->{_cache}{$_[1]};

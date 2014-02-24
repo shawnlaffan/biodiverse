@@ -585,16 +585,17 @@ This is needed because shapefile field names can only be
 11 characters long and cannot contain non-alphanumeric characters.
 Note also that shapefiles do not have an undefined value 
 so any undefined values will be converted to zeroes.
+Export of array lists to shapefiles is not supported. 
 END_OF_SHAPE_COMMENT
   ;
 
 sub get_metadata_export_shapefile {
     my $self = shift;
     #  get the available lists
-    my @lists = $self->get_lists_for_export;
+    my @lists = $self->get_lists_for_export (no_array_lists => 1);
     unshift @lists, '__no_list__';
 
-    #  nodata won;t have much effect until we make the outputs symmetric
+    #  nodata won't have much effect until we make the outputs symmetric
     my @nodata_meta = $self->get_nodata_export_metadata;
 
     my %args = (
@@ -874,10 +875,15 @@ sub export_shapefile {
 
 sub get_lists_for_export {
     my $self = shift;
+    my %args = @_;
+
+    my $skip_array_lists = $args{no_array_lists};
 
     #  get the available lists
     my $lists = $self->get_lists_across_elements (no_private => 1);
-    my $array_lists = $self->get_array_lists_across_elements (no_private => 1);
+    my $array_lists = $skip_array_lists
+        ? []
+        : $self->get_array_lists_across_elements (no_private => 1);
 
     #  sort appropriately
     my @lists;

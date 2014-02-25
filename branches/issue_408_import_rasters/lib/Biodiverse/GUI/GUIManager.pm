@@ -49,6 +49,8 @@ BEGIN {
         project  => undef,    # Our subclass that inherits from the main Biodiverse object
         gladexml => undef,    # Main window widgets
         tabs     => [],       # Stores refs to Tabs objects. In order of page index.
+        progress_bars => undef,
+        test_val => ''
     };
     bless $singleton, 'Biodiverse::GUI::GUIManager';
     $Biodiverse::Config::running_under_gui = 1;
@@ -116,6 +118,95 @@ sub set_dirty {
     my $self = shift;
     $self->{project}->set_dirty;
     return;
+}
+
+# Progress bar handling.  
+# Lifecycle: nothing created on startup.  Subroutines will call add_progress_entry to
+# add entries for tracking progress, as many may be active at any time.  When the first progress entry is added,
+# the progress dialog will be created and shown.  When all progress entries are finished, the progress dialog
+# is hidden (is it worth keeping open briefly or until closed?). 
+sub init_progress_window {
+    my $self = shift;
+    say 'init_progress_window';
+    
+    if ($self->{progress_bars}) {
+       say 'prog bars defined';
+       croak 'call to init_progress_window when defined';
+    }
+        
+    
+    $self->{progress_bars} = {
+        window => undef,
+        entry_box => undef
+    };
+    
+    # create window
+    $self->{progress_bars}->{window} = Gtk2::Window->new;
+    $self->{progress_bars}->{window}->set_transient_for( $self->get_widget('wndMain') );
+    $self->{progress_bars}->{window}->set_title('Progress');
+    $self->{progress_bars}->{window}->set_default_size (300, -1);
+    
+    # do we need to track delete signals?    
+    # $window->signal_connect ('delete-event' => \&destroy_callback, $self);
+    
+    $self->{progress_bars}->{entry_box} = Gtk2::VBox->new(0, 5); # homogeneous, spacing
+    $self->{progress_bars}->{window}->add($self->{progress_bars}->{entry_box});
+    
+    my $test_label = Gtk2::Label->new("hello world");
+    $self->{progress_bars}->{entry_box}->pack_start($test_label);
+    
+    $self->{progress_bars}->{window}->show_all;    
+}
+
+# called to add record to progress bar display
+sub add_progress_entry {
+    my ($self, $title, $text, $progress) = @_;
+
+    # call init if not defined yet
+    $self->init_progress_window if ! $self->{progress_bars};
+    
+    # possibly worth resetting next_id once it gets to a large number, however this is
+    # very unlikely to be a problem in practise
+    #my $new_id = $self->{progress_bars}->{next_id}++;
+    
+    # create new entry frame and widgets
+    my $frame = Gtk2::Frame->new($title);
+    $self->{progress_bars}->{entry_box}->pack_start($frame, 1, 1, 0);
+    
+    my $frame_vbox = Gtk2::VBox->new;
+    $frame->add($frame_vbox);
+    $frame_vbox->set_border_width(3);
+    
+    my $label_widget = Gtk2::Label->new;
+    $label_widget->set_line_wrap (1);
+    $label_widget->set_markup($text);
+    $frame_vbox->pack_start($label_widget, 0, 0, 0);
+    
+    my $progress_widget = Gtk2::ProgressBar->new;
+    $frame_vbox->pack_start($progress_widget, 0, 0, 0);
+    
+    # show the progress window
+    $self->{progress_bars}->{window}->show_all;
+    
+    #$self->{progress_bars}->{id_to_entryframe}{$new_id}
+    # return references to the id number, and label and progress widgets 
+    #return ($new_id, $label_widget, $progress_widget);
+    return ($frame, $label_widget, $progress_widget);
+}
+
+# called when a progress dialog finishes, to remove the entry from the display
+sub clear_progress_entry {    
+    my ($self, $entry_frame) = @_;
+
+    croak 'no frame given to remove' if ! defined($entry_frame);
+    
+    # remove given entry.  assume valid widget provided, otherwise will fail
+    $self->{progress_bars}->{entry_box}->remove($entry_frame);
+    
+    # if no active entries in progress dialog, hide it
+    if (! $self->{progress_bars}->{entry_box}->get_children() || scalar $self->{progress_bars}->{entry_box}->get_children() == 0) {
+        $self->{progress_bars}->{window}->hide;
+    }
 }
 
 ##########################################################

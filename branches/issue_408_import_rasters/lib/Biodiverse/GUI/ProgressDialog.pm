@@ -12,7 +12,8 @@ use Glib qw (TRUE FALSE);
 use Gtk2;
 use Gtk2::GladeXML;
 use Carp;
-use Time::HiRes qw /tv_interval gettimeofday/;
+use Time::HiRes qw/tv_interval gettimeofday/;
+use Data::Dumper;
 
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -21,7 +22,7 @@ our $VERSION = '0.19';
 
 my $TRUE  = 'TRUE';
 my $FALSE = 'FALSE';
-my $NULL_STRING = q{};
+my $NULL_STRING = q//;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::Exception;
@@ -33,40 +34,46 @@ sub new {
     my $class    = shift;
     my $text     = shift || $NULL_STRING;
     my $progress = shift || 0;
+    my $title = shift || $NULL_STRING;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
+    # from progress bar singleton in GUI, request a new progress
+    # instance and grab references to the widgets
+    my ($entry_frame, $label, $bar) = $gui->add_progress_entry($title, $text, $progress);
+    
     # Load the widgets from Glade's XML - need a better method of detecting if we are run from a GUI
     my $glade_file = $gui->get_glade_file;
     Biodiverse::GUI::ProgressDialog::NotInGUI->throw
         if ! $glade_file;
 
-    my $window = Gtk2::Window->new;
-    my $vbox   = Gtk2::VBox->new (undef, 10);
-    my $bar    = Gtk2::ProgressBar->new;
-    my $label  = Gtk2::Label->new;
+#    my $window = Gtk2::Window->new;
+#    my $vbox   = Gtk2::VBox->new (undef, 10);
+#    my $bar    = Gtk2::ProgressBar->new;
+#    my $label  = Gtk2::Label->new;
+    
+    say "setting entry frame $entry_frame";
     
     # Make object
     my $self = {
-        dlg          => $window,
+        entry_frame  => $entry_frame,
         label_widget => $label,
         progress_bar => $bar,
     };
     bless $self, $class;
 
-    $window->set_transient_for( $gui->get_widget('wndMain') );
-    $window->set_default_size (300, -1);
-    $window->signal_connect ('delete-event' => \&destroy_callback, $self);
-    
-    $window->set_title ('Please wait...');
-    $label->set_line_wrap (1);
-    $label->set_markup($text);
-
-    $window->add ($vbox);
-    $vbox->pack_end ($bar,   1, 0, 0);
-    $vbox->pack_end ($label, 1, 0, 0);
-    $window->show_all;
-
+#    $window->set_transient_for( $gui->get_widget('wndMain') );
+#    $window->set_default_size (300, -1);
+#    $window->signal_connect ('delete-event' => \&destroy_callback, $self);
+#    
+#    $window->set_title ('Please wait...');
+#    $label->set_line_wrap (1);
+#    $label->set_markup($text);
+#
+#    $window->add ($vbox);
+#    $vbox->pack_end ($bar,   1, 0, 0);
+#    $vbox->pack_end ($label, 1, 0, 0);
+#    $window->show_all;
     
     $self->{progress_update_interval} = $progress_update_interval;
 
@@ -77,14 +84,18 @@ sub new {
 
 sub destroy {
     my $self = shift;
-    #say "Destroying progress bar";
     $self->pulsate_stop;
 
     #  sometimes we have already been destroyed when this is called
-    if ($self->{dlg}) {
-        $self->{dlg}->destroy();
-    }
+    #if ($self->{dlg}) {
+    #    $self->{dlg}->destroy();
+    #}
 
+    # assume destroyed by method that created the progress bar, unlink from
+    # gui display window
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    $gui->clear_progress_entry($self->{entry_frame});
+    
     foreach my $key (keys %$self) {
         #say "$key $self->{$key}";
         $self->{$key} = undef;
@@ -92,6 +103,7 @@ sub destroy {
 
     return;
 }
+
 
 #  wrapper for the destroy method
 sub destroy_callback {

@@ -5,7 +5,7 @@ use English qw { -no_match_vars };
 use Carp;
 use POSIX qw /fmod/;
 use List::Util qw /max min/;
-my $NULL_STRING = q{};
+my $NULL_STRING = q//;
 
 require Biodiverse::Config;
 use Biodiverse::Exception;

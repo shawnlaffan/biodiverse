@@ -755,6 +755,32 @@ sub export_shapefile {
             ];
         }
 
+# merging duplicated code, not clear about differences yet
+#        # get labels and counts in this cell
+#        my %label_counts = $self->get_sub_element_hash (
+#            element => $element
+#        );
+        #foreach my $this_label (keys %label_counts) {
+        #    #say "$this_label count $label_counts{$this_label}";
+        #   { name => $name, type => 'N', length => 8,  decimals => 0 } 
+        #}
+        # write a separate shape for each label
+#        foreach my $label (keys %label_counts) {
+#            
+#            $shp_writer->add_shape(
+#                $shape,
+#                {
+#                    element => $element,
+#                    %axis_col_data,
+#                    label => $label,
+#                    count => $label_counts{$label}
+##                    %label_counts
+#                },
+#            );
+#        }
+
+
+
         #  temporary - this needs to be handled differently
         if ($list_name) {
             my %list_data = $self->get_list_values (

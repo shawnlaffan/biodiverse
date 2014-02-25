@@ -461,7 +461,7 @@ sub run_randomisation {
             $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
             my $is_tree_object = eval {$rand_analysis->is_tree_object};
             if ($is_tree_object) {
-                $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
+                $rand_analysis->delete_params (qw/ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
                 eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
                 $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
             }
@@ -620,7 +620,7 @@ sub get_analysis_args_from_object {
     my $analysis_args;
     my $p_key;
   ARGS_PARAM:
-    for my $key (qw /ANALYSIS_ARGS SP_CALC_ARGS/) {
+    for my $key (qw/ANALYSIS_ARGS SP_CALC_ARGS/) {
         $analysis_args = $object->get_param ($key);
         $p_key = $key;
         last ARGS_PARAM if defined $analysis_args;
@@ -774,7 +774,8 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
 
     foreach my $i (0 .. $#orig_groups) {
 
-        my $progress = $i / $total_to_do;
+        my $progress = 0;
+        $progress = $i / $total_to_do if ($total_to_do > 0);
         my $p_text
             = "$progress_text\n"
             . "Shuffling labels from\n"

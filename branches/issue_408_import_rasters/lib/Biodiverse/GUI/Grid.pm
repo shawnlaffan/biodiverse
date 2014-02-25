@@ -467,7 +467,7 @@ sub set_base_struct {
     $self->{cells} = {};
 
     my @tmpcell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
-     print "setBaseStruct data $data checking set cell sizes: ", join(',',@tmpcell_sizes);
+    print "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
     
     my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
     print join (q{ }, ($min_x, $max_x, $min_y, $max_y)) . "\n";
@@ -481,10 +481,10 @@ sub set_base_struct {
     $self->{base_struct_cellsizes} = [$cell_x, $cell_y];
     $self->{base_struct_bounds}    = [$min_x, $min_y, $max_x, $max_y];
 
-    my $sizes = $data->get_param ('CELL_SIZES');
+    my $sizes = $data->get_cell_sizes;
     my @sizes = @$sizes;
     my $width_pixels = 0;
-    if ($sizes[0] == 0
+    if (   $sizes[0] == 0
         || ! defined $sizes[1]
         || $sizes[1] == 0 ) {
         $width_pixels = 1

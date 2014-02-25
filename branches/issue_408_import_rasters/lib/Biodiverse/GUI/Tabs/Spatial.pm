@@ -153,10 +153,10 @@ sub new {
             : $NULL_STRING;
     }
     else {
-        my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
-        my $cell_x = $cell_sizes->[0];
-        $initial_sp1 = 'sp_self_only ()';
-        $initial_sp2 = "sp_circle (radius => $cell_x)";
+        my $cell_sizes = $self->{basedata_ref}->get_cell_sizes;
+        my $cell_x     = $cell_sizes->[0];
+        $initial_sp1   = 'sp_self_only ()';
+        $initial_sp2   = "sp_circle (radius => $cell_x)";
     }
 
     $self->{spatial1} = Biodiverse::GUI::SpatialParams->new($initial_sp1);

@@ -2020,8 +2020,7 @@ sub show_index_dialog {
 
     #  get an array of the cellsizes
     my $bd = $self->{project}->get_selected_base_data;
-    my $cellsizes = $bd->get_param ('CELL_SIZES');
-    my @cellsize_array = @$cellsizes;  #  make a copy
+    my @cellsize_array = $bd->get_cell_sizes;  #  get a copy
 
     #  get the current index
     my $used_index = $bd->get_param('SPATIAL_INDEX');
@@ -2272,7 +2271,7 @@ sub show_index_dialog_orig {
     my $base_ref = $self->get_project->get_selected_base_data();
     return if not defined $base_ref;
     
-    my $cell_sizes = $base_ref->get_param ('CELL_SIZES');
+    my $cell_sizes = $base_ref->get_cell_sizes;
 
     my $used_index = $base_ref->get_param('SPATIAL_INDEX');
     $dlgxml->get_widget('chkIndex')->set_active ($used_index);

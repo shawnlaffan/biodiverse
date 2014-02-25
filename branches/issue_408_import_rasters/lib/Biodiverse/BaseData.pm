@@ -145,20 +145,6 @@ sub new {
     return $self;
 }
 
-#  allows for back-compat
-sub get_cell_origins {
-    my $self = shift;
-
-    my $origins = $self->get_param ('CELL_ORIGINS');
-    if (!defined $origins) {
-        my $cell_sizes = $self->get_param ('CELL_SIZES');
-        $origins = [(0) x scalar @$cell_sizes];
-        $self->set_param (CELL_ORIGINS => $origins);
-    }
-
-    return wantarray ? @$origins : $origins;
-}
-
 sub rename {
     my $self = shift;
     my %args = @_;
@@ -335,7 +321,7 @@ sub get_coord_bounds {
     #  do we use numeric or string comparison?
     my @numeric_comp;
     my @string_comp;
-    my $cellsizes = $self->get_param ('CELL_SIZES');
+    my $cellsizes = $self->get_cell_sizes;
     my $i = 0;
     foreach my $size (@$cellsizes) {
         if ($size < 0) {
@@ -721,15 +707,15 @@ sub import_data {
 
     my @label_columns        = @{$args{label_columns}};
     my @group_columns        = @{$args{group_columns}};
-    my @cell_sizes           = @{$self->get_param('CELL_SIZES')};
-    my @cell_origins         = @{$self->get_cell_origins};
+    my @cell_sizes           = $self->get_cell_sizes;
+    my @cell_origins         = $self->get_cell_origins;
     my @cell_is_lat_array    = @{$args{cell_is_lat}};
     my @cell_is_lon_array    = @{$args{cell_is_lon}};
     my @sample_count_columns = @{$args{sample_count_columns}};
     my $exclude_columns      = $args{exclude_columns};
     my $include_columns      = $args{include_columns};
     my $binarise_counts      = $args{binarise_counts};  #  make sample counts 1 or 0
-    
+
     my $skip_lines_with_undef_groups
       = exists $args{skip_lines_with_undef_groups}
           ? $args{skip_lines_with_undef_groups}
@@ -1458,9 +1444,9 @@ sub import_data_shapefile {
     my @label_field_names = @{$args{label_fields} // $args{label_field_names}};
     my @smp_count_field_names = @{$args{sample_count_col_names} // []};
 
-    my @group_origins = @{$self->get_param ('CELL_ORIGINS')};
-    my @group_sizes   = @{$self->get_param ('CELL_SIZES')};
-    
+    my @group_origins = $self->get_cell_origins;
+    my @group_sizes   = $self->get_cell_sizes;
+
     my $labels_ref = $self->get_labels_ref;
     my $groups_ref = $self->get_groups_ref;
     
@@ -1649,7 +1635,7 @@ sub run_import_post_processes {
     }
 
     # Set CELL_SIZE on the GROUPS BaseStruct
-    $groups_ref->set_param (CELL_SIZES => $self->get_param('CELL_SIZES'));
+    $groups_ref->set_param (CELL_SIZES => [$self->get_cell_sizes]);
 
     #  check if the labels are numeric (or still numeric)
     #  set flags and cell sizes accordingly
@@ -3635,9 +3621,9 @@ sub get_neighbours {
     my $spatial_conditions = $args{spatial_conditions}
                           // $args{spatial_params}
                           || croak "[BASEDATA] No spatial_conditions argument\n";
-    my $index = $args{index};
+    my $index        = $args{index};
     my $is_def_query = $args{is_def_query};  #  some processing changes if a def query
-    my $cellsizes = $self->get_param ('CELL_SIZES');
+    my $cellsizes    = $self->get_cell_sizes;
 
     #  skip those elements that we want to ignore - allows us to avoid including
     #  element_list1 elements in these neighbours,

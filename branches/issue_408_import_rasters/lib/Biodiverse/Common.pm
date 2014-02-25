@@ -227,7 +227,30 @@ sub get_name {
     return $self->get_param ('NAME');
 }
 
+#  allows for back-compat
+sub get_cell_origins {
+    my $self = shift;
 
+    my $origins = $self->get_param ('CELL_ORIGINS');
+    if (!defined $origins) {
+        my $cell_sizes = $self->get_param ('CELL_SIZES');
+        $origins = [(0) x scalar @$cell_sizes];
+        $self->set_param (CELL_ORIGINS => $origins);
+    }
+
+    return wantarray ? @$origins : [@$origins];
+}
+
+sub get_cell_sizes {
+    my $self = shift;
+
+    my $sizes = $self->get_param ('CELL_SIZES');
+
+    return if !$sizes;
+    return wantarray ? @$sizes : [@$sizes];
+}
+
+#  is this used anymore?
 sub load_params {  # read in the parameters file, set the PARAMS subhash.
     my $self = shift;
     my %args = @_;
@@ -505,13 +528,6 @@ sub set_cached_values {
 sub get_cached_value {
     return if ! exists $_[0]->{_cache}{$_[1]};
     return $_[0]->{_cache}{$_[1]};
-#    my $self = shift;
-#    my $key = shift;
-##    return if ! exists $self->{_cache};
-##    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
-##    return;
-#    return if ! exists $self->{_cache}{$key};
-#    return $self->{_cache}{$key};
 }
 
 sub get_cached_value_keys {

@@ -656,7 +656,7 @@ sub export_shapefile {
     say "Exporting to shapefile $file";
 
     my @elements    = $self->get_element_list;
-    my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
+    my @cell_sizes  = $self->get_cell_sizes;  #  get a copy
     my @axes_to_use = (0, 1);
     if ($shape_type eq 'POINT' && scalar @cell_sizes > 2) {
         @axes_to_use = (0, 1, 2);  #  we use Z in this case
@@ -1856,7 +1856,7 @@ sub raster_export_process_args {
 
     my @res = defined $args{resolutions}
             ? @{$args{resolutions}}
-            : @{$self->get_param ('CELL_SIZES')};
+            : $self->get_cell_sizes;
 
     #  check the resolutions.
     eval {
@@ -2148,7 +2148,7 @@ sub sort_by_axes {
     my $a = shift;
     my $b = shift;
 
-    my $axes = $self->get_param ('CELL_SIZES');
+    my $axes = $self->get_cell_sizes;
     my $res = 0;
     my $a_array = $self->get_element_name_as_array (element => $a);
     my $b_array = $self->get_element_name_as_array (element => $b);
@@ -2250,7 +2250,7 @@ sub generate_element_coords {
     #my @is_text;
     foreach my $element ($self->get_element_list) {
         my $element_coord = [];  #  make a copy
-        my $cell_sizes = $self->get_param ('CELL_SIZES');
+        my $cell_sizes = $self->get_cell_sizes;
         #my $element_array = $self->get_array_list_values (element => $element, list => '_ELEMENT_ARRAY');
         my $element_array = eval {$self->get_element_name_as_array (element => $element)};
         if ($EVAL_ERROR) {

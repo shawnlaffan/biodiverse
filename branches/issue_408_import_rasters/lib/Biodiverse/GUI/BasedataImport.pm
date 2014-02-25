@@ -147,8 +147,8 @@ sub run {
     my @cell_origins;
     if ($read_format == $raster_idx) {
         # set some default values (a bit of a hack)
-        @cell_sizes   = @{$basedata_ref->get_param('CELL_SIZES')};
-        @cell_origins = @{$basedata_ref->get_cell_origins};
+        @cell_sizes   = $basedata_ref->get_cell_sizes;
+        @cell_origins = $basedata_ref->get_cell_origins;
 
         foreach my $thisp (@$table_params) {
             $thisp->{default} = $cell_origins[0] if ($thisp->{name} eq 'raster_origin_e');

@@ -152,6 +152,7 @@ sub init_progress_window {
     $self->{progress_bars}->{entry_box} = Gtk2::VBox->new(0, 5); # homogeneous, spacing
     $self->{progress_bars}->{window}->add($self->{progress_bars}->{entry_box});
     
+    #  SWL: not sure if this is needed in production
     my $test_label = Gtk2::Label->new("hello world");
     $self->{progress_bars}->{entry_box}->pack_start($test_label);
     

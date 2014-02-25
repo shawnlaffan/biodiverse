@@ -34,7 +34,7 @@ sub new {
     my $class    = shift;
     my $text     = shift || $NULL_STRING;
     my $progress = shift || 0;
-    my $title = shift || $NULL_STRING;
+    my $title    = shift || $NULL_STRING;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
@@ -46,13 +46,8 @@ sub new {
     my $glade_file = $gui->get_glade_file;
     Biodiverse::GUI::ProgressDialog::NotInGUI->throw
         if ! $glade_file;
-
-#    my $window = Gtk2::Window->new;
-#    my $vbox   = Gtk2::VBox->new (undef, 10);
-#    my $bar    = Gtk2::ProgressBar->new;
-#    my $label  = Gtk2::Label->new;
     
-    say "setting entry frame $entry_frame";
+    #say "setting entry frame $entry_frame";
     
     # Make object
     my $self = {
@@ -61,19 +56,6 @@ sub new {
         progress_bar => $bar,
     };
     bless $self, $class;
-
-#    $window->set_transient_for( $gui->get_widget('wndMain') );
-#    $window->set_default_size (300, -1);
-#    $window->signal_connect ('delete-event' => \&destroy_callback, $self);
-#    
-#    $window->set_title ('Please wait...');
-#    $label->set_line_wrap (1);
-#    $label->set_markup($text);
-#
-#    $window->add ($vbox);
-#    $vbox->pack_end ($bar,   1, 0, 0);
-#    $vbox->pack_end ($label, 1, 0, 0);
-#    $window->show_all;
     
     $self->{progress_update_interval} = $progress_update_interval;
 

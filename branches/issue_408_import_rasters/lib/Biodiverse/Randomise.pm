@@ -377,6 +377,8 @@ sub run_randomisation {
 
     my $return_success_code = 1;
     my @rand_bd_array;  #  populated if return_rand_bd_array is true
+    
+    my $progress_bar = Biodiverse::Progress->new();
 
     #  do stuff here
     ITERATION:
@@ -392,6 +394,11 @@ sub run_randomisation {
 
         print "[RANDOMISE] $results_list_name iteration $$total_iterations "
             . "($i of $iterations this run)\n";
+
+        $progress_bar->update (
+            "$i of $iterations this run",
+            $i / $iterations,
+        );
 
         my $rand_bd = eval {
             $self->$function (
@@ -774,12 +781,14 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
 
     foreach my $i (0 .. $#orig_groups) {
 
-        my $progress = 0;
-        $progress = $i / $total_to_do if ($total_to_do > 0);
+        my $progress = $total_to_do <= 0 ? 0 : $i / $total_to_do;
+
         my $p_text
             = "$progress_text\n"
             . "Shuffling labels from\n"
-            . "\t$orig_groups[$i]\nto\n\t$rand_order->[$i]\n"
+            . "\t$orig_groups[$i]\n"
+            . "to\n"
+            . "\t$rand_order->[$i]\n"
             . "(element $i of $total_to_do)";
 
         $progress_bar->update (
@@ -1571,7 +1580,7 @@ sub get_group_prop_metadata {
         name => 'randomise_group_props_by',
         type => 'choice',
         choices => [qw /no_change by_set by_item/],
-        #default => 0,
+        default => 0,
         tooltip => $process_group_props_tooltip,
     );
 

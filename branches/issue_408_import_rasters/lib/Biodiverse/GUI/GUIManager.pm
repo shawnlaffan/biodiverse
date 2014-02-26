@@ -8,7 +8,7 @@ use 5.010;
 
 our $VERSION = '0.19';
 
-#use Data::Dumper;
+use Data::Dumper;
 #use Data::DumpXML::Parser;
 use Carp;
 use Scalar::Util qw /blessed/;
@@ -137,7 +137,9 @@ sub init_progress_window {
     
     $self->{progress_bars} = {
         window => undef,
-        entry_box => undef
+        entry_box => undef,
+        dialog_objects => {},
+        dialog_entries => {}
     };
     
     # create window
@@ -147,21 +149,17 @@ sub init_progress_window {
     $self->{progress_bars}->{window}->set_default_size (300, -1);
     
     # do we need to track delete signals?    
-    # $window->signal_connect ('delete-event' => \&destroy_callback, $self);
+    $self->{progress_bars}->{window}->signal_connect ('delete-event' => \&progress_destroy_callback, $self);
     
     $self->{progress_bars}->{entry_box} = Gtk2::VBox->new(0, 5); # homogeneous, spacing
     $self->{progress_bars}->{window}->add($self->{progress_bars}->{entry_box});
-    
-    #  SWL: not sure if this is needed in production
-    my $test_label = Gtk2::Label->new("hello world");
-    $self->{progress_bars}->{entry_box}->pack_start($test_label);
     
     $self->{progress_bars}->{window}->show_all;    
 }
 
 # called to add record to progress bar display
 sub add_progress_entry {
-    my ($self, $title, $text, $progress) = @_;
+    my ($self, $dialog_obj, $title, $text, $progress) = @_;
 
     # call init if not defined yet
     $self->init_progress_window if ! $self->{progress_bars};
@@ -173,6 +171,11 @@ sub add_progress_entry {
     # create new entry frame and widgets
     my $frame = Gtk2::Frame->new($title);
     $self->{progress_bars}->{entry_box}->pack_start($frame, 1, 1, 0);
+    
+    my $id = $dialog_obj->get_id; # unique number for each, allows hashing
+    $self->{progress_bars}->{dialog_objects}{$id} = $dialog_obj;
+    $self->{progress_bars}->{dialog_entries}{$id} = $frame;
+    #say "values " . Dumper($self->{progress_bars});
     
     my $frame_vbox = Gtk2::VBox->new;
     $frame->add($frame_vbox);
@@ -192,22 +195,56 @@ sub add_progress_entry {
     #$self->{progress_bars}->{id_to_entryframe}{$new_id}
     # return references to the id number, and label and progress widgets 
     #return ($new_id, $label_widget, $progress_widget);
-    return ($frame, $label_widget, $progress_widget);
+    return ($label_widget, $progress_widget);
 }
 
-# called when a progress dialog finishes, to remove the entry from the display
+# called when a progress dialog finishes, to remove the entry from the display.  assume
+# called from dialog
 sub clear_progress_entry {    
-    my ($self, $entry_frame) = @_;
+    my ($self, $dialog_obj) = @_;
 
-    croak 'no frame given to remove' if ! defined($entry_frame);
-    
+    croak "invalid dialog obj given to clear_progress_entry" 
+        if (! defined($dialog_obj));
+
+    my $id = $dialog_obj->get_id; # unique number for each, allows hashing
+    croak "invalid dialog obj given to clear_progress_entry, can't read ID" 
+        if (! defined($self->{progress_bars}->{dialog_objects}{$id}));
+
+    my $entry_frame = $self->{progress_bars}->{dialog_entries}{$id};
+
     # remove given entry.  assume valid widget provided, otherwise will fail
     $self->{progress_bars}->{entry_box}->remove($entry_frame);
+    
+    delete $self->{progress_bars}->{dialog_objects}{$id};
+    delete $self->{progress_bars}->{dialog_entries}{$id};
     
     # if no active entries in progress dialog, hide it
     if (! $self->{progress_bars}->{entry_box}->get_children() || scalar $self->{progress_bars}->{entry_box}->get_children() == 0) {
         $self->{progress_bars}->{window}->hide;
     }
+}
+
+# called when window closed, try to stop active process?
+sub progress_destroy_callback {
+	my ($self_button, $event, $self_gui) = @_;
+	
+    #say "callback values " . Dumper($self_gui->{progress_bars});
+
+    say "progress_destroy_callback";
+    # call destroy on each child object (?) (need to record each child obj)
+    foreach my $dialog (values $self_gui->{progress_bars}->{dialog_objects}) {
+    	$dialog->end_dialog();
+    }
+    
+    # send exception to stop operation in progress
+    Biodiverse::GUI::ProgressDialog::Cancel->throw(
+        message  => "Progress bar closed, operation cancelled",
+    );
+}    
+
+sub show_progress {
+    my $self = shift;
+    $self->{progress_bars}->{window}->show_all;    
 }
 
 ##########################################################

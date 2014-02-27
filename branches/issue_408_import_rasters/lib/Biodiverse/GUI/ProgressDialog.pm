@@ -67,6 +67,11 @@ sub new {
 
     $self->update ($text, $progress);
 
+    #  set the last update time back so we always trigger on the first update
+    my $last_update_time = [gettimeofday];
+    $last_update_time->[0] -= 2 * $progress_update_interval;
+    $self->{last_update_time} = $last_update_time;
+
     return $self;
 }
 

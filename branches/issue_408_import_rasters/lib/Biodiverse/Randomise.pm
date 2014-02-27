@@ -378,7 +378,7 @@ sub run_randomisation {
     my $return_success_code = 1;
     my @rand_bd_array;  #  populated if return_rand_bd_array is true
     
-    my $progress_bar = Biodiverse::Progress->new();
+    my $progress_bar = Biodiverse::Progress->new(text => 'Randomisation');
 
     #  do stuff here
     ITERATION:
@@ -396,8 +396,8 @@ sub run_randomisation {
             . "($i of $iterations this run)\n";
 
         $progress_bar->update (
-            "$i of $iterations this run",
-            $i / $iterations,
+            "Randomisation iteration $i of $iterations this run",
+            ($i / $iterations),
         );
 
         my $rand_bd = eval {

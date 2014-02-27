@@ -190,7 +190,10 @@ sub add_progress_entry {
     $frame_vbox->pack_start($progress_widget, 0, 0, 0);
     
     # show the progress window
+    $self->{progress_bars}->{window}->present;
     $self->{progress_bars}->{window}->show_all;
+    
+    #say "Current progress bars: " . Dumper($self->{progress_bars});
     
     #$self->{progress_bars}->{id_to_entryframe}{$new_id}
     # return references to the id number, and label and progress widgets 
@@ -203,11 +206,14 @@ sub add_progress_entry {
 sub clear_progress_entry {    
     my ($self, $dialog_obj) = @_;
 
-    croak "invalid dialog obj given to clear_progress_entry" 
+    croak 'call to clear_progress_entry when not inited (possibly after window close)' 
+        if (! $self->{progress_bars});
+
+    croak 'invalid dialog obj given to clear_progress_entry' 
         if (! defined($dialog_obj));
 
     my $id = $dialog_obj->get_id; # unique number for each, allows hashing
-    croak "invalid dialog obj given to clear_progress_entry, can't read ID" 
+    croak 'invalid dialog obj given to clear_progress_entry, can\'t read ID' 
         if (! defined($self->{progress_bars}->{dialog_objects}{$id}));
 
     my $entry_frame = $self->{progress_bars}->{dialog_entries}{$id};
@@ -236,6 +242,9 @@ sub progress_destroy_callback {
     	$dialog->end_dialog();
     }
     
+    # clear all progress bar info so re-creates window on next add
+    $self_gui->{progress_bars} = undef;
+    
     # send exception to stop operation in progress
     Biodiverse::GUI::ProgressDialog::Cancel->throw(
         message  => "Progress bar closed, operation cancelled",
@@ -244,7 +253,7 @@ sub progress_destroy_callback {
 
 sub show_progress {
     my $self = shift;
-    $self->{progress_bars}->{window}->show_all;    
+    $self->{progress_bars}->{window}->show_all if $self->{progress_bars};
 }
 
 ##########################################################

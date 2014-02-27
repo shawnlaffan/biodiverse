@@ -47,7 +47,6 @@ sub new {
     
     # Make object
     my $self = {
-    	entry_frame => undef,
         label_widget => undef,
         progress_bar => undef,
         id => 0
@@ -162,6 +161,8 @@ sub update {
     while (Gtk2->events_pending) { Gtk2->main_iteration(); }
     
     Biodiverse::GUI::GUIManager->instance->show_progress;
+
+    #say "Update call, text $text progress $progress current prog dialog object: " . Dumper($self);
 
     return;
 }

@@ -1,11 +1,13 @@
 #  Phylogenetic indices
 #  A plugin for the biodiverse system and not to be used on its own.
-
 package Biodiverse::Indices::Phylogenetic;
+use 5.010;
 use strict;
 use warnings;
+
 use English qw /-no_match_vars/;
 use Carp;
+
 use Biodiverse::Progress;
 
 use List::Util qw /sum min max/;
@@ -1059,18 +1061,43 @@ sub get_metadata_get_trimmed_tree {
     return wantarray ? %arguments : \%arguments;
 }
 
-sub get_trimmed_tree { # create a copy of the current tree, including only those branches
-                       # which have records in the base-data
-                       # this function expects a tree reference as an argument
+#  Create a copy of the current tree, including only those branches
+#  which have records in the basedata.
+#  This function expects a tree reference as an argument.
+#  Returns the original tree ref if all its branches occur in the basedata.
+sub get_trimmed_tree {
     my $self = shift;
     my %args = @_;                          
 
-    print "[PD INDICES] Creating a trimmed tree by removing clades not present in the spatial data\n";
+    my $tree = $args{tree_ref};
 
     my $bd = $self->get_basedata_ref;
+    my $lb = $bd->get_labels_ref;
+    
+    my $terminals  = $tree->get_root_node->get_terminal_elements;  #  should use named nodes?
+    my $label_hash = $lb->get_element_hash;
+
+    my $terminal_count = keys %$terminals;
+    my $label_count    = keys %$label_hash;
+
+    
+    if ($label_count >= $terminal_count) {
+        my $expected_deletions = $label_count - $terminal_count;
+        #  make a copy since we do need to run the deletions
+        my %lb_hash_copy = %$label_hash;
+        delete @lb_hash_copy{keys %$terminals};
+
+        #  are the tree terminals a subset of the basedata labels?  
+        if (keys %lb_hash_copy == $expected_deletions) {
+            say '[PD INDICES] Tree terminals are all basedata labels, no need to trim';
+            my %results = (trimmed_tree => $tree);
+            return wantarray ? %results : \%results;
+        }
+    }
 
     #  keep only those that match the basedata object
-    my $trimmed_tree = $args{tree_ref}->clone;
+    say '[PD INDICES] Creating a trimmed tree by removing clades not present in the basedata';
+    my $trimmed_tree = $tree->clone;
     $trimmed_tree->trim (keep => scalar $bd->get_labels);
     my $name = $trimmed_tree->get_param('NAME') // 'noname';
     $trimmed_tree->rename(new_name => $name . ' trimmed');

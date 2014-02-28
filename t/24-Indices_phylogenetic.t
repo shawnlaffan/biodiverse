@@ -22,29 +22,29 @@ use Biodiverse::TestHelpers qw{
 };
 
 my @calcs = qw/
+    calc_count_labels_on_tree
+    calc_labels_not_on_tree
+    calc_labels_on_tree
+    calc_pd
+    calc_pd_endemism
+    calc_pd_node_list
+    calc_pd_terminal_node_count
+    calc_pd_terminal_node_list
+    calc_pe
+    calc_pe_clade_contributions
+    calc_pe_lists
+    calc_pe_single
+    calc_phylo_abc
     calc_phylo_aed
     calc_phylo_aed_t
     calc_phylo_aed_t_wtlists
+    calc_phylo_corrected_weighted_endemism
     calc_phylo_corrected_weighted_rarity
-    calc_labels_not_on_tree
-    calc_labels_on_tree
-    calc_pd_endemism
     calc_phylo_jaccard
     calc_phylo_s2
     calc_phylo_sorenson
-    calc_phylo_abc
-    calc_pd
-    calc_pd_node_list
-    calc_pd_terminal_node_list
-    calc_pe
-    calc_pe_lists
-    calc_pe_clade_contributions
-    calc_phylo_corrected_weighted_endemism
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
-    calc_pe_single
-    calc_count_labels_on_tree
-    calc_pd_terminal_node_count
 /;
 
 
@@ -68,6 +68,7 @@ sub main {
     #test_calc_phylo_aed();
     test_extra_labels_in_bd();
     test_sum_to_pd();
+    test_pe_with_extra_nodes_in_tree();
 
     
     done_testing;
@@ -240,6 +241,29 @@ sub test_extra_labels_in_bd {
         callbacks       => [$cb],
         no_strict_match => 1,
         expected_results_overlay => \%expected_results_overlay,
+    );
+    
+}
+
+#  check we trim the tree properly
+sub test_pe_with_extra_nodes_in_tree {
+    my $cb = sub {
+        my %args = @_;
+        my $tree = $args{tree_ref};
+        my $root = $tree->get_root_node;
+        $root->add_children (children => [qw /node1 node2/]);
+    };
+
+    my @calcs_to_test = qw/
+        calc_pe_clade_contributions
+        calc_pe_lists
+        calc_pe_single
+    /;
+
+    run_indices_test1 (
+        calcs_to_test   => \@calcs_to_test,
+        callbacks       => [$cb],
+        no_strict_match => 1,
     );
     
 }

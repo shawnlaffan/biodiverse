@@ -1940,13 +1940,11 @@ sub to_tree {
     #  set a master root node of length zero if we have more than one.
     #  All the current root nodes will be its children
     my $root_nodes = $tree->get_root_node_refs;
-    #if (scalar @$root_nodes > 1) {
-        my $root_node = $tree->add_node (name => '0___', length => 0);
-        $root_node->add_children (children => [@$root_nodes]);
-        foreach my $node (@$root_nodes) {
-            $node->set_parent (parent => $root_node);
-        }
-    #}
+    my $root_node  = $tree->add_node (name => '0___', length => 0);
+    $root_node->add_children (children => [@$root_nodes]);
+    foreach my $node (@$root_nodes) {
+        $node->set_parent (parent => $root_node);
+    }
 
     $tree->set_parents_below;  #  run a clean up just in case
     return $tree;

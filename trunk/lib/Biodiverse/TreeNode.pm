@@ -766,12 +766,13 @@ sub get_all_children {
 }
 
 
-sub get_all_descendents { #  get all the nodes (whether terminal or not) which are descendants of a node
+#  get all the nodes (whether terminal or not) which are descendants of a node
+sub get_all_descendents {
     my $self = shift;
     my %args = (
         cache => 1, #  cache unless told otherwise
         @_,
-    );  
+    );
 
     if ($self->is_terminal_node) {
         return wantarray ? () : {};  #  empty hash by default

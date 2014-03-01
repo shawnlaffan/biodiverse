@@ -8,7 +8,7 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $generate_result_sets = 0;
+my $generate_result_sets = 1;
 
 use rlib;
 use Test::Most;
@@ -31,6 +31,7 @@ my @calcs = qw/
     calc_pd_terminal_node_count
     calc_pd_terminal_node_list
     calc_pe
+    calc_pe_clade_loss
     calc_pe_clade_contributions
     calc_pe_lists
     calc_pe_single
@@ -75,20 +76,11 @@ sub main {
     return 0;
 }
 
-
-sub test_calc_phylo_aed {
-    note "LOCAL OVERRIDE TO ONLY DO AED CALCS - REMOVE BEFORE REINTEGRATION\n";
-
-    my @calcs = qw/
-        calc_phylo_aed
-        calc_phylo_aed_t
-        calc_phylo_aed_t_wtlists
-    /;
-
+sub test_indices {
     run_indices_test1 (
-        calcs_to_test   => [@calcs],
-        no_strict_match => 1,
-        #generate_result_sets => 1,
+        calcs_to_test      => [@calcs],
+        calc_topic_to_test => 'Phylogenetic Indices',
+        generate_result_sets => $generate_result_sets,
     );
 }
 
@@ -105,8 +97,8 @@ sub test_sum_to_pd {
         calc_pd
     /;
 
-    my $cell_sizes   = [200000, 200000];
-    my $bd = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
     my $tree = get_tree_object_from_sample_data();
 
     my $sp = $bd->add_spatial_output (name => 'should sum to PD, select_all');
@@ -189,15 +181,6 @@ sub test_sum_to_pd {
         };
     }
 
-}
-
-
-sub test_indices {
-    run_indices_test1 (
-        calcs_to_test      => [@calcs],
-        calc_topic_to_test => 'Phylogenetic Indices',
-        generate_result_sets => $generate_result_sets,
-    );
 }
 
 #  now try with extra labels that aren't on the tree

@@ -12,7 +12,9 @@ use Biodiverse::Progress;
 
 use List::Util qw /sum min max/;
 use List::MoreUtils qw /pairwise any/;
-use Math::BigInt;
+use Scalar::Util qw /blessed/;
+
+#use Math::BigInt;
 #use POSIX qw /floor/;
 
 our $VERSION = '0.19';
@@ -223,8 +225,9 @@ sub get_metadata__calc_pd {
     return wantarray ? %arguments : \%arguments;
 }
 
-sub _calc_pd { #  calculate the phylogenetic diversity of the species in the central elements only
-              #  this function expects a tree reference as an argument.
+#  calculate the phylogenetic diversity of the species in the central elements only
+#  this function expects a tree reference as an argument.
+sub _calc_pd {
     my $self = shift;
     my %args = @_;
 
@@ -433,7 +436,7 @@ sub get_metadata_calc_pe_clade_contributions {
         name            => 'Phylogenetic Endemism clade contributions',
         reference       => '',
         type            => 'Phylogenetic Indices', 
-        pre_calc        => ['_calc_pe'],
+        pre_calc        => ['_calc_pe', 'get_sub_tree'],
         pre_calc_global => ['get_trimmed_tree'],
         uses_nbr_lists  => 1,
         indices         => {
@@ -458,11 +461,12 @@ sub get_metadata_calc_pe_clade_contributions {
 sub calc_pe_clade_contributions {
     my $self = shift;
     my %args = @_;
-    
-    my $tree = $args{trimmed_tree};
-    my $wt_list = $args{PE_WTLIST};
-    my $PE_score = $args{PE_WE};
-    my $sum_of_branches = $tree->get_total_tree_length;
+
+    my $main_tree = $args{trimmed_tree};
+    my $sub_tree  = $args{SUBTREE};
+    my $wt_list   = $args{PE_WTLIST};
+    my $PE_score  = $args{PE_WE};
+    my $sum_of_branches = $main_tree->get_total_tree_length;
 
     my $contr   = {};
     my $contr_p = {};
@@ -472,14 +476,13 @@ sub calc_pe_clade_contributions {
     foreach my $node_name (keys %$wt_list) {
         next if defined $contr->{$node_name};
 
-        my $node_ref = $tree->get_node_ref (node => $node_name);
+        my $node_ref = $sub_tree->get_node_ref (node => $node_name);
 
-        #  inefficient as we are not caching by node
-        #  should get a tree object for the nbrhood so we can skip the grep
+        #  Possibly inefficient as we are not caching by node
+        #  but at least the descendants are cached and perhaps that
+        #  is where any slowness would come from as List::Util::sum is pretty quick
         my $node_hash = $node_ref->get_all_descendents_and_self;
-        my @node_list = grep {exists $wt_list->{$_}} keys %$node_hash;
-
-        my $wt_sum = sum @$wt_list{@node_list};
+        my $wt_sum = sum @$wt_list{keys %$node_hash};
 
         #  round off to avoid spurious spatial variation.
         $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $PE_score;
@@ -495,6 +498,89 @@ sub calc_pe_clade_contributions {
 
     return wantarray ? %results : \%results;
 }
+
+
+sub get_metadata_calc_pe_clade_loss {
+
+    my %arguments = (
+        description     => 'How much of the PE would be lost if a clade were to be removed? '
+                         . 'Calculates the clade PE below the last ancestral node in the '
+                         . 'neighbour set which would still be in the neighbour set.',
+        name            => 'Phylogenetic Endemism clade loss',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pe_clade_contributions get_sub_tree/],
+        #pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PE_CLADE_LOSS_SCORE  => {
+                description => 'List of how much PE would be lost if each clade were removed.',
+                type        => 'list',
+            },
+            PE_CLADE_LOSS_CONTR  => {
+                description => 'List of the proportion of the PE score which would be lost '
+                             . 'if each clade were removed.',
+                type        => 'list',
+            },
+            PE_CLADE_LOSS_CONTR_P => {
+                description => 'As per PE_CLADE_LOSS but proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_clade_loss {
+    my $self = shift;
+    my %args = @_;
+
+    my $main_tree = $args{trimmed_tree};
+    my $sub_tree  = $args{SUBTREE};
+
+    my ($pe_clade_score, $pe_clade_contr, $pe_clade_contr_p) =
+      @args{qw /PE_CLADE_SCORE PE_CLADE_CONTR PE_CLADE_CONTR_P/};
+
+    my (%loss_contr, %loss_contr_p, %loss_score);
+
+  NODE:
+    foreach my $node_ref ($sub_tree->get_node_refs) {
+        #  skip if we have already done this one
+        next NODE if defined $loss_score{$node_ref->get_name};
+
+        my $terminal_count = $node_ref->get_terminal_element_count;
+        my @ancestors = ($node_ref->get_name);
+
+        #  find the ancestors with no children outside this clade
+      PARENT:
+        while (my $parent = $node_ref->get_parent) {
+            last PARENT
+              if $parent->get_terminal_element_count > $terminal_count;
+
+            push @ancestors, $parent->get_name;
+            $node_ref = $parent;
+        }
+
+        my $last_ancestor = $ancestors[-1];
+
+        #  these all have the same loss
+        foreach my $node_name (@ancestors) {
+            $loss_contr{$node_name}   = $pe_clade_contr->{$last_ancestor};
+            $loss_score{$node_name}   = $pe_clade_score->{$last_ancestor};
+            $loss_contr_p{$node_name} = $pe_clade_contr_p->{$last_ancestor};
+        }
+    }
+
+    my %results = (
+        PE_CLADE_LOSS_SCORE   => \%loss_score,
+        PE_CLADE_LOSS_CONTR   => \%loss_contr,
+        PE_CLADE_LOSS_CONTR_P => \%loss_contr_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 
 sub get_metadata_calc_pe_single {
 
@@ -1103,6 +1189,74 @@ sub get_trimmed_tree {
     $trimmed_tree->rename(new_name => $name . ' trimmed');
 
     my %results = (trimmed_tree => $trimmed_tree);
+
+    return wantarray ? %results : \%results;
+}
+
+
+sub get_metadata_get_sub_tree {
+    my $self = shift;
+
+    my %arguments = (
+        required_args => 'tree_ref',
+        pre_calc      => ['calc_labels_on_tree'],
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+
+#  get a tree that is a subset of the main tree,
+#  e.g. for the set of nodes in a neighbour set
+sub get_sub_tree {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree       = $args{tree_ref};
+    my $label_list = $args{labels} // $args{PHYLO_LABELS_ON_TREE};
+
+    #  Could devise a better naming scheme,
+    #  but element lists can be too long to be workable
+    #  and abbreviations will be ambiguous in many cases
+    my $subtree = blessed ($tree)->new (NAME => 'subtree');
+
+  LABEL:
+    foreach my $label (keys %$label_list) {
+        my $node_ref = eval {$tree->get_node_ref (node => $label)};
+        next LABEL if !defined $node_ref;  # not a tree node name
+
+        my $child_name = $label;
+        my $st_node_ref = $subtree->add_node (
+            name   => $label,
+            length => $node_ref->get_length,
+        );
+
+      NODE_IN_PATH:
+        while (my $parent = $node_ref->get_parent()) {
+
+            my $parent_name = $parent->get_name;
+            my $st_parent = eval {$subtree->get_node_ref (node => $parent_name)};
+            my $last = defined $st_parent;  #  we have the rest of the path in this case
+
+            if (!$last) {
+                $st_parent = $subtree->add_node (
+                    name   => $parent_name,
+                    length => $parent->get_length,
+                );
+            }
+            $st_parent->add_children (children => [$st_node_ref]);
+
+            last NODE_IN_PATH if $last;
+
+            $node_ref    = $parent;
+            $st_node_ref = $st_parent;
+        }
+    }
+
+    #  make sure the topology is correct - needed?
+    $subtree->set_parents_below;
+
+    my %results = (SUBTREE => $subtree);
 
     return wantarray ? %results : \%results;
 }

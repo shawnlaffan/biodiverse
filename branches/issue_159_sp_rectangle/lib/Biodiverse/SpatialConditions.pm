@@ -969,7 +969,6 @@ sub get_metadata_sp_circle_cell {
     );
 
     return wantarray ? %args_r : \%args_r;
-
 }
 
 #  cell based circle.
@@ -999,6 +998,54 @@ sub sp_circle_cell {
 
     return $test;
 }
+
+sub get_metadata_sp_rectangle {
+    my $self = shift;
+    my %args = @_;
+
+    my %args_r = (
+        description =>
+              'A rectangle.  Assessed against all dimensions by default '
+            . "(more properly called a hyperbox)\n"
+            . "but use the optional \"axes => []\" arg to specify a subset.\n"
+            . 'Uses group (map) distances.',
+        use_euc_distance => 1,
+        required_args => ['sizes'],
+        optional_args => [qw /axes/],
+        result_type   => 'circle',  #  centred on processing group, so leave as type circle
+    );
+
+    return wantarray ? %args_r : \%args_r;
+}
+
+#  sub to run a circle (or hypersphere for n-dimensions)
+sub sp_rectangle {
+    my $self = shift;
+    my %args = @_;
+
+    my $sizes = $args{sizes};
+    my $axes = $args{axes} // [0 .. $#$sizes];
+
+    #  should check this in the metadata phase
+    croak "Too many axes in call to sp_rectangle\n"
+      if $#$axes > $#$sizes;
+
+    my $h     = $self->get_param('CURRENT_ARGS');
+    my $dists = $h->{dists}{D_list};
+
+    foreach my $axis (@$axes) {
+        ###  need to trap refs to non-existent axes.
+
+        #  coarse filter
+        return if $dists->[$axis] > $sizes->[$axis];
+        #  now check with precision adjusted
+        my $d = $self->set_precision (value => $dists->[$axis]);
+        return if $d > $sizes->[$axis] / 2;
+    }
+
+    return 1;
+}
+
 
 sub get_metadata_sp_annulus {
     my $self = shift;

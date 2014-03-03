@@ -31,6 +31,12 @@ my %conditions = (
         '$D <= ##4' => 49,
         #'$d[0] <= ##4 && $d[0] >= -##4 && $D <= ##4' => 49,  #  exercise the spatial index offset search
     },
+    rectangle => {
+        'sp_rectangle (sizes => [##1, ##1])' =>  1,
+        'sp_rectangle (sizes => [##2, ##2])' =>  9,
+        'sp_rectangle (sizes => [##3, ##3])' =>  9,
+        'sp_rectangle (sizes => [##4, ##4])' => 25,
+    },
     selectors => {
         'sp_select_all()' => 900,
         'sp_self_only()'  => 1,

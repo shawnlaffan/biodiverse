@@ -813,18 +813,22 @@ sub get_metadata_export_shapefile {
             {
                 name        => 'plot_left_to_right',
                 label_text  => 'Plot left to right',
-                tooltip     => 'Should terminals be to the right of the root node? '
-                             . '(default is to the left, with the root node at the right).',
                 type        => 'boolean',
                 default     => 0,
+                tooltip     =>
+                      'Should terminals be to the right of the root node? '
+                    . '(default is to the left, with the root node at the right).',
+                
             },
             {
                 name        => 'vertical_scale_factor',
                 label_text  => 'Vertical scale factor',
-                tooltip     => 'Control the tree plot height relative to its width (total length).  '
-                             . 'A zero value will make the height equal the width.',
                 type        => 'float',
                 default     => 0,
+                tooltip     =>
+                      'Control the tree plot height relative to its width '
+                    . '(longest path from root to tip).  '
+                    . 'A zero value will make the height equal the width.',
             },
             {
                 type => 'comment',

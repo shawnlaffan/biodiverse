@@ -969,7 +969,6 @@ sub get_metadata_sp_circle_cell {
     );
 
     return wantarray ? %args_r : \%args_r;
-
 }
 
 #  cell based circle.
@@ -999,6 +998,68 @@ sub sp_circle_cell {
 
     return $test;
 }
+
+
+my $rectangle_example = <<'END_RECTANGLE_EXAMPLE'
+#  A rectangle of equal size on the first two axes, and 100 on the third.
+sp_rectangle (sizes => [100000, 100000, 100])
+#  The same, but with the axes reordered (an example of using the axes argument)
+sp_rectangle (sizes => [100000, 100, 100000], axes => [0,2,1])
+#  Use only the first an third axes
+sp_rectangle (sizes => [100000, 100000], axes => [0,2])
+END_RECTANGLE_EXAMPLE
+  ;
+
+sub get_metadata_sp_rectangle {
+    my $self = shift;
+    my %args = @_;
+
+    my %args_r = (
+        description =>
+              'A rectangle.  Assessed against all dimensions by default '
+            . "(more properly called a hyperbox)\n"
+            . "but use the optional \"axes => []\" arg to specify a subset.\n"
+            . 'Uses group (map) distances.',
+        use_euc_distance => 1,
+        required_args => ['sizes'],
+        optional_args => [qw /axes/],
+        result_type   => 'circle',  #  centred on processing group, so leave as type circle
+        example       => $rectangle_example,
+    );
+
+    return wantarray ? %args_r : \%args_r;
+}
+
+#  sub to run a circle (or hypersphere for n-dimensions)
+sub sp_rectangle {
+    my $self = shift;
+    my %args = @_;
+
+    my $sizes = $args{sizes};
+    my $axes = $args{axes} // [0 .. $#$sizes];
+
+    #  should check this in the metadata phase
+    croak "Too many axes in call to sp_rectangle\n"
+      if $#$axes > $#$sizes;
+
+    my $h     = $self->get_param('CURRENT_ARGS');
+    my $dists = $h->{dists}{D_list};
+
+    my $i = -1;  #  @$sizes is in the same order as @$axes
+    foreach my $axis (@$axes) {
+        ###  need to trap refs to non-existent axes.
+
+        $i++;
+        #  coarse filter
+        return if $dists->[$axis] > $sizes->[$i];
+        #  now check with precision adjusted
+        my $d = $self->set_precision (value => $dists->[$axis]);
+        return if $d > $sizes->[$i] / 2;
+    }
+
+    return 1;
+}
+
 
 sub get_metadata_sp_annulus {
     my $self = shift;

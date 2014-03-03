@@ -1907,7 +1907,7 @@ sub set_precision {
     my $self = shift;
     my %args = @_;
     
-    my $num = sprintf ($args{precision}, $args{value});
+    my $num = sprintf (($args{precision} // '%.10f'), $args{value});
 
     if ($locale_uses_comma_radix) {
         $num =~ s{,}{\.};  #  replace any comma with a decimal

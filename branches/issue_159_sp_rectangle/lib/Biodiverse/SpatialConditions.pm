@@ -999,6 +999,17 @@ sub sp_circle_cell {
     return $test;
 }
 
+
+my $rectangle_example = <<'END_RECTANGLE_EXAMPLE'
+#  A rectangle of equal size on the first two axes, and 100 on the third.
+sp_rectangle (sizes => [100000, 100000, 100])
+#  The same, but with the axes reordered (an example of using the axes argument)
+sp_rectangle (sizes => [100000, 100, 100000], axes => [0,2,1])
+#  Use only the first an third axes
+sp_rectangle (sizes => [100000, 100000], axes => [0,2])
+END_RECTANGLE_EXAMPLE
+  ;
+
 sub get_metadata_sp_rectangle {
     my $self = shift;
     my %args = @_;
@@ -1013,6 +1024,7 @@ sub get_metadata_sp_rectangle {
         required_args => ['sizes'],
         optional_args => [qw /axes/],
         result_type   => 'circle',  #  centred on processing group, so leave as type circle
+        example       => $rectangle_example,
     );
 
     return wantarray ? %args_r : \%args_r;
@@ -1033,14 +1045,16 @@ sub sp_rectangle {
     my $h     = $self->get_param('CURRENT_ARGS');
     my $dists = $h->{dists}{D_list};
 
+    my $i = -1;  #  @$sizes is in the same order as @$axes
     foreach my $axis (@$axes) {
         ###  need to trap refs to non-existent axes.
 
+        $i++;
         #  coarse filter
-        return if $dists->[$axis] > $sizes->[$axis];
+        return if $dists->[$axis] > $sizes->[$i];
         #  now check with precision adjusted
         my $d = $self->set_precision (value => $dists->[$axis]);
-        return if $d > $sizes->[$axis] / 2;
+        return if $d > $sizes->[$i] / 2;
     }
 
     return 1;

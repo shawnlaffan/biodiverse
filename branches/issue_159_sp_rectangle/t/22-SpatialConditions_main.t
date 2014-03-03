@@ -36,6 +36,10 @@ my %conditions = (
         'sp_rectangle (sizes => [##2, ##2])' =>  9,
         'sp_rectangle (sizes => [##3, ##3])' =>  9,
         'sp_rectangle (sizes => [##4, ##4])' => 25,
+        'sp_rectangle (sizes => [##6, ##2])' => 21,
+        'sp_rectangle (sizes => [##2, ##6])' => 21,
+        'sp_rectangle (sizes => [##2, ##6], axes => [1, 0])' => 21,
+        'sp_rectangle (sizes => [##2, ##6], axes => [0, 1])' => 21,
     },
     selectors => {
         'sp_select_all()' => 900,

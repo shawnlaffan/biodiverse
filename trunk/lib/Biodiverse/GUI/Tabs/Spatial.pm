@@ -640,9 +640,10 @@ sub on_run {
             
             #  drop out if we don't want to overwrite
             my $response = Biodiverse::GUI::YesNoCancel->run({
-                header => 'Overwrite?',
-                text   => $text}
-            );
+                header  => 'Overwrite? ',
+                text    => $text,
+                hide_no => 1,
+            });
             return 0 if $response ne 'yes';
         }
         

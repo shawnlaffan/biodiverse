@@ -428,8 +428,8 @@ sub run {
     #########
     # Set the cellsize and origins parameters if we are new
     if ($use_new) {
-        $basedata_ref->set_param(CELL_SIZES   => @cell_sizes);
-        $basedata_ref->set_param(CELL_ORIGINS => @cell_origins);
+        $basedata_ref->set_param(CELL_SIZES   => [@cell_sizes]);
+        $basedata_ref->set_param(CELL_ORIGINS => [@cell_origins]);
     }
 
     #  get the sample count columns.  could do in fill_params, but these are

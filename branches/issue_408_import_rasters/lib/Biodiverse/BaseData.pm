@@ -1205,10 +1205,23 @@ sub import_data_raster {
             . join (q{ }, @{$args{input_files}});
 
     # hack, set parameters here? using local ref arrays?
-    my @cell_sizes = ($cellsize_e, $cellsize_n);
-    my @cell_origins = ($cellorigin_e, $cellorigin_n);
-    $self->set_param(CELL_SIZES => \@cell_sizes);
-    $self->set_param(CELL_ORIGINS => \@cell_origins);
+    my @cell_sizes = $self->get_cell_sizes;
+    my @cell_origins = $self->get_cell_origins;
+    if (!@cell_sizes) {
+        @cell_sizes = ($cellsize_e, $cellsize_n);
+        @cell_origins = ($cellorigin_e, $cellorigin_n);
+        $self->set_param(CELL_SIZES => \@cell_sizes);
+        $self->set_param(CELL_ORIGINS => \@cell_origins);
+    }
+    else {
+        croak "Unable to import more than two axes from raster data"
+          if @cell_sizes > 2;
+
+        $cellsize_e   = $cell_sizes[0];
+        $cellsize_n   = $cell_sizes[1];
+        $cellorigin_e = $cell_origins[0];
+        $cellorigin_n = $cell_origins[1];
+    }
 
     my @half_cellsize = map {$_ / 2} @cell_sizes;
 
@@ -1236,16 +1249,14 @@ sub import_data_raster {
         croak "[BASEDATA] Failed to read $file with GDAL\n"
           if !defined $data;
 
-        say 'Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName};
-        say 'Size is ', $data->{RasterXSize}, ' x ', $data->{RasterXSize}, ' x ', $data->{RasterCount};
-        say 'Projection is ', $data->GetProjection();
+        say '[BASEDATA] Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName};
+        say '[BASEDATA] Size is ', $data->{RasterXSize}, ' x ', $data->{RasterXSize}, ' x ', $data->{RasterCount};
+        say '[BASEDATA] Projection is ', $data->GetProjection();
 
         my @tf = $data->GetGeoTransform();
-        say 'Transform is ', join (' ', @tf);
-        say "Origin = ($tf[0], $tf[3])";
-        say "Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5]";  #  $tf[5] is negative to allow for line order
-
-        # read and display all data (?)
+        say '[BASEDATA] Transform is ', join (' ', @tf);
+        say "[BASEDATA] Origin = ($tf[0], $tf[3])";
+        say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";  #  $tf[5] is negative to allow for line order
 
         # iterate over each band
         foreach my $b (1 .. $data->{RasterCount}) {

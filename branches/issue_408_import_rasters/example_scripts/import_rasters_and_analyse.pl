@@ -19,7 +19,8 @@ my ($opt, $usage) = describe_options(
   [ 'input_dir|i=s',     'The folder containing the input rasters', { required => 1 } ],
   [ 'output_prefix|o=s', 'The output prefix for exported files', { required => 1 }],
   [ 'cellsize|c=s',      'The folder containing the input rasters', { required => 1 } ],
-  [ 'name|n=s',          'The name of the basedata file', {required => 0} ],
+  [ 'name|n:s',          'The name of the basedata file', {required => 0, default => 'xx'} ],
+  [ 'raster_extension|x:s', 'Raster file extension', {required => 0, default => 'asc'}],  #  change to tif, flt etc as needed
   #[ 'remap_file|rf=s',       'The text file containing label remap details', { required => 1 } ],  #  needed later
   [],
   [ 'help',       "print usage message and exit" ],
@@ -36,7 +37,7 @@ my $out_pfx     = $opt->output_prefix;
 my $cellsize    = $opt->cellsize;
 my $name        = $opt->name || $out_pfx;
 
-my $file_suffix = 'flt';  #  change this to tif etc as needed
+my $file_suffix = $opt->raster_extension;
 
 my $bd = eval {Biodiverse::BaseData->new(
     CELL_SIZES => [$cellsize, $cellsize],
@@ -65,21 +66,28 @@ my $success = eval {
         labels_as_bands => 1,  #  use the bands (files) as the label (species) names
     );
 };
+croak $EVAL_ERROR if $EVAL_ERROR;
 
 #####################################
 #  analyse the data
 
-#  add to as needed, possibly using args later on
-my $calculations = [qw/calc_endemism_whole calc_redundancy/];
+#  need to build a spatial index if we do anything more complex than single cell analyses
+#  $bd->build_spatial_index (resolutions => [$bd->get_cell_sizes]);
 
-my $sp = $bd->add_spatial_output (NAME => 'spatial_analysis');
-my $success = eval {
+#  add to as needed, possibly using args later on
+my $calculations = [qw/
+    calc_endemism_whole
+    calc_redundancy
+/];
+
+my $sp = $bd->add_spatial_output (name => 'spatial_analysis');
+$success = eval {
         $sp->run_analysis (
         calculations       => $calculations,
-        spatial_conditions => ['sp_self_onloy()'],
+        spatial_conditions => ['sp_self_only()'],
     );
 };
-croak $@ if $@;
+croak $EVAL_ERROR if $EVAL_ERROR;
 
 
 #  adds the .bds extension by default

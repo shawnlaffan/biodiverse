@@ -1517,15 +1517,19 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 
     my $bd = $self->get_basedata_ref;
 
-    croak "none of refs element_list1, element_list2, label_list1, "
-          . "label_list2, label_hash1, label_hash2 specified\n"
-        if (   ! defined $args{element_list1}
-            && ! defined $args{element_list2}
-            && ! defined $args{label_list1}
-            && ! defined $args{label_list2}
-            && ! defined $args{label_hash1}
-            && ! defined $args{label_hash2}
+    croak "At least one of element_list1, element_list2, label_list1, "
+          . "label_list2, label_hash1, label_hash2 must be specified\n"
+        if ! defined (
+                $args{element_list1}
+             // $args{element_list2}
+             // $args{label_hash1}
+             // $args{label_hash2}
+             // $args{label_list1}
+             // $args{label_list2}
         );
+
+    my $count_labels  = $args{count_labels};
+    my $count_samples = $args{count_samples};
 
     my ($a, $b, $c, $abc);
     my %label_list = (1 => {}, 2 => {});
@@ -1566,15 +1570,15 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
             push @label_list, %$sublist;
             push @checked_elements, $element;
         }
-        if ($args{count_labels}) {
+        if ($count_labels) {
             #  track the number of times each label occurs
-            for (my $i = 0; $i <= $#label_list; $i += 2) {
+            for (my $i = 0; $i <= $#label_list; $i += 2) {  #  benchmark List::Util::pairkeys for this
                 my $label = $label_list[$i];
                 $label_list{$iter}{$label}++;
                 $label_list_master{$label}++;
             }
         }
-        elsif ($args{count_samples}) {
+        elsif ($count_samples) {
             #  track the number of samples for each label
             for (my $i = 0; $i < $#label_list; $i += 2) {
                 #print "$i, $#label_list\n";
@@ -1611,7 +1615,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
             next;
         }
 
-        if ($args{count_labels} || $args{count_samples}) {
+        if ($count_labels || $count_samples) {
             foreach my $lbl (@$label_listref) {
                 $label_list_master{$lbl}++;
                 $label_list{$iter}{$lbl}++;
@@ -1632,7 +1636,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
             croak "[INDICES] $label_hashref is not a hash ref\n";
         }
 
-        if ($args{count_labels} || $args{count_samples}) {
+        if ($count_labels || $count_samples) {
             while (($label, $value) = each %$label_hashref) {
                 $label_list_master{$label} += $value;
                 $label_list{$iter}{$label} += $value;
@@ -1645,7 +1649,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
     }
 
     #  set the counts to one if using plain old abc, as the elements section doesn't obey it properly
-    if (! $args{count_labels} && ! $args{count_samples}) {
+    if (! $count_labels && ! $count_samples) {
         @label_list_master{keys %label_list_master} = (1) x scalar keys %label_list_master;
         @{$label_list{1}}{keys %{$label_list{1}}} = (1) x scalar keys %{$label_list{1}};
         @{$label_list{2}}{keys %{$label_list{2}}} = (1) x scalar keys %{$label_list{2}};

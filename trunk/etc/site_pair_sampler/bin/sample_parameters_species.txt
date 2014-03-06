@@ -38,7 +38,7 @@
   sample_by_regions       0
   region_quota_strategy   log_richness
   within_region_ratio     10
-  region_codes            1
+  region_codes            0
 
 # Additional outputs
   weight_type             one

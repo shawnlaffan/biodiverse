@@ -1,0 +1,14 @@
+<SOFTPKG NAME="PAR" VERSION="1.007">
+    <ABSTRACT>Perl Archive Tookit</ABSTRACT>
+    <AUTHOR>Audrey Tang &lt;cpan@audreyt.org&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <PERLCORE VERSION="5,008001,0,0" />
+        <REQUIRE NAME="Archive::Zip" VERSION="1" />
+        <REQUIRE NAME="AutoLoader::" VERSION="5.66" />
+        <REQUIRE NAME="Compress::Zlib" VERSION="1.16" />
+        <REQUIRE NAME="File::Temp" VERSION="0.05" />
+        <REQUIRE NAME="PAR::Dist" VERSION="0.32" />
+        <ARCHITECTURE NAME="MSWin32-x86-multi-thread-5.16" />
+        <CODEBASE HREF="PAR-516.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>

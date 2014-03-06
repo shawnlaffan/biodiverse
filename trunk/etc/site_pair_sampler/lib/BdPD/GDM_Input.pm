@@ -866,7 +866,6 @@ sub do_sampling {
                     # calculate the site-pair weight
                     if ($weight_type eq 'species_sum') {
                         $weight = $abc{A} + $abc{ABC};
-                        $weight = ",$weight";
                     }
                     else {
                         $weight = 1

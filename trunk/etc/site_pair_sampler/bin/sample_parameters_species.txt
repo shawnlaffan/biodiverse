@@ -41,7 +41,7 @@
   region_codes            0
 
 # Additional outputs
-  weight_type             one
+  weight_type             species_sum
 
 # Test and training data
   subset_for_testing      0

@@ -23,7 +23,9 @@ use Exporter::Easy (
 #   FILE PARAMETERS
 #
 #   dist_measure
-#                   - the name of the distance measure to use. Accepted options so far are single items or a list from:
+#                   - the name of the distance measure to use.
+#                   - the first listed item will be placed in the 'Response' column in the site-pair file
+#                   Accepted options so far are single items or a list from:
 #                       "phylo_sorenson"
 #                       "sorenson"
 #                       "geographic"
@@ -151,8 +153,10 @@ use Exporter::Easy (
 #                   - which have groups in them
 #                   - optional - defaults to 0
 #
-#   species_sum     - if species_sum = 1 then an extra column contains the number sum of the number of species at the two sites, regardless of number shared.
-#                   - optional - defaults to 0
+#   weight_type     - defines the values used in the weight column to determine the weight given to each site pair in the GDM model
+#                   - the default value in "one" which places a 1 as the weight for every site pair
+#                   - if weight_type = "species_sum" then weight is the number sum of the number of species at the two sites, regardless of number shared.
+#                   - optional - defaults to "one"
 #
 #   FEEDBACK PARAMETERS
 #    
@@ -225,7 +229,7 @@ sub generate_distance_table {
     }
     
     my $measures = $args{dist_measure};
-    my @dist_measures = sort keys %$measures;
+    my @dist_measures = keys %$measures;  # changed 'sort keys' to 'keys' to keep measure order from parameter file. Dan 6/3/2014
     my $measure_count = scalar @dist_measures;
     $SPM->set_param(measure_count => $measure_count);
 
@@ -388,28 +392,16 @@ sub generate_distance_table {
             my $regions_output = $SPM->{regions_output};
             print "\n";
             
-            my $dist_header;
-            if ($measure_count == 1) {
-                $dist_header = 'dist';
-            }
-            else {
-                foreach my $i (0..($measure_count-1)) {
-                if ($i==0) {
-                    $dist_header = $dist_measures[$i];
-                }
-                else {
-                    $dist_header = $dist_header . ',' . $dist_measures[$i];
-                }
+            my $extra_dist_header = "";
+            if ($measure_count > 1) {
+                foreach my $i (1..($measure_count-1)) {
+                    $extra_dist_header = $extra_dist_header.$dist_measures[$i].',';
                 };
             };
             
-            my $sum_header="";
-            if ($SPM->{species_sum} == 1) {
-                $sum_header = ",species_sum";
-            }
-            
             # print the header row to the site pair file
-            print $result_file_handle "x0,y0,x1,y1,".$dist_header.$regions_output.$sum_header."\n";
+            my $standard_header = "Response,Weights,x0,y0,x1,y1,";
+            print $result_file_handle "$standard_header".$extra_dist_header.$regions_output."\n";
             
             # CALL THE MAIN SAMPLING LOOP #
             $SPM->do_sampling();        #
@@ -457,7 +449,9 @@ sub parse_args_file {
             $value = $1
               // croak "Unbalanced parentheses in value for $keyword: $val2" ;
         }
-        $value =~ s/#.*$//;
+        #$value =~ s/#.*$//;
+        $value  =~ s/^\s+|\s+$//g;  # replaced previous line with this to strip both leading and trailing whitespace
+
         next LINE if !length $keyword;  #  skip empties
         
         if (not $keyword =~ /dist_measure/) {

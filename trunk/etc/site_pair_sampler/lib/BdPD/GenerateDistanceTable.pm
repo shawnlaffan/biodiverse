@@ -1,5 +1,6 @@
 package BdPD::GenerateDistanceTable;
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -188,14 +189,14 @@ sub generate_distance_table {
 
     # for backwards compatability convert a text value of 'dist_measure to a hash element
     #which is the format now used, to allow for multiple distance measures
+    my @dist_measure_array = @{$args{dist_measure}};
     my %dist_measures;
-    if (!((ref $args{dist_measure}) =~ /HASH/)) {
-        %dist_measures = ($args{dist_measure} => 1);
-        $SPM->{dist_measure} = \%dist_measures;
-        $args{dist_measure}  = \%dist_measures;
-    }
+    @dist_measures{@dist_measure_array} = (1) x @dist_measure_array;
+    
+    $SPM->{dist_measure} = \%dist_measures;
+    #$args{dist_measure}  = \%dist_measures;
 
-    if (exists($args{dist_measure}{phylo_sorenson})) {
+    if (exists($dist_measures{phylo_sorenson})) {
         $SPM->set_param(use_phylogeny => 1)
     };
     
@@ -210,10 +211,10 @@ sub generate_distance_table {
     
     # assign the default output prefix for the selected distance measure, if none was provided
     if (!exists $SPM->{output_file_prefix}) {
-        if (exists($args{dist_measure}{phylo_sorenson})) {
+        if (exists($dist_measures{phylo_sorenson})) {
             $SPM->set_param (output_file_prefix => 'phylo_dist_');
         }
-        elsif (exists($args{dist_measure}{sorenson}))  {
+        elsif (exists($dist_measures{sorenson}))  {
             $SPM->set_param (output_file_prefix => 'dist_');
         };
     };
@@ -228,13 +229,13 @@ sub generate_distance_table {
         $SPM->set_param(test_sample_ratio => 1);
     }
     
-    my $measures = $args{dist_measure};
-    my @dist_measures = keys %$measures;  # changed 'sort keys' to 'keys' to keep measure order from parameter file. Dan 6/3/2014
-    my $measure_count = scalar @dist_measures;
+    #my $measures = \%dist_measures;
+    #my @dist_measures = keys %$measures;  # changed 'sort keys' to 'keys' to keep measure order from parameter file. Dan 6/3/2014
+    my $measure_count = scalar @dist_measure_array;
     $SPM->set_param(measure_count => $measure_count);
 
     if (!exists($SPM->{quota_dist_measure})) {
-        $SPM->set_param(quota_dist_measure => $dist_measures[0]);
+        $SPM->set_param(quota_dist_measure => $dist_measure_array[0]);
     }
     
     ### OUTPUT PARAMETERS
@@ -374,13 +375,13 @@ sub generate_distance_table {
             my $dist_measure_text = q{};
             foreach my $i (0..($measure_count-1)) {
                 if ($i == 0) {
-                    $dist_measure_text .= $dist_measures[$i];
+                    $dist_measure_text .= $dist_measure_array[$i];
                 }
                 elsif ($i < $measure_count-1) {
-                    $dist_measure_text .= ", $dist_measures[$i]";
+                    $dist_measure_text .= ", $dist_measure_array[$i]";
                 }
                 else {
-                    $dist_measure_text .= " and $dist_measures[$i]";
+                    $dist_measure_text .= " and $dist_measure_array[$i]";
                 }
             };
             
@@ -395,7 +396,7 @@ sub generate_distance_table {
             my $extra_dist_header = "";
             if ($measure_count > 1) {
                 foreach my $i (1..($measure_count-1)) {
-                    $extra_dist_header = $extra_dist_header.$dist_measures[$i].',';
+                    $extra_dist_header = $extra_dist_header.$dist_measure_array[$i].',';
                 };
             };
             
@@ -430,7 +431,7 @@ sub parse_args_file {
     
     open my $fh, '<', $file or croak "Unable to open $file";
     
-    my %args = (dist_measure => {});
+    my %args = (dist_measure => []);
     
     LINE:
     while (defined (my $line = <$fh>)) {
@@ -454,14 +455,16 @@ sub parse_args_file {
 
         next LINE if !length $keyword;  #  skip empties
         
-        if (not $keyword =~ /dist_measure/) {
+        if (not $keyword =~ /^dist_measure$/) {
             $args{$keyword} = $value;
         }
         else {  #  special handling
-            $args{dist_measure}{$value} = 1;
+            #$args{dist_measure} //= [];  # initialise with an empty array if needed
+            my $array_ref = $args{dist_measure};
+            push @$array_ref, $value;
         }
     }
-    
+
     return wantarray ? %args : \%args;
 }
 

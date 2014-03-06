@@ -1,41 +1,44 @@
-#  File of argument for the site pair sampler.
-#  Anything after a # is a comment and is ignored.
-#  if your argument contains a # then put it inside quotes.
-#  Blank lines are also ignored.
+#  File of arguments for the Site Pair Sampler.
 
+################################################################################
+#  Site Pair Sampler is an add-on to Biodiverse                                #
+#  Before running Site Pair Sampler, use Biodiverse to group location records, #
+#    typically by grid squares, to generate a set of populated sites.          #
+#                                                                              #
+#  The resulting data, saved in the Biodiverse basedata format (*.bds)         #
+#    is the main input for the site pair sampler                               #
+#                                                                              #
+#  All parameters are listed at the end of this file.                          #
+#                                                                              #
+#  Most parameters are optional - the settings below show basic settings       #
+#																			   #
+#  Anything after a # is a comment and is ignored.							   #
+#  If your argument contains a # then put it inside quotes.                    #
+#  Blank lines are also ignored.                                               #
+#                                                                              #
+#  Help is available at:                                                       #
+#    https://code.google.com/p/biodiverse/wiki/SitePairSampler                 #
+#                                                                              #
+#  Dan Rosauer	August 2013 and March 2014	                                   #
+################################################################################
 
-dist_measure            sorenson
-dist_measure            phylo_sorenson
-dist_measure            geographic 
-directory               C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae
-basedata_file           Hylids_Feb10_001deg_5000_IBRA
-output_file_prefix      basic_
-nexus_file              hylid_relaxed alltaxa 27apr09.nex
-nexus_remap             Translate_Hylid_Names_aug08.csv
-remap_input             3
-remap_output            1
-sample_count            150000
-min_group_richness      5
-min_group_samples       5
-bins_count              0
-quota_dist_measure      geographic
-dist_limit              15
-regions                 0
-region_header           IBRA
-sample_by_regions       0
-region_quota_strategy   log_richness
-within_region_ratio     10
-region_codes            1
-species_sum             1
-subset_for_testing      0
-verbosity               3
-feedback_table          1
-feedback_suffix         _fb
+# Inputs
+  directory               'C:\Biodiverse\etc\site_pair_sampler\amphibians\'
+  basedata_file           'amphibians0025'
 
+# Sampling
+  # the first listed distance measure is placed in the Response column
+  dist_measure            sorenson
+  sample_count            20000
 
-# the parameters for this sub are passed as a hash with the following items:
+# Test and training data
+  subset_for_testing      0.1
+
+# END OF PARAMETERS #
+  
+#######################################################################################################################
 #
-#   FILE PARAMETERS
+#   LIST OF FILE PARAMETERS
 #
 #   dist_measure
 #                   - the name of the distance measure to use. Accepted options so far are single items or a list from:
@@ -46,15 +49,15 @@ feedback_suffix         _fb
 #
 #   directory       - the working directory
 #                   - required
-#                   eg "C:\Working\Study_Taxa\Herps\Hylidae"
+#                   eg "C:\Working\Study_Taxa\Herps\Hylidae"            ## CHANGE THIS TO REFER TO TEST DATA
 #
 #   nexus_file      - the full name of a nexus file to use
 #                   - required for phylo_sorenson
-#                   eg "Hylid_tree_AustOct08.nex"
+#                   eg "Hylid_tree_AustOct08.nex"                       ## CHANGE THIS TO REFER TO TEST DATA
 #
 #   nexus_remap     - file name of a remap table to match tree names to taxon names in the basedata
 #                   - optional
-#                   eg "Translate_Hylid_Names_aug08.csv"
+#                   eg "Translate_Hylid_Names_aug08.csv"                ## CHANGE THIS TO REFER TO TEST DATA
 #
 #   remap_input     - an array of column numbers in order needed, counting from 0 - to match names on tree
 #                   - required if nexus_remap is given
@@ -64,7 +67,7 @@ feedback_suffix         _fb
 #                   - required if nexus_remap is given
 #                   eg [1]
 #
-#   basedata_file   - file name of the basedata object holding grouped taxon locations
+#   basedata_file   - file name of the Biodiverse basedata object holding grouped taxon locations
 #                   - required
 #                   eg "Hylids_May09_001deg_5000"
 #
@@ -167,8 +170,10 @@ feedback_suffix         _fb
 #                   - which have groups in them
 #                   - optional - defaults to 0
 #
-#   species_sum     - if species_sum = 1 then an extra column contains the number sum of the number of species at the two sites, regardless of number shared.
-#                   - optional - defaults to 0
+#   weight_type     - defines the values used in the weight column to determine the weight given to each site pair in the GDM model
+#                   - the default value in "one" which places a 1 as the weight for every site pair
+#                   - if weight_type = "species_sum" then weight is the number sum of the number of species at the two sites, regardless of number shared.
+#                   - optional - defaults to "one"
 #
 #   FEEDBACK PARAMETERS
 #    

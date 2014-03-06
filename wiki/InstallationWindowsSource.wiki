@@ -59,11 +59,8 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   :: YAML::Syck has installation failures at v1.27 
   cpanm YAML::Syck@1.23
 
-  ::  This is not yet in the Task distro.
-  cpanm Geo::Shapefile::Writer
-
   :: Now install the rest of the dependencies
-  cpanm Task::Biodiverse::NoGUI~0.19
+  cpanm Task::Biodiverse::NoGUI@0.191
   cpanm Task::Biodiverse~0.19
 }}}
 

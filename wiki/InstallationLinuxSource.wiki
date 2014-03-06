@@ -24,8 +24,11 @@ sudo apt-get install libcairo2-dev libpango1.0-dev libgtk+2.0-dev libgnomecanvas
 #  skip this if you already have cpanm installed
 cpan App::cpanminus
 
+# YAML::Syck has installation failures at v1.27 
+cpanm YAML::Syck@1.23
+
 # Now install the rest of the dependencies
-cpanm Task::Biodiverse::NoGUI~0.19
+cpanm Task::Biodiverse::NoGUI@0.191
 cpanm Task::Biodiverse~0.19
 cpanm Task::Biodiverse~0.19
 

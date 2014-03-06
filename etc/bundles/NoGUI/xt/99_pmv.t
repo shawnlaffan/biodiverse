@@ -8,9 +8,9 @@ BEGIN {
 use Test::More;
 
 # Skip if doing a regular install
-unless ( $ENV{AUTOMATED_TESTING} ) {
-	plan( skip_all => "Author tests not required for installation" );
-}
+#unless ( $ENV{AUTOMATED_TESTING} ) {
+#	plan( skip_all => "Author tests not required for installation" );
+#}
 
 # Can we run the version tests
 eval "use Test::MinimumVersion 0.007;";

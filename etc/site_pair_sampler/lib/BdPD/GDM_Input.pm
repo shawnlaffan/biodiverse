@@ -608,8 +608,11 @@ sub do_sampling {
     my $dist_limit = $self->{dist_limit};
     my $skip = 0;
     
+    my %dist_measures_hash;
+    @dist_measures_hash{@$dist_measure} = (1) x @$dist_measure;
+    
     my $single_dist_measure;
-    if ($measure_count == 1) { $single_dist_measure = (keys($dist_measure))[0] };
+    if ($measure_count == 1) { $single_dist_measure = $dist_measure->[0] };
     
     #set up to report the total sum of the number of species at both sites, optional extra to use as a weighting factor
     my $weight_type;
@@ -784,7 +787,7 @@ sub do_sampling {
             $label_hash2 = $groups_ref->get_sub_element_hash (element => $group2);
 
             # calculate the geographic distance
-            if (exists($dist_measure->{geographic})) {  # geographic
+            if (exists $dist_measures_hash{geographic}) {  # geographic
                 $dist_result{geographic} = sprintf("%.3f", sqrt( ($coords1[0] - $coords2[0]) ** 2 + ($coords1[1] - $coords2[1]) ** 2 ));
             };
             
@@ -803,7 +806,7 @@ sub do_sampling {
             
             if (! $dist_exceeded) {    
                 # calculate the phylo Sørensen distance
-                if (exists($dist_measure->{phylo_sorenson})) {  # phylo_sorenson
+                if (exists($dist_measures_hash{phylo_sorenson})) {  # phylo_sorenson
                     $dist_result{phylo_sorenson} = -1;      # an undefined distance result is given as -1
                     %phylo_abc = $indices->calc_phylo_abc(
                         group_list1  => \%gl1,
@@ -819,7 +822,7 @@ sub do_sampling {
                 }
 
                 # calculate the Sørensen distance                                    
-                if (exists($dist_measure->{sorenson})) {  # sorenson
+                if (exists($dist_measures_hash{sorenson})) {  # sorenson
                     $dist_result{sorenson} = -1;      # an undefined distance result is given as -1
                     %abc = $indices->calc_abc(
                         group_list1 => \%gl1,
@@ -834,9 +837,9 @@ sub do_sampling {
                 };
                 
                 # if any distance measure has a valid result
-                if (   (exists($dist_measure->{sorenson}) and ($dist_result{sorenson} != -1))
-                    or (exists($dist_measure->{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1))
-                    or (exists($dist_measure->{geographic}) and $dist_result{geographic} >= 0)) {
+                if (   (exists($dist_measures_hash{sorenson}) and ($dist_result{sorenson} != -1))
+                    or (exists($dist_measures_hash{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1))
+                    or (exists($dist_measures_hash{geographic}) and $dist_result{geographic} >= 0)) {
     
                     # calculate the site-pair weight
                     if ($weight_type eq 'species_sum') {

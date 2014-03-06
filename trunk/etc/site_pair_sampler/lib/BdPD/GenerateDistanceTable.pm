@@ -193,7 +193,7 @@ sub generate_distance_table {
     my %dist_measures;
     @dist_measures{@dist_measure_array} = (1) x @dist_measure_array;
     
-    $SPM->{dist_measure} = \%dist_measures;
+    $SPM->{dist_measure} = \@dist_measure_array;
     #$args{dist_measure}  = \%dist_measures;
 
     if (exists($dist_measures{phylo_sorenson})) {
@@ -295,7 +295,8 @@ sub generate_distance_table {
 
         if (!$SPM->{subset_for_testing}) {       # if no test dataset requested
             $grouplists{training} = \@grouplist;        
-        } else {                                # if training and test datasets requested
+        }
+        else {                                   # if training and test datasets requested
             shuffle @grouplist;
 
             my $group_count = (@grouplist + 0);
@@ -396,14 +397,14 @@ sub generate_distance_table {
             my $extra_dist_header = "";
             if ($measure_count > 1) {
                 foreach my $i (1..($measure_count-1)) {
-                    $extra_dist_header = $extra_dist_header.$dist_measure_array[$i].',';
+                    $extra_dist_header = $extra_dist_header . $dist_measure_array[$i] .',';
                 };
             };
             
             # print the header row to the site pair file
             my $standard_header = "Response,Weights,x0,y0,x1,y1,";
-            print $result_file_handle "$standard_header".$extra_dist_header.$regions_output."\n";
-            
+            say $result_file_handle "$standard_header" . $extra_dist_header . $regions_output;
+
             # CALL THE MAIN SAMPLING LOOP #
             $SPM->do_sampling();        #
             ###############################

@@ -45,7 +45,7 @@ sub new {
         test_sample_ratio     => 1,
         shared_species        => 0,
         bins_max_class        => 1,
-        species_sum           => 0,  
+        weight_type           => 'one',  
     };
 
     bless $self, $class;
@@ -602,7 +602,7 @@ sub do_sampling {
     my ($all_sitepairs_kept,$regions_done);
     my $result_file_handle = $self->{result_file_handle};
     my ($printed_progress_all, $stored_progress_all) = (0,0);
-    my $dist_output;
+    my ($response, $dist_output_extra) = ("","");
     my $measure_count = $self->{measure_count};
     my $dist_exceeded;
     my $dist_limit = $self->{dist_limit};
@@ -612,9 +612,9 @@ sub do_sampling {
     if ($measure_count == 1) { $single_dist_measure = (keys($dist_measure))[0] };
     
     #set up to report the total sum of the number of species at both sites, optional extra to use as a weighting factor
-    my $species_sum = 0;
-    my $sum = 0;
-    if (exists($self->{species_sum})) { $species_sum = $self->{species_sum} }
+    my $weight_type;
+    my $weight = 0;
+    if (exists($self->{weight_type})) { $weight_type = $self->{weight_type} }
     
     # start a feedback table, if requested
     if ($self->{feedback_table}) { $self->feedback_table(open => 1) };
@@ -831,10 +831,6 @@ sub do_sampling {
                     if (($abc{A} + $abc{B}) and ($abc{A} + $abc{C})) {  #  sum of each side must be non-zero
                         $dist_result{sorenson} = sprintf("%.6f", eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))});
                     };
-
-                    # an optional extra feature, calculates the sum of species at the two sites (ignoring whether they are shared)
-                    $sum = 2*$abc{A} + $abc{B} + $abc{C};
-                    $sum = ",".$sum;
                 };
                 
                 # if any distance measure has a valid result
@@ -842,20 +838,38 @@ sub do_sampling {
                     or (exists($dist_measure->{phylo_sorenson}) and ($dist_result{phylo_sorenson} != -1))
                     or (exists($dist_measure->{geographic}) and $dist_result{geographic} >= 0)) {
     
+                    # calculate the site-pair weight
+                    if ($weight_type eq 'species_sum') {
+                        $weight = 2*$abc{A} + $abc{B} + $abc{C};
+                        $weight = ",".$weight;
+                    } else {
+                        $weight = 1
+                    };
+
                     #format the distance result(s)
+                    
+                        # the logic here is
+                        #   if there is a single distance measure, assign it to $response
+                        #   if there are more than 1, assign the first to $response and subsequent ones to $dist_output_extra
                     if ($measure_count > 1) {
-                        foreach my $result (sort keys(%dist_result)) {
-                            if ($dist_output) {
-                                $dist_output = $dist_output. "," .$dist_result{$result};
-                            }
-                            else {
-                                $dist_output = $dist_result{$result};
+                        my $i=1;
+                        foreach my $result ( keys(%dist_result)) {
+                            if ($i == 1) {
+                               $response = $dist_result{$result};
+                            } else {
+                                if ($i == 2) {
+                                    $dist_output_extra = $dist_result{$result};
+                                } else {
+                                    $dist_output_extra = $dist_output_extra. "," .$dist_result{$result};
+                                };
                             };
+                            $i +=1;
                         };
                     }
                     else {
-                        $dist_output = $dist_result{$single_dist_measure};
+                        $response = $dist_result{$single_dist_measure};
                     };
+                    if (!$dist_output_extra) {$dist_output_extra=""};
 
                     # set the region names output
                     if ($self->{do_output_regions}) {
@@ -920,7 +934,7 @@ sub do_sampling {
                     }
         
                     if (!$skip) { 
-                        $output_row = "$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output".$regions_output.$sum."\n";
+                        $output_row = "$response,$weight,$coords1[0],$coords1[1],$coords2[0],$coords2[1],".$dist_output_extra.",".$regions_output."\n";
                         print $result_file_handle "$output_row";
                         $count++;
                     };
@@ -930,9 +944,10 @@ sub do_sampling {
             
             $skip = 0;
             $loops++;
-            $dist_output = "";
+            $response="";
+            $dist_output_extra = "";
             $dist_exceeded = 0;
-            $sum = q{};
+            $weight = q{};
             
             if ($self->{verbosity} == 3) {
                 $progress = int (100 * $loops / $to_do);

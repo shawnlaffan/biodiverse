@@ -19,13 +19,14 @@
 #  Blank lines are also ignored.
 
 # Inputs
-  directory               C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae  ## CHANGE THIS TO REFER TO TEST DATA
-  basedata_file           Hylids_Feb10_001deg_5000_IBRA                    ## CHANGE THIS TO REFER TO TEST DATA
+  directory               'C:\Biodiverse\etc\site_pair_sampler\amphibians\'
+  basedata_file           'amphibians0025'
 
 # Sampling
+  # the first listed distance measure is placed in the Response column
   dist_measure            sorenson
   dist_measure            geographic 
-  sample_count            100000
+  sample_count            20000
   min_group_richness      5
   min_group_samples       5
   quota_dist_measure      geographic
@@ -33,14 +34,14 @@
 
 # Regions
   regions                 0
-  region_header           IBRA                                             ## CHANGE THIS TO REFER TO TEST DATA
+  region_header           IBRA
   sample_by_regions       0
   region_quota_strategy   log_richness
   within_region_ratio     10
   region_codes            1
 
 # Additional outputs
-  species_sum             1
+  weight_type             one
 
 # Test and training data
   subset_for_testing      0
@@ -183,8 +184,10 @@
 #                   - which have groups in them
 #                   - optional - defaults to 0
 #
-#   species_sum     - if species_sum = 1 then an extra column contains the number sum of the number of species at the two sites, regardless of number shared.
-#                   - optional - defaults to 0
+#   weight_type     - defines the values used in the weight column to determine the weight given to each site pair in the GDM model
+#                   - the default value in "one" which places a 1 as the weight for every site pair
+#                   - if weight_type = "species_sum" then weight is the number sum of the number of species at the two sites, regardless of number shared.
+#                   - optional - defaults to "one"
 #
 #   FEEDBACK PARAMETERS
 #    

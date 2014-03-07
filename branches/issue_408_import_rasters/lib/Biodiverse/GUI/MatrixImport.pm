@@ -1,5 +1,5 @@
 package Biodiverse::GUI::MatrixImport;
-
+use 5.010;
 use strict;
 use warnings;
 use File::Basename;
@@ -71,7 +71,7 @@ sub run {
     # Add non-blank columns
     my @headers;
     foreach my $header (@headers_full) {
-        push @headers, $header if $header;
+        push @headers, $header // 'unnamed_col';
     }
 
 

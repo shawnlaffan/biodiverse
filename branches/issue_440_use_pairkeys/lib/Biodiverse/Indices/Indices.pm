@@ -6,6 +6,7 @@ use 5.010;
 use Carp;
 
 use Scalar::Util qw /blessed weaken/;
+use List::Util qw /min max pairkeys/;
 use English ( -no_match_vars );
 use Readonly;
 
@@ -394,11 +395,11 @@ sub calc_nestedness_resultant {
     my ($A, $B, $C, $ABC) = @args{qw /A B C ABC/};
     
     my $score;
-    if ($A == 0 and $B > 0 and $C > 0) {
+    if (!$A && $B && $C) {
         #  nothing in common, no nestedness
         $score = 0;
     }
-    elsif ($A == 0 and min ($B, $C) == 0) {
+    elsif (!$A && ! ($B && $C)) {  #  could be re-arranged
         #  only one set has labels (possibly neither)
         $score = undef;
     }
@@ -1691,15 +1692,15 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 #
 #  miscellaneous local routines
 
-sub min {
-    no warnings 'uninitialized';
-    $_[0] < $_[1] ? $_[0] : $_[1];
-}
-
-sub max {
-    no warnings 'uninitialized';
-    $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub min {
+#    no warnings 'uninitialized';
+#    $_[0] < $_[1] ? $_[0] : $_[1];
+#}
+#
+#sub max {
+#    no warnings 'uninitialized';
+#    $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
 sub numerically {$a <=> $b};
 

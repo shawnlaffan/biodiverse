@@ -246,7 +246,6 @@ sub run {
         }
 
         my $line = <$fh>;
-        close ($fh);
 
         my $sep = $import_params{input_sep_char} eq 'guess' 
                 ? $gui->get_project->guess_field_separator (string => $line)
@@ -275,6 +274,28 @@ sub run {
         if ($is_r_data_frame) {
             unshift @header, 'R_data_frame_col_0';
         }
+        
+        # check for empty fields in header? replace with generic
+        my $col_num = 0;
+        while ($col_num <= $#header) {
+        	if (length($header[$col_num]) == 0) { $header[$col_num] = "col_$col_num"; }
+        	$col_num++;        	
+        }
+
+        # check data, if additional lines in data, append in column list.
+        my $line2 = <$fh>;
+        my @line2_cols  = $gui->get_project->csv2list(
+            string      => $line,
+            quote_char  => $quotes,
+            sep_char    => $sep,
+            eol         => $eol,
+        );
+        while($col_num <= $#line2_cols) {
+        	$header[$col_num] = "col_$col_num";
+            $col_num++;         
+        }
+        
+        close ($fh);
         
         $use_matrix = $import_params{data_in_matrix_form};
         $col_names_for_dialog = \@header;

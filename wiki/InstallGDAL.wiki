@@ -44,7 +44,7 @@ make install
 {{{
   :: Change gdal_win64 to gdal_win32 if you are using a 32 bit installation.
   set GDAL_PATH=c:\gdal_win64
-  set PATH=%GDAL_PATH%\c\bin;%PATH%
+  set PATH=%GDAL_PATH%\bin;%PATH%
 }}}
 
 3. Download the GDAL binaries from the Biodiverse subversion repository.

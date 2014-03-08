@@ -1,7 +1,12 @@
-#summary Notes for the installation of GDAL on Ubuntu
+#summary Notes for the installation of GDAL
+
 = Introduction =
 
-These are notes for the installation of Geo::GDAL on Ubuntu.  
+These are notes for the installation of Geo::GDAL on Ubuntu and Windows.  
+
+
+= Ubuntu =
+
 
 The latest GDAL package can be obtained from https://launchpad.net/~ubuntugis/+archive/ppa
 
@@ -28,3 +33,39 @@ make
 make test
 make install
 }}}
+
+
+= Windows =
+
+1.  Open a command prompt.  The rest of these instructions assume you are at the prompt.
+
+2.  Run these commands, editing the folder paths as needed to match your system.
+
+{{{
+  :: Change gdal_win64 to gdal_win32 if you are using a 32 bit installation.
+  set GDAL_PATH=c:\gdal_win64
+  set PATH=%GDAL_PATH%\c\bin;%PATH%
+}}}
+
+3. Download the GDAL binaries from the Biodiverse subversion repository.
+  TortoiseSVN is the easiest way, but this command line will work if you installed the shell options with TortoiseSVN (or you have a different svn client). Remember to change gdal_win64 to gdal_win32 if you are using a 32 bit installation.
+
+  svn co https://biodiverse.googlecode.com/svn/branches/gdal_win_builds/etc/gdal_win64 %GDAL_PATH%
+
+
+4.  Now we need to install some files using the ppm and cpanm utilities.  Run the ppm install command for all ppd files.  You can copy and paste these into the command prompt.  If you are using a 32 bit perl then change ppm516_x64 to be ppm516.  
+
+{{{
+  :: Install the precompiled binaries needed for the GUI.
+  :: Edit the next line to match the perl version you are using, 
+  :: e.g. ppm516 for the 32 bit version, ppm516_x64 for 64 bit
+  set BDV_PPM=https://biodiverse.googlecode.com/svn/branches/issue_408_import_rasters/etc/ppm/ppm516_x64
+  ppm install %BDV_PPM%/Geo-GDAL.ppd 
+
+}}}
+
+= Running it =
+
+There is no change to running the code on Ubuntu.  
+
+There is no change to running the code on Windows provided you have not changed the name of the gdal folder and that it is above the biodiverse/bin folder in the folder hierarchy (Biodiverse looks for it).  If you do keep it somewhere else or use a different name then you will need to add the gdal bin folder to your system path.

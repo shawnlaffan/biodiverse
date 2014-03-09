@@ -6,6 +6,7 @@ A component that displays a BaseStruct using GnomeCanvas
 
 package Biodiverse::GUI::Grid;
 
+use 5.010;
 use strict;
 use warnings;
 use Data::Dumper;
@@ -783,23 +784,23 @@ sub load_shapefile {
 # The callback should return a Gtk2::Gdk::Color object, or undef
 # to set the colour to CELL_WHITE
 sub colour {
-    my $self = shift;
+    my $self     = shift;
     my $callback = shift;
 
 #print "Colouring " . (scalar keys %{$self->{cells}}) . " cells\n";
 
+  CELL:
     foreach my $cell (values %{$self->{cells}}) {
 
-        my $colour_ref = &$callback($cell->[INDEX_ELEMENT]);
-        if (not defined $colour_ref) {
-            #warn $cell->[INDEX_ELEMENT] . " is undef\n";
-            $colour_ref = CELL_WHITE;
-        }
+        next CELL if !defined $cell->[INDEX_RECT];
 
-        #if (not $colour_ref->equal($cell->[INDEX_COLOUR])) {
+        my $colour_ref = &$callback($cell->[INDEX_ELEMENT]) // CELL_WHITE;
+        $cell->[INDEX_COLOUR] = $colour_ref;
+
+        eval {
             $cell->[INDEX_RECT]->set('fill-color-gdk' => $colour_ref);
-            $cell->[INDEX_COLOUR] = $colour_ref;
-        #}
+        };
+        warn $@ if $@;
     }
 
     return;
@@ -966,9 +967,10 @@ sub mark_if_exists {
     my $hash  = shift;
     my $shape = shift; # "circle" or "cross"
 
+  CELL:
     foreach my $cell (values %{$self->{cells}}) {
         #  hackish, but sometimes we are called before the data are populated
-        return if !$cell || ! $cell->[INDEX_RECT];
+        next CELL if !$cell || !$cell->[INDEX_RECT];
 
         my $group = $cell->[INDEX_RECT]->parent;
 
@@ -983,7 +985,7 @@ sub mark_if_exists {
             #if ($shape eq 'cross' && not $cell->[INDEX_CROSS]) {
             #    $cell->[INDEX_CROSS] = $self->draw_cross($group);
             #} 
-            
+
             # Minus
             if ($shape eq 'minus' && not $cell->[INDEX_MINUS]) {
                 $cell->[INDEX_MINUS] = $self->draw_minus($group);
@@ -1404,12 +1406,12 @@ sub on_event {
     elsif ($event->type eq 'leave-notify') {
 
         # Call client-defined callback function
-        if (defined $self->{hover_func} and not $self->{clicked_cell}) {
-            my $f = $self->{hover_func};
-            # FIXME: Disabling hiding of markers since this stuffs up
-            # the popups on win32 - we receive leave-notify on button click!
-            #&$f(undef);
-        }
+        #if (defined $self->{hover_func} and not $self->{clicked_cell}) {
+        #    my $f = $self->{hover_func};
+        #    # FIXME: Disabling hiding of markers since this stuffs up
+        #    # the popups on win32 - we receive leave-notify on button click!
+        #    #&$f(undef);
+        #}
 
         # Change cursor back to default
         $self->{canvas}->window->set_cursor(undef);

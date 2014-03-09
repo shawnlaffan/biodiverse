@@ -1046,120 +1046,122 @@ sub get_most_similar_pair {
         my $count2  = scalar keys %{$keys_ref};
         my $keys2   = $rand->shuffle ([sort keys %{$keys_ref->{$node1}}]);
         $node2      = $keys2->[0];  #  grab the first shuffled sub key
+
+        return wantarray ? ($node1, $node2) : [$node1, $node2];
     }
-    else {
-        my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
-        my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
-        my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHE');
-        if (!$tie_breaker_cache) {
-            $tie_breaker_cache = {};
-            $self->set_cached_value (TIEBREAKER_CACHE => $tie_breaker_cache);
-        }
-        my $tie_breaker_cmp_cache = $self->get_cached_value ('TIEBREAKER_CMP_CACHE');
-        if (!$tie_breaker_cmp_cache) {
-            $tie_breaker_cmp_cache = {};
-            $self->set_cached_value (TIEBREAKER_CMP_CACHE => $tie_breaker_cmp_cache);
-        }
 
-        #  need to get all the pairs
-        my $csv = $self->get_csv_object;
-        my @pairs;
-        foreach my $name1 (keys %$keys_ref) {
-            my $ref = $keys_ref->{$name1};
-            foreach my $name2 (keys %$ref) {
-                my $stringified = $self->list2csv (list => [$name1, $name2], csv_object => $csv);
-                #  need to use terminal names - allows to link_recalculate
-                #  stringified form is stripped at the end
-                push @pairs, [$name1, $name2, $stringified];  
-            }
-        }
-        return (wantarray ? @{$pairs[0]} : $pairs[0])
-          if scalar @pairs == 1;
 
-        my $breaker_pairs  = $self->get_param ('CLUSTER_TIE_BREAKER_PAIRS');
-        my $breaker_keys   = $breaker_pairs->[0];
-        my $breaker_minmax = $breaker_pairs->[1];
-
-        my ($current_lead_pair, $current_lead_pair_str);
-
-        #  Sort ensures same order each time, thus stabilising random and "none" results
-        #  as well as any tied index comparisons
-      TIE_COMP:
-        foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
-            no autovivification;
-
-            my $tie_scores =  $tie_breaker_cache->{$pair->[0]}{$pair->[1]}
-                           || $tie_breaker_cache->{$pair->[1]}{$pair->[0]};
-
-            if (!defined $tie_scores) {
-                my @el_lists;
-                foreach my $j (0, 1) {
-                    my $node = $pair->[$j];
-                    my $node_ref = $self->get_node_ref (node => $node);
-                    my $el_list;
-                    if ($node_ref->is_internal_node) {
-                        my $terminals = $node_ref->get_terminal_elements;
-                        $el_list = [keys %$terminals];
-                    }
-                    else {
-                        $el_list = [$node];
-                    }
-                    push @el_lists, $el_list;
-                }
-                my %results = $indices_object->run_calculations(
-                    %$analysis_args,
-                    element_list1 => $el_lists[0],
-                    element_list2 => $el_lists[1],
-                );
-                #  Add values for non-index options.
-                #  This allows us to keep them consistent across repeated analysis runs
-                $results{random} = $rand->rand;  
-                $results{none}   = 0;
-
-                #  Create an array of tie breaker results in the order they are needed
-                #  We grab the pair from the end of the array after the tie breaking
-                $tie_scores = [@results{@$breaker_keys}, $pair];
-                $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $tie_scores;
-            }
-
-            if (!defined $current_lead_pair) {
-                $current_lead_pair = $tie_scores;
-                $current_lead_pair_str = $current_lead_pair->[-1]->[2];
-                next TIE_COMP;
-            }
-
-            my $tie_cmp_pair_str = $tie_scores->[-1]->[2];
-
-            #  Comparison scores are order sensitive.
-            #  We also only need to compare against the current leader
-            my $tie_comparison = $tie_breaker_cmp_cache->{$current_lead_pair_str}{$tie_cmp_pair_str};
-            if (!defined $tie_comparison) {
-                $tie_comparison = $tie_breaker_cmp_cache->{$tie_cmp_pair_str}{$current_lead_pair_str};
-                if (defined $tie_comparison) {
-                    $tie_comparison *= -1;  #  allow for cmp order reversal in the cache
-                }
-            }
-
-            #  calculate and cache it if we did not find a cached cmp score
-            if (!defined $tie_comparison) {
-                $tie_comparison = $self->run_tie_breaker (
-                    pair1_scores   => $current_lead_pair,
-                    pair2_scores   => $tie_scores,
-                    breaker_keys   => $breaker_keys,
-                    breaker_minmax => $breaker_minmax,
-                );
-                $tie_breaker_cmp_cache->{$current_lead_pair_str}{$tie_cmp_pair_str} = $tie_comparison;
-            }
-
-            if ($tie_comparison > 0) {
-                $current_lead_pair     = $tie_scores;
-                $current_lead_pair_str = $current_lead_pair->[-1]->[2];
-            }
-        }
-
-        my $optimal_pair = $current_lead_pair->[-1];  #  last item in array is the pair
-        ($node1, $node2) = @$optimal_pair;  #  first two items are the element/node names
+    my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
+    my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
+    my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHE');
+    if (!$tie_breaker_cache) {
+        $tie_breaker_cache = {};
+        $self->set_cached_value (TIEBREAKER_CACHE => $tie_breaker_cache);
     }
+    my $tie_breaker_cmp_cache = $self->get_cached_value ('TIEBREAKER_CMP_CACHE');
+    if (!$tie_breaker_cmp_cache) {
+        $tie_breaker_cmp_cache = {};
+        $self->set_cached_value (TIEBREAKER_CMP_CACHE => $tie_breaker_cmp_cache);
+    }
+
+    #  need to get all the pairs
+    my $csv = $self->get_csv_object;
+    my @pairs;
+    foreach my $name1 (keys %$keys_ref) {
+        my $ref = $keys_ref->{$name1};
+        foreach my $name2 (keys %$ref) {
+            my $stringified = $self->list2csv (list => [$name1, $name2], csv_object => $csv);
+            #  need to use terminal names - allows to link_recalculate
+            #  stringified form is stripped at the end
+            push @pairs, [$name1, $name2, $stringified];  
+        }
+    }
+    return (wantarray ? @{$pairs[0]} : $pairs[0])
+      if scalar @pairs == 1;
+
+    my $breaker_pairs  = $self->get_param ('CLUSTER_TIE_BREAKER_PAIRS');
+    my $breaker_keys   = $breaker_pairs->[0];
+    my $breaker_minmax = $breaker_pairs->[1];
+
+    my ($current_lead_pair, $current_lead_pair_str);
+
+    #  Sort ensures same order each time, thus stabilising random and "none" results
+    #  as well as any tied index comparisons
+  TIE_COMP:
+    foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
+        no autovivification;
+
+        my $tie_scores =  $tie_breaker_cache->{$pair->[0]}{$pair->[1]}
+                       || $tie_breaker_cache->{$pair->[1]}{$pair->[0]};
+
+        if (!defined $tie_scores) {
+            my @el_lists;
+            foreach my $j (0, 1) {
+                my $node = $pair->[$j];
+                my $node_ref = $self->get_node_ref (node => $node);
+                my $el_list;
+                if ($node_ref->is_internal_node) {
+                    my $terminals = $node_ref->get_terminal_elements;
+                    $el_list = [keys %$terminals];
+                }
+                else {
+                    $el_list = [$node];
+                }
+                push @el_lists, $el_list;
+            }
+            my %results = $indices_object->run_calculations(
+                %$analysis_args,
+                element_list1 => $el_lists[0],
+                element_list2 => $el_lists[1],
+            );
+            #  Add values for non-index options.
+            #  This allows us to keep them consistent across repeated analysis runs
+            $results{random} = $rand->rand;  
+            $results{none}   = 0;
+
+            #  Create an array of tie breaker results in the order they are needed
+            #  We grab the pair from the end of the array after the tie breaking
+            $tie_scores = [@results{@$breaker_keys}, $pair];
+            $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $tie_scores;
+        }
+
+        if (!defined $current_lead_pair) {
+            $current_lead_pair = $tie_scores;
+            $current_lead_pair_str = $current_lead_pair->[-1]->[2];
+            next TIE_COMP;
+        }
+
+        my $tie_cmp_pair_str = $tie_scores->[-1]->[2];
+
+        #  Comparison scores are order sensitive.
+        #  We also only need to compare against the current leader
+        my $tie_comparison = $tie_breaker_cmp_cache->{$current_lead_pair_str}{$tie_cmp_pair_str};
+        if (!defined $tie_comparison) {
+            $tie_comparison = $tie_breaker_cmp_cache->{$tie_cmp_pair_str}{$current_lead_pair_str};
+            if (defined $tie_comparison) {
+                $tie_comparison *= -1;  #  allow for cmp order reversal in the cache
+            }
+        }
+
+        #  calculate and cache it if we did not find a cached cmp score
+        if (!defined $tie_comparison) {
+            $tie_comparison = $self->run_tie_breaker (
+                pair1_scores   => $current_lead_pair,
+                pair2_scores   => $tie_scores,
+                breaker_keys   => $breaker_keys,
+                breaker_minmax => $breaker_minmax,
+            );
+            $tie_breaker_cmp_cache->{$current_lead_pair_str}{$tie_cmp_pair_str} = $tie_comparison;
+        }
+
+        if ($tie_comparison > 0) {
+            $current_lead_pair     = $tie_scores;
+            $current_lead_pair_str = $current_lead_pair->[-1]->[2];
+        }
+    }
+
+    my $optimal_pair = $current_lead_pair->[-1];  #  last item in array is the pair
+    ($node1, $node2) = @$optimal_pair;  #  first two items are the element/node names
 
     return wantarray ? ($node1, $node2) : [$node1, $node2];
 }

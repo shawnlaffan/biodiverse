@@ -2061,13 +2061,13 @@ sub _calc_phylo_abc {
 
     # create a new hash %B for nodes in label hash 1 but not 2
     # then get length of B
-    my %B = %A;
+    my %B = %$nodes_in_path1;
     delete @B{keys %$nodes_in_path2};
     my $phylo_B = sum (0, values %B);
 
     # create a new hash %C for nodes in label hash 2 but not 1
     # then get length of C
-    my %C = %A;
+    my %C = %$nodes_in_path2;
     delete @C{keys %$nodes_in_path1};
     my $phylo_C = sum (0, values %C);
 

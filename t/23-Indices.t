@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+use 5.010;
 use strict;
 use warnings;
 use English qw { -no_match_vars };
@@ -8,7 +9,7 @@ use Carp;
 #use lib "$Bin/lib";
 use rlib;
 
-use Test::More tests => 15;
+use Test::More tests => 17;
 use Test::Exception;
 
 local $| = 1;
@@ -122,5 +123,26 @@ use Scalar::Util qw /blessed/;
     eval {$indices->run_postcalc_globals (%$calc_args)};
     $e = $EVAL_ERROR;
     ok (!$e, 'run_postcalc_globals had no eval errors');
+    
+    #  this should throw an exception
+    my %results = eval {
+	$indices->run_calculations(
+	    calculations  => ['calc_abc'],
+	    element_list1 => ['1000:1000'],
+	);
+    };
+    $e = $EVAL_ERROR;
+    ok ($e, 'calc_abc with non-existent group throws error');
+    
+    $valid_calcs = eval {
+	$indices->get_valid_calculations (
+	    calculations   => [qw /calc_richness calc_abc calc_abc2 calc_abc3/],
+	    nbr_list_count => 1,
+	);
+    };
+    $e = $EVAL_ERROR;
+    $valid_calcs = $indices->get_valid_calculations_to_run;
+    is (scalar keys %$valid_calcs, 0, 'no valid calculations without required args');
+    
 }
 

@@ -1136,7 +1136,7 @@ sub get_most_similar_pair_using_tie_breaker {
         }
 
         if (!defined $current_lead_pair) {
-            $current_lead_pair = $tie_scores;
+            $current_lead_pair     = $tie_scores;
             $current_lead_pair_str = $current_lead_pair->[-1]->[2];
             next TIE_COMP;
         }

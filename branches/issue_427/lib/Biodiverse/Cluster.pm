@@ -1050,6 +1050,31 @@ sub get_most_similar_pair {
         return wantarray ? ($node1, $node2) : [$node1, $node2];
     }
 
+    #  need to get all the pairs
+    my $csv = $self->get_csv_object;
+    my @pairs;
+    foreach my $name1 (keys %$keys_ref) {
+        my $ref = $keys_ref->{$name1};
+        foreach my $name2 (keys %$ref) {
+            my $stringified = $self->list2csv (list => [$name1, $name2], csv_object => $csv);
+            #  need to use terminal names - allows to link_recalculate
+            #  stringified form is stripped at the end
+            push @pairs, [$name1, $name2, $stringified];  
+        }
+    }
+
+    return (wantarray ? @{$pairs[0]} : $pairs[0])
+      if scalar @pairs == 1;
+
+    return $self->get_most_similar_pair_using_tie_breaker(%args, pairs => \@pairs);
+}
+
+sub get_most_similar_pair_using_tie_breaker {
+    my $self = shift;
+    my %args = @_;
+
+    my @pairs = @{$args{pairs}};
+    my $rand  = $args{rand_object} // croak 'rand_object argument not passed';
 
     my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
     my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
@@ -1063,21 +1088,6 @@ sub get_most_similar_pair {
         $tie_breaker_cmp_cache = {};
         $self->set_cached_value (TIEBREAKER_CMP_CACHE => $tie_breaker_cmp_cache);
     }
-
-    #  need to get all the pairs
-    my $csv = $self->get_csv_object;
-    my @pairs;
-    foreach my $name1 (keys %$keys_ref) {
-        my $ref = $keys_ref->{$name1};
-        foreach my $name2 (keys %$ref) {
-            my $stringified = $self->list2csv (list => [$name1, $name2], csv_object => $csv);
-            #  need to use terminal names - allows to link_recalculate
-            #  stringified form is stripped at the end
-            push @pairs, [$name1, $name2, $stringified];  
-        }
-    }
-    return (wantarray ? @{$pairs[0]} : $pairs[0])
-      if scalar @pairs == 1;
 
     my $breaker_pairs  = $self->get_param ('CLUSTER_TIE_BREAKER_PAIRS');
     my $breaker_keys   = $breaker_pairs->[0];
@@ -1161,7 +1171,7 @@ sub get_most_similar_pair {
     }
 
     my $optimal_pair = $current_lead_pair->[-1];  #  last item in array is the pair
-    ($node1, $node2) = @$optimal_pair;  #  first two items are the element/node names
+    my ($node1, $node2) = @$optimal_pair;  #  first two items are the element/node names
 
     return wantarray ? ($node1, $node2) : [$node1, $node2];
 }

@@ -1,4 +1,5 @@
 package Biodiverse::GUI::Tabs::Spatial;
+use 5.010;
 use strict;
 use warnings;
 
@@ -324,6 +325,8 @@ sub init_grid {
 
 #print "Initialising grid\n";
 
+    $self->{initialising_grid} = 1;
+
     # Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $click_closure = sub {
@@ -354,6 +357,8 @@ sub init_grid {
             $self->{grid}->set_base_struct ($data);
         }
     }
+
+    $self->{initialising_grid} = 0;
 
     return;
 }
@@ -680,8 +685,10 @@ sub on_run {
     );
 
     # Perform the analysis
-    print "[Spatial tab] Running @to_run\n";
-    #$self->{output_ref}->sp_calc(%args);
+    $self->{initialising_grid} = 1;  #  desensitise the grid if it is already displayed
+
+    say "[Spatial tab] Running @to_run";
+
     my $success = eval {
         $output_ref->sp_calc(%args)
     };  #  wrap it in an eval to trap any errors
@@ -730,6 +737,9 @@ sub on_run {
         $self->update_lists_combo(); # will display first analysis as a side-effect...
     }
 
+    #  make sure the grid is sensitive again
+    $self->{initialising_grid} = 0;
+
     return;
 }
 
@@ -740,12 +750,15 @@ sub on_run {
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
 sub on_grid_hover {
-    my $self = shift;
+    my $self    = shift;
     my $element = shift;
+
+    #  drop out if we are initialising, otherwise we trigger events on incomplete data
+    return if $self->{initialising_grid};
 
     my $output_ref = $self->{output_ref};
     my $text = '';
-    
+
     my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
 
     if ($element) {
@@ -784,8 +797,6 @@ sub on_grid_hover {
         my (%nbrs_hash_inner, %nbrs_hash_outer);
         @nbrs_hash_inner{ @$nbrs_inner } = undef; # convert to hash using a hash slice (thanks google)
         @nbrs_hash_outer{ @$nbrs_outer } = undef; # convert to hash using a hash slice (thanks google)
-
-
 
         if ($neighbours eq 'Set1' || $neighbours eq 'Both') {
             $self->{grid}->mark_if_exists(\%nbrs_hash_inner, 'circle');

@@ -794,7 +794,7 @@ sub colour {
 
         next CELL if !defined $cell->[INDEX_RECT];
 
-        my $colour_ref = &$callback($cell->[INDEX_ELEMENT]) // CELL_WHITE;
+        my $colour_ref = $callback->($cell->[INDEX_ELEMENT]) // CELL_WHITE;
         $cell->[INDEX_COLOUR] = $colour_ref;
 
         eval {
@@ -1395,7 +1395,7 @@ sub on_event {
         # Call client-defined callback function
         if (defined $self->{hover_func} and not $self->{clicked_cell}) {
             my $f = $self->{hover_func};
-            &$f($self->{cells}{$cell}[INDEX_ELEMENT]);
+            $f->($self->{cells}{$cell}[INDEX_ELEMENT]);
         }
 
         # Change the cursor
@@ -1410,7 +1410,7 @@ sub on_event {
         #    my $f = $self->{hover_func};
         #    # FIXME: Disabling hiding of markers since this stuffs up
         #    # the popups on win32 - we receive leave-notify on button click!
-        #    #&$f(undef);
+        #    #$f->(undef);
         #}
 
         # Change cursor back to default
@@ -1421,7 +1421,7 @@ sub on_event {
         $self->{clicked_cell} = undef unless $event->button == 2;  #  clear any clicked cell
         
         # If middle-click or control-click
-        if (    $event->button == 2
+        if (        $event->button == 2
             || (    $event->button == 1
                 and not $self->{selecting}
                 and $event->state >= [ 'control-mask' ])
@@ -1430,7 +1430,7 @@ sub on_event {
             # Show/Hide the labels popup dialog
             my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
             my $f = $self->{click_func};
-            &$f($element);
+            $f->($element);
             
             return 1;  #  Don't propagate the events
         }
@@ -1471,7 +1471,7 @@ sub on_event {
             # Call client-defined callback function
             if (defined $self->{hover_func}) {
                 my $f = $self->{hover_func};
-                &$f($self->{cells}{$cell}[INDEX_ELEMENT]);
+                $f->($self->{cells}{$cell}[INDEX_ELEMENT]);
             }
             $self->{clicked_cell} = $cell;
             
@@ -1685,7 +1685,7 @@ sub end_selection {
 
     # call callback
     my $f = $self->{select_func};
-    &$f($elements);
+    $f->($elements);
     
     return;
 }

@@ -792,6 +792,7 @@ sub colour {
   CELL:
     foreach my $cell (values %{$self->{cells}}) {
 
+        #  sometimes we are called before all cells have contents
         next CELL if !defined $cell->[INDEX_RECT];
 
         my $colour_ref = $callback->($cell->[INDEX_ELEMENT]) // CELL_WHITE;
@@ -969,7 +970,7 @@ sub mark_if_exists {
 
   CELL:
     foreach my $cell (values %{$self->{cells}}) {
-        #  hackish, but sometimes we are called before the data are populated
+        # sometimes we are called before the data are populated
         next CELL if !$cell || !$cell->[INDEX_RECT];
 
         my $group = $cell->[INDEX_RECT]->parent;
@@ -1096,7 +1097,7 @@ sub colour_cells {
         my $val = defined $self->{analysis} ? $cell->[INDEX_VALUES]{$self->{analysis}} : undef;
         my $rect = $cell->[INDEX_RECT];
         my $colour = defined $val ? $self->get_colour($val, $self->{min}, $self->{max}) : $colour_none;
-        $rect->set('fill-color-gdk',  $colour);
+        $rect->set('fill-color-gdk' =>  $colour);
     }
 
     return;
@@ -1115,6 +1116,12 @@ sub get_colour_none {
     return $colour_none;    
 }
 
+my %colour_methods = (
+    Hue => 'get_colour_hue',
+    Sat => 'get_colour_saturation',
+    Grey => 'get_colour_grey',
+);
+
 sub get_colour {
     my ($self, $val, $min, $max) = @_;
 
@@ -1125,21 +1132,13 @@ sub get_colour {
         $val = $max;
     }
     my @args = ($val, $min, $max);
-    
-    if    ($self->{legend_mode} eq 'Hue') {
-        return $self->get_colour_hue(@args);
-    }
-    elsif ($self->{legend_mode} eq 'Sat') {
-        return $self->get_colour_saturation(@args);
-    }
-    elsif ($self->{legend_mode} eq 'Grey') {
-        return $self->get_colour_grey(@args);
-    }
-    else {
-        croak "Unknown colour system: " . $self->{legend_mode} . "\n";
-    }
 
-    return;
+    my $method = $colour_methods{$self->{legend_mode}};
+
+    croak "Unknown colour system: $self->{legend_mode}\n"
+      if !$method;
+
+    return $self->$method(@args);
 }
 
 sub get_colour_hue {

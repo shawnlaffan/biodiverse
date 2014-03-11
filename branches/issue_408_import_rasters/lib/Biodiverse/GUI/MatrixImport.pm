@@ -39,64 +39,58 @@ sub run {
     open (my $fh, '<:via(File::BOM)', $filename) || croak "Unable to open $filename\n";
 
     BY_LINE:
-    while (<$fh>) { # get first non-blank line
-        $line = $_;
-        chomp $line;
+    while ($line = <$fh>) { # get first non-blank line
+        $line =~ s/[\r\n]*$//;  #  handle mixed line endings
         last BY_LINE if $line;
     }
     my $header = $line;
-    $line = <$fh>; #  don't test on the header - can sometimes have one column
-    
+
+    #  run line tests on the second line as the header can sometimes have one column
+    $line = <$fh>;
+
     my $sep_char = $gui->get_project->guess_field_separator (string => $line);
-    my $eol = $gui->get_project->guess_eol (string => $line);
+    my $eol      = $gui->get_project->guess_eol (string => $line);
     my @headers
         = $gui->get_project->csv2list(
             string   => $header,
             sep_char => $sep_char,
             eol      => $eol
         );
-    
-    my $is_r_data_frame
-        = Biodiverse::GUI::BasedataImport::check_if_r_data_frame (
-            file     => $filename,
-            #quotes   => $quotes,
-            sep_char => $sep_char,
-        );
-    #  add a field to the header if needed
-    if ($is_r_data_frame) {
-        unshift @headers, 'R_data_frame_col_0';
-    }
 
     # Add non-blank columns
     # check for empty fields in header? replace with generic
     my $col_num = 0;
     while ($col_num <= $#headers) {
-        $headers[$col_num] = $headers[$col_num] // "unnamed_col_$col_num";
+        $headers[$col_num] = $headers[$col_num] // "anon_col$col_num";
         #if (length($header[$col_num]) == 0) { $header[$col_num] = "unnamed_col_$col_num"; }
-        $col_num++;         
+        $col_num++;
     }
 
     # check data, if additional lines in data, append in column list.
-    my $checklines = 5; # arbitrary, check whole file?
+    my $checklines = 5; # arbitrary, but should be sifficient
     my $donelines = 0;
-    while(<$fh>) {
-        my $thisline = $_;
-    	last if ($donelines++ > $checklines);
-        my @thisline_cols  = $gui->get_project->csv2list(
+  LINE:
+    while (my $thisline = <$fh>) {
+        $donelines ++;
+
+        last if $donelines > $checklines;
+
+        my @thisline_cols = $gui->get_project->csv2list(
             string      => $thisline,
             #quote_char  => $quotes,
             sep_char    => $sep_char,
             eol         => $eol,
         );
-        while($col_num <= $#thisline_cols) {
-            $headers[$col_num] = "unnamed_col_$col_num";
+
+        next LINE if $col_num >= $#thisline_cols;
+
+        while ($col_num <= $#thisline_cols) {
+            $headers[$col_num] = "anon_col$col_num";
             $col_num++;         
         }
     }
-        
-    $fh->close;
-    
 
+    $fh->close;
 
     #########
     # 2. Get column types

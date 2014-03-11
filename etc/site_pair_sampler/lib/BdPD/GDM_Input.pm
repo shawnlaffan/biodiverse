@@ -884,7 +884,7 @@ sub do_sampling {
                             }
                             else {
                                 if ($i == 2) {
-                                    $dist_output_extra = $dist_result{$result};
+                                    $dist_output_extra = ",$dist_result{$result}";
                                 }
                                 else {
                                     $dist_output_extra = "$dist_output_extra,$dist_result{$result}";
@@ -903,7 +903,8 @@ sub do_sampling {
 
                     # set the region names output
                     if ($self->{do_output_regions}) {
-                        $regions_output = ",".$region1.",".$region2;
+                        #$regions_output = ",".$region1.",".$region2;
+                        $regions_output = $region1.",".$region2;
                     }
                     else {
                         $regions_output = q{};
@@ -911,7 +912,8 @@ sub do_sampling {
 
                     # set the region codes output
                     if ($self->{region_codes}) {
-                        $regions_output .= ",$region_stats{$region1}{code},$region_stats{$region2}{code}";
+                        #$regions_output .= ",$region_stats{$region1}{code},$region_stats{$region2}{code}";
+                        $regions_output .= "$region_stats{$region1}{code},$region_stats{$region2}{code}";
                     };
 
                     if (@bins and $bin_count > 1) { #2nd of two alternative methods for managing the spread of distance values
@@ -963,7 +965,7 @@ sub do_sampling {
                     }
         
                     if (!$skip) { 
-                        $output_row = "$response,$weight,$coords1[0],$coords1[1],$coords2[0],$coords2[1],$dist_output_extra,$regions_output";
+                        $output_row = "$response,$weight,$coords1[0],$coords1[1],$coords2[0],$coords2[1]"."$dist_output_extra,$regions_output";
                         say {$result_file_handle} $output_row;
                         $count++;
                     };

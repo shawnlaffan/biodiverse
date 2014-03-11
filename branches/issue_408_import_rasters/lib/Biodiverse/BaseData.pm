@@ -3420,24 +3420,25 @@ sub add_matrix_output {
         $object->weaken_basedata_ref;
     }
     else {  #  create a new object
-        croak "Creation of matrix new objects is not supported - they are added by the clustering system\n";
-        
-        croak "[BASEDATA] argument name not specified\n"
-            if (! defined $args{name});
+        croak 'Creation of matrix new objects is not supported - '
+            . "they are added by the clustering system\n";
 
-        $name = $args{name};
-        delete $args{name};
-
-        croak "[BASEDATA] Cannot replace existing matrix object $name.  Use a different name.\n"
-            if defined $self->{MATRIX_OUTPUTS}{$name};
-
-        $object = $class->new (
-            QUOTES       => $self->get_param('QUOTES'),
-            JOIN_CHAR    => $self->get_param('JOIN_CHAR'),
-            %args,
-            NAME         => $name,  #  these two always over-ride user args (NAME can be an arg)
-            BASEDATA_REF => $self,
-        );
+        #croak "[BASEDATA] argument name not specified\n"
+        #    if (! defined $args{name});
+        #
+        #$name = $args{name};
+        #delete $args{name};
+        #
+        #croak "[BASEDATA] Cannot replace existing matrix object $name.  Use a different name.\n"
+        #    if defined $self->{MATRIX_OUTPUTS}{$name};
+        #
+        #$object = $class->new (
+        #    QUOTES       => $self->get_param('QUOTES'),
+        #    JOIN_CHAR    => $self->get_param('JOIN_CHAR'),
+        #    %args,
+        #    NAME         => $name,  #  these two always over-ride user args (NAME can be an arg)
+        #    BASEDATA_REF => $self,
+        #);
     }
 
     $self->{MATRIX_OUTPUTS}{$name} = $object;  #  add or replace (take care with the replace)

@@ -100,9 +100,13 @@ use Exporter::Easy (
 #                       - more than one dist_measure is being used
 #                       - defaults to the only, or first distance measure.  Because key order is unreliable, with multiple
 #                           distance measures it is important to set this parameter explicitly
-#   dist_limit
-#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple diagonal, with no adjustment for curvature etc
+#   dist_limit_max
+#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
+#
+#   dist_limit_min
+#                   - set a minimum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
+#                   - site pairs closer than the limit will not be used
 #
 #   sample_by_regions
 #                   - if 1 split sampling by regions, setting quotas for regions according to the parameter region_quota_strategy
@@ -358,8 +362,8 @@ sub generate_distance_table {
                 $SPM->set_param (sample_count_current => $SPM->{sample_count});  
             }            
 
-            my $bins_max_val = exists ($SPM->{dist_limit})
-                    ? exists ($SPM->{dist_limit})
+            my $bins_max_val = exists ($SPM->{dist_limit_max})
+                    ? exists ($SPM->{dist_limit_max})
                     : 1;
 
             # prepare dissimilarity bins

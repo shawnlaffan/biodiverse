@@ -46,11 +46,10 @@ sub run {
     }
     my $header = $line;
     $line = <$fh>; #  don't test on the header - can sometimes have one column
-    $fh->close;
     
     my $sep_char = $gui->get_project->guess_field_separator (string => $line);
     my $eol = $gui->get_project->guess_eol (string => $line);
-    my @headers_full
+    my @headers
         = $gui->get_project->csv2list(
             string   => $header,
             sep_char => $sep_char,
@@ -65,14 +64,38 @@ sub run {
         );
     #  add a field to the header if needed
     if ($is_r_data_frame) {
-        unshift @headers_full, 'R_data_frame_col_0';
+        unshift @headers, 'R_data_frame_col_0';
     }
-    
+
     # Add non-blank columns
-    my @headers;
-    foreach my $header (@headers_full) {
-        push @headers, $header // 'unnamed_col';
+    # check for empty fields in header? replace with generic
+    my $col_num = 0;
+    while ($col_num <= $#headers) {
+        $headers[$col_num] = $headers[$col_num] // "unnamed_col_$col_num";
+        #if (length($header[$col_num]) == 0) { $header[$col_num] = "unnamed_col_$col_num"; }
+        $col_num++;         
     }
+
+    # check data, if additional lines in data, append in column list.
+    my $checklines = 5; # arbitrary, check whole file?
+    my $donelines = 0;
+    while(<$fh>) {
+        my $thisline = $_;
+    	last if ($donelines++ > $checklines);
+        my @thisline_cols  = $gui->get_project->csv2list(
+            string      => $thisline,
+            #quote_char  => $quotes,
+            sep_char    => $sep_char,
+            eol         => $eol,
+        );
+        while($col_num <= $#thisline_cols) {
+            $headers[$col_num] = "unnamed_col_$col_num";
+            $col_num++;         
+        }
+    }
+        
+    $fh->close;
+    
 
 
     #########
@@ -277,6 +300,7 @@ sub add_column {
     my ($col_widgets, $table, $col_id, $header) = @_;
 
     # Column header
+    say "setting header \"$header\"";
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_use_markup(1);
 

@@ -285,7 +285,7 @@ sub run {
         # check data, if additional lines in data, append in column list.
         my $line2 = <$fh>;
         my @line2_cols  = $gui->get_project->csv2list(
-            string      => $line,
+            string      => $line2,
             quote_char  => $quotes,
             sep_char    => $sep,
             eol         => $eol,

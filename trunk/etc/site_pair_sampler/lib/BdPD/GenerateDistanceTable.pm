@@ -229,8 +229,6 @@ sub generate_distance_table {
         $SPM->set_param(test_sample_ratio => 1);
     }
     
-    #my $measures = \%dist_measures;
-    #my @dist_measures = keys %$measures;  # changed 'sort keys' to 'keys' to keep measure order from parameter file. Dan 6/3/2014
     my $measure_count = scalar @dist_measure_array;
     $SPM->set_param(measure_count => $measure_count);
 
@@ -247,7 +245,6 @@ sub generate_distance_table {
 
     ######        END OF PARAMETERS        ######
     #############################################
-
     
     # load basedata (and phylogeny) from file
     $SPM->load_data();
@@ -397,12 +394,12 @@ sub generate_distance_table {
             my $extra_dist_header = "";
             if ($measure_count > 1) {
                 foreach my $i (1..($measure_count-1)) {
-                    $extra_dist_header = $extra_dist_header . $dist_measure_array[$i] .',';
+                    $extra_dist_header = "," . $extra_dist_header . $dist_measure_array[$i];
                 };
             };
             
             # print the header row to the site pair file
-            my $standard_header = "Response,Weights,x0,y0,x1,y1,";
+            my $standard_header = "Response,Weights,x0,y0,x1,y1";
             say $result_file_handle "$standard_header" . $extra_dist_header . $regions_output;
 
             # CALL THE MAIN SAMPLING LOOP #
@@ -419,6 +416,8 @@ sub generate_distance_table {
             }
             my $elapsed_time = time()-$start_time;
             print "elapsed time: $elapsed_time seconds\n\n";
+            
+            $SPM -> set_param (feedback_header_done => 0);
         };
         
     };

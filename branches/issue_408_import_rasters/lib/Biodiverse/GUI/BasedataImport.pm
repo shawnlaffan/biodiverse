@@ -186,7 +186,7 @@ sub run {
     # (no pre-processing needed for raster)
 
     if ($read_format == $raster_idx) {
-    	# just set cell sizes etc values from dialog
+        # just set cell sizes etc values from dialog
         @cell_origins = ($import_params{raster_origin_e}, $import_params{raster_origin_n});
         @cell_sizes = ($import_params{raster_cellsize_e}, $import_params{raster_cellsize_n});
     }
@@ -274,12 +274,15 @@ sub run {
         if ($is_r_data_frame) {
             unshift @header, 'R_data_frame_col_0';
         }
-        
+
         # check for empty fields in header? replace with generic
+        ## SWL - needed?
         my $col_num = 0;
         while ($col_num <= $#header) {
-        	if (length($header[$col_num]) == 0) { $header[$col_num] = "col_$col_num"; }
-        	$col_num++;        	
+            if (length($header[$col_num]) == 0) {
+                $header[$col_num] = "col_$col_num";
+            }
+            $col_num++;
         }
 
         # check data, if additional lines in data, append in column list.
@@ -291,19 +294,19 @@ sub run {
             eol         => $eol,
         );
         while($col_num <= $#line2_cols) {
-        	$header[$col_num] = "col_$col_num";
+            $header[$col_num] = "col_$col_num";
             $col_num++;         
         }
-        
-        close ($fh);
-        
+
+        close $fh;
+
         $use_matrix = $import_params{data_in_matrix_form};
         $col_names_for_dialog = \@header;
         $col_options = undef;
 
         if ($use_matrix) {
             $col_options = [qw /
-                Ignore
+                Ignore  
                 Group
                 Text_group
                 Label_start_col

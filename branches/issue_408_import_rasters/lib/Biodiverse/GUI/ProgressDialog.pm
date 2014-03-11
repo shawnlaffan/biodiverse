@@ -75,8 +75,8 @@ sub new {
 }
 
 sub get_id {
-	my $self = shift;
-	return $self->{id};
+    my $self = shift;
+    return $self->{id};
 }
 
 sub end_dialog {
@@ -97,7 +97,7 @@ sub end_dialog {
     foreach my $key (keys %$self) {
         #say "$key $self->{$key}";
         $self->{$key} = undef;
-    }	
+    }
 }
 
 sub destroy {
@@ -134,9 +134,9 @@ sub update {
     my $label_widget = $self->{label_widget};
     my $bar = $self->{progress_bar};
     if (not defined $bar) {
-    	say "update called when progress bar not defined, throwing";
+        say 'Update called when progress bar not defined, throwing';
         Biodiverse::GUI::ProgressDialog::Cancel->throw(
-            message  => "Progress bar closed, operation cancelled",
+            message  => 'Progress bar closed, operation cancelled',
         );
     }
 

@@ -232,19 +232,19 @@ sub clear_progress_entry {
 
 # called when window closed, try to stop active process?
 sub progress_destroy_callback {
-	my ($self_button, $event, $self_gui) = @_;
-	
+    my ($self_button, $event, $self_gui) = @_;
+
     #say "callback values " . Dumper($self_gui->{progress_bars});
 
     say "progress_destroy_callback";
     # call destroy on each child object (?) (need to record each child obj)
     foreach my $dialog (values $self_gui->{progress_bars}->{dialog_objects}) {
-    	$dialog->end_dialog();
+        $dialog->end_dialog();
     }
-    
+
     # clear all progress bar info so re-creates window on next add
     $self_gui->{progress_bars} = undef;
-    
+
     # send exception to stop operation in progress
     Biodiverse::GUI::ProgressDialog::Cancel->throw(
         message  => "Progress bar closed, operation cancelled",

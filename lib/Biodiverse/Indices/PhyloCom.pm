@@ -25,6 +25,361 @@ my $prng_class = 'Math::Random::MT::Auto';
 
 my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
 
+
+sub get_mpd_mntd_metadata {
+    my $self = shift;
+    my %args = @_;
+
+    my $abc_sub = $args{abc_sub} || 'calc_abc';
+
+    my $num = 1;
+    if ($abc_sub =~ /(\d)$/) {
+        $num = $1;
+    }
+
+    my $indices = {
+        PNTD_MEAN => {
+            description    => 'Mean of nearest taxon distances',
+        },
+        PNTD_MAX => {
+            description    => 'Maximum of nearest taxon distances',
+        },
+        PNTD_MIN => {
+            description    => 'Minimum of nearest taxon distances',
+        },
+        PNTD_RMSD => {
+            description    => 'Root mean squared nearest taxon distances',
+        },
+        PNTD_N => {
+            description    => 'Count of nearest taxon distances',
+        },
+        PMPD_MEAN => {
+            description    => 'Mean of pairwise phylogenetic distances',
+        },
+        PMPD_MAX => {
+            description    => 'Maximum of pairwise phylogenetic distances',
+        },
+        PMPD_MIN => {
+            description    => 'Minimum of pairwise phylogenetic distances',
+        },
+        PMPD_RMSD => {
+            description    => 'Root mean squared pairwise phylogenetic distances',
+        },
+        PMPD_N => {
+            description    => 'Count of pairwise phylogenetic distances',
+        },
+    };
+
+    my $pre_calc = [$abc_sub, 'calc_labels_on_tree'];
+    
+    my $indices_filtered = {};
+    my $pfx_re = qr /(PNTD|PMPD)/;
+    foreach my $key (keys %$indices) {
+        next if not $key =~ /$pfx_re/;  #  next prob redundant, but need $1 from re
+        my $pfx = $1;
+        my $new_key = $key;
+        $new_key =~ s/$pfx/$pfx$num/;
+        $indices_filtered->{$new_key} = $indices->{$key};
+    }
+
+    my %metadata = (
+        type            => 'PhyloCom Indices',
+        reference       => $webb_et_al_ref,
+        pre_calc        => $pre_calc,
+        pre_calc_global => [qw /get_phylo_mpd_mntd_matrix/],
+        required_args   => 'tree_ref',
+        uses_nbr_lists  => 1,
+        indices         => $indices_filtered,
+    );
+
+    return wantarray ? %metadata : \%metadata;    
+}
+
+
+sub get_metadata_calc_phylo_mpd_mntd1 {
+    my $self = shift;
+    my %args = @_;
+
+    my %submeta = $self->get_mpd_mntd_metadata (
+        abc_sub => 'calc_abc',
+    );
+
+    my %metadata = (
+        description     => 'Distance stats from each label to the nearest label '
+                         . 'along the tree.  Compares with '
+                         . 'all other labels across both neighbour sets. ',
+        name            => 'Phylogenetic and Nearest taxon distances, unweighted',
+        %submeta,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub calc_phylo_mpd_mntd1 {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = $self->_calc_phylo_mpd_mntd (
+        %args,
+        label_hash1 => $args{label_hash_all},
+        label_hash2 => $args{label_hash_all},
+        abc_num     => 1,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_phylo_mpd_mntd2 {
+    my $self = shift;
+    my %args = @_;
+
+    my %submeta = $self->get_mpd_mntd_metadata (
+        abc_sub => 'calc_abc2',
+    );
+
+    my %metadata = (
+        description     => 'Distance stats from each label to the nearest label '
+                         . 'along the tree.  Compares with '
+                         . 'all other labels across both neighbour sets. '
+                         . 'Weighted by sample counts',
+        name            => 'Phylogenetic and Nearest taxon distances, local range weighted',
+        %submeta,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub calc_phylo_mpd_mntd2 {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = $self->_calc_phylo_mpd_mntd (
+        %args,
+        label_hash1 => $args{label_hash_all},
+        label_hash2 => $args{label_hash_all},
+        abc_num     => 2,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_phylo_mpd_mntd3 {
+    my $self = shift;
+    my %args = @_;
+
+    my %submeta = $self->get_mpd_mntd_metadata (
+        abc_sub => 'calc_abc3',
+    );
+
+    my %metadata = (
+        description     => 'Distance stats from each label to the nearest label '
+                         . 'along the tree.  Compares with '
+                         . 'all other labels across both neighbour sets. '
+                         . 'Weighted by sample counts (which currently must be integers)',
+        name            => 'Phylogenetic and Nearest taxon distances, abundance weighted',
+        %submeta,
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+sub calc_phylo_mpd_mntd3 {
+    my $self = shift;
+    my %args = @_;
+
+    my %results = $self->_calc_phylo_mpd_mntd (
+        %args,
+        label_hash1 => $args{label_hash_all},
+        label_hash2 => $args{label_hash_all},
+        abc_num     => 3,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub default_mpd_mntd_results {
+    my $self = shift;
+    my %args = @_;
+
+    my $abcnum = $args{abcnum} || 1;
+    
+    my $mpd_pfx  = 'PMPD' . $abcnum;
+    my $mntd_pfx = 'PNTD' . $abcnum;
+    my %results;
+    foreach my $pfx ($mpd_pfx, $mntd_pfx) {
+        $results{$pfx . '_RMSD'}   = undef;
+        $results{$pfx . '_N'}    = 0;
+        $results{$pfx . '_MIN'}  = undef;
+        $results{$pfx . '_MAX'}  = undef;
+        #$results{$pfx . '_SUM'}  = undef;
+        $results{$pfx . '_MEAN'} = undef;
+    };
+    
+    return wantarray ? %results : \%results;
+}
+
+
+#  mean nearest taxon distance and mean phylogenetic distance
+sub _calc_phylo_mpd_mntd {
+    my $self = shift;
+    my %args = @_;
+
+    my $label_hash1 = $args{label_hash1};
+    my $label_hash2 = $args{label_hash2};
+    my $mx          = $args{PHYLO_MPD_MNTD_MATRIX}
+      || croak "Argument PHYLO_MPD_MNTD_MATRIX not defined\n";
+    my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
+    my $tree_ref       = $args{tree_ref};
+    my $abc_num        = $args{abc_num} || 1;
+    my $use_wts        = $abc_num == 1 ? $args{mpd_mntd_use_wts} : 1;
+    my $return_means_only       = $args{mpd_mntd_means_only};
+    my $label_hashrefs_are_same = $label_hash1 eq $label_hash2;
+    
+    return $self->default_mpd_mntd_results (@_)
+        if $label_hashrefs_are_same
+           && scalar keys %$label_hash1 == 1;
+
+    #  Are we on the tree and have a non-zero count?
+    #  Could be a needless slowdown under permutations using only labels on the tree.
+    my @labels1 = sort grep { exists $labels_on_tree->{$_} && $label_hash1->{$_}} keys %$label_hash1;
+    my @labels2 = $label_hashrefs_are_same
+        ? @labels1
+        : sort grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} } keys %$label_hash2;
+
+    my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
+
+    #  Loop over all possible pairs, 
+    BY_LABEL:
+    foreach my $label1 (@labels1) {
+        my $label_count1 = $label_hash1->{$label1};
+
+        my @mpd_path_lengths_this_node;
+        my @mntd_path_lengths_this_node;
+        my @mpd_wts_this_node;
+        my $i = 0;
+
+        LABEL2:
+        foreach my $label2 (@labels2) {
+
+            #  skip same labels (FIXME: but not if used as dissim measure)
+            next LABEL2 if $label1 eq $label2;
+
+            my $label_count2 = $label_hash2->{$label2};
+
+            my $path_length = $mx->get_value(
+                element1 => $label1,
+                element2 => $label2,
+            );
+            if (!defined $path_length) {  #  need to calculate it
+                my $last_ancestor = $tree_ref->get_last_shared_ancestor_for_nodes (
+                    node_names => {$label1 => 1, $label2 => 1},
+                );
+
+                my %path;
+                foreach my $node_name ($label1, $label2) {
+                    my $node_ref = $tree_ref->get_node_ref (node => $node_name);
+                    my $sub_path = $node_ref->get_path_lengths_to_ancestral_node (
+                        ancestral_node => $last_ancestor,
+                        %args,
+                    );
+                    @path{keys %$sub_path} = values %$sub_path;
+                }
+                delete $path{$last_ancestor->get_name()};
+                $path_length = sum values %path;
+                $mx->set_value(
+                    element1 => $label1,
+                    element2 => $label2,
+                    value    => $path_length,
+                );
+            }
+
+            push @mpd_path_lengths_this_node, $path_length;
+            push @mntd_path_lengths_this_node, $path_length;
+            if ($use_wts) {
+                push @mpd_wts_this_node, $label_count2;
+            }
+
+            $i ++;
+        }
+
+        if ($i) {  #  only if we added something
+            #  weighting scheme won't work with non-integer wts - need to use weighted stats
+            push @mpd_path_lengths, @mpd_path_lengths_this_node;
+            my $min = min (@mntd_path_lengths_this_node);
+            push @mntd_path_lengths, $min;
+            if ($use_wts) {
+                push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
+                push @mntd_wts, $label_count1;
+            }
+        }
+    }
+
+    my %results;
+
+    my @paths = (\@mntd_path_lengths, \@mpd_path_lengths);
+    my @pfxs  = qw /PNTD PMPD/;
+    my $i = -1;
+    foreach my $path (@paths) {
+        $i++;
+
+        my $pfx  = $pfxs[$i] . $abc_num;
+        my ($mean, $n, $wts);
+
+        if ($use_wts) {
+            $wts  = $pfx =~ /^PMPD/ ? \@mpd_wts : \@mntd_wts;
+            $n    = sum @$wts;
+            $mean = eval {sum (pairwise {$a * $b} @$path, @$wts) / $n};
+        }
+        else {
+            $n    = scalar @$path;
+            $mean = eval {sum (@$path) / $n};;
+        }
+
+        $results{$pfx . '_MEAN'} = $mean;
+
+        next if $return_means_only;
+
+        $results{$pfx . '_N'}   = $n;
+        $results{$pfx . '_MIN'} = min @$path;
+        $results{$pfx . '_MAX'} = max @$path;
+
+        my $rmsd;
+        if ($n) {
+            my $sumsq = $use_wts
+                ? sum (pairwise {$a ** 2 * $b} @$path, @$wts)
+                : sum (map {$_ ** 2} @$path);
+            $rmsd = sqrt ($sumsq / $n);
+        }
+        $results{$pfx . '_RMSD'} = $rmsd;
+    }
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_get_phylo_mpd_mntd_matrix {
+    my $self = shift;
+
+    my %metadata = (
+        #required_args => 'tree_ref',
+        #pre_calc_global => ['get_trimmed_tree'],  #  need to work with whole tree, so comment out
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
+
+sub get_phylo_mpd_mntd_matrix {
+    my $self = shift;
+
+    my $mx = Biodiverse::Matrix::LowMem->new (NAME => 'mntd_matrix');
+    
+    my %results = (PHYLO_MPD_MNTD_MATRIX => $mx);
+    
+    return wantarray ? %results : \%results;
+}
+
+
+
 #  currently only one cache across all MPI/MNTD methods (respectively)
 #  Need to determine if one per method is needed (e.g. type 1, 2 & 3
 #  for the different weighting schemes).

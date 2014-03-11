@@ -98,10 +98,10 @@ sub make_bins {
 
     # if a distance limit has been set for sampling (presumably for geographic distance)
     # don't have a top class of a single value (1).  Such a class only makes sense for compositional dissimilarity
-    my $dist_limit;
-    if(exists($self->{dist_limit})) {
-        $dist_limit = $self->{dist_limit};
-        if ($dist_limit > 1) {
+    my $dist_limit_max;
+    if(exists($self->{dist_limit_max})) {
+        $dist_limit_max = $self->{dist_limit_max};
+        if ($dist_limit_max > 1) {
             $max_class = 0;
         };
     };
@@ -609,8 +609,9 @@ sub do_sampling {
     my ($printed_progress_all, $stored_progress_all) = (0,0);
     my ($response, $dist_output_extra) = (q{}, q{});
     my $measure_count = $self->{measure_count};
-    my $dist_exceeded;
-    my $dist_limit = $self->{dist_limit};
+    my $dist_beyond_limit;
+    my $dist_limit_max = $self->{dist_limit_max};
+    my $dist_limit_min = $self->{dist_limit_min};    
     my $skip = 0;
     
     my %dist_measures_hash;
@@ -810,15 +811,23 @@ sub do_sampling {
             # This means no time is wasted on biological measures where the sites are too geographically distant
             # but if a limit was wanted where the quota_dist_measure was not geographic, this check would need to be placed after those
             # measures.
-            if ($dist_limit) {
+            if ($dist_limit_max) {
                 if (exists($dist_result{$quota_dist_measure})) {
-                    if ($dist_result{$quota_dist_measure} > $dist_limit) {
-                        $dist_exceeded = 1;
+                    if ($dist_result{$quota_dist_measure} > $dist_limit_max) {
+                        $dist_beyond_limit = 1;
                     };
                 };
             };
             
-            if (! $dist_exceeded) {    
+            if ($dist_limit_min) {
+                if (exists($dist_result{$quota_dist_measure})) {
+                    if ($dist_result{$quota_dist_measure} < $dist_limit_min) {
+                        $dist_beyond_limit = 1;
+                    };
+                };
+            };
+            
+            if (! $dist_beyond_limit) {    
                 # calculate the phylo Sørensen distance
                 if (exists($dist_measures_hash{phylo_sorenson})) {  # phylo_sorenson
                     # an undefined distance result is given as -1
@@ -976,7 +985,7 @@ sub do_sampling {
             $loops++;
             $response = q{};
             $dist_output_extra = q{};
-            $dist_exceeded = 0;
+            $dist_beyond_limit = 0;
             $weight = q{};
             
             if ($self->{verbosity} == 3) {

@@ -35,7 +35,8 @@
   min_group_richness      5
   min_group_samples       5
   quota_dist_measure      geographic
-  dist_limit              15
+  dist_limit_max          15
+  dist_limit_min          0.1
 
 # Regions
   regions                 1
@@ -136,9 +137,13 @@
 #                       - more than one dist_measure is being used
 #                       - defaults to the only, or first distance measure.  Because key order is unreliable, with multiple
 #                           distance measures it is important to set this parameter explicitly
-#   dist_limit
+#   dist_limit_max
 #                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
+#
+#   dist_limit_min
+#                   - set a minimum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
+#                   - site pairs closer than the limit will not be used
 #
 #   sample_by_regions
 #                   - if 1 split sampling by regions, setting quotas for regions according to the parameter region_quota_strategy

@@ -433,7 +433,7 @@ sub get_metadata_calc_pe_clade_contributions {
 
     my %arguments = (
         description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
-        name            => 'Phylogenetic Endemism clade contributions',
+        name            => 'PE clade contributions',
         reference       => '',
         type            => 'Phylogenetic Indices', 
         pre_calc        => ['_calc_pe', 'get_sub_tree'],
@@ -506,7 +506,7 @@ sub get_metadata_calc_pe_clade_loss {
         description     => 'How much of the PE would be lost if a clade were to be removed? '
                          . 'Calculates the clade PE below the last ancestral node in the '
                          . 'neighbour set which would still be in the neighbour set.',
-        name            => 'Phylogenetic Endemism clade loss',
+        name            => 'PE clade loss',
         reference       => '',
         type            => 'Phylogenetic Indices', 
         pre_calc        => [qw /calc_pe_clade_contributions get_sub_tree/],
@@ -542,7 +542,7 @@ sub calc_pe_clade_loss {
     my ($pe_clade_score, $pe_clade_contr, $pe_clade_contr_p) =
       @args{qw /PE_CLADE_SCORE PE_CLADE_CONTR PE_CLADE_CONTR_P/};
 
-    my (%loss_contr, %loss_contr_p, %loss_score);
+    my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
 
   NODE:
     foreach my $node_ref ($sub_tree->get_node_refs) {
@@ -564,8 +564,8 @@ sub calc_pe_clade_loss {
 
         my $last_ancestor = $ancestors[-1];
 
-        #  these all have the same loss
         foreach my $node_name (@ancestors) {
+            #  these all have the same loss
             $loss_contr{$node_name}   = $pe_clade_contr->{$last_ancestor};
             $loss_score{$node_name}   = $pe_clade_score->{$last_ancestor};
             $loss_contr_p{$node_name} = $pe_clade_contr_p->{$last_ancestor};
@@ -576,6 +576,56 @@ sub calc_pe_clade_loss {
         PE_CLADE_LOSS_SCORE   => \%loss_score,
         PE_CLADE_LOSS_CONTR   => \%loss_contr,
         PE_CLADE_LOSS_CONTR_P => \%loss_contr_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pe_clade_loss_ancestral {
+
+    my %arguments = (
+        description     => 'How much of the PE clade loss is due to the ancestral branches? '
+                         . 'The score is zero when there is no ancestral loss.',
+        name            => 'PE clade loss (ancestral component)',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pe_clade_contributions calc_pe_clade_loss/],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PE_CLADE_LOSS_ANC => {
+                description => 'List of how much ancestral PE would be lost if each clade were removed.',
+                type        => 'list',
+            },
+            PE_CLADE_LOSS_ANC_P  => {
+                description => 'List of the the proportion of the clade PE loss is due to the ancestral branches.',
+                type        => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_clade_loss_ancestral {
+    my $self = shift;
+    my %args = @_;
+
+    my ($pe_clade_score, $pe_clade_loss) =
+      @args{qw /PE_CLADE_SCORE PE_CLADE_LOSS_SCORE/};
+
+    my (%loss_ancestral, %loss_ancestral_p);
+
+    while (my ($node_name, $score) = each %$pe_clade_score) {
+        my $score = $pe_clade_loss->{$node_name}
+                  - $pe_clade_score->{$node_name};
+        $loss_ancestral{$node_name}   = $score;
+        my $loss = $pe_clade_loss->{$node_name};
+        $loss_ancestral_p{$node_name} = $loss ? $score / $loss : 0;
+    }
+
+    my %results = (
+        PE_CLADE_LOSS_ANC   => \%loss_ancestral,
+        PE_CLADE_LOSS_ANC_P => \%loss_ancestral_p,
     );
 
     return wantarray ? %results : \%results;

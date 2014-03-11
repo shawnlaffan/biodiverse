@@ -8,6 +8,8 @@ use Biodiverse::Progress;
 use List::Util qw /sum min max/;
 use List::MoreUtils qw /any minmax/;
 use Scalar::Util qw /blessed/;
+use Math::BigInt ();
+
 
 our $VERSION = '0.18_006';
 

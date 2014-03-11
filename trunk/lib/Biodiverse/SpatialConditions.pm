@@ -2262,7 +2262,7 @@ sub sp_point_in_poly_shape {
         #    "Checking if point $point_string\nis in polygon\n$i of $target",
         #    $i / $target,
         #);
-        if ($poly->contains_point($pointshape)) {
+        if ($poly->contains_point($pointshape, 0)) {
             if (!$no_cache) {
                 $cached_results->{$point_string} = 1;
             }
@@ -2375,13 +2375,13 @@ sub sp_points_in_same_poly_shape {
 
         my $pt1_in_poly = $cached_pts_in_poly->{$poly_id}{$point1_str};
         if (!defined $pt1_in_poly) {
-            $pt1_in_poly = $poly->contains_point($pointshape1);
+            $pt1_in_poly = $poly->contains_point($pointshape1, 0);
             $cached_pts_in_poly->{$poly_id}{$point1_str} = $pt1_in_poly ? 1 : 0;
         }
 
         my $pt2_in_poly = $cached_pts_in_poly->{$poly_id}{$point2_str};
         if (!defined $pt2_in_poly) {
-            $pt2_in_poly = $poly->contains_point($pointshape2);
+            $pt2_in_poly = $poly->contains_point($pointshape2, 0);
             $cached_pts_in_poly->{$poly_id}{$point2_str} = $pt2_in_poly ? 1 : 0;
         }
 

@@ -593,11 +593,14 @@ sub get_metadata_calc_pe_clade_loss_ancestral {
         uses_nbr_lists  => 1,
         indices         => {
             PE_CLADE_LOSS_ANC => {
-                description => 'List of how much ancestral PE would be lost if each clade were removed.',
+                description => 'List of how much ancestral PE would be lost '
+                             . 'if each clade were removed.  '
+                             . 'The value is 0 when no ancestral PE is lost.',
                 type        => 'list',
             },
             PE_CLADE_LOSS_ANC_P  => {
-                description => 'List of the the proportion of the clade PE loss is due to the ancestral branches.',
+                description => 'List of the proportion of the clade\'s PE loss '
+                             . 'that is due to the ancestral branches.',
                 type        => 'list',
             },
         },

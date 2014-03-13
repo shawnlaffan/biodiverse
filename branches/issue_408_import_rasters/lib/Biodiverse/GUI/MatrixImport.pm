@@ -219,13 +219,13 @@ sub get_column_settings {
 # Column selection dialog
 ##################################################
 
+# We have to dynamically generate the choose columns dialog since
+# the number of columns is unknown
 sub make_columns_dialog {
-    # We have to dynamically generate the choose columns dialog since
-    # the number of columns is unknown
-
-    my $header = shift; # ref to column header array
-    my $wnd_main = shift;
+    my $header       = shift;  # ref to column header array
+    my $wnd_main     = shift;
     my $type_options = shift;  #  array of types
+
     if (not defined $type_options or (ref $type_options) !~ /ARRAY/) {
         $type_options = ['Ignore', 'Label', 'Matrix Start'];
     }
@@ -234,13 +234,19 @@ sub make_columns_dialog {
     print "[GUI] Generating make columns dialog for $num_columns columns\n";
 
     # Make dialog
-    my $dlg = Gtk2::Dialog->new("Choose columns", $wnd_main, "modal", "gtk-cancel", "cancel", "gtk-ok", "ok");
+    my $dlg = Gtk2::Dialog->new(
+        'Choose columns',
+        $wnd_main, 'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+
     my $label = Gtk2::Label->new("<b>Select column types</b>\n(choose only one start matrix column)");
     $label->set_use_markup(1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);
 
     # Make table
-    my $table = Gtk2::Table->new(4,$num_columns + 1);
+    my $table = Gtk2::Table->new(4, $num_columns + 1);
     $table->set_row_spacings(5);
     #$table->set_col_spacings(20);
 
@@ -287,6 +293,7 @@ sub make_columns_dialog {
     $dlg->set_resizable(1);
     $dlg->set_default_size(500,0);
     $dlg->show_all();
+
     return ($dlg, $col_widgets);
 }
 
@@ -294,14 +301,15 @@ sub add_column {
     my ($col_widgets, $table, $col_id, $header) = @_;
 
     # Column header
-    say "setting header \"$header\"";
+    #say "setting header '$header'";
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_use_markup(1);
+    
 
     # Type radio button
-    my $radio1 = Gtk2::RadioButton->new(undef, '');        # Ignore
-    my $radio2 = Gtk2::RadioButton->new($radio1, '');    # Label
-    my $radio3 = Gtk2::RadioButton->new($radio2, '');    # Matrix start
+    my $radio1 = Gtk2::RadioButton->new(undef, '');   # Ignore
+    my $radio2 = Gtk2::RadioButton->new($radio1, ''); # Label
+    my $radio3 = Gtk2::RadioButton->new($radio2, ''); # Matrix start
     $radio1->set('can-focus', 0);
     $radio2->set('can-focus', 0);
     $radio3->set('can-focus', 0);

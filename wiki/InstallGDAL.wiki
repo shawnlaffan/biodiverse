@@ -35,6 +35,13 @@ make install
 }}}
 
 
+To test that it worked, type the following.  It should throw no errors. 
+
+{{{
+  perl -MGeo::GDAL -e 'print "1"'
+}}}
+
+
 = Windows =
 
 1.  Open a command prompt.  The rest of these instructions assume you are at the prompt.
@@ -64,8 +71,14 @@ make install
 
 }}}
 
+To test that it worked, type the following.  It should throw no errors. 
+
+{{{
+  perl -MGeo::GDAL -e "print '1'"
+}}}
+
 = Running it =
 
-There is no change to running the code on Ubuntu.  
+There is no change to running the Biodiverse code on Ubuntu.  
 
-There is no change to running the code on Windows provided you have not changed the name of the gdal folder and that it is above the biodiverse/bin folder in the folder hierarchy (Biodiverse looks for it).  If you do keep it somewhere else or use a different name then you will need to add the gdal bin folder to your system path.
+There is no change to running the Biodiverse code on Windows provided you have not changed the name of the gdal folder and that it is above the biodiverse/bin folder in the folder hierarchy (Biodiverse looks for it).  If you do keep it somewhere else or use a different name then you will need to add the gdal bin folder to your system path.

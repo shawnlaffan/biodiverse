@@ -1084,9 +1084,10 @@ sub on_run_analysis {
         if ($self->{existing} and defined $completed and $completed) {
             my $text = "$self->{output_name} exists.  \nDo you mean to overwrite it?";
             my $response = $self->get_overwrite_response ('Overwrite?', $text);
+
             #  drop out if we don't want to overwrite
-            #my $response = Biodiverse::GUI::YesNoCancel->run({header => 'Overwrite?', text => $text});
             return 0 if ($response eq 'no' or $response eq 'cancel');
+
             if ($response eq 'run_spatial_calculations') {
                 return 0 if not scalar @calculations_to_run;
                 $new_analysis = 0;

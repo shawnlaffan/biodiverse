@@ -1053,12 +1053,17 @@ sub on_run_analysis {
     my %args = @_;
 
     # Check spatial syntax
-    return if ($self->{spatialParams1}->syntax_check('no_ok')    ne 'ok');
-    return if ($self->{spatialParams2}->syntax_check('no_ok')    ne 'ok');
-    return if ($self->{definition_query1}->syntax_check('no_ok') ne 'ok');
+    return if $self->{spatialParams1}->syntax_check('no_ok')    ne 'ok';
+    return if $self->{spatialParams2}->syntax_check('no_ok')    ne 'ok';
+    return if $self->{definition_query1}->syntax_check('no_ok') ne 'ok';
 
     # Load settings...
-    $self->{output_name}    = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
+    my $output_name      = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
+    $self->{output_name} = $output_name;
+    my $output_ref       = $self->{output_ref};
+    my $pre_existing     = $self->{output_ref};
+    my $new_analysis     = 1;
+
     my $selected_index      = $self->get_selected_metric;
     my $selected_linkage    = $self->get_selected_linkage;
     my $no_cache_abc        = $self->get_no_cache_abc_value;
@@ -1070,23 +1075,21 @@ sub on_run_analysis {
     my $prng_seed           = $self->get_prng_seed;
 
     # Get spatial calculations to run
-    my @calculations_to_run = Biodiverse::GUI::Tabs::CalculationsTree::get_calculations_to_run(
+    my @calculations_to_run
+      = Biodiverse::GUI::Tabs::CalculationsTree::get_calculations_to_run(
         $self->{calculations_model}
     );
 
-    my $pre_existing = $self->{output_ref};
-    my $new_analysis = 1;
-
     # Delete existing?
-    if (defined $self->{output_ref}) {
-        my $completed = $self->{output_ref}->get_param('COMPLETED');
+    if (defined $output_ref) {
+        my $completed = $self->{output_ref}->get_param('COMPLETED') // 1;
 
-        if ($self->{existing} and defined $completed and $completed) {
-            my $text = "$self->{output_name} exists.  \nDo you mean to overwrite it?";
+        if ($self->{existing} && $completed) {
+            my $text = "  $output_name exists.  \nDo you mean to overwrite it?";
             my $response = $self->get_overwrite_response ('Overwrite?', $text);
 
             #  drop out if we don't want to overwrite
-            return 0 if ($response eq 'no' or $response eq 'cancel');
+            return 0 if $response eq 'no' or $response eq 'cancel';
 
             if ($response eq 'run_spatial_calculations') {
                 return 0 if not scalar @calculations_to_run;
@@ -1098,14 +1101,12 @@ sub on_run_analysis {
         }
 
         if ($new_analysis) {
-            $self->{basedata_ref}->delete_output(output => $self->{output_ref});
-            $self->{project}->delete_output($self->{output_ref});
-            $self->{existing} = 0;
+            $self->{basedata_ref}->delete_output(output => $output_ref);
+            $self->{project}->delete_output($output_ref);
+            $self->{existing}   = 0;
             $self->{output_ref} = undef;
         }
     }
-
-    my $output_ref = $self->{output_ref};
 
     if ($new_analysis) {
         # Add cluster output
@@ -1163,7 +1164,7 @@ sub on_run_analysis {
         my $name = $e->name;
         #  do some handling then try again?
         #  drop out if we don't want to overwrite
-        my $text = "Matrix output $name exists in the basedata.\nDelete it?";
+        my $text = "\nMatrix output \n$name \nexists in the basedata.\nDelete it?";
         if (Biodiverse::GUI::YesNoCancel->run({header => 'Overwrite?', text => $text}) ne 'yes') {
             #  put back the pre-existing cluster output - not quite working yet
             $self->{basedata_ref}->delete_output(output => $output_ref);

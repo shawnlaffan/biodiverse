@@ -644,8 +644,8 @@ sub on_run {
     # Delete existing?
     if (defined $output_ref) {
         my $text = "$output_name exists.  Do you mean to overwrite it?";
-        my $completed = $output_ref->get_param('COMPLETED');
-        if ($self->{existing} and defined $completed and $completed) {
+        my $completed = $output_ref->get_param('COMPLETED') // 1;
+        if ($self->{existing} && $completed) {
 
             #  drop out if we don't want to overwrite
             my $response = Biodiverse::GUI::YesNoCancel->run({
@@ -656,13 +656,8 @@ sub on_run {
             return 0 if $response ne 'yes';
         }
 
-        $overwrite = 1;
-
-        #  remove original object, we are recreating it
-        #$self->{basedata_ref}->delete_output(output => $output_ref);
-        #$self->{project}->delete_output($output_ref);
-        #$self->{existing} = 0;
-        $new_result = 0;
+        $overwrite    = 1;
+        $new_result   = 0;
         $output_name .= time();  #  create a temporary name
     }
 
@@ -756,6 +751,8 @@ sub on_run {
 
     #  make sure the grid is sensitive again
     $self->{initialising_grid} = 0;
+
+    $self->{project}->set_dirty;
 
     return;
 }

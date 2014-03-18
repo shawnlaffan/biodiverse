@@ -1,3 +1,0 @@
-Installation instructions for the different operating systems can be found at http://code.google.com/p/biodiverse/wiki/Installation
-
-For more general help, see http://code.google.com/p/biodiverse/wiki/HelpOverview

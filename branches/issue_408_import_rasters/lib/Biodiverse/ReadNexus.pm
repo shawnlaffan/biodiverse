@@ -429,8 +429,8 @@ sub import_tabular_tree {
 
         # check all necessary values are defined (?)
         foreach my $col_name (keys %columns) {
-            #	croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
-        	$line_hash{$col_name} = $line_array[$columns{$col_name}]
+            #    croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
+            $line_hash{$col_name} = $line_array[$columns{$col_name}]
         }
 
         if (defined($line_hash{TREENAME_COL}) && $line_hash{TREENAME_COL} ne $tree_name) {  # we have started a new tree

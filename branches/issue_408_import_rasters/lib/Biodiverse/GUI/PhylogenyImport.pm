@@ -7,8 +7,6 @@ use English ( -no_match_vars );
 use File::Basename;
 use File::BOM qw / :subs /;
 
-use Data::Dumper;
-
 use Gtk2;
 use Gtk2::GladeXML;
 use Biodiverse::ReadNexus;
@@ -36,14 +34,14 @@ sub run {
     #########
     my ($name, $filename);
     if ($tree_format == $fmt_nexus) {
-    	($name, $filename) = Biodiverse::GUI::OpenDialog::Run (
-	        'Import Tree from file',
-	        ['nex', 'tre', 'nwk', 'phy'],
-	        'nex',
-	        'tre',
-	        'nwk',
-	        'phy',
-	        '*'
+        ($name, $filename) = Biodiverse::GUI::OpenDialog::Run (
+            'Import Tree from file',
+            ['nex', 'tre', 'nwk', 'phy'],
+            'nex',
+            'tre',
+            'nwk',
+            'phy',
+            '*'
         );
     } elsif ($tree_format == $fmt_tabular) {
         ($name, $filename) = Biodiverse::GUI::OpenDialog::Run (
@@ -53,7 +51,7 @@ sub run {
             'csv',
             '*'
         );
-    	
+        
     }
 
     return if not ($filename and $name);  #  drop out
@@ -81,9 +79,9 @@ sub run {
             PARENT_COL => 'Parent');
     my $import_fields;
     if ($tree_format == $fmt_tabular) {
-    	# piggy-back code here, a bit messy.  the get_remap_info call is used for identifying columns for table import, as well as for re-map
-    	$call_remap = 1;
-    	my @column_fields = values %column_labels;
+        # piggy-back code here, a bit messy.  the get_remap_info call is used for identifying columns for table import, as well as for re-map
+        $call_remap = 1;
+        my @column_fields = values %column_labels;
         $import_fields = get_column_use($gui, $filename, \@column_fields);
     } 
         
@@ -113,17 +111,17 @@ sub run {
     my %labels_to_columns = reverse %column_labels;
     my %field_map;
     foreach my $field (keys %$import_fields) {
-    	my $arr_ref = $import_fields->{$field};
-    	my $h_ref = @$arr_ref[0];
-    	# find the column for this label
-    	$field_map{$labels_to_columns{$field}} = $h_ref->{id};
+        my $arr_ref = $import_fields->{$field};
+        my $h_ref = @$arr_ref[0];
+        # find the column for this label
+        $field_map{$labels_to_columns{$field}} = $h_ref->{id};
     }
 
     #########
     # 3. Load da tree
     #########
     if ($tree_format == $fmt_tabular) {
-    	
+        
         # call import routine.  takes first choice of each if multiple given.  
         # assume one column available for each, as enforced through dialog
         eval {$phylogeny_ref->import_tabular_tree (
@@ -137,15 +135,15 @@ sub run {
         }
 
     } else {
-	    #$phylogeny_ref->parse (file => $nexus_filename);
-	    eval {$phylogeny_ref->import_data (
-	        file => $filename,
-	        %import_params
-	    )};
-	    if ($EVAL_ERROR) {
-	        $gui->report_error ($EVAL_ERROR);
-	        return;
-	    }
+        #$phylogeny_ref->parse (file => $nexus_filename);
+        eval {$phylogeny_ref->import_data (
+            file => $filename,
+            %import_params
+        )};
+        if ($EVAL_ERROR) {
+            $gui->report_error ($EVAL_ERROR);
+            return;
+        }
     }
     
     my $phylogeny_array = $phylogeny_ref->get_tree_array;
@@ -211,26 +209,26 @@ sub get_column_use {
     # just show once, grab column usages, handle errors later
     SHOW_LOOP:
     while(1) {
-    	$response = $dlg->run();
-	    if ($response eq 'ok') {
-	    	my @usages = ('Ignore');
-	    	push @usages, @$col_usages;
-	        $column_settings = Biodiverse::GUI::BasedataImport::get_remap_column_settings($col_widgets, \@usages);
-	        
-	        # check each of the usage fields has been allocated
-	        foreach my $usage (@$col_usages) {
-	        	print "checking $usage, " . $column_settings->{$usage} . "\n";
-	        	if (! $column_settings->{$usage}) {
+        $response = $dlg->run();
+        if ($response eq 'ok') {
+            my @usages = ('Ignore');
+            push @usages, @$col_usages;
+            $column_settings = Biodiverse::GUI::BasedataImport::get_remap_column_settings($col_widgets, \@usages);
+            
+            # check each of the usage fields has been allocated
+            foreach my $usage (@$col_usages) {
+                print "checking $usage, " . $column_settings->{$usage} . "\n";
+                if (! $column_settings->{$usage}) {
                     my $msg = Gtk2::MessageDialog->new(undef, "modal", "error", "close", "Please select one of each column usage type");
                     $msg->run();
                     $msg->destroy();
                     $column_settings = undef;
-	        		
+                    
                     next SHOW_LOOP; 
-	        	}
-	        }
-	        last;
-	
+                }
+            }
+            last;
+    
         }
     }
     $dlg->destroy();

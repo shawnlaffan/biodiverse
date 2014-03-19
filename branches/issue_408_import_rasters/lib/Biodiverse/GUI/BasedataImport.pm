@@ -1439,7 +1439,7 @@ sub get_remap_info {
     my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
     my $dlg = $dlgxml->get_widget('dlgImportParameters');
     $dlg->set_title(ucfirst "$type property file options");
-
+    
     # Build widgets for parameters
     my $table_name = 'tableImportParameters';
     my $table = $dlgxml->get_widget ($table_name );

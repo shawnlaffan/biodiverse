@@ -32,7 +32,7 @@ use Biodiverse::Exception;
 
 use parent qw /
     Biodiverse::Common
-/;
+/; #/
 
 my $EMPTY_STRING = q{};
 
@@ -959,6 +959,8 @@ sub export_tabular_tree {
         $name = $self->get_param ('NAME');
     }
 
+    # show the type of what is being exported
+    
     my $table = $self->to_table (
         symmetric   => 1,
         name        => $name,
@@ -1171,7 +1173,7 @@ sub get_table_export_metadata {
             ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
             : (',', 'tab', ';', 'space', ':');
 
-    my @quote_chars = qw /" ' + $/;
+    my @quote_chars = qw /" ' + $/; #"
 
     my $table_metadata_defaults = [
         {
@@ -1385,7 +1387,7 @@ sub get_range_table {
             "Converting tree $name to matrix\n"
             . "($progress / $to_do)",
             $progress / $to_do,
-        );
+        ); #"
 
         LOOP_NODE2:
         foreach my $node2 (values %nodes) {

@@ -7,6 +7,8 @@ use English ( -no_match_vars );
 use File::Basename;
 use File::BOM qw / :subs /;
 
+use Data::Dumper;
+
 use Gtk2;
 use Gtk2::GladeXML;
 use Biodiverse::ReadNexus;
@@ -24,20 +26,37 @@ use Biodiverse::GUI::Project;
 sub run {
     my $gui = shift;
 
+    # Get format for tree import (initial dialog)
+    # testing- call as yes/no/cancel
+    my $fmt_nexus = 0, my $fmt_tabular = 1;
+    my $tree_format = (Biodiverse::GUI::YesNoCancel->run({header => 'Use tabular tree format?'}) eq 'yes');
+
     #########
     # 1. Get the name & NEXUS filename
     #########
-    my ($name, $nexus_filename) = Biodiverse::GUI::OpenDialog::Run (
-        'Import Tree from file',
-        ['nex', 'tre', 'nwk', 'phy'],
-        'nex',
-        'tre',
-        'nwk',
-        'phy',
-        '*',
-    );
+    my ($name, $filename);
+    if ($tree_format == $fmt_nexus) {
+    	($name, $filename) = Biodiverse::GUI::OpenDialog::Run (
+	        'Import Tree from file',
+	        ['nex', 'tre', 'nwk', 'phy'],
+	        'nex',
+	        'tre',
+	        'nwk',
+	        'phy',
+	        '*'
+        );
+    } elsif ($tree_format == $fmt_tabular) {
+        ($name, $filename) = Biodiverse::GUI::OpenDialog::Run (
+            'Import Tree from file',
+            ['txt', 'csv'],
+            'txt',
+            'csv',
+            '*'
+        );
+    	
+    }
 
-    return if not ($nexus_filename and $name);  #  drop out
+    return if not ($filename and $name);  #  drop out
 
     #########
     # 2. Make object
@@ -54,10 +73,27 @@ sub run {
     #}
 
     my %import_params;
+    my $call_remap;
+    my %column_labels = (TREENAME_COL => 'Tree name', 
+            LENGTHTOPARENT_COL => 'Length to parent',
+            NODENUM_COL => 'Node number',
+            NODENAME_COL => 'Node name',
+            PARENT_COL => 'Parent');
+    my $import_fields;
+    if ($tree_format == $fmt_tabular) {
+    	# piggy-back code here, a bit messy.  the get_remap_info call is used for identifying columns for table import, as well as for re-map
+    	$call_remap = 1;
+    	my @column_fields = values %column_labels;
+        $import_fields = get_column_use($gui, $filename, \@column_fields);
+    } 
+        
     if (Biodiverse::GUI::YesNoCancel->run({header => 'Remap tree labels?'}) eq 'yes') {
-        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $nexus_filename, 'label');
+        my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $filename, 'label');
+
         #  now do something with them...
         my $remap;
+        
+        ###### check if we need to call remap (eg if tabular, and no remapping?) 
         if ($remap_data{file}) {
             #my $file = $remap_data{file};
             $remap = Biodiverse::ElementProperties->new;
@@ -70,26 +106,52 @@ sub run {
             $import_params{use_element_properties} = undef;
         }
     }
-
-
+    
+    # process fields produced by get_column_use.  the key of each import_fields entry 
+    # will be the label passed to get_column_use, ie the text display of each field.
+    # create a different mapping from the identifier (eg NODENUM) to the column. 
+    my %labels_to_columns = reverse %column_labels;
+    my %field_map;
+    foreach my $field (keys %$import_fields) {
+    	my $arr_ref = $import_fields->{$field};
+    	my $h_ref = @$arr_ref[0];
+    	# find the column for this label
+    	$field_map{$labels_to_columns{$field}} = $h_ref->{id};
+    }
 
     #########
     # 3. Load da tree
     #########
-    #$phylogeny_ref->parse (file => $nexus_filename);
-    eval {$phylogeny_ref->import_data (
-        file => $nexus_filename,
-        %import_params
-    )};
-    if ($EVAL_ERROR) {
-        $gui->report_error ($EVAL_ERROR);
-        return;
-    }
+    if ($tree_format == $fmt_tabular) {
+    	
+        # call import routine.  takes first choice of each if multiple given.  
+        # assume one column available for each, as enforced through dialog
+        eval {$phylogeny_ref->import_tabular_tree (
+            file => $filename,
+            column_map => \%field_map,
+            %import_params
+        )};
+        if ($EVAL_ERROR) {
+            $gui->report_error ($EVAL_ERROR);
+            return;
+        }
 
+    } else {
+	    #$phylogeny_ref->parse (file => $nexus_filename);
+	    eval {$phylogeny_ref->import_data (
+	        file => $filename,
+	        %import_params
+	    )};
+	    if ($EVAL_ERROR) {
+	        $gui->report_error ($EVAL_ERROR);
+	        return;
+	    }
+    }
+    
     my $phylogeny_array = $phylogeny_ref->get_tree_array;
     
     my $tree_count = scalar @$phylogeny_array;
-    my $feedback = "[Phylogeny import] $tree_count trees parsed from $nexus_filename\nNames are: ";
+    my $feedback = "[Phylogeny import] $tree_count trees parsed from $filename\nNames are: ";
     my @names;
     foreach my $tree (@$phylogeny_array) {
         push @names, $tree->get_param ('NAME');
@@ -109,6 +171,73 @@ sub run {
     return defined wantarray ? $phylogeny_ref : undef;
 
 }
+
+# present dialog to determine usage for each column
+# returns results map (see BasedataImport::get_remap_column_settings)
+sub get_column_use {
+    my $gui = shift;
+    my $tree_filename = shift;
+    my $col_usages = shift;
+
+    my ($_file, $data_dir, $_suffixes) = fileparse($tree_filename);
+
+    # Get header columns
+    print "[GUI] Discovering columns from $tree_filename\n";
+    my $line;
+    
+    open (my $fh, '<:via(File::BOM)', $tree_filename);
+    while (<$fh>) { # get first non-blank line
+        $line = $_;
+        chomp $line;
+        last if $line;
+    }
+    $fh->close;
+    
+    my $sep = $gui->get_project->guess_field_separator (string => $line);
+    my $eol = $gui->get_project->guess_eol (string => $line);
+    my @headers_full = $gui->get_project->csv2list('string' => $line, sep_char => $sep, eol => $eol);
+    # add non-blank columns with labels, and generic for blank columns
+    my @headers;
+    my $col_num = 0;
+    foreach my $header (@headers_full) {
+        my $this_label = $header || "col$col_num"; 
+        $col_num++;
+        push @headers, $this_label;
+    }
+
+    my ($dlg, $col_widgets) = Biodiverse::GUI::BasedataImport::make_remap_columns_dialog(\@headers, $gui->get_widget('wndMain'),[],$col_usages);
+    my ($column_settings, $response);
+
+    # just show once, grab column usages, handle errors later
+    SHOW_LOOP:
+    while(1) {
+    	$response = $dlg->run();
+	    if ($response eq 'ok') {
+	    	my @usages = ('Ignore');
+	    	push @usages, @$col_usages;
+	        $column_settings = Biodiverse::GUI::BasedataImport::get_remap_column_settings($col_widgets, \@usages);
+	        
+	        # check each of the usage fields has been allocated
+	        foreach my $usage (@$col_usages) {
+	        	print "checking $usage, " . $column_settings->{$usage} . "\n";
+	        	if (! $column_settings->{$usage}) {
+                    my $msg = Gtk2::MessageDialog->new(undef, "modal", "error", "close", "Please select one of each column usage type");
+                    $msg->run();
+                    $msg->destroy();
+                    $column_settings = undef;
+	        		
+                    next SHOW_LOOP; 
+	        	}
+	        }
+	        last;
+	
+        }
+    }
+    $dlg->destroy();
+
+    return $column_settings; 
+}
+
 
 ##################################################
 # Load Label remap file
@@ -179,6 +308,9 @@ sub get_remap_info {
 }
 
 
+
+
+
 ##################################################
 # extracting information from widgets
 ##################################################
@@ -219,7 +351,7 @@ sub make_columns_dialog {
 
     my $header = shift; # ref to column header array
     my $wnd_main = shift;
-
+    
     my $num_columns = @$header;
     print "[gui] generating make columns Dialog for $num_columns columns\n";
 

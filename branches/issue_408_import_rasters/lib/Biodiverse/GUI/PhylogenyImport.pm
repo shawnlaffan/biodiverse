@@ -1,5 +1,5 @@
 package Biodiverse::GUI::PhylogenyImport;
-
+use 5.010;
 use strict;
 use warnings;
 use English ( -no_match_vars );
@@ -214,16 +214,16 @@ sub get_column_use {
             my @usages = ('Ignore');
             push @usages, @$col_usages;
             $column_settings = Biodiverse::GUI::BasedataImport::get_remap_column_settings($col_widgets, \@usages);
-            
+
             # check each of the usage fields has been allocated
             foreach my $usage (@$col_usages) {
-                print "checking $usage, " . $column_settings->{$usage} . "\n";
+                say "checking $usage, " . $column_settings->{$usage};
                 if (! $column_settings->{$usage}) {
                     my $msg = Gtk2::MessageDialog->new(undef, "modal", "error", "close", "Please select one of each column usage type");
                     $msg->run();
                     $msg->destroy();
                     $column_settings = undef;
-                    
+
                     next SHOW_LOOP; 
                 }
             }

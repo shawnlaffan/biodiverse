@@ -958,6 +958,8 @@ sub export_tabular_tree {
     if (! defined $name) {
         $name = $self->get_param ('NAME');
     }
+    
+    $args{use_internal_names} //= 1;  #  we need this to be set for the round trip
 
     # show the type of what is being exported
     

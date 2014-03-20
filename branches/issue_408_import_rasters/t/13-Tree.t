@@ -42,6 +42,8 @@ sub main {
     test_shuffle_terminal_names();
     test_node_hash_keys_match_node_names();
     test_collapse_tree();
+    test_export_shapefile();
+    test_export_tabular_tree();
 
     done_testing;
     return 0;
@@ -198,6 +200,77 @@ sub test_export_shapefile {
 
     return;
 }
+
+
+sub test_export_tabular_tree {
+    my $tree = shift // get_site_data_as_tree();
+
+    my $fname = 'tree_export_' . int (1000 * rand()) . '.csv';
+note "File name is $fname";
+    my $success = eval {
+        $tree->export_tabular_tree (
+            file => $fname,
+        );
+    };
+    my $e = $EVAL_ERROR;
+    diag $e if $e;
+    ok (!$e, 'exported to tabular without error');
+    
+    #  now reimport it
+    my $column_map = {};
+    my $nex = Biodiverse::ReadNexus->new();
+    $nex->import_data (
+        file => $fname,
+        column_map => $column_map,
+    );
+    my @imported_trees = $nex->get_tree_array;
+    my $imported_tree  = $imported_trees[0];
+
+    #  check terminals
+    ok (
+        $tree->trees_are_same (
+            comparison => $imported_tree,
+        ),
+        'Reimported tabular tree matches original',
+    );
+
+    my %nodes   = $tree->get_node_hash;
+    my %nodes_i = $imported_tree->get_node_hash;
+
+    subtest 'lengths and child counts match' => sub {
+        foreach my $node_name (keys %nodes) {
+            my $node   = $nodes{$node_name};
+            my $node_i = $nodes_i{$node_name};
+    
+            is (
+                $node->get_length,
+                $node_i->get_length,
+                'nodes are same length',
+            );
+            is (
+                $node->get_child_count,
+                $node_i->get_child_count,
+                'nodes have same child count',
+            );
+            my (@child_names, @child_names_i);
+            foreach my $child ($node->get_children) {
+                push @child_names, $child->get_name;
+            }
+            foreach my $child ($node_i->get_children) {
+                push @child_names_i, $child->get_name;
+            }
+            is_deeply (
+                [sort @child_names_i],
+                [sort @child_names],
+                'child names are the same for node ' . $node->get_name,
+            );
+        };
+    };
+
+
+    return;
+}
+
 
 ######################################
 

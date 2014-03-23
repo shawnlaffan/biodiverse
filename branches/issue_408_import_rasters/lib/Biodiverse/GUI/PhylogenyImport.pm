@@ -26,16 +26,22 @@ sub run {
 
     # Get format for tree import (initial dialog)
     # testing- call as yes/no/cancel
-    my $fmt_nexus = 0, my $fmt_tabular = 1;
-    my $tree_format = (Biodiverse::GUI::YesNoCancel->run({header => 'Use tabular tree format?'}) eq 'yes');
+    my $use_tabular_format = Biodiverse::GUI::YesNoCancel->run({header => 'Use tabular tree format?'}) eq 'yes';
 
     #########
     # 1. Get the name & NEXUS filename
     #########
-    my ($name, $filename);
-    if ($tree_format == $fmt_nexus) {
-        ($name, $filename) = Biodiverse::GUI::OpenDialog::Run (
-            'Import Tree from file',
+    my $extensions = [];
+    if ($use_tabular_format) {
+        @$extensions = (
+            ['txt', 'csv'],
+            'txt',
+            'csv',
+            '*',
+        );
+    }
+    else {
+        @$extensions = (
             ['nex', 'tre', 'nwk', 'phy'],
             'nex',
             'tre',
@@ -43,16 +49,12 @@ sub run {
             'phy',
             '*'
         );
-    } elsif ($tree_format == $fmt_tabular) {
-        ($name, $filename) = Biodiverse::GUI::OpenDialog::Run (
-            'Import Tree from file',
-            ['txt', 'csv'],
-            'txt',
-            'csv',
-            '*'
-        );
-        
     }
+
+    my ($name, $filename) = Biodiverse::GUI::OpenDialog::Run (
+        'Import Tree from file',
+        @$extensions,
+    );
 
     return if not ($filename and $name);  #  drop out
 
@@ -78,13 +80,13 @@ sub run {
             NODENAME_COL => 'Node name',
             PARENT_COL => 'Parent');
     my $import_fields;
-    if ($tree_format == $fmt_tabular) {
+    if ($use_tabular_format) {
         # piggy-back code here, a bit messy.  the get_remap_info call is used for identifying columns for table import, as well as for re-map
         $call_remap = 1;
         my @column_fields = values %column_labels;
         $import_fields = get_column_use($gui, $filename, \@column_fields);
     } 
-        
+
     if (Biodiverse::GUI::YesNoCancel->run({header => 'Remap tree labels?'}) eq 'yes') {
         my %remap_data = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $filename, 'label');
 
@@ -120,69 +122,66 @@ sub run {
     #########
     # 3. Load da tree
     #########
-    if ($tree_format == $fmt_tabular) {
-        
-        # call import routine.  takes first choice of each if multiple given.  
-        # assume one column available for each, as enforced through dialog
-        eval {$phylogeny_ref->import_tabular_tree (
-            file => $filename,
+    my %import_args;
+    if ($use_tabular_format) {
+        %import_args = (
+            file       => $filename,
             column_map => \%field_map,
-            %import_params
-        )};
-        if ($EVAL_ERROR) {
-            $gui->report_error ($EVAL_ERROR);
-            return;
-        }
-
-    } else {
-        #$phylogeny_ref->parse (file => $nexus_filename);
-        eval {$phylogeny_ref->import_data (
-            file => $filename,
-            %import_params
-        )};
-        if ($EVAL_ERROR) {
-            $gui->report_error ($EVAL_ERROR);
-            return;
-        }
+            %import_params,
+        );
     }
-    
+    else {
+        %import_args = (
+            file => $filename,
+            %import_params,
+        );
+    }
+
+    eval {
+        $phylogeny_ref->import_data (%import_args)
+    };
+    if ($EVAL_ERROR) {
+        $gui->report_error ($EVAL_ERROR);
+        return;
+    }
+
     my $phylogeny_array = $phylogeny_ref->get_tree_array;
-    
+
     my $tree_count = scalar @$phylogeny_array;
     my $feedback = "[Phylogeny import] $tree_count trees parsed from $filename\nNames are: ";
     my @names;
     foreach my $tree (@$phylogeny_array) {
         push @names, $tree->get_param ('NAME');
     }
-    $feedback .= join (", ", @names);
-    
+    $feedback .= join ', ', @names;
+
     #########
     #  4.  add the phylogenies to the GUI
     #########
     $gui->get_project->add_phylogeny ($phylogeny_array);
-    
+
     $gui->report_error (  #  not really an error...
         $feedback,
         'Import results'
     );
 
+    #  SWL:  not sure why we return undef in scalar context
     return defined wantarray ? $phylogeny_ref : undef;
-
 }
 
 # present dialog to determine usage for each column
 # returns results map (see BasedataImport::get_remap_column_settings)
 sub get_column_use {
-    my $gui = shift;
+    my $gui           = shift;
     my $tree_filename = shift;
-    my $col_usages = shift;
+    my $col_usages    = shift;
 
     my ($_file, $data_dir, $_suffixes) = fileparse($tree_filename);
 
     # Get header columns
-    print "[GUI] Discovering columns from $tree_filename\n";
+    say "[GUI] Discovering columns from $tree_filename";
     my $line;
-    
+
     open (my $fh, '<:via(File::BOM)', $tree_filename);
     while (<$fh>) { # get first non-blank line
         $line = $_;

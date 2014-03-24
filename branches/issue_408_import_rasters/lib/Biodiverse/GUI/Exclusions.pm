@@ -195,7 +195,7 @@ sub show_dialog {
             }
         }
 
-        my $defq = &$defq_extractor;
+        my $defq = $defq_extractor->();
         if (defined $defq) {
             $exclusions_hash->{GROUPS}{definition_query} = $defq;
         }

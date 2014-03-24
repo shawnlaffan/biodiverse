@@ -142,9 +142,9 @@ sub extract {
     # We call all the extractor closures which get values from the widgets
     my @params;
     foreach my $extractor (@$extractors) {
-        #print &$extractor();
+        #print $extractor->();
         #print "\n";
-        push @params, &$extractor();
+        push @params, $extractor->();
     }
     return \@params;
 }

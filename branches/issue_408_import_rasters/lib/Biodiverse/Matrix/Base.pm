@@ -38,7 +38,7 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
     my %args = @_;
     
     my ($element1, $element2);
-    my $exists = $self->element_pair_exists (@_);
+    my $exists = $args{pair_exists} || $self->element_pair_exists (@_);
 
     if ($exists == 1) {
         $element1 = $args{element1};
@@ -73,8 +73,8 @@ sub element_pair_exists {
     my $element1 = $args{element1};
     my $element2 = $args{element2};
 
-    Biodiverse::MissingArgument->throw ('element1 or element2 not defined')
-      if ! defined $element1 || ! defined $element2;
+    Biodiverse::MissingArgument->throw ('element1 and/or element2 not defined')
+      if ! (defined $element1 && defined $element2);
 
     #  avoid some excess hash lookups
     my $hash_ref = $self->{BYELEMENT};

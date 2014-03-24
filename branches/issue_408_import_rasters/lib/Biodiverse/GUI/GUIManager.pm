@@ -127,13 +127,12 @@ sub set_dirty {
 # is hidden (is it worth keeping open briefly or until closed?). 
 sub init_progress_window {
     my $self = shift;
-    say 'init_progress_window';
-    
+    #say 'init_progress_window';
+
     if ($self->{progress_bars}) {
        say 'prog bars defined';
        croak 'call to init_progress_window when defined';
     }
-        
     
     $self->{progress_bars} = {
         window => undef,
@@ -141,20 +140,23 @@ sub init_progress_window {
         dialog_objects => {},
         dialog_entries => {}
     };
-    
+
     # create window
-    $self->{progress_bars}->{window} = Gtk2::Window->new;
-    $self->{progress_bars}->{window}->set_transient_for( $self->get_widget('wndMain') );
-    $self->{progress_bars}->{window}->set_title('Progress');
-    $self->{progress_bars}->{window}->set_default_size (300, -1);
-    
+    my $window = Gtk2::Window->new;
+    $window->set_transient_for( $self->get_widget('wndMain') );
+    $window->set_title('Progress');
+    $window->set_default_size (300, -1);
+
     # do we need to track delete signals?    
-    $self->{progress_bars}->{window}->signal_connect ('delete-event' => \&progress_destroy_callback, $self);
-    
-    $self->{progress_bars}->{entry_box} = Gtk2::VBox->new(0, 5); # homogeneous, spacing
-    $self->{progress_bars}->{window}->add($self->{progress_bars}->{entry_box});
-    
-    $self->{progress_bars}->{window}->show_all;    
+    $window->signal_connect ('delete-event' => \&progress_destroy_callback, $self);
+
+    my $entry_box = Gtk2::VBox->new(0, 5); # homogeneous, spacing
+    $window->add($entry_box);
+
+    $self->{progress_bars}->{window}    = $window;
+    $self->{progress_bars}->{entry_box} = $entry_box;
+
+    $window->show_all;
 }
 
 # called to add record to progress bar display
@@ -170,7 +172,7 @@ sub add_progress_entry {
     
     # create new entry frame and widgets
     my $frame = Gtk2::Frame->new($title);
-    $self->{progress_bars}->{entry_box}->pack_start($frame, 1, 1, 0);
+    $self->{progress_bars}->{entry_box}->pack_start($frame, 0, 1, 0);
     
     my $id = $dialog_obj->get_id; # unique number for each, allows hashing
     $self->{progress_bars}->{dialog_objects}{$id} = $dialog_obj;

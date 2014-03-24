@@ -181,6 +181,8 @@ sub delete_node {
 
     #  now we delete it and its descendents from the node hash
     $self->delete_from_node_hash (nodes => \%node_hash);
+    
+    $self->delete_cached_values_below;
 
     #  return a list of the names of those deleted nodes
     return wantarray ? keys %node_hash : [keys %node_hash];

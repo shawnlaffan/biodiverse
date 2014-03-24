@@ -222,43 +222,44 @@ sub get_formula_explanation_ABC {
     return wantarray ? @explanation : \@explanation;
 }
 
-sub get_metadata_calc_kulczynski1 {
-    my $self = shift;
-
-    my %arguments = (
-        name            => 'Kulczynski 1',
-        description     => "Kulczynski 1 dissimilarity between two sets of labels.\n",
-        formula         => [
-#            '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
-             '= 1 - \frac{A}{B + C}',
-            $self -> get_formula_explanation_ABC,
-        ],
-        indices         => {
-            KULCZYNSKI1      => {
-                cluster     => 1,
-                description => 'Kulczynski 1 index',
-            }
-        },
-        type            => 'Taxonomic Dissimilarity and Comparison',
-        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
-        uses_nbr_lists  => 2,
-    );
-
-    return wantarray ? %arguments : \%arguments;
-}
-
-sub calc_kulczynski1 {
-    my $self = shift;
-    my %args = @_;
-
-    my $value = $args{DISSIMILARITY_IS_VALID}
-        ? eval {1 - $args{A} / ($args{B} + $args{C})}
-        : undef;
-
-    my %result = (KULCZYNSKI1 => $value);
-
-    return wantarray ? %result : \%result;
-}
+#  off for now - can go negative so we don't want it for clustering
+#sub get_metadata_calc_kulczynski1 {
+#    my $self = shift;
+#
+#    my %arguments = (
+#        name            => 'Kulczynski 1',
+#        description     => "Kulczynski 1 dissimilarity between two sets of labels.\n",
+#        formula         => [
+##            '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
+#             '= 1 - \frac{A}{B + C}',
+#            $self -> get_formula_explanation_ABC,
+#        ],
+#        indices         => {
+#            KULCZYNSKI1      => {
+#                cluster     => 1,
+#                description => 'Kulczynski 1 index',
+#            }
+#        },
+#        type            => 'Taxonomic Dissimilarity and Comparison',
+#        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+#        uses_nbr_lists  => 2,
+#    );
+#
+#    return wantarray ? %arguments : \%arguments;
+#}
+#
+#sub calc_kulczynski1 {
+#    my $self = shift;
+#    my %args = @_;
+#
+#    my $value = $args{DISSIMILARITY_IS_VALID}
+#        ? eval {1 - $args{A} / ($args{B} + $args{C})}
+#        : undef;
+#
+#    my %result = (KULCZYNSKI1 => $value);
+#
+#    return wantarray ? %result : \%result;
+#}
 
 sub get_metadata_calc_kulczynski2 {
     my $self = shift;

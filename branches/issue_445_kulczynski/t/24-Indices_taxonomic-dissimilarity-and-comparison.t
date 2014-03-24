@@ -23,7 +23,6 @@ run_indices_test1 (
         calc_s2
         calc_simpson_shannon
         calc_sorenson
-        calc_kulczynski1
         calc_kulczynski2
     /],
     calc_topic_to_test => 'Taxonomic Dissimilarity and Comparison',
@@ -47,7 +46,6 @@ __DATA__
     BRAY_CURTIS      => '0.855421686746988',
     BRAY_CURTIS_NORM => '0.762376237623762',
     JACCARD          => '0.857142857142857',
-    KULCZYNSKI1      => '0.833333333333333',
     KULCZYNSKI2      => '0.428571428571429',
     NEST_RESULTANT   => '0.75',
     S2               => 0,

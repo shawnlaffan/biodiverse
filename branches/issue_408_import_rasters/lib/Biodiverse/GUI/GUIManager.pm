@@ -190,7 +190,7 @@ sub add_progress_entry {
     $frame_vbox->pack_start($progress_widget, 0, 0, 0);
     
     # show the progress window
-    $self->{progress_bars}->{window}->present;
+    #$self->{progress_bars}->{window}->present;  #  don't do this - it grabs the system focus and makes other work impossible
     $self->{progress_bars}->{window}->show_all;
     
     #say "Current progress bars: " . Dumper($self->{progress_bars});

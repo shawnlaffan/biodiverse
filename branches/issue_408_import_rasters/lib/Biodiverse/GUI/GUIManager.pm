@@ -162,8 +162,8 @@ sub add_progress_entry {
     my ($self, $dialog_obj, $title, $text, $progress) = @_;
 
     # call init if not defined yet
-    $self->init_progress_window if ! $self->{progress_bars};
-    
+    $self->init_progress_window if !$self->{progress_bars};
+
     # possibly worth resetting next_id once it gets to a large number, however this is
     # very unlikely to be a problem in practise
     #my $new_id = $self->{progress_bars}->{next_id}++;
@@ -207,14 +207,14 @@ sub clear_progress_entry {
     my ($self, $dialog_obj) = @_;
 
     croak 'call to clear_progress_entry when not inited (possibly after window close)' 
-        if (! $self->{progress_bars});
+        if !$self->{progress_bars};
 
     croak 'invalid dialog obj given to clear_progress_entry' 
-        if (! defined($dialog_obj));
+        if !defined $dialog_obj;
 
     my $id = $dialog_obj->get_id; # unique number for each, allows hashing
     croak 'invalid dialog obj given to clear_progress_entry, can\'t read ID' 
-        if (! defined($self->{progress_bars}->{dialog_objects}{$id}));
+        if !defined $self->{progress_bars}->{dialog_objects}{$id};
 
     my $entry_frame = $self->{progress_bars}->{dialog_entries}{$id};
 
@@ -225,7 +225,9 @@ sub clear_progress_entry {
     delete $self->{progress_bars}->{dialog_entries}{$id};
     
     # if no active entries in progress dialog, hide it
-    if (! $self->{progress_bars}->{entry_box}->get_children() || scalar $self->{progress_bars}->{entry_box}->get_children() == 0) {
+    if (   !$self->{progress_bars}->{entry_box}->get_children
+        || scalar $self->{progress_bars}->{entry_box}->get_children == 0
+        ) {
         $self->{progress_bars}->{window}->hide;
     }
 }
@@ -253,7 +255,10 @@ sub progress_destroy_callback {
 
 sub show_progress {
     my $self = shift;
-    $self->{progress_bars}->{window}->show_all if $self->{progress_bars};
+
+    if ($self->{progress_bars}) {
+        $self->{progress_bars}->{window}->show_all;
+    }
 }
 
 ##########################################################

@@ -30,8 +30,9 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 {{{
   set BDV_PATH=c:\biodiverse
   set STRAWPATH=c:\strawberry
-  :: Change gtk_win64 to gtk_win32 if you are using a 32 bit installation.
+  :: Change gtk_win64 to gtk_win32 if you are using a 32 bit installation.  Same applies gdal_win64.
   set GTK_PATH=c:\gtk_win64
+  set GDAL_PATH=c:\gdal_win64
   set PATH=%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%GTK_PATH%\c\bin;%PATH%
 }}}
 
@@ -39,6 +40,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 
 {{{
   svn co https://biodiverse.googlecode.com/svn/branches/gtk_win_builds/etc/gtk_win64 %GTK_PATH%
+  svn co https://biodiverse.googlecode.com/svn/branches/gdal_win_builds/etc/gdal_win64 %GDAL_PATH%
 }}}
 
 
@@ -54,9 +56,10 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   ppm install %BDV_PPM%/Gnome2-Canvas.ppd 
   ppm install %BDV_PPM%/Pango.ppd
   ppm install %BDV_PPM%/Gtk2.ppd
-  ppm install %BDV_PPM%/Gtk2-GladeXML.ppd  
+  ppm install %BDV_PPM%/Gtk2-GladeXML.ppd
+  ppm install %BDV_PPM%/Geo-GDAL.ppd
 
-  :: YAML::Syck has installation failures at v1.27 
+  :: YAML::Syck has installation failures at v1.27 so install 1.23
   cpanm YAML::Syck@1.23
 
   :: Now install the rest of the dependencies
@@ -69,13 +72,12 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 
 The above installation process *should* install all the relevant files, so we can now run it.  
 
-1.  This is the same as step 1 in the installation instructions, but needs to be run every time you open a new command prompt (unless you add the paths to your PATH variable at the windows level).  Remember to edit the folder paths if you installed Biodiverse, the Gtk libs and/or Strawberry Perl to different folders.  
+1.  This is the same as step 1 in the installation instructions, but needs to be run every time you open a new command prompt (unless you add the paths to your PATH variable at the windows level).  Remember to edit the folder paths if you installed Biodiverse, the Gtk libs, GDAL libs and/or Strawberry Perl to different folders.  Note that Biodiverse goes looking up the directory tree for Gtk and GDAL using the installation names in the previous steps, so you only need to add them to the path if you put them somewhere else.
 
 {{{
   set BDV_PATH=c:\biodiverse
   set STRAWPATH=c:\strawberry
-  set GTK_PATH=c:\gtk_win64
-  set PATH=%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%GTK_PATH%\c\bin;%PATH%
+  set PATH=%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%BDV_PATH%\bin;%PATH%
 }}}
 
 2.  Now you can run it.  

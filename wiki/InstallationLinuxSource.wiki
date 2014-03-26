@@ -1,7 +1,7 @@
 #summary Linux source code install instructions
 #sidebar Installation
 
-These instructions apply to version 0.17.
+These instructions apply to version 0.19 and later.
 
 Note that they have been tested on Ubuntu.  The package manager will differ for other Linux flavours, but the cpan command will be the same.
 

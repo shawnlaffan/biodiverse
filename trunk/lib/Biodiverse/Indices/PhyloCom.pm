@@ -688,10 +688,7 @@ sub get_nri_nti_expected_values {
 
     my ($progress, $progress_pfx);
     if (scalar keys %$named_nodes > 25) {
-        #  Excess newlines are to ensure the progress dialogue can
-        #  be grabbed and moved, since it otherwise hides under the main progress.
-        #  See issue #295 - http://code.google.com/p/biodiverse/issues/detail?id=295
-        $progress_pfx = "\n\n\n\n\n\nGetting $results_pfx NRI and NTI expected values\n"
+        $progress_pfx = "\nGetting $results_pfx NRI and NTI expected values\n"
                       . "for $label_count labels.\n";   
         $progress = Biodiverse::Progress->new(
             #gui_only => 1,

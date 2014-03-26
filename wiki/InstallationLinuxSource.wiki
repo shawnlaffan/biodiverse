@@ -12,33 +12,51 @@ These also assume you have [http://code.google.com/p/biodiverse/downloads/list d
 
   * This will require some interaction when it downloads additional packages, depending on your CPAN settings.
 
-  * It is also a very good idea to *not* use the system perl for this.  The operating system assumes specific versions of files are in the system perl.  Download and install one of the many available perls, for example from !ActiveState.  http://www.activestate.com/activeperl/downloads .  You could also try perlbrew.  http://perlbrew.pl/
+  * It is also a very good idea to *not* use the system perl for this.  The operating system assumes specific versions of files are in the system perl.  Download and install one of the many available perls, for example from !ActiveState.  http://www.activestate.com/activeperl/downloads .  Perlbrew is recommended, and is used for Biodiverse development.  http://perlbrew.pl/
 
-  * Once you have installed the other perl, you need to make sure it is the one you call in subsequent steps.  You will probably need to give the full path name to the perl binary in each line, rather than just saying `perl`.  If you installed perl to your home directory then you won't need to prepend each perl command with `sudo`.  
+  * Once you have installed the non-system perl, you need to make sure it is the one you call in subsequent steps.  You will probably need to give the full path name to the perl binary when used below, rather than just saying `perl`.
 
 
 {{{
-# Assuming you are currently in the base biodiverse directory.
-sudo apt-get install libcairo2-dev libpango1.0-dev libgtk+2.0-dev libgnomecanvas2-dev libglade2-dev
+  #  add the GDAL repo
+  sudo add-apt-repository ppa:ubuntugis/ppa 
+  sudo apt-get update
 
-#  skip this if you already have cpanm installed
-cpan App::cpanminus
+  # now get the apts
+  #  Gtk:
+  sudo apt-get install libgnome2-canvas-perl
+  sudo apt-get install libcairo2-dev libpango1.0-dev libgtk+2.0-dev libgnomecanvas2-dev libglade2-dev
+  # GDAL:
+  sudo apt-get install libarmadillo-dev libpoppler-dev libepsilon-dev liblzma-dev
 
-# YAML::Syck has installation failures at v1.27 
-cpanm YAML::Syck@1.23
+  #  skip this if you already have cpanm installed
+  cpan App::cpanminus
 
-# Now install the rest of the dependencies
-cpanm Task::Biodiverse::NoGUI@0.191
-cpanm Task::Biodiverse~0.19
-cpanm Task::Biodiverse~0.19
+  # YAML::Syck has installation failures at v1.27 
+  cpanm YAML::Syck@1.23
 
-#  The last cpan command is listed twice to get Gnome::Canvas
-#  and Gtk2::GladeXML to install after their dependencies.
+  # Now install the rest of the dependencies
+  cpanm Task::Biodiverse::NoGUI@0.191
+  cpanm Task::Biodiverse~0.19
+  cpanm Task::Biodiverse~0.19
+
+  #  The last cpan command is listed twice to get Gnome::Canvas
+  #  and Gtk2::GladeXML to install after their dependencies.
+
+  #  Now we need to get GDAL
+  #  Manual compilation is needed.
+  #  Download and uncompress the Geo::GDAL tarball (maybe using cpanm, or from https://metacpan.org/pod/Geo::GDAL).  
+  #  Then in the uncompressed Geo::GDAL folder (editing the config path to point to your bin/gdal-config file):
+
+  perl Makefile.PL --no-version-check --gdal-config=/path/to/gdal-config
+  make
+  make test
+  make install
+
 }}}
 
 If you don't like the current window theme then you can change them using the Desktop Preferences (also via the `gnome-appearance-properties` tool).
 
-You can download and install more themes from http://art.gnome.org/themes/gtk2
 
 = Running it =
 

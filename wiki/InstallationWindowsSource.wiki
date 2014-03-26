@@ -36,7 +36,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   set PATH=%STRAWPATH%\bin;%STRAWPATH%\perl\site\bin;%STRAWPATH%\perl\vendor\bin;%STRAWPATH%\perl\bin;%GTK_PATH%\c\bin;%PATH%
 }}}
 
-5.  Download the gtk_win64 components using an svn checkout. TortoiseSVN is the easiest way, but this command line will work if you installed the shell options with TortoiseSVN (or you have a different svn client).  _Remember to change gtk_win64 to gtk_win32 if you are using a 32 bit installation_.  
+5.  Download the gtk_win64 and gdal_win64 components using an svn checkout. TortoiseSVN is the easiest way, but this command line will work if you installed the shell options with TortoiseSVN (or you have a different svn client).  _Remember to change `_win64` to `_win32` in the paths if you are using a 32 bit installation_.  
 
 {{{
   svn co https://biodiverse.googlecode.com/svn/branches/gtk_win_builds/etc/gtk_win64 %GTK_PATH%

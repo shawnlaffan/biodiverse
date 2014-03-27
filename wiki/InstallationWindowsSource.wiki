@@ -50,7 +50,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   :: Install the precompiled binaries needed for the GUI.
   :: Edit the next line to match the perl version you are using, 
   :: e.g. ppm516 for the 32 bit version, ppm516_x64 for 64 bit
-  set BDV_PPM=https://biodiverse.googlecode.com/svn/trunk/etc/ppm/ppm516_x64
+  set BDV_PPM=http://biodiverse.googlecode.com/svn/branches/ppm/ppm516_x64
   ppm install %BDV_PPM%/Cairo.ppd 
   ppm install %BDV_PPM%/Glib.ppd 
   ppm install %BDV_PPM%/Gnome2-Canvas.ppd 

@@ -222,7 +222,7 @@ sub get_formula_explanation_ABC {
     return wantarray ? @explanation : \@explanation;
 }
 
-#  off for now - can go negative so we don't want it for clustering
+#  off for now - k1 index can go negative so we don't want it for clustering
 #sub get_metadata_calc_kulczynski1 {
 #    my $self = shift;
 #
@@ -230,7 +230,6 @@ sub get_formula_explanation_ABC {
 #        name            => 'Kulczynski 1',
 #        description     => "Kulczynski 1 dissimilarity between two sets of labels.\n",
 #        formula         => [
-##            '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
 #             '= 1 - \frac{A}{B + C}',
 #            $self -> get_formula_explanation_ABC,
 #        ],

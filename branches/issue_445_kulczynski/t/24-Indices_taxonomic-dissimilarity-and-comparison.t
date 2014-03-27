@@ -26,7 +26,6 @@ run_indices_test1 (
         calc_kulczynski2
     /],
     calc_topic_to_test => 'Taxonomic Dissimilarity and Comparison',
-    #generate_result_sets => 1,
 );
 
 done_testing;

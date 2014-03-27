@@ -6,7 +6,7 @@ use Carp;
 use Biodiverse::Progress;
 
 use List::Util qw /sum min max/;
-use List::MoreUtils qw /any minmax/;
+use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
 use Math::BigInt ();
 
@@ -237,7 +237,7 @@ sub _calc_phylo_mpd_mntd {
     
     return $self->default_mpd_mntd_results (@_)
         if $label_hashrefs_are_same
-           && scalar keys %$label_hash1 == 1;
+           && scalar keys %$labels_on_tree <= 1;
 
     #  Are we on the tree and have a non-zero count?
     #  Could be a needless slowdown under permutations using only labels on the tree.
@@ -332,7 +332,7 @@ sub _calc_phylo_mpd_mntd {
         }
         else {
             $n    = scalar @$path;
-            $mean = eval {sum (@$path) / $n};;
+            $mean = eval {sum (@$path) / $n};
         }
 
         $results{$pfx . '_MEAN'} = $mean;
@@ -688,10 +688,7 @@ sub get_nri_nti_expected_values {
 
     my ($progress, $progress_pfx);
     if (scalar keys %$named_nodes > 25) {
-        #  Excess newlines are to ensure the progress dialogue can
-        #  be grabbed and moved, since it otherwise hides under the main progress.
-        #  See issue #295 - http://code.google.com/p/biodiverse/issues/detail?id=295
-        $progress_pfx = "\n\n\n\n\n\nGetting $results_pfx NRI and NTI expected values\n"
+        $progress_pfx = "\nGetting $results_pfx NRI and NTI expected values\n"
                       . "for $label_count labels.\n";   
         $progress = Biodiverse::Progress->new(
             #gui_only => 1,

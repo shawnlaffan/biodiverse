@@ -10,7 +10,7 @@ use Biodiverse::Exception;
 
 our $VERSION = '0.19';
 
-use parent qw /Biodiverse::BaseStruct Biodiverse::Common/;
+use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
 
 our %PARAMS = (  #  default parameters to load.  These will be overwritten if needed.
     OUTPFX            =>  "BIODIVERSE_PROPERTIES",
@@ -30,7 +30,7 @@ sub get_metadata_import_data {
     my @sep_chars = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
                   ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
                   : (',', 'tab', ';', 'space', ":");
-    my @quote_chars = qw /" ' + $/;
+    my @quote_chars = qw /" ' + $/; #"
     my @input_sep_chars = ('guess', @sep_chars);
     my @input_quote_chars = ('guess', @quote_chars);
     

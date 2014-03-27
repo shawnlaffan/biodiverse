@@ -9,13 +9,14 @@ use warnings;
 use Data::Dumper;
 use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
-use List::Util qw /max min/;
+use List::Util qw /max min sum/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use IO::File;
 use File::BOM qw /:subs/;
 use Path::Class;
 use POSIX qw /floor/;
 use Geo::Converter::dms2dd qw {dms2dd};
+use Regexp::Common qw /number/;
 
 use English qw { -no_match_vars };
 
@@ -29,6 +30,10 @@ use Biodiverse::Index;
 use Biodiverse::Randomise;
 use Biodiverse::Progress;
 use Biodiverse::Indices;
+
+#  needs to be after anything which calls Biodiverse::Config, as that adds the paths needed on windows
+use Geo::GDAL;
+
 
 our $VERSION = '0.19';
 
@@ -138,20 +143,6 @@ sub new {
     %params_hash = ();  #  (vainly) hunting memory leaks
 
     return $self;
-}
-
-#  allows for back-compat
-sub get_cell_origins {
-    my $self = shift;
-
-    my $origins = $self->get_param ('CELL_ORIGINS');
-    if (!defined $origins) {
-        my $cell_sizes = $self->get_param ('CELL_SIZES');
-        $origins = [(0) x scalar @$cell_sizes];
-        $self->set_param (CELL_ORIGINS => $origins);
-    }
-
-    return wantarray ? @$origins : $origins;
 }
 
 sub rename {
@@ -268,7 +259,7 @@ sub describe {
         JOIN_CHAR
         QUOTES
         NUMERIC_LABELS
-    /;
+    /; #/
 
     foreach my $key (@keys) {
         my $desc = $self->get_param ($key);
@@ -330,7 +321,7 @@ sub get_coord_bounds {
     #  do we use numeric or string comparison?
     my @numeric_comp;
     my @string_comp;
-    my $cellsizes = $self->get_param ('CELL_SIZES');
+    my $cellsizes = $self->get_cell_sizes;
     my $i = 0;
     foreach my $size (@$cellsizes) {
         if ($size < 0) {
@@ -497,16 +488,8 @@ sub get_metadata_get_base_stats {
     return $self->{$type}->get_metadata_get_base_stats (@_);
 }
 
-sub get_metadata_import_data {
+sub get_metadata_import_data_common {
     my $self = shift;
-    
-    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
-                  : (q{,}, 'tab', q{;}, 'space', q{:});
-    my @input_sep_chars = ('guess', @sep_chars);
-    
-    my @quote_chars = qw /" ' + $/;
-    my @input_quote_chars = ('guess', @quote_chars);
     
     #  these parameters are only for the GUI, so are not a full set
     my %arg_hash = (
@@ -543,20 +526,6 @@ sub get_metadata_import_data {
               type       => 'boolean',
               default    => 0,
             },
-            { name       => 'input_sep_char',
-              label_text => 'Input field separator',
-              tooltip    => 'Select character',
-              type       => 'choice',
-              choices    => \@input_sep_chars,
-              default    => 0,
-            },
-            { name       => 'input_quote_char',
-              label_text => 'Input quote character',
-              tooltip    => 'Select character',
-              type       => 'choice',
-              choices    => \@input_quote_chars,
-              default    => 0,
-            },
             { name       => 'data_in_matrix_form',
               label_text => 'Data are in matrix form?',
               tooltip    => 'Are the data in a form like a site by species matrix?',
@@ -578,6 +547,96 @@ sub get_metadata_import_data {
                           . 'Applies to each record, not to groups.',
               type       => 'boolean',
               default    => 0,
+            }
+        ]
+    );
+    
+    return wantarray ? %arg_hash : \%arg_hash;
+}
+
+sub get_metadata_import_data_text {
+    my $self = shift;
+    
+    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
+                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
+                  : (q{,}, 'tab', q{;}, 'space', q{:});
+    my @input_sep_chars = ('guess', @sep_chars);
+    
+    my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
+    my @input_quote_chars = ('guess', @quote_chars);
+    
+    #  these parameters are only for the GUI, so are not a full set
+    my %arg_hash = (
+        parameters => [
+            #{ name => 'input_files', type => 'file' }, # not for the GUI
+            { name       => 'input_sep_char',
+              label_text => 'Input field separator',
+              tooltip    => 'Select character',
+              type       => 'choice',
+              choices    => \@input_sep_chars,
+              default    => 0,
+            },
+            { name       => 'input_quote_char',
+              label_text => 'Input quote character',
+              tooltip    => 'Select character',
+              type       => 'choice',
+              choices    => \@input_quote_chars,
+              default    => 0,
+            },
+        ]
+    );
+    
+    return wantarray ? %arg_hash : \%arg_hash;
+}
+
+sub get_metadata_import_data_raster {
+    my $self = shift;
+    
+    my @sep_chars = my @separators = defined $ENV{BIODIVERSE_FIELD_SEPARATORS}
+                  ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
+                  : (q{,}, 'tab', q{;}, 'space', q{:});
+    my @input_sep_chars = ('guess', @sep_chars);
+    
+    my @quote_chars = qw /" ' + $/;      # " (comment just catching runaway quote in eclipse)
+    my @input_quote_chars = ('guess', @quote_chars);
+    
+    #  these parameters are only for the GUI, so are not a full set
+    my %arg_hash = (
+        parameters => [
+            #{ name => 'input_files', type => 'file' }, # not for the GUI
+            { name       => 'raster_labels_as_bands',
+              label_text => 'Read bands as labels?',
+              tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
+              type       => 'boolean',
+              default    => 0,
+            },
+            { name       => 'raster_cellsize_e',
+              label_text => 'Cell size east/long',
+              tooltip    => 'Size of group cells (Eastings/Longitude)',
+              type       => 'float',
+              default    => 100000,
+              digits     => 10,
+            },
+            { name       => 'raster_cellsize_n',
+              label_text => 'Cell size north/lat',
+              tooltip    => 'Size of group cells (Northings/Latitude)',
+              type       => 'float',
+              default    => 100000,
+              digits     => 10,
+            },
+            { name       => 'raster_origin_e',
+              label_text => 'Cell origin east/long',
+              tooltip    => 'Origin of group cells (Eastings/Longitude)',
+              type       => 'float',
+              default    => 0,
+              digits     => 10,
+            },
+            { name       => 'raster_origin_n',
+              label_text => 'Cell origin north/lat',
+              tooltip    => 'Origin of group cells (Northings/Latitude)',
+              type       => 'float',
+              default    => 0,
+              digits     => 10,
             },
         ]
     );
@@ -599,6 +658,11 @@ sub import_data {
 
     $args{label_columns} //= $self->get_param('LABEL_COLUMNS');
     $args{group_columns} //= $self->get_param('GROUP_COLUMNS');
+    
+    if ($args{data_in_matrix_form}) {  #  clunky but needed for lower down
+        $args{label_columns} //= [];
+    }
+    
 
     $args{cell_is_lat}
         = $self->get_param('CELL_IS_LAT')
@@ -643,15 +707,15 @@ sub import_data {
 
     my @label_columns        = @{$args{label_columns}};
     my @group_columns        = @{$args{group_columns}};
-    my @cell_sizes           = @{$self->get_param('CELL_SIZES')};
-    my @cell_origins         = @{$self->get_cell_origins};
+    my @cell_sizes           = $self->get_cell_sizes;
+    my @cell_origins         = $self->get_cell_origins;
     my @cell_is_lat_array    = @{$args{cell_is_lat}};
     my @cell_is_lon_array    = @{$args{cell_is_lon}};
     my @sample_count_columns = @{$args{sample_count_columns}};
     my $exclude_columns      = $args{exclude_columns};
     my $include_columns      = $args{include_columns};
     my $binarise_counts      = $args{binarise_counts};  #  make sample counts 1 or 0
-    
+
     my $skip_lines_with_undef_groups
       = exists $args{skip_lines_with_undef_groups}
           ? $args{skip_lines_with_undef_groups}
@@ -1045,7 +1109,7 @@ sub import_data {
                     next ADD_ELEMENTS
                       if $args{data_in_matrix_form}
                          && $count eq $EMPTY_STRING;
-                         
+
                     next ADD_ELEMENTS
                       if $count == 0 and ! $args{allow_empty_groups};
                 }
@@ -1053,6 +1117,14 @@ sub import_data {
                     next ADD_ELEMENTS
                       if $args{data_in_matrix_form};
                 }
+                #  single label col or matrix form data need extra quotes to be stripped
+                #  should clean up mx form on first pass
+                #  or do as a post-processing step
+                if (scalar @label_columns <= 1 && $el =~ /^$quotes(?:.*)$quotes$/) {
+                    $el = substr ($el, 1);
+                    chop $el;
+                }
+
                 $self->add_element (
                     %args,
                     label      => $el,
@@ -1080,16 +1152,483 @@ sub import_data {
     return 1;  #  success
 }
 
+# subroutine to read a data file using GDAL library.  arguments
+# input_files: list of files to read(?)
+# labels_as_bands: if true, read each band as a label, and each cell value as count.
+#   otherwise read a single raster band (?), and interpret numeric values as labels
+# further questions: interpreting coordinates, assume values are UTM? provide other options?
+sub import_data_raster {
+    my $self = shift;
+    my %args = @_;
+    
+    my $orig_group_count = $self->get_group_count;
+    my $orig_label_count = $self->get_label_count;
+
+    my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
+
+    croak "Input files array not provided\n"
+      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+    my $labels_as_bands = $args{labels_as_bands};
+    my $cellorigin_e    = $args{raster_origin_e};
+    my $cellorigin_n    = $args{raster_origin_n};
+    my $cellsize_e      = $args{raster_cellsize_e};
+    my $cellsize_n      = $args{raster_cellsize_n};
+    my $given_label     = $args{given_label};
+
+    my $labels_ref = $self->get_labels_ref;
+    my $groups_ref = $self->get_groups_ref;
+
+    #  load the properties tables from the args, or use the ones we already have
+    #  labels first
+    my $label_properties;
+    my $use_label_properties = $args{use_label_properties};
+    if ($use_label_properties) {  # twisted - FIXFIXFIX
+        $label_properties = $args{label_properties}
+                            || $self->get_param ('LABEL_PROPERTIES');
+        if ($args{label_properties}) {
+            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
+        }
+    }
+    #  then groups
+    my $group_properties;
+    my $use_group_properties = $args{use_group_properties};
+    if ($use_group_properties) {
+        $group_properties = $args{group_properties}
+                            || $self->get_param ('GROUP_PROPERTIES');
+        if ($args{group_properties}) {
+            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
+        }
+    }
+    # QUESTION- do we need to do more than this with the properties?
+
+    say "[BASEDATA] Loading from files as GDAL "
+            . join (q{ }, @{$args{input_files}});
+
+    # hack, set parameters here? using local ref arrays?
+    my @cell_sizes = $self->get_cell_sizes;
+    my @cell_origins = $self->get_cell_origins;
+    if (!@cell_sizes) {
+        @cell_sizes = ($cellsize_e, $cellsize_n);
+        @cell_origins = ($cellorigin_e, $cellorigin_n);
+        $self->set_param(CELL_SIZES => \@cell_sizes);
+        $self->set_param(CELL_ORIGINS => \@cell_origins);
+    }
+    else {
+        croak "Unable to import more than two axes from raster data"
+          if @cell_sizes > 2;
+
+        $cellsize_e   = $cell_sizes[0];
+        $cellsize_n   = $cell_sizes[1];
+        $cellorigin_e = $cell_origins[0];
+        $cellorigin_n = $cell_origins[1];
+    }
+
+    my @half_cellsize = map {$_ / 2} @cell_sizes;
+
+    my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
+    my $el_sep = $self->get_param ('JOIN_CHAR');
+
+    my $out_csv = $self->get_csv_object (
+        sep_char   => $el_sep,
+        quote_char => $quotes,
+    );
+    
+    # load each file, using same arguments/parameters
+    #say "[BASEDATA] Input files to load are ", join (" ", @{$args{input_files}});
+    foreach my $file (@{$args{input_files}}) {
+        $file = Path::Class::file($file)->absolute;
+        my $file_base = Path::Class::File->new($file)->basename();
+        say "[BASEDATA] INPUT FILE: $file";
+
+        croak "[BASEDATA] $file DOES NOT EXIST OR CANNOT BE READ - CANNOT LOAD DATA\n"
+          if ! (-e $file and -r $file);
+
+        # process using GDAL library
+        my $data = Geo::GDAL::Open($file->stringify(), 'ReadOnly');
+
+        croak "[BASEDATA] Failed to read $file with GDAL\n"
+          if !defined $data;
+
+        say '[BASEDATA] Driver: ', $data->GetDriver()->{ShortName}, '/', $data->GetDriver()->{LongName};
+        say '[BASEDATA] Size is ', $data->{RasterXSize}, ' x ', $data->{RasterXSize}, ' x ', $data->{RasterCount};
+        say '[BASEDATA] Projection is ', $data->GetProjection();
+
+        my @tf = $data->GetGeoTransform();
+        say '[BASEDATA] Transform is ', join (' ', @tf);
+        say "[BASEDATA] Origin = ($tf[0], $tf[3])";
+        say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";  #  $tf[5] is negative to allow for line order
+
+        # iterate over each band
+        foreach my $b (1 .. $data->{RasterCount}) {
+            my $band = $data->Band($b);
+            my ($blockw, $blockh, $maxw, $maxh);
+            my ($wpos, $hpos) = (0, 0);
+            my $nodata_value = $band->GetNoDataValue;
+            my $this_label;
+
+            say "Band $b %$band ", $band->{DataType};
+            if ($given_label) {
+                $this_label = $given_label;
+            }
+            elsif ($labels_as_bands) { 
+                # if single band, set label as filename
+                if ($data->{RasterCount} == 1) {
+                    $this_label = Path::Class::File->new($file->stringify)->basename();
+                }
+                else {
+                    $this_label = "band$b";
+                }
+            }
+
+            # get category names for this band, which will attempt
+            # to be used as labels based on cell values (if ! labels_as_bands)
+            my @catnames = $band->CategoryNames();
+            my %catname_hash;
+            @catname_hash{(0 .. $#catnames)} = @catnames;
+
+            # record if numeric values are being used for labels
+            # CHECK CHECK CHECK - should be set later, as we might be adding to an existing basedata
+            if (scalar @catnames == 0 && ! $labels_as_bands) {
+                $labels_ref->{element_arrays_are_numeric} = 1;
+            }
+
+            # read as preferred size blocks?
+            ($blockw, $blockh) = $band->GetBlockSize();
+            say "Block size ($blockw, $blockh), full size ($data->{RasterXSize}, $data->{RasterYSize})";
+            
+            my $target_count    = $data->{RasterXSize} * $data->{RasterYSize};
+            my $processed_count = 0;
+
+            # read a "block" at a time
+            # assume @cell_sizes is ($xsize, $ysize)
+            $hpos = 0;
+            while ($hpos < $data->{RasterYSize}) {
+                # progress bar stuff
+                my $frac = $hpos / $data->{RasterYSize}; 
+                $progress_bar->update(
+                      "Loading $file_base\n"
+                    . "Cell $processed_count of $target_count\n",
+                    $frac
+                );
+
+                if ($hpos % 10000 == 0) {
+                    say "Loading $file_base "
+                    . "Cell $processed_count of $target_count\n",
+                    $frac
+                }
+
+
+                $wpos = 0;
+                while ($wpos < $data->{RasterXSize}) {
+                    $maxw = min($data->{RasterXSize}, $wpos + $blockw);
+                    $maxh = min($data->{RasterYSize}, $hpos + $blockh);
+
+                    #say "reading tile at origin ($wpos, $hpos), to max ($maxw, $maxh)";                 
+                    my $lr   = $band->ReadTile($wpos, $hpos, $maxw - $wpos, $maxh - $hpos);
+                    my @tile = @$lr;
+                    my $datay    = $hpos;
+
+                  ROW:
+                    foreach my $lineref (@tile) {
+                        my $datax = $wpos;
+
+                      COLUMN:
+                        foreach my $entry (@$lineref) {
+                            $processed_count++;
+                            # need to add check for empty groups when it is added as an argument
+                            if (defined $nodata_value && $entry == $nodata_value) {
+                                $datax++; 
+                                next COLUMN;
+                               };  
+
+                            # data points are 0,0 at top-left of data, however grid coordinates used
+                            # for transformation start at bottom-left corner (transform handled by following
+                            # affine transformation, with y-pixel size = -1).
+                            my $gridy = $datay;
+                            my $gridx = $datax;
+                            
+                            # find transformed position (see GDAL specs)        
+                            #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
+                            #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
+                            my $egeo = $tf[0] + $gridx * $tf[1] + $gridy * $tf[2];
+                            my $ngeo = $tf[3] + $gridx * $tf[4] + $gridy * $tf[5];
+
+                            # calculate "group" from this position. (defined as csv string of central points of group)
+                            # note "geo" coordinates are the top-left of the cell (NW)
+                            my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e); 
+                            my $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
+                            my $grpe = $cellorigin_e + $ecell * $cellsize_e + ($cellsize_e / 2.0); 
+                            my $grpn = $cellorigin_n + $ncell * $cellsize_n - ($cellsize_n / 2.0); # subtract half cell width since position is top-left
+                            my @grplist = ($grpe, $grpn);
+                            my $grpstring = $self->list2csv (
+                                list        => \@grplist,
+                                csv_object  => $out_csv,
+                            );
+                            #say "data point($datax, $datay) grid ($gridx, $gridy) geo($egeo, $ngeo) cell($ecell, $ncell) group($grpe, $grpn)";
+
+                            # set label if determined at cell level
+                            my $count = 1;
+                            if ($labels_as_bands || $given_label) {
+                                # set count to cell value if using band as label or provided label
+                                $count = $entry;
+                            }
+                            else {
+                                # set label from cell value or category if valid
+                                $this_label = exists $catname_hash{$entry} && $catname_hash{$entry}
+                                            ? $catname_hash{$entry}
+                                            : $entry;
+                            } 
+
+                            # add to elements (skipped if the label is nodata)
+                            $self->add_element (
+                                label      => $this_label,
+                                group      => $grpstring,
+                                count      => $count,
+                                csv_object => $out_csv,
+                            );
+                            
+                            $datax++;
+                        } # each entry on line
+                        $datay++;
+                    } # each line in block
+                    $wpos += $blockw;
+                } # each block in width
+
+                $hpos += $blockh;
+            } # each block in height
+        } # each raster band
+        
+        $progress_bar->update('Done', 1);
+
+    } # each file
+
+    $self->run_import_post_processes (
+        %args,
+        label_axis_count => 1,  #  FIXME - might change if we have a remap
+        orig_group_count => $orig_group_count,
+        orig_label_count => $orig_label_count,
+    );
+
+    return 1;  #  success
+}
+
+# subroutine to read a data file as shapefile.  arguments
+# input_files: list of files to read(?)
+# label_fields: fields which are read as labels (from ('x','y','z','m'))
+# group_fields: fields which are read as labels (from ('x','y','z','m'))
+# use_dbf_label: looks for label entry in dbf record, use for labels (supercedes label fields)
+sub import_data_shapefile {
+    my $self = shift;
+    my %args = @_;
+    
+    my $orig_group_count = $self->get_group_count;
+    my $orig_label_count = $self->get_label_count;
+
+    #  load the properties tables from the args, or use the ones we already have
+    #  labels first
+    my $label_properties;
+    my $use_label_properties = $args{use_label_properties};
+    if ($use_label_properties) {  # twisted - FIXFIXFIX
+        $label_properties = $args{label_properties}
+                            || $self->get_param ('LABEL_PROPERTIES');
+        if ($args{label_properties}) {
+            $self->set_param (LABEL_PROPERTIES => $args{label_properties});
+        }
+    }
+    #  then groups
+    my $group_properties;
+    my $use_group_properties = $args{use_group_properties};
+    if ($use_group_properties) {
+        $group_properties = $args{group_properties}
+                            || $self->get_param ('GROUP_PROPERTIES');
+        if ($args{group_properties}) {
+            $self->set_param (GROUP_PROPERTIES => $args{group_properties}) ;
+        }
+    }
+    my $progress_bar = Biodiverse::Progress->new();
+    # QUESTION- do we need to do more than this with the properties?
+
+    croak "Input files array not provided\n"
+      if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
+
+    my @group_field_names = @{$args{group_fields} // $args{group_field_names}};
+    my @label_field_names = @{$args{label_fields} // $args{label_field_names}};
+    my @smp_count_field_names = @{$args{sample_count_col_names} // []};
+
+    my @group_origins = $self->get_cell_origins;
+    my @group_sizes   = $self->get_cell_sizes;
+
+    my $labels_ref = $self->get_labels_ref;
+    my $groups_ref = $self->get_groups_ref;
+    
+    say '[BASEDATA] Loading from files as shapefile '
+        . join (q{ }, @{$args{input_files}});
+
+    # needed to construct the groups and labels
+    my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
+    my $el_sep = $self->get_param ('JOIN_CHAR');
+    my $out_csv = $self->get_csv_object (
+        sep_char   => $el_sep,
+        quote_char => $quotes,
+    );
+    
+    # load each file, using same arguments/parameters
+    foreach my $file (@{$args{input_files}}) {
+        $file = Path::Class::file($file)->absolute;
+        say "[BASEDATA] INPUT FILE: $file";
+
+        # open as shapefile
+        my $fnamebase = $file->stringify;
+        $fnamebase =~ s/\.[^.]*//;
+        my $shapefile = Geo::ShapeFile->new($fnamebase);
+        #say "have $shapefile";
+
+        croak "[BASEDATA] Failed to read $file with ShapeFile\n"
+           if !defined $shapefile; # assuming not defined on fail
+
+        my $shape_type = $shapefile->type ($shapefile->shape_type);
+        croak '[BASEDATA] Import of non-point shapefiles is not supported.  '
+            . "$fnamebase is type $shape_type\n"
+          if not $shape_type =~ /Point/;
+
+        my $shape_count = $shapefile->shapes();
+        say "have $shape_count shapes";
+
+        # iterate over shapes
+        foreach my $cnt (1 .. $shapefile->shapes()) {  
+            my $shape = $shapefile->get_shp_record($cnt);
+
+            # Get database record for this shape.
+            # Same for all features in the shape.
+            my %db_rec = $shapefile->get_dbf_record($cnt);
+
+            #say "read shape, label $dbf_label, count $dbf_count";
+
+            my $has_z = defined $shape->z_min;
+            my $has_m = defined $shape->m_min;
+
+            # just get all the points from the shape.  
+            my @ptlist = $shape->points();
+
+            # read over all points in the shape
+            foreach my $point (@ptlist) {
+
+                #  add the coords to the db_rec hash
+                $db_rec{':shape_x'} = $point->X;
+                $db_rec{':shape_y'} = $point->Y;
+                if ($has_z) {
+                    $db_rec{':shape_z'} = $point->Z;
+                }
+                if ($has_m) {
+                    $db_rec{':shape_m'} = $point->M;
+                }
+
+                my @these_labels;
+                my $this_count = scalar @smp_count_field_names
+                    ? sum 0, @db_rec{@smp_count_field_names}
+                    : 1;
+
+                if ($args{use_dbf_label}) {
+                    #  this should be use_matrix_format, and implemented consistent with the text parser
+                    #my $this_label = $dbf_label;
+                    #my $this_count = $dbf_count;
+                }
+                else {
+                    my @lb_fields = @db_rec{@label_field_names};
+                    my $this_label = $self->list2csv (
+                        list        => \@lb_fields,
+                        csv_object  => $out_csv
+                    );
+                    push @these_labels, $this_label;
+                }
+
+                # form group text from group fields (defined as csv string of central points of group)
+                # Needs to process the data in the same way as for text imports - refactoring is in order.
+                my @group_field_vals = @db_rec{@group_field_names};
+                my @gp_fields;
+                my $i = 0;
+                foreach my $val (@group_field_vals) {
+                    my $origin = $group_origins[$i];
+                    my $g_size = $group_sizes[$i];
+
+                    if ($g_size > 0) {
+                        my $cell       = floor (($val - $origin) / $g_size); 
+                        my $grp_centre = $origin + $cell * $g_size + ($g_size / 2);
+                        push @gp_fields, $grp_centre;
+                    }
+                    else {
+                        push @gp_fields, $val;
+                    }
+                }
+                my $grpstring = $self->list2csv (
+                    list        => \@gp_fields,
+                    csv_object  => $out_csv,
+                );
+
+                foreach my $this_label (@these_labels) {
+                    #print "adding point label $this_label group $grpstring count $this_count\n";       
+
+                    if (scalar @label_field_names <= 1 && $this_label =~ /^$quotes(?:.*)$quotes$/) {
+                        $this_label = substr ($this_label, 1);
+                        chop $this_label;
+                    }
+                    # add to elements
+                    $self->add_element (
+                        label      => $this_label,
+                        group      => $grpstring,
+                        count      => $this_count,
+                        csv_object => $out_csv,
+                    );
+                }
+            } # each point
+
+            # progress bar stuff
+            my $frac = $cnt / $shape_count;
+            $progress_bar->update(
+                "Loading $file\n" .
+                "Shape $cnt of $shape_count\n",
+                $frac
+            );
+
+        } # each shape
+
+        $progress_bar->update('Done', 1);
+    } # each file
+
+
+    $self->run_import_post_processes (
+        %args,
+        label_axis_count => scalar @label_field_names,
+        orig_group_count => $orig_group_count,
+        orig_label_count => $orig_label_count,
+    );
+
+    return 1;  #  success
+}
+
 sub run_import_post_processes {
     my $self = shift;
     my %args = @_;
     
     my $orig_group_count = $args{orig_group_count};
     my $orig_label_count = $args{orig_label_count};
-    my $label_columns    = $args{label_columns};  #  should be able to work this one out from the data
 
     my $groups_ref = $self->get_groups_ref;
     my $labels_ref = $self->get_labels_ref;
+
+    #  how many label axes do we have?
+    #  Assume 1 axis if no labels have yet been set.
+    my $labels = $self->get_labels;
+    my $first_label = $labels->[0] // '';
+    my $lb_csv_obj  = $labels_ref->get_csv_object (
+        quote_char => $labels_ref->get_param ('QUOTES'),
+        sep_char   => $labels_ref->get_param ('JOIN_CHAR'),
+    );
+    my @components = $self->csv2list (
+        string     => $first_label,
+        csv_object => $lb_csv_obj,
+    );
+    my $label_axis_count = scalar @components;
 
     #  set whatever label properties are in the table
     if ($args{use_label_properties}) {
@@ -1107,7 +1646,7 @@ sub run_import_post_processes {
     }
 
     # Set CELL_SIZE on the GROUPS BaseStruct
-    $groups_ref->set_param (CELL_SIZES => $self->get_param('CELL_SIZES'));
+    $groups_ref->set_param (CELL_SIZES => [$self->get_cell_sizes]);
 
     #  check if the labels are numeric (or still numeric)
     #  set flags and cell sizes accordingly
@@ -1118,7 +1657,7 @@ sub run_import_post_processes {
 
     #  set the labels cell size in case we are transposed at some point
     my $label_cellsize = $labels_ref->element_arrays_are_numeric ? 0 : -1;
-    my @label_cell_sizes = ($label_cellsize) x scalar @$label_columns;
+    my @label_cell_sizes = ($label_cellsize) x $label_axis_count;
     $labels_ref->set_param (CELL_SIZES => \@label_cell_sizes);
 
     #  clear some params (should these be cached?)
@@ -1230,7 +1769,7 @@ sub assign_element_properties {
         my %props = $prop_obj->get_element_properties (element => $element);
 
         #  but don't add these ones
-        delete @props{qw /INCLUDE EXCLUDE/};
+        delete @props{qw /INCLUDE EXCLUDE/}; #/
 
         $gp_lb_ref->add_to_lists (
             element    => $element,
@@ -1345,8 +1884,9 @@ sub get_labels_from_line {
     #  get the sample count
     my $sample_count;
     foreach my $column (@$sample_count_columns) {
-        my $col_value = $fields_ref->[$column];
+        my $col_value = $fields_ref->[$column] // 0;
 
+        #  need this check now?  Not sure it worked properly anyway, as it could return early
         if ($args{allow_empty_groups} or $args{allow_empty_labels}) {
             return if not defined $col_value;  #  only skip undefined records
         }
@@ -1359,7 +1899,7 @@ sub get_labels_from_line {
     }
     
     #  set default count - should only get valid records if we get this far
-    $sample_count = 1 if not defined $sample_count;
+    $sample_count //= 1;
     
     #$elements{$label} = $sample_count if $sample_count;
     $elements{$label} = $sample_count;
@@ -2880,24 +3420,25 @@ sub add_matrix_output {
         $object->weaken_basedata_ref;
     }
     else {  #  create a new object
-        croak "Creation of matrix new objects is not supported - they are added by the clustering system\n";
-        
-        croak "[BASEDATA] argument name not specified\n"
-            if (! defined $args{name});
+        croak 'Creation of matrix new objects is not supported - '
+            . "they are added by the clustering system\n";
 
-        $name = $args{name};
-        delete $args{name};
-
-        croak "[BASEDATA] Cannot replace existing matrix object $name.  Use a different name.\n"
-            if defined $self->{MATRIX_OUTPUTS}{$name};
-
-        $object = $class->new (
-            QUOTES       => $self->get_param('QUOTES'),
-            JOIN_CHAR    => $self->get_param('JOIN_CHAR'),
-            %args,
-            NAME         => $name,  #  these two always over-ride user args (NAME can be an arg)
-            BASEDATA_REF => $self,
-        );
+        #croak "[BASEDATA] argument name not specified\n"
+        #    if (! defined $args{name});
+        #
+        #$name = $args{name};
+        #delete $args{name};
+        #
+        #croak "[BASEDATA] Cannot replace existing matrix object $name.  Use a different name.\n"
+        #    if defined $self->{MATRIX_OUTPUTS}{$name};
+        #
+        #$object = $class->new (
+        #    QUOTES       => $self->get_param('QUOTES'),
+        #    JOIN_CHAR    => $self->get_param('JOIN_CHAR'),
+        #    %args,
+        #    NAME         => $name,  #  these two always over-ride user args (NAME can be an arg)
+        #    BASEDATA_REF => $self,
+        #);
     }
 
     $self->{MATRIX_OUTPUTS}{$name} = $object;  #  add or replace (take care with the replace)
@@ -3092,9 +3633,9 @@ sub get_neighbours {
     my $spatial_conditions = $args{spatial_conditions}
                           // $args{spatial_params}
                           || croak "[BASEDATA] No spatial_conditions argument\n";
-    my $index = $args{index};
+    my $index        = $args{index};
     my $is_def_query = $args{is_def_query};  #  some processing changes if a def query
-    my $cellsizes = $self->get_param ('CELL_SIZES');
+    my $cellsizes    = $self->get_cell_sizes;
 
     #  skip those elements that we want to ignore - allows us to avoid including
     #  element_list1 elements in these neighbours,

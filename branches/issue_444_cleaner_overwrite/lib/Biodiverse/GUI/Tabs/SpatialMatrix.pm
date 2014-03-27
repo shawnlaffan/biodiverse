@@ -181,8 +181,9 @@ sub set_frame_label_widget {
     
     my $label = $self->{xmlPage}->get_widget('label_spatial_parameters');
     $label->hide;
+
     return;
-    
+
     my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
     $widget->show;
 

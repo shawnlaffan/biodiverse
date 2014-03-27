@@ -400,7 +400,7 @@ sub add_children {
             }
             else {
                 croak "Warning: Cannot add $child as a child - already a blessed object\n";
-                next CHILD;
+                #next CHILD;
             }
         }
         push @{$self->{_CHILDREN}}, $child;

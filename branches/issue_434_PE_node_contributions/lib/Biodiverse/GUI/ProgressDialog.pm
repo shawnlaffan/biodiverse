@@ -12,7 +12,8 @@ use Glib qw (TRUE FALSE);
 use Gtk2;
 use Gtk2::GladeXML;
 use Carp;
-use Time::HiRes qw /tv_interval gettimeofday/;
+use Time::HiRes qw/tv_interval gettimeofday/;
+use Data::Dumper;
 
 require Biodiverse::Config;
 my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
@@ -21,18 +22,21 @@ our $VERSION = '0.19';
 
 my $TRUE  = 'TRUE';
 my $FALSE = 'FALSE';
-my $NULL_STRING = q{};
+my $NULL_STRING = q//;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::Exception;
 
 no warnings 'redefine';
 
+my $progress_next_id = 0;
+my $progress_max_id = 32000; # fairly conservative int_max
 
 sub new {
     my $class    = shift;
     my $text     = shift || $NULL_STRING;
     my $progress = shift || 0;
+    my $title    = shift || $NULL_STRING;
 
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
@@ -40,58 +44,69 @@ sub new {
     my $glade_file = $gui->get_glade_file;
     Biodiverse::GUI::ProgressDialog::NotInGUI->throw
         if ! $glade_file;
-
-    my $window = Gtk2::Window->new;
-    my $vbox   = Gtk2::VBox->new (undef, 10);
-    my $bar    = Gtk2::ProgressBar->new;
-    my $label  = Gtk2::Label->new;
     
     # Make object
     my $self = {
-        dlg          => $window,
-        label_widget => $label,
-        progress_bar => $bar,
+        label_widget => undef,
+        progress_bar => undef,
+        id => 0
     };
     bless $self, $class;
-
-    $window->set_transient_for( $gui->get_widget('wndMain') );
-    $window->set_default_size (300, -1);
-    $window->signal_connect ('delete-event' => \&destroy_callback, $self);
     
-    $window->set_title ('Please wait...');
-    $label->set_line_wrap (1);
-    $label->set_markup($text);
+    # from progress bar singleton in GUI, request a new progress
+    # instance and grab references to the widgets
+    $self->{id} = $progress_next_id++;
+    $progress_next_id = 0 if ($progress_next_id >= $progress_max_id);
+    my ($label, $bar) = $gui->add_progress_entry($self, $title, $text, $progress);
 
-    $window->add ($vbox);
-    $vbox->pack_end ($bar,   1, 0, 0);
-    $vbox->pack_end ($label, 1, 0, 0);
-    $window->show_all;
-
+    $self->{label_widget} = $label;
+    $self->{progress_bar} = $bar;
     
     $self->{progress_update_interval} = $progress_update_interval;
 
-    $self->update ($text, 0, 1);
+    $self->update ($text, $progress);
+
+    #  set the last update time back so we always trigger on the first update
+    my $last_update_time = [gettimeofday];
+    $last_update_time->[0] -= 2 * $progress_update_interval;
+    $self->{last_update_time} = $last_update_time;
 
     return $self;
 }
 
-sub destroy {
+sub get_id {
     my $self = shift;
-    #say "Destroying progress bar";
+    return $self->{id};
+}
+
+sub end_dialog {
+    my $self = shift;
+
     $self->pulsate_stop;
 
     #  sometimes we have already been destroyed when this is called
-    if ($self->{dlg}) {
-        $self->{dlg}->destroy();
-    }
+    #if ($self->{dlg}) {
+    #    $self->{dlg}->destroy();
+    #}
 
+    # assume destroyed by method that created the progress bar, unlink from
+    # gui display window
+    my $gui = Biodiverse::GUI::GUIManager->instance;
+    $gui->clear_progress_entry($self);
+    
     foreach my $key (keys %$self) {
         #say "$key $self->{$key}";
         $self->{$key} = undef;
     }
+}
 
+sub destroy {
+    my $self = shift;
+    $self->end_dialog;
+    
     return;
 }
+
 
 #  wrapper for the destroy method
 sub destroy_callback {
@@ -115,6 +130,16 @@ sub update {
         );
     }
     
+    # get widgets and check if window closed
+    my $label_widget = $self->{label_widget};
+    my $bar = $self->{progress_bar};
+    if (not defined $bar) {
+        say 'Update called when progress bar not defined, throwing';
+        Biodiverse::GUI::ProgressDialog::Cancel->throw(
+            message  => 'Progress bar closed, operation cancelled',
+        );
+    }
+
     return if $self->{last_update_time}
               && !(  tv_interval ($self->{last_update_time})
                     > $self->{progress_update_interval}
@@ -125,17 +150,8 @@ sub update {
     #$self->{dlg}->present;  #  raise to top
 
     # update dialog
-    my $label_widget = $self->{label_widget};
     if ($label_widget) {
         $label_widget->set_markup("<b>$text</b>");
-    }
-
-    my $bar = $self->{progress_bar};
-
-    if (not defined $bar) {
-        Biodiverse::GUI::ProgressDialog::Cancel->throw(
-            message  => "Progress bar closed, operation cancelled",
-        );
     }
 
     $self->{pulse} = 0;
@@ -143,6 +159,10 @@ sub update {
     $bar->set_fraction($progress);
 
     while (Gtk2->events_pending) { Gtk2->main_iteration(); }
+    
+    Biodiverse::GUI::GUIManager->instance->show_progress;
+
+    #say "Update call, text $text progress $progress current prog dialog object: " . Dumper($self);
 
     return;
 }

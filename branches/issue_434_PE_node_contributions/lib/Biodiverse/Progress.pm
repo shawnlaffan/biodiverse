@@ -5,7 +5,7 @@ use English qw { -no_match_vars };
 use Carp;
 use POSIX qw /fmod/;
 use List::Util qw /max min/;
-my $NULL_STRING = q{};
+my $NULL_STRING = q//;
 
 require Biodiverse::Config;
 use Biodiverse::Exception;
@@ -41,10 +41,12 @@ sub new {
             require Biodiverse::GUI::ProgressDialog;
             $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  #  should pass on all relevant args
         };
-        if (! $EVAL_ERROR and defined $gui_progress) {
+        my $e = $EVAL_ERROR;
+        if (! $e and defined $gui_progress) {
             #  if we are in the GUI then we can use a GUI progress dialogue
             $self->{gui_progress} = $gui_progress;
         }
+        warn $e if $e;
     }
 
     return $self;

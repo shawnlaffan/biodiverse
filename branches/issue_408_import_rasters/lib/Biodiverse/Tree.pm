@@ -813,6 +813,8 @@ sub get_metadata_export_shapefile {
             {
                 name        => 'plot_left_to_right',
                 label_text  => 'Plot left to right',
+                tooltip     => 'Should terminals be to the right of the root node? '
+                             . '(default is to the left, with the root node at the right).',
                 type        => 'boolean',
                 default     => 0,
                 tooltip     =>

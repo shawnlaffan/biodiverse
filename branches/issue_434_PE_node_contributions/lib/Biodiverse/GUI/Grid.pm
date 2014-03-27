@@ -6,6 +6,7 @@ A component that displays a BaseStruct using GnomeCanvas
 
 package Biodiverse::GUI::Grid;
 
+use 5.010;
 use strict;
 use warnings;
 use Data::Dumper;
@@ -783,23 +784,24 @@ sub load_shapefile {
 # The callback should return a Gtk2::Gdk::Color object, or undef
 # to set the colour to CELL_WHITE
 sub colour {
-    my $self = shift;
+    my $self     = shift;
     my $callback = shift;
 
 #print "Colouring " . (scalar keys %{$self->{cells}}) . " cells\n";
 
+  CELL:
     foreach my $cell (values %{$self->{cells}}) {
 
-        my $colour_ref = &$callback($cell->[INDEX_ELEMENT]);
-        if (not defined $colour_ref) {
-            #warn $cell->[INDEX_ELEMENT] . " is undef\n";
-            $colour_ref = CELL_WHITE;
-        }
+        #  sometimes we are called before all cells have contents
+        next CELL if !defined $cell->[INDEX_RECT];
 
-        #if (not $colour_ref->equal($cell->[INDEX_COLOUR])) {
+        my $colour_ref = $callback->($cell->[INDEX_ELEMENT]) // CELL_WHITE;
+        $cell->[INDEX_COLOUR] = $colour_ref;
+
+        eval {
             $cell->[INDEX_RECT]->set('fill-color-gdk' => $colour_ref);
-            $cell->[INDEX_COLOUR] = $colour_ref;
-        #}
+        };
+        warn $@ if $@;
     }
 
     return;
@@ -966,9 +968,10 @@ sub mark_if_exists {
     my $hash  = shift;
     my $shape = shift; # "circle" or "cross"
 
+  CELL:
     foreach my $cell (values %{$self->{cells}}) {
-        #  hackish, but sometimes we are called before the data are populated
-        return if !$cell || ! $cell->[INDEX_RECT];
+        # sometimes we are called before the data are populated
+        next CELL if !$cell || !$cell->[INDEX_RECT];
 
         my $group = $cell->[INDEX_RECT]->parent;
 
@@ -983,7 +986,7 @@ sub mark_if_exists {
             #if ($shape eq 'cross' && not $cell->[INDEX_CROSS]) {
             #    $cell->[INDEX_CROSS] = $self->draw_cross($group);
             #} 
-            
+
             # Minus
             if ($shape eq 'minus' && not $cell->[INDEX_MINUS]) {
                 $cell->[INDEX_MINUS] = $self->draw_minus($group);
@@ -1094,7 +1097,7 @@ sub colour_cells {
         my $val = defined $self->{analysis} ? $cell->[INDEX_VALUES]{$self->{analysis}} : undef;
         my $rect = $cell->[INDEX_RECT];
         my $colour = defined $val ? $self->get_colour($val, $self->{min}, $self->{max}) : $colour_none;
-        $rect->set('fill-color-gdk',  $colour);
+        $rect->set('fill-color-gdk' =>  $colour);
     }
 
     return;
@@ -1113,6 +1116,12 @@ sub get_colour_none {
     return $colour_none;    
 }
 
+my %colour_methods = (
+    Hue => 'get_colour_hue',
+    Sat => 'get_colour_saturation',
+    Grey => 'get_colour_grey',
+);
+
 sub get_colour {
     my ($self, $val, $min, $max) = @_;
 
@@ -1123,21 +1132,13 @@ sub get_colour {
         $val = $max;
     }
     my @args = ($val, $min, $max);
-    
-    if    ($self->{legend_mode} eq 'Hue') {
-        return $self->get_colour_hue(@args);
-    }
-    elsif ($self->{legend_mode} eq 'Sat') {
-        return $self->get_colour_saturation(@args);
-    }
-    elsif ($self->{legend_mode} eq 'Grey') {
-        return $self->get_colour_grey(@args);
-    }
-    else {
-        croak "Unknown colour system: " . $self->{legend_mode} . "\n";
-    }
 
-    return;
+    my $method = $colour_methods{$self->{legend_mode}};
+
+    croak "Unknown colour system: $self->{legend_mode}\n"
+      if !$method;
+
+    return $self->$method(@args);
 }
 
 sub get_colour_hue {
@@ -1393,7 +1394,7 @@ sub on_event {
         # Call client-defined callback function
         if (defined $self->{hover_func} and not $self->{clicked_cell}) {
             my $f = $self->{hover_func};
-            &$f($self->{cells}{$cell}[INDEX_ELEMENT]);
+            $f->($self->{cells}{$cell}[INDEX_ELEMENT]);
         }
 
         # Change the cursor
@@ -1404,12 +1405,12 @@ sub on_event {
     elsif ($event->type eq 'leave-notify') {
 
         # Call client-defined callback function
-        if (defined $self->{hover_func} and not $self->{clicked_cell}) {
-            my $f = $self->{hover_func};
-            # FIXME: Disabling hiding of markers since this stuffs up
-            # the popups on win32 - we receive leave-notify on button click!
-            #&$f(undef);
-        }
+        #if (defined $self->{hover_func} and not $self->{clicked_cell}) {
+        #    my $f = $self->{hover_func};
+        #    # FIXME: Disabling hiding of markers since this stuffs up
+        #    # the popups on win32 - we receive leave-notify on button click!
+        #    #$f->(undef);
+        #}
 
         # Change cursor back to default
         $self->{canvas}->window->set_cursor(undef);
@@ -1419,7 +1420,7 @@ sub on_event {
         $self->{clicked_cell} = undef unless $event->button == 2;  #  clear any clicked cell
         
         # If middle-click or control-click
-        if (    $event->button == 2
+        if (        $event->button == 2
             || (    $event->button == 1
                 and not $self->{selecting}
                 and $event->state >= [ 'control-mask' ])
@@ -1428,7 +1429,7 @@ sub on_event {
             # Show/Hide the labels popup dialog
             my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
             my $f = $self->{click_func};
-            &$f($element);
+            $f->($element);
             
             return 1;  #  Don't propagate the events
         }
@@ -1469,7 +1470,7 @@ sub on_event {
             # Call client-defined callback function
             if (defined $self->{hover_func}) {
                 my $f = $self->{hover_func};
-                &$f($self->{cells}{$cell}[INDEX_ELEMENT]);
+                $f->($self->{cells}{$cell}[INDEX_ELEMENT]);
             }
             $self->{clicked_cell} = $cell;
             
@@ -1683,7 +1684,7 @@ sub end_selection {
 
     # call callback
     my $f = $self->{select_func};
-    &$f($elements);
+    $f->($elements);
     
     return;
 }

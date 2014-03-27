@@ -1293,7 +1293,7 @@ sub make_total_length_array_inner {
     push @{$array}, $node;
 
     # Do the children
-    my $length_total = &$lf($node) + $length_so_far;
+    my $length_total = $lf->($node) + $length_so_far;
     foreach my $child ($node->get_children) {
         make_total_length_array_inner($child, $length_total, $array, $lf);
     }
@@ -1338,8 +1338,8 @@ sub set_plot_mode {
     my $g = $self->{neg_length_func};
     my $ht = $self->{num_leaves} * LEAF_SPACING;
     $self->{unscaled_height} = $ht + $self->{border_ht} * 2;
-    $self->{max_len}         = &$f($self->{tree_node}); # this is in (unscaled) cluster-length units
-    $self->{neg_len}         = &$g($self->{tree_node});
+    $self->{max_len}         = $f->($self->{tree_node}); # this is in (unscaled) cluster-length units
+    $self->{neg_len}         = $g->($self->{tree_node});
     $self->{border_len}      = 0.5 * BORDER_FRACTION * ($self->{max_len} + $self->{neg_len}) / (1 - BORDER_FRACTION);
     $self->{unscaled_width}  = 2 * $self->{border_len} + $self->{max_len} + $self->{neg_len};
 
@@ -1649,7 +1649,7 @@ sub resize_background_rect {
 sub draw_node {
     my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale) = @_;
 
-    my $length = &$length_func($node) * $length_scale;
+    my $length = $length_func->($node) * $length_scale;
     my $new_current_xpos = $current_xpos - $length;
     my $y = $node->get_value('_y') * $height_scale;
     my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
@@ -1718,7 +1718,7 @@ sub on_event {
         # Call client-defined callback function
         if (defined $self->{hover_func}) {
             $f = $self->{hover_func};
-            &$f($node);
+            $f->($node);
         }
 
         # Call client-defined callback function
@@ -1727,7 +1727,7 @@ sub on_event {
             and not $self->{click_line}) {
 
             $f = $self->{highlight_func};
-            &$f($node);
+            $f->($node);
         }
 
         #if (not $self->{click_line}) {
@@ -1747,13 +1747,13 @@ sub on_event {
         # Call client-defined callback function
         if (defined $self->{hover_func}) {
             $f = $self->{hover_func};
-            &$f(undef);
+            $f->(undef);
         }
 
         # Call client-defined callback function
         if (defined $self->{highlight_func} and not $self->{click_line}) {
             $f = $self->{highlight_func};
-            &$f(undef);
+            $f->(undef);
         }
 
         #$line->set(fill_color => 'black') if (not $self->{click_line});
@@ -1768,7 +1768,7 @@ sub on_event {
         if ($event->button == 2 || ($event->button == 1 and $event->state >= [ 'control-mask' ]) ) {
             if (defined $self->{ctrl_click_func}) {
                 $f = $self->{ctrl_click_func};
-                &$f($node);
+                $f->($node);
             }
         # Just click - colour nodes
         }
@@ -1776,7 +1776,7 @@ sub on_event {
             $self->do_colour_nodes_below($node);
             if (defined $self->{click_func}) {
                 $f = $self->{click_func};
-                &$f($node);
+                $f->($node);
             }
         # Right click - set marks semi-permanently
         }
@@ -1789,7 +1789,7 @@ sub on_event {
             # Call client-defined callback function
             if (defined $self->{highlight_func}) {
                 $f = $self->{highlight_func};
-                &$f($node);
+                $f->($node);
             }
             #$line->set(fill_color => 'red');
             $self->{click_line} = $line;
@@ -1808,7 +1808,7 @@ sub on_background_event {
             $self->do_colour_nodes_below;  #  no arg will clear colouring
             if (defined $self->{click_func}) {
                 my $f = $self->{click_func};
-                &$f();
+                $f->();
             }
         }
         else {

@@ -1,5 +1,10 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+0.191 2014-03-06
+    - Add minimum version for Geo::ShapeFile (2.58)
+    - Set minimum version for List::Util to 1.38
+    - Add Geo::Shapefile::Writer
+
 0.19 2012-10-28
     - Statistics::Descriptive, List::Util and Clone now specify minimum versions.
     - Added several new dependencies (rlib, Class::Inspector, List::MoreUtils)

@@ -1,5 +1,6 @@
 package BdPD::GenerateDistanceTable;
 
+use 5.010;
 use strict;
 use warnings;
 
@@ -23,7 +24,9 @@ use Exporter::Easy (
 #   FILE PARAMETERS
 #
 #   dist_measure
-#                   - the name of the distance measure to use. Accepted options so far are single items or a list from:
+#                   - the name of the distance measure to use.
+#                   - the first listed item will be placed in the 'Response' column in the site-pair file
+#                   Accepted options so far are single items or a list from:
 #                       "phylo_sorenson"
 #                       "sorenson"
 #                       "geographic"
@@ -97,9 +100,13 @@ use Exporter::Easy (
 #                       - more than one dist_measure is being used
 #                       - defaults to the only, or first distance measure.  Because key order is unreliable, with multiple
 #                           distance measures it is important to set this parameter explicitly
-#   dist_limit
-#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple diagonal, with no adjustment for curvature etc
+#   dist_limit_max
+#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
+#
+#   dist_limit_min
+#                   - set a minimum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
+#                   - site pairs closer than the limit will not be used
 #
 #   sample_by_regions
 #                   - if 1 split sampling by regions, setting quotas for regions according to the parameter region_quota_strategy
@@ -151,8 +158,10 @@ use Exporter::Easy (
 #                   - which have groups in them
 #                   - optional - defaults to 0
 #
-#   species_sum     - if species_sum = 1 then an extra column contains the number sum of the number of species at the two sites, regardless of number shared.
-#                   - optional - defaults to 0
+#   weight_type     - defines the values used in the weight column to determine the weight given to each site pair in the GDM model
+#                   - the default value in "one" which places a 1 as the weight for every site pair
+#                   - if weight_type = "species_sum" then weight is the number sum of the number of species at the two sites, regardless of number shared.
+#                   - optional - defaults to "one"
 #
 #   FEEDBACK PARAMETERS
 #    
@@ -184,14 +193,14 @@ sub generate_distance_table {
 
     # for backwards compatability convert a text value of 'dist_measure to a hash element
     #which is the format now used, to allow for multiple distance measures
+    my @dist_measure_array = @{$args{dist_measure}};
     my %dist_measures;
-    if (!((ref $args{dist_measure}) =~ /HASH/)) {
-        %dist_measures = ($args{dist_measure} => 1);
-        $SPM->{dist_measure} = \%dist_measures;
-        $args{dist_measure}  = \%dist_measures;
-    }
+    @dist_measures{@dist_measure_array} = (1) x @dist_measure_array;
+    
+    $SPM->{dist_measure} = \@dist_measure_array;
+    #$args{dist_measure}  = \%dist_measures;
 
-    if (exists($args{dist_measure}{phylo_sorenson})) {
+    if (exists($dist_measures{phylo_sorenson})) {
         $SPM->set_param(use_phylogeny => 1)
     };
     
@@ -206,10 +215,10 @@ sub generate_distance_table {
     
     # assign the default output prefix for the selected distance measure, if none was provided
     if (!exists $SPM->{output_file_prefix}) {
-        if (exists($args{dist_measure}{phylo_sorenson})) {
+        if (exists($dist_measures{phylo_sorenson})) {
             $SPM->set_param (output_file_prefix => 'phylo_dist_');
         }
-        elsif (exists($args{dist_measure}{sorenson}))  {
+        elsif (exists($dist_measures{sorenson}))  {
             $SPM->set_param (output_file_prefix => 'dist_');
         };
     };
@@ -224,13 +233,11 @@ sub generate_distance_table {
         $SPM->set_param(test_sample_ratio => 1);
     }
     
-    my $measures = $args{dist_measure};
-    my @dist_measures = sort keys %$measures;
-    my $measure_count = scalar @dist_measures;
+    my $measure_count = scalar @dist_measure_array;
     $SPM->set_param(measure_count => $measure_count);
 
     if (!exists($SPM->{quota_dist_measure})) {
-        $SPM->set_param(quota_dist_measure => $dist_measures[0]);
+        $SPM->set_param(quota_dist_measure => $dist_measure_array[0]);
     }
     
     ### OUTPUT PARAMETERS
@@ -242,7 +249,6 @@ sub generate_distance_table {
 
     ######        END OF PARAMETERS        ######
     #############################################
-
     
     # load basedata (and phylogeny) from file
     $SPM->load_data();
@@ -290,7 +296,8 @@ sub generate_distance_table {
 
         if (!$SPM->{subset_for_testing}) {       # if no test dataset requested
             $grouplists{training} = \@grouplist;        
-        } else {                                # if training and test datasets requested
+        }
+        else {                                   # if training and test datasets requested
             shuffle @grouplist;
 
             my $group_count = (@grouplist + 0);
@@ -355,8 +362,8 @@ sub generate_distance_table {
                 $SPM->set_param (sample_count_current => $SPM->{sample_count});  
             }            
 
-            my $bins_max_val = exists ($SPM->{dist_limit})
-                    ? exists ($SPM->{dist_limit})
+            my $bins_max_val = exists ($SPM->{dist_limit_max})
+                    ? exists ($SPM->{dist_limit_max})
                     : 1;
 
             # prepare dissimilarity bins
@@ -370,13 +377,13 @@ sub generate_distance_table {
             my $dist_measure_text = q{};
             foreach my $i (0..($measure_count-1)) {
                 if ($i == 0) {
-                    $dist_measure_text .= $dist_measures[$i];
+                    $dist_measure_text .= $dist_measure_array[$i];
                 }
                 elsif ($i < $measure_count-1) {
-                    $dist_measure_text .= ", $dist_measures[$i]";
+                    $dist_measure_text .= ", $dist_measure_array[$i]";
                 }
                 else {
-                    $dist_measure_text .= " and $dist_measures[$i]";
+                    $dist_measure_text .= " and $dist_measure_array[$i]";
                 }
             };
             
@@ -388,29 +395,17 @@ sub generate_distance_table {
             my $regions_output = $SPM->{regions_output};
             print "\n";
             
-            my $dist_header;
-            if ($measure_count == 1) {
-                $dist_header = 'dist';
-            }
-            else {
-                foreach my $i (0..($measure_count-1)) {
-                if ($i==0) {
-                    $dist_header = $dist_measures[$i];
-                }
-                else {
-                    $dist_header = $dist_header . ',' . $dist_measures[$i];
-                }
+            my $extra_dist_header = "";
+            if ($measure_count > 1) {
+                foreach my $i (1..($measure_count-1)) {
+                    $extra_dist_header = "," . $extra_dist_header . $dist_measure_array[$i];
                 };
             };
             
-            my $sum_header="";
-            if ($SPM->{species_sum} == 1) {
-                $sum_header = ",species_sum";
-            }
-            
             # print the header row to the site pair file
-            print $result_file_handle "x0,y0,x1,y1,".$dist_header.$regions_output.$sum_header."\n";
-            
+            my $standard_header = "Response,Weights,x0,y0,x1,y1";
+            say $result_file_handle "$standard_header" . $extra_dist_header . $regions_output;
+
             # CALL THE MAIN SAMPLING LOOP #
             $SPM->do_sampling();        #
             ###############################
@@ -425,6 +420,8 @@ sub generate_distance_table {
             }
             my $elapsed_time = time()-$start_time;
             print "elapsed time: $elapsed_time seconds\n\n";
+            
+            $SPM -> set_param (feedback_header_done => 0);
         };
         
     };
@@ -438,7 +435,7 @@ sub parse_args_file {
     
     open my $fh, '<', $file or croak "Unable to open $file";
     
-    my %args = (dist_measure => {});
+    my %args = (dist_measure => []);
     
     LINE:
     while (defined (my $line = <$fh>)) {
@@ -457,17 +454,21 @@ sub parse_args_file {
             $value = $1
               // croak "Unbalanced parentheses in value for $keyword: $val2" ;
         }
-        $value =~ s/#.*$//;
+        #$value =~ s/#.*$//;
+        $value  =~ s/^\s+|\s+$//g;  # replaced previous line with this to strip both leading and trailing whitespace
+
         next LINE if !length $keyword;  #  skip empties
         
-        if (not $keyword =~ /dist_measure/) {
+        if (not $keyword =~ /^dist_measure$/) {
             $args{$keyword} = $value;
         }
         else {  #  special handling
-            $args{dist_measure}{$value} = 1;
+            #$args{dist_measure} //= [];  # initialise with an empty array if needed
+            my $array_ref = $args{dist_measure};
+            push @$array_ref, $value;
         }
     }
-    
+
     return wantarray ? %args : \%args;
 }
 

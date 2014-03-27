@@ -4,46 +4,53 @@
 #  Site Pair Sampler is an add-on to Biodiverse                                #
 #  Before running Site Pair Sampler, use Biodiverse to group location records, #
 #    typically by grid squares, to generate a set of populated sites.          #
+#                                                                              #
 #  The resulting data, saved in the Biodiverse basedata format (*.bds)         #
 #    is the main input for the site pair sampler                               #
 #                                                                              #
 #  All parameters are listed at the end of this file.                          #
+#                                                                              #
+#  Most parameters are optional - the settings below show basic settings       #
+#						                               #
+#  Anything after a # is a comment and is ignored.			       #
+#  If your argument contains a # then put it inside quotes.                    #
+#  Blank lines are also ignored.                                               #
+#                                                                              #
 #  Help is available at:                                                       #
 #    https://code.google.com/p/biodiverse/wiki/SitePairSampler                 #
 #                                                                              #
-#  Dan Rosauer	August 2013			                               #
+#  Dan Rosauer	August 2013 and March 2014	                               #
 ################################################################################
 
-#  Anything after a # is a comment and is ignored.
-#  If your argument contains a # then put it inside quotes.
-#  Blank lines are also ignored.
 
 # Inputs
-  directory               C:\Users\u3579238\Work\Study_Taxa\Herps\Hylidae  ## CHANGE THIS TO REFER TO TEST DATA
-  basedata_file           Hylids_Feb10_001deg_5000_IBRA                    ## CHANGE THIS TO REFER TO TEST DATA
+  directory               'C:\Biodiverse\etc\site_pair_sampler\amphibians\'
+  basedata_file           'HylidRecords_01_Jul09_forGDM_east_wet_ibra'
 
 # Sampling
+  # the first listed distance measure is placed in the Response column
   dist_measure            sorenson
   dist_measure            geographic 
-  sample_count            100000
+  sample_count            20000
   min_group_richness      5
   min_group_samples       5
   quota_dist_measure      geographic
-  dist_limit              15
+  dist_limit_max          15
+  dist_limit_min          0.1
 
 # Regions
-  regions                 0
-  region_header           IBRA                                             ## CHANGE THIS TO REFER TO TEST DATA
+  regions                 1
+  region_header           IBRA
   sample_by_regions       0
   region_quota_strategy   log_richness
   within_region_ratio     10
-  region_codes            1
+  region_codes            0
 
 # Additional outputs
-  species_sum             1
+  weight_type             species_sum
 
 # Test and training data
-  subset_for_testing      0
+  subset_for_testing      0.1
 
 # Feedback
   verbosity               3
@@ -51,7 +58,9 @@
   feedback_suffix         _fb
 
 
-#   FILE PARAMETERS
+#######################################################################################################################
+#
+#   LIST OF FILE PARAMETERS
 #
 #   dist_measure
 #                   - the name of the distance measure to use. Accepted options so far are single items or a list from:
@@ -128,9 +137,13 @@
 #                       - more than one dist_measure is being used
 #                       - defaults to the only, or first distance measure.  Because key order is unreliable, with multiple
 #                           distance measures it is important to set this parameter explicitly
-#   dist_limit
+#   dist_limit_max
 #                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
+#
+#   dist_limit_min
+#                   - set a minimum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
+#                   - site pairs closer than the limit will not be used
 #
 #   sample_by_regions
 #                   - if 1 split sampling by regions, setting quotas for regions according to the parameter region_quota_strategy
@@ -183,8 +196,10 @@
 #                   - which have groups in them
 #                   - optional - defaults to 0
 #
-#   species_sum     - if species_sum = 1 then an extra column contains the number sum of the number of species at the two sites, regardless of number shared.
-#                   - optional - defaults to 0
+#   weight_type     - defines the values used in the weight column to determine the weight given to each site pair in the GDM model
+#                   - the default value in "one" which places a 1 as the weight for every site pair
+#                   - if weight_type = "species_sum" then weight is the number sum of the number of species at the two sites, regardless of number shared.
+#                   - optional - defaults to "one"
 #
 #   FEEDBACK PARAMETERS
 #    

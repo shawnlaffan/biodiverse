@@ -27,6 +27,7 @@ use parent qw {
     Biodiverse::Indices::IEI
     Biodiverse::Indices::Hierarchical_Labels
     Biodiverse::Indices::Phylogenetic
+    Biodiverse::Indices::PhyloCom
     Biodiverse::Indices::Matrix_Indices
     Biodiverse::Indices::Endemism
     Biodiverse::Indices::Rarity

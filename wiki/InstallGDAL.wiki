@@ -71,7 +71,7 @@ To test that it worked, type the following.  It should throw no errors.
 
 }}}
 
-To test that it worked, type the following.  It should throw no errors. 
+To test that it worked, type the following.  It should throw no errors, providing your path includes the GDAL bin folder (see step 2). 
 
 {{{
   perl -MGeo::GDAL -e "print '1'"

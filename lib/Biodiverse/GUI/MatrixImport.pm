@@ -1,5 +1,5 @@
 package Biodiverse::GUI::MatrixImport;
-
+use 5.010;
 use strict;
 use warnings;
 use File::Basename;
@@ -39,41 +39,58 @@ sub run {
     open (my $fh, '<:via(File::BOM)', $filename) || croak "Unable to open $filename\n";
 
     BY_LINE:
-    while (<$fh>) { # get first non-blank line
-        $line = $_;
-        chomp $line;
+    while ($line = <$fh>) { # get first non-blank line
+        $line =~ s/[\r\n]*$//;  #  handle mixed line endings
         last BY_LINE if $line;
     }
     my $header = $line;
-    $line = <$fh>; #  don't test on the header - can sometimes have one column
-    $fh->close;
-    
+
+    #  run line tests on the second line as the header can sometimes have one column
+    $line = <$fh>;
+
     my $sep_char = $gui->get_project->guess_field_separator (string => $line);
-    my $eol = $gui->get_project->guess_eol (string => $line);
-    my @headers_full
+    my $eol      = $gui->get_project->guess_eol (string => $line);
+    my @headers
         = $gui->get_project->csv2list(
             string   => $header,
             sep_char => $sep_char,
             eol      => $eol
         );
-    
-    my $is_r_data_frame
-        = Biodiverse::GUI::BasedataImport::check_if_r_data_frame (
-            file     => $filename,
-            #quotes   => $quotes,
-            sep_char => $sep_char,
-        );
-    #  add a field to the header if needed
-    if ($is_r_data_frame) {
-        unshift @headers_full, 'R_data_frame_col_0';
-    }
-    
+
     # Add non-blank columns
-    my @headers;
-    foreach my $header (@headers_full) {
-        push @headers, $header if $header;
+    # check for empty fields in header? replace with generic
+    my $col_num = 0;
+    while ($col_num <= $#headers) {
+        $headers[$col_num] = $headers[$col_num] // "anon_col$col_num";
+        #if (length($header[$col_num]) == 0) { $header[$col_num] = "unnamed_col_$col_num"; }
+        $col_num++;
     }
 
+    # check data, if additional lines in data, append in column list.
+    my $checklines = 5; # arbitrary, but should be sifficient
+    my $donelines = 0;
+  LINE:
+    while (my $thisline = <$fh>) {
+        $donelines ++;
+
+        last if $donelines > $checklines;
+
+        my @thisline_cols = $gui->get_project->csv2list(
+            string      => $thisline,
+            #quote_char  => $quotes,
+            sep_char    => $sep_char,
+            eol         => $eol,
+        );
+
+        next LINE if $col_num >= $#thisline_cols;
+
+        while ($col_num <= $#thisline_cols) {
+            $headers[$col_num] = "anon_col$col_num";
+            $col_num++;         
+        }
+    }
+
+    $fh->close;
 
     #########
     # 2. Get column types
@@ -202,13 +219,13 @@ sub get_column_settings {
 # Column selection dialog
 ##################################################
 
+# We have to dynamically generate the choose columns dialog since
+# the number of columns is unknown
 sub make_columns_dialog {
-    # We have to dynamically generate the choose columns dialog since
-    # the number of columns is unknown
-
-    my $header = shift; # ref to column header array
-    my $wnd_main = shift;
+    my $header       = shift;  # ref to column header array
+    my $wnd_main     = shift;
     my $type_options = shift;  #  array of types
+
     if (not defined $type_options or (ref $type_options) !~ /ARRAY/) {
         $type_options = ['Ignore', 'Label', 'Matrix Start'];
     }
@@ -217,13 +234,19 @@ sub make_columns_dialog {
     print "[GUI] Generating make columns dialog for $num_columns columns\n";
 
     # Make dialog
-    my $dlg = Gtk2::Dialog->new("Choose columns", $wnd_main, "modal", "gtk-cancel", "cancel", "gtk-ok", "ok");
+    my $dlg = Gtk2::Dialog->new(
+        'Choose columns',
+        $wnd_main, 'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+
     my $label = Gtk2::Label->new("<b>Select column types</b>\n(choose only one start matrix column)");
     $label->set_use_markup(1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);
 
     # Make table
-    my $table = Gtk2::Table->new(4,$num_columns + 1);
+    my $table = Gtk2::Table->new(4, $num_columns + 1);
     $table->set_row_spacings(5);
     #$table->set_col_spacings(20);
 
@@ -270,6 +293,7 @@ sub make_columns_dialog {
     $dlg->set_resizable(1);
     $dlg->set_default_size(500,0);
     $dlg->show_all();
+
     return ($dlg, $col_widgets);
 }
 
@@ -277,13 +301,15 @@ sub add_column {
     my ($col_widgets, $table, $col_id, $header) = @_;
 
     # Column header
+    #say "setting header '$header'";
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_use_markup(1);
+    
 
     # Type radio button
-    my $radio1 = Gtk2::RadioButton->new(undef, '');        # Ignore
-    my $radio2 = Gtk2::RadioButton->new($radio1, '');    # Label
-    my $radio3 = Gtk2::RadioButton->new($radio2, '');    # Matrix start
+    my $radio1 = Gtk2::RadioButton->new(undef, '');   # Ignore
+    my $radio2 = Gtk2::RadioButton->new($radio1, ''); # Label
+    my $radio3 = Gtk2::RadioButton->new($radio2, ''); # Matrix start
     $radio1->set('can-focus', 0);
     $radio2->set('can-focus', 0);
     $radio3->set('can-focus', 0);

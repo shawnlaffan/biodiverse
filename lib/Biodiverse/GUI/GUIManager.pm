@@ -8,7 +8,7 @@ use 5.010;
 
 our $VERSION = '0.19';
 
-#use Data::Dumper;
+use Data::Dumper;
 #use Data::DumpXML::Parser;
 use Carp;
 use Scalar::Util qw /blessed/;
@@ -19,46 +19,7 @@ use English ( -no_match_vars );
 use FindBin qw ( $Bin );
 use Path::Class ();
 
-BEGIN {
-    #  Add the gtk libs if using windows - brittle?
-    #  Search up the tree until we find a dir of the requisite name
-    #  and which contains a bin folder
-    if ($OSNAME eq 'MSWin32') {
-        #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
-        my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
-        my $origin_dir = Path::Class::file($prog_name)->dir;
-
-        my @paths;
-        use Config;
-        my $gtk_dir = $Config{archname} =~ /x(?:86_)?64/ ? 'gtk_win64' : 'gtk_win32';  #  maybe should use ivsize?
-
-        ORIGIN_DIR:
-        while ($origin_dir) {
-
-            foreach my $inner_path (
-              Path::Class::dir($origin_dir, $gtk_dir,),
-              Path::Class::dir($origin_dir, $gtk_dir, 'c'),
-              ) {
-                my $gtk_path = Path::Class::dir($inner_path, 'bin');
-                if (-d $gtk_path) {
-                    say "Adding $gtk_path to the path";
-                    push @paths, $gtk_path;
-                }
-            }
-
-            my $old_dir = $origin_dir;
-            $origin_dir = $origin_dir->parent;
-            last ORIGIN_DIR if $old_dir eq $origin_dir;
-        }
-
-        my $sep = ';';  #  should get from system, but this block only works on windows anyway
-        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
-        #$ENV{PATH} .= $sep . join $sep, @paths;
-        #say "Path is:\n", $ENV{PATH};
-    }
-}
-
-
+use Biodiverse::Config;
 
 require Biodiverse::GUI::Project;
 require Biodiverse::GUI::BasedataImport;
@@ -76,7 +37,7 @@ require Biodiverse::BaseData;
 require Biodiverse::Matrix;
 require Biodiverse::Config;
 
-use parent qw /Biodiverse::Common Biodiverse::GUI::Help/;
+use parent qw /Biodiverse::Common Biodiverse::GUI::Help/; #/
 
 
 ##########################################################
@@ -88,6 +49,8 @@ BEGIN {
         project  => undef,    # Our subclass that inherits from the main Biodiverse object
         gladexml => undef,    # Main window widgets
         tabs     => [],       # Stores refs to Tabs objects. In order of page index.
+        progress_bars => undef,
+        test_val => ''
     };
     bless $singleton, 'Biodiverse::GUI::GUIManager';
     $Biodiverse::Config::running_under_gui = 1;
@@ -155,6 +118,149 @@ sub set_dirty {
     my $self = shift;
     $self->{project}->set_dirty;
     return;
+}
+
+# Progress bar handling.  
+# Lifecycle: nothing created on startup.  Subroutines will call add_progress_entry to
+# add entries for tracking progress, as many may be active at any time.  When the first progress entry is added,
+# the progress dialog will be created and shown.  When all progress entries are finished, the progress dialog
+# is hidden (is it worth keeping open briefly or until closed?). 
+sub init_progress_window {
+    my $self = shift;
+    #say 'init_progress_window';
+
+    if ($self->{progress_bars}) {
+       say 'prog bars defined';
+       croak 'call to init_progress_window when defined';
+    }
+    
+    $self->{progress_bars} = {
+        window => undef,
+        entry_box => undef,
+        dialog_objects => {},
+        dialog_entries => {}
+    };
+
+    # create window
+    my $window = Gtk2::Window->new;
+    $window->set_transient_for( $self->get_widget('wndMain') );
+    $window->set_title('Progress');
+    $window->set_default_size (300, -1);
+
+    # do we need to track delete signals?    
+    $window->signal_connect ('delete-event' => \&progress_destroy_callback, $self);
+
+    my $entry_box = Gtk2::VBox->new(0, 5); # homogeneous, spacing
+    $window->add($entry_box);
+
+    $self->{progress_bars}->{window}    = $window;
+    $self->{progress_bars}->{entry_box} = $entry_box;
+
+    $window->show_all;
+}
+
+# called to add record to progress bar display
+sub add_progress_entry {
+    my ($self, $dialog_obj, $title, $text, $progress) = @_;
+
+    # call init if not defined yet
+    $self->init_progress_window if !$self->{progress_bars};
+
+    # possibly worth resetting next_id once it gets to a large number, however this is
+    # very unlikely to be a problem in practise
+    #my $new_id = $self->{progress_bars}->{next_id}++;
+    
+    # create new entry frame and widgets
+    my $frame = Gtk2::Frame->new($title);
+    $self->{progress_bars}->{entry_box}->pack_start($frame, 0, 1, 0);
+    
+    my $id = $dialog_obj->get_id; # unique number for each, allows hashing
+    $self->{progress_bars}->{dialog_objects}{$id} = $dialog_obj;
+    $self->{progress_bars}->{dialog_entries}{$id} = $frame;
+    #say "values " . Dumper($self->{progress_bars});
+    
+    my $frame_vbox = Gtk2::VBox->new;
+    $frame->add($frame_vbox);
+    $frame_vbox->set_border_width(3);
+    
+    my $label_widget = Gtk2::Label->new;
+    $label_widget->set_line_wrap (1);
+    $label_widget->set_markup($text);
+    $frame_vbox->pack_start($label_widget, 0, 0, 0);
+    
+    my $progress_widget = Gtk2::ProgressBar->new;
+    $frame_vbox->pack_start($progress_widget, 0, 0, 0);
+    
+    # show the progress window
+    #$self->{progress_bars}->{window}->present;  #  don't do this - it grabs the system focus and makes other work impossible
+    $self->{progress_bars}->{window}->show_all;
+    
+    #say "Current progress bars: " . Dumper($self->{progress_bars});
+    
+    #$self->{progress_bars}->{id_to_entryframe}{$new_id}
+    # return references to the id number, and label and progress widgets 
+    #return ($new_id, $label_widget, $progress_widget);
+    return ($label_widget, $progress_widget);
+}
+
+# called when a progress dialog finishes, to remove the entry from the display.  assume
+# called from dialog
+sub clear_progress_entry {    
+    my ($self, $dialog_obj) = @_;
+
+    croak 'call to clear_progress_entry when not inited (possibly after window close)' 
+        if !$self->{progress_bars};
+
+    croak 'invalid dialog obj given to clear_progress_entry' 
+        if !defined $dialog_obj;
+
+    my $id = $dialog_obj->get_id; # unique number for each, allows hashing
+    croak 'invalid dialog obj given to clear_progress_entry, can\'t read ID' 
+        if !defined $self->{progress_bars}->{dialog_objects}{$id};
+
+    my $entry_frame = $self->{progress_bars}->{dialog_entries}{$id};
+
+    # remove given entry.  assume valid widget provided, otherwise will fail
+    $self->{progress_bars}->{entry_box}->remove($entry_frame);
+    
+    delete $self->{progress_bars}->{dialog_objects}{$id};
+    delete $self->{progress_bars}->{dialog_entries}{$id};
+    
+    # if no active entries in progress dialog, hide it
+    if (   !$self->{progress_bars}->{entry_box}->get_children
+        || scalar $self->{progress_bars}->{entry_box}->get_children == 0
+        ) {
+        $self->{progress_bars}->{window}->hide;
+    }
+}
+
+# called when window closed, try to stop active process?
+sub progress_destroy_callback {
+    my ($self_button, $event, $self_gui) = @_;
+
+    #say "callback values " . Dumper($self_gui->{progress_bars});
+
+    say "progress_destroy_callback";
+    # call destroy on each child object (?) (need to record each child obj)
+    foreach my $dialog (values $self_gui->{progress_bars}->{dialog_objects}) {
+        $dialog->end_dialog();
+    }
+
+    # clear all progress bar info so re-creates window on next add
+    $self_gui->{progress_bars} = undef;
+
+    # send exception to stop operation in progress
+    Biodiverse::GUI::ProgressDialog::Cancel->throw(
+        message  => "Progress bar closed, operation cancelled",
+    );
+}    
+
+sub show_progress {
+    my $self = shift;
+
+    if ($self->{progress_bars}) {
+        $self->{progress_bars}->{window}->show_all;
+    }
 }
 
 ##########################################################
@@ -1968,8 +2074,7 @@ sub show_index_dialog {
 
     #  get an array of the cellsizes
     my $bd = $self->{project}->get_selected_base_data;
-    my $cellsizes = $bd->get_param ('CELL_SIZES');
-    my @cellsize_array = @$cellsizes;  #  make a copy
+    my @cellsize_array = $bd->get_cell_sizes;  #  get a copy
 
     #  get the current index
     my $used_index = $bd->get_param('SPATIAL_INDEX');
@@ -2220,7 +2325,7 @@ sub show_index_dialog_orig {
     my $base_ref = $self->get_project->get_selected_base_data();
     return if not defined $base_ref;
     
-    my $cell_sizes = $base_ref->get_param ('CELL_SIZES');
+    my $cell_sizes = $base_ref->get_cell_sizes;
 
     my $used_index = $base_ref->get_param('SPATIAL_INDEX');
     $dlgxml->get_widget('chkIndex')->set_active ($used_index);

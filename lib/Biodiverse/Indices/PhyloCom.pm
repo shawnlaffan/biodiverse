@@ -6,7 +6,7 @@ use Carp;
 use Biodiverse::Progress;
 
 use List::Util qw /sum min max/;
-use List::MoreUtils qw /any minmax/;
+use List::MoreUtils qw /any minmax pairwise/;
 use Scalar::Util qw /blessed/;
 use Math::BigInt ();
 
@@ -237,7 +237,7 @@ sub _calc_phylo_mpd_mntd {
     
     return $self->default_mpd_mntd_results (@_)
         if $label_hashrefs_are_same
-           && scalar keys %$label_hash1 == 1;
+           && scalar keys %$labels_on_tree <= 1;
 
     #  Are we on the tree and have a non-zero count?
     #  Could be a needless slowdown under permutations using only labels on the tree.
@@ -332,7 +332,7 @@ sub _calc_phylo_mpd_mntd {
         }
         else {
             $n    = scalar @$path;
-            $mean = eval {sum (@$path) / $n};;
+            $mean = eval {sum (@$path) / $n};
         }
 
         $results{$pfx . '_MEAN'} = $mean;

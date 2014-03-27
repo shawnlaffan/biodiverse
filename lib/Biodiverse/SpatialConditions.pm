@@ -513,7 +513,7 @@ sub verify {
             );
         }
 
-        my $cellsizes = $bd->get_param ('CELL_SIZES');
+        my $cellsizes = $bd->get_cell_sizes;
 
         my $success = eval {
             $self->evaluate (
@@ -2241,7 +2241,7 @@ sub sp_point_in_poly_shape {
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
     my $bd = $h->{basedata};
-    my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
+    my @cell_sizes = $bd->get_cell_sizes;
     my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
     my @rect = (
         $x_coord - $cell_x / 2,
@@ -2338,7 +2338,7 @@ sub sp_points_in_same_poly_shape {
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
     my $bd = $h->{basedata};
-    my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
+    my @cell_sizes = $bd->get_cell_sizes;
     my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
     
     my @rect1 = (

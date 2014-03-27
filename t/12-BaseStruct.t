@@ -55,11 +55,11 @@ sub test_export_shape {
     $bd //= get_basedata_object_from_site_data(
         CELL_SIZES => [100000, 100000],
     );
-    
+
     my $gp = $bd->get_groups_ref;
 
     my $fname = 'export_basestruct_' . int (rand() * 1000);
-    
+
     say "Exporting to $fname";
 
     my $success = eval {
@@ -71,7 +71,7 @@ sub test_export_shape {
     my $e = $EVAL_ERROR;
     ok (!$e, 'No exceptions in export to shapefile');
     diag $e if $e;
-    
+
     my $subtest_success =
       subtest 'polygon shapefile matches basestruct'
         => sub {subtest_for_polygon_shapefile_export ($gp, $fname)};
@@ -131,7 +131,7 @@ sub subtest_for_polygon_shapefile_export {
         my $element_name = $db{ELEMENT};
 
         ok (exists $element_hash{$element_name}, "$element_name exists");
-        
+
         if ($i == 1) {
             foreach my $expected_axis_name (@expected_axes) {
                 ok (exists $db{$expected_axis_name}, "Field $expected_axis_name exists");
@@ -144,7 +144,7 @@ sub subtest_for_polygon_shapefile_export {
             if (looks_like_number $db_axis_val) {
                 $db_axis_val += 0;
             }
-            
+
             is (
                 $db_axis_val,
                 $el_name_array[$i],
@@ -152,7 +152,7 @@ sub subtest_for_polygon_shapefile_export {
             );
             $i ++;
         }
-        
+
         my $centroid = $shape->area_centroid;
         my @el_coord_array = $basestruct->get_element_name_coord (element => $element_name);
         my @centroid_coords = @$centroid{qw /X Y/};
@@ -179,7 +179,7 @@ sub test_export_shape_point {
     $bd //= get_basedata_object_from_site_data(
         CELL_SIZES => [0, 0],
     );
-    
+
     my $gp = $bd->get_groups_ref;
 
     my $fname = 'export_point_basestruct_' . int (rand() * 1000);
@@ -190,12 +190,13 @@ sub test_export_shape_point {
         $gp->export (
             format => 'Shapefile',
             file   => $fname,
+            shapetype => 'point',
         );
     };
     my $e = $EVAL_ERROR;
     ok (!$e, 'No exceptions in export to point shapefile');
     diag $e if $e;
-    
+
     my $subtest_success = subtest 'point shapefile matches basestruct' => sub {
         use Geo::ShapeFile;
         my $shapefile = Geo::ShapeFile->new ($fname);

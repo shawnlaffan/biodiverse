@@ -32,7 +32,7 @@ use Biodiverse::Exception;
 
 use parent qw /
     Biodiverse::Common
-/;
+/; #/
 
 my $EMPTY_STRING = q{};
 
@@ -815,6 +815,8 @@ sub get_metadata_export_shapefile {
             {
                 name        => 'plot_left_to_right',
                 label_text  => 'Plot left to right',
+                tooltip     => 'Should terminals be to the right of the root node? '
+                             . '(default is to the left, with the root node at the right).',
                 type        => 'boolean',
                 default     => 0,
                 tooltip     =>
@@ -964,7 +966,11 @@ sub export_tabular_tree {
     if (! defined $name) {
         $name = $self->get_param ('NAME');
     }
+    
+    $args{use_internal_names} //= 1;  #  we need this to be set for the round trip
 
+    # show the type of what is being exported
+    
     my $table = $self->to_table (
         symmetric   => 1,
         name        => $name,
@@ -1177,7 +1183,7 @@ sub get_table_export_metadata {
             ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
             : (',', 'tab', ';', 'space', ':');
 
-    my @quote_chars = qw /" ' + $/;
+    my @quote_chars = qw /" ' + $/; #"
 
     my $table_metadata_defaults = [
         {
@@ -1391,7 +1397,7 @@ sub get_range_table {
             "Converting tree $name to matrix\n"
             . "($progress / $to_do)",
             $progress / $to_do,
-        );
+        ); #"
 
         LOOP_NODE2:
         foreach my $node2 (values %nodes) {

@@ -4,6 +4,7 @@ Note that these are fictional data so the results have no meaning beyond example
 Data files that can be imported:
 
 Example_site_data.csv               Species sample data in a Lambert Conformal Conic projection for Australia (see coastline.prj for definition)
+Example_site_data.shp, dbf, shx, sbn, prj	Species sample data as a shapefile.  
 Example_site_data_matrix_form.csv	Species data in matrix form (resolution 25000)
 Example_matrix.txt                  Matrix data (dissimilarity)
 Example_tree.nex                    Tree data

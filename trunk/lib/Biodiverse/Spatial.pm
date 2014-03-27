@@ -350,7 +350,7 @@ sub sp_calc {
                 my $progress_text_pfx = 'Neighbour set ' . ($i+1);
                 $search_blocks = $sp_index->predict_offsets (
                     spatial_conditions => $spatial_conditions_ref->[$i],
-                    cellsizes          => $bd->get_param ('CELL_SIZES'),
+                    cellsizes          => scalar $bd->get_cell_sizes,
                     progress_text_pfx  => $progress_text_pfx,
                 );
                 $search_blocks_ref->[$i] = $search_blocks;
@@ -408,12 +408,12 @@ sub sp_calc {
     
     #EL: Set our CELL_SIZES
     # SL: modified for new structure
-    if (! defined $self->get_param ('CELL_SIZES')) {
-        $self->set_param (CELL_SIZES => $bd->get_param('CELL_SIZES'));
+    if (!defined $self->get_cell_sizes) {
+        $self->set_param (CELL_SIZES => scalar $bd->get_cell_sizes);
     }
     my $name = $self->get_param ('NAME');
     my $progress_text_base = $args{progress_text} || $name;
-    
+
     #  create all the elements and the SPATIAL_RESULTS list
     my $to_do = scalar @elements_to_calc;
     #my $timer = [gettimeofday];

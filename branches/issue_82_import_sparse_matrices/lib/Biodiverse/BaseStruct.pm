@@ -17,12 +17,13 @@ use autovivification;
 
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
-use Scalar::Util qw/looks_like_number reftype/;
+use Scalar::Util qw /looks_like_number reftype/;
 use List::Util qw /min max/;
 use File::Basename;
 use Path::Class;
 use POSIX qw /fmod/;
 use Time::localtime;
+use Geo::Shapefile::Writer;
 
 our $VERSION = '0.19';
 
@@ -227,9 +228,12 @@ sub export {
     #  get our own metadata...
     my %metadata = $self->get_args (sub => 'export');
 
-    my $sub_to_use
-        = $metadata{format_labels}{$args{format}}
-            || croak "Argument 'format' not specified\n";
+    my %valid_subs = reverse %{$metadata{format_labels}};
+    my $format     = $args{format};
+
+    my $sub_to_use = exists $valid_subs{$format} ? $format : $metadata{format_labels}{$format};
+    croak "Argument 'format=>$format' not specified or not valid\n"
+      if !$sub_to_use;
 
     #  convert no_data_values if appropriate
     if (defined $args{no_data_value}) {
@@ -279,7 +283,7 @@ sub get_table_export_metadata {
             ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
             : (',', 'tab', ';', 'space', ':');
 
-    my @quote_chars = qw /" ' + $/;
+    my @quote_chars = qw /" ' + $/; #"
 
     my $mx_explanation = $self->get_tooltip_sparse_normal;
 
@@ -357,7 +361,7 @@ sub export_table_delimited_text {
 
     my $table = $self->to_table (symmetric => 1, %args, file_handle => $fh);
 
-    if (scalar @$table) {  #  won't ned this once issue #350 is fixed
+    if (scalar @$table) {  #  won't need this once issue #350 is fixed
         $self->write_table_csv (%args, data => $table);
     }
 
@@ -440,11 +444,11 @@ sub export_table_yaml {
 }
 
 sub get_nodata_values {
-    my @vals = qw /undef 0 -9 -9999 -99999 -2**31 -2**128 NA/;
+    my @vals = qw /undef 0 -9 -9999 -99999 -2**31 -2**128 NA/; #/
     return wantarray ? @vals : \@vals;
 }
 
-sub get_raster_export_metadata {
+sub get_nodata_export_metadata {
     my $self = shift;
 
     my @no_data_values = $self->get_nodata_values;
@@ -453,7 +457,7 @@ sub get_raster_export_metadata {
         {
             name        => 'no_data_value',
             label_text  => 'NoData value',
-            tooltip    => 'Zero is not a safe value to use for nodata in most '
+            tooltip     => 'Zero is not a safe value to use for nodata in most '
                         . 'cases, so be warned',
             type        => 'choice',
             choices     => \@no_data_values,
@@ -462,6 +466,13 @@ sub get_raster_export_metadata {
     ];
 
     return wantarray ? @$table_metadata_defaults : $table_metadata_defaults;
+}
+
+
+sub get_raster_export_metadata {
+    my $self = shift;
+
+    return $self->get_nodata_export_metadata;
 }
 
 sub get_metadata_export_ers {
@@ -564,12 +575,341 @@ sub export_divagis {
     return;
 }
 
+my $shape_export_comment_text = <<'END_OF_SHAPE_COMMENT'
+Note: If you export a list then each shape (point or polygon) 
+will be repeated for each list item. 
+Choose the __no_list__ option to not do this,
+in which case to attach any lists you will need to run a second 
+export to the delimited text format and then join them.  
+This is needed because shapefile field names can only be
+11 characters long and cannot contain non-alphanumeric characters.
+Note also that shapefiles do not have an undefined value 
+so any undefined values will be converted to zeroes.
+Export of array lists to shapefiles is not supported. 
+END_OF_SHAPE_COMMENT
+  ;
+
+sub get_metadata_export_shapefile {
+    my $self = shift;
+    #  get the available lists
+    my @lists = $self->get_lists_for_export (no_array_lists => 1);
+    unshift @lists, '__no_list__';
+
+    #  nodata won't have much effect until we make the outputs symmetric
+    my @nodata_meta = $self->get_nodata_export_metadata;
+
+    my %args = (
+        format => 'Shapefile',
+        parameters => [
+            {  # GUI supports just one of these
+                name => 'file',
+                type => 'file'
+            },
+            {
+                name        => 'list',
+                label_text  => 'List to export',
+                type        => 'choice',
+                choices     => \@lists,
+                default     => 0
+            },
+            {
+                name        => 'shapetype',
+                label_text  => 'Shape type',
+                type        => 'choice',
+                choices     => [qw /POLYGON POINT/],
+                default     => 0,
+            },
+            @nodata_meta,
+            {
+                type        => 'comment',
+                label_text  => $shape_export_comment_text,
+            },
+        ],
+    );
+
+    return wantarray ? %args : \%args;
+}
+
+sub export_shapefile {
+    my $self = shift;
+    my %args = (nodata_value => -2**128, @_);
+
+    $args{file} =~ s/\.shp$//i;
+    my $file    = $args{file};
+
+    my $list_name = $args{list};
+    if (defined $list_name && $list_name eq '__no_list__') {
+        $list_name = undef;
+    }
+
+    my $nodata = $args{nodata_value};
+    if (!looks_like_number $nodata) {
+        $nodata = -2**128;
+    }
+
+    # we are writing as 2D or 3D points or polygons,
+    # only Point, PointZ or Polygon are used
+    my $shape_type = uc ($args{shapetype} // 'POLYGON');
+    croak "Invalid shapetype for shapefile export\n"
+      if $shape_type ne 'POINT' and $shape_type ne 'POLYGON';
+
+    say "Exporting to shapefile $file";
+
+    my @elements    = $self->get_element_list;
+    my @cell_sizes  = $self->get_cell_sizes;  #  get a copy
+    my @axes_to_use = (0, 1);
+    if ($shape_type eq 'POINT' && scalar @cell_sizes > 2) {
+        @axes_to_use = (0, 1, 2);  #  we use Z in this case
+    }
+
+    my $half_csizes = [];
+    foreach my $size (@cell_sizes[@axes_to_use]) {
+        # disabled checking for sizes, specify shapetype='point' instead
+        #return $self->_export_shape_point (%args)
+        #  if $size == 0;  #  we are a point file
+
+        my $half_size = $size > 0 ? $size / 2 : 0.5;
+
+        push @$half_csizes, $half_size;
+    }
+
+    my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
+
+    my @axis_col_specs;
+    foreach my $axis (0 .. $#$first_el_coord) {
+        my $csize = $cell_sizes[$axis];
+        if ($csize < 0) {
+            #  should check actual sizes
+            push @axis_col_specs, [ ('axis_' . $axis) => 'C', 100];
+        }
+        else {
+            #  width and decimals needs automation
+            push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
+        }
+    }
+
+
+# code for multiple labels per shape
+# 
+#    # find all labels.  only possible by examining all the groups,
+#    # unless labels are passed as a parameter
+#    my %label_hash;
+#    foreach my $element (@elements) {
+#        my %label_counts = $self->get_sub_element_hash (
+#            element => $element
+#        );
+#        @label_hash{keys %label_counts} = values %label_counts;
+#    }
+#    my @label_count_specs;
+#    my $l_idx = 0;
+#    foreach my $this_label (keys %label_hash) {
+#        $l_idx++;
+#        push @label_count_specs, [ "label_${l_idx}" => 'C', 100];
+#        push @label_count_specs, [ "count_${l_idx}" => 'N', 8, 0];
+#    }
+
+    my @label_count_specs;
+    if (defined $list_name) {  # repeated polys per list item
+        push @label_count_specs, (
+            [ key   => 'C', 100  ],
+            [ value => 'N', 8, 0 ],
+        );
+    }
+
+    my $shp_writer = Geo::Shapefile::Writer->new (
+        $file, $shape_type,
+        [ element => 'C', 100 ],
+        @axis_col_specs,
+        @label_count_specs,
+    );
+
+  NODE:
+    foreach my $element (@elements) {
+        my $coord_axes = $self->get_element_name_coord (element => $element);
+        my $name_axes  = $self->get_element_name_as_array (element => $element);
+
+        my %axis_col_data;
+        foreach my $axis (0 .. $#$first_el_coord) {
+            $axis_col_data{'axis_' . $axis} = $name_axes->[$axis];
+        }
+
+        my $shape;
+        if ($shape_type eq 'POLYGON')  { 
+            my $min_x = $coord_axes->[$axes_to_use[0]] - $half_csizes->[$axes_to_use[0]];
+            my $max_x = $coord_axes->[$axes_to_use[0]] + $half_csizes->[$axes_to_use[0]];
+            my $min_y = $coord_axes->[$axes_to_use[1]] - $half_csizes->[$axes_to_use[1]];
+            my $max_y = $coord_axes->[$axes_to_use[1]] + $half_csizes->[$axes_to_use[1]];
+
+            $shape = [[
+                [$min_x, $min_y],
+                [$min_x, $max_y],
+                [$max_x, $max_y],
+                [$max_x, $min_y],
+                [$min_x, $min_y],  #  close off
+            ]];
+        }
+        elsif ($shape_type eq 'POINT') { 
+            $shape = [
+                $coord_axes->[$axes_to_use[0]],
+                $coord_axes->[$axes_to_use[1]],
+            ];
+        }
+
+# merging duplicated code, not clear about differences yet
+#        # get labels and counts in this cell
+#        my %label_counts = $self->get_sub_element_hash (
+#            element => $element
+#        );
+        #foreach my $this_label (keys %label_counts) {
+        #    #say "$this_label count $label_counts{$this_label}";
+        #   { name => $name, type => 'N', length => 8,  decimals => 0 } 
+        #}
+        # write a separate shape for each label
+#        foreach my $label (keys %label_counts) {
+#            
+#            $shp_writer->add_shape(
+#                $shape,
+#                {
+#                    element => $element,
+#                    %axis_col_data,
+#                    label => $label,
+#                    count => $label_counts{$label}
+##                    %label_counts
+#                },
+#            );
+#        }
+
+
+
+        #  temporary - this needs to be handled differently
+        if ($list_name) {
+            my %list_data = $self->get_list_values (
+                element => $element,
+                list    => $list_name,
+            );
+
+            # write a separate shape for each label
+            foreach my $key (keys %list_data) {
+                $shp_writer->add_shape(
+                    $shape,
+                    {
+                        element => $element,
+                        %axis_col_data,
+                        key     => $key,
+                        value   => ($list_data{$key} // $nodata),
+                    },
+                );
+            }
+        }
+        else {
+            $shp_writer->add_shape(
+                $shape,
+                {
+                    element => $element,
+                    %axis_col_data,
+                },
+            );
+        }
+    }
+
+    $shp_writer->finalize();
+
+    return;
+}
+
+#sub export_shapefile_point {
+#    my $self = shift;
+#    my %args = @_;
+#    
+#    $args{file} =~ s/\.shp$//;
+#    my $file = $args{file};
+#
+#    say "Exporting to point shapefile $file";
+#
+#    my @elements    = $self->get_element_list;
+#    my @cell_sizes  = @{$self->get_param ('CELL_SIZES')};  #  get a copy
+#    my @axes_to_use = (0, 1);
+#
+#    my $first_el_coord = $self->get_element_name_coord (element => $elements[0]);
+#
+#    my @axis_col_specs;
+#    foreach my $axis (0 .. $#$first_el_coord) {
+#        #  width and decimals needs automation
+#        push @axis_col_specs, [ ('axis_' . $axis) => 'F', 16, 3 ];
+#    }
+#
+#    my $shp_writer = Geo::Shapefile::Writer->new (
+#        $file, 'POINT',
+#        [ element => 'C', 100 ],
+#        @axis_col_specs,
+#    );
+#
+#  NODE:
+#    foreach my $element (@elements) {
+#        my $coord_axes = $self->get_element_name_coord (element => $element);
+#        my $name_axes  = $self->get_element_name_as_array (element => $element);
+#
+#        my %axis_col_data;
+#        foreach my $axis (0 .. $#$first_el_coord) {
+#            $axis_col_data{'axis_' . $axis} = $name_axes->[$axis];
+#        }
+#
+#        my $shape = [
+#            $coord_axes->[$axes_to_use[0]],
+#            $coord_axes->[$axes_to_use[1]]
+#        ];
+#
+#        $shp_writer->add_shape(
+#            $shape,
+#            {
+#                element => $element,
+#                %axis_col_data,
+#            },
+#        );
+#    }
+#
+#    $shp_writer->finalize();
+#
+#    return;
+#}
+
+#sub get_metadata_export_shapefile_point {
+#    my $self = shift;
+#
+#    my %args = (
+#        format => 'Shapefile_Point',
+#        parameters => [
+#            {
+#                name => 'file',
+#                type => 'file'
+#            }, # GUI supports just one of these
+#            {
+#                type => 'comment',
+#                label_text =>
+#                      'Note: To attach any lists you will need to run a second '
+#                    . 'export to the delimited text format and then join them.  '
+#                    . 'This is needed because shapefiles do not have an undefined value '
+#                    . 'and field names can only be 11 characters long.',
+#            }
+#        ],
+#    );
+#
+#    return wantarray ? %args : \%args;
+#}
+
+
+
 sub get_lists_for_export {
     my $self = shift;
+    my %args = @_;
+
+    my $skip_array_lists = $args{no_array_lists};
 
     #  get the available lists
     my $lists = $self->get_lists_across_elements (no_private => 1);
-    my $array_lists = $self->get_array_lists_across_elements (no_private => 1);
+    my $array_lists = $skip_array_lists
+        ? []
+        : $self->get_array_lists_across_elements (no_private => 1);
 
     #  sort appropriately
     my @lists;
@@ -614,7 +954,7 @@ sub to_table {
 
     my $list = $args{list};
 
-    my $checkElements = $self->get_element_list;
+    my $check_elements = $self->get_element_list;
 
     #  check if the file is symmetric or not.  Check the list type as well.
     my $last_contents_count = -1;
@@ -624,11 +964,11 @@ sub to_table {
 
     #print "[BASESTRUCT] Checking elements for list contents\n";
     CHECK_ELEMENTS:
-    foreach my $i (0 .. $#$checkElements) {  # sample the lot
-        my $checkElement = $checkElements->[$i];
-        last CHECK_ELEMENTS if ! defined $checkElement;
+    foreach my $i (0 .. $#$check_elements) {  # sample the lot
+        my $check_element = $check_elements->[$i];
+        last CHECK_ELEMENTS if ! defined $check_element;
 
-        my $values = $self->get_list_values (element => $checkElement, list => $list);
+        my $values = $self->get_list_values (element => $check_element, list => $list);
         if ((ref $values) =~ /HASH/) {
             if (defined $prev_list_keys and $prev_list_keys != scalar keys %$values) {
                 $is_asym ++;  #  This list is of different length from the previous.  Allows for zero length lists.
@@ -655,18 +995,18 @@ sub to_table {
     my $data;
 
     if (! $as_symmetric and $is_asym) {
-        print "[BASESTRUCT] Converting asymmetric data from $list "
-              . "to asymmetric table\n";
+        say "[BASESTRUCT] Converting asymmetric data from $list "
+              . "to asymmetric table";
         $data = $self->to_table_asym (%args);
     }
     elsif ($as_symmetric && $is_asym) {
-        print "[BASESTRUCT] Converting asymmetric data from $list "
-              . "to symmetric table\n";
+        say "[BASESTRUCT] Converting asymmetric data from $list "
+              . "to symmetric table";
         $data = $self->to_table_asym_as_sym (%args);
     }
     else {
-        print "[BASESTRUCT] Converting symmetric data from $list "
-              . "to symmetric table\n";
+        say "[BASESTRUCT] Converting symmetric data from $list "
+              . "to symmetric table";
         $data = $self->to_table_sym (%args);
     }
 
@@ -706,11 +1046,11 @@ sub to_table_sym {
     my @data;
     my @elements = sort $self->get_element_list;
 
-    my $listHashRef = $self->get_hash_list_values(
+    my $list_hash_ref = $self->get_hash_list_values(
         element => $elements[0],
         list    => $args{list},
     );
-    my @print_order = sort keys %$listHashRef;
+    my @print_order = sort keys %$list_hash_ref;
 
     my $max_element_array_len;  #  used in some sections, set below if needed
 
@@ -729,7 +1069,7 @@ sub to_table_sym {
     }
 
     if ($one_value_per_line) {
-        push @header, qw /Key Value/;
+        push @header, qw /Key Value/; #/
     }
     else {
         push @header, @print_order;
@@ -748,7 +1088,7 @@ sub to_table_sym {
             push @basic, @array;
         }
 
-        my $listRef = $self->get_hash_list_values(
+        my $list_ref = $self->get_hash_list_values(
             element => $element,
             list    => $args{list},
         );
@@ -757,22 +1097,22 @@ sub to_table_sym {
             #  repeat the elements, once for each value or key/value pair
             if (!defined $no_data_value) {
                 foreach my $key (@print_order) {
-                    push @data, [@basic, $key, $listRef->{$key}];
+                    push @data, [@basic, $key, $list_ref->{$key}];
                 }
             }
             else {  #  need to change some values
                 foreach my $key (@print_order) {
-                    my $val = $listRef->{$key} // $no_data_value;
+                    my $val = $list_ref->{$key} // $no_data_value;
                     push @data, [@basic, $key, $val];
                 }
             }
         }
         else {
             if (!defined $no_data_value) {
-                push @data, [@basic, @{$listRef}{@print_order}];
+                push @data, [@basic, @{$list_ref}{@print_order}];
             }
             else {
-                my @vals = map {defined $_ ? $_ : $no_data_value} @{$listRef}{@print_order};
+                my @vals = map {defined $_ ? $_ : $no_data_value} @{$list_ref}{@print_order};
                 push @data, [@basic, @vals];
             }
         }
@@ -990,8 +1330,9 @@ sub write_table_asciigrid {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, '.asc', '.txt');
-
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.asc/, qr/\.txt/);
+    my $file_list_ref = $args{filelist};
+    
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .asc and store it
         $suffix = '.asc';
     }
@@ -1023,6 +1364,7 @@ sub write_table_asciigrid {
         my $filename = Path::Class::file($path, $this_file)->stringify;
         $filename .= $suffix;
         $file_names[$i] = $filename;
+        push(@$file_list_ref, $filename) if ($file_list_ref); # record file in list if array ref provided
 
         my $fh;
         my $success = open ($fh, '>', $filename);
@@ -1093,7 +1435,7 @@ sub write_table_floatgrid {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, '.flt');
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.flt/);
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .flt and store it
         $suffix = '.flt';
     }
@@ -1200,7 +1542,7 @@ sub write_table_divagis {
     (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
 
     my $file = $args{file} || croak "file arg not specified\n";
-    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->stringify, '.gri');
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->stringify, qr'\.gri');
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .gri and store it
         $suffix = '.gri';
     }
@@ -1336,7 +1678,7 @@ sub write_table_ers {
     my $file = $args{file} || croak "file arg not specified\n";
 
     my ($name, $path, $suffix)
-        = fileparse (Path::Class::file($file)->absolute, '.ers');
+        = fileparse (Path::Class::file($file)->absolute, qr/\.ers/);
 
     #  add suffix if not specified
     if (!defined $suffix || $suffix eq q{}) {
@@ -1514,7 +1856,7 @@ sub raster_export_process_args {
 
     my @res = defined $args{resolutions}
             ? @{$args{resolutions}}
-            : @{$self->get_param ('CELL_SIZES')};
+            : $self->get_cell_sizes;
 
     #  check the resolutions.
     eval {
@@ -1776,13 +2118,11 @@ sub to_tree {
     #  set a master root node of length zero if we have more than one.
     #  All the current root nodes will be its children
     my $root_nodes = $tree->get_root_node_refs;
-    #if (scalar @$root_nodes > 1) {
-        my $root_node = $tree->add_node (name => '0___', length => 0);
-        $root_node->add_children (children => [@$root_nodes]);
-        foreach my $node (@$root_nodes) {
-            $node->set_parent (parent => $root_node);
-        }
-    #}
+    my $root_node  = $tree->add_node (name => '0___', length => 0);
+    $root_node->add_children (children => [@$root_nodes]);
+    foreach my $node (@$root_nodes) {
+        $node->set_parent (parent => $root_node);
+    }
 
     $tree->set_parents_below;  #  run a clean up just in case
     return $tree;
@@ -1806,7 +2146,7 @@ sub sort_by_axes {
     my $a = shift;
     my $b = shift;
 
-    my $axes = $self->get_param ('CELL_SIZES');
+    my $axes = $self->get_cell_sizes;
     my $res = 0;
     my $a_array = $self->get_element_name_as_array (element => $a);
     my $b_array = $self->get_element_name_as_array (element => $b);
@@ -1908,7 +2248,7 @@ sub generate_element_coords {
     #my @is_text;
     foreach my $element ($self->get_element_list) {
         my $element_coord = [];  #  make a copy
-        my $cell_sizes = $self->get_param ('CELL_SIZES');
+        my $cell_sizes = $self->get_cell_sizes;
         #my $element_array = $self->get_array_list_values (element => $element, list => '_ELEMENT_ARRAY');
         my $element_array = eval {$self->get_element_name_as_array (element => $element)};
         if ($EVAL_ERROR) {
@@ -2024,20 +2364,20 @@ sub add_element {
 
     my $element = $args{element};
     my $quote_char = $self->get_param('QUOTES');
-    my $elementListRef = $self->csv2list(
+    my $element_list_ref = $self->csv2list(
         string     => $element,
         sep_char   => $self->get_param('JOIN_CHAR'),
         quote_char => $quote_char,
         csv_object => $args{csv_object},
     );
 
-    for (my $i = 0; $i <= $#$elementListRef; $i ++) {
-        if (! defined $elementListRef->[$i]) {
-            $elementListRef->[$i] = ($quote_char . $quote_char);
+    for (my $i = 0; $i <= $#$element_list_ref; $i ++) {
+        if (! defined $element_list_ref->[$i]) {
+            $element_list_ref->[$i] = ($quote_char . $quote_char);
         }
     }
 
-    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $elementListRef;
+    $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref;
 
     return;
 }
@@ -2049,7 +2389,7 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     croak "element not specified\n" if ! defined $args{element};
     croak "subelement not specified\n" if ! defined $args{subelement};
     my $element = $args{element};
-    my $subElement = $args{subelement};
+    my $sub_element = $args{subelement};
 
     if (! exists $self->{ELEMENTS}{$element}) {
         $self->add_element (
@@ -2063,7 +2403,7 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
         delete $self->{ELEMENTS}{$element}{BASE_STATS};
     }
 
-    $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement} += $args{count};
+    $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element} += $args{count};
 
     return;
 }
@@ -2137,14 +2477,14 @@ sub delete_element {
 
     my $element = $args{element};
 
-    my @deletedSubElements =
+    my @deleted_sub_elements =
         $self->get_sub_element_list(element => $element);
 
     %{$self->{ELEMENTS}{$element}{SUBELEMENTS}} = ();
     %{$self->{ELEMENTS}{$element}} = ();
     delete $self->{ELEMENTS}{$element};
 
-    return wantarray ? @deletedSubElements : \@deletedSubElements;
+    return wantarray ? @deleted_sub_elements : \@deleted_sub_elements;
 }
 
 #  remove a sub element label or group from within
@@ -2158,7 +2498,7 @@ sub delete_sub_element {
     croak "element not specified\n" if ! defined $args{element};
     croak "subelement not specified\n" if ! defined $args{subelement};
     my $element = $args{element};
-    my $subElement = $args{subelement};
+    my $sub_element = $args{subelement};
 
     return if ! exists $self->{ELEMENTS}{$element};
 
@@ -2166,11 +2506,11 @@ sub delete_sub_element {
         delete $self->{ELEMENTS}{$element}{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
         delete $self->{ELEMENTS}{$element}{BASE_STATS}{VARIETY};
         if (exists $self->{ELEMENTS}{$element}{BASE_STATS}{SAMPLECOUNT}) {
-            $self->{ELEMENTS}{$element}{BASE_STATS}{SAMPLECOUNT} -= $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement};
+            $self->{ELEMENTS}{$element}{BASE_STATS}{SAMPLECOUNT} -= $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
         }
     }
     if (exists $self->{ELEMENTS}{$element}{SUBELEMENTS}) {
-        delete $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement};
+        delete $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
     }
 
     return;
@@ -2529,16 +2869,20 @@ sub get_lists_across_elements {
     my $self = shift;
     my %args = @_;
     my $max_search = $args{max_search} || $self->get_element_count;
-    my $no_private = $args{no_private};
+    my $no_private = $args{no_private} // 0;
     my $rerun = $args{rerun};
     my $list_method = $args{list_method} || 'get_hash_lists';
 
     croak "max_search arg is negative\n" if $max_search < 0;
 
     #  get from cache
-    my $cached_list = $self->get_param ('LISTS_ACROSS_ELEMENTS');
+    my $cache_name_listnames   = "LISTS_ACROSS_ELEMENTS_${list_method}_${no_private}";
+    my $cache_name_last_update = "LISTS_ACROSS_ELEMENTS_MAX_SEARCH_${list_method}_${no_private}";
+    my $cache_name_max_search  = "LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME_${list_method}_${no_private}";
+
+    my $cached_list = $self->get_cached_value ($cache_name_listnames);
     my $cached_list_max_search
-        = $self->get_param ('LISTS_ACROSS_ELEMENTS_LAST_MAX_SEARCH');
+        = $self->get_cached_value ($cache_name_max_search);
 
     my $last_update_time = $self->get_last_update_time;
 
@@ -2547,7 +2891,7 @@ sub get_lists_across_elements {
     }
 
     my $last_cache_time
-        = $self->get_param ('LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME')
+        = $self->get_cached_value ($cache_name_last_update)
           || time;
 
     my $time_diff = defined $last_update_time
@@ -2593,10 +2937,10 @@ sub get_lists_across_elements {
     my @lists = keys %tmp_hash;
 
     #  cache
-    $self->set_params (
-        LISTS_ACROSS_ELEMENTS                  => \@lists,
-        LISTS_ACROSS_ELEMENTS_LAST_MAX_SEARCH  => $max_search,
-        LISTS_ACROSS_ELEMENTS_LAST_UPDATE_TIME => $last_cache_time,
+    $self->set_cached_values (
+        $cache_name_listnames   => \@lists,
+        $cache_name_max_search  => $max_search,
+        $cache_name_last_update => $last_cache_time,
     );
 
     return wantarray ? @lists : \@lists;
@@ -2719,8 +3063,8 @@ sub get_sample_count {
     return if ! $self->exists_element (element => $args{element});
 
     my $count = 0;
-    foreach my $subElement ($self->get_sub_element_list(element => $element)) {
-        $count += $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subElement};
+    foreach my $sub_element ($self->get_sub_element_list(element => $element)) {
+        $count += $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
     }
 
     return $count;

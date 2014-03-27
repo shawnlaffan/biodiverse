@@ -126,7 +126,7 @@ sub _calc_rarity_central {
     my %hash = $self -> _calc_endemism (
         %args,
         end_central => 1,
-        function    => 'get_label_sample_count'
+        function    => 'get_label_abundance'
     );
 
     my %hash2;
@@ -254,7 +254,7 @@ sub _calc_rarity_whole {
     my %hash = $self -> _calc_endemism (
         %args,
         end_central => 0,
-        function    => 'get_label_sample_count'
+        function    => 'get_label_abundance'
     );
 
     my %hash2;

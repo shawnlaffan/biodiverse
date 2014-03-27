@@ -1,4 +1,5 @@
 #!/usr/bin/perl -w
+use 5.010;
 use strict;
 use warnings;
 use English qw { -no_match_vars };
@@ -8,7 +9,7 @@ use Carp;
 #use lib "$Bin/lib";
 use rlib;
 
-use Test::More tests => 15;
+use Test::More tests => 17;
 use Test::Exception;
 
 local $| = 1;
@@ -26,11 +27,11 @@ use Scalar::Util qw /blessed/;
     #  ideally we shouldn't need to do this but the hierarchical subs need it
     my @res = (10, 10);
     my $bd = get_basedata_object(
-	x_spacing  => $res[0],
-	y_spacing  => $res[1],
-	x_max      => $res[0],
-	y_max      => $res[1],
-	CELL_SIZES => \@res,
+        x_spacing  => $res[0],
+        y_spacing  => $res[1],
+        x_max      => $res[0],
+        y_max      => $res[1],
+        CELL_SIZES => \@res,
     );
 
 
@@ -55,7 +56,7 @@ use Scalar::Util qw /blessed/;
             calc_pe
             calc_endemism_central
             calc_endemism_whole
-	    calc_numeric_label_stats
+            calc_numeric_label_stats
         /;
     my %calc_hash;
     @calc_hash{@calc_array} = (0) x scalar @calc_array;
@@ -63,38 +64,38 @@ use Scalar::Util qw /blessed/;
     $calc_hash{calc_numeric_label_stats} = 1;
 
     my $calc_args = {
-	tree_ref      => get_tree_object(),
-	element_list1 => [],
+        tree_ref      => get_tree_object(),
+        element_list1 => [],
     };
 
     foreach my $calc (sort keys %calc_hash) {
-	my %dep_tree = eval {
-	    $indices->parse_dependencies_for_calc (
-		calculation    => $calc,
-		nbr_list_count => 1,
-		calc_args      => $calc_args,
-	    )
-	};
-	$e = $EVAL_ERROR;
-	my $with_or_without = $calc_hash{$calc} ? 'with' : 'without';
-	$is_error = $e ? 1 : 0;
-	my $expected_error = $calc_hash{$calc} ? 1 : 0;
-	is ($is_error, $expected_error, "Parsed dependency tree $with_or_without error being raised ($calc)");
+        my %dep_tree = eval {
+            $indices->parse_dependencies_for_calc (
+                calculation    => $calc,
+                nbr_list_count => 1,
+                calc_args      => $calc_args,
+            )
+        };
+        $e = $EVAL_ERROR;
+        my $with_or_without = $calc_hash{$calc} ? 'with' : 'without';
+        $is_error = $e ? 1 : 0;
+        my $expected_error = $calc_hash{$calc} ? 1 : 0;
+        is ($is_error, $expected_error, "Parsed dependency tree $with_or_without error being raised ($calc)");
     }
     
     #$calc_args = {};
     my $valid_calcs = eval {
-	$indices->get_valid_calculations (
-	    calculations   => \%calc_hash,
-	    nbr_list_count => 1,
+        $indices->get_valid_calculations (
+            calculations   => \%calc_hash,
+            nbr_list_count => 1,
             calc_args      => $calc_args,
-	);
+        );
     };
     $e = $EVAL_ERROR;
     diag $e->message if blessed $e;
     $is_error = $EVAL_ERROR ? 1 : 0;
     is ($is_error, 0, "Obtained valid calcs without error");
-    
+
     my $calcs_to_run = $indices->get_valid_calculations_to_run;
     $e = $EVAL_ERROR;
     diag $e->message if blessed $e;
@@ -122,5 +123,26 @@ use Scalar::Util qw /blessed/;
     eval {$indices->run_postcalc_globals (%$calc_args)};
     $e = $EVAL_ERROR;
     ok (!$e, 'run_postcalc_globals had no eval errors');
+    
+    #  this should throw an exception
+    my %results = eval {
+	$indices->run_calculations(
+	    calculations  => ['calc_abc'],
+	    element_list1 => ['1000:1000'],
+	);
+    };
+    $e = $EVAL_ERROR;
+    ok ($e, 'calc_abc with non-existent group throws error');
+    
+    $valid_calcs = eval {
+	$indices->get_valid_calculations (
+	    calculations   => [qw /calc_richness calc_abc calc_abc2 calc_abc3/],
+	    nbr_list_count => 1,
+	);
+    };
+    $e = $EVAL_ERROR;
+    $valid_calcs = $indices->get_valid_calculations_to_run;
+    is (scalar keys %$valid_calcs, 0, 'no valid calculations without required args');
+    
 }
 

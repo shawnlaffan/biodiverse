@@ -44,15 +44,18 @@ This just calls the extractor functions and combines the results
    { name => 'format', type => 'choice', choices => ['CSV', 'Newick'], default => 0 },
    { name => 'max_clusters', type => 'float', default => 20 },
    { name => 'increment', type => 'integer', default => 5 },
-   { name => 'Spatial', type => 'spatial_params', default => '$D < 5' },
+   { name => 'Spatial', type => 'spatial_conditions', default => '$D < 5' },
    { name => 'use_length', type => 'boolean', default => 1 } ]
 
 =cut
 
 use strict;
 use warnings;
+use 5.010;
+
 use Glib;
 use Gtk2;
+use Text::Wrapper;
 
 use Carp;
 use English qw { -no_match_vars };
@@ -65,7 +68,7 @@ use Data::Dumper;
 
 sub fill {
     my $params = shift;
-    my $table = shift;
+    my $table  = shift;
     my $dlgxml = shift;
 
     # Ask object for parameters metadata
@@ -74,44 +77,57 @@ sub fill {
     my $tooltip_group = Gtk2::Tooltips->new;
 
     my $row = 0;
+    
+    my $label_wrapper = Text::Wrapper->new(columns => 30);
+
+  PARAM:
     foreach my $param (@$params) {
         # Add to the table a label with the name and some widget
         #
-        # The extractor will be called at the end to get the parameter value
+        # The extractor will be called after the dialogue is OK'd to get the parameter value
         # It returns (param_name, value)
-        
-        my ($widget, $extractor) = generateWidget($param, $dlgxml);
 
-        if ($widget) { # might not be putting into table (eg: using the filechooser)
+        my ($widget, $extractor) = generate_widget($param, $dlgxml);
 
-            # Add an extra row
-            my ($rows) = $table->get('n-rows');
-            $rows++;
-            $table->set('n-rows' => $rows);
-
-            # Make the label
-            my $label = Gtk2::Label->new;
-            $label->set_alignment(0, 0.5);
-            $label->set_text( $param->{label_text} || $param->{name} );
-
-            $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
-            $table->attach($widget, 1, 2, $rows, $rows + 1, 'fill', [], 0, 0);
-
-            # Add a tooltip
-            my $tip_text = $param->{tooltip};
-            if ($tip_text) {
-                $tooltip_group->set_tip($widget, $tip_text, undef);
-            }
-            #my $barry = exists $param->{sensitive} ? $param->{editable} : 1;
-                        # widgets are sensitive unless explicitly told otherwise
-            $widget->set_sensitive (exists $param->{sensitive} ? $param->{sensitive} : 1);  
-
-            $label->show;
-            $widget->show;
+        if ($extractor) {
+            push @extract_closures, $extractor;
         }
 
-        push @extract_closures, $extractor;
+        next PARAM if !$widget;  # might not be putting into table (eg: using the filechooser)
 
+        # Add an extra row
+        my ($rows) = $table->get('n-rows');
+        $rows++;
+        $table->set('n-rows' => $rows);
+
+        # Make the label
+        my $label = Gtk2::Label->new;
+        my $label_text = $label_wrapper->wrap($param->{label_text} || $param->{name});
+        chomp $label_text;
+        $label->set_alignment(0, 0.5);
+        $label->set_text( $label_text );
+
+        if ($param->{type} eq 'comment') {
+            $table->attach($label,  0, 2, $rows, $rows + 1, 'fill', [], 0, 0);
+        }
+        else {
+            $table->attach($label,  0, 1, $rows, $rows + 1, 'fill', [], 0, 0);
+            $table->attach($widget, 1, 2, $rows, $rows + 1, 'fill', [], 0, 0);
+        }
+
+        # Add a tooltip
+        my $tip_text = $param->{tooltip};
+        if ($tip_text) {
+            $tooltip_group->set_tip($widget, $tip_text, undef);
+        }
+
+        # widgets are sensitive unless explicitly told otherwise
+        $widget->set_sensitive (exists $param->{sensitive} ? $param->{sensitive} : 1);  
+
+        $label->show;
+        if ($param->{type} ne 'comment') {
+            $widget->show;
+        }
     }
     
     $table->show_all;  #  sometimes we have compound widgets not being shown
@@ -126,17 +142,17 @@ sub extract {
     # We call all the extractor closures which get values from the widgets
     my @params;
     foreach my $extractor (@$extractors) {
-        #print &$extractor();
+        #print $extractor->();
         #print "\n";
-        push @params, &$extractor();
+        push @params, $extractor->();
     }
     return \@params;
 }
 
 # Generates widget + extractor for some parameter
-sub generateWidget {
+sub generate_widget {
     my $param = $_[0];
-    
+
     my $type = $param->{type};
 
     my @valid_choices = qw {
@@ -145,19 +161,23 @@ sub generateWidget {
         float
         boolean
         choice
-        spatial_params
+        spatial_conditions
+        comment
     };
     my %valid_choices_hash;
     @valid_choices_hash{@valid_choices} = (1) x scalar @valid_choices;
-    
+
     croak "Unsupported parameter type $type\n"
         if ! exists $valid_choices_hash{$type};
 
-    my $sub_name = 'generate_' . $type;
     
+    #return if $type eq 'comment';  #  no callback in this case
+
+    my $sub_name = 'generate_' . $type;
+
     my @results = eval "$sub_name (\@_)";
     croak "Unsupported parameter type $type\n" if $EVAL_ERROR;
-    
+
     return @results;
 }
 
@@ -189,7 +209,7 @@ sub generate_choice {
 }
 
 sub generate_file {
-    my $param = shift;
+    my $param  = shift;
     my $dlgxml = shift;
 
     # The dialog already has a filechooser widget. We just return an extractor function
@@ -197,6 +217,17 @@ sub generate_file {
     my $extract = sub { return ($param->{name}, $chooser->get_filename); };
     return (undef, $extract);
 }
+
+sub generate_comment {
+    my $param  = shift;
+    my $dlgxml = shift;
+
+    #  just a placeholder
+    my $label = Gtk2::Label->new;
+
+    return ($label, undef);
+}
+
 
 sub generate_integer {
     my $param = shift;
@@ -227,6 +258,7 @@ sub generate_float {
 
 sub generate_boolean {
     my $param = shift;
+
     my $default = $param->{default} || 0;
     
     my $checkbox = Gtk2::CheckButton->new;
@@ -236,8 +268,9 @@ sub generate_boolean {
     return ($checkbox, $extract);
 }
 
-sub generate_spatial_params {
+sub generate_spatial_conditions {
     my $param = shift;
+
     my $default = $param->{default} || '';
 
     my $sp = Biodiverse::GUI::SpatialParams->new($default);

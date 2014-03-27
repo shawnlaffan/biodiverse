@@ -16,7 +16,7 @@ use English ( -no_match_vars );
 our $VERSION = '0.19';
 
 require      Exporter;
-use parent qw /Exporter Biodiverse::Common/;
+use parent qw/Exporter Biodiverse::Common/;
 our @EXPORT    = qw(
     MODEL_BASEDATA
     MODEL_OUTPUT
@@ -26,6 +26,8 @@ our @EXPORT    = qw(
     MODEL_BASEDATA_ROW
     MODEL_OUTPUT_TYPE
 );
+
+
 
 use Data::DumpXML::Parser;
 use Storable;
@@ -46,13 +48,6 @@ use constant MODEL_BASEDATA_ROW => 5;        # TRUE if this is a basedata row.
                                              # Use to filter these out for comboboxes
 use constant MODEL_OUTPUT_TYPE  => 6;        # Display the object type
 
-sub init_models {
-    my $self = shift;
-    $self->initModels();
-    $self->initOverlayHash();
-    $self->clearDirty();
-}
-
 sub new {
     my $class = shift;
     my %args = @_;
@@ -65,9 +60,9 @@ sub new {
 
     bless $self, $class;
     
-    $self->selectMatrix(undef);
-    $self->selectPhylogeny(undef);
-    $self->selectBaseData(undef);
+    $self->select_matrix(undef);
+    $self->select_phylogeny(undef);
+    $self->select_base_data(undef);
 
     $self->set_params (
         OUTSUFFIX       => 'bps',
@@ -98,13 +93,13 @@ sub new {
         #    $self = $tmp;
         #}
         if ($type eq 'Biodiverse::BaseData') {
-            $self->addBaseData ($tmp);
+            $self->add_base_data ($tmp);
         }
         elsif ($type eq 'Biodiverse::Matrix') {
-            $self->addMatrix ($tmp);
+            $self->add_matrix ($tmp);
         }
         elsif ($type eq 'Biodiverse::Tree') {
-            $self->addPhylogeny ($tmp);
+            $self->add_phylogeny ($tmp);
         }
         else {
             croak "File $args{file} is not of correct type.\n It is " .
@@ -118,9 +113,9 @@ sub new {
 
 sub init {
     my $self = shift;
-    $self->initModels();
-    $self->initOverlayHash();
-    $self->clearDirty();
+    $self->init_models();
+    $self->init_overlay_hash();
+    $self->clear_dirty();
 }
 
 
@@ -157,24 +152,24 @@ sub save {
     return $file;
 }
 
-sub getBaseDataOutputModel {
+sub get_base_data_output_model {
     my $self = shift;
     return $self->{models}{basedata_output_model};
 }
-sub getBasedataModel {
+sub get_basedata_model {
     my $self = shift;
     return $self->{models}{basedata_model};
 }
-sub getMatrixModel {
+sub get_matrix_model {
     my $self = shift;
     return $self->{models}{matrix_model};
 }
-sub getPhylogenyModel {
+sub get_phylogeny_model {
     my $self = shift;
     return $self->{models}{phylogeny_model};
 }
 
-sub initModels {
+sub init_models {
     my $self = shift;
 
     # Output-Basedata model for Outputs TreeView
@@ -184,7 +179,7 @@ sub initModels {
     # (tab) (object) (basedata row?)
     #
     # stored globally so don't have to set_model everything when a new project is loaded
-    $self->{models}{basedata_output_model} = Biodiverse::GUI::GUIManager->instance->getBaseDataOutputModel;
+    $self->{models}{basedata_output_model} = Biodiverse::GUI::GUIManager->instance->get_base_data_output_model;
     
     # Basedata model for combobox (based on above)
     $self->{models}{basedata_model} = Gtk2::TreeModelFilter->new($self->{models}{basedata_output_model});
@@ -208,60 +203,60 @@ sub initModels {
     tie %{$self->{iters}{phylogeny_iters}}, 'Tie::RefHash';
     tie %{$self->{iters}{output_iters}},    'Tie::RefHash';
     
-    $self->basedataOutputModelInit();
-    $self->matrixModelInit();
-    $self->phylogenyModelInit();
-    $self->updateGUIComboboxes();
+    $self->basedata_output_model_init();
+    $self->matrix_model_init();
+    $self->phylogeny_model_init();
+    $self->update_gui_comboboxes();
 }
 
-sub updateGUIComboboxes {
+sub update_gui_comboboxes {
     my $self = shift;
     # Basedata
     my $gui = Biodiverse::GUI::GUIManager->instance;
 
-    $gui->setBasedataModel( $self->{models}{basedata_model} );
-    
-    my $selected = $self->getSelectedBaseData();
+    $gui->set_basedata_model( $self->{models}{basedata_model} );
+
+    my $selected = $self->get_selected_base_data();
     #if ($selected) {
-        $self->selectBaseData($selected); # this will update GUI combobox
+        $self->select_base_data($selected); # this will update GUI combobox
     #}
     
     # Matrix
-    $gui->setMatrixModel( $self->{models}{matrix_model} );
+    $gui->set_matrix_model( $self->{models}{matrix_model} );
     
-    $selected = $self->getSelectedMatrix();
+    $selected = $self->get_selected_matrix();
     #if ($selected) {  #  always select so we get '(none)' for empties
-        $self->selectMatrix($selected); # this will update GUI combobox
+        $self->select_matrix($selected); # this will update GUI combobox
     #}
 
     # Phylogeny
-    $gui->setPhylogenyModel( $self->{models}{phylogeny_model} );
+    $gui->set_phylogeny_model( $self->{models}{phylogeny_model} );
     
-    $selected = $self->getSelectedPhylogeny();
+    $selected = $self->get_selected_phylogeny();
     #if ($selected) {  #  always select so we get '(none)' for empties
-        $self->selectPhylogeny($selected); # this will update GUI combobox
+        $self->select_phylogeny($selected); # this will update GUI combobox
     #}
 
-    $self->manageEmptyBasedatas();
-    $self->manageEmptyMatrices();
-    $self->manageEmptyPhylogenies();
+    $self->manage_empty_basedatas();
+    $self->manage_empty_matrices();
+    $self->manage_empty_phylogenies();
 }
     
 ######################################################
 ## Whether there is unsaved ("dirty") data
 ######################################################
 
-sub isDirty {
+sub is_dirty {
     my $self = shift;
     return $self->{dirty};
 }
 
-sub clearDirty {
+sub clear_dirty {
     my $self = shift;
     $self->{dirty} = 0;
 }
 
-sub setDirty {
+sub set_dirty {
     my $self = shift;
     $self->{dirty} = 1;
 }
@@ -272,26 +267,26 @@ sub setDirty {
 ######################################################
 
 # Fills the Basedata-Output model with stored objects
-sub basedataOutputModelInit {
+sub basedata_output_model_init {
     my $self = shift;
     my $model = $self->{models}{basedata_output_model};
     $model->clear();
 
-    my $basedatas = $self->getBaseDataList();
+    my $basedatas = $self->get_base_data_list();
     #print Data::Dumper::Dumper($basedatas);
 
     foreach my $basedata_ref (@{$basedatas}) {
         next if not defined $basedata_ref;
         #print "[Project] Loading basedata\n";
 
-        my $basedata_iter = $self->basedataRowAdd($basedata_ref);
-        $self->basedataAddOutputs($basedata_ref, $basedata_iter);
+        my $basedata_iter = $self->basedata_row_add($basedata_ref);
+        $self->basedata_add_outputs($basedata_ref, $basedata_iter);
     }
     
     return;
 }
 
-sub basedataAddOutputs {
+sub basedata_add_outputs {
     my $self = shift;
     my $basedata_ref  = shift;
     my $basedata_iter = shift;
@@ -303,16 +298,16 @@ sub basedataAddOutputs {
         }
         $output_ref->weaken_basedata_ref;  #  just in case
 
-        $self->outputRowAdd($basedata_iter, $output_ref);
+        $self->output_row_add($basedata_iter, $output_ref);
         if (blessed($output_ref) =~ /Spatial/) {
-            $self->updateIndicesRows($output_ref);
+            $self->update_indices_rows($output_ref);
         }
     }
     
     return;
 }
 
-sub basedataRowAdd {
+sub basedata_row_add {
     my $self = shift;
     my $basedata_ref = shift;
     my $model = $self->{models}{basedata_output_model};
@@ -335,7 +330,7 @@ sub basedataRowAdd {
 }
 
 # Add top-level row for an output
-sub outputRowAdd {
+sub output_row_add {
     my $self          = shift;
     my $basedata_iter = shift;
     my $output_ref    = shift;
@@ -361,7 +356,7 @@ sub outputRowAdd {
 }
 
 # Add a row for each index that was calculated
-sub updateIndicesRows {
+sub update_indices_rows {
     my $self = shift;
     my $output_ref = shift;
     my $iter = $self->{iters}{output_iters}{$output_ref};
@@ -417,23 +412,23 @@ sub updateIndicesRows {
 ## (this will automatically update the GUI combobox)
 ######################################################
 
-sub matrixModelInit {
+sub matrix_model_init {
     my $self = shift;
     my $output = shift;
 
-    my $matrices = $self->getMatrixList();
+    my $matrices = $self->get_matrix_list();
 
     foreach my $matrix_ref (@{$matrices}) {
         next if not defined $matrix_ref;
-        $self->matrixRowAdd($matrix_ref);
+        $self->matrix_row_add($matrix_ref);
     }
 
-    $self->matrixRowAddNone;
+    $self->matrix_row_add_none;
     
     return;
 }
 
-sub matrixRowAdd {
+sub matrix_row_add {
     my $self = shift;
     my $matrix_ref = shift;
     return if ! defined $matrix_ref;
@@ -447,7 +442,7 @@ sub matrixRowAdd {
     return;
 }
 
-sub matrixRowAddNone {
+sub matrix_row_add_none {
     my $self = shift;
 
     # Add the (none) entry - for Matrices we always want to have it
@@ -464,15 +459,15 @@ sub matrixRowAddNone {
 ## (this will automatically update the GUI combobox)
 ######################################################
 
-sub phylogenyModelInit {
+sub phylogeny_model_init {
     my $self = shift;
     my $output = shift;
 
-    my $phylogenies = $self->getPhylogenyList();
+    my $phylogenies = $self->get_phylogeny_list();
 
     foreach my $phylogeny_ref (@{$phylogenies}) {
         next if not defined $phylogeny_ref;
-        $self->phylogenyRowAdd($phylogeny_ref);
+        $self->phylogeny_row_add($phylogeny_ref);
     }
 
     # Add the (none) entry - for Matrices we always want to have it
@@ -484,7 +479,7 @@ sub phylogenyModelInit {
     return;
 }
 
-sub phylogenyRowAdd {
+sub phylogeny_row_add {
     my $self = shift;
     my $phylogeny_ref = shift;
 
@@ -502,7 +497,7 @@ sub phylogenyRowAdd {
 ######################################################
 
 # Merely update the model
-sub addOutput {
+sub add_output {
     my $self         = shift;
     my $basedata_ref = shift;
     my $output_ref   = shift;
@@ -511,16 +506,16 @@ sub addOutput {
     my $basedata_iter = $self->{iters}{basedata_iters}{$basedata_ref};
     #my $x = "$output_ref";
     #say "Adding output $x";
-    my $iter = $self->getOutputIter ($output_ref);
+    my $iter = $self->get_output_iter ($output_ref);
     if (! defined $iter) {  #  don't re-add it
-        $self->outputRowAdd($basedata_iter, $output_ref);
-        $self->setDirty();
+        $self->output_row_add($basedata_iter, $output_ref);
+        $self->set_dirty();
     }
 
     return;
 }
 
-sub updateOutputName {
+sub update_output_name {
     my $self = shift;
     my $output_ref = shift;
     my $name = $output_ref->get_param('NAME');
@@ -537,7 +532,7 @@ sub updateOutputName {
         
         #$model->set_value ($iter, 1, $name);
         
-        $self->setDirty();
+        $self->set_dirty();
     }
     
     return;
@@ -545,7 +540,7 @@ sub updateOutputName {
 
 
 # Makes a new BaseData object or adds an existing one
-sub addBaseData {
+sub add_base_data {
     my $self = shift;
     my $basedata_ref = shift;
     my $no_select = shift;
@@ -560,20 +555,20 @@ sub addBaseData {
     push (@{$self->{BASEDATA}}, $basedata_ref);
 
     # Add to model
-    my $basedata_iter = $self->basedataRowAdd($basedata_ref);
-    $self->basedataAddOutputs($basedata_ref, $basedata_iter);
-    $self->manageEmptyBasedatas();
+    my $basedata_iter = $self->basedata_row_add($basedata_ref);
+    $self->basedata_add_outputs($basedata_ref, $basedata_iter);
+    $self->manage_empty_basedatas();
     
     if (not $no_select) {
-        $self->selectBaseData($basedata_ref);
+        $self->select_base_data($basedata_ref);
     }
 
-    $self->setDirty();
+    $self->set_dirty();
     return $basedata_ref;
 }
 
 # Makes a new Matrix object or adds an existing one
-sub addMatrix {
+sub add_matrix {
     my $self = shift;
     my $matrix_ref = shift;
     my $no_select = shift;
@@ -594,17 +589,17 @@ sub addMatrix {
     return if !$add_count;
 
     # update model
-    $self->matrixRowAdd($matrix_ref);
-    $self->manageEmptyMatrices();
-    $self->selectMatrix($matrix_ref) unless $no_select;
+    $self->matrix_row_add($matrix_ref);
+    $self->manage_empty_matrices();
+    $self->select_matrix($matrix_ref) unless $no_select;
 
-    $self->setDirty();
+    $self->set_dirty();
     return $matrix_ref;
 }
 
 
 # Add a phylogeny object
-sub addPhylogeny {
+sub add_phylogeny {
     my $self = shift;
     my $phylogenies = shift;
     my $no_select = shift;
@@ -631,21 +626,21 @@ sub addPhylogeny {
     foreach my $phylogeny_ref (@$phylogenies) {
         #$phylogeny_ref->set_parents_below();  #  make sure we have the correct parental structure - dealt with by ReadNexus now.
         $phylogeny_ref->set_param (MAX_COLOURS => 1);  #  underhanded, but gives us one colour when clicked on
-        $self->phylogenyRowAdd($phylogeny_ref);
-        $self->manageEmptyPhylogenies();  #  SWL: not sure if this should be in the loop
+        $self->phylogeny_row_add($phylogeny_ref);
+        $self->manage_empty_phylogenies();  #  SWL: not sure if this should be in the loop
     }
 
     if (!$no_select) {
-        $self->selectPhylogeny(@{$phylogenies}[0]);  #  select the first one
+        $self->select_phylogeny(@{$phylogenies}[0]);  #  select the first one
     }
     
-    $self->setDirty();
+    $self->set_dirty();
     #return $phylogeny_ref;
     return;
 }
 
 # Add a phylogeny object
-#sub addPhylogenyOrig {
+#sub add_phylogeny_orig {
 #    my $self = shift;
 #    my $name = shift;
 #
@@ -655,15 +650,15 @@ sub addPhylogeny {
 #    push (@{$self->{PHYLOGENIES}}, $phylogeny_ref);
 #
 #    # update model
-#    $self->phylogenyRowAdd($phylogeny_ref);
-#    $self->manageEmptyPhylogenies();
-#    $self->selectPhylogeny($phylogeny_ref);
+#    $self->phylogeny_row_add($phylogeny_ref);
+#    $self->manage_empty_phylogenies();
+#    $self->select_phylogeny($phylogeny_ref);
 #
-#    $self->setDirty();
+#    $self->set_dirty();
 #    return $phylogeny_ref;
 #}
 
-sub selectBaseData {
+sub select_base_data {
     my $self = shift;
     my $basedata_ref = shift;
 
@@ -676,86 +671,86 @@ sub selectBaseData {
         # Make it relative to the filtered basedata model
         if (defined $iter) {
             $iter = $self->{models}{basedata_model}->convert_child_iter_to_iter($iter);
-            Biodiverse::GUI::GUIManager->instance->setBasedataIter($iter);
+            Biodiverse::GUI::GUIManager->instance->set_basedata_iter($iter);
         }
     }
-    $self->callSelectionCallbacks('basedata', $basedata_ref);
+    $self->call_selection_callbacks('basedata', $basedata_ref);
     
     return;
 }
 
-sub selectBaseDataIter {
+sub select_base_data_iter {
     my $self = shift;
     my $iter = shift;
 
     my $basedata_ref = $self->{models}{basedata_model}->get($iter, MODEL_OBJECT);
-    $self->selectBaseData($basedata_ref);
+    $self->select_base_data($basedata_ref);
     
     return;
 }
 
-sub selectMatrix {
+sub select_matrix {
     my $self = shift;
     my $matrix_ref = shift;
 
     $self->set_param(SELECTED_MATRIX => $matrix_ref);
 
     if ($matrix_ref) {
-        Biodiverse::GUI::GUIManager->instance->setMatrixIter( $self->{iters}{matrix_iters}{$matrix_ref} );
-        $self->setMatrixButtons(1);
+        Biodiverse::GUI::GUIManager->instance->set_matrix_iter( $self->{iters}{matrix_iters}{$matrix_ref} );
+        $self->set_matrix_buttons(1);
     }
     elsif ($self->{iters}{matrix_none}) {
-        Biodiverse::GUI::GUIManager->instance->setMatrixIter( $self->{iters}{matrix_none} );
-        $self->setMatrixButtons(0);
+        Biodiverse::GUI::GUIManager->instance->set_matrix_iter( $self->{iters}{matrix_none} );
+        $self->set_matrix_buttons(0);
     }
-    $self->callSelectionCallbacks(matrix => $matrix_ref);
+    $self->call_selection_callbacks(matrix => $matrix_ref);
     
     return;
 }
 
-sub selectMatrixIter {
+sub select_matrix_iter {
     my $self = shift;
     my $iter = shift;
 
     my $matrix_ref = $self->{models}{matrix_model}->get($iter, 1);
-    $self->selectMatrix($matrix_ref);
+    $self->select_matrix($matrix_ref);
     
     return;
 }
 
-sub selectPhylogeny {
+sub select_phylogeny {
     my $self = shift;
     my $phylogeny_ref = shift;
 
     $self->set_param('SELECTED_PHYLOGENY', $phylogeny_ref);
 
     if ($phylogeny_ref) {
-        Biodiverse::GUI::GUIManager->instance->setPhylogenyIter( $self->{iters}{phylogeny_iters}{$phylogeny_ref} );
-        $self->setPhylogenyButtons(1);
+        Biodiverse::GUI::GUIManager->instance->set_phylogeny_iter( $self->{iters}{phylogeny_iters}{$phylogeny_ref} );
+        $self->set_phylogeny_buttons(1);
     }
     elsif ($self->{iters}{phylogeny_none}) {
-        Biodiverse::GUI::GUIManager->instance->setPhylogenyIter( $self->{iters}{phylogeny_none} );
-        $self->setPhylogenyButtons(0);
+        Biodiverse::GUI::GUIManager->instance->set_phylogeny_iter( $self->{iters}{phylogeny_none} );
+        $self->set_phylogeny_buttons(0);
     }
-    $self->callSelectionCallbacks('phylogeny', $phylogeny_ref);
+    $self->call_selection_callbacks('phylogeny', $phylogeny_ref);
     
     return;
 }
 
 
-sub selectPhylogenyIter {
+sub select_phylogeny_iter {
     my $self = shift;
     my $iter = shift;
 
     my $phylogeny_ref = $self->{models}{phylogeny_model}->get($iter, 1);
-    $self->selectPhylogeny($phylogeny_ref);
+    $self->select_phylogeny($phylogeny_ref);
     
     return;
 }
 
-sub deleteBaseData {
+sub delete_base_data {
     my $self = shift;
-    my $basedata_ref = shift || $self->getSelectedBaseData() || return 0;  #  drop out if nothing here
+    my $basedata_ref = shift || $self->get_selected_base_data() || return 0;  #  drop out if nothing here
 
     $self->delete_all_basedata_outputs ($basedata_ref);
 
@@ -780,10 +775,10 @@ sub deleteBaseData {
         }
     }
 
-    $self->manageEmptyBasedatas();
+    $self->manage_empty_basedatas();
 
     # Clear selection
-    my $selected = $self->getSelectedBaseData;
+    my $selected = $self->get_selected_base_data;
     if ($basedata_ref eq $selected) {
         $self->set_param (SELECTED_BASEDATA => undef);
         #print "CLEARED SELECTED_BASEDATA\n";
@@ -794,30 +789,30 @@ sub deleteBaseData {
     #$basedata_ref->delete_all_outputs if defined $basedata_ref;
 
     # Select the first one remaining
-    my $basedata_list = $self->getBaseDataList;
+    my $basedata_list = $self->get_base_data_list;
     my $first = $basedata_list->[0];
     if (defined $first) {
         #print "[Project] Selecting basedata $first\n";
-        $self->selectBaseData($first);
+        $self->select_base_data($first);
     }
-    $self->setDirty();
+    $self->set_dirty();
 
     #  this is pretty underhanded, but it is not being freed somewhere
     #   so we will empty it instead to reduce the footprint
     #$basedata_ref->DESTROY;
         
-    #$self->dump_to_yaml (filename => 'circle3.yml', data => $self->getBaseDataList)
+    #$self->dump_to_yaml (filename => 'circle3.yml', data => $self->get_base_data_list)
 
     return;
 }
 
-sub renameBaseData {
+sub rename_base_data {
     #return;  #  TEMP TEMP
     
     my $self = shift;
     my $name = shift; #TEMP TEMP ARG
     
-    my $basedata_ref = shift || $self->getSelectedBaseData() || return;  #  drop out if nothing here
+    my $basedata_ref = shift || $self->get_selected_base_data() || return;  #  drop out if nothing here
 
     $basedata_ref->rename (name => $name);
 
@@ -830,18 +825,18 @@ sub renameBaseData {
         }
     }
     
-    $self->setDirty();
+    $self->set_dirty();
 
     return;
 }
 
-sub renameMatrix {
+sub rename_matrix {
     #return;  #  TEMP TEMP
     
     my $self = shift;
     my $name = shift; #TEMP TEMP ARG
     
-    my $ref = shift || $self->getSelectedMatrix() || return;  #  drop out if nothing here
+    my $ref = shift || $self->get_selected_matrix() || return;  #  drop out if nothing here
 
     $ref->rename_object (name => $name);
 
@@ -854,19 +849,19 @@ sub renameMatrix {
         }
     }
     
-    $self->setDirty();
+    $self->set_dirty();
     
     return;
 }
 
 
-sub renamePhylogeny {
+sub rename_phylogeny {
     #return;  #  TEMP TEMP
     
     my $self = shift;
     my $name = shift; #TEMP TEMP ARG
     
-    my $ref = shift || $self->getSelectedPhylogeny() || return;  #  drop out if nothing here
+    my $ref = shift || $self->get_selected_phylogeny() || return;  #  drop out if nothing here
 
     $ref->rename_object (name => $name);
 
@@ -879,17 +874,17 @@ sub renamePhylogeny {
         }
     }
     
-    $self->setDirty();
+    $self->set_dirty();
     
     return;
 }
 
-sub deleteMatrix {
+sub delete_matrix {
     my $self = shift;
-    my $matrix_ref = shift || $self->getSelectedMatrix();
+    my $matrix_ref = shift || $self->get_selected_matrix();
 
     # Clear selection
-    my $selected = $self->getSelectedMatrix;
+    my $selected = $self->get_selected_matrix;
     if ($matrix_ref eq $selected) {
         $self->set_param('SELECTED_MATRIX', undef);
         #print "CLEARED SELECTED_MATRIX\n";
@@ -910,25 +905,25 @@ sub deleteMatrix {
         $model->remove($iter);
         delete $self->{iters}{matrix_iters}{$matrix_ref};
     }
-    $self->manageEmptyMatrices();
+    $self->manage_empty_matrices();
 
     
     # Select the first one remaining
-    my $first = @{$self->getMatrixList}[0];
+    my $first = @{$self->get_matrix_list}[0];
     if ($first) {
         #print "[Project] Selecting matrix $first\n";
-        $self->selectMatrix($first);
+        $self->select_matrix($first);
     }
 
-    $self->setDirty();
+    $self->set_dirty();
 }
 
-sub deletePhylogeny {
+sub delete_phylogeny {
     my $self = shift;
-    my $phylogeny_ref = shift || $self->getSelectedPhylogeny();
+    my $phylogeny_ref = shift || $self->get_selected_phylogeny();
 
         # Clear selection
-    my $selected = $self->getSelectedPhylogeny;
+    my $selected = $self->get_selected_phylogeny;
     if ($phylogeny_ref eq $selected) {
         $self->set_param('SELECTED_PHYLOGENY', undef);
         #print "CLEARED SELECTED_PHYLOGENY $selected\n";
@@ -949,20 +944,20 @@ sub deletePhylogeny {
         $model->remove($iter);
         delete $self->{iters}{phylogeny_iters}{$phylogeny_ref};
     }
-    $self->manageEmptyPhylogenies();
+    $self->manage_empty_phylogenies();
 
 
     # Select the first one remaining
-    my $first = @{$self->getPhylogenyList}[0];
+    my $first = @{$self->get_phylogeny_list}[0];
     if ($first) {
         #print "[Project] Selecting phylogeny $first\n";
-        $self->selectPhylogeny($first);
+        $self->select_phylogeny($first);
     }
 
-    $self->setDirty();
+    $self->set_dirty();
 }
 
-sub deleteOutput {
+sub delete_output {
     my $self = shift;
     my $output_ref = shift;
 
@@ -973,14 +968,14 @@ sub deleteOutput {
         $model->remove($iter);
         delete $self->{iters}{output_iters}{$output_ref};
         
-        $self->setDirty();
+        $self->set_dirty();
     }
     
     return;
 }
 
 #  should probably be called set name, as we assume it is already renamed
-sub renameOutput {
+sub rename_output {
     my $self = shift;
     my $output_ref = shift;
     my $name = $output_ref->get_param ('NAME');
@@ -991,7 +986,7 @@ sub renameOutput {
         my $model = $self->{models}{basedata_output_model};
         $model->set_value ($iter, MODEL_OUTPUT, $name);
         
-        $self->setDirty();
+        $self->set_dirty();
     }
     
     return;
@@ -1000,10 +995,10 @@ sub renameOutput {
 #  go through and clean them all up.  
 sub delete_all_basedata_outputs {
     my $self = shift;
-    my $bd = shift || $self->getSelectedBaseData || return 0;
+    my $bd = shift || $self->get_selected_base_data || return 0;
     
     foreach my $output_ref ($bd->get_output_refs) {
-        $self->deleteOutput ($output_ref);
+        $self->delete_output ($output_ref);
     }
     
     return;
@@ -1013,11 +1008,11 @@ sub delete_all_basedata_outputs {
 # Make an output known to the Outputs tab so that it
 # can switch to this tab if the user presses "Show"
 
-sub registerInOutputsModel {
+sub register_in_outputs_model {
     my $self   = shift;
     my $object = shift;
     my $tabref = shift; # either the relevant tab, or undef to deregister
-    my $model  = $self->getBaseDataOutputModel();
+    my $model  = $self->get_base_data_output_model();
 
     # Find iter
     my $iter;
@@ -1050,7 +1045,7 @@ sub registerInOutputsModel {
 ####################################################
 # Selection changed callbacks
 ####################################################
-sub registerSelectionCallback {
+sub register_selection_callback {
     my $self = shift;
     my $type = shift; # basedata / matrix / phylogeny
     my $closure = shift;
@@ -1065,7 +1060,7 @@ sub registerSelectionCallback {
     return;
 }
 
-sub deleteSelectionCallback {
+sub delete_selection_callback {
     my $self = shift;
     my $type = shift; # basedata / matrix / phylogeny
     my $closure = shift;
@@ -1078,18 +1073,19 @@ sub deleteSelectionCallback {
     return;
 }
 
-sub callSelectionCallbacks {
+sub call_selection_callbacks {
     my $self = shift;
     my $type = shift; # basedata / matrix / phylogeny
     my @args = @_;
 
     my $hash = $self->{callbacks}{$type};
-    if ($hash) {
-        foreach my $callback (values %$hash) {
-            &$callback(@args);
-        }
+
+    return if !$hash;
+
+    foreach my $callback (values %$hash) {
+        $callback->(@args);
     }
-    
+
     return;
 }
 
@@ -1097,42 +1093,42 @@ sub callSelectionCallbacks {
 ####################################################
 # Misc get functions
 ####################################################
-sub getBaseDataList {
+sub get_base_data_list {
     my $self = shift;
     return $self->{BASEDATA};
 }
-sub getMatrixList {
+sub get_matrix_list {
     my $self = shift;
     return $self->{MATRICES};
 }
-sub getPhylogenyList {
+sub get_phylogeny_list {
     my $self = shift;
     return $self->{PHYLOGENIES};
 }
 
-sub getSelectedMatrix {
+sub get_selected_matrix {
     my $self = shift;
     return $self->get_param('SELECTED_MATRIX');
 }
 
-sub getSelectedPhylogeny {
+sub get_selected_phylogeny {
     my $self = shift;
     return $self->get_param('SELECTED_PHYLOGENY');
 }
 
-sub getSelectedBaseData {
+sub get_selected_base_data {
     my $self = shift;
     return $self->get_param('SELECTED_BASEDATA');
 }
 
-sub getOutputIter {
+sub get_output_iter {
     my $self = shift;
     my $output_ref = shift;
 
     return $self->{iters}{output_iters}{$output_ref};
 }
 
-sub getBaseDataIter {
+sub get_base_data_iter {
     my $self = shift;
     my $ref = shift;
     return if not defined $ref;
@@ -1146,9 +1142,9 @@ sub getBaseDataIter {
     return $iter;
 }
 
-sub getSelectedBaseDataIter {
+sub get_selected_base_data_iter {
     my $self = shift;
-    my $ref = $self->getSelectedBaseData();
+    my $ref = $self->get_selected_base_data();
     return if not defined $ref;
     
     my $iter = $self->{iters}{basedata_iters}{$ref};
@@ -1160,16 +1156,16 @@ sub getSelectedBaseDataIter {
     return $iter;
 }
 
-sub getSelectedMatrixIter {
+sub get_selected_matrix_iter {
     my $self = shift;
-    my $ref = $self->getSelectedMatrix();
+    my $ref = $self->get_selected_matrix();
     return if not defined $ref;
 
     return $self->{iters}{matrix_iters}{$ref};
 }
-sub getSelectedPhylogenyIter {
+sub get_selected_phylogeny_iter {
     my $self = shift;
-    my $ref = $self->getSelectedPhylogeny();
+    my $ref = $self->get_selected_phylogeny();
     return if not defined $ref;
 
     return $self->{iters}{phylogeny_iters}{$ref};
@@ -1179,10 +1175,10 @@ sub getSelectedPhylogenyIter {
 #   adds or removes the "(none)" rows
 #   selects (none) row if added one
 #   disables/enables a list of buttons
-sub manageEmptyModel {
+sub manage_empty_model {
     my $self = shift;
     my $model = shift;
-    my $buttonIDs = shift;
+    my $button_IDs = shift;
     my $func = shift;
 
     my $sensitive;
@@ -1213,16 +1209,16 @@ sub manageEmptyModel {
 
     # enable/disable buttons
     my $instance = Biodiverse::GUI::GUIManager->instance;
-    foreach (@{$buttonIDs}) {
-        warn "$_\n" if ! defined $instance->getWidget($_);
-        $instance->getWidget($_)->set_sensitive($sensitive);
+    foreach (@{$button_IDs}) {
+        warn "$_\n" if ! defined $instance->get_widget($_);
+        $instance->get_widget($_)->set_sensitive($sensitive);
     }
 }
 
-sub manageEmptyBasedatas {
+sub manage_empty_basedatas {
     my $self = shift;
     my $model = $self->{models}{basedata_model};
-    $self->manageEmptyModel(
+    $self->manage_empty_model(
         $model,
         [qw /
             btnBasedataDelete
@@ -1260,7 +1256,7 @@ sub manageEmptyBasedatas {
     return;
 }
 
-sub manageEmptyMatrices {
+sub manage_empty_matrices {
     my $self = shift;
     my $sensitive = 1;
 
@@ -1269,15 +1265,15 @@ sub manageEmptyMatrices {
         $sensitive = 0;
 
         # make sure (none) is selected
-        $self->selectMatrix(undef);
+        $self->select_matrix(undef);
     }
 
-    $self->setMatrixButtons($sensitive);
+    $self->set_matrix_buttons($sensitive);
     
     return;
 }
 
-sub manageEmptyPhylogenies {
+sub manage_empty_phylogenies {
     my $self = shift;
     my $sensitive = 1;
 
@@ -1286,16 +1282,16 @@ sub manageEmptyPhylogenies {
         $sensitive = 0;
 
         # make sure (none) is selected
-        $self->selectPhylogeny(undef);
+        $self->select_phylogeny(undef);
     }
 
-    $self->setPhylogenyButtons($sensitive);
+    $self->set_phylogeny_buttons($sensitive);
     
     return;
 }
 
 # enable/disable buttons
-sub setMatrixButtons {
+sub set_matrix_buttons {
     my ($self, $sensitive) = @_;
     
     my $instance = Biodiverse::GUI::GUIManager->instance;
@@ -1309,12 +1305,12 @@ sub setMatrixButtons {
                 menu_matrix_export
                 convert_matrix_to_phylogeny
                 /) {
-        $instance->getWidget($_)->set_sensitive($sensitive);
+        $instance->get_widget($_)->set_sensitive($sensitive);
     }
 }
 
 # enable/disable buttons
-sub setPhylogenyButtons {
+sub set_phylogeny_buttons {
     my ($self, $sensitive) = @_;
     #foreach ('btnPhylogenyDelete') {
     my $instance = Biodiverse::GUI::GUIManager->instance;
@@ -1330,13 +1326,13 @@ sub setPhylogenyButtons {
                 menu_phylogeny_export
                 menu_phylogeny_delete_cached_values
                 /) {
-        $instance->getWidget($_)->set_sensitive($sensitive);
+        $instance->get_widget($_)->set_sensitive($sensitive);
     }
 }
 
 
 # Makes a new name like "Ferns_Spatial3" which isn't already used (up to 100)
-sub makeNewOutputName {
+sub make_new_output_name {
     my $self = shift;
     my $source_ref = shift; # BaseData object used to generate output
     my $type = shift; # eg: "Spatial"
@@ -1350,7 +1346,7 @@ sub makeNewOutputName {
 
     for (my $i = 0; $i < 100; $i++) {
         $name = $prefix . $i;
-        if ($self->memberOf($name, \@outputs) == 0) {
+        if ($self->member_of($name, \@outputs) == 0) {
             last; # "break"
         }
     }
@@ -1359,7 +1355,7 @@ sub makeNewOutputName {
 }
 
 # Returns whether an element is in some array-ref
-sub memberOf {
+sub member_of {
     my ($self, $elem, $array) = @_;
     foreach my $member (@$array) {
         if ($elem eq $member) {
@@ -1371,7 +1367,7 @@ sub memberOf {
 
 
 # Get array of output refs for this basedata
-sub getBasedataOutputs {
+sub get_basedata_outputs {
     my $self = shift;
     my $ref = shift;
     
@@ -1397,12 +1393,12 @@ sub getBasedataOutputs {
 # and the Geo::Shapelibs in $self->{overlay_objects}
 # (which we don't want to save)
 
-sub getOverlayList {
+sub get_overlay_list {
     my $self = shift;
     return $self->{OVERLAYS};
 }
 
-sub getOverlay {
+sub get_overlay {
     my $self = shift;
     my $name = shift;
     
@@ -1421,7 +1417,7 @@ sub getOverlay {
     return $self->{overlay_objects}{$name};
 }
 
-sub deleteOverlay {
+sub delete_overlay {
     my $self = shift;
     my $name = shift;
 
@@ -1439,7 +1435,7 @@ sub deleteOverlay {
     return;
 }
 
-sub addOverlay {
+sub add_overlay {
     my $self = shift;
     my $name = shift;
 
@@ -1450,7 +1446,7 @@ sub addOverlay {
 }
 
 # Called on startup - after engine loaded from file
-sub initOverlayHash {
+sub init_overlay_hash {
     my $self = shift;
 
     my $existing_overlays = [];

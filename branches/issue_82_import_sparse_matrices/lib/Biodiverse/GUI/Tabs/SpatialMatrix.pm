@@ -40,7 +40,7 @@ sub new {
     croak "Unable to display.  Matrix has no elements\n" if !$matrix_ref->get_element_count;
     
     my $self = {gui => Biodiverse::GUI::GUIManager->instance()};
-    $self->{project} = $self->{gui}->getProject();
+    $self->{project} = $self->{gui}->get_project();
     bless $self, $class;
 
     my $bd = $matrix_ref->get_param('BASEDATA_REF');
@@ -58,8 +58,8 @@ sub new {
 
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'vpaneSpatial');
-    $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->getGladeFile, 'hboxSpatialLabel');
+    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'vpaneSpatial');
+    $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxSpatialLabel');
 
     my $page  = $self->{xmlPage}->get_widget('vpaneSpatial');
     my $label = $self->{xmlLabel}->get_widget('hboxSpatialLabel');
@@ -82,7 +82,7 @@ sub new {
         # We're being called to show an EXISTING output
 
         # Register as a tab for this output
-        $self->registerInOutputsModel($matrix_ref, $self);
+        $self->register_in_outputs_model($matrix_ref, $self);
         
         $elt_count = $groups_ref->get_element_count;
         $completed = $groups_ref->get_param ('COMPLETED');
@@ -96,7 +96,7 @@ sub new {
               . ($self->{basedata_ref}->get_param ('NAME') || "no name")
               . "\n";
 
-        $self->queueSetPane(0.01);
+        $self->queue_set_pane(0.01);
         $self->{existing} = 1;
     #}
 
@@ -121,29 +121,29 @@ sub new {
 
 
     eval {
-        $self->initGrid();
+        $self->init_grid();
     };
     if ($EVAL_ERROR) {
         $self->{gui}->report_error ($EVAL_ERROR);
-        $self->onClose;
+        $self->on_close;
     }
 
 
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     # Connect signals
-    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(clicked   => \&onClose,                 $self);
-    $self->{xmlPage} ->get_widget('btnSpatialRun')  ->signal_connect_swapped(clicked   => \&onRun,                   $self);
-    $self->{xmlPage} ->get_widget('btnOverlays')    ->signal_connect_swapped(clicked   => \&onOverlays,              $self);
-    $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&onNameChanged,           $self);
-    $self->{xmlPage} ->get_widget('comboIndices')  ->signal_connect_swapped(changed   => \&onActiveIndexChanged, $self);
-    #$self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&onActiveListChanged,     $self);
-    $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&onColoursChanged,        $self);
-    $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed => \&onStretchChanged,      $self);
+    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(clicked   => \&on_close,                 $self);
+    $self->{xmlPage} ->get_widget('btnSpatialRun')  ->signal_connect_swapped(clicked   => \&on_run,                   $self);
+    $self->{xmlPage} ->get_widget('btnOverlays')    ->signal_connect_swapped(clicked   => \&on_overlays,              $self);
+    $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&on_name_changed,           $self);
+    $self->{xmlPage} ->get_widget('comboIndices')  ->signal_connect_swapped(changed   => \&on_active_index_changed, $self);
+    #$self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&on_active_list_changed,     $self);
+    $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&on_colours_changed,        $self);
+    $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed => \&on_stretch_changed,      $self);
 
-    $self->{xmlPage} ->get_widget('btnZoomIn')      ->signal_connect_swapped(clicked   => \&onZoomIn,                $self);
-    $self->{xmlPage} ->get_widget('btnZoomOut')     ->signal_connect_swapped(clicked   => \&onZoomOut,               $self);
-    $self->{xmlPage} ->get_widget('btnZoomFit')     ->signal_connect_swapped(clicked   => \&onZoomFit,               $self);
-    $self->{xmlPage} ->get_widget('colourButton')   ->signal_connect_swapped(color_set => \&onColourSet,             $self);
+    $self->{xmlPage} ->get_widget('btnZoomIn')      ->signal_connect_swapped(clicked   => \&on_zoom_in,                $self);
+    $self->{xmlPage} ->get_widget('btnZoomOut')     ->signal_connect_swapped(clicked   => \&on_zoom_out,               $self);
+    $self->{xmlPage} ->get_widget('btnZoomFit')     ->signal_connect_swapped(clicked   => \&on_zoom_fit,               $self);
+    $self->{xmlPage} ->get_widget('colourButton')   ->signal_connect_swapped(color_set => \&on_colour_set,             $self);
     
     #  do some hiding
     my @to_hide = qw /
@@ -161,7 +161,7 @@ sub new {
         $self->{xmlPage}->get_widget($w_name)->hide;
     }
 
-    $self->initOutputIndicesCombo();
+    $self->init_output_indices_combo();
     
 
     $self->set_frame_label_widget;
@@ -181,8 +181,9 @@ sub set_frame_label_widget {
     
     my $label = $self->{xmlPage}->get_widget('label_spatial_parameters');
     $label->hide;
+
     return;
-    
+
     my $widget = Gtk2::ToggleButton->new_with_label('Parameters');
     $widget->show;
 
@@ -207,7 +208,7 @@ sub on_show_hide_parameters {
 }
 
 
-sub initGrid {
+sub init_grid {
     my $self = shift;
     my $frame   = $self->{xmlPage}->get_widget('gridFrame');
     my $hscroll = $self->{xmlPage}->get_widget('gridHScroll');
@@ -216,9 +217,9 @@ sub initGrid {
 #print "Initialising grid\n";
 
     # Use closure to automatically pass $self (which grid doesn't know)
-    my $hover_closure = sub { $self->onGridHover(@_); };
+    my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $click_closure = sub {
-        Biodiverse::GUI::CellPopup::cellClicked(
+        Biodiverse::GUI::CellPopup::cell_clicked(
             $_[0],
             $self->{groups_ref},
         );
@@ -245,20 +246,20 @@ sub initGrid {
     $completed = 1 if not defined $completed;  
     
     if (defined $data and $elt_count and $completed) {
-        $self->{grid}->setBaseStruct ($data);
+        $self->{grid}->set_base_struct ($data);
     }
 
     
     return;
 }
 
-sub initListsCombo {
+sub init_lists_combo {
     my $self = shift;
     return;
 
 }
 
-sub updateListsCombo {
+sub update_lists_combo {
     my $self = shift;
     return;
 }
@@ -266,7 +267,7 @@ sub updateListsCombo {
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
-sub makeOutputIndicesModel {
+sub make_output_indices_model {
     my $self = shift;
     
     my $matrix_ref = $self->{output_ref};
@@ -287,7 +288,7 @@ sub makeOutputIndicesModel {
 
 # Generates ComboBox model with analyses
 #  hidden 
-sub makeListsModel {
+sub make_lists_model {
     my $self = shift;
     my $output_ref = $self->{output_ref};
 
@@ -308,7 +309,7 @@ sub makeListsModel {
 # Misc interaction with rest of GUI
 ##################################################
 
-sub getType {
+sub get_type {
     return "spatialmatrix";
 }
 
@@ -316,7 +317,7 @@ sub getType {
 ##################################################
 # Running analyses
 ##################################################
-sub onRun {
+sub on_run {
     my $self = shift;
 
     print "[SpatialMatrix] Cannot run this analysis.  "
@@ -375,14 +376,14 @@ sub on_cell_selected {
     if ($selected) {
         $combo->set_active_iter($selected);
     }
-    $self->onActiveIndexChanged($combo);
+    $self->on_active_index_changed($combo);
 
     return;
 }
 
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
-sub onGridHover {
+sub on_grid_hover {
     my $self = shift;
     my $element = shift;
 
@@ -421,7 +422,7 @@ sub onGridHover {
 
 
 # Called by output tab to make us show some analysis
-sub showAnalysis {
+sub show_analysis {
     my $self = shift;
     my $name = shift;
 
@@ -430,13 +431,13 @@ sub showAnalysis {
     # selecting what we want
 
     #$self->{selected_index} = $name;
-    #$self->updateListsCombo();
-    $self->updateOutputCalculationsCombo();
+    #$self->update_lists_combo();
+    $self->update_output_calculations_combo();
     
     return;
 }
 
-sub onActiveIndexChanged {
+sub on_active_index_changed {
     my $self  = shift;
     my $combo = shift
               ||  $self->{xmlPage}->get_widget('comboIndices');
@@ -491,25 +492,25 @@ sub recolour {
     my $colour_func = sub {
         my $elt = shift;
         if ($elt eq $sel_element) {  #  mid grey
-            return $grid->getColourGrey (($min + $max + $max) / 3, $min, $max);
+            return $grid->get_colour_grey (($min + $max + $max) / 3, $min, $max);
         }
         my $val = $matrix_ref->get_value (
             element1 => $elt,
             element2 => $sel_element,
         );
         return defined $val
-            ? $grid->getColour($val, $min, $max)
+            ? $grid->get_colour($val, $min, $max)
             : undef;
     };
 
     $grid->colour($colour_func);
-    $grid->setLegendMinMax($min, $max);
+    $grid->set_legend_min_max($min, $max);
     
     return;
 }
 
 
-sub onNeighboursChanged {
+sub on_neighbours_changed {
     my $self = shift;
     return;
 }

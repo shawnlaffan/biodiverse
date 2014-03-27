@@ -140,8 +140,8 @@ sub get_metadata_calc_gpprop_lists {
     my %prop_hash_names = $self->_get_gpprop_stats_hash_keynames;
     while (my ($prop, $list_name) = each %prop_hash_names) {
         $indices{$list_name} = {
-            $list_name => 'List of values for property ' . $prop,
-            type       => 'list',
+            description => 'List of values for property ' . $prop,
+            type        => 'list',
         };
     }
 
@@ -186,8 +186,8 @@ sub get_metadata_calc_gpprop_hashes {
     while (my ($prop, $list_name) = each %prop_hash_names) {
         $list_name =~ s/DATA$/HASH/;
         $indices{$list_name} = {
-            $list_name => 'Hash of values for property ' . $prop,
-            type       => 'list',
+            description => 'Hash of values for property ' . $prop,
+            type        => 'list',
         };
     }
 

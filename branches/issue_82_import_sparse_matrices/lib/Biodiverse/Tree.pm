@@ -32,7 +32,7 @@ use Biodiverse::Exception;
 
 use parent qw /
     Biodiverse::Common
-/;
+/; #/
 
 my $EMPTY_STRING = q{};
 
@@ -181,6 +181,8 @@ sub delete_node {
 
     #  now we delete it and its descendents from the node hash
     $self->delete_from_node_hash (nodes => \%node_hash);
+    
+    $self->delete_cached_values_below;
 
     #  return a list of the names of those deleted nodes
     return wantarray ? keys %node_hash : [keys %node_hash];
@@ -222,8 +224,8 @@ sub add_node {
 sub add_to_node_hash {
     my $self = shift;
     my %args = @_;
-    my $nodeRef = $args{node_ref};
-    my $name = $nodeRef->get_name;
+    my $node_ref = $args{node_ref};
+    my $name = $node_ref->get_name;
 
     if ($self->exists_node (@_)) {
         Biodiverse::Tree::NodeAlreadyExists->throw(
@@ -232,8 +234,8 @@ sub add_to_node_hash {
         );
     }
 
-    $self->{TREE_BY_NAME}{$name} = $nodeRef;
-    return $nodeRef if defined wantarray;
+    $self->{TREE_BY_NAME}{$name} = $node_ref;
+    return $node_ref if defined wantarray;
 }
 
 #  does this node exist already?
@@ -268,9 +270,9 @@ sub get_tree_ref {
 sub get_tree_depth {  #  traverse the tree and calculate the maximum depth
                       #  need ref to the root node
     my $self = shift;
-    my $treeRef = $self->get_tree_ref;
-    return if ! defined $treeRef ;
-    return $treeRef->get_depth_below;
+    my $tree_ref = $self->get_tree_ref;
+    return if ! defined $tree_ref ;
+    return $tree_ref->get_depth_below;
 }
 
 sub get_tree_length {  # need ref to the root node
@@ -295,12 +297,12 @@ sub get_terminal_elements {
     my %args = (cache => 1, @_);  #  cache by default
 
     my $node = $args{node} || croak "node not specified\n";
-    my $nodeRef = $self->get_node_ref(node => $node);
+    my $node_ref = $self->get_node_ref(node => $node);
 
-    return $nodeRef->get_terminal_elements (cache => $args{cache})
-      if defined $nodeRef;
+    return $node_ref->get_terminal_elements (cache => $args{cache})
+      if defined $node_ref;
 
-    my %hash = ($node => $nodeRef);
+    my %hash = ($node => $node_ref);
     return wantarray ? %hash : \%hash;
 }
 
@@ -308,20 +310,20 @@ sub get_terminal_element_count {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache by default
 
-    my $nodeRef;
+    my $node_ref;
     if (defined $args{node}) {
         my $node = $args{node};
-        $nodeRef = $self->get_node_ref(node => $node);
+        $node_ref = $self->get_node_ref(node => $node);
     }
     else {
-        $nodeRef = $self->get_root_node;
+        $node_ref = $self->get_root_node;
     }
 
     #  follow logic of get_terminal_elements, which returns a hash of
     #  node if not a ref - good or bad idea?  Ever used?  
-    return 1 if !defined $nodeRef;
+    return 1 if !defined $node_ref;
 
-    return $nodeRef->get_terminal_element_count (cache => $args{cache});
+    return $node_ref->get_terminal_element_count (cache => $args{cache});
 }
 
 
@@ -341,9 +343,9 @@ sub get_node_ref {
 #  not anymore - let the destroy method handle it
 sub weaken_parent_refs {
     my $self = shift;
-    my $nodeList = $self->get_node_hash;
-    foreach my $nodeRef (values %$nodeList) {
-        $nodeRef->weaken_parent_ref;
+    my $node_list = $self->get_node_hash;
+    foreach my $node_ref (values %$node_list) {
+        $node_ref->weaken_parent_ref;
     }
 }
 
@@ -475,41 +477,41 @@ sub node_is_in_tree {
 
 sub get_terminal_nodes {
     my $self = shift;
-    my %nodeList;
+    my %node_list;
 
-    while ((my $node, my $nodeRef) = each (%{$self->get_node_hash})) {
-        next if ! $nodeRef->is_terminal_node;
-        $nodeList{$node} = $nodeRef;
+    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+        next if ! $node_ref->is_terminal_node;
+        $node_list{$node} = $node_ref;
     }
 
-    return wantarray ? %nodeList : \%nodeList;
+    return wantarray ? %node_list : \%node_list;
 }
 
 sub get_terminal_node_refs {
     my $self = shift;
-    my @nodeList;
+    my @node_list;
 
-    while ((my $node, my $nodeRef) = each (%{$self->get_node_hash})) {
-        next if ! $nodeRef->is_terminal_node;
-        push @nodeList, $nodeRef;
+    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+        next if ! $node_ref->is_terminal_node;
+        push @node_list, $node_ref;
     }
 
-    return wantarray ? @nodeList : \@nodeList;
+    return wantarray ? @node_list : \@node_list;
 }
 
 sub get_root_nodes {  #  if there are several root nodes
     my $self = shift;
-    my %nodeList;
+    my %node_list;
     my $node_hash = $self->get_node_hash;
 
-    while ((my $node, my $nodeRef) = each (%$node_hash)) {
-        next if (! defined $nodeRef);
-        $nodeList{$node} = $nodeRef if $nodeRef->is_root_node;
-        #my $check = $nodeRef->is_root_node;
+    while ((my $node, my $node_ref) = each (%$node_hash)) {
+        next if (! defined $node_ref);
+        $node_list{$node} = $node_ref if $node_ref->is_root_node;
+        #my $check = $node_ref->is_root_node;
         #print "";
     }
 
-    return wantarray ? %nodeList : \%nodeList;
+    return wantarray ? %node_list : \%node_list;
 }
 
 sub get_root_node_refs {
@@ -558,12 +560,12 @@ sub get_branch_nodes {
 
 sub get_branch_node_refs {
     my $self = shift;
-    my @nodeList;
-    while ((my $node, my $nodeRef) = each (%{$self->get_node_hash})) {
-        next if $nodeRef->is_terminal_node;
-        push @nodeList, $nodeRef;
+    my @node_list;
+    while ((my $node, my $node_ref) = each (%{$self->get_node_hash})) {
+        next if $node_ref->is_terminal_node;
+        push @node_list, $node_ref;
     }
-    return wantarray ? @nodeList : \@nodeList;
+    return wantarray ? @node_list : \@node_list;
 }
 
 #  get an internal node name that is not currently used
@@ -804,6 +806,122 @@ sub export_newick {
     return;
 }
 
+sub get_metadata_export_shapefile {
+    my $self = shift;
+
+    my %args = (
+        format => 'Shapefile',
+        parameters => [
+            {
+                name        => 'plot_left_to_right',
+                label_text  => 'Plot left to right',
+                tooltip     => 'Should terminals be to the right of the root node? '
+                             . '(default is to the left, with the root node at the right).',
+                type        => 'boolean',
+                default     => 0,
+                tooltip     =>
+                      'Should terminals be to the right of the root node? '
+                    . '(default is to the left, with the root node at the right).',
+                
+            },
+            {
+                name        => 'vertical_scale_factor',
+                label_text  => 'Vertical scale factor',
+                type        => 'float',
+                default     => 0,
+                tooltip     =>
+                      'Control the tree plot height relative to its width '
+                    . '(longest path from root to tip).  '
+                    . 'A zero value will make the height equal the width.',
+            },
+            {
+                type => 'comment',
+                label_text =>
+                      'Note: To attach any lists you will need to run a second '
+                    . 'export to the delimited text format and then join them.  '
+                    . 'This is needed because shapefiles do not have an undefined value '
+                    . 'and field names can only be 11 characters long.',
+            }
+        ],
+    );
+
+    return wantarray ? %args : \%args;
+}
+
+sub export_shapefile {
+    my $self = shift;
+    my %args = @_;
+
+    my $file = $args{file};
+    croak "file argument not passed\n"
+      if !defined $file;
+
+    print "[TREE] WRITING TO TREE TO SHAPEFILE $file\n";
+
+    $file =~ s/\.shp$//;  #  the shp extension is added by the writer object
+
+    $self->assign_plot_coords (
+        plot_coords_left_to_right => $args{plot_left_to_right},
+        plot_coords_scale_factor  => $args{vertical_scale_factor},
+        scale_factor_is_relative  => 1,
+    );
+
+    use Geo::Shapefile::Writer;
+
+    my $shp_writer = Geo::Shapefile::Writer->new(
+        $file, 'POLYLINE',
+        [ name   => 'C', 100 ],
+        [ line_type => 'C', 20 ],
+        [ length => 'F', 16, 15 ],
+        [ parent => 'C', 100 ],
+    );
+
+  NODE:
+    foreach my $node ($self->get_node_refs) {
+        my $h_coords = $node->get_list_ref (list => 'PLOT_COORDS');
+        my $v_coords = $node->get_list_ref (list => 'PLOT_COORDS_VERT');
+        my $h_line = [
+            [$h_coords->{plot_x1}, $h_coords->{plot_y1}],
+            [$h_coords->{plot_x2}, $h_coords->{plot_y2}],
+        ];
+        my $v_line = [
+            [$v_coords->{vplot_x1}, $v_coords->{vplot_y1}],
+            [$v_coords->{vplot_x2}, $v_coords->{vplot_y2}],
+        ];
+        my $type = $node->is_internal_node ? 'internal' :
+                   $node->is_terminal_node ? 'terminal' : 'named internal';
+
+        my $parent_name = $node->is_root_node ? q{} : $node->get_parent->get_name;
+
+        $shp_writer->add_shape(
+            [$h_line],
+            {
+                length    => $node->get_length,
+                name      => $node->get_name,
+                line_type => $type,
+                parent    => $parent_name,
+            },
+        );
+
+        next NODE
+          if ($v_coords->{vplot_y1} == $v_coords->{vplot_y2});
+
+        $shp_writer->add_shape(
+            [$v_line],
+            {
+                length    => 0,
+                name      => q{},
+                line_type => 'vertical connector',
+                parent    => q{},
+            },
+        );
+    }
+
+    $shp_writer->finalize();
+
+    return;
+}
+
 sub get_metadata_export_tabular_tree {
     my $self = shift;
 
@@ -848,7 +966,11 @@ sub export_tabular_tree {
     if (! defined $name) {
         $name = $self->get_param ('NAME');
     }
+    
+    $args{use_internal_names} //= 1;  #  we need this to be set for the round trip
 
+    # show the type of what is being exported
+    
     my $table = $self->to_table (
         symmetric   => 1,
         name        => $name,
@@ -1061,7 +1183,7 @@ sub get_table_export_metadata {
             ? @$ENV{BIODIVERSE_FIELD_SEPARATORS}
             : (',', 'tab', ';', 'space', ':');
 
-    my @quote_chars = qw /" ' + $/;
+    my @quote_chars = qw /" ' + $/; #"
 
     my $table_metadata_defaults = [
         {
@@ -1275,7 +1397,7 @@ sub get_range_table {
             "Converting tree $name to matrix\n"
             . "($progress / $to_do)",
             $progress / $to_do,
-        );
+        ); #"
 
         LOOP_NODE2:
         foreach my $node2 (values %nodes) {
@@ -1797,41 +1919,46 @@ sub AUTOLOAD {
     return;
 }
 
-sub collapse_tree {
 #  collapse tree to a polytomy a set distance above the tips
 #  assumes ultrametric tree
+# the only args are:
+#   cutoff_absolute - the depth from the tips of the tree at which to cut in units of branch length
+#   or cutoff_relative - the depth from the tips of the tree at which to cut as a proportion
+#   of the total tree depth.
+#   if both parameters are given, cutoff_relative overrides cutoff_absolute
 
+sub collapse_tree {
     my $self = shift;   # expects a Tree object
     my %args = @_;
-    # the only args are:
-    #   cutoff_absolute - the depth from the tips of the tree at which to cut in units of branch length
-    #   or cutoff_relative - the depth from the tips of the tree at which to cut as a proportion
-    #   of the total tree depth.
-    #   if both parameters are given, cutoff_relative overrides cutoff_absolute
 
     my $cutoff = $args{cutoff_absolute};
+    my $verbose = $args{verbose} // 1;
 
     my $total_tree_length = $self->get_tree_length;    
 
-    if ($args{cutoff_relative} >= 0) {
+    if (defined $args{cutoff_relative} ) {
         my $cutoff_relative = $args{cutoff_relative};
-        if (($cutoff_relative >= 0) and ($cutoff_relative <= 1)) {
-            $cutoff = $cutoff_relative * $total_tree_length;
-        }
+        croak 'cutoff_relative argument must be between 0 and 1'
+          if $cutoff_relative < 0 || $cutoff_relative > 1;
+
+        $cutoff = $cutoff_relative * $total_tree_length;
     }
 
     my ($zero_count, $shorter_count);
 
     my %node_hash = $self->get_node_hash;
 
-    print "[TREE] Total length: ".$total_tree_length."\n";
-    print "[TREE] Node count: ".(scalar keys %node_hash)."\n";
+    if ($verbose) {    
+        say "[TREE] Total length: $total_tree_length";
+        say '[TREE] Node count: ' . (scalar keys %node_hash);
+    }
 
     my $node;
 
     my %new_node_lengths;
 
     #  first pass - calculate the new lengths
+  NODE_NAME:
     foreach my $name (sort keys %node_hash) {
         $node = $node_hash{$name};
         #my $new_branch_length;
@@ -1843,11 +1970,10 @@ sub collapse_tree {
 
         my $type;
         # whole branch is inside the limit - no change
-        if ($upper_bound < $cutoff) {
-            next;
-        }
+        next NODE_NAME if $upper_bound < $cutoff;
+
         # whole of branch is outside limit - set branch length to 0
-        elsif ($lower_bound >= $cutoff) {
+        if ($lower_bound >= $cutoff) {
             $new_node_lengths{$name} = 0;
             $zero_count ++;
             $type = 1;
@@ -1867,20 +1993,17 @@ sub collapse_tree {
         my $new_length;
 
         if ($new_node_lengths{$name} == 0) {
-            if ($node->is_terminal_node) {
-                $new_length = ($total_tree_length / 10000);
-            }
-            else {
-                $new_length = 0;
-            }
+            $new_length = $node->is_terminal_node ? ($total_tree_length / 10000) : 0;
         }
         else {
             $new_length = $new_node_lengths{$name};
-        };
+        }
 
         $node->set_length (length => $new_length);
 
-        print "$name: new length is $new_length\n";
+        if ($verbose) {
+            say "$name: new length is $new_length";
+        }
     }
 
     $self->delete_cached_values;
@@ -1891,12 +2014,16 @@ sub collapse_tree {
 
     my @now_empty = $self->flatten_tree;
     #  now we clean up all the empty nodes in the other indexes
-    print "[TREE] Deleting " . scalar @now_empty . " empty nodes\n";
+    if ($verbose) {
+        say "[TREE] Deleting " . scalar @now_empty . ' empty nodes';
+    }
     #foreach my $now_empty (@now_empty) {
     $self->delete_from_node_hash (nodes => \@now_empty) if scalar @now_empty;
 
-    print "[TREE] Total length: " . $self->get_tree_length . "\n";
-    print "[TREE] Node count: " . $self->get_node_count . "\n";
+    if ($verbose) {
+        say '[TREE] Total length: ' . $self->get_tree_length;
+        say '[TREE] Node count: ' . $self->get_node_count;
+    }
 
     return $self;
 }
@@ -1911,15 +2038,17 @@ sub collapse_tree_below {
     foreach my $node (values %$target_hash) {
         my %terminals = $node->get_terminal_node_refs;
         my @children = $node->get_children;
+        CHILD_NODE:
         foreach my $desc_node (@children) {
-            next if $desc_node->is_terminal_node;
+            next CHILD_NODE if $desc_node->is_terminal_node;
             eval {
                 $self->delete_node (node => $desc_node->get_name);
             };
         }
-        $node->add_children (children => [values %terminals]);  #  still need to ensure they are in the node hash
+        #  still need to ensure they are in the node hash
+        $node->add_children (children => [values %terminals]);  
 
-        print "";
+        #print "";
     }
     
     

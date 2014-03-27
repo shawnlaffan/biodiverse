@@ -119,8 +119,8 @@ sub get_metadata_calc_lbprop_lists {
         $l =~ s/STATS/LIST/;
         $l =~ s/_DATA$//;
         $indices{$l} = {
-            $list_name => 'List of data for property ' . $prop,
-            type       => 'list',
+            description => 'List of data for property ' . $prop,
+            type        => 'list',
         };
     }
 
@@ -174,8 +174,8 @@ sub get_metadata_calc_lbprop_data {
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
     while (my ($prop, $list_name) = each %prop_hash_names) {
         $indices{$list_name} = {
-            $list_name => 'List of data for property ' . $prop,
-            type       => 'list',
+            description => 'List of data for property ' . $prop,
+            type        => 'list',
         };
     }
 
@@ -220,8 +220,8 @@ sub get_metadata_calc_lbprop_hashes {
     while (my ($prop, $list_name) = each %prop_hash_names) {
         $list_name =~ s/DATA$/HASH/;
         $indices{$list_name} = {
-            $list_name => 'Hash of values for property ' . $prop,
-            type       => 'list',
+            description => 'Hash of values for property ' . $prop,
+            type        => 'list',
         };
     }
 

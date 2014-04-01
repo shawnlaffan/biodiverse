@@ -169,6 +169,7 @@ our $tol = 1E-13;
             NODENUM_COL => 4,
             NODENAME_COL => 3,
             PARENT_COL => 5};
+            
     $result = eval {
         $reimport_ref->import_tabular_tree (
             file => $output_file,

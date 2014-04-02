@@ -1,0 +1,251 @@
+--- gnome-canvas-shape.c	2010-04-17 05:25:39.000000000 +1000
++++ gnome-canvas-shape.c	2012-10-15 17:39:33.434883800 +1100
+@@ -89,8 +89,6 @@
+ static void gcbp_ensure_gdk (GnomeCanvasShape * bpath);
+ static void gcbp_destroy_gdk (GnomeCanvasShape * bpath);
+ static void set_stipple (GdkGC *gc, GdkBitmap **internal_stipple, GdkBitmap *stipple, int reconfigure);
+-static void gcbp_ensure_mask (GnomeCanvasShape * bpath, gint width, gint height);
+-static void gcbp_draw_ctx_unref (GCBPDrawCtx * ctx);
+ 
+ static GnomeCanvasItemClass *parent_class;
+ 
+@@ -714,6 +712,9 @@
+ 	gint i, pos, len;
+ 	GSList * l;
+ 
++	GdkRegion* clip_region;
++	GdkRegion* temp_region;
++
+ 	shape = GNOME_CANVAS_SHAPE (item);
+ 	priv = shape->priv;
+ 
+@@ -739,37 +740,23 @@
+ 
+ 	if (priv->fill_set) {
+ 
+-		/* Ensure, that we have mask and it is big enough */
+-
+-		gcbp_ensure_mask (shape, width, height);
+-
+-		/* Clear mask */
+-
+-		gdk_draw_rectangle (gdk->ctx->mask,
+-			gdk->ctx->clear_gc,
+-			TRUE,
+-			0, 0,
+-			width, height);
+-
+-		/* Draw subpaths, using XOR gc */
+-
++		/* Create a clipping region to fill in */
++		clip_region = gdk_region_new();
+ 		pos = 0;
+ 
+ 		for (l = gdk->closed_paths; l != NULL; l = l->next) {
+ 			len = GPOINTER_TO_INT (l->data);
+-
+-			gdk_draw_polygon (gdk->ctx->mask,
+-				gdk->ctx->xor_gc,
+-				TRUE,
+-				&dpoints[pos],
+-				len);
++			
++			temp_region = gdk_region_polygon(&dpoints[pos], len, GDK_WINDING_RULE);
++			gdk_region_union(clip_region, temp_region);
++			gdk_region_destroy(temp_region);
+ 
+ 			pos += len;
+ 		}
+ 
+-		/* Set bitmap to clipping mask */
++		/* Set region as clipping mask */
+ 
+-		gdk_gc_set_clip_mask (gdk->fill_gc, gdk->ctx->mask);
++		gdk_gc_set_clip_region(gdk->fill_gc, clip_region);
+ 
+ 		/* Stipple offset */
+ 
+@@ -782,6 +769,11 @@
+ 			TRUE,
+ 			0, 0,
+ 			width, height);
++			
++		/* Destroy clipping region */
++
++		gdk_gc_set_clip_region(gdk->fill_gc, NULL);
++		gdk_region_destroy(clip_region);
+ 	}
+ 
+ 	if (priv->outline_set) {
+@@ -816,6 +808,7 @@
+ 			pos += len;
+ 		}
+ 	}
++
+ }
+ 
+ #define GDK_POINTS_BLOCK 32
+@@ -1328,8 +1321,6 @@
+ 		gdk->closed_paths = NULL;
+ 		gdk->open_paths = NULL;
+ 
+-		gdk->ctx = NULL;
+-
+ 		shape->priv->gdk = gdk;
+ 	}
+ }
+@@ -1364,112 +1355,12 @@
+ 		while (gdk->open_paths)
+ 			gdk->open_paths = g_slist_remove (gdk->open_paths, gdk->open_paths->data);
+ 
+-		if (gdk->ctx)
+-			gcbp_draw_ctx_unref (gdk->ctx);
+-
+ 		g_free (gdk);
+ 
+ 		shape->priv->gdk = NULL;
+ 	}
+ }
+ 
+-/*
+- * Ensure, that per-canvas Ctx struct is present and bitmaps are
+- * big enough, to mask full redraw area. Ctx is refcounted and
+- * defined as "BpathDrawCtx" data member on parent canvas
+- */
+-
+-static void
+-gcbp_ensure_mask (GnomeCanvasShape * shape, gint width, gint height)
+-{
+-	GnomeCanvasShapePrivGdk * gdk;
+-	GCBPDrawCtx * ctx;
+-
+-	gdk = shape->priv->gdk;
+-	g_assert (gdk != NULL);
+-	ctx = gdk->ctx;
+-
+-	if (!ctx) {
+-		/* Ctx is not yet defined for us */
+-
+-		GnomeCanvas * canvas;
+-
+-		canvas = GNOME_CANVAS_ITEM (shape)->canvas;
+-
+-		ctx = g_object_get_data (G_OBJECT (canvas), "BpathDrawCtx");
+-
+-		if (!ctx) {
+-			/* Ctx is not defined for parent canvas yet */
+-
+-			ctx = g_new (GCBPDrawCtx, 1);
+-
+-			ctx->refcount = 1;
+-			ctx->canvas = canvas;
+-			ctx->width = 0;
+-			ctx->height = 0;
+-
+-			ctx->mask = NULL;
+-			ctx->clip = NULL;
+-
+-			ctx->clear_gc = NULL;
+-			ctx->xor_gc = NULL;
+-
+-			g_object_set_data (G_OBJECT (canvas), "BpathDrawCtx", ctx);
+-
+-		} else {
+-			ctx->refcount++;
+-		}
+-
+-		gdk->ctx = ctx;
+-
+-	}
+-
+-	/* Now we are sure, that ctx is present and properly refcounted */
+-
+-	if ((width > ctx->width) || (height > ctx->height)) {
+-		/* Ctx is too small */
+-
+-		GdkWindow * window;
+-
+-		window = ((GtkWidget *) (((GnomeCanvasItem *) shape)->canvas))->window;
+-
+-		if (ctx->clear_gc) g_object_unref (ctx->clear_gc);
+-		if (ctx->xor_gc) g_object_unref (ctx->xor_gc);
+-		if (ctx->mask) g_object_unref (ctx->mask);
+-		if (ctx->clip) g_object_unref (ctx->clip);
+-
+-		ctx->mask = gdk_pixmap_new (window, width, height, 1);
+-		ctx->clip = NULL;
+-
+-		ctx->clear_gc = gdk_gc_new (ctx->mask);
+-		gdk_gc_set_function (ctx->clear_gc, GDK_CLEAR);
+-
+-		ctx->xor_gc = gdk_gc_new (ctx->mask);
+-		gdk_gc_set_function (ctx->xor_gc, GDK_INVERT);
+-	}
+-}
+-
+-/* It is cleaner to have it here, not in parent function */
+-
+-static void
+-gcbp_draw_ctx_unref (GCBPDrawCtx * ctx)
+-{
+-	if (--ctx->refcount < 1) {
+-		if (ctx->clear_gc)
+-			g_object_unref (ctx->clear_gc);
+-		if (ctx->xor_gc)
+-			g_object_unref (ctx->xor_gc);
+-
+-		if (ctx->mask)
+-			g_object_unref (ctx->mask);
+-		if (ctx->clip)
+-			g_object_unref (ctx->clip);
+-		
+-		g_object_set_data (G_OBJECT (ctx->canvas), "BpathDrawCtx", NULL);
+-		g_free (ctx);
+-	}
+-}
+-
+ static void
+ gnome_canvas_shape_bounds (GnomeCanvasItem *item, double *x1, double *y1, double *x2, double *y2)
+ {
+--- gnome-canvas-shape-private.h	2009-04-25 02:25:46.000000000 +1000
++++ gnome-canvas-shape-private.h	2012-10-15 17:33:40.902298300 +1100
+@@ -25,30 +25,6 @@
+ G_BEGIN_DECLS
+ 
+ typedef struct _GnomeCanvasShapePrivGdk GnomeCanvasShapePrivGdk;
+-typedef struct _GCBPDrawCtx GCBPDrawCtx;
+-
+-/* Per canvas private structure, holding necessary data for rendering
+- * temporary masks, which are needed for drawing multipart bpaths.
+- * As canvas cannot multithread, we can be sure, that masks are used
+- * serially, also one set of masks per canvas is sufficent to guarantee,
+- * that masks are created on needed X server. Masks grow as needed.
+- * Full structure is refcounted in Bpath implementation
+- */
+-
+-struct _GCBPDrawCtx {
+-	gint refcount;
+-
+-	GnomeCanvas * canvas;
+-
+-	gint width;
+-	gint height;
+-
+-	GdkBitmap * mask;
+-	GdkBitmap * clip;
+-
+-	GdkGC * clear_gc;
+-	GdkGC * xor_gc;
+-};
+ 
+ /* Per Bpath private structure, holding Gdk specific data */
+ 
+@@ -67,8 +43,6 @@
+ 	GdkPoint * points;		/* Ivariant: closed paths are before open ones */
+ 	GSList * closed_paths;		/* List of lengths */
+ 	GSList * open_paths;		/* List of lengths */
+-
+-	GCBPDrawCtx * ctx;		/* Pointer to per-canvas drawing context */
+ };
+ 
+ struct _GnomeCanvasShapePriv {

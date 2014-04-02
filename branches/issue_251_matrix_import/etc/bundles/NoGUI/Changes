@@ -1,0 +1,33 @@
+Revision history for Perl module Task::Biodiverse::NoGUI
+
+0.191 2014-03-06
+    - Add minimum version for Geo::ShapeFile (2.58)
+    - Set minimum version for List::Util to 1.38
+    - Add Geo::Shapefile::Writer
+
+0.19 2012-10-28
+    - Statistics::Descriptive, List::Util and Clone now specify minimum versions.
+    - Added several new dependencies (rlib, Class::Inspector, List::MoreUtils)
+    - Removed redundant dependencies (Pad::Walker, MRO::Compat, Devel::SymDump)
+    - Min version is now 5.010
+    
+0.17001 2012-07-28
+    - Set Math::Random::MT::Auto minimum version to 6.19 to handle crashes
+      when initialised with state vectors from different architectures
+
+0.17 2012-07-05
+    - Add Geo::ShapeFile, Tree:R and Path::Class
+
+0.16001 2012-01-23
+    - Move from Bundle to Task namespace
+    - Subdivide second part of name (was BiodiverseNoGUI)
+
+0.16 2011-01-15
+    - Update module list for 0.16 release of Biodiverse
+
+0.15001  2010-11-25
+    - Fix Statistics::Descriptive version in makefile
+
+0.15  2010-11-06
+    - Get ready for CPAN
+

@@ -36,6 +36,7 @@ my $file_format = "format_box$import_n";
 my $combo_import_basedatas = "comboImportBasedatas$import_n";
 my $filechooser_input = "filechooserInput$import_n";
 my $txt_import_new = "txtImportNew$import_n";
+my $mult_separate = "multseparate$import_n";
 my $table_parameters = "tableParameters$import_n";
 my $importmethod_combo = "format_box$import_n"; # not sure about the suffix
 
@@ -175,7 +176,11 @@ sub run {
     }
     my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     %import_params = @$import_params;
-    
+
+
+    ###### need to handle creation / initialisation of new basedata objects.  perhaps here
+    ###### or perhaps later (during import call), depending on configuration needed   
+    $import_params{multiple_separate} = $dlgxml->get_widget($mult_separate)->get_active();
     
     # next stage, if we are reading as raster, just call import function here and exit.
     # for shapefile and text, find columns and ask how to interpret 
@@ -452,8 +457,8 @@ sub run {
     #########
     # Set the cellsize and origins parameters if we are new
     if ($use_new) {
-        $basedata_ref->set_param(CELL_SIZES   => [@cell_sizes]);
-        $basedata_ref->set_param(CELL_ORIGINS => [@cell_origins]);
+        $basedata_ref->set_param(CELL_SIZES   => @cell_sizes);
+        $basedata_ref->set_param(CELL_ORIGINS => @cell_origins);
     }
 
     #  get the sample count columns.  could do in fill_params, but these are
@@ -1077,6 +1082,8 @@ sub make_filename_dialog {
 
     $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
+
+    $dlgxml->get_widget($mult_separate)->signal_connect(toggled => \&on_separate_toggled, [$gui, $dlgxml]);
     
     $dlgxml->get_widget($file_format)->set_active(0);
     $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&onImportMethodChanged, [$gui, $dlgxml]);
@@ -1171,6 +1178,30 @@ sub on_new_toggled {
 
     return;
 }
+
+sub on_separate_toggled {
+    my $checkbox = shift;
+    my $args = shift;
+    my ($gui, $dlgxml) = @{$args};
+
+    if ($checkbox->get_active) {
+        # separate chosen
+
+        $dlgxml->get_widget($chk_new)->set_active(1);
+        $dlgxml->get_widget($chk_new)->set_sensitive(0);
+        $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
+    }
+    else {
+        # de-selected use of separate, make new box sensitive (and remain checked, as set when separate chosen)
+        $dlgxml->get_widget($chk_new)->set_sensitive(1);
+        $dlgxml->get_widget($txt_import_new)->set_sensitive(1);
+        #$dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
+    }
+
+    return;
+}
+
 
 ##################################################
 # Column selection dialog

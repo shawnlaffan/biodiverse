@@ -1090,8 +1090,10 @@ sub make_filename_dialog {
     $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
 
-    $dlgxml->get_widget($mult_separate)->signal_connect(toggled => \&on_separate_toggled, [$gui, $dlgxml]);
-    
+    $dlgxml->get_widget($chk_import_one_bd_per_file)->signal_connect(
+        toggled => \&on_separate_toggled, [$gui, $dlgxml],
+    );
+
     $dlgxml->get_widget($file_format)->set_active(0);
     $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&onImportMethodChanged, [$gui, $dlgxml]);
     

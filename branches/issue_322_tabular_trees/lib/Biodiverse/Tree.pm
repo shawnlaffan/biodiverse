@@ -768,7 +768,7 @@ sub export_nexus {
 
     $fh->close;
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_newick {
@@ -802,7 +802,7 @@ sub export_newick {
     print {$fh} $self->to_newick (%args);
     $fh->close;
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_shapefile {
@@ -912,7 +912,7 @@ sub export_shapefile {
 
     $shp_writer->finalize();
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_tabular_tree {
@@ -971,7 +971,7 @@ sub export_tabular_tree {
 
     $self->write_table_csv (%args, data => $table);
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_table_grouped {
@@ -1065,7 +1065,7 @@ sub export_table_grouped {
         data => $data
     );
 
-    return;
+    return 1;
 }
 
 #  Superseded by PE_RANGELIST index.
@@ -1111,7 +1111,7 @@ sub export_range_table {
         data => $data,
     );
 
-    return;
+    return 1;
 }
 
 #  Grab all the basestruct export methods and add them here.

@@ -167,7 +167,7 @@ our $tol = 1E-13;
     };
     my $e = $EVAL_ERROR;
     diag $e if $e;
-    is ($e, '', 'export tabular tree without an exception');
+    is ($result, 1, 'export tabular tree without an exception');
 
     # re-import
     my $reimport_ref = Biodiverse::ReadNexus->new;
@@ -187,7 +187,7 @@ our $tol = 1E-13;
     };
     $e = $EVAL_ERROR;
     diag $e if $e;
-    is ($e, '', 're-import tabular tree without an exception');
+    is ($result, 1, 're-import tabular tree without an exception');
 
     # check re-import properties    
     my $reimport_array = $reimport_ref->get_tree_array;    

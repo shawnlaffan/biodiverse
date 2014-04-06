@@ -412,10 +412,10 @@ sub run {
             $column_settings->{labels} = $old_labels_array;
         }
 
-        @cell_sizes = $reorder_params->{CELL_SIZES};
-        @cell_origins = $reorder_params->{CELL_ORIGINS};
+        @cell_sizes   = @{$reorder_params->{CELL_SIZES}};
+        @cell_origins = @{$reorder_params->{CELL_ORIGINS}};
     }
-   
+
     #########
     # 3a. Load the label and group properties
     #########
@@ -1186,7 +1186,7 @@ sub make_columns_dialog {
     my $file_list   = shift;
 
     my $num_columns = @$header;
-    print "[GUI] Generating make columns dialog for $num_columns columns\n";
+    say "[GUI] Generating make columns dialog for $num_columns columns";
 
     # Make dialog
     my $dlg = Gtk2::Dialog->new(
@@ -1286,11 +1286,15 @@ sub make_columns_dialog {
         $row->[2]->hide;
         $row->[3]->hide;
     }
-    
-    #  now add the help text
 
     return ($dlg, $row_widgets);
 }
+
+my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
+Set to 'is_lat' if column contains latitude values,
+is_lon' if longitude values. Leave as blank if neither.
+END_LL_TOOLTIP_TEXT
+  ;
 
 sub add_row {
     my ($row_widgets, $table, $col_id, $header, $row_options) = @_;
@@ -1343,9 +1347,7 @@ sub add_row {
     #  degrees minutes seconds
     my $combo_dms = Gtk2::ComboBox->new_text;
     $combo_dms->set_has_tooltip (1);
-    my $tooltip_text = q{Set to 'is_lat' if column contains latitude values, }
-                       . q{'is_lon' if longitude values. Leave as blank if neither.};
-    $combo_dms->set_tooltip_text ($tooltip_text);
+    $combo_dms->set_tooltip_text ($lat_lon_widget_tooltip_text);
     foreach my $choice ('', 'is_lat', 'is_lon') {
         $combo_dms->append_text($choice);
     }

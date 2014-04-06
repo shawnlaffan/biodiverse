@@ -4,6 +4,7 @@ package Biodiverse::ReadNexus;
 #  Initial work by Dan Rosauer
 #  regex based approach by Shawn Laffan
 use 5.010;
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -381,6 +382,8 @@ sub import_tabular_tree {
         $data = $self->read_whole_file (file => $args{file});
         $args{data} = $data; # ?
     }
+    
+    my $column_map = $args{column_map} // {};
 
     # get column map from arguments 
     my %columns = %{$args{column_map} // {}};

@@ -286,7 +286,7 @@ sub descendents_are_same {
         get_child_count_below
         is_terminal_node
         is_internal_node
-    /;
+    /; # /
     
     my ($neg_count, $pos_count) = (0, 0);
 

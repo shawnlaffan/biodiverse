@@ -122,6 +122,18 @@ sub run {
             $import_params{use_element_properties} = undef;
         }
     }
+    
+    # process fields produced by get_column_use.  the key of each import_fields entry 
+    # will be the label passed to get_column_use, ie the text display of each field.
+    # create a different mapping from the identifier (eg NODENUM) to the column. 
+    my %labels_to_columns = reverse %tabular_column_labels;
+    #my %field_map;
+    foreach my $field (keys %$import_fields) {
+        my $arr_ref = $import_fields->{$field};
+        my $h_ref = @$arr_ref[0];
+        # find the column for this label
+        $field_map{$labels_to_columns{$field}} = $h_ref->{id};
+    }
 
     #########
     # 3. Load da tree
@@ -146,7 +158,7 @@ sub run {
         $gui->report_error ($EVAL_ERROR);
         return;
     }
-
+    
     my $phylogeny_array = $phylogeny_ref->get_tree_array;
 
     my $tree_count = scalar @$phylogeny_array;

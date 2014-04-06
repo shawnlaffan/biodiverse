@@ -424,8 +424,8 @@ sub run {
             $column_settings->{labels} = $old_labels_array;
         }
 
-        @cell_sizes = $reorder_params->{CELL_SIZES};
-        @cell_origins = $reorder_params->{CELL_ORIGINS};
+        @cell_sizes   = @{$reorder_params->{CELL_SIZES}};
+        @cell_origins = @{$reorder_params->{CELL_ORIGINS}};
     }
    
     #########

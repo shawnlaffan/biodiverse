@@ -104,7 +104,7 @@ sub new {
     $self->set_params (%args_for);
 
     #  check the cell sizes
-    my $cell_sizes = $self->get_param ('CELL_SIZES');
+    my $cell_sizes = $self->get_cell_sizes;
     croak 'CELL_SIZES parameter not specified'
       if !defined $cell_sizes;
     croak 'CELL_SIZES parameter is not an array ref'

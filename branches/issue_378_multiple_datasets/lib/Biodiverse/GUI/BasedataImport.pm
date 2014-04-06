@@ -27,18 +27,21 @@ use Biodiverse::ElementProperties;
 use Biodiverse::Common;
 
 
-#  a few name setups for a change-over that never happened
-my $import_n = ""; #  use "" for orig, 3 for the one with embedded params table
-my $dlg_name = "dlgImport1";
-my $chk_new = "chkNew$import_n";
-my $btn_next = "btnNext$import_n";
-my $file_format = "format_box$import_n";
-my $combo_import_basedatas = "comboImportBasedatas$import_n";
-my $filechooser_input = "filechooserInput$import_n";
-my $txt_import_new = "txtImportNew$import_n";
-my $mult_separate = "multseparate$import_n";
-my $table_parameters = "tableParameters$import_n";
+#  A few name setups for a change-over that never happened,
+#  so the the $import_n part is actually redundant.
+#  The other import dialogue (#3) is no longer in the glade file.  
+my $import_n = ''; #  use "" for orig, 3 for the one with embedded params table
+my $dlg_name           = "dlgImport1";
+my $chk_new            = "chkNew$import_n";
+my $btn_next           = "btnNext$import_n";
+my $file_format        = "format_box$import_n";
+my $filechooser_input  = "filechooserInput$import_n";
+my $txt_import_new     = "txtImportNew$import_n";
+my $table_parameters   = "tableParameters$import_n";
 my $importmethod_combo = "format_box$import_n"; # not sure about the suffix
+my $combo_import_basedatas     = "comboImportBasedatas$import_n";
+my $chk_import_one_bd_per_file = "chk_import_one_bd_per_file$import_n";
+
 
 my $text_idx      = 0;  # index in combo box 
 my $raster_idx    = 1;  # index in combo box of raster format
@@ -98,6 +101,10 @@ sub run {
     
     # interpret if raster or text depending on format box
     my $read_format = $dlgxml->get_widget($file_format)->get_active();
+    
+    #  do we want to import each file into its own basedata?
+    my $w = $dlgxml->get_widget($chk_import_one_bd_per_file);
+    my $one_basedata_per_file = $w->get_active();
 
     $dlg->destroy();
 
@@ -179,8 +186,8 @@ sub run {
 
 
     ###### need to handle creation / initialisation of new basedata objects.  perhaps here
-    ###### or perhaps later (during import call), depending on configuration needed   
-    $import_params{multiple_separate} = $dlgxml->get_widget($mult_separate)->get_active();
+    ###### or perhaps later (during import call), depending on configuration needed
+    $import_params{multiple_separate} = $one_basedata_per_file;
     
     # next stage, if we are reading as raster, just call import function here and exit.
     # for shapefile and text, find columns and ask how to interpret 
@@ -457,8 +464,8 @@ sub run {
     #########
     # Set the cellsize and origins parameters if we are new
     if ($use_new) {
-        $basedata_ref->set_param(CELL_SIZES   => @cell_sizes);
-        $basedata_ref->set_param(CELL_ORIGINS => @cell_origins);
+        $basedata_ref->set_param(CELL_SIZES   => [@cell_sizes]);
+        $basedata_ref->set_param(CELL_ORIGINS => [@cell_origins]);
     }
 
     #  get the sample count columns.  could do in fill_params, but these are

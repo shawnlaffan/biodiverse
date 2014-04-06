@@ -126,8 +126,8 @@ sub run {
     # process fields produced by get_column_use.  the key of each import_fields entry 
     # will be the label passed to get_column_use, ie the text display of each field.
     # create a different mapping from the identifier (eg NODENUM) to the column. 
-    my %labels_to_columns = reverse %column_labels;
-    my %field_map;
+    my %labels_to_columns = reverse %tabular_column_labels;
+    #my %field_map;
     foreach my $field (keys %$import_fields) {
         my $arr_ref = $import_fields->{$field};
         my $h_ref = @$arr_ref[0];

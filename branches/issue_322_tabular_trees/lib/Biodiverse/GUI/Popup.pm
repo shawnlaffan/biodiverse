@@ -267,7 +267,7 @@ sub on_source_changed {
     $popup->{listname} = $name;
 
     # Call the source-specific callback function (showList, showNeighbourLabels ...)
-    &$callback($popup);
+    $callback->($popup);
     
     return;
 }

@@ -3,7 +3,7 @@ package Biodiverse::ReadNexus;
 #  Read in a nexus tree file and extract the trees into Biodiverse::Tree files
 #  Initial work by Dan Rosauer
 #  regex based approach by Shawn Laffan
-
+use 5.010;
 use 5.010;
 use strict;
 use warnings;
@@ -386,9 +386,9 @@ sub import_tabular_tree {
     my $column_map = $args{column_map} // {};
 
     # get column map from arguments 
-    my %columns = %$column_map;
-    
-    my @data = split ($/, $data);
+    my %columns = %{$args{column_map} // {}};
+
+    my @data   = split ($/, $data);
     my $header = shift @data;
 
     my $csv = $self->get_csv_object_for_tabular_tree_import (%args);
@@ -411,7 +411,7 @@ sub import_tabular_tree {
     $columns{NODENAME_COL}       //= $header_cols{NAME};
 
     # check if all required fields are defined (?)
-    foreach my $param (sort qw /TREENAME_COL LENGTHTOPARENT_COL NODENUM_COL NODENAME_COL PARENT_COL/) { #/
+    foreach my $param (qw /TREENAME_COL LENGTHTOPARENT_COL NODENUM_COL NODENAME_COL PARENT_COL/) { #/
     #    croak "Missing parameter for $param" if (! defined($columns{$param}));
         say "Param $param col $columns{$param}";
     }

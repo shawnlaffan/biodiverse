@@ -11,7 +11,7 @@ DONE * get it to run from a separate parameter file
 
 * include .bds in parameter basedata_file
 
-* do we need an extra column for weight
+DONE * do we need an extra column for weight
 
 * geographic_distance - need to fix so that it works with geographic_distance set not to output
 

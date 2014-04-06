@@ -704,17 +704,19 @@ my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 sub get_min_value {  #  get the minimum similarity value
     my $self = shift;
 
-    my $val_hash = $self->{BYVALUE};    
+    my $val_hash = $self->{BYVALUE};
     my $min_key  = min keys %$val_hash;
     my $min      = $ludicrously_extreme_pos_val;
     
     my $element_hash = $val_hash->{$min_key};
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+            #  we know the order in which these are stored
+            my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
             $min = min ($min, $val);
         }
     }
+    
 
     return $min;
 }
@@ -729,7 +731,7 @@ sub get_max_value {  #  get the minimum similarity value
     my $element_hash = $val_hash->{$max_key};
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $val = $self->get_value (element1 => $el1, element2 => $el2);
+            my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
             $max = max ($max, $val);
         }
     }
@@ -822,9 +824,8 @@ sub add_element {  #  add an element pair to the object
 sub delete_element {
     my $self = shift;
     my %args = @_;
-    croak "element1 or element2 not defined\n"
-        if   ! defined $args{element1}
-          || ! defined $args{element2};
+    croak "element1 and/or element2 not defined\n"
+        if ! (defined $args{element1} && defined $args{element2});
 
     my $element1 = $args{element1};
     my $element2 = $args{element2};
@@ -840,10 +841,11 @@ sub delete_element {
         $element2 = $args{element1};
     }
     my $value = $self->get_value (
-        element1 => $element1,
-        element2 => $element2,
+        element1    => $element1,
+        element2    => $element2,
+        pair_exists => 1,
     );
-    
+
     #print "DELETING $element1 $element2\n";
         
     #  now we get to the cleanup, including the containing hashes if they are now empty
@@ -979,8 +981,8 @@ sub get_element_pairs_with_value {
 
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $value = $self->get_value (element1 => $el1, element2 => $el2);
-            next if $val ne $value;  #  implicitly uses %.15f precision
+            my $value = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            next if $val ne $value;  #  stringification implicitly uses %.15f precision
             $results{$el1}{$el2} ++;
         }
     }

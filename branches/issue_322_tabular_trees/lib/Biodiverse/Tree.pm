@@ -181,6 +181,8 @@ sub delete_node {
 
     #  now we delete it and its descendents from the node hash
     $self->delete_from_node_hash (nodes => \%node_hash);
+    
+    $self->delete_cached_values_below;
 
     #  return a list of the names of those deleted nodes
     return wantarray ? keys %node_hash : [keys %node_hash];
@@ -818,14 +820,20 @@ sub get_metadata_export_shapefile {
                              . '(default is to the left, with the root node at the right).',
                 type        => 'boolean',
                 default     => 0,
+                tooltip     =>
+                      'Should terminals be to the right of the root node? '
+                    . '(default is to the left, with the root node at the right).',
+                
             },
             {
                 name        => 'vertical_scale_factor',
                 label_text  => 'Vertical scale factor',
-                tooltip     => 'Control the tree plot height relative to its width (total length).  '
-                             . 'A zero value will make the height equal the width.',
                 type        => 'float',
                 default     => 0,
+                tooltip     =>
+                      'Control the tree plot height relative to its width '
+                    . '(longest path from root to tip).  '
+                    . 'A zero value will make the height equal the width.',
             },
             {
                 type => 'comment',
@@ -959,6 +967,8 @@ sub export_tabular_tree {
     if (! defined $name) {
         $name = $self->get_param ('NAME');
     }
+    
+    $args{use_internal_names} //= 1;  #  we need this to be set for the round trip
 
     # show the type of what is being exported
     

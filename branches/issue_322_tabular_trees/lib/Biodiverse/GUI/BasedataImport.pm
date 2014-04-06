@@ -795,13 +795,13 @@ sub explain_import_col_options {
 
 sub explain_remap_col_options {
     my $parent = shift;
-    
+
     my $inc_exc_suffix = 'This applies to the main input file, '
                        . 'and is assessed before any remapping is done.';
 
     my %explain = (
         Ignore           => 'There is no setting for this column.  '
-                          . 'It will be ignored or used depending on your other settings.',
+                          . 'It will be ignored or its use will depend on your other settings.',
         Property         => 'The value for this field will be added as a property, '
                           . 'using the name of the column as the property name.',
         Input_element    => 'Values in this column will be used as one of the element (label or group) axes. '
@@ -827,7 +827,7 @@ sub explain_remap_col_options {
 sub show_expl_dialog {
     my $expl_hash = shift;
     my $parent    = shift;
-#$parent = undef;
+
     my $dlg = Gtk2::Dialog->new(
         'Column options',
         $parent,
@@ -882,18 +882,6 @@ sub show_expl_dialog {
     $dlg->set_modal(undef);
     #$dlg->set_focus(undef);
     $dlg->show_all;
-
-    #  Callbacks are sort of redundant now, since dialogs are always modal
-    #  so we cannot return control to the input window that called us.
-    #my $destroy_sub = sub {$_[0]->destroy};
-    #$dlg->signal_connect_swapped(
-    #    response => $destroy_sub,
-    #    $dlg,
-    #);
-    #$dlg->signal_connect_swapped(
-    #    close => $destroy_sub,
-    #    $dlg,
-    #);
 
     $dlg->run;
     $dlg->destroy;
@@ -1604,12 +1592,12 @@ sub get_remap_info {
 # the number of columns is unknown
 sub make_remap_columns_dialog {
     my $header           = shift; # ref to column header array
-    my $wnd_main          = shift;
+    my $wnd_main         = shift;
     my $other_props      = shift || [];
     my $column_overrides = shift;
 
     my $num_columns = @$header;
-    print "[GUI] Generating make columns dialog for $num_columns columns\n";
+    say "[GUI] Generating make columns dialog for $num_columns columns";
 
     # Make dialog
     my $dlg = Gtk2::Dialog->new(
@@ -1670,7 +1658,7 @@ sub make_remap_columns_dialog {
 }
 
 sub get_remap_column_settings {
-    my $cols = shift;
+    my $cols    = shift;
     my $headers = shift;
     my $num = @$cols;
     my (@in, @out);

@@ -421,7 +421,7 @@ sub set_values {
 
         my $indices = $data->[INDEX_ELEMENT];
         # the first argument to values_func refers to the horizontal row (ie: the y coord)
-        $data->[INDEX_VALUES] = &$value_func($indices->[1], $indices->[0]);
+        $data->[INDEX_VALUES] = $value_func->($indices->[1], $indices->[0]);
     }
     
     return;
@@ -738,20 +738,19 @@ sub on_event {
 
     # By "horizontal element" we refer to the one whose values are on the row of the matrix running
     # horizontally. It is determined by the y-value
-    my ($horez_elt, $vert_elt) = (POSIX::floor($y / CELL_SIZE), POSIX::floor($x / CELL_SIZE) );
+    my ($horz_elt, $vert_elt) = (POSIX::floor($y / CELL_SIZE), POSIX::floor($x / CELL_SIZE) );
 
     # If moved right onto the edge, we end up at the "next" row/col which doesn't exist
-    $horez_elt-- if $y == $max_coord;
+    $horz_elt-- if $y == $max_coord;
     $vert_elt-- if $x == $max_coord;
 
-    #print "x=$x y=$y max=$max_coord horez=$horez_elt vert=$vert_elt\n";
+    #print "x=$x y=$y max=$max_coord horez=$horz_elt vert=$vert_elt\n";
 
     if ($event->type eq 'enter-notify') {
 
         # Call client-defined callback function
-        if (defined $self->{hover_func}) {
-            my $f = $self->{hover_func};
-            &$f($horez_elt, $vert_elt);
+        if (my $f = $self->{hover_func}) {
+            $f->($horz_elt, $vert_elt);
         }
 
         my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
@@ -768,7 +767,7 @@ sub on_event {
 
         if ($event->button == 1) {
 
-            ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt}) = ($horez_elt, $vert_elt);
+            ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt}) = ($horz_elt, $vert_elt);
 
             # Grab mouse
             $cell->grab (
@@ -803,42 +802,32 @@ sub on_event {
             $self->{selecting} = 0;
 
             # Establish the selection
-            my ($horez_start, $vert_start) = ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt});
-            my ($horez_end, $vert_end) = ($horez_elt, $vert_elt);
+            my ($horz_start, $vert_start) = ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt});
+            my ($horz_end, $vert_end)     = ($horz_elt, $vert_elt);
             my $tmp;
 
-            if ($horez_start > $horez_end) {
-                $tmp = $horez_start;
-                $horez_start = $horez_end;
-                $horez_end = $tmp;
+            if ($horz_start > $horz_end) {
+                ($horz_start, $horz_end) = ($horz_end, $horz_start)
             }
             if ($vert_start > $vert_end) {
-                $tmp = $vert_start;
-                $vert_start = $vert_end;
-                $vert_end = $tmp;
+                ($vert_start, $vert_end) = ($vert_end, $vert_start);
             }
 
-            if (defined $self->{select_func}) {
-                my $f = $self->{select_func};
-                &$f($horez_start, $horez_end, $vert_start, $vert_end);
+            if (my $f = $self->{select_func}) {
+                $f->($horz_start, $horz_end, $vert_start, $vert_end);
             }
         }
-
     }
     elsif ($event->type eq 'motion-notify') {
 
         # Call client-defined callback function
-        if (defined $self->{hover_func}) {
-            my $f = $self->{hover_func};
-            &$f($horez_elt, $vert_elt);
+        if (my $f = $self->{hover_func}) {
+            $f->($horz_elt, $vert_elt);
         }
 
         if ($self->{selecting}) {
             # Resize selection rectangle
-            if ($self->{selecting}) {
-                $self->{sel_rect}->set(x2 => $x, y2 => $y);
-            }
-
+            $self->{sel_rect}->set(x2 => $x, y2 => $y);
         }
 
         return 0;
@@ -850,12 +839,12 @@ sub on_event {
 # Implements resizing
 sub on_size_allocate {
     my ($self, $size, $canvas) = @_;
-    $self->{width_px} = $size->width;
+    $self->{width_px}  = $size->width;
     $self->{height_px} = $size->height;
 
     if (exists $self->{width_units}) {
         $self->fit_grid() if ($self->{zoom_fit});
-            
+
         $self->reposition();
         $self->setup_scrollbars();
         $self->resize_background_rect();

@@ -947,12 +947,15 @@ sub on_use_highlight_path_changed {
 }
 
 sub get_sources_for_node {
-    my $node_ref = shift;
+    my $node_ref     = shift;
     my $basedata_ref = shift;
+
     my %sources;
+
     #print Data::Dumper::Dumper($node_ref->get_value_keys);
-    $sources{'Labels'} = sub { show_phylogeny_labels(@_, $node_ref); };
-    $sources{'Groups'} = sub { show_phylogeny_groups(@_, $node_ref, $basedata_ref); };
+    $sources{Labels} = sub { show_phylogeny_labels(@_, $node_ref); };
+    $sources{Groups} = sub { show_phylogeny_groups(@_, $node_ref, $basedata_ref); };
+    $sources{Descendents} = sub { show_phylogeny_descendents(@_, $node_ref); };
 
     # Custom lists - getValues() - all lists in node's $self
     # FIXME: try to merge with CellPopup::showOutputList
@@ -1012,8 +1015,8 @@ sub show_list {
 # Called by popup dialog
 # Shows the labels for all elements under given node
 sub show_phylogeny_groups {
-    my $popup = shift;
-    my $node_ref = shift;
+    my $popup        = shift;
+    my $node_ref     = shift;
     my $basedata_ref = shift;
 
     # Get terminal elements
@@ -1060,6 +1063,29 @@ sub show_phylogeny_labels {
     $popup->set_list_model($model);
     $popup->set_value_column(1);
     
+    return;
+}
+
+# Called by popup dialog
+# Shows all descendent nodes under given node
+sub show_phylogeny_descendents {
+    my $popup    = shift;
+    my $node_ref = shift;
+
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+
+    my $node_hash = $node_ref->get_all_descendents_and_self;
+
+    foreach my $element (sort keys %$node_hash) {
+        my $node_ref = $node_hash->{$element};
+        my $count = $node_ref->get_child_count;
+        my $iter  = $model->append;
+        $model->set($iter, 0, $element, 1, $count);
+    }
+
+    $popup->set_list_model($model);
+    $popup->set_value_column(1);
+
     return;
 }
 

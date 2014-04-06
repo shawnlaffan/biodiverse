@@ -127,13 +127,12 @@ sub set_dirty {
 # is hidden (is it worth keeping open briefly or until closed?). 
 sub init_progress_window {
     my $self = shift;
-    say 'init_progress_window';
-    
+    #say 'init_progress_window';
+
     if ($self->{progress_bars}) {
        say 'prog bars defined';
        croak 'call to init_progress_window when defined';
     }
-        
     
     $self->{progress_bars} = {
         window => undef,
@@ -141,20 +140,23 @@ sub init_progress_window {
         dialog_objects => {},
         dialog_entries => {}
     };
-    
+
     # create window
-    $self->{progress_bars}->{window} = Gtk2::Window->new;
-    $self->{progress_bars}->{window}->set_transient_for( $self->get_widget('wndMain') );
-    $self->{progress_bars}->{window}->set_title('Progress');
-    $self->{progress_bars}->{window}->set_default_size (300, -1);
-    
+    my $window = Gtk2::Window->new;
+    $window->set_transient_for( $self->get_widget('wndMain') );
+    $window->set_title('Progress');
+    $window->set_default_size (300, -1);
+
     # do we need to track delete signals?    
-    $self->{progress_bars}->{window}->signal_connect ('delete-event' => \&progress_destroy_callback, $self);
-    
-    $self->{progress_bars}->{entry_box} = Gtk2::VBox->new(0, 5); # homogeneous, spacing
-    $self->{progress_bars}->{window}->add($self->{progress_bars}->{entry_box});
-    
-    $self->{progress_bars}->{window}->show_all;    
+    $window->signal_connect ('delete-event' => \&progress_destroy_callback, $self);
+
+    my $entry_box = Gtk2::VBox->new(0, 5); # homogeneous, spacing
+    $window->add($entry_box);
+
+    $self->{progress_bars}->{window}    = $window;
+    $self->{progress_bars}->{entry_box} = $entry_box;
+
+    $window->show_all;
 }
 
 # called to add record to progress bar display
@@ -162,15 +164,15 @@ sub add_progress_entry {
     my ($self, $dialog_obj, $title, $text, $progress) = @_;
 
     # call init if not defined yet
-    $self->init_progress_window if ! $self->{progress_bars};
-    
+    $self->init_progress_window if !$self->{progress_bars};
+
     # possibly worth resetting next_id once it gets to a large number, however this is
     # very unlikely to be a problem in practise
     #my $new_id = $self->{progress_bars}->{next_id}++;
     
     # create new entry frame and widgets
     my $frame = Gtk2::Frame->new($title);
-    $self->{progress_bars}->{entry_box}->pack_start($frame, 1, 1, 0);
+    $self->{progress_bars}->{entry_box}->pack_start($frame, 0, 1, 0);
     
     my $id = $dialog_obj->get_id; # unique number for each, allows hashing
     $self->{progress_bars}->{dialog_objects}{$id} = $dialog_obj;
@@ -190,7 +192,7 @@ sub add_progress_entry {
     $frame_vbox->pack_start($progress_widget, 0, 0, 0);
     
     # show the progress window
-    $self->{progress_bars}->{window}->present;
+    #$self->{progress_bars}->{window}->present;  #  don't do this - it grabs the system focus and makes other work impossible
     $self->{progress_bars}->{window}->show_all;
     
     #say "Current progress bars: " . Dumper($self->{progress_bars});
@@ -207,14 +209,14 @@ sub clear_progress_entry {
     my ($self, $dialog_obj) = @_;
 
     croak 'call to clear_progress_entry when not inited (possibly after window close)' 
-        if (! $self->{progress_bars});
+        if !$self->{progress_bars};
 
     croak 'invalid dialog obj given to clear_progress_entry' 
-        if (! defined($dialog_obj));
+        if !defined $dialog_obj;
 
     my $id = $dialog_obj->get_id; # unique number for each, allows hashing
     croak 'invalid dialog obj given to clear_progress_entry, can\'t read ID' 
-        if (! defined($self->{progress_bars}->{dialog_objects}{$id}));
+        if !defined $self->{progress_bars}->{dialog_objects}{$id};
 
     my $entry_frame = $self->{progress_bars}->{dialog_entries}{$id};
 
@@ -225,7 +227,9 @@ sub clear_progress_entry {
     delete $self->{progress_bars}->{dialog_entries}{$id};
     
     # if no active entries in progress dialog, hide it
-    if (! $self->{progress_bars}->{entry_box}->get_children() || scalar $self->{progress_bars}->{entry_box}->get_children() == 0) {
+    if (   !$self->{progress_bars}->{entry_box}->get_children
+        || scalar $self->{progress_bars}->{entry_box}->get_children == 0
+        ) {
         $self->{progress_bars}->{window}->hide;
     }
 }
@@ -253,7 +257,10 @@ sub progress_destroy_callback {
 
 sub show_progress {
     my $self = shift;
-    $self->{progress_bars}->{window}->show_all if $self->{progress_bars};
+
+    if ($self->{progress_bars}) {
+        $self->{progress_bars}->{window}->show_all;
+    }
 }
 
 ##########################################################

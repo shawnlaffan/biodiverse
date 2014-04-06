@@ -298,7 +298,7 @@ sub on_chk_output_to_file_changed {
 
     my $widget = $self->{xmlPage}->get_widget('chk_output_to_file');
     my $active = $widget->get_active;
-    
+
     my $gdm_widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
     $gdm_widget->set_sensitive($active);
 
@@ -327,9 +327,18 @@ sub setup_tie_breaker_widgets {
     my %valid_indices = $indices_object->get_valid_region_grower_indices;
     my %tmp = $indices_object->get_valid_cluster_indices;
     @valid_indices{keys %tmp} = values %tmp;
-    
+
+    my $cb_tooltip_text
+      = 'Turn the tie breakers off if you want the old clustering system.  '
+      . 'It will return different results for different analyses, '
+      . 'but is faster and uses less memory.';
+    my $checkbox = Gtk2::CheckButton->new_with_label("Use tie\nbreakers");
+    $checkbox->set_active(1);
+    $checkbox->set_tooltip_text($cb_tooltip_text);
+    $breaker_hbox->pack_start ($checkbox, 0, 0, 0);
+
     my @tie_breaker_widgets;
-    
+
     foreach my $i (0, 1) {
         my $id = $i + 1;
         my $j = 2 * $i;
@@ -360,15 +369,16 @@ sub setup_tie_breaker_widgets {
         $combo_minmax->set_active ($use_iter_minmax || 0);
 
         my $hbox = Gtk2::HBox->new;
-        $hbox->pack_start ($label, 0, 1, 0);
-        $hbox->pack_start ($index_combo, 0, 1, 0);
-        $hbox->pack_start ($combo_minmax, 0, 1, 0);
-        $breaker_hbox->pack_start ($hbox, 0, 1, 0);
+        $hbox->pack_start ($label, 0, 0, 0);
+        $hbox->pack_start ($index_combo, 0, 0, 0);
+        $hbox->pack_start ($combo_minmax, 0, 0, 0);
+        $breaker_hbox->pack_start ($hbox, 0, 0, 0);
         push @tie_breaker_widgets, $index_combo, $combo_minmax;
     }
     $breaker_hbox->show_all();
 
     $self->{tie_breaker_widgets} = \@tie_breaker_widgets;
+    $self->{tie_breaker_widget_use_check} = $checkbox;
 
     return;
 }
@@ -465,19 +475,15 @@ sub set_frame_label_widget {
 
 sub on_show_hide_parameters {
     my $self = shift;
-    
+
     my $frame = $self->{xmlPage}->get_widget('frame_cluster_parameters');
     my $widget = $frame->get_label_widget;
     my $active = $widget->get_active;
 
     my $table = $self->{xmlPage}->get_widget('tbl_cluster_parameters');
 
-    if ($active) {
-        $table->hide;
-    }
-    else {
-        $table->show;
-    }
+    my $method = $active ? 'hide' : 'show';
+    $table->$method;
 
     return;
 }
@@ -910,6 +916,15 @@ sub get_tie_breakers {
     return wantarray ? @choices : \@choices;
 }
 
+sub get_use_tie_breakers {
+    my $self = shift;
+
+    my $widget = $self->{tie_breaker_widget_use_check};
+
+    return if !$widget;
+    return $widget->get_active;
+}
+
 sub get_output_file_handles {
     my $self = shift;
     
@@ -1038,12 +1053,17 @@ sub on_run_analysis {
     my %args = @_;
 
     # Check spatial syntax
-    return if ($self->{spatialParams1}->syntax_check('no_ok')    ne 'ok');
-    return if ($self->{spatialParams2}->syntax_check('no_ok')    ne 'ok');
-    return if ($self->{definition_query1}->syntax_check('no_ok') ne 'ok');
+    return if $self->{spatialParams1}->syntax_check('no_ok')    ne 'ok';
+    return if $self->{spatialParams2}->syntax_check('no_ok')    ne 'ok';
+    return if $self->{definition_query1}->syntax_check('no_ok') ne 'ok';
 
     # Load settings...
-    $self->{output_name}    = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
+    my $output_name      = $self->{xmlPage}->get_widget('txtClusterName')->get_text();
+    $self->{output_name} = $output_name;
+    my $output_ref       = $self->{output_ref};
+    my $pre_existing     = $self->{output_ref};
+    my $new_analysis     = 1;
+
     my $selected_index      = $self->get_selected_metric;
     my $selected_linkage    = $self->get_selected_linkage;
     my $no_cache_abc        = $self->get_no_cache_abc_value;
@@ -1055,23 +1075,22 @@ sub on_run_analysis {
     my $prng_seed           = $self->get_prng_seed;
 
     # Get spatial calculations to run
-    my @calculations_to_run = Biodiverse::GUI::Tabs::CalculationsTree::get_calculations_to_run(
+    my @calculations_to_run
+      = Biodiverse::GUI::Tabs::CalculationsTree::get_calculations_to_run(
         $self->{calculations_model}
     );
 
-    my $pre_existing = $self->{output_ref};
-    my $new_analysis = 1;
-
     # Delete existing?
-    if (defined $self->{output_ref}) {
-        my $completed = $self->{output_ref}->get_param('COMPLETED');
+    if (defined $output_ref) {
+        my $completed = $self->{output_ref}->get_param('COMPLETED') // 1;
 
-        if ($self->{existing} and defined $completed and $completed) {
-            my $text = "$self->{output_name} exists.  \nDo you mean to overwrite it?";
+        if ($self->{existing} && $completed) {
+            my $text = "  $output_name exists.  \nDo you mean to overwrite it?";
             my $response = $self->get_overwrite_response ('Overwrite?', $text);
+
             #  drop out if we don't want to overwrite
-            #my $response = Biodiverse::GUI::YesNoCancel->run({header => 'Overwrite?', text => $text});
-            return 0 if ($response eq 'no' or $response eq 'cancel');
+            return 0 if $response eq 'no' or $response eq 'cancel';
+
             if ($response eq 'run_spatial_calculations') {
                 return 0 if not scalar @calculations_to_run;
                 $new_analysis = 0;
@@ -1082,14 +1101,12 @@ sub on_run_analysis {
         }
 
         if ($new_analysis) {
-            $self->{basedata_ref}->delete_output(output => $self->{output_ref});
-            $self->{project}->delete_output($self->{output_ref});
-            $self->{existing} = 0;
+            $self->{basedata_ref}->delete_output(output => $output_ref);
+            $self->{project}->delete_output($output_ref);
+            $self->{existing}   = 0;
             $self->{output_ref} = undef;
         }
     }
-
-    my $output_ref = $self->{output_ref};
 
     if ($new_analysis) {
         # Add cluster output
@@ -1130,10 +1147,12 @@ sub on_run_analysis {
     );
 
     my $tie_breakers  = $self->get_tie_breakers;
-    $output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
+    if ($self->get_use_tie_breakers) {
+        $output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
+    }
 
     # Perform the clustering
-    RUN_CLUSTER:
+  RUN_CLUSTER:
     my $success = eval {
         $output_ref->run_analysis (
             %analysis_args,
@@ -1145,7 +1164,7 @@ sub on_run_analysis {
         my $name = $e->name;
         #  do some handling then try again?
         #  drop out if we don't want to overwrite
-        my $text = "Matrix output $name exists in the basedata.\nDelete it?";
+        my $text = "\nMatrix output \n$name \nexists in the basedata.\nDelete it?";
         if (Biodiverse::GUI::YesNoCancel->run({header => 'Overwrite?', text => $text}) ne 'yes') {
             #  put back the pre-existing cluster output - not quite working yet
             $self->{basedata_ref}->delete_output(output => $output_ref);

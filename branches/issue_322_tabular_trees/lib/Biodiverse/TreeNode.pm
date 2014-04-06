@@ -700,9 +700,10 @@ sub get_terminal_node_refs {
     return wantarray ? %terminals : \%terminals;
 }
 
-sub get_terminal_elements { #  get all the elements in the terminal nodes
-    #  need to add a cache option to reduce the amount of tree walking
-    #  - use  hash for this, but return the keys
+#  get all the elements in the terminal nodes
+#  need to add a cache option to reduce the amount of tree walking
+#  - use  hash for this, but return the keys
+sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache unless told otherwise
 
@@ -713,9 +714,9 @@ sub get_terminal_elements { #  get all the elements in the terminal nodes
         return wantarray ? %$cache_ref : $cache_ref
           if defined $cache_ref;
     }
-    
+
     my @list;
-    
+
     if ($self->is_terminal_node) {
         push @list, ($self->get_name, 1);
     }
@@ -765,12 +766,13 @@ sub get_all_children {
 }
 
 
-sub get_all_descendents { #  get all the nodes (whether terminal or not) which are descendants of a node
+#  get all the nodes (whether terminal or not) which are descendants of a node
+sub get_all_descendents {
     my $self = shift;
     my %args = (
         cache => 1, #  cache unless told otherwise
         @_,
-    );  
+    );
 
     if ($self->is_terminal_node) {
         return wantarray ? () : {};  #  empty hash by default

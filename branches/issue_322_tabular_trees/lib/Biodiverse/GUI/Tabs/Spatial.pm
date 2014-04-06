@@ -1,4 +1,5 @@
 package Biodiverse::GUI::Tabs::Spatial;
+use 5.010;
 use strict;
 use warnings;
 
@@ -9,6 +10,7 @@ our $VERSION = '0.19';
 use Gtk2;
 use Carp;
 use Scalar::Util qw /blessed looks_like_number/;
+use Time::HiRes;
 
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
@@ -153,10 +155,10 @@ sub new {
             : $NULL_STRING;
     }
     else {
-        my $cell_sizes = $self->{basedata_ref}->get_cell_sizes;
-        my $cell_x     = $cell_sizes->[0];
-        $initial_sp1   = 'sp_self_only ()';
-        $initial_sp2   = "sp_circle (radius => $cell_x)";
+        my $cell_sizes = $self->{basedata_ref}->get_param('CELL_SIZES');
+        my $cell_x = $cell_sizes->[0];
+        $initial_sp1 = 'sp_self_only ()';
+        $initial_sp2 = "sp_circle (radius => $cell_x)";
     }
 
     $self->{spatial1} = Biodiverse::GUI::SpatialParams->new($initial_sp1);
@@ -324,6 +326,8 @@ sub init_grid {
 
 #print "Initialising grid\n";
 
+    $self->{initialising_grid} = 1;
+
     # Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $click_closure = sub {
@@ -354,6 +358,8 @@ sub init_grid {
             $self->{grid}->set_base_struct ($data);
         }
     }
+
+    $self->{initialising_grid} = 0;
 
     return;
 }
@@ -606,7 +612,8 @@ sub on_run {
     my $self = shift;
 
     # Load settings...
-    $self->{output_name} = $self->{xmlPage}->get_widget('txtSpatialName')->get_text();
+    my $output_name = $self->{xmlPage}->get_widget('txtSpatialName')->get_text();
+    $self->{output_name} = $output_name;
 
     # Get calculations to run
     my @to_run
@@ -624,39 +631,40 @@ sub on_run {
         $dlg->destroy();
         return;
     }
-    
 
     # Check spatial syntax
-    return if ($self->{spatial1}->syntax_check('no_ok') ne 'ok');
-    return if ($self->{spatial2}->syntax_check('no_ok') ne 'ok');
-    return if ($self->{definition_query1}->syntax_check('no_ok') ne 'ok');
+    return if $self->{spatial1}->syntax_check('no_ok') ne 'ok';
+    return if $self->{spatial2}->syntax_check('no_ok') ne 'ok';
+    return if $self->{definition_query1}->syntax_check('no_ok') ne 'ok';
+
+    my $new_result = 1;
+    my $overwrite  = 0;
+    my $output_ref = $self->{output_ref};
 
     # Delete existing?
-    my $new_result = 1;
-    if (defined $self->{output_ref}) {
-        my $text = "$self->{output_name} exists.  Do you mean to overwrite it?";
-        my $completed = $self->{output_ref}->get_param('COMPLETED');
-        if ($self->{existing} and defined $completed and $completed) {
-            
+    if (defined $output_ref) {
+        my $text = "$output_name exists.  Do you mean to overwrite it?";
+        my $completed = $output_ref->get_param('COMPLETED') // 1;
+        if ($self->{existing} && $completed) {
+
             #  drop out if we don't want to overwrite
             my $response = Biodiverse::GUI::YesNoCancel->run({
-                header => 'Overwrite?',
-                text   => $text}
-            );
+                header  => 'Overwrite? ',
+                text    => $text,
+                hide_no => 1,
+            });
             return 0 if $response ne 'yes';
         }
-        
-        #  remove original object, we are recreating it
-        $self->{basedata_ref}->delete_output(output => $self->{output_ref});
-        $self->{project}->delete_output($self->{output_ref});
-        $self->{existing} = 0;
-        $new_result = 0;
+
+        $overwrite    = 1;
+        $new_result   = 0;
+        $output_name .= time();  #  create a temporary name
     }
-    
+
     # Add spatial output
-    my $output_ref = eval {
+    $output_ref = eval {
         $self->{basedata_ref}->add_spatial_output(
-            name => $self->{output_name}
+            name => $output_name,
         );
     };
     if ($EVAL_ERROR) {
@@ -664,43 +672,56 @@ sub on_run {
         return;
     }
 
-    $self->{output_ref} = $output_ref;
-    $self->{project}->add_output($self->{basedata_ref}, $output_ref);
-
     my %args = (
-        spatial_conditions  => [
+        calculations       => \@to_run,
+        matrix_ref         => $self->{project}->get_selected_matrix,
+        tree_ref           => $self->{project}->get_selected_phylogeny,
+        definition_query   => $self->{definition_query1}->get_text(),
+        spatial_conditions => [
             $self->{spatial1}->get_text(),
             $self->{spatial2}->get_text(),
         ],
-        definition_query    => $self->{definition_query1}->get_text(),
-        calculations        => \@to_run,
-        matrix_ref          => $self->{project}->get_selected_matrix,
-        tree_ref            => $self->{project}->get_selected_phylogeny,
     );
 
     # Perform the analysis
-    print "[Spatial tab] Running @to_run\n";
-    #$self->{output_ref}->sp_calc(%args);
+    $self->{initialising_grid} = 1;  #  desensitise the grid if it is already displayed
+
+    say "[Spatial tab] Running calculations @to_run";
+
     my $success = eval {
         $output_ref->sp_calc(%args)
-    };  #  wrap it in an eval to trap any errors
+    };
     if ($EVAL_ERROR) {
         $self->{gui}->report_error ($EVAL_ERROR);
     }
-    
-    if ($success) {
-        $self->register_in_outputs_model($output_ref, $self);
-    }
 
-    $self->{project}->update_indices_rows($output_ref);
+    #  only add to the project if successful
+    if (!$success) {
+        if ($overwrite) {  #  remove the failed run
+            $self->{basedata_ref}->delete_output(output => $output_ref);
+        }
 
-    if (not $success) {
+        $self->{initialising_grid} = 0;
         $self->on_close;  #  close the tab to avoid horrible problems with multiple instances
         return;  # sp_calc dropped out for some reason, eg no valid calculations.
     }
 
+    if ($overwrite) {  #  clear out the old ref and reinstate the user specified name
+        say '[SPATIAL] Replacing old analysis with new version';
+        my $old_ref = $self->{output_ref};
+        $self->{basedata_ref}->delete_output(output => $old_ref);
+        $self->{project}->delete_output($old_ref);
+        $output_ref->rename (new_name => $self->{output_name});
+    }
+
+    $self->{output_ref} = $output_ref;
+    $self->{project}->add_output($self->{basedata_ref}, $output_ref);
+
+    $self->register_in_outputs_model($output_ref, $self);
+    $self->{project}->update_indices_rows($output_ref);
+
     my $isnew = 0;
-    if ($self->{existing} == 0) {
+    if (!$self->{existing}) {
         $isnew = 1;
         $self->{existing} = 1;
     }
@@ -709,11 +730,10 @@ sub on_run {
         title  => 'display?',
         header => 'display results?',
     });
-
     if ($response eq 'yes') {
         # If just ran a new analysis, pull up the pane
         $self->set_pane(0.01);
-    
+
         # Update output display if we are a new result
         # or grid is not defined yet (this can happen)
         if ($new_result || !defined $self->{grid}) {
@@ -729,6 +749,11 @@ sub on_run {
         $self->update_lists_combo(); # will display first analysis as a side-effect...
     }
 
+    #  make sure the grid is sensitive again
+    $self->{initialising_grid} = 0;
+
+    $self->{project}->set_dirty;
+
     return;
 }
 
@@ -739,12 +764,15 @@ sub on_run {
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
 sub on_grid_hover {
-    my $self = shift;
+    my $self    = shift;
     my $element = shift;
+
+    #  drop out if we are initialising, otherwise we trigger events on incomplete data
+    return if $self->{initialising_grid};
 
     my $output_ref = $self->{output_ref};
     my $text = '';
-    
+
     my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
 
     if ($element) {
@@ -783,8 +811,6 @@ sub on_grid_hover {
         my (%nbrs_hash_inner, %nbrs_hash_outer);
         @nbrs_hash_inner{ @$nbrs_inner } = undef; # convert to hash using a hash slice (thanks google)
         @nbrs_hash_outer{ @$nbrs_outer } = undef; # convert to hash using a hash slice (thanks google)
-
-
 
         if ($neighbours eq 'Set1' || $neighbours eq 'Both') {
             $self->{grid}->mark_if_exists(\%nbrs_hash_inner, 'circle');

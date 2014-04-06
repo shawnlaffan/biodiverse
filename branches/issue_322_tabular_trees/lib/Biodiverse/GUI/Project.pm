@@ -1079,12 +1079,13 @@ sub call_selection_callbacks {
     my @args = @_;
 
     my $hash = $self->{callbacks}{$type};
-    if ($hash) {
-        foreach my $callback (values %$hash) {
-            &$callback(@args);
-        }
+
+    return if !$hash;
+
+    foreach my $callback (values %$hash) {
+        $callback->(@args);
     }
-    
+
     return;
 }
 

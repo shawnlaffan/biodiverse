@@ -22,29 +22,31 @@ use Biodiverse::TestHelpers qw{
 };
 
 my @calcs = qw/
+    calc_count_labels_on_tree
+    calc_labels_not_on_tree
+    calc_labels_on_tree
+    calc_pd
+    calc_pd_endemism
+    calc_pd_node_list
+    calc_pd_terminal_node_count
+    calc_pd_terminal_node_list
+    calc_pe
+    calc_pe_clade_loss
+    calc_pe_clade_contributions
+    calc_pe_clade_loss_ancestral
+    calc_pe_lists
+    calc_pe_single
+    calc_phylo_abc
     calc_phylo_aed
     calc_phylo_aed_t
     calc_phylo_aed_t_wtlists
+    calc_phylo_corrected_weighted_endemism
     calc_phylo_corrected_weighted_rarity
-    calc_labels_not_on_tree
-    calc_labels_on_tree
-    calc_pd_endemism
     calc_phylo_jaccard
     calc_phylo_s2
     calc_phylo_sorenson
-    calc_phylo_abc
-    calc_pd
-    calc_pd_node_list
-    calc_pd_terminal_node_list
-    calc_pe
-    calc_pe_lists
-    calc_pe_clade_contributions
-    calc_phylo_corrected_weighted_endemism
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
-    calc_pe_single
-    calc_count_labels_on_tree
-    calc_pd_terminal_node_count
 /;
 
 
@@ -68,26 +70,18 @@ sub main {
     #test_calc_phylo_aed();
     test_extra_labels_in_bd();
     test_sum_to_pd();
+    test_pe_with_extra_nodes_in_tree();
 
     
     done_testing;
     return 0;
 }
 
-
-sub test_calc_phylo_aed {
-    note "LOCAL OVERRIDE TO ONLY DO AED CALCS - REMOVE BEFORE REINTEGRATION\n";
-
-    my @calcs = qw/
-        calc_phylo_aed
-        calc_phylo_aed_t
-        calc_phylo_aed_t_wtlists
-    /;
-
+sub test_indices {
     run_indices_test1 (
-        calcs_to_test   => [@calcs],
-        no_strict_match => 1,
-        #generate_result_sets => 1,
+        calcs_to_test      => [@calcs],
+        calc_topic_to_test => 'Phylogenetic Indices',
+        generate_result_sets => $generate_result_sets,
     );
 }
 
@@ -104,8 +98,8 @@ sub test_sum_to_pd {
         calc_pd
     /;
 
-    my $cell_sizes   = [200000, 200000];
-    my $bd = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
     my $tree = get_tree_object_from_sample_data();
 
     my $sp = $bd->add_spatial_output (name => 'should sum to PD, select_all');
@@ -190,15 +184,6 @@ sub test_sum_to_pd {
 
 }
 
-
-sub test_indices {
-    run_indices_test1 (
-        calcs_to_test      => [@calcs],
-        calc_topic_to_test => 'Phylogenetic Indices',
-        generate_result_sets => $generate_result_sets,
-    );
-}
-
 #  now try with extra labels that aren't on the tree
 sub test_extra_labels_in_bd {
     my $cb = sub {
@@ -240,6 +225,29 @@ sub test_extra_labels_in_bd {
         callbacks       => [$cb],
         no_strict_match => 1,
         expected_results_overlay => \%expected_results_overlay,
+    );
+    
+}
+
+#  check we trim the tree properly
+sub test_pe_with_extra_nodes_in_tree {
+    my $cb = sub {
+        my %args = @_;
+        my $tree = $args{tree_ref};
+        my $root = $tree->get_root_node;
+        $root->add_children (children => [qw /node1 node2/]);
+    };
+
+    my @calcs_to_test = qw/
+        calc_pe_clade_contributions
+        calc_pe_lists
+        calc_pe_single
+    /;
+
+    run_indices_test1 (
+        calcs_to_test   => \@calcs_to_test,
+        callbacks       => [$cb],
+        no_strict_match => 1,
     );
     
 }
@@ -381,6 +389,186 @@ __DATA__
         'Genus:sp29' => '0.00235492518',
         'Genus:sp30' => '0.00097741938',
         'Genus:sp5'  => '0.00283256135'
+    },
+    PE_CLADE_LOSS_ANC => {
+        '30___'      => '0',
+        '31___'      => '0',
+        '32___'      => '0',
+        '33___'      => '0',
+        '34___'      => '0',
+        '35___'      => '0',
+        '36___'      => '0',
+        '37___'      => '0',
+        '38___'      => '0',
+        '39___'      => '0.00194532468189068',
+        '41___'      => '0',
+        '42___'      => '0',
+        '44___'      => '0',
+        '45___'      => '0.000771815042377',
+        '49___'      => '4.22691626564831e-005',
+        '50___'      => '0',
+        '51___'      => '0',
+        '52___'      => '0.000390962271515916',
+        '58___'      => '0',
+        '59___'      => '0',
+        'Genus:sp1'  => '0',
+        'Genus:sp10' => '0',
+        'Genus:sp11' => '0',
+        'Genus:sp12' => '0',
+        'Genus:sp15' => '0',
+        'Genus:sp20' => '0',
+        'Genus:sp23' => '0',
+        'Genus:sp24' => '0',
+        'Genus:sp25' => '0',
+        'Genus:sp26' => '0',
+        'Genus:sp27' => '0.0530443421087678',
+        'Genus:sp29' => '0',
+        'Genus:sp30' => '0',
+        'Genus:sp5'  => '0.0064718614718615'
+    },
+    PE_CLADE_LOSS_ANC_P => {
+        '30___'      => '0',
+        '31___'      => '0',
+        '32___'      => '0',
+        '33___'      => '0',
+        '34___'      => '0',
+        '35___'      => '0',
+        '36___'      => '0',
+        '37___'      => '0',
+        '38___'      => '0',
+        '39___'      => '0.0118115927520251',
+        '41___'      => '0',
+        '42___'      => '0',
+        '44___'      => '0',
+        '45___'      => '0.000592222721866968',
+        '49___'      => '3.24336235821024e-005',
+        '50___'      => '0',
+        '51___'      => '0',
+        '52___'      => '0.000246962020469287',
+        '58___'      => '0',
+        '59___'      => '0',
+        'Genus:sp1'  => '0',
+        'Genus:sp10' => '0',
+        'Genus:sp11' => '0',
+        'Genus:sp12' => '0',
+        'Genus:sp15' => '0',
+        'Genus:sp20' => '0',
+        'Genus:sp23' => '0',
+        'Genus:sp24' => '0',
+        'Genus:sp25' => '0',
+        'Genus:sp26' => '0',
+        'Genus:sp27' => '0.284606737276569',
+        'Genus:sp29' => '0',
+        'Genus:sp30' => '0',
+        'Genus:sp5'  => '0.0973624226636279'
+    },
+    PE_CLADE_LOSS_CONTR => {
+        '30___'      => '0.04198877081',
+        '31___'      => '0.08471881937',
+        '32___'      => '0.1307924555',
+        '33___'      => '0.15064931213',
+        '34___'      => '0.44677808478',
+        '35___'      => '0.59900036271',
+        '36___'      => '0.02504621139',
+        '37___'      => '0.04007247444',
+        '38___'      => '0.07218589162',
+        '39___'      => '0.10403487572',
+        '41___'      => '0.10403487572',
+        '42___'      => '0.70439293352',
+        '44___'      => '0.11773056034',
+        '45___'      => '0.82323436796',
+        '49___'      => '0.82323436796',
+        '50___'      => '0.82323436796',
+        '51___'      => '0.17643940743',
+        '52___'      => '1',
+        '58___'      => '1',
+        '59___'      => '1',
+        'Genus:sp1'  => '0.03180069153',
+        'Genus:sp10' => '0.01769515153',
+        'Genus:sp11' => '0.01253300468',
+        'Genus:sp12' => '0.02726360219',
+        'Genus:sp15' => '0.04876106034',
+        'Genus:sp20' => '0.14037274947',
+        'Genus:sp23' => '0.01098569344',
+        'Genus:sp24' => '0.03158386863',
+        'Genus:sp25' => '0.05263978105',
+        'Genus:sp26' => '0.21055912421',
+        'Genus:sp27' => '0.11773056034',
+        'Genus:sp29' => '0.03150970653',
+        'Genus:sp30' => '0.01307820647',
+        'Genus:sp5'  => '0.04198877081'
+    },
+    PE_CLADE_LOSS_CONTR_P => {
+        '30___'      => '0.00313809376',
+        '31___'      => '0.00633158803',
+        '32___'      => '0.00977497033',
+        '33___'      => '0.01125900229',
+        '34___'      => '0.03339063025',
+        '35___'      => '0.04476719049',
+        '36___'      => '0.00187186617',
+        '37___'      => '0.00299487648',
+        '38___'      => '0.00539492088',
+        '39___'      => '0.00777520247',
+        '41___'      => '0.00777520247',
+        '42___'      => '0.05264386234',
+        '44___'      => '0.00879877',
+        '45___'      => '0.06152565518',
+        '49___'      => '0.06152565518',
+        '50___'      => '0.06152565518',
+        '51___'      => '0.01318646374',
+        '52___'      => '0.07473649981',
+        '58___'      => '0.07473649981',
+        '59___'      => '0.07473649981',
+        'Genus:sp1'  => '0.00237667238',
+        'Genus:sp10' => '0.00132247369',
+        'Genus:sp11' => '0.0009366729',
+        'Genus:sp12' => '0.0020375862',
+        'Genus:sp15' => '0.00364423098',
+        'Genus:sp20' => '0.01049096796',
+        'Genus:sp23' => '0.00082103228',
+        'Genus:sp24' => '0.00236046779',
+        'Genus:sp25' => '0.00393411299',
+        'Genus:sp26' => '0.01573645195',
+        'Genus:sp27' => '0.00879877',
+        'Genus:sp29' => '0.00235492518',
+        'Genus:sp30' => '0.00097741938',
+        'Genus:sp5'  => '0.00313809376'
+    },
+    PE_CLADE_LOSS_SCORE => {
+        '30___'      => '0.0664718614718615',
+        '31___'      => '0.134117229833477',
+        '32___'      => '0.207055786962564',
+        '33___'      => '0.23849091112274',
+        '34___'      => '0.707288410415179',
+        '35___'      => '0.948269462639852',
+        '36___'      => '0.0396503222590179',
+        '37___'      => '0.0634381983263044',
+        '38___'      => '0.114276519543702',
+        '39___'      => '0.164696220292319',
+        '41___'      => '0.164696220292319',
+        '42___'      => '1.11511503187332',
+        '44___'      => '0.186377675442101',
+        '45___'      => '1.30325131724746',
+        '49___'      => '1.30325131724746',
+        '50___'      => '1.30325131724746',
+        '51___'      => '0.279318866046807',
+        '52___'      => '1.58308662511342',
+        '58___'      => '1.58308662511342',
+        '59___'      => '1.58308662511342',
+        'Genus:sp1'  => '0.0503432494279177',
+        'Genus:sp10' => '0.0280129577145201',
+        'Genus:sp11' => '0.01984083208573',
+        'Genus:sp12' => '0.043160643984866',
+        'Genus:sp15' => '0.0771929824561404',
+        'Genus:sp20' => '0.222222222222222',
+        'Genus:sp23' => '0.0173913043478261',
+        'Genus:sp24' => '0.05',
+        'Genus:sp25' => '0.0833333333333333',
+        'Genus:sp26' => '0.333333333333333',
+        'Genus:sp27' => '0.186377675442101',
+        'Genus:sp29' => '0.0498825949645622',
+        'Genus:sp30' => '0.020703933747412',
+        'Genus:sp5'  => '0.0664718614718615'
     },
     PE_CLADE_SCORE => {
         '30___'      => '0.0664718614718615',
@@ -701,6 +889,71 @@ __DATA__
         '59___'      => '0.01236215927',
         'Genus:sp20' => '0.00262274199',
         'Genus:sp26' => '0.00786822597'
+    },
+    PE_CLADE_LOSS_ANC => {
+        '34___'      => '0.00170281335761113',
+        '35___'      => '0.00108027808212791',
+        '42___'      => '0.000542940846840589',
+        '45___'      => '0.000296242124426416',
+        '49___'      => '0.000113855654496287',
+        '50___'      => '0.000103288363832166',
+        '52___'      => '7.81924543031831e-005',
+        '58___'      => '0',
+        '59___'      => '0',
+        'Genus:sp20' => '0',
+        'Genus:sp26' => '0'
+    },
+    PE_CLADE_LOSS_ANC_P => {
+        '34___'      => '0.00650280585850286',
+        '35___'      => '0.00412543078187306',
+        '42___'      => '0.00207341509500994',
+        '45___'      => '0.0011313072061861',
+        '49___'      => '0.000434798807381219',
+        '50___'      => '0.000394443803509538',
+        '52___'      => '0.000298606037861241',
+        '58___'      => '0',
+        '59___'      => '0',
+        'Genus:sp20' => '0',
+        'Genus:sp26' => '0'
+    },
+    PE_CLADE_LOSS_CONTR => {
+        '34___'      => '1',
+        '35___'      => '1',
+        '42___'      => '1',
+        '45___'      => '1',
+        '49___'      => '1',
+        '50___'      => '1',
+        '52___'      => '1',
+        '58___'      => '1',
+        '59___'      => '1',
+        'Genus:sp20' => '0.21215889018',
+        'Genus:sp26' => '0.63647667055'
+    },
+    PE_CLADE_LOSS_CONTR_P => {
+        '34___'      => '0.01236215927',
+        '35___'      => '0.01236215927',
+        '42___'      => '0.01236215927',
+        '45___'      => '0.01236215927',
+        '49___'      => '0.01236215927',
+        '50___'      => '0.01236215927',
+        '52___'      => '0.01236215927',
+        '58___'      => '0.01236215927',
+        '59___'      => '0.01236215927',
+        'Genus:sp20' => '0.00262274199',
+        'Genus:sp26' => '0.00786822597'
+    },
+    PE_CLADE_LOSS_SCORE => {
+        '34___'      => '0.261858249294739',
+        '35___'      => '0.261858249294739',
+        '42___'      => '0.261858249294739',
+        '45___'      => '0.261858249294739',
+        '49___'      => '0.261858249294739',
+        '50___'      => '0.261858249294739',
+        '52___'      => '0.261858249294739',
+        '58___'      => '0.261858249294739',
+        '59___'      => '0.261858249294739',
+        'Genus:sp20' => '0.0555555555555556',
+        'Genus:sp26' => '0.166666666666667'
     },
     PE_CLADE_SCORE => {
         '34___'      => '0.260155435937128',

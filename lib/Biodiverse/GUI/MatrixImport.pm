@@ -231,7 +231,7 @@ sub make_columns_dialog {
     }
 
     my $num_columns = @$header;
-    print "[GUI] Generating make columns dialog for $num_columns columns\n";
+    say "[GUI] Generating make columns dialog for $num_columns columns";
 
     # Make dialog
     my $dlg = Gtk2::Dialog->new(

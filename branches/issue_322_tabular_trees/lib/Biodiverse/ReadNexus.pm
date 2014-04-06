@@ -4,6 +4,7 @@ package Biodiverse::ReadNexus;
 #  Initial work by Dan Rosauer
 #  regex based approach by Shawn Laffan
 
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -381,9 +382,11 @@ sub import_tabular_tree {
         $data = $self->read_whole_file (file => $args{file});
         $args{data} = $data; # ?
     }
+    
+    my $column_map = $args{column_map} // {};
 
     # get column map from arguments 
-    my %columns = %{$args{column_map}};
+    my %columns = %$column_map;
     
     my @data = split ($/, $data);
     my $header = shift @data;
@@ -401,18 +404,18 @@ sub import_tabular_tree {
     # look for values with given names in header. (just add to args map)
     my %header_cols; 
     @header_cols{@header} = (0..$#header);
-    $columns{TREENAME_COL} //= $header_cols{TREENAME};
+    $columns{TREENAME_COL}       //= $header_cols{TREENAME};
     $columns{LENGTHTOPARENT_COL} //= $header_cols{LENGTHTOPARENT};
-    $columns{NODENUM_COL} //= $header_cols{NODE_NUMBER};
-    $columns{PARENT_COL} //= $header_cols{PARENTNODE};
-    $columns{NODENAME_COL} //= $header_cols{NAME};
+    $columns{NODENUM_COL}        //= $header_cols{NODE_NUMBER};
+    $columns{PARENT_COL}         //= $header_cols{PARENTNODE};
+    $columns{NODENAME_COL}       //= $header_cols{NAME};
 
     # check if all required fields are defined (?)
-    foreach my $param (qw /TREENAME_COL LENGTHTOPARENT_COL NODENUM_COL NODENAME_COL PARENT_COL/) { #/
+    foreach my $param (sort qw /TREENAME_COL LENGTHTOPARENT_COL NODENUM_COL NODENAME_COL PARENT_COL/) { #/
     #    croak "Missing parameter for $param" if (! defined($columns{$param}));
-        print "Param $param col $columns{$param}\n";
+        say "Param $param col $columns{$param}";
     }
-        
+
     $csv->parse ($data[0]);
     my @line_arr = $csv->fields;
     #my %line_h;

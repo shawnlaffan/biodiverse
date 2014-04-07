@@ -29,9 +29,6 @@ use Biodiverse::Exception;
 
 no warnings 'redefine';
 
-my $progress_next_id = 0;
-my $progress_max_id = 32000; # fairly conservative int_max
-
 sub new {
     my $class    = shift;
     my $text     = shift || $NULL_STRING;
@@ -55,13 +52,13 @@ sub new {
     
     # from progress bar singleton in GUI, request a new progress
     # instance and grab references to the widgets
-    $self->{id} = $progress_next_id++;
-    $progress_next_id = 0 if ($progress_next_id >= $progress_max_id);
+    $self->{id} = "$self";  #  Stringified ref as unique id (avoids circularity).
+                            #  Could just directly use the object's ref.
     my ($label, $bar) = $gui->add_progress_entry($self, $title, $text, $progress);
 
     $self->{label_widget} = $label;
     $self->{progress_bar} = $bar;
-    
+
     $self->{progress_update_interval} = $progress_update_interval;
 
     $self->update ($text, $progress);

@@ -65,13 +65,15 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
             " sub element_pair_exists.  What were you thinking?\n";
 }
 
-#  check an element pair exists, returning 1 if yes, 2 if yes, but in different order, undef otherwise
+#  check an element pair exists, returning:
+#  1 if yes,
+#  2 if yes but in different order,
+#  undef otherwise
 sub element_pair_exists {  
     my $self = shift;
     my %args = @_;
 
-    my $element1 = $args{element1};
-    my $element2 = $args{element2};
+    my ($element1, $element2) = @args{'element1', 'element2'};
 
     Biodiverse::MissingArgument->throw ('element1 and/or element2 not defined')
       if ! (defined $element1 && defined $element2);
@@ -80,8 +82,9 @@ sub element_pair_exists {
     my $hash_ref = $self->{BYELEMENT};
 
     #  need to stop autovivification of element1 or 2
-    return 1 if exists $hash_ref->{$element1} && exists $hash_ref->{$element1}{$element2};
-    return 2 if exists $hash_ref->{$element2} && exists $hash_ref->{$element2}{$element1};
+    no autovivification;
+    return 1 if exists $hash_ref->{$element1}{$element2};
+    return 2 if exists $hash_ref->{$element2}{$element1};
 
     return 0;
 }

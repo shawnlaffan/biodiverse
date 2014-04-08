@@ -2331,7 +2331,10 @@ sub get_sub_element_hash {
       #      message => "Element $element does not exist or has no SUBELEMENT hash\n",
       #  );
 
-    return wantarray ? %$hash : $hash;
+    #  No explicit return statement used here.  
+    #  This is a hot path when called from Biodiverse::Indices::_calc_abc
+    #  and perl versions pre 5.20 do not optimise the return.
+    wantarray ? %$hash : $hash;
 }
 
 sub get_subelement_count {

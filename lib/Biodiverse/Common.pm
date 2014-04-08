@@ -267,20 +267,10 @@ sub load_params {  # read in the parameters file, set the PARAMS subhash.
     return;
 }
 
-#  hot path, so needs to be lean and mean, even if less readable
+#  extremely hot path, so needs to be lean and mean, even if less readable
 sub get_param {
-    return if ! exists $_[0]->{PARAMS}{$_[1]};
-    return $_[0]->{PARAMS}{$_[1]};
-    #my $self = shift;
-    #my $param = shift;
-    ##if (! exists $self->{PARAMS}{$param}) {
-    ##    carp "get_param WARNING: Parameter $param does not exist in $self.\n"
-    ##        if $self->{PARAMS}{PARAM_CHANGE_WARN};
-    ##    return;
-    ##}
-    #
-    #return if ! exists $self->{PARAMS}{$param};
-    #return $self->{PARAMS}{$param};
+    no autovivification;
+    $_[0]->{PARAMS}{$_[1]};
 }
 
 #  sometimes we want a reference to the parameter to allow direct manipulation.

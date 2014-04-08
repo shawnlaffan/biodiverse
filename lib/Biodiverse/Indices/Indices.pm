@@ -5,7 +5,7 @@ use 5.010;
 
 use Carp;
 
-use Scalar::Util qw /blessed weaken/;
+use Scalar::Util qw /blessed weaken reftype/;
 use List::Util qw /min max pairs pairkeys/;
 use English ( -no_match_vars );
 use Readonly;
@@ -1553,7 +1553,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         croak "_calc_abc argument $listname is not a list ref\n"
           if !ref $el_listref;
 
-        if ((ref $el_listref) =~ /HASH/) {  #  silently convert the hash to an array
+        if (reftype ($el_listref) eq 'HASH') {  #  silently convert the hash to an array
             $el_listref = [keys %$el_listref];
         }
 

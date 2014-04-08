@@ -566,16 +566,28 @@ sub build_matrix_elements {
     my $valid_count = 0;
     
     #print "Elements to calc: ", (scalar @$element_list2), "\n";
+    my $progress;
+    my $to_do = scalar @$element_list2;
+    if ($to_do > 100) {  #  arbitrary threshold
+        $progress = Biodiverse::Progress->new (text => 'Processing row', gui_only => 1);
+    }
+    my $n_matrices = scalar @$matrices;
 
-    ELEMENTS:
+    my $n = 0;
+  ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
-        next ELEMENTS if $element1 eq $element2;
-        next ELEMENTS if $already_calculated{$element2};
+        $n++;
+        if ($progress) {
+            $progress->update ("processing column $n of $to_do", $n / $to_do);
+        }
+
+        next ELEMENT2 if $element1 eq $element2;
+        next ELEMENT2 if $already_calculated{$element2};
 
         if ($pass_def_query) {  #  poss redundant check now
             #my $null = undef;  #  debug
-            next ELEMENTS
-              if (not exists $pass_def_query->{$element2});
+            next ELEMENT2
+              if not exists $pass_def_query->{$element2};
         }
 
         #  If we already have this value then get it and assign it.
@@ -583,21 +595,22 @@ sub build_matrix_elements {
         #  where all matrices were built in one loop.
         #  Could probably drop out sooner now. 
         my $exists = 0;
-        my $iter = 0;
+        my $iter   = 0;
         my %not_exists_iter;
         my $value;
-        MX:
+      MX:
         foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
             #last MX if $ofh;
-            
+
             my $x = $mx->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2
             );
-            if  ($x) {  #  don't redo them...
+            if ($x) {  #  don't redo them...
                 $value = $mx->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
+                    element1    => $element1,
+                    element2    => $element2,
+                    pair_exists => $exists,
                 );
                 $exists ++;
             }
@@ -607,7 +620,7 @@ sub build_matrix_elements {
             $iter ++;
         }
 
-        next ELEMENTS if $exists == scalar @$matrices;  #  it is in all of them already
+        next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
 
         if ($exists) {  #  if it is in one then we use it
             foreach my $iter (keys %not_exists_iter) {
@@ -617,13 +630,13 @@ sub build_matrix_elements {
                     value    => $value,
                 )
             }
-            next ELEMENTS;
+            next ELEMENT2;
         }
 
         #  use elements if no cached labels
         #  set to undef if we have a cached label_hash
         my ($el1_ref, $el2_ref, $label_hash1, $label_hash2);
-        if ($cache_abc) {
+        if (0 && $cache_abc) {
             $el1_ref = defined $cache->{$element1} ? undef : [$element1];
             $el2_ref = defined $cache->{$element2} ? undef : [$element2];
 
@@ -646,14 +659,15 @@ sub build_matrix_elements {
         my $values = $indices_object->run_calculations(%args, %elements);
 
         # useful for debugging  (comment out otherwise?)
-        if ($EVAL_ERROR && ! defined $values->{$index}) {
+        if (0 && $EVAL_ERROR && ! defined $values->{$index}) {
             croak "PROBLEMS WITH $element1 $element2\n"
                   . $EVAL_ERROR;
         }
 
         #  caching - a bit dodgy
         #  what if we have calc_abc and calc_abc3 as deps?
-        if ($cache_abc) {
+        #  turn it off for now (compiler will optimise it away)
+        if (0 && $cache_abc) {
             my $abc = {};
             my $as_results_from = $indices_object->get_param('AS_RESULTS_FROM');
             foreach my $calc_abc_type (qw /calc_abc3 calc_abc2 calc_abc/) {
@@ -672,7 +686,7 @@ sub build_matrix_elements {
             }
         }
 
-        next if ! defined $values->{$index};  #  don't add it if it is undefined
+        next ELEMENT2 if ! defined $values->{$index};  #  don't add it if it is undefined
 
         # write results to file handles if supplied, otherwise store them
         if (defined $ofh) {
@@ -1980,7 +1994,7 @@ sub delete_links_from_matrix {
 
     #  clean up links from compare_nodes to elements1&2
     my $deletion_count = 0;
-    foreach my $check_element (sort @$compare_nodes) {
+    foreach my $check_element (@$compare_nodes) {
         $deletion_count += $matrix->delete_element (
             element1 => $check_element,
             element2 => $element1,

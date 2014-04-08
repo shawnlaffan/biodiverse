@@ -834,13 +834,17 @@ sub run_dependencies {
 
     my $type = $args{type};
 
+    my $validated_calcs = $self->get_param ('VALID_CALCULATIONS');
+    my $calc_list       = $validated_calcs->{calc_lists_by_type}{$type};
+
+    #  Drop out of we have nothing to do.      
+    return wantarray ? () : {} if !scalar @$calc_list;
+
+    my $dep_list        = $validated_calcs->{calc_deps_by_type}{$type};
+    my $dep_list_global = $validated_calcs->{calc_deps_by_type}{pre_calc_global};
+
     my $tmp = $self->get_param('AS_RESULTS_FROM_GLOBAL') || {};
     my %as_results_from_global = %$tmp;  #  make a copy
-
-    my $validated_calcs = $self->get_param ('VALID_CALCULATIONS');
-    my $calc_list = $validated_calcs->{calc_lists_by_type}{$type};
-    my $dep_list  = $validated_calcs->{calc_deps_by_type}{$type};
-    my $dep_list_global = $validated_calcs->{calc_deps_by_type}{pre_calc_global};
 
     #  Now we run the calculations at this level.
     #  We also keep track of what has been run

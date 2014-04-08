@@ -83,9 +83,14 @@ sub run {
     my @def_cellsizes = (100000,100000);    
     
     $use_new = $dlgxml->get_widget($chk_new)->get_active();
-    my $import_multiple = $dlgxml->get_widget($chk_import_one_bd_per_file)->get_active();
-    my %multiple_brefs;
-    if ($import_multiple) {
+
+    #  do we want to import each file into its own basedata?
+    my $w = $dlgxml->get_widget($chk_import_one_bd_per_file);
+    my $one_basedata_per_file = $w->get_active();
+    my %multiple_brefs;  # mapping from basedata name (eg from shortened file) to basedata ref
+    my %multiple_file_lists;  # mapping from basedata name to array (ref) of files
+    
+    if ($one_basedata_per_file) {
         # create a new basedata for each file
         my $count = 0;
         foreach my $file (@filenames) {
@@ -103,6 +108,7 @@ sub run {
                 CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
             );
             $multiple_brefs{$file} = $basedata_ref;
+            $multiple_file_lists{$file} = [$file];
         }
     } 
     elsif ($use_new) {
@@ -114,6 +120,8 @@ sub run {
             NAME       => $basedata_name,
             CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
         );
+        $multiple_brefs{$basedata_name} = $basedata_ref;
+        $multiple_file_lists{$basedata_name} = \@filenames;
     }
     else {
         # Get selected basedata
@@ -124,10 +132,6 @@ sub run {
     # interpret if raster or text depending on format box
     my $read_format = $dlgxml->get_widget($file_format)->get_active();
     
-    #  do we want to import each file into its own basedata?
-    my $w = $dlgxml->get_widget($chk_import_one_bd_per_file);
-    my $one_basedata_per_file = $w->get_active();
-
     $dlg->destroy();
 
     #########
@@ -198,14 +202,11 @@ sub run {
     $dlg->destroy;
 
     if ($response ne 'ok') {  #  clean up and drop out
-        if ($import_multiple) {
+        if ($use_new) {
             foreach my $bref (values %multiple_brefs) {
                 $gui->get_project->delete_base_data($bref);            
             }
         }
-        elsif ($use_new) {
-            $gui->get_project->delete_base_data($basedata_ref);
-        } 
         return;
     }
     my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
@@ -414,13 +415,10 @@ sub run {
         $dlg->destroy();
         
         if (not $column_settings) {  #  clean up and drop out
-            if ($import_multiple) {
+            if ($use_new) {
                 foreach my $bref (values %multiple_brefs) {
                     $gui->get_project->delete_base_data($bref);         
                 }
-            }
-            elsif ($use_new) {
-                $gui->get_project->delete_base_data ($basedata_ref) ;
             }
             return;
         }
@@ -444,13 +442,10 @@ sub run {
         $dlg->destroy();
     
         if ($response ne 'ok') {  #  clean up and drop out
-            if ($import_multiple) {
+            if ($use_new) {
                foreach my $bref (values %multiple_brefs) {
                     $gui->get_project->delete_base_data($bref);         
                 }
-            }
-            elsif ($use_new) {
-                $gui->get_project->delete_base_data ($basedata_ref);
             }
             return;
         }
@@ -498,15 +493,11 @@ sub run {
     # 4. Load the data
     #########
     # Set the cellsize and origins parameters if we are new
-    if ($import_multiple) {
+    if ($use_new) {
         foreach my $bref (values %multiple_brefs) {
             $bref->set_param(CELL_SIZES   => [@cell_sizes]);
             $bref->set_param(CELL_ORIGINS => [@cell_origins]);
         }
-    }
-    elsif ($use_new) {
-        $basedata_ref->set_param(CELL_SIZES   => [@cell_sizes]);
-        $basedata_ref->set_param(CELL_ORIGINS => [@cell_origins]);
     }
 
     #  get the sample count columns.  could do in fill_params, but these are
@@ -554,28 +545,14 @@ sub run {
     # run appropriate import routine
     if ($read_format == $raster_idx) {
         my $labels_as_bands = $import_params{raster_labels_as_bands};
-        if ($import_multiple) {
-            # make separate import call for each file / bref
-            foreach my $file (keys %multiple_brefs) {
-                $success &= eval {
-                    $multiple_brefs{$file}->import_data_raster(
-                        %import_params,
-                        #%rest_of_options,
-                        #%gp_lb_cols,
-                        labels_as_bands => $labels_as_bands,
-                        input_files     => [$file]
-                    )
-                };
-            };
-        }            
-        else {
-            $success = eval {
-                $basedata_ref->import_data_raster(
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &= eval {
+                $multiple_brefs{$bdata}->import_data_raster(
                     %import_params,
                     #%rest_of_options,
                     #%gp_lb_cols,
                     labels_as_bands => $labels_as_bands,
-                    input_files     => \@filenames
+                    input_files     => $multiple_file_lists{$bdata}
                 )
             };
         }
@@ -594,56 +571,26 @@ sub run {
             push @sample_count_col_names, $specs->{name};
         }
         # process data
-        if ($import_multiple) {
-            # make separate import call for each file / bref
-            foreach my $file (keys %multiple_brefs) {
-                $success &= eval {
-                    $multiple_brefs{$file}->import_data_shapefile(
-                        %import_params,
-                        input_files             => [$file],
-                        group_fields            => \@group_col_names,
-                        label_fields            => \@label_col_names,
-                        sample_count_col_names  => \@sample_count_col_names,
-                    )
-                };
-            }
-        }
-        else {            
-            $success = eval {
-                $basedata_ref->import_data_shapefile(
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &= eval {
+                $multiple_brefs{$bdata}->import_data_shapefile(
                     %import_params,
-                    input_files             => \@filenames,
+                    input_files             => $multiple_file_lists{$bdata},
                     group_fields            => \@group_col_names,
                     label_fields            => \@label_col_names,
                     sample_count_col_names  => \@sample_count_col_names,
                 )
             };
-        }            
+        }
     } 
     elsif ($read_format == $text_idx) {        
-        if ($import_multiple) {
-            # make separate import call for each file / bref
-            foreach my $file (keys %multiple_brefs) {
-                $success &= eval {
-                    $multiple_brefs{$file}->load_data(
-                        %import_params,
-                        %rest_of_options,
-                        %gp_lb_cols,
-                        input_files             => [$file],
-                        include_columns         => \@include_columns,
-                        exclude_columns         => \@exclude_columns,
-                        sample_count_columns    => \@sample_count_columns,
-                    )
-                };
-            }
-        }
-        else {
-            $success = eval {
-                $basedata_ref->load_data(
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &= eval {
+                $multiple_brefs{$bdata}->load_data(
                     %import_params,
                     %rest_of_options,
                     %gp_lb_cols,
-                    input_files             => \@filenames,
+                    input_files     => $multiple_file_lists{$bdata},
                     include_columns         => \@include_columns,
                     exclude_columns         => \@exclude_columns,
                     sample_count_columns    => \@sample_count_columns,
@@ -661,13 +608,10 @@ sub run {
     }
 
     if ($success) {
-        if ($import_multiple) {
+        if ($use_new) {
             foreach my $bref (values %multiple_brefs) {
                 $gui->get_project->add_base_data($bref);
             }
-        }
-        elsif ($use_new) {
-            $gui->get_project->add_base_data($basedata_ref);
         }
         return $basedata_ref;
     }

@@ -1146,9 +1146,11 @@ sub on_run_analysis {
         prng_seed           => $prng_seed,
     );
 
-    my $tie_breakers  = $self->get_tie_breakers;
+    
     if ($self->get_use_tie_breakers) {
-        $output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
+        my $tie_breakers = $self->get_tie_breakers;
+        $analysis_args{cluster_tie_breaker} = $tie_breakers;
+        #$output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
     }
 
     # Perform the clustering
@@ -1157,6 +1159,7 @@ sub on_run_analysis {
         $output_ref->run_analysis (
             %analysis_args,
             flatten_tree => 1,
+            
         )
     };
     if (Biodiverse::Cluster::MatrixExists->caught) {

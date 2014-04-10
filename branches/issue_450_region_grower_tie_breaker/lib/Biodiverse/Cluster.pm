@@ -1193,7 +1193,7 @@ sub get_most_similar_pair_using_tie_breaker {
 sub setup_tie_breaker {
     my $self = shift;
     my %args = @_;
-    my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
+    my $tie_breaker = $args{cluster_tie_breaker} // $self->get_param ('CLUSTER_TIE_BREAKER');
 
     return if !$tie_breaker;  #  old school clusters did not have one
 
@@ -1352,7 +1352,7 @@ sub cluster {
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
 
     #  make sure we do this before the matrices are built so we fail early if needed
-    $self->setup_tie_breaker;
+    $self->setup_tie_breaker (%args);
 
     my @matrices;
     #  if we were passed a matrix in the args  

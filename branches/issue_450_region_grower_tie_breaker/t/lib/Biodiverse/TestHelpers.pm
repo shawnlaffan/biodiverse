@@ -28,6 +28,8 @@ use File::Temp;
 use Scalar::Util qw /looks_like_number reftype/;
 use Test::More;
 
+my $default_prng_seed = 2345;
+
 use Exporter::Easy (
     TAGS => [
         utils  => [
@@ -82,6 +84,10 @@ use Exporter::Easy (
         cluster => [
             qw (
                 get_cluster_mini_data
+                cluster_test_matrix_recycling
+                check_cluster_order_is_same_given_same_prng
+                cluster_test_linkages_and_check_replication
+                cluster_test_linkages_and_check_mx_precision
                 :basedata
                 :utils
             ),
@@ -1175,6 +1181,253 @@ sub get_sp_conditions_to_run {
     }
 
     return wantarray ? %$conditions_to_run : $conditions_to_run;
+}
+
+
+#  need to add tie breaker
+sub check_cluster_order_is_same_given_same_prng {
+    my %args = @_;
+    my $bd = $args{basedata_ref};
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    my $prng_seed = $args{prng_seed} || $default_prng_seed;
+    
+    my $cl1 = $bd->add_output (name => 'cl1', type => $type);
+    my $cl2 = $bd->add_output (name => 'cl2', type => $type);
+    my $cl3 = $bd->add_output (name => 'cl3', type => $type);
+    
+    $cl1->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    $cl2->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    $cl3->run_analysis (
+        prng_seed => $prng_seed + 1,  #  different prng
+    );
+    
+    my $newick1 = $cl1->to_newick;
+    my $newick2 = $cl2->to_newick;
+    my $newick3 = $cl3->to_newick;
+    
+    is   ($newick1, $newick2, 'trees are the same');
+    isnt ($newick1, $newick3, 'trees are not the same');
+}
+
+#  Need to use an index that needs arguments
+#  so we exercise the whole shebang.
+sub cluster_test_matrix_recycling {
+    my %args = @_;
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    my $index = $args{index} // 'SORENSON';
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tree_ref  = get_tree_object_from_sample_data();
+    my $tie_breaker = [ENDW_WE => 'max'];
+
+    my %analysis_args = (
+        tree_ref    => $tree_ref,
+        index       => $index,
+        cluster_tie_breaker => $tie_breaker,
+    );
+
+    my $cl1 = $bd->add_output (name => 'cl1', type => $type);
+    #$cl1->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl1->run_analysis (%analysis_args);
+
+    my $cl2 = $bd->add_output (name => 'cl2', type => $type);
+    #$cl2->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl2->run_analysis (%analysis_args);
+
+    ok (
+        $cl1->trees_are_same (comparison => $cl2),
+        'Clustering using reycled matrices'
+    );
+
+    my $cl3 = $bd->add_output (name => 'cl3', type => $type);
+    #$cl3->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl3->run_analysis (%analysis_args);
+
+    ok (
+        $cl1->trees_are_same (comparison => $cl3),
+        'Clustering using reycled matrices, 2nd time round'
+    );
+
+    my $mx_ref1 = $cl1->get_orig_matrices;
+    my $mx_ref2 = $cl2->get_orig_matrices;
+    my $mx_ref3 = $cl3->get_orig_matrices;
+
+    is ($mx_ref1, $mx_ref2, 'recycled matrices correctly, 1&2');
+    is ($mx_ref1, $mx_ref3, 'recycled matrices correctly, 1&3');
+
+
+    #  now check what happens when we destroy the matrix in the clustering
+    $bd->delete_all_outputs;
+
+    my $cl4 = $bd->add_output (name => 'cl4', type => $type);
+    #$cl4->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl4->run_analysis (%analysis_args, no_clone_matrices => 1);
+
+    my $cl5 = $bd->add_output (name => 'cl5', type => $type);
+    #$cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl5->run_analysis (%analysis_args);
+
+    ok (
+        $cl4->trees_are_same (comparison => $cl5),
+        'Clustering using reycled matrices when matrix is destroyed in clustering'
+    );
+    
+    my $mx_ref4 = $cl4->get_orig_matrices;
+    my $mx_ref5 = $cl5->get_orig_matrices;
+    isnt ($mx_ref1, $mx_ref4, 'did not recycle matrices, 1 v 4');
+    isnt ($mx_ref1, $mx_ref5, 'did not recycle matrices, 1 v 5');
+    isnt ($mx_ref4, $mx_ref5, 'did not recycle matrices, 4 v 5');
+    
+    #  now we try with a combinatoin of spatial condition and def query
+    $bd->delete_all_outputs;
+
+    my $cl6 = $bd->add_output (name => 'cl6', type => $type);
+    #$cl6->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl6->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
+
+    my $cl7 = $bd->add_output (name => 'cl7', type => $type);
+    #$cl7->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl7->run_analysis (%analysis_args, def_query => 'sp_select_all()');
+
+    my $mx_ref6 = $cl6->get_orig_matrices;
+    my $mx_ref7 = $cl7->get_orig_matrices;
+    isnt ($mx_ref6, $mx_ref7, 'did not recycle matrices, 6 v 7');
+    
+    my $cl8 = $bd->add_output (name => 'cl8', type => $type);
+    #$cl8->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl8->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
+    my $mx_ref8 = $cl8->get_orig_matrices;
+    is ($mx_ref6, $mx_ref8, 'did recycle matrices, 6 v 8');
+
+    my $cl9 = $bd->add_output (name => 'cl9', type => $type);
+    #$cl9->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+    $cl9->run_analysis (%analysis_args, def_query => 'sp_select_all()');
+    my $mx_ref9 = $cl9->get_orig_matrices;
+    is ($mx_ref7, $mx_ref9, 'did recycle matrices, 7 v 8');
+
+}
+
+sub cluster_test_linkages_and_check_mx_precision {
+    my %args = @_;
+    #  make sure we get the same cluster result using different matrix precisions
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tie_breaker = 'random';
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    
+    my $linkage_funcs = $args{linkage_funcs} // get_cluster_linkages();
+
+    foreach my $linkage (@$linkage_funcs) {
+        my $prng_seed = 123456;
+        $bd->delete_all_outputs();
+
+        my $class1 = 'Biodiverse::Matrix';
+        my $cl1 = $bd->add_output (
+            name => "$class1 $linkage 1",
+            type => $type,
+            MATRIX_CLASS        => $class1,
+        );
+        $cl1->run_analysis (
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+        my $nwk1 = $cl1->to_newick;
+
+        #  make sure we build a new matrix
+        $bd->delete_all_outputs();
+
+        my $cl2 = $bd->add_output (
+            name => "$class1 $linkage 2",
+            type => $type,
+            MATRIX_CLASS           => $class1,
+            MATRIX_INDEX_PRECISION => undef,
+        );
+        $cl2->run_analysis (
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+        my $nwk2 = $cl2->to_newick;
+
+        #  getting cache deletion issues - need to look into them before using this test
+        ok (
+            $cl1->trees_are_same (
+                comparison => $cl2,
+            ),
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
+
+        #  this test will likely have issues with v5.18 and hash randomisation
+        is (
+            $nwk1,
+            $nwk2,
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
+        #print join "\n", ('======') x 4;
+        #say "$linkage $nwk1";
+        #print join "\n", ('======') x 4;
+    }
+}
+
+
+sub get_cluster_linkages {
+    my @linkages = qw /
+        link_average
+        link_recalculate
+        link_minimum
+        link_maximum
+        link_average_unweighted
+    /;
+
+    return wantarray ? @linkages : \@linkages;
+}
+
+sub cluster_test_linkages_and_check_replication {
+    my %args = (delete_outputs => 1, @_);
+    
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    my $linkage_funcs = $args{linkage_funcs} // get_cluster_linkages();
+    my $tie_breaker   = 'ENDW_WE';
+
+    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+
+    foreach my $linkage (@$linkage_funcs) {
+        my $cl1 = $bd1->add_output (name => $linkage, type => $type);
+        $cl1->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+        my $cl2 = $bd2->add_output (name => $linkage, type => $type);
+        $cl2->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+
+        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
+        my $are_same = $cl1->trees_are_same (comparison => $cl2);
+        ok ($are_same, "Check Rep: Exact match using $linkage" . $suffix);
+
+        my $nodes_have_matching_terminals = $cl1->trees_are_same (
+            comparison     => $cl2,
+            terminals_only => 1,
+        );
+        ok (
+            $nodes_have_matching_terminals,
+            "Check Rep: Nodes have matching terminals using $linkage" . $suffix,
+        );
+
+        if ($args{delete_outputs}) {
+            $bd1->delete_all_outputs;
+            $bd2->delete_all_outputs;
+        }
+    }
 }
 
 

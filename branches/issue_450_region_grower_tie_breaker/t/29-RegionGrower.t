@@ -1,6 +1,5 @@
 #!/usr/bin/perl -w
 #
-#  tests for both normal and lowmem matrices, where they overlap in methods
 
 use 5.010;
 use strict;
@@ -26,13 +25,8 @@ use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
 my @linkages = qw /
-    link_average
     link_recalculate
-    link_minimum
-    link_maximum
-    link_average_unweighted
 /;
-
 
 use Devel::Symdump;
 my $obj = Devel::Symdump->rnew(__PACKAGE__); 
@@ -72,357 +66,168 @@ sub test_same_results_given_same_prng_seed {
     my $data = get_cluster_mini_data();
     my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
     
-    check_order_is_same_given_same_prng (basedata_ref => $bd);
+    check_cluster_order_is_same_given_same_prng (basedata_ref => $bd, type => 'Biodiverse::RegionGrower');
     
     my $site_bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-    check_order_is_same_given_same_prng (basedata_ref => $site_bd);
-}
-
-sub test_linkages_delete_outputs {
-    _test_linkages (delete_outputs => 1);
-}
-
-sub test_linkages_no_delete_outputs {
-    _test_linkages (delete_outputs => 0);
-}
-
-sub _test_linkages {
-    my %args = @_;
-    
-    use Config;
-    my $bits = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
-
-    local $TODO = 'These tests only pass on 64 bit architectures' if $bits != 64;
-
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-
-    foreach my $linkage (@linkages) {
-        my $cl = $bd->add_cluster_output (
-            name => $linkage,
-            #CLUSTER_TIE_BREAKER => [ENDW_WE => 'max'],  #  need to update expected values before using the tie breaker
-            MATRIX_INDEX_PRECISION => undef,  #  use old default for now
-        );
-        $cl->run_analysis (
-            prng_seed        => $default_prng_seed,
-            linkage_function => $linkage,
-        );
-
-        my $comparison_tree = get_site_data_as_tree ($linkage);
-
-        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : ', recycled matrix';
-
-        my $are_same = $cl->trees_are_same (comparison => $comparison_tree);
-        ok ($are_same, "Exact match using $linkage" . $suffix);
-
-        #say join "\n", ('======') x 4;
-        #say "=== $linkage " . $cl->to_newick;
-        #say join "\n", ('======') x 4;
-
-        my $nodes_have_matching_terminals = $cl->trees_are_same (
-            comparison     => $comparison_tree,
-            terminals_only => 1,
-        );
-        ok (
-            $nodes_have_matching_terminals,
-            "Nodes have matching terminals using $linkage" . $suffix,
-        );
-
-        if ($args{delete_outputs}) {
-            $bd->delete_all_outputs;
-        }
-    }    
+    check_cluster_order_is_same_given_same_prng (basedata_ref => $site_bd, type => 'Biodiverse::RegionGrower');
 }
 
 sub test_linkages_and_check_replication {
     cluster_test_linkages_and_check_replication (
-        type          => 'Biodiverse::Cluster',
+        type => 'Biodiverse::RegionGrower',
         linkage_funcs => \@linkages,
     );
 }
 
-#sub test_linkages_and_check_replication {
-#    my %args = (delete_outputs => 1, @_);
-#
-#    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-#    my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-#
-#    foreach my $linkage (@linkages) {
-#        my $cl1 = $bd1->add_cluster_output (name => $linkage);
-#        $cl1->run_analysis (
-#            prng_seed        => $default_prng_seed,
-#            linkage_function => $linkage,
-#        );
-#        my $cl2 = $bd2->add_cluster_output (name => $linkage);
-#        $cl2->run_analysis (
-#            prng_seed        => $default_prng_seed,
-#            linkage_function => $linkage,
-#        );
-#
-#        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
-#        my $are_same = $cl1->trees_are_same (comparison => $cl2);
-#        ok ($are_same, "Check Rep: Exact match using $linkage" . $suffix);
-#
-#        my $nodes_have_matching_terminals = $cl1->trees_are_same (
-#            comparison     => $cl2,
-#            terminals_only => 1,
-#        );
-#        ok (
-#            $nodes_have_matching_terminals,
-#            "Check Rep: Nodes have matching terminals using $linkage" . $suffix,
-#        );
-#
-#        if ($args{delete_outputs}) {
-#            $bd1->delete_all_outputs;
-#            $bd2->delete_all_outputs;
-#        }
-#    }
-#}
-
-sub test_tie_breaker_croak_on_missing_args  {
-    my $data = get_cluster_mini_data();
-    my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
-    my $tie_breaker = 'PD';
-
-    my $cl1 = $bd->add_cluster_output (
-        name => "should croak",
-        CLUSTER_TIE_BREAKER => [$tie_breaker => 'max'],
-    );
-    my $success = eval {
-        $cl1->run_analysis ();
-    };
-    my $e = $EVAL_ERROR;
-    isnt ($e, '', 'Tie breaker croaked when missing an argument');
-    #note $e;
-}
-
 sub test_linkages_and_check_mx_precision {
-    cluster_test_linkages_and_check_mx_precision(type => 'Biodiverse::Cluster');
+    cluster_test_linkages_and_check_mx_precision(
+        type => 'Biodiverse::RegionGrower',
+        linkage_funcs => \@linkages,
+    );
 }
-
-#sub test_linkages_and_check_mx_precision {
-#    #  make sure we get the same cluster result using different matrix precisions
-#    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
-#    my $tie_breaker = 'random';
-#
-#    foreach my $linkage (@linkages) {
-#        my $prng_seed = 123456;
-#        $bd->delete_all_outputs();
-#
-#        my $class1 = 'Biodiverse::Matrix';
-#        my $cl1 = $bd->add_cluster_output (
-#            name => "$class1 $linkage 1",
-#            CLUSTER_TIE_BREAKER => [$tie_breaker => 'max'],
-#            MATRIX_CLASS        => $class1,
-#        );
-#        $cl1->run_analysis (
-#            prng_seed        => $prng_seed,
-#            linkage_function => $linkage,
-#        );
-#        my $nwk1 = $cl1->to_newick;
-#
-#        #  make sure we build a new matrix
-#        $bd->delete_all_outputs();
-#
-#        my $cl2 = $bd->add_cluster_output (
-#            name => "$class1 $linkage 2",
-#            CLUSTER_TIE_BREAKER    => [$tie_breaker => 'max'],
-#            MATRIX_CLASS           => $class1,
-#            MATRIX_INDEX_PRECISION => undef,
-#        );
-#        $cl2->run_analysis (
-#            prng_seed        => $prng_seed,
-#            linkage_function => $linkage,
-#        );
-#        my $nwk2 = $cl2->to_newick;
-#
-#        #  getting cache deletion issues - need to look into them before using this test
-#        ok (
-#            $cl1->trees_are_same (
-#                comparison => $cl2,
-#            ),
-#            "Clustering using matrices with differing index precisions, linkage $linkage"
-#        );
-#
-#        #  this test will likely have issues with v5.18 and hash randomisation
-#        is (
-#            $nwk1,
-#            $nwk2,
-#            "Clustering using matrices with differing index precisions, linkage $linkage"
-#        );
-#        #print join "\n", ('======') x 4;
-#        #say "$linkage $nwk1";
-#        #print join "\n", ('======') x 4;
-#    }
-#}
-
-
-#  need to add tie breaker
-sub check_order_is_same_given_same_prng {
-    my %args = @_;
-    my $bd = $args{basedata_ref};
-    
-    my $prng_seed = $args{prng_seed} || $default_prng_seed;
-    
-    my $cl1 = $bd->add_cluster_output (name => 'cl1');
-    my $cl2 = $bd->add_cluster_output (name => 'cl2');
-    my $cl3 = $bd->add_cluster_output (name => 'cl3');
-    
-    $cl1->run_analysis (
-        prng_seed => $prng_seed,
-    );
-    $cl2->run_analysis (
-        prng_seed => $prng_seed,
-    );
-    $cl3->run_analysis (
-        prng_seed => $prng_seed + 1,  #  different prng
-    );
-    
-    my $newick1 = $cl1->to_newick;
-    my $newick2 = $cl2->to_newick;
-    my $newick3 = $cl3->to_newick;
-    
-    is   ($newick1, $newick2, 'trees are the same');
-    isnt ($newick1, $newick3, 'trees are not the same');
-}
-
 
 #  Need to use an index that needs arguments
 #  so we exercise the whole shebang.
 sub test_matrix_recycling {
     my %args = @_;
-    cluster_test_matrix_recycling (%args, index => 'SORENSON', type => 'Biodiverse::Cluster');
+    cluster_test_matrix_recycling (%args, index => 'RICHNESS_ALL', type => 'Biodiverse::RegionGrower');
 }
+
 
 #  shadow matrix should contain all pair combinations across both matrices?
 #  No - let user do so explicitly using sp_select_all() as final condition.
 sub test_two_spatial_conditions {
     my %args = @_;
-
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
-    my $tie_breaker = [ENDW_WE => 'max'];
-
-    my %analysis_args = (
-        cache_abc          => 0,
-        index              => 'SORENSON',
-        linkage_function   => 'link_average',
-    );
-
-    my $cond1 = '$nbr_y > 1500000 && $y > 1500000';
-    my $spatial_conditions1 = [$cond1];
-    my $spatial_conditions2 = [
-        $cond1,
-        'sp_select_all()',
-    ];
-
-    #  run cl2 before cl1 for debugging purposes
-    my $cl2 = $bd->add_cluster_output (name => 'cl2');
-    $cl2->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl2->set_param (CACHE_ABC => 0);
-    $cl2->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions2,
-    );
-
-
-    my $cl1 = $bd->add_cluster_output (name => 'cl1');
-    $cl1->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl1->set_param (CACHE_ABC => 0);
-    $cl1->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions1,
-    );
-
-    ok (
-        $cl1->contains_tree (comparison => $cl1),
-        'contains_tree works - cluster 1 contains itself'
-    );
-
-    #  Ignore the root node since it can have a different length
-    #  and thus won't always match.
-    ok (
-        $cl2->contains_tree (comparison => $cl1, ignore_root => 1),
-        'Cluster with two conditions contains cluster with one condition '
-        . 'when first spatial condition is same'
-    );
-
-    my $block_cond = 'sp_block (size => 400000)';
-    my $spatial_conditions3 = [$block_cond];
-    my $spatial_conditions4 = [$block_cond, 'sp_select_all()'];
     
-    my $cl3 = $bd->add_cluster_output (name => 'cl3');
-    $cl3->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl3->set_param (CACHE_ABC => 0);
-    $cl3->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions3,
-    );
+    TODO: {
+        local $TODO = 'Tests not implemented yet for region grower';
+
+        my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+        my $tie_breaker = [ENDW_WE => 'max'];
     
-    my $cl4 = $bd->add_cluster_output (name => 'cl4');
-    $cl4->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl4->set_param (CACHE_ABC => 0);
-    $cl4->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions4,
-    );
+        my %analysis_args = (
+            cache_abc          => 0,
+            index              => 'RICHNESS_ALL',
+            #linkage_function   => 'link_average',
+            cluster_tie_breaker => $tie_breaker,
+        );
     
-    ok (
-        $cl3->contains_tree (comparison => $cl3),
-        'contains_tree works for sp_block - cluster 3 contains itself'
-    );
-    my $cl3_root_child_count = $cl3->get_child_count;
-
-    #  Ignore the root node and its immediate children
-    #  since they can have different lengths
-    #  and thus won't always match.
-    ok (
-        $cl4->contains_tree (
-            comparison  => $cl3,
-            ignore_root => 1,
-            correction  => -$cl3_root_child_count,
-        ),
-        'Cluster with two conditions contains cluster with condition '
-        . 'when first spatial condition is same (sp_block)'
-    );
-
-
-    my $spatial_conditions5 = [$block_cond, $cond1];
-    my $spatial_conditions6 = [$block_cond, $cond1, 'sp_select_all()'];
+        my $cond1 = '$nbr_y > 1500000 && $y > 1500000';
+        my $spatial_conditions1 = [$cond1];
+        my $spatial_conditions2 = [
+            $cond1,
+            'sp_select_all()',
+        ];
     
-    my $cl5 = $bd->add_cluster_output (name => 'cl5');
-    $cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl5->set_param (CACHE_ABC => 0);
-    $cl5->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions5,
-    );
-
-    my $cl6 = $bd->add_cluster_output (name => 'cl6');
-    $cl6->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
-    $cl6->set_param (CACHE_ABC => 0);
-    $cl6->run_analysis (
-        %analysis_args,
-        spatial_conditions => $spatial_conditions6,
-    );
-    
-    ok (
-        $cl6->contains_tree (comparison => $cl6),
-        'contains_tree works for triple conditions'
-    );
-    my $cl5_root_child_count = $cl5->get_child_count;
-
-    #  Ignore the root node and its immediate children
-    #  since they can have different lengths
-    #  and thus won't always match.
-    ok (
-        $cl6->contains_tree (
-            comparison  => $cl5,
-            ignore_root => 1,
-            correction  => -$cl5_root_child_count,
-        ),
-        'Cluster with three conditions contains cluster with two conditions'
-    );
+        #  run cl2 before cl1 for debugging purposes
+        my $cl2 = $bd->add_output (name => 'cl2', type => 'Biodiverse::RegionGrower');
+        #$cl2->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+        $cl2->set_param (CACHE_ABC => 0);
+        $cl2->run_analysis (
+            %analysis_args,
+            spatial_conditions => $spatial_conditions2,
+        );
     
     
+        my $cl1 = $bd->add_output (name => 'cl1', type => 'Biodiverse::RegionGrower');
+        #$cl1->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+        $cl1->set_param (CACHE_ABC => 0);
+        $cl1->run_analysis (
+            %analysis_args,
+            spatial_conditions => $spatial_conditions1,
+        );
+    
+        ok (
+            $cl1->contains_tree (comparison => $cl1),
+            'contains_tree works - cluster 1 contains itself'
+        );
+    
+        #  Ignore the root node since it can have a different length
+        #  and thus won't always match.
+        ok (
+            $cl2->contains_tree (comparison => $cl1, ignore_root => 1),
+            'Cluster with two conditions contains cluster with one condition '
+            . 'when first spatial condition is same'
+        );
+    
+        my $block_cond = 'sp_block (size => 400000)';
+        my $spatial_conditions3 = [$block_cond];
+        my $spatial_conditions4 = [$block_cond, 'sp_select_all()'];
+        
+        my $cl3 = $bd->add_output (name => 'cl3', type => 'Biodiverse::RegionGrower');
+        #$cl3->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+        $cl3->set_param (CACHE_ABC => 0);
+        $cl3->run_analysis (
+            %analysis_args,
+            spatial_conditions => $spatial_conditions3,
+        );
+        
+        my $cl4 = $bd->add_output (name => 'cl4', type => 'Biodiverse::RegionGrower');
+        #$cl4->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+        $cl4->set_param (CACHE_ABC => 0);
+        $cl4->run_analysis (
+            %analysis_args,
+            spatial_conditions => $spatial_conditions4,
+        );
+        
+        ok (
+            $cl3->contains_tree (comparison => $cl3),
+            'contains_tree works for sp_block - cluster 3 contains itself'
+        );
+        my $cl3_root_child_count = $cl3->get_child_count;
+    
+        #  Ignore the root node and its immediate children
+        #  since they can have different lengths
+        #  and thus won't always match.
+        ok (
+            $cl4->contains_tree (
+                comparison  => $cl3,
+                ignore_root => 1,
+                correction  => -$cl3_root_child_count,
+            ),
+            'Cluster with two conditions contains cluster with condition '
+            . 'when first spatial condition is same (sp_block)'
+        );
+    
+    
+        my $spatial_conditions5 = [$block_cond, $cond1];
+        my $spatial_conditions6 = [$block_cond, $cond1, 'sp_select_all()'];
+        
+        my $cl5 = $bd->add_output (name => 'cl5', type => 'Biodiverse::RegionGrower');
+        #$cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+        $cl5->set_param (CACHE_ABC => 0);
+        $cl5->run_analysis (
+            %analysis_args,
+            spatial_conditions => $spatial_conditions5,
+        );
+    
+        my $cl6 = $bd->add_output (name => 'cl6', type => 'Biodiverse::RegionGrower');
+        #$cl6->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
+        $cl6->set_param (CACHE_ABC => 0);
+        $cl6->run_analysis (
+            %analysis_args,
+            spatial_conditions => $spatial_conditions6,
+        );
+        
+        ok (
+            $cl6->contains_tree (comparison => $cl6),
+            'contains_tree works for triple conditions'
+        );
+        my $cl5_root_child_count = $cl5->get_child_count;
+    
+        #  Ignore the root node and its immediate children
+        #  since they can have different lengths
+        #  and thus won't always match.
+        ok (
+            $cl6->contains_tree (
+                comparison  => $cl5,
+                ignore_root => 1,
+                correction  => -$cl5_root_child_count,
+            ),
+            'Cluster with three conditions contains cluster with two conditions'
+        );
+    
+    }
 }
 
 ######################################

@@ -6,7 +6,7 @@ use Scalar::Util qw /reftype/;
 
 #use List::Util qw {:all};
 
-my @vals = 1 .. 20;
+my @vals = 1 .. 200;
 my $self = {PARAMS => {label_hash1 => 5, @vals}};
 
 #my $n = 1000;
@@ -20,10 +20,11 @@ $| = 1;
 cmpthese (
     -3,
     {
-        wa => sub {use_wantarray()},
-        hr => sub {return_hashref()},
-        h  => sub {return_hash()},
-        b  => sub {bare()},
+        wa => sub {scalar use_wantarray()},
+        hr => sub {scalar return_hashref()},
+        #h  => sub {scalar return_hash()},
+        b  => sub {scalar bare()},
+        bh => sub {scalar bare_hashref()},
     }
 );
 
@@ -42,4 +43,8 @@ sub return_hash {
 
 sub bare {
     wantarray ? %$self : $self;
+}
+
+sub bare_hashref {
+    $self;
 }

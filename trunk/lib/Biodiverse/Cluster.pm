@@ -235,7 +235,7 @@ sub get_indices_object_for_matrix_and_clustering {
     $self->set_param (CLUSTER_INDEX_SUB => $index_function);  
 
     my $index_params = $indices_object->get_args (sub => $index_function);
-    my $index_order  = $index_params->{indices}{$index}{cluster};
+    my $index_order  = $index_params->{indices}{$index}{cluster} // q{};
     # cache unless told otherwise
     my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
@@ -1219,7 +1219,7 @@ sub setup_tie_breaker {
     }
 
     $indices_object->get_valid_calculations (
-        %args,
+        %$analysis_args,
         calculations   => \@calc_subs,
         nbr_list_count => 2,
         element_list1  => [],  #  for validity checking only

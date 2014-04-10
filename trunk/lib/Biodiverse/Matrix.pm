@@ -699,7 +699,7 @@ END_MX_TOOLTIP
 my $ludicrously_extreme_pos_val = 10 ** 20;
 my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
-sub get_min_value {  #  get the minimum similarity value
+sub get_min_value {
     my $self = shift;
 
     my $val_hash = $self->{BYVALUE};
@@ -719,7 +719,7 @@ sub get_min_value {  #  get the minimum similarity value
     return $min;
 }
 
-sub get_max_value {  #  get the minimum similarity value
+sub get_max_value {
     my $self = shift;
 
     my $val_hash = $self->{BYVALUE};    

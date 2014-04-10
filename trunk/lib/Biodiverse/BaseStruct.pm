@@ -2334,6 +2334,9 @@ sub get_sub_element_hash {
     #  No explicit return statement used here.  
     #  This is a hot path when called from Biodiverse::Indices::_calc_abc
     #  and perl versions pre 5.20 do not optimise the return.
+    #  End result is ~30% faster for this line, although that might not
+    #  translate to much in real terms when it works at millions of iterations per second
+    #  (hence the lack of further optimisations on this front for now).
     wantarray ? %$hash : $hash;
 }
 

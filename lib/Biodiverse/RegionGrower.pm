@@ -29,6 +29,10 @@ sub get_default_cluster_index {
     return $PARAMS{DEFAULT_CLUSTER_INDEX};
 }
 
+sub get_default_objective_function {
+    return 'get_max_value';
+}
+
 sub get_type {
     return $PARAMS{TYPE};
 }

@@ -1219,9 +1219,9 @@ sub cluster_test_matrix_recycling {
     my %args = @_;
     my $type  = $args{type}  // 'Biodiverse::Cluster';
     my $index = $args{index} // 'SORENSON';
-    my $tie_breaker = exists $args{tie_breaker}  #  use undef is the user passed the arg key
+    my $tie_breaker = exists $args{tie_breaker}  #  use undef if the user passed the arg key
         ? $args{tie_breaker}
-        : [ENDW_WE => 'max', PD => 'max', random => 'max'];
+        : [ENDW_WE => 'max', PD => 'max', ABC3_SUM_ALL => 'max', none => 'max'];  #  we will fail if random tiebreaker is use
         #: [ENDW_WE => 'max', PD => 'max'];
         #: [RICHNESS_ALL => 'max', PD => 'max'];
         #: [random => 'max', PD => 'max'];
@@ -1230,25 +1230,18 @@ sub cluster_test_matrix_recycling {
     my $tree_ref  = get_tree_object_from_sample_data();
 
     my %analysis_args = (
+        %args,
         tree_ref    => $tree_ref,
         index       => $index,
         cluster_tie_breaker => $tie_breaker,
-        #prng_seed   => $default_prng_seed,  #  should not need this when using tie breakers
+        #prng_seed   => $default_prng_seed,  #  should not need this when using appropriate tie breakers
     );
     
-#warn "CL1!!\n";
     my $cl1 = $bd->add_output (name => 'cl1', type => $type);
     $cl1->run_analysis (%analysis_args);
-    
-#warn "CL2!!\n";
+
     my $cl2 = $bd->add_output (name => 'cl2', type => $type);
     $cl2->run_analysis (%analysis_args);
-    
-#warn "END CL!!!\n";
-
-#warn $cl1->to_nexus;
-#warn $cl2->to_nexus;
-
 
     ok (
         $cl1->trees_are_same (comparison => $cl2),

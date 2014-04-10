@@ -876,7 +876,7 @@ sub get_most_similar_matrix_value {
     my $self = shift;
     my %args = @_;
     my $matrix = $args{matrix} || croak "matrix arg not specified\n";
-    my $sub = $self->get_param ('CLUSTER_MOST_SIMILAR_SUB') || 'get_min_value';
+    my $sub = $args{objective_function} // $self->get_param ('CLUSTER_MOST_SIMILAR_SUB') // 'get_min_value';
     return $matrix->$sub;
 }
 
@@ -1073,7 +1073,7 @@ sub get_most_similar_pair {
             my $stringified = $self->list2csv (list => [$name1, $name2], csv_object => $csv);
             #  need to use terminal names - allows to link_recalculate
             #  stringified form is stripped at the end
-            push @pairs, [$name1, $name2, $stringified];  
+            push @pairs, [$name1, $name2, $stringified];
         }
     }
 
@@ -1109,12 +1109,13 @@ sub get_most_similar_pair_using_tie_breaker {
 
     my ($current_lead_pair, $current_lead_pair_str);
 
+#warn "TIE BREAKING\n";
     #  Sort ensures same order each time, thus stabilising random and "none" results
     #  as well as any tied index comparisons
   TIE_COMP:
     foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
         no autovivification;
-
+#warn "\n" . join (' <:::> ', @$pair[0,1]) . "\n";
         my $tie_scores =  $tie_breaker_cache->{$pair->[0]}{$pair->[1]}
                        || $tie_breaker_cache->{$pair->[1]}{$pair->[0]};
 
@@ -1193,10 +1194,10 @@ sub get_most_similar_pair_using_tie_breaker {
 sub setup_tie_breaker {
     my $self = shift;
     my %args = @_;
-    my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
+    my $tie_breaker = $args{cluster_tie_breaker} // $self->get_param ('CLUSTER_TIE_BREAKER');
 
     return if !$tie_breaker;  #  old school clusters did not have one
-
+    
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $self->get_basedata_ref);
     my $analysis_args = $self->get_param('ANALYSIS_ARGS');
 
@@ -1204,11 +1205,13 @@ sub setup_tie_breaker {
     my @calc_subs;
     my (@breaker_indices, @breaker_minmax);
     while (my ($breaker, $optimisation) = $it->()) {
+        next if $breaker eq 'none';
+
         push @breaker_indices, $breaker;
         push @breaker_minmax,  $optimisation;
 
         next if $breaker eq 'random';  #  special handling for this - should change approach?
-        next if $breaker eq 'none';
+        #next if $breaker eq 'none';
         next if !defined $breaker;
         croak "$breaker is not a valid tie breaker\n"
             if   !$indices_object->is_cluster_index (index => $breaker)
@@ -1225,11 +1228,20 @@ sub setup_tie_breaker {
         element_list1  => [],  #  for validity checking only
         element_list2  => [],
     );
-    
+
+    my @invalid_calcs = $indices_object->get_invalid_calculations;
+    if (@invalid_calcs) {
+        croak  "Unable to run the following caluclations needed for the tie breakers.\n"
+             . "Check that all needed arguments are being passed (e.g. trees, matrices):\n"
+             . join (' ', @invalid_calcs)
+             . "\n";
+    }
+
     $indices_object->set_pairwise_mode (1);  #  turn on some optimisations
 
     $indices_object->run_precalc_globals (%$analysis_args);
     
+    $self->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $self->set_param (CLUSTER_TIE_BREAKER_INDICES_OBJECT => $indices_object);
     $self->set_param (CLUSTER_TIE_BREAKER_PAIRS => [\@breaker_indices, \@breaker_minmax]);
 
@@ -1336,14 +1348,21 @@ sub cluster {
 
         $self->run_spatial_calculations (%args_sub);
 
-        #$self->set_param (COMPLETED => 1);
         return 1;
     }
 
+    #  make sure we do this before the matrices are built so we fail early if needed
+    $self->setup_tie_breaker (%args);
+
+    #  make sure region grower analyses get the correct objective functions
+    if ($args{objective_function}) {
+        $self->set_param (CLUSTER_MOST_SIMILAR_SUB => $args{objective_function});
+    }
+    
+    #  some setup
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
-
-    #$self->process_spatial_conditions_and_def_query (%args);
+    
 
     my @matrices;
     #  if we were passed a matrix in the args  
@@ -1461,8 +1480,6 @@ sub cluster {
         next if not defined $element;
         $self->add_node (name => $element);
     }
-    
-    $self->setup_tie_breaker;
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?

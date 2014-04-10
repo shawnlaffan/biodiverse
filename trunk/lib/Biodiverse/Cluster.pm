@@ -876,7 +876,8 @@ sub get_most_similar_matrix_value {
     my $self = shift;
     my %args = @_;
     my $matrix = $args{matrix} || croak "matrix arg not specified\n";
-    my $sub = $args{objective_function} // $self->get_param ('CLUSTER_MOST_SIMILAR_SUB') // 'get_min_value';
+    my $sub =  $args{objective_function}
+            // $self->get_objective_function (%args);
     return $matrix->$sub;
 }
 
@@ -885,6 +886,25 @@ sub get_default_linkage {
 
     return $PARAMS{DEFAULT_LINKAGE};
 }
+
+sub get_default_objective_function {
+    return 'get_min_value';
+}
+
+#  Should this only return get_min_value for Cluster objects?
+#  Inheriting objects can then do the fiddling?
+sub get_objective_function {
+    my $self = shift;
+    my %args = @_;
+
+    my $func = $args{objective_function}
+            // $self->get_param ('CLUSTER_MOST_SIMILAR_SUB')
+            // $self->get_default_objective_function
+            // 'get_min_value';
+
+    return $func;
+}
+
 
 sub cluster_matrix_elements {
     my $self = shift;
@@ -907,6 +927,8 @@ sub cluster_matrix_elements {
                             || $self->get_default_linkage;
     $self->set_param (LINKAGE_FUNCTION => $linkage_function);
 
+    my $objective_function = $self->get_objective_function(%args);
+
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
         state => $args{prng_state},
@@ -918,9 +940,8 @@ sub cluster_matrix_elements {
 
     my $matrix_count = $self->get_matrix_count;
 
-    print "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
-            ($self->get_matrix_count - 1),
-            "\n";
+    say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
+        ($self->get_matrix_count - 1);
 
     my $new_node;
     my ($min_value, $prev_min_value);
@@ -935,7 +956,7 @@ sub cluster_matrix_elements {
 
     my $count = 0;
     my $printed_progress = -1;
-    
+
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
@@ -945,7 +966,10 @@ sub cluster_matrix_elements {
         #print "Remaining $remaining\n";
 
         #  get the most similar two candidates
-        $min_value = $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+        $min_value = $self->get_most_similar_matrix_value (
+            matrix => $sim_matrix,
+            objective_function => $objective_function,
+        );
 
         $join_number ++;
 

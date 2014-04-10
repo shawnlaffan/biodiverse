@@ -1217,26 +1217,38 @@ sub check_cluster_order_is_same_given_same_prng {
 #  so we exercise the whole shebang.
 sub cluster_test_matrix_recycling {
     my %args = @_;
-    my $type = $args{type} // 'Biodiverse::Cluster';
+    my $type  = $args{type}  // 'Biodiverse::Cluster';
     my $index = $args{index} // 'SORENSON';
+    my $tie_breaker = exists $args{tie_breaker}  #  use undef is the user passed the arg key
+        ? $args{tie_breaker}
+        : [ENDW_WE => 'max', PD => 'max', random => 'max'];
+        #: [ENDW_WE => 'max', PD => 'max'];
+        #: [RICHNESS_ALL => 'max', PD => 'max'];
+        #: [random => 'max', PD => 'max'];
 
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
     my $tree_ref  = get_tree_object_from_sample_data();
-    my $tie_breaker = [ENDW_WE => 'max'];
 
     my %analysis_args = (
         tree_ref    => $tree_ref,
         index       => $index,
         cluster_tie_breaker => $tie_breaker,
+        #prng_seed   => $default_prng_seed,  #  should not need this when using tie breakers
     );
-
+    
+#warn "CL1!!\n";
     my $cl1 = $bd->add_output (name => 'cl1', type => $type);
-    #$cl1->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl1->run_analysis (%analysis_args);
-
+    
+#warn "CL2!!\n";
     my $cl2 = $bd->add_output (name => 'cl2', type => $type);
-    #$cl2->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl2->run_analysis (%analysis_args);
+    
+#warn "END CL!!!\n";
+
+#warn $cl1->to_nexus;
+#warn $cl2->to_nexus;
+
 
     ok (
         $cl1->trees_are_same (comparison => $cl2),
@@ -1244,7 +1256,6 @@ sub cluster_test_matrix_recycling {
     );
 
     my $cl3 = $bd->add_output (name => 'cl3', type => $type);
-    #$cl3->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl3->run_analysis (%analysis_args);
 
     ok (
@@ -1259,16 +1270,13 @@ sub cluster_test_matrix_recycling {
     is ($mx_ref1, $mx_ref2, 'recycled matrices correctly, 1&2');
     is ($mx_ref1, $mx_ref3, 'recycled matrices correctly, 1&3');
 
-
     #  now check what happens when we destroy the matrix in the clustering
     $bd->delete_all_outputs;
 
     my $cl4 = $bd->add_output (name => 'cl4', type => $type);
-    #$cl4->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl4->run_analysis (%analysis_args, no_clone_matrices => 1);
 
     my $cl5 = $bd->add_output (name => 'cl5', type => $type);
-    #$cl5->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl5->run_analysis (%analysis_args);
 
     ok (
@@ -1286,11 +1294,9 @@ sub cluster_test_matrix_recycling {
     $bd->delete_all_outputs;
 
     my $cl6 = $bd->add_output (name => 'cl6', type => $type);
-    #$cl6->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl6->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
 
     my $cl7 = $bd->add_output (name => 'cl7', type => $type);
-    #$cl7->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl7->run_analysis (%analysis_args, def_query => 'sp_select_all()');
 
     my $mx_ref6 = $cl6->get_orig_matrices;
@@ -1298,13 +1304,11 @@ sub cluster_test_matrix_recycling {
     isnt ($mx_ref6, $mx_ref7, 'did not recycle matrices, 6 v 7');
     
     my $cl8 = $bd->add_output (name => 'cl8', type => $type);
-    #$cl8->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl8->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
     my $mx_ref8 = $cl8->get_orig_matrices;
     is ($mx_ref6, $mx_ref8, 'did recycle matrices, 6 v 8');
 
     my $cl9 = $bd->add_output (name => 'cl9', type => $type);
-    #$cl9->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $cl9->run_analysis (%analysis_args, def_query => 'sp_select_all()');
     my $mx_ref9 = $cl9->get_orig_matrices;
     is ($mx_ref7, $mx_ref9, 'did recycle matrices, 7 v 8');

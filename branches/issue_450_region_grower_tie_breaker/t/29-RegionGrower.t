@@ -90,7 +90,22 @@ sub test_linkages_and_check_mx_precision {
 #  so we exercise the whole shebang.
 sub test_matrix_recycling {
     my %args = @_;
-    cluster_test_matrix_recycling (%args, index => 'RICHNESS_ALL', type => 'Biodiverse::RegionGrower');
+    
+    my %analysis_args = (
+        %args,
+        index => 'RICHNESS_ALL',
+        type => 'Biodiverse::RegionGrower',
+        objective_function => 'get_max_value',
+    );
+
+    cluster_test_matrix_recycling (
+        %analysis_args,
+    );
+    
+    #cluster_test_matrix_recycling (
+    #    %analysis_args,
+    #    tie_breaker => undef,  #  override the tie breaker
+    #);
 }
 
 

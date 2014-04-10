@@ -140,44 +140,6 @@ sub test_linkages_and_check_replication {
     );
 }
 
-#sub test_linkages_and_check_replication {
-#    my %args = (delete_outputs => 1, @_);
-#
-#    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-#    my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-#
-#    foreach my $linkage (@linkages) {
-#        my $cl1 = $bd1->add_cluster_output (name => $linkage);
-#        $cl1->run_analysis (
-#            prng_seed        => $default_prng_seed,
-#            linkage_function => $linkage,
-#        );
-#        my $cl2 = $bd2->add_cluster_output (name => $linkage);
-#        $cl2->run_analysis (
-#            prng_seed        => $default_prng_seed,
-#            linkage_function => $linkage,
-#        );
-#
-#        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
-#        my $are_same = $cl1->trees_are_same (comparison => $cl2);
-#        ok ($are_same, "Check Rep: Exact match using $linkage" . $suffix);
-#
-#        my $nodes_have_matching_terminals = $cl1->trees_are_same (
-#            comparison     => $cl2,
-#            terminals_only => 1,
-#        );
-#        ok (
-#            $nodes_have_matching_terminals,
-#            "Check Rep: Nodes have matching terminals using $linkage" . $suffix,
-#        );
-#
-#        if ($args{delete_outputs}) {
-#            $bd1->delete_all_outputs;
-#            $bd2->delete_all_outputs;
-#        }
-#    }
-#}
-
 sub test_tie_breaker_croak_on_missing_args  {
     my $data = get_cluster_mini_data();
     my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
@@ -198,62 +160,6 @@ sub test_tie_breaker_croak_on_missing_args  {
 sub test_linkages_and_check_mx_precision {
     cluster_test_linkages_and_check_mx_precision(type => 'Biodiverse::Cluster');
 }
-
-#sub test_linkages_and_check_mx_precision {
-#    #  make sure we get the same cluster result using different matrix precisions
-#    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
-#    my $tie_breaker = 'random';
-#
-#    foreach my $linkage (@linkages) {
-#        my $prng_seed = 123456;
-#        $bd->delete_all_outputs();
-#
-#        my $class1 = 'Biodiverse::Matrix';
-#        my $cl1 = $bd->add_cluster_output (
-#            name => "$class1 $linkage 1",
-#            CLUSTER_TIE_BREAKER => [$tie_breaker => 'max'],
-#            MATRIX_CLASS        => $class1,
-#        );
-#        $cl1->run_analysis (
-#            prng_seed        => $prng_seed,
-#            linkage_function => $linkage,
-#        );
-#        my $nwk1 = $cl1->to_newick;
-#
-#        #  make sure we build a new matrix
-#        $bd->delete_all_outputs();
-#
-#        my $cl2 = $bd->add_cluster_output (
-#            name => "$class1 $linkage 2",
-#            CLUSTER_TIE_BREAKER    => [$tie_breaker => 'max'],
-#            MATRIX_CLASS           => $class1,
-#            MATRIX_INDEX_PRECISION => undef,
-#        );
-#        $cl2->run_analysis (
-#            prng_seed        => $prng_seed,
-#            linkage_function => $linkage,
-#        );
-#        my $nwk2 = $cl2->to_newick;
-#
-#        #  getting cache deletion issues - need to look into them before using this test
-#        ok (
-#            $cl1->trees_are_same (
-#                comparison => $cl2,
-#            ),
-#            "Clustering using matrices with differing index precisions, linkage $linkage"
-#        );
-#
-#        #  this test will likely have issues with v5.18 and hash randomisation
-#        is (
-#            $nwk1,
-#            $nwk2,
-#            "Clustering using matrices with differing index precisions, linkage $linkage"
-#        );
-#        #print join "\n", ('======') x 4;
-#        #say "$linkage $nwk1";
-#        #print join "\n", ('======') x 4;
-#    }
-#}
 
 
 #  need to add tie breaker

@@ -60,6 +60,8 @@ sub main {
 
     test_same_results_given_same_prng_seed();
     
+    test_tie_breaker_croak_on_missing_args();
+    
     done_testing;
     return 0;
 }
@@ -167,6 +169,23 @@ sub test_linkages_and_check_replication {
             $bd2->delete_all_outputs;
         }
     }
+}
+
+sub test_tie_breaker_croak_on_missing_args  {
+    my $data = get_cluster_mini_data();
+    my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    my $tie_breaker = 'PD';
+
+    my $cl1 = $bd->add_cluster_output (
+        name => "should croak",
+        CLUSTER_TIE_BREAKER => [$tie_breaker => 'max'],
+    );
+    my $success = eval {
+        $cl1->run_analysis ();
+    };
+    my $e = $EVAL_ERROR;
+    isnt ($e, '', 'Tie breaker croaked when missing an argument');
+    #note $e;
 }
 
 sub test_linkages_and_check_mx_precision {

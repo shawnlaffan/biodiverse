@@ -574,10 +574,23 @@ sub get_valid_calculations {
         calc_deps_by_type   => \%aggregated_deps_per_calc,
     );
 
-    $self->set_param (VALID_CALCULATIONS => \%results);
+    $self->set_param(VALID_CALCULATIONS   => \%results);
+    $self->set_param(INVALID_CALCULATIONS => \@removed);
 
     return wantarray ? %results : \%results;
 }
+
+#  run after valid calcs
+sub get_invalid_calculations {
+    my $self = shift;
+
+    my $invalid = $self->get_param ('INVALID_CALCULATIONS');
+    croak 'Need to run get_valid_calculations first'
+      if !defined $invalid;
+
+    return wantarray ? @$invalid : [@$invalid];
+}
+
 
 sub get_deps_per_calc_by_type {
     my $self = shift;

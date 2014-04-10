@@ -1225,7 +1225,15 @@ sub setup_tie_breaker {
         element_list1  => [],  #  for validity checking only
         element_list2  => [],
     );
-    
+
+    my @invalid_calcs = $indices_object->get_invalid_calculations;
+    if (@invalid_calcs) {
+        croak  "Unable to run the following caluclations needed for the tie breakers.\n"
+             . "Check that all needed arguments are being passed (e.g. trees, matrices):\n"
+             . join (' ', @invalid_calcs)
+             . "\n";
+    }
+
     $indices_object->set_pairwise_mode (1);  #  turn on some optimisations
 
     $indices_object->run_precalc_globals (%$analysis_args);
@@ -1343,7 +1351,8 @@ sub cluster {
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
 
-    #$self->process_spatial_conditions_and_def_query (%args);
+    #  make sure we do this before the matrices are built so we fail early if needed
+    $self->setup_tie_breaker;
 
     my @matrices;
     #  if we were passed a matrix in the args  
@@ -1461,8 +1470,6 @@ sub cluster {
         next if not defined $element;
         $self->add_node (name => $element);
     }
-    
-    $self->setup_tie_breaker;
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?

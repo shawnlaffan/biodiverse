@@ -66,13 +66,15 @@ sub destroy {
 }
 
 sub update {
-    my $self = shift;
-    
+    my $self     = shift;
     my $text     = shift;
     my $progress = shift; # fraction 0 .. 1
     my $no_update_text = shift;
 
     croak "No progress set\n" if not defined $progress;
+
+    #  no point doing anything if these conditions are true
+    return if $self->{gui_only} && !$self->{gui_progress};
 
     #  make it tolerant
     $progress = max (0, min (1, $progress));
@@ -93,7 +95,6 @@ sub update {
         $text = $NULL_STRING;
     }
 
-    
     croak "ERROR [Progress] progress $progress is not between 0 & 1\n"
       if ($progress < 0 || $progress > 1);
 

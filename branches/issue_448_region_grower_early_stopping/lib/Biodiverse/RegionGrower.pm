@@ -52,5 +52,31 @@ sub get_linkage_functions {
     return wantarray ? @linkages : \@linkages;
 }
 
+#  Allows early stopping of the merging process.  
+sub get_max_poss_matrix_value {
+    my $self = shift;
+    my %args = @_;
+
+    my $mx   = $args{matrix};
+
+    my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
+    my $elements = $mx->get_elements_as_array;
+
+    my $analysis_args = $self->get_param('ANALYSIS_ARGS');
+    my $results = $indices_object->run_calculations(
+        %args,
+        %$analysis_args,
+        element_list1   => $elements,
+        element_list2   => undef,
+        label_hash1     => undef,
+        label_hash2     => undef,
+    );
+
+    my $index = $args{index} || $self->get_param ('CLUSTER_INDEX');
+    my $index_value = $results->{$index};
+
+    return $index_value;
+}
+
 
 1;

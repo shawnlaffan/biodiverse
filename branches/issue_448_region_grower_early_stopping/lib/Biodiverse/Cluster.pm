@@ -938,8 +938,14 @@ sub cluster_matrix_elements {
     my $sim_matrix = $self->get_matrix_ref (iter => $mx_iter);
     croak "No matrix reference available\n" if not defined $sim_matrix;
 
-    my $matrix_count = $self->get_matrix_count;
+    #  this should only be used when the user wants it
+    my $max_poss_value = eval {
+        $self->get_max_poss_matrix_value (
+            matrix => $sim_matrix,
+        );
+    };
 
+    my $matrix_count = $self->get_matrix_count;
     say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
         ($self->get_matrix_count - 1);
 
@@ -962,6 +968,7 @@ sub cluster_matrix_elements {
     $progress_text .= $args{progress_text} || $name;
     print "[CLUSTER] Progress (% of $total elements):     ";
 
+  PAIR:
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
         #print "Remaining $remaining\n";
 
@@ -1031,7 +1038,7 @@ sub cluster_matrix_elements {
                 );
             }
         }
-        
+
         #if ($new_node->get_length < 0) {
         #    printf "[CLUSTER] Node %s has negative length of %f\n", $new_node->get_name, $new_node->get_length;
         #}
@@ -1050,6 +1057,15 @@ sub cluster_matrix_elements {
         );
 
         $prev_min_value = $most_similar_val;
+
+        #  Need to run some cleanup of the matrices here?
+        #  Collapse all remaining into a polytomy?
+        #  Actually, the syste, does that, so it is more do we want to
+        #  exclude other nodes from the tree
+        if (defined $max_poss_value && $max_poss_value == $most_similar_val) {
+            say '[CLUSTER] Maximum possible value reached, stopping clusteriung process.';
+            last PAIR;
+        }
     }
 
     $self->delete_cached_values (

@@ -944,7 +944,7 @@ sub cluster_matrix_elements {
         ($self->get_matrix_count - 1);
 
     my $new_node;
-    my ($min_value, $prev_min_value);
+    my ($most_similar_val, $prev_min_value);
     #  track the number of joins - use as element name for merged nodes
     my $join_number = $self->get_param ('JOIN_NUMBER') || -1;  
     my $total = $sim_matrix->get_element_count;
@@ -966,7 +966,7 @@ sub cluster_matrix_elements {
         #print "Remaining $remaining\n";
 
         #  get the most similar two candidates
-        $min_value = $self->get_most_similar_matrix_value (
+        $most_similar_val = $self->get_most_similar_matrix_value (
             matrix => $sim_matrix,
             objective_function => $objective_function,
         );
@@ -977,14 +977,14 @@ sub cluster_matrix_elements {
                  . "$progress_text\n("
                  . ($remaining - 1)
                  . " remaining)\nMost similar value is "
-                 . sprintf ("%.3f", $min_value);
+                 . sprintf ("%.3f", $most_similar_val);
 
         $progress_bar->update ($text, 1 - $remaining / $total);
 
         $count ++;
 
         #  clean up tie breakers if the min value has changed
-        if (defined $prev_min_value && $min_value != $prev_min_value) {
+        if (defined $prev_min_value && $most_similar_val != $prev_min_value) {
             $self->delete_cached_values (
                 keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
             );
@@ -992,7 +992,7 @@ sub cluster_matrix_elements {
 
         my ($node1, $node2) = $self->get_most_similar_pair (
             sim_matrix  => $sim_matrix,
-            min_value   => $min_value,
+            min_value   => $most_similar_val,
             rand_object => $rand,
         );
 
@@ -1016,7 +1016,7 @@ sub cluster_matrix_elements {
             MATRIX_ITER_USED => $mx_iter,
             JOIN_NUMBER      => $join_number,
         );
-        $new_node->set_child_lengths (total_length => $min_value);
+        $new_node->set_child_lengths (total_length => $most_similar_val);
 
         #  add children to the node hash if they are terminals
         foreach my $child ($new_node->get_children) {
@@ -1049,14 +1049,18 @@ sub cluster_matrix_elements {
             #merge_track_matrix => $merged_mx,
         );
 
-        $prev_min_value = $min_value;
+        $prev_min_value = $most_similar_val;
     }
+
+    $self->delete_cached_values (
+        keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
+    );
 
     #  finish off the progress
     $progress_bar->update (undef, 1);
 
     $self->set_param(JOIN_NUMBER => $join_number);
-    $self->set_param(MIN_VALUE   => $min_value);
+    $self->set_param(MIN_VALUE   => $most_similar_val);
 
     $self->store_rand_state (rand_object => $rand);
 

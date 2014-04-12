@@ -938,13 +938,14 @@ sub cluster_matrix_elements {
     my $sim_matrix = $self->get_matrix_ref (iter => $mx_iter);
     croak "No matrix reference available\n" if not defined $sim_matrix;
 
-    my $matrix_count = $self->get_matrix_count;
+    my $max_poss_value = $self->get_param('MAX_POSS_INDEX_VALUE');
 
+    my $matrix_count = $self->get_matrix_count;
     say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
         ($self->get_matrix_count - 1);
 
     my $new_node;
-    my ($min_value, $prev_min_value);
+    my ($most_similar_val, $prev_min_value);
     #  track the number of joins - use as element name for merged nodes
     my $join_number = $self->get_param ('JOIN_NUMBER') || -1;  
     my $total = $sim_matrix->get_element_count;
@@ -954,7 +955,6 @@ sub cluster_matrix_elements {
 
     local $| = 1;  #  write to screen as we go
 
-    my $count = 0;
     my $printed_progress = -1;
 
     my $name = $self->get_param ('NAME') || 'no_name';
@@ -962,37 +962,34 @@ sub cluster_matrix_elements {
     $progress_text .= $args{progress_text} || $name;
     print "[CLUSTER] Progress (% of $total elements):     ";
 
+  PAIR:
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
         #print "Remaining $remaining\n";
 
+        $join_number ++;
+
         #  get the most similar two candidates
-        $min_value = $self->get_most_similar_matrix_value (
+        $most_similar_val = $self->get_most_similar_matrix_value (
             matrix => $sim_matrix,
             objective_function => $objective_function,
         );
 
-        $join_number ++;
-
-        my $text = "Clustering\n"
-                 . "$progress_text\n("
-                 . ($remaining - 1)
-                 . " remaining)\nMost similar value is "
-                 . sprintf ("%.3f", $min_value);
+        my $text = sprintf
+            "Clustering\n%s\n(%d) remaining\nMost similar value is %.3f",
+            $progress_text,
+            $remaining - 1,
+            $most_similar_val;
 
         $progress_bar->update ($text, 1 - $remaining / $total);
 
-        $count ++;
-
         #  clean up tie breakers if the min value has changed
-        if (defined $prev_min_value && $min_value != $prev_min_value) {
-            $self->delete_cached_values (
-                keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
-            );
+        if (defined $prev_min_value && $most_similar_val != $prev_min_value) {
+            $self->clear_tie_breaker_caches;
         }
 
         my ($node1, $node2) = $self->get_most_similar_pair (
             sim_matrix  => $sim_matrix,
-            min_value   => $min_value,
+            min_value   => $most_similar_val,
             rand_object => $rand,
         );
 
@@ -1016,7 +1013,7 @@ sub cluster_matrix_elements {
             MATRIX_ITER_USED => $mx_iter,
             JOIN_NUMBER      => $join_number,
         );
-        $new_node->set_child_lengths (total_length => $min_value);
+        $new_node->set_child_lengths (total_length => $most_similar_val);
 
         #  add children to the node hash if they are terminals
         foreach my $child ($new_node->get_children) {
@@ -1031,7 +1028,7 @@ sub cluster_matrix_elements {
                 );
             }
         }
-        
+
         #if ($new_node->get_length < 0) {
         #    printf "[CLUSTER] Node %s has negative length of %f\n", $new_node->get_name, $new_node->get_length;
         #}
@@ -1049,14 +1046,25 @@ sub cluster_matrix_elements {
             #merge_track_matrix => $merged_mx,
         );
 
-        $prev_min_value = $min_value;
+        $prev_min_value = $most_similar_val;
+
+        #  Need to run some cleanup of the matrices here?
+        #  Collapse all remaining into a polytomy?
+        #  Actually, the syste, does that, so it is more do we want to
+        #  exclude other nodes from the tree
+        if (defined $max_poss_value && $max_poss_value == $most_similar_val) {
+            say "\n[CLUSTER] Maximum possible value reached, stopping clustering process.";
+            last PAIR;
+        }
     }
+
+    $self->clear_tie_breaker_caches;
 
     #  finish off the progress
     $progress_bar->update (undef, 1);
 
     $self->set_param(JOIN_NUMBER => $join_number);
-    $self->set_param(MIN_VALUE   => $min_value);
+    $self->set_param(MIN_VALUE   => $most_similar_val);
 
     $self->store_rand_state (rand_object => $rand);
 
@@ -1268,6 +1276,16 @@ sub setup_tie_breaker {
     $self->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $self->set_param (CLUSTER_TIE_BREAKER_INDICES_OBJECT => $indices_object);
     $self->set_param (CLUSTER_TIE_BREAKER_PAIRS => [\@breaker_indices, \@breaker_minmax]);
+
+    return;
+}
+
+sub clear_tie_breaker_caches {
+    my $self = shift;
+
+    $self->delete_cached_values (
+        keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
+    );
 
     return;
 }
@@ -1505,9 +1523,17 @@ sub cluster {
         $self->add_node (name => $element);
     }
 
+    #  this should only be used when the user wants it
+    eval {
+        my $max_poss_value = $self->get_max_poss_matrix_value (
+            matrix => $matrix_for_nodes,
+        );
+        $self->set_param(MAX_POSS_INDEX_VALUE => $max_poss_value);
+    };
+
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?
-        print "[CLUSTER] Using matrix $i\n";
+        say "[CLUSTER] Using matrix $i";
         $self->set_param (CURRENT_MATRIX_ITER => $i);
 
         #  no elements left, so we've used this one up.  Move to the next
@@ -1525,29 +1551,27 @@ sub cluster {
     my %root_nodes = $self->get_root_nodes;
 
     if (scalar keys %root_nodes > 1) {
-        print "[CLUSTER] CLUSTER TREE HAS MULTIPLE ROOT NODES\n"
-            . "Count is "
-            . (scalar keys %root_nodes)
-            . "\n"
-            . 'MinValue is '
-            . $self->get_param('MIN_VALUE')
-            . "\n";
+        say sprintf
+            "[CLUSTER] CLUSTER TREE HAS MULTIPLE ROOT NODES\nCount is %d\nMin value is %f",
+            (scalar keys %root_nodes),
+            $self->get_param('MIN_VALUE');
     }
 
     #  loop over the one or more root nodes and remove zero length nodes
     if (1 && $args{flatten_tree}) {
-        my $i = 1;
+        my $i = 0;
         foreach my $root_node (values %root_nodes) {
-            print "[CLUSTER] Root node $i" . $root_node->get_name . "\n";
+            $i++;
+            next if $root_node->is_terminal_node;
+
+            say "[CLUSTER] Root node $i: " . $root_node->get_name;
             my @now_empty = $root_node->flatten_tree;
+
             #  now we clean up all the empty nodes in the other indexes
             if (scalar @now_empty) {
-
                 say '[CLUSTER] Deleting ' . scalar @now_empty . ' empty nodes';
-
                 $self->delete_from_node_hash (nodes => \@now_empty);
             }
-            $i++;
         }
     }
 

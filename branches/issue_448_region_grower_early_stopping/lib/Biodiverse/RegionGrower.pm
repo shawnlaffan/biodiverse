@@ -1,4 +1,5 @@
 package Biodiverse::RegionGrower;
+use 5.010;
 use strict;
 use warnings;
 
@@ -57,10 +58,17 @@ sub get_max_poss_matrix_value {
     my $self = shift;
     my %args = @_;
 
-    my $mx   = $args{matrix};
+    my $mx = $args{matrix};
+    
+    my $sp_conditions_array = $self->get_spatial_conditions;
+    my $final_cond  = $sp_conditions_array->[-1];
+    my $result_type = $final_cond->get_result_type;
+
+    #  Drop out unless we have one condition and its result type is always_true
+    return if scalar @$sp_conditions_array > 1 || $result_type ne 'always_true';
 
     my $indices_object = $self->get_indices_object_for_matrix_and_clustering;
-    my $elements = $mx->get_elements_as_array;
+    my $elements       = $mx->get_elements_as_array;
 
     my $analysis_args = $self->get_param('ANALYSIS_ARGS');
     my $results = $indices_object->run_calculations(
@@ -74,6 +82,10 @@ sub get_max_poss_matrix_value {
 
     my $index = $args{index} || $self->get_param ('CLUSTER_INDEX');
     my $index_value = $results->{$index};
+
+    if (defined $index_value) {
+        say "[REGIONGROWER] Early stopping enabled, target value is $index_value";
+    }
 
     return $index_value;
 }

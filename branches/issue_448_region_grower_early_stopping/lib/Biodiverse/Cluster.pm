@@ -1053,7 +1053,7 @@ sub cluster_matrix_elements {
         #  Actually, the syste, does that, so it is more do we want to
         #  exclude other nodes from the tree
         if (defined $max_poss_value && $max_poss_value == $most_similar_val) {
-            say "\n[CLUSTER] Maximum possible value reached, stopping clusteriung process.";
+            say "\n[CLUSTER] Maximum possible value reached, stopping clustering process.";
             last PAIR;
         }
     }
@@ -1559,19 +1559,19 @@ sub cluster {
 
     #  loop over the one or more root nodes and remove zero length nodes
     if (1 && $args{flatten_tree}) {
-        my $i = 1;
+        my $i = 0;
         foreach my $root_node (values %root_nodes) {
+            $i++;
             next if $root_node->is_terminal_node;
+
             say "[CLUSTER] Root node $i: " . $root_node->get_name;
             my @now_empty = $root_node->flatten_tree;
+
             #  now we clean up all the empty nodes in the other indexes
             if (scalar @now_empty) {
-
                 say '[CLUSTER] Deleting ' . scalar @now_empty . ' empty nodes';
-
                 $self->delete_from_node_hash (nodes => \@now_empty);
             }
-            $i++;
         }
     }
 

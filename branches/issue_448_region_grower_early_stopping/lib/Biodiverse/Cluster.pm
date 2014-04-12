@@ -960,7 +960,6 @@ sub cluster_matrix_elements {
 
     local $| = 1;  #  write to screen as we go
 
-    my $count = 0;
     my $printed_progress = -1;
 
     my $name = $self->get_param ('NAME') || 'no_name';
@@ -972,29 +971,25 @@ sub cluster_matrix_elements {
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
         #print "Remaining $remaining\n";
 
+        $join_number ++;
+
         #  get the most similar two candidates
         $most_similar_val = $self->get_most_similar_matrix_value (
             matrix => $sim_matrix,
             objective_function => $objective_function,
         );
 
-        $join_number ++;
-
-        my $text = "Clustering\n"
-                 . "$progress_text\n("
-                 . ($remaining - 1)
-                 . " remaining)\nMost similar value is "
-                 . sprintf ("%.3f", $most_similar_val);
+        my $text = sprintf
+            "Clustering\n%s\n(%d) remaining\nMost similar value is %.3f",
+            $progress_text,
+            $remaining - 1,
+            $most_similar_val;
 
         $progress_bar->update ($text, 1 - $remaining / $total);
 
-        $count ++;
-
         #  clean up tie breakers if the min value has changed
         if (defined $prev_min_value && $most_similar_val != $prev_min_value) {
-            $self->delete_cached_values (
-                keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
-            );
+            $self->clear_tie_breaker_caches;
         }
 
         my ($node1, $node2) = $self->get_most_similar_pair (
@@ -1068,9 +1063,7 @@ sub cluster_matrix_elements {
         }
     }
 
-    $self->delete_cached_values (
-        keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
-    );
+    $self->clear_tie_breaker_caches;
 
     #  finish off the progress
     $progress_bar->update (undef, 1);
@@ -1288,6 +1281,16 @@ sub setup_tie_breaker {
     $self->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $self->set_param (CLUSTER_TIE_BREAKER_INDICES_OBJECT => $indices_object);
     $self->set_param (CLUSTER_TIE_BREAKER_PAIRS => [\@breaker_indices, \@breaker_minmax]);
+
+    return;
+}
+
+sub clear_tie_breaker_caches {
+    my $self = shift;
+
+    $self->delete_cached_values (
+        keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
+    );
 
     return;
 }

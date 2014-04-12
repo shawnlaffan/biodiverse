@@ -765,6 +765,11 @@ sub get_all_children {
     return $self->get_all_descendents (@_);
 }
 
+sub get_descendent_count {
+    my $self = shift;
+    my $descendents = $self->get_all_descendents(@_);
+    return scalar keys %$descendents;
+}
 
 #  get all the nodes (whether terminal or not) which are descendants of a node
 sub get_all_descendents {

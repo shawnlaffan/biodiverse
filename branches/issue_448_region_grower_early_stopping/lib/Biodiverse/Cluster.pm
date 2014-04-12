@@ -938,12 +938,7 @@ sub cluster_matrix_elements {
     my $sim_matrix = $self->get_matrix_ref (iter => $mx_iter);
     croak "No matrix reference available\n" if not defined $sim_matrix;
 
-    #  this should only be used when the user wants it
-    my $max_poss_value = eval {
-        $self->get_max_poss_matrix_value (
-            matrix => $sim_matrix,
-        );
-    };
+    my $max_poss_value = $self->get_param('MAX_POSS_INDEX_VALUE');
 
     my $matrix_count = $self->get_matrix_count;
     say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
@@ -1058,7 +1053,7 @@ sub cluster_matrix_elements {
         #  Actually, the syste, does that, so it is more do we want to
         #  exclude other nodes from the tree
         if (defined $max_poss_value && $max_poss_value == $most_similar_val) {
-            say '[CLUSTER] Maximum possible value reached, stopping clusteriung process.';
+            say "\n[CLUSTER] Maximum possible value reached, stopping clusteriung process.";
             last PAIR;
         }
     }
@@ -1528,9 +1523,17 @@ sub cluster {
         $self->add_node (name => $element);
     }
 
+    #  this should only be used when the user wants it
+    eval {
+        my $max_poss_value = $self->get_max_poss_matrix_value (
+            matrix => $matrix_for_nodes,
+        );
+        $self->set_param(MAX_POSS_INDEX_VALUE => $max_poss_value);
+    };
+
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?
-        print "[CLUSTER] Using matrix $i\n";
+        say "[CLUSTER] Using matrix $i";
         $self->set_param (CURRENT_MATRIX_ITER => $i);
 
         #  no elements left, so we've used this one up.  Move to the next
@@ -1548,20 +1551,18 @@ sub cluster {
     my %root_nodes = $self->get_root_nodes;
 
     if (scalar keys %root_nodes > 1) {
-        print "[CLUSTER] CLUSTER TREE HAS MULTIPLE ROOT NODES\n"
-            . "Count is "
-            . (scalar keys %root_nodes)
-            . "\n"
-            . 'MinValue is '
-            . $self->get_param('MIN_VALUE')
-            . "\n";
+        say sprintf
+            "[CLUSTER] CLUSTER TREE HAS MULTIPLE ROOT NODES\nCount is %d\nMin value is %f",
+            (scalar keys %root_nodes),
+            $self->get_param('MIN_VALUE');
     }
 
     #  loop over the one or more root nodes and remove zero length nodes
     if (1 && $args{flatten_tree}) {
         my $i = 1;
         foreach my $root_node (values %root_nodes) {
-            print "[CLUSTER] Root node $i" . $root_node->get_name . "\n";
+            next if $root_node->is_terminal_node;
+            say "[CLUSTER] Root node $i: " . $root_node->get_name;
             my @now_empty = $root_node->flatten_tree;
             #  now we clean up all the empty nodes in the other indexes
             if (scalar @now_empty) {

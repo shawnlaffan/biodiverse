@@ -58,6 +58,7 @@ sub get_max_poss_matrix_value {
     my $self = shift;
     my %args = @_;
 
+    #  shadow matrix
     my $mx = $args{matrix};
     
     my $sp_conditions_array = $self->get_spatial_conditions;

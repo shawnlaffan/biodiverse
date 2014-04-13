@@ -1400,7 +1400,9 @@ sub cluster {
     if ($args{objective_function}) {
         $self->set_param (CLUSTER_MOST_SIMILAR_SUB => $args{objective_function});
     }
-    
+
+    $self->set_param (CLEAR_SINGLETONS_FROM_TREE => $args{clear_singletons});
+
     #  some setup
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
@@ -1726,7 +1728,9 @@ sub join_root_nodes {
     }
 
     $root_node->add_children(children => \@nodes_to_add);
-    $self->delete_from_node_hash (nodes => \%singletons);
+    if (keys %singletons) {
+        $self->delete_from_node_hash (nodes => \%singletons);
+    }
 
     return;
 }

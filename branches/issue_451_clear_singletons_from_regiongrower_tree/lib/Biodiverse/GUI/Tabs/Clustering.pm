@@ -122,11 +122,10 @@ sub new {
 
         $self->{output_name}  = $cluster_ref->get_param('NAME');
         $self->{basedata_ref} = $cluster_ref->get_param('BASEDATA_REF');
-        print "[Clustering tab] Existing spatial output - "
+        say "[Clustering tab] Existing spatial output - "
               . $self->{output_name}
               . " within Basedata set - "
-              . $self->{basedata_ref}->get_param ('NAME')
-              . "\n";
+              . $self->{basedata_ref}->get_param ('NAME');
 
         my $completed = $cluster_ref->get_param ('COMPLETED');
         $completed = 1 if not defined $completed;
@@ -848,40 +847,32 @@ sub get_no_cache_abc_value {
     my $self = shift;
 
     my $widget = $self->{xmlPage}->get_widget('chk_no_cache_abc');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
+
+    return $widget->get_active;
 }
 
 sub get_build_matrices_only {
     my $self = shift;
     
     my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
+
+    return $widget->get_active;
 }
 
 sub get_output_gdm_format {
     my $self = shift;
 
     my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
+
+    return $widget->get_active;
 }
 
 sub get_keep_spatial_nbrs_output {
     my $self = shift;
 
     my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
+
+    return $widget->get_active;
 }
 
 sub get_no_clone_matrices {
@@ -889,9 +880,15 @@ sub get_no_clone_matrices {
 
     my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
 
-    my $value = $widget->get_active;
+    return $widget->get_active;
+}
 
-    return $value;
+sub get_clear_singletons {
+    my $self = shift;
+
+    my $widget = $self->{xmlPage}->get_widget('chk_clear_singletons');
+
+    return $widget->get_active;
 }
 
 sub get_prng_seed {
@@ -1072,6 +1069,7 @@ sub on_run_analysis {
     my $output_gdm_format   = $self->get_output_gdm_format;
     my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
     my $no_clone_matrices   = $self->get_no_clone_matrices;
+    my $clear_singletons    = $self->get_clear_singletons;
     my $prng_seed           = $self->get_prng_seed;
 
     # Get spatial calculations to run
@@ -1120,7 +1118,7 @@ sub on_run_analysis {
             $self->{gui}->report_error ($EVAL_ERROR);
             return;
         }
-    
+
         $self->{output_ref} = $output_ref;
         $self->{project}->add_output($self->{basedata_ref}, $output_ref);
     }
@@ -1143,10 +1141,10 @@ sub on_run_analysis {
             $self->{spatialParams2}->get_text(),
         ],
         no_clone_matrices   => $no_clone_matrices,
+        clear_singletons    => $clear_singletons,
         prng_seed           => $prng_seed,
     );
 
-    
     if ($self->get_use_tie_breakers) {
         my $tie_breakers = $self->get_tie_breakers;
         $analysis_args{cluster_tie_breaker} = $tie_breakers;

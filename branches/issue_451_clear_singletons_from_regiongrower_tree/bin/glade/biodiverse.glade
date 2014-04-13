@@ -497,6 +497,12 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1185,6 +1191,12 @@ Shapefile
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1238,8 +1250,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1256,8 +1268,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7426,7 +7438,8 @@ Both</property>
                                                     <property name="can_focus">False</property>
                                                     <child>
                                                       <widget class="GtkCheckButton" id="chk_no_cache_abc">
-                                                        <property name="label" translatable="yes">Do not use caching </property>
+                                                        <property name="label" translatable="yes">Do not 
+use caching </property>
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">True</property>
                                                         <property name="receives_default">False</property>
@@ -7537,6 +7550,26 @@ system must rebuild the matrices each time you export.</property>
                                                         <property name="expand">True</property>
                                                         <property name="fill">True</property>
                                                         <property name="position">5</property>
+                                                      </packing>
+                                                    </child>
+                                                    <child>
+                                                      <widget class="GtkCheckButton" id="chk_clear_singletons">
+                                                        <property name="label" translatable="yes">Clear singleton
+nodes from tree</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">False</property>
+                                                        <property name="has_tooltip">True</property>
+                                                        <property name="tooltip" translatable="yes">Singletons are terminal nodes 
+connected directly to the root.
+Clearing them is useful 
+for RegionGrower analyses.  </property>
+                                                        <property name="draw_indicator">True</property>
+                                                      </widget>
+                                                      <packing>
+                                                        <property name="expand">True</property>
+                                                        <property name="fill">True</property>
+                                                        <property name="position">6</property>
                                                       </packing>
                                                     </child>
                                                   </widget>
@@ -9125,6 +9158,12 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

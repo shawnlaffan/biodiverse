@@ -1431,17 +1431,19 @@ sub cluster {
 
         my $matrices_recycled;
 
-        if (not $self->get_matrix_count) {
+        if (!$self->get_matrix_count) {
             #  can we get them from another output?
             my $bd = $self->get_basedata_ref;
-            if (my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self)) {
+            my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self);
+            if ($ref && !$args{build_matrices_only} && !$args{file_handles}) {
+
                 my $other_original_matrices = $ref->get_param('ORIGINAL_MATRICES');
                 my $other_orig_shadow_mx    = $self->get_param('ORIGINAL_SHADOW_MATRIX');
                 #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
                 if (   eval {$other_orig_shadow_mx->get_element_count}
                     || eval {$other_original_matrices->[0]->get_element_count}) {
 
-                    print "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name, "\n";
+                    say "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name;
                     $self->set_param (ORIGINAL_MATRICES      => $other_original_matrices);
                     $self->set_param (ORIGINAL_SHADOW_MATRIX => $other_orig_shadow_mx);
                     $matrices_recycled = 1;

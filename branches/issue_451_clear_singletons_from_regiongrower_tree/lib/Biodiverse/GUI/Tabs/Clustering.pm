@@ -843,52 +843,75 @@ sub remove {
 # Running the thing
 ##################################################
 
-sub get_no_cache_abc_value {
+#sub get_no_cache_abc_value {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_no_cache_abc');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_build_matrices_only {
+#    my $self = shift;
+#    
+#    my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_output_gdm_format {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_keep_spatial_nbrs_output {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_no_clone_matrices {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_clear_singletons {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_clear_singletons');
+#
+#    return $widget->get_active;
+#}
+
+my @chk_flags = qw /
+    no_cache_abc
+    build_matrices_only
+    output_gdm_format
+    keep_sp_nbrs_output
+    no_clone_matrices
+    clear_singletons
+/;
+
+sub get_flag_widget_values {
     my $self = shift;
 
-    my $widget = $self->{xmlPage}->get_widget('chk_no_cache_abc');
+    my %flag_hash;
 
-    return $widget->get_active;
-}
+    foreach my $flag_name (@chk_flags) {
+        my $widget_name = 'chk_' . $flag_name;
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        $flag_hash{$flag_name} = $widget->get_active;
+    }
 
-sub get_build_matrices_only {
-    my $self = shift;
-    
-    my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
-
-    return $widget->get_active;
-}
-
-sub get_output_gdm_format {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
-
-    return $widget->get_active;
-}
-
-sub get_keep_spatial_nbrs_output {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
-
-    return $widget->get_active;
-}
-
-sub get_no_clone_matrices {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
-
-    return $widget->get_active;
-}
-
-sub get_clear_singletons {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_clear_singletons');
-
-    return $widget->get_active;
+    return wantarray ? %flag_hash : \%flag_hash;
 }
 
 sub get_prng_seed {
@@ -1063,14 +1086,16 @@ sub on_run_analysis {
 
     my $selected_index      = $self->get_selected_metric;
     my $selected_linkage    = $self->get_selected_linkage;
-    my $no_cache_abc        = $self->get_no_cache_abc_value;
-    my $build_matrices_only = $self->get_build_matrices_only;
+    #my $no_cache_abc        = $self->get_no_cache_abc_value;
+    #my $build_matrices_only = $self->get_build_matrices_only;
     my $file_handles        = $self->get_output_file_handles;
-    my $output_gdm_format   = $self->get_output_gdm_format;
-    my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
-    my $no_clone_matrices   = $self->get_no_clone_matrices;
-    my $clear_singletons    = $self->get_clear_singletons;
+    #my $output_gdm_format   = $self->get_output_gdm_format;
+    #my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
+    #my $no_clone_matrices   = $self->get_no_clone_matrices;
+    #my $clear_singletons    = $self->get_clear_singletons;
     my $prng_seed           = $self->get_prng_seed;
+
+    my %flag_values = $self->get_flag_widget_values;
 
     # Get spatial calculations to run
     my @calculations_to_run
@@ -1125,23 +1150,24 @@ sub on_run_analysis {
 
     my %analysis_args = (
         %args,
+        %flag_values,
         matrix_ref           => $self->{project}->get_selected_matrix,
         tree_ref             => $self->{project}->get_selected_phylogeny,
         definition_query     => $self->{definition_query1}->get_text(),
         index                => $selected_index,
         linkage_function     => $selected_linkage,
-        no_cache_abc         => $no_cache_abc,
-        build_matrices_only  => $build_matrices_only,
+        #no_cache_abc         => $no_cache_abc,
+        #build_matrices_only  => $build_matrices_only,
         file_handles         => $file_handles,
-        output_gdm_format    => $output_gdm_format,
-        keep_sp_nbrs_output  => $keep_sp_nbrs_output,
+        #output_gdm_format    => $output_gdm_format,
+        #keep_sp_nbrs_output  => $keep_sp_nbrs_output,
         spatial_calculations => \@calculations_to_run,
         spatial_conditions   => [
             $self->{spatialParams1}->get_text(),
             $self->{spatialParams2}->get_text(),
         ],
-        no_clone_matrices   => $no_clone_matrices,
-        clear_singletons    => $clear_singletons,
+        #no_clone_matrices   => $no_clone_matrices,
+        #clear_singletons    => $clear_singletons,
         prng_seed           => $prng_seed,
     );
 
@@ -1187,10 +1213,16 @@ sub on_run_analysis {
         return;
     }
 
-    if ($keep_sp_nbrs_output) {
+    if ($flag_values{keep_sp_nbrs_output}) {
         my $sp_name = $output_ref->get_param('SP_NBRS_OUTPUT_NAME');
-        my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
-        $self->{project}->add_output($self->{basedata_ref}, $sp_ref);
+        if (defined $sp_name) {
+            my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
+            $self->{project}->add_output($self->{basedata_ref}, $sp_ref);
+        }
+        else {
+            say '[CLUSTER] Unable to add spatial output, probably because a recycled '
+                . 'matrix was used so no spatial output was needed.'
+        }
     }
 
     #  add the matrices to the outputs tab

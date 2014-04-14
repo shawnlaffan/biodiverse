@@ -297,7 +297,8 @@ sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache by default
 
-    my $node = $args{node} || croak "node not specified\n";
+    my $node = $args{node} || croak "node not specified in call to get_terminal_elements\n";
+
     my $node_ref = $self->get_node_ref(node => $node);
 
     return $node_ref->get_terminal_elements (cache => $args{cache})
@@ -332,7 +333,8 @@ sub get_terminal_element_count {
 sub get_node_ref {
     my $self = shift;
     my %args = @_;
-    croak "node not specified\n" if ! defined $args{node};
+
+    croak "node not specified in call to get_node_ref\n" if ! defined $args{node};
 
     Biodiverse::Tree::NotExistsNode->throw ("[Tree] $args{node} does not exist")
       if !exists $self->{TREE_BY_NAME}{$args{node}};

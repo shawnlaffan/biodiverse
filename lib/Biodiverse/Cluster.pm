@@ -11,7 +11,7 @@ use English ( -no_match_vars );
 use Data::Dumper;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval time/;
-use List::Util qw /first reduce/;
+use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 
 our $VERSION = '0.19';
@@ -1400,7 +1400,9 @@ sub cluster {
     if ($args{objective_function}) {
         $self->set_param (CLUSTER_MOST_SIMILAR_SUB => $args{objective_function});
     }
-    
+
+    $self->set_param (CLEAR_SINGLETONS_FROM_TREE => $args{clear_singletons});
+
     #  some setup
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
@@ -1429,17 +1431,19 @@ sub cluster {
 
         my $matrices_recycled;
 
-        if (not $self->get_matrix_count) {
+        if (!$self->get_matrix_count) {
             #  can we get them from another output?
             my $bd = $self->get_basedata_ref;
-            if (my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self)) {
+            my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self);
+            if ($ref && !$args{build_matrices_only} && !$args{file_handles}) {
+
                 my $other_original_matrices = $ref->get_param('ORIGINAL_MATRICES');
                 my $other_orig_shadow_mx    = $self->get_param('ORIGINAL_SHADOW_MATRIX');
                 #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
                 if (   eval {$other_orig_shadow_mx->get_element_count}
                     || eval {$other_original_matrices->[0]->get_element_count}) {
 
-                    print "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name, "\n";
+                    say "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name;
                     $self->set_param (ORIGINAL_MATRICES      => $other_original_matrices);
                     $self->set_param (ORIGINAL_SHADOW_MATRIX => $other_orig_shadow_mx);
                     $matrices_recycled = 1;
@@ -1523,7 +1527,8 @@ sub cluster {
         $self->add_node (name => $element);
     }
 
-    #  this should only be used when the user wants it
+    #  This should only be used when the user wants it,
+    #  but it only triggers in certain circumstances
     eval {
         my $max_poss_value = $self->get_max_poss_matrix_value (
             matrix => $matrix_for_nodes,
@@ -1684,28 +1689,30 @@ sub run_tiebreaker_indices_object_cleanup {
 sub join_root_nodes {
     my $self = shift;
 
-    my $nodes = $self->get_root_nodes;
+    my $root_nodes = $self->get_root_nodes;
 
-    #  drop out if only 1 root node
-    return if scalar keys %$nodes == 0;
+    return if scalar keys %$root_nodes == 0;
+
+    my $clear_singletons = $self->get_param ('CLEAR_SINGLETONS_FROM_TREE');
+    my (@nodes_to_add, %singletons);
 
     my $target_len;
 
     #  find the longest path
-    foreach my $node (values %$nodes) {
+  NODE:
+    foreach my $node (values %$root_nodes) {
+        if ($clear_singletons && $node->is_terminal_node) {
+            $singletons{$node->get_name} = $node;
+            next NODE;
+        }
+
         my $len = $node->get_length_below;
 
-        #  check allows for clusters with any min value
-        if (!defined $target_len) {
-            $target_len = $len;
-        }
+        $target_len //= $len;
+        $target_len = max ($len, $target_len);
 
-        if ($len > $target_len) {
-            $target_len = $len;
-        }
+        push @nodes_to_add, $node;
     }
-
-    #print "Target length is $target_len\n";
 
     my $root_node = $self->add_node(
         length => 0,
@@ -1713,20 +1720,19 @@ sub join_root_nodes {
     );
     $root_node->set_value(JOIN_NOT_METRIC => 1);
 
-    #  need to add a flag to say these are artificial
-
     #  set the length of each former root node
-    foreach my $node (values %$nodes) {
-        my $current_len = $node->get_length;
-        my $len = $target_len - $node->get_length_below;
+    foreach my $node (@nodes_to_add) {
 
-        #print "$target_len, $current_len, $len\n";
+        my $len = $target_len - $node->get_length_below;
 
         $node->set_length(length => $len);
         $node->set_value(JOIN_NOT_METRIC => 1);
     }
 
-    $root_node->add_children(children => [values %$nodes]);
+    $root_node->add_children(children => \@nodes_to_add);
+    if (keys %singletons) {
+        $self->delete_from_node_hash (nodes => \%singletons);
+    }
 
     return;
 }
@@ -2202,13 +2208,13 @@ sub get_embedded_matrix {
     return;
 }
 
-sub max {
-    return $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub max {
+#    return $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
-sub min {
-    return $_[0] < $_[1] ? $_[0] : $_[1];
-}
+#sub min {
+#    return $_[0] < $_[1] ? $_[0] : $_[1];
+#}
 
 1;
 

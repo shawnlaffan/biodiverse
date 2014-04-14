@@ -311,11 +311,9 @@ sub get_params_hash {
 
 #  set a single parameter
 sub set_param {
-    my $self = shift;
+    $_[0]->{PARAMS}{$_[1]} = $_[2];
 
-    $self->{PARAMS}{$_[0]} = $_[1];
-
-    return 1;
+    1;
 }
 
 #  Could use a slice for speed, but it's not used very often.

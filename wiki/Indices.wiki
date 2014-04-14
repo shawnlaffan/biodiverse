@@ -868,7 +868,7 @@ Weights by samples so multiple occurrences are accounted for.
 || 177 || NUM_GISTAR || List of Gi* scores ||   || 1 ||
 
 
-==PhyloCom Indices==
+==!PhyloCom Indices==
  
  
 

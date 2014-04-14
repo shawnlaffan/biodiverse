@@ -975,7 +975,7 @@ sub cluster_matrix_elements {
         );
 
         my $text = sprintf
-            "Clustering\n%s\n(%d) remaining\nMost similar value is %.3f",
+            "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.3f",
             $progress_text,
             $remaining - 1,
             $most_similar_val;
@@ -1138,6 +1138,14 @@ sub get_most_similar_pair_using_tie_breaker {
     my $breaker_pairs  = $self->get_param ('CLUSTER_TIE_BREAKER_PAIRS');
     my $breaker_keys   = $breaker_pairs->[0];
     my $breaker_minmax = $breaker_pairs->[1];
+
+    #  early drop out when we don't need to run any comparisons
+    if (!@$breaker_keys) {
+        my $current_lead_pair = reduce {($a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]) < 0 ? $b : $a} @pairs;
+        my ($node1, $node2) = @{$current_lead_pair}[0,1];  #  first two items are the element/node names
+        return wantarray ? ($node1, $node2) : [$node1, $node2];
+    }
+    
 
     my ($current_lead_pair, $current_lead_pair_str);
 

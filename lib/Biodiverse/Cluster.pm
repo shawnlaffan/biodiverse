@@ -1973,8 +1973,21 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     #  Now we need to loop over the respective nodes across
     #  the matrices and merge as appropriate.
     #  The sort guarantees same order each time.
-    CHECK_NODE:
-    foreach my $check_node (sort $matrix_with_elements->get_elements_as_array) {  
+    my @check_node_array = sort $matrix_with_elements->get_elements_as_array;
+    my $num_nodes = scalar @check_node_array;
+    my $progress;
+    if ($num_nodes > 100) {
+        $progress = Biodiverse::Progress->new (
+            text     => "Running linkage for $num_nodes",
+            gui_only => 1,
+        );
+    }
+
+    my $i = 0;
+  CHECK_NODE:
+    foreach my $check_node (@check_node_array) {  
+
+        $i++;
 
         #  skip the mergees
         next CHECK_NODE if $check_node eq $node1 || $check_node eq $node2;
@@ -1991,6 +2004,13 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
                 element2 => $node2,
             )
         );  
+
+        if ($progress) {
+            $progress->update(
+                "Running linkage for row $i of $num_nodes",
+                $i / $num_nodes,
+            );
+        }
 
         my %values = $self->$linkage_function (
             node1        => $node1,

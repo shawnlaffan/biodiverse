@@ -847,7 +847,7 @@ sub on_name_changed {
 
     my $bd = $self->{basedata_ref};
 
-    my $name_in_use = $bd->get_spatial_output_ref (name => $name);
+    my $name_in_use = eval {$bd->get_spatial_output_ref (name => $name)};
     
     #  make things go red
     if ($name_in_use) {

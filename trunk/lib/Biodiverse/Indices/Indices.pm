@@ -6,7 +6,7 @@ use 5.010;
 use Carp;
 
 use Scalar::Util qw /blessed weaken reftype/;
-use List::Util qw /min max pairs pairkeys/;
+use List::Util qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 
@@ -810,34 +810,38 @@ sub calc_simpson_shannon {
     my $self = shift;
     my %args = @_;
 
-    my $labels = $args{label_hash_all};
+    my $labels   = $args{label_hash_all};
     my $richness = $args{ABC};
 
-    my $n = 0;
-    foreach my $value (values %$labels) {
-        $n += $value;
-    }
+    my %results;
 
-    my ($simpson_d, $shannon_h, $sum_labels, $shannon_e);
-    foreach my $value (values %$labels) {  #  don't need the labels, so don't use keys
-        my $p_i = $value / $n;
-        $simpson_d += $p_i ** 2;
-        $shannon_h += $p_i * log ($p_i);
+    if ($richness) {  #  results not valid if cells are empty
+        my $n = sum 0, values %$labels;
+    
+        my ($simpson_d, $shannon_h, $sum_labels, $shannon_e);
+        foreach my $value (values %$labels) {  #  don't need the labels, so don't use keys
+            my $p_i     = $value / $n;
+            $simpson_d += $p_i ** 2;
+            $shannon_h += $p_i * log ($p_i);
+        }
+        $shannon_h *= -1;
+        #$simpson_d /= $richness ** 2;
+        #  trap divide by zero when sum_labels == 1
+        my $shannon_hmax = log ($richness);
+        $shannon_e = $shannon_hmax == 0
+            ? undef
+            : $shannon_h / $shannon_hmax;
+    
+        %results = (
+            SHANNON_H    => $shannon_h,
+            SHANNON_HMAX => $shannon_hmax,
+            SHANNON_E    => $shannon_e,
+            SIMPSON_D    => 1 - $simpson_d,
+        );
     }
-    $shannon_h *= -1;
-    #$simpson_d /= $richness ** 2;
-    #  trap divide by zero when sum_labels == 1
-    my $shannon_hmax = log ($richness);
-    $shannon_e = $shannon_hmax == 0
-        ? undef
-        : $shannon_h / $shannon_hmax;
-
-    my %results = (
-        SHANNON_H    => $shannon_h,
-        SHANNON_HMAX => $shannon_hmax,
-        SHANNON_E    => $shannon_e,
-        SIMPSON_D    => 1 - $simpson_d,
-    );
+    else {
+        @results{qw /SHANNON_H SHANNON_HMAX SHANNON_E SIMPSON_D/} = undef;
+    }
 
     return wantarray ? %results : \%results;
 }

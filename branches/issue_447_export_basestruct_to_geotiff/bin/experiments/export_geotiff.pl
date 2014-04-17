@@ -27,7 +27,7 @@ $sp->run_analysis (
 
 #my $export_type = 'ArcInfo floatgrid files';
 my $export_type = 'GeoTIFF';
-my $filename    = 'xx.tif';
+my $filename    = 'xx.tiff';
 my $list_name   = 'SPATIAL_RESULTS';
 
 $sp->export (

@@ -1357,7 +1357,7 @@ sub write_table_asciigrid {
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.asc/, qr/\.txt/);
-    my $file_list_ref = $args{filelist};
+    my $file_list_ref = $args{filelist} || [];
     
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .asc and store it
         $suffix = '.asc';
@@ -1387,10 +1387,10 @@ sub write_table_asciigrid {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename = Path::Class::file($path, $this_file)->stringify;
-        $filename .= $suffix;
+        my $filename    = Path::Class::file($path, $this_file)->stringify;
+        $filename      .= $suffix;
         $file_names[$i] = $filename;
-        push(@$file_list_ref, $filename) if ($file_list_ref); # record file in list if array ref provided
+        push @$file_list_ref, $filename; # record file in list
 
         my $fh;
         my $success = open ($fh, '>', $filename);

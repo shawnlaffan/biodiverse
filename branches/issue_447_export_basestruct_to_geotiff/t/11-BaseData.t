@@ -440,7 +440,8 @@ sub test_roundtrip_raster {
 
     my $format = 'export_asciigrid';
     my @out_options = ( { data => $bd } ); # not sure what parameters are needed for export
-    
+    #my @out_options;
+
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
     # assume export was in format labels_as_bands = 0
@@ -459,23 +460,21 @@ sub test_roundtrip_raster {
         local $Data::Dumper::Sortkeys = 1;
         local $Data::Dumper::Purity   = 1;
         local $Data::Dumper::Terse    = 1;
-        say Dumper $out_options_hash;
+        #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $fname_base = 'asciigrid' . $i; 
-        my $suffix = '.txt';
-        my $fname = $fname_base 
-                   #. ($out_options_hash->{symmetric} ? '_symm' : '_asym')
-                   #. ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
-                   . $suffix;  
-        my @exported_files;
+        my $tmp_dir = File::Temp->newdir;
+        my $fname_base = $format; 
+        my $suffix = '.asc';
+        my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
+        #my @exported_files;
         my $success = eval {
             $gp->export (
                 format    => $format,
                 file      => $fname,
                 list      => 'SUBELEMENTS',
-                %$out_options_hash,
-                filelist  => \@exported_files
+                #%$out_options_hash,
+                #filelist  => \@exported_files,
             );
         };
         $e = $EVAL_ERROR;
@@ -492,14 +491,18 @@ sub test_roundtrip_raster {
         use URI::Escape::XS qw/uri_unescape/;
 
         # each band was written to a separate file, load each in turn and add to
-        # the basedata object        
+        # the basedata object
+        # Should import the lot at once and then rename the labels to their unescaped form
+        #  make sure we skip world and hdr files 
+        my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
+
         foreach my $this_file (@exported_files) {
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
             $this_label =~ s/.*${fname_base}_//; # assumed format- $fname then _ then label then suffix
             $this_label =~ s/$suffix$//; 
             $this_label = uri_unescape($this_label);
-            say 'got label $this_label';
+            say "got label $this_label";
 
             $success = eval {
                 $new_bd->import_data_raster (
@@ -517,12 +520,12 @@ sub test_roundtrip_raster {
         is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
         
         my $new_lb = $new_bd->get_labels_ref;
-        subtest "sample counts match for $fname" => sub {
+        subtest "sample counts match for $format" => sub {
             foreach my $label (sort $bd->get_labels) {
                 my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
                 my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
 
-                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
             }
         };
 

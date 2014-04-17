@@ -550,6 +550,32 @@ sub export_floatgrid {
     return;
 }
 
+
+sub get_metadata_export_geotiff {
+    my $self = shift;
+
+    my %args = (
+        format => 'GeoTIFF',
+        parameters => [
+            $self->get_common_export_metadata(),
+            $self->get_raster_export_metadata(),
+        ],
+    ); 
+
+    return wantarray ? %args : \%args;
+}
+
+sub export_geotiff {
+    my $self = shift;
+    my %args = @_;
+
+    my $table = $self->to_table (%args, symmetric => 1);
+
+    $self->write_table_geotiff (%args, data => $table);
+
+    return;
+}
+
 sub get_metadata_export_divagis {
     my $self = shift;
 
@@ -1667,6 +1693,87 @@ DIVA_HDR
     return;
 }
 
+#  write a table out as a series of ESRI floatgrid files,
+#  one per field based on row 0.
+#  Skip any fields that contain non-numeric values
+sub write_table_geotiff {
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data} || croak "data arg not specified\n";
+    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+
+    my $file = $args{file} || croak "file arg not specified\n";
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.tif{1,2}/);
+    if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .tif and store it
+        $suffix = '.tif';
+    }
+
+    #  now process the generic stuff
+    my $r = $self->raster_export_process_args ( %args );
+
+    my @min       = @{$r->{MIN}};
+    my @max       = @{$r->{MAX}};
+    my %data_hash = %{$r->{DATA_HASH}};
+    my @precision = @{$r->{PRECISION}};
+    my @band_cols = @{$r->{BAND_COLS}};
+    my $header    =   $r->{HEADER};
+    my $no_data   =   $r->{NODATA};
+    my @res       = @{$r->{RESOLUTIONS}};
+    my $ncols     =   $r->{NCOLS};
+    my $nrows     =   $r->{NROWS};
+
+
+    my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
+
+    #  are we LSB or MSB?
+    my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
+
+    my @file_names;
+    foreach my $i (@band_cols) {
+        my $this_file = $name . "_" . $header->[$i];
+        $this_file = $self->escape_filename (string => $this_file);
+
+        my $filename = Path::Class::file($path, $this_file)->stringify;
+        $filename   .= $suffix;
+        $file_names[$i] = $filename;
+    }
+
+    my %coords;
+    my @default_line = ($no_data x scalar @$header);
+
+    my $prec_fmt_y = "%.$precision[1]f";
+    my $prec_fmt_x = "%.$precision[0]f";
+
+    my @bands;
+    for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
+
+        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
+
+            my $coord_name = join (':', $x, $y);
+            foreach my $i (@band_cols) { 
+                next if $coord_cols_hash{$i};  #  skip if it is a coordinate
+                my $value = $data_hash{$coord_name}[$i] // $no_data;
+                $bands[$i] .= pack 'f', $value;
+            }
+        }
+    }
+
+    my $format = "GTiff";
+    my $driver = Geo::GDAL::GetDriverByName( $format );
+
+    foreach my $i (@band_cols) {
+        my $f_name = $file_names[$i];
+        my $pdata  = $bands[$i];
+
+        my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, 'Float32');
+
+        my $out_band = $out_raster->GetRasterBand(1);
+        $out_band->WriteRaster(0, 0, $ncols, $nrows, $pdata);
+    }
+
+    return;
+}
 
 #  write a table out as an ER-Mapper ERS BIL file.
 sub write_table_ers {

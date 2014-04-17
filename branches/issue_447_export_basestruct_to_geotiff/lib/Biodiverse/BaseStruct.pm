@@ -1725,6 +1725,19 @@ sub write_table_geotiff {
 
     my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
 
+    my $ll_cenx = $min[0];  # - 0.5 * $res[0];
+    my $ul_ceny = $max[1];  # - 0.5 * $res[1];
+
+    my $tfw = <<"END_TFW"
+$res[0]
+0
+0
+-$res[1]
+$ll_cenx
+$ul_ceny
+END_TFW
+  ;
+
     #  are we LSB or MSB?
     my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
 
@@ -1739,7 +1752,7 @@ sub write_table_geotiff {
     }
 
     my %coords;
-    my @default_line = ($no_data x scalar @$header);
+    #my @default_line = ($no_data x scalar @$header);
 
     my $prec_fmt_y = "%.$precision[1]f";
     my $prec_fmt_x = "%.$precision[0]f";
@@ -1770,6 +1783,11 @@ sub write_table_geotiff {
         my $out_band = $out_raster->GetRasterBand(1);
         $out_band->SetNoDataValue ($no_data);
         $out_band->WriteRaster(0, 0, $ncols, $nrows, $pdata);
+
+        my $f_name_tfw = $f_name . 'w';
+        open(my $fh, '>', $f_name_tfw) or die "cannot open $f_name_tfw";
+        print {$fh} $tfw;
+        $fh->close;
     }
 
     return;

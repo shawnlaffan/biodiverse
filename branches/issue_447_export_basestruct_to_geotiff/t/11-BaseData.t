@@ -438,9 +438,12 @@ sub test_roundtrip_raster {
 
     #  export should return file names?  Or should we cache them on the object?
 
-    my $format = 'export_asciigrid';
-    my @out_options = ( { data => $bd } ); # not sure what parameters are needed for export
-    #my @out_options;
+    #my $format = 'export_asciigrid';
+    my @out_options = (
+        { format => 'export_asciigrid'},
+        { format => 'export_floatgrid'},
+        { format => 'export_geotiff'},
+    );
 
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
@@ -457,15 +460,17 @@ sub test_roundtrip_raster {
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
+        my $format = $out_options_hash->{format};
+
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
         my $tmp_dir = File::Temp->newdir;
         my $fname_base = $format; 
-        my $suffix = '.asc';
+        my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
         #my @exported_files;
         my $success = eval {
@@ -473,8 +478,6 @@ sub test_roundtrip_raster {
                 format    => $format,
                 file      => $fname,
                 list      => 'SUBELEMENTS',
-                #%$out_options_hash,
-                #filelist  => \@exported_files,
             );
         };
         $e = $EVAL_ERROR;
@@ -493,6 +496,8 @@ sub test_roundtrip_raster {
         # each band was written to a separate file, load each in turn and add to
         # the basedata object
         # Should import the lot at once and then rename the labels to their unescaped form
+        # albeit that would be just as contorted in the end.
+
         #  make sure we skip world and hdr files 
         my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
 
@@ -500,14 +505,15 @@ sub test_roundtrip_raster {
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
             $this_label =~ s/.*${fname_base}_//; # assumed format- $fname then _ then label then suffix
-            $this_label =~ s/$suffix$//; 
+            $this_label =~ s/\....$//;  #  hackish way of clearing suffix
             $this_label = uri_unescape($this_label);
-            say "got label $this_label";
+            note "got label $this_label\n";
 
             $success = eval {
                 $new_bd->import_data_raster (
                     input_files => [$this_file],
                     %in_options_hash,
+                    #labels_as_bands => 1,
                     given_label => $this_label,
                 );
             };

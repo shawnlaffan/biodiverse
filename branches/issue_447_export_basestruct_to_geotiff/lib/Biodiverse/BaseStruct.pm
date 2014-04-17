@@ -1723,7 +1723,6 @@ sub write_table_geotiff {
     my $ncols     =   $r->{NCOLS};
     my $nrows     =   $r->{NROWS};
 
-
     my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
 
     #  are we LSB or MSB?
@@ -1769,6 +1768,7 @@ sub write_table_geotiff {
         my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, 'Float32');
 
         my $out_band = $out_raster->GetRasterBand(1);
+        $out_band->SetNoDataValue ($no_data);
         $out_band->WriteRaster(0, 0, $ncols, $nrows, $pdata);
     }
 

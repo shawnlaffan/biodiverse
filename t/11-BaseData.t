@@ -348,16 +348,18 @@ sub test_roundtrip_delimited_text {
         #{label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
         {label_start_col => 3,   group_columns => [1,2], data_in_matrix_form  =>  1, },
     );
+    
+    my $tmp_folder = File::Temp->newdir;
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
-        say Dumper $out_options_hash;
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
+        #say Dumper $out_options_hash;
 
-        #  need to use a better approach for the name
-        my $fname = 'delimtxt' . $i
+        #  need to use a better approach for the name, but at least it goes into a temp folder
+        my $fname = $tmp_folder . '/' . 'delimtxt' . $i
                    . ($out_options_hash->{symmetric} ? '_symm' : '_asym')
                    . ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
                    . '.txt';  
@@ -438,9 +440,13 @@ sub test_roundtrip_raster {
 
     #  export should return file names?  Or should we cache them on the object?
 
-    my $format = 'export_asciigrid';
-    my @out_options = ( { data => $bd } ); # not sure what parameters are needed for export
-    
+    #my $format = 'export_asciigrid';
+    my @out_options = (
+        { format => 'export_asciigrid'},
+        { format => 'export_floatgrid'},
+        { format => 'export_geotiff'},
+    );
+
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
     # assume export was in format labels_as_bands = 0
@@ -456,26 +462,24 @@ sub test_roundtrip_raster {
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
-        say Dumper $out_options_hash;
+        my $format = $out_options_hash->{format};
+
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
+        #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $fname_base = 'asciigrid' . $i; 
-        my $suffix = '.txt';
-        my $fname = $fname_base 
-                   #. ($out_options_hash->{symmetric} ? '_symm' : '_asym')
-                   #. ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
-                   . $suffix;  
-        my @exported_files;
+        my $tmp_dir = File::Temp->newdir;
+        my $fname_base = $format; 
+        my $suffix = '';
+        my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
+        #my @exported_files;
         my $success = eval {
             $gp->export (
                 format    => $format,
                 file      => $fname,
                 list      => 'SUBELEMENTS',
-                %$out_options_hash,
-                filelist  => \@exported_files
             );
         };
         $e = $EVAL_ERROR;
@@ -492,19 +496,26 @@ sub test_roundtrip_raster {
         use URI::Escape::XS qw/uri_unescape/;
 
         # each band was written to a separate file, load each in turn and add to
-        # the basedata object        
+        # the basedata object
+        # Should import the lot at once and then rename the labels to their unescaped form
+        # albeit that would be just as contorted in the end.
+
+        #  make sure we skip world and hdr files 
+        my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
+
         foreach my $this_file (@exported_files) {
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
-            $this_label =~ s/.*${fname_base}_//; # assumed format- $fname then _ then label then suffix
-            $this_label =~ s/$suffix$//; 
+            $this_label =~ s/.*${fname_base}_//; 
+            $this_label =~ s/\....$//;  #  hackish way of clearing suffix
             $this_label = uri_unescape($this_label);
-            say 'got label $this_label';
+            note "got label $this_label\n";
 
             $success = eval {
                 $new_bd->import_data_raster (
                     input_files => [$this_file],
                     %in_options_hash,
+                    #labels_as_bands => 1,
                     given_label => $this_label,
                 );
             };
@@ -515,14 +526,14 @@ sub test_roundtrip_raster {
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
         is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
-        
+
         my $new_lb = $new_bd->get_labels_ref;
-        subtest "sample counts match for $fname" => sub {
+        subtest "sample counts match for $format" => sub {
             foreach my $label (sort $bd->get_labels) {
                 my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
                 my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
 
-                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
             }
         };
 
@@ -582,15 +593,17 @@ sub test_roundtrip_shapefile {
         },
     );
 
+    my $tmp_dir = File::Temp->newdir;
+
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $fname_base = 'shapefile' . $i; 
+        my $fname_base = $tmp_dir . '/' . 'shapefile_' . $i; 
         my $suffix = ''; # leave off, .shp will be added (or similar)
         my $fname = $fname_base . $suffix;  
         my @exported_files;

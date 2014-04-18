@@ -604,7 +604,7 @@ sub get_metadata_import_data_raster {
     my %arg_hash = (
         parameters => [
             #{ name => 'input_files', type => 'file' }, # not for the GUI
-            { name       => 'raster_labels_as_bands',
+            { name       => 'labels_as_bands',
               label_text => 'Read bands as labels?',
               tooltip    => 'When reading raster data, does each band represent a label (eg species)?',
               type       => 'boolean',

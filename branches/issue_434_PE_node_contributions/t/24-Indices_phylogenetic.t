@@ -8,7 +8,7 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $generate_result_sets = 1;
+my $generate_result_sets = 0;
 
 use rlib;
 use Test::Most;

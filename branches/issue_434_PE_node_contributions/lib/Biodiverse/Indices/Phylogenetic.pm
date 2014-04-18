@@ -692,6 +692,46 @@ sub _calc_pd_pe_clade_loss {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_clade_loss_ancestral {
+
+    my %arguments = (
+        description     => 'How much of the PD clade loss is due to the ancestral branches? '
+                         . 'The score is zero when there is no ancestral loss.',
+        name            => 'PD clade loss (ancestral component)',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd_clade_contributions calc_pd_clade_loss/],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_LOSS_ANC => {
+                description => 'List of how much ancestral PE would be lost '
+                             . 'if each clade were removed.  '
+                             . 'The value is 0 when no ancestral PD is lost.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_ANC_P  => {
+                description => 'List of the proportion of the clade\'s PD loss '
+                             . 'that is due to the ancestral branches.',
+                type        => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+
+sub calc_pd_clade_loss_ancestral {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss_ancestral (
+        %args,
+        res_pfx => 'PD_',
+    );
+}
+
+
 sub get_metadata_calc_pe_clade_loss_ancestral {
 
     my %arguments = (
@@ -720,26 +760,40 @@ sub get_metadata_calc_pe_clade_loss_ancestral {
     return wantarray ? %arguments : \%arguments;
 }
 
+
 sub calc_pe_clade_loss_ancestral {
     my $self = shift;
     my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss_ancestral (
+        %args,
+        res_pfx => 'PE_',
+    );
+}
 
-    my ($pe_clade_score, $pe_clade_loss) =
-      @args{qw /PE_CLADE_SCORE PE_CLADE_LOSS_SCORE/};
+sub _calc_pd_pe_clade_loss_ancestral {
+    my $self = shift;
+    my %args = @_;
+
+    my $pfx = $args{res_pfx};
+    my @score_names = map {$pfx . $_} qw /CLADE_SCORE CLADE_LOSS_SCORE/;
+
+    my ($p_clade_score, $p_clade_loss) =
+      @args{@score_names};
 
     my (%loss_ancestral, %loss_ancestral_p);
 
-    while (my ($node_name, $score) = each %$pe_clade_score) {
-        my $score = $pe_clade_loss->{$node_name}
-                  - $pe_clade_score->{$node_name};
+    while (my ($node_name, $score) = each %$p_clade_score) {
+        my $score = $p_clade_loss->{$node_name}
+                  - $p_clade_score->{$node_name};
         $loss_ancestral{$node_name}   = $score;
-        my $loss = $pe_clade_loss->{$node_name};
+        my $loss = $p_clade_loss->{$node_name};
         $loss_ancestral_p{$node_name} = $loss ? $score / $loss : 0;
     }
 
     my %results = (
-        PE_CLADE_LOSS_ANC   => \%loss_ancestral,
-        PE_CLADE_LOSS_ANC_P => \%loss_ancestral_p,
+        "${pfx}CLADE_LOSS_ANC"   => \%loss_ancestral,
+        "${pfx}CLADE_LOSS_ANC_P" => \%loss_ancestral_p,
     );
 
     return wantarray ? %results : \%results;

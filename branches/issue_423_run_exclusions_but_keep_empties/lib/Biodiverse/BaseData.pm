@@ -2262,14 +2262,9 @@ sub run_exclusions {
     #  now we go through and delete any of the groups that are beyond our stated exclusion values
     my %exclusion_hash = $self->get_exclusion_hash (%args);  #  generate the exclusion hash
 
-    #my %test_funcs = (
-    #    minVariety    => '$base_type_ref->get_variety(element => $element) <= ',
-    #    maxVariety    => '$base_type_ref->get_variety(element => $element) >= ',
-    #    minSamples    => '$base_type_ref->get_sample_count(element => $element) <= ',
-    #    maxSamples    => '$base_type_ref->get_sample_count(element => $element) >= ',
-    #    minRedundancy => '$base_type_ref->get_redundancy(element => $element) <= ',
-    #    maxRedundancy => '$base_type_ref->get_redundancy(element => $element) >= ',
-    #);
+    $args{delete_empty_groups} //= $exclusion_hash{delete_empty_groups};
+    $args{delete_empty_labels} //= $exclusion_hash{delete_empty_labels};
+
 
     #  $_[0] is $base_type_ref, $_[1] is $element
     my %test_callbacks = (
@@ -2996,10 +2991,18 @@ sub build_spatial_index {  #  builds GROUPS, not LABELS
     foreach my $gp ($self->get_groups) {
         $groups{$gp} = $gp_object->get_element_name_as_array (element => $gp);
     }
-    
-    my $index = Biodiverse::Index->new (@_, element_hash => \%groups);
-    $self->set_param (SPATIAL_INDEX => $index);
-    
+
+    my $index;
+
+    #  if no groups then remove it
+    if (!scalar keys %groups) {
+        $self->delete_param ('SPATIAL_INDEX');
+    }
+    else {
+        $index = Biodiverse::Index->new (@_, element_hash => \%groups);
+        $self->set_param (SPATIAL_INDEX => $index);
+    }
+
     return $index;
 }
 

@@ -2623,7 +2623,7 @@ sub delete_sub_element {
 
     croak "element not specified\n" if ! defined $args{element};
     croak "subelement not specified\n" if ! defined $args{subelement};
-    my $element = $args{element};
+    my $element     = $args{element};
     my $sub_element = $args{subelement};
 
     return if ! exists $self->{ELEMENTS}{$element};

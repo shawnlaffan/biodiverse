@@ -396,6 +396,7 @@ sub get_basedata_test_data {
     my $count = $args{count} || 0;
     my $use_rand_counts = $args{use_rand_counts};
     my $numeric_labels  = $args{numeric_labels};
+    my $label_callback  = $args{label_generator} || sub {join '_', @_};
 
     my $data;
     $data .= "label,x,y,count\n";
@@ -406,7 +407,7 @@ sub get_basedata_test_data {
             if ($use_rand_counts) {
                 $count = int (rand() * 1000);
             }
-            my $label = $numeric_labels ? $i : join '_', $i, $j;
+            my $label = $numeric_labels ? $i : $label_callback->($i, $j);
             $data .= "$label,$ii,$jj,$count\n";
         }
     }

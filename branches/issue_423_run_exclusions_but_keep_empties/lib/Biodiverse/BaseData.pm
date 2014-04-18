@@ -336,6 +336,10 @@ sub get_coord_bounds {
     my (@min, @max);
 
     my $groups = $self->get_groups;
+    
+    return wantarray ? () : {}
+      if !scalar @$groups;
+
     my $gp = $self->get_groups_ref;
 
     my @coord0 = $gp->get_element_name_as_array (element => $groups->[0]);
@@ -2321,10 +2325,7 @@ sub run_exclusions {
     BY_TYPE:
     foreach my $type ('LABELS', 'GROUPS') {
         
-        my $other_type = 'GROUPS';
-        if ($type eq 'GROUPS') {
-            $other_type = 'LABELS';
-        }
+        my $other_type = $type eq 'GROUPS' ? 'LABELS' : 'GROUPS';
 
         my $base_type_ref = $self->{$type};
 
@@ -2390,7 +2391,11 @@ sub run_exclusions {
         }
 
         foreach my $element (@delete_list) {  #  having it out here means all are checked against the initial state
-            $sub_cut_count += $self->delete_element (type => $type, element => $element);
+            $sub_cut_count += $self->delete_element (
+                %args,
+                type    => $type,
+                element => $element,
+            );
         }
 
         my $lctype = lc ($type);
@@ -2583,8 +2588,11 @@ sub delete_element {
                         ? 'LABELS'
                         : 'GROUPS';  
 
-    my $type_ref = $self->{$type};
+    my $type_ref       = $self->{$type};
     my $other_type_ref = $self->{$other_type};
+
+    my $remove_other_empties = $args{$type eq 'GROUPS' ? 'delete_empty_labels' : 'delete_empty_groups'};
+    $remove_other_empties  //= 1;
 
     my $subelement_cut_count = 0;
 
@@ -2598,10 +2606,11 @@ sub delete_element {
         #print "ELEMENT $element, SUBELEMENT $subelement\n";
         #  switch the element/subelement values as they are reverse indexed in $other_type
         $other_type_ref->delete_sub_element(
+            %args,
             element    => $subelement,
             subelement => $element,
         );
-        if ($other_type_ref->get_variety(element => $subelement) == 0) {
+        if ($remove_other_empties && $other_type_ref->get_variety(element => $subelement) == 0) {
             # we have wiped out all groups with this label
             # so we need to remove it from the data set
             $other_type_ref->delete_element(element => $subelement);
@@ -2636,22 +2645,22 @@ sub delete_sub_element {
     );
 
     #  clean up if labels or groups are now empty
-    #my $richness = $groups_ref->get_richness (element => $group);
-    #my $range    = $labels_ref->get_variety (element => $label);;
-    #
-    if ($groups_ref->get_variety (element => $group) == 0) {
+    my $delete_empty_gps = $args{delete_empty_groups} // 1;
+    my $delete_empty_lbs = $args{delete_empty_labels} // 1;
+    
+    if ($delete_empty_gps && $groups_ref->get_variety (element => $group) == 0) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($labels_ref->get_variety (element => $label) == 0) {
+    if ($delete_empty_lbs && $labels_ref->get_variety (element => $label) == 0) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,
         );
     }
-    
+
     return;
 }
 

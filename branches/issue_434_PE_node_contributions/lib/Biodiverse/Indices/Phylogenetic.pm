@@ -433,7 +433,7 @@ sub get_metadata_calc_pd_clade_contributions {
 
     my %arguments = (
         description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
-        name            => 'PE clade contributions',
+        name            => 'PD clade contributions',
         reference       => '',
         type            => 'Phylogenetic Indices', 
         pre_calc        => [qw /calc_pd calc_pd_node_list get_sub_tree/],
@@ -555,6 +555,48 @@ sub calc_pe_clade_contributions {
 }
 
 
+sub get_metadata_calc_pd_clade_loss {
+
+    my %arguments = (
+        description     => 'How much of the PD would be lost if a clade were to be removed? '
+                         . 'Calculates the clade PD below the last ancestral node in the '
+                         . 'neighbour set which would still be in the neighbour set.',
+        name            => 'PD clade loss',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd_clade_contributions get_sub_tree/],
+        #pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_LOSS_SCORE  => {
+                description => 'List of how much PD would be lost if each clade were removed.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_CONTR  => {
+                description => 'List of the proportion of the PD score which would be lost '
+                             . 'if each clade were removed.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_CONTR_P => {
+                description => 'As per PD_CLADE_LOSS but proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pd_clade_loss {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss (
+        %args,
+        res_pfx => 'PD_',
+    );
+}
+
 sub get_metadata_calc_pe_clade_loss {
 
     my %arguments = (
@@ -586,7 +628,6 @@ sub get_metadata_calc_pe_clade_loss {
 
     return wantarray ? %arguments : \%arguments;
 }
-
 
 sub calc_pe_clade_loss {
     my $self = shift;

@@ -1856,15 +1856,10 @@ sub write_table_ers {
                 );
 
                 my $ID = "$x:$y";
-                my $value = $data_hash{$ID}[$band];
-
-                if (not defined $value) {
-                    $value = $no_data;
-                    #$stats{$band}{NumberOfNullCells} ++;
-                }
+                my $value = $data_hash{$ID}[$band] // $no_data;
 
                 eval {
-                    print $ofh pack ('f', $value);
+                    print {$ofh} pack 'f', $value;
                 };
                 croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -1887,14 +1882,16 @@ sub write_table_ers {
     my $gm_time = (gmtime);
     $gm_time =~ s/(\d+)$/GMT $1/;  #  insert "GMT" before the year
     my $n_bands = scalar @band_cols;
-    my @reg_coords = (
-        #$min[0] - ($res[0] / 2),
-        #$max[1] + ($res[1] / 2),
-        $min[0], $max[1],
-    );
 
     #  The RegistrationCell[XY] values should be 0.5,
     #  but 0 plots properly in ArcMap
+    #  -- fixed in arc 10.2, and prob earlier, so we are OK now
+    my @reg_coords = (
+        $min[0] - ($res[0] / 2),
+        $max[1] + ($res[1] / 2),
+        #$min[0], $max[1],
+    );
+
 
     my $header_start =<<"END_OF_ERS_HEADER_START"
 DatasetHeader Begin
@@ -1949,16 +1946,14 @@ END_OF_ERS_HEADER_START
 
     my $header_file = Path::Class::file($path, $name)->stringify . $suffix;
     open (my $header_fh, '>', $header_file)
-      || croak "Could not open header file $header_file\n";
+      or croak "Could not open header file $header_file\n";
 
-    print $header_fh join ("\n", @header), "\n";
+    say {$header_fh} join ("\n", @header);
 
-    if (! close $header_fh) {
-        croak "Unable to write to $header_file\n";
-    }
-    else {
-        print "[BASESTRUCT] Write to file $header_file successful\n";
-    }
+    croak "Unable to write to $header_file\n"
+      if !$header_fh->close;
+    
+    say "[BASESTRUCT] Write to file $header_file successful";
 
     return;
 }

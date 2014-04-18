@@ -504,7 +504,7 @@ sub test_roundtrip_raster {
         foreach my $this_file (@exported_files) {
             # find label name from file name
             my $this_label = Path::Class::File->new($this_file)->basename();
-            $this_label =~ s/.*${fname_base}_//; # assumed format- $fname then _ then label then suffix
+            $this_label =~ s/.*${fname_base}_//; 
             $this_label =~ s/\....$//;  #  hackish way of clearing suffix
             $this_label = uri_unescape($this_label);
             note "got label $this_label\n";
@@ -524,7 +524,7 @@ sub test_roundtrip_raster {
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;
         is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
-        
+
         my $new_lb = $new_bd->get_labels_ref;
         subtest "sample counts match for $format" => sub {
             foreach my $label (sort $bd->get_labels) {

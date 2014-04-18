@@ -348,16 +348,18 @@ sub test_roundtrip_delimited_text {
         #{label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
         {label_start_col => 3,   group_columns => [1,2], data_in_matrix_form  =>  1, },
     );
+    
+    my $tmp_folder = File::Temp->newdir;
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
-        say Dumper $out_options_hash;
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
+        #say Dumper $out_options_hash;
 
-        #  need to use a better approach for the name
-        my $fname = 'delimtxt' . $i
+        #  need to use a better approach for the name, but at least it goes into a temp folder
+        my $fname = $tmp_folder . '/' . 'delimtxt' . $i
                    . ($out_options_hash->{symmetric} ? '_symm' : '_asym')
                    . ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
                    . '.txt';  
@@ -591,15 +593,17 @@ sub test_roundtrip_shapefile {
         },
     );
 
+    my $tmp_dir = File::Temp->newdir;
+
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
-        local $Data::Dumper::Sortkeys = 1;
-        local $Data::Dumper::Purity   = 1;
-        local $Data::Dumper::Terse    = 1;
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $fname_base = 'shapefile' . $i; 
+        my $fname_base = $tmp_dir . '/' . 'shapefile_' . $i; 
         my $suffix = ''; # leave off, .shp will be added (or similar)
         my $fname = $fname_base . $suffix;  
         my @exported_files;

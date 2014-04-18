@@ -458,20 +458,33 @@ sub get_metadata_calc_pd_clade_contributions {
     return wantarray ? %arguments : \%arguments;
 }
 
-#  almost indentical to calc_pe_clade_contributions - need to refactor
 sub calc_pd_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_contributions(
+        %args,
+        node_list => $args{PD_INCLUDED_NODE_LIST},
+        p_score   => $args{PD},
+        res_pfx   => 'PD_',
+    );
+}
+
+
+sub _calc_pd_pe_clade_contributions {
     my $self = shift;
     my %args = @_;
 
     my $main_tree = $args{tree_ref};
     my $sub_tree  = $args{SUBTREE};
-    my $wt_list   = $args{PD_INCLUDED_NODE_LIST};
-    my $PD_score  = $args{PD};
+    my $wt_list   = $args{node_list};
+    my $p_score   = $args{p_score};
+    my $res_pfx   = $args{res_pfx};
     my $sum_of_branches = $main_tree->get_total_tree_length;
 
     my $contr   = {};
     my $contr_p = {};
-    my $clade_pe = {};
+    my $clade_score = {};
 
   NODE_NAME:
     foreach my $node_name (keys %$wt_list) {
@@ -486,15 +499,15 @@ sub calc_pd_clade_contributions {
         my $wt_sum = sum @$wt_list{keys %$node_hash};
 
         #  round off to avoid spurious spatial variation.
-        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $PD_score;
+        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $p_score;
         $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
-        $clade_pe->{$node_name} = $wt_sum;
+        $clade_score->{$node_name} = $wt_sum;
     }
 
     my %results = (
-        PD_CLADE_SCORE   => $clade_pe,
-        PD_CLADE_CONTR   => $contr,
-        PD_CLADE_CONTR_P => $contr_p,
+        "${res_pfx}CLADE_SCORE"   => $clade_score,
+        "${res_pfx}CLADE_CONTR"   => $contr,
+        "${res_pfx}CLADE_CONTR_P" => $contr_p,
     );
 
     return wantarray ? %results : \%results;
@@ -532,42 +545,13 @@ sub get_metadata_calc_pe_clade_contributions {
 sub calc_pe_clade_contributions {
     my $self = shift;
     my %args = @_;
-
-    my $main_tree = $args{trimmed_tree};
-    my $sub_tree  = $args{SUBTREE};
-    my $wt_list   = $args{PE_WTLIST};
-    my $PE_score  = $args{PE_WE};
-    my $sum_of_branches = $main_tree->get_total_tree_length;
-
-    my $contr   = {};
-    my $contr_p = {};
-    my $clade_pe = {};
-
-  NODE_NAME:
-    foreach my $node_name (keys %$wt_list) {
-        next if defined $contr->{$node_name};
-
-        my $node_ref = $sub_tree->get_node_ref (node => $node_name);
-
-        #  Possibly inefficient as we are not caching by node
-        #  but at least the descendants are cached and perhaps that
-        #  is where any slowness would come from as List::Util::sum is pretty quick
-        my $node_hash = $node_ref->get_all_descendents_and_self;
-        my $wt_sum = sum @$wt_list{keys %$node_hash};
-
-        #  round off to avoid spurious spatial variation.
-        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $PE_score;
-        $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
-        $clade_pe->{$node_name} = $wt_sum;
-    }
-
-    my %results = (
-        PE_CLADE_SCORE   => $clade_pe,
-        PE_CLADE_CONTR   => $contr,
-        PE_CLADE_CONTR_P => $contr_p,
+    
+    return $self->_calc_pd_pe_clade_contributions(
+        %args,
+        node_list => $args{PE_WTLIST},
+        p_score   => $args{PE_WE},
+        res_pfx   => 'PE_',
     );
-
-    return wantarray ? %results : \%results;
 }
 
 

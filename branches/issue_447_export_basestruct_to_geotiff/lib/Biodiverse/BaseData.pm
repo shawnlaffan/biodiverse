@@ -1274,6 +1274,7 @@ sub import_data_raster {
                 # if single band, set label as filename
                 if ($data->{RasterCount} == 1) {
                     $this_label = Path::Class::File->new($file->stringify)->basename();
+                    $this_label =~ s/\.[^.]+$//;
                 }
                 else {
                     $this_label = "band$b";
@@ -1288,9 +1289,10 @@ sub import_data_raster {
 
             # record if numeric values are being used for labels
             # CHECK CHECK CHECK - should be set later, as we might be adding to an existing basedata
-            if (scalar @catnames == 0 && ! $labels_as_bands) {
-                $labels_ref->{element_arrays_are_numeric} = 1;
-            }
+            #  NOT USED ELSEWHERE
+            #if (scalar @catnames == 0 && ! $labels_as_bands) {
+            #    $labels_ref->{element_arrays_are_numeric} = 1;
+            #}
 
             # read as preferred size blocks?
             ($blockw, $blockh) = $band->GetBlockSize();

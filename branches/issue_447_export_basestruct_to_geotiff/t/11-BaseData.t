@@ -471,7 +471,7 @@ sub test_roundtrip_raster {
 
         #  need to use a better approach for the name
         my $tmp_dir = File::Temp->newdir;
-        my $fname_base = $format; 
+        my $fname_base = $format;
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
         #my @exported_files;

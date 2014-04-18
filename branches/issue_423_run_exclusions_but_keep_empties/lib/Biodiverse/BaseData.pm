@@ -2262,13 +2262,23 @@ sub run_exclusions {
     #  now we go through and delete any of the groups that are beyond our stated exclusion values
     my %exclusion_hash = $self->get_exclusion_hash (%args);  #  generate the exclusion hash
 
-    my %test_funcs = (
-        minVariety    => '$base_type_ref->get_variety(element => $element) <= ',
-        maxVariety    => '$base_type_ref->get_variety(element => $element) >= ',
-        minSamples    => '$base_type_ref->get_sample_count(element => $element) <= ',
-        maxSamples    => '$base_type_ref->get_sample_count(element => $element) >= ',
-        minRedundancy => '$base_type_ref->get_redundancy(element => $element) <= ',
-        maxRedundancy => '$base_type_ref->get_redundancy(element => $element) >= ',
+    #my %test_funcs = (
+    #    minVariety    => '$base_type_ref->get_variety(element => $element) <= ',
+    #    maxVariety    => '$base_type_ref->get_variety(element => $element) >= ',
+    #    minSamples    => '$base_type_ref->get_sample_count(element => $element) <= ',
+    #    maxSamples    => '$base_type_ref->get_sample_count(element => $element) >= ',
+    #    minRedundancy => '$base_type_ref->get_redundancy(element => $element) <= ',
+    #    maxRedundancy => '$base_type_ref->get_redundancy(element => $element) >= ',
+    #);
+
+    #  $_[0] is $base_type_ref, $_[1] is $element
+    my %test_callbacks = (
+        minVariety    => sub {$_[0]->get_variety     (element => $_[1]) <= $_[2]},
+        maxVariety    => sub {$_[0]->get_variety     (element => $_[1]) >= $_[2]},
+        minSamples    => sub {$_[0]->get_sample_count(element => $_[1]) <= $_[2]},
+        maxSamples    => sub {$_[0]->get_sample_count(element => $_[1]) >= $_[2]},
+        minRedundancy => sub {$_[0]->get_redundancy  (element => $_[1]) <= $_[2]},
+        maxRedundancy => sub {$_[0]->get_redundancy  (element => $_[1]) >= $_[2]},
     );
 
     my ($label_regex, $label_regex_negate);
@@ -2295,7 +2305,7 @@ sub run_exclusions {
             $label_check_list = $check_list;
         }
     }
-    
+
     my $group_check_list;
     if (my $definition_query = $exclusion_hash{GROUPS}{definition_query}) {
         if (!blessed $definition_query) {
@@ -2317,11 +2327,9 @@ sub run_exclusions {
 
     #  check the labels first, then the groups
     #  equivalent to range then richness
-    my @delete_list;
-    
+    my (@delete_list, %tally);
     my $excluded = 0;
-    my %tally;
-    
+
     BY_TYPE:
     foreach my $type ('LABELS', 'GROUPS') {
         
@@ -2332,7 +2340,7 @@ sub run_exclusions {
         my $cut_count = 0;
         my $sub_cut_count = 0;
         @delete_list = ();
-        
+
         BY_ELEMENT:
         foreach my $element ($base_type_ref->get_element_list) {
             #next if ! defined $element;  #  ALL SHOULD BE DEFINED
@@ -2343,15 +2351,18 @@ sub run_exclusions {
             my $failed_a_test = 0;
             
             BY_TEST:
-            foreach my $test (keys %test_funcs) {
+            foreach my $test (keys %test_callbacks) {
                 next BY_TEST if ! defined $exclusion_hash{$type}{$test};
-                
-                my $condition = $test_funcs{$test} . $exclusion_hash{$type}{$test};
-                
-                my $check = eval $condition;
-                
-                next BY_TEST if ! $check;
-                
+
+                #  old string eval approach
+                #my $condition = $test_funcs{$test} . $exclusion_hash{$type}{$test};
+                #my $check = eval $condition;
+
+                my $callback = $test_callbacks{$test};
+                my $chk = $callback->($base_type_ref, $element, $exclusion_hash{$type}{$test});
+
+                next BY_TEST if ! $chk;
+
                 $failed_a_test = 1;  #  if we get here we have failed a test, so drop out of the loop
                 last BY_TEST;
             }
@@ -2363,7 +2374,7 @@ sub run_exclusions {
                     (defined $exclusion_hash{$type}{min_range}
                     && $self->get_range(element => $element) <= $exclusion_hash{$type}{min_range})
                     ) {
-                    
+
                     $failed_a_test = 1;
                 }
                 if (!$failed_a_test && $label_regex) {
@@ -2379,7 +2390,7 @@ sub run_exclusions {
                     }
                 }
             }
-            
+
             if (!$failed_a_test && $type eq 'GROUPS' && $group_check_list) {
                 $failed_a_test = exists $group_check_list->{$element};
             }
@@ -2398,19 +2409,16 @@ sub run_exclusions {
             );
         }
 
-        my $lctype = lc ($type);
+        my $lctype = lc $type;
+        my $lc_othertype = lc $other_type;
         if ($cut_count || $sub_cut_count) {
-            $feedback .=
-                "Cut $cut_count $lctype on exclusion criteria, deleting $sub_cut_count "
-                . lc($other_type)
-                . " in the process\n\n";
-            $feedback .=
-                "The data now fall into "
-                . $self->get_group_count .
-                " groups with "
-                . $self->get_label_count
-                . " unique labels\n\n";
-            $tally{$type . '_count'} += $cut_count;
+            $feedback .= "Cut $cut_count $lctype on exclusion criteria, "
+                       . "deleting $sub_cut_count $lc_othertype in the process\n\n";
+            $feedback .= sprintf
+                "The data now fall into %d groups with %d unique labels\n\n",
+                $self->get_group_count,
+                $self->get_label_count;
+            $tally{$type . '_count'}       += $cut_count;
             $tally{$other_type . '_count'} += $sub_cut_count;
             $excluded ++;
         }

@@ -218,6 +218,7 @@ sub add_node {
     my %args = @_;
     my $node = $args{node_ref} || Biodiverse::TreeNode->new (@_);
     $self->add_to_node_hash (node_ref => $node);
+    
     return $node;
 }
 
@@ -296,7 +297,8 @@ sub get_terminal_elements {
     my $self = shift;
     my %args = (cache => 1, @_);  #  cache by default
 
-    my $node = $args{node} || croak "node not specified\n";
+    my $node = $args{node} || croak "node not specified in call to get_terminal_elements\n";
+
     my $node_ref = $self->get_node_ref(node => $node);
 
     return $node_ref->get_terminal_elements (cache => $args{cache})
@@ -331,7 +333,8 @@ sub get_terminal_element_count {
 sub get_node_ref {
     my $self = shift;
     my %args = @_;
-    croak "node not specified\n" if ! defined $args{node};
+
+    croak "node not specified in call to get_node_ref\n" if ! defined $args{node};
 
     Biodiverse::Tree::NotExistsNode->throw ("[Tree] $args{node} does not exist")
       if !exists $self->{TREE_BY_NAME}{$args{node}};
@@ -769,7 +772,7 @@ sub export_nexus {
 
     $fh->close;
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_newick {
@@ -803,7 +806,7 @@ sub export_newick {
     print {$fh} $self->to_newick (%args);
     $fh->close;
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_shapefile {
@@ -919,7 +922,7 @@ sub export_shapefile {
 
     $shp_writer->finalize();
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_tabular_tree {
@@ -974,12 +977,13 @@ sub export_tabular_tree {
     my $table = $self->to_table (
         symmetric   => 1,
         name        => $name,
+        use_internal_names => 1,
         %args,
     );
 
     $self->write_table_csv (%args, data => $table);
 
-    return;
+    return 1;
 }
 
 sub get_metadata_export_table_grouped {
@@ -1073,7 +1077,7 @@ sub export_table_grouped {
         data => $data
     );
 
-    return;
+    return 1;
 }
 
 #  Superseded by PE_RANGELIST index.
@@ -1119,7 +1123,7 @@ sub export_range_table {
         data => $data,
     );
 
-    return;
+    return 1;
 }
 
 #  Grab all the basestruct export methods and add them here.

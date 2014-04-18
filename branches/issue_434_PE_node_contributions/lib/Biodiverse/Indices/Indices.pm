@@ -5,8 +5,8 @@ use 5.010;
 
 use Carp;
 
-use Scalar::Util qw /blessed weaken/;
-use List::Util qw /min max pairs pairkeys/;
+use Scalar::Util qw /blessed weaken reftype/;
+use List::Util qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 
@@ -221,6 +221,86 @@ sub get_formula_explanation_ABC {
     
     return wantarray ? @explanation : \@explanation;
 }
+
+#  off for now - k1 index can go negative so we don't want it for clustering
+#sub get_metadata_calc_kulczynski1 {
+#    my $self = shift;
+#
+#    my %arguments = (
+#        name            => 'Kulczynski 1',
+#        description     => "Kulczynski 1 dissimilarity between two sets of labels.\n",
+#        formula         => [
+#             '= 1 - \frac{A}{B + C}',
+#            $self -> get_formula_explanation_ABC,
+#        ],
+#        indices         => {
+#            KULCZYNSKI1      => {
+#                cluster     => 1,
+#                description => 'Kulczynski 1 index',
+#            }
+#        },
+#        type            => 'Taxonomic Dissimilarity and Comparison',
+#        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+#        uses_nbr_lists  => 2,
+#    );
+#
+#    return wantarray ? %arguments : \%arguments;
+#}
+#
+#sub calc_kulczynski1 {
+#    my $self = shift;
+#    my %args = @_;
+#
+#    my $value = $args{DISSIMILARITY_IS_VALID}
+#        ? eval {1 - $args{A} / ($args{B} + $args{C})}
+#        : undef;
+#
+#    my %result = (KULCZYNSKI1 => $value);
+#
+#    return wantarray ? %result : \%result;
+#}
+
+sub get_metadata_calc_kulczynski2 {
+    my $self = shift;
+
+    my %arguments = (
+        name            => 'Kulczynski 2',
+        description     => "Kulczynski 2 dissimilarity between two sets of labels.\n",
+        formula         => [
+            '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
+            $self -> get_formula_explanation_ABC,
+        ],
+        indices         => {
+            KULCZYNSKI2      => {
+                cluster     => 1,
+                description => 'Kulczynski 2 index',
+            }
+        },
+        type            => 'Taxonomic Dissimilarity and Comparison',
+        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        uses_nbr_lists  => 2,
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_kulczynski2 {
+    my $self = shift;
+    my %args = @_;
+
+    my $value;
+    if ($args{DISSIMILARITY_IS_VALID}) {
+        my ($a, $b, $c) = @args{'A', 'B', 'C'};
+        $value = eval {
+            1 - 0.5 * ($a / ($a + $b) + $a / ($a + $c));
+        };
+    }
+
+    my %result = (KULCZYNSKI2 => $value);
+
+    return wantarray ? %result : \%result;
+}
+
 
 sub get_metadata_calc_sorenson {
     my $self = shift;
@@ -730,34 +810,38 @@ sub calc_simpson_shannon {
     my $self = shift;
     my %args = @_;
 
-    my $labels = $args{label_hash_all};
+    my $labels   = $args{label_hash_all};
     my $richness = $args{ABC};
 
-    my $n = 0;
-    foreach my $value (values %$labels) {
-        $n += $value;
-    }
+    my %results;
 
-    my ($simpson_d, $shannon_h, $sum_labels, $shannon_e);
-    foreach my $value (values %$labels) {  #  don't need the labels, so don't use keys
-        my $p_i = $value / $n;
-        $simpson_d += $p_i ** 2;
-        $shannon_h += $p_i * log ($p_i);
+    if ($richness) {  #  results not valid if cells are empty
+        my $n = sum 0, values %$labels;
+    
+        my ($simpson_d, $shannon_h, $sum_labels, $shannon_e);
+        foreach my $value (values %$labels) {  #  don't need the labels, so don't use keys
+            my $p_i     = $value / $n;
+            $simpson_d += $p_i ** 2;
+            $shannon_h += $p_i * log ($p_i);
+        }
+        $shannon_h *= -1;
+        #$simpson_d /= $richness ** 2;
+        #  trap divide by zero when sum_labels == 1
+        my $shannon_hmax = log ($richness);
+        $shannon_e = $shannon_hmax == 0
+            ? undef
+            : $shannon_h / $shannon_hmax;
+    
+        %results = (
+            SHANNON_H    => $shannon_h,
+            SHANNON_HMAX => $shannon_hmax,
+            SHANNON_E    => $shannon_e,
+            SIMPSON_D    => 1 - $simpson_d,
+        );
     }
-    $shannon_h *= -1;
-    #$simpson_d /= $richness ** 2;
-    #  trap divide by zero when sum_labels == 1
-    my $shannon_hmax = log ($richness);
-    $shannon_e = $shannon_hmax == 0
-        ? undef
-        : $shannon_h / $shannon_hmax;
-
-    my %results = (
-        SHANNON_H    => $shannon_h,
-        SHANNON_HMAX => $shannon_hmax,
-        SHANNON_E    => $shannon_e,
-        SIMPSON_D    => 1 - $simpson_d,
-    );
+    else {
+        @results{qw /SHANNON_H SHANNON_HMAX SHANNON_E SIMPSON_D/} = undef;
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -1553,7 +1637,7 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         croak "_calc_abc argument $listname is not a list ref\n"
           if !ref $el_listref;
 
-        if ((ref $el_listref) =~ /HASH/) {  #  silently convert the hash to an array
+        if (reftype ($el_listref) eq 'HASH') {  #  silently convert the hash to an array
             $el_listref = [keys %$el_listref];
         }
 

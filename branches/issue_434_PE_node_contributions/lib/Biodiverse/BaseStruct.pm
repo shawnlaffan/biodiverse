@@ -550,6 +550,32 @@ sub export_floatgrid {
     return;
 }
 
+
+sub get_metadata_export_geotiff {
+    my $self = shift;
+
+    my %args = (
+        format => 'GeoTIFF',
+        parameters => [
+            $self->get_common_export_metadata(),
+            $self->get_raster_export_metadata(),
+        ],
+    ); 
+
+    return wantarray ? %args : \%args;
+}
+
+sub export_geotiff {
+    my $self = shift;
+    my %args = @_;
+
+    my $table = $self->to_table (%args, symmetric => 1);
+
+    $self->write_table_geotiff (%args, data => $table);
+
+    return;
+}
+
 sub get_metadata_export_divagis {
     my $self = shift;
 
@@ -1331,7 +1357,7 @@ sub write_table_asciigrid {
 
     my $file = $args{file} || croak "file arg not specified\n";
     my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.asc/, qr/\.txt/);
-    my $file_list_ref = $args{filelist};
+    my $file_list_ref = $args{filelist} || [];
     
     if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .asc and store it
         $suffix = '.asc';
@@ -1361,10 +1387,10 @@ sub write_table_asciigrid {
         my $this_file = $name . "_" . $header->[$i];
         $this_file = $self->escape_filename (string => $this_file);
 
-        my $filename = Path::Class::file($path, $this_file)->stringify;
-        $filename .= $suffix;
+        my $filename    = Path::Class::file($path, $this_file)->stringify;
+        $filename      .= $suffix;
         $file_names[$i] = $filename;
-        push(@$file_list_ref, $filename) if ($file_list_ref); # record file in list if array ref provided
+        push @$file_list_ref, $filename; # record file in list
 
         my $fh;
         my $success = open ($fh, '>', $filename);
@@ -1667,6 +1693,105 @@ DIVA_HDR
     return;
 }
 
+#  write a table out as a series of ESRI floatgrid files,
+#  one per field based on row 0.
+#  Skip any fields that contain non-numeric values
+sub write_table_geotiff {
+    my $self = shift;
+    my %args = @_;
+
+    my $data = $args{data} || croak "data arg not specified\n";
+    (ref $data) =~ /ARRAY/ || croak "data arg must be an array ref\n";
+
+    my $file = $args{file} || croak "file arg not specified\n";
+    my ($name, $path, $suffix) = fileparse (Path::Class::file($file)->absolute, qr/\.tif{1,2}/);
+    if (! defined $suffix || $suffix eq q{}) {  #  clear off the trailing .tif and store it
+        $suffix = '.tif';
+    }
+
+    #  now process the generic stuff
+    my $r = $self->raster_export_process_args ( %args );
+
+    my @min       = @{$r->{MIN}};
+    my @max       = @{$r->{MAX}};
+    my %data_hash = %{$r->{DATA_HASH}};
+    my @precision = @{$r->{PRECISION}};
+    my @band_cols = @{$r->{BAND_COLS}};
+    my $header    =   $r->{HEADER};
+    my $no_data   =   $r->{NODATA};
+    my @res       = @{$r->{RESOLUTIONS}};
+    my $ncols     =   $r->{NCOLS};
+    my $nrows     =   $r->{NROWS};
+
+    my %coord_cols_hash = %{$r->{COORD_COLS_HASH}};
+
+    my $ll_cenx = $min[0];  # - 0.5 * $res[0];
+    my $ul_ceny = $max[1];  # - 0.5 * $res[1];
+
+    my $tfw = <<"END_TFW"
+$res[0]
+0
+0
+-$res[1]
+$ll_cenx
+$ul_ceny
+END_TFW
+  ;
+
+    #  are we LSB or MSB?
+    my $is_little_endian = unpack( 'c', pack( 's', 1 ) );
+
+    my @file_names;
+    foreach my $i (@band_cols) {
+        my $this_file = $name . "_" . $header->[$i];
+        $this_file = $self->escape_filename (string => $this_file);
+
+        my $filename = Path::Class::file($path, $this_file)->stringify;
+        $filename   .= $suffix;
+        $file_names[$i] = $filename;
+    }
+
+    my %coords;
+    #my @default_line = ($no_data x scalar @$header);
+
+    my $prec_fmt_y = "%.$precision[1]f";
+    my $prec_fmt_x = "%.$precision[0]f";
+
+    my @bands;
+    for (my $y = $max[1]; $y >= $min[1]; $y = sprintf ($prec_fmt_y, $y - $res[1])) {  #  y then x
+
+        for (my $x = $min[0]; $x <= $max[0]; $x = sprintf ($prec_fmt_x, $x + $res[0])) {
+
+            my $coord_name = join (':', $x, $y);
+            foreach my $i (@band_cols) { 
+                next if $coord_cols_hash{$i};  #  skip if it is a coordinate
+                my $value = $data_hash{$coord_name}[$i] // $no_data;
+                $bands[$i] .= pack 'f', $value;
+            }
+        }
+    }
+
+    my $format = "GTiff";
+    my $driver = Geo::GDAL::GetDriverByName( $format );
+
+    foreach my $i (@band_cols) {
+        my $f_name = $file_names[$i];
+        my $pdata  = $bands[$i];
+
+        my $out_raster = $driver->Create($f_name, $ncols, $nrows, 1, 'Float32');
+
+        my $out_band = $out_raster->GetRasterBand(1);
+        $out_band->SetNoDataValue ($no_data);
+        $out_band->WriteRaster(0, 0, $ncols, $nrows, $pdata);
+
+        my $f_name_tfw = $f_name . 'w';
+        open(my $fh, '>', $f_name_tfw) or die "cannot open $f_name_tfw";
+        print {$fh} $tfw;
+        $fh->close;
+    }
+
+    return;
+}
 
 #  write a table out as an ER-Mapper ERS BIL file.
 sub write_table_ers {
@@ -1731,15 +1856,10 @@ sub write_table_ers {
                 );
 
                 my $ID = "$x:$y";
-                my $value = $data_hash{$ID}[$band];
-
-                if (not defined $value) {
-                    $value = $no_data;
-                    #$stats{$band}{NumberOfNullCells} ++;
-                }
+                my $value = $data_hash{$ID}[$band] // $no_data;
 
                 eval {
-                    print $ofh pack ('f', $value);
+                    print {$ofh} pack 'f', $value;
                 };
                 croak $EVAL_ERROR if $EVAL_ERROR;
 
@@ -1762,14 +1882,16 @@ sub write_table_ers {
     my $gm_time = (gmtime);
     $gm_time =~ s/(\d+)$/GMT $1/;  #  insert "GMT" before the year
     my $n_bands = scalar @band_cols;
-    my @reg_coords = (
-        #$min[0] - ($res[0] / 2),
-        #$max[1] + ($res[1] / 2),
-        $min[0], $max[1],
-    );
 
     #  The RegistrationCell[XY] values should be 0.5,
     #  but 0 plots properly in ArcMap
+    #  -- fixed in arc 10.2, and prob earlier, so we are OK now
+    my @reg_coords = (
+        $min[0] - ($res[0] / 2),
+        $max[1] + ($res[1] / 2),
+        #$min[0], $max[1],
+    );
+
 
     my $header_start =<<"END_OF_ERS_HEADER_START"
 DatasetHeader Begin
@@ -1824,16 +1946,14 @@ END_OF_ERS_HEADER_START
 
     my $header_file = Path::Class::file($path, $name)->stringify . $suffix;
     open (my $header_fh, '>', $header_file)
-      || croak "Could not open header file $header_file\n";
+      or croak "Could not open header file $header_file\n";
 
-    print $header_fh join ("\n", @header), "\n";
+    say {$header_fh} join ("\n", @header);
 
-    if (! close $header_fh) {
-        croak "Unable to write to $header_file\n";
-    }
-    else {
-        print "[BASESTRUCT] Write to file $header_file successful\n";
-    }
+    croak "Unable to write to $header_file\n"
+      if !$header_fh->close;
+    
+    say "[BASESTRUCT] Write to file $header_file successful";
 
     return;
 }
@@ -2331,7 +2451,13 @@ sub get_sub_element_hash {
       #      message => "Element $element does not exist or has no SUBELEMENT hash\n",
       #  );
 
-    return wantarray ? %$hash : $hash;
+    #  No explicit return statement used here.  
+    #  This is a hot path when called from Biodiverse::Indices::_calc_abc
+    #  and perl versions pre 5.20 do not optimise the return.
+    #  End result is ~30% faster for this line, although that might not
+    #  translate to much in real terms when it works at millions of iterations per second
+    #  (hence the lack of further optimisations on this front for now).
+    wantarray ? %$hash : $hash;
 }
 
 sub get_subelement_count {

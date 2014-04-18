@@ -215,6 +215,11 @@ sub clear_progress_entry {
         if !defined $dialog_obj;
 
     my $id = $dialog_obj->get_id; # unique number for each, allows hashing
+
+    #  sometimes the progress is not initialised, possibly due to threads?
+    #  need a method for progress_bar attr
+    return if ! (defined $id && defined $dialog_obj->{progress_bar});
+
     croak 'invalid dialog obj given to clear_progress_entry, can\'t read ID' 
         if !defined $self->{progress_bars}->{dialog_objects}{$id};
 

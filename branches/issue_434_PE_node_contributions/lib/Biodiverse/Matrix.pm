@@ -226,15 +226,13 @@ sub get_value_index_key {
     
     my $val = $args{value};
     
-    my $index_val = $val;  #  should make this a method
-    if (!defined $index_val) {
-        $index_val = q{undef};
+    return 'undef' if !defined $val;
+
+    if (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
+        $val = sprintf $prec, $val;
     }
-    elsif (my $prec = $self->get_param ('VAL_INDEX_PRECISION')) {
-        $index_val = sprintf $prec, $val;
-    }
-    
-    return $index_val;
+
+    return $val;
 }
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
@@ -701,7 +699,7 @@ END_MX_TOOLTIP
 my $ludicrously_extreme_pos_val = 10 ** 20;
 my $ludicrously_extreme_neg_val = -$ludicrously_extreme_pos_val;
 
-sub get_min_value {  #  get the minimum similarity value
+sub get_min_value {
     my $self = shift;
 
     my $val_hash = $self->{BYVALUE};
@@ -721,7 +719,7 @@ sub get_min_value {  #  get the minimum similarity value
     return $min;
 }
 
-sub get_max_value {  #  get the minimum similarity value
+sub get_max_value {
     my $self = shift;
 
     my $val_hash = $self->{BYVALUE};    
@@ -824,68 +822,61 @@ sub add_element {  #  add an element pair to the object
 sub delete_element {
     my $self = shift;
     my %args = @_;
+
+    my $exists = $self->element_pair_exists (@_)
+      || return 0;
+
     croak "element1 and/or element2 not defined\n"
         if ! (defined $args{element1} && defined $args{element2});
 
-    my $element1 = $args{element1};
-    my $element2 = $args{element2};
-    my $exists = $self->element_pair_exists (@_);
+    my ($element1, $element2) = $exists == 1
+        ? @args{'element1', 'element2'}
+        : @args{'element2', 'element1'};
 
-    if (! $exists) {
-        #print "WARNING: element combination does not exist\n";
-        return 0; #  combination does not exist - cannot delete it
-    }
-    elsif ($exists == 2) {  #  elements exist, but in different order - switch them
-        #print "DELETE ELEMENTS SWITCHING $element1 $element2\n";
-        $element1 = $args{element2};
-        $element2 = $args{element1};
-    }
     my $value = $self->get_value (
         element1    => $element1,
         element2    => $element2,
         pair_exists => 1,
     );
 
-    #print "DELETING $element1 $element2\n";
-        
+    #  save some repeated dereferencing below
+    my $val_index   = $self->{BYVALUE};
+    my $el_ref      = $self->{ELEMENTS};
+    my $by_el_index = $self->{BYELEMENT};
+
     #  now we get to the cleanup, including the containing hashes if they are now empty
     #  all the undef - delete pairs are to ensure they get deleted properly
     #  the hash ref must be empty (undef) or it won't be deleted
     #  autovivification of $self->{BYELEMENT}{$element1} is avoided by $exists above
-    delete $self->{BYELEMENT}{$element1}{$element2}; # if exists $self->{BYELEMENT}{$element1}{$element2};
-    if (scalar keys %{$self->{BYELEMENT}{$element1}} == 0) {
-        #print "Deleting BYELEMENT{$element1}\n";
-        #undef $self->{BYELEMENT}{$element1};
-        defined (delete $self->{BYELEMENT}{$element1})
-            || warn "ISSUES BYELEMENT $element1 $element2\n";
+    delete $by_el_index->{$element1}{$element2};
+    if (scalar keys %{$by_el_index->{$element1}} == 0) {
+        delete $by_el_index->{$element1}
+            // warn "ISSUES BYELEMENT $element1 $element2\n";
     }
 
     my $index_val = $self->get_value_index_key (value => $value);
 
-    delete $self->{BYVALUE}{$index_val}{$element1}{$element2}; # if exists $self->{BYVALUE}{$value}{$element1}{$element2};
-    if (scalar keys %{$self->{BYVALUE}{$index_val}{$element1}} == 0) {
-        #undef $self->{BYVALUE}{$value}{$element1};
-        delete $self->{BYVALUE}{$index_val}{$element1};
-        if (scalar keys %{$self->{BYVALUE}{$index_val}} == 0) {
-            #undef $self->{BYVALUE}{$value};
-            defined (delete $self->{BYVALUE}{$index_val})
-                || warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
+    delete $val_index->{$index_val}{$element1}{$element2};
+    if (!scalar keys %{$val_index->{$index_val}{$element1}}) {
+        delete $val_index->{$index_val}{$element1};
+        if (!scalar keys %{$val_index->{$index_val}}) {
+            delete $val_index->{$index_val}
+                // warn "ISSUES BYVALUE $index_val $value $element1 $element2\n";
         }
     }
-    #  decrement the ELEMENTS counts, deleting entry if now zero, as there are no more entries with this element
-    $self->{ELEMENTS}{$element1}--;
-    if ($self->{ELEMENTS}{$element1} == 0) {
-        #undef $self->{ELEMENTS}{$element1};
-        defined (delete $self->{ELEMENTS}{$element1})
-            || warn "ISSUES $element1\n";
+    #  Decrement the ELEMENTS counts, deleting entry if now zero
+    #  as there are no more entries with this element
+    $el_ref->{$element1}--;
+    if (!$el_ref->{$element1}) {
+        delete $el_ref->{$element1}
+            // warn "ISSUES $element1\n";
     }
-    $self->{ELEMENTS}{$element2}--;
-    if ($self->{ELEMENTS}{$element2} == 0) {
-        #undef $self->{ELEMENTS}{$element2};
-        defined (delete $self->{ELEMENTS}{$element2})
-            || warn "ISSUES $element2\n";
+    $el_ref->{$element2}--;
+    if (!$el_ref->{$element2}) {
+        delete $el_ref->{$element2}
+            // warn "ISSUES $element2\n";
     }
-    
+
     #return ($self->element_pair_exists(@_)) ? undef : 1;  #  for debug
     return 1;  # return success if we get this far
 }

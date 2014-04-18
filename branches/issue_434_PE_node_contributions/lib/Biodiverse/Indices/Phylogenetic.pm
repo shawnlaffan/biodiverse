@@ -587,15 +587,30 @@ sub get_metadata_calc_pe_clade_loss {
     return wantarray ? %arguments : \%arguments;
 }
 
+
 sub calc_pe_clade_loss {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss (
+        %args,
+        res_pfx => 'PE_',
+    );
+}
+
+
+sub _calc_pd_pe_clade_loss {
     my $self = shift;
     my %args = @_;
 
     my $main_tree = $args{trimmed_tree};
     my $sub_tree  = $args{SUBTREE};
 
-    my ($pe_clade_score, $pe_clade_contr, $pe_clade_contr_p) =
-      @args{qw /PE_CLADE_SCORE PE_CLADE_CONTR PE_CLADE_CONTR_P/};
+    my $pfx = $args{res_pfx};
+    my @score_names = map {$pfx . $_} qw /CLADE_SCORE CLADE_CONTR CLADE_CONTR_P/;
+
+    my ($p_clade_score, $p_clade_contr, $p_clade_contr_p) =
+      @args{@score_names};
 
     my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
 
@@ -621,16 +636,16 @@ sub calc_pe_clade_loss {
 
         foreach my $node_name (@ancestors) {
             #  these all have the same loss
-            $loss_contr{$node_name}   = $pe_clade_contr->{$last_ancestor};
-            $loss_score{$node_name}   = $pe_clade_score->{$last_ancestor};
-            $loss_contr_p{$node_name} = $pe_clade_contr_p->{$last_ancestor};
+            $loss_contr{$node_name}   = $p_clade_contr->{$last_ancestor};
+            $loss_score{$node_name}   = $p_clade_score->{$last_ancestor};
+            $loss_contr_p{$node_name} = $p_clade_contr_p->{$last_ancestor};
         }
     }
 
     my %results = (
-        PE_CLADE_LOSS_SCORE   => \%loss_score,
-        PE_CLADE_LOSS_CONTR   => \%loss_contr,
-        PE_CLADE_LOSS_CONTR_P => \%loss_contr_p,
+        "${pfx}CLADE_LOSS_SCORE"   => \%loss_score,
+        "${pfx}CLADE_LOSS_CONTR"   => \%loss_contr,
+        "${pfx}CLADE_LOSS_CONTR_P" => \%loss_contr_p,
     );
 
     return wantarray ? %results : \%results;

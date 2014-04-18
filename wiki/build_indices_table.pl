@@ -54,6 +54,9 @@ my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
 my $html = $indices->get_calculation_metadata_as_wiki;
 
+#  dirty hack
+$html =~ s/PhyloCom/!PhyloCom/;
+
 #  The YAML version
 #use YAML::Syck;
 #my $yaml = YAML::Syck::Dump (\%analyses_hash);

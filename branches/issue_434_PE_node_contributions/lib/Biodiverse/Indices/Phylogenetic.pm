@@ -429,6 +429,77 @@ sub calc_pe_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_clade_contributions {
+
+    my %arguments = (
+        description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
+        name            => 'PE clade contributions',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd calc_pd_node_list get_sub_tree/],
+        #pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_SCORE  => {
+                description => 'List of PD scores for each node (clade), being the sum of all descendent branch lengths',
+                type        => 'list',
+            },
+            PD_CLADE_CONTR  => {
+                description => 'List of node (clade) contributions to the PD calculation',
+                type        => 'list',
+            },
+            PD_CLADE_CONTR_P => {
+                description => 'List of node (clade) contributions to the PD calculation, proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+    
+    return wantarray ? %arguments : \%arguments;
+}
+
+#  almost indentical to calc_pe_clade_contributions - need to refactor
+sub calc_pd_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+
+    my $main_tree = $args{tree_ref};
+    my $sub_tree  = $args{SUBTREE};
+    my $wt_list   = $args{PD_INCLUDED_NODE_LIST};
+    my $PD_score  = $args{PD};
+    my $sum_of_branches = $main_tree->get_total_tree_length;
+
+    my $contr   = {};
+    my $contr_p = {};
+    my $clade_pe = {};
+
+  NODE_NAME:
+    foreach my $node_name (keys %$wt_list) {
+        next if defined $contr->{$node_name};
+
+        my $node_ref = $sub_tree->get_node_ref (node => $node_name);
+
+        #  Possibly inefficient as we are not caching by node
+        #  but at least the descendants are cached and perhaps that
+        #  is where any slowness would come from as List::Util::sum is pretty quick
+        my $node_hash = $node_ref->get_all_descendents_and_self;
+        my $wt_sum = sum @$wt_list{keys %$node_hash};
+
+        #  round off to avoid spurious spatial variation.
+        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $PD_score;
+        $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
+        $clade_pe->{$node_name} = $wt_sum;
+    }
+
+    my %results = (
+        PD_CLADE_SCORE   => $clade_pe,
+        PD_CLADE_CONTR   => $contr,
+        PD_CLADE_CONTR_P => $contr_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_pe_clade_contributions {
 
     my %arguments = (

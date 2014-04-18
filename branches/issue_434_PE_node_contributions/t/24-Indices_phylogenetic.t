@@ -47,6 +47,7 @@ my @calcs = qw/
     calc_phylo_sorenson
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
+    calc_pd_clade_contributions
 /;
 
 

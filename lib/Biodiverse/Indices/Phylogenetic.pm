@@ -429,6 +429,90 @@ sub calc_pe_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_clade_contributions {
+
+    my %arguments = (
+        description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
+        name            => 'PD clade contributions',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd calc_pd_node_list get_sub_tree/],
+        #pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_SCORE  => {
+                description => 'List of PD scores for each node (clade), being the sum of all descendent branch lengths',
+                type        => 'list',
+            },
+            PD_CLADE_CONTR  => {
+                description => 'List of node (clade) contributions to the PD calculation',
+                type        => 'list',
+            },
+            PD_CLADE_CONTR_P => {
+                description => 'List of node (clade) contributions to the PD calculation, proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+    
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pd_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_contributions(
+        %args,
+        node_list => $args{PD_INCLUDED_NODE_LIST},
+        p_score   => $args{PD},
+        res_pfx   => 'PD_',
+    );
+}
+
+
+sub _calc_pd_pe_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+
+    my $main_tree = $args{tree_ref};
+    my $sub_tree  = $args{SUBTREE};
+    my $wt_list   = $args{node_list};
+    my $p_score   = $args{p_score};
+    my $res_pfx   = $args{res_pfx};
+    my $sum_of_branches = $main_tree->get_total_tree_length;
+
+    my $contr   = {};
+    my $contr_p = {};
+    my $clade_score = {};
+
+  NODE_NAME:
+    foreach my $node_name (keys %$wt_list) {
+        next if defined $contr->{$node_name};
+
+        my $node_ref = $sub_tree->get_node_ref (node => $node_name);
+
+        #  Possibly inefficient as we are not caching by node
+        #  but at least the descendants are cached and perhaps that
+        #  is where any slowness would come from as List::Util::sum is pretty quick
+        my $node_hash = $node_ref->get_all_descendents_and_self;
+        my $wt_sum = sum @$wt_list{keys %$node_hash};
+
+        #  round off to avoid spurious spatial variation.
+        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $p_score;
+        $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
+        $clade_score->{$node_name} = $wt_sum;
+    }
+
+    my %results = (
+        "${res_pfx}CLADE_SCORE"   => $clade_score,
+        "${res_pfx}CLADE_CONTR"   => $contr,
+        "${res_pfx}CLADE_CONTR_P" => $contr_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_pe_clade_contributions {
 
     my %arguments = (
@@ -461,44 +545,57 @@ sub get_metadata_calc_pe_clade_contributions {
 sub calc_pe_clade_contributions {
     my $self = shift;
     my %args = @_;
-
-    my $main_tree = $args{trimmed_tree};
-    my $sub_tree  = $args{SUBTREE};
-    my $wt_list   = $args{PE_WTLIST};
-    my $PE_score  = $args{PE_WE};
-    my $sum_of_branches = $main_tree->get_total_tree_length;
-
-    my $contr   = {};
-    my $contr_p = {};
-    my $clade_pe = {};
-
-  NODE_NAME:
-    foreach my $node_name (keys %$wt_list) {
-        next if defined $contr->{$node_name};
-
-        my $node_ref = $sub_tree->get_node_ref (node => $node_name);
-
-        #  Possibly inefficient as we are not caching by node
-        #  but at least the descendants are cached and perhaps that
-        #  is where any slowness would come from as List::Util::sum is pretty quick
-        my $node_hash = $node_ref->get_all_descendents_and_self;
-        my $wt_sum = sum @$wt_list{keys %$node_hash};
-
-        #  round off to avoid spurious spatial variation.
-        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $PE_score;
-        $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
-        $clade_pe->{$node_name} = $wt_sum;
-    }
-
-    my %results = (
-        PE_CLADE_SCORE   => $clade_pe,
-        PE_CLADE_CONTR   => $contr,
-        PE_CLADE_CONTR_P => $contr_p,
+    
+    return $self->_calc_pd_pe_clade_contributions(
+        %args,
+        node_list => $args{PE_WTLIST},
+        p_score   => $args{PE_WE},
+        res_pfx   => 'PE_',
     );
-
-    return wantarray ? %results : \%results;
 }
 
+
+sub get_metadata_calc_pd_clade_loss {
+
+    my %arguments = (
+        description     => 'How much of the PD would be lost if a clade were to be removed? '
+                         . 'Calculates the clade PD below the last ancestral node in the '
+                         . 'neighbour set which would still be in the neighbour set.',
+        name            => 'PD clade loss',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd_clade_contributions get_sub_tree/],
+        #pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_LOSS_SCORE  => {
+                description => 'List of how much PD would be lost if each clade were removed.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_CONTR  => {
+                description => 'List of the proportion of the PD score which would be lost '
+                             . 'if each clade were removed.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_CONTR_P => {
+                description => 'As per PD_CLADE_LOSS but proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pd_clade_loss {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss (
+        %args,
+        res_pfx => 'PD_',
+    );
+}
 
 sub get_metadata_calc_pe_clade_loss {
 
@@ -535,12 +632,26 @@ sub get_metadata_calc_pe_clade_loss {
 sub calc_pe_clade_loss {
     my $self = shift;
     my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss (
+        %args,
+        res_pfx => 'PE_',
+    );
+}
+
+
+sub _calc_pd_pe_clade_loss {
+    my $self = shift;
+    my %args = @_;
 
     my $main_tree = $args{trimmed_tree};
     my $sub_tree  = $args{SUBTREE};
 
-    my ($pe_clade_score, $pe_clade_contr, $pe_clade_contr_p) =
-      @args{qw /PE_CLADE_SCORE PE_CLADE_CONTR PE_CLADE_CONTR_P/};
+    my $pfx = $args{res_pfx};
+    my @score_names = map {$pfx . $_} qw /CLADE_SCORE CLADE_CONTR CLADE_CONTR_P/;
+
+    my ($p_clade_score, $p_clade_contr, $p_clade_contr_p) =
+      @args{@score_names};
 
     my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
 
@@ -566,20 +677,60 @@ sub calc_pe_clade_loss {
 
         foreach my $node_name (@ancestors) {
             #  these all have the same loss
-            $loss_contr{$node_name}   = $pe_clade_contr->{$last_ancestor};
-            $loss_score{$node_name}   = $pe_clade_score->{$last_ancestor};
-            $loss_contr_p{$node_name} = $pe_clade_contr_p->{$last_ancestor};
+            $loss_contr{$node_name}   = $p_clade_contr->{$last_ancestor};
+            $loss_score{$node_name}   = $p_clade_score->{$last_ancestor};
+            $loss_contr_p{$node_name} = $p_clade_contr_p->{$last_ancestor};
         }
     }
 
     my %results = (
-        PE_CLADE_LOSS_SCORE   => \%loss_score,
-        PE_CLADE_LOSS_CONTR   => \%loss_contr,
-        PE_CLADE_LOSS_CONTR_P => \%loss_contr_p,
+        "${pfx}CLADE_LOSS_SCORE"   => \%loss_score,
+        "${pfx}CLADE_LOSS_CONTR"   => \%loss_contr,
+        "${pfx}CLADE_LOSS_CONTR_P" => \%loss_contr_p,
     );
 
     return wantarray ? %results : \%results;
 }
+
+sub get_metadata_calc_pd_clade_loss_ancestral {
+
+    my %arguments = (
+        description     => 'How much of the PD clade loss is due to the ancestral branches? '
+                         . 'The score is zero when there is no ancestral loss.',
+        name            => 'PD clade loss (ancestral component)',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd_clade_contributions calc_pd_clade_loss/],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_LOSS_ANC => {
+                description => 'List of how much ancestral PE would be lost '
+                             . 'if each clade were removed.  '
+                             . 'The value is 0 when no ancestral PD is lost.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_ANC_P  => {
+                description => 'List of the proportion of the clade\'s PD loss '
+                             . 'that is due to the ancestral branches.',
+                type        => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+
+sub calc_pd_clade_loss_ancestral {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss_ancestral (
+        %args,
+        res_pfx => 'PD_',
+    );
+}
+
 
 sub get_metadata_calc_pe_clade_loss_ancestral {
 
@@ -609,26 +760,40 @@ sub get_metadata_calc_pe_clade_loss_ancestral {
     return wantarray ? %arguments : \%arguments;
 }
 
+
 sub calc_pe_clade_loss_ancestral {
     my $self = shift;
     my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss_ancestral (
+        %args,
+        res_pfx => 'PE_',
+    );
+}
 
-    my ($pe_clade_score, $pe_clade_loss) =
-      @args{qw /PE_CLADE_SCORE PE_CLADE_LOSS_SCORE/};
+sub _calc_pd_pe_clade_loss_ancestral {
+    my $self = shift;
+    my %args = @_;
+
+    my $pfx = $args{res_pfx};
+    my @score_names = map {$pfx . $_} qw /CLADE_SCORE CLADE_LOSS_SCORE/;
+
+    my ($p_clade_score, $p_clade_loss) =
+      @args{@score_names};
 
     my (%loss_ancestral, %loss_ancestral_p);
 
-    while (my ($node_name, $score) = each %$pe_clade_score) {
-        my $score = $pe_clade_loss->{$node_name}
-                  - $pe_clade_score->{$node_name};
+    while (my ($node_name, $score) = each %$p_clade_score) {
+        my $score = $p_clade_loss->{$node_name}
+                  - $p_clade_score->{$node_name};
         $loss_ancestral{$node_name}   = $score;
-        my $loss = $pe_clade_loss->{$node_name};
+        my $loss = $p_clade_loss->{$node_name};
         $loss_ancestral_p{$node_name} = $loss ? $score / $loss : 0;
     }
 
     my %results = (
-        PE_CLADE_LOSS_ANC   => \%loss_ancestral,
-        PE_CLADE_LOSS_ANC_P => \%loss_ancestral_p,
+        "${pfx}CLADE_LOSS_ANC"   => \%loss_ancestral,
+        "${pfx}CLADE_LOSS_ANC_P" => \%loss_ancestral_p,
     );
 
     return wantarray ? %results : \%results;
@@ -1533,10 +1698,9 @@ sub _calc_taxonomic_distinctness {
         TD_VARIATION    => $variance,
     );
 
+
     return wantarray ? %results : \%results;
 }
-
-
 
 sub get_metadata_get_trimmed_tree_as_matrix {
     my $self = shift;
@@ -1761,13 +1925,13 @@ sub _calc_phylo_abc {
 
     # create a new hash %B for nodes in label hash 1 but not 2
     # then get length of B
-    my %B = %$nodes_in_path1;
+    my %B = %A;
     delete @B{keys %$nodes_in_path2};
     my $phylo_B = sum (0, values %B);
 
     # create a new hash %C for nodes in label hash 2 but not 1
     # then get length of C
-    my %C = %$nodes_in_path2;
+    my %C = %A;
     delete @C{keys %$nodes_in_path1};
     my $phylo_C = sum (0, values %C);
 

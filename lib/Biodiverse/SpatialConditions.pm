@@ -513,7 +513,7 @@ sub verify {
             );
         }
 
-        my $cellsizes = $bd->get_param ('CELL_SIZES');
+        my $cellsizes = $bd->get_cell_sizes;
 
         my $success = eval {
             $self->evaluate (
@@ -582,8 +582,8 @@ sub get_distances {
 
     my $params = $self->get_param('USES');
 
-    my ( @d, $sumDsqr, @D );
-    my ( @c, $sumCsqr, @C );
+    my ( @d, $sum_D_sqr, @D );
+    my ( @c, $sum_C_sqr, @C );
     my @iters;
 
 #if ((not $params->{use_euc_distance}) and (not $params->{use_cell_distance})) {
@@ -630,7 +630,7 @@ sub get_distances {
             eval { $coord2 - $coord1 }; #  trap errors from non-numeric coords
 
         $D[$i] = abs $d[$i];
-        $sumDsqr += $d[$i]**2;
+        $sum_D_sqr += $d[$i]**2;
 
         #  won't need these most of the time
         if ( $params->{use_cell_distance}
@@ -642,7 +642,7 @@ sub get_distances {
 
             $c[$i] = eval { $d[$i] / $cellsize[$i] };
             $C[$i] = eval { abs $c[$i] };
-            $sumCsqr += eval { $c[$i]**2 } || 0;
+            $sum_C_sqr += eval { $c[$i]**2 } || 0;
         }
     }
 
@@ -652,14 +652,14 @@ sub get_distances {
         $params->{use_euc_distance}
         ? 0 + $self->set_precision(
             precision => '%.10f',
-            value     => sqrt($sumDsqr),
+            value     => sqrt($sum_D_sqr),
         )
         : undef;
     my $C =
         $params->{use_cell_distance}
         ? 0 + $self->set_precision(
             precision => '%.10f',
-            value     => sqrt($sumCsqr),
+            value     => sqrt($sum_C_sqr),
         )
         : undef;
 
@@ -672,9 +672,9 @@ sub get_distances {
         d_list => \@d,
         D_list => \@D,
         D      => $D,
-        Dsqr   => $sumDsqr,
+        Dsqr   => $sum_D_sqr,
         C      => $C,
-        Csqr   => $sumCsqr,
+        Csqr   => $sum_C_sqr,
         C_list => \@C,
         c_list => \@c,
     );
@@ -969,7 +969,6 @@ sub get_metadata_sp_circle_cell {
     );
 
     return wantarray ? %args_r : \%args_r;
-
 }
 
 #  cell based circle.
@@ -999,6 +998,68 @@ sub sp_circle_cell {
 
     return $test;
 }
+
+
+my $rectangle_example = <<'END_RECTANGLE_EXAMPLE'
+#  A rectangle of equal size on the first two axes, and 100 on the third.
+sp_rectangle (sizes => [100000, 100000, 100])
+#  The same, but with the axes reordered (an example of using the axes argument)
+sp_rectangle (sizes => [100000, 100, 100000], axes => [0,2,1])
+#  Use only the first an third axes
+sp_rectangle (sizes => [100000, 100000], axes => [0,2])
+END_RECTANGLE_EXAMPLE
+  ;
+
+sub get_metadata_sp_rectangle {
+    my $self = shift;
+    my %args = @_;
+
+    my %args_r = (
+        description =>
+              'A rectangle.  Assessed against all dimensions by default '
+            . "(more properly called a hyperbox)\n"
+            . "but use the optional \"axes => []\" arg to specify a subset.\n"
+            . 'Uses group (map) distances.',
+        use_euc_distance => 1,
+        required_args => ['sizes'],
+        optional_args => [qw /axes/],
+        result_type   => 'circle',  #  centred on processing group, so leave as type circle
+        example       => $rectangle_example,
+    );
+
+    return wantarray ? %args_r : \%args_r;
+}
+
+#  sub to run a circle (or hypersphere for n-dimensions)
+sub sp_rectangle {
+    my $self = shift;
+    my %args = @_;
+
+    my $sizes = $args{sizes};
+    my $axes = $args{axes} // [0 .. $#$sizes];
+
+    #  should check this in the metadata phase
+    croak "Too many axes in call to sp_rectangle\n"
+      if $#$axes > $#$sizes;
+
+    my $h     = $self->get_param('CURRENT_ARGS');
+    my $dists = $h->{dists}{D_list};
+
+    my $i = -1;  #  @$sizes is in the same order as @$axes
+    foreach my $axis (@$axes) {
+        ###  need to trap refs to non-existent axes.
+
+        $i++;
+        #  coarse filter
+        return if $dists->[$axis] > $sizes->[$i];
+        #  now check with precision adjusted
+        my $d = $self->set_precision (value => $dists->[$axis]);
+        return if $d > $sizes->[$i] / 2;
+    }
+
+    return 1;
+}
+
 
 sub get_metadata_sp_annulus {
     my $self = shift;
@@ -2180,7 +2241,7 @@ sub sp_point_in_poly_shape {
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
     my $bd = $h->{basedata};
-    my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
+    my @cell_sizes = $bd->get_cell_sizes;
     my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
     my @rect = (
         $x_coord - $cell_x / 2,
@@ -2201,7 +2262,7 @@ sub sp_point_in_poly_shape {
         #    "Checking if point $point_string\nis in polygon\n$i of $target",
         #    $i / $target,
         #);
-        if ($poly->contains_point($pointshape)) {
+        if ($poly->contains_point($pointshape, 0)) {
             if (!$no_cache) {
                 $cached_results->{$point_string} = 1;
             }
@@ -2277,7 +2338,7 @@ sub sp_points_in_same_poly_shape {
 
     my $rtree = $self->get_rtree_for_polygons_from_shapefile (%args, shapes => $polys);
     my $bd = $h->{basedata};
-    my @cell_sizes = @{$bd->get_param('CELL_SIZES')};
+    my @cell_sizes = $bd->get_cell_sizes;
     my ($cell_x, $cell_y) = ($cell_sizes[$axes->[0]], $cell_sizes[$axes->[1]]);
     
     my @rect1 = (
@@ -2314,13 +2375,13 @@ sub sp_points_in_same_poly_shape {
 
         my $pt1_in_poly = $cached_pts_in_poly->{$poly_id}{$point1_str};
         if (!defined $pt1_in_poly) {
-            $pt1_in_poly = $poly->contains_point($pointshape1);
+            $pt1_in_poly = $poly->contains_point($pointshape1, 0);
             $cached_pts_in_poly->{$poly_id}{$point1_str} = $pt1_in_poly ? 1 : 0;
         }
 
         my $pt2_in_poly = $cached_pts_in_poly->{$poly_id}{$point2_str};
         if (!defined $pt2_in_poly) {
-            $pt2_in_poly = $poly->contains_point($pointshape2);
+            $pt2_in_poly = $poly->contains_point($pointshape2, 0);
             $cached_pts_in_poly->{$poly_id}{$point2_str} = $pt2_in_poly ? 1 : 0;
         }
 

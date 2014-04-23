@@ -5,7 +5,8 @@ use 5.010;
 
 use Carp;
 
-use Scalar::Util qw /blessed weaken/;
+use Scalar::Util qw /blessed weaken reftype/;
+use List::Util qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 
@@ -148,10 +149,10 @@ sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
     my $label_count_outer = keys %{$label_list2};
     my ($sample_count_all, $sample_count_inner, $sample_count_outer);
 
-    foreach my $subLabel (keys %{$label_list_all}) {
-        $sample_count_all += $label_list_all->{$subLabel};
-        $sample_count_inner += $label_list1->{$subLabel} if exists $label_list1->{$subLabel};
-        $sample_count_outer += $label_list2->{$subLabel} if exists $label_list2->{$subLabel};
+    foreach my $sub_label (keys %{$label_list_all}) {
+        $sample_count_all += $label_list_all->{$sub_label};
+        $sample_count_inner += $label_list1->{$sub_label} if exists $label_list1->{$sub_label};
+        $sample_count_outer += $label_list2->{$sub_label} if exists $label_list2->{$sub_label};
     }
 
     my %results;
@@ -197,7 +198,7 @@ sub is_dissimilarity_valid {
     my %args = @_;
 
     my %result = (
-        DISSIMILARITY_IS_VALID => ($args{A} || $args{B}) && ($args{A} || $args{C}),
+        DISSIMILARITY_IS_VALID => ($args{A} || ($args{B} && $args{C})),
     );
 
     return wantarray ? %result : \%result;
@@ -220,6 +221,86 @@ sub get_formula_explanation_ABC {
     
     return wantarray ? @explanation : \@explanation;
 }
+
+#  off for now - k1 index can go negative so we don't want it for clustering
+#sub get_metadata_calc_kulczynski1 {
+#    my $self = shift;
+#
+#    my %arguments = (
+#        name            => 'Kulczynski 1',
+#        description     => "Kulczynski 1 dissimilarity between two sets of labels.\n",
+#        formula         => [
+#             '= 1 - \frac{A}{B + C}',
+#            $self -> get_formula_explanation_ABC,
+#        ],
+#        indices         => {
+#            KULCZYNSKI1      => {
+#                cluster     => 1,
+#                description => 'Kulczynski 1 index',
+#            }
+#        },
+#        type            => 'Taxonomic Dissimilarity and Comparison',
+#        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+#        uses_nbr_lists  => 2,
+#    );
+#
+#    return wantarray ? %arguments : \%arguments;
+#}
+#
+#sub calc_kulczynski1 {
+#    my $self = shift;
+#    my %args = @_;
+#
+#    my $value = $args{DISSIMILARITY_IS_VALID}
+#        ? eval {1 - $args{A} / ($args{B} + $args{C})}
+#        : undef;
+#
+#    my %result = (KULCZYNSKI1 => $value);
+#
+#    return wantarray ? %result : \%result;
+#}
+
+sub get_metadata_calc_kulczynski2 {
+    my $self = shift;
+
+    my %arguments = (
+        name            => 'Kulczynski 2',
+        description     => "Kulczynski 2 dissimilarity between two sets of labels.\n",
+        formula         => [
+            '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
+            $self -> get_formula_explanation_ABC,
+        ],
+        indices         => {
+            KULCZYNSKI2      => {
+                cluster     => 1,
+                description => 'Kulczynski 2 index',
+            }
+        },
+        type            => 'Taxonomic Dissimilarity and Comparison',
+        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        uses_nbr_lists  => 2,
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_kulczynski2 {
+    my $self = shift;
+    my %args = @_;
+
+    my $value;
+    if ($args{DISSIMILARITY_IS_VALID}) {
+        my ($a, $b, $c) = @args{'A', 'B', 'C'};
+        $value = eval {
+            1 - 0.5 * ($a / ($a + $b) + $a / ($a + $c));
+        };
+    }
+
+    my %result = (KULCZYNSKI2 => $value);
+
+    return wantarray ? %result : \%result;
+}
+
 
 sub get_metadata_calc_sorenson {
     my $self = shift;
@@ -394,11 +475,11 @@ sub calc_nestedness_resultant {
     my ($A, $B, $C, $ABC) = @args{qw /A B C ABC/};
     
     my $score;
-    if ($A == 0 and $B > 0 and $C > 0) {
+    if (!$A && $B && $C) {
         #  nothing in common, no nestedness
         $score = 0;
     }
-    elsif ($A == 0 and min ($B, $C) == 0) {
+    elsif (!$A && ! ($B && $C)) {  #  could be re-arranged
         #  only one set has labels (possibly neither)
         $score = undef;
     }
@@ -729,34 +810,38 @@ sub calc_simpson_shannon {
     my $self = shift;
     my %args = @_;
 
-    my $labels = $args{label_hash_all};
+    my $labels   = $args{label_hash_all};
     my $richness = $args{ABC};
 
-    my $n = 0;
-    foreach my $value (values %$labels) {
-        $n += $value;
-    }
+    my %results;
 
-    my ($simpson_d, $shannon_h, $sum_labels, $shannon_e);
-    foreach my $value (values %$labels) {  #  don't need the labels, so don't use keys
-        my $p_i = $value / $n;
-        $simpson_d += $p_i ** 2;
-        $shannon_h += $p_i * log ($p_i);
+    if ($richness) {  #  results not valid if cells are empty
+        my $n = sum 0, values %$labels;
+    
+        my ($simpson_d, $shannon_h, $sum_labels, $shannon_e);
+        foreach my $value (values %$labels) {  #  don't need the labels, so don't use keys
+            my $p_i     = $value / $n;
+            $simpson_d += $p_i ** 2;
+            $shannon_h += $p_i * log ($p_i);
+        }
+        $shannon_h *= -1;
+        #$simpson_d /= $richness ** 2;
+        #  trap divide by zero when sum_labels == 1
+        my $shannon_hmax = log ($richness);
+        $shannon_e = $shannon_hmax == 0
+            ? undef
+            : $shannon_h / $shannon_hmax;
+    
+        %results = (
+            SHANNON_H    => $shannon_h,
+            SHANNON_HMAX => $shannon_hmax,
+            SHANNON_E    => $shannon_e,
+            SIMPSON_D    => 1 - $simpson_d,
+        );
     }
-    $shannon_h *= -1;
-    #$simpson_d /= $richness ** 2;
-    #  trap divide by zero when sum_labels == 1
-    my $shannon_hmax = log ($richness);
-    $shannon_e = $shannon_hmax == 0
-        ? undef
-        : $shannon_h / $shannon_hmax;
-
-    my %results = (
-        SHANNON_H    => $shannon_h,
-        SHANNON_HMAX => $shannon_hmax,
-        SHANNON_E    => $shannon_e,
-        SIMPSON_D    => 1 - $simpson_d,
-    );
+    else {
+        @results{qw /SHANNON_H SHANNON_HMAX SHANNON_E SIMPSON_D/} = undef;
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -914,7 +999,7 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
         $n += $value;
     }
 
-    my ($totalCount, $qe) = (undef, undef);
+    my ($total_count, $qe) = (undef, undef);
     my (%done, %p_values);
 
     BY_LABEL1:
@@ -1517,15 +1602,19 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 
     my $bd = $self->get_basedata_ref;
 
-    croak "none of refs element_list1, element_list2, label_list1, "
-          . "label_list2, label_hash1, label_hash2 specified\n"
-        if (   ! defined $args{element_list1}
-            && ! defined $args{element_list2}
-            && ! defined $args{label_list1}
-            && ! defined $args{label_list2}
-            && ! defined $args{label_hash1}
-            && ! defined $args{label_hash2}
+    croak "At least one of element_list1, element_list2, label_list1, "
+          . "label_list2, label_hash1, label_hash2 must be specified\n"
+        if ! defined (
+                $args{element_list1}
+             // $args{element_list2}
+             // $args{label_hash1}
+             // $args{label_hash2}
+             // $args{label_list1}
+             // $args{label_list2}
         );
+
+    my $count_labels  = $args{count_labels};
+    my $count_samples = $args{count_samples};
 
     my ($a, $b, $c, $abc);
     my %label_list = (1 => {}, 2 => {});
@@ -1545,122 +1634,116 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         my $el_listref = $args{$listname}
           // next LISTNAME;
 
-        if ((ref $el_listref) =~ /HASH/) {  #  silently convert the hash to an array
+        croak "_calc_abc argument $listname is not a list ref\n"
+          if !ref $el_listref;
+
+        if (reftype ($el_listref) eq 'HASH') {  #  silently convert the hash to an array
             $el_listref = [keys %$el_listref];
         }
-        elsif (! ref $el_listref) {
-            croak "_calc_abc argument $listname is not a list ref\n";
-        }
 
-        my @checked_elements;
-        my @label_list;
+        my (@checked_elements, @label_list);
 
         ELEMENT:
         foreach my $element (@$el_listref) {
-            #  Deal with lazy array refs pointing
-            #  to longer lists than we have elements.
-            #  Should really croak these days.
-            #next ELEMENT if ! defined $element;
-
             my $sublist = $bd->get_labels_in_group_as_hash (group => $element);
             push @label_list, %$sublist;
             push @checked_elements, $element;
         }
-        if ($args{count_labels}) {
+
+        if ($count_labels) {
             #  track the number of times each label occurs
-            for (my $i = 0; $i <= $#label_list; $i += 2) {
-                my $label = $label_list[$i];
+            foreach my $label (pairkeys @label_list) {
                 $label_list{$iter}{$label}++;
                 $label_list_master{$label}++;
             }
         }
-        elsif ($args{count_samples}) {
+        elsif ($count_samples) {
             #  track the number of samples for each label
-            for (my $i = 0; $i < $#label_list; $i += 2) {
-                #print "$i, $#label_list\n";
-                my $label = $label_list[$i];
-                my $value = $label_list[$i+1];
+            foreach my $pair (pairs @label_list) {
+                my ($label, $value) = @$pair;
                 $label_list{$iter}{$label} += $value;
                 $label_list_master{$label} += $value;
             }
         }
         else {
             %{$label_list{$iter}} = @label_list;
-            @label_list_master{keys %{$label_list{$iter}}} = (1) x scalar keys %{$label_list{$iter}};
+            @label_list_master{keys %{$label_list{$iter}}}
+              = (1) x scalar keys %{$label_list{$iter}};
         }
-        @{$element_check{$iter}}{@checked_elements} = (1) x @checked_elements;
         #  hash slice is faster than looping
-        @element_check_master{@checked_elements} = (1) x scalar @checked_elements;
+        @{$element_check{$iter}}{@checked_elements} = (1) x @checked_elements;
+        @element_check_master{@checked_elements}    = (1) x scalar @checked_elements;
     }
 
     #  run some checks on the elements
     my $element_count_master = scalar keys %element_check_master;
-    my $element_count1 = scalar keys %{$element_check{1}};
-    my $element_count2 = scalar keys %{$element_check{2}};
-    if ($element_count1 + $element_count2 > $element_count_master) {
-        croak '[INDICES] DOUBLE COUNTING OF ELEMENTS IN calc_abc, '
-              . "$element_count1 + $element_count2 > $element_count_master\n";
-    }
+    my $element_count1       = scalar keys %{$element_check{1}};
+    my $element_count2       = scalar keys %{$element_check{2}};
+
+    croak '[INDICES] DOUBLE COUNTING OF ELEMENTS IN calc_abc, '
+          . "$element_count1 + $element_count2 > $element_count_master\n"
+      if $element_count1 + $element_count2 > $element_count_master;
 
     %hash = (label_list1 => 1, label_list2 => 2);
-    while (($listname, $iter) = each (%hash)) {
-        next if ! defined $args{$listname};
+    while (($listname, $iter) = each %hash) {
+        next if !defined $args{$listname};
+
         my $label_listref = $args{$listname};
         if ((ref $label_listref) !~ /ARRAY/) {
             carp "[INDICES] $label_listref is not an array ref\n";
             next;
         }
 
-        if ($args{count_labels} || $args{count_samples}) {
+        if ($count_labels || $count_samples) {
             foreach my $lbl (@$label_listref) {
                 $label_list_master{$lbl}++;
                 $label_list{$iter}{$lbl}++;
             }
         }
         else {
-            @label_list_master{@$label_listref} = (1) x scalar @$label_listref;
+            @label_list_master{@$label_listref}    = (1) x scalar @$label_listref;
             @{$label_list{$iter}}{@$label_listref} = (1) x scalar @$label_listref;
         }
     }
 
     %hash = (label_hash1 => 1, label_hash2 => 2);
-    while (($listname, $iter) = each (%hash)) {
+    while (($listname, $iter) = each %hash) {
         next if ! defined $args{$listname};
+
         my $label_hashref = $args{$listname};
 
-        if ((ref $label_hashref) !~ /HASH/) {
-            croak "[INDICES] $label_hashref is not a hash ref\n";
-        }
+        croak "[INDICES] $label_hashref is not a hash ref\n"
+          if (ref $label_hashref) !~ /HASH/;
 
-        if ($args{count_labels} || $args{count_samples}) {
+        if ($count_labels || $count_samples) {
             while (($label, $value) = each %$label_hashref) {
                 $label_list_master{$label} += $value;
                 $label_list{$iter}{$label} += $value;
             }
         }
         else {  #  don't care about counts yet - assign using a slice
-            @label_list_master{keys %$label_hashref} = (1) x scalar keys %$label_hashref;
+            @label_list_master{keys %$label_hashref}    = (1) x scalar keys %$label_hashref;
             @{$label_list{$iter}}{keys %$label_hashref} = (1) x scalar keys %$label_hashref;
         }
     }
 
     #  set the counts to one if using plain old abc, as the elements section doesn't obey it properly
-    if (! $args{count_labels} && ! $args{count_samples}) {
+    if (!($count_labels || $count_samples)) {
         @label_list_master{keys %label_list_master} = (1) x scalar keys %label_list_master;
-        @{$label_list{1}}{keys %{$label_list{1}}} = (1) x scalar keys %{$label_list{1}};
-        @{$label_list{2}}{keys %{$label_list{2}}} = (1) x scalar keys %{$label_list{2}};
+        @{$label_list{1}}{keys %{$label_list{1}}}   = (1) x scalar keys %{$label_list{1}};
+        @{$label_list{2}}{keys %{$label_list{2}}}   = (1) x scalar keys %{$label_list{2}};
     }
 
     $abc = scalar keys %label_list_master;
 
     #  a, b and c are simply differences of the lists
     $a = scalar (keys %{$label_list{1}})
-         + scalar (keys %{$label_list{2}})
-         - scalar (keys %label_list_master);
+       + scalar (keys %{$label_list{2}})
+       - scalar (keys %label_list_master);
     $b = scalar (keys %label_list_master)    #  all keys not in label_list2
-         - scalar (keys %{$label_list{2}});
+       - scalar (keys %{$label_list{2}});
     $c = scalar (keys %label_list_master)    #  all keys not in label_list1
-         - scalar (keys %{$label_list{1}});
+       - scalar (keys %{$label_list{1}});
 
     my %results = (
         A   => $a,
@@ -1687,15 +1770,15 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 #
 #  miscellaneous local routines
 
-sub min {
-    no warnings 'uninitialized';
-    $_[0] < $_[1] ? $_[0] : $_[1];
-}
-
-sub max {
-    no warnings 'uninitialized';
-    $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub min {
+#    no warnings 'uninitialized';
+#    $_[0] < $_[1] ? $_[0] : $_[1];
+#}
+#
+#sub max {
+#    no warnings 'uninitialized';
+#    $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
 sub numerically {$a <=> $b};
 

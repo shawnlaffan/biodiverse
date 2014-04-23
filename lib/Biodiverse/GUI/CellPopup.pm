@@ -30,18 +30,18 @@ use constant ELEMENTS_MODEL_OUTER => 2;
 =head1
 Shows popup dialogs for cells in Spatial or Labels view
 =cut
-sub cellClicked {
+sub cell_clicked {
     my $element = shift;
     my $data = shift;
 
     # See top of Popup.pm
-    my $sources = getSources($element, $data);
-    Biodiverse::GUI::Popup::showPopup($element, $sources);
+    my $sources = get_sources($element, $data);
+    Biodiverse::GUI::Popup::show_popup($element, $sources);
 }
 
 
 # Adds appropriate sources (to the data sources combobox)
-sub getSources {
+sub get_sources {
     my $element = shift;
     my $data = shift;
 
@@ -49,17 +49,17 @@ sub getSources {
 
     if (blessed $data) {
         # Check if neighbours mode
-        if (isNeighboursMode($data)) {
+        if (is_neighbours_mode($data)) {
             #print "[Cell popup] Adding neighbour lists\n";
             # Neighbour lists
     
-            $sources{'Elements (set 1)'} = sub { showNeighbourElements(@_, 'set1', $element, $data); };
-            $sources{'Elements (set 2)'} = sub { showNeighbourElements(@_, 'set2', $element, $data); };
-            $sources{'Elements (all)'}   = sub { showNeighbourElements(@_, 'all',  $element, $data); };
+            $sources{'Elements (set 1)'} = sub { show_neighbour_elements(@_, 'set1', $element, $data); };
+            $sources{'Elements (set 2)'} = sub { show_neighbour_elements(@_, 'set2', $element, $data); };
+            $sources{'Elements (all)'}   = sub { show_neighbour_elements(@_, 'all',  $element, $data); };
     
-            $sources{'Labels (set 1)'} = sub { showNeighbourLabels(@_, 'set1', $element, $data); };
-            $sources{'Labels (set 2)'} = sub { showNeighbourLabels(@_, 'set2', $element, $data); };
-            $sources{'Labels (all)'}   = sub { showNeighbourLabels(@_, 'all',  $element, $data); };
+            $sources{'Labels (set 1)'} = sub { show_neighbour_labels(@_, 'set1', $element, $data); };
+            $sources{'Labels (set 2)'} = sub { show_neighbour_labels(@_, 'set2', $element, $data); };
+            $sources{'Labels (all)'}   = sub { show_neighbour_labels(@_, 'all',  $element, $data); };
             
             # Custom lists
             my @lists = $data->get_lists(element => $element);
@@ -68,15 +68,15 @@ sub getSources {
                 next if $name =~ /^_/; # leading underscore marks internal list
     
                 #print "[Cell popup] Adding custom list $name\n";
-                $sources{$name} = sub { showOutputList(@_, $name, $element, $data); };
+                $sources{$name} = sub { show_output_list(@_, $name, $element, $data); };
             }
             
         }
         else {
             #print "[Cell popup] Adding all labels list\n";
             # All labels
-            $sources{'Labels'}     = sub { showAllLabels(@_, $element, $data); };
-            $sources{'Properties'} = sub { showProperties (@_, $element, $data); };
+            $sources{'Labels'}     = sub { show_all_labels(@_, $element, $data); };
+            $sources{'Properties'} = sub { show_properties (@_, $element, $data); };
         }
     }
     else {
@@ -90,7 +90,7 @@ sub getSources {
 # Neighbours
 ##########################################################
 
-sub showNeighbourElements {
+sub show_neighbour_elements {
     my $popup   = shift;    # anonymous arguments array (to use from signal handler)
     my $type    = shift;
     my $element = shift;
@@ -99,7 +99,7 @@ sub showNeighbourElements {
     # Create neighbours model if don't have one..
     if (not $popup->{neighbours_models}) {
         eval {
-            $popup->{neighbours_models} = makeNeighboursModel($element, $data);
+            $popup->{neighbours_models} = make_neighbours_model($element, $data);
         };
         
     }
@@ -107,76 +107,74 @@ sub showNeighbourElements {
     my $model = $popup->{neighbours_models}{elements};
 
     # Choose model to set
-    my $newModel;
+    my $new_model;
     if ($type eq 'set1') {
         # Central - filter the original model
         #print "[Cell popup] Setting elements model to filtered (set 1)\n";
-        $newModel = Gtk2::TreeModelFilter->new($model);
-        $newModel->set_visible_column(ELEMENTS_MODEL_INNER);
-        $popup->setListModel($newModel);
+        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model->set_visible_column(ELEMENTS_MODEL_INNER);
+        $popup->set_list_model($new_model);
     }
     elsif ($type eq 'set2') {
         # Other - filter the original model
         #print "[Cell popup] Setting elements model to filtered (set 2)\n";
-        $newModel = Gtk2::TreeModelFilter->new($model);
-        $newModel->set_visible_column(ELEMENTS_MODEL_OUTER);
-        $popup->setListModel($newModel);
+        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model->set_visible_column(ELEMENTS_MODEL_OUTER);
+        $popup->set_list_model($new_model);
     }
     elsif ($type eq 'all') {
         # All - use original
         #print "[Cell popup] Setting elements model to original\n";
-        $newModel = $model;
-        $popup->setListModel($newModel);
+        $new_model = $model;
+        $popup->set_list_model($new_model);
     }
 
-    $popup->setValueColumn(undef);
+    $popup->set_value_column(undef);
 }
 
-sub showNeighbourLabels {
+sub show_neighbour_labels {
     my $popup   = shift;    # anonymous arguments array (to use from signal handler)
     my $type    = shift;
     my $element = shift;
     my $data    = shift;
 
     # Create neighbours model if don't have one..
-    if (not $popup->{neighbours_models}) {
-        $popup->{neighbours_models} = makeNeighboursModel($element, $data);
-    }
+    $popup->{neighbours_models} ||= make_neighbours_model($element, $data);
 
     my $model = $popup->{neighbours_models}{labels};
 
     # Choose model to set
-    my $newModel;
+    my $new_model;
     if ($type eq 'set1') {
         # Central - filter the original model
         #print "[Cell popup] Setting labels model to filtered (inner)\n";
-        $newModel = Gtk2::TreeModelFilter->new($model);
-        $newModel->set_visible_column(LABELS_MODEL_SET1);
-        $popup->setListModel($newModel);
+        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model->set_visible_column(LABELS_MODEL_SET1);
+        $popup->set_list_model($new_model);
 
-        $popup->setValueColumn(LABELS_MODEL_COUNT_SET1);
+        $popup->set_value_column(LABELS_MODEL_COUNT_SET1);
     }
     elsif ($type eq 'set2') {
         # Other - filter the original model
         #print "[Cell popup] Setting labels model to filtered (outer)\n";
-        $newModel = Gtk2::TreeModelFilter->new($model);
-        $newModel->set_visible_column(LABELS_MODEL_SET2);
-        $popup->setListModel($newModel);
+        $new_model = Gtk2::TreeModelFilter->new($model);
+        $new_model->set_visible_column(LABELS_MODEL_SET2);
+        $popup->set_list_model($new_model);
 
-        $popup->setValueColumn(LABELS_MODEL_COUNT_SET2);
+        $popup->set_value_column(LABELS_MODEL_COUNT_SET2);
     }
     elsif ($type eq 'all') {
         # All - use original
         #print "[Cell popup] Setting labels model to original\n";
-        $newModel = $model;
-        $popup->setListModel($newModel);
+        $new_model = $model;
+        $popup->set_list_model($new_model);
 
-        $popup->setValueColumn(LABELS_MODEL_COUNT_ALL);
+        $popup->set_value_column(LABELS_MODEL_COUNT_ALL);
     }
 
 }
 
-sub makeNeighboursModel {
+sub make_neighbours_model {
     my $element = shift;
     my $data = shift;
     my $labels_model = Gtk2::ListStore->new(
@@ -194,9 +192,9 @@ sub makeNeighboursModel {
     );
     my $iter;
 
-    print "[Cell popup] Generating element hashes for $element\n";
+    print "[Cell popup] Generating neighbours hashes for $element\n";
 
-    my $neighbours = findNeighbours($element, $data);
+    my $neighbours = find_neighbours($element, $data);
 
     # Make elements model - DON'T USE FAT COMMAS WITH CONSTANTS
     foreach my $elt (@{ $neighbours->{element_list1} }) {
@@ -247,7 +245,7 @@ sub makeNeighboursModel {
 # Labels
 ##########################################################
 
-sub showAllLabels {
+sub show_all_labels {
     my $popup   = shift;
     my $element = shift;
     my $data    = shift;
@@ -256,8 +254,8 @@ sub showAllLabels {
     if (not $popup->{labels_model}) {
         #print "[Cell popup] Making labels model using get_labels_in_group_as_hash()\n";
         #!! Assuming that the correct basedata is selected
-        #my $project = Biodiverse::GUI::GUIManager->instance->getProject();
-        #my $basedata = $project->getSelectedBaseData();
+        #my $project = Biodiverse::GUI::GUIManager->instance->get_project();
+        #my $basedata = $project->get_selected_base_data();
         my %labels = $bd->get_labels_in_group_as_hash (group => $element);
         #my %labels = $data->get_lists (element => $element);
 
@@ -283,13 +281,13 @@ sub showAllLabels {
         $popup->{labels_model} = $model;
     }
 
-    $popup->setListModel($popup->{labels_model});
-    $popup->setValueColumn(1);
+    $popup->set_list_model($popup->{labels_model});
+    $popup->set_value_column(1);
 
     return;
 }
 
-sub showProperties {
+sub show_properties {
     my $popup   = shift;
     my $element = shift;
     my $data    = shift;
@@ -323,8 +321,8 @@ sub showProperties {
         $popup->{properties_model} = $model;
     }
 
-    $popup->setListModel($popup->{properties_model});
-    $popup->setValueColumn(1);
+    $popup->set_list_model($popup->{properties_model});
+    $popup->set_value_column(1);
 
     return;
 }
@@ -333,7 +331,7 @@ sub showProperties {
 # Output list
 ##########################################################
 
-sub showOutputList {
+sub show_output_list {
     my $popup = shift;
     my $name = shift;
     my $element = shift;
@@ -388,8 +386,8 @@ sub showOutputList {
         }
     }
 
-    $popup->setValueColumn(1);
-    $popup->setListModel($model);
+    $popup->set_value_column(1);
+    $popup->set_list_model($model);
 }
 
 ##########################################################
@@ -399,19 +397,13 @@ sub showOutputList {
 # Return whether to show the cell's neighbours
 # Basically, yes - if data is a spatial output,
 # no - if it's a basedata
-sub isNeighboursMode {
+sub is_neighbours_mode {
     my $data = shift;
 
-    #if ($data->get_param('SPATIAL_PARAMS1')) {\
-    if ((ref $data) =~ /Spatial/) {
-        return 1;
-    }
-    else {
-        return 0;
-    }
+    return (ref $data) =~ /Spatial/;
 }
 
-sub findNeighbours {
+sub find_neighbours {
     my $element = shift;
     my $output_ref = shift;
 
@@ -419,7 +411,7 @@ sub findNeighbours {
 
     my @exclude;
     my @nbr_list;
-    my $parsed_spatial_conditions = $output_ref->get_spatial_conditions;
+    my $parsed_spatial_conditions = $output_ref->get_spatial_conditions();
     my $sp_index = $output_ref->get_param ('SPATIAL_INDEX');
     my $search_blocks_ref = $output_ref->get_param ('INDEX_SEARCH_BLOCKS');
 
@@ -433,14 +425,15 @@ sub findNeighbours {
                 element => $element,
                 list    => '_NBR_SET' . ($i+1),
             );
+            
         }
         else {
             $nbr_list[$i] = $basedata_ref->get_neighbours_as_array (
-                element            => $element,
-                spatial_conditions => $parsed_spatial_conditions->[$i],
-                index              => $sp_index,
-                index_offsets      => $search_blocks_ref->[$i],
-                exclude_list       => \@exclude,
+                element        => $element,
+                spatial_params => $parsed_spatial_conditions->[$i],
+                index          => $sp_index,
+                index_offsets  => $search_blocks_ref->[$i],
+                exclude_list   => \@exclude,
             );
             push @exclude, @{$nbr_list[$i]};
         }

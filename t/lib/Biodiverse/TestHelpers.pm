@@ -28,6 +28,8 @@ use File::Temp;
 use Scalar::Util qw /looks_like_number reftype/;
 use Test::More;
 
+my $default_prng_seed = 2345;
+
 use Exporter::Easy (
     TAGS => [
         utils  => [
@@ -83,6 +85,20 @@ use Exporter::Easy (
         cluster => [
             qw (
                 get_cluster_mini_data
+                cluster_test_matrix_recycling
+                check_cluster_order_is_same_given_same_prng
+                cluster_test_linkages_and_check_replication
+                cluster_test_linkages_and_check_mx_precision
+                :basedata
+                :utils
+            ),
+        ],
+        spatial_conditions => [
+            qw (
+                get_sp_cond_res_pairs_to_use
+                run_sp_cond_tests
+                test_sp_cond_res_pairs
+                get_sp_conditions_to_run
                 :basedata
                 :utils
             ),
@@ -445,6 +461,7 @@ sub get_basedata_object_from_site_data {
     my %args = @_;
 
     my $file = write_data_to_temp_file(get_basedata_site_data());
+    my $group_columns = $args{group_columns} // [3, 4];
 
     print "Temp file is $file\n";
 
@@ -454,7 +471,7 @@ sub get_basedata_object_from_site_data {
     );
     $bd->import_data(
         input_files   => [$file],
-        group_columns => [3, 4],
+        group_columns => $group_columns,
         label_columns => [1, 2],
         skip_lines_with_undef_groups => 1,
     );
@@ -999,6 +1016,442 @@ sub run_indices_test1_inner {
 
     return wantarray ? %results : \%results;
 }
+
+
+
+###  spatial conditions stuff
+
+sub get_sp_cond_res_pairs {
+    my @res_pairs = (
+        {
+            res   => [10, 10],
+            min_x => 1,
+        },
+        ##  now try for negative coords
+        {
+            res   => [10, 10],
+            min_x => -30,
+        },
+        ##  now try for a mix of +ve and -ve coords
+        {
+            res   => [10, 10],
+            min_x => -14,
+        },
+        ##  now try for +ve coords
+        ##  but with cell sizes < 1
+        {
+            res   => [.1, .1],
+            min_x => 1,
+        },
+        #  cellsize < 1 and +ve and -ve coords
+        {
+            res   => [.1, .1],
+            min_x => -14,
+        },
+    );
+
+    return wantarray ? @res_pairs : \@res_pairs;
+}
+
+sub get_sp_cond_res_pairs_to_use {
+    my @args = @_;
+
+    my @res_pairs = get_sp_cond_res_pairs();
+
+    if (@args) {
+        my @res_sub;
+        for my $res (@args) {
+            if (looks_like_number $res && $res < $#res_pairs) {
+                push @res_sub, $res;
+            }
+        }
+        if (scalar @res_sub) {
+            diag 'Using res pair subset: ' . join ", ", @res_sub;
+            @res_pairs = @res_pairs[@res_sub];
+
+            local $Data::Dumper::Purity   = 1;
+            local $Data::Dumper::Terse    = 1;
+            local $Data::Dumper::Sortkeys = 1;
+            diag Dumper \@res_pairs;
+        }
+    }
+    else {  #  run a subset by default
+        @res_pairs = @res_pairs[2, 4];
+    }
+
+    return wantarray ? @res_pairs : \@res_pairs;
+}
+
+
+sub run_sp_cond_tests {
+    my %args = @_;
+    my $bd      = $args{basedata};
+    my $element = $args{element};
+    my $conditions = $args{conditions};
+    my $index_version = $args{index_version};
+
+    my $res = $bd->get_param('CELL_SIZES');
+    my ($index, $index_offsets);
+    my $index_text = q{};
+
+    foreach my $i (1 .. 3) {
+
+        foreach my $condition (sort keys %$conditions) {
+            my $expected = $conditions->{$condition};
+
+            my $cond = $condition;
+
+            while ($condition =~ /##(\d+)/gc) {
+                my $from = $1;
+                my $to = $from * $res->[0];  #  assuming square groups
+                $cond =~ s/##$from/$to/;
+                #print "Matched $from to $to\n";
+                #print $cond . "\n";
+            }
+
+            #diag $cond;
+
+            my $sp_conditions = Biodiverse::SpatialConditions->new (
+                conditions => $cond,
+            );
+            
+            if ($index) {
+                $index_offsets = $index->predict_offsets (
+                    spatial_conditions => $sp_conditions,
+                    cellsizes          => $bd->get_param ('CELL_SIZES'),
+                    #progress_text_pfx => $progress_text_pfx,
+                );
+            }
+
+            my $nbrs = eval {
+                $bd->get_neighbours (
+                    element            => $element,
+                    spatial_conditions => $sp_conditions,
+                    index              => $index,
+                    index_offsets      => $index_offsets,
+                );
+            };
+            croak $EVAL_ERROR if $EVAL_ERROR;
+
+            is (keys %$nbrs, $expected, $cond . $index_text);
+        }
+
+        my @index_res;
+        foreach my $r (@$res) {
+            push @index_res, $r * $i;
+        }
+        $index = $bd->build_spatial_index (
+            resolutions => [@index_res],
+            version     => $index_version,
+        );
+        $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
+    }
+
+    return;
+}
+
+
+sub test_sp_cond_res_pairs {
+    my $conditions = shift;
+    my @res_pairs  = @_;
+
+    SKIP:
+    {
+        while (my $cond = shift @res_pairs) {
+            my $res = $cond->{res};
+            my @x   = ($cond->{min_x}, $cond->{min_x} + 29);
+            my @y   = @x;
+            my $bd = get_basedata_object(
+                x_spacing  => $res->[0],
+                y_spacing  => $res->[1],
+                CELL_SIZES => $res,
+                x_max      => $x[1],
+                y_max      => $y[1],
+                x_min      => $x[0],
+                y_min      => $y[0],
+            );
+
+            #  should sub this - get centre_group or something
+            my $element_x = $res->[0] * (($x[0] + $x[1]) / 2) + $res->[0];
+            my $element_y = $res->[1] * (($y[0] + $y[1]) / 2) + $res->[1];
+            my $element = join ":", $element_x, $element_y;
+    
+            run_sp_cond_tests (
+                basedata   => $bd,
+                element    => $element,
+                conditions => $conditions,
+                index_version => undef,  #  this arg is for debug
+            );
+        }
+    }
+}
+
+sub get_sp_conditions_to_run {
+    my ($conditions, @args) = @_;
+
+    my $conditions_to_run = $conditions;
+
+    if (@args) {
+        my %cond_sub;
+        for my $cond (@args) {
+            if (exists $conditions->{$cond} && exists $conditions->{$cond}) {
+                $cond_sub{$cond} = $conditions->{$cond};
+            }
+        }
+
+        if (scalar keys %cond_sub) {
+            diag 'Using conditions subset: ' . join ', ', sort keys %cond_sub;
+        }
+        $conditions_to_run = \%cond_sub;
+    }
+
+    return wantarray ? %$conditions_to_run : $conditions_to_run;
+}
+
+
+#  need to add tie breaker
+sub check_cluster_order_is_same_given_same_prng {
+    my %args = @_;
+    my $bd = $args{basedata_ref};
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    my $prng_seed = $args{prng_seed} || $default_prng_seed;
+    
+    my $cl1 = $bd->add_output (name => 'cl1', type => $type);
+    my $cl2 = $bd->add_output (name => 'cl2', type => $type);
+    my $cl3 = $bd->add_output (name => 'cl3', type => $type);
+    
+    $cl1->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    $cl2->run_analysis (
+        prng_seed => $prng_seed,
+    );
+    $cl3->run_analysis (
+        prng_seed => $prng_seed + 1,  #  different prng
+    );
+    
+    my $newick1 = $cl1->to_newick;
+    my $newick2 = $cl2->to_newick;
+    my $newick3 = $cl3->to_newick;
+    
+    is   ($newick1, $newick2, 'trees are the same');
+    isnt ($newick1, $newick3, 'trees are not the same');
+}
+
+#  Need to use an index that needs arguments
+#  so we exercise the whole shebang.
+sub cluster_test_matrix_recycling {
+    my %args = @_;
+    my $type  = $args{type}  // 'Biodiverse::Cluster';
+    my $index = $args{index} // 'SORENSON';
+    my $tie_breaker = exists $args{tie_breaker}  #  use undef if the user passed the arg key
+        ? $args{tie_breaker}
+        : [ENDW_WE => 'max', PD => 'max', ABC3_SUM_ALL => 'max', none => 'max'];  #  we will fail if random tiebreaker is use
+        #: [ENDW_WE => 'max', PD => 'max'];
+        #: [RICHNESS_ALL => 'max', PD => 'max'];
+        #: [random => 'max', PD => 'max'];
+
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tree_ref  = get_tree_object_from_sample_data();
+
+    my %analysis_args = (
+        %args,
+        tree_ref    => $tree_ref,
+        index       => $index,
+        cluster_tie_breaker => $tie_breaker,
+        #prng_seed   => $default_prng_seed,  #  should not need this when using appropriate tie breakers
+    );
+    
+    my $cl1 = $bd->add_output (name => 'cl1', type => $type);
+    $cl1->run_analysis (%analysis_args);
+
+    my $cl2 = $bd->add_output (name => 'cl2', type => $type);
+    $cl2->run_analysis (%analysis_args);
+
+    ok (
+        $cl1->trees_are_same (comparison => $cl2),
+        'Clustering using reycled matrices'
+    );
+
+    my $cl3 = $bd->add_output (name => 'cl3', type => $type);
+    $cl3->run_analysis (%analysis_args);
+
+    ok (
+        $cl1->trees_are_same (comparison => $cl3),
+        'Clustering using reycled matrices, 2nd time round'
+    );
+
+    my $mx_ref1 = $cl1->get_orig_matrices;
+    my $mx_ref2 = $cl2->get_orig_matrices;
+    my $mx_ref3 = $cl3->get_orig_matrices;
+
+    is ($mx_ref1, $mx_ref2, 'recycled matrices correctly, 1&2');
+    is ($mx_ref1, $mx_ref3, 'recycled matrices correctly, 1&3');
+
+    #  now check what happens when we destroy the matrix in the clustering
+    $bd->delete_all_outputs;
+
+    my $cl4 = $bd->add_output (name => 'cl4', type => $type);
+    $cl4->run_analysis (%analysis_args, no_clone_matrices => 1);
+
+    my $cl5 = $bd->add_output (name => 'cl5', type => $type);
+    $cl5->run_analysis (%analysis_args);
+
+    ok (
+        $cl4->trees_are_same (comparison => $cl5),
+        'Clustering using reycled matrices when matrix is destroyed in clustering'
+    );
+    
+    my $mx_ref4 = $cl4->get_orig_matrices;
+    my $mx_ref5 = $cl5->get_orig_matrices;
+    isnt ($mx_ref1, $mx_ref4, 'did not recycle matrices, 1 v 4');
+    isnt ($mx_ref1, $mx_ref5, 'did not recycle matrices, 1 v 5');
+    isnt ($mx_ref4, $mx_ref5, 'did not recycle matrices, 4 v 5');
+    
+    #  now we try with a combinatoin of spatial condition and def query
+    $bd->delete_all_outputs;
+
+    my $cl6 = $bd->add_output (name => 'cl6', type => $type);
+    $cl6->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
+
+    my $cl7 = $bd->add_output (name => 'cl7', type => $type);
+    $cl7->run_analysis (%analysis_args, def_query => 'sp_select_all()');
+
+    my $mx_ref6 = $cl6->get_orig_matrices;
+    my $mx_ref7 = $cl7->get_orig_matrices;
+    isnt ($mx_ref6, $mx_ref7, 'did not recycle matrices, 6 v 7');
+    
+    my $cl8 = $bd->add_output (name => 'cl8', type => $type);
+    $cl8->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
+    my $mx_ref8 = $cl8->get_orig_matrices;
+    is ($mx_ref6, $mx_ref8, 'did recycle matrices, 6 v 8');
+
+    my $cl9 = $bd->add_output (name => 'cl9', type => $type);
+    $cl9->run_analysis (%analysis_args, def_query => 'sp_select_all()');
+    my $mx_ref9 = $cl9->get_orig_matrices;
+    is ($mx_ref7, $mx_ref9, 'did recycle matrices, 7 v 8');
+
+}
+
+sub cluster_test_linkages_and_check_mx_precision {
+    my %args = @_;
+    #  make sure we get the same cluster result using different matrix precisions
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $tie_breaker = 'random';
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    
+    my $linkage_funcs = $args{linkage_funcs} // get_cluster_linkages();
+
+    foreach my $linkage (@$linkage_funcs) {
+        my $prng_seed = 123456;
+        $bd->delete_all_outputs();
+
+        my $class1 = 'Biodiverse::Matrix';
+        my $cl1 = $bd->add_output (
+            name => "$class1 $linkage 1",
+            type => $type,
+            MATRIX_CLASS        => $class1,
+        );
+        $cl1->run_analysis (
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+        my $nwk1 = $cl1->to_newick;
+
+        #  make sure we build a new matrix
+        $bd->delete_all_outputs();
+
+        my $cl2 = $bd->add_output (
+            name => "$class1 $linkage 2",
+            type => $type,
+            MATRIX_CLASS           => $class1,
+            MATRIX_INDEX_PRECISION => undef,
+        );
+        $cl2->run_analysis (
+            prng_seed        => $prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+        my $nwk2 = $cl2->to_newick;
+
+        #  getting cache deletion issues - need to look into them before using this test
+        ok (
+            $cl1->trees_are_same (
+                comparison => $cl2,
+            ),
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
+
+        #  this test will likely have issues with v5.18 and hash randomisation
+        is (
+            $nwk1,
+            $nwk2,
+            "Clustering using matrices with differing index precisions, linkage $linkage"
+        );
+        #print join "\n", ('======') x 4;
+        #say "$linkage $nwk1";
+        #print join "\n", ('======') x 4;
+    }
+}
+
+
+sub get_cluster_linkages {
+    my @linkages = qw /
+        link_average
+        link_recalculate
+        link_minimum
+        link_maximum
+        link_average_unweighted
+    /;
+
+    return wantarray ? @linkages : \@linkages;
+}
+
+sub cluster_test_linkages_and_check_replication {
+    my %args = (delete_outputs => 1, @_);
+    
+    my $type = $args{type} // 'Biodiverse::Cluster';
+    my $linkage_funcs = $args{linkage_funcs} // get_cluster_linkages();
+    my $tie_breaker   = 'ENDW_WE';
+
+    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+
+    foreach my $linkage (@$linkage_funcs) {
+        my $cl1 = $bd1->add_output (name => $linkage, type => $type);
+        $cl1->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+        my $cl2 = $bd2->add_output (name => $linkage, type => $type);
+        $cl2->run_analysis (
+            prng_seed        => $default_prng_seed,
+            linkage_function => $linkage,
+            cluster_tie_breaker => [$tie_breaker => 'max'],
+        );
+
+        my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';
+        my $are_same = $cl1->trees_are_same (comparison => $cl2);
+        ok ($are_same, "Check Rep: Exact match using $linkage" . $suffix);
+
+        my $nodes_have_matching_terminals = $cl1->trees_are_same (
+            comparison     => $cl2,
+            terminals_only => 1,
+        );
+        ok (
+            $nodes_have_matching_terminals,
+            "Check Rep: Nodes have matching terminals using $linkage" . $suffix,
+        );
+
+        if ($args{delete_outputs}) {
+            $bd1->delete_all_outputs;
+            $bd2->delete_all_outputs;
+        }
+    }
+}
+
 
 1;
 

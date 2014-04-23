@@ -286,7 +286,7 @@ sub metadata_for_calc_endemism_hier_part {
     #  how many levels in the hierarchy?
     my $bd         = $self->get_basedata_ref;
     my $labels_ref = $bd->get_labels_ref;
-    my $axes       = $labels_ref->get_param ('CELL_SIZES');
+    my $axes       = $labels_ref->get_cell_sizes;
     my $hier_max   = scalar @$axes - 1;
     
     my $indices = {};

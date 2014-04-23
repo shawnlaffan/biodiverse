@@ -87,7 +87,7 @@ sub fill {
         # The extractor will be called after the dialogue is OK'd to get the parameter value
         # It returns (param_name, value)
 
-        my ($widget, $extractor) = generateWidget($param, $dlgxml);
+        my ($widget, $extractor) = generate_widget($param, $dlgxml);
 
         if ($extractor) {
             push @extract_closures, $extractor;
@@ -142,15 +142,15 @@ sub extract {
     # We call all the extractor closures which get values from the widgets
     my @params;
     foreach my $extractor (@$extractors) {
-        #print &$extractor();
+        #print $extractor->();
         #print "\n";
-        push @params, &$extractor();
+        push @params, $extractor->();
     }
     return \@params;
 }
 
 # Generates widget + extractor for some parameter
-sub generateWidget {
+sub generate_widget {
     my $param = $_[0];
 
     my $type = $param->{type};

@@ -26,11 +26,11 @@ sub new {
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
     $self->{xmlPage}  = Gtk2::GladeXML->new(
-        $self->{gui}->getGladeFile,
+        $self->{gui}->get_glade_file,
         'hboxOutputsPage',
     );
     $self->{xmlLabel} = Gtk2::GladeXML->new(
-        $self->{gui}->getGladeFile,
+        $self->{gui}->get_glade_file,
         'hboxOutputsLabel',
     );
 
@@ -39,10 +39,10 @@ sub new {
     my $menu_label = Gtk2::Label->new ('Outputs tab');
 
     # Add to notebook
-    $self->{notebook}   = $self->{gui}->getNotebook();
+    $self->{notebook}   = $self->{gui}->get_notebook();
     $self->{notebook}->prepend_page_menu($page, $label, $menu_label);
     $self->{page}       = $page;
-    $self->{gui}->addTab($self);
+    $self->{gui}->add_tab($self);
     
 
     $self->set_tab_reorderable($page);
@@ -62,63 +62,63 @@ sub new {
     #while (my ($column_type, $text) = each %columns_hash) {
     foreach my $column_type (@column_order) {
         my $text = $columns_hash{$column_type};
-        my $textRenderer = Gtk2::CellRendererText->new();
+        my $text_renderer = Gtk2::CellRendererText->new();
         if ($column_type eq 'Type') {
-            $textRenderer->set(style => 'italic');
+            $text_renderer->set(style => 'italic');
         }
         $tree->insert_column_with_attributes(
             -1,
             $column_type,
-            $textRenderer,
+            $text_renderer,
             text => $text,
         );
     }
 
-    my $model = $self->{gui}->getProject->getBaseDataOutputModel();
+    my $model = $self->{gui}->get_project->get_base_data_output_model();
     $tree->set_model( $model );
     $tree->columns_autosize;
 
     # Monitor for new rows, so that we can expand basedatas
-    $model->signal_connect('row-inserted' => \&onRowInserted, $self);
+    $model->signal_connect('row-inserted' => \&on_row_inserted, $self);
     
     # Connect signals
-    #$self->{xmlLabel}->get_widget("btnOutputsClose")->signal_connect_swapped(clicked => \&Tabs::Tab::onClose, $self);
+    #$self->{xmlLabel}->get_widget("btnOutputsClose")->signal_connect_swapped(clicked => \&Tabs::Tab::on_close, $self);
     my $xml_page = $self->{xmlPage};
-    $xml_page->get_widget('btnOutputsShow'  )->signal_connect_swapped(clicked => \&onShow,   $self);
-    $xml_page->get_widget('btnOutputsExport')->signal_connect_swapped(clicked => \&onExport, $self);
-    $xml_page->get_widget('btnOutputsDelete')->signal_connect_swapped(clicked => \&onDelete, $self);
-    $xml_page->get_widget('btnOutputsRename')->signal_connect_swapped(clicked => \&onRename, $self);
-    $xml_page->get_widget('btnOutputsDescribe')->signal_connect_swapped(clicked => \&onDescribe, $self);
+    $xml_page->get_widget('btnOutputsShow'  )->signal_connect_swapped(clicked => \&on_show,   $self);
+    $xml_page->get_widget('btnOutputsExport')->signal_connect_swapped(clicked => \&on_export, $self);
+    $xml_page->get_widget('btnOutputsDelete')->signal_connect_swapped(clicked => \&on_delete, $self);
+    $xml_page->get_widget('btnOutputsRename')->signal_connect_swapped(clicked => \&on_rename, $self);
+    $xml_page->get_widget('btnOutputsDescribe')->signal_connect_swapped(clicked => \&on_describe, $self);
     
     
     
-    $tree->signal_connect_swapped('row-activated', \&onRowActivated, $self);
+    $tree->signal_connect_swapped('row-activated', \&on_row_activated, $self);
     $tree->get_selection->signal_connect_swapped(
         'changed',
-        \&onRowChanged,
+        \&on_row_changed,
         $self,
     );
-    $tree->signal_connect_swapped('row-collapsed' => \&onRowCollapsed, $self);
+    $tree->signal_connect_swapped('row-collapsed' => \&on_row_collapsed, $self);
 
     print "[Outputs tab] Loaded tab - Outputs\n";
 
     return $self;
 }
 
-sub getType { return 'outputs'; }
+sub get_type { return 'outputs'; }
 
-sub getRemovable { return 0; } # output tab cannot be closed
+sub get_removable { return 0; } # output tab cannot be closed
 
 # Get lots of information about currently selected row
-sub getSelection {
+sub get_selection {
     my $self = shift;
 
     my $tree    = $self->{xmlPage}->get_widget('outputsTree');
-    my $project = $self->{gui}->getProject;
+    my $project = $self->{gui}->get_project;
     
     return if not defined $project;
     
-    my $model = $project->getBaseDataOutputModel();
+    my $model = $project->get_base_data_output_model();
 
     my $selection = $tree->get_selection();
     my $iter      = $selection->get_selected();
@@ -172,7 +172,7 @@ sub getSelection {
     return $hash_ref;
 }
 
-sub onRowInserted {
+sub on_row_inserted {
     my ($model, $path, $iter, $self) = @_;
 
     # If an output row has been added, we expand the parent (basedata row)
@@ -186,11 +186,11 @@ sub onRowInserted {
     return;
 }
 
-sub onRowActivated {
+sub on_row_activated {
     my $self = shift;
     
     eval {
-        $self->onShow();
+        $self->on_show();
     };
     if ($EVAL_ERROR) {
         $self->{gui}->report_error ($EVAL_ERROR);
@@ -200,10 +200,10 @@ sub onRowActivated {
 }
 
 # Enable/disable buttons based on selected row
-sub onRowChanged {
+sub on_row_changed {
     my $self = shift;
 
-    my $selected = $self->getSelection();
+    my $selected = $self->get_selection();
     my $type = $selected->{type};
     
     return if not defined $type;
@@ -220,14 +220,14 @@ sub onRowChanged {
     
     # If clicked on basedata, select it
     if ($type eq 'basedata') {
-        $self->{gui}->getProject->selectBaseData($selected->{basedata_ref}) ;
+        $self->{gui}->get_project->select_base_data($selected->{basedata_ref}) ;
     }
     
     return;
 }
 
 #  resize the contents - this reclaims unused horizontal space 
-sub onRowCollapsed {
+sub on_row_collapsed {
     my $self = shift;
     my $tree = $self->{xmlPage}->get_widget('outputsTree');
     
@@ -237,10 +237,10 @@ sub onRowCollapsed {
 }
 
 # Switch to the output's analysis tab or create a new one
-sub onShow {
+sub on_show {
     my $self = shift;
 
-    my $selected = $self->getSelection();
+    my $selected = $self->get_selection();
     
     #  (was "return 0")
     return if not defined $selected;
@@ -266,7 +266,7 @@ sub onShow {
     if (defined $tab) {
         # Switch to it
         print "[Outputs tab] Switching to analysis tab\n";
-        $self->{gui}->switchTab($tab);
+        $self->{gui}->switch_tab($tab);
     }
     else {
         print "[Outputs tab] New analysis tab\n";
@@ -290,29 +290,29 @@ sub onShow {
                 $tab = Biodiverse::GUI::Tabs::SpatialMatrix->new($output_ref);
             }
             else {
-                croak 'Outputs::onShow - unsupported output type ' . $type;
+                croak 'Outputs::on_show - unsupported output type ' . $type;
             }
         };
         if ($EVAL_ERROR) {
             $self->{gui}->report_error ($EVAL_ERROR);
             if ($tab) {
-                $tab->onClose;
+                $tab->on_close;
             }
             return;
         }
     }
 
     if (defined $analysis) {
-        $tab->showAnalysis($analysis);
+        $tab->show_analysis($analysis);
     }
     
     return;
 }
 
-sub onExport {
+sub on_export {
     my $self = shift;
 
-    my $selected = $self->getSelection();
+    my $selected = $self->get_selection();
     my $object;
     $selected->{type} = "" if ! defined $selected->{type};
     if ($selected->{type} eq 'output') {
@@ -323,9 +323,9 @@ sub onExport {
 
         # Show "Save changes?" dialog
         my $gui = $self->{gui};
-        my $dlgxml = Gtk2::GladeXML->new($gui->getGladeFile, 'dlgGroupsLabels');
+        my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgGroupsLabels');
         my $dlg = $dlgxml->get_widget('dlgGroupsLabels');
-        $dlg->set_transient_for( $gui->getWidget('wndMain') );
+        $dlg->set_transient_for( $gui->get_widget('wndMain') );
         $dlg->set_modal(1);
         my $response = $dlg->run();
         $dlg->destroy();
@@ -350,40 +350,40 @@ sub onExport {
     return;
 }
 
-sub onRename {
+sub on_rename {
     my $self = shift;
 
-    my $selected = $self->getSelection();
+    my $selected = $self->get_selection();
 
     my $gui = $self->{gui};
     if (not defined $selected->{type}) {
         $selected->{type} = q{};
     }
     if ($selected->{type} eq 'basedata') {
-        $gui->doRenameBasedata ($selected);
+        $gui->do_rename_basedata ($selected);
     }
     elsif ($selected->{type} eq 'output') {
         my $object = $selected->{output_ref};
-        $gui->doRenameOutput ($selected);
+        $gui->do_rename_output ($selected);
     }
 
     return;
 }
 
-sub onDescribe {
+sub on_describe {
     my $self = shift;
 
     my $gui = $self->{gui};
-    $gui->doDescribeBasedata ();
+    $gui->do_describe_basedata ();
 
     return;
 }
 
 
-sub onDelete {
+sub on_delete {
     my $self = shift;
 
-    my $selected = $self->getSelection();
+    my $selected = $self->get_selection();
     return 0 if not defined $selected;
     
     my $basedata_ref = $selected->{basedata_ref};
@@ -405,7 +405,7 @@ sub onDelete {
 
         # Confirmation dialog
         $dialog = Gtk2::MessageDialog->new (
-            $self->{gui}->getWidget('wndMain'),
+            $self->{gui}->get_widget('wndMain'),
             'destroy-with-parent',
             'question',
             'yes-no',
@@ -418,7 +418,7 @@ sub onDelete {
         if ($response eq 'yes') {
 
             print "[Outputs tab] Deleting output $name\n";
-            $self->{gui}->getProject->deleteOutput($output_ref); # delete from model
+            $self->{gui}->get_project->delete_output($output_ref); # delete from model
 
             # delete from basedata
             eval {   #  let basedata handle it
@@ -430,7 +430,7 @@ sub onDelete {
 
             # Close any tabs with this output
             if (defined $tab and (blessed $tab) !~ /Outputs$/) {
-                $self->{gui}->removeTab($tab);
+                $self->{gui}->remove_tab($tab);
             }
         }
     }
@@ -440,7 +440,7 @@ sub onDelete {
 
         # Confirmation dialog
         $dialog = Gtk2::MessageDialog->new (
-            $self->{gui}->getWidget('wndMain'),
+            $self->{gui}->get_widget('wndMain'),
             'destroy-with-parent',
             'question',
             'yes-no',
@@ -453,11 +453,11 @@ sub onDelete {
         if ($response eq 'yes') {
             
             print "[Outputs tab] Deleting basedata $name\n";
-            $self->{gui}->getProject->deleteBaseData($basedata_ref);
+            $self->{gui}->get_project->delete_base_data($basedata_ref);
 
             # Need to close any tabs associated with this basedata - currently am not doing that
             if (defined $tab) {
-                $self->{gui}->removeTab($tab);
+                $self->{gui}->remove_tab($tab);
             }
         }
 

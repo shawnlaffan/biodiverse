@@ -27,6 +27,7 @@ use parent qw {
     Biodiverse::Indices::IEI
     Biodiverse::Indices::Hierarchical_Labels
     Biodiverse::Indices::Phylogenetic
+    Biodiverse::Indices::PhyloCom
     Biodiverse::Indices::Matrix_Indices
     Biodiverse::Indices::Endemism
     Biodiverse::Indices::Rarity
@@ -574,10 +575,23 @@ sub get_valid_calculations {
         calc_deps_by_type   => \%aggregated_deps_per_calc,
     );
 
-    $self->set_param (VALID_CALCULATIONS => \%results);
+    $self->set_param(VALID_CALCULATIONS   => \%results);
+    $self->set_param(INVALID_CALCULATIONS => \@removed);
 
     return wantarray ? %results : \%results;
 }
+
+#  run after valid calcs
+sub get_invalid_calculations {
+    my $self = shift;
+
+    my $invalid = $self->get_param ('INVALID_CALCULATIONS');
+    croak 'Need to run get_valid_calculations first'
+      if !defined $invalid;
+
+    return wantarray ? @$invalid : [@$invalid];
+}
+
 
 sub get_deps_per_calc_by_type {
     my $self = shift;
@@ -834,13 +848,17 @@ sub run_dependencies {
 
     my $type = $args{type};
 
+    my $validated_calcs = $self->get_param ('VALID_CALCULATIONS');
+    my $calc_list       = $validated_calcs->{calc_lists_by_type}{$type};
+
+    #  Drop out of we have nothing to do.      
+    return wantarray ? () : {} if !scalar @$calc_list;
+
+    my $dep_list        = $validated_calcs->{calc_deps_by_type}{$type};
+    my $dep_list_global = $validated_calcs->{calc_deps_by_type}{pre_calc_global};
+
     my $tmp = $self->get_param('AS_RESULTS_FROM_GLOBAL') || {};
     my %as_results_from_global = %$tmp;  #  make a copy
-
-    my $validated_calcs = $self->get_param ('VALID_CALCULATIONS');
-    my $calc_list = $validated_calcs->{calc_lists_by_type}{$type};
-    my $dep_list  = $validated_calcs->{calc_deps_by_type}{$type};
-    my $dep_list_global = $validated_calcs->{calc_deps_by_type}{pre_calc_global};
 
     #  Now we run the calculations at this level.
     #  We also keep track of what has been run

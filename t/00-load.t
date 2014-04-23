@@ -10,7 +10,11 @@ use File::Find;
 use rlib;
 
 #  need to move GUI modules into their own test file
-use Biodiverse::GUI::GUIManager;  #  trigger loading of Gtk libs on Windows
+BEGIN {
+    if (!$ENV{BD_NO_TEST_GUI}) {
+        eval 'use Biodiverse::GUI::GUIManager';  #  trigger loading of Gtk libs on Windows
+    }
+}
 
 #  list of files
 our @files;
@@ -18,11 +22,14 @@ our @files;
 sub Wanted {
     # only operate on Perl modules
     return if $_ !~ m/\.pm$/;
-    return if $File::Find::name !~ m/Biodiverse/;
-    return if $File::Find::name =~ m/Task/;    #  ignore Task files
-    return if $File::Find::name =~ m/Bundle/;  #  ignore Bundle files
-
     my $filename = $File::Find::name;
+    
+    return if $filename !~ m/Biodiverse/;
+    return if $filename =~ m/Task/;    #  ignore Task files
+    return if $filename =~ m/Bundle/;  #  ignore Bundle files
+    return if $ENV{BD_NO_TEST_GUI} && $filename =~ m/GUI/;  #  ignore GUI files
+
+
     $filename =~ s/\.pm$//;
     if ($filename =~ /((?:App\/)?Biodiverse.*)$/) {
         $filename = $1;

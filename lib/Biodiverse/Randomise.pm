@@ -377,6 +377,8 @@ sub run_randomisation {
 
     my $return_success_code = 1;
     my @rand_bd_array;  #  populated if return_rand_bd_array is true
+    
+    my $progress_bar = Biodiverse::Progress->new(text => 'Randomisation');
 
     #  do stuff here
     ITERATION:
@@ -392,6 +394,11 @@ sub run_randomisation {
 
         print "[RANDOMISE] $results_list_name iteration $$total_iterations "
             . "($i of $iterations this run)\n";
+
+        $progress_bar->update (
+            "Randomisation iteration $i of $iterations this run",
+            ($i / $iterations),
+        );
 
         my $rand_bd = eval {
             $self->$function (
@@ -461,7 +468,7 @@ sub run_randomisation {
             $rand_analysis->set_param(RAND_LAST_STATE => [@$rand_state]);
             my $is_tree_object = eval {$rand_analysis->is_tree_object};
             if ($is_tree_object) {
-                $rand_analysis->delete_params (qw /ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
+                $rand_analysis->delete_params (qw/ORIGINAL_MATRICES ORIGINAL_SHADOW_MATRIX/);
                 eval {$rand_analysis->override_cached_spatial_calculations_arg};  #  override cluster calcs per node
                 $rand_analysis->set_param(NO_ADD_MATRICES_TO_BASEDATA => 1);  #  Avoid adding cluster matrices
             }
@@ -620,7 +627,7 @@ sub get_analysis_args_from_object {
     my $analysis_args;
     my $p_key;
   ARGS_PARAM:
-    for my $key (qw /ANALYSIS_ARGS SP_CALC_ARGS/) {
+    for my $key (qw/ANALYSIS_ARGS SP_CALC_ARGS/) {
         $analysis_args = $object->get_param ($key);
         $p_key = $key;
         last ARGS_PARAM if defined $analysis_args;
@@ -764,7 +771,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
 
     my @orig_groups = sort $bd->get_groups;
     #  make sure shuffle does not work on the original data
-    my $randOrder = $rand->shuffle ([@orig_groups]);
+    my $rand_order = $rand->shuffle ([@orig_groups]);
 
     print "[RANDOMISE] CSR Shuffling ".(scalar @orig_groups)." groups\n";
 
@@ -774,11 +781,14 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
 
     foreach my $i (0 .. $#orig_groups) {
 
-        my $progress = $i / $total_to_do;
+        my $progress = $total_to_do <= 0 ? 0 : $i / $total_to_do;
+
         my $p_text
             = "$progress_text\n"
             . "Shuffling labels from\n"
-            . "\t$orig_groups[$i]\nto\n\t$randOrder->[$i]\n"
+            . "\t$orig_groups[$i]\n"
+            . "to\n"
+            . "\t$rand_order->[$i]\n"
             . "(element $i of $total_to_do)";
 
         $progress_bar->update (
@@ -787,7 +797,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
         );
 
         #  create the group (this allows for empty groups with no labels)
-        $new_bd->add_element(group => $randOrder->[$i]);
+        $new_bd->add_element(group => $rand_order->[$i]);
 
         #  get the labels from the original group and assign them to the random group
         my %tmp = $bd->get_labels_in_group_as_hash (group => $orig_groups[$i]);
@@ -795,7 +805,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
         while (my ($label, $counts) = each %tmp) {
             $new_bd->add_element(
                 label => $label,
-                group => $randOrder->[$i],
+                group => $rand_order->[$i],
                 count => $counts,
             );
         }
@@ -1570,7 +1580,7 @@ sub get_group_prop_metadata {
         name => 'randomise_group_props_by',
         type => 'choice',
         choices => [qw /no_change by_set by_item/],
-        #default => 0,
+        default => 0,
         tooltip => $process_group_props_tooltip,
     );
 

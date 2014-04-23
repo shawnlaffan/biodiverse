@@ -123,6 +123,7 @@ sub calc_chao1 {
         $chao_formula = undef;
     }
 
+    $variance = max (0, $variance);
 
     #  and now the confidence interval
     my $ci_scores = $self->_calc_chao_confidence_intervals (
@@ -272,6 +273,8 @@ sub calc_chao2 {
         $variance = $part1 - $part2 ** 2 / $R;
         $chao_formula = undef;
     }
+    
+    $variance = max (0, $variance);
 
     #  and now the confidence interval
     my $ci_scores = $self->_calc_chao_confidence_intervals (

@@ -11,7 +11,7 @@ use English ( -no_match_vars );
 use Data::Dumper;
 use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval time/;
-use List::Util qw /first reduce/;
+use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
 
 our $VERSION = '0.19';
@@ -150,9 +150,7 @@ sub process_spatial_conditions_and_def_query {
     my %args = @_;
     
     #  we work with any number of spatial conditions, but default to consider everything
-    if (! defined $args{spatial_conditions}) {
-        $args{spatial_conditions} = ['sp_select_all ()'];
-    }
+    $args{spatial_conditions} //= ['sp_select_all ()'];
 
     my @spatial_conditions = @{$args{spatial_conditions}};
     #  and we remove any undefined or empty conditions
@@ -237,7 +235,7 @@ sub get_indices_object_for_matrix_and_clustering {
     $self->set_param (CLUSTER_INDEX_SUB => $index_function);  
 
     my $index_params = $indices_object->get_args (sub => $index_function);
-    my $index_order  = $index_params->{indices}{$index}{cluster};
+    my $index_order  = $index_params->{indices}{$index}{cluster} // q{};
     # cache unless told otherwise
     my $cache_abc = $self->get_param ('CACHE_ABC') // 1;
     if (defined $args{no_cache_abc} and length $args{no_cache_abc}) {
@@ -405,19 +403,19 @@ sub build_matrices {
     # sort to ensure consistent order - easier for debug
     my @elements_to_calc = sort keys %{$sp->get_element_hash};
 
-    my $toDo = scalar @elements_to_calc;
+    my $to_do = scalar @elements_to_calc;
 
     croak "No elements to cluster, check your spatial conditions and def query\n"
-      if not scalar $toDo;
+      if not scalar $to_do;
 
     my $progress_bar = Biodiverse::Progress->new();
     my $count = 0;
-    my $printedProgress = -1;
-    my $target_element_count = $toDo * ($toDo - 1) / 2; # n(n-1)/2
+    my $printed_progress = -1;
+    my $target_element_count = $to_do * ($to_do - 1) / 2; # n(n-1)/2
     my $progress_pfx = "Building matrix\n"
                         . "$name\n"
                         . "Target is $target_element_count matrix elements\n";
-    #print "[CLUSTER] Progress (% of $toDo elements):     ";
+    #print "[CLUSTER] Progress (% of $to_do elements):     ";
     my @processed_elements;
 
     #  Use $sp for the groups so any def query will have an effect
@@ -425,9 +423,9 @@ sub build_matrices {
     foreach my $element1 (sort @elements_to_calc) {
 
         $count ++;
-        my $progress = $count / $toDo;
+        my $progress = $count / $to_do;
         $progress_bar->update(
-            $progress_pfx . "(row $count / $toDo)",
+            $progress_pfx . "(row $count / $to_do)",
             $progress,
         );
 
@@ -480,11 +478,11 @@ sub build_matrices {
     my $element_check = $self->get_param ('ELEMENT_CHECK');
 
     $progress_bar->update(
-        "Building matrix\n$name\n(row $count / $toDo)",
-        $count / $toDo
+        "Building matrix\n$name\n(row $count / $to_do)",
+        $count / $to_do
     );
     $progress_bar->reset;
-    print "[CLUSTER] Completed $count of $toDo groups\n";
+    print "[CLUSTER] Completed $count of $to_do groups\n";
 
     print "[CLUSTER] Valid value count is $valid_count\n";
     if (! $valid_count) {
@@ -568,16 +566,28 @@ sub build_matrix_elements {
     my $valid_count = 0;
     
     #print "Elements to calc: ", (scalar @$element_list2), "\n";
+    my $progress;
+    my $to_do = scalar @$element_list2;
+    if ($to_do > 100) {  #  arbitrary threshold
+        $progress = Biodiverse::Progress->new (text => 'Processing row', gui_only => 1);
+    }
+    my $n_matrices = scalar @$matrices;
 
-    ELEMENTS:
+    my $n = 0;
+  ELEMENT2:
     foreach my $element2 (sort @$element_list2) {
-        next ELEMENTS if $element1 eq $element2;
-        next ELEMENTS if $already_calculated{$element2};
+        $n++;
+        if ($progress) {
+            $progress->update ("processing column $n of $to_do", $n / $to_do);
+        }
+
+        next ELEMENT2 if $element1 eq $element2;
+        next ELEMENT2 if $already_calculated{$element2};
 
         if ($pass_def_query) {  #  poss redundant check now
             #my $null = undef;  #  debug
-            next ELEMENTS
-              if (not exists $pass_def_query->{$element2});
+            next ELEMENT2
+              if not exists $pass_def_query->{$element2};
         }
 
         #  If we already have this value then get it and assign it.
@@ -585,21 +595,22 @@ sub build_matrix_elements {
         #  where all matrices were built in one loop.
         #  Could probably drop out sooner now. 
         my $exists = 0;
-        my $iter = 0;
+        my $iter   = 0;
         my %not_exists_iter;
         my $value;
-        MX:
+      MX:
         foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
             #last MX if $ofh;
-            
+
             my $x = $mx->element_pair_exists (
                 element1 => $element1,
                 element2 => $element2
             );
-            if  ($x) {  #  don't redo them...
+            if ($x) {  #  don't redo them...
                 $value = $mx->get_value (
-                    element1 => $element1,
-                    element2 => $element2,
+                    element1    => $element1,
+                    element2    => $element2,
+                    pair_exists => $exists,
                 );
                 $exists ++;
             }
@@ -609,7 +620,7 @@ sub build_matrix_elements {
             $iter ++;
         }
 
-        next ELEMENTS if $exists == scalar @$matrices;  #  it is in all of them already
+        next ELEMENT2 if $exists == $n_matrices;  #  it is in all of them already
 
         if ($exists) {  #  if it is in one then we use it
             foreach my $iter (keys %not_exists_iter) {
@@ -619,13 +630,13 @@ sub build_matrix_elements {
                     value    => $value,
                 )
             }
-            next ELEMENTS;
+            next ELEMENT2;
         }
 
         #  use elements if no cached labels
         #  set to undef if we have a cached label_hash
         my ($el1_ref, $el2_ref, $label_hash1, $label_hash2);
-        if ($cache_abc) {
+        if (0 && $cache_abc) {
             $el1_ref = defined $cache->{$element1} ? undef : [$element1];
             $el2_ref = defined $cache->{$element2} ? undef : [$element2];
 
@@ -648,14 +659,15 @@ sub build_matrix_elements {
         my $values = $indices_object->run_calculations(%args, %elements);
 
         # useful for debugging  (comment out otherwise?)
-        if ($EVAL_ERROR && ! defined $values->{$index}) {
+        if (0 && $EVAL_ERROR && ! defined $values->{$index}) {
             croak "PROBLEMS WITH $element1 $element2\n"
                   . $EVAL_ERROR;
         }
 
         #  caching - a bit dodgy
         #  what if we have calc_abc and calc_abc3 as deps?
-        if ($cache_abc) {
+        #  turn it off for now (compiler will optimise it away)
+        if (0 && $cache_abc) {
             my $abc = {};
             my $as_results_from = $indices_object->get_param('AS_RESULTS_FROM');
             foreach my $calc_abc_type (qw /calc_abc3 calc_abc2 calc_abc/) {
@@ -674,7 +686,7 @@ sub build_matrix_elements {
             }
         }
 
-        next if ! defined $values->{$index};  #  don't add it if it is undefined
+        next ELEMENT2 if ! defined $values->{$index};  #  don't add it if it is undefined
 
         # write results to file handles if supplied, otherwise store them
         if (defined $ofh) {
@@ -864,7 +876,8 @@ sub get_most_similar_matrix_value {
     my $self = shift;
     my %args = @_;
     my $matrix = $args{matrix} || croak "matrix arg not specified\n";
-    my $sub = $self->get_param ('CLUSTER_MOST_SIMILAR_SUB') || 'get_min_value';
+    my $sub =  $args{objective_function}
+            // $self->get_objective_function (%args);
     return $matrix->$sub;
 }
 
@@ -873,6 +886,25 @@ sub get_default_linkage {
 
     return $PARAMS{DEFAULT_LINKAGE};
 }
+
+sub get_default_objective_function {
+    return 'get_min_value';
+}
+
+#  Should this only return get_min_value for Cluster objects?
+#  Inheriting objects can then do the fiddling?
+sub get_objective_function {
+    my $self = shift;
+    my %args = @_;
+
+    my $func = $args{objective_function}
+            // $self->get_param ('CLUSTER_MOST_SIMILAR_SUB')
+            // $self->get_default_objective_function
+            // 'get_min_value';
+
+    return $func;
+}
+
 
 sub cluster_matrix_elements {
     my $self = shift;
@@ -895,6 +927,8 @@ sub cluster_matrix_elements {
                             || $self->get_default_linkage;
     $self->set_param (LINKAGE_FUNCTION => $linkage_function);
 
+    my $objective_function = $self->get_objective_function(%args);
+
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
         state => $args{prng_state},
@@ -904,14 +938,14 @@ sub cluster_matrix_elements {
     my $sim_matrix = $self->get_matrix_ref (iter => $mx_iter);
     croak "No matrix reference available\n" if not defined $sim_matrix;
 
-    my $matrix_count = $self->get_matrix_count;
+    my $max_poss_value = $self->get_param('MAX_POSS_INDEX_VALUE');
 
-    print "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
-            ($self->get_matrix_count - 1),
-            "\n";
+    my $matrix_count = $self->get_matrix_count;
+    say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
+        ($self->get_matrix_count - 1);
 
     my $new_node;
-    my $min_value;
+    my ($most_similar_val, $prev_min_value);
     #  track the number of joins - use as element name for merged nodes
     my $join_number = $self->get_param ('JOIN_NUMBER') || -1;  
     my $total = $sim_matrix->get_element_count;
@@ -921,47 +955,53 @@ sub cluster_matrix_elements {
 
     local $| = 1;  #  write to screen as we go
 
-    my $count = 0;
-    my $printedProgress = -1;
-    
+    my $printed_progress = -1;
+
     my $name = $self->get_param ('NAME') || 'no_name';
     my $progress_text = "Matrix iter $mx_iter of " . ($matrix_count - 1) . "\n";
     $progress_text .= $args{progress_text} || $name;
     print "[CLUSTER] Progress (% of $total elements):     ";
 
+  PAIR:
     while ( ($remaining = $sim_matrix->get_element_count) > 0) {
         #print "Remaining $remaining\n";
 
-        #  get the most similar two candidates
-        $min_value = $self->get_most_similar_matrix_value (matrix => $sim_matrix);
-
         $join_number ++;
 
-        my $text = "Clustering\n"
-                 . "$progress_text\n("
-                 . ($remaining - 1)
-                 . " remaining)\nMost similar value is "
-                 . sprintf ("%.3f", $min_value);
+        #  get the most similar two candidates
+        $most_similar_val = $self->get_most_similar_matrix_value (
+            matrix => $sim_matrix,
+            objective_function => $objective_function,
+        );
+
+        my $text = sprintf
+            "Clustering\n%s\n(%d rows remaining)\nMost similar value is %.3f",
+            $progress_text,
+            $remaining - 1,
+            $most_similar_val;
 
         $progress_bar->update ($text, 1 - $remaining / $total);
 
-        $count ++;
+        #  clean up tie breakers if the min value has changed
+        if (defined $prev_min_value && $most_similar_val != $prev_min_value) {
+            $self->clear_tie_breaker_caches;
+        }
 
         my ($node1, $node2) = $self->get_most_similar_pair (
             sim_matrix  => $sim_matrix,
-            value       => $min_value,
+            min_value   => $most_similar_val,
             rand_object => $rand,
         );
 
         #  use node refs for children that are nodes
         #  use original name if not a node
         #  - this is where the name for $el1 comes from (a historical leftover)
-        my $lengthBelow = 0;
-        my $nodeNames = $self->get_node_hash;
-        my $el1 = defined $nodeNames->{$node1} ? $nodeNames->{$node1} : $node1;
-        my $el2 = defined $nodeNames->{$node2} ? $nodeNames->{$node2} : $node2;
+        my $length_below = 0;
+        my $node_names = $self->get_node_hash;
+        my $el1 = defined $node_names->{$node1} ? $node_names->{$node1} : $node1;
+        my $el2 = defined $node_names->{$node2} ? $node_names->{$node2} : $node2;
 
-        my $new_node_name = $join_number . "___";
+        my $new_node_name = $join_number . '___';
 
         #  create a new node using the elements - creates children as TreeNodes if needed
         $new_node = $self->add_node (
@@ -973,7 +1013,7 @@ sub cluster_matrix_elements {
             MATRIX_ITER_USED => $mx_iter,
             JOIN_NUMBER      => $join_number,
         );
-        $new_node->set_child_lengths (total_length => $min_value);
+        $new_node->set_child_lengths (total_length => $most_similar_val);
 
         #  add children to the node hash if they are terminals
         foreach my $child ($new_node->get_children) {
@@ -988,7 +1028,7 @@ sub cluster_matrix_elements {
                 );
             }
         }
-        
+
         #if ($new_node->get_length < 0) {
         #    printf "[CLUSTER] Node %s has negative length of %f\n", $new_node->get_name, $new_node->get_length;
         #}
@@ -997,6 +1037,7 @@ sub cluster_matrix_elements {
         ###  now we rebuild the similarity matrix to include the new linkages and destroy the old ones
         #  possibly we should return a list of other matrix elements where the length
         #  difference is 0 and which therefore could be merged now rather than next iteration
+        #  but that is not guaranteed to work for all combinations of index and linkage
         $self->run_linkage (
             node1            => $node1,
             node2            => $node2,
@@ -1004,13 +1045,26 @@ sub cluster_matrix_elements {
             linkage_function => $linkage_function,
             #merge_track_matrix => $merged_mx,
         );
+
+        $prev_min_value = $most_similar_val;
+
+        #  Need to run some cleanup of the matrices here?
+        #  Collapse all remaining into a polytomy?
+        #  Actually, the syste, does that, so it is more do we want to
+        #  exclude other nodes from the tree
+        if (defined $max_poss_value && $max_poss_value == $most_similar_val) {
+            say "\n[CLUSTER] Maximum possible value reached, stopping clustering process.";
+            last PAIR;
+        }
     }
+
+    $self->clear_tie_breaker_caches;
 
     #  finish off the progress
     $progress_bar->update (undef, 1);
 
     $self->set_param(JOIN_NUMBER => $join_number);
-    $self->set_param(MIN_VALUE   => $min_value);
+    $self->set_param(MIN_VALUE   => $most_similar_val);
 
     $self->store_rand_state (rand_object => $rand);
 
@@ -1023,7 +1077,9 @@ sub get_most_similar_pair {
     
     my $rand        = $args{rand_object} // croak "rand_object argument not passed\n";
     my $sim_matrix  = $args{sim_matrix}  // croak "sim_matrix argument not passed\n";
-    my $min_value   = $args{min_value}   // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
+    my $min_value   = $args{min_value}
+                    // $args{value}
+                    // $self->get_most_similar_matrix_value (matrix => $sim_matrix);
     my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
 
     my $keys_ref = $sim_matrix->get_elements_with_value (value => $min_value);
@@ -1036,100 +1092,141 @@ sub get_most_similar_pair {
         my $count2  = scalar keys %{$keys_ref};
         my $keys2   = $rand->shuffle ([sort keys %{$keys_ref->{$node1}}]);
         $node2      = $keys2->[0];  #  grab the first shuffled sub key
+
+        return wantarray ? ($node1, $node2) : [$node1, $node2];
     }
-    else {
-        my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
-        my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
-        my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHES');
-        if (!$tie_breaker_cache) {
-            $tie_breaker_cache = {};
-            $self->set_cached_value (TIEBREAKER_CACHES => $tie_breaker_cache);
+
+    #  need to get all the pairs
+    my $csv = $self->get_csv_object;
+    my @pairs;
+    foreach my $name1 (keys %$keys_ref) {
+        my $ref = $keys_ref->{$name1};
+        foreach my $name2 (keys %$ref) {
+            my $stringified = $self->list2csv (list => [$name1, $name2], csv_object => $csv);
+            #  need to use terminal names - allows to link_recalculate
+            #  stringified form is stripped at the end
+            push @pairs, [$name1, $name2, $stringified];
         }
+    }
 
-        #  need to get all the pairs
-        my @pairs;
-        foreach my $name1 (keys %$keys_ref) {
-            my $ref = $keys_ref->{$name1};
-            foreach my $name2 (keys %$ref) {
-                push @pairs, [$name1, $name2];  #  need to use terminal names - allows to link_recalculate
-            }
-        }
-        return (wantarray ? @{$pairs[0]} : $pairs[0])
-          if scalar @pairs == 1;
+    return (wantarray ? @{$pairs[0]} : $pairs[0])
+      if scalar @pairs == 1;
 
-        my $current_pair;
-        my %tmp = @$tie_breaker;
-        my @tie_keys = keys %tmp;
+    return $self->get_most_similar_pair_using_tie_breaker(%args, pairs => \@pairs);
+}
 
-        #  Sort ensures same order each time, thus stabilising random results
-        foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
-            no autovivification;
+sub get_most_similar_pair_using_tie_breaker {
+    my $self = shift;
+    my %args = @_;
 
-            my $calc_results = $tie_breaker_cache->{$pair->[0]}{$pair->[1]}
-                            || $tie_breaker_cache->{$pair->[1]}{$pair->[0]};
+    my @pairs = @{$args{pairs}};
+    my $rand  = $args{rand_object} // croak 'rand_object argument not passed';
 
-            if (!defined $calc_results) {
-                my @el_lists;
-                foreach my $j (0, 1) {
-                    my $node = $pair->[$j];
-                    my $node_ref = $self->get_node_ref (node => $node);
-                    my $el_list;
-                    if ($node_ref->is_internal_node) {
-                        my $terminals = $node_ref->get_terminal_elements;
-                        $el_list = [keys %$terminals];
-                    }
-                    else {
-                        $el_list = [$node];
-                    }
-                    push @el_lists, $el_list;
+    my $indices_object = $self->get_param ('CLUSTER_TIE_BREAKER_INDICES_OBJECT');
+    my $analysis_args  = $self->get_param ('ANALYSIS_ARGS');
+    my $tie_breaker_cache = $self->get_cached_value ('TIEBREAKER_CACHE');
+    if (!$tie_breaker_cache) {
+        $tie_breaker_cache = {};
+        $self->set_cached_value (TIEBREAKER_CACHE => $tie_breaker_cache);
+    }
+    my $tie_breaker_cmp_cache = $self->get_cached_value ('TIEBREAKER_CMP_CACHE');
+    if (!$tie_breaker_cmp_cache) {
+        $tie_breaker_cmp_cache = {};
+        $self->set_cached_value (TIEBREAKER_CMP_CACHE => $tie_breaker_cmp_cache);
+    }
+
+    my $breaker_pairs  = $self->get_param ('CLUSTER_TIE_BREAKER_PAIRS');
+    my $breaker_keys   = $breaker_pairs->[0];
+    my $breaker_minmax = $breaker_pairs->[1];
+
+    #  early drop out when we don't need to run any comparisons
+    if (!@$breaker_keys) {
+        my $current_lead_pair = reduce {($a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]) < 0 ? $b : $a} @pairs;
+        my ($node1, $node2) = @{$current_lead_pair}[0,1];  #  first two items are the element/node names
+        return wantarray ? ($node1, $node2) : [$node1, $node2];
+    }
+    
+
+    my ($current_lead_pair, $current_lead_pair_str);
+
+#warn "TIE BREAKING\n";
+    #  Sort ensures same order each time, thus stabilising random and "none" results
+    #  as well as any tied index comparisons
+  TIE_COMP:
+    foreach my $pair (sort {$a->[0] cmp $b->[0] || $a->[1] cmp $b->[1]} @pairs) { 
+        no autovivification;
+#warn "\n" . join (' <:::> ', @$pair[0,1]) . "\n";
+        my $tie_scores =  $tie_breaker_cache->{$pair->[0]}{$pair->[1]}
+                       || $tie_breaker_cache->{$pair->[1]}{$pair->[0]};
+
+        if (!defined $tie_scores) {
+            my @el_lists;
+            foreach my $j (0, 1) {
+                my $node = $pair->[$j];
+                my $node_ref = $self->get_node_ref (node => $node);
+                my $el_list;
+                if ($node_ref->is_internal_node) {
+                    my $terminals = $node_ref->get_terminal_elements;
+                    $el_list = [keys %$terminals];
                 }
-                my %results = $indices_object->run_calculations(
-                    %$analysis_args,
-                    element_list1 => $el_lists[0],
-                    element_list2 => $el_lists[1],
-                );
-                $results{random} = $rand->rand;  #  add values for non-index options, keep them consistet across all runs
-                $results{none}   = 0;
-
-                #  remove any keys we won't use for tie breakers
-                my %tmp = %results;
-                delete @tmp{@tie_keys};
-                delete @results{keys %tmp};
-                $calc_results = \%results;
-                $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $calc_results;
+                else {
+                    $el_list = [$node];
+                }
+                push @el_lists, $el_list;
             }
-            my %calc_res = %$calc_results;
-
-            my $itx = natatime 2, @$tie_breaker;
-            my $sub_res = [];
-            while (my ($breaker, $optimisation) = $itx->()) {
-                push @$sub_res, $calc_res{$breaker};
-            }
-            #print "\n@$pair : @$sub_res";
-            push @$sub_res, $pair;
-
-            $current_pair = $self->run_tie_breaker (
-                tie_breaker => $tie_breaker,
-                pair1       => $current_pair,
-                pair2       => $sub_res,
+            my %results = $indices_object->run_calculations(
+                %$analysis_args,
+                element_list1 => $el_lists[0],
+                element_list2 => $el_lists[1],
             );
+            #  Add values for non-index options.
+            #  This allows us to keep them consistent across repeated analysis runs
+            $results{random} = $rand->rand;  
+            $results{none}   = 0;
+
+            #  Create an array of tie breaker results in the order they are needed
+            #  We grab the pair from the end of the array after the tie breaking
+            $tie_scores = [@results{@$breaker_keys}, $pair];
+            $tie_breaker_cache->{$pair->[0]}{$pair->[1]} = $tie_scores;
         }
 
-        my $chosen_pair = $current_pair->[-1];  #  last item in array is the pair
-        ($node1, $node2) = @$chosen_pair;
-        #print "\nChosen = $node1, $node2\n";
-        if ($tie_breaker_cache) {  #  cleanup
-            no autovivification;
-            do {      delete $tie_breaker_cache->{$node1}{$node2}   #  delete our chosen pair
-                      && !$tie_breaker_cache->{$node1}              #  and, if parent is empty
-                      && delete $tie_breaker_cache->{$node1}}       #  then delete that too
-                //
-                do {  delete $tie_breaker_cache->{$node2}{$node1}   #  also the reverse
-                      && !$tie_breaker_cache->{$node2}
-                      && delete $tie_breaker_cache->{$node2}
-                };
+        if (!defined $current_lead_pair) {
+            $current_lead_pair     = $tie_scores;
+            $current_lead_pair_str = $current_lead_pair->[-1]->[2];
+            next TIE_COMP;
+        }
+
+        my $tie_cmp_pair_str = $tie_scores->[-1]->[2];
+
+        #  Comparison scores are order sensitive.
+        #  We also only need to compare against the current leader
+        my $tie_comparison = $tie_breaker_cmp_cache->{$current_lead_pair_str}{$tie_cmp_pair_str};
+        if (!defined $tie_comparison) {
+            $tie_comparison = $tie_breaker_cmp_cache->{$tie_cmp_pair_str}{$current_lead_pair_str};
+            if (defined $tie_comparison) {
+                $tie_comparison *= -1;  #  allow for cmp order reversal in the cache
+            }
+        }
+
+        #  calculate and cache it if we did not find a cached cmp score
+        if (!defined $tie_comparison) {
+            $tie_comparison = $self->run_tie_breaker (
+                pair1_scores   => $current_lead_pair,
+                pair2_scores   => $tie_scores,
+                breaker_keys   => $breaker_keys,
+                breaker_minmax => $breaker_minmax,
+            );
+            $tie_breaker_cmp_cache->{$current_lead_pair_str}{$tie_cmp_pair_str} = $tie_comparison;
+        }
+
+        if ($tie_comparison > 0) {
+            $current_lead_pair     = $tie_scores;
+            $current_lead_pair_str = $current_lead_pair->[-1]->[2];
         }
     }
+
+    my $optimal_pair = $current_lead_pair->[-1];  #  last item in array is the pair
+    my ($node1, $node2) = @$optimal_pair;  #  first two items are the element/node names
 
     return wantarray ? ($node1, $node2) : [$node1, $node2];
 }
@@ -1137,18 +1234,24 @@ sub get_most_similar_pair {
 sub setup_tie_breaker {
     my $self = shift;
     my %args = @_;
-    my $tie_breaker = $self->get_param ('CLUSTER_TIE_BREAKER');
+    my $tie_breaker = $args{cluster_tie_breaker} // $self->get_param ('CLUSTER_TIE_BREAKER');
 
     return if !$tie_breaker;  #  old school clusters did not have one
-
+    
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $self->get_basedata_ref);
     my $analysis_args = $self->get_param('ANALYSIS_ARGS');
 
     my $it = natatime 2, @$tie_breaker;
     my @calc_subs;
+    my (@breaker_indices, @breaker_minmax);
     while (my ($breaker, $optimisation) = $it->()) {
-        next if $breaker eq 'random';  #  special handling for this - should change approach?
         next if $breaker eq 'none';
+
+        push @breaker_indices, $breaker;
+        push @breaker_minmax,  $optimisation;
+
+        next if $breaker eq 'random';  #  special handling for this - should change approach?
+        #next if $breaker eq 'none';
         next if !defined $breaker;
         croak "$breaker is not a valid tie breaker\n"
             if   !$indices_object->is_cluster_index (index => $breaker)
@@ -1159,45 +1262,76 @@ sub setup_tie_breaker {
     }
 
     $indices_object->get_valid_calculations (
-        %args,
+        %$analysis_args,
         calculations   => \@calc_subs,
         nbr_list_count => 2,
         element_list1  => [],  #  for validity checking only
         element_list2  => [],
     );
 
+    my @invalid_calcs = $indices_object->get_invalid_calculations;
+    if (@invalid_calcs) {
+        croak  "Unable to run the following caluclations needed for the tie breakers.\n"
+             . "Check that all needed arguments are being passed (e.g. trees, matrices):\n"
+             . join (' ', @invalid_calcs)
+             . "\n";
+    }
+
+    $indices_object->set_pairwise_mode (1);  #  turn on some optimisations
+
     $indices_object->run_precalc_globals (%$analysis_args);
     
+    $self->set_param (CLUSTER_TIE_BREAKER => $tie_breaker);
     $self->set_param (CLUSTER_TIE_BREAKER_INDICES_OBJECT => $indices_object);
+    $self->set_param (CLUSTER_TIE_BREAKER_PAIRS => [\@breaker_indices, \@breaker_minmax]);
+
+    return;
 }
 
+sub clear_tie_breaker_caches {
+    my $self = shift;
+
+    $self->delete_cached_values (
+        keys => [qw /TIEBREAKER_CACHE TIEBREAKER_CMP_CACHE/],
+    );
+
+    return;
+}
+
+#  essentially a cmp style sub
+#  returns -1 if pair 1 is optimal
+#  returns  1 if pair 2 is optimal
 sub run_tie_breaker {
     my $self = shift;
     my %args = @_;
-    my $breaker = $args{tie_breaker};
-    my $pair1 = $args{pair1};
-    my $pair2 = $args{pair2};
 
-    return $pair1 if !$pair2;
-    return $pair2 if !$pair1;
+    my $breaker_keys   = $args{breaker_keys};
+    my $breaker_minmax = $args{breaker_minmax};
 
-    my $it = natatime 2, @$breaker;
+    my $pair1_scores = $args{pair1_scores};
+    my $pair2_scores = $args{pair2_scores};
+
+    return -1 if !defined $pair2_scores;
+    return  1 if !defined $pair1_scores;
+
     my $i = -1;
-    COMP:
-    while (my ($breaker, $optimisation) = $it->()) {
+
+  COMP:
+    foreach my $key (@$breaker_keys) {
         $i ++;
-        my @comps = ($pair1->[$i], $pair2->[$i]);
-        if ($optimisation =~ '^max') {
-            @comps = reverse @comps;
-        }
-        my $comp_result = $comps[0] <=> $comps[1];
+
+        my $comp_result = $pair1_scores->[$i] <=> $pair2_scores->[$i];
 
         next COMP if !$comp_result;
-        return $pair1 if $comp_result < 0;
-        return $pair2;
+
+        if ($breaker_minmax->[$i] =~ /^max/) {  #  need to reverse the comparison result
+            $comp_result *= -1;
+        }
+
+        return $comp_result;
     }
 
-    return $pair1;  #  we only had ties
+    return -1;  #  we only had ties so we go with pair 1
 }
 
 #  Needed for randomisations.
@@ -1264,14 +1398,23 @@ sub cluster {
 
         $self->run_spatial_calculations (%args_sub);
 
-        #$self->set_param (COMPLETED => 1);
         return 1;
     }
 
+    #  make sure we do this before the matrices are built so we fail early if needed
+    $self->setup_tie_breaker (%args);
+
+    #  make sure region grower analyses get the correct objective functions
+    if ($args{objective_function}) {
+        $self->set_param (CLUSTER_MOST_SIMILAR_SUB => $args{objective_function});
+    }
+
+    $self->set_param (CLEAR_SINGLETONS_FROM_TREE => $args{clear_singletons});
+
+    #  some setup
     $self->set_param (COMPLETED => 0);
     $self->set_param (JOIN_NUMBER => -1);  #  ensure they start counting from 0
-
-    #$self->process_spatial_conditions_and_def_query (%args);
+    
 
     my @matrices;
     #  if we were passed a matrix in the args  
@@ -1296,17 +1439,19 @@ sub cluster {
 
         my $matrices_recycled;
 
-        if (not $self->get_matrix_count) {
+        if (!$self->get_matrix_count) {
             #  can we get them from another output?
             my $bd = $self->get_basedata_ref;
-            if (my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self)) {
+            my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self);
+            if ($ref && !$args{build_matrices_only} && !$args{file_handles}) {
+
                 my $other_original_matrices = $ref->get_param('ORIGINAL_MATRICES');
                 my $other_orig_shadow_mx    = $self->get_param('ORIGINAL_SHADOW_MATRIX');
                 #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
                 if (   eval {$other_orig_shadow_mx->get_element_count}
                     || eval {$other_original_matrices->[0]->get_element_count}) {
 
-                    print "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name, "\n";
+                    say "[CLUSTER] Recycling matrices from cluster output ", $ref->get_name;
                     $self->set_param (ORIGINAL_MATRICES      => $other_original_matrices);
                     $self->set_param (ORIGINAL_SHADOW_MATRIX => $other_orig_shadow_mx);
                     $matrices_recycled = 1;
@@ -1389,12 +1534,19 @@ sub cluster {
         next if not defined $element;
         $self->add_node (name => $element);
     }
-    
-    $self->setup_tie_breaker;
+
+    #  This should only be used when the user wants it,
+    #  but it only triggers in certain circumstances
+    eval {
+        my $max_poss_value = $self->get_max_poss_matrix_value (
+            matrix => $matrix_for_nodes,
+        );
+        $self->set_param(MAX_POSS_INDEX_VALUE => $max_poss_value);
+    };
 
     MATRIX:
     foreach my $i (0 .. $#matrices) {  #  or maybe we should destructively sample this as well?
-        print "[CLUSTER] Using matrix $i\n";
+        say "[CLUSTER] Using matrix $i";
         $self->set_param (CURRENT_MATRIX_ITER => $i);
 
         #  no elements left, so we've used this one up.  Move to the next
@@ -1412,29 +1564,27 @@ sub cluster {
     my %root_nodes = $self->get_root_nodes;
 
     if (scalar keys %root_nodes > 1) {
-        print "[CLUSTER] CLUSTER TREE HAS MULTIPLE ROOT NODES\n"
-            . "Count is "
-            . (scalar keys %root_nodes)
-            . "\n"
-            . 'MinValue is '
-            . $self->get_param('MIN_VALUE')
-            . "\n";
+        say sprintf
+            "[CLUSTER] CLUSTER TREE HAS MULTIPLE ROOT NODES\nCount is %d\nMin value is %f",
+            (scalar keys %root_nodes),
+            $self->get_param('MIN_VALUE');
     }
 
     #  loop over the one or more root nodes and remove zero length nodes
     if (1 && $args{flatten_tree}) {
-        my $i = 1;
+        my $i = 0;
         foreach my $root_node (values %root_nodes) {
-            print "[CLUSTER] Root node $i" . $root_node->get_name . "\n";
+            $i++;
+            next if $root_node->is_terminal_node;
+
+            say "[CLUSTER] Root node $i: " . $root_node->get_name;
             my @now_empty = $root_node->flatten_tree;
+
             #  now we clean up all the empty nodes in the other indexes
             if (scalar @now_empty) {
-
                 say '[CLUSTER] Deleting ' . scalar @now_empty . ' empty nodes';
-
                 $self->delete_from_node_hash (nodes => \@now_empty);
             }
-            $i++;
         }
     }
 
@@ -1547,28 +1697,30 @@ sub run_tiebreaker_indices_object_cleanup {
 sub join_root_nodes {
     my $self = shift;
 
-    my $nodes = $self->get_root_nodes;
+    my $root_nodes = $self->get_root_nodes;
 
-    #  drop out if only 1 root node
-    return if scalar keys %$nodes == 0;
+    return if scalar keys %$root_nodes == 0;
+
+    my $clear_singletons = $self->get_param ('CLEAR_SINGLETONS_FROM_TREE');
+    my (@nodes_to_add, %singletons);
 
     my $target_len;
 
     #  find the longest path
-    foreach my $node (values %$nodes) {
+  NODE:
+    foreach my $node (values %$root_nodes) {
+        if ($clear_singletons && $node->is_terminal_node) {
+            $singletons{$node->get_name} = $node;
+            next NODE;
+        }
+
         my $len = $node->get_length_below;
 
-        #  check allows for clusters with any min value
-        if (!defined $target_len) {
-            $target_len = $len;
-        }
+        $target_len //= $len;
+        $target_len = max ($len, $target_len);
 
-        if ($len > $target_len) {
-            $target_len = $len;
-        }
+        push @nodes_to_add, $node;
     }
-
-    #print "Target length is $target_len\n";
 
     my $root_node = $self->add_node(
         length => 0,
@@ -1576,20 +1728,19 @@ sub join_root_nodes {
     );
     $root_node->set_value(JOIN_NOT_METRIC => 1);
 
-    #  need to add a flag to say these are artificial
-
     #  set the length of each former root node
-    foreach my $node (values %$nodes) {
-        my $current_len = $node->get_length;
-        my $len = $target_len - $node->get_length_below;
+    foreach my $node (@nodes_to_add) {
 
-        #print "$target_len, $current_len, $len\n";
+        my $len = $target_len - $node->get_length_below;
 
         $node->set_length(length => $len);
         $node->set_value(JOIN_NOT_METRIC => 1);
     }
 
-    $root_node->add_children(children => [values %$nodes]);
+    $root_node->add_children(children => \@nodes_to_add);
+    if (keys %singletons) {
+        $self->delete_from_node_hash (nodes => \%singletons);
+    }
 
     return;
 }
@@ -1672,10 +1823,10 @@ sub get_values_for_linkage {
     }
     else {
         warn "two node linkage case\n";
-        my $nodeRef1 = $self->get_node_ref (node => $node1);
-        my $nodeRef2 = $self->get_node_ref (node => $node2);
-        $tmp1 = $nodeRef1->get_length_below;
-        $tmp2 = $nodeRef2->get_length_below;
+        my $node_ref_1 = $self->get_node_ref (node => $node1);
+        my $node_ref_2 = $self->get_node_ref (node => $node2);
+        $tmp1 = $node_ref_1->get_length_below;
+        $tmp2 = $node_ref_2->get_length_below;
     }
 
     return wantarray ? ($tmp1, $tmp2) : [$tmp1, $tmp2];
@@ -1822,8 +1973,21 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     #  Now we need to loop over the respective nodes across
     #  the matrices and merge as appropriate.
     #  The sort guarantees same order each time.
-    CHECK_NODE:
-    foreach my $check_node (sort $matrix_with_elements->get_elements_as_array) {  
+    my @check_node_array = sort $matrix_with_elements->get_elements_as_array;
+    my $num_nodes = scalar @check_node_array;
+    my $progress;
+    if ($num_nodes > 100) {
+        $progress = Biodiverse::Progress->new (
+            text     => "Running linkage for $num_nodes",
+            gui_only => 1,
+        );
+    }
+
+    my $i = 0;
+  CHECK_NODE:
+    foreach my $check_node (@check_node_array) {  
+
+        $i++;
 
         #  skip the mergees
         next CHECK_NODE if $check_node eq $node1 || $check_node eq $node2;
@@ -1840,6 +2004,13 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
                 element2 => $node2,
             )
         );  
+
+        if ($progress) {
+            $progress->update(
+                "Running linkage for row $i of $num_nodes",
+                $i / $num_nodes,
+            );
+        }
 
         my %values = $self->$linkage_function (
             node1        => $node1,
@@ -1922,7 +2093,7 @@ sub delete_links_from_matrix {
 
     #  clean up links from compare_nodes to elements1&2
     my $deletion_count = 0;
-    foreach my $check_element (sort @$compare_nodes) {
+    foreach my $check_element (@$compare_nodes) {
         $deletion_count += $matrix->delete_element (
             element1 => $check_element,
             element2 => $element1,
@@ -1996,11 +2167,11 @@ sub sp_calc {
     $indices_object->run_precalc_globals(%args);
 
     local $| = 1;  #  write to screen as we go
-    my $toDo = $self->get_node_count;
-    my ($count, $printedProgress) = (0, -1);
+    my $to_do = $self->get_node_count;
+    my ($count, $printed_progress) = (0, -1);
     my $tree_name = $self->get_param ('NAME');
 
-    print "[CLUSTER] Progress (% of $toDo nodes):     ";
+    print "[CLUSTER] Progress (% of $to_do nodes):     ";
     my $progress_bar = Biodiverse::Progress->new();
 
     #  loop though the nodes and calculate the outputs
@@ -2009,8 +2180,8 @@ sub sp_calc {
 
         $progress_bar->update (
             "Cluster spatial analysis\n"
-            . "$tree_name\n(node $count / $toDo)",
-            $count / $toDo,
+            . "$tree_name\n(node $count / $to_do)",
+            $count / $to_do,
         );
 
         my %elements = (element_list1 => [keys %{$node->get_terminal_elements}]);
@@ -2065,13 +2236,13 @@ sub get_embedded_matrix {
     return;
 }
 
-sub max {
-    return $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub max {
+#    return $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
-sub min {
-    return $_[0] < $_[1] ? $_[0] : $_[1];
-}
+#sub min {
+#    return $_[0] < $_[1] ? $_[0] : $_[1];
+#}
 
 1;
 

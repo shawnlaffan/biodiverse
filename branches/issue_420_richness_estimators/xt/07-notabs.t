@@ -13,4 +13,4 @@ use File::Spec;
 #
 #all_perl_files_ok( $bin_path, $lib_path );
 
-all_perl_files_ok( 'bin', 'lib' );
+all_perl_files_ok( 'bin', 'lib', 't', 'xt' );

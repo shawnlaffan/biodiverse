@@ -44,49 +44,49 @@ my $DESC_COLUMN_WIDTH = 90;
 
 #use Smart::Comments;
 
-sub initCalculationsTree {
+sub init_calculations_tree {
     my $tree  = shift;
     my $model = shift;
     
     # First column - name/type with a checkbox
-    my $colName       = Gtk2::TreeViewColumn->new();
-    my $checkRenderer = Gtk2::CellRendererToggle->new();
-    my $nameRenderer  = Gtk2::CellRendererText->new();
-    $checkRenderer->signal_connect_swapped(toggled => \&onCalculationToggled, $model);
+    my $col_name       = Gtk2::TreeViewColumn->new();
+    my $check_renderer = Gtk2::CellRendererToggle->new();
+    my $name_renderer  = Gtk2::CellRendererText->new();
+    $check_renderer->signal_connect_swapped(toggled => \&on_calculation_toggled, $model);
 
-    $colName->pack_start($checkRenderer, 0);
-    $colName->pack_start($nameRenderer,  1);
-    $colName->add_attribute($checkRenderer, active       => MODEL_CHECKED_COL);
-    $colName->add_attribute($checkRenderer, inconsistent => MODEL_GRAYED_COL);
-    $colName->add_attribute($checkRenderer, visible      => MODEL_SHOW_CHECKBOX);
-    $colName->add_attribute($nameRenderer,  text         => MODEL_NAME_COL);
+    $col_name->pack_start($check_renderer, 0);
+    $col_name->pack_start($name_renderer,  1);
+    $col_name->add_attribute($check_renderer, active       => MODEL_CHECKED_COL);
+    $col_name->add_attribute($check_renderer, inconsistent => MODEL_GRAYED_COL);
+    $col_name->add_attribute($check_renderer, visible      => MODEL_SHOW_CHECKBOX);
+    $col_name->add_attribute($name_renderer,  text         => MODEL_NAME_COL);
 
-    my $colIndex = Gtk2::TreeViewColumn->new();
-    my $indexRenderer = Gtk2::CellRendererText->new();
-    #$indexRenderer->set('wrap-mode' => 'word');  #  no effect?
-    $colIndex->pack_start($indexRenderer, 1);
-    $colIndex->add_attribute($indexRenderer, markup => MODEL_INDEX_COL);
+    my $col_index = Gtk2::TreeViewColumn->new();
+    my $index_renderer = Gtk2::CellRendererText->new();
+    #$index_renderer->set('wrap-mode' => 'word');  #  no effect?
+    $col_index->pack_start($index_renderer, 1);
+    $col_index->add_attribute($index_renderer, markup => MODEL_INDEX_COL);
 
     
-    my $colDesc = Gtk2::TreeViewColumn->new();
-    my $descRenderer = Gtk2::CellRendererText->new();
-    $colDesc->pack_start($descRenderer, 1);
-    $colDesc->add_attribute($descRenderer, markup => MODEL_DESCRIPTION_COL);
+    my $col_desc = Gtk2::TreeViewColumn->new();
+    my $desc_renderer = Gtk2::CellRendererText->new();
+    $col_desc->pack_start($desc_renderer, 1);
+    $col_desc->add_attribute($desc_renderer, markup => MODEL_DESCRIPTION_COL);
     
-    $tree->insert_column($colName,  -1);
-    $tree->insert_column($colIndex, -1);
-    $tree->insert_column($colDesc,  -1);
+    $tree->insert_column($col_name,  -1);
+    $tree->insert_column($col_index, -1);
+    $tree->insert_column($col_desc,  -1);
     $tree->set_headers_visible(0);
     $tree->set_model( $model );
     
-    $tree->signal_connect_swapped('row-collapsed' => \&onRowCollapsed, $tree);
+    $tree->signal_connect_swapped('row-collapsed' => \&on_row_collapsed, $tree);
 
     #  set vertical alignment of cells
     foreach my $renderer (
-        $descRenderer,
-        $indexRenderer,
-        #$nameRenderer,
-        #$checkRenderer
+        $desc_renderer,
+        $index_renderer,
+        #$name_renderer,
+        #$check_renderer
         ) {
         $renderer->set (yalign => 0);
     }
@@ -95,7 +95,7 @@ sub initCalculationsTree {
 }
 
 #  resize the contents - this reclaims unused horizontal space 
-sub onRowCollapsed {
+sub on_row_collapsed {
     my $tree = shift;
     
     $tree->columns_autosize();
@@ -104,22 +104,22 @@ sub onRowCollapsed {
 }
 
 # Creates a TreeView model of available calculations
-sub makeCalculationsModel {
+sub make_calculations_model {
     my $base_ref   = shift;
     my $output_ref = shift;
 
     # Try to get a list of analyses that should be checked
-    my $checkRef;
+    my $check_ref;
     if ($output_ref) {  #  the latter are for backwards compatibility
-        $checkRef =    $output_ref->get_param('CALCULATIONS_REQUESTED')
+        $check_ref =    $output_ref->get_param('CALCULATIONS_REQUESTED')
                     or $output_ref->get_param('ANALYSES_REQUESTED')
                     or $output_ref->get_param('ANALYSES_RAN');
     }
-    if (! defined $checkRef) {
-        $checkRef = [$EMPTY_STRING] ;  # trap other cases
+    if (! defined $check_ref) {
+        $check_ref = [$EMPTY_STRING] ;  # trap other cases
     }
 
-    #print "[Spatial tab] Analyses ran - " . join (" ", @$checkRef) . "\n" if scalar @$checkRef;
+    #print "[Spatial tab] Analyses ran - " . join (" ", @$check_ref) . "\n" if scalar @$check_ref;
 
     my @treestore_args = (
         'Glib::String',         # Name
@@ -172,11 +172,11 @@ sub makeCalculationsModel {
             # we put the first line here and the next into a new row
             # but combine all the other lines into a single line and then rewrap.
             my $desc = $info{description} || $EMPTY_STRING;
-            my ($d1, $dRest) = split(/\n/, $desc, 2);
+            my ($d1, $d_rest) = split(/\n/, $desc, 2);
 
             #  Rewrap the descriptions.
             #  Perl works on aliases so this will change the original strings.
-            foreach my $string ($d1, $dRest) {
+            foreach my $string ($d1, $d_rest) {
                 next if ! defined $string;
                 $string =~ s/\A\n//;
                 $string =~ s/\n\z//;
@@ -202,7 +202,7 @@ sub makeCalculationsModel {
             my $func = $info{func};
 
             # Should it be checked? (yes, if it was on previous time)
-            my $checked = member_of($func, $checkRef);
+            my $checked = member_of($func, $check_ref);
 
             # Add to model
             my $func_iter = $model->append($type_iter);
@@ -217,11 +217,11 @@ sub makeCalculationsModel {
             );
 
             # Add multiline-description row
-            if ($dRest) {
+            if ($d_rest) {
                 my $desc_iter = $model->append($func_iter);
                 $model->set(
                     $desc_iter,
-                    MODEL_DESCRIPTION_COL, $dRest,
+                    MODEL_DESCRIPTION_COL, $d_rest,
                     MODEL_SHOW_CHECKBOX,   0,
                 );
             }
@@ -239,7 +239,7 @@ sub makeCalculationsModel {
         }
 
         # Check it if all calculations are checked
-        updateTypeCheckbox($model, $type_iter);
+        update_type_checkbox($model, $type_iter);
     }
 
     return $model;
@@ -260,9 +260,9 @@ sub member_of {
     return 0;
 }
 
-sub getCalculationsToRun {
+sub get_calculations_to_run {
     my $model = shift;
-    my @toRun;
+    my @to_run;
 
     # Retrieve all calculations with a check mark
     my $type_iter = $model->get_iter_first();
@@ -274,18 +274,18 @@ sub getCalculationsToRun {
             my ($checked) = $model->get($child_iter, MODEL_CHECKED_COL);
             if ($checked) {
                 my ($func) = $model->get($child_iter, MODEL_FUNCTION_COL);
-                push (@toRun, $func);
+                push (@to_run, $func);
             }
             $child_iter = $model->iter_next($child_iter);
         }
 
         $type_iter = $model->iter_next($type_iter);
     }
-    return @toRun;
+    return @to_run;
 }
 
 # Called to set the analysis type checkbox depending on whether all children are set
-sub updateTypeCheckbox {
+sub update_type_checkbox {
     my $model = shift;
     my $iter_top = shift || return;
 
@@ -312,7 +312,7 @@ sub updateTypeCheckbox {
 }
 
 # Called when the user clicks on a checkbox
-sub onCalculationToggled {
+sub on_calculation_toggled {
     my $model = shift;
     my $path = shift;
     
@@ -339,7 +339,7 @@ sub onCalculationToggled {
     }
 
     # update state of any parent
-    updateTypeCheckbox($model, $model->iter_parent($iter) );
+    update_type_checkbox($model, $model->iter_parent($iter) );
 
     return;
 }

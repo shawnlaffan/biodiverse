@@ -1,5 +1,5 @@
 package Biodiverse::GUI::MatrixImport;
-
+use 5.010;
 use strict;
 use warnings;
 use File::Basename;
@@ -39,46 +39,63 @@ sub run {
     open (my $fh, '<:via(File::BOM)', $filename) || croak "Unable to open $filename\n";
 
     BY_LINE:
-    while (<$fh>) { # get first non-blank line
-        $line = $_;
-        chomp $line;
+    while ($line = <$fh>) { # get first non-blank line
+        $line =~ s/[\r\n]*$//;  #  handle mixed line endings
         last BY_LINE if $line;
     }
     my $header = $line;
-    $line = <$fh>; #  don't test on the header - can sometimes have one column
-    $fh->close;
-    
-    my $sep_char = $gui->getProject->guess_field_separator (string => $line);
-    my $eol = $gui->getProject->guess_eol (string => $line);
-    my @headers_full
-        = $gui->getProject->csv2list(
+
+    #  run line tests on the second line as the header can sometimes have one column
+    $line = <$fh>;
+
+    my $sep_char = $gui->get_project->guess_field_separator (string => $line);
+    my $eol      = $gui->get_project->guess_eol (string => $line);
+    my @headers
+        = $gui->get_project->csv2list(
             string   => $header,
             sep_char => $sep_char,
             eol      => $eol
         );
-    
-    my $is_r_data_frame
-        = Biodiverse::GUI::BasedataImport::check_if_r_data_frame (
-            file     => $filename,
-            #quotes   => $quotes,
-            sep_char => $sep_char,
-        );
-    #  add a field to the header if needed
-    if ($is_r_data_frame) {
-        unshift @headers_full, 'R_data_frame_col_0';
-    }
-    
+
     # Add non-blank columns
-    my @headers;
-    foreach my $header (@headers_full) {
-        push @headers, $header if $header;
+    # check for empty fields in header? replace with generic
+    my $col_num = 0;
+    while ($col_num <= $#headers) {
+        $headers[$col_num] = $headers[$col_num] // "anon_col$col_num";
+        #if (length($header[$col_num]) == 0) { $header[$col_num] = "unnamed_col_$col_num"; }
+        $col_num++;
     }
 
+    # check data, if additional lines in data, append in column list.
+    my $checklines = 5; # arbitrary, but should be sifficient
+    my $donelines = 0;
+  LINE:
+    while (my $thisline = <$fh>) {
+        $donelines ++;
+
+        last if $donelines > $checklines;
+
+        my @thisline_cols = $gui->get_project->csv2list(
+            string      => $thisline,
+            #quote_char  => $quotes,
+            sep_char    => $sep_char,
+            eol         => $eol,
+        );
+
+        next LINE if $col_num >= $#thisline_cols;
+
+        while ($col_num <= $#thisline_cols) {
+            $headers[$col_num] = "anon_col$col_num";
+            $col_num++;         
+        }
+    }
+
+    $fh->close;
 
     #########
     # 2. Get column types
     #########
-    my ($dlg, $col_widgets) = makeColumnsDialog(\@headers, $gui->getWidget('wndMain'));
+    my ($dlg, $col_widgets) = make_columns_dialog(\@headers, $gui->get_widget('wndMain'));
     my ($column_settings, $response);
     
     GET_RESPONSE:
@@ -87,7 +104,7 @@ sub run {
 
         last GET_RESPONSE if $response ne 'ok';
 
-        $column_settings = getColumnSettings($col_widgets, \@headers);
+        $column_settings = get_column_settings($col_widgets, \@headers);
         my $num_labels = @{$column_settings->{labels}};
         my $num_start  = @{$column_settings->{start}};
 
@@ -123,7 +140,7 @@ sub run {
     
     if (lc $remap_response eq 'yes') {
         my %remap_data
-            = Biodiverse::GUI::BasedataImport::getRemapInfo ($gui, $filename, 'remap');
+            = Biodiverse::GUI::BasedataImport::get_remap_info ($gui, $filename, 'remap');
     
         #  now do something with them...
         if ($remap_data{file}) {
@@ -160,7 +177,7 @@ sub run {
         sep_char           => $sep_char,
     );
 
-    $gui->getProject->addMatrix ($matrix_ref);
+    $gui->get_project->add_matrix ($matrix_ref);
 
     return $matrix_ref;
 
@@ -173,7 +190,7 @@ sub run {
 
 # Extract column types and sizes into lists that can be passed to the reorder dialog
 #  NEED TO GENERALISE TO HANDLE ANY NUMBER
-sub getColumnSettings {
+sub get_column_settings {
     my $cols = shift;
     my $headers = shift;
     my $num = @$cols;
@@ -202,28 +219,34 @@ sub getColumnSettings {
 # Column selection dialog
 ##################################################
 
-sub makeColumnsDialog {
-    # We have to dynamically generate the choose columns dialog since
-    # the number of columns is unknown
-
-    my $header = shift; # ref to column header array
-    my $wndMain = shift;
+# We have to dynamically generate the choose columns dialog since
+# the number of columns is unknown
+sub make_columns_dialog {
+    my $header       = shift;  # ref to column header array
+    my $wnd_main     = shift;
     my $type_options = shift;  #  array of types
+
     if (not defined $type_options or (ref $type_options) !~ /ARRAY/) {
         $type_options = ['Ignore', 'Label', 'Matrix Start'];
     }
 
     my $num_columns = @$header;
-    print "[GUI] Generating make columns dialog for $num_columns columns\n";
+    say "[GUI] Generating make columns dialog for $num_columns columns";
 
     # Make dialog
-    my $dlg = Gtk2::Dialog->new("Choose columns", $wndMain, "modal", "gtk-cancel", "cancel", "gtk-ok", "ok");
+    my $dlg = Gtk2::Dialog->new(
+        'Choose columns',
+        $wnd_main, 'modal',
+        'gtk-cancel' => 'cancel',
+        'gtk-ok'     => 'ok',
+    );
+
     my $label = Gtk2::Label->new("<b>Select column types</b>\n(choose only one start matrix column)");
     $label->set_use_markup(1);
     $dlg->vbox->pack_start ($label, 0, 0, 0);
 
     # Make table
-    my $table = Gtk2::Table->new(4,$num_columns + 1);
+    my $table = Gtk2::Table->new(4, $num_columns + 1);
     $table->set_row_spacings(5);
     #$table->set_col_spacings(20);
 
@@ -264,38 +287,41 @@ sub makeColumnsDialog {
     my $col_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
         my $header = ${$header}[$i];
-        addColumn($col_widgets, $table, $i, $header);
+        add_column($col_widgets, $table, $i, $header);
     }
 
     $dlg->set_resizable(1);
     $dlg->set_default_size(500,0);
     $dlg->show_all();
+
     return ($dlg, $col_widgets);
 }
 
-sub addColumn {
-    my ($col_widgets, $table, $colId, $header) = @_;
+sub add_column {
+    my ($col_widgets, $table, $col_id, $header) = @_;
 
     # Column header
+    #say "setting header '$header'";
     my $label = Gtk2::Label->new("<tt>$header</tt>");
     $label->set_use_markup(1);
+    
 
     # Type radio button
-    my $radio1 = Gtk2::RadioButton->new(undef, '');        # Ignore
-    my $radio2 = Gtk2::RadioButton->new($radio1, '');    # Label
-    my $radio3 = Gtk2::RadioButton->new($radio2, '');    # Matrix start
+    my $radio1 = Gtk2::RadioButton->new(undef, '');   # Ignore
+    my $radio2 = Gtk2::RadioButton->new($radio1, ''); # Label
+    my $radio3 = Gtk2::RadioButton->new($radio2, ''); # Matrix start
     $radio1->set('can-focus', 0);
     $radio2->set('can-focus', 0);
     $radio3->set('can-focus', 0);
 
     # Attack to table
-    $table->attach_defaults($label, $colId + 1, $colId + 2, 0, 1);
-    $table->attach($radio1, $colId + 1, $colId + 2, 1, 2, 'shrink', 'shrink', 0, 0);
-    $table->attach($radio2, $colId + 1, $colId + 2, 2, 3, 'shrink', 'shrink', 0, 0);
-    $table->attach($radio3, $colId + 1, $colId + 2, 3, 4, 'shrink', 'shrink', 0, 0);
+    $table->attach_defaults($label, $col_id + 1, $col_id + 2, 0, 1);
+    $table->attach($radio1, $col_id + 1, $col_id + 2, 1, 2, 'shrink', 'shrink', 0, 0);
+    $table->attach($radio2, $col_id + 1, $col_id + 2, 2, 3, 'shrink', 'shrink', 0, 0);
+    $table->attach($radio3, $col_id + 1, $col_id + 2, 3, 4, 'shrink', 'shrink', 0, 0);
 
     # Store widgets
-    $col_widgets->[$colId] = [$radio1, $radio2, $radio3];
+    $col_widgets->[$col_id] = [$radio1, $radio2, $radio3];
 }
 
 1;

@@ -27,7 +27,7 @@ use constant OUTPUT_REF     => 2;
 ######################################################
 ## Init
 ######################################################
-sub getType {
+sub get_type {
     return 'randomisation';
 }
 
@@ -36,7 +36,7 @@ sub new {
     my $output_ref = shift; # will be undef if none specified
 
     my $self = {gui => Biodiverse::GUI::GUIManager->instance};
-    $self->{project} = $self->{gui}->getProject();
+    $self->{project} = $self->{gui}->get_project();
     bless $self, $class;
 
     $self->{output_ref} = $output_ref;
@@ -51,11 +51,11 @@ sub new {
     # (we can have many Analysis tabs open, for example.
     # These have a different object/widgets)
     $self->{xmlPage}  = Gtk2::GladeXML->new(
-        $self->{gui}->getGladeFile,
+        $self->{gui}->get_glade_file,
         'vboxRandomisePage',
     );
     $self->{xmlLabel} = Gtk2::GladeXML->new(
-        $self->{gui}->getGladeFile,
+        $self->{gui}->get_glade_file,
         'hboxRandomiseLabel',
     );
 
@@ -83,8 +83,8 @@ sub new {
     }
 
     # Initialise randomisation function combo
-    $self->makeFunctionModel (selected_function => $function);
-    $self->initFunctionCombo;
+    $self->make_function_model (selected_function => $function);
+    $self->init_function_combo;
 
     # Make model for the outputs tree
     my $model = Gtk2::TreeStore->new(
@@ -95,7 +95,7 @@ sub new {
     $self->{outputs_model} = $model;
 
     # Initialise the basedatas combo
-    $self->initBasedataCombo (basedata_ref => $bd);
+    $self->init_basedata_combo (basedata_ref => $bd);
 
     #  and choose the basedata (this is set by the above call)
     #  and needed if it is undef
@@ -108,7 +108,7 @@ sub new {
     #my $colName = Gtk2::TreeViewColumn->new();
     #my $checkRenderer = Gtk2::CellRendererToggle->new();
     #my $nameRenderer = Gtk2::CellRendererText->new();
-    #$checkRenderer->signal_connect_swapped(toggled => \&onOutputToggled, $self);
+    #$checkRenderer->signal_connect_swapped(toggled => \&on_output_toggled, $self);
     #
     #$colName->pack_start($checkRenderer, 0);
     #$colName->pack_start($nameRenderer, 1);
@@ -124,10 +124,10 @@ sub new {
     my $name;
     my $seed_widget = $xml_page->get_widget('randomise_seed_value');
     if ($output_ref) {
-        #$self->{project}->registerInOutputsModel ($output_ref, $self);
-        $self->registerInOutputsModel ($output_ref, $self);
+        #$self->{project}->register_in_outputs_model ($output_ref, $self);
+        $self->register_in_outputs_model ($output_ref, $self);
         $name = $output_ref->get_param ('NAME');
-        $self->onFunctionChanged;
+        $self->on_function_changed;
         $self->set_button_sensitivity (0); 
     }
     else {
@@ -141,19 +141,19 @@ sub new {
 
     # Connect signals
     $xml_label->get_widget('btnRandomiseClose')->signal_connect_swapped(
-        clicked => \&onClose,
+        clicked => \&on_close,
         $self,
     );
     $xml_page->get_widget('btnRandomise')->signal_connect_swapped(
-        clicked => \&onRun,
+        clicked => \&on_run,
         $self,
     );
     $xml_page->get_widget('randomise_results_list_name')->signal_connect_swapped(
-        changed => \&onNameChanged,
+        changed => \&on_name_changed,
         $self,
     );
 
-    $self->updateRandomiseButton; # will disable button just in case have no basedatas
+    $self->update_randomise_button; # will disable button just in case have no basedatas
 
     print "[Randomise tab] Loaded tab - Randomise\n";
     return $self;
@@ -279,7 +279,7 @@ sub set_button_sensitivity {
     return;
 }
 
-sub initBasedataCombo {
+sub init_basedata_combo {
     my $self = shift;
     my %args = @_;
 
@@ -289,15 +289,15 @@ sub initBasedataCombo {
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
 
-    $combo->set_model($self->{gui}->getProject->getBasedataModel());
+    $combo->set_model($self->{gui}->get_project->get_basedata_model());
     $combo->signal_connect_swapped(
-        changed => \&onRandomiseBasedataChanged,
+        changed => \&on_randomise_basedata_changed,
         $self,
     );
 
     my $selected = defined $args{basedata_ref}
-        ? $self->{gui}->getProject->getBaseDataIter ($args{basedata_ref})
-        : $self->{gui}->getProject->getSelectedBaseDataIter;
+        ? $self->{gui}->get_project->get_base_data_iter ($args{basedata_ref})
+        : $self->{gui}->get_project->get_selected_base_data_iter;
 
     if (defined $selected) {
         $combo->set_active_iter($selected);
@@ -305,7 +305,7 @@ sub initBasedataCombo {
     
     $combo->set_sensitive (0); # if 1 then re-enable signal connect above
 
-    $self->onRandomiseBasedataChanged;  #  set a few things
+    $self->on_randomise_basedata_changed;  #  set a few things
     
     return;
 }
@@ -314,7 +314,7 @@ sub initBasedataCombo {
 ######################################################
 ## Randomisation function combo
 ######################################################
-sub makeFunctionModel {
+sub make_function_model {
     my $self = shift;
     my %args = @_;
         
@@ -347,7 +347,7 @@ sub makeFunctionModel {
     return;
 }
 
-sub initFunctionCombo {
+sub init_function_combo {
     my $self = shift;
     my %args = @_;
         
@@ -356,7 +356,7 @@ sub initFunctionCombo {
     $combo->pack_start($renderer, 1);
     $combo->add_attribute($renderer, text => 0);
 
-    $combo->signal_connect_swapped(changed => \&onFunctionChanged, $self);
+    $combo->signal_connect_swapped(changed => \&on_function_changed, $self);
 
     $combo->set_model($self->{function_model});
     if ($self->{selected_function_iter}) {
@@ -370,7 +370,7 @@ sub initFunctionCombo {
     return;
 }
 
-sub getSelectedFunction {
+sub get_selected_function {
     my $self = shift;
 
     my $combo = $self->{xmlPage}->get_widget('comboFunction');
@@ -379,11 +379,11 @@ sub getSelectedFunction {
     return $self->{function_model}->get($iter, 0);
 }
 
-sub onFunctionChanged {
+sub on_function_changed {
     my $self = shift;
 
     # Get the Parameters metadata
-    my $func = $self->getSelectedFunction;
+    my $func = $self->get_selected_function;
     
     my $object = $self->{output_ref}
                  || $self->{output_placeholder_ref};
@@ -440,7 +440,7 @@ sub onFunctionChanged {
 ######################################################
 ## The basedata/outputs selection
 ######################################################
-sub onRandomiseBasedataChanged {
+sub on_randomise_basedata_changed {
     my $self = shift;
     my $combo = $self->{xmlPage}->get_widget('comboRandomiseBasedata');
     my $basedata_iter = $combo->get_active_iter();
@@ -461,7 +461,7 @@ sub onRandomiseBasedataChanged {
     #my $outputs_model = $self->{outputs_model};
     #$outputs_model->clear;
     #
-    #my $outputs_list = $self->{gui}->getProject->getBasedataOutputs($basedata_ref);
+    #my $outputs_list = $self->{gui}->get_project->get_basedata_outputs($basedata_ref);
     #if (not @{$outputs_list}) {
     #    #print "[Randomise page] output_list empty\n";
     #}
@@ -479,14 +479,14 @@ sub onRandomiseBasedataChanged {
     #
     #}
 
-    $self->updateRandomiseButton;
+    $self->update_randomise_button;
     
     return;
 }
 
 
 # Called when the user clicks on a checkbox
-sub onOutputToggled {
+sub on_output_toggled {
     my $self = shift;
     my $model = $self->{outputs_model};
     my $path = shift;
@@ -498,13 +498,13 @@ sub onOutputToggled {
     $state = not $state;
     $model->set($iter, OUTPUT_CHECKED, $state);
 
-    $self->updateRandomiseButton;
+    $self->update_randomise_button;
     
     return;
 }
 
 # Get list of outputs that have been checked - (all of them these days)
-sub getSelectedOutputs {
+sub get_selected_outputs {
     my $self = shift;
     #my $model = $self->{outputs_model};
     #my $iter = $model->get_iter_first;
@@ -519,17 +519,17 @@ sub getSelectedOutputs {
     #}
     #return \@array;
     #
-    return $self->{gui}->getProject->getBasedataOutputs($self->{selected_basedata_ref});
+    return $self->{gui}->get_project->get_basedata_outputs($self->{selected_basedata_ref});
 }
 
 # Disables "Randomise" button if no outputs selected
-sub updateRandomiseButton {
+sub update_randomise_button {
     my $self = shift;
 
-    my $project = $self->{gui}->getProject;
+    my $project = $self->{gui}->get_project;
     return if not $project;
 
-    my $outputs_list = $project->getBasedataOutputs($self->{selected_basedata_ref});
+    my $outputs_list = $project->get_basedata_outputs($self->{selected_basedata_ref});
     my $selected     = $outputs_list;
 
     if (@{$selected}) {
@@ -543,7 +543,7 @@ sub updateRandomiseButton {
 }
 
 
-sub onNameChanged {
+sub on_name_changed {
     my $self = shift;
     
     my $widget = $self->{xmlPage}->get_widget('randomise_results_list_name');
@@ -591,12 +591,12 @@ sub get_rand_output_exists {
 ######################################################
 
 # Button clicked
-sub onRun {
+sub on_run {
     my $self = shift;
 
     my $basedata_ref = $self->{selected_basedata_ref};
     my $basedata_name = $basedata_ref->get_param('NAME');
-    my $targets = $self->getSelectedOutputs;
+    my $targets = $self->get_selected_outputs;
 
     if (not @{$targets}) {
         croak "[Randomise page] ERROR - button shouldn't be clicked "
@@ -609,7 +609,7 @@ sub onRun {
 
     # Fill in parameters
     my %args;
-    $args{function} = $self->getSelectedFunction;
+    $args{function} = $self->get_selected_function;
     $args{iterations}
         = $self->{xmlPage}->get_widget('spinIterations')->get_value_as_int;
     #$args{targets} = $targets;
@@ -680,7 +680,7 @@ sub onRun {
         }
         #  need to add it to the GUI outputs
         $self->{output_ref} = $output_ref;
-        $self->{project}->addOutput($basedata_ref, $output_ref);
+        $self->{project}->add_output($basedata_ref, $output_ref);
     }
 
     my $success = eval {
@@ -693,11 +693,11 @@ sub onRun {
     }
 
     #if ($success) {
-        #$self->{project}->registerInOutputsModel ($output_ref, $self);
-        $self->registerInOutputsModel ($output_ref, $self);
+        #$self->{project}->register_in_outputs_model ($output_ref, $self);
+        $self->register_in_outputs_model ($output_ref, $self);
     #}
     if (not $success) {  # dropped out for some reason, eg no valid analyses.
-        $self->onClose;  #  close the tab to avoid horrible problems with multiple instances
+        $self->on_close;  #  close the tab to avoid horrible problems with multiple instances
         return;
     }
 
@@ -705,7 +705,7 @@ sub onRun {
         $output_ref->get_param ('TOTAL_ITERATIONS')
     );
 
-    $self->{project}->setDirty;
+    $self->{project}->set_dirty;
 
     return;
 }

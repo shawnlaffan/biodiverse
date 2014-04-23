@@ -3,7 +3,8 @@ package Biodiverse::ReadNexus;
 #  Read in a nexus tree file and extract the trees into Biodiverse::Tree files
 #  Initial work by Dan Rosauer
 #  regex based approach by Shawn Laffan
-
+use 5.010;
+use 5.010;
 use strict;
 use warnings;
 use Carp;
@@ -38,12 +39,12 @@ my $EMPTY_STRING = q{};
 
 #$text_in_brackets = qr / ( [^()] )* /x; #  from page 328, but doesn't work here
 my $re_text_in_brackets;  #  straight from Friedl, page 330.  Could be overkill, but works
-$re_text_in_brackets = qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* /xo;
+$re_text_in_brackets = qr / (?> [^()]+ | \(  (??{ $re_text_in_brackets }) \) )* /xo; #/
 #  poss alternative for perl 5.10 and later:  qr /(\\((?:[^()]++|(?-1))*+\\))/xo
 #  from http://blogs.perl.org/users/jeffrey_kegler/2012/08/marpa-v-perl-regexes-a-rematch.html
 
 my $re_text_in_square_brackets;  #  modified from Friedl, page 330.
-$re_text_in_square_brackets = qr / (?> [^[]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo;
+$re_text_in_square_brackets = qr / (?> [^[]]+ | \[  (??{ $re_text_in_square_brackets }) \] )* /xo; #/
 
 
 sub new {
@@ -379,9 +380,15 @@ sub import_tabular_tree {
     my $data = $args{data};
     if (! defined $data) {
         $data = $self->read_whole_file (file => $args{file});
+        $args{data} = $data; # ?
     }
+    
+    my $column_map = $args{column_map} // {};
 
-    my @data = split ($/, $data);
+    # get column map from arguments 
+    my %columns = %{$args{column_map} // {}};
+
+    my @data   = split ($/, $data);
     my $header = shift @data;
 
     my $csv = $self->get_csv_object_for_tabular_tree_import (%args);
@@ -393,11 +400,27 @@ sub import_tabular_tree {
 
     my @trees;
 
+    # set up columns to grab relevant data.  if any were not passed as args,
+    # look for values with given names in header. (just add to args map)
+    my %header_cols; 
+    @header_cols{@header} = (0..$#header);
+    $columns{TREENAME_COL}       //= $header_cols{TREENAME};
+    $columns{LENGTHTOPARENT_COL} //= $header_cols{LENGTHTOPARENT};
+    $columns{NODENUM_COL}        //= $header_cols{NODE_NUMBER};
+    $columns{PARENT_COL}         //= $header_cols{PARENTNODE};
+    $columns{NODENAME_COL}       //= $header_cols{NAME};
+
+    # check if all required fields are defined (?)
+    foreach my $param (qw /TREENAME_COL LENGTHTOPARENT_COL NODENUM_COL NODENAME_COL PARENT_COL/) { #/
+    #    croak "Missing parameter for $param" if (! defined($columns{$param}));
+        say "Param $param col $columns{$param}";
+    }
+
     $csv->parse ($data[0]);
     my @line_arr = $csv->fields;
-    my %line_h;
-    @line_h{@header} = @line_arr;
-    my $tree_name = $args{NAME} || $line_h{TREENAME} || 'TABULAR_TREE';
+    #my %line_h;
+    #@line_h{@header} = @line_arr;
+    my $tree_name = $args{NAME} || $line_arr[$columns{TREENAME_COL}] || 'TABULAR_TREE'; # note use of $args{NAME} will only work if name col is not provided
     my $tree = Biodiverse::Tree->new (NAME => $tree_name);
     push @trees, $tree;
 
@@ -406,9 +429,14 @@ sub import_tabular_tree {
         $csv->parse ($line);
         my @line_array = $csv->fields;
         my %line_hash;
-        @line_hash{@header} = @line_array;
 
-        if (defined $line_h{TREENAME} && $tree_name ne $line_hash{TREENAME}) {  # we have started a new tree
+        # check all necessary values are defined (?)
+        foreach my $col_name (keys %columns) {
+            #    croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
+            $line_hash{$col_name} = $line_array[$columns{$col_name}]
+        }
+
+        if (defined($line_hash{TREENAME_COL}) && $line_hash{TREENAME_COL} ne $tree_name) {  # we have started a new tree
             #  clean up the previous tree
             $self->assign_parents_for_tabular_tree_import (
                 tree_ref  => $tree,
@@ -416,25 +444,25 @@ sub import_tabular_tree {
             );
 
             #  and start afresh
-            $tree_name = $line_hash{TREENAME};
+            $tree_name = $line_hash{TREENAME_COL};
             $tree = Biodiverse::Tree->new (NAME => $tree_name);
             push @trees, $tree;
             $node_hash = {};
         }
 
-        my $node_name = $line_hash{NAME};
+        my $node_name = $line_hash{NODENAME_COL};
         if (!defined $node_name) {
             $node_name = $tree->get_free_internal_name;
-            $line_hash{NAME} = $node_name;
+            $line_hash{NODENAME_COL} = $node_name;
         }
 
         $tree->add_node (
             name   => $node_name,
-            length => $line_hash{LENGTHTOPARENT},
+            length => $line_hash{LENGTHTOPARENT_COL},
         );
 
-        my $node_number = $line_hash{NODE_NUMBER};
-        $node_hash->{$node_number} = \%line_hash;
+        my $node_number = $line_hash{NODENUM_COL};
+        $node_hash->{$node_number} = {%line_hash}; # store as reference to duplicate of line_hash (instead of \%line_hash);
     }
 
     $self->assign_parents_for_tabular_tree_import (
@@ -458,11 +486,11 @@ sub assign_parents_for_tabular_tree_import {
     
     #  now pass over the data again and assign parents
     foreach my $node_number (sort keys %$node_hash) {
-        my $node_name = $node_hash->{$node_number}{NAME};
+        my $node_name = $node_hash->{$node_number}{NODENAME_COL};
         my $node_ref  = $tree->get_node_ref (node => $node_name);
 
-        my $parent_number = $node_hash->{$node_number}{PARENTNODE};
-        my $parent_name   = $node_hash->{$parent_number}{NAME};
+        my $parent_number = $node_hash->{$node_number}{PARENT_COL};
+        my $parent_name   = $node_hash->{$parent_number}{NODENAME_COL};
 
         if (defined $parent_name) {
             my $parent_ref = $tree->get_node_ref (node => $parent_name);
@@ -477,7 +505,7 @@ sub get_csv_object_for_tabular_tree_import {
     my $self = shift;
     my %args = @_;
     
-        my $data = $args{data};
+    my $data = $args{data};
     my @data = split ("\n", $data, 2);
     my $header = $data[0];
 

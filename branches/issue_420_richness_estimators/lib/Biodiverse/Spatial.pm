@@ -343,17 +343,17 @@ sub sp_calc {
                 say "[SPATIAL] Result type for neighbour set $set_i is $result_type."
             }
 
-            my $searchBlocks = $search_blocks_ref->[$i];
+            my $search_blocks = $search_blocks_ref->[$i];
             
-            if (defined $sp_index && ! defined $searchBlocks) {
+            if (defined $sp_index && ! defined $search_blocks) {
                 print "[SPATIAL] Using spatial index\n" if $i == 0;
                 my $progress_text_pfx = 'Neighbour set ' . ($i+1);
-                $searchBlocks = $sp_index->predict_offsets (
+                $search_blocks = $sp_index->predict_offsets (
                     spatial_conditions => $spatial_conditions_ref->[$i],
-                    cellsizes          => $bd->get_param ('CELL_SIZES'),
+                    cellsizes          => scalar $bd->get_cell_sizes,
                     progress_text_pfx  => $progress_text_pfx,
                 );
-                $search_blocks_ref->[$i] = $searchBlocks;
+                $search_blocks_ref->[$i] = $search_blocks;
             }
         }
     }
@@ -408,14 +408,14 @@ sub sp_calc {
     
     #EL: Set our CELL_SIZES
     # SL: modified for new structure
-    if (! defined $self->get_param ('CELL_SIZES')) {
-        $self->set_param (CELL_SIZES => $bd->get_param('CELL_SIZES'));
+    if (!defined $self->get_cell_sizes) {
+        $self->set_param (CELL_SIZES => scalar $bd->get_cell_sizes);
     }
     my $name = $self->get_param ('NAME');
     my $progress_text_base = $args{progress_text} || $name;
-    
+
     #  create all the elements and the SPATIAL_RESULTS list
-    my $toDo = scalar @elements_to_calc;
+    my $to_do = scalar @elements_to_calc;
     #my $timer = [gettimeofday];
     
     #  check the elements against the definition query
@@ -444,7 +444,7 @@ sub sp_calc {
     foreach my $element (@elements_to_calc) {
         $elt_count ++;
 
-        my $progress_so_far = $elt_count / $toDo;
+        my $progress_so_far = $elt_count / $to_do;
         my $progress_text   = "Spatial analysis $progress_text_create\n";
         $progress->update ($progress_text, $progress_so_far);
 
@@ -481,14 +481,14 @@ sub sp_calc {
 
     my $progress_text =
               "Spatial analysis\n$progress_text_base\n"
-            . "(0 / $toDo)"
+            . "(0 / $to_do)"
             . $using_index_text;
     $progress = Biodiverse::Progress->new(text => $progress_text);
     
     #$progress->update ($progress_text, 0);
 
-    my ($count, $printedProgress) = (0, -1);
-    print "[SPATIAL] Progress (% of $toDo elements):     ";
+    my ($count, $printed_progress) = (0, -1);
+    print "[SPATIAL] Progress (% of $to_do elements):     ";
     #$timer = [gettimeofday];    # to use with progress bar
     my $recyc_count = 0;
 
@@ -500,10 +500,10 @@ sub sp_calc {
         #last if $count > 5;  #  FOR DEBUG
         $count ++;
         
-        my $progress_so_far = $count / $toDo;
+        my $progress_so_far = $count / $to_do;
         my $progress_text =
               "Spatial analysis\n$progress_text_base\n"
-            . "($count / $toDo)"
+            . "($count / $to_do)"
             . $using_index_text;
         $progress->update ($progress_text, $progress_so_far);
 

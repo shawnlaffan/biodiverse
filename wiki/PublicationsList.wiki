@@ -14,6 +14,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Di Virgilio, G. & Laffan, S.W. (in press) Using maps of continuous variation in species compositional turnover to supplement uniform polygon species range maps.  [http://dx.doi.org/10.1080/13658816.2013.871725 International Journal of Geographical Information Science].
 
+  *  Loader, S.P., Ceccarelli, F.S., Menegon, M., Howell, K.M., Kassahun, R., Mengistu, A.A., Saber, S.A., Gebresenbet, F., Sá, R., Davenport, T.R.B., Larson, J.G., Müller, H., Wilkinson, M. and Gower, D.J. (in press) Persistence and stability of Eastern Afromontane forests: evidence from brevicipitid frogs.  [http://dx.doi.org/10.1111/jbi.12331 Journal of Biogeography].
+
   *  González-Orozco, C.E., Ebach, M.C., Laffan, S.W., Thornhill, A.H., Knerr, N., Schmidt-Lebuhn, A., Cargill, C.C., Clements, M., Nagalingum, N., Mishler, B.D. & Miller, J.T. (2014) Quantifying phytogeographical regions of Australia using geospatial turnover in species composition.  [http://dx.doi.org/10.1371/journal.pone.0092558 PLoS One, 9, e92558].
 
   *  González-Orozco, C.E., Thornhill, A.H., Knerr, N., Laffan, S.W. & Miller, J.T. (2014) Biogeographical regions and phytogeography of the eucalypts. [http://dx.doi.org/10.1111/ddi.12129 Diversity and Distributions, 20, 46-58].

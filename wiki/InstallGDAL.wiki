@@ -66,7 +66,7 @@ To test that it worked, type the following.  It should throw no errors.
   :: Install the precompiled binaries needed for the GUI.
   :: Edit the next line to match the perl version you are using, 
   :: e.g. ppm516 for the 32 bit version, ppm516_x64 for 64 bit
-  set BDV_PPM=https://biodiverse.googlecode.com/svn/branches/issue_408_import_rasters/etc/ppm/ppm516_x64
+  set BDV_PPM=http://biodiverse.googlecode.com/svn/branches/ppm/ppm516_x64
   ppm install %BDV_PPM%/Geo-GDAL.ppd 
 
 }}}

@@ -11,15 +11,15 @@
 #  All parameters are listed at the end of this file.                          #
 #                                                                              #
 #  Most parameters are optional - the settings below show basic settings       #
-#																			   #
-#  Anything after a # is a comment and is ignored.							   #
+#									       #
+#  Anything after a # is a comment and is ignored.			       #
 #  If your argument contains a # then put it inside quotes.                    #
 #  Blank lines are also ignored.                                               #
 #                                                                              #
 #  Help is available at:                                                       #
 #    https://code.google.com/p/biodiverse/wiki/SitePairSampler                 #
 #                                                                              #
-#  Dan Rosauer	August 2013 and March 2014	                                   #
+#  Dan Rosauer	August 2013 and March 2014	                               #
 ################################################################################
 
 # Inputs

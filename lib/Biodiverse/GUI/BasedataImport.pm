@@ -27,17 +27,20 @@ use Biodiverse::ElementProperties;
 use Biodiverse::Common;
 
 
-#  a few name setups for a change-over that never happened
-my $import_n = ""; #  use "" for orig, 3 for the one with embedded params table
-my $dlg_name = "dlgImport1";
-my $chk_new = "chkNew$import_n";
-my $btn_next = "btnNext$import_n";
-my $file_format = "format_box$import_n";
-my $combo_import_basedatas = "comboImportBasedatas$import_n";
-my $filechooser_input = "filechooserInput$import_n";
-my $txt_import_new = "txtImportNew$import_n";
-my $table_parameters = "tableParameters$import_n";
+#  A few name setups for a change-over that never happened,
+#  so the the $import_n part is actually redundant.
+#  The other import dialogue (#3) is no longer in the glade file.  
+my $import_n = ''; #  use "" for orig, 3 for the one with embedded params table
+my $import_dlg_name    = "dlgImport1";
+my $chk_new            = "chkNew$import_n";
+my $btn_next           = "btnNext$import_n";
+my $file_format        = "format_box$import_n";
+my $filechooser_input  = "filechooserInput$import_n";
+my $txt_import_new     = "txtImportNew$import_n";
+my $table_parameters   = "tableParameters$import_n";
 my $importmethod_combo = "format_box$import_n"; # not sure about the suffix
+my $combo_import_basedatas     = "comboImportBasedatas$import_n";
+my $chk_import_one_bd_per_file = "chk_import_one_bd_per_file$import_n";
 
 my $text_idx      = 0;  # index in combo box 
 my $raster_idx    = 1;  # index in combo box of raster format
@@ -69,23 +72,6 @@ sub run {
 
     #if ($response eq 'ok') {
 
-    $use_new = $dlgxml->get_widget($chk_new)->get_active();
-    if ($use_new) {
-        # Add it
-        # FIXME: why am i adding it now?? better at the end?
-        my $basedata_name = $dlgxml->get_widget($txt_import_new)->get_text();
-        #$basedata_ref = $gui->get_project->add_base_data($basedata_name);
-        $basedata_ref = Biodiverse::BaseData->new (
-            NAME       => $basedata_name,
-            CELL_SIZES => [100000,100000],  #  default, gets overridden later
-        );
-    }
-    else {
-        # Get selected basedata
-        my $selected = $dlgxml->get_widget($combo_import_basedatas)->get_active_iter();
-        $basedata_ref = $gui->get_project->get_basedata_model->get($selected, MODEL_OBJECT);
-    }
-
     # Get selected filenames
     my @filenames = $dlgxml->get_widget($filechooser_input)->get_filenames();
     my @file_names_tmp = @filenames;
@@ -94,10 +80,80 @@ sub run {
         push @file_names_tmp, '... plus ' . (scalar @filenames - 5) . ' others';
     }
     my $file_list_as_text = join ("\n", @file_names_tmp);
+    my @def_cellsizes = (100000,100000);    
     
+    $use_new = $dlgxml->get_widget($chk_new)->get_active();
+
+    #  do we want to import each file into its own basedata?
+    my $w = $dlgxml->get_widget($chk_import_one_bd_per_file);
+    my $one_basedata_per_file = $w->get_active();
+    my %multiple_brefs;  # mapping from basedata name (eg from shortened file) to basedata ref
+    my %multiple_file_lists;  # mapping from basedata name to array (ref) of files
+    my %multiple_is_new;  # mapping from basedata name to flag indicating if new (vs existing) basedata ref
+    
+    if ($one_basedata_per_file) {
+        # create a new basedata for each file
+        # get existing basedatas (in tree form), to check if given name exists
+        my $basedata_list = $gui->get_project->get_base_data_list();
+
+        my $count = 0;
+        foreach my $file (@filenames) {
+            # use basedata_ref locally, and then maintain a ref to the last created
+            # basedata for some of the subsequent 'get' calls
+            my $dispname = "unnamed_$count";
+            $count++;
+            my $existing = 0;
+            if ($file =~ /\.[^.]*/) {
+                my($name, $dir, $suffix) = fileparse($file, qr/\.[^.]*/);
+                $dispname = $name;
+
+                # if use_new flag is not set, check if basedata exists with given file 
+                # name, if so add to existing.  if not found, a new basedata will be created
+                if (! $use_new) {
+                    foreach my $existing_bdref (@$basedata_list) {
+                        if ($existing_bdref->get_param('NAME') eq $dispname) {
+                            $existing = 1;
+                            $basedata_ref = $existing_bdref; 
+                            last;
+                        }
+                    }
+                }
+            }
+
+            if (! $existing) {
+                $basedata_ref = Biodiverse::BaseData->new (
+                    NAME       => $dispname,
+                    CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
+                );
+            }
+
+            $multiple_brefs{$file}      = $basedata_ref;
+            $multiple_file_lists{$file} = [$file];
+            $multiple_is_new{$file}     = ! $existing;
+        }
+    } 
+    elsif ($use_new) {
+        # Add it
+        # FIXME: why am i adding it now?? better at the end?
+        my $basedata_name = $dlgxml->get_widget($txt_import_new)->get_text();
+        #$basedata_ref = $gui->get_project->add_base_data($basedata_name);
+        $basedata_ref = Biodiverse::BaseData->new (
+            NAME       => $basedata_name,
+            CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
+        );
+        $multiple_brefs{$basedata_name} = $basedata_ref;
+        $multiple_file_lists{$basedata_name} = \@filenames;
+        $multiple_is_new{$basedata_name} = 1;
+    }
+    else {
+        # Get selected basedata
+        my $selected = $dlgxml->get_widget($combo_import_basedatas)->get_active_iter();
+        $basedata_ref = $gui->get_project->get_basedata_model->get($selected, MODEL_OBJECT);
+    }
+
     # interpret if raster or text depending on format box
     my $read_format = $dlgxml->get_widget($file_format)->get_active();
-
+    
     $dlg->destroy();
 
     #########
@@ -167,15 +223,17 @@ sub run {
     $response = $dlg->run;
     $dlg->destroy;
 
-    if ($response ne 'ok') {  #  clean up and drop out
-        if ($use_new) {
-            $gui->get_project->delete_base_data($basedata_ref);
-        }
+    if ($response ne 'ok') {  
+        #  clean up and drop out
+        cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
+            if ($use_new || $one_basedata_per_file);
         return;
     }
     my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     %import_params = @$import_params;
-    
+
+    # not needed anymore?
+    # $import_params{multiple_separate} = $import_multiple;
     
     # next stage, if we are reading as raster, just call import function here and exit.
     # for shapefile and text, find columns and ask how to interpret 
@@ -377,9 +435,8 @@ sub run {
         $dlg->destroy();
         
         if (not $column_settings) {  #  clean up and drop out
-            if ($use_new) {
-                $gui->get_project->delete_base_data ($basedata_ref) ;
-            }
+            cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
+                if ($use_new || $one_basedata_per_file);
             return;
         }
     }
@@ -402,9 +459,7 @@ sub run {
         $dlg->destroy();
     
         if ($response ne 'ok') {  #  clean up and drop out
-            if ($use_new) {
-                $gui->get_project->delete_base_data ($basedata_ref);
-            }
+            cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui) if ($use_new || $one_basedata_per_file);
             return;
         }
     
@@ -451,9 +506,13 @@ sub run {
     # 4. Load the data
     #########
     # Set the cellsize and origins parameters if we are new
-    if ($use_new) {
-        $basedata_ref->set_param(CELL_SIZES   => [@cell_sizes]);
-        $basedata_ref->set_param(CELL_ORIGINS => [@cell_origins]);
+    if ($use_new || $one_basedata_per_file) {
+        foreach my $file (keys %multiple_brefs) {
+            next if ! $multiple_is_new{$file};
+
+            $multiple_brefs{$file}->set_param(CELL_SIZES   => [@cell_sizes]);
+            $multiple_brefs{$file}->set_param(CELL_ORIGINS => [@cell_origins]);
+        }
     }
 
     #  get the sample count columns.  could do in fill_params, but these are
@@ -497,56 +556,63 @@ sub run {
         $gp_lb_cols{lc $key} = $value;
     }
 
-    my $success = eval {
-        # run appropriate import routine
-        if ($read_format == $raster_idx) {
-            my $labels_as_bands = $import_params{raster_labels_as_bands};
-            my $success = eval {
-                $basedata_ref->import_data_raster(
+    my $success = 1;
+    # run appropriate import routine
+    if ($read_format == $raster_idx) {
+        my $labels_as_bands = $import_params{raster_labels_as_bands};
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &= eval {
+                $multiple_brefs{$bdata}->import_data_raster(
                     %import_params,
                     #%rest_of_options,
                     #%gp_lb_cols,
                     labels_as_bands => $labels_as_bands,
-                    input_files     => \@filenames
+                    input_files     => $multiple_file_lists{$bdata}
                 )
             };
         }
-        elsif ($read_format == $shapefile_idx) {
-            #  shapefiles import based on names, so extract them
-            my (@group_col_names, @label_col_names);
-            foreach my $specs (@{$column_settings->{labels}}) {
-                push @label_col_names, $specs->{name};
-            }
-            foreach my $specs (@{$column_settings->{groups}}) {
-                push @group_col_names, $specs->{name};
-            }
-            my @sample_count_col_names;
-            foreach my $specs (@{$column_settings->{sample_counts}}) {
-                push @sample_count_col_names, $specs->{name};
-            }
-            # process data
-            my $success = eval {
-                $basedata_ref->import_data_shapefile(
+    }
+    elsif ($read_format == $shapefile_idx) {
+        #  shapefiles import based on names, so extract them
+        my (@group_col_names, @label_col_names);
+        foreach my $specs (@{$column_settings->{labels}}) {
+            push @label_col_names, $specs->{name};
+        }
+        foreach my $specs (@{$column_settings->{groups}}) {
+            push @group_col_names, $specs->{name};
+        }
+        my @sample_count_col_names;
+        foreach my $specs (@{$column_settings->{sample_counts}}) {
+            push @sample_count_col_names, $specs->{name};
+        }
+        # process data
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &= eval {
+                $multiple_brefs{$bdata}->import_data_shapefile(
                     %import_params,
-                    input_files             => \@filenames,
+                    input_files             => $multiple_file_lists{$bdata},
                     group_fields            => \@group_col_names,
                     label_fields            => \@label_col_names,
                     sample_count_col_names  => \@sample_count_col_names,
                 )
-            };            
-        } 
-        elsif ($read_format == $text_idx) {        
-            $basedata_ref->load_data(
-                %import_params,
-                %rest_of_options,
-                %gp_lb_cols,
-                input_files             => \@filenames,
-                include_columns         => \@include_columns,
-                exclude_columns         => \@exclude_columns,
-                sample_count_columns    => \@sample_count_columns,
-            )
+            };
         }
-    };
+    } 
+    elsif ($read_format == $text_idx) {        
+        foreach my $bdata (keys %multiple_file_lists) {
+            $success &= eval {
+                $multiple_brefs{$bdata}->load_data(
+                    %import_params,
+                    %rest_of_options,
+                    %gp_lb_cols,
+                    input_files     => $multiple_file_lists{$bdata},
+                    include_columns         => \@include_columns,
+                    exclude_columns         => \@exclude_columns,
+                    sample_count_columns    => \@sample_count_columns,
+                )
+            };
+        }
+    }
     
     if ($EVAL_ERROR) {
         my $text = $EVAL_ERROR;
@@ -557,8 +623,11 @@ sub run {
     }
 
     if ($success) {
-        if ($use_new) {
-            $gui->get_project->add_base_data($basedata_ref);
+        if ($use_new || $one_basedata_per_file) {
+            foreach my $file (keys %multiple_brefs) {
+                next if (! $multiple_is_new{$file});
+                $gui->get_project->add_base_data($multiple_brefs{$file});
+            }
         }
         return $basedata_ref;
     }
@@ -566,6 +635,19 @@ sub run {
     return;
 }
 
+sub cleanup_new_basedatas {
+    my ($brefs, $bdata_is_new, $gui) = @_;
+
+    #  clean up and drop out
+    # note we have to check for new basedatas if one_basedata_per_file set
+    # and use_new not set, as a new one is created if not found
+    foreach my $file (keys %$brefs) {
+        # check if newly created
+        next if ! $bdata_is_new->{$file};
+        $gui->get_project->delete_base_data($brefs->{$file});
+    }
+    return;
+}
 
 sub check_if_r_data_frame {
     my %args = @_;
@@ -1018,9 +1100,9 @@ sub on_up_down {
 sub make_filename_dialog {
     my $gui = shift;
     #my $object = shift || return;
-    
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, $dlg_name);
-    my $dlg = $dlgxml->get_widget($dlg_name);
+
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, $import_dlg_name);
+    my $dlg    = $dlgxml->get_widget($import_dlg_name);
     my $x = $gui->get_widget('wndMain');
     $dlg->set_transient_for( $x );
     
@@ -1073,22 +1155,26 @@ sub make_filename_dialog {
     $dlgxml->get_widget($filechooser_input)->add_filter($shapefiles_filter);
     
     $dlgxml->get_widget($filechooser_input)->set_select_multiple(1);
-    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
+    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
 
     $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
-    
+
+    $dlgxml->get_widget($chk_import_one_bd_per_file)->signal_connect(
+        toggled => \&on_separate_toggled, [$gui, $dlgxml],
+    );
+
     $dlgxml->get_widget($file_format)->set_active(0);
-    $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&onImportMethodChanged, [$gui, $dlgxml]);
+    $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&on_import_method_changed, [$gui, $dlgxml]);
     
     return ($dlgxml, $dlg);
 }
 
-sub onImportMethodChanged {
+sub on_import_method_changed {
     # change file filter used
     my $format_combo = shift;
-    my $args = shift;
-    my ($gui, $dlgxml) = @{$args};
+    my $args         = shift;
+    my ($gui, $dlgxml) = @$args;
     
     my $active_choice = $format_combo->get_active();
     my $f_widget      = $dlgxml->get_widget($filechooser_input);
@@ -1107,9 +1193,9 @@ sub onImportMethodChanged {
     return;
 }
 
-sub onFileChanged {
+sub on_file_changed {
     my $chooser = shift;
-    my $dlgxml = shift;
+    my $dlgxml  = shift;
 
     my $text = $dlgxml->get_widget("txtImportNew$import_n");
     my @filenames = $chooser->get_filenames();
@@ -1154,23 +1240,45 @@ sub on_new_changed {
 sub on_new_toggled {
     my $checkbox = shift;
     my $args = shift;
-    my ($gui, $dlgxml) = @{$args};
+    my ($gui, $dlgxml) = @$args;
 
-    if ($checkbox->get_active) {
-        # New basedata
-
-        $dlgxml->get_widget($txt_import_new)->set_sensitive(1);
-        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
-    }
-    else {
-        # Must select existing - NOTE: checkbox is disabled if there aren't any
-
+    # if we are doing multiple files as separate, keep basedata selection and new filename
+    # fields as disabled 
+    if ($dlgxml->get_widget($chk_import_one_bd_per_file)->get_active) {
         $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
-        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(1);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
+    } 
+    else {
+        #  if true then new, else must select existing
+        my $sens_val = $checkbox->get_active;
+        $dlgxml->get_widget($txt_import_new)->set_sensitive($sens_val);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(!$sens_val);
     }
 
     return;
 }
+
+sub on_separate_toggled {
+    my $checkbox = shift;
+    my $args     = shift;
+    my ($gui, $dlgxml) = @$args;
+
+    if ($checkbox->get_active) {
+        # separate chosen
+        $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
+    }
+    else {
+        # de-selected use of separate.  set sensitivity of import_new and import_basedata
+        # according to selection of new
+        my $sens_val = $dlgxml->get_widget($chk_new)->get_active;
+        $dlgxml->get_widget($txt_import_new)->set_sensitive($sens_val);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(!$sens_val);
+    }
+
+    return;
+}
+
 
 ##################################################
 # Column selection dialog
@@ -1181,7 +1289,7 @@ sub make_columns_dialog {
     # the number of columns is unknown
 
     my $header      = shift; # ref to column header array
-    my $wnd_main     = shift;
+    my $wnd_main    = shift;
     my $row_options = shift;
     my $file_list   = shift;
 
@@ -1208,9 +1316,6 @@ sub make_columns_dialog {
         $file_list_label->set_alignment (0, 1);
         $dlg->vbox->pack_start ($file_list_label, 0, 0, 0);
     }
-
-    #my $sep = Gtk2::HSeparator->new();
-    #$dlg->vbox->pack_start ($sep, 0, 0, 0);
 
     my $label = Gtk2::Label->new('<b>Set column options</b>');
     $label->set_use_markup(1);

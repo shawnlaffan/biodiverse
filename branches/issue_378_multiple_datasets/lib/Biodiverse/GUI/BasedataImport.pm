@@ -107,30 +107,30 @@ sub run {
                 my($name, $dir, $suffix) = fileparse($file, qr/\.[^.]*/);
                 $dispname = $name;
 
-	            # if use_new flag is not set, check if basedata exists with given file 
-	            # name, if so add to existing.  if not found, a new basedata will be created
-	            if (! $use_new) {
-		            foreach my $existing_bdref (@$basedata_list) {
-		                if ($existing_bdref->get_param('NAME') eq $dispname) {
-		                	$existing = 1;
-		                	$basedata_ref = $existing_bdref; 
-		                	last;
-		                }
-		            }
-	            }
+                    # if use_new flag is not set, check if basedata exists with given file 
+                    # name, if so add to existing.  if not found, a new basedata will be created
+                    if (! $use_new) {
+                        foreach my $existing_bdref (@$basedata_list) {
+                            if ($existing_bdref->get_param('NAME') eq $dispname) {
+                                $existing = 1;
+                                $basedata_ref = $existing_bdref; 
+                                last;
+                            }
+                        }
+                    }
             }
 
             
             if (! $existing) {
-	            $basedata_ref = Biodiverse::BaseData->new (
-	                NAME       => $dispname,
-	                CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
-	            );
+                $basedata_ref = Biodiverse::BaseData->new (
+                    NAME       => $dispname,
+                    CELL_SIZES => \@def_cellsizes  #  default, gets overridden later
+                );
             }
-            
-            $multiple_brefs{$file} = $basedata_ref;
+
+            $multiple_brefs{$file}      = $basedata_ref;
             $multiple_file_lists{$file} = [$file];
-            $multiple_is_new{$file} = ! $existing;
+            $multiple_is_new{$file}     = ! $existing;
         }
     } 
     elsif ($use_new) {
@@ -225,7 +225,7 @@ sub run {
     $dlg->destroy;
 
     if ($response ne 'ok') {  
-    	#  clean up and drop out
+        #  clean up and drop out
         cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
             if ($use_new || $one_basedata_per_file);
         return;
@@ -509,8 +509,8 @@ sub run {
     # Set the cellsize and origins parameters if we are new
     if ($use_new || $one_basedata_per_file) {
         foreach my $file (keys %multiple_brefs) {
-        	next if (! $multiple_is_new{$file});
-        	
+            next if ! $multiple_is_new{$file};
+
             $multiple_brefs{$file}->set_param(CELL_SIZES   => [@cell_sizes]);
             $multiple_brefs{$file}->set_param(CELL_ORIGINS => [@cell_origins]);
         }
@@ -626,7 +626,7 @@ sub run {
     if ($success) {
         if ($use_new || $one_basedata_per_file) {
             foreach my $file (keys %multiple_brefs) {
-            	next if (! $multiple_is_new{$file});
+                next if (! $multiple_is_new{$file});
                 $gui->get_project->add_base_data($multiple_brefs{$file});
             }
         }
@@ -637,17 +637,17 @@ sub run {
 }
 
 sub cleanup_new_basedatas {
-	my ($brefs, $bdata_is_new, $gui) = @_;
-	
+    my ($brefs, $bdata_is_new, $gui) = @_;
+
     #  clean up and drop out
     # note we have to check for new basedatas if one_basedata_per_file set
     # and use_new not set, as a new one is created if not found
     foreach my $file (keys %$brefs) {
         # check if newly created
-        next if (! $bdata_is_new->{$file});
+        next if ! $bdata_is_new->{$file};
         $gui->get_project->delete_base_data($brefs->{$file});
     }
-    return;	
+    return;
 }
 
 sub check_if_r_data_frame {
@@ -1250,18 +1250,10 @@ sub on_new_toggled {
         $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
     } 
     else {
-	    if ($checkbox->get_active) {
-	        # New basedata
-	
-	        $dlgxml->get_widget($txt_import_new)->set_sensitive(1);
-	        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
-	    }
-	    else {
-	        # Must select existing - NOTE: checkbox is disabled if there aren't any
-	
-	        $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
-	        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(1);
-	    }
+        #  if true then new, else must select existing
+        my $sens_val = $checkbox->get_active;
+        $dlgxml->get_widget($txt_import_new)->set_sensitive($sens_val);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(!$sens_val);
     }
 
     return;
@@ -1289,7 +1281,7 @@ sub on_separate_toggled {
         }
         else {
             $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
-            $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(1);        	
+            $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(1);
         }
     }
 

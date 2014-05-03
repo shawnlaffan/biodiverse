@@ -336,6 +336,10 @@ sub get_coord_bounds {
     my (@min, @max);
 
     my $groups = $self->get_groups;
+    
+    return wantarray ? () : {}
+      if !scalar @$groups;
+
     my $gp = $self->get_groups_ref;
 
     my @coord0 = $gp->get_element_name_as_array (element => $groups->[0]);
@@ -2258,13 +2262,18 @@ sub run_exclusions {
     #  now we go through and delete any of the groups that are beyond our stated exclusion values
     my %exclusion_hash = $self->get_exclusion_hash (%args);  #  generate the exclusion hash
 
-    my %test_funcs = (
-        minVariety    => '$base_type_ref->get_variety(element => $element) <= ',
-        maxVariety    => '$base_type_ref->get_variety(element => $element) >= ',
-        minSamples    => '$base_type_ref->get_sample_count(element => $element) <= ',
-        maxSamples    => '$base_type_ref->get_sample_count(element => $element) >= ',
-        minRedundancy => '$base_type_ref->get_redundancy(element => $element) <= ',
-        maxRedundancy => '$base_type_ref->get_redundancy(element => $element) >= ',
+    $args{delete_empty_groups} //= $exclusion_hash{delete_empty_groups};
+    $args{delete_empty_labels} //= $exclusion_hash{delete_empty_labels};
+
+
+    #  $_[0] is $base_type_ref, $_[1] is $element
+    my %test_callbacks = (
+        minVariety    => sub {$_[0]->get_variety     (element => $_[1]) <= $_[2]},
+        maxVariety    => sub {$_[0]->get_variety     (element => $_[1]) >= $_[2]},
+        minSamples    => sub {$_[0]->get_sample_count(element => $_[1]) <= $_[2]},
+        maxSamples    => sub {$_[0]->get_sample_count(element => $_[1]) >= $_[2]},
+        minRedundancy => sub {$_[0]->get_redundancy  (element => $_[1]) <= $_[2]},
+        maxRedundancy => sub {$_[0]->get_redundancy  (element => $_[1]) >= $_[2]},
     );
 
     my ($label_regex, $label_regex_negate);
@@ -2291,7 +2300,7 @@ sub run_exclusions {
             $label_check_list = $check_list;
         }
     }
-    
+
     my $group_check_list;
     if (my $definition_query = $exclusion_hash{GROUPS}{definition_query}) {
         if (!blessed $definition_query) {
@@ -2313,25 +2322,20 @@ sub run_exclusions {
 
     #  check the labels first, then the groups
     #  equivalent to range then richness
-    my @delete_list;
-    
+    my (@delete_list, %tally);
     my $excluded = 0;
-    my %tally;
-    
+
     BY_TYPE:
     foreach my $type ('LABELS', 'GROUPS') {
         
-        my $other_type = 'GROUPS';
-        if ($type eq 'GROUPS') {
-            $other_type = 'LABELS';
-        }
+        my $other_type = $type eq 'GROUPS' ? 'LABELS' : 'GROUPS';
 
         my $base_type_ref = $self->{$type};
 
         my $cut_count = 0;
         my $sub_cut_count = 0;
         @delete_list = ();
-        
+
         BY_ELEMENT:
         foreach my $element ($base_type_ref->get_element_list) {
             #next if ! defined $element;  #  ALL SHOULD BE DEFINED
@@ -2342,15 +2346,18 @@ sub run_exclusions {
             my $failed_a_test = 0;
             
             BY_TEST:
-            foreach my $test (keys %test_funcs) {
+            foreach my $test (keys %test_callbacks) {
                 next BY_TEST if ! defined $exclusion_hash{$type}{$test};
-                
-                my $condition = $test_funcs{$test} . $exclusion_hash{$type}{$test};
-                
-                my $check = eval $condition;
-                
-                next BY_TEST if ! $check;
-                
+
+                #  old string eval approach
+                #my $condition = $test_funcs{$test} . $exclusion_hash{$type}{$test};
+                #my $check = eval $condition;
+
+                my $callback = $test_callbacks{$test};
+                my $chk = $callback->($base_type_ref, $element, $exclusion_hash{$type}{$test});
+
+                next BY_TEST if ! $chk;
+
                 $failed_a_test = 1;  #  if we get here we have failed a test, so drop out of the loop
                 last BY_TEST;
             }
@@ -2362,7 +2369,7 @@ sub run_exclusions {
                     (defined $exclusion_hash{$type}{min_range}
                     && $self->get_range(element => $element) <= $exclusion_hash{$type}{min_range})
                     ) {
-                    
+
                     $failed_a_test = 1;
                 }
                 if (!$failed_a_test && $label_regex) {
@@ -2378,7 +2385,7 @@ sub run_exclusions {
                     }
                 }
             }
-            
+
             if (!$failed_a_test && $type eq 'GROUPS' && $group_check_list) {
                 $failed_a_test = exists $group_check_list->{$element};
             }
@@ -2390,22 +2397,23 @@ sub run_exclusions {
         }
 
         foreach my $element (@delete_list) {  #  having it out here means all are checked against the initial state
-            $sub_cut_count += $self->delete_element (type => $type, element => $element);
+            $sub_cut_count += $self->delete_element (
+                %args,
+                type    => $type,
+                element => $element,
+            );
         }
 
-        my $lctype = lc ($type);
+        my $lctype = lc $type;
+        my $lc_othertype = lc $other_type;
         if ($cut_count || $sub_cut_count) {
-            $feedback .=
-                "Cut $cut_count $lctype on exclusion criteria, deleting $sub_cut_count "
-                . lc($other_type)
-                . " in the process\n\n";
-            $feedback .=
-                "The data now fall into "
-                . $self->get_group_count .
-                " groups with "
-                . $self->get_label_count
-                . " unique labels\n\n";
-            $tally{$type . '_count'} += $cut_count;
+            $feedback .= "Cut $cut_count $lctype on exclusion criteria, "
+                       . "deleting $sub_cut_count $lc_othertype in the process\n\n";
+            $feedback .= sprintf
+                "The data now fall into %d groups with %d unique labels\n\n",
+                $self->get_group_count,
+                $self->get_label_count;
+            $tally{$type . '_count'}       += $cut_count;
             $tally{$other_type . '_count'} += $sub_cut_count;
             $excluded ++;
         }
@@ -2583,8 +2591,11 @@ sub delete_element {
                         ? 'LABELS'
                         : 'GROUPS';  
 
-    my $type_ref = $self->{$type};
+    my $type_ref       = $self->{$type};
     my $other_type_ref = $self->{$other_type};
+
+    my $remove_other_empties = $args{$type eq 'GROUPS' ? 'delete_empty_labels' : 'delete_empty_groups'};
+    $remove_other_empties  //= 1;
 
     my $subelement_cut_count = 0;
 
@@ -2598,10 +2609,11 @@ sub delete_element {
         #print "ELEMENT $element, SUBELEMENT $subelement\n";
         #  switch the element/subelement values as they are reverse indexed in $other_type
         $other_type_ref->delete_sub_element(
+            %args,
             element    => $subelement,
             subelement => $element,
         );
-        if ($other_type_ref->get_variety(element => $subelement) == 0) {
+        if ($remove_other_empties && $other_type_ref->get_variety(element => $subelement) == 0) {
             # we have wiped out all groups with this label
             # so we need to remove it from the data set
             $other_type_ref->delete_element(element => $subelement);
@@ -2636,22 +2648,22 @@ sub delete_sub_element {
     );
 
     #  clean up if labels or groups are now empty
-    #my $richness = $groups_ref->get_richness (element => $group);
-    #my $range    = $labels_ref->get_variety (element => $label);;
-    #
-    if ($groups_ref->get_variety (element => $group) == 0) {
+    my $delete_empty_gps = $args{delete_empty_groups} // 1;
+    my $delete_empty_lbs = $args{delete_empty_labels} // 1;
+    
+    if ($delete_empty_gps && $groups_ref->get_variety (element => $group) == 0) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($labels_ref->get_variety (element => $label) == 0) {
+    if ($delete_empty_lbs && $labels_ref->get_variety (element => $label) == 0) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,
         );
     }
-    
+
     return;
 }
 
@@ -2979,10 +2991,18 @@ sub build_spatial_index {  #  builds GROUPS, not LABELS
     foreach my $gp ($self->get_groups) {
         $groups{$gp} = $gp_object->get_element_name_as_array (element => $gp);
     }
-    
-    my $index = Biodiverse::Index->new (@_, element_hash => \%groups);
-    $self->set_param (SPATIAL_INDEX => $index);
-    
+
+    my $index;
+
+    #  if no groups then remove it
+    if (!scalar keys %groups) {
+        $self->delete_param ('SPATIAL_INDEX');
+    }
+    else {
+        $index = Biodiverse::Index->new (@_, element_hash => \%groups);
+        $self->set_param (SPATIAL_INDEX => $index);
+    }
+
     return $index;
 }
 

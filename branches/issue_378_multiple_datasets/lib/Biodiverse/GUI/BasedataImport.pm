@@ -31,7 +31,7 @@ use Biodiverse::Common;
 #  so the the $import_n part is actually redundant.
 #  The other import dialogue (#3) is no longer in the glade file.  
 my $import_n = ''; #  use "" for orig, 3 for the one with embedded params table
-my $dlg_name           = "dlgImport1";
+my $import_dlg_name    = "dlgImport1";
 my $chk_new            = "chkNew$import_n";
 my $btn_next           = "btnNext$import_n";
 my $file_format        = "format_box$import_n";
@@ -107,20 +107,19 @@ sub run {
                 my($name, $dir, $suffix) = fileparse($file, qr/\.[^.]*/);
                 $dispname = $name;
 
-                    # if use_new flag is not set, check if basedata exists with given file 
-                    # name, if so add to existing.  if not found, a new basedata will be created
-                    if (! $use_new) {
-                        foreach my $existing_bdref (@$basedata_list) {
-                            if ($existing_bdref->get_param('NAME') eq $dispname) {
-                                $existing = 1;
-                                $basedata_ref = $existing_bdref; 
-                                last;
-                            }
+                # if use_new flag is not set, check if basedata exists with given file 
+                # name, if so add to existing.  if not found, a new basedata will be created
+                if (! $use_new) {
+                    foreach my $existing_bdref (@$basedata_list) {
+                        if ($existing_bdref->get_param('NAME') eq $dispname) {
+                            $existing = 1;
+                            $basedata_ref = $existing_bdref; 
+                            last;
                         }
                     }
+                }
             }
 
-            
             if (! $existing) {
                 $basedata_ref = Biodiverse::BaseData->new (
                     NAME       => $dispname,
@@ -1101,9 +1100,9 @@ sub on_up_down {
 sub make_filename_dialog {
     my $gui = shift;
     #my $object = shift || return;
-    
-    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, $dlg_name);
-    my $dlg = $dlgxml->get_widget($dlg_name);
+
+    my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, $import_dlg_name);
+    my $dlg    = $dlgxml->get_widget($import_dlg_name);
     my $x = $gui->get_widget('wndMain');
     $dlg->set_transient_for( $x );
     
@@ -1156,7 +1155,7 @@ sub make_filename_dialog {
     $dlgxml->get_widget($filechooser_input)->add_filter($shapefiles_filter);
     
     $dlgxml->get_widget($filechooser_input)->set_select_multiple(1);
-    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&onFileChanged, $dlgxml);
+    $dlgxml->get_widget($filechooser_input)->signal_connect('selection-changed' => \&on_file_changed, $dlgxml);
 
     $dlgxml->get_widget($chk_new)->signal_connect(toggled => \&on_new_toggled, [$gui, $dlgxml]);
     $dlgxml->get_widget($txt_import_new)->signal_connect(changed => \&on_new_changed, [$gui, $dlgxml]);
@@ -1166,16 +1165,16 @@ sub make_filename_dialog {
     );
 
     $dlgxml->get_widget($file_format)->set_active(0);
-    $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&onImportMethodChanged, [$gui, $dlgxml]);
+    $dlgxml->get_widget($importmethod_combo)->signal_connect(changed => \&on_import_method_changed, [$gui, $dlgxml]);
     
     return ($dlgxml, $dlg);
 }
 
-sub onImportMethodChanged {
+sub on_import_method_changed {
     # change file filter used
     my $format_combo = shift;
-    my $args = shift;
-    my ($gui, $dlgxml) = @{$args};
+    my $args         = shift;
+    my ($gui, $dlgxml) = @$args;
     
     my $active_choice = $format_combo->get_active();
     my $f_widget      = $dlgxml->get_widget($filechooser_input);
@@ -1194,9 +1193,9 @@ sub onImportMethodChanged {
     return;
 }
 
-sub onFileChanged {
+sub on_file_changed {
     my $chooser = shift;
-    my $dlgxml = shift;
+    my $dlgxml  = shift;
 
     my $text = $dlgxml->get_widget("txtImportNew$import_n");
     my @filenames = $chooser->get_filenames();
@@ -1241,7 +1240,7 @@ sub on_new_changed {
 sub on_new_toggled {
     my $checkbox = shift;
     my $args = shift;
-    my ($gui, $dlgxml) = @{$args};
+    my ($gui, $dlgxml) = @$args;
 
     # if we are doing multiple files as separate, keep basedata selection and new filename
     # fields as disabled 
@@ -1261,28 +1260,20 @@ sub on_new_toggled {
 
 sub on_separate_toggled {
     my $checkbox = shift;
-    my $args = shift;
-    my ($gui, $dlgxml) = @{$args};
+    my $args     = shift;
+    my ($gui, $dlgxml) = @$args;
 
     if ($checkbox->get_active) {
         # separate chosen
-
-        #$dlgxml->get_widget($chk_new)->set_active(1);
-        #$dlgxml->get_widget($chk_new)->set_sensitive(0);
         $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
         $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
     }
     else {
         # de-selected use of separate.  set sensitivity of import_new and import_basedata
         # according to selection of new
-        if ($dlgxml->get_widget($chk_new)->get_active) {
-            $dlgxml->get_widget($txt_import_new)->set_sensitive(1);
-            $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(0);
-        }
-        else {
-            $dlgxml->get_widget($txt_import_new)->set_sensitive(0);
-            $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(1);
-        }
+        my $sens_val = $dlgxml->get_widget($chk_new)->get_active;
+        $dlgxml->get_widget($txt_import_new)->set_sensitive($sens_val);
+        $dlgxml->get_widget($combo_import_basedatas)->set_sensitive(!$sens_val);
     }
 
     return;
@@ -1298,7 +1289,7 @@ sub make_columns_dialog {
     # the number of columns is unknown
 
     my $header      = shift; # ref to column header array
-    my $wnd_main     = shift;
+    my $wnd_main    = shift;
     my $row_options = shift;
     my $file_list   = shift;
 
@@ -1325,9 +1316,6 @@ sub make_columns_dialog {
         $file_list_label->set_alignment (0, 1);
         $dlg->vbox->pack_start ($file_list_label, 0, 0, 0);
     }
-
-    #my $sep = Gtk2::HSeparator->new();
-    #$dlg->vbox->pack_start ($sep, 0, 0, 0);
 
     my $label = Gtk2::Label->new('<b>Set column options</b>');
     $label->set_use_markup(1);

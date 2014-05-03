@@ -2278,12 +2278,12 @@ sub get_aed_scores {
         my $length  = $node_ref->get_length;
         my $es_sum  = $length;
         my $ed_sum  = $length;
-        my $aed_sum = $length / $node_abundances->{$label};
+        my $aed_sum = eval {$length / $node_abundances->{$label}};
         my $es_wt  = 1;
         my ($ed_wt, $aed_wt);
         #my $aed_label_count = $node_abundances->{$label};
 
-        TRAVERSE_TO_ROOT:
+      TRAVERSE_TO_ROOT:
         while ($node_ref = $node_ref->get_parent) {
             my $node_len = $node_ref->get_length;
 

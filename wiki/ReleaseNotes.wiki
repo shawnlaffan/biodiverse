@@ -2,6 +2,52 @@
 #labels Featured
 #sidebar TOC
 
+
+= Version 0.99_001 = 
+
+This is the current development version, leading towards version 1.0.
+
+This comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.  
+
+To see the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
+
+To see the list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
+
+Main changes since the previous version (0.19) are:
+  *  Analyses
+    *  !RegionGrower analyses now stop once the maximum optimisation criterion is reached and delete singleton nodes by default.  This leaves a smaller tree consisting only of those elements required to optimise the index.  Issue  451, Issue 448.
+	*  Cluster and RegionGrower tie breakers are now optional and are now faster and less memory intensive.  If they are turned off then the pre-0.19 tie-breaker appraoch is used.  Issue 427
+  *  Indices and calculations
+    *  The NRI and NTI indices from PhyloCom are now supported.  Note that these reverse the sign compared to PhyloCom, so +ve is dispersed and -ve is clustered.  This is consistent with the picante package in R.  Issue 442
+    *  Per-node contributions to the PD and PE indices.  Issue 434
+	*  Kulczynski 2 is now supported.  Issue 445
+	*  A range weighted Gi`*` index of label properties is now available.  Issue 402
+	*  The count of terminal nodes used in the neighbour sets can now be obtained.  Issue 265
+  *  Spatial Conditions
+    *  sp_box() function is now available.  Issue 159
+  *  GUI
+    *  The pan and zoom interface has been rewritten to be more like other tools and to present a cleaner interface.  Issue 353
+    *  Exclusions dialogue.  Empty groups and labels can optionally not be deleted.  This allows the geographic extent to be consistent before and after exclusions are run.  Issue 423
+	*  The progress dialogues are now unified into a single window, greatly reducing the number of popups generated in several analyses.  Issue 295
+	*  The label range and sample counts can now be added as label properties.  This is useful when one wants to subset a data set using the Exclusions dialogue, but retain their original ranges and abundances.  This is accessed via the basedata menu.  Issue 412
+  *  Imports
+    *  Basedata
+      *  Raster data files can now be imported directly.  Any file format [http://www.gdal.org/formats_list.html supported by GDAL] can be used.  Issue 408
+	  *  Shapefiles can now be imported (point formats only).  Issue 408
+	  *  When multiple files are selected they can now optionally be assigned to separate Basedatas.  Issue 378
+	*  Trees
+	  *  The tabular tree formats can now be imported.  Issue 322
+	*  Matrices
+	  *  Sparse matrices can be imported.  Issue 82
+  *  Exports
+    *  BaseStructs (groups, labels and spatial outputs).
+	  *  Shapefile format (polygons and points) is now supported.  Issue 419
+	  *  GeoTIFF is now supported.  Issue 447
+      *  The ER-Mapper exports are no longer offset by half a cell.  Issue 453
+    *  Trees
+      *  Export to shapefile format is now supported.  	Issue 410
+
+
 = Version 0.19 = 
 
 This was released on 28-Oct-2013.  It is a stable release and contains all changes from the 0.18 development series.  See the list [#Version_0.18 here].

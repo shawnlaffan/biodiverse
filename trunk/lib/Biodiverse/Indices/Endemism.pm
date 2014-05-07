@@ -637,8 +637,8 @@ sub _calc_endemism_whole {
     return $self->_calc_endemism(%args, end_central => 0);
 }
 
-sub _calc_endemism { #  calculate endemism
-                        #  private method called by others
+#  Calculate endemism.  Private method called by others
+sub _calc_endemism {
     my $self = shift;
 
     #  end_central is a default flag, gets overridden if user specifies
@@ -651,27 +651,28 @@ sub _calc_endemism { #  calculate endemism
     #  but only use those labels that occur in the element_list1
 
     my $local_ranges = $args{label_hash_all};
-    my $label_list = $args{end_central}
-                    ? $args{label_hash1}
-                    : $args{label_hash_all};
+    my $label_list   = $args{end_central}
+        ? $args{label_hash1}
+        : $args{label_hash_all};
 
     #  allows us to use this for any other basedata get_* function
     my $function = $args{function} || 'get_range';
 
-    my %wts;
-    my %ranges;
+    my (%wts, %ranges);
+    my ($endemism, $rosauer);
+    my $label_count = scalar keys %$label_list;
 
-    my ($endemism, $rosauer, $label_count) = (0, 0, 0);
     foreach my $sub_label (keys %{$label_list}) {
-        my $range = $bd->$function (element => $sub_label);
-        $endemism += $local_ranges->{$sub_label} / $range;
-        $wts{$sub_label} = $local_ranges->{$sub_label} / $range;
+        my $range           = $bd->$function (element => $sub_label);
+        my $wt              = $local_ranges->{$sub_label} / $range;
+        $endemism          += $wt;
+        $wts{$sub_label}    = $wt;
         $ranges{$sub_label} = $range;
-        $rosauer += 1 / $range;
-        $label_count++;
+        $rosauer           += 1 / $range;
     }
 
-    my $CWE = eval {  #  returns undef if no elements specified
+    #  returns undef if no elements specified
+    my $CWE = eval {
         no warnings 'uninitialized';
         $endemism / $label_count;
     };

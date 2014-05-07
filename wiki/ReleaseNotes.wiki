@@ -25,6 +25,7 @@ Main changes since the previous version (0.19) are below.  Issue numbers which a
     *  Kulczynski 2 is now supported.  Issue 445
     *  A range weighted Gi`*` index of label properties is now available.  Issue 402
     *  The count of terminal nodes used in the neighbour sets can now be obtained.  Issue 265
+    *  The endemism and rarity calculations now return an undefined value when the relevant neighbour set contains no labels (consists only of empty groups).  Issue 458
 
   *  Spatial Conditions
     *  sp_box() function is now available.  Issue 159

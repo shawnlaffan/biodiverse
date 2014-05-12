@@ -1274,7 +1274,7 @@ sub import_data_raster {
             my $nodata_value = $band->GetNoDataValue;
             my $this_label;
 
-            say "Band $b %$band ", $band->{DataType};
+            say "Band $b, type ", $band->{DataType};
             if (defined $given_label) {
                 $this_label = $given_label;
             }
@@ -1296,9 +1296,9 @@ sub import_data_raster {
 
             # record if numeric values are being used for labels
             # CHECK CHECK CHECK - should be set later, as we might be adding to an existing basedata
-            if (scalar @catnames == 0 && ! $labels_as_bands) {
-                $labels_ref->{element_arrays_are_numeric} = 1;
-            }
+            #if (scalar @catnames == 0 && ! $labels_as_bands) {
+            #    $labels_ref->{element_arrays_are_numeric} = 1;
+            #}
 
             # read as preferred size blocks?
             ($blockw, $blockh) = $band->GetBlockSize();

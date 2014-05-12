@@ -1228,6 +1228,8 @@ sub import_data_raster {
     }
 
     my @half_cellsize = map {$_ / 2} @cell_sizes;
+    my $halfcellsize_e = $half_cellsize[0];
+    my $halfcellsize_n = $half_cellsize[1];
 
     my $quotes = $self->get_param ('QUOTES');  #  for storage, not import
     my $el_sep = $self->get_param ('JOIN_CHAR');
@@ -1271,7 +1273,7 @@ sub import_data_raster {
             my $this_label;
 
             say "Band $b %$band ", $band->{DataType};
-            if ($given_label) {
+            if (defined $given_label) {
                 $this_label = $given_label;
             }
             elsif ($labels_as_bands) { 
@@ -1328,51 +1330,58 @@ sub import_data_raster {
                     $maxh = min($data->{RasterYSize}, $hpos + $blockh);
 
                     #say "reading tile at origin ($wpos, $hpos), to max ($maxw, $maxh)";                 
-                    my $lr   = $band->ReadTile($wpos, $hpos, $maxw - $wpos, $maxh - $hpos);
-                    my @tile = @$lr;
-                    my $datay    = $hpos;
+                    my $lr    = $band->ReadTile($wpos, $hpos, $maxw - $wpos, $maxh - $hpos);
+                    my @tile  = @$lr;
+                    my $gridy = $hpos;
 
                   ROW:
                     foreach my $lineref (@tile) {
-                        my $datax = $wpos;
+                        my ($ngeo, $ncell, $grpn);
+                        if (!$tf[4]) {  #  no transform so constant y for this line
+                            $ngeo  = $tf[3] + $gridy * $tf[5];
+                            $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
+                            $grpn  = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;
+                        }
+
+                        my $gridx = $wpos - 1;
 
                       COLUMN:
                         foreach my $entry (@$lineref) {
+                            $gridx++;
                             $processed_count++;
                             # need to add check for empty groups when it is added as an argument
-                            if (defined $nodata_value && $entry == $nodata_value) {
-                                $datax++; 
-                                next COLUMN;
-                               };  
+                            next COLUMN
+                              if defined $nodata_value && $entry == $nodata_value;
 
                             # data points are 0,0 at top-left of data, however grid coordinates used
                             # for transformation start at bottom-left corner (transform handled by following
                             # affine transformation, with y-pixel size = -1).
-                            my $gridy = $datay;
-                            my $gridx = $datax;
-                            
+
                             # find transformed position (see GDAL specs)        
                             #Egeo = GT(0) + Xpixel*GT(1) + Yline*GT(2)
                             #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
-                            my $egeo = $tf[0] + $gridx * $tf[1] + $gridy * $tf[2];
-                            my $ngeo = $tf[3] + $gridx * $tf[4] + $gridy * $tf[5];
-
-                            # calculate "group" from this position. (defined as csv string of central points of group)
+                            #  then calculate "group" from this position. (defined as csv string of central points of group)
                             # note "geo" coordinates are the top-left of the cell (NW)
+                            my $egeo  = $tf[0] + $gridx * $tf[1] + $gridy * $tf[2];
                             my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e); 
-                            my $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
-                            my $grpe = $cellorigin_e + $ecell * $cellsize_e + ($cellsize_e / 2.0); 
-                            my $grpn = $cellorigin_n + $ncell * $cellsize_n - ($cellsize_n / 2.0); # subtract half cell width since position is top-left
-                            my @grplist = ($grpe, $grpn);
+                            my $grpe  = $cellorigin_e + $ecell * $cellsize_e + $halfcellsize_e;
+
+                            if ($tf[4]) {  #  need to transform the y coords
+                                $ngeo  = $tf[3] + $gridx * $tf[4] + $gridy * $tf[5];
+                                $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
+                                # subtract half cell width since position is top-left
+                                $grpn = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;
+                            }
+
                             my $grpstring = $self->list2csv (
-                                list        => \@grplist,
+                                list        => [$grpe, $grpn],
                                 csv_object  => $out_csv,
                             );
                             #say "data point($datax, $datay) grid ($gridx, $gridy) geo($egeo, $ngeo) cell($ecell, $ncell) group($grpe, $grpn)";
 
                             # set label if determined at cell level
                             my $count = 1;
-                            if ($labels_as_bands || $given_label) {
+                            if ($labels_as_bands || defined $given_label) {
                                 # set count to cell value if using band as label or provided label
                                 $count = $entry;
                             }
@@ -1390,11 +1399,12 @@ sub import_data_raster {
                                 count      => $count,
                                 csv_object => $out_csv,
                             );
-                            
-                            $datax++;
+
                         } # each entry on line
-                        $datay++;
+
+                        $gridy++;
                     } # each line in block
+
                     $wpos += $blockw;
                 } # each block in width
 

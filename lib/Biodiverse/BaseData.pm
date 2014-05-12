@@ -1124,7 +1124,7 @@ sub import_data {
                 #  single label col or matrix form data need extra quotes to be stripped
                 #  should clean up mx form on first pass
                 #  or do as a post-processing step
-                if (scalar @label_columns <= 1 && $el =~ /^$quotes(?:.*)$quotes$/) {
+                if (scalar @label_columns <= 1 && $el =~ /^$quotes(?:[^$quotes]*)$quotes$/) {
                     $el = substr ($el, 1);
                     chop $el;
                 }
@@ -1301,7 +1301,7 @@ sub import_data_raster {
             #}
 
             # read as preferred size blocks?
-            ($blockw, $blockh) = $band->GetBlockSize();
+            ($blockw, $blockh) = $band->GetBlockSize    ();
             say "Block size ($blockw, $blockh), full size ($data->{RasterXSize}, $data->{RasterYSize})";
             
             my $target_count    = $data->{RasterXSize} * $data->{RasterYSize};

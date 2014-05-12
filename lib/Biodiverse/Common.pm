@@ -1522,7 +1522,7 @@ sub get_next_line_set {
             push @lines, $line;
         }
         elsif (not $csv->eof) {
-            say $csv->error_diag;
+            say $csv->error_diag, ', Skipping line ', scalar @lines, ' of chunk';
             $csv->SetDiag (0);
         }
         if ($csv->eof) {

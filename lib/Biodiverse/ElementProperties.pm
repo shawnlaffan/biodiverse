@@ -204,7 +204,7 @@ sub import_data {
             list       => \@in_cols,
             csv_object => $csv_out,
         );
-        if (scalar @in_cols <= 1 && $element =~ /^$quotes(?:.*)$quotes$/) {
+        if (scalar @in_cols <= 1 && $element =~ /^$quotes(?:[^$quotes]*)$quotes$/) {
             $element = substr ($element, 1);
             chop $element;
         }

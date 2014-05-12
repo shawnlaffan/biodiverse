@@ -199,10 +199,15 @@ sub import_data {
             );
         }
 
+        my @in_cols = @$FldsRef[@$in_cols];
         my $element = $self->list2csv (
-            list       => [@$FldsRef[@$in_cols]],
+            list       => \@in_cols,
             csv_object => $csv_out,
         );
+        if (scalar @in_cols <= 1 && $element =~ /^$quotes(?:.*)$quotes$/) {
+            $element = substr ($element, 1);
+            chop $element;
+        }
 
         my $hash;  #  list to store the properties
 

@@ -1301,7 +1301,7 @@ sub import_data_raster {
             #}
 
             # read as preferred size blocks?
-            ($blockw, $blockh) = $band->GetBlockSize    ();
+            ($blockw, $blockh) = $band->GetBlockSize();
             say "Block size ($blockw, $blockh), full size ($data->{RasterXSize}, $data->{RasterYSize})";
             
             my $target_count    = $data->{RasterXSize} * $data->{RasterYSize};

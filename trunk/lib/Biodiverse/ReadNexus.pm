@@ -540,11 +540,12 @@ sub get_csv_object_for_tabular_tree_import {
     return $csv_in;
 }
 
+
 sub process_unrooted_trees {
     my $self = shift;
     my @trees = $self->get_tree_array;
     
-    BY_LOADED_TREE:
+  BY_LOADED_TREE:
     foreach my $tree (@trees) {
         $tree->root_unrooted_tree;
     }
@@ -558,7 +559,7 @@ sub process_zero_length_trees {
     my @trees = $self->get_tree_array;
     
     #  now we check if the tree has all zero-length nodes.  Change these to length 1.
-    BY_LOADED_TREE:
+  BY_LOADED_TREE:
     foreach my $tree (@trees) {
         my %nodes = $tree->get_node_hash;
         my $len_sum = 0;
@@ -665,6 +666,11 @@ sub parse_newick {
             $name =~ s{$quote_char$} {};
             #  and now we need to make the name use the CSV rules used everywhere else
             $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
+            if ($name =~ /^$quote_char(?:[$quote_char]*)$quote_char$/) {
+                $name = substr ($name, 1);
+                chop $name;
+            }
+
             if ($use_element_properties) {
                 my $element = $element_properties->get_element_remapped (
                     element => $name,
@@ -817,10 +823,14 @@ sub parse_newick {
     if (my @components = $name =~ $RE_TEXT_IN_QUOTES) {
         $name = $components[1];
     }
-    
+
     #  and now we need to make the name use the CSV rules used everywhere else
     $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
-    
+    if ($name =~ /^$quote_char(?:[^$quote_char]*)$quote_char$/) {
+        $name = substr ($name, 1);
+        chop $name;
+    }
+
     if ($use_element_properties) {
         my $element = $element_properties->get_element_remapped (element => $name);
         my $original_name = $name;

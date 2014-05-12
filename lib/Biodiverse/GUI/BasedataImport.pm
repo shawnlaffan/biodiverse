@@ -600,7 +600,7 @@ sub run {
     } 
     elsif ($read_format == $text_idx) {        
         foreach my $bdata (keys %multiple_file_lists) {
-            $success &= eval {
+            $success &&= eval {
                 $multiple_brefs{$bdata}->load_data(
                     %import_params,
                     %rest_of_options,

@@ -1263,6 +1263,8 @@ sub import_data_raster {
         say '[BASEDATA] Transform is ', join (' ', @tf);
         say "[BASEDATA] Origin = ($tf[0], $tf[3])";
         say "[BASEDATA] Pixel Sizes = ($tf[1], $tf[2], $tf[4], $tf[5])";  #  $tf[5] is negative to allow for line order
+        #  avoid repeated array lookups below
+        my ($tf_0, $tf_1, $tf_2, $tf_3, $tf_4, $tf_5) = @tf;
 
         # iterate over each band
         foreach my $b (1 .. $data->{RasterCount}) {
@@ -1337,8 +1339,8 @@ sub import_data_raster {
                   ROW:
                     foreach my $lineref (@tile) {
                         my ($ngeo, $ncell, $grpn);
-                        if (!$tf[4]) {  #  no transform so constant y for this line
-                            $ngeo  = $tf[3] + $gridy * $tf[5];
+                        if (!$tf_4) {  #  no transform so constant y for this line
+                            $ngeo  = $tf_3 + $gridy * $tf_5;
                             $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
                             $grpn  = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;
                         }
@@ -1362,12 +1364,12 @@ sub import_data_raster {
                             #Ngeo = GT(3) + Xpixel*GT(4) + Yline*GT(5)
                             #  then calculate "group" from this position. (defined as csv string of central points of group)
                             # note "geo" coordinates are the top-left of the cell (NW)
-                            my $egeo  = $tf[0] + $gridx * $tf[1] + $gridy * $tf[2];
+                            my $egeo  = $tf_0 + $gridx * $tf_1 + $gridy * $tf_2;
                             my $ecell = floor(($egeo - $cellorigin_e) / $cellsize_e); 
                             my $grpe  = $cellorigin_e + $ecell * $cellsize_e + $halfcellsize_e;
 
-                            if ($tf[4]) {  #  need to transform the y coords
-                                $ngeo  = $tf[3] + $gridx * $tf[4] + $gridy * $tf[5];
+                            if ($tf_4) {  #  need to transform the y coords
+                                $ngeo  = $tf_3 + $gridx * $tf_4 + $gridy * $tf_5;
                                 $ncell = floor(($ngeo - $cellorigin_n) / $cellsize_n);
                                 # subtract half cell width since position is top-left
                                 $grpn = $cellorigin_n + $ncell * $cellsize_n - $halfcellsize_n;

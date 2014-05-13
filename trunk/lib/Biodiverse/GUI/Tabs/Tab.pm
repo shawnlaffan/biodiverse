@@ -145,6 +145,20 @@ sub register_in_outputs_model {
     return;
 }
 
+#  prepend some text to the grid hover text
+sub get_grid_text_pfx {
+    my $self = shift;
+
+    my $bd = $self->get_base_ref;
+    my @cellsizes = $bd->get_cell_sizes;
+    my $col_count = scalar @cellsizes;
+    my $pfx = $col_count > 2
+        ? "<i>Note: Basedata has more than two axes so some cells will be overplotted and thus not visible</i>\n"
+        : q{};
+
+    return $pfx;
+}
+
 ##########################################################
 # Keyboard shortcuts
 ##########################################################

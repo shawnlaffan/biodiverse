@@ -185,7 +185,63 @@ sub test_import_small {
     };
     $e = $EVAL_ERROR;
     ok (!$e, 'cell_origins argument ignored for second import');
+    
+    #  now check we can import zeros
+    
+    my $bd_disallow_zeroes = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_disallow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (disallow empty groups)});
 
+    #  need to check what was imported
+    is ($bd_disallow_zeroes->get_group_count, 0, "0 groups when sample_count_cols specified");
+    is ($bd_disallow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    my $bd_allow_zeroes = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_allow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+            allow_empty_groups   => 1,
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (allow empty groups)});
+
+    #  need to check what was imported
+    is ($bd_allow_zeroes->get_group_count, 3, "3 groups when sample_count_cols specified");
+    is ($bd_allow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    #  now add zeroes to an existing basedata
+    eval {
+        $bd_disallow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+            allow_empty_groups   => 1,
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (allow empty groups)});
+
+    #  need to check what was imported
+    is ($bd_disallow_zeroes->get_group_count, 3, "3 groups when sample_count_cols specified");
+    is ($bd_disallow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    
     #  using inclusions columns
     my @incl_cols_data = (
         [1, [6]],

@@ -149,6 +149,9 @@ sub run {
         # Get selected basedata
         my $selected = $dlgxml->get_widget($combo_import_basedatas)->get_active_iter();
         $basedata_ref = $gui->get_project->get_basedata_model->get($selected, MODEL_OBJECT);
+        my $basedata_name = $basedata_ref->get_param ('NAME');
+        $multiple_brefs{$basedata_name} = $basedata_ref;
+        $multiple_file_lists{$basedata_name} = \@filenames;
     }
 
     # interpret if raster or text depending on format box

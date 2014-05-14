@@ -19,7 +19,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 == Installation ==
 
 
-1.  Install Strawberry Perl 5.16, either 32 or 64 bit.  The rest of these instructions assume you have used C:\strawberry as the install folder.  If you have not then edit the paths below to match what you have used.  http://strawberryperl.com/  _IMPORTANT:  MAKE SURE YOU USE 5.16 and NOT 5.18.  There are installation problems with 5.18 and we do not have ppms for the 32 bit version (needed for step 6)_
+1.  Install Strawberry Perl 5.16.3, either 32 or 64 bit.  The rest of these instructions assume you have used C:\strawberry as the install folder.  If you have not then edit the paths below to match what you have used.  http://strawberryperl.com/  _IMPORTANT:  MAKE SURE YOU USE 5.16.3 and NOT 5.18 or 5.16.2.  There are installation problems with 5.18 and 5.16.2 and we do not have ppms for the 32 bit version (needed for step 6)_
 
 2.  [http://code.google.com/p/biodiverse/downloads/list Download] the source code version to obtain a stable release.  Alternately you can use a subversion client to get the latest Biodiverse code, see http://code.google.com/p/biodiverse/source/checkout
 
@@ -63,7 +63,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   cpanm YAML::Syck@1.23
 
   :: Now install the rest of the dependencies
-  cpanm Task::Biodiverse::NoGUI@0.191
+  cpanm Task::Biodiverse::NoGUI~0.19
   cpanm Task::Biodiverse~0.19
 }}}
 

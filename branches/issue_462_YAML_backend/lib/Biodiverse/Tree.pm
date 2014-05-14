@@ -347,8 +347,14 @@ sub get_node_ref {
 sub weaken_parent_refs {
     my $self = shift;
     my $node_list = $self->get_node_hash;
-    foreach my $node_ref (values %$node_list) {
-        $node_ref->weaken_parent_ref;
+    foreach my $node (keys %$node_list) {
+        my $node_ref = $node_list->{$node};
+        if (defined $node_ref) {
+            $node_ref->weaken_parent_ref;
+        }
+        else {
+            warn "Node $node is undefined";
+        }
     }
 }
 

@@ -1,5 +1,8 @@
 Revision history for Perl module Task::Biodiverse::NoGUI
 
+0.192 2014-05-14
+    - Add YAML::Any to the list of dependencies
+
 0.191 2014-03-06
     - Add minimum version for Geo::ShapeFile (2.58)
     - Set minimum version for List::Util to 1.38

@@ -11,7 +11,8 @@ use English ( -no_match_vars );
 
 use Data::DumpXML qw /dump_xml/;
 use Data::Dumper  qw /Dumper/;
-use YAML::Syck;
+use YAML::Any ();
+use YAML::XS ();
 use Text::CSV_XS;
 use Scalar::Util qw /weaken isweak blessed looks_like_number reftype/;
 use List::MoreUtils qw /none/;
@@ -173,14 +174,23 @@ sub load_yaml_file {
     return if ! -e $args{file};
     return if ! ($args{file} =~ /$suffix$/);
 
-    $self = YAML::Syck::LoadFile ($args{file});
+    #my $method = 'YAML::Any::LoadFile';
+    #use YAML::XS qw /LoadFile/;
+
+    $self = YAML::XS::LoadFile ($args{file});
 
     #  yaml does not handle waek refs, so we need to put them back in
     foreach my $fn (qw /weaken_parent_refs weaken_child_basedata_refs weaken_basedata_ref/) {
-        $self -> $fn if $self->can($fn);
+        if ($self->can($fn)) {
+            say $fn;
+            eval {
+                $self->$fn;
+                1;
+            };
+            croak $EVAL_ERROR if $EVAL_ERROR;
+        }
     }
     return $self;
-
 }
 
 sub set_basedata_ref {
@@ -689,11 +699,14 @@ sub save_to_yaml {
         my $prefix = $args{OUTPFX} || $self->get_param('OUTPFX') || $self->get_param('NAME') || caller();
         $file = Path::Class::file($file || ($prefix . "." . $self->get_param('OUTSUFFIX_YAML')));
     }
-    $file = Path::Class::file($file)->absolute;
+    $file = Path::Class::file($file)->absolute->stringify;
 
     print "[COMMON] WRITING TO FILE $file\n";
 
-    eval {YAML::Syck::DumpFile ($file, $self)};
+    #my $method = 'YAML::Any::DumpFile';
+    #use YAML::XS qw /DumpFile/;
+
+    eval {YAML::XS::DumpFile ($file, $self)};
     croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $file;
@@ -709,10 +722,10 @@ sub dump_to_yaml {
     if (defined $args{filename}) {
         my $file = Path::Class::file($args{filename})->absolute;
         print "WRITING TO FILE $file\n";
-        YAML::Syck::DumpFile ($file, $data);
+        YAML::Any::DumpFile ($file, $data);
     }
     else {
-        print YAML::Syck::Dump ($data);
+        print YAML::Any::Dump ($data);
         print "...\n";
     }
 

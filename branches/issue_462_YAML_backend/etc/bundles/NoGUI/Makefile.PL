@@ -16,9 +16,10 @@ WriteMakefile(
         "Data::DumpXML" => "0",
         "Math::Random::MT::Auto" => "6.21",
         "Text::CSV_XS" => "0.60",
-        "DBD::XBase" => "0",
+        "DBD::XBase" => "0",  #  not sure this is used anywhere now
         "HTML::QuickTable" => "0",
-        "YAML::Syck" => "0",
+        "YAML::Syck" => "0",  #  deprecated post 0.19.
+        "YAML::Any"  => "0",
         "Clone" => "0.35",
         "Regexp::Common" => "0",
         "rlib" => "0",
@@ -41,12 +42,16 @@ WriteMakefile(
         "List::Util" => "1.38",
         "Class::Inspector" => "0",
         "autovivification" => "0.11",
-    },
-    BUILD_REQUIRES => {
+        #  The following are needed for the tests.
+        #  These can be shifted to the TEST_REQUIRES section
+        #  when Biodiverse is uploaded to CPAN.
+        "Devel::SymDump" => "0",  
         "Data::Section::Simple" => "0",
         "Test::Deep" => "0",
         "Test::NoWarnings" => "0",
         "Perl::Tidy" => "0",
         "Test::Most" => "0",
+    },
+    BUILD_REQUIRES => {
     },
 );

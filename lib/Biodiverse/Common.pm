@@ -1211,6 +1211,22 @@ sub get_csv_object {
     return $csv;
 }
 
+sub dequote_element {
+    my $self = shift;
+    my %args = @_;
+    
+    my $quotes = $args{quote_char};
+    my $el     = $args{element};
+
+    if ($el =~ /^$quotes[^$quotes\s]+$quotes$/) {
+        $el = substr ($el, 1);
+        chop $el
+    }
+
+    return $el;
+}
+
+
 #############################################################
 ## 
 

@@ -2482,13 +2482,15 @@ sub add_element {
     my $self = shift;
     my %args = @_;
 
-    croak "element not specified\n" if ! defined $args{element};
-
-    #  don't re-create
-    my $el_array = eval {$self->get_element_array};
-    return if $el_array;
-
     my $element = $args{element};
+
+    croak "element not specified\n" if ! defined $element;
+    
+    #  don't re-create
+    #my $el_array = eval {$self->get_element_name_as_array};
+    #return if $el_array;
+    return if $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY};
+
     my $quote_char = $self->get_param('QUOTES');
     my $element_list_ref = $self->csv2list(
         string     => $element,
@@ -2497,10 +2499,8 @@ sub add_element {
         csv_object => $args{csv_object},
     );
 
-    for (my $i = 0; $i <= $#$element_list_ref; $i ++) {
-        if (! defined $element_list_ref->[$i]) {
-            $element_list_ref->[$i] = ($quote_char . $quote_char);
-        }
+    for my $el (@$element_list_ref) {
+        $el //= ($quote_char . $quote_char);
     }
 
     $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref;
@@ -2564,8 +2564,8 @@ sub rename_element {
     else {
         $self->add_element (element => $new_name);
         $el_hash->{$new_name} = $el_hash->{$element};
-        delete $el_hash->{$new_name}{_ELEMENT_ARRAY};
-        delete $el_hash->{$new_name}{_ELEMENT_COORD};
+        #delete $el_hash->{$new_name}{_ELEMENT_ARRAY};  #  don't delete the element array
+        delete $el_hash->{$new_name}{_ELEMENT_COORD};   #  the coord will need to be recalculated
     }
     delete $el_hash->{$element};
 

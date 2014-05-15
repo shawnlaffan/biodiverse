@@ -1584,7 +1584,7 @@ sub import_data_shapefile {
                 foreach my $this_label (@these_labels) {
                     #print "adding point label $this_label group $grpstring count $this_count\n";       
 
-                    if (scalar @label_field_names <= 1 && $this_label =~ /^$quotes(?:[^$quotes]*)$quotes$/) {
+                    if (scalar @label_field_names <= 1 && $this_label =~ /^$quotes(?:[^$quotes]+)$quotes$/) {
                         $this_label = substr ($this_label, 1);
                         chop $this_label;
                     }

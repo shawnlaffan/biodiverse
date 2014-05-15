@@ -360,6 +360,37 @@ sub test_import_small {
     
 }
 
+
+
+sub test_import_null_labels {
+
+    my %bd_args = (
+        NAME => 'test null axes',
+        CELL_SIZES => [1,1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_null_label());
+    my $fname = $tmp_file->filename;
+
+    my $e;
+
+    #  vanilla import
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4, 5],
+            label_columns => [1],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    ok ($bd->exists_label (element => q{}), q{Null label exists});
+
+}
+
+
 #  can we reimport delimited text files after exporting and get the same answer
 sub test_roundtrip_delimited_text {
     my %bd_args = (
@@ -988,6 +1019,10 @@ sub get_import_data_small {
     return get_data_section('BASEDATA_IMPORT_SMALL');
 }
 
+sub get_import_data_null_label {
+    return get_data_section('BASEDATA_IMPORT_NULL_LABEL');
+}
+
 1;
 
 __DATA__
@@ -1005,3 +1040,9 @@ id,gen_name_in,sp_name_in,x,y,z,incl1,excl1,incl2,excl2,incl3,excl3
 2,g2,sp2,2,2,2,0,,1,1,1,0
 3,g2,sp3,1,3,3,,,1,1,1,0
 
+@@ BASEDATA_IMPORT_NULL_LABEL
+id,gen_name_in,sp_name_in,x,y,z,incl1,excl1,incl2,excl2,incl3,excl3
+1,g1,sp1,1,1,1,1,1,,,1,0
+2,g2,sp2,2,2,2,0,,1,1,1,0
+3,g2,sp3,1,3,3,,,1,1,1,0
+4,,sp3,1,3,3,,,1,1,1,0

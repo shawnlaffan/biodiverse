@@ -826,7 +826,7 @@ sub parse_newick {
 
     #  and now we need to make the name use the CSV rules used everywhere else
     $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
-    if ($name =~ /^$quote_char(?:[^$quote_char]*)$quote_char$/) {
+    if ($name =~ /^$quote_char(?:[^$quote_char]+)$quote_char$/) {
         $name = substr ($name, 1);
         chop $name;
     }

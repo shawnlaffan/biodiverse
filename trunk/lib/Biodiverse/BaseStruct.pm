@@ -2563,9 +2563,12 @@ sub rename_element {
     }
     else {
         $self->add_element (element => $new_name);
+        my $el_array = $el_hash->{$new_name}{_ELEMENT_ARRAY};
         $el_hash->{$new_name} = $el_hash->{$element};
-        #delete $el_hash->{$new_name}{_ELEMENT_ARRAY};  #  don't delete the element array
-        delete $el_hash->{$new_name}{_ELEMENT_COORD};   #  the coord will need to be recalculated
+        #  reinstate the _EL_ARRAY since it will be overwritten bythe previous line
+        $el_hash->{$new_name}{_ELEMENT_ARRAY} = $el_array;
+        #  the coord will need to be recalculated
+        delete $el_hash->{$new_name}{_ELEMENT_COORD};
     }
     delete $el_hash->{$element};
 

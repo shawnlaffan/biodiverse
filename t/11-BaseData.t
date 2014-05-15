@@ -979,6 +979,16 @@ sub test_rename_labels {
             my %observed_hash = $bd->get_groups_with_label_as_hash (label => $label);
             is_deeply ($hash, \%observed_hash, $label);
         }
+    };
+    
+    subtest 'Rename label element arrays are updated' => sub {
+        my $lb = $bd->get_labels_ref;
+        foreach my $label (reverse sort $bd->get_labels) {
+            my $el_array = $lb->get_element_name_as_array (element => $label);
+            foreach my $el (@$el_array) {
+                ok ($label =~ /$el/, "Label $label contains $el");
+            }
+        }
     }
     
 }

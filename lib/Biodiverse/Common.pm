@@ -1218,6 +1218,11 @@ sub dequote_element {
     my $quotes = $args{quote_char};
     my $el     = $args{element};
 
+    croak "quote_char argument is undefined\n"
+      if !defined $quotes;
+    croak "element argument is undefined\n"
+      if !defined $el;
+
     if ($el =~ /^$quotes[^$quotes\s]+$quotes$/) {
         $el = substr ($el, 1);
         chop $el

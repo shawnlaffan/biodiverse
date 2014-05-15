@@ -827,16 +827,16 @@ sub parse_newick {
     #  and now we need to make the name use the CSV rules used everywhere else
     $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
     $name = $self->dequote_element (
-        element => $name,
-        quotes  => $quote_char,
+        element    => $name,
+        quote_char => $quote_char,
     );
 
     if ($use_element_properties) {
         my $element = $element_properties->get_element_remapped (element => $name);
         my $original_name = $name;
-        $name = $element if defined $element;
         if (defined $element) {
-            print "$tree_name: Remapped $original_name to $element\n";
+            $name = $element;
+            say "$tree_name: Remapped $original_name to $element";
         }
     }
 

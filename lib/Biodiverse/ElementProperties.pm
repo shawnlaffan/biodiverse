@@ -206,8 +206,8 @@ sub import_data {
         );
         if (scalar @in_cols <= 1) {
             $element = $self->dequote_element (
-                element => $element,
-                quotes  => $quotes,
+                element    => $element,
+                quote_char => $quotes,
             );
         }
 

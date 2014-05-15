@@ -1126,8 +1126,8 @@ sub import_data {
                 #  or do as a post-processing step
                 if (scalar @label_columns <= 1) {
                     $el = $self->dequote_element (
-                        element => $el,
-                        quotes  => $quotes,
+                        element    => $el,
+                        quote_char => $quotes,
                     )
                 }
 
@@ -1588,8 +1588,8 @@ sub import_data_shapefile {
 
                     if (scalar @label_field_names <= 1) {
                         $this_label = $self->dequote_element (
-                            element => $this_label,
-                            quotes  => $quotes,
+                            element    => $this_label,
+                            quote_char => $quotes,
                         );
                     }
                     # add to elements

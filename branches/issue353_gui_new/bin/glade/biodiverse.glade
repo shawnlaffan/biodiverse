@@ -473,6 +473,12 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1054,6 +1060,12 @@
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1107,8 +1119,8 @@
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1125,8 +1137,8 @@
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -3719,7 +3731,7 @@ Do you want to continue?</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Biodiverse</property>
     <property name="destroy_with_parent">True</property>
-    <signal name="delete_event" handler="on_wndMain_delete_event" />
+    <signal name="delete_event" handler="on_wndMain_delete_event"/>
     <child>
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -3744,7 +3756,7 @@ Do you want to continue?</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_new_activate" />
+                        <signal name="activate" handler="on_new_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -3754,7 +3766,7 @@ Do you want to continue?</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_open_activate" />
+                        <signal name="activate" handler="on_open_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -3764,7 +3776,7 @@ Do you want to continue?</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_save_activate" />
+                        <signal name="activate" handler="on_save_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -3774,7 +3786,7 @@ Do you want to continue?</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_save_as_activate" />
+                        <signal name="activate" handler="on_save_as_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -3791,7 +3803,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Set the directory to use for default file loading and saving</property>
                         <property name="label" translatable="yes">Set _Working Directory</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_set_working_directory_activate" />
+                        <signal name="activate" handler="on_set_working_directory_activate"/>
                         <accelerator key="w" signal="activate" modifiers="GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -3808,7 +3820,7 @@ Do you want to continue?</property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_quit_activate" />
+                        <signal name="activate" handler="on_quit_activate"/>
                       </widget>
                     </child>
                   </widget>
@@ -3831,7 +3843,7 @@ Do you want to continue?</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">View _Labels</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_view_labels_activate" />
+                        <signal name="activate" handler="on_view_labels_activate"/>
                         <accelerator key="v" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
@@ -3842,7 +3854,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Exclude groups and labels using simple criteria</property>
                         <property name="label" translatable="yes">Run _exclusions</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_run_exclusions_activate" />
+                        <signal name="activate" handler="on_run_exclusions_activate"/>
                         <accelerator key="e" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
@@ -3859,7 +3871,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Import data onto a new or existing basedata object</property>
                         <property name="label" translatable="yes">_Import</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_import" />
+                        <signal name="activate" handler="on_basedata_import"/>
                         <accelerator key="i" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
@@ -3870,7 +3882,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
                         <property name="label" translatable="yes">_Open</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_open" />
+                        <signal name="activate" handler="on_basedata_open"/>
                         <accelerator key="o" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
@@ -3881,7 +3893,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Delete selected basedata from project</property>
                         <property name="label" translatable="yes">_Delete</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_delete" />
+                        <signal name="activate" handler="on_basedata_delete"/>
                         <accelerator key="d" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
@@ -3892,7 +3904,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Save selected basedata to external Biodiverse format file</property>
                         <property name="label" translatable="yes">_Save as</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_save" />
+                        <signal name="activate" handler="on_basedata_save"/>
                         <accelerator key="s" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
@@ -3909,7 +3921,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Basic descriptors of the selected BaseData</property>
                         <property name="label" translatable="yes">Describe</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_describe" />
+                        <signal name="activate" handler="on_basedata_describe"/>
                       </widget>
                     </child>
                     <child>
@@ -3919,7 +3931,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Rename the selected basedata object</property>
                         <property name="label" translatable="yes">_Rename</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_rename" />
+                        <signal name="activate" handler="on_basedata_rename"/>
                       </widget>
                     </child>
                     <child>
@@ -3929,7 +3941,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Duplicate the basedata object, including outputs</property>
                         <property name="label" translatable="yes">Du_plicate</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_duplicate" />
+                        <signal name="activate" handler="on_basedata_duplicate"/>
                       </widget>
                     </child>
                     <child>
@@ -3939,7 +3951,7 @@ Do you want to continue?</property>
                         <property name="tooltip" translatable="yes">Duplicate the basedata object, without the outputs</property>
                         <property name="label" translatable="yes">Duplicate without outputs</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_duplicate_no_outputs" />
+                        <signal name="activate" handler="on_basedata_duplicate_no_outputs"/>
                         <accelerator key="p" signal="activate" modifiers="GDK_SHIFT_MASK | GDK_CONTROL_MASK"/>
                       </widget>
                     </child>
@@ -3951,7 +3963,7 @@ Do you want to continue?</property>
 This will create a new basedata with the corrected axis orders. </property>
                         <property name="label" translatable="yes">Duplicate with re-ordered axes</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_reorder_axes" />
+                        <signal name="activate" handler="on_basedata_reorder_axes"/>
                       </widget>
                     </child>
                     <child>
@@ -3962,7 +3974,7 @@ This will create a new basedata with the corrected axis orders. </property>
  labels become groups and groups become labels</property>
                         <property name="label" translatable="yes">Transpose</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_transpose_basedata" />
+                        <signal name="activate" handler="on_transpose_basedata"/>
                       </widget>
                     </child>
                     <child>
@@ -3972,7 +3984,7 @@ This will create a new basedata with the corrected axis orders. </property>
                         <property name="tooltip" translatable="yes">Rename basedata labels.  WIll not work if basedata has existing outputs. </property>
                         <property name="label" translatable="yes">Rename labels</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_rename_basedata_labels" />
+                        <signal name="activate" handler="on_rename_basedata_labels"/>
                       </widget>
                     </child>
                     <child>
@@ -3985,7 +3997,7 @@ and these might have used existing properties.
 If that is the case then randomisations will be invalidated for those analyses.  </property>
                         <property name="label" translatable="yes">Attach group or label properties</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_attach_properties" />
+                        <signal name="activate" handler="on_basedata_attach_properties"/>
                       </widget>
                     </child>
                     <child>
@@ -3996,7 +4008,7 @@ If that is the case then randomisations will be invalidated for those analyses. 
 This is useful to maintain the overall ranges used in endemism calculations if you later delete groups using the Run Exclusions dialog.</property>
                         <property name="label" translatable="yes">Attach label ranges as properties</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_attach_ranges_as_properties" />
+                        <signal name="activate" handler="on_basedata_attach_ranges_as_properties"/>
                       </widget>
                     </child>
                     <child>
@@ -4007,7 +4019,7 @@ This is useful to maintain the overall ranges used in endemism calculations if y
 This is useful to maintain the overall abundances used in rarity calculations if you later delete groups using the Run Exclusions dialog.</property>
                         <property name="label" translatable="yes">Attach label abundances as properties</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_attach_label_abundances_as_properties" />
+                        <signal name="activate" handler="on_basedata_attach_label_abundances_as_properties"/>
                       </widget>
                     </child>
                     <child>
@@ -4022,7 +4034,7 @@ This is useful to maintain the overall abundances used in rarity calculations if
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Create tree from labels</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_convert_labels_to_phylogeny" />
+                        <signal name="activate" handler="on_convert_labels_to_phylogeny"/>
                       </widget>
                     </child>
                     <child>
@@ -4033,7 +4045,7 @@ This is useful to maintain the overall abundances used in rarity calculations if
 Skips any trees already in the project.</property>
                         <property name="label" translatable="yes">Extract embedded trees</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_extract_embedded_trees" />
+                        <signal name="activate" handler="on_basedata_extract_embedded_trees"/>
                       </widget>
                     </child>
                     <child>
@@ -4044,7 +4056,7 @@ Skips any trees already in the project.</property>
 Skips any matrices already in the project.</property>
                         <property name="label" translatable="yes">Extract embedded matrices</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_extract_embedded_matrices" />
+                        <signal name="activate" handler="on_basedata_extract_embedded_matrices"/>
                       </widget>
                     </child>
                     <child>
@@ -4060,7 +4072,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Remove BaseData labels not in the selected tree</property>
                         <property name="label" translatable="yes">Trim to match tree nodes</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_trim_to_match_tree" />
+                        <signal name="activate" handler="on_basedata_trim_to_match_tree"/>
                       </widget>
                     </child>
                     <child>
@@ -4070,7 +4082,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Remove BaseData labels not in the selected matrix</property>
                         <property name="label" translatable="yes">Trim to match matrix elements</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_trim_to_match_matrix" />
+                        <signal name="activate" handler="on_basedata_trim_to_match_matrix"/>
                       </widget>
                     </child>
                     <child>
@@ -4080,7 +4092,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Trim BaseData labels that occur as nodes in the tree</property>
                         <property name="label" translatable="yes">Trim using tree nodes</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_trim_using_tree" />
+                        <signal name="activate" handler="on_basedata_trim_using_tree"/>
                       </widget>
                     </child>
                     <child>
@@ -4090,7 +4102,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Trim BaseData labels that occur as elements in the matrix</property>
                         <property name="label" translatable="yes">Trim using matrix elements</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_trim_using_matrix" />
+                        <signal name="activate" handler="on_basedata_trim_using_matrix"/>
                       </widget>
                     </child>
                     <child>
@@ -4106,7 +4118,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Export the groups to a file, eg site by species matrix</property>
                         <property name="label" translatable="yes">Export _groups</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_export_groups" />
+                        <signal name="activate" handler="on_basedata_export_groups"/>
                       </widget>
                     </child>
                     <child>
@@ -4116,7 +4128,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Export the groups to a file, eg species by site matrix</property>
                         <property name="label" translatable="yes">Export _labels</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_basedata_export_labels" />
+                        <signal name="activate" handler="on_basedata_export_labels"/>
                       </widget>
                     </child>
                   </widget>
@@ -4140,7 +4152,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Import a matrix from a supported format</property>
                         <property name="label" translatable="yes">_Import</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_matrix_import" />
+                        <signal name="activate" handler="on_matrix_import"/>
                         <accelerator key="i" signal="activate" modifiers="GDK_CONTROL_MASK | GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4151,7 +4163,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
                         <property name="label" translatable="yes">_Open</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_matrix_open" />
+                        <signal name="activate" handler="on_matrix_open"/>
                         <accelerator key="o" signal="activate" modifiers="GDK_CONTROL_MASK | GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4161,7 +4173,7 @@ Skips any matrices already in the project.</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">_Delete</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_matrix_delete" />
+                        <signal name="activate" handler="on_matrix_delete"/>
                         <accelerator key="d" signal="activate" modifiers="GDK_CONTROL_MASK | GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4172,7 +4184,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Save selected matrix to external Biodiverse format file</property>
                         <property name="label" translatable="yes">_Save as</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_matrix_save" />
+                        <signal name="activate" handler="on_matrix_save"/>
                         <accelerator key="s" signal="activate" modifiers="GDK_CONTROL_MASK | GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4189,7 +4201,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Basic descriptors of the selected matrix</property>
                         <property name="label" translatable="yes">Describe</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_matrix_describe" />
+                        <signal name="activate" handler="on_matrix_describe"/>
                       </widget>
                     </child>
                     <child>
@@ -4199,7 +4211,7 @@ Skips any matrices already in the project.</property>
                         <property name="tooltip" translatable="yes">Rename the selected matrix</property>
                         <property name="label" translatable="yes">Rename</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_matrix_rename" />
+                        <signal name="activate" handler="on_matrix_rename"/>
                       </widget>
                     </child>
                     <child>
@@ -4216,7 +4228,7 @@ Skips any matrices already in the project.</property>
 Assumes a dissimilarity matrix, so take care.</property>
                         <property name="label" translatable="yes">Convert matrix to tree</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_convert_matrix_to_phylogeny" />
+                        <signal name="activate" handler="on_convert_matrix_to_phylogeny"/>
                       </widget>
                     </child>
                     <child>
@@ -4231,7 +4243,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Export matrix</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_matrix_export" />
+                        <signal name="activate" handler="on_matrix_export"/>
                       </widget>
                     </child>
                   </widget>
@@ -4255,7 +4267,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="tooltip" translatable="yes">Import a phylogeny from a supported format (eg nexus)</property>
                         <property name="label" translatable="yes">_Import</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_phylogeny_import" />
+                        <signal name="activate" handler="on_phylogeny_import"/>
                       </widget>
                     </child>
                     <child>
@@ -4265,7 +4277,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
                         <property name="label" translatable="yes">_Open</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_phylogeny_open" />
+                        <signal name="activate" handler="on_phylogeny_open"/>
                       </widget>
                     </child>
                     <child>
@@ -4274,7 +4286,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">_Delete</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_phylogeny_delete" />
+                        <signal name="activate" handler="on_phylogeny_delete"/>
                       </widget>
                     </child>
                     <child>
@@ -4284,7 +4296,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="tooltip" translatable="yes">Save selected tree to external Biodiverse format file</property>
                         <property name="label" translatable="yes">_Save as</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_phylogeny_save" />
+                        <signal name="activate" handler="on_phylogeny_save"/>
                       </widget>
                     </child>
                     <child>
@@ -4300,7 +4312,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="tooltip" translatable="yes">Basic descriptors of the selected tree</property>
                         <property name="label" translatable="yes">Describe</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_phylogeny_describe" />
+                        <signal name="activate" handler="on_phylogeny_describe"/>
                       </widget>
                     </child>
                     <child>
@@ -4310,7 +4322,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="tooltip" translatable="yes">Rename the selected tree</property>
                         <property name="label" translatable="yes">Rename</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_phylogeny_rename" />
+                        <signal name="activate" handler="on_phylogeny_rename"/>
                       </widget>
                     </child>
                     <child>
@@ -4320,7 +4332,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="tooltip" translatable="yes">Clear any values cached on the tree.  Can reduce memory usage for large trees.</property>
                         <property name="label" translatable="yes">Clear cached values</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_phylogeny_delete_cached_values" />
+                        <signal name="activate" handler="on_phylogeny_delete_cached_values"/>
                       </widget>
                     </child>
                     <child>
@@ -4335,7 +4347,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="can_focus">False</property>
                         <property name="label" translatable="yes">Convert tree to matrix</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_convert_phylogeny_to_matrix" />
+                        <signal name="activate" handler="on_convert_phylogeny_to_matrix"/>
                       </widget>
                     </child>
                     <child>
@@ -4345,7 +4357,7 @@ Assumes a dissimilarity matrix, so take care.</property>
                         <property name="tooltip" translatable="yes">Delete tree nodes not in the selected basedata object</property>
                         <property name="label" translatable="yes">Trim to match basedata</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_trim_tree_to_basedata" />
+                        <signal name="activate" handler="on_trim_tree_to_basedata"/>
                       </widget>
                     </child>
                     <child>
@@ -4356,7 +4368,7 @@ Assumes a dissimilarity matrix, so take care.</property>
 This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="label" translatable="yes">Convert to range weighted branches</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_range_weight_tree" />
+                        <signal name="activate" handler="on_range_weight_tree"/>
                       </widget>
                     </child>
                     <child>
@@ -4372,7 +4384,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Export the tree to other supported format</property>
                         <property name="label" translatable="yes">Export tree</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_phylogeny_export" />
+                        <signal name="activate" handler="on_phylogeny_export"/>
                       </widget>
                     </child>
                   </widget>
@@ -4396,7 +4408,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Run a moving window analysis on the selected basedata object</property>
                         <property name="label" translatable="yes">_Spatial</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_spatial_activate" />
+                        <signal name="activate" handler="on_spatial_activate"/>
                         <accelerator key="s" signal="activate" modifiers="GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4407,7 +4419,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Run a cluster analysis on the selected basedata object</property>
                         <property name="label" translatable="yes">_Cluster</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_cluster_activate" />
+                        <signal name="activate" handler="on_cluster_activate"/>
                         <accelerator key="c" signal="activate" modifiers="GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4419,7 +4431,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Run a region grower analysis on the selected basedata object</property>
                         <property name="label" translatable="yes">Region _Grower</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_region_grower_activate" />
+                        <signal name="activate" handler="on_region_grower_activate"/>
                         <accelerator key="g" signal="activate" modifiers="GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4430,7 +4442,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Run a randomisation analysis using cluster and spatial results in the  selected Basedata object</property>
                         <property name="label" translatable="yes">_Randomisation</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_randomise_activate" />
+                        <signal name="activate" handler="on_randomise_activate"/>
                         <accelerator key="r" signal="activate" modifiers="GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4447,7 +4459,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Build a spatial index for the selected BaseData</property>
                         <property name="label" translatable="yes">Build Spatial _Index...</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_index_activate" />
+                        <signal name="activate" handler="on_index_activate"/>
                         <accelerator key="i" signal="activate" modifiers="GDK_MOD1_MASK"/>
                       </widget>
                     </child>
@@ -4458,7 +4470,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Delete the spatial index in the selected BaseData</property>
                         <property name="label" translatable="yes">Delete Spatial Index</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_index_delete" />
+                        <signal name="activate" handler="on_index_delete"/>
                       </widget>
                     </child>
                   </widget>
@@ -4482,7 +4494,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Go to the main online help</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_help_viewer_activate" />
+                        <signal name="activate" handler="on_help_viewer_activate"/>
                         <accelerator key="F1" signal="activate"/>
                       </widget>
                     </child>
@@ -4493,7 +4505,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">List the available calculations and indices (uses selected BaseData) </property>
                         <property name="label" translatable="yes">List calculations and indices</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_menu_list_calculations_and_indices_activate" />
+                        <signal name="activate" handler="on_menu_list_calculations_and_indices_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -4503,7 +4515,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">How to specify spatial conditions</property>
                         <property name="label" translatable="yes">Specifying spatial conditions</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_menu_list_spatial_conditions_activate" />
+                        <signal name="activate" handler="on_menu_list_spatial_conditions_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -4513,7 +4525,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">View the release notes (online)</property>
                         <property name="label" translatable="yes">Release Notes</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_menu_release_notes_activate" />
+                        <signal name="activate" handler="on_menu_release_notes_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -4529,7 +4541,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Go to the Google Groups mailing list</property>
                         <property name="label" translatable="yes">Mailing list</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_menu_mailing_list_activate" />
+                        <signal name="activate" handler="on_menu_mailing_list_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -4539,7 +4551,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Citation details if you use Biodiverse.  </property>
                         <property name="label" translatable="yes">How to cite Biodiverse</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_menu_help_citation_activate" />
+                        <signal name="activate" handler="on_menu_help_citation_activate"/>
                       </widget>
                     </child>
                     <child>
@@ -4549,7 +4561,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="tooltip" translatable="yes">Check online for updates</property>
                         <property name="label" translatable="yes">Check for updates</property>
                         <property name="use_underline">True</property>
-                        <signal name="activate" handler="on_menu_check_for_updates" />
+                        <signal name="activate" handler="on_menu_check_for_updates"/>
                       </widget>
                     </child>
                     <child>
@@ -4565,7 +4577,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                         <property name="can_focus">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="activate" handler="on_about_activate" />
+                        <signal name="activate" handler="on_about_activate"/>
                       </widget>
                     </child>
                   </widget>
@@ -4609,7 +4621,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                   <widget class="GtkComboBox" id="comboBasedata">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <signal name="changed" handler="on_combo_basedata_changed" />
+                    <signal name="changed" handler="on_combo_basedata_changed"/>
                   </widget>
                 </child>
               </widget>
@@ -4628,7 +4640,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Delete data set</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_basedata_delete" />
+                    <signal name="clicked" handler="on_basedata_delete"/>
                     <child>
                       <widget class="GtkImage" id="image4">
                         <property name="visible">True</property>
@@ -4655,7 +4667,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Save to Biodiverse format</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_basedata_save" />
+                    <signal name="clicked" handler="on_basedata_save"/>
                     <child>
                       <widget class="GtkEventBox" id="eventbox1">
                         <property name="visible">True</property>
@@ -4687,7 +4699,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_basedata_open" />
+                    <signal name="clicked" handler="on_basedata_open"/>
                     <child>
                       <widget class="GtkImage" id="image26">
                         <property name="visible">True</property>
@@ -4713,7 +4725,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Import basedata from file</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_basedata_import" />
+                    <signal name="clicked" handler="on_basedata_import"/>
                     <child>
                       <widget class="GtkImage" id="image23">
                         <property name="visible">True</property>
@@ -4764,7 +4776,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                   <widget class="GtkComboBox" id="comboMatrices">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <signal name="changed" handler="on_combo_matrices_changed" />
+                    <signal name="changed" handler="on_combo_matrices_changed"/>
                   </widget>
                 </child>
               </widget>
@@ -4783,7 +4795,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Delete matrix</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_matrix_delete" />
+                    <signal name="clicked" handler="on_matrix_delete"/>
                     <child>
                       <widget class="GtkImage" id="image6">
                         <property name="visible">True</property>
@@ -4810,7 +4822,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Save to Biodiverse format</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_matrix_save" />
+                    <signal name="clicked" handler="on_matrix_save"/>
                     <child>
                       <widget class="GtkImage" id="image25">
                         <property name="visible">True</property>
@@ -4836,7 +4848,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_matrix_open" />
+                    <signal name="clicked" handler="on_matrix_open"/>
                     <child>
                       <widget class="GtkImage" id="image27">
                         <property name="visible">True</property>
@@ -4862,7 +4874,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Import marix from file</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_matrix_import" />
+                    <signal name="clicked" handler="on_matrix_import"/>
                     <child>
                       <widget class="GtkAlignment" id="alignment6">
                         <property name="visible">True</property>
@@ -4944,7 +4956,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                   <widget class="GtkComboBox" id="comboPhylogenies">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
-                    <signal name="changed" handler="on_combo_phylogenies_changed" />
+                    <signal name="changed" handler="on_combo_phylogenies_changed"/>
                   </widget>
                 </child>
               </widget>
@@ -4963,7 +4975,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Delete tree</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_phylogeny_delete" />
+                    <signal name="clicked" handler="on_phylogeny_delete"/>
                     <child>
                       <widget class="GtkImage" id="image88">
                         <property name="visible">True</property>
@@ -4990,7 +5002,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Save to Biodiverse format</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_phylogeny_save" />
+                    <signal name="clicked" handler="on_phylogeny_save"/>
                     <child>
                       <widget class="GtkImage" id="image101">
                         <property name="visible">True</property>
@@ -5016,7 +5028,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_phylogeny_open" />
+                    <signal name="clicked" handler="on_phylogeny_open"/>
                     <child>
                       <widget class="GtkImage" id="image102">
                         <property name="visible">True</property>
@@ -5042,7 +5054,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="receives_default">False</property>
                     <property name="tooltip" translatable="yes">Import tree from file</property>
                     <property name="relief">none</property>
-                    <signal name="clicked" handler="on_phylogeny_import" />
+                    <signal name="clicked" handler="on_phylogeny_import"/>
                     <child>
                       <widget class="GtkAlignment" id="alignment54">
                         <property name="visible">True</property>
@@ -5714,19 +5726,10 @@ Merely closes the window if no file is selected.</property>
                           <widget class="GtkMenuItem" id="menuitem_spatial_data">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="use_stock">False</property>
                             <property name="label" translatable="yes">Data</property>
                             <child>
                               <widget class="GtkMenu" id="menu_spatial_data">
                                 <property name="can_focus">False</property>
-                                <child>
-                                  <widget class="GtkTearoffMenuItem" id="menuitem_spatial_data_tearoff">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes"></property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
                                 <child>
                                   <widget class="GtkMenuItem" id="menuitem_spatial_map_list">
                                     <property name="visible">True</property>
@@ -5770,14 +5773,6 @@ Merely closes the window if no file is selected.</property>
                             <child>
                               <widget class="GtkMenu" id="menu_spatial_display">
                                 <property name="can_focus">False</property>
-                                <child>
-                                  <widget class="GtkTearoffMenuItem" id="menuitem_spatial_display_tearoff">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes"></property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
                                 <child>
                                   <widget class="GtkMenuItem" id="menuitem_spatial_overlays">
                                     <property name="visible">True</property>
@@ -5898,10 +5893,10 @@ but you can also set percentile ranges.</property>
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
-                                    <property name="label" translatable="no">Hue</property>
                                     <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
 
 Colours are scaled using pecentiles defined in the chooser to the left.</property>
+                                    <property name="label">Hue</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
                                   </widget>
@@ -5911,10 +5906,10 @@ Colours are scaled using pecentiles defined in the chooser to the left.</propert
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
-                                    <property name="label" translatable="no">Sat...</property>
                                     <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
 
 Colours are scaled using pecentiles defined in the chooser to the left.</property>
+                                    <property name="label">Sat...</property>
                                     <property name="use_underline">True</property>
                                     <property name="group">menuitem_spatial_colour_mode_hue</property>
                                   </widget>
@@ -5924,7 +5919,7 @@ Colours are scaled using pecentiles defined in the chooser to the left.</propert
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
-                                    <property name="label" translatable="no">Grey</property>
+                                    <property name="label">Grey</property>
                                     <property name="use_underline">True</property>
                                     <property name="group">menuitem_spatial_colour_mode_hue</property>
                                   </widget>
@@ -6652,6 +6647,8 @@ Both</property>
                 </child>
               </widget>
               <packing>
+                <property name="expand">True</property>
+                <property name="fill">True</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -6724,14 +6721,14 @@ Both</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">Select (B)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnSelectTool">
+                      <widget class="GtkToggleButton" id="btnSelectTool1">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Select (B)</property>
                         <child>
-                          <widget class="GtkImage" id="imageSelectTool">
+                          <widget class="GtkImage" id="imageSelectTool1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="pixbuf">selector.png</property>
@@ -6751,14 +6748,14 @@ Both</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">Pan (C)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnPanTool">
+                      <widget class="GtkToggleButton" id="btnPanTool1">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Pan (C)</property>
                         <child>
-                          <widget class="GtkImage" id="imagePanTool">
+                          <widget class="GtkImage" id="imagePanTool1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="pixbuf">drag-resize.png</property>
@@ -6777,14 +6774,14 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomTool">
+                      <widget class="GtkToggleButton" id="btnZoomTool1">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                         <child>
-                          <widget class="GtkImage" id="imageZoomTool">
+                          <widget class="GtkImage" id="imageZoomTool1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-zoom-in</property>
@@ -6803,14 +6800,14 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom Out (X)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomOutTool">
+                      <widget class="GtkToggleButton" id="btnZoomOutTool1">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Zoom Out (X)</property>
                         <child>
-                          <widget class="GtkImage" id="imageZoomOutTool">
+                          <widget class="GtkImage" id="imageZoomOutTool1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-zoom-out</property>
@@ -6829,14 +6826,14 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomFitTool">
+                      <widget class="GtkToggleButton" id="btnZoomFitTool1">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
                         <child>
-                          <widget class="GtkImage" id="imageZoomFitTool">
+                          <widget class="GtkImage" id="imageZoomFitTool1">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-zoom-fit</property>
@@ -7395,14 +7392,14 @@ Both</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">Select (B)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnSelectTool">
+                      <widget class="GtkToggleButton" id="btnSelectTool2">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Select (B)</property>
                         <child>
-                          <widget class="GtkImage" id="imageSelectTool">
+                          <widget class="GtkImage" id="imageSelectTool2">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="pixbuf">selector.png</property>
@@ -7422,14 +7419,14 @@ Both</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">Pan (C)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnPanTool">
+                      <widget class="GtkToggleButton" id="btnPanTool2">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Pan (C)</property>
                         <child>
-                          <widget class="GtkImage" id="imagePanTool">
+                          <widget class="GtkImage" id="imagePanTool2">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="pixbuf">drag-resize.png</property>
@@ -7448,14 +7445,14 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomTool">
+                      <widget class="GtkToggleButton" id="btnZoomTool2">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                         <child>
-                          <widget class="GtkImage" id="imageZoomTool">
+                          <widget class="GtkImage" id="imageZoomTool2">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-zoom-in</property>
@@ -7474,14 +7471,14 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom Out (X)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomOutTool">
+                      <widget class="GtkToggleButton" id="btnZoomOutTool2">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Zoom Out (X)</property>
                         <child>
-                          <widget class="GtkImage" id="imageZoomOutTool">
+                          <widget class="GtkImage" id="imageZoomOutTool2">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-zoom-out</property>
@@ -7500,14 +7497,14 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomFitTool">
+                      <widget class="GtkToggleButton" id="btnZoomFitTool2">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
                         <child>
-                          <widget class="GtkImage" id="imageZoomFitTool">
+                          <widget class="GtkImage" id="imageZoomFitTool2">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="stock">gtk-zoom-fit</property>
@@ -7542,19 +7539,10 @@ Both</property>
                           <widget class="GtkMenuItem" id="menuitem_clustering_data">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="use_stock">False</property>
                             <property name="label" translatable="yes">Data</property>
                             <child>
                               <widget class="GtkMenu" id="menu_clustering_data">
                                 <property name="can_focus">False</property>
-                                <child>
-                                  <widget class="GtkTearoffMenuItem" id="menuitem_cluster_data_tearoff">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes"></property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
                                 <child>
                                   <widget class="GtkMenuItem" id="menuitem_cluster_map_list">
                                     <property name="visible">True</property>
@@ -7599,14 +7587,6 @@ Both</property>
                               <widget class="GtkMenu" id="menu_clustering_display">
                                 <property name="can_focus">False</property>
                                 <child>
-                                  <widget class="GtkTearoffMenuItem" id="menuitem_cluster_display_tearoff">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes"></property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
                                   <widget class="GtkMenuItem" id="menuitem_cluster_overlays">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -7634,10 +7614,10 @@ Both</property>
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
-                                    <property name="label" translatable="no">Hue</property>
                                     <property name="tooltip" translatable="yes">Display all hues (colours) from blue to red
 
 Colours are scaled relative to all index values across all nodes in the dendrogram.</property>
+                                    <property name="label">Hue</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
                                   </widget>
@@ -7647,10 +7627,10 @@ Colours are scaled relative to all index values across all nodes in the dendrogr
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
-                                    <property name="label" translatable="no">Sat...</property>
                                     <property name="tooltip" translatable="yes">Display a single colour with saturation varying from white to a selected maximum.
 
 Colours are currently taken from the outer ring.</property>
+                                    <property name="label">Sat...</property>
                                     <property name="use_underline">True</property>
                                     <property name="group">menuitem_cluster_colour_mode_hue</property>
                                   </widget>
@@ -7660,7 +7640,7 @@ Colours are currently taken from the outer ring.</property>
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
-                                    <property name="label" translatable="no">Grey</property>
+                                    <property name="label">Grey</property>
                                     <property name="use_underline">True</property>
                                     <property name="group">menuitem_cluster_colour_mode_hue</property>
                                   </widget>
@@ -7912,6 +7892,9 @@ This setting has no effect on the slider bar.</property>
                       </widget>
                     </child>
                   </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                  </packing>
                 </child>
               </widget>
               <packing>
@@ -9083,6 +9066,12 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

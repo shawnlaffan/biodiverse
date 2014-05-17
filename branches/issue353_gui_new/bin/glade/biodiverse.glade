@@ -4711,7 +4711,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Import from file</property>
+                    <property name="tooltip" translatable="yes">Import basedata from file</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_basedata_import" />
                     <child>
@@ -4860,7 +4860,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Import from file</property>
+                    <property name="tooltip" translatable="yes">Import marix from file</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_matrix_import" />
                     <child>
@@ -5040,7 +5040,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Import from file</property>
+                    <property name="tooltip" translatable="yes">Import tree from file</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_phylogeny_import" />
                     <child>

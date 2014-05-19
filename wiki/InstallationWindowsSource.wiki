@@ -60,7 +60,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
   ppm install %BDV_PPM%/Geo-GDAL.ppd
 
   :: YAML::Syck has installation failures at v1.27 so install a patched version via PPM 
-  ppm install %BDV_PPM%/YAML-Syck
+  ppm install %BDV_PPM%/YAML-Syck.ppd
 
   :: Now install the rest of the dependencies
   cpanm Task::Biodiverse::NoGUI~0.19

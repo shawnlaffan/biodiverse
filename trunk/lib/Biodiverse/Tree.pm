@@ -13,7 +13,7 @@ use Scalar::Util;
 #use Scalar::Util qw /looks_like_number/;
 use Time::HiRes qw /tv_interval gettimeofday/;
 use List::MoreUtils qw /first_index/;
-use List::Util qw /sum/;
+use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
@@ -1493,8 +1493,6 @@ sub find_list_indices_across_nodes {
     return wantarray ? %index_hash : \%index_hash;    
 }
 
-#  run a section search from the top of the tree to find the highest node
-#  which contains all the terminals
 #  Will return the root node if any nodes are not on the tree
 sub get_last_shared_ancestor_for_nodes {
     my $self = shift;
@@ -1514,20 +1512,30 @@ sub get_last_shared_ancestor_for_nodes {
     
   PATH:
     while (my $node_name = shift @node_names) {
-        last PATH if scalar @reference_path == 1;   #  must be just the root node left, so drop out
+        #  must be just the root node left, so drop out
+        last PATH if scalar @reference_path == 1;
 
         my $node_ref = $self->get_node_ref (node => $node_name);
         my @path = $node_ref->get_path_to_root_node;
 
+        #  Start from an equivalent relative depth to avoid needless
+        #  comparisons near terminals.
+        #  Should see a pay-off for larger trees.
+        my $start_iter = max (0, scalar @path - scalar @reference_path);
+
+        # work up the tree until we find the lowest shared node
+        # should do a bisect search to speed up the search on densely branching trees?
       PATH_NODE_REF:
-        foreach my $path_node_ref (@path) {
+        foreach my $i ($start_iter .. $#path) {
+            my $path_node_ref = $path[$i];
             #my $node_name_path = $path_node_ref->get_name; #  for debug
             my $idx = first_index { $_ eq $path_node_ref } @reference_path;
 
-            next PATH_NODE_REF if $idx < 0;  #  not in path, try the next node
-            
+            next PATH_NODE_REF if $idx < 0;  #  not in reference path, try the next node
+
             if ($idx) {
                 #  reduce length of reference_path to reduce comparisons in next iter
+                #  if $idx is 2 then it will remove items 0 and 1
                 splice @reference_path, 0, $idx;
             }
             next PATH;
@@ -1535,7 +1543,7 @@ sub get_last_shared_ancestor_for_nodes {
     }
 
     my $node = $reference_path[0];
-    my $ancestor_name = $node->get_name;
+    #my $ancestor_name = $node->get_name;
 
     return $node;
 }
@@ -1890,8 +1898,8 @@ sub trim {
     return $self;
 }
 
-sub min {return $_[0] > $_[1] ? $_[1] : $_[0]};
-sub max {return $_[0] < $_[1] ? $_[1] : $_[0]};
+#sub min {return $_[0] > $_[1] ? $_[1] : $_[0]};
+#sub max {return $_[0] < $_[1] ? $_[1] : $_[0]};
 
 sub numerically {$a <=> $b};
 

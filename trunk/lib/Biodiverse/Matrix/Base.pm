@@ -65,6 +65,19 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
             " sub element_pair_exists.  What were you thinking?\n";
 }
 
+#  Same as get_value except it does not check for existence or self-similarity
+#  and returns undef if nothing found
+sub get_value_or_undef {
+    my $self = shift;
+    my %args = @_;
+    
+    no autovivification;
+
+    my ($el_ref, $element1, $element2) = ($self->{BYELEMENT}, $args{element1}, $args{element2});
+
+    return $el_ref->{$element1}{$element2} // $el_ref->{$element1}{$element2};
+}
+
 #  check an element pair exists, returning:
 #  1 if yes,
 #  2 if yes but in different order,

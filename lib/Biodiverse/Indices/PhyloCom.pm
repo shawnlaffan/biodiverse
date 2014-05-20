@@ -253,9 +253,11 @@ sub _calc_phylo_mpd_mntd {
     foreach my $label1 (@labels1) {
         my $label_count1 = $label_hash1->{$label1};
 
-        my @mpd_path_lengths_this_node;
-        my @mntd_path_lengths_this_node;
-        my @mpd_wts_this_node;
+        my (
+            @mpd_path_lengths_this_node,
+            @mntd_path_lengths_this_node,
+            @mpd_wts_this_node,
+        );
         my $i = 0;
 
         LABEL2:
@@ -264,12 +266,11 @@ sub _calc_phylo_mpd_mntd {
             #  skip same labels (FIXME: but not if used as dissim measure)
             next LABEL2 if $label1 eq $label2;
 
-            my $label_count2 = $label_hash2->{$label2};
-
-            my $path_length = $mx->get_value(
+            my $path_length = $mx->get_value_or_undef (
                 element1 => $label1,
                 element2 => $label2,
             );
+
             if (!defined $path_length) {  #  need to calculate it
                 my $last_ancestor = $tree_ref->get_last_shared_ancestor_for_nodes (
                     node_names => {$label1 => 1, $label2 => 1},
@@ -296,7 +297,7 @@ sub _calc_phylo_mpd_mntd {
             push @mpd_path_lengths_this_node, $path_length;
             push @mntd_path_lengths_this_node, $path_length;
             if ($use_wts) {
-                push @mpd_wts_this_node, $label_count2;
+                push @mpd_wts_this_node, $label_hash2->{$label2};
             }
 
             $i ++;

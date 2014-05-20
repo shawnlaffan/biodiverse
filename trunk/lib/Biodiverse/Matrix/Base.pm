@@ -278,12 +278,12 @@ sub load_data {
             
             next BY_FIELD  #  skip if in the matrix and already defined
                 if defined 
-                    $self -> get_value (
+                    $self->get_defined_value_or_undef (
                         element1 => $label,
                         element2 => $label2,
                     );
 
-            $self -> add_element (
+            $self->add_element (
                 element1 => $label,
                 element2 => $label2,
                 value    => $val,

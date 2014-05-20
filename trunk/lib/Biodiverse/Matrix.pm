@@ -710,11 +710,11 @@ sub get_min_value {
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
             #  we know the order in which these are stored
-            my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $val = $self->get_defined_value_or_undef (element1 => $el1, element2 => $el2);
             $min = min ($min, $val);
         }
     }
-    
 
     return $min;
 }
@@ -729,7 +729,8 @@ sub get_max_value {
     my $element_hash = $val_hash->{$max_key};
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $val = $self->get_defined_value_or_undef (element1 => $el1, element2 => $el2);
             $max = max ($max, $val);
         }
     }

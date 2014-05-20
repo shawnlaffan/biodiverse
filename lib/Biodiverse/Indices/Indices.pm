@@ -1022,7 +1022,7 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
             my $value = 1;
 
             if (defined $matrix) {
-                $value = $matrix -> get_value (
+                $value = $matrix->get_defined_value_or_undef (
                     element1 => $label1,
                     element2 => $label2
                 );

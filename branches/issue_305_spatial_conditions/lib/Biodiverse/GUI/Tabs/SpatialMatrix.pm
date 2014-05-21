@@ -9,7 +9,7 @@ our $VERSION = '0.19';
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed looks_like_number/;
+use Scalar::Util qw/blessed looks_like_number/;
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Grid;

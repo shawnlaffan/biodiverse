@@ -8,9 +8,9 @@ use Carp;
 use English qw { -no_match_vars };
 
 use Data::Dumper;
-use Scalar::Util qw /weaken blessed/;
+use Scalar::Util qw/weaken blessed/;
 use List::Util;
-use Time::HiRes qw /time/;
+use Time::HiRes qw/time/;
 
 our $VERSION = '0.19';
 
@@ -244,7 +244,9 @@ sub sp_calc {
     
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
-
+    my $use_opts = $args{use_optimisations};
+    print "use opts: $use_opts\n";
+    
     my $spatial_conditions_ref  = $self->get_spatial_conditions_ref (%args);
     my $recyclable_nbrhoods     = $self->get_recyclable_nbrhoods;
     my $results_are_recyclable  = $self->get_param('RESULTS_ARE_RECYCLABLE');
@@ -289,7 +291,7 @@ sub sp_calc {
     );
 
     #  don't pass these onwards when we call the calcs
-    delete @args{qw /calculations analyses/};  
+    delete @args{qw/calculations analyses/};  
 
     print "[SPATIAL] running calculations "
           . (join (q{ }, sort keys %{$indices_object->get_valid_calculations_to_run}))
@@ -518,6 +520,8 @@ sub sp_calc {
 
         #  skip if we've already copied them across
         next if (
+            $use_opts
+            and
             $results_are_recyclable
             and
             $self->exists_list (
@@ -548,21 +552,23 @@ sub sp_calc {
         my $recycle_lists = {};
 
         #  now add the results to the appropriate lists
-        foreach my $key (keys %sp_calc_values) {
-            my $list_ref = $sp_calc_values{$key};
-
-            if (ref ($list_ref) =~ /ARRAY|HASH/) {
-                $self->add_to_lists (
-                    element => $element,
-                    $key    => $sp_calc_values{$key},
-                );
-
-                #  if we can recycle results, then store these results 
-                if ($results_are_recyclable) {
-                    $recycle_lists->{$key} = $sp_calc_values{$key};
-                }
-
-                delete $sp_calc_values{$key};
+        if ($use_opts) {
+        	foreach my $key (keys %sp_calc_values) {
+	            my $list_ref = $sp_calc_values{$key};
+	
+	            if (ref ($list_ref) =~ /ARRAY|HASH/) {
+	                $self->add_to_lists (
+	                    element => $element,
+	                    $key    => $sp_calc_values{$key},
+	                );
+	
+	                #  if we can recycle results, then store these results 
+	                if ($results_are_recyclable) {
+	                    $recycle_lists->{$key} = $sp_calc_values{$key};
+	                }
+	
+	                delete $sp_calc_values{$key};
+	            }
             }
         }
         #  everything else goes into this hash
@@ -575,7 +581,7 @@ sub sp_calc {
         #  to the relevant groups now
         #  Note - only applies to groups in first nbr set
         my %nbrs_1;  #  the first nbr list as a hash
-        if ($recyclable_nbrhoods->[0]) {
+        if ($use_opts and $recyclable_nbrhoods->[0]) {
             @nbrs_1{@{$nbr_list[0]}} = (1) x scalar @{$nbr_list[0]};
             #  Ignore those we aren't interested in
             #  - does not affect calcs, only recycled results.
@@ -598,7 +604,7 @@ sub sp_calc {
                 );
             }
         }
-        if ($results_are_recyclable) {
+        if ($use_opts and $results_are_recyclable) {
             $recyc_count ++;
             $sp_calc_values{RECYCLED_SET} = $recyc_count;
 

@@ -29,7 +29,7 @@ use parent qw {
 };
 
 
-our $NULL_STRING = q{};
+our $NULL_STRING = q//;
 
 ##################################################
 # Initialisation
@@ -681,6 +681,7 @@ sub on_run {
             $self->{spatial1}->get_text(),
             $self->{spatial2}->get_text(),
         ],
+        use_optimisations => $self->{xmlPage}->get_widget('checkUseOptimisations')->get_active()
     );
 
     # Perform the analysis

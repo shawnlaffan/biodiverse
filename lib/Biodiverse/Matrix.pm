@@ -973,7 +973,8 @@ sub get_element_pairs_with_value {
 
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $value = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            #my $value = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $value = $self->get_defined_value_or_undef (element1 => $el1, element2 => $el2);
             next if $val ne $value;  #  stringification implicitly uses %.15f precision
             $results{$el1}{$el2} ++;
         }

@@ -562,7 +562,7 @@ sub run {
     my $success = 1;
     # run appropriate import routine
     if ($read_format == $raster_idx) {
-        my $labels_as_bands = $import_params{raster_labels_as_bands};
+        my $labels_as_bands = $import_params{labels_as_bands};
         foreach my $bdata (keys %multiple_file_lists) {
             $success &= eval {
                 $multiple_brefs{$bdata}->import_data_raster(

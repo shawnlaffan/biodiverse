@@ -41,6 +41,13 @@ my $script_fullname = Path::Class::file($script)->absolute;
 my $output_binary = basename ($script_fullname, '.pl', qr/\.[^.]*$/);
 $output_binary .= "_x$bits";
 
+
+if (!-d $out_folder) {
+    die "$out_folder does not exist or is not a directory";
+}
+
+
+
 if ($OSNAME eq 'MSWin32') {
     #  needed for Windows exes
     my $lib_expat = $using_64_bit  ? 'libexpat-1__.dll' : 'libexpat-1_.dll';

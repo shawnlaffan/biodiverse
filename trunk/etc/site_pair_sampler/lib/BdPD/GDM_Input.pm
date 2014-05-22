@@ -34,6 +34,7 @@ sub new {
         min_group_samples     => 0,
         min_group_richness    => 0,
         use_phylogeny         => 0,
+        region_column         => 2,
         sample_by_regions     => 1,
         region_quota_strategy => 'equal',
         within_region_ratio   => 1,
@@ -473,17 +474,18 @@ sub prepare_regions {
     my $regions_output = q{};
     my $grouplist      = $self->{grouplist};
     my @grouplist      = @$grouplist;
+    my $region_column = $self->{region_column};
 
     # check if regions for each group are available in the basedata
     if ($self->{do_output_regions} or $self->{sample_by_regions}) {
         my @element_test = split /:/, $grouplist[0];
-        if (!$element_test[2]) { # if there is no 3rd component to define each group, after x,y
+        if (!$element_test[$region_column]) { # if there is no component matching region column to define each group)
             $self->set_param (
                 do_output_regions => 0,
                 sample_by_regions => 0,
                 region_codes      => 0,
             );
-            print "\nCan't use regions (".$self->{region_header}.") because this information was not stored in the Biodiverse basedata.\n";
+            print "\nCan't use regions (".$self->{region_header}.") because the specified column does not exist in the Biodiverse basedata.\n";
         }
         else {
             print "Regions (".$self->{region_header}.") included in output.\n";
@@ -503,9 +505,6 @@ sub prepare_regions {
     if (!$self->{sample_by_regions}) {
         $self->set_param (verbosity => 3);
     }
-
-    #sets which column has the region code.  Set by parameter once working
-    $self->set_param (region_column => 3); 
 
     my %region_stats  = $self->get_region_stats();
     my %region_quotas = $self->get_region_quotas;
@@ -610,8 +609,8 @@ sub do_sampling {
     my ($response, $dist_output_extra) = (q{}, q{});
     my $measure_count = $self->{measure_count};
     my $dist_beyond_limit;
-    my $dist_limit_max = $self->{dist_limit_max};
-    my $dist_limit_min = $self->{dist_limit_min};    
+    my $geog_dist_limit_max = $self->{geog_dist_limit_max};
+    my $geog_dist_limit_min = $self->{geog_dist_limit_min};    
     my $skip = 0;
     
     my %dist_measures_hash;
@@ -701,7 +700,7 @@ sub do_sampling {
                 print "Quota per bin:  $bins[1][1]\n";
             };
 
-            my $round_prop = sprintf("%.3f",  $proportion_needed);
+            my $round_prop = sprintf("%.6f",  $proportion_needed);
             print "Sampling proportion: $round_prop\n\n";
         }
         
@@ -806,28 +805,24 @@ sub do_sampling {
                 $dist_result{geographic} = sprintf '%.3f', $d;
             };
 
-            # check for results beyond the distance threshold
-            # NOTE this check is performed before the beta diversity measures are calculated so it only works for geographic distance.
-            # This means no time is wasted on biological measures where the sites are too geographically distant
-            # but if a limit was wanted where the quota_dist_measure was not geographic, this check would need to be placed after those
-            # measures.
-            if ($dist_limit_max) {
-                if (exists($dist_result{$quota_dist_measure})) {
-                    if ($dist_result{$quota_dist_measure} > $dist_limit_max) {
+            # check for results beyond the geographic distance threshold
+            if ($geog_dist_limit_max) {
+                if (exists($dist_result{geographic})) {
+                    if ($dist_result{geographic} > $geog_dist_limit_max) {
                         $dist_beyond_limit = 1;
                     };
                 };
             };
             
-            if ($dist_limit_min) {
-                if (exists($dist_result{$quota_dist_measure})) {
-                    if ($dist_result{$quota_dist_measure} < $dist_limit_min) {
+            if ($geog_dist_limit_min) {
+                if (exists($dist_result{geographic})) {
+                    if ($dist_result{geographic} < $geog_dist_limit_min) {
                         $dist_beyond_limit = 1;
                     };
                 };
             };
             
-            if (! $dist_beyond_limit) {    
+            if ($dist_beyond_limit != 1) {    
                 # calculate the phylo Sørensen distance
                 if (exists($dist_measures_hash{phylo_sorenson})) {  # phylo_sorenson
                     # an undefined distance result is given as -1
@@ -849,7 +844,7 @@ sub do_sampling {
                         $dist_result{phylo_sorenson} = sprintf '%.6f', $score;
                     };
                 }
-
+                
                 # calculate the Sørensen distance                                    
                 if (exists($dist_measures_hash{sorenson})) {  # sorenson
                     $dist_result{sorenson} = -1;      # an undefined distance result is given as -1
@@ -860,16 +855,15 @@ sub do_sampling {
                         label_hash2 => $label_hash2,
                     );
 
-                    if (($abc{A} && ($abc{B}) || $abc{C})) {  #  sum of each side must be non-zero
+                    if (($abc{A} + $abc{ABC}) > 0) {  #  sum must be non-zero
                         my $score = eval {1 - (2 * $abc{A} / ($abc{A} + $abc{ABC}))};
                         $dist_result{sorenson} = sprintf '%.6f', $score;
                     };
                 };
                 
-                # if any distance measure has a valid result
-                if (   (exists($dist_measures_hash{sorenson})       and $dist_result{sorenson} != -1)
+                # if any biological distance measure has a valid result
+                if ((exists($dist_measures_hash{sorenson})       and $dist_result{sorenson} != -1)
                     or (exists($dist_measures_hash{phylo_sorenson}) and $dist_result{phylo_sorenson} != -1)
-                    or (exists($dist_measures_hash{geographic})     and $dist_result{geographic} >= 0)
                    ) {
 
                     # calculate the site-pair weight

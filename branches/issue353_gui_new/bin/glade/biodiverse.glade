@@ -479,6 +479,48 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -685,12 +727,25 @@
               <widget class="GtkLabel" id="label39">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="xalign">0</property>
                 <property name="ypad">3</property>
                 <property name="label" translatable="yes">Note:  you can import more than one file at a time so long as the order of the columns is the same.</property>
               </widget>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkHSeparator" id="hseparator3">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">9</property>
                 <property name="position">1</property>
               </packing>
             </child>
@@ -744,6 +799,7 @@
                       <widget class="GtkAlignment" id="alignment46">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="xalign">0</property>
                         <property name="left_padding">3</property>
                         <property name="right_padding">3</property>
                         <child>
@@ -752,6 +808,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
+                            <property name="has_tooltip">True</property>
                             <property name="tooltip" translatable="yes">Check to off to import new data to an existing Basedata set</property>
                             <property name="use_underline">True</property>
                             <property name="draw_indicator">True</property>
@@ -769,7 +826,9 @@
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="has_focus">True</property>
+                        <property name="has_tooltip">True</property>
                         <property name="tooltip" translatable="yes">Name for a new data set</property>
+                        <property name="invisible_char">●</property>
                         <property name="width_chars">20</property>
                         <property name="primary_icon_activatable">False</property>
                         <property name="secondary_icon_activatable">False</property>
@@ -793,7 +852,99 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkHBox" id="hbox1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="homogeneous">True</property>
+                <child>
+                  <widget class="GtkFixed" id="fixed1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkCheckButton" id="chk_import_one_bd_per_file">
+                    <property name="label" translatable="yes">One Basedata per file</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="tooltip" translatable="yes">If checked then each imported file is assigned to a separate basedata. These will be created if they do not exist, and will use the file names as the basedata names (excluding the directory components). Turn off the New checkbox above if you want to import into existing basedatas (they will be created if they do not exist).</property>
+                    <property name="draw_indicator">True</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">True</property>
+                    <property name="fill">True</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="position">3</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkHSeparator" id="hseparator1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">9</property>
+                <property name="position">4</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkHBox" id="hbox2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <child>
+                  <widget class="GtkLabel" id="label1">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xpad">5</property>
+                    <property name="label" translatable="yes">Format</property>
+                    <property name="justify">right</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkComboBox" id="format_box">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="active">0</property>
+                    <property name="items" translatable="yes">Text
+Raster
+Shapefile
+</property>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="padding">54</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">5</property>
               </packing>
             </child>
             <child>
@@ -802,19 +953,33 @@
                 <property name="height_request">240</property>
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="orientation">vertical</property>
                 <property name="select_multiple">True</property>
               </widget>
               <packing>
                 <property name="expand">True</property>
                 <property name="fill">True</property>
-                <property name="position">2</property>
+                <property name="pack_type">end</property>
+                <property name="position">6</property>
               </packing>
             </child>
+            <child>
+              <widget class="GtkHSeparator" id="hseparator2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">True</property>
+                <property name="padding">9</property>
+                <property name="position">7</property>
+              </packing>
+            </child>          
           </widget>
           <packing>
             <property name="expand">True</property>
             <property name="fill">True</property>
-            <property name="position">2</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child internal-child="action_area">
@@ -898,7 +1063,7 @@
             <property name="expand">False</property>
             <property name="fill">True</property>
             <property name="pack_type">end</property>
-            <property name="position">0</property>
+            <property name="position">1</property>
           </packing>
         </child>
         
@@ -2385,6 +2550,22 @@ modifiers:</property>
                                 <property name="position">3</property>
                               </packing>
                             </child>
+                            <child>
+                              <widget class="GtkCheckButton" id="chk_excl_delete_empty_groups">
+                                <property name="label" translatable="yes">Delete empty groups</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="tooltip" translatable="yes">Delete groups made empty by the deletion of all their labels</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">True</property>
+                                <property name="fill">True</property>
+                                <property name="position">4</property>
+                              </packing>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -2792,6 +2973,23 @@ as in the spatial analyses.  </property>
                                 <property name="expand">True</property>
                                 <property name="fill">True</property>
                                 <property name="position">2</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkCheckButton" id="chk_excl_delete_empty_labels">
+                                <property name="label" translatable="yes">Delete empty labels</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="has_tooltip">True</property>
+                                <property name="tooltip" translatable="yes">Delete labels made empty by the deletion of all groups they occur in</property>
+                                <property name="active">True</property>
+                                <property name="draw_indicator">True</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">True</property>
+                                <property name="position">3</property>
                               </packing>
                             </child>
                           </widget>
@@ -3732,7 +3930,7 @@ Do you want to continue?</property>
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Biodiverse</property>
     <property name="destroy_with_parent">True</property>
-    <signal name="delete_event" handler="on_wndMain_delete_event"/>
+    <signal name="delete_event" handler="on_wnd_main_delete_event"/>
     <child>
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -4698,7 +4896,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
+                    <property name="tooltip" translatable="yes">Add new BaseData from Biodiverse file (.bds)</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_basedata_open"/>
                     <child>
@@ -4847,7 +5045,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
+                    <property name="tooltip" translatable="yes">Add new matrix from Biodiverse file (.bms)</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_matrix_open"/>
                     <child>
@@ -5027,7 +5225,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Open from Biodiverse format</property>
+                    <property name="tooltip" translatable="yes">Add new tree from Biodiverse file (.bts)</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_phylogeny_open"/>
                     <child>
@@ -7979,7 +8177,8 @@ This setting has no effect on the slider bar.</property>
                                                         <property name="can_focus">False</property>
                                                         <child>
                                                           <widget class="GtkCheckButton" id="chk_no_cache_abc">
-                                                            <property name="label" translatable="yes">Do not use caching </property>
+                                                            <property name="label" translatable="yes">Do not 
+use caching </property>
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">False</property>
@@ -8052,7 +8251,7 @@ matrices to text files"
                                                           </packing>
                                                         </child>
                                                         <child>
-                                                          <widget class="GtkCheckButton" id="chk_keep_spatial_nbrs_output">
+                                                          <widget class="GtkCheckButton" id="chk_keep_sp_nbrs_output">
                                                             <property name="label" translatable="yes">Keep spatial 
 neighbours output</property>
                                                             <property name="visible">True</property>
@@ -8092,6 +8291,26 @@ system must rebuild the matrices each time you export.</property>
                                                             <property name="position">5</property>
                                                           </packing>
                                                         </child>
+                                                        <child>
+                                                          <widget class="GtkCheckButton" id="chk_clear_singletons">
+                                                          <property name="label" translatable="yes">Clear singleton
+nodes from tree</property>
+                                                          <property name="visible">True</property>
+                                                          <property name="can_focus">True</property>
+                                                          <property name="receives_default">False</property>
+                                                          <property name="has_tooltip">True</property>
+                                                          <property name="tooltip" translatable="yes">Singletons are terminal nodes 
+connected directly to the root.
+Clearing them is useful 
+for RegionGrower analyses.  </property>
+                                                          <property name="draw_indicator">True</property>
+                                                      </widget>
+                                                          <packing>
+                                                            <property name="expand">True</property>
+                                                            <property name="fill">True</property>
+                                                            <property name="position">6</property>
+                                                          </packing>
+                                                    </child>                                                      
                                                       </widget>
                                                     </child>
                                                     <child>
@@ -8109,6 +8328,7 @@ system must rebuild the matrices each time you export.</property>
                                                     <property name="right_attach">3</property>
                                                     <property name="top_attach">7</property>
                                                     <property name="bottom_attach">8</property>
+                                                    <property name="x_options">GTK_FILL</property>
                                                   </packing>
                                                 </child>
                                                 <child>
@@ -9115,6 +9335,43 @@ Set to undef or leave blank to use system seed.</property>
                         <child>
                           <placeholder/>
                         </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+ 
                       </widget>
                     </child>
                   </widget>

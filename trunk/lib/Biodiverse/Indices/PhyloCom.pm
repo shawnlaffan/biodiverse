@@ -1,6 +1,7 @@
 package Biodiverse::Indices::PhyloCom;
 use strict;
 use warnings;
+use 5.010;
 
 use Carp;
 use Biodiverse::Progress;
@@ -754,6 +755,9 @@ sub get_nri_nti_expected_values {
             $mntd_sd   = eval {sqrt (($mntd_sum_x_sqr / $n) - ($mntd_mean ** 2))} // 0;
         }
 
+        #say "\nfnarb,$label_count,$n,$mpd_mean,$mpd_sd,$mntd_mean,$mntd_sd"
+        #  if $ENV{BD_NRI_NTI_CUM_STATS};
+
         push @{$convergence{mpd_mean}},  $mpd_mean;
         push @{$convergence{mpd_sd}},    $mpd_sd;
         push @{$convergence{mntd_mean}}, $mntd_mean;
@@ -787,7 +791,6 @@ sub get_convergence_nri_nti_expected_values {
     my %args = @_;
 
     my $scores = $args{scores};
-    my $count = scalar @{$scores->{mpd_mean}};
 
     foreach my $array (values %$scores) {
         my ($min, $max) = minmax (@$array);
@@ -795,7 +798,7 @@ sub get_convergence_nri_nti_expected_values {
         return 0 if $ratio > 0.005;
     }
 
-    #  if we get his far then we have converged
+    #  if we get this far then we have converged
     return 1;
 }
 

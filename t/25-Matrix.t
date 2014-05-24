@@ -197,15 +197,15 @@ sub run_main_tests {
             my $exp_txt = $exp_val // 'undef';
             $val = $mx->get_value (element1 => $el1, element2 => $el2);
             is ($val, $exp_val, "got $exp_txt for pair $el1 => $el2");
-            $val = $mx->get_defined_value_or_undef (element1 => $el1, element2 => $el2);
-            is ($val, $exp_val, "got $exp_txt for pair $el1 => $el2 (get_defined_value_or_undef)");
+            $val = $mx->get_defined_value (element1 => $el1, element2 => $el2);
+            is ($val, $exp_val, "got $exp_txt for pair $el1 => $el2 (get_defined_value)");
 
 
             #  now the reverse
             $val = $mx->get_value (element2 => $el1, element1 => $el2);
             is ($val, $exp_val, "got $exp_txt for pair $el2 => $el1");
-            $val = $mx->get_defined_value_or_undef (element1 => $el2, element2 => $el1);
-            is ($val, $exp_val, "got $exp_txt for pair $el2 => $el1 (get_defined_value_or_undef)");
+            $val = $mx->get_defined_value (element1 => $el2, element2 => $el1);
+            is ($val, $exp_val, "got $exp_txt for pair $el2 => $el1 (get_defined_value)");
         }
     }
     
@@ -246,9 +246,9 @@ sub run_main_tests {
     my @array = sort @{$mx->get_elements_as_array};
     is_deeply (\@array, \@expected_element_array, 'Got correct element array');
     
-    $mx = $class->new (name => 'check get_defined_value_or_undef');
+    $mx = $class->new (name => 'check get_defined_value');
     
-    #  now run some extra checks on get_defined_value_or_undef
+    #  now run some extra checks on get_defined_value
     foreach my $el1 (keys %expected) {
         my $href = $expected{$el1};
         foreach my $el2 (keys %$href) {
@@ -259,19 +259,19 @@ sub run_main_tests {
             $mx->add_element (element1 => $el2, element2 => $el1, value => $alt_val);
         }
     }
-    subtest 'get_defined_value_or_undef works' => sub {
+    subtest 'get_defined_value works' => sub {
         foreach my $el1 (keys %expected) {
             my $href = $expected{$el1};
             foreach my $el2 (keys %$href) {
                 next if !defined $href->{$el2};
 
-                my $val = $mx->get_defined_value_or_undef (
+                my $val = $mx->get_defined_value (
                     element1 => $el1,
                     element2 => $el2,
                 );
                 is ($val, $href->{$el2}, "$el1 => $el2");
 
-                my $val_alt = $mx->get_defined_value_or_undef (
+                my $val_alt = $mx->get_defined_value (
                     element1 => $el2,
                     element2 => $el1,
                 );

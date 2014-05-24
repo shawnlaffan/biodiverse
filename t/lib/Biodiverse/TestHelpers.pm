@@ -1209,7 +1209,7 @@ sub check_cluster_order_is_same_given_same_prng {
     my $newick1 = $cl1->to_newick;
     my $newick2 = $cl2->to_newick;
     my $newick3 = $cl3->to_newick;
-    
+
     is   ($newick1, $newick2, 'trees are the same');
     isnt ($newick1, $newick3, 'trees are not the same');
 }

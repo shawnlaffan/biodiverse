@@ -67,7 +67,7 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
 
 #  Same as get_value except it does not check for existence or self-similarity
 #  and returns undef if nothing found
-sub get_defined_value_or_undef {
+sub get_defined_value {
     my $self = shift;
     my %args = @_;
     
@@ -77,6 +77,18 @@ sub get_defined_value_or_undef {
 
     return $el_ref->{$element1}{$element2} // $el_ref->{$element2}{$element1};
 }
+
+#  a bare metal version of get_defined_value
+#  uses array args for speed, hence the _aa in the name
+sub get_defined_value_aa {
+    no autovivification;
+
+    my $el_ref = $_[0]->{BYELEMENT};
+
+    $el_ref->{$_[1]}{$_[2]} // $el_ref->{$_[2]}{$_[1]};
+}
+
+
 
 #  check an element pair exists, returning:
 #  1 if yes,
@@ -272,13 +284,13 @@ sub load_data {
             next BY_FIELD if !$undef_allowed && !defined $val;
             next BY_FIELD if defined $val && $val eq $EMPTY_STRING;  
             next BY_FIELD if defined $val && !$text_allowed && !looks_like_number ($val);
-            
+
             my $label = $label_list{$label_count};
             my $label2 = $label_list{$i};
             
             next BY_FIELD  #  skip if in the matrix and already defined
                 if defined 
-                    $self->get_defined_value_or_undef (
+                    $self->get_defined_value (
                         element1 => $label,
                         element2 => $label2,
                     );

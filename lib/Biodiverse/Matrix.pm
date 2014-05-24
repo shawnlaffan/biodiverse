@@ -711,7 +711,7 @@ sub get_min_value {
         foreach my $el2 (keys %$hash_ref) {
             #  we know the order in which these are stored
             #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
-            my $val = $self->get_defined_value_or_undef (element1 => $el1, element2 => $el2);
+            my $val = $self->get_defined_value (element1 => $el1, element2 => $el2);
             $min = min ($min, $val);
         }
     }
@@ -730,7 +730,7 @@ sub get_max_value {
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
             #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
-            my $val = $self->get_defined_value_or_undef (element1 => $el1, element2 => $el2);
+            my $val = $self->get_defined_value (element1 => $el1, element2 => $el2);
             $max = max ($max, $val);
         }
     }
@@ -974,7 +974,7 @@ sub get_element_pairs_with_value {
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
             #my $value = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
-            my $value = $self->get_defined_value_or_undef (element1 => $el1, element2 => $el2);
+            my $value = $self->get_defined_value (element1 => $el1, element2 => $el2);
             next if $val ne $value;  #  stringification implicitly uses %.15f precision
             $results{$el1}{$el2} ++;
         }

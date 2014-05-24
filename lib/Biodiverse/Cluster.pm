@@ -602,10 +602,7 @@ sub build_matrix_elements {
         foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
             #last MX if $ofh;
 
-            $value = $mx->get_defined_value (
-                element1 => $element1,
-                element2 => $element2,
-            );
+            $value = $mx->get_defined_value_aa ($element1, $element2);
             if (defined $value) {  #  don't redo them...
                 $exists ++;
             }
@@ -1813,14 +1810,8 @@ sub get_values_for_linkage {
     my ($tmp1, $tmp2);
 
     if (defined $check_node) {
-        $tmp1 = $sim_matrix->get_defined_value (
-            element1 => $check_node,
-            element2 => $node1,
-        );
-        $tmp2 = $sim_matrix->get_defined_value (
-            element1 => $check_node,
-            element2 => $node2,
-        );
+        $tmp1 = $sim_matrix->get_defined_value_aa ($check_node, $node1);
+        $tmp2 = $sim_matrix->get_defined_value_aa ($check_node, $node2);
     }
     else {
         warn "two node linkage case\n";

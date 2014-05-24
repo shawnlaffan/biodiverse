@@ -266,7 +266,7 @@ sub _calc_phylo_mpd_mntd {
             #  skip same labels (FIXME: but not if used as dissim measure)
             next LABEL2 if $label1 eq $label2;
 
-            my $path_length = $mx->get_defined_value_or_undef (
+            my $path_length = $mx->get_defined_value (
                 element1 => $label1,
                 element2 => $label2,
             );

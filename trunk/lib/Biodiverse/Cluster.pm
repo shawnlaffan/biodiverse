@@ -602,7 +602,7 @@ sub build_matrix_elements {
         foreach my $mx (@$matrices) {  #  second is shadow matrix, if given
             #last MX if $ofh;
 
-            $value = $mx->get_defined_value_or_undef (
+            $value = $mx->get_defined_value (
                 element1 => $element1,
                 element2 => $element2,
             );
@@ -1813,11 +1813,11 @@ sub get_values_for_linkage {
     my ($tmp1, $tmp2);
 
     if (defined $check_node) {
-        $tmp1 = $sim_matrix->get_defined_value_or_undef (
+        $tmp1 = $sim_matrix->get_defined_value (
             element1 => $check_node,
             element2 => $node1,
         );
-        $tmp2 = $sim_matrix->get_defined_value_or_undef (
+        $tmp2 = $sim_matrix->get_defined_value (
             element1 => $check_node,
             element2 => $node2,
         );

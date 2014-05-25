@@ -20,21 +20,10 @@ use English qw { -no_match_vars };
 use rlib;
 use lib '../../../lib';  #  until we move the site pair sampler to the main bin/lib folders
 
-#  need this for the pp build to work
-if ($ENV{BDV_PP_BUILDING}) {
-    use FindBin qw ( $Bin );
-    say 'Building pp file';
-    use File::BOM qw / :subs /;          #  we need File::BOM.
-    open my $fh, '<:via(File::BOM)', $0  #  just read ourselves
-      or croak "Cannot open $Bin via File::BOM\n";
-    $fh->close;
-    exit ;
-}
-
-use BdPD::GenerateDistanceTable qw /:all/;
-
 #  load up the user defined libs and settings
 use Biodiverse::Config;
+
+use BdPD::GenerateDistanceTable qw /:all/;
 
 #  don't buffer text output - output to screen as we go
 local $OUTPUT_AUTOFLUSH = 1;

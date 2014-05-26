@@ -2151,8 +2151,12 @@ sub _calc_phylo_aed_t {
     my $aed_t;
     my %scores;
 
+  LABEL:
     foreach my $label (keys %$label_hash) {
         my $abundance = $label_hash->{$label};
+
+        next LABEL if !exists $aed_hash->{$label};
+
         my $aed_score = $aed_hash->{$label};
         my $weight    = $abundance * $aed_score;
 
@@ -2217,7 +2221,9 @@ sub calc_phylo_aed {
     my (%es, %ed, %aed);
     # now loop over the terminals and extract the weights (would slices be faster?)
     # Do we want the proportional values?  Divide by PD to get them.
+  LABEL:
     foreach my $label (keys %$label_hash) {
+        next LABEL if !exists $aed_wts->{$label};
         $aed{$label} = $aed_wts->{$label};
         $ed{$label}  = $ed_wts->{$label};
         $es{$label}  = $es_wts->{$label};

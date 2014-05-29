@@ -236,11 +236,11 @@ sub get_value_index_key {
 }
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
-sub describe {
+sub _describe {
     my $self = shift;
     
     my @description = (
-        ['TYPE: ', blessed $self],
+        'TYPE: ' . blessed $self,
     );
     
     my @keys = qw /
@@ -254,34 +254,16 @@ sub describe {
         if ((ref $desc) =~ /ARRAY/) {
             $desc = join q{, }, @$desc;
         }
-        push @description,
-            ["$key:", $desc];
+        push @description, "$key: $desc";
     }
 
-    push @description, [
-        'Element count: ',
-        $self->get_element_count,
-    ];
+    push @description,  'Element count: ' . $self->get_element_count,;
 
-    push @description, [
-        'Max value: ',
-        $self->get_max_value,
-    ];
-    push @description, [
-        'Min value: ',
-        $self->get_min_value,
-    ];
-    push @description, [
-        'Symmetric: ',
-        ($self->is_symmetric ? 'yes' : 'no'),
-    ];
-
+    push @description, 'Max value: ' . $self->get_max_value;
+    push @description, 'Min value: ' . $self->get_min_value;
+    push @description, 'Symmetric: ' . ($self->is_symmetric ? 'yes' : 'no');
     
-    my $description;
-    foreach my $row (@description) {
-        $description .= join "\t", @$row;
-        $description .= "\n";
-    }
+    my $description = join "\n", @description;
     
     return wantarray ? @description : $description;
 }

@@ -93,13 +93,11 @@ sub rename {
 }
 
 #  need to flesh this out - total length, summary stats of lengths etc
-sub describe {
+sub _describe {
     my $self = shift;
 
     my @description = (
-        ['TYPE: ',
-         blessed $self,
-         ],
+        'TYPE: ' . blessed $self,
     );
 
     my @keys = qw /
@@ -111,32 +109,16 @@ sub describe {
         if ((ref $desc) =~ /ARRAY/) {
             $desc = join q{, }, @$desc;
         }
-        push @description, ["$key: ", $desc];
+        push @description, "$key: $desc";
     }
 
-    push @description, [
-        "Node count: ",
-        scalar @{$self->get_node_refs},
-    ];
-    push @description, [
-        "Terminal node count: ",
-        scalar @{$self->get_terminal_node_refs},
-    ];
-    push @description, [
-        "Root node count: ",
-        scalar @{$self->get_root_node_refs}
-    ];
+    push @description, "Node count: "          . scalar @{$self->get_node_refs};
+    push @description, "Terminal node count: " . scalar @{$self->get_terminal_node_refs};
+    push @description, "Root node count: "     . scalar @{$self->get_root_node_refs};
 
-    push @description, [
-        "Sum of branch lengths: ",
-        sprintf "%.4f", $self->get_total_tree_length
-    ];
+    push @description, "Sum of branch lengths: " . sprintf "%.6g", $self->get_total_tree_length;
 
-    my $description;
-    foreach my $row (@description) {
-        $description .= join "\t", @$row;
-        $description .= "\n";
-    }
+    my $description = join "\n", @description;
 
     return wantarray ? @description : $description;
 }

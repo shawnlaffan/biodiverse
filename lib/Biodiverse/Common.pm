@@ -1865,6 +1865,13 @@ sub store_rand_state_init {
     }
 }
 
+sub describe {
+    my $self = shift;
+    return if !$self->can('_describe');
+    
+    return $self->_describe;
+}
+
 #  find circular refs in the sub from which this is called,
 #  or some level higher
 #sub find_circular_refs {

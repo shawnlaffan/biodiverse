@@ -245,11 +245,11 @@ sub clone {
     return $cloneref;
 }
 
-sub describe {
+sub _describe {
     my $self = shift;
     
     my @description = (
-        ['TYPE: ', blessed $self],
+        'TYPE: ' . blessed $self,
     );
 
     my @keys = qw /
@@ -266,51 +266,44 @@ sub describe {
         if ((ref $desc) =~ /ARRAY/) {
             $desc = join q{, }, @$desc;
         }
-        push @description, [
-            "$key:",
-            $desc,
-        ];
+        push @description, "$key: $desc";
     }
-    
+
     my $gp_count = $self->get_group_count;    
     my $lb_count = $self->get_label_count;
     my $sp_count = scalar @{$self->get_spatial_output_refs};
     my $cl_count = scalar @{$self->get_cluster_output_refs};
     my $rd_count = scalar @{$self->get_randomisation_output_refs};
     my $mx_count = scalar @{$self->get_matrix_output_refs};
-    
-    push @description, ['Group count:', $gp_count];
-    push @description, ['Label count:', $lb_count];
-    push @description, ['Spatial outputs:', $sp_count];
-    push @description, ['Cluster outputs:', $cl_count];
-    push @description, ['Randomisation outputs:', $rd_count];
-    push @description, ['Matrix outputs:', $mx_count];
 
-    push @description, [
-        'Using spatial index:',
-        ($self->get_param ('SPATIAL_INDEX') ? 'yes' : 'no'),
-    ];
+    push @description, "Group count: $gp_count";
+    push @description, "Label count: $lb_count";
+    push @description, "Spatial outputs: $sp_count";
+    push @description, "Cluster outputs: $cl_count";
+    push @description, "Randomisation outputs: $rd_count";
+    push @description, "Matrix outputs: $mx_count";
+
+    push @description, 
+        'Using spatial index: ' . 
+        ($self->get_param ('SPATIAL_INDEX') ? 'yes' : 'no');
 
     my $ex_count = $self->get_param ('EXCLUSION_COUNT') || 0;
-    push @description, ['Run exclusions count:', $ex_count];
+    push @description, "Run exclusions count: $ex_count";
 
     my $bounds = $self->get_coord_bounds;
     my $bnd_max = $bounds->{MAX};
     my $bnd_min = $bounds->{MIN};
-    push @description, [
-        'Group coord minima:',
-        (join q{, }, @$bnd_min),
-    ];
-    push @description, [
-        'Group coord maxima: ',
-        (join q{, }, @$bnd_max),
-    ];
+    push @description, 
+        'Group coord minima: ' . (join q{, }, @$bnd_min);
+    push @description, 
+        'Group coord maxima: ' . (join q{, }, @$bnd_max);
 
-    my $description;
-    foreach my $row (@description) {
-        $description .= join "\t", @$row;
-        $description .= "\n";
-    }
+    my $description = join "\n", @description;
+    #foreach my $row (@description) {
+    #    #$description .= join "\t", @$row;
+    #    $description .= $row;
+    #    $description .= "\n";
+    #}
     
     return wantarray ? @description : $description;
 }

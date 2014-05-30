@@ -244,12 +244,12 @@ sub sp_calc {
     
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
-    my $use_opts = $args{use_optimisations};
-    print "use opts: $use_opts\n";
+    my $use_opts = exists $args{use_optimisations} ? $args{use_optimisations} : 1;
+    say "use opts: $use_opts";
     
     my $spatial_conditions_ref  = $self->get_spatial_conditions_ref (%args);
-    my $recyclable_nbrhoods     = $self->get_recyclable_nbrhoods;
-    my $results_are_recyclable  = $self->get_param('RESULTS_ARE_RECYCLABLE');
+    my $recyclable_nbrhoods     = $use_opts ? $self->get_recyclable_nbrhoods : [];
+    my $results_are_recyclable  = $use_opts && $self->get_param('RESULTS_ARE_RECYCLABLE');
 
     #  check the definition query
     my $definition_query
@@ -519,22 +519,17 @@ sub sp_calc {
         }
 
         #  skip if we've already copied them across
-        next if (
-            $use_opts
-            and
-            $results_are_recyclable
-            and
-            $self->exists_list (
+        next if $results_are_recyclable
+             && $self->exists_list (
                 element => $element,
                 list    => 'RESULTS_SAME_AS',
-            )
-        );
+            );
 
         my @nbr_list = $self->get_nbrs_for_element (
             element       => $element,
             use_nbrs_from => $use_nbrs_from,
             elements_to_exclude => \@elements_to_exclude,
-            search_blocks_ref => $search_blocks_ref,
+            search_blocks_ref   => $search_blocks_ref,
         );
 
         my %elements = (
@@ -552,25 +547,24 @@ sub sp_calc {
         my $recycle_lists = {};
 
         #  now add the results to the appropriate lists
-        if ($use_opts) {
-        	foreach my $key (keys %sp_calc_values) {
-	            my $list_ref = $sp_calc_values{$key};
-	
-	            if (ref ($list_ref) =~ /ARRAY|HASH/) {
-	                $self->add_to_lists (
-	                    element => $element,
-	                    $key    => $sp_calc_values{$key},
-	                );
-	
-	                #  if we can recycle results, then store these results 
-	                if ($results_are_recyclable) {
-	                    $recycle_lists->{$key} = $sp_calc_values{$key};
-	                }
-	
-	                delete $sp_calc_values{$key};
-	            }
+        foreach my $key (keys %sp_calc_values) {
+            my $list_ref = $sp_calc_values{$key};
+
+            if (ref ($list_ref) =~ /ARRAY|HASH/) {
+                $self->add_to_lists (
+                    element => $element,
+                    $key    => $sp_calc_values{$key},
+                );
+
+                #  if we can recycle results, then store these results 
+                if ($results_are_recyclable) {
+                    $recycle_lists->{$key} = $sp_calc_values{$key};
+                }
+
+                delete $sp_calc_values{$key};
             }
         }
+
         #  everything else goes into this hash
         $self->add_to_lists (
             element         => $element,
@@ -581,7 +575,7 @@ sub sp_calc {
         #  to the relevant groups now
         #  Note - only applies to groups in first nbr set
         my %nbrs_1;  #  the first nbr list as a hash
-        if ($use_opts and $recyclable_nbrhoods->[0]) {
+        if ($recyclable_nbrhoods->[0]) {
             @nbrs_1{@{$nbr_list[0]}} = (1) x scalar @{$nbr_list[0]};
             #  Ignore those we aren't interested in
             #  - does not affect calcs, only recycled results.
@@ -604,7 +598,7 @@ sub sp_calc {
                 );
             }
         }
-        if ($use_opts and $results_are_recyclable) {
+        if ($results_are_recyclable) {
             $recyc_count ++;
             $sp_calc_values{RECYCLED_SET} = $recyc_count;
 
@@ -1074,8 +1068,8 @@ sub get_recyclable_nbrhoods {
     }
 
     if (1 and $results_are_recyclable) {
-        print '[SPATIAL] Results are recyclable.  '
-              . "This will save some processing\n";
+        say '[SPATIAL] Results are recyclable.  '
+            . 'This will save some processing';
     }
 
     #  need a better name - unique to nbrhood? same_for_whole_nbrhood?

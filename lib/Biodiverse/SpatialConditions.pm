@@ -485,9 +485,15 @@ sub verify {
         $self->set_param( VERIFYING => 1 );
 
         #my $conditions = $self->get_conditions;  #  not used in this block
+        my $error;
 
         #  Get the first two elements
         my $elements = $bd->get_groups;
+        if (! scalar @$elements) {
+            $error = 'Basedata has no groups, cannot run spatial conditions';
+            goto IFERROR;
+        }
+        
         my $element1 = $elements->[0];
         my $element2 = scalar @$elements > 1 ? $elements->[1] : $elements->[0];
 
@@ -523,10 +529,11 @@ sub verify {
                 basedata      => $bd,
             );
         };
-        my $error  = $EVAL_ERROR;
+        $error  = $EVAL_ERROR;
 
+      IFERROR:
         if ($error) {
-            $msg = "Syntax error:\n\n$EVAL_ERROR";
+            $msg = "Syntax error:\n\n$error";
             $valid = 0;
         }
 

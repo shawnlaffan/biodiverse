@@ -537,10 +537,10 @@ sub test_roundtrip_raster {
     # the raster data file won't specify the origin and cell size info, so pass as
     # parameters.
     # assume export was in format labels_as_bands = 0
-    my @cell_sizes           = @{$bd->get_param('CELL_SIZES')}; # probably not set anywhere, and is using the default
-    my @cell_origins         = @{$bd->get_cell_origins};    
+    my @cell_sizes      = $bd->get_cell_sizes; # probably not set anywhere, and is using the default
+    my @cell_origins    = $bd->get_cell_origins;    
     my %in_options_hash = (
-        labels_as_bands => 0,
+        labels_as_bands   => 0,
         raster_origin_e   => $cell_origins[0],
         raster_origin_n   => $cell_origins[1], 
         raster_cellsize_e => $cell_sizes[0],

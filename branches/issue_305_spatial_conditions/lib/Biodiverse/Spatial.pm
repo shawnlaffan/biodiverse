@@ -244,12 +244,12 @@ sub sp_calc {
     
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
-    my $use_opts = exists $args{use_optimisations} ? $args{use_optimisations} : 1;
-    say "use opts: $use_opts";
-    
+    my $no_recycling               = $args{no_recycling};
+    say "no recycling: $no_recycling";
+
     my $spatial_conditions_ref  = $self->get_spatial_conditions_ref (%args);
-    my $recyclable_nbrhoods     = $use_opts ? $self->get_recyclable_nbrhoods : [];
-    my $results_are_recyclable  = $use_opts && $self->get_param('RESULTS_ARE_RECYCLABLE');
+    my $recyclable_nbrhoods     = $no_recycling ? $self->get_recyclable_nbrhoods : [];
+    my $results_are_recyclable  = $no_recycling && $self->get_param('RESULTS_ARE_RECYCLABLE');
 
     #  check the definition query
     my $definition_query
@@ -269,8 +269,8 @@ sub sp_calc {
     $indices_object->get_valid_calculations (
         %args,
         nbr_list_count => $nbr_list_count,
-        element_list1 => [],  #  for validity checking only
-        element_list2 => $nbr_list_count == 2 ? [] : undef,
+        element_list1  => [],  #  for validity checking only
+        element_list2  => $nbr_list_count == 2 ? [] : undef,
         processing_element => 'x',
     );
 
@@ -293,17 +293,13 @@ sub sp_calc {
     #  don't pass these onwards when we call the calcs
     delete @args{qw/calculations analyses/};  
 
-    print "[SPATIAL] running calculations "
-          . (join (q{ }, sort keys %{$indices_object->get_valid_calculations_to_run}))
-          . "\n";
+    say "[SPATIAL] running calculations "
+          . join q{ }, sort keys %{$indices_object->get_valid_calculations_to_run};
 
     #  use whatever spatial index the parent is currently using if nothing already set
     #  if the basedata object has no index, then we won't either
     if (not $self->exists_param ('SPATIAL_INDEX')) {
-        $self->set_param (
-            SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX')
-                             || undef,
-        );
+        $self->set_param (SPATIAL_INDEX => $bd->get_param ('SPATIAL_INDEX'));
     }
     my $sp_index = $self->get_param ('SPATIAL_INDEX');
 
@@ -323,7 +319,7 @@ sub sp_calc {
     #  but this time check the index
     if (! $use_nbrs_from) {
 
-        SPATIAL_PARAMS_LOOP:
+      SPATIAL_PARAMS_LOOP:
         for my $i (0 .. $#$spatial_conditions_ref) {
             my $set_i = $i + 1;
             my $result_type = $spatial_conditions_ref->[$i]->get_result_type;
@@ -346,9 +342,9 @@ sub sp_calc {
             }
 
             my $search_blocks = $search_blocks_ref->[$i];
-            
+
             if (defined $sp_index && ! defined $search_blocks) {
-                print "[SPATIAL] Using spatial index\n" if $i == 0;
+                say '[SPATIAL] Using spatial index' if $i == 0;
                 my $progress_text_pfx = 'Neighbour set ' . ($i+1);
                 $search_blocks = $sp_index->predict_offsets (
                     spatial_conditions => $spatial_conditions_ref->[$i],

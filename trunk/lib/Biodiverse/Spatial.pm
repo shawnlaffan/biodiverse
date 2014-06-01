@@ -554,12 +554,12 @@ sub sp_calc {
             if (ref ($list_ref) =~ /ARRAY|HASH/) {
                 $self->add_to_lists (
                     element => $element,
-                    $key    => $sp_calc_values{$key},
+                    $key    => $list_ref,
                 );
 
                 #  if we can recycle results, then store these results 
                 if ($results_are_recyclable) {
-                    $recycle_lists->{$key} = $sp_calc_values{$key};
+                    $recycle_lists->{$key} = $list_ref;
                 }
 
                 delete $sp_calc_values{$key};

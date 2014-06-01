@@ -5,11 +5,17 @@
 use 5.010;
 use strict;
 use warnings;
+use English qw { -no_match_vars };
+
+
+use PAR::Packer;
+BEGIN {
+    eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
+}
 
 use Config;
 use File::Copy;
 use Path::Class;
-use English qw { -no_match_vars };
 use Cwd;
 use File::Basename;
 
@@ -19,6 +25,7 @@ my ($opt, $usage) = describe_options(
   '%c <arguments>',
   [ 'script|s=s',             'The input script', { required => 1 } ],
   [ 'out_folder|out_dir|o=s', 'The output directory where the binary will be written'],
+  [ 'icon_file|i=s',          'The location of the icon file to use'],
   [ 'verbose|v!',             'Verbose building?', ],
   [ 'execute|x!',             'Execute the script to find dependencies?', {default => 1} ],
   [],
@@ -34,6 +41,13 @@ my $script     = $opt->script;
 my $out_folder = $opt->out_folder // cwd();
 my $verbose    = $opt->verbose ? ' -v' : q{};
 my $execute    = $opt->execute ? ' -x' : q{};
+
+
+my $root_dir = Path::Class::file ($script)->dir->parent;
+
+#  assume bin folder is at parent folder level
+my $bin_folder = Path::Class::dir ($root_dir, 'bin');
+my $icon_file  = $opt->icon_file // Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute;
 
 my $perlpath     = $Config{perlpath};
 my $bits         = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
@@ -72,19 +86,12 @@ if ($OSNAME eq 'MSWin32') {
     $output_binary .= '.exe';
 }
 
-my $root_dir = Path::Class::file ($script)->dir->parent;
-
-#  assume bin folder is at parent folder level
-my $bin_folder = Path::Class::dir ($root_dir, 'bin');
-
-my $icon_file  = Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute;
 
 #  clunky - should hunt for glade use in script?  
 my $glade_arg = q{};
 if ($script =~ 'BiodiverseGUI.pl') {
     my $glade_folder = Path::Class::dir ($bin_folder, 'glade')->absolute;
     $glade_arg = qq{-a "$glade_folder;glade"};
-    #$glade_arg = "-a glade";
 }
 
 my $icon_file_base = basename ($icon_file);
@@ -95,17 +102,34 @@ my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->ab
 $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $cmd = "pp$verbose -B -z 9 -i $icon_file $glade_arg $icon_file_arg $execute -o $output_binary_fullpath $script_fullname";
-
-#  At the moment the build is incomplete if the progress dialog has not been run.
-#say 'MAKE SURE TO RUN A SPATIAL ANALYSIS SO WE GET ALL THE REQUISITE STUFF';
+my $cmd = "pp$verbose -B -z 9 $glade_arg $icon_file_arg $execute -o $output_binary_fullpath $script_fullname";
+#  array form is better, but needs the args to be in list form, e.g. $glade_arg, $icon_file_arg
+#my @cmd = (
+#    'pp',
+#    #$verbose,
+#    '-B',
+#    '-z',
+#    9,
+#    $glade_arg,
+#    $icon_file_arg,
+#    $execute,
+#    '-o',
+#    $output_binary_fullpath,
+#    $script_fullname,
+#);
+#if ($verbose) {
+#    splice @cmd, 1, 0, $verbose;
+#}
+#say join ' ', @cmd;
 
 say $cmd;
 system $cmd;
 
-#if ($OSNAME eq 'MSWin32') {
-#    system ("exe_update.pl", "--icon=$icon_file", $output_binary_fullpath);
-#}
+if ($OSNAME eq 'MSWin32' && $icon_file) {
+    my @icon_args = ("exe_update.pl", "--icon=$icon_file", $output_binary_fullpath);
+    say join ' ', @icon_args;
+    system @icon_args;
+}
 
 
 sub get_dll_list {

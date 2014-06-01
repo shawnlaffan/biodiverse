@@ -576,14 +576,11 @@ sub sp_calc {
         #  Note - only applies to groups in first nbr set
         my %nbrs_1;  #  the first nbr list as a hash
         if ($recyclable_nbrhoods->[0]) {
-            @nbrs_1{@{$nbr_list[0]}} = (1) x scalar @{$nbr_list[0]};
             #  Ignore those we aren't interested in
             #  - does not affect calcs, only recycled results.
-            foreach my $nbr (keys %nbrs_1) {
-                if (! exists $elements_to_use{$nbr}) {
-                    delete $nbrs_1{$nbr};
-                }
-            }
+            %nbrs_1 = map  {$_ => 1}
+                      grep {exists $elements_to_use{$_}}
+                      @{$nbr_list[0]};
 
             if (! $self->nbr_list_already_recycled(element => $element)) {
                 #  for each nbr in %nbrs_1,

@@ -1,6 +1,4 @@
-#  Build a Biodiverse executable
-#  Need to take arguments, and also work for any script
-#  Also should take an output folder argument.
+#  Build a Biodiverse related executable
 
 use 5.010;
 use strict;
@@ -73,13 +71,15 @@ if ($OSNAME eq 'MSWin32') {
     my $strawberry_base = Path::Class::dir ($perlpath)->parent->parent->parent;  #  clunky
     my $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
 
-    my @fnames = ($lib_expat, 'libgcc_s_sjlj-1.dll', 'libstdc++-6.dll', get_dll_list());
+    #my @fnames = ($lib_expat, 'libgcc_s_sjlj-1.dll', 'libstdc++-6.dll', get_dll_list($c_bin));
+    my @fnames = get_dll_list($c_bin);
     #my @fnames = ($lib_expat);  #  should only need this with recent versions of PAR
     for my $fname (@fnames) {
-        my $source = Path::Class::file ($c_bin, $fname)->stringify;
-        my $target = Path::Class::file ($out_folder, $fname)->stringify;
+        my $source = Path::Class::file ($fname)->stringify;
+        my $fbase  = Path::Class::file ($fname)->basename;
+        my $target = Path::Class::file ($out_folder, $fbase)->stringify;
 
-        copy ($source, $target) or die "Copy of $source failed: $!";
+        copy ($source, $target) or die "Copy of $source to $target failed: $!";
         say "Copied $source to $target";
     }
 
@@ -104,6 +104,7 @@ $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
 my $cmd = "pp$verbose -B -z 9 $glade_arg $icon_file_arg $execute -o $output_binary_fullpath $script_fullname";
 #  array form is better, but needs the args to be in list form, e.g. $glade_arg, $icon_file_arg
+#  also need to filter empty args out of the list
 #my @cmd = (
 #    'pp',
 #    #$verbose,
@@ -126,31 +127,51 @@ say $cmd;
 system $cmd;
 
 if ($OSNAME eq 'MSWin32' && $icon_file) {
-    my @icon_args = ("exe_update.pl", "--icon=$icon_file", $output_binary_fullpath);
-    say join ' ', @icon_args;
-    system @icon_args;
+    my @embed_icon_args = ("exe_update.pl", "--icon=$icon_file", $output_binary_fullpath);
+    say join ' ', @embed_icon_args;
+    system @embed_icon_args;
 }
 
 
 sub get_dll_list {
-    # possibly only works for 64 bit
-    my @dlls_needed = qw /
-        libeay32__.dll
-        libexpat-1__.dll
-        libgcc_s_sjlj-1.dll
-        libgif-6__.dll
-        libiconv-2__.dll
-        libjpeg-8__.dll
-        liblzma-5__.dll
-        libpng15-15__.dll
-        libpq__.dll
-        libstdc++-6.dll
-        libtiff-5__.dll
-        libxml2-2__.dll
-        ssleay32__.dll
-        zlib1__.dll
+    my $folder = shift;
+
+    my @dll_pfx = qw /
+        libeay   libexpat libgcc   libgif libiconv
+        libjpeg  liblzma  libpng   libpq  libstdc
+        libtiff  libxml2  ssleay32 zlib1
     /;
 
-    return @dlls_needed;
+    my @files = glob "$folder\\*.dll";
+    my $regstr   = join '|', @dll_pfx;
+    my $regmatch = qr /$regstr/;
+    my @dll_files = grep {$_ =~ $regmatch} @files;
+
+    say $folder;
+    say join ' ', @files;
+    say $regmatch;
+    say 'DLL files are: ', join ' ', @dll_files;
+
+    return @dll_files;
+
+    ## The hard coded below approach probably only worked for 64 bit strawberry
+    #my @dlls_needed = qw /
+    #    libeay32__.dll
+    #    libexpat-1__.dll
+    #    libgcc_s_sjlj-1.dll
+    #    libgif-6__.dll
+    #    libiconv-2__.dll
+    #    libjpeg-8__.dll
+    #    liblzma-5__.dll
+    #    libpng15-15__.dll
+    #    libpq__.dll
+    #    libstdc++-6.dll
+    #    libtiff-5__.dll
+    #    libxml2-2__.dll
+    #    ssleay32__.dll
+    #    zlib1__.dll
+    #/;
+    #
+    #return @dlls_needed;
 }
 

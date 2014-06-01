@@ -30,6 +30,7 @@ use Biodiverse::Config;
 
 use BdPD::GenerateDistanceTable qw /:all/;
 
+#  need this for the exe building process to work
 exit if $ENV{BDV_PP_BUILDING};
 
 #  don't buffer text output - output to screen as we go

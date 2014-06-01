@@ -20,10 +20,17 @@ use English qw { -no_match_vars };
 use rlib;
 use lib '../../../lib';  #  until we move the site pair sampler to the main bin/lib folders
 
+BEGIN{
+    say 'Path is: ' . $ENV{PATH};
+}
+
+
 #  load up the user defined libs and settings
 use Biodiverse::Config;
 
 use BdPD::GenerateDistanceTable qw /:all/;
+
+exit if $ENV{BDV_PP_BUILDING};
 
 #  don't buffer text output - output to screen as we go
 local $OUTPUT_AUTOFLUSH = 1;

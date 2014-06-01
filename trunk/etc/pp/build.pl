@@ -3,6 +3,9 @@
 #  Also should take an output folder argument.
 
 use 5.010;
+use strict;
+use warnings;
+
 use Config;
 use File::Copy;
 use Path::Class;
@@ -49,13 +52,14 @@ if (!-d $out_folder) {
 
 
 if ($OSNAME eq 'MSWin32') {
+    
     #  needed for Windows exes
     my $lib_expat = $using_64_bit  ? 'libexpat-1__.dll' : 'libexpat-1_.dll';
 
     my $strawberry_base = Path::Class::dir ($perlpath)->parent->parent->parent;  #  clunky
-    $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
+    my $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
 
-    my @fnames = ($lib_expat, 'libgcc_s_sjlj-1.dll', 'libstdc++-6.dll');
+    my @fnames = ($lib_expat, 'libgcc_s_sjlj-1.dll', 'libstdc++-6.dll', get_dll_list());
     #my @fnames = ($lib_expat);  #  should only need this with recent versions of PAR
     for my $fname (@fnames) {
         my $source = Path::Class::file ($c_bin, $fname)->stringify;
@@ -94,7 +98,35 @@ $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 my $cmd = "pp$verbose -B -z 9 -i $icon_file $glade_arg $icon_file_arg $execute -o $output_binary_fullpath $script_fullname";
 
 #  At the moment the build is incomplete if the progress dialog has not been run.
-say 'MAKE SURE TO RUN A SPATIAL ANALYSIS SO WE GET ALL THE REQUISITE STUFF';
+#say 'MAKE SURE TO RUN A SPATIAL ANALYSIS SO WE GET ALL THE REQUISITE STUFF';
 
 say $cmd;
 system $cmd;
+
+#if ($OSNAME eq 'MSWin32') {
+#    system ("exe_update.pl", "--icon=$icon_file", $output_binary_fullpath);
+#}
+
+
+sub get_dll_list {
+    # possibly only works for 64 bit
+    my @dlls_needed = qw /
+        libeay32__.dll
+        libexpat-1__.dll
+        libgcc_s_sjlj-1.dll
+        libgif-6__.dll
+        libiconv-2__.dll
+        libjpeg-8__.dll
+        liblzma-5__.dll
+        libpng15-15__.dll
+        libpq__.dll
+        libstdc++-6.dll
+        libtiff-5__.dll
+        libxml2-2__.dll
+        ssleay32__.dll
+        zlib1__.dll
+    /;
+
+    return @dlls_needed;
+}
+

@@ -153,25 +153,5 @@ sub get_dll_list {
     say 'DLL files are: ', join ' ', @dll_files;
 
     return @dll_files;
-
-    ## The hard coded below approach probably only worked for 64 bit strawberry
-    #my @dlls_needed = qw /
-    #    libeay32__.dll
-    #    libexpat-1__.dll
-    #    libgcc_s_sjlj-1.dll
-    #    libgif-6__.dll
-    #    libiconv-2__.dll
-    #    libjpeg-8__.dll
-    #    liblzma-5__.dll
-    #    libpng15-15__.dll
-    #    libpq__.dll
-    #    libstdc++-6.dll
-    #    libtiff-5__.dll
-    #    libxml2-2__.dll
-    #    ssleay32__.dll
-    #    zlib1__.dll
-    #/;
-    #
-    #return @dlls_needed;
 }
 

@@ -84,9 +84,9 @@ sub compare {
     my $recycled_results
       =    $self->get_param ('RESULTS_ARE_RECYCLABLE')
         && $comparison->get_param ('RESULTS_ARE_RECYCLABLE');
-    if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
-        $recycled_results = $args{no_recycle};
-    }
+    #if ($recycled_results && exists $args{no_recycle}) {  #  mostly for debug 
+    #    $recycled_results = $args{no_recycle};
+    #}
 
     if ($recycled_results) {  #  set up some lists
         foreach my $list_name (keys %base_list_indices) {
@@ -244,12 +244,12 @@ sub sp_calc {
     
     my $no_create_failed_def_query = $args{no_create_failed_def_query};
     my $calc_only_elements_to_calc = $args{calc_only_elements_to_calc};
-    my $no_recycling               = $args{no_recycling};
-    say "no recycling: $no_recycling";
+    my $use_recycling              = !$args{no_recycling};
+    #say "[SPATIAL] Using recycling: $use_recycling";
 
     my $spatial_conditions_ref  = $self->get_spatial_conditions_ref (%args);
-    my $recyclable_nbrhoods     = $no_recycling ? $self->get_recyclable_nbrhoods : [];
-    my $results_are_recyclable  = $no_recycling && $self->get_param('RESULTS_ARE_RECYCLABLE');
+    my $recyclable_nbrhoods     = $use_recycling ? $self->get_recyclable_nbrhoods : [];
+    my $results_are_recyclable  = $use_recycling && $self->get_param('RESULTS_ARE_RECYCLABLE');
 
     #  check the definition query
     my $definition_query
@@ -309,7 +309,7 @@ sub sp_calc {
                             || [];
     $spatial_conditions_ref   = $self->get_spatial_conditions || [];
 
-    if (! $use_nbrs_from) {
+    if (! $use_nbrs_from && $use_recycling) {
         #  first look for a sibling with the same spatial parameters
         $use_nbrs_from = eval {
             $bd->get_outputs_with_same_conditions (compare_with => $self);
@@ -360,7 +360,7 @@ sub sp_calc {
     
     #  If we are using neighbours from another spatial object
     #  then we use its recycle setting, and store it for later
-    if ($use_nbrs_from) {
+    if ($use_nbrs_from && $use_recycling) {
         $results_are_recyclable =
           $use_nbrs_from->get_param ('RESULTS_ARE_RECYCLABLE');
         $self->set_param (RESULTS_ARE_RECYCLABLE => $results_are_recyclable);
@@ -549,12 +549,12 @@ sub sp_calc {
             if (ref ($list_ref) =~ /ARRAY|HASH/) {
                 $self->add_to_lists (
                     element => $element,
-                    $key    => $sp_calc_values{$key},
+                    $key    => $list_ref,
                 );
 
                 #  if we can recycle results, then store these results 
                 if ($results_are_recyclable) {
-                    $recycle_lists->{$key} = $sp_calc_values{$key};
+                    $recycle_lists->{$key} = $list_ref;
                 }
 
                 delete $sp_calc_values{$key};
@@ -572,14 +572,20 @@ sub sp_calc {
         #  Note - only applies to groups in first nbr set
         my %nbrs_1;  #  the first nbr list as a hash
         if ($recyclable_nbrhoods->[0]) {
-            @nbrs_1{@{$nbr_list[0]}} = (1) x scalar @{$nbr_list[0]};
             #  Ignore those we aren't interested in
             #  - does not affect calcs, only recycled results.
-            foreach my $nbr (keys %nbrs_1) {
-                if (! exists $elements_to_use{$nbr}) {
-                    delete $nbrs_1{$nbr};
-                }
-            }
+            %nbrs_1 = map  {$_ => 1}
+                      grep {exists $elements_to_use{$_}}
+                      @{$nbr_list[0]};
+            #@nbrs_1{@{$nbr_list[0]}} = (1) x scalar @{$nbr_list[0]};
+            #  Ignore those we aren't interested in
+            #  - does not affect calcs, only recycled results.
+            #  Should use a grep on initial assignment to filter
+            #foreach my $nbr (keys %nbrs_1) {
+            #    if (! exists $elements_to_use{$nbr}) {
+            #        delete $nbrs_1{$nbr};
+            #    }
+            #}
 
             if (! $self->nbr_list_already_recycled(element => $element)) {
                 #  for each nbr in %nbrs_1,

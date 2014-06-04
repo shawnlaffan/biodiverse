@@ -671,6 +671,8 @@ sub on_run {
         $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
+    
+    my $no_recycling = $self->{xmlPage}->get_widget('checkNoRecycling')->get_active();
 
     my %args = (
         calculations       => \@to_run,
@@ -681,7 +683,7 @@ sub on_run {
             $self->{spatial1}->get_text(),
             $self->{spatial2}->get_text(),
         ],
-        use_optimisations => $self->{xmlPage}->get_widget('checkUseOptimisations')->get_active()
+        no_recycling => $no_recycling,
     );
 
     # Perform the analysis

@@ -6021,12 +6021,13 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                               </packing>
                                             </child>
                                             <child>
-                                              <widget class="GtkCheckButton" id="checkUseOptimisations">
-                                                <property name="label" translatable="yes">use optimisations</property>
+                                              <widget class="GtkCheckButton" id="checkNoRecycling">
+                                                <property name="label" translatable="yes">No recycling</property>
+                                                <property name="tooltip" translatable="yes">Disable recycling of neighbours and results.  Normally recycling makes for more efficient processing, but sometimes it does not work as desired.</property>
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">True</property>
                                                 <property name="receives_default">False</property>
-                                                <property name="active">True</property>
+                                                <property name="active">False</property>
                                                 <property name="draw_indicator">True</property>
                                               </widget>
                                               <packing>

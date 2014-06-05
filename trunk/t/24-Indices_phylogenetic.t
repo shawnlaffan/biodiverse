@@ -551,6 +551,7 @@ __DATA__
         'Genus:sp5'  => '0.6'
     },
     PD_ENDEMISM           => undef,
+    PD_ENDEMISM_P         => undef,
     PD_ENDEMISM_WTS       => {},
     PD_INCLUDED_NODE_LIST => {
         '30___'      => '0.077662337662338',
@@ -1236,6 +1237,7 @@ __DATA__
         'Genus:sp26' => '0.5'
     },
     PD_ENDEMISM           => undef,
+    PD_ENDEMISM_P         => undef,
     PD_ENDEMISM_WTS       => {},
     PD_INCLUDED_NODE_LIST => {
         '34___'      => '0.341398923434153',

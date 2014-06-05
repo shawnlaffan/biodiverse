@@ -32,7 +32,8 @@ run_indices_test1 (
         2750000:750000
         2850000:750000
         2750000:650000
-    /]
+    /],
+    generate_result_sets => 1,
 );
 
 done_testing;
@@ -42,15 +43,20 @@ done_testing;
 __DATA__
 
 @@ RESULTS_2_NBR_LISTS
-{
-  'PD_ENDEMISM'     => '0.666666666666667',
-  'PD_ENDEMISM_WTS' => {
-                         '43___' => '0.666666666666667'
-                       }
+{   PD_ENDEMISM     => '0.666666666666667',
+    PD_ENDEMISM_P   => '0.0314729038931334',
+    PD_ENDEMISM_WTS => {
+        '43___'      => '0.666666666666667',
+        'Genus:sp28' => 0,
+        'Genus:sp31' => 0
+    }
 }
 
+
 @@ RESULTS_1_NBR_LISTS
-{
-    'PD_ENDEMISM'     => undef,
-    'PD_ENDEMISM_WTS' => {}
+{   PD_ENDEMISM     => undef,
+    PD_ENDEMISM_P   => undef,
+    PD_ENDEMISM_WTS => {}
 }
+
+

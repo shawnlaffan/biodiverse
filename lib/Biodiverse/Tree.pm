@@ -152,18 +152,23 @@ sub delete_node {
     #  We could just do the DESCENDENTS lists, but they are not the
     #  only ones that point to now non-existent nodes.
     #  This also circumvents circular refs from the caches.
-    $self->get_tree_ref->delete_cached_values_below;
-    
+    #  ...->these are done later in the sub now to reduce multiple cache deletion passes.
+    #$self->get_tree_ref->delete_cached_values_below;
+
     #  get the names of all descendents 
-    my %node_hash = $node_ref->get_all_descendents;
+    my %node_hash = $node_ref->get_all_descendents (cache => 0);
     $node_hash{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
 
-    #  now we delete it from the treenode structure.  This cleans up any children in the tree.
-    $node_ref->get_parent->delete_child (child => $node_ref);
+    #  Now we delete it from the treenode structure.  This cleans up any children in the tree.
+    $node_ref->get_parent->delete_child (child => $node_ref, no_delete_cache => 1);
 
     #  now we delete it and its descendents from the node hash
     $self->delete_from_node_hash (nodes => \%node_hash);
-    
+
+    #  now we clear the caches from those deleted nodes and those remaining
+    foreach my $n_ref (values %node_hash) {
+        $n_ref->delete_cached_values;
+    }
     $self->delete_cached_values_below;
 
     #  return a list of the names of those deleted nodes
@@ -1804,8 +1809,8 @@ sub trim {
         $trim = {};
         my %node_hash = $self->get_node_hash;
         foreach my $name (keys %node_hash) {
-            my $node = $node_hash{$name};
             next if exists $keep->{$name};
+            my $node = $node_hash{$name};
             next if $node->is_internal_node;
             next if $node->is_root_node;  #  never delete the root node
             my %children = $node->get_all_descendents;  #  make sure we use a copy
@@ -1825,36 +1830,30 @@ sub trim {
     my %candidate_node_hash = $self->get_node_hash;
     delete @candidate_node_hash{keys %$keep};
 
-    #my %all_nodes = $self->get_node_hash;
-    #delete @all_nodes{keys %candidate_node_hash};
-    #print "keeping \n", join ("\n", keys %$keep), "\n";
-    #print "trimming \n", join ("\n", keys %trim_hash), "\n";
-    #print "ignoring \n", join ("\n", keys %all_nodes), "\n";
+    my %deleted_h;
 
-    my %deleted;
+  DELETION:
     foreach my $name (keys %candidate_node_hash) {
-        next if $deleted{$name};  #  we might have deleted a named parent, so this node no longer exists in the tree
-        my $node = $candidate_node_hash{$name};
+        #  we might have deleted a named parent,
+        #  so this node no longer exists in the tree
+        next DELETION if $deleted_h{$name} || !exists $trim_hash{$name};
+
         #  delete if it is in the list to exclude
-        if (exists $trim_hash{$name}) {
-            print "[Tree] Deleting node $name\n";
-            my @deleted_nodes = $self->delete_node (node => $name);
-            foreach my $del_name (@deleted_nodes) {
-                $deleted{$del_name} ++;
-            }
-        }
-        #else {
-        #    print "[TREE] NOT deleting node $name\n";
+        say "[Tree] Deleting node $name";
+        my @deleted_nodes = $self->delete_node (node => $name);
+        @deleted_h{@deleted_nodes} = (1) x scalar @deleted_nodes;
+        #foreach my $del_name (@deleted_nodes) {
+        #    $deleted_h{$del_name} ++;
         #}
     }
 
-    if ($delete_internals and scalar keys %deleted) {
+    if ($delete_internals and scalar keys %deleted_h) {
         #  delete any internal nodes with no named children
         my %node_hash = $self->get_node_hash;
+      NODE:
         foreach my $name (keys %node_hash) {
             my $node = $node_hash{$name};
-            next if ! $node->is_internal_node;
-            next if $node->is_root_node;
+            next NODE if !$node->is_internal_node || $node->is_root_node;
 
             my $children = $node->get_all_descendents;
             my %named_children;
@@ -1865,11 +1864,7 @@ sub trim {
             if (scalar keys %named_children == 0) {
                 #  might have already been deleted , so wrap in an eval
                 eval { $self->delete_node (node => $name) };
-                #print "[TREE] Deleting internal node $name\n";
             }
-            #else {
-            #    print "[TREE] NOT Deleting internal node $name\n"
-            #}
         }
     }
 

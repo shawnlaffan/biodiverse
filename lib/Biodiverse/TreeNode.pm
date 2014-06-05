@@ -129,22 +129,12 @@ sub delete_cached_values {
     
     return if ! exists $self->{_cache};
     
-    #no warnings 'uninitialized';
-    #if ((blessed $self->{_cache}{_cluster_colour}) =~ /Gtk2/) {
-    #    print Data::Dumper::Dumper ($self->{_cache}{_cluster_colour});
-    #}
-    
     my $keys = $args{keys} || $self->get_cached_value_keys;
     return if not defined $keys or scalar @$keys == 0;
 
     delete @{$self->{_cache}}{@$keys};
-    delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
-    
-    #warn "Cache deletion problem at node " . $self->get_name . "\n$EVAL_ERROR\n"
-    #  if $EVAL_ERROR;
-    
-    #warn "XXXXXXX "  . $self->get_name . "\n" if exists $self->{_cache};
-    
+    delete $self->{_cache} if !scalar keys %{$self->{_cache}};
+
     return;
 }
 
@@ -427,7 +417,9 @@ sub delete_child {  #  remove a child from a list.
     foreach my $child ($self->get_children) {
         if ($child eq $args{child}) {
             splice (@{$self->{_CHILDREN}}, $i, 1);
-            $child->delete_cached_values_below;
+            if (!$args{no_delete_cache}) {
+                $child->delete_cached_values_below;
+            }
             return 1;
         }
         $i++;

@@ -33,7 +33,7 @@ run_indices_test1 (
         2850000:750000
         2750000:650000
     /],
-    generate_result_sets => 1,
+    #generate_result_sets => 1,
 );
 
 done_testing;

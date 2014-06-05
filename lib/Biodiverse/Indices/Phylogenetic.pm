@@ -875,7 +875,13 @@ sub get_metadata_calc_pd_endemism {
             PD_ENDEMISM_WTS => {
                 description => 'Phylogenetic Diversity Endemism weights per node found only in the neighbour set',
                 type        => 'list',
-            }
+            },
+            PD_ENDEMISM_P => {
+                description => 'Phylogenetic Diversity Endemism, as a proportion of the whole tree',
+            },
+            #PD_ENDEMISM_R => {  #  should put in its own calc as it needs an extra dependency
+            #    description => 'Phylogenetic Diversity Endemism, as a proportion of the local PD',
+            #},
         },
     );
 
@@ -886,27 +892,43 @@ sub calc_pd_endemism {
     my $self = shift;
     my %args = @_;
     
-    my $weights = $args{PE_WTLIST};
-    my $tree_ref = $args{trimmed_tree};
-    
+    my $weights   = $args{PE_WTLIST};
+    my $tree_ref  = $args{trimmed_tree};
+    my $total_len = $tree_ref->get_total_tree_length;
+
     my $pd_e;
     my %pd_e_wts;
 
+  LABEL:
     foreach my $label (keys %$weights) {
         my $wt = $weights->{$label};
+
         my $tree_node = $tree_ref->get_node_ref(node => $label);
-        my $length = $tree_node->get_length;
-        next if $wt != $length || $wt == 0;
+        my $length    = $tree_node->get_length;
+        next LABEL if $wt != $length;
+
+        #  Skip any zero length nodes with any non-endemic child
+        if (!$wt && !$tree_node->is_terminal_node) {
+          CHILD:
+            foreach my $child ($tree_node->get_children) {
+                my $child_name = $child->get_name;
+                next CHILD if !exists $weights->{$child_name};
+                next LABEL if $child->get_length != $weights->{$child_name};
+            }
+        }
 
         $pd_e += $wt;
         $pd_e_wts{$label} = $wt;
     }
 
+    my $pd_e_p = (defined $pd_e && $total_len) ? ($pd_e / $total_len) : undef;
+
     my %results = (
         PD_ENDEMISM     => $pd_e,
+        PD_ENDEMISM_P   => $pd_e_p,
         PD_ENDEMISM_WTS => \%pd_e_wts,
     );
-    
+
     return wantarray ? %results : \%results;
 }
 

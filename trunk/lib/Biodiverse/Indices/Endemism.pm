@@ -729,7 +729,7 @@ sub get_metadata_calc_endemism_absolute_lists {
 
     my %arguments = (
         description     => $desc,
-        name            => 'Absolute endemism',
+        name            => 'Absolute endemism lists',
         type            => 'Endemism',
         pre_calc        => ['_calc_endemism_absolute'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have

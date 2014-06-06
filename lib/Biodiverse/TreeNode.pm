@@ -410,13 +410,18 @@ sub has_child {
     return;
 }
 
-sub delete_child {  #  remove a child from a list.
+#  Remove a child from a list.
+#  The no_delete_cache arg means the caller promises to
+#  clean up the cache and any circular refs.
+sub delete_child {  
     my $self = shift;
     my %args = @_;
+    my $target_child = $args{child};
+
     my $i = 0;
     foreach my $child ($self->get_children) {
-        if ($child eq $args{child}) {
-            splice (@{$self->{_CHILDREN}}, $i, 1);
+        if ($child eq $target_child) {
+            splice @{$self->{_CHILDREN}}, $i, 1;
             if (!$args{no_delete_cache}) {
                 $child->delete_cached_values_below;
             }
@@ -431,12 +436,15 @@ sub delete_child {  #  remove a child from a list.
 sub delete_children {
     my $self = shift;
     my %args = @_;
+    my $children = $args{children};
+
     croak "children argument not specified or not an array ref"
-        if ! defined $args{children} || ! ref ($args{children}) =~ /ARRAY/;
+        if ! defined $children || ! ref ($children) =~ /ARRAY/;
+
     my $count = 0;
-    foreach my $child (@{$args{children}}) {
-        #  function returns 1 if it deletes something, undef otherwise
-        $count ++ if (defined $self->delete_child (child => $child));
+    foreach my $child (@$children) {
+        #  delete_child returns 1 if it deletes something, undef otherwise
+        $count ++ if defined $self->delete_child (%args, child => $child);
     }
     return $count;
 }

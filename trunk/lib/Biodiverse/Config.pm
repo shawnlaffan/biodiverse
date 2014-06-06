@@ -200,7 +200,7 @@ if ($ENV{BDV_PP_BUILDING}) {
       or croak "Cannot open $Bin via File::BOM\n";
     $fh->close;
 
-    #  exercide the unicode regexp matching - needed for the spatial conditions
+    #  exercise the unicode regexp matching - needed for the spatial conditions
     use 5.016;
     use feature 'unicode_strings';
     my $string = "sp_self_only () and \N{WHITE SMILING FACE}";

@@ -7,6 +7,7 @@ use English qw { -no_match_vars };
 
 
 use PAR::Packer;
+use Module::ScanDeps 1.13;
 BEGIN {
     eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
 }
@@ -39,6 +40,8 @@ my $script     = $opt->script;
 my $out_folder = $opt->out_folder // cwd();
 my $verbose    = $opt->verbose ? ' -v' : q{};
 my $execute    = $opt->execute ? ' -x' : q{};
+
+die "Script file $script does not exist or is unreadable" if !-r $script;
 
 
 my $root_dir = Path::Class::file ($script)->dir->parent;

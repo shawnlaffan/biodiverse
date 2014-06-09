@@ -6,6 +6,7 @@ use warnings;
 use English ( -no_match_vars );
 
 use Carp;
+use List::Util qw /min/;
 
 our $VERSION = '0.99_001';
 
@@ -46,9 +47,26 @@ my $text_idx      = 0;  # index in combo box
 my $raster_idx    = 1;  # index in combo box of raster format
 my $shapefile_idx = 2;  # index in combo box 
 
-my $txtcsv_filter; # maintain reference for these, to allow referring when import method changes
+# maintain reference for these, to allow referring when import method changes
+my $txtcsv_filter; 
 my $allfiles_filter;  
 my $shapefiles_filter;  
+
+my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
+Set to 'is_lat' if column contains latitude values,
+is_lon' if longitude values. Leave as blank if neither.
+END_LL_TOOLTIP_TEXT
+  ;
+
+my $max_row_spinner_tooltip_text = <<'END_MAX_ROW_TOOLTIP_TEXT'
+Too many columns will slow down the GUI.
+Set this to a small number to make it
+manageable when the input file has a large
+number of columns and the options can be set
+using the first few columns,
+e.g. a large matrix format file
+END_MAX_ROW_TOOLTIP_TEXT
+  ;
 
 ##################################################
 # High-level procedure
@@ -197,7 +215,17 @@ sub run {
         # add new params to args
         push @{$args{parameters}}, @{$raster_args{parameters}};
     }
-    
+    if ($read_format == $text_idx or $read_format == $shapefile_idx) {
+        my $max_col_spinner = {
+            name       => 'max_opt_cols',
+            type       => 'integer',
+            default    => 100,
+            label_text => 'Maximum number of columns to show',
+            tooltip    => $max_row_spinner_tooltip_text,
+        };
+        push @{$args{parameters}}, $max_col_spinner;
+    }
+
     my %import_params;
     my $table_params;
     $table_params = $args{parameters};
@@ -389,6 +417,7 @@ sub run {
             $gui->get_widget('wndMain'),
             $col_options,
             $file_list_as_text,
+            $import_params{max_opt_cols},
         );
         
         GET_COLUMN_TYPES:
@@ -1291,13 +1320,16 @@ sub make_columns_dialog {
     # We have to dynamically generate the choose columns dialog since
     # the number of columns is unknown
 
-    my $header      = shift; # ref to column header array
-    my $wnd_main    = shift;
-    my $row_options = shift;
-    my $file_list   = shift;
+    my $header       = shift; # ref to column header array
+    my $wnd_main     = shift;
+    my $row_options  = shift;
+    my $file_list    = shift;
+    my $max_opt_rows = shift || 100;
 
-    my $num_columns = @$header;
-    say "[GUI] Generating make columns dialog for $num_columns columns";
+    #  don't try to generate ludicrous number of rows...
+    my $num_columns = min (scalar @$header, $max_opt_rows);
+    my $quant = $num_columns == scalar @$header ? q{} : 'first';
+    say "[GUI] Generating make columns dialog for $quant $num_columns columns";
 
     # Make dialog
     my $dlg = Gtk2::Dialog->new(
@@ -1382,6 +1414,7 @@ sub make_columns_dialog {
     foreach my $i (0..($num_columns - 1)) {
         my $row_label_text = $header->[$i] // q{};
         add_row($row_widgets, $table, $i, $row_label_text, $row_options);
+        #last if $i >= $max_opt_rows;  
     }
 
     $dlg->set_resizable(1);
@@ -1397,12 +1430,6 @@ sub make_columns_dialog {
 
     return ($dlg, $row_widgets);
 }
-
-my $lat_lon_widget_tooltip_text = <<'END_LL_TOOLTIP_TEXT'
-Set to 'is_lat' if column contains latitude values,
-is_lon' if longitude values. Leave as blank if neither.
-END_LL_TOOLTIP_TEXT
-  ;
 
 sub add_row {
     my ($row_widgets, $table, $col_id, $header, $row_options) = @_;

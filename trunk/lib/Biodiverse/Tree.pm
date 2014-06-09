@@ -235,7 +235,7 @@ sub exists_node {
             $name = $args{node_ref}->get_name;
         }
         else {
-            return;  #  should we croak instead?  
+            croak 'niether name nor node_ref argument passed';  
         }
     }
     return exists $self->{TREE_BY_NAME}{$name};
@@ -1835,9 +1835,7 @@ sub trim {
             }
         }
     }
-    else {
-        $trim = {};
-    }
+    $trim //= {};
     my %trim_hash = $self->array_to_hash_keys (list => $trim);  #  makes a copy
 
     #  we only want to consider those not being explicitly kept (included)

@@ -2,7 +2,7 @@ package Biodiverse::GUI::Tabs::Tab;
 use strict;
 use warnings;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Gtk2;
 use Biodiverse::GUI::GUIManager;

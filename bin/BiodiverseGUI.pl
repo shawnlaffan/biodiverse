@@ -10,7 +10,7 @@ use 5.010;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 local $OUTPUT_AUTOFLUSH = 1;
 

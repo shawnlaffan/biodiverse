@@ -35,7 +35,7 @@ use Biodiverse::Indices;
 use Geo::GDAL;
 
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use parent qw {Biodiverse::Common};
 

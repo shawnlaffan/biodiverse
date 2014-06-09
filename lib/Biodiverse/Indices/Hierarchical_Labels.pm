@@ -6,7 +6,7 @@ use warnings;
 use Scalar::Util qw /blessed/;
 use Biodiverse::Progress;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 ######################################################
 #

@@ -43,16 +43,11 @@ sub main {
         done_testing;
         return 0;
     }
-    
+
     foreach my $sub (@test_subs) {
         no strict 'refs';
         $sub->();
     }
-    #test_shuffle_terminal_names();
-    #test_node_hash_keys_match_node_names();
-    #test_collapse_tree();
-    #test_export_shapefile();
-    #test_export_tabular_tree();
 
     done_testing;
     return 0;

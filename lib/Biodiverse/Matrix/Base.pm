@@ -151,9 +151,9 @@ sub load_data {
 
     my $in_sep_char = $args{sep_char};
     if (! defined $in_sep_char) {
-        $in_sep_char = $self -> guess_field_separator (string => $header);
+        $in_sep_char = $self->guess_field_separator (string => $header);
     }
-    my $eol = $self -> guess_eol (string => $header);
+    my $eol = $self->guess_eol (string => $header);
 
     #  Re-open the file as the header is often important to us
     #  (seeking back to zero causes probs between File::BOM and Text::CSV_XS)
@@ -167,9 +167,9 @@ sub load_data {
 
     my $input_quote_char = $args{input_quote_char};
     if (! defined $input_quote_char) {  #  guess the quotes character
-        $input_quote_char = $self -> guess_quote_char (string => \$whole_file);
+        $input_quote_char = $self->guess_quote_char (string => \$whole_file);
         #  if all else fails...
-        $input_quote_char = $self -> get_param ('QUOTES') if ! defined $input_quote_char;
+        $input_quote_char = $self->get_param ('QUOTES') if ! defined $input_quote_char;
     }
 
     my $IDcount = 0;
@@ -178,11 +178,11 @@ sub load_data {
     my $out_sep_char = $self->get_param('JOIN_CHAR');
     my $out_quote_char = $self->get_param('QUOTES');
     
-    my $in_csv = $self -> get_csv_object (
+    my $in_csv = $self->get_csv_object (
         sep_char    => $in_sep_char,
         quote_char  => $input_quote_char,
     );
-    my $out_csv = $self -> get_csv_object (
+    my $out_csv = $self->get_csv_object (
         sep_char    => $out_sep_char,
         quote_char  => $out_quote_char,
     );
@@ -191,7 +191,7 @@ sub load_data {
 
     open (my $fh, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
 
-    my $lines = $self -> get_next_line_set (
+    my $lines = $self->get_next_line_set (
         progress            => $args{progress_bar},
         file_handle         => $fh,
         target_line_count   => $lines_to_read_per_chunk,
@@ -199,7 +199,7 @@ sub load_data {
         csv_object          => $in_csv,
     );
 
-    #$fh -> close;
+    #$fh->close;
     
     #  two pass system - one reads in the labels and data
     #  the other puts them into the matrix
@@ -215,7 +215,7 @@ sub load_data {
     while (my $flds_ref = shift @$lines) {
 
         if (scalar @$lines == 0) {
-            $lines = $self -> get_next_line_set (
+            $lines = $self->get_next_line_set (
                 progress           => $args{progress_bar},
                 file_handle        => $fh,
                 file_name          => $file,
@@ -236,21 +236,19 @@ sub load_data {
         );
 
         if ($element_properties) {
+            #  test include and exclude before remapping
+            next BY_LINE
+              if $element_properties->get_element_exclude (element => $label)
+                || !$element_properties->get_element_include (element => $label);
 
             my $remapped_label
-                = $element_properties -> get_element_remapped (element => $label);
-
-            next BY_LINE if $element_properties -> get_element_exclude (element => $label);
-
-            #  test include and exclude before remapping
-            my $include = $element_properties -> get_element_include (element => $label);
-            next BY_LINE if defined $include and not $include;
+                = $element_properties->get_element_remapped (element => $label);
 
             if (defined $remapped_label) {
                 $label = $remapped_label;
             }
         }
-        
+
         #print "IDcount is $IDcount\n";
 
         $label_list{$IDcount} = $label;
@@ -258,7 +256,7 @@ sub load_data {
 
         #  strip the leading labels and other data
         splice (@$flds_ref, 0, $values_start_col);  
-        
+
         push @data, $flds_ref;
         push @cols_to_use, $valid_col_index;
 

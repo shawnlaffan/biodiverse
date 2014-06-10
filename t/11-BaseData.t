@@ -66,6 +66,10 @@ my @setup = (
     },
 );
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @test_subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
 
 exit main( @ARGV );
 
@@ -81,18 +85,11 @@ sub main {
         done_testing;
         return 0;
     }
-    
-    test_import();
-    test_import_small();
-    test_bounds();
-    test_coords_near_zero();
-    test_rename_labels();
-    test_multidimensional_import();
-    test_reorder_axes();
-    test_attach_ranges_and_sample_counts();
-    test_roundtrip_delimited_text();
-    test_roundtrip_raster();
-    test_roundtrip_shapefile();
+
+    foreach my $sub (@test_subs) {
+        no strict 'refs';
+        $sub->();
+    }
     
     done_testing;
     return 0;

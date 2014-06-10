@@ -1102,12 +1102,8 @@ sub list2csv {  #  return a csv string from a list of values
         @_,
     );
 
-    my $csv_line = $args{csv_object};
-    if (!defined $csv_line
-        #or (blessed $csv_line) !~ /Text::CSV_XS/
-        ) {
-        $csv_line = $self->get_csv_object (@_);
-    }
+    my $csv_line = $args{csv_object}
+      // $self->get_csv_object (@_);
 
     if ($csv_line->combine(@{$args{list}})) {
         return $csv_line->string;
@@ -1121,23 +1117,21 @@ sub list2csv {  #  return a csv string from a list of values
     return;
 }
 
-sub csv2list {  #  return a list of values from a csv string
+#  return a list of values from a csv string
+sub csv2list {
     my $self = shift;
     my %args = @_;
 
-    my $csv_obj = $args{csv_object};
-    if (! defined $csv_obj
-        #|| (blessed $csv_obj) !~ /Text::CSV_XS/
-        ) {
-        $csv_obj = $self->get_csv_object (%args);
-    }
+    my $csv_obj = $args{csv_object}
+                // $self->get_csv_object (%args);
+
     my $string = $args{string};
     $string = $$string if ref $string;
 
-    my @Fld;
     if ($csv_obj->parse($string)) {
         #print "STRING IS: $string";
-        @Fld = $csv_obj->fields;
+        my @Fld = $csv_obj->fields;
+        return wantarray ? @Fld : \@Fld;
     }
     else {
         if (length $string > 50) {
@@ -1157,8 +1151,6 @@ sub csv2list {  #  return a list of values from a csv string
         );
         croak $error_string;
     }
-
-    return wantarray ? @Fld : \@Fld;
 }
 
 #  get a csv object to pass to the csv routines
@@ -1193,9 +1185,7 @@ sub get_csv_object {
         empty_is_undef      => 1,
     );
 
-    if (! defined $args{escape_char}) {
-        $args{escape_char} = $args{quote_char};
-    }
+    $args{escape_char} //= $args{quote_char};
 
     foreach my $arg (keys %args) {
         if (! exists $valid_csv_args{$arg}) {
@@ -1203,7 +1193,7 @@ sub get_csv_object {
         }
     }
 
-    my $csv = Text::CSV_XS -> new({%args});
+    my $csv = Text::CSV_XS->new({%args});
 
     croak Text::CSV_XS->error_diag ()
       if ! defined $csv;
@@ -1214,7 +1204,7 @@ sub get_csv_object {
 sub dequote_element {
     my $self = shift;
     my %args = @_;
-    
+
     my $quotes = $args{quote_char};
     my $el     = $args{element};
 

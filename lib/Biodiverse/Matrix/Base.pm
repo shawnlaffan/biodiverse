@@ -234,6 +234,7 @@ sub load_data {
             list       => \@tmp,
             csv_object => $out_csv,
         );
+        $label = $self->dequote_element(element => $label, quote_char => $out_quote_char);
 
         if ($element_properties) {
             #  test include and exclude before remapping

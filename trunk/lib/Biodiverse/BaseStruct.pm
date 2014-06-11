@@ -27,9 +27,6 @@ use Geo::Shapefile::Writer;
 
 our $VERSION = '0.99_001';
 
-#require Biodiverse::Config;
-#my $progress_update_interval = $Biodiverse::Config::progress_update_interval;
-
 my $EMPTY_STRING = q{};
 
 use parent qw /Biodiverse::Common/; #  access the common functions as methods
@@ -2486,9 +2483,7 @@ sub add_element {
 
     croak "element not specified\n" if ! defined $element;
     
-    #  don't re-create
-    #my $el_array = eval {$self->get_element_name_as_array};
-    #return if $el_array;
+    #  don't re-create the element array
     return if $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY};
 
     my $quote_char = $self->get_param('QUOTES');
@@ -2499,8 +2494,13 @@ sub add_element {
         csv_object => $args{csv_object},
     );
 
-    for my $el (@$element_list_ref) {
-        $el //= ($quote_char . $quote_char);
+    if (scalar @$element_list_ref == 1) {
+        $element_list_ref->[0] //= ($quote_char . $quote_char)
+    }
+    else {
+        for my $el (@$element_list_ref) {
+            $el //= $EMPTY_STRING;
+        }
     }
 
     $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY} = $element_list_ref;
@@ -2649,9 +2649,11 @@ sub exists_element {
     my $self = shift;
     my %args = @_;
 
-    defined $args{element} || croak "element not specified\n";
+    my $el = $args{element}
+      // croak "element not specified\n";
 
-    return exists $self->{ELEMENTS}{$args{element}};
+    my $exists = exists $self->{ELEMENTS}{$el};
+    return $exists;
 }
 
 sub exists_sub_element {
@@ -2661,34 +2663,42 @@ sub exists_sub_element {
 
     my %args = @_;
 
-    defined $args{element} || croak "Argument 'element' not specified\n";
-    defined $args{subelement} || croak "Argument 'subelement' not specified\n";
-    my $element = $args{element};
-    my $subelement = $args{subelement};
+    #defined $args{element} || croak "Argument 'element' not specified\n";
+    #defined $args{subelement} || croak "Argument 'subelement' not specified\n";
+    my $element = $args{element}
+      // croak "Argument 'element' not specified\n";
+    my $subelement = $args{subelement}
+      // croak "Argument 'subelement' not specified\n";
 
-    return if not exists $self->{ELEMENT}{$element}{SUBELEMENTS};  #  don't autovivify
+    no autovivification;
     return exists $self->{ELEMENT}{$element}{SUBELEMENTS}{$subelement};
 }
 
 sub add_values {  #  add a set of values and their keys to a list in $element
     my $self = shift;
     my %args = @_;
-    croak "element not specified\n" if not defined $args{element};
-    my $element = $args{element};
+
+    my $element = $args{element}
+      // croak "element not specified\n";
     delete $args{element};
 
-    foreach my $key (keys %args) {  #  we could assign it directly, but this ensures everything is uppercase
-        $self->{ELEMENTS}{$element}{uc($key)} = $args{$key};
+    my $el_ref = $self->{ELEMENTS}{$element};
+    #  we could assign it directly, but this ensures everything is uppercase
+    #  {is uppercase necessary?}
+    foreach my $key (keys %args) {
+        $el_ref->{uc($key)} = $args{$key};
     }
 
     return;
 }
 
-sub increment_values {  #  increment a set of values and their keys to a list in $element
+#  increment a set of values and their keys to a list in $element
+sub increment_values {
     my $self = shift;
     my %args = @_;
-    defined $args{element} || croak "element not specified";
-    my $element = $args{element};
+
+    my $element = $args{element}
+      // croak "element not specified";
     delete $args{element};
 
     #  we could assign it directly, but this ensures everything is uppercase
@@ -3162,25 +3172,27 @@ sub get_hash_list_keys_across_elements {
 
 #  return a reference to the specified list
 #  - allows for direct operation on its values
-sub get_list_ref {  
+sub get_list_ref {
     my $self = shift;
     my %args = (
         autovivify => 1,
         @_,
     );
 
-    croak "Argument 'list' not defined\n" if ! defined $args{list};
-    croak "Argument 'element' not defined\n" if ! defined $args{element};
+    my $list    = $args{list}
+      // croak "Argument 'list' not defined\n";
+    my $element = $args{element}
+      // croak "Argument 'element' not defined\n";
 
-    croak "Element $args{element} does not exist"
-      if ! $self->exists_element (element => $args{element});
+    croak "Element $args{element} does not exist\n"
+      if ! $self->exists_element (element => $element);
 
-    my $el = $self->{ELEMENTS}{$args{element}};
-    if (! exists $el->{$args{list}}) {
+    my $el = $self->{ELEMENTS}{$element};
+    if (! exists $el->{$list}) {
         return if ! $args{autovivify};  #  should croak?
-        $el->{$args{list}} = {};  #  should we default to a hash?
+        $el->{$list} = {};  #  should we default to a hash?
     }
-    return $el->{$args{list}};
+    return $el->{$list};
 }
 
 sub get_sample_count {
@@ -3245,7 +3257,7 @@ sub get_base_stats_all {
 sub sample_counts_are_floats {
     my $self = shift;
 
-    my $cached_val = $self->get_param('SAMPLE_COUNTS_ARE_FLOATS');
+    my $cached_val = $self->get_cached_value('SAMPLE_COUNTS_ARE_FLOATS');
     return $cached_val if defined $cached_val;
     
     foreach my $element ($self->get_element_list) {
@@ -3254,12 +3266,12 @@ sub sample_counts_are_floats {
         next if !(fmod ($count, 1));
 
         $cached_val = 1;
-        $self->set_param (SAMPLE_COUNTS_ARE_FLOATS => 1);
+        $self->set_cached_value(SAMPLE_COUNTS_ARE_FLOATS => 1);
 
         return $cached_val;
     }
 
-    $self->set_param(SAMPLE_COUNTS_ARE_FLOATS => 0);
+    $self->set_cached_value(SAMPLE_COUNTS_ARE_FLOATS => 0);
 
     return $cached_val;
 }

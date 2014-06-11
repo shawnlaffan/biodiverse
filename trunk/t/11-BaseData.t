@@ -869,10 +869,12 @@ sub test_coords_near_zero {
                 push @groups, "$i:$j";
             }
         }
-        foreach my $group (@groups) {
-            ok ($bd->exists_group(group => $group), "Group $group exists");
-        }
-        
+        subtest 'Requisite groups exist' => sub {
+            foreach my $group (@groups) {
+                ok ($bd->exists_group(group => $group), "Group $group exists");
+            }
+        };
+
         #  should also text the extents of the data set, min & max on each axis
 
         my $bounds = $bd->get_coord_bounds;

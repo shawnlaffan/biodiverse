@@ -11,6 +11,7 @@ use warnings;
 use Data::Dumper;
 use Carp;
 use POSIX;
+use List::Util qw /max/;
 
 our $VERSION = '0.99_001';
 
@@ -958,12 +959,12 @@ sub on_scrollbars_scroll {
 # Calculate pixels-per-unit to make image fit
 sub fit_grid {
     my $self = shift;
-    if (! defined $self->{width_px} or ! defined $self->{height_px}) {
+    if (!$self->{width_px} or !$self->{height_px}) {
         #carp "width_px and/or height_px not defined\n";
         return;
     }
-    my $ppu_width = $self->{width_px} / $self->{width_units};
-    my $ppu_height = $self->{height_px} / $self->{height_units};
+    my $ppu_width = $self->{width_px} / ($self->{width_units} // 1);
+    my $ppu_height = $self->{height_px} / ($self->{height_units} // 1);
     my $min_ppu = $ppu_width < $ppu_height ? $ppu_width : $ppu_height;
     $self->{canvas}->set_pixels_per_unit( $min_ppu );
     #print "[Grid] Setting grid zoom (pixels per unit) to $min_ppu\n";
@@ -980,8 +981,10 @@ sub resize_background_rect {
         # Make it the full visible area
         my ($width, $height) = $self->{canvas}->c2w($self->{width_px}, $self->{height_px});
         if (not $self->{dragging}) {
-            $self->{back_rect}->set(    x2 => max($width, $self->{width_units}),
-                                    y2 => max($height, $self->{height_units}));
+            $self->{back_rect}->set(
+                x2 => max($width,  $self->{width_units} // 1),
+                y2 => max($height, $self->{height_units} // 1),
+            );
             $self->{back_rect}->lower_to_bottom();
         }
     }
@@ -1032,9 +1035,7 @@ sub reposition {
     return;
 }
 
-sub max {
-    return ($_[0] > $_[1]) ? $_[0] : $_[1];
-}
+
 
 sub on_scroll {
     my $self = shift;

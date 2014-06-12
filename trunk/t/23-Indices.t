@@ -9,7 +9,7 @@ use Carp;
 #use lib "$Bin/lib";
 use rlib;
 
-use Test::More tests => 21;
+use Test::More tests => 20;
 use Test::Exception;
 
 local $| = 1;
@@ -126,19 +126,19 @@ my $bd = get_basedata_object(
     
     #  this should throw an exception
     my %results = eval {
-	$indices->run_calculations(
-	    calculations  => ['calc_abc'],
-	    element_list1 => ['1000:1000'],
-	);
+        $indices->run_calculations(
+            calculations  => ['calc_abc'],
+            element_list1 => ['1000:1000'],
+        );
     };
     $e = $EVAL_ERROR;
     ok ($e, 'calc_abc with non-existent group throws error');
     
     $valid_calcs = eval {
-	$indices->get_valid_calculations (
-	    calculations   => [qw /calc_richness calc_abc calc_abc2 calc_abc3/],
-	    nbr_list_count => 1,
-	);
+        $indices->get_valid_calculations (
+            calculations   => [qw /calc_richness calc_abc calc_abc2 calc_abc3/],
+            nbr_list_count => 1,
+        );
     };
     $e = $EVAL_ERROR;
     $valid_calcs = $indices->get_valid_calculations_to_run;
@@ -150,25 +150,42 @@ my $bd = get_basedata_object(
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     my %calculations = eval {$indices->get_calculations_as_flat_hash};
 
-    my (%names, %descr);
+    my (%names, %descr, %indices, %index_descr);
     foreach my $calc (keys %calculations) {
-	my $metadata = $indices->get_args (sub => $calc);
-	say 'INDICES';
-	$names{$metadata->{name}}++;
-	$descr{$metadata->{description}}++;
+        my $metadata = $indices->get_args (sub => $calc);
+        $names{$metadata->{name}}++;
+        
+        $descr{$metadata->{description}}++;
+        foreach my $index (keys %{$metadata->{indices}}) {
+            $indices{$index}++;
+            #  duplicate index descriptions are OK
+            #my $index_desc = $metadata->{indices}{$index}{description};
+            #$index_descr{$index_desc}++;
+        }
     }
     
-    is (scalar keys %names, scalar keys %calculations, 'No duplicate names');
-    is (scalar keys %descr, scalar keys %calculations, 'No duplicate descriptions');
+    #is (scalar keys %names, scalar keys %calculations, 'No duplicate names');
+    #is (scalar keys %descr, scalar keys %calculations, 'No duplicate descriptions');
 
     subtest 'No duplicate names' => sub {
-	foreach my $name (sort keys %names) {
-	    is ($names{$name}, 1, $name);
-	}
+        check_duplicates (\%names);
     };
     subtest 'No duplicate descriptions' => sub {
-	foreach my $desc (sort keys %descr) {
-	    is ($descr{$desc}, 1, $desc);
-	}
+        check_duplicates (\%descr);
     };
+    subtest 'No duplicate index names' => sub {
+        check_duplicates->(\%indices);
+    };
+#    Duplicate index descriptions are OK.  
+#    subtest 'No duplicate index descriptions' => sub {
+#        check_duplicates->(\%index_descr);
+#    };
+
+}
+
+sub check_duplicates {
+    my $hashref = shift;
+    foreach my $key (sort keys %$hashref) {
+        is ($hashref->{$key}, 1, $key);
+    }
 }

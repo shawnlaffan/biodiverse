@@ -51,10 +51,13 @@ sub get_lbp_stats_objects_abc2 {
 sub get_metadata_calc_lbprop_hashes_abc2 {
     my $self = shift;
 
-    my $desc = 'Hashes of the labels and their property values '
-             . 'used in the label properties calculations. '
-             . 'Hash keys are the property values, '
-             . 'hash values are the property value frequencies.';
+    my $desc = <<'END_OF_DESC'
+Hashes of the labels and their property values
+used in the local range weighted label properties calculations.
+Hash keys are the property values,
+hash values are the property value frequencies.
+END_OF_DESC
+  ;
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
@@ -68,7 +71,7 @@ sub get_metadata_calc_lbprop_hashes_abc2 {
 
     my %arguments = (
         description     => $desc,
-        name            => 'Label property hashes',
+        name            => 'Label property hashes (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         uses_nbr_lists  => 1,
@@ -112,7 +115,7 @@ sub get_metadata_calc_lbprop_stats_abc2 {
 
     my %arguments = (
         description     => $desc,
-        name            => 'Label property summary stats',
+        name            => 'Label property summary stats (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         uses_nbr_lists  => 1,
@@ -155,12 +158,12 @@ sub calc_lbprop_stats_abc2 {
 sub get_metadata_calc_lbprop_quantiles_abc2 {
     my $self = shift;
 
-    my $desc = "List of quantiles for each label property across both neighbour sets\n";
+    my $desc = "List of quantiles for each label property across both neighbour sets (local range weighted)\n";
     my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
 
     my %arguments = (
         description     => $desc,
-        name            => 'Label property quantiles',
+        name            => 'Label property quantiles (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         uses_nbr_lists  => 1,
@@ -200,12 +203,12 @@ sub calc_lbprop_quantiles_abc2 {
 sub get_metadata_calc_lbprop_gistar_abc2 {
     my $self = shift;
 
-    my $desc = 'List of Getis-Ord Gi* statistic for each label property across both neighbour sets';
+    my $desc = 'List of Getis-Ord Gi* statistic for each label property across both neighbour sets (local range weighted)';
     my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
     my %arguments = (
         description     => $desc,
-        name            => 'Label property Gi* statistics',
+        name            => 'Label property Gi* statistics (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         pre_calc_global => [qw /_get_lbprop_global_summary_stats_range_weighted/],

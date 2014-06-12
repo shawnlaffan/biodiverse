@@ -9,7 +9,7 @@ use Carp;
 #use lib "$Bin/lib";
 use rlib;
 
-use Test::More tests => 17;
+use Test::More tests => 21;
 use Test::Exception;
 
 local $| = 1;
@@ -20,21 +20,21 @@ use Biodiverse::TestHelpers qw {:basedata :tree};
 
 use Scalar::Util qw /blessed/;
 
+#  ideally we shouldn't need to do this but the hierarchical subs need it
+my @res = (10, 10);
+my $bd = get_basedata_object(
+    x_spacing  => $res[0],
+    y_spacing  => $res[1],
+    x_max      => $res[0],
+    y_max      => $res[1],
+    CELL_SIZES => \@res,
+);
+
+
 {
     #  some helper vars
     my ($is_error, $e);
     
-    #  ideally we shouldn't need to do this but the hierarchical subs need it
-    my @res = (10, 10);
-    my $bd = get_basedata_object(
-        x_spacing  => $res[0],
-        y_spacing  => $res[1],
-        x_max      => $res[0],
-        y_max      => $res[1],
-        CELL_SIZES => \@res,
-    );
-
-
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     is (blessed $indices, 'Biodiverse::Indices', 'Sub new works');
 
@@ -146,3 +146,29 @@ use Scalar::Util qw /blessed/;
     
 }
 
+{
+    my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
+    my %calculations = eval {$indices->get_calculations_as_flat_hash};
+
+    my (%names, %descr);
+    foreach my $calc (keys %calculations) {
+	my $metadata = $indices->get_args (sub => $calc);
+	say 'INDICES';
+	$names{$metadata->{name}}++;
+	$descr{$metadata->{description}}++;
+    }
+    
+    is (scalar keys %names, scalar keys %calculations, 'No duplicate names');
+    is (scalar keys %descr, scalar keys %calculations, 'No duplicate descriptions');
+
+    subtest 'No duplicate names' => sub {
+	foreach my $name (sort keys %names) {
+	    is ($names{$name}, 1, $name);
+	}
+    };
+    subtest 'No duplicate descriptions' => sub {
+	foreach my $desc (sort keys %descr) {
+	    is ($descr{$desc}, 1, $desc);
+	}
+    };
+}

@@ -432,7 +432,7 @@ sub calc_pe_lists {
 sub get_metadata_calc_pd_clade_contributions {
 
     my %arguments = (
-        description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
+        description     => 'Contribution of each node and its descendents to the Phylogenetic diversity (PD) calculation.',
         name            => 'PD clade contributions',
         reference       => '',
         type            => 'Phylogenetic Indices', 

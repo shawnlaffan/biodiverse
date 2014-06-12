@@ -1211,8 +1211,9 @@ sub get_metadata_get_node_range_hash {
 }
 
 #  needs a cleanup - see get_global_node_abundance_hash
-sub get_node_range_hash { # calculate the range occupied by each node/clade in a tree
-                          # this function expects a tree reference as an argument
+# calculate the range occupied by each node/clade in a tree
+# this function expects a tree reference as an argument
+sub get_node_range_hash { 
     my $self = shift;
     my %args = @_;
 
@@ -1220,8 +1221,8 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
 
     my $progress_bar = Biodiverse::Progress->new();    
 
-    print "[PD INDICES] Calculating range for each node in the tree\n";
-    
+    say "[PD INDICES] Calculating range for each node in the tree";
+
     my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
     my $nodes = $tree->get_node_hash;
     my %node_range;
@@ -1237,8 +1238,8 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
         $progress,
     );
 
-    foreach my $node_name (keys %{$nodes}) {
-        my $node  = $tree->get_node_ref (node => $node_name);
+    foreach my $node_name (keys %$nodes) {
+        my $node = $nodes->{$node_name};
         if ($return_lists) {
             my @range = $self->get_node_range (
                 %args,
@@ -1309,7 +1310,7 @@ sub get_global_node_abundance_hash {
 
     my $progress_bar = Biodiverse::Progress->new();    
 
-    print "[PD INDICES] Calculating abundance for each node in the tree\n";
+    say '[PD INDICES] Calculating abundance for each node in the tree';
 
     my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
     my $nodes = $tree->get_node_hash;

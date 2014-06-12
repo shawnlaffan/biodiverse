@@ -866,7 +866,7 @@ sub get_metadata_calc_pd_endemism {
         reference       => 'See Faith (2004) Cons Biol.  http://dx.doi.org/10.1111/j.1523-1739.2004.00330.x',
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc        => ['calc_pe_lists'],
-        pre_calc_global => ['get_trimmed_tree'],
+        pre_calc_global => [qw /get_trimmed_tree/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             PD_ENDEMISM => {
@@ -891,32 +891,21 @@ sub get_metadata_calc_pd_endemism {
 sub calc_pd_endemism {
     my $self = shift;
     my %args = @_;
-    
+
     my $weights   = $args{PE_WTLIST};
     my $tree_ref  = $args{trimmed_tree};
     my $total_len = $tree_ref->get_total_tree_length;
+    my $global_range_hash = $args{PE_RANGELIST};
+    my $local_range_hash  = $args{PE_LOCAL_RANGELIST};
 
     my $pd_e;
     my %pd_e_wts;
 
   LABEL:
     foreach my $label (keys %$weights) {
+        next LABEL if $global_range_hash->{$label} != $local_range_hash->{$label};
+
         my $wt = $weights->{$label};
-
-        my $tree_node = $tree_ref->get_node_ref(node => $label);
-        my $length    = $tree_node->get_length;
-        next LABEL if $wt != $length;
-
-        #  Skip any zero length nodes with any non-endemic child
-        if (!$wt && !$tree_node->is_terminal_node) {
-          CHILD:
-            foreach my $child ($tree_node->get_children) {
-                my $child_name = $child->get_name;
-                next CHILD if !exists $weights->{$child_name};
-                next LABEL if $child->get_length != $weights->{$child_name};
-            }
-        }
-
         $pd_e += $wt;
         $pd_e_wts{$label} = $wt;
     }

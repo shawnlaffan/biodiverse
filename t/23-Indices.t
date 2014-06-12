@@ -163,9 +163,6 @@ my $bd = get_basedata_object(
             #$index_descr{$index_desc}++;
         }
     }
-    
-    #is (scalar keys %names, scalar keys %calculations, 'No duplicate names');
-    #is (scalar keys %descr, scalar keys %calculations, 'No duplicate descriptions');
 
     subtest 'No duplicate names' => sub {
         check_duplicates (\%names);

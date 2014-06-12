@@ -215,16 +215,16 @@ sub run {
         # add new params to args
         push @{$args{parameters}}, @{$raster_args{parameters}};
     }
-    if ($read_format == $text_idx or $read_format == $shapefile_idx) {
+    #if ($read_format == $text_idx or $read_format == $shapefile_idx) {
         my $max_col_spinner = {
             name       => 'max_opt_cols',
             type       => 'integer',
             default    => 100,
-            label_text => 'Maximum number of columns to show',
+            label_text => 'Maximum number of header columns to show options for (includes remap dialogues)',
             tooltip    => $max_row_spinner_tooltip_text,
         };
         push @{$args{parameters}}, $max_col_spinner;
-    }
+    #}
 
     my %import_params;
     my $table_params;
@@ -257,14 +257,11 @@ sub run {
     if ($response ne 'ok') {  
         #  clean up and drop out
         cleanup_new_basedatas(\%multiple_brefs, \%multiple_is_new, $gui)
-            if ($use_new || $one_basedata_per_file);
+            if $use_new || $one_basedata_per_file;
         return;
     }
     my $import_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     %import_params = @$import_params;
-
-    # not needed anymore?
-    # $import_params{multiple_separate} = $import_multiple;
     
     # next stage, if we are reading as raster, just call import function here and exit.
     # for shapefile and text, find columns and ask how to interpret 
@@ -276,14 +273,14 @@ sub run {
 
     if ($read_format == $raster_idx) {
         # just set cell sizes etc values from dialog
-        @cell_origins = ($import_params{raster_origin_e}, $import_params{raster_origin_n});
-        @cell_sizes = ($import_params{raster_cellsize_e}, $import_params{raster_cellsize_n});
+        @cell_origins = ($import_params{raster_origin_e},   $import_params{raster_origin_n});
+        @cell_sizes   = ($import_params{raster_cellsize_e}, $import_params{raster_cellsize_n});
     }
     elsif ($read_format == $shapefile_idx) {
         # process as shapefile
 
         # find available columns from first file, assume all the same
-        croak ('no files given') if !scalar @filenames;
+        croak 'no files given' if !scalar @filenames;
 
         my $fnamebase = $filenames[0];
         $fnamebase =~ s/\.[^.]+?$//;  #  use lazy quantifier so we get chars from the last dot - should use Path::Class::File
@@ -314,7 +311,7 @@ sub run {
         # process as text input, get columns from file
 
         # Get header columns
-        print "[GUI] Discovering columns from $filenames[0]\n";
+        say "[GUI] Discovering columns from $filenames[0]";
         my $fh;
         my $filename_utf8 = Glib::filename_display_name $filenames[0];
 
@@ -518,6 +515,9 @@ sub run {
                 $filenames[0],
                 $type,
                 $other_properties{$type},
+                undef,
+                undef,
+                $import_params{max_opt_cols},
             );
 
             #  now do something with them...
@@ -1545,7 +1545,8 @@ sub get_remap_info {
     my $other_properties = shift || [];
     my $column_overrides = shift;
     my $filename         = shift;
-    
+    my $max_cols_to_show = shift || 100;
+
     my ($_file, $data_dir, $_suffixes) = $data_filename && length $data_filename
         ? fileparse($data_filename)
         : ();
@@ -1575,15 +1576,13 @@ sub get_remap_info {
     my $response = $dlg->run;
     $dlg->destroy;
     
-    if ($response ne 'ok') {  #  drop out
-        return wantarray ? () : {};
-    }
+    return wantarray ? () : {} if ($response ne 'ok');
     
     my $properties_params = Biodiverse::GUI::ParametersTable::extract ($extractors);
     my %properties_params = @$properties_params;
     
     # Get header columns
-    print "[GUI] Discovering columns from $filename\n";
+    say "[GUI] Discovering columns from $filename";
     
     open (my $input_fh, '<:via(File::BOM)', $filename)
       or croak "Cannot open $filename\n";
@@ -1614,14 +1613,9 @@ sub get_remap_info {
         eol        => $eol
     );
 
-    # add non-blank columns
-    # - SWL 20081201 - not sure this is a good idea, should just use all
-    my @headers;
-    foreach my $header (@headers_full) {
-        if ($header) {
-            push @headers, $header;
-        }
-    }
+    my @headers = map
+        {defined $_ ? $_ : '<null>'}
+        @headers_full[0 .. min ($#headers_full, $max_cols_to_show-1)];
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (
         \@headers,

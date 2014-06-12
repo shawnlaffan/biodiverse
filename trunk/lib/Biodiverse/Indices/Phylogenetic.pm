@@ -1287,9 +1287,9 @@ sub get_node_range {
     #  collect the set of non-internal (named) nodes
     #  Possibly should only work with terminals
     #  which would simplify things.
-    foreach my $name (keys %$children) {
-        next if $children->{$name}->is_internal_node;
-        push (@labels, $name);
+    foreach my $node_ref (values %$children) {
+        next if $node_ref->is_internal_node;
+        push @labels, $node_ref->get_name;
     }
 
     my @range = $bd->get_range_union (labels => \@labels);

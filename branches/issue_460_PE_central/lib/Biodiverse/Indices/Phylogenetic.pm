@@ -429,6 +429,76 @@ sub calc_pe_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pe_central {
+
+    my $desc = <<'END_PEC_DESC'
+Phylogenetic endemism (PE).
+Uses labels from neighbour set one but local ranges from across
+both neighbour sets.
+Trims the tree to exclude labels not in the BaseData object.
+END_PEC_DESC
+  ;
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Phylogenetic Endemism central',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        type            => 'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_pe calc_abc2/],
+        pre_calc_global => [qw /get_trimmed_tree get_node_range_hash/],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PEC_WE           => {
+                description => 'Phylogenetic endemism, central variant'
+            },
+            PEC_WE_P         => {
+                description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant'
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_central {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree_ref    = $args{trimmed_tree};
+    my $label_hash1 = $args{label_hash1};
+    #my %label_hash2 = %{$args{label_hash2}};  #  need a copy
+    my $label_hash_all    = $args{label_hash_all};
+    my $global_range_hash = $args{node_range};
+
+    my ($pe, %wt_list, %local_range_list);
+
+    foreach my $label (keys %$label_hash1) {
+        my $local_range  = $label_hash_all->{$label};
+
+        my $node_ref = $tree_ref->get_node_ref (node => $label);
+        my $path     = $node_ref->get_path_lengths_to_root_node;
+        foreach my $name (keys %$path) {
+            my $global_range = $global_range_hash->{$name};
+            my $length = $path->{$name};
+            $local_range_list{$name} += $local_range;  #  WRONG - double counts
+            my $pe_component = eval {$length * $local_range / $global_range} // 0;
+            $pe += $pe_component;
+            $wt_list{$name} += $pe_component;
+        }
+    }
+
+    my $pe_p = $pe ? $pe / $tree_ref->get_total_tree_length : undef;
+
+    my %results = (
+        PEC_WE   => $pe,
+        PEC_WE_P => $pe_p,
+        PEC_WTLIST => \%wt_list,
+        PEC_LOCAL_RANGELIST => \%local_range_list,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_pd_clade_contributions {
 
     my %arguments = (
@@ -1226,7 +1296,7 @@ sub get_node_range_hash {
     my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
     my $nodes = $tree->get_node_hash;
     my %node_range;
-  
+
     my $to_do = scalar keys %$nodes;
     my $count = 0;
     print "[PD INDICES] Progress (% of $to_do nodes): ";

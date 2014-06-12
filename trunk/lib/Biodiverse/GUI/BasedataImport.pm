@@ -1098,9 +1098,7 @@ sub on_up_down {
     if (not $iter) {
         # try other list
         ($model, $iter) = $list2->get_selection->get_selected();
-        if (not $iter) {
-            return;
-        }
+        return if not $iter;
     }
 
     if ($btn eq 'up') {
@@ -1553,14 +1551,12 @@ sub get_remap_info {
 
     # Get filename for the name-translation file
     $filename //= $gui->show_open_dialog("Select $type properties file", '*', $data_dir);
-    if (! defined $filename) {
-        return wantarray ? () : {}
-    };
-    
-    my $remap = Biodiverse::ElementProperties->new;
-    my %args = $remap->get_args (sub => 'import_data');
+    return wantarray ? () : {} if ! defined $filename;
+
+    my $remap  = Biodiverse::ElementProperties->new;
+    my %args   = $remap->get_args (sub => 'import_data');
     my $params = $args{parameters};
-    
+
     #  much of the following is used elsewhere to get file options, almost verbatim.  Should move to a sub.
     my $dlgxml = Gtk2::GladeXML->new($gui->get_glade_file, 'dlgImportParameters');
     my $dlg = $dlgxml->get_widget('dlgImportParameters');

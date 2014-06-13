@@ -9,7 +9,7 @@ use warnings;
 use Data::Dumper;
 use POSIX qw {fmod};
 use Scalar::Util qw /looks_like_number blessed reftype/;
-use List::Util qw /max min sum/;
+use List::Util 1.33 qw /max min sum any all none notall/;
 use Time::HiRes qw /gettimeofday tv_interval/;
 use IO::File;
 use File::BOM qw /:subs/;
@@ -955,29 +955,13 @@ sub import_data {
             my $fields_ref = shift @$lines;
 
             #  skip blank lines or those that failed
-            next BYLINE if not defined $fields_ref;
-            next BYLINE if scalar @$fields_ref == 0;
+            next BYLINE if !defined $fields_ref or !scalar @$fields_ref;
 
             #  should we explicitly exclude or include this record?
-            if (scalar @$exclude_columns) {
-                foreach my $col (@$exclude_columns) {
-                    next BYLINE if $fields_ref->[$col];  #  skip if any are true
-                }
-            }
-            if (scalar @$include_columns) {
-                my $incl;
-
-                CHECK_INCLUDE_COLS:
-                foreach my $col (@$include_columns) {
-                    #  check no more if we get a true value
-                    if ($fields_ref->[$col]) {
-                        $incl = 1;
-                        last CHECK_INCLUDE_COLS;
-                    }
-                }
-                #print "not including \n$line" if ! $incl;
-                next BYLINE if !$incl;  #  skip if none are to be kept
-            }
+            next BYLINE if scalar @$exclude_columns
+                        && any  {$fields_ref->[$_]} @$exclude_columns;
+            next BYLINE if scalar @$include_columns
+                        && none {$fields_ref->[$_]} @$include_columns;
 
             #  get the group for this row
             my @group;
@@ -1012,7 +996,6 @@ sub import_data {
                     }
                     elsif (! looks_like_number ($coord)) {
                         #next BYLINE if $skip_lines_with_undef_groups;
-                        
                         croak "[BASEDATA] Non-numeric group field in column $column"
                              . " ($coord), check your data or cellsize arguments.\n"
                              . "near line $line_num of file $file\n";
@@ -1058,6 +1041,7 @@ sub import_data {
                 list        => \@group,
                 csv_object  => $out_csv,
             );
+            
 
             #  remap it if needed
             if ($use_group_properties) {
@@ -1971,10 +1955,7 @@ sub get_label_columns_for_matrix_import {
     my $use_label_properties = $args{use_label_properties};
 
     my $label_start_col     = $args{label_start_col};
-    my $label_end_col       = $args{label_end_col};
-    if (! defined $label_end_col) {
-        $label_end_col = $#$label_array;
-    }
+    my $label_end_col       = $args{label_end_col} // $#$label_array;
 
     my %label_hash;
     LABEL_COLS:

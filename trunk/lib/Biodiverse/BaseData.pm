@@ -712,6 +712,8 @@ sub import_data {
     my $exclude_columns      = $args{exclude_columns};
     my $include_columns      = $args{include_columns};
     my $binarise_counts      = $args{binarise_counts};  #  make sample counts 1 or 0
+    my $data_in_matrix_form  = $args{data_in_matrix_form};
+    my $allow_empty_groups   = $args{allow_empty_groups};
 
     my $skip_lines_with_undef_groups
       = exists $args{skip_lines_with_undef_groups}
@@ -754,7 +756,7 @@ sub import_data {
         use_label_properties => $use_label_properties,
         group_properties     => $group_properties,
         use_group_properties => $use_group_properties,
-        allow_empty_groups   => $args{allow_empty_groups},
+        allow_empty_groups   => $allow_empty_groups,
         allow_empty_labels   => $args{allow_empty_labels},
     );
 
@@ -855,7 +857,7 @@ sub import_data {
 
         #  parse the header line if we are using a matrix format file
         my $matrix_label_col_hash = {};
-        if ($args{data_in_matrix_form}) {
+        if ($data_in_matrix_form) {
             my $label_start_col = $args{label_start_col};
             my $label_end_col   = $args{label_end_col};
             #  if we've been passed an array then
@@ -1078,7 +1080,7 @@ sub import_data {
             }
 
             my %elements;
-            if ($args{data_in_matrix_form}) {
+            if ($data_in_matrix_form) {
                 %elements =
                     $self->get_labels_from_line_matrix (
                         fields_ref      => $fields_ref,
@@ -1100,19 +1102,19 @@ sub import_data {
                     );
             }
 
-            ADD_ELEMENTS:
+          ADD_ELEMENTS:
             while (my ($el, $count) = each %elements) {
                 if (defined $count) {
                     next ADD_ELEMENTS
-                      if $args{data_in_matrix_form}
+                      if $data_in_matrix_form
                          && $count eq $EMPTY_STRING;
 
                     next ADD_ELEMENTS
-                      if $count == 0 and ! $args{allow_empty_groups};
+                      if !$count and !$allow_empty_groups;
                 }
                 else {  #  don't allow undef counts in matrices
                     next ADD_ELEMENTS
-                      if $args{data_in_matrix_form};
+                      if $data_in_matrix_form;
                 }
                 #  single label col or matrix form data need extra quotes to be stripped
                 #  should clean up mx form on first pass
@@ -1121,7 +1123,7 @@ sub import_data {
                     $el = $self->dequote_element (
                         element    => $el,
                         quote_char => $quotes,
-                    )
+                    );
                 }
 
                 $self->add_element (

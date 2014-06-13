@@ -1270,7 +1270,7 @@ sub calc_local_sample_count_stats {
     if (scalar keys %{$args{label_hash_all}}) {
         $stats = $stats_class->new;
         #my @barry = values %{$args{label_hash_all}};
-        $stats -> add_data (values %{$args{label_hash_all}});
+        $stats->add_data (values %{$args{label_hash_all}});
         $results{ABC3_MEAN_ALL} = $stats->mean;
         $results{ABC3_SD_ALL}   = $stats->standard_deviation;
         $results{ABC3_SUM_ALL}  = $stats->sum;
@@ -1292,10 +1292,7 @@ sub calc_local_sample_count_stats {
         $results{ABC3_SUM_SET2}  = $stats->sum;
     }
     
-    return wantarray
-            ? %results
-            : \%results;
-
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_local_sample_count_lists {

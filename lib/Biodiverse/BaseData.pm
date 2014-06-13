@@ -1041,7 +1041,12 @@ sub import_data {
                 list        => \@group,
                 csv_object  => $out_csv,
             );
-            
+            if (scalar @group == 1) {
+                $group = $self->dequote_element (
+                    element => $group,
+                    quote_char => $quotes,
+                );
+            }
 
             #  remap it if needed
             if ($use_group_properties) {
@@ -1050,9 +1055,10 @@ sub import_data {
                 );
 
                 #  test exclude and include before remapping
-                next BYLINE if $group_properties->get_element_exclude (
+                next BYLINE
+                  if $group_properties->get_element_exclude (
                     element => $group,
-                );
+                  );
 
                 my $include = $group_properties->get_element_include (element => $group)
                               // 1;

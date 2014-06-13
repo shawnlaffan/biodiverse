@@ -444,7 +444,7 @@ END_PEC_DESC
         name            => 'Phylogenetic Endemism central',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Indices',
-        pre_calc        => [qw /_calc_pe calc_abc2/],
+        pre_calc        => [qw /_calc_pe calc_phylo_abc/],
         pre_calc_global => [qw /get_trimmed_tree get_node_range_hash/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
@@ -460,7 +460,8 @@ END_PEC_DESC
     return wantarray ? %arguments : \%arguments;
 }
 
-sub calc_pe_central {
+#  hide for the moment
+sub __calc_pe_central {
     my $self = shift;
     my %args = @_;
 
@@ -1939,10 +1940,9 @@ sub get_metadata_calc_phylo_abc {
         name            =>  'Phylogenetic ABC',
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
         type            =>  'Phylogenetic Indices',
-        pre_calc        =>  'calc_abc',
-        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
+        pre_calc        =>  '_calc_phylo_abc_lists',
+        #pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
-        required_args   => {tree_ref => 1},
         indices         => {
             PHYLO_A => {
                 description  =>  'Length of branches shared by labels in nbr sets 1 and 2',
@@ -1966,60 +1966,19 @@ sub get_metadata_calc_phylo_abc {
     return wantarray ? %arguments : \%arguments;   
 }
 
+my $_calc_phylo_abc_precision = '%.10f';
+
 sub calc_phylo_abc {
     my $self = shift;
     my %args = @_;
 
-    #  seems inefficient, but might clear a memory leak
+    my $A = $args{PHYLO_A_LIST};
+    my $B = $args{PHYLO_B_LIST};
+    my $C = $args{PHYLO_C_LIST};
 
-    my %results = $self->_calc_phylo_abc(%args);
-    return wantarray ? %results : \%results;
-}
-
-my $_calc_phylo_abc_precision = '%.10f';
-
-
-
-sub _calc_phylo_abc {
-    my $self = shift;
-    my %args = @_;
-
-    my $label_hash1 = $args{label_hash1};
-    my $label_hash2 = $args{label_hash2};
-
-    my $tree = $args{trimmed_tree};
-
-    my $nodes_in_path1 = $self->get_path_lengths_to_root_node (
-        %args,
-        labels   => $label_hash1,
-        tree_ref => $tree,
-        el_list  => $args{element_list1},
-    );
-
-    my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
-        %args,
-        labels   => $label_hash2,
-        tree_ref => $tree,
-        el_list  => $args{element_list2},
-    );
-
-    my %A = (%$nodes_in_path1, %$nodes_in_path2); 
-
-    # create a new hash %B for nodes in label hash 1 but not 2
-    # then get length of B
-    my %B = %A;
-    delete @B{keys %$nodes_in_path2};
-    my $phylo_B = sum (0, values %B);
-
-    # create a new hash %C for nodes in label hash 2 but not 1
-    # then get length of C
-    my %C = %A;
-    delete @C{keys %$nodes_in_path1};
-    my $phylo_C = sum (0, values %C);
-
-    # get length of %A = branches not in %B or %C
-    delete @A{keys %B, keys %C};
-    my $phylo_A = sum (0, values %A);
+    my $phylo_A = sum (0, values %$A);
+    my $phylo_B = sum (0, values %$B);
+    my $phylo_C = sum (0, values %$C);
 
     my $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
     
@@ -2048,6 +2007,70 @@ sub _calc_phylo_abc {
         PHYLO_B   => $phylo_B,
         PHYLO_C   => $phylo_C,
         PHYLO_ABC => $phylo_ABC,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+
+
+sub get_metadata__calc_phylo_abc_lists {
+
+    my %arguments = (
+        name            =>  'Phylogenetic ABC lists',
+        description     =>  'Calculate the sets of shared and not shared branches between two sets of labels',
+        type            =>  'Phylogenetic Indices',
+        pre_calc        =>  'calc_abc',
+        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
+        uses_nbr_lists  =>  2,  #  how many sets of lists it must have
+        required_args   => {tree_ref => 1},
+    );
+
+    return wantarray ? %arguments : \%arguments;   
+}
+
+sub _calc_phylo_abc_lists {
+    my $self = shift;
+    my %args = @_;
+
+    my $label_hash1 = $args{label_hash1};
+    my $label_hash2 = $args{label_hash2};
+
+    my $tree = $args{trimmed_tree};
+
+    my $nodes_in_path1 = $self->get_path_lengths_to_root_node (
+        %args,
+        labels   => $label_hash1,
+        tree_ref => $tree,
+        el_list  => $args{element_list1},
+    );
+
+    my $nodes_in_path2 = $self->get_path_lengths_to_root_node (
+        %args,
+        labels   => $label_hash2,
+        tree_ref => $tree,
+        el_list  => $args{element_list2},
+    );
+
+    my %A = (%$nodes_in_path1, %$nodes_in_path2); 
+
+    # create a new hash %B for nodes in label hash 1 but not 2
+    # then get length of B
+    my %B = %A;
+    delete @B{keys %$nodes_in_path2};
+
+    # create a new hash %C for nodes in label hash 2 but not 1
+    # then get length of C
+    my %C = %A;
+    delete @C{keys %$nodes_in_path1};
+
+    # get length of %A = branches not in %B or %C
+    delete @A{keys %B, keys %C};
+
+    my %results = (
+        PHYLO_A_LIST => \%A,
+        PHYLO_B_LIST => \%B,
+        PHYLO_C_LIST => \%C,
     );
 
     return wantarray ? %results : \%results;

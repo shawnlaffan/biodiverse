@@ -554,6 +554,45 @@ sub calc_pe_central_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pe_central_cwe {
+
+    my %arguments = (
+        name            => 'Corrected weighted phylogenetic endemism, central variant',
+        description     => 'What proportion of the PD in neighbour set 1 is '
+                         . 'range-restricted to newighbour sets 1 and 2?',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_pd_node_list/],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PEC_CWE => {
+                description => 'Corrected weighted phylogenetic endemism, central variant',
+            },
+        },
+    );
+    
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_central_cwe {
+    my $self = shift;
+    my %args = @_;
+
+    my $pe      = $args{PEC_WE};
+    my $wt_list = $args{PEC_WTLIST};
+
+    my $pd_included_node_list = $args{PD_INCLUDED_NODE_LIST};
+
+    my $pd = sum @$pd_included_node_list{keys %$wt_list};
+
+    my $cwe = $pd ? $pe / $pd : undef;
+
+    my %results = (
+        PEC_CWE => $cwe,
+    );
+
+    return wantarray ? %results : \%results;
+}
 
 sub get_metadata_calc_pd_clade_contributions {
 

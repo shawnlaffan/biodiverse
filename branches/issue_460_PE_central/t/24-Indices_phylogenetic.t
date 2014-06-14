@@ -22,6 +22,7 @@ use Biodiverse::TestHelpers qw{
 };
 
 my @calcs = qw/
+    calc_pe_central_cwe
     calc_count_labels_on_tree
     calc_labels_not_on_tree
     calc_labels_on_tree
@@ -96,10 +97,12 @@ sub test_pe_central_and_whole {
         calc_pe_lists
         calc_pe_central
         calc_pe_central_lists
+        calc_phylo_corrected_weighted_endemism
+        calc_pe_central_cwe
     /;
 
     my %scalar_indices_to_check;
-    foreach my $whole (qw /PE_WE PE_WE_P/) {
+    foreach my $whole (qw /PE_WE PE_WE_P PE_CWE/) {
         my $central = $whole;
         $central =~ s/^PE/PEC/;
         $scalar_indices_to_check{$whole} = $central;
@@ -144,6 +147,9 @@ sub test_pe_central_and_whole {
         tree_ref           => $tree,
     );
 
+    #  no guarantees that the phylo CWE scores will be smaller for the central variant
+    delete @scalar_indices_to_check{qw/PEC_CWE PE_CWE/};
+
     my ($sp2_res_w, $sp2_res_c) = get_pe_check_hashes (
         $sp2,
         \%scalar_indices_to_check,
@@ -164,7 +170,10 @@ sub test_pe_central_and_whole {
             foreach my $index (sort keys %$w_hash) {
                 my $reftype = ref ($w_hash->{$index});
                 if (!$reftype) {
-                    ok ($c_hash->{$index} <= $w_hash->{$index}, "$index: central <= whole");
+                    ok (
+                        $c_hash->{$index} <= $w_hash->{$index},
+                        "$index: central <= whole",
+                    );
                 }
                 else {
                     my $w_h_ref = $w_hash->{$index};
@@ -778,6 +787,7 @@ __DATA__
     PD_P                => '0.451163454880594',
     PD_P_per_taxon      => '0.0322259610628996',
     PD_per_taxon        => '0.682618105875523',
+    PEC_CWE             => '0.478441635510817',
     PEC_LOCAL_RANGELIST => {
         '34___'      => 4,
         '35___'      => 4,
@@ -1470,6 +1480,7 @@ __DATA__
     PD_P                => '0.0704726738019399',
     PD_P_per_taxon      => '0.0352363369009699',
     PD_per_taxon        => '0.746384615384616',
+    PEC_CWE             => '0.175417769804783',
     PEC_LOCAL_RANGELIST => {
         '34___'      => 1,
         '35___'      => 1,

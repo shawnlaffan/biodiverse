@@ -10,12 +10,8 @@ use Carp;
 
 use Biodiverse::Progress;
 
-use List::Util qw /sum min max/;
-use List::MoreUtils qw /pairwise any/;
+use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
-
-#use Math::BigInt;
-#use POSIX qw /floor/;
 
 our $VERSION = '0.99_001';
 
@@ -444,7 +440,8 @@ END_PEC_DESC
         name            => 'Phylogenetic Endemism central',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Indices',
-        pre_calc        => [qw /_calc_pe_central/],
+        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        pre_calc_global => [qw /get_trimmed_tree/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             PEC_WE           => {
@@ -463,10 +460,23 @@ sub calc_pe_central {
     my $self = shift;
     my %args = @_;
 
-    my @keys = qw /PEC_WE PEC_WE_P/;
+    my $tree_ref    = $args{trimmed_tree};
 
-    my %results;
-    @results{@keys} = @args{@keys};
+    my $pe      = $args{PE_WE};
+    my $pe_p    = $args{PE_WE_P};
+    my $wt_list = $args{PE_WTLIST};
+    my $c_list  = $args{PHYLO_C_LIST};  #  those only in nbr set 2
+
+    #  remove the PE component found only in nbr set 2
+    #  (assuming c_list is shorter than a+b, so this will be the faster approach)
+    $pe -= sum (0, @$wt_list{keys %$c_list});
+
+    $pe_p = $pe ? $pe / $tree_ref->get_total_tree_length : undef;
+
+    my %results = (
+        PEC_WE     => $pe,
+        PEC_WE_P   => $pe_p,
+    );
 
     return wantarray ? %results : \%results;
 }
@@ -485,7 +495,7 @@ END_PEC_DESC
         name            => 'Phylogenetic Endemism central lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Indices',
-        pre_calc        => [qw /_calc_pe_central/],
+        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             PEC_WTLIST           => {
@@ -510,61 +520,32 @@ sub calc_pe_central_lists {
     my $self = shift;
     my %args = @_;
 
-    my @keys = qw /PEC_WTLIST PEC_RANGELIST PEC_LOCAL_RANGELIST/;
-
-    my %results;
-    @results{@keys} = @args{@keys};
-
-    return wantarray ? %results : \%results;
-}
-
-
-sub get_metadata__calc_pe_central {
-
-    my %arguments = (
-        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
-        pre_calc_global => [qw /get_trimmed_tree/],
-        uses_nbr_lists  => 1,  #  how many lists it must have
-    );
-
-    return wantarray ? %arguments : \%arguments;
-}
-
-
-#  Should just return calc_pe when only one neighbour set?
-#  Won't make too much difference though.  
-sub _calc_pe_central {
-    my $self = shift;
-    my %args = @_;
-
-    my $tree_ref    = $args{trimmed_tree};
-
-    my $pe      =   $args{PE_WE};
-    my $pe_p    =   $args{PE_WE_P};
     my %wt_list = %{$args{PE_WTLIST}};    #  need a copy since we will delete from it
     my $c_list  =   $args{PHYLO_C_LIST};  #  those only in nbr set 2
     my $a_list  =   $args{PHYLO_A_LIST};
     my $b_list  =   $args{PHYLO_B_LIST};
+    my (%local_range_list_c, %global_range_list_c);
 
     my $local_range_list  = $args{PE_LOCAL_RANGELIST};
     my $global_range_list = $args{PE_RANGELIST};
 
-    #  remove the PE component found only in nbr set 2
-    #  (assuming c_list is shorter than a+b, so this will be the faster approach)
-    $pe -= sum (@wt_list{keys %$c_list}) // 0;
-    delete @wt_list{keys %$c_list};
+    #  avoid copies and slices if there are no nodes found only in nbr set 2
+    if (scalar keys %$c_list) {
+        #  remove the PE component found only in nbr set 2
+        #  (assuming c_list is shorter than a+b, so this will be the faster approach)
+        delete @wt_list{keys %$c_list};
 
-    $pe_p = $pe ? $pe / $tree_ref->get_total_tree_length : undef;
-
-    #  Keep any node found in nbr set 1
-    my @keepers = (keys $a_list, keys $b_list);
-    my (%local_range_list_c, %global_range_list_c);
-    @local_range_list_c{@keepers}  = @{$local_range_list}{@keepers};
-    @global_range_list_c{@keepers} = @{$global_range_list}{@keepers};
+        #  Keep any node found in nbr set 1
+        my @keepers = keys %wt_list;
+        @local_range_list_c{@keepers}  = @{$local_range_list}{@keepers};
+        @global_range_list_c{@keepers} = @{$global_range_list}{@keepers};
+    }
+    else {
+        %local_range_list_c  = %$local_range_list;
+        %global_range_list_c = %$global_range_list;
+    }
 
     my %results = (
-        PEC_WE     => $pe,
-        PEC_WE_P   => $pe_p,
         PEC_WTLIST => \%wt_list,
         PEC_LOCAL_RANGELIST  => \%local_range_list_c,
         PEC_RANGELIST        => \%global_range_list_c,
@@ -572,6 +553,7 @@ sub _calc_pe_central {
 
     return wantarray ? %results : \%results;
 }
+
 
 sub get_metadata_calc_pd_clade_contributions {
 

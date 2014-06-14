@@ -444,7 +444,7 @@ END_PEC_DESC
         name            => 'Phylogenetic Endemism central',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Indices',
-        pre_calc        => [qw /_calc_pe calc_phylo_abc/],
+        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
         pre_calc_global => [qw /get_trimmed_tree get_node_range_hash/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
@@ -454,47 +454,62 @@ END_PEC_DESC
             PEC_WE_P         => {
                 description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant'
             },
+            PEC_WTLIST           => {
+                description => 'Phylogenetic endemism weights, central variant',
+                type => 'list',
+            },
+            PEC_LOCAL_RANGELIST  => {
+                description => 'Phylogenetic endemism local range lists, central variant',
+                type => 'list',
+            },
+            PEC_RANGELIST => {
+                description => 'Phylogenetic endemism global range lists, central variant',
+                type => 'list',
+            },
         },
     );
 
     return wantarray ? %arguments : \%arguments;
 }
 
-#  hide for the moment
-sub __calc_pe_central {
+#  should just return calc_pe when only one neighbour set
+sub calc_pe_central {
     my $self = shift;
     my %args = @_;
 
     my $tree_ref    = $args{trimmed_tree};
-    my $label_hash1 = $args{label_hash1};
-    #my %label_hash2 = %{$args{label_hash2}};  #  need a copy
-    my $label_hash_all    = $args{label_hash_all};
-    my $global_range_hash = $args{node_range};
 
-    my ($pe, %wt_list, %local_range_list);
+    my $pe      =   $args{PE_WE};
+    my $pe_p    =   $args{PE_WE_P};
+    my %wt_list = %{$args{PE_WTLIST}};  #  need a copy
+    my $c_list  =   $args{PHYLO_C_LIST};  #  those only in nbr set 2
+    my $a_list  =   $args{PHYLO_A_LIST};
+    my $b_list  =   $args{PHYLO_B_LIST};
 
-    foreach my $label (keys %$label_hash1) {
-        my $local_range  = $label_hash_all->{$label};
+    my $local_range_list  = $args{PE_LOCAL_RANGELIST};
+    my $global_range_list = $args{PE_RANGELIST};
 
-        my $node_ref = $tree_ref->get_node_ref (node => $label);
-        my $path     = $node_ref->get_path_lengths_to_root_node;
-        foreach my $name (keys %$path) {
-            my $global_range = $global_range_hash->{$name};
-            my $length = $path->{$name};
-            $local_range_list{$name} += $local_range;  #  WRONG - double counts
-            my $pe_component = eval {$length * $local_range / $global_range} // 0;
-            $pe += $pe_component;
-            $wt_list{$name} += $pe_component;
-        }
+    my @keepers = (keys $a_list, keys $b_list);
+
+    foreach my $node (keys %$c_list) {
+        my $wt = $wt_list{$node};
+        delete $wt_list{$node};
+        $pe -= $wt;
     }
 
-    my $pe_p = $pe ? $pe / $tree_ref->get_total_tree_length : undef;
+    $pe_p = $pe ? $pe / $tree_ref->get_total_tree_length : undef;
+
+    my %local_range_list_c;
+    @local_range_list_c{@keepers} = @{$local_range_list}{@keepers};
+    my %global_range_list_c;
+    @global_range_list_c{@keepers} = @{$global_range_list}{@keepers};
 
     my %results = (
-        PEC_WE   => $pe,
-        PEC_WE_P => $pe_p,
+        PEC_WE     => $pe,
+        PEC_WE_P   => $pe_p,
         PEC_WTLIST => \%wt_list,
-        PEC_LOCAL_RANGELIST => \%local_range_list,
+        PEC_LOCAL_RANGELIST  => \%local_range_list_c,
+        PEC_RANGELIST => \%global_range_list_c,
     );
 
     return wantarray ? %results : \%results;
@@ -2022,7 +2037,7 @@ sub get_metadata__calc_phylo_abc_lists {
         type            =>  'Phylogenetic Indices',
         pre_calc        =>  'calc_abc',
         pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
-        uses_nbr_lists  =>  2,  #  how many sets of lists it must have
+        uses_nbr_lists  =>  1,  #  how many sets of lists it must have
         required_args   => {tree_ref => 1},
     );
 

@@ -559,7 +559,7 @@ sub get_metadata_calc_pe_central_cwe {
     my %arguments = (
         name            => 'Corrected weighted phylogenetic endemism, central variant',
         description     => 'What proportion of the PD in neighbour set 1 is '
-                         . 'range-restricted to newighbour sets 1 and 2?',
+                         . 'range-restricted to neighbour sets 1 and 2?',
         reference       => '',
         type            => 'Phylogenetic Indices', 
         pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_pd_node_list/],
@@ -568,9 +568,12 @@ sub get_metadata_calc_pe_central_cwe {
             PEC_CWE => {
                 description => 'Corrected weighted phylogenetic endemism, central variant',
             },
+            PEC_CWE_PD => {
+                description => 'PD used in the PEC_CWE index.',
+            },
         },
     );
-    
+
     return wantarray ? %arguments : \%arguments;
 }
 
@@ -588,7 +591,8 @@ sub calc_pe_central_cwe {
     my $cwe = $pd ? $pe / $pd : undef;
 
     my %results = (
-        PEC_CWE => $cwe,
+        PEC_CWE    => $cwe,
+        PEC_CWE_PD => $pd,
     );
 
     return wantarray ? %results : \%results;

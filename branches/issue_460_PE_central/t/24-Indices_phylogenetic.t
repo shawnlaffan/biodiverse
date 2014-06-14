@@ -8,7 +8,7 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $generate_result_sets = 0;
+my $generate_result_sets = 1;
 
 use rlib;
 use Test::Most;
@@ -99,14 +99,17 @@ sub test_pe_central_and_whole {
         calc_pe_central_lists
         calc_phylo_corrected_weighted_endemism
         calc_pe_central_cwe
+        calc_pd
     /;
 
+    #  should derive from metadata
     my %scalar_indices_to_check;
     foreach my $whole (qw /PE_WE PE_WE_P PE_CWE/) {
         my $central = $whole;
         $central =~ s/^PE/PEC/;
         $scalar_indices_to_check{$whole} = $central;
     }
+    $scalar_indices_to_check{PD} = 'PEC_CWE_PD';
     my %list_indices_to_check;
     foreach my $whole (qw /PE_WTLIST PE_LOCAL_RANGELIST PE_RANGELIST/) {
         my $central = $whole;
@@ -148,7 +151,7 @@ sub test_pe_central_and_whole {
     );
 
     #  no guarantees that the phylo CWE scores will be smaller for the central variant
-    delete @scalar_indices_to_check{qw/PEC_CWE PE_CWE/};
+    delete @scalar_indices_to_check{qw/PEC_CWE PE_CWE PD/};
 
     my ($sp2_res_w, $sp2_res_c) = get_pe_check_hashes (
         $sp2,
@@ -243,8 +246,8 @@ sub get_pe_check_hashes {
         );
         foreach my $idx_whole (sort keys %$scalar_indices_to_check) {
             my $idx_central = $scalar_indices_to_check->{$idx_whole};
-            $sp_res_w{$elt}{$idx_whole} = $results_list->{$idx_whole};
-            $sp_res_c{$elt}{$idx_whole} = $results_list->{$idx_central};
+            $sp_res_w{$elt}{$idx_whole} = sprintf '%.13f', $results_list->{$idx_whole};
+            $sp_res_c{$elt}{$idx_whole} = sprintf '%.13f', $results_list->{$idx_central};
         }
 
         foreach my $idx_whole (sort keys %$list_indices_to_check) {
@@ -257,8 +260,8 @@ sub get_pe_check_hashes {
                 list    => $idx_central,
                 element => $elt,
             );
-            $sp_res_w{$elt}{$idx_whole} = $results_list_w;
-            $sp_res_c{$elt}{$idx_whole} = $results_list_c;
+            $sp_res_w{$elt}{$idx_whole} = sprintf '%.13f', $results_list_w;
+            $sp_res_c{$elt}{$idx_whole} = sprintf '%.13f', $results_list_c;
         }
     }
 
@@ -788,6 +791,7 @@ __DATA__
     PD_P_per_taxon      => '0.0322259610628996',
     PD_per_taxon        => '0.682618105875523',
     PEC_CWE             => '0.478441635510817',
+    PEC_CWE_PD          => '1.49276923076923',
     PEC_LOCAL_RANGELIST => {
         '34___'      => 4,
         '35___'      => 4,
@@ -1481,6 +1485,7 @@ __DATA__
     PD_P_per_taxon      => '0.0352363369009699',
     PD_per_taxon        => '0.746384615384616',
     PEC_CWE             => '0.175417769804783',
+    PEC_CWE_PD          => '1.49276923076923',
     PEC_LOCAL_RANGELIST => {
         '34___'      => 1,
         '35___'      => 1,
@@ -1709,4 +1714,5 @@ __DATA__
     TD_NUMERATOR               => '5.46238277494645',
     TD_VARIATION               => '0.815872574453991'
 }
+
 

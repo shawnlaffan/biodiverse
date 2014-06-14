@@ -94,6 +94,7 @@ sub test_pe_central_and_whole {
         calc_pe
         calc_pe_lists
         calc_pe_central
+        calc_pe_central_lists
     /;
 
     my %scalar_indices_to_check;

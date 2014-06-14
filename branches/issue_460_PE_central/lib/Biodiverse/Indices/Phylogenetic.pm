@@ -444,8 +444,7 @@ END_PEC_DESC
         name            => 'Phylogenetic Endemism central',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Indices',
-        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
-        pre_calc_global => [qw /get_trimmed_tree get_node_range_hash/],
+        pre_calc        => [qw /_calc_pe_central/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             PEC_WE           => {
@@ -454,6 +453,41 @@ END_PEC_DESC
             PEC_WE_P         => {
                 description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant'
             },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_central {
+    my $self = shift;
+    my %args = @_;
+
+    my @keys = qw /PEC_WE PEC_WE_P/;
+
+    my %results;
+    @results{@keys} = @args{@keys};
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pe_central_lists {
+
+    my $desc = <<'END_PEC_DESC'
+Lists underlying the phylogenetic endemism central indices.
+Uses labels from neighbour set one but local ranges from across
+both neighbour sets.
+END_PEC_DESC
+  ;
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Phylogenetic Endemism central',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        type            => 'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_pe_central/],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
             PEC_WTLIST           => {
                 description => 'Phylogenetic endemism weights, central variant',
                 type => 'list',
@@ -472,8 +506,33 @@ END_PEC_DESC
     return wantarray ? %arguments : \%arguments;
 }
 
+sub calc_pe_central_lists {
+    my $self = shift;
+    my %args = @_;
+
+    my @keys = qw /PEC_WTLIST PEC_RANGELIST PEC_LOCAL_RANGELIST/;
+
+    my %results;
+    @results{@keys} = @args{@keys};
+
+    return wantarray ? %results : \%results;
+}
+
+
+sub get_metadata__calc_pe_central {
+
+    my %arguments = (
+        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        pre_calc_global => [qw /get_trimmed_tree/],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+
 #  should just return calc_pe when only one neighbour set
-sub calc_pe_central {
+sub _calc_pe_central {
     my $self = shift;
     my %args = @_;
 

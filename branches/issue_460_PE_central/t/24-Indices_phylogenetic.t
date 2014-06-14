@@ -155,7 +155,7 @@ sub test_pe_central_and_whole {
         'PE whole and central indices are not the same for two neighour sets',
     );
 
-    #  need to check the central results are <= the whole results
+    #  need to check the central results are <= the whole results and ranges are the same
     subtest 'PE_C <= PE_W' => sub {
         foreach my $elt (sort keys %$sp2_res_w) {
             my $w_hash = $sp2_res_w->{$elt};
@@ -168,10 +168,27 @@ sub test_pe_central_and_whole {
                 else {
                     my $w_h_ref = $w_hash->{$index};
                     my $c_h_ref = $c_hash->{$index};
-                    foreach my $key (sort keys %$c_h_ref) {
-                        ok ($c_h_ref->{$key} <= $w_h_ref->{$key}, "$index->\{$key}: central <= whole");
+                    ok (
+                        scalar keys %$c_h_ref <= scalar keys %$w_h_ref,
+                        "$index key count: central <= whole",
+                    );
+                    #  ranges should be ==, weights <=
+                    if ($index =~ /RANGE/) {
+                        foreach my $key (sort keys %$c_h_ref) {
+                            ok (
+                                $c_h_ref->{$key} == $w_h_ref->{$key},
+                                "$index->\{$key}: central == whole",
+                            );
+                        }
                     }
-                    ok (scalar keys %$c_h_ref <= scalar keys %$w_h_ref, "$index key count: central <= whole");
+                    else {
+                        foreach my $key (sort keys %$c_h_ref) {
+                            ok (
+                                $c_h_ref->{$key} <= $w_h_ref->{$key},
+                                "$index->\{$key}: central <= whole",
+                            );
+                        }
+                    }
                 }
             }
         }

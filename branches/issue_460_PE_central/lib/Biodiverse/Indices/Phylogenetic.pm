@@ -482,7 +482,7 @@ END_PEC_DESC
 
     my %arguments = (
         description     => $desc,
-        name            => 'Phylogenetic Endemism central',
+        name            => 'Phylogenetic Endemism central lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
         type            => 'Phylogenetic Indices',
         pre_calc        => [qw /_calc_pe_central/],
@@ -531,7 +531,8 @@ sub get_metadata__calc_pe_central {
 }
 
 
-#  should just return calc_pe when only one neighbour set
+#  Should just return calc_pe when only one neighbour set?
+#  Won't make too much difference though.  
 sub _calc_pe_central {
     my $self = shift;
     my %args = @_;
@@ -540,7 +541,7 @@ sub _calc_pe_central {
 
     my $pe      =   $args{PE_WE};
     my $pe_p    =   $args{PE_WE_P};
-    my %wt_list = %{$args{PE_WTLIST}};  #  need a copy
+    my %wt_list = %{$args{PE_WTLIST}};    #  need a copy since we will delete from it
     my $c_list  =   $args{PHYLO_C_LIST};  #  those only in nbr set 2
     my $a_list  =   $args{PHYLO_A_LIST};
     my $b_list  =   $args{PHYLO_B_LIST};
@@ -548,19 +549,17 @@ sub _calc_pe_central {
     my $local_range_list  = $args{PE_LOCAL_RANGELIST};
     my $global_range_list = $args{PE_RANGELIST};
 
-    my @keepers = (keys $a_list, keys $b_list);
-
-    foreach my $node (keys %$c_list) {
-        my $wt = $wt_list{$node};
-        delete $wt_list{$node};
-        $pe -= $wt;
-    }
+    #  remove the PE component found only in nbr set 2
+    #  (assuming c_list is shorter than a+b, so this will be the faster approach)
+    $pe -= sum (@wt_list{keys %$c_list}) // 0;
+    delete @wt_list{keys %$c_list};
 
     $pe_p = $pe ? $pe / $tree_ref->get_total_tree_length : undef;
 
-    my %local_range_list_c;
-    @local_range_list_c{@keepers} = @{$local_range_list}{@keepers};
-    my %global_range_list_c;
+    #  Keep any node found in nbr set 1
+    my @keepers = (keys $a_list, keys $b_list);
+    my (%local_range_list_c, %global_range_list_c);
+    @local_range_list_c{@keepers}  = @{$local_range_list}{@keepers};
     @global_range_list_c{@keepers} = @{$global_range_list}{@keepers};
 
     my %results = (
@@ -568,7 +567,7 @@ sub _calc_pe_central {
         PEC_WE_P   => $pe_p,
         PEC_WTLIST => \%wt_list,
         PEC_LOCAL_RANGELIST  => \%local_range_list_c,
-        PEC_RANGELIST => \%global_range_list_c,
+        PEC_RANGELIST        => \%global_range_list_c,
     );
 
     return wantarray ? %results : \%results;

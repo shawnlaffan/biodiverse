@@ -8,7 +8,7 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $generate_result_sets = 1;
+my $generate_result_sets = 0;
 
 use rlib;
 use Test::Most;
@@ -26,17 +26,21 @@ my @calcs = qw/
     calc_labels_not_on_tree
     calc_labels_on_tree
     calc_pd
+    calc_pd_clade_contributions
+    calc_pd_clade_loss
+    calc_pd_clade_loss_ancestral
     calc_pd_endemism
     calc_pd_node_list
     calc_pd_terminal_node_count
     calc_pd_terminal_node_list
     calc_pe
-    calc_pe_clade_loss
+    calc_pe_central
+    calc_pe_central_lists
     calc_pe_clade_contributions
+    calc_pe_clade_loss
     calc_pe_clade_loss_ancestral
     calc_pe_lists
     calc_pe_single
-    calc_pe_central
     calc_phylo_abc
     calc_phylo_aed
     calc_phylo_aed_t
@@ -48,9 +52,6 @@ my @calcs = qw/
     calc_phylo_sorenson
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
-    calc_pd_clade_contributions
-    calc_pd_clade_loss
-    calc_pd_clade_loss_ancestral
 /;
 
 
@@ -191,6 +192,27 @@ sub test_pe_central_and_whole {
                     }
                 }
             }
+
+        }
+    };
+
+    #  now cross check that PEC_WE = sum (values PEC_WTLIST)
+    subtest 'PEC_WE = sum (values PEC_WTLIST)' => sub {
+        my $sp = $sp2;
+        my $elts = $sp->get_element_list;
+
+        foreach my $elt (@$elts) {
+            my $sp_results_list = $sp->get_list_ref (
+                list    => 'SPATIAL_RESULTS',
+                element => $elt,
+            );
+            my $wt_list = $sp->get_list_ref (
+                list    => 'PEC_WTLIST',
+                element => $elt,
+            );
+            my $v1 = sprintf '%14f', $sp_results_list->{PEC_WE};
+            my $v2 = sprintf '%14f', sum (values %$wt_list);
+            is ($v1, $v2, $elt);
         }
     };
 
@@ -200,9 +222,9 @@ sub test_pe_central_and_whole {
 
 sub get_pe_check_hashes {
     my ($sp, $scalar_indices_to_check, $list_indices_to_check) = @_;
-    
+
     my (%sp_res_w, %sp_res_c);
-    
+
     my $elts = $sp->get_element_list;
 
     foreach my $elt (@$elts) {
@@ -753,9 +775,50 @@ __DATA__
         'Genus:sp30' => '0.434782608695652',
         'Genus:sp5'  => '0.6'
     },
-    PD_P           => '0.451163454880594',
-    PD_P_per_taxon => '0.0322259610628996',
-    PD_per_taxon   => '0.682618105875523',
+    PD_P                => '0.451163454880594',
+    PD_P_per_taxon      => '0.0322259610628996',
+    PD_per_taxon        => '0.682618105875523',
+    PEC_LOCAL_RANGELIST => {
+        '34___'      => 4,
+        '35___'      => 4,
+        '42___'      => 4,
+        '45___'      => 4,
+        '49___'      => 4,
+        '50___'      => 4,
+        '52___'      => 5,
+        '58___'      => 5,
+        '59___'      => 5,
+        'Genus:sp20' => 4,
+        'Genus:sp26' => 2
+    },
+    PEC_RANGELIST => {
+        '34___'      => 9,
+        '35___'      => 53,
+        '42___'      => 107,
+        '45___'      => 107,
+        '49___'      => 112,
+        '50___'      => 115,
+        '52___'      => 116,
+        '58___'      => 127,
+        '59___'      => 127,
+        'Genus:sp20' => 9,
+        'Genus:sp26' => 3
+    },
+    PEC_WE     => '0.714202952209456',
+    PEC_WE_P   => '0.0337170613126205',
+    PEC_WTLIST => {
+        '34___'      => '0.151732854859624',
+        '35___'      => '0.00249014110193283',
+        '42___'      => '0.00214934894114927',
+        '45___'      => '0.000986794889656748',
+        '49___'      => '0.000729545879720464',
+        '50___'      => '4.22691626564195e-005',
+        '52___'      => '0.000125479547644827',
+        '58___'      => '0.000390962271515824',
+        '59___'      => 0,
+        'Genus:sp20' => '0.222222222222222',
+        'Genus:sp26' => '0.333333333333333'
+    },
     PE_CLADE_CONTR => {
         '30___'      => '0.04198877081',
         '31___'      => '0.08471881937',
@@ -1404,9 +1467,50 @@ __DATA__
         'Genus:sp20' => '0.5',
         'Genus:sp26' => '0.5'
     },
-    PD_P           => '0.0704726738019399',
-    PD_P_per_taxon => '0.0352363369009699',
-    PD_per_taxon   => '0.746384615384616',
+    PD_P                => '0.0704726738019399',
+    PD_P_per_taxon      => '0.0352363369009699',
+    PD_per_taxon        => '0.746384615384616',
+    PEC_LOCAL_RANGELIST => {
+        '34___'      => 1,
+        '35___'      => 1,
+        '42___'      => 1,
+        '45___'      => 1,
+        '49___'      => 1,
+        '50___'      => 1,
+        '52___'      => 1,
+        '58___'      => 1,
+        '59___'      => 1,
+        'Genus:sp20' => 1,
+        'Genus:sp26' => 1
+    },
+    PEC_RANGELIST => {
+        '34___'      => 9,
+        '35___'      => 53,
+        '42___'      => 107,
+        '45___'      => 107,
+        '49___'      => 112,
+        '50___'      => 115,
+        '52___'      => 116,
+        '58___'      => 127,
+        '59___'      => 127,
+        'Genus:sp20' => 9,
+        'Genus:sp26' => 3
+    },
+    PEC_WE     => '0.261858249294739',
+    PEC_WE_P   => '0.0123621592705162',
+    PEC_WTLIST => {
+        '34___'      => '0.0379332137149059',
+        '35___'      => '0.000622535275483208',
+        '42___'      => '0.000537337235287318',
+        '45___'      => '0.000246698722414187',
+        '49___'      => '0.000182386469930116',
+        '50___'      => '1.05672906641049e-005',
+        '52___'      => '2.50959095289654e-005',
+        '58___'      => '7.81924543031647e-005',
+        '59___'      => 0,
+        'Genus:sp20' => '0.0555555555555556',
+        'Genus:sp26' => '0.166666666666667'
+    },
     PE_CLADE_CONTR => {
         '34___'      => '0.99349719414',
         '35___'      => '0.99587456922',
@@ -1555,49 +1659,6 @@ __DATA__
         'Genus:sp20' => '0.0555555555555556',
         'Genus:sp26' => '0.166666666666667'
     },
-    PEC_LOCAL_RANGELIST => {
-        '34___'      => 1,
-        '35___'      => 1,
-        '42___'      => 1,
-        '45___'      => 1,
-        '49___'      => 1,
-        '50___'      => 1,
-        '52___'      => 1,
-        '58___'      => 1,
-        '59___'      => 1,
-        'Genus:sp20' => 1,
-        'Genus:sp26' => 1
-    },
-    PEC_RANGELIST => {
-        '34___'      => 9,
-        '35___'      => 53,
-        '42___'      => 107,
-        '45___'      => 107,
-        '49___'      => 112,
-        '50___'      => 115,
-        '52___'      => 116,
-        '58___'      => 127,
-        '59___'      => 127,
-        'Genus:sp20' => 9,
-        'Genus:sp26' => 3
-    },
-    PEC_WE          => '0.261858249294739',
-    PEC_WE_P        => '0.0123621592705162',
-    PEC_WE_SINGLE   => '0.261858249294739',
-    PEC_WE_SINGLE_P => '0.0123621592705162',
-    PEC_WTLIST      => {
-        '34___'      => '0.0379332137149059',
-        '35___'      => '0.000622535275483208',
-        '42___'      => '0.000537337235287318',
-        '45___'      => '0.000246698722414187',
-        '49___'      => '0.000182386469930116',
-        '50___'      => '1.05672906641049e-005',
-        '52___'      => '2.50959095289654e-005',
-        '58___'      => '7.81924543031647e-005',
-        '59___'      => 0,
-        'Genus:sp20' => '0.0555555555555556',
-        'Genus:sp26' => '0.166666666666667'
-    },
     PHYLO_AED_LIST => {
         'Genus:sp20' => '0.0252759553987262',
         'Genus:sp26' => '0.0805754945692332'
@@ -1637,5 +1698,4 @@ __DATA__
     TD_NUMERATOR               => '5.46238277494645',
     TD_VARIATION               => '0.815872574453991'
 }
-
 

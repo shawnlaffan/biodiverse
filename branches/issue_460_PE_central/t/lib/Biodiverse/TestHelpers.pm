@@ -42,6 +42,7 @@ use Exporter::Easy (
                 get_all_calculations
                 transform_element
                 is_or_isnt
+                isnt_deeply
             ),
         ],
         basedata => [
@@ -115,6 +116,45 @@ use Exporter::Easy (
         ],
     ],
 );
+
+=item isnt_deeply
+
+Same as is_deeply except it returns false if the two structurees are the same. 
+
+Stolen from https://github.com/coryb/perl-test-trivial/blob/master/lib/Test/Trivial.pm
+
+=cut
+
+# Test::More does not have an isnt_deeply
+# so hacking one in here.
+sub isnt_deeply {
+    my ($got, $expected, $name) = @_;
+    my $tb = Test::More->builder;
+
+    $tb->_unoverload_str(\$expected, \$got);
+
+    my $ok;
+    if ( !ref $got and !ref $expected ) {
+        # no references, simple comparison
+        $ok = $tb->isnt_eq($got, $expected, $name);
+    }
+    elsif ( !ref $got xor !ref $expected ) {
+        # not same type, so they are definitely different
+        $ok = $tb->ok(1, $name);
+    }
+    else { # both references
+        local @Test::More::Data_Stack = ();
+        if ( Test::More::_deep_check($got, $expected) ) {
+            # deep check passed, so they are the same
+            $ok = $tb->ok(0, $name);
+        }
+        else {
+            $ok = $tb->ok(1, $name);
+        }
+    }
+
+    return $ok;
+}
 
 =item transform_element
 
@@ -216,25 +256,25 @@ sub compare_hash_vals {
     my %targets = (%$hash_exp, %$hash_got);
 
     if (!$not_strict) {
-        is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
+        is (scalar keys %$hash_got, scalar keys %$hash_exp, "Hashes are same size $descr_suffix");
 
         my %h1 = %$hash_got;
         delete @h1{keys %$hash_exp};
-        is (scalar keys %h1, 0, 'No extra keys');
+        is (scalar keys %h1, 0, "No extra keys $descr_suffix");
         if (scalar keys %h1) {
             diag 'Extra keys: ', join q{ }, sort keys %h1;
         };
 
         my %h2 = %$hash_exp;
         delete @h2{keys %$hash_got};
-        is (scalar keys %h2, 0, 'No missing keys');
+        is (scalar keys %h2, 0, "No missing keys $descr_suffix");
         if (scalar keys %h2) {
             diag 'Missing keys: ', join q{ }, sort keys %h2;
         }
     }
     elsif (scalar keys %$hash_got == scalar keys %$hash_exp && scalar keys %$hash_exp == 0) {
         #  but if both are zero then we need to run at least one test to get a pass
-        is (scalar keys %$hash_got, scalar keys %$hash_exp, 'Hashes are same size');
+        is (scalar keys %$hash_got, scalar keys %$hash_exp, "Hashes are same size $descr_suffix");
     }
 
     BY_KEY:
@@ -376,7 +416,7 @@ sub get_basedata_import_data_file {
     my $tmp_obj = File::Temp->new;
     my $ep_f = $tmp_obj->filename;
     print $tmp_obj $args{data} || get_basedata_test_data(@_);
-    $tmp_obj -> close;
+    $tmp_obj->close;
 
     return $tmp_obj;
 }
@@ -941,17 +981,16 @@ sub run_indices_test1_inner {
     %results = eval {
         $indices->run_calculations(%$calc_args, %elements);
     };
-
     $e = $EVAL_ERROR;
-    diag $e if $e;
-    ok (!$e, "Ran calculations without eval error");
+    note $e if $e;
+    ok (!$e, "Ran calculations without eval error, $nbr_list_count nbrs");
 
     eval {
         $indices->run_postcalc_globals(%$calc_args);
     };
     $e = $EVAL_ERROR;
     note $e if $e;
-    ok (!$e, "Ran global postcalcs without eval error");
+    ok (!$e, "Ran global postcalcs without eval error, $nbr_list_count nbrs");
 
 
     my $pass = is_deeply (

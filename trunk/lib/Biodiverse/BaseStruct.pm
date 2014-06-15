@@ -2301,10 +2301,8 @@ sub get_element_name_as_array {
     my $self = shift;
     my %args = @_;
 
-    croak "element not specified\n"
-      if !defined $args{element};
-
-    my $element = $args{element};
+    my $element = $args{element} //
+      croak "element not specified\n";
 
     return $self->get_array_list_values (
         element => $element,
@@ -2405,7 +2403,7 @@ sub get_text_axis_as_coord {
     #  go through and get a list of all the axis text
     foreach my $element (sort $self->get_element_list) {
         my $axes = $self->get_element_name_as_array (element => $element);
-            $this_axis{$axes->[$axis]}++;
+        $this_axis{$axes->[$axis]}++;
     }
     #  assign a number based on the sort order.  "z" will be lowest, "a" will be highest
     @this_axis{reverse sort keys %this_axis} = (0 .. scalar keys %this_axis);
@@ -2479,10 +2477,9 @@ sub add_element {
     my $self = shift;
     my %args = @_;
 
-    my $element = $args{element};
+    my $element = $args{element} //
+      croak "element not specified\n";
 
-    croak "element not specified\n" if ! defined $element;
-    
     #  don't re-create the element array
     return if $self->{ELEMENTS}{$element}{_ELEMENT_ARRAY};
 
@@ -2512,10 +2509,11 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     my $self = shift;
     my %args = (count => 1, @_);
 
-    croak "element not specified\n" if ! defined $args{element};
-    croak "subelement not specified\n" if ! defined $args{subelement};
-    my $element = $args{element};
-    my $sub_element = $args{subelement};
+    my $element = $args{element} //
+      croak "element not specified\n";
+
+    my $sub_element = $args{subelement} //
+      croak "subelement not specified\n";
 
     if (! exists $self->{ELEMENTS}{$element}) {
         $self->add_element (

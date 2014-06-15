@@ -154,9 +154,9 @@ sub snap_to_index {
             if ($self->{VERSION}) {
                 #  how many cells away from the origin are we?
                 #  snap to 10dp precision to avoid floating point precision issues
-                my $tmp_prec = $self->set_precision(
-                    value     => $columns[$i] / $index_res[$i],
-                    precision => '%.10f',
+                my $tmp_prec = $self->set_precision_aa (
+                    $columns[$i] / $index_res[$i],
+                    '%.10f',
                 );
                 my $offset = floor ($tmp_prec);
                 #  and shift back to index units
@@ -598,9 +598,9 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                     #push @list, sprintf ($index_res_precision[$i], $element_ref->[$i] - $extreme_ref->[$i]) + 0;
                     push @offset_list,
                         0
-                        + $self->set_precision (
-                            precision => $index_res_precision[$i],
-                            value     => $element_ref->[$i] - $extreme_ref->[$i],
+                        + $self->set_precision_aa (
+                                $element_ref->[$i] - $extreme_ref->[$i],
+                                $index_res_precision[$i],
                         );
                 }
                 my $offsets = $self->list2csv (

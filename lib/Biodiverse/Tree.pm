@@ -1654,13 +1654,13 @@ sub compare {
                     }
                     else {
                         #  If its length is same then we have perfect match
-                        my $len_comp = $self->set_precision (
-                            value     => $compare_nodes{$compare_node_name}->get_length,
-                            precision => $comp_precision,
+                        my $len_comp = $self->set_precision_aa (
+                            $compare_nodes{$compare_node_name}->get_length,
+                            $comp_precision,
                         );
-                        my $len_base = $self->set_precision (
-                            value     => $base_node->get_length,
-                            precision => $comp_precision,
+                        my $len_base = $self->set_precision_aa (
+                            $base_node->get_length,
+                            $comp_precision,
                         );
                         if ($len_comp eq $len_base) {
                             $found_perfect_match{$compare_node_name} = $len_base;

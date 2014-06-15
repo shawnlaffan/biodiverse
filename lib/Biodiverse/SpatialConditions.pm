@@ -655,25 +655,12 @@ sub get_distances {
 
     #  use sprintf to avoid precision issues at 14 decimals or so
     #  - a bit of a kludge, but unavoidable if using storable's clone methods.
-    my $D =
-        $params->{use_euc_distance}
-        ? 0 + $self->set_precision(
-            precision => '%.10f',
-            value     => sqrt($sum_D_sqr),
-        )
+    my $D = $params->{use_euc_distance}
+        ? 0 + $self->set_precision_aa(sqrt($sum_D_sqr), '%.10f')
         : undef;
-    my $C =
-        $params->{use_cell_distance}
-        ? 0 + $self->set_precision(
-            precision => '%.10f',
-            value     => sqrt($sum_C_sqr),
-        )
+    my $C = $params->{use_cell_distance}
+        ? 0 + $self->set_precision_aa(sqrt($sum_C_sqr), '%.10f')
         : undef;
-
-    #  and now trim off any extraneous zeroes after the decimal point
-    #  ...now handled by the 0+ on conversion
-    #$D += 0 if defined $D;
-    #$C += 0 if defined $C;
 
     my %hash = (
         d_list => \@d,
@@ -1060,7 +1047,7 @@ sub sp_rectangle {
         #  coarse filter
         return if $dists->[$axis] > $sizes->[$i];
         #  now check with precision adjusted
-        my $d = $self->set_precision (value => $dists->[$axis]);
+        my $d = $self->set_precision_aa ($dists->[$axis]);
         return if $d > $sizes->[$i] / 2;
     }
 
@@ -1353,8 +1340,8 @@ sub sp_ellipse {
     my $a_dist = ( $r_y ** 2 ) / ( $major_radius**2 );
     my $b_dist = ( $r_x ** 2 ) / ( $minor_radius**2 );
     my $precision = '%.14f';
-    $a_dist = $self->set_precision(value => $a_dist, precision => $precision) + 0;
-    $b_dist = $self->set_precision(value => $b_dist, precision => $precision) + 0;
+    $a_dist = $self->set_precision_aa ($a_dist, $precision) + 0;
+    $b_dist = $self->set_precision_aa ($b_dist, $precision) + 0;
 
     my $test = eval { 1 >= ( $a_dist + $b_dist ) };
     croak $EVAL_ERROR if $EVAL_ERROR;

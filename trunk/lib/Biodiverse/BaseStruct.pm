@@ -2509,13 +2509,17 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     my $self = shift;
     my %args = (count => 1, @_);
 
+    no autovivification;
+
     my $element = $args{element} //
       croak "element not specified\n";
 
     my $sub_element = $args{subelement} //
       croak "subelement not specified\n";
 
-    if (! exists $self->{ELEMENTS}{$element}) {
+    my $elts_ref = $self->{ELEMENTS};
+
+    if (! exists $elts_ref->{$element}) {
         $self->add_element (
             element    => $element,
             csv_object => $args{csv_object},
@@ -2523,11 +2527,11 @@ sub add_sub_element {  #  add a subelement to a BaseStruct element.  create the 
     }
 
     #  previous base_stats invalid - clear them if needed
-    if (exists $self->{ELEMENTS}{$element}{BASE_STATS}) {
-        delete $self->{ELEMENTS}{$element}{BASE_STATS};
-    }
+    #if (exists $self->{ELEMENTS}{$element}{BASE_STATS}) {
+        delete $elts_ref->{$element}{BASE_STATS};
+    #}
 
-    $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element} += $args{count};
+    $elts_ref->{$element}{SUBELEMENTS}{$sub_element} += $args{count};
 
     return;
 }

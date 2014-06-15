@@ -1570,8 +1570,10 @@ sub get_args {
             $error->rethrow;
         }
         elsif ($error) {
-            croak "$sub does not seem to have valid get_args metadata\n"
-                  . $error;
+            my $msg = $self->can($sub)
+              ? "cannot call method $metadata_sub for object $self\n"
+              : "cannot call method $sub, and metadata is invalid\n";
+            croak $msg . $error;
         }
     }
     else {  #  called in non-OO manner  - not ideal (old style)

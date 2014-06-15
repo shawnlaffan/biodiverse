@@ -1153,6 +1153,24 @@ sub csv2list {
     }
 }
 
+#  csv_xs v0.41 will not ignore invalid args
+#  - this is most annoying as we will have to update this list every time csv_xs is updated
+my %valid_csv_args = (
+    quote_char          => 1,
+    escape_char         => 1,
+    sep_char            => 1,
+    eol                 => 1,
+    always_quote        => 0,
+    binary              => 0,
+    keep_meta_info      => 0,
+    allow_loose_quotes  => 0,
+    allow_loose_escapes => 0,
+    allow_whitespace    => 0,
+    blank_is_undef      => 0,
+    verbatim            => 0,
+    empty_is_undef      => 1,
+);
+
 #  get a csv object to pass to the csv routines
 sub get_csv_object {
     my $self = shift;
@@ -1165,24 +1183,6 @@ sub get_csv_object {
         always_quote    => 0,
         #eol             => "\n",  #  comment out - use EOL on demand
         @_,
-    );
-
-    #  csv_xs v0.41 will not ignore invalid args
-    #  - this is most annoying as we will have to update this list every time csv_xs is updated
-    my %valid_csv_args = (
-        quote_char          => 1,
-        escape_char         => 1,
-        sep_char            => 1,
-        eol                 => 1,
-        always_quote        => 0,
-        binary              => 0,
-        keep_meta_info      => 0,
-        allow_loose_quotes  => 0,
-        allow_loose_escapes => 0,
-        allow_whitespace    => 0,
-        blank_is_undef      => 0,
-        verbatim            => 0,
-        empty_is_undef      => 1,
     );
 
     $args{escape_char} //= $args{quote_char};

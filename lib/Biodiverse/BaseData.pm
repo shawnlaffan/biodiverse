@@ -2147,6 +2147,7 @@ sub new_with_reordered_element_axes {
                 group => $new_group,
                 label => $new_label,
                 count => $count,
+                csv_object => $csv_object,
             );
         }
     }

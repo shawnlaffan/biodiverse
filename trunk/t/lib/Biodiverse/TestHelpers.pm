@@ -337,7 +337,7 @@ sub compare_arr {
 
     is (scalar @$arr_got, scalar @$arr_exp, 'Arrays are same size');
 
-    for (my $i = 0; $i != @$arr_exp; ++$i) {
+    for my $i (0 .. $#$arr_exp) {
         my $val_got = snap_to_precision (value => $arr_got->[$i], precision => $precision);
         my $val_exp = snap_to_precision (value => $arr_exp->[$i], precision => $precision);
         is ($val_got, $val_exp, "Got expected value for [$i]");
@@ -415,8 +415,33 @@ sub get_basedata_test_data {
     return $data;
 }
 
+
+sub get_stringified_args_hash {
+    my %args = @_;
+    use Data::Dumper;
+
+    local $Data::Dumper::Purity    = 1;
+    local $Data::Dumper::Terse     = 1;
+    local $Data::Dumper::Sortkeys  = 1;
+    local $Data::Dumper::Indent    = 1;
+    local $Data::Dumper::Quotekeys = 0;
+
+    return Dumper \%args;
+}
+
+my %bd_cache;
+
 sub get_basedata_object {
     my %args = @_;
+
+    my $args_str = get_stringified_args_hash (%args);
+
+    #  caching proved not to work well since all calls were different.  
+    #{
+    #    no autovivification;
+    #    return $bd_cache{$args_str}->clone
+    #      if $bd_cache{$args_str};
+    #}
 
     my $bd_f = get_basedata_import_data_file(@_);
 
@@ -432,6 +457,8 @@ sub get_basedata_object {
         label_columns => [0],
         sample_count_columns => [3],
     );
+
+    #$bd_cache{$args_str} = $bd->clone;
 
     return $bd;
 }

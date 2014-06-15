@@ -1620,17 +1620,10 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
     #  need to fix the precision for some floating point comparisons
     for (my $value = $min;
-         (0 + $self -> set_precision (
-                precision => $precision->[$depth],
-                value => $value)
-          ) <= $max;
+         (0 + $self->set_precision_aa ($value, $precision->[$depth])) <= $max;
          $value += $res) {
 
-        my $val = 0
-            + $self -> set_precision (
-                precision => $precision->[$depth],
-                value     => $value,
-            );
+        my $val = 0 + $self -> set_precision_aa ($value, $precision->[$depth]);
         if ($depth > 0) {
             foreach my $element (@$so_far) {
                 #print "$element . $sep_char . $value\n";
@@ -1674,12 +1667,12 @@ sub get_surrounding_elements {  #  generate a list of values around a single poi
 
     foreach my $i (0..$#{$coord_ref}) {
         $minima[$i] = 0
-            + $self -> set_precision (
+            + $self->set_precision (
                 precision => $precision->[$i],
                 value     => $coord_ref->[$i] - ($resolutions->[$i] * $distance)
             );
         $maxima[$i] = 0
-            + $self -> set_precision (
+            + $self->set_precision (
                 precision => $precision->[$i],
                 value     => $coord_ref->[$i] + ($resolutions->[$i] * $distance)
             );
@@ -1945,6 +1938,18 @@ sub set_precision {
     return $num;
 }
 
+#  array args variant for more speed when needed
+#  $_[0] is $self, and not used here
+sub set_precision_aa {
+    my $num = sprintf (($_[2] // '%.10f'), $_[1]);
+
+    if ($locale_uses_comma_radix) {
+        $num =~ s{,}{\.};  #  replace any comma with a decimal
+    }
+
+    return $num;
+}
+
 sub compare_lists_by_item {
     my $self = shift;
     my %args = @_;
@@ -1965,14 +1970,8 @@ sub compare_lists_by_item {
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
         #  should really make the precision an option in the metadata
-        my $base = $self->set_precision (
-            precision => '%.10f',
-            value     => $base_ref->{$index},
-        );
-        my $comp = $self->set_precision (
-            precision => '%.10f',
-            value     => $comp_ref->{$index},
-        );
+        my $base = $self->set_precision_aa ($base_ref->{$index}, '%.10f');
+        my $comp = $self->set_precision_aa ($comp_ref->{$index}, '%.10f');
 
         #  make sure it gets a value of 0 if false
         my $increment = 0;

@@ -1009,11 +1009,8 @@ sub import_data {
 
                     #  how many cells away from the origin are we?
                     #  snap to 10dp precision to avoid cellsize==0.1 issues
-                    my $tmp_prec = $self->set_precision(
-                        value     => $tmp / $cell_sizes[$i],
-                        precision => '%.10f',
-                    );
-                    #my $offset = int (abs ($tmp_prec));
+                    my $tmp_prec = $self->set_precision_aa($tmp / $cell_sizes[$i], '%.10f');
+
                     my $offset = floor ($tmp_prec);
 
                     #  which cell are we?

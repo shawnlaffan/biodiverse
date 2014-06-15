@@ -1908,8 +1908,6 @@ sub calc_phylo_abc {
 
 my $_calc_phylo_abc_precision = '%.10f';
 
-
-
 sub _calc_phylo_abc {
     my $self = shift;
     my %args = @_;
@@ -1956,22 +1954,10 @@ sub _calc_phylo_abc {
     #  return the values but reduce the precision to avoid
     #  floating point problems later on
 
-    $phylo_A = 0 + $self->set_precision (
-        precision => $_calc_phylo_abc_precision,
-        value     => $phylo_A,
-    );
-    $phylo_B = 0 + $self->set_precision (
-        precision => $_calc_phylo_abc_precision,
-        value     => $phylo_B,
-    );
-    $phylo_C = 0 + $self->set_precision (
-        precision => $_calc_phylo_abc_precision,
-        value     => $phylo_C,
-    );
-    $phylo_ABC = 0 + $self->set_precision (
-        precision => $_calc_phylo_abc_precision,
-        value     => $phylo_ABC,
-    );
+    $phylo_A =   0 + $self->set_precision_aa ($phylo_A, $_calc_phylo_abc_precision);
+    $phylo_B =   0 + $self->set_precision_aa ($phylo_B, $_calc_phylo_abc_precision);
+    $phylo_C =   0 + $self->set_precision_aa ($phylo_C, $_calc_phylo_abc_precision);
+    $phylo_ABC = 0 + $self->set_precision_aa ($phylo_ABC, $_calc_phylo_abc_precision);
 
     my %results = (
         PHYLO_A   => $phylo_A,

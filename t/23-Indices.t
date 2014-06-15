@@ -9,7 +9,7 @@ use Carp;
 #use lib "$Bin/lib";
 use rlib;
 
-use Test::More tests => 20;
+use Test::More tests => 21;
 use Test::Exception;
 
 local $| = 1;
@@ -37,6 +37,11 @@ my $bd = get_basedata_object(
     
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     is (blessed $indices, 'Biodiverse::Indices', 'Sub new works');
+
+    my $checker = eval {$indices->get_args (sub => 'calc_frobnambulator_snartfingler')};
+    $e = $EVAL_ERROR;
+    #diag $e;
+    ok ($e, 'Got an error when accessing metadata for non-existent calc sub');
 
     my %calculations = eval {$indices->get_calculations};
     $e = $EVAL_ERROR;

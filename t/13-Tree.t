@@ -55,13 +55,13 @@ sub main {
 
 #  check for leaks - does not need to be part of the standard testing
 sub leakcheck_trim_tree {
-    use Test::LeakTrace;
+    #use Test::LeakTrace;
     #if ($@) {
     #    warn 'Test::LeakTrace required for this check';
     #    return;
     #}
 
-    leaktrace {_chklk()} -verbose;
+    #leaktrace {_chklk()} -verbose;
 }
 
 sub _chklk {

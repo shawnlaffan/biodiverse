@@ -8,7 +8,7 @@ local $| = 1;
 #  don't test plugins
 local $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $generate_result_sets = 0;
+my $generate_result_sets = 1;
 
 use rlib;
 use Test::Most;
@@ -22,17 +22,23 @@ use Biodiverse::TestHelpers qw{
 };
 
 my @calcs = qw/
+    calc_pe_central_cwe
     calc_count_labels_on_tree
     calc_labels_not_on_tree
     calc_labels_on_tree
     calc_pd
+    calc_pd_clade_contributions
+    calc_pd_clade_loss
+    calc_pd_clade_loss_ancestral
     calc_pd_endemism
     calc_pd_node_list
     calc_pd_terminal_node_count
     calc_pd_terminal_node_list
     calc_pe
-    calc_pe_clade_loss
+    calc_pe_central
+    calc_pe_central_lists
     calc_pe_clade_contributions
+    calc_pe_clade_loss
     calc_pe_clade_loss_ancestral
     calc_pe_lists
     calc_pe_single
@@ -47,9 +53,6 @@ my @calcs = qw/
     calc_phylo_sorenson
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
-    calc_pd_clade_contributions
-    calc_pd_clade_loss
-    calc_pd_clade_loss_ancestral
 /;
 
 
@@ -68,13 +71,11 @@ sub main {
         return 0;
     }
 
-
     test_indices();
-    #test_calc_phylo_aed();
     test_extra_labels_in_bd();
     test_sum_to_pd();
     test_pe_with_extra_nodes_in_tree();
-
+    test_pe_central_and_whole();
     
     done_testing;
     return 0;
@@ -87,6 +88,187 @@ sub test_indices {
         generate_result_sets => $generate_result_sets,
     );
 }
+
+
+
+sub test_pe_central_and_whole {
+    my @calcs = qw/
+        calc_pe
+        calc_pe_lists
+        calc_pe_central
+        calc_pe_central_lists
+        calc_phylo_corrected_weighted_endemism
+        calc_pe_central_cwe
+        calc_pd
+    /;
+
+    #  should derive from metadata
+    my %scalar_indices_to_check;
+    foreach my $whole (qw /PE_WE PE_WE_P PE_CWE/) {
+        my $central = $whole;
+        $central =~ s/^PE/PEC/;
+        $scalar_indices_to_check{$whole} = $central;
+    }
+    $scalar_indices_to_check{PD} = 'PEC_CWE_PD';
+    my %list_indices_to_check;
+    foreach my $whole (qw /PE_WTLIST PE_LOCAL_RANGELIST PE_RANGELIST/) {
+        my $central = $whole;
+        $central =~ s/^PE/PEC/;
+        $list_indices_to_check{$whole} = $central;
+    }
+
+    my $cell_sizes = [200000, 200000];
+    my $bd   = get_basedata_object_from_site_data (CELL_SIZES => $cell_sizes);
+    my $tree = get_tree_object_from_sample_data();
+
+    $bd->build_spatial_index(resolutions => [200000, 200000]);
+
+    #  should ad a def query since we don't need the full set of results
+    my $sp1 = $bd->add_spatial_output (name => 'PE should be the same');
+    $sp1->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_circle(radius => 200000)'],
+        tree_ref           => $tree,
+    );
+
+    my ($sp1_res_w, $sp1_res_c) = get_pe_check_hashes (
+        $sp1,
+        \%scalar_indices_to_check,
+        \%list_indices_to_check,
+    );
+
+    is_deeply (
+        $sp1_res_w,
+        $sp1_res_c,
+        'PE whole and central indices the same for one neighour set',
+    );
+
+    my $sp2 = $bd->add_spatial_output (name => 'PE should not be the same');
+    $sp2->run_analysis (
+        calculations       => [@calcs],
+        spatial_conditions => ['sp_self_only()', 'sp_circle(radius => 400000)'],
+        tree_ref           => $tree,
+    );
+
+    #  no guarantees that the phylo CWE scores will be smaller for the central variant
+    delete @scalar_indices_to_check{qw/PEC_CWE PE_CWE PD/};
+
+    my ($sp2_res_w, $sp2_res_c) = get_pe_check_hashes (
+        $sp2,
+        \%scalar_indices_to_check,
+        \%list_indices_to_check,
+    );
+
+    isnt_deeply (
+        $sp2_res_w,
+        $sp2_res_c,
+        'PE whole and central indices are not the same for two neighour sets',
+    );
+
+    #  need to check the central results are <= the whole results and ranges are the same
+    subtest 'PE_C <= PE_W' => sub {
+        foreach my $elt (sort keys %$sp2_res_w) {
+            my $w_hash = $sp2_res_w->{$elt};
+            my $c_hash = $sp2_res_c->{$elt};
+            foreach my $index (sort keys %$w_hash) {
+                my $reftype = ref ($w_hash->{$index});
+                if (!$reftype) {
+                    ok (
+                        $c_hash->{$index} <= $w_hash->{$index},
+                        "$index: central <= whole",
+                    );
+                }
+                else {
+                    my $w_h_ref = $w_hash->{$index};
+                    my $c_h_ref = $c_hash->{$index};
+                    ok (
+                        scalar keys %$c_h_ref <= scalar keys %$w_h_ref,
+                        "$index key count: central <= whole",
+                    );
+                    #  ranges should be ==, weights <=
+                    if ($index =~ /RANGE/) {
+                        foreach my $key (sort keys %$c_h_ref) {
+                            ok (
+                                $c_h_ref->{$key} == $w_h_ref->{$key},
+                                "$index->\{$key}: central == whole",
+                            );
+                        }
+                    }
+                    else {
+                        foreach my $key (sort keys %$c_h_ref) {
+                            ok (
+                                $c_h_ref->{$key} <= $w_h_ref->{$key},
+                                "$index->\{$key}: central <= whole",
+                            );
+                        }
+                    }
+                }
+            }
+
+        }
+    };
+
+    #  now cross check that PEC_WE = sum (values PEC_WTLIST)
+    subtest 'PEC_WE = sum (values PEC_WTLIST)' => sub {
+        my $sp = $sp2;
+        my $elts = $sp->get_element_list;
+
+        foreach my $elt (@$elts) {
+            my $sp_results_list = $sp->get_list_ref (
+                list    => 'SPATIAL_RESULTS',
+                element => $elt,
+            );
+            my $wt_list = $sp->get_list_ref (
+                list    => 'PEC_WTLIST',
+                element => $elt,
+            );
+            my $v1 = sprintf '%14f', $sp_results_list->{PEC_WE};
+            my $v2 = sprintf '%14f', sum (values %$wt_list);
+            is ($v1, $v2, $elt);
+        }
+    };
+
+    return;
+}
+
+
+sub get_pe_check_hashes {
+    my ($sp, $scalar_indices_to_check, $list_indices_to_check) = @_;
+
+    my (%sp_res_w, %sp_res_c);
+
+    my $elts = $sp->get_element_list;
+
+    foreach my $elt (@$elts) {
+        my $results_list = $sp->get_list_ref (
+            list    => 'SPATIAL_RESULTS',
+            element => $elt,
+        );
+        foreach my $idx_whole (sort keys %$scalar_indices_to_check) {
+            my $idx_central = $scalar_indices_to_check->{$idx_whole};
+            $sp_res_w{$elt}{$idx_whole} = 0 + sprintf '%.13f', $results_list->{$idx_whole};
+            $sp_res_c{$elt}{$idx_whole} = 0 + sprintf '%.13f', $results_list->{$idx_central};
+        }
+
+        foreach my $idx_whole (sort keys %$list_indices_to_check) {
+            my $idx_central = $list_indices_to_check->{$idx_whole};
+            my $results_list_w = $sp->get_list_ref (
+                list    => $idx_whole,
+                element => $elt,
+            );
+            my $results_list_c = $sp->get_list_ref (
+                list    => $idx_central,
+                element => $elt,
+            );
+            #  don't sprintf these - they are lists
+            $sp_res_w{$elt}{$idx_whole} = $results_list_w;
+            $sp_res_c{$elt}{$idx_whole} = $results_list_c;
+        }
+    }
+
+    return \%sp_res_w, \%sp_res_c;
+}
+
 
 sub test_sum_to_pd {
     #  these indices should sum to PD when all groups are used in the analysis
@@ -606,9 +788,52 @@ __DATA__
         'Genus:sp30' => '0.434782608695652',
         'Genus:sp5'  => '0.6'
     },
-    PD_P           => '0.451163454880594',
-    PD_P_per_taxon => '0.0322259610628996',
-    PD_per_taxon   => '0.682618105875523',
+    PD_P                => '0.451163454880594',
+    PD_P_per_taxon      => '0.0322259610628996',
+    PD_per_taxon        => '0.682618105875523',
+    PEC_CWE             => '0.478441635510817',
+    PEC_CWE_PD          => '1.49276923076923',
+    PEC_LOCAL_RANGELIST => {
+        '34___'      => 4,
+        '35___'      => 4,
+        '42___'      => 4,
+        '45___'      => 4,
+        '49___'      => 4,
+        '50___'      => 4,
+        '52___'      => 5,
+        '58___'      => 5,
+        '59___'      => 5,
+        'Genus:sp20' => 4,
+        'Genus:sp26' => 2
+    },
+    PEC_RANGELIST => {
+        '34___'      => 9,
+        '35___'      => 53,
+        '42___'      => 107,
+        '45___'      => 107,
+        '49___'      => 112,
+        '50___'      => 115,
+        '52___'      => 116,
+        '58___'      => 127,
+        '59___'      => 127,
+        'Genus:sp20' => 9,
+        'Genus:sp26' => 3
+    },
+    PEC_WE     => '0.714202952209456',
+    PEC_WE_P   => '0.0337170613126205',
+    PEC_WTLIST => {
+        '34___'      => '0.151732854859624',
+        '35___'      => '0.00249014110193283',
+        '42___'      => '0.00214934894114927',
+        '45___'      => '0.000986794889656748',
+        '49___'      => '0.000729545879720464',
+        '50___'      => '4.22691626564195e-005',
+        '52___'      => '0.000125479547644827',
+        '58___'      => '0.000390962271515824',
+        '59___'      => 0,
+        'Genus:sp20' => '0.222222222222222',
+        'Genus:sp26' => '0.333333333333333'
+    },
     PE_CLADE_CONTR => {
         '30___'      => '0.04198877081',
         '31___'      => '0.08471881937',
@@ -1257,9 +1482,52 @@ __DATA__
         'Genus:sp20' => '0.5',
         'Genus:sp26' => '0.5'
     },
-    PD_P           => '0.0704726738019399',
-    PD_P_per_taxon => '0.0352363369009699',
-    PD_per_taxon   => '0.746384615384616',
+    PD_P                => '0.0704726738019399',
+    PD_P_per_taxon      => '0.0352363369009699',
+    PD_per_taxon        => '0.746384615384616',
+    PEC_CWE             => '0.175417769804783',
+    PEC_CWE_PD          => '1.49276923076923',
+    PEC_LOCAL_RANGELIST => {
+        '34___'      => 1,
+        '35___'      => 1,
+        '42___'      => 1,
+        '45___'      => 1,
+        '49___'      => 1,
+        '50___'      => 1,
+        '52___'      => 1,
+        '58___'      => 1,
+        '59___'      => 1,
+        'Genus:sp20' => 1,
+        'Genus:sp26' => 1
+    },
+    PEC_RANGELIST => {
+        '34___'      => 9,
+        '35___'      => 53,
+        '42___'      => 107,
+        '45___'      => 107,
+        '49___'      => 112,
+        '50___'      => 115,
+        '52___'      => 116,
+        '58___'      => 127,
+        '59___'      => 127,
+        'Genus:sp20' => 9,
+        'Genus:sp26' => 3
+    },
+    PEC_WE     => '0.261858249294739',
+    PEC_WE_P   => '0.0123621592705162',
+    PEC_WTLIST => {
+        '34___'      => '0.0379332137149059',
+        '35___'      => '0.000622535275483208',
+        '42___'      => '0.000537337235287318',
+        '45___'      => '0.000246698722414187',
+        '49___'      => '0.000182386469930116',
+        '50___'      => '1.05672906641049e-005',
+        '52___'      => '2.50959095289654e-005',
+        '58___'      => '7.81924543031647e-005',
+        '59___'      => 0,
+        'Genus:sp20' => '0.0555555555555556',
+        'Genus:sp26' => '0.166666666666667'
+    },
     PE_CLADE_CONTR => {
         '34___'      => '0.99349719414',
         '35___'      => '0.99587456922',

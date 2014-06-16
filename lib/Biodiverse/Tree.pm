@@ -1855,7 +1855,7 @@ sub trim {
         next DELETION if $deleted_h{$name} || !exists $trim_hash{$name};
 
         $progress->update (
-            "Deleting nodes ($i / $to_do)",
+            "Checking nodes ($i / $to_do)",
             $i / $to_do,
         );
 
@@ -1887,7 +1887,7 @@ sub trim {
             next NODE if  $node->is_root_node;
 
             $progress->update (
-                "Deleting nodes ($i / $to_do)",
+                "Checking nodes ($i / $to_do)",
                 $i / $to_do,
             );
 
@@ -1921,6 +1921,8 @@ sub trim {
     $keep = undef;  #  was leaking - not sure it matters, though
 
     say '[TREE] Trimming completed';
+
+    $progress = undef;
 
     return $self;
 }

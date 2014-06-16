@@ -433,7 +433,7 @@ sub test_roundtrip_delimited_text {
         {label_start_col => 3,   group_columns => [1,2], data_in_matrix_form  =>  1, },
     );
     
-    my $tmp_folder = File::Temp->newdir;
+    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {
@@ -554,7 +554,7 @@ sub test_roundtrip_raster {
         #say Dumper $out_options_hash;
 
         #  need to use a better approach for the name
-        my $tmp_dir = File::Temp->newdir;
+        my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
         my $fname_base = $format; 
         my $suffix = '';
         my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
@@ -677,7 +677,7 @@ sub test_roundtrip_shapefile {
         },
     );
 
-    my $tmp_dir = File::Temp->newdir;
+    my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
 
     my $i = 0;
     foreach my $out_options_hash (@out_options) {

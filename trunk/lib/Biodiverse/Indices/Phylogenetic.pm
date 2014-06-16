@@ -10,12 +10,8 @@ use Carp;
 
 use Biodiverse::Progress;
 
-use List::Util qw /sum min max/;
-use List::MoreUtils qw /pairwise any/;
+use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
-
-#use Math::BigInt;
-#use POSIX qw /floor/;
 
 our $VERSION = '0.99_001';
 
@@ -425,6 +421,179 @@ sub calc_pe_lists {
     my @keys = qw /PE_WTLIST PE_RANGELIST PE_LOCAL_RANGELIST/;
     my %results;
     @results{@keys} = @args{@keys};
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pe_central {
+
+    my $desc = <<'END_PEC_DESC'
+Phylogenetic endemism (PE).
+Uses labels from neighbour set one but local ranges from across
+both neighbour sets.
+Trims the tree to exclude labels not in the BaseData object.
+END_PEC_DESC
+  ;
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Phylogenetic Endemism central',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        type            => 'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        pre_calc_global => [qw /get_trimmed_tree/],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PEC_WE           => {
+                description => 'Phylogenetic endemism, central variant'
+            },
+            PEC_WE_P         => {
+                description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant'
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_central {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree_ref    = $args{trimmed_tree};
+
+    my $pe      = $args{PE_WE};
+    my $pe_p    = $args{PE_WE_P};
+    my $wt_list = $args{PE_WTLIST};
+    my $c_list  = $args{PHYLO_C_LIST};  #  those only in nbr set 2
+
+    #  remove the PE component found only in nbr set 2
+    #  (assuming c_list is shorter than a+b, so this will be the faster approach)
+    $pe -= sum (0, @$wt_list{keys %$c_list});
+
+    $pe_p = $pe ? $pe / $tree_ref->get_total_tree_length : undef;
+
+    my %results = (
+        PEC_WE     => $pe,
+        PEC_WE_P   => $pe_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pe_central_lists {
+
+    my $desc = <<'END_PEC_DESC'
+Lists underlying the phylogenetic endemism central indices.
+Uses labels from neighbour set one but local ranges from across
+both neighbour sets.
+END_PEC_DESC
+  ;
+
+    my %arguments = (
+        description     => $desc,
+        name            => 'Phylogenetic Endemism central lists',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        type            => 'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PEC_WTLIST           => {
+                description => 'Phylogenetic endemism weights, central variant',
+                type => 'list',
+            },
+            PEC_LOCAL_RANGELIST  => {
+                description => 'Phylogenetic endemism local range lists, central variant',
+                type => 'list',
+            },
+            PEC_RANGELIST => {
+                description => 'Phylogenetic endemism global range lists, central variant',
+                type => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_central_lists {
+    my $self = shift;
+    my %args = @_;
+
+    my %wt_list = %{$args{PE_WTLIST}};    #  need a copy since we will delete from it
+    my $c_list  =   $args{PHYLO_C_LIST};  #  those only in nbr set 2
+    my $a_list  =   $args{PHYLO_A_LIST};
+    my $b_list  =   $args{PHYLO_B_LIST};
+    my (%local_range_list_c, %global_range_list_c);
+
+    my $local_range_list  = $args{PE_LOCAL_RANGELIST};
+    my $global_range_list = $args{PE_RANGELIST};
+
+    #  avoid copies and slices if there are no nodes found only in nbr set 2
+    if (scalar keys %$c_list) {
+        #  remove the PE component found only in nbr set 2
+        #  (assuming c_list is shorter than a+b, so this will be the faster approach)
+        delete @wt_list{keys %$c_list};
+
+        #  Keep any node found in nbr set 1
+        my @keepers = keys %wt_list;
+        @local_range_list_c{@keepers}  = @{$local_range_list}{@keepers};
+        @global_range_list_c{@keepers} = @{$global_range_list}{@keepers};
+    }
+    else {
+        %local_range_list_c  = %$local_range_list;
+        %global_range_list_c = %$global_range_list;
+    }
+
+    my %results = (
+        PEC_WTLIST => \%wt_list,
+        PEC_LOCAL_RANGELIST  => \%local_range_list_c,
+        PEC_RANGELIST        => \%global_range_list_c,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pe_central_cwe {
+
+    my %arguments = (
+        name            => 'Corrected weighted phylogenetic endemism, central variant',
+        description     => 'What proportion of the PD in neighbour set 1 is '
+                         . 'range-restricted to neighbour sets 1 and 2?',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_pd_node_list/],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PEC_CWE => {
+                description => 'Corrected weighted phylogenetic endemism, central variant',
+            },
+            PEC_CWE_PD => {
+                description => 'PD used in the PEC_CWE index.',
+            },
+        },
+    );
+
+    return wantarray ? %arguments : \%arguments;
+}
+
+sub calc_pe_central_cwe {
+    my $self = shift;
+    my %args = @_;
+
+    my $pe      = $args{PEC_WE};
+    my $wt_list = $args{PEC_WTLIST};
+
+    my $pd_included_node_list = $args{PD_INCLUDED_NODE_LIST};
+
+    my $pd = sum @$pd_included_node_list{keys %$wt_list};
+
+    my $cwe = $pd ? $pe / $pd : undef;
+
+    my %results = (
+        PEC_CWE    => $cwe,
+        PEC_CWE_PD => $pd,
+    );
 
     return wantarray ? %results : \%results;
 }
@@ -1226,7 +1395,7 @@ sub get_node_range_hash {
     my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
     my $nodes = $tree->get_node_hash;
     my %node_range;
-  
+
     my $to_do = scalar keys %$nodes;
     my $count = 0;
     print "[PD INDICES] Progress (% of $to_do nodes): ";
@@ -1869,10 +2038,9 @@ sub get_metadata_calc_phylo_abc {
         name            =>  'Phylogenetic ABC',
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
         type            =>  'Phylogenetic Indices',
-        pre_calc        =>  'calc_abc',
-        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
+        pre_calc        =>  '_calc_phylo_abc_lists',
+        #pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
-        required_args   => {tree_ref => 1},
         indices         => {
             PHYLO_A => {
                 description  =>  'Length of branches shared by labels in nbr sets 1 and 2',
@@ -1896,19 +2064,58 @@ sub get_metadata_calc_phylo_abc {
     return wantarray ? %arguments : \%arguments;   
 }
 
+my $_calc_phylo_abc_precision = '%.10f';
+
 sub calc_phylo_abc {
     my $self = shift;
     my %args = @_;
 
-    #  seems inefficient, but might clear a memory leak
+    my $A = $args{PHYLO_A_LIST};
+    my $B = $args{PHYLO_B_LIST};
+    my $C = $args{PHYLO_C_LIST};
 
-    my %results = $self->_calc_phylo_abc(%args);
+    my $phylo_A = sum (0, values %$A);
+    my $phylo_B = sum (0, values %$B);
+    my $phylo_C = sum (0, values %$C);
+
+    my $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
+    
+    #  return the values but reduce the precision to avoid
+    #  floating point problems later on
+
+    $phylo_A   = 0 + $self->set_precision_aa ($phylo_A, $_calc_phylo_abc_precision);
+    $phylo_B   = 0 + $self->set_precision_aa ($phylo_B, $_calc_phylo_abc_precision);
+    $phylo_C   = 0 + $self->set_precision_aa ($phylo_C, $_calc_phylo_abc_precision);
+    $phylo_ABC = 0 + $self->set_precision_aa ($phylo_ABC, $_calc_phylo_abc_precision);
+
+    my %results = (
+        PHYLO_A   => $phylo_A,
+        PHYLO_B   => $phylo_B,
+        PHYLO_C   => $phylo_C,
+        PHYLO_ABC => $phylo_ABC,
+    );
+
     return wantarray ? %results : \%results;
 }
 
-my $_calc_phylo_abc_precision = '%.10f';
 
-sub _calc_phylo_abc {
+
+sub get_metadata__calc_phylo_abc_lists {
+
+    my %arguments = (
+        name            =>  'Phylogenetic ABC lists',
+        description     =>  'Calculate the sets of shared and not shared branches between two sets of labels',
+        type            =>  'Phylogenetic Indices',
+        pre_calc        =>  'calc_abc',
+        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
+        uses_nbr_lists  =>  1,  #  how many sets of lists it must have
+        required_args   => {tree_ref => 1},
+    );
+
+    return wantarray ? %arguments : \%arguments;   
+}
+
+sub _calc_phylo_abc_lists {
     my $self = shift;
     my %args = @_;
 
@@ -1937,33 +2144,19 @@ sub _calc_phylo_abc {
     # then get length of B
     my %B = %A;
     delete @B{keys %$nodes_in_path2};
-    my $phylo_B = sum (0, values %B);
 
     # create a new hash %C for nodes in label hash 2 but not 1
     # then get length of C
     my %C = %A;
     delete @C{keys %$nodes_in_path1};
-    my $phylo_C = sum (0, values %C);
 
     # get length of %A = branches not in %B or %C
     delete @A{keys %B, keys %C};
-    my $phylo_A = sum (0, values %A);
-
-    my $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
-    
-    #  return the values but reduce the precision to avoid
-    #  floating point problems later on
-
-    $phylo_A =   0 + $self->set_precision_aa ($phylo_A, $_calc_phylo_abc_precision);
-    $phylo_B =   0 + $self->set_precision_aa ($phylo_B, $_calc_phylo_abc_precision);
-    $phylo_C =   0 + $self->set_precision_aa ($phylo_C, $_calc_phylo_abc_precision);
-    $phylo_ABC = 0 + $self->set_precision_aa ($phylo_ABC, $_calc_phylo_abc_precision);
 
     my %results = (
-        PHYLO_A   => $phylo_A,
-        PHYLO_B   => $phylo_B,
-        PHYLO_C   => $phylo_C,
-        PHYLO_ABC => $phylo_ABC,
+        PHYLO_A_LIST => \%A,
+        PHYLO_B_LIST => \%B,
+        PHYLO_C_LIST => \%C,
     );
 
     return wantarray ? %results : \%results;

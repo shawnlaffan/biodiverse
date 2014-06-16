@@ -138,7 +138,7 @@ done_testing();
 #######################################
 
 sub get_import_data {
-    my $tmp_obj = File::Temp->new;
+    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverseXXXX');
     my $ep_f = $tmp_obj->filename;
     print $tmp_obj get_element_properties_test_data();
     $tmp_obj -> close;

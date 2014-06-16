@@ -58,7 +58,7 @@ sub test_export_shape {
 
     my $gp = $bd->get_groups_ref;
 
-    my $tmp_folder = File::Temp->newdir;
+    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
     my $fname = $tmp_folder. '/export_basestruct_' . int (rand() * 1000);
 
     say "Exporting to $fname";
@@ -183,7 +183,7 @@ sub test_export_shape_point {
 
     my $gp = $bd->get_groups_ref;
 
-    my $tmp_folder = File::Temp->newdir;
+    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
     my $fname = $tmp_folder . '/export_point_basestruct_' . int (rand() * 1000);
 
     say "Exporting to $fname";

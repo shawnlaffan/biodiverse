@@ -108,7 +108,7 @@ sub run_basestruct_export_to_table {
     
 
     my %file_temp_args = (
-        TEMPLATE => "export_test_XXXXX",
+        TEMPLATE => "biodiverse_export_test_XXXXX",
         SUFFIX   => '.csv',
         UNLINK   => 0,
     );

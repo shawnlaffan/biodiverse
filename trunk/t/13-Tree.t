@@ -53,9 +53,40 @@ sub main {
     return 0;
 }
 
+#  check for leaks - does not need to be part of the standard testing
+sub leakcheck_trim_tree {
+    use Test::LeakTrace;
+    #if ($@) {
+    #    warn 'Test::LeakTrace required for this check';
+    #    return;
+    #}
+
+    leaktrace {_chklk()} -verbose;
+}
+
+sub _chklk {
+    my $tree1 = get_site_data_as_tree();
+    my $node_count;
+    my $start_node_count = $tree1->get_node_count;
+    my @named_nodes    = sort keys %{$tree1->get_named_nodes};
+    my @delete_targets = @named_nodes[0..10];
+    my @remaining      = @named_nodes[11..$#named_nodes];
+    my @keep_targets   = @delete_targets;
+    
+    #  run some methods which cache
+    foreach my $node ($tree1->get_terminal_node_refs) {
+        my $path = $node->get_path_to_root_node;
+    }
+
+    my %n;
+
+    $tree1->trim (trim => \@delete_targets);
+
+}
+
 
 sub test_trim_tree {
-    my $tree1 = get_site_data_as_tree();
+    my $tree1 = shift || get_site_data_as_tree();
     my $tree2 = $tree1->clone;
     my $tree3 = $tree1->clone;
 

@@ -1451,6 +1451,11 @@ sub import_data_shapefile {
     croak "Input files array not provided\n"
       if !$args{input_files} || reftype ($args{input_files}) ne 'ARRAY';
 
+    my $skip_lines_with_undef_groups
+      = exists $args{skip_lines_with_undef_groups}
+          ? $args{skip_lines_with_undef_groups}
+          : 1;
+
     my @group_field_names = @{$args{group_fields} // $args{group_field_names}};
     my @label_field_names = @{$args{label_fields} // $args{label_field_names}};
     my @smp_count_field_names = @{$args{sample_count_col_names} // []};
@@ -1495,6 +1500,7 @@ sub import_data_shapefile {
         say "have $shape_count shapes";
 
         # iterate over shapes
+      SHAPE:
         foreach my $cnt (1 .. $shapefile->shapes()) {  
             my $shape = $shapefile->get_shp_record($cnt);
 
@@ -1528,19 +1534,20 @@ sub import_data_shapefile {
                     ? sum 0, @db_rec{@smp_count_field_names}
                     : 1;
 
-                if ($args{use_dbf_label}) {
+                #  need to implement this
+                #if ($args{use_dbf_label}) {
                     #  this should be use_matrix_format, and implemented consistent with the text parser
                     #my $this_label = $dbf_label;
                     #my $this_count = $dbf_count;
-                }
-                else {
+                #}
+                #else {
                     my @lb_fields = @db_rec{@label_field_names};
                     my $this_label = $self->list2csv (
                         list        => \@lb_fields,
                         csv_object  => $out_csv
                     );
                     push @these_labels, $this_label;
-                }
+                #}
 
                 # form group text from group fields (defined as csv string of central points of group)
                 # Needs to process the data in the same way as for text imports - refactoring is in order.
@@ -1548,6 +1555,11 @@ sub import_data_shapefile {
                 my @gp_fields;
                 my $i = 0;
                 foreach my $val (@group_field_vals) {
+                    if ($val eq '-1.79769313486232e+308') {
+                        next SHAPE if $skip_lines_with_undef_groups;
+                        croak "record $cnt has an undefined coordinate\n";
+                    }
+
                     my $origin = $group_origins[$i];
                     my $g_size = $group_sizes[$i];
 

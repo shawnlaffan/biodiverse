@@ -4,6 +4,6 @@
     <IMPLEMENTATION>
         <PERLCORE VERSION="5,006,0,0" />
         <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.16" />
-        <CODEBASE HREF="" />
+        <CODEBASE HREF="YAML-Syck-5.16.tar.gz" />
     </IMPLEMENTATION>
 </SOFTPKG>

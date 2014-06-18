@@ -1,0 +1,88 @@
+=head2 Wed Jun 18 18:06:38 2014: C<Module> L<Geo::GDAL|Geo::GDAL>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.992>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Wed Jun 18 18:06:41 2014: C<Module> L<Geo::GDAL::Const|Geo::GDAL::Const>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.992>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Wed Jun 18 18:06:49 2014: C<Module> L<Geo::OGR|Geo::OGR>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.992>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+
+=head2 Wed Jun 18 18:06:55 2014: C<Module> L<Geo::OSR|Geo::OSR>
+
+=over 4
+
+=item *
+
+C<installed into: C:/MinGW/msys/local/lib/perl5>
+
+=item *
+
+C<LINKTYPE: dynamic>
+
+=item *
+
+C<VERSION: 1.992>
+
+=item *
+
+C<EXE_FILES: >
+
+=back
+

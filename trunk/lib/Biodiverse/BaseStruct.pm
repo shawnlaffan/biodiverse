@@ -3200,8 +3200,9 @@ sub get_list_ref {
 sub get_sample_count {
     my $self = shift;
     my %args = @_;
-    croak "element not specified\n" if not defined $args{element};
-    my $element = $args{element};
+
+    my $element = $args{element}
+      // croak "element not specified\n";
 
     return if ! $self->exists_element (element => $args{element});
 
@@ -3216,12 +3217,16 @@ sub get_sample_count {
 sub get_variety {
     my $self = shift;
     my %args = @_;
-    croak "element not specified\n" if not defined $args{element};
-    my $element = $args{element};
 
-    return if not $self->exists_element (element => $args{element});
-    #my $el = $self->{ELEMENTS}{$element};  #  for debug
-    return scalar keys %{$self->{ELEMENTS}{$element}{SUBELEMENTS}};
+    no autovivification;
+
+    my $element = $args{element} //
+      croak "element not specified\n";
+
+    my $href = $self->{ELEMENTS}{$element}{SUBELEMENTS}
+      // return;
+
+    return scalar keys %$href;
 }
 
 sub get_redundancy {
@@ -3242,12 +3247,11 @@ sub get_redundancy {
 
 #  calculate basestats for all elements - poss redundant now there are indices that do this
 sub get_base_stats_all {
-
     my $self = shift;
 
     foreach my $element ($self->get_element_list) {
         $self->add_lists (
-            element =>$element,
+            element    => $element,
             BASE_STATS => $self->calc_base_stats(element => $element)
         );
     }

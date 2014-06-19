@@ -724,7 +724,7 @@ sub rand_nochange {
     my $self = shift;
     my %args = @_;
 
-    print "[RANDOMISE] Running 'no change' randomisation\n";
+    say "[RANDOMISE] Running 'no change' randomisation";
 
     my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
 
@@ -752,7 +752,8 @@ sub get_metadata_rand_csr_by_group {
     return wantarray ? %args : \%args;
 }
 
-sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles the subelement lists between elements
+#  complete spatial randomness by group - just shuffles the subelement lists between elements
+sub rand_csr_by_group {
     my $self = shift;
     my %args = @_;
 
@@ -768,6 +769,10 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     my $new_bd = blessed($bd)->new ($bd->get_params_hash);
     $new_bd->get_groups_ref->set_param ($bd->get_groups_ref->get_params_hash);
     $new_bd->get_labels_ref->set_param ($bd->get_labels_ref->get_params_hash);
+
+    #  pre-assign the hash buckets to avoid rehashing larger structures
+    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
+    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
 
     my @orig_groups = sort $bd->get_groups;
     #  make sure shuffle does not work on the original data
@@ -910,7 +915,11 @@ END_PROGRESS_TEXT
     my $new_bd_name = $new_bd->get_param ('NAME');
     $new_bd->rename (name => $new_bd_name . "_" . $name);
 
-    print "[RANDOMISE] Creating clone for destructive sampling\n";
+    #  pre-assign the hash buckets to avoid rehashing larger structures
+    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
+    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
+
+    say '[RANDOMISE] Creating clone for destructive sampling';
     $progress_bar->update (
         "$progress_text\n"
         . "Creating clone for destructive sampling\n",

@@ -7,6 +7,40 @@ our $VERSION = '0.99_001';
 #  we need access to one sub from Endemism.pm
 use parent qw /Biodiverse::Indices::Endemism/;
 
+sub get_metadata_get_label_abundance_hash {
+    my $self = shift;
+
+    my %args = (
+        name            => 'Endemism central',
+        type            => 'Endemism',
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        indices => {
+            label_abundance_hash => {
+                type => 'list',
+            },
+        }
+    );
+
+    return wantarray ? %args : \%args;
+}
+
+sub get_label_abundance_hash {
+    my $self = shift;
+
+    my $bd = $self->get_basedata_ref;
+
+    my %abundance_hash;
+
+    foreach my $label ($bd->get_labels) {
+        $abundance_hash{$label} = $bd->get_label_abundance (element => $label);
+    }
+
+    my %results = (label_abundance_hash => \%abundance_hash);
+
+    return wantarray ? %results : \%results;
+}
+
+
 sub get_metadata_calc_rarity_central {
 
     my %arguments = (
@@ -69,16 +103,6 @@ sub calc_rarity_central {
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata__calc_rarity_central {
-    my $self = shift;
-
-    my %metadata = (
-        pre_calc => 'calc_abc3',
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
 sub get_metadata_calc_rarity_central_lists {
 
     my %arguments = (
@@ -109,14 +133,23 @@ sub calc_rarity_central_lists {
     my $self = shift;
     my %args = @_;
 
-    #my $hashRef = $self -> _calc_endemism(%args, end_central => 1);
-
     my %results = (
         RAREC_WTLIST     => $args{RAREC_WTLIST},
         RAREC_RANGELIST  => $args{RAREC_RANGELIST},
     );
 
     return wantarray ? %results : \%results;
+}
+
+sub get_metadata__calc_rarity_central {
+    my $self = shift;
+
+    my %metadata = (
+        pre_calc_global => 'get_label_abundance_hash',
+        pre_calc        => 'calc_abc3',
+    );
+
+    return wantarray ? %metadata : \%metadata;
 }
 
 sub _calc_rarity_central {
@@ -126,7 +159,8 @@ sub _calc_rarity_central {
     my %hash = $self -> _calc_endemism (
         %args,
         end_central => 1,
-        function    => 'get_label_abundance'
+        function    => 'get_label_abundance',
+        label_range_hash => $args{label_abundance_hash},
     );
 
     my %hash2;
@@ -201,7 +235,8 @@ sub get_metadata__calc_rarity_whole {
     my $self = shift;
 
     my %metadata = (
-        pre_calc => 'calc_abc3',
+        pre_calc_global => 'get_label_abundance_hash',
+        pre_calc        => 'calc_abc3',
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -254,7 +289,8 @@ sub _calc_rarity_whole {
     my %hash = $self -> _calc_endemism (
         %args,
         end_central => 0,
-        function    => 'get_label_abundance'
+        function    => 'get_label_abundance',
+        label_range_hash => $args{label_abundance_hash},
     );
 
     my %hash2;

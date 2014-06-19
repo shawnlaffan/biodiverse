@@ -100,17 +100,49 @@ sub calc_endemism_whole_normalised {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_get_label_range_hash {
+    my $self = shift;
+
+    my %args = (
+        name            => 'Endemism central',
+        type            => 'Endemism',
+        uses_nbr_lists  => 1,  #  how many sets of lists it must have
+        indices => {
+            label_range_hash => {
+                type => 'list',
+            },
+        }
+    );
+
+    return wantarray ? %args : \%args;
+}
+
+sub get_label_range_hash {
+    my $self = shift;
+
+    my $bd = $self->get_basedata_ref;
+
+    my %range_hash;
+
+    foreach my $label ($bd->get_labels) {
+        $range_hash{$label} = $bd->get_range (element => $label);
+    }
+
+    my %results = (label_range_hash => \%range_hash);
+
+    return wantarray ? %results : \%results;
+}
 
 sub get_metadata_calc_endemism_central {
 
     my $desc = "Calculate endemism for labels only in neighbour set 1, "
                 . "but with local ranges calculated using both neighbour sets";
-    
+
     my $ref = 'Crisp et al. (2001) J Biogeog. '
               . 'http://dx.doi.org/10.1046/j.1365-2699.2001.00524.x ; '
               . 'Laffan and Crisp (2003) J Biogeog. '
               . 'http://www3.interscience.wiley.com/journal/118882020/abstract';
- 
+
     my %arguments = (
         description     => $desc,
         name            => 'Endemism central',
@@ -486,7 +518,8 @@ sub get_metadata__calc_endemism_central {
     my $self = shift;
 
     my %metadata = (
-        pre_calc => 'calc_abc2',
+        pre_calc_global => [qw/get_label_range_hash/],
+        pre_calc        => 'calc_abc2',
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -623,7 +656,8 @@ sub get_metadata__calc_endemism_whole {
     my $self = shift;
 
     my %metadata = (
-        pre_calc => 'calc_abc2',
+        pre_calc_global => [qw/get_label_range_hash/],
+        pre_calc        => 'calc_abc2',
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -640,13 +674,12 @@ sub _calc_endemism_whole {
 #  Calculate endemism.  Private method called by others
 sub _calc_endemism {
     my $self = shift;
-
     #  end_central is a default flag, gets overridden if user specifies
-    my %args = (end_central => 1, @_);  
+    my %args = (end_central => 1, @_);
 
     my $bd = $self->get_basedata_ref;
 
-    #  if element_list2 is specified and end_central = 1,
+    #  if element_list2 is specified and end_central == 1,
     #  then it will consider those elements in the local range calculations,
     #  but only use those labels that occur in the element_list1
 
@@ -656,19 +689,19 @@ sub _calc_endemism {
         : $args{label_hash_all};
 
     #  allows us to use this for any other basedata get_* function
-    my $function = $args{function} || 'get_range';
+    my $function   = $args{function} || 'get_range';
+    my $range_hash = $args{label_range_hash} || {};
 
-    my (%wts, %ranges);
-    my ($endemism, $rosauer);
+    my (%wts, %ranges, $endemism, $rosauer);
     my $label_count = scalar keys %$label_list;
 
-    foreach my $sub_label (keys %{$label_list}) {
-        my $range           = $bd->$function (element => $sub_label);
-        my $wt              = $local_ranges->{$sub_label} / $range;
-        $endemism          += $wt;
-        $wts{$sub_label}    = $wt;
-        $ranges{$sub_label} = $range;
-        $rosauer           += 1 / $range;
+    foreach my $label (keys %$label_list) {
+        my $range       = $range_hash->{$label}  // $bd->$function (element => $label);
+        my $wt          = $local_ranges->{$label} / $range;
+        $endemism      += $wt;
+        $wts{$label}    = $wt;
+        $ranges{$label} = $range;
+        $rosauer       += 1 / $range;
     }
 
     #  returns undef if no elements specified

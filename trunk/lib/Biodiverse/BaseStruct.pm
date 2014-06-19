@@ -2472,6 +2472,25 @@ sub get_subelement_count {
     return;
 }
 
+#  pre-assign the hash buckets to avoid rehashing larger structures
+sub _set_elements_hash_key_count {
+    my $self = shift;
+    my %args = @_;
+
+    my $count = $args{count} // 'undef';
+
+    #  do nothing if undef, zero or negative
+    croak "Invalid count argument $count\n"
+      if !$count || !looks_like_number $count || $count < 0;
+
+    my $href = $self->{ELEMENTS};
+
+    return if $count <= scalar keys %$href;  #  needed?
+
+    return keys %$href = $count;
+}
+
+
 #  add an element to a baseStruct object
 sub add_element {  
     my $self = shift;

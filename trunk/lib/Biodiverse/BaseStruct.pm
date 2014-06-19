@@ -18,7 +18,7 @@ use autovivification;
 #use Data::DumpXML qw{dump_xml};
 use Data::Dumper;
 use Scalar::Util qw /looks_like_number reftype/;
-use List::Util qw /min max/;
+use List::Util qw /min max sum/;
 use File::Basename;
 use Path::Class;
 use POSIX qw /fmod/;
@@ -3220,15 +3220,15 @@ sub get_sample_count {
     my $self = shift;
     my %args = @_;
 
+    no autovivification;
+
     my $element = $args{element}
       // croak "element not specified\n";
 
-    return if ! $self->exists_element (element => $args{element});
+    my $href = $self->{ELEMENTS}{$element}{SUBELEMENTS}
+      // return;  #  should croak? 
 
-    my $count = 0;
-    foreach my $sub_element ($self->get_sub_element_list(element => $element)) {
-        $count += $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
-    }
+    my $count = sum (0, values %$href);
 
     return $count;
 }
@@ -3243,7 +3243,7 @@ sub get_variety {
       croak "element not specified\n";
 
     my $href = $self->{ELEMENTS}{$element}{SUBELEMENTS}
-      // return;
+      // return;  #  should croak? 
 
     return scalar keys %$href;
 }

@@ -158,11 +158,11 @@ my $bd = get_basedata_object(
     my (%names, %descr, %indices, %index_descr);
     foreach my $calc (keys %calculations) {
         my $metadata = $indices->get_args (sub => $calc);
-        $names{$metadata->{name}}++;
+        $names{$metadata->{name}}{$calc}++;
         
-        $descr{$metadata->{description}}++;
+        $descr{$metadata->{description}}{$calc}++;
         foreach my $index (keys %{$metadata->{indices}}) {
-            $indices{$index}++;
+            $indices{$index}{$calc}++;
             #  duplicate index descriptions are OK
             #my $index_desc = $metadata->{indices}{$index}{description};
             #$index_descr{$index_desc}++;
@@ -188,6 +188,11 @@ my $bd = get_basedata_object(
 sub check_duplicates {
     my $hashref = shift;
     foreach my $key (sort keys %$hashref) {
-        is ($hashref->{$key}, 1, $key);
+        my $count = scalar keys %{$hashref->{$key}};
+        is ($count, 1, $key);
+        if ($count >= 1) {
+            diag 'Source calcs are: ' . join ' ', sort keys %{$hashref->{$key}};
+        }
+        
     }
 }

@@ -1550,6 +1550,12 @@ sub get_next_line_set {
     return wantarray ? @lines : \@lines;
 }
 
+# a pass-through method
+sub get_metadata {
+    my $self = shift;
+    return $self->get_args(@_);
+}
+
 #  get the metadata for a subroutine
 sub get_args {
     my $self = shift;

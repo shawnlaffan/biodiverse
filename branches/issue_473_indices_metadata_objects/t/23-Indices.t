@@ -155,6 +155,8 @@ my $bd = get_basedata_object(
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     my %calculations = eval {$indices->get_calculations_as_flat_hash};
 
+    my $x = $indices->get_full_dependency_list;
+    
     my (%names, %descr, %indices, %index_descr);
     foreach my $calc (keys %calculations) {
         my $metadata = $indices->get_args (sub => $calc);

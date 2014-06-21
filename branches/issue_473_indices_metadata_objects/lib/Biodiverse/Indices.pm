@@ -591,6 +591,35 @@ sub get_invalid_calculations {
     return wantarray ? @$invalid : [@$invalid];
 }
 
+my @dep_types = qw /pre_calc pre_calc_global post_calc post_calc_global/;
+
+#  get all dependency subs
+sub get_full_dependency_list {
+    my $self = shift;
+    my %args = @_;
+    
+    my $calc_hash = $self->get_calculations_as_flat_hash;
+    my %dep_list;
+
+    no autovivification;
+
+    foreach my $calc (keys %$calc_hash, $self->get_invalid_calculations) {
+        my $meta = $self->get_args (sub => $calc);
+        foreach my $type (@dep_types) {
+            my $deps = $meta->{$type};
+            next if !defined $deps;
+            if (!reftype ($deps)) {
+                $dep_list{$deps}++;
+            }
+            else {
+                @dep_list{@$deps} = (1) x @$deps;
+            }
+        }
+    }
+
+    return wantarray ? keys %dep_list : [keys %dep_list];
+}
+
 
 sub get_deps_per_calc_by_type {
     my $self = shift;
@@ -604,7 +633,8 @@ sub get_deps_per_calc_by_type {
         $aggregated{$type} = {};
     }
     
-    while (my ($calc, $sub_hash) = each %$calc_hash) {
+    foreach my $calc (keys %$calc_hash) {
+        my $sub_hash = $calc_hash->{$calc};
         my $calcs_by_type = $sub_hash->{deps_by_type_per_calc};
         while (my ($type, $hash) = each %$calcs_by_type) {
             while (my ($dep_calc, $array) = each %$hash) {

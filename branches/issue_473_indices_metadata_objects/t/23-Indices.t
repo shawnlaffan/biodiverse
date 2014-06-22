@@ -7,7 +7,7 @@ use Carp;
 
 use rlib;
 
-use Test::More tests => 22;
+use Test::More;
 use Test::Exception;
 
 local $| = 1;
@@ -29,7 +29,41 @@ my $bd = get_basedata_object(
 );
 
 
-{
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @subs = grep {$_ =~ 'main::test_'} $obj->functions();
+#
+#use Class::Inspector;
+#my @subs = Class::Inspector->functions ('main::');
+
+exit main( @ARGV );
+
+
+sub main {
+    my @args  = @_;
+
+    if (@args) {
+        for my $name (@args) {
+            die "No test method test_$name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            $func->();
+        }
+        done_testing;
+        return 0;
+    }
+
+    foreach my $sub (@subs) {
+        no strict 'refs';
+        $sub->();
+    }
+
+    done_testing;
+    return 0;
+}
+
+
+
+sub test_general {
     #  some helper vars
     my ($is_error, $e);
 
@@ -151,13 +185,15 @@ my $bd = get_basedata_object(
     
 }
 
-{
+sub test_metadata {
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     #my %calculations = eval {$indices->get_calculations_as_flat_hash};
 
     my $pfx = 'get_metadata_';
     my $x = $indices->get_subs_with_prefix (prefix => $pfx);
     
+    my %meta_keys;
+
     my (%names, %descr, %indices, %index_descr, %subs_with_no_indices);
     foreach my $meta_sub (keys %$x) {
         my $calc = $meta_sub;
@@ -178,6 +214,8 @@ my $bd = get_basedata_object(
         if (!scalar keys %$indices_this_sub) {
             $subs_with_no_indices{$calc} ++;
         }
+        
+        @meta_keys{keys %$metadata} = (1) x scalar keys %$metadata;
     }
 
     subtest 'No duplicate names' => sub {
@@ -208,6 +246,8 @@ my $bd = get_basedata_object(
             diag 'Indices with no subs are: ' . join ' ', sort keys %subs_with_no_indices;
         }
     }
+
+    #diag 'Metadata keys are ' . join ' ', sort keys %meta_keys;
 }
 
 sub check_duplicates {

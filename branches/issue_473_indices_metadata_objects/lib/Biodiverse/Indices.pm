@@ -2,6 +2,7 @@ package Biodiverse::Indices;
 
 #  package to run the calculations for a Biodiverse analysis 
 #  generally they are called from a Biodiverse::Spatial or Biodiverse::Cluster object
+use 5.010;
 
 use Carp;
 use strict;
@@ -441,7 +442,7 @@ sub parse_dependencies_for_calc {
             }
 
             #  run some validity checks
-            my $uses_nbr_lists = $metadata->{uses_nbr_lists};
+            my $uses_nbr_lists = $metadata->get_uses_nbr_lists;
             if (defined $uses_nbr_lists) {
                 if ($uses_nbr_lists > $nbr_list_count) {
                     Biodiverse::Indices::InsufficientElementLists->throw (
@@ -451,21 +452,22 @@ sub parse_dependencies_for_calc {
                 }
             }
             #  check the indices have sufficient nbr sets
-            while (my ($index, $index_meta) = each %{$metadata->{indices}}) {
-                my $index_uses_nbr_lists = $index_meta->{uses_nbr_lists} || 1;
+            foreach my $index (keys %{$metadata->get_indices}) {
+                my $index_uses_nbr_lists = $metadata->get_index_uses_nbr_lists($index);
                 if ($index_uses_nbr_lists > $nbr_list_count) {
                     $indices_to_clear{$index} ++;
                 }
             }
-            if ($metadata->{required_args}) {
+
+            if (my $required_args = $metadata->get_required_args) {
                 #  don't really need to convert to hash here, but do need a list form
                 #my $reqd_args_h = $self->_convert_to_hash (input => $metadata->{required_args});
-                my $reqd_args_a = $self->_convert_to_array (input => $metadata->{required_args});
-                
+                my $reqd_args_a = $self->_convert_to_array (input => $required_args);
+
                 foreach my $required_arg (sort @$reqd_args_a) {
                     my $re = qr /^($required_arg)$/;
                     my $is_defined;
-                    CALC_ARG:
+                  CALC_ARG:
                     foreach my $calc_arg (sort grep {$_ =~ $re} keys %$calc_args) {
                         #if ($calc_arg =~ $re) {
                             #my $match = $1;
@@ -485,9 +487,9 @@ sub parse_dependencies_for_calc {
                     }
                 }
             }
-            if ($metadata->{pre_conditions}) {
-                my $pre_cond_a = $self->_convert_to_array (input => $metadata->{pre_conditions});
-                
+            if (my $pre_cond = $metadata->get_pre_conditions) {
+                my $pre_cond_a = $self->_convert_to_array (input => $pre_cond);
+
                 foreach my $pre_cond (sort @$pre_cond_a) {
                     my $check = $self->$pre_cond (%$calc_args);
                     if (! $check) {
@@ -501,7 +503,8 @@ sub parse_dependencies_for_calc {
 
             foreach my $secondary_type (@types) {
                 #  $pc is the secondary pre or post calc (global or not)
-                my $pc = $metadata->{$secondary_type};
+                #my $method = 'get_' . $secondary_type . '_list';
+                my $pc = $metadata->get_dep_list ($secondary_type);
                 next if ! defined $pc;
                 $pc = $self->_convert_to_array (input => $pc);
                 my $secondary_list = $calcs_by_type{$secondary_type};
@@ -575,8 +578,8 @@ sub get_valid_calculations {
     }
     
     if (scalar @removed) {
-        print "[INDICES] The following calcs are not valid and have been removed:\n"
-            . join q{ }, @removed, "\n";
+        say "[INDICES] The following calcs are not valid and have been removed:\n"
+            . join q{ }, @removed;
     }
 
     my %aggregated_calc_lists = $self->aggregate_calc_lists_by_type (

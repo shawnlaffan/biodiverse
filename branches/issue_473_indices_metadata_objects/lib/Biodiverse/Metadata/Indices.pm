@@ -6,6 +6,8 @@ use Carp;
 use Readonly;
 use Scalar::Util qw /reftype/;
 
+our $VERSION = '0.99_001';
+
 sub new {
     my ($class, $data) = @_;
     $data //= {};
@@ -19,8 +21,8 @@ my %methods_and_defaults = (
     name           => 'no_name',
     description    => 'no_description',
     uses_nbr_lists => 1,
-    required_args  => [],
-    preconditions  => undef,
+    required_args  => undef,
+    pre_conditions => undef,
     reference      => '',
     indices        => {},
 );
@@ -31,7 +33,7 @@ sub _make_access_methods {
 
     no strict 'refs';
     foreach my $key (keys %$methods) {
-        *{$pkg . '::' . "get_$key"} =
+        *{$pkg . '::' . 'get_' . $key} =
             do {
                 sub {
                     my $self = shift;
@@ -48,7 +50,8 @@ sub get_default {
 
     #  set defaults - make sure they are new each time
     my $default = $methods_and_defaults{$key};
-    return $default if !defined $default;
+
+    return $default if !defined $default or !reftype $default;
 
     if (reftype ($default) eq 'ARRAY') {
         $default = [];
@@ -70,12 +73,14 @@ Readonly my %dep_types = (
     post_calc_global => 1,
 );
 
-sub _get_dep_list {
-    my ($self, $type) = shift;
-    
+sub get_dep_list {
+    my ($self, $type) = @_;
+
     croak "Invalid dependency type $type" if !$dep_types{$type};
 
-    my $pc = $self->{$type} // [];
+    my $pc = $self->{$type};
+
+    return $pc if !defined $pc;
 
     if (!ref ($pc)) {
         $pc = [$pc];
@@ -85,23 +90,23 @@ sub _get_dep_list {
 }
 
 sub get_pre_calc_global_list {
-    my $self = @_;
-    return $self->_get_dep_list ('pre_calc_global');
+    my $self = shift;
+    return $self->get_dep_list ('pre_calc_global');
 }
 
 sub get_pre_calc_list {
-    my $self = @_;
-    return $self->_get_dep_list ('pre_calc');
+    my $self = shift;
+    return $self->get_dep_list ('pre_calc');
 }
 
 sub get_post_calc_list {
-    my $self = @_;
-    return $self->_get_dep_list ('post_calc');
+    my $self = shift;
+    return $self->get_dep_list ('post_calc');
 }
 
 sub get_post_calc_global_list {
-    my $self = @_;
-    return $self->_get_dep_list ('post_calc_global');
+    my $self = shift;
+    return $self->get_dep_list ('post_calc_global');
 }
 
 
@@ -135,6 +140,18 @@ sub get_index_description_hash {
     }
 
     return wantarray ? %hash : \%hash;
+}
+
+
+
+
+sub get_index_uses_nbr_lists {
+    my ($self, $index) = @_;
+
+    no autovivification;
+    
+    my $indices = $self->get_indices;
+    return $indices->{$index}{uses_nbr_lists} // 1;
 }
 
 1;

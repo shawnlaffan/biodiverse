@@ -155,7 +155,7 @@ my $bd = get_basedata_object(
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     my %calculations = eval {$indices->get_calculations_as_flat_hash};
 
-    my $x = $indices->get_full_dependency_list;
+    #my $x = $indices->get_full_dependency_list;
     
     my (%names, %descr, %indices, %index_descr);
     foreach my $calc (keys %calculations) {
@@ -191,8 +191,8 @@ sub check_duplicates {
     my $hashref = shift;
     foreach my $key (sort keys %$hashref) {
         my $count = scalar keys %{$hashref->{$key}};
-        is ($count, 1, $key);
-        if ($count >= 1) {
+        my $res = is ($count, 1, $key);
+        if (!$res) {
             diag 'Source calcs are: ' . join ' ', sort keys %{$hashref->{$key}};
         }
         

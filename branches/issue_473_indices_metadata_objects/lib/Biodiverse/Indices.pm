@@ -37,6 +37,9 @@ use parent qw {
     Biodiverse::Common
 };
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
+use Biodiverse::Metadata::Indices;
+
 
 sub new {
     my $class = shift;
@@ -72,6 +75,22 @@ sub reset_results {
     return;
 }
 
+sub get_metadata {
+    my $self = shift;
+    my %args = @_;
+
+    croak 'get_metadata called in list context'
+      if wantarray;
+
+    my $metadata = $self->get_args(@_);
+    
+    if (not blessed $metadata) {
+        #warn "metadata for $args{sub} is not blessed, blessing into $metadata_class";
+        bless $metadata, $metadata_class;
+    }
+
+    return $metadata;
+}
 
 ###########################
 #
@@ -88,7 +107,7 @@ sub get_calculations {
     foreach my $method (@$list) {
         next if $method !~ /^calc_/;
         next if $method =~ /calc_abc\d?$/;
-        my $ref = $self->get_args (sub => $method);
+        my $ref = $self->get_metadata (sub => $method);
         push @{$calculations{$ref->{type}}}, $method;
     }
 
@@ -133,7 +152,7 @@ sub get_calculation_metadata_as_wiki {
     my %calculation_hash;
     foreach my $type (sort keys %calculations) {
         foreach my $calculations (@{$calculations{$type}}) {
-            my $ref = $self->get_args (sub => $calculations);
+            my $ref = $self->get_metadata (sub => $calculations);
             $ref->{analysis} = $calculations;
             $calculation_hash{$type}{$calculations} = $ref;
         }
@@ -416,7 +435,7 @@ sub parse_dependencies_for_calc {
                 $metadata = $metadata_hash{$calc};
             }
             else {
-                $metadata = eval {$self->get_args (sub => $calc)};
+                $metadata = eval {$self->get_metadata (sub => $calc)};
                 croak $EVAL_ERROR if $EVAL_ERROR;
                 $metadata_hash{$calc} = $metadata;
             }
@@ -604,7 +623,7 @@ sub get_full_dependency_list {
     no autovivification;
 
     foreach my $calc (keys %$calc_hash, $self->get_invalid_calculations) {
-        my $meta = $self->get_args (sub => $calc);
+        my $meta = $self->get_metadata (sub => $calc);
         foreach my $type (@dep_types) {
             my $deps = $meta->{$type};
             next if !defined $deps;
@@ -685,7 +704,7 @@ sub get_indices_uses_lists_count {
 
     my %indices;
     foreach my $calculations (keys %list) {
-        my $ref = $self->get_args (sub => $calculations);
+        my $ref = $self->get_metadata (sub => $calculations);
         foreach my $index (keys %{$ref->{indices}}) {
             $indices{$index} = $ref->{indices}{$index}{uses_nbr_lists};
         }
@@ -722,7 +741,7 @@ sub get_index_source_hash {
 
     CALC:
     foreach my $calculations (keys %$list) {
-        my $args = $self->get_args (sub => $calculations);
+        my $args = $self->get_metadata (sub => $calculations);
 
         next CALC if $using_nbr_list_count < $args->{uses_nbr_lists};
 
@@ -745,7 +764,7 @@ sub get_required_args {  #  return a hash of those methods that require a parame
     my %params;
 
     foreach my $calculations (keys %$list) {
-        my $ref = $self->get_args (sub => $calculations);
+        my $ref = $self->get_metadata (sub => $calculations);
         if (exists $ref->{required_args}) {  #  make it a hash if it not already
             my $reqd_ags = $ref->{required_args};
             if ((ref $reqd_ags) =~ /ARRAY/) {
@@ -794,7 +813,7 @@ sub get_valid_cluster_indices {
 
     my %indices;
     foreach my $calculations (keys %$list) {
-        my $ref = $self->get_args (sub => $calculations);
+        my $ref = $self->get_metadata (sub => $calculations);
         foreach my $index (keys %{$ref->{indices}}) {
             if ($ref->{indices}{$index}{cluster}) {
                 my $description = $ref->{indices}{$index}{description};
@@ -813,7 +832,7 @@ sub get_valid_region_grower_indices {
 
     my %indices;
     foreach my $calculations (keys %$list) {
-        my $ref = $self->get_args (sub => $calculations);
+        my $ref = $self->get_metadata (sub => $calculations);
         INDEX:
         foreach my $index (keys %{$ref->{indices}}) {
             my $hash_ref = $ref->{indices}{$index};
@@ -840,7 +859,7 @@ sub get_list_indices {
 
     my %indices;
     foreach my $calculations (keys %$list) {
-        my $ref = $self->get_args (sub => $calculations);
+        my $ref = $self->get_metadata (sub => $calculations);
         INDEX:
         foreach my $index (keys %{$ref->{indices}}) {
             my $hash_ref = $ref->{indices}{$index};

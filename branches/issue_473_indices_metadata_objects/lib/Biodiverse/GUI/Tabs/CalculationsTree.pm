@@ -154,24 +154,25 @@ sub make_calculations_model {
 
         my %calc_metadata;
         foreach my $func (@{$calculations{$type}}) {
-            my $metadata = $indices->get_args (sub => $func);
+            my $info = $indices->get_metadata (sub => $func);
             # If name unspecified then use the function name less the calc_
             my $name = $func;
             $name =~ s/^calc_//;
             $name = $info->get_name || $name;
-            $info{func} = $func;
-            $calc_metadata{$name} = \%info;
+            #$info->{func} = $func;  #  DIRTY HACK
+            $calc_metadata{$func} = $info;
         }
 
         # Add each analysis-function (eg: Jaccard, Endemism) row
         CALCULATION_NAME:
-        foreach my $name (sort keys %calc_metadata) {
-            my %info = %{$calc_metadata{$name}};
+        foreach my $func (sort keys %calc_metadata) {
+            my $info = $calc_metadata{$func};
+            my $name = $info->get_name;
 
             # If description goes over one line,
             # we put the first line here and the next into a new row
             # but combine all the other lines into a single line and then rewrap.
-            my $desc = $info{description} || $EMPTY_STRING;
+            my $desc = $info->get_description || $EMPTY_STRING;
             my ($d1, $d_rest) = split(/\n/, $desc, 2);
 
             #  Rewrap the descriptions.
@@ -189,8 +190,9 @@ sub make_calculations_model {
             push @index_data, ['Indices:', $EMPTY_STRING];
 
             #  now loop over the indices to get their descriptions
-            foreach my $index (sort keys %{$info{indices}}) {
-                my $description = $info{indices}{$index}{description} || $EMPTY_STRING;
+            my %descr_hash = $info->get_index_description_hash;
+            foreach my $index (sort keys %descr_hash) {
+                my $description = $descr_hash{$index} || $EMPTY_STRING;
                 $description =~ s/\n//g;  #  strip newlines
                 $description = $desc_wrapper->wrap($description);
                 $description =~ s/\n\z//;  #  strip trailing newlines
@@ -198,8 +200,12 @@ sub make_calculations_model {
 
                 push @index_data, [$index, $description];
             }
-
-            my $func = $info{func};
+            if (!scalar keys %descr_hash) {
+                if ($d_rest) {
+                    $d_rest .= "\n";
+                }
+                $d_rest .= "<i>This calculation will generate no indices for this basedata</i>";
+            }
 
             # Should it be checked? (yes, if it was on previous time)
             my $checked = member_of($func, $check_ref);
@@ -251,7 +257,7 @@ sub member_of {
 
     #  sometimes we are passed a hash
     return exists $ref->{$elem}
-      if (reftype ($ref) eq 'HASH');
+      if reftype ($ref) eq 'HASH';
 
     foreach my $member (@$ref) {
         return 1 if $elem eq $member;

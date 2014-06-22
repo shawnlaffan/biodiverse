@@ -11,12 +11,14 @@ sub get_metadata_get_label_abundance_hash {
     my $self = shift;
 
     my %args = (
-        name            => 'Endemism central',
-        type            => 'Endemism',
+        name            => 'Label abundance hash',
+        description     => 'Hash of the label abundances across the basedata',
+        type            => 'Rarity',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             label_abundance_hash => {
-                type => 'list',
+                description => 'Global label abundance hash',
+                type        => 'list',
             },
         }
     );
@@ -145,6 +147,8 @@ sub get_metadata__calc_rarity_central {
     my $self = shift;
 
     my %metadata = (
+        name            => '_calc_rarity_central',
+        description     => 'Internal calc for calc_rarity_central',
         pre_calc_global => 'get_label_abundance_hash',
         pre_calc        => 'calc_abc3',
     );
@@ -235,6 +239,8 @@ sub get_metadata__calc_rarity_whole {
     my $self = shift;
 
     my %metadata = (
+        name            => '_calc_rarity_whole',
+        description     => 'Internal calc for calc_rarity_whole',
         pre_calc_global => 'get_label_abundance_hash',
         pre_calc        => 'calc_abc3',
     );

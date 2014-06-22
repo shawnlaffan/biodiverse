@@ -14,7 +14,7 @@ use Data::Dumper;
 sub get_metadata_get_lbp_stats_objects {
     my $self = shift;
 
-    my $desc = 'Get the stats object for the property values '
+    my $desc = 'Get the stats object for the label property values'
              . " across both neighbour sets\n";
     my %arguments = (
         description     => $desc,
@@ -424,7 +424,7 @@ sub get_metadata__get_lbprop_global_summary_stats {
         name            => $descr,
         type            => 'Element Properties',
         indices         => {
-            GPPROP_GLOBAL_SUMMARY_STATS => {
+            LBPROP_GLOBAL_SUMMARY_STATS => {
                 description => $descr,
             }
         },

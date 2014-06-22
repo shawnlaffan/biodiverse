@@ -1783,7 +1783,6 @@ sub get_shared_hash_keys {
 
 
 #  get a list of available subs (analyses) with a specified prefix
-#sub get_analyses {  ### CHANGE TO USE Class::Inspector::methods
 sub get_subs_with_prefix {
     my $self = shift;
     my %args = @_;

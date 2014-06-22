@@ -18,7 +18,7 @@ use Data::Dumper;
 sub get_metadata_get_gpp_stats_objects {
     my $self = shift;
 
-    my $desc = 'Get the stats object for the property values '
+    my $desc = 'Get the stats object for the group property values'
              . " across both neighbour sets\n";
     my %arguments = (
         description     => $desc,

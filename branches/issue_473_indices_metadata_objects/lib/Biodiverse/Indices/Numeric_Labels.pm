@@ -40,6 +40,11 @@ sub get_metadata_get_numeric_label_stats_object {
         pre_calc       => [qw /calc_abc3/],
         pre_conditions => ['labels_are_numeric'],
         uses_nbr_lists => 1,  #  how many sets of lists it must have
+        indices        => {
+            numeric_label_stats_object => {
+                description => 'Numeric labels stats object',
+            },
+        },
     );
 
     return wantarray ? %arguments : \%arguments;

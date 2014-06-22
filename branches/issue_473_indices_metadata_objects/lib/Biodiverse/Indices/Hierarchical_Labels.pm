@@ -127,14 +127,31 @@ sub calc_hierarchical_label_ratios {
     
 }
 
-#  get a series of basedata objects, but with the labels reduced by one from the right
-#  the groups remain the same, as do the total sample counts
-#  now including the full set, but without all the other paraphernalia (just the groups and labels)
+sub get_metadata_get_basedatas_by_label_hierarchy {
+    my $desc = << 'END_BDLH_DESCR'
+Get a series of basedata objects, but with the labels reduced by one from the right.
+The groups remain the same, as do the total sample counts.
+END_BDLH_DESCR
+  ;
+
+    my %metadata = (
+        name        => 'get_basedatas_by_label_hierarchy',
+        description => '$desc',
+        indices => {
+            BD_HIERARCHY => {
+                description => 'List of hierarchical basedatas',
+                type        => 'list',
+            },
+        },
+    );
+
+    return wantarray ? %metadata : \%metadata;
+}
+
 sub get_basedatas_by_label_hierarchy {
     my $self = shift;
     my %args = @_;
     
-    #my $progress_bar = $args{progress};
     my $progress_bar = Biodiverse::Progress->new();
     
     my $bd  = $self->get_basedata_ref;
@@ -183,7 +200,7 @@ sub get_basedatas_by_label_hierarchy {
                 );
 
                 #  now add this new label/group pair to the new basedata
-                $targets->[$i] -> add_element (
+                $targets->[$i]->add_element (
                     label => $new_label,
                     group => $group,
                     count => $count,
@@ -195,9 +212,6 @@ sub get_basedatas_by_label_hierarchy {
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata_get_basedatas_by_label_hierarchy {    
-    return wantarray ? () : {};
-}
 
 1;
 

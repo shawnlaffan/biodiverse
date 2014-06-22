@@ -14,11 +14,11 @@ use Data::Dumper;
 sub get_metadata_get_lbp_stats_objects_abc2 {
     my $self = shift;
 
-    my $desc = 'Get the stats object for the property values '
-             . " across both neighbour sets\n";
+    my $desc = 'Get the stats object for the property values'
+             . " across both neighbour sets, local range weighted\n";
     my %arguments = (
         description     => $desc,
-        name            => 'Label property stats objects',
+        name            => 'Label property stats objects, local range weighted',
         type            => 'Element Properties',
         pre_calc        => ['calc_abc2'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
@@ -253,14 +253,14 @@ sub calc_lbprop_gistar_abc2 {
 sub get_metadata__get_lbprop_global_summary_stats_range_weighted {
     my $self = shift;
     
-    my $descr = 'Global summary stats for label properties, weighted by ther ranges';
+    my $descr = 'Global summary stats for label properties, weighted by their ranges';
 
     my %arguments = (
         description     => $descr,
         name            => $descr,
         type            => 'Element Properties',
         indices         => {
-            GPPROP_GLOBAL_SUMMARY_STATS_RANGE_WEIGHTED => {
+            LBPROP_GLOBAL_SUMMARY_STATS_RANGE_WEIGHTED => {
                 description => $descr,
             }
         },

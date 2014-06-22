@@ -270,6 +270,7 @@ sub get_metadata_get_path_length_cache {
     my $self = shift;
 
     my %metadata = (
+        name            => 'get_path_length_cache',
         description     => 'Cache for path lengths.',
         uses_nbr_lists  => 1,  #  how many lists it must have
     );
@@ -289,9 +290,15 @@ sub get_path_length_cache {
 sub get_metadata_get_path_lengths_to_root_node {
 
     my %arguments = (
+        name            => 'get_path_lengths_to_root_node',
         description     => 'Get the path lengths to the root node of a tree for a set of labels.',
         uses_nbr_lists  => 1,  #  how many lists it must have
         pre_calc_global => 'get_path_length_cache',
+        indices         => {
+            path_length_cache => {
+                description => 'Path length cache hash',
+            }
+        }
     );
 
     return wantarray ? %arguments : \%arguments;
@@ -1334,6 +1341,7 @@ sub calc_labels_not_on_tree {
 sub get_metadata_get_pe_element_cache {
     
     my %arguments = (
+        name        => 'get_pe_element_cache',
         description => 'Create a hash in which to cache the PE scores for each element',
         indices     => {
             PE_RESULTS_CACHE => {
@@ -1358,7 +1366,16 @@ sub get_pe_element_cache {
 
 #  get the node ranges as lists
 sub get_metadata_get_node_range_hash_as_lists {
-    my %arguments = (pre_calc_global => ['get_trimmed_tree']);
+    my %arguments = (
+        name            => 'get_node_range_hash_as_lists',
+        description     => 'Get a hash of the node range lists across the basedata',
+        pre_calc_global => ['get_trimmed_tree'],
+        indices => {
+            node_range_hash => {
+                description => 'Hash of node range lists',
+            },
+        },
+    );
     return wantarray ? %arguments : \%arguments;
 }
 
@@ -1375,7 +1392,16 @@ sub get_node_range_hash_as_lists {
 }
 
 sub get_metadata_get_node_range_hash {
-    my %arguments = (pre_calc_global => ['get_trimmed_tree']);
+    my %arguments = (
+        name            => 'get_node_range_hash',
+        description     => 'Get a hash of the node ranges across the basedata',
+        pre_calc_global => ['get_trimmed_tree'],
+        indices => {
+            node_range => {
+                description => 'Hash of node ranges',
+            },
+        },
+    );
     return wantarray ? %arguments : \%arguments;
 }
 
@@ -1468,7 +1494,17 @@ sub get_node_range {
 
 
 sub get_metadata_get_global_node_abundance_hash {
-    my %arguments = (pre_calc_global => ['get_trimmed_tree']);
+    my %arguments = (
+        name            => 'get_global_node_abundance_hash',
+        description     => 'Get a hash of all nodes and their corresponding abundances in the basedata',
+        pre_calc_global => ['get_trimmed_tree'],
+        indices         => {
+            global_node_abundance_hash => {
+                description => 'Global node abundance hash',
+            }
+        }
+    );
+
     return wantarray ? %arguments : \%arguments;
 }
 
@@ -1542,7 +1578,16 @@ sub get_node_abundance_global {
 
 
 sub get_metadata_get_trimmed_tree {
-    my %arguments = (required_args => 'tree_ref');
+    my %arguments = (
+        name            => 'get_trimmed_tree',
+        description     => 'Get a version of the tree trimmed to contain only labels in the basedata',
+        required_args   => 'tree_ref',
+        indices         => {
+            trimmed_tree => {
+                description => 'Trimmed tree',
+            },
+        },
+    );
     return wantarray ? %arguments : \%arguments;
 }
 
@@ -1597,6 +1642,8 @@ sub get_metadata_get_sub_tree {
     my $self = shift;
 
     my %arguments = (
+        name          => 'get_sub_tree',
+        description   => 'get a tree that is a subset of the main tree, e.g. for the set of nodes in a neighbour set',
         required_args => 'tree_ref',
         pre_calc      => ['calc_labels_on_tree'],
     );
@@ -1663,7 +1710,16 @@ sub get_sub_tree {
 sub get_metadata_get_labels_not_on_tree {
     my $self = shift;
 
-    my %arguments = (required_args => 'tree_ref');
+    my %arguments = (
+        name          => 'get_labels_not_on_tree',
+        description   => 'Hash of the basedata labels that are not on the tree',
+        required_args => 'tree_ref',
+        indices       => {
+            labels_not_on_tree => {
+                description => 'Hash of the basedata labels that are not on the tree',
+            },
+        },
+    );
 
     return wantarray ? %arguments : \%arguments;
 }
@@ -1887,6 +1943,8 @@ sub get_metadata_get_trimmed_tree_as_matrix {
     my $self = shift;
 
     my %metadata = (
+        name            => 'get_trimmed_tree_as_matrix',
+        description     => 'Get the trimmed tree as a matrix',
         pre_calc_global => ['get_trimmed_tree'],
     );
 
@@ -2325,7 +2383,8 @@ sub calc_phylo_aed_t_wtlists {
 
 sub get_metadata__calc_phylo_aed_t {
     my %arguments = (
-        name            => 'Inner sub for AED_T calcs',
+        name            => '_calc_phylo_aed_t',
+        description     => 'Inner sub for AED_T calcs',
         pre_calc        => [qw /calc_abc3 calc_phylo_aed/],
         uses_nbr_lists  =>  1,
     );
@@ -2432,6 +2491,7 @@ sub calc_phylo_aed {
 sub get_metadata_get_aed_scores {
 
     my %args = (
+        name            => 'get_aed_scores',
         description     => 'A hash of the ES, ED and BED scores for each label',
         pre_calc        => [qw /calc_abc/],
         pre_calc_global => [qw /get_trimmed_tree get_global_node_abundance_hash/],
@@ -2444,7 +2504,7 @@ sub get_metadata_get_aed_scores {
             },
             AED_SCORES => {
                 description => 'Hash of AED scores for each label'
-            }
+            },
         },
     );
 

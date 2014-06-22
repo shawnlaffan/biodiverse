@@ -104,7 +104,8 @@ sub get_metadata_get_label_range_hash {
     my $self = shift;
 
     my %args = (
-        name            => 'Endemism central',
+        name            => 'Label range hash',
+        description     => 'Hash of label ranges across the basedata',
         type            => 'Endemism',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
@@ -518,6 +519,8 @@ sub get_metadata__calc_endemism_central {
     my $self = shift;
 
     my %metadata = (
+        name            => '_calc_endemism_central ',
+        description     => 'Internal calc for calc_endemism_central',
         pre_calc_global => [qw/get_label_range_hash/],
         pre_calc        => 'calc_abc2',
     );
@@ -656,6 +659,8 @@ sub get_metadata__calc_endemism_whole {
     my $self = shift;
 
     my %metadata = (
+        name            => '_calc_endemism_whole',
+        description     => 'Internal calc for calc_endemism_whole',
         pre_calc_global => [qw/get_label_range_hash/],
         pre_calc        => 'calc_abc2',
     );
@@ -728,6 +733,7 @@ sub get_metadata_get_basedata_labels_as_tree {
     my $self = shift;
     
     my %metadata = (
+        name            => 'get_basedata_labels_as_tree',
         description     => 'Convert the labels in a basedata object into a '
                            . 'tree using the implicit hierarchy in the labels',
         indices => {

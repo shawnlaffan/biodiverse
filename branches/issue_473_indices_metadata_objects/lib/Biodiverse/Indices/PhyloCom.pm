@@ -359,8 +359,13 @@ sub get_metadata_get_phylo_mpd_mntd_matrix {
     my $self = shift;
 
     my %metadata = (
-        #required_args => 'tree_ref',
-        #pre_calc_global => ['get_trimmed_tree'],  #  need to work with whole tree, so comment out
+        name        => 'get_phylo_mpd_mntd_matrix',
+        description => 'Matrix used for caching in MPD and MNTD calculations',
+        indices     => {
+            PHYLO_MPD_MNTD_MATRIX => {
+                description => 'MPD/MNTD path length cache matrix',
+            },
+        },
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -379,14 +384,21 @@ sub get_phylo_mpd_mntd_matrix {
 
 
 
-#  currently only one cache across all MPI/MNTD methods (respectively)
+#  currently only one cache across all NRI/NTI methods (respectively)
 #  Need to determine if one per method is needed (e.g. type 1, 2 & 3
 #  for the different weighting schemes).
 sub get_metadata_get_phylo_nri_nti_cache {
     my $self = shift;
 
     my %metadata = (
+        name            => 'get_phylo_nri_nti_cache',
+        description     => 'Cache used in the MPD/MNTD calculations',
         required_args   => 'tree_ref',
+        indices         => {
+            PHYLO_NRI_NTI_SAMPLE_CACHE => {
+                description => 'Sample cache for the NRI/NTI calcs, ordered by label counts',
+            },
+        },
     );
 
     return wantarray ? %metadata : \%metadata;
@@ -394,9 +406,9 @@ sub get_metadata_get_phylo_nri_nti_cache {
 
 sub get_phylo_nri_nti_cache {
     my $self = shift;
-    
+
     my %results = (PHYLO_NRI_NTI_SAMPLE_CACHE => {});
-    
+
     return wantarray ? %results : \%results;
 }
 
@@ -806,8 +818,16 @@ sub get_convergence_nri_nti_expected_values {
 sub get_metadata_get_prng_object {
     my $self = shift;
     my %args = @_;
-    
-    my %metadata;  #  none needed at this stage
+
+    my %metadata = (
+        name        => 'get_prng_object',
+        description => 'Get a PRNG object for the indices object to use',
+        indices => {
+            PRNG_OBJECT => {
+                description => 'The PRNG object',
+            },
+        },
+    );
 
     return wantarray ? %metadata : \%metadata;
 }

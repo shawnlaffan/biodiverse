@@ -154,11 +154,11 @@ sub make_calculations_model {
 
         my %calc_metadata;
         foreach my $func (@{$calculations{$type}}) {
-            my %info = $indices->get_args (sub => $func);
+            my $metadata = $indices->get_args (sub => $func);
             # If name unspecified then use the function name less the calc_
             my $name = $func;
             $name =~ s/^calc_//;
-            $name = $info{name} || $name;
+            $name = $info->get_name || $name;
             $info{func} = $func;
             $calc_metadata{$name} = \%info;
         }

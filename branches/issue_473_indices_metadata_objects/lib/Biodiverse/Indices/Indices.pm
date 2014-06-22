@@ -1531,6 +1531,7 @@ sub calc_element_lists_used {
 sub get_metadata_calc_abc {
 
     my %arguments = (
+        name            => 'calc_abc',
         description     => 'Calculate the label lists in the element sets.',
         type            => 'not_for_gui',
         indices         => {},
@@ -1554,6 +1555,7 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
 
 sub get_metadata_calc_abc2 {
     my %arguments = (
+        name            => 'calc_abc2',
         description     => 'Calculate the label lists in the element sets, '
                            . 'recording the count of groups per label.',
         type            => 'not_for_gui',  #  why not???
@@ -1575,6 +1577,7 @@ sub calc_abc2 {  #  run calc_abc, but keep a track of the label counts across gr
 sub get_metadata_calc_abc3 {
 
     my %arguments = (
+        name            => 'calc_abc3',
         description     => 'Calculate the label lists in the element sets, '
                            . 'recording the count of samples per label.',
         type            => 'not_for_gui',  #  why not?

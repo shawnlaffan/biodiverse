@@ -9,7 +9,7 @@ use Carp;
 #use lib "$Bin/lib";
 use rlib;
 
-use Test::More tests => 21;
+use Test::More tests => 22;
 use Test::Exception;
 
 local $| = 1;
@@ -38,7 +38,7 @@ my $bd = get_basedata_object(
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     is (blessed $indices, 'Biodiverse::Indices', 'Sub new works');
 
-    my $checker = eval {$indices->get_args (sub => 'calc_frobnambulator_snartfingler')};
+    my $checker = eval {$indices->get_metadata (sub => 'calc_frobnambulator_snartfingler')};
     $e = $EVAL_ERROR;
     #diag $e;
     ok ($e, 'Got an error when accessing metadata for non-existent calc sub');
@@ -97,7 +97,9 @@ my $bd = get_basedata_object(
         );
     };
     $e = $EVAL_ERROR;
-    diag $e->message if blessed $e;
+    if ($e) {
+        diag blessed $e ? $e->message : $e;
+    }
     $is_error = $EVAL_ERROR ? 1 : 0;
     is ($is_error, 0, "Obtained valid calcs without error");
 
@@ -153,21 +155,30 @@ my $bd = get_basedata_object(
 
 {
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
-    my %calculations = eval {$indices->get_calculations_as_flat_hash};
+    #my %calculations = eval {$indices->get_calculations_as_flat_hash};
 
-    #my $x = $indices->get_full_dependency_list;
+    my $pfx = 'get_metadata_';
+    my $x = $indices->get_subs_with_prefix (prefix => $pfx);
     
-    my (%names, %descr, %indices, %index_descr);
-    foreach my $calc (keys %calculations) {
-        my $metadata = $indices->get_args (sub => $calc);
-        $names{$metadata->{name}}{$calc}++;
-        
-        $descr{$metadata->{description}}{$calc}++;
-        foreach my $index (keys %{$metadata->{indices}}) {
-            $indices{$index}{$calc}++;
+    my (%names, %descr, %indices, %index_descr, %subs_with_no_indices);
+    foreach my $meta_sub (keys %$x) {
+        my $calc = $meta_sub;
+        $calc =~ s/^$pfx//;
+
+        my $metadata = $indices->get_metadata (sub => $calc);
+        my $name = $metadata->get_name;
+        $names{$name}{$meta_sub}++;
+
+        $descr{$metadata->get_description}{$meta_sub}++;
+        my $indices_this_sub = $metadata->get_indices // {};
+        foreach my $index (keys %$indices_this_sub) {
+            $indices{$index}{$meta_sub}++;
             #  duplicate index descriptions are OK
             #my $index_desc = $metadata->{indices}{$index}{description};
             #$index_descr{$index_desc}++;
+        }
+        if (!scalar keys %$indices_this_sub) {
+            $subs_with_no_indices{$calc} ++;
         }
     }
 
@@ -185,16 +196,36 @@ my $bd = get_basedata_object(
 #        check_duplicates->(\%index_descr);
 #    };
 
+    TODO:
+    {
+        local $TODO = 'Need to first sort out indices which are simply swiped '
+        . 'from an inner sub, which vary depending on inputs, '
+        . 'and which ones are post_calcs and post_calc_globals';
+        #  group and label prop data and hashes depend on inputs => no props = no indices
+        ok (
+            not scalar keys %subs_with_no_indices,
+            'All calc metadata subs specify their indices',
+        );
+        if (scalar keys %subs_with_no_indices) {
+            diag 'Indices with no subs are: ' . join ' ', sort keys %subs_with_no_indices;
+        }
+    }
 }
 
 sub check_duplicates {
     my $hashref = shift;
     foreach my $key (sort keys %$hashref) {
         my $count = scalar keys %{$hashref->{$key}};
-        my $res = is ($count, 1, $key);
+        my $res = is ($count, 1, "$key is unique");
         if (!$res) {
-            diag 'Source calcs are: ' . join ' ', sort keys %{$hashref->{$key}};
+            diag "Source calcs for $key are: " . join ' ', sort keys %{$hashref->{$key}};
         }
-        
     }
+    foreach my $null_key (qw /no_name no_description/) {
+        my $res = ok (!exists $hashref->{$null_key}, "hash does not contain $null_key");
+        if (exists $hashref->{$null_key}) {
+            diag "Source calcs for $null_key are: " . join ' ', sort keys %{$hashref->{$null_key}};
+        }
+    }    
+    
 }

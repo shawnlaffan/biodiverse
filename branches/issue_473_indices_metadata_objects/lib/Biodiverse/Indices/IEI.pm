@@ -399,6 +399,7 @@ sub get_metadata_get_iei_element_cache {
     my $self = shift;
 
     my %arguments = (
+        name        => 'get_iei_element_cache',
         description => 'Create a hash in which to cache the IEI lists for each element',
         indices     => {
             IEI_ELEMENT_ARRAY_CACHE => {
@@ -452,6 +453,8 @@ sub get_metadata_cleanup_iei_element_cache {
     my $self = shift;
     
     my %metadata = (
+        name            => 'cleanup_iei_element_cache',
+        description     => 'Clean up the IEI element cache',
         pre_calc_global => [qw /get_iei_element_cache/],
     );
     

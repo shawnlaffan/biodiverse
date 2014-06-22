@@ -5,8 +5,6 @@ use warnings;
 use English qw { -no_match_vars };
 use Carp;
 
-#use FindBin qw/$Bin/;
-#use lib "$Bin/lib";
 use rlib;
 
 use Test::More tests => 22;
@@ -34,7 +32,7 @@ my $bd = get_basedata_object(
 {
     #  some helper vars
     my ($is_error, $e);
-    
+
     my $indices = eval {Biodiverse::Indices->new(BASEDATA_REF => $bd)};
     is (blessed $indices, 'Biodiverse::Indices', 'Sub new works');
 

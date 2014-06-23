@@ -198,28 +198,28 @@ sub get_calculation_metadata_as_wiki {
         = ' />';
 
     #loop through the types
-    BY_TYPE:
+  BY_TYPE:
     foreach my $type (sort keys %calculation_hash) {
         $html .= "==$type==";
 
         my $type_ref = $calculation_hash{$type};
 
-        BY_NAME:  #  loop through the names
-        foreach my $ref (sort {$a->{name} cmp $b->{name}} values %$type_ref) {
+      BY_NAME:  #  loop through the names
+        foreach my $ref (sort {$a->get_name cmp $b->get_name} values %$type_ref) {
 
             #my $starter = $ref->{name};
             #print $starter . "\n";
 
             $html .= "\n \n \n";
             $html .= "\n \n  ===$ref->{name}===\n \n";
-            $html .= "*Description:*   $ref->{description}\n\n";
+            $html .= "*Description:*   " . $ref->get_description . "\n\n";
             $html .= "*Subroutine:*   $ref->{analysis}\n\n";
             #$html .= "<p><b>Module:</b>   $ref->{source_module}</p>\n";  #  not supported yet
-            if ($ref->{reference}) {
-                $html .= "*Reference:*   $ref->{reference}\n \n\n";
+            if (my $reference = $ref->get_reference) {
+                $html .= "*Reference:*   $reference\n \n\n";
             }
 
-            my $formula = $ref->{formula};
+            my $formula = $ref->get_formula;
             croak 'Formula is not an array'
               if defined $formula and not (ref $formula) =~ /ARRAY/;
 
@@ -227,7 +227,7 @@ sub get_calculation_metadata_as_wiki {
                 my $formula_url;
                 my $iter = 0;
 
-                FORMULA_ELEMENT_OVERVIEW:
+              FORMULA_ELEMENT_OVERVIEW:
                 foreach my $element (@{$formula}) {
                     if (! defined $element
                         || $element eq q{}) {
@@ -263,22 +263,22 @@ sub get_calculation_metadata_as_wiki {
             my $i = 0;
             my $uses_reference = 0;
             my $uses_formula = 0;
-            foreach my $index (sort keys %{$ref->{indices}}) {
-                
-                my $index_hash = $ref->{indices}{$index};
-                
+            foreach my $index (sort keys %{$ref->get_indices}) {
+
+                #my $index_hash = $ref->{indices}{$index};
+
                 #  repeated code from above - need to generalise to a sub
                 my $formula_url;
-                my $formula = $index_hash->{formula};
+                my $formula = $ref->get_index_formula ($index);
                 croak "Formula for $index is not an array"
                   if defined $formula and not ((ref $formula) =~ /ARRAY/);
 
                 if (1 and $formula and (ref $formula) =~ /ARRAY/) {
-                    
+
                     $uses_formula = 1;
-                    
+
                     my $iter = 0;
-                    foreach my $element (@{$index_hash->{formula}}) {
+                    foreach my $element (@$formula) {
                         if ($iter % 2) {
                             if ($element =~ /^\s/) {
                                 $formula_url .= $element;
@@ -297,21 +297,21 @@ sub get_calculation_metadata_as_wiki {
                     }
                 }
                 $formula_url .= $SPACE;
-                
+
                 my @line;
-                
+
                 push @line, $count;
                 push @line, $index;
-                
-                my $description = $index_hash->{description} || $SPACE;
+
+                my $description = $ref->get_index_description ($index) || $SPACE;
                 $description =~ s{\n}{ }gmo;  # purge any newlines
                 push @line, $description;
-                
-                push @line, $index_hash->{cluster} ? "cluster metric" : $SPACE;
-                push @line, $index_hash->{uses_nbr_lists} || $ref->{uses_nbr_lists} || $SPACE;
+
+                push @line, $ref->get_index_is_cluster_metric ($index) ? "cluster metric" : $SPACE;
+                push @line, $ref->get_index_uses_nbr_lists ($index) || $ref->get_uses_nbr_lists || $SPACE;
                 push @line, $formula_url;
-                my $reference = $index_hash->{reference};
-                if (defined $index_hash->{reference}) {
+                my $reference = $ref->get_index_reference ($index);
+                if (defined $reference) {
                     $uses_reference = 1;
                     $reference =~s{\n}{ }gmo;
                 }
@@ -328,7 +328,6 @@ sub get_calculation_metadata_as_wiki {
                 foreach my $row (@table) {
                     pop @$row;
                 }
-                
             }
 
             #  and remove the formula also if need be
@@ -338,23 +337,21 @@ sub get_calculation_metadata_as_wiki {
                 }
             }
 
-
             #$html .= $table;
-            
+
             foreach my $line (@table) {
                 my $line_text;
                 $line_text .= q{|| };
                 $line_text .= join (q{ || }, @$line);
                 $line_text .= q{ ||};
                 $line_text .= "\n";
-                
+
                 my $x = grep {! defined $_} @$line;
-                
+
                 $html .= $line_text;
             }
 
             $html .= "\n\n";
-            
         }
     }
 

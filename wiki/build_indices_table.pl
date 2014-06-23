@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use Carp;
+use 5.010;
 
 use English qw { -no_match_vars };
 
@@ -20,8 +21,11 @@ use File::Temp;
 #use HTML::HashTable;
 use HTML::QuickTable;
 
-my $bd = Biodiverse::BaseData -> new;
-$bd->set_param (CELL_SIZES => [1,1]);
+my $e;
+
+my $bd = Biodiverse::BaseData->new (
+    CELL_SIZES => [1,1],
+);
 $bd->add_element (                    
     label => 'a:b',
     group => '1:1',
@@ -37,7 +41,7 @@ eval {
         properties_object => $label_props,
     )
 };
-my $e = $EVAL_ERROR;
+$e = $EVAL_ERROR;
 warn $e if $e;
 
 my $group_props = get_group_properties();
@@ -47,7 +51,7 @@ eval {
         properties_object => $group_props,
     )
 };
-my $e = $EVAL_ERROR;
+$e = $EVAL_ERROR;
 warn $e if $e;
 
 my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
@@ -101,9 +105,7 @@ Table of contents:
 
 END_OF_INTRO
 
-my $wiki_text = $intro_wiki
-                    #. $wc->html2wiki( $html );
-                    . $html;
+my $wiki_text = $intro_wiki . $html;
 
 #  Maybe insert hyperlinks later on, but need to handle overlapping heading
 #  names like 'Endemism' and 'Endemism central'
@@ -129,7 +131,7 @@ open ($fh, '>', "Indices_$v.wiki") || croak;
 print $fh $wiki_text;
 close $fh;
 
-print "done\n";
+say 'done';
 
 sub get_label_properties {
     my $data = <<'END_LABEL_PROPS'

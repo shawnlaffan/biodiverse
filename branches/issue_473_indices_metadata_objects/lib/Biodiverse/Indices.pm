@@ -94,7 +94,7 @@ sub get_metadata {
         $metadata = $self->get_args(@_);
 
         if (not blessed $metadata) {
-            #warn "metadata for $args{sub} is not blessed, blessing into $metadata_class";
+            warn "metadata for $args{sub} is not blessed, blessing into $metadata_class";
             $metadata = $metadata_class->new ($metadata);
         }
         $cache->{$subname} = $metadata;

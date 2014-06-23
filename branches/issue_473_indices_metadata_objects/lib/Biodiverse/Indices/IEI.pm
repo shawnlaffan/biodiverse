@@ -460,7 +460,7 @@ sub get_metadata_cleanup_iei_element_cache {
         pre_calc_global => [qw /get_iei_element_cache/],
     );
     
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 

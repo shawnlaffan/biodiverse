@@ -17,6 +17,8 @@ use Biodiverse::Statistics;
 
 my $stats_package = 'Biodiverse::Statistics';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
+
 ######################################################
 #
 #  routines to calculate statistics from numeric labels
@@ -33,16 +35,21 @@ sub labels_are_numeric {
 
 sub get_metadata_get_numeric_label_stats_object {
 
-    my %arguments = (
+    my %metadata = (
         name           => 'get_numeric_label_stats_object',
         description    => "Generate a summary statistics object from a set of numeric labels\n"
                         . 'Accounts for multiple occurrences by using calc_abc3.',
         pre_calc       => [qw /calc_abc3/],
         pre_conditions => ['labels_are_numeric'],
         uses_nbr_lists => 1,  #  how many sets of lists it must have
+        indices        => {
+            numeric_label_stats_object => {
+                description => 'Numeric labels stats object',
+            },
+        },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_numeric_label_stats_object {
@@ -71,12 +78,12 @@ sub get_numeric_label_stats_object {
 
 sub get_metadata_calc_numeric_label_stats {
 
-    my %arguments = (
-        name =>  'Numeric label statistics',
-        description => "Calculate summary statistics from a set of numeric labels.\n"
-                     . "Weights by samples so multiple occurrences are accounted for.\n",
-        type => 'Numeric Labels',
-        pre_calc => [qw /get_numeric_label_stats_object/],
+    my %metadata = (
+        name           =>  'Numeric label statistics',
+        description    => "Calculate summary statistics from a set of numeric labels.\n"
+                        . "Weights by samples so multiple occurrences are accounted for.\n",
+        type           => 'Numeric Labels',
+        pre_calc       => [qw /get_numeric_label_stats_object/],
         uses_nbr_lists => 1,  #  how many sets of lists it must have
         indices => {
             NUM_SD      => {description => 'Standard deviation',},
@@ -91,7 +98,7 @@ sub get_metadata_calc_numeric_label_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_numeric_label_stats {
@@ -142,15 +149,12 @@ sub calc_numeric_label_stats {
         );
     }
 
-    return wantarray
-            ? %results
-            : \%results;
-
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_numeric_label_other_means {
 
-    my %arguments = (
+    my %metadata = (
         name            =>  'Numeric label harmonic and geometric means',
         description     => "Calculate geometric and harmonic means for a set of numeric labels.\n",
         type            => 'Numeric Labels',
@@ -162,7 +166,7 @@ sub get_metadata_calc_numeric_label_other_means {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_numeric_label_other_means {
@@ -209,7 +213,7 @@ sub get_metadata_calc_numeric_label_quantiles {
         $Q{sprintf 'NUM_Q%03u', $value} = {description => $value . 'th percentile'};
     }
 
-    my %arguments = (
+    my %metadata = (
         name           => 'Numeric label quantiles',
         description    => "Calculate quantiles from a set of numeric labels.\n"
                         . "Weights by samples so multiple occurrences are accounted for.\n",
@@ -219,7 +223,7 @@ sub get_metadata_calc_numeric_label_quantiles {
         indices        => \%Q,
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_numeric_label_quantiles {
@@ -248,7 +252,7 @@ sub calc_numeric_label_quantiles {
 
 sub get_metadata_calc_numeric_label_data {
 
-    my %arguments = (
+    my %metadata = (
         name            =>  'Numeric label data',
         description     => qq{The underlying data used for the numeric labels stats, as an array.\n}
                            . q{For the hash form, use the ABC3_LABELS_ALL index from the }
@@ -266,7 +270,7 @@ sub get_metadata_calc_numeric_label_data {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_numeric_label_data {
@@ -295,7 +299,7 @@ sub get_metadata_calc_numeric_label_dissimilarity {
         'NUMD\_ABSMEAN',
     );
 
-    my %arguments = (
+    my %metadata = (
         name           => 'Numeric label dissimilarity',
         description    => q{Compare the set of numeric labels in one neighbour set with those in another. },
         type           => 'Numeric Labels',
@@ -337,7 +341,7 @@ sub get_metadata_calc_numeric_label_dissimilarity {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;    
+    return $metadata_class->new(\%metadata);    
 }
 
 #  compare the set of labels in one neighbour set with those in another
@@ -458,7 +462,7 @@ sub _calc_numeric_label_rao_qe {
 sub get_metadata__get_num_label_global_summary_stats {
     my $descr = 'Global summary stats for numeric labels';
 
-    my %arguments = (
+    my %metadata = (
         description     => $descr,
         name            => $descr,
         type            => 'Numeric Labels',
@@ -469,7 +473,7 @@ sub get_metadata__get_num_label_global_summary_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub _get_num_label_global_summary_stats {
@@ -514,7 +518,7 @@ sub get_metadata_calc_num_labels_gistar {
     my $desc = 'Getis-Ord Gi* statistic for numeric labels across both neighbour sets';
     my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Numeric labels Gi* statistic',
         type            => 'Numeric Labels',
@@ -530,7 +534,7 @@ sub get_metadata_calc_num_labels_gistar {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_num_labels_gistar {

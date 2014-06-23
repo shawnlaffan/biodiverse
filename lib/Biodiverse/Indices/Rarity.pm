@@ -7,21 +7,25 @@ our $VERSION = '0.99_001';
 #  we need access to one sub from Endemism.pm
 use parent qw /Biodiverse::Indices::Endemism/;
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
+
 sub get_metadata_get_label_abundance_hash {
     my $self = shift;
 
-    my %args = (
-        name            => 'Endemism central',
-        type            => 'Endemism',
+    my %metadata = (
+        name            => 'Label abundance hash',
+        description     => 'Hash of the label abundances across the basedata',
+        type            => 'Rarity',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         indices => {
             label_abundance_hash => {
-                type => 'list',
+                description => 'Global label abundance hash',
+                type        => 'list',
             },
         }
     );
 
-    return wantarray ? %args : \%args;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_label_abundance_hash {
@@ -43,7 +47,7 @@ sub get_label_abundance_hash {
 
 sub get_metadata_calc_rarity_central {
 
-    my %arguments = (
+    my %metadata = (
         description     => "Calculate rarity for species only in neighbour set 1, "
                            . "but with local sample counts calculated from both neighbour sets. \n"
                            . "Uses the same algorithm as the endemism indices but weights "
@@ -88,7 +92,7 @@ sub get_metadata_calc_rarity_central {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_rarity_central {
@@ -105,7 +109,7 @@ sub calc_rarity_central {
 
 sub get_metadata_calc_rarity_central_lists {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Lists used in rarity central calculations',
         name            => 'Rarity central lists',
         type            => 'Rarity',
@@ -126,7 +130,7 @@ sub get_metadata_calc_rarity_central_lists {
 
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_rarity_central_lists {
@@ -145,11 +149,13 @@ sub get_metadata__calc_rarity_central {
     my $self = shift;
 
     my %metadata = (
+        name            => '_calc_rarity_central',
+        description     => 'Internal calc for calc_rarity_central',
         pre_calc_global => 'get_label_abundance_hash',
         pre_calc        => 'calc_abc3',
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub _calc_rarity_central {
@@ -175,7 +181,7 @@ sub _calc_rarity_central {
 
 sub get_metadata_calc_rarity_whole {
 
-    my %arguments = (
+    my %metadata = (
         description     => "Calculate rarity using all species in both neighbour sets.\n"
                            . "Uses the same algorithm as the endemism indices but weights \n"
                            . "by sample counts instead of by groups occupied.\n",
@@ -216,7 +222,7 @@ sub get_metadata_calc_rarity_whole {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_rarity_whole {
@@ -235,16 +241,18 @@ sub get_metadata__calc_rarity_whole {
     my $self = shift;
 
     my %metadata = (
+        name            => '_calc_rarity_whole',
+        description     => 'Internal calc for calc_rarity_whole',
         pre_calc_global => 'get_label_abundance_hash',
         pre_calc        => 'calc_abc3',
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_metadata_calc_rarity_whole_lists {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Lists used in rarity whole calculations',
         name            => 'Rarity whole lists',
         type            => 'Rarity',
@@ -265,7 +273,7 @@ sub get_metadata_calc_rarity_whole_lists {
 
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_rarity_whole_lists {

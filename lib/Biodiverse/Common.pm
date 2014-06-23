@@ -1550,6 +1550,13 @@ sub get_next_line_set {
     return wantarray ? @lines : \@lines;
 }
 
+# a pass-through method
+sub get_metadata {
+    my $self = shift;
+    return $self->get_args(@_);
+}
+
+#my $indices_wantarray = 0;
 #  get the metadata for a subroutine
 sub get_args {
     my $self = shift;
@@ -1562,30 +1569,41 @@ sub get_args {
     }
 
     my $sub_args;
+
     #  use an eval to trap subs that don't allow the get_args option
-    if (blessed $self) {
-        $sub_args = eval {$self->$metadata_sub (%args)};
-        my $error = $EVAL_ERROR;
-        if (blessed $error) {
-            $error->rethrow;
-        }
-        elsif ($error) {
-            my $msg = $self->can($sub)
-              ? "cannot call method $metadata_sub for object $self\n"
-              : "cannot call method $sub, and metadata is invalid\n";
-            croak $msg . $error;
-        }
+    $sub_args = eval {$self->$metadata_sub (%args)};
+    my $error = $EVAL_ERROR;
+
+    if (blessed $error) {
+        $error->rethrow;
     }
-    else {  #  called in non-OO manner  - not ideal (old style)
-        croak "get_args called in non-OO manner - this is deprecated.\n";
+    elsif ($error) {
+        my $msg = '';
+        if (!$self->can($metadata_sub)) {
+            $msg = "cannot call method $metadata_sub for object $self\n"
+        }
+        elsif (!$self->can($sub)) {
+            $msg = "cannot call method $sub for object $self, and thus its metadata\n"
+        }
+        elsif (not blessed $self) {
+            #  trap a very old caller style, should not exist any more
+            $msg = "get_args called in non-OO manner - this is deprecated.\n"
+        }
+        croak $msg . $error;
     }
 
-    if (! defined $sub_args) {
-        $sub_args = {} ;
-    }
+    $sub_args //= {};
 
+#my $wa = wantarray;
+#$indices_wantarray ++ if $wa;
+#croak "get_args called in list context " if $wa;
     return wantarray ? %$sub_args : $sub_args;
 }
+
+#  temp end block
+#END {
+#    warn "get_args called in list context $indices_wantarray times\n";
+#}
 
 sub get_poss_elements {  #  generate a list of values between two extrema given a resolution
     my $self = shift;
@@ -1765,7 +1783,6 @@ sub get_shared_hash_keys {
 
 
 #  get a list of available subs (analyses) with a specified prefix
-#sub get_analyses {  ### CHANGE TO USE Class::Inspector::methods
 sub get_subs_with_prefix {
     my $self = shift;
     my %args = @_;

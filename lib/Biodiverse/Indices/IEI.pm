@@ -12,11 +12,13 @@ our $VERSION = '0.99_001';
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
+
 my $EMPTY_STRING = q{};
 
 sub get_metadata_calc_iei_data {
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Inter-event interval statistics data',
         description     => 'The underlying data used for the IEI stats.',
         type            => 'Inter-event Interval Statistics',
@@ -35,8 +37,8 @@ sub get_metadata_calc_iei_data {
             
         },
     );
-        
-    return wantarray ? %arguments : \%arguments;
+
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -63,7 +65,7 @@ sub calc_iei_data {
 sub get_metadata_calc_iei_stats {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Inter-event interval statistics',
         description     => "Calculate summary statistics from a set of numeric "
                          . "labels that represent event times.\n"
@@ -107,7 +109,7 @@ sub get_metadata_calc_iei_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;    
+    return $metadata_class->new(\%metadata);    
 }
 
 sub calc_iei_stats {
@@ -171,7 +173,7 @@ sub calc_iei_stats {
 sub get_metadata_get_iei_data_for_elements {
     my $self = shift;
     
-    my %arguments = (
+    my %metadata = (
         name            => 'get_iei_data_for_elements',
         description     => "get the IEI data for a set of elements and cache them\n",
         pre_calc_global => [qw /get_iei_element_cache/],
@@ -186,7 +188,7 @@ sub get_metadata_get_iei_data_for_elements {
         }
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  get the IEI data for a set of elements and cache them
@@ -326,7 +328,7 @@ sub get_iei_data_for_elements {
 
 sub get_metadata_get_iei_stats_object {
     
-    my %arguments = (
+    my %metadata = (
         name            => 'get_iei_stats_object',
         description     => "Generate a statistics object for an Inter-event Interval analysis\n"
                            . "Calculates intervals within each element and returns the overall list of intervals\n",
@@ -336,7 +338,7 @@ sub get_metadata_get_iei_stats_object {
         uses_nbr_lists  => 1,
     );
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  loop over the IEI data for each element and treat them
@@ -398,7 +400,8 @@ sub get_iei_stats_object {
 sub get_metadata_get_iei_element_cache {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
+        name        => 'get_iei_element_cache',
         description => 'Create a hash in which to cache the IEI lists for each element',
         indices     => {
             IEI_ELEMENT_ARRAY_CACHE => {
@@ -410,7 +413,7 @@ sub get_metadata_get_iei_element_cache {
         },
     );
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -452,10 +455,12 @@ sub get_metadata_cleanup_iei_element_cache {
     my $self = shift;
     
     my %metadata = (
+        name            => 'cleanup_iei_element_cache',
+        description     => 'Clean up the IEI element cache',
         pre_calc_global => [qw /get_iei_element_cache/],
     );
     
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -535,7 +540,7 @@ sub _calc_iei_summary_stats_per_nbrhood {
 sub _get_metadata_calc_iei_summary_stats_per_nbrhood {
     my $self = shift;
     
-    my %arguments = (
+    my %metadata = (
         name            => 'Inter-event interval statistics summary stats',
         description     => "Calculate summary statistics of the IEI results across a neighbourhood\n"
                             . "IEI summary statistics are calculated for each group and then summarised"
@@ -571,7 +576,7 @@ sub _get_metadata_calc_iei_summary_stats_per_nbrhood {
         },
     );
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 

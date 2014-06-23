@@ -26,6 +26,7 @@ my %methods_and_defaults = (
     reference      => '',
     indices        => {},
     type           => '',
+    formula        => undef,
 );
 
 
@@ -143,8 +144,27 @@ sub get_index_description_hash {
     return wantarray ? %hash : \%hash;
 }
 
+sub get_index_formula {
+    my ($self, $index) = @_;
 
+    no autovivification;
+    
+    my $indices = $self->get_indices;
+    my $formula = $indices->{$index}{formula};
 
+    return $formula;
+}
+
+sub get_index_reference {
+    my ($self, $index) = @_;
+
+    no autovivification;
+    
+    my $indices   = $self->get_indices;
+    my $reference = $indices->{$index}{reference};
+
+    return $reference;
+}
 
 sub get_index_uses_nbr_lists {
     my ($self, $index) = @_;

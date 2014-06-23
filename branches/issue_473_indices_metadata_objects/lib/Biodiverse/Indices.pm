@@ -109,7 +109,7 @@ sub get_calculations {
         next if $method !~ /^calc_/;
         next if $method =~ /calc_abc\d?$/;
         my $ref = $self->get_metadata (sub => $method);
-        push @{$calculations{$ref->{type}}}, $method;
+        push @{$calculations{$ref->get_type}}, $method;
     }
 
     return wantarray ? %calculations : \%calculations;
@@ -443,13 +443,11 @@ sub parse_dependencies_for_calc {
 
             #  run some validity checks
             my $uses_nbr_lists = $metadata->get_uses_nbr_lists;
-            if (defined $uses_nbr_lists) {
-                if ($uses_nbr_lists > $nbr_list_count) {
-                    Biodiverse::Indices::InsufficientElementLists->throw (
-                        error => "[INDICES] WARNING: Insufficient neighbour lists for $calc. "
-                                . "Need $uses_nbr_lists but only $nbr_list_count available.\n",
-                    );
-                }
+            if (defined $uses_nbr_lists && $uses_nbr_lists > $nbr_list_count) {
+                Biodiverse::Indices::InsufficientElementLists->throw (
+                    error => "[INDICES] WARNING: Insufficient neighbour lists for $calc. "
+                            . "Need $uses_nbr_lists but only $nbr_list_count available.\n",
+                );
             }
             #  check the indices have sufficient nbr sets
             foreach my $index (keys %{$metadata->get_indices}) {
@@ -460,21 +458,17 @@ sub parse_dependencies_for_calc {
             }
 
             if (my $required_args = $metadata->get_required_args) {
-                #  don't really need to convert to hash here, but do need a list form
-                #my $reqd_args_h = $self->_convert_to_hash (input => $metadata->{required_args});
                 my $reqd_args_a = $self->_convert_to_array (input => $required_args);
 
                 foreach my $required_arg (sort @$reqd_args_a) {
-                    my $re = qr /^($required_arg)$/;
+                    my $re = qr /^($required_arg)$/;  #  match is used in the grep?  Was used in now-removed code.
                     my $is_defined;
                   CALC_ARG:
                     foreach my $calc_arg (sort grep {$_ =~ $re} keys %$calc_args) {
-                        #if ($calc_arg =~ $re) {
-                            #my $match = $1;
-                            if (defined $calc_args->{$calc_arg}) {
-                                $is_defined ++;
-                            }
-                        #}
+                        if (defined $calc_args->{$calc_arg}) {
+                            $is_defined ++;
+                            last CALC_ARG;
+                        }
                     }
 
                     if (! $is_defined) {
@@ -483,7 +477,6 @@ sub parse_dependencies_for_calc {
                                     . "parameter $required_arg, "
                                     . "dropping it and any calc that depends on it\n",
                         );
-                        
                     }
                 }
             }
@@ -615,7 +608,7 @@ sub get_invalid_calculations {
 
 my @dep_types = qw /pre_calc pre_calc_global post_calc post_calc_global/;
 
-#  get all dependency subs
+#  get all dependency subs -  not working yet
 sub get_full_dependency_list {
     my $self = shift;
     my %args = @_;
@@ -628,7 +621,7 @@ sub get_full_dependency_list {
     foreach my $calc (keys %$calc_hash, $self->get_invalid_calculations) {
         my $meta = $self->get_metadata (sub => $calc);
         foreach my $type (@dep_types) {
-            my $deps = $meta->{$type};
+            my $deps = $meta->get_dep_list ($type);
             next if !defined $deps;
             if (!reftype ($deps)) {
                 $dep_list{$deps}++;
@@ -698,6 +691,7 @@ sub aggregate_calc_lists_by_type {
     return wantarray ? %aggregated : \%aggregated;
 }
 
+#  not used anywhere?  
 sub get_indices_uses_lists_count {
     my $self = shift;
     my %args = @_;
@@ -708,8 +702,8 @@ sub get_indices_uses_lists_count {
     my %indices;
     foreach my $calculations (keys %list) {
         my $ref = $self->get_metadata (sub => $calculations);
-        foreach my $index (keys %{$ref->{indices}}) {
-            $indices{$index} = $ref->{indices}{$index}{uses_nbr_lists};
+        foreach my $index (keys %{$ref->get_indices}) {
+            $indices{$index} = $ref->get_index_uses_nbr_lists ($index);
         }
     }
 
@@ -744,13 +738,13 @@ sub get_index_source_hash {
 
     CALC:
     foreach my $calculations (keys %$list) {
-        my $args = $self->get_metadata (sub => $calculations);
+        my $meta = $self->get_metadata (sub => $calculations);
 
-        next CALC if $using_nbr_list_count < $args->{uses_nbr_lists};
+        next CALC if $using_nbr_list_count < $meta->get_uses_nbr_lists;
 
         INDEX:
-        foreach my $index (keys %{$args->{indices}}) {
-            my $index_uses_nbr_lists = $args->{indices}{$index}{uses_nbr_lists} // 1;
+        foreach my $index (keys %{$meta->get_indices}) {
+            my $index_uses_nbr_lists = $meta->get_index_uses_nbr_lists ($index) // 1;
             next INDEX if $using_nbr_list_count < $index_uses_nbr_lists;
 
             $list2{$index}{$calculations}++;
@@ -768,17 +762,16 @@ sub get_required_args {  #  return a hash of those methods that require a parame
 
     foreach my $calculations (keys %$list) {
         my $ref = $self->get_metadata (sub => $calculations);
-        if (exists $ref->{required_args}) {  #  make it a hash if it not already
-            my $reqd_ags = $ref->{required_args};
+        if (my $reqd_ags = $ref->get_required_args) {  #  make it a hash if it not already
             if ((ref $reqd_ags) =~ /ARRAY/) {
                 my %hash;
                 @hash{@$reqd_ags} = (1) x scalar @$reqd_ags;
-                $ref->{required_args} = \%hash;
+                $reqd_ags = \%hash;
             }
-            elsif (not ref $ref->{required_args}) {
-                $ref->{required_args} = {$ref->{required_args} => 1};
+            elsif (not ref $reqd_ags) {
+                $reqd_ags = {$reqd_ags => 1};
             }
-            $params{$calculations} = $ref->{required_args};
+            $params{$calculations} = $reqd_ags;
         }
     }
 
@@ -816,12 +809,11 @@ sub get_valid_cluster_indices {
 
     my %indices;
     foreach my $calculations (keys %$list) {
-        my $ref = $self->get_metadata (sub => $calculations);
-        foreach my $index (keys %{$ref->{indices}}) {
-            if ($ref->{indices}{$index}{cluster}) {
-                my $description = $ref->{indices}{$index}{description};
-                $indices{$index} = $description;
-            }
+        my $meta = $self->get_metadata (sub => $calculations);
+      INDEX:
+        foreach my $index (keys %{$meta->get_indices}) {
+            next INDEX if ! $meta->get_index_is_cluster_metric ($index);
+            $indices{$index} = $meta->get_index_description ($index);
         }
     }
 
@@ -834,21 +826,16 @@ sub get_valid_region_grower_indices {
     my $list = $args{calculations} || $self->get_calculations_as_flat_hash;
 
     my %indices;
-    foreach my $calculations (keys %$list) {
-        my $ref = $self->get_metadata (sub => $calculations);
-        INDEX:
-        foreach my $index (keys %{$ref->{indices}}) {
-            my $hash_ref = $ref->{indices}{$index};
-            next INDEX
-              if  exists $hash_ref->{lumper}
-                 and not $hash_ref->{lumper};
-            next INDEX if $hash_ref->{cluster};
-            next INDEX
-              if defined $hash_ref->{type}
-                 and $hash_ref->{type} eq 'list';
-            
-            my $description = $ref->{indices}{$index}{description};
-            $indices{$index} = $description;
+    foreach my $calc (keys %$list) {
+        my $meta = $self->get_metadata (sub => $calc);
+      INDEX:
+        foreach my $index (keys %{$meta->get_indices}) {
+            next INDEX if
+                !$meta->get_index_is_lumper ($index)
+              || $meta->get_index_is_cluster_metric ($index)
+              || $meta->get_index_is_list ($index);
+
+            $indices{$index} = $meta->get_index_description ($index);
         }
     }
 
@@ -862,16 +849,11 @@ sub get_list_indices {
 
     my %indices;
     foreach my $calculations (keys %$list) {
-        my $ref = $self->get_metadata (sub => $calculations);
-        INDEX:
-        foreach my $index (keys %{$ref->{indices}}) {
-            my $hash_ref = $ref->{indices}{$index};
-            my $type = $hash_ref->{type} // 'scalar';
-
-            next INDEX if $type ne 'list';
-
-            my $description = $ref->{indices}{$index}{description};
-            $indices{$index} = $description;
+        my $meta = $self->get_metadata (sub => $calculations);
+      INDEX:
+        foreach my $index (keys %{$meta->get_indices}) {
+            next INDEX if !$meta->get_index_is_list ($index);
+            $indices{$index} = $meta->get_index_description ($index);
         }
     }
 

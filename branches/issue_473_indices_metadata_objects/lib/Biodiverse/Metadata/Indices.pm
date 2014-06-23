@@ -25,6 +25,7 @@ my %methods_and_defaults = (
     pre_conditions => undef,
     reference      => '',
     indices        => {},
+    type           => '',
 );
 
 
@@ -153,5 +154,33 @@ sub get_index_uses_nbr_lists {
     my $indices = $self->get_indices;
     return $indices->{$index}{uses_nbr_lists} // 1;
 }
+
+sub get_index_is_cluster_metric {
+    my ($self, $index) = @_;
+
+    no autovivification;
+    
+    my $indices = $self->get_indices;
+    return $indices->{$index}{cluster};
+}
+
+sub get_index_is_lumper {
+    my ($self, $index) = @_;
+
+    no autovivification;
+    
+    my $indices = $self->get_indices;
+    return $indices->{$index}{lumper} // 1;
+}
+
+sub get_index_is_list {
+    my ($self, $index) = @_;
+
+    no autovivification;
+    
+    my $indices = $self->get_indices;
+    return ($indices->{$index}{type} // '') eq 'list';
+}
+
 
 1;

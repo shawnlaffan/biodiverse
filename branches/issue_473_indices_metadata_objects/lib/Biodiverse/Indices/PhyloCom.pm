@@ -23,6 +23,7 @@ my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';
 use Math::Random::MT::Auto;
 my $prng_class = 'Math::Random::MT::Auto';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
 
@@ -93,7 +94,7 @@ sub get_mpd_mntd_metadata {
         indices         => $indices_filtered,
     );
 
-    return wantarray ? %metadata : \%metadata;    
+    return wantarray ? %metadata : \%metadata;
 }
 
 
@@ -101,7 +102,7 @@ sub get_metadata_calc_phylo_mpd_mntd1 {
     my $self = shift;
     my %args = @_;
 
-    my %submeta = $self->get_mpd_mntd_metadata (
+    my $submeta = $self->get_mpd_mntd_metadata (
         abc_sub => 'calc_abc',
     );
 
@@ -110,10 +111,10 @@ sub get_metadata_calc_phylo_mpd_mntd1 {
                          . 'along the tree.  Compares with '
                          . 'all other labels across both neighbour sets. ',
         name            => 'Phylogenetic and Nearest taxon distances, unweighted',
-        %submeta,
+        %$submeta,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_mpd_mntd1 {
@@ -134,7 +135,7 @@ sub get_metadata_calc_phylo_mpd_mntd2 {
     my $self = shift;
     my %args = @_;
 
-    my %submeta = $self->get_mpd_mntd_metadata (
+    my $submeta = $self->get_mpd_mntd_metadata (
         abc_sub => 'calc_abc2',
     );
 
@@ -144,10 +145,10 @@ sub get_metadata_calc_phylo_mpd_mntd2 {
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts',
         name            => 'Phylogenetic and Nearest taxon distances, local range weighted',
-        %submeta,
+        %$submeta,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_mpd_mntd2 {
@@ -168,7 +169,7 @@ sub get_metadata_calc_phylo_mpd_mntd3 {
     my $self = shift;
     my %args = @_;
 
-    my %submeta = $self->get_mpd_mntd_metadata (
+    my $submeta = $self->get_mpd_mntd_metadata (
         abc_sub => 'calc_abc3',
     );
 
@@ -178,10 +179,10 @@ sub get_metadata_calc_phylo_mpd_mntd3 {
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts (which currently must be integers)',
         name            => 'Phylogenetic and Nearest taxon distances, abundance weighted',
-        %submeta,
+        %$submeta,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_mpd_mntd3 {
@@ -368,7 +369,7 @@ sub get_metadata_get_phylo_mpd_mntd_matrix {
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -401,7 +402,7 @@ sub get_metadata_get_phylo_nri_nti_cache {
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_phylo_nri_nti_cache {
@@ -444,7 +445,7 @@ sub get_metadata_calc_nri_nti1 {
         uses_nbr_lists => 1,
     );
 
-    return wantarray ? %metadata : \%metadata;    
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_nri_nti1 {
@@ -491,7 +492,7 @@ sub get_metadata_calc_nri_nti2 {
         uses_nbr_lists => 1,
     );
 
-    return wantarray ? %metadata : \%metadata;    
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_nri_nti2 {
@@ -538,7 +539,7 @@ sub get_metadata_calc_nri_nti3 {
         uses_nbr_lists => 1,
     );
 
-    return wantarray ? %metadata : \%metadata;    
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_nri_nti3 {
@@ -627,7 +628,7 @@ sub get_metadata_calc_nri_nti_expected_values {
         indices         => $indices,
     );
     
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -829,7 +830,7 @@ sub get_metadata_get_prng_object {
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_prng_object {

@@ -5,13 +5,14 @@ use Carp;
 
 our $VERSION = '0.99_001';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_calc_endemism_central_normalised {
 
     my $desc = "Normalise the WE and CWE scores by the neighbourhood size.\n"
              . "(The number of groups used to determine the local ranges).\n";
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Endemism central normalised',
         type            => 'Endemism',
@@ -38,7 +39,7 @@ sub get_metadata_calc_endemism_central_normalised {
         },
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_endemism_central_normalised {
@@ -59,7 +60,7 @@ sub get_metadata_calc_endemism_whole_normalised {
     my $desc = "Normalise the WE and CWE scores by the neighbourhood size.\n"
                 . "(The number of groups used to determine the local ranges). \n";
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Endemism whole normalised',
         type            => 'Endemism',
@@ -84,7 +85,7 @@ sub get_metadata_calc_endemism_whole_normalised {
         },
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_endemism_whole_normalised {
@@ -103,7 +104,7 @@ sub calc_endemism_whole_normalised {
 sub get_metadata_get_label_range_hash {
     my $self = shift;
 
-    my %args = (
+    my %metadata = (
         name            => 'Label range hash',
         description     => 'Hash of label ranges across the basedata',
         type            => 'Endemism',
@@ -115,7 +116,7 @@ sub get_metadata_get_label_range_hash {
         }
     );
 
-    return wantarray ? %args : \%args;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_label_range_hash {
@@ -144,7 +145,7 @@ sub get_metadata_calc_endemism_central {
               . 'Laffan and Crisp (2003) J Biogeog. '
               . 'http://www3.interscience.wiley.com/journal/118882020/abstract';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Endemism central',
         type            => 'Endemism',
@@ -210,7 +211,7 @@ sub get_metadata_calc_endemism_central {
         },
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_endemism_central {
@@ -229,7 +230,7 @@ sub calc_endemism_central {
 
 sub get_metadata_calc_endemism_central_lists {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Lists used in endemism central calculations',
         name            => 'Endemism central lists',
         type            => 'Endemism',
@@ -251,7 +252,7 @@ sub get_metadata_calc_endemism_central_lists {
 
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_endemism_central_lists {
@@ -380,7 +381,7 @@ sub metadata_for_calc_endemism_hier_part {
     #my $formula = $self->get_formula_end_hpart;
     
 
-    my %arguments = (
+    my %metadata = (
         description     => $descr,
         name            => "Endemism $endemism_type hierarchical partition",
         type            => 'Endemism',
@@ -394,7 +395,7 @@ sub metadata_for_calc_endemism_hier_part {
         indices => $indices,
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  generic to allow both central and whole
@@ -525,7 +526,7 @@ sub get_metadata__calc_endemism_central {
         pre_calc        => 'calc_abc2',
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 #  wrapper sub
@@ -539,7 +540,7 @@ sub _calc_endemism_central {
 
 sub get_metadata_calc_endemism_whole {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Calculate endemism using all labels found in both neighbour sets',
         name            => 'Endemism whole',
         type            => 'Endemism',
@@ -600,7 +601,7 @@ sub get_metadata_calc_endemism_whole {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_endemism_whole {
@@ -619,7 +620,7 @@ sub calc_endemism_whole {
 
 sub get_metadata_calc_endemism_whole_lists {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Lists used in the endemism whole calculations',
         name            => 'Endemism whole lists',
         type            => 'Endemism',
@@ -640,7 +641,7 @@ sub get_metadata_calc_endemism_whole_lists {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_endemism_whole_lists {
@@ -665,7 +666,7 @@ sub get_metadata__calc_endemism_whole {
         pre_calc        => 'calc_abc2',
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 #  wrapper sub
@@ -743,7 +744,7 @@ sub get_metadata_get_basedata_labels_as_tree {
         },
     );
     
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 #  get a hierarchical tree of the current basedata
@@ -766,7 +767,7 @@ sub get_metadata_calc_endemism_absolute_lists {
 
     my $desc = "Lists underlying the absolute endemism scores.\n";
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Absolute endemism lists',
         type            => 'Endemism',
@@ -788,7 +789,7 @@ sub get_metadata_calc_endemism_absolute_lists {
         },
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_endemism_absolute_lists {
@@ -807,7 +808,7 @@ sub get_metadata_calc_endemism_absolute {
 
     my $desc = "Absolute endemism scores.\n";
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Absolute endemism',
         type            => 'Endemism',
@@ -835,7 +836,7 @@ sub get_metadata_calc_endemism_absolute {
         },
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_endemism_absolute {
@@ -853,14 +854,14 @@ sub get_metadata__calc_endemism_absolute {
 
     my $desc = "Internal calcs for absolute endemism.\n";
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Absolute endemism, internals',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         pre_calc        => ['calc_abc2'],
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 

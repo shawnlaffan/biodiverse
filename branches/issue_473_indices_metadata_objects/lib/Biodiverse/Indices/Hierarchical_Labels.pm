@@ -8,6 +8,8 @@ use Biodiverse::Progress;
 
 our $VERSION = '0.99_001';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
+
 ######################################################
 #
 #  routines to analyse labels in relation to their hierarchies
@@ -58,7 +60,7 @@ END_H_DESC
     my $ref = 'Jones and Laffan (2008) Trans Philol Soc '
             . 'http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x';
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Ratios of hierarchical labels',
         description     => $desc,
         type            => 'Hierarchical Labels',
@@ -69,7 +71,7 @@ END_H_DESC
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
     );
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -145,7 +147,7 @@ END_BDLH_DESCR
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_basedatas_by_label_hierarchy {

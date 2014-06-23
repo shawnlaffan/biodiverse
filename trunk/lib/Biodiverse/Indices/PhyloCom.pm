@@ -23,6 +23,7 @@ my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';
 use Math::Random::MT::Auto;
 my $prng_class = 'Math::Random::MT::Auto';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
 
@@ -93,7 +94,7 @@ sub get_mpd_mntd_metadata {
         indices         => $indices_filtered,
     );
 
-    return wantarray ? %metadata : \%metadata;    
+    return wantarray ? %metadata : \%metadata;
 }
 
 
@@ -101,7 +102,7 @@ sub get_metadata_calc_phylo_mpd_mntd1 {
     my $self = shift;
     my %args = @_;
 
-    my %submeta = $self->get_mpd_mntd_metadata (
+    my $submeta = $self->get_mpd_mntd_metadata (
         abc_sub => 'calc_abc',
     );
 
@@ -110,10 +111,10 @@ sub get_metadata_calc_phylo_mpd_mntd1 {
                          . 'along the tree.  Compares with '
                          . 'all other labels across both neighbour sets. ',
         name            => 'Phylogenetic and Nearest taxon distances, unweighted',
-        %submeta,
+        %$submeta,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_mpd_mntd1 {
@@ -134,7 +135,7 @@ sub get_metadata_calc_phylo_mpd_mntd2 {
     my $self = shift;
     my %args = @_;
 
-    my %submeta = $self->get_mpd_mntd_metadata (
+    my $submeta = $self->get_mpd_mntd_metadata (
         abc_sub => 'calc_abc2',
     );
 
@@ -144,10 +145,10 @@ sub get_metadata_calc_phylo_mpd_mntd2 {
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts',
         name            => 'Phylogenetic and Nearest taxon distances, local range weighted',
-        %submeta,
+        %$submeta,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_mpd_mntd2 {
@@ -168,7 +169,7 @@ sub get_metadata_calc_phylo_mpd_mntd3 {
     my $self = shift;
     my %args = @_;
 
-    my %submeta = $self->get_mpd_mntd_metadata (
+    my $submeta = $self->get_mpd_mntd_metadata (
         abc_sub => 'calc_abc3',
     );
 
@@ -178,10 +179,10 @@ sub get_metadata_calc_phylo_mpd_mntd3 {
                          . 'all other labels across both neighbour sets. '
                          . 'Weighted by sample counts (which currently must be integers)',
         name            => 'Phylogenetic and Nearest taxon distances, abundance weighted',
-        %submeta,
+        %$submeta,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_mpd_mntd3 {
@@ -359,11 +360,16 @@ sub get_metadata_get_phylo_mpd_mntd_matrix {
     my $self = shift;
 
     my %metadata = (
-        #required_args => 'tree_ref',
-        #pre_calc_global => ['get_trimmed_tree'],  #  need to work with whole tree, so comment out
+        name        => 'get_phylo_mpd_mntd_matrix',
+        description => 'Matrix used for caching in MPD and MNTD calculations',
+        indices     => {
+            PHYLO_MPD_MNTD_MATRIX => {
+                description => 'MPD/MNTD path length cache matrix',
+            },
+        },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -379,24 +385,31 @@ sub get_phylo_mpd_mntd_matrix {
 
 
 
-#  currently only one cache across all MPI/MNTD methods (respectively)
+#  currently only one cache across all NRI/NTI methods (respectively)
 #  Need to determine if one per method is needed (e.g. type 1, 2 & 3
 #  for the different weighting schemes).
 sub get_metadata_get_phylo_nri_nti_cache {
     my $self = shift;
 
     my %metadata = (
+        name            => 'get_phylo_nri_nti_cache',
+        description     => 'Cache used in the MPD/MNTD calculations',
         required_args   => 'tree_ref',
+        indices         => {
+            PHYLO_NRI_NTI_SAMPLE_CACHE => {
+                description => 'Sample cache for the NRI/NTI calcs, ordered by label counts',
+            },
+        },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_phylo_nri_nti_cache {
     my $self = shift;
-    
+
     my %results = (PHYLO_NRI_NTI_SAMPLE_CACHE => {});
-    
+
     return wantarray ? %results : \%results;
 }
 
@@ -432,7 +445,7 @@ sub get_metadata_calc_nri_nti1 {
         uses_nbr_lists => 1,
     );
 
-    return wantarray ? %metadata : \%metadata;    
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_nri_nti1 {
@@ -479,7 +492,7 @@ sub get_metadata_calc_nri_nti2 {
         uses_nbr_lists => 1,
     );
 
-    return wantarray ? %metadata : \%metadata;    
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_nri_nti2 {
@@ -526,7 +539,7 @@ sub get_metadata_calc_nri_nti3 {
         uses_nbr_lists => 1,
     );
 
-    return wantarray ? %metadata : \%metadata;    
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_nri_nti3 {
@@ -615,7 +628,7 @@ sub get_metadata_calc_nri_nti_expected_values {
         indices         => $indices,
     );
     
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -806,10 +819,18 @@ sub get_convergence_nri_nti_expected_values {
 sub get_metadata_get_prng_object {
     my $self = shift;
     my %args = @_;
-    
-    my %metadata;  #  none needed at this stage
 
-    return wantarray ? %metadata : \%metadata;
+    my %metadata = (
+        name        => 'get_prng_object',
+        description => 'Get a PRNG object for the indices object to use',
+        indices => {
+            PRNG_OBJECT => {
+                description => 'The PRNG object',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_prng_object {

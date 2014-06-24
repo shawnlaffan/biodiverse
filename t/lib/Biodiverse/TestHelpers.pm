@@ -760,7 +760,7 @@ sub run_indices_test1 {
 
     my %bd_args = (%args, CELL_SIZES => $cell_sizes);
 
-    my $bd = $args{basedata_ref} or
+    my $bd = $args{basedata_ref} ||
         $use_numeric_labels
           ? get_numeric_labels_basedata_object_from_site_data (
                 %bd_args,

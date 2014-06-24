@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Mon Jun 23 11:47:17 2014 using build_indices_table.pl, Biodiverse version 0.99_001._
+_Generated GMT Tue Jun 24 00:06:59 2014 using build_indices_table.pl, Biodiverse version 0.99_001._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -490,18 +490,18 @@ of the hierarchy.
  
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 63 || HIER_A0 || A score for level 0 ||   || 1 ||
-|| 64 || HIER_A1 || A score for level 1 ||   || 1 ||
-|| 65 || HIER_ARAT1_0 || Ratio of A scores, (HIER_A1 / HIER_A0) ||   || 1 ||
-|| 66 || HIER_ASUM0 || Sum of shared label sample counts, level 0 ||   || 1 ||
-|| 67 || HIER_ASUM1 || Sum of shared label sample counts, level 1 ||   || 1 ||
-|| 68 || HIER_ASUMRAT1_0 || 1 - Ratio of shared label sample counts, (HIER_ASUM1 / HIER_ASUM0) || cluster metric || 1 ||
-|| 69 || HIER_B0 || B score  for level 0 ||   || 1 ||
-|| 70 || HIER_B1 || B score  for level 1 ||   || 1 ||
-|| 71 || HIER_BRAT1_0 || Ratio of B scores, (HIER_B1 / HIER_B0) ||   || 1 ||
-|| 72 || HIER_C0 || C score for level 0 ||   || 1 ||
-|| 73 || HIER_C1 || C score for level 1 ||   || 1 ||
-|| 74 || HIER_CRAT1_0 || Ratio of C scores, (HIER_C1 / HIER_C0) ||   || 1 ||
+|| 63 || HIER_A0 || A score for level 0 ||   || 2 ||
+|| 64 || HIER_A1 || A score for level 1 ||   || 2 ||
+|| 65 || HIER_ARAT1_0 || Ratio of A scores, (HIER_A1 / HIER_A0) ||   || 2 ||
+|| 66 || HIER_ASUM0 || Sum of shared label sample counts, level 0 ||   || 2 ||
+|| 67 || HIER_ASUM1 || Sum of shared label sample counts, level 1 ||   || 2 ||
+|| 68 || HIER_ASUMRAT1_0 || 1 - Ratio of shared label sample counts, (HIER_ASUM1 / HIER_ASUM0) || cluster metric || 2 ||
+|| 69 || HIER_B0 || B score  for level 0 ||   || 2 ||
+|| 70 || HIER_B1 || B score  for level 1 ||   || 2 ||
+|| 71 || HIER_BRAT1_0 || Ratio of B scores, (HIER_B1 / HIER_B0) ||   || 2 ||
+|| 72 || HIER_C0 || C score for level 0 ||   || 2 ||
+|| 73 || HIER_C1 || C score for level 1 ||   || 2 ||
+|| 74 || HIER_CRAT1_0 || Ratio of C scores, (HIER_C1 / HIER_C0) ||   || 2 ||
 
 
 ==Inter-event Interval Statistics==
@@ -594,10 +594,10 @@ These form the basis for the Taxonomic Dissimilarity and Comparison indices.
 *Subroutine:*   calc_abc_counts
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 93 || ABC_A || Count of labels common to both neighbour sets ||   || 1 ||
-|| 94 || ABC_ABC || Total label count across both neighbour sets (same as RICHNESS_ALL) ||   || 1 ||
-|| 95 || ABC_B || Count of labels unique to neighbour set 1 ||   || 1 ||
-|| 96 || ABC_C || Count of labels unique to neighbour set 2 ||   || 1 ||
+|| 93 || ABC_A || Count of labels common to both neighbour sets ||   || 2 ||
+|| 94 || ABC_ABC || Total label count across both neighbour sets (same as RICHNESS_ALL) ||   || 2 ||
+|| 95 || ABC_B || Count of labels unique to neighbour set 1 ||   || 2 ||
+|| 96 || ABC_C || Count of labels unique to neighbour set 2 ||   || 2 ||
 
 
 
@@ -751,11 +751,11 @@ These form the basis of the sample indices.
 *Subroutine:*   calc_compare_dissim_matrix_values
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 125 || MXD_COUNT || Count of comparisons used. ||   || 1 ||
-|| 126 || MXD_LIST1 || List of the labels used from neighbour set 1 (those in the matrix). The list values are the number of times each label was used in the calculations. This will always be 1 for labels in neighbour set 1. ||   || 1 ||
-|| 127 || MXD_LIST2 || List of the labels used from neighbour set 2 (those in the matrix). The list values are the number of times each label was used in the calculations. This will equal the number of labels used from neighbour set 1. ||   || 1 ||
-|| 128 || MXD_MEAN || Mean dissimilarity of labels in set 1 to those in set 2. || cluster metric || 1 ||
-|| 129 || MXD_VARIANCE || Variance of the dissimilarity values, set 1 vs set 2. || cluster metric || 1 ||
+|| 125 || MXD_COUNT || Count of comparisons used. ||   || 2 ||
+|| 126 || MXD_LIST1 || List of the labels used from neighbour set 1 (those in the matrix). The list values are the number of times each label was used in the calculations. This will always be 1 for labels in neighbour set 1. ||   || 2 ||
+|| 127 || MXD_LIST2 || List of the labels used from neighbour set 2 (those in the matrix). The list values are the number of times each label was used in the calculations. This will equal the number of labels used from neighbour set 1. ||   || 2 ||
+|| 128 || MXD_MEAN || Mean dissimilarity of labels in set 1 to those in set 2. || cluster metric || 2 ||
+|| 129 || MXD_VARIANCE || Variance of the dissimilarity values, set 1 vs set 2. || cluster metric || 2 ||
 
 
 
@@ -837,9 +837,9 @@ For the hash form, use the ABC3_LABELS_ALL index from the 'Sample count lists' c
 *Subroutine:*   calc_numeric_label_dissimilarity
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
-|| 149 || NUMD_ABSMEAN || Mean absolute dissimilarity of labels in set 1 to those in set 2. || cluster metric || 1 || <img src="http://latex.codecogs.com/png.latex?= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} abs (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}%.png" title="= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} abs (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}" /> where<img src="http://latex.codecogs.com/png.latex?L1%.png" title="L1" /> and <img src="http://latex.codecogs.com/png.latex?L2%.png" title="L2" /> are the labels in neighbour sets 1 and 2 respectively, and <img src="http://latex.codecogs.com/png.latex?n1%.png" title="n1" /> and <img src="http://latex.codecogs.com/png.latex?n2%.png" title="n2" /> are the sample counts in neighbour sets 1 and 2  ||
-|| 150 || NUMD_COUNT || Count of comparisons used. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= n1 * n2%.png" title="= n1 * n2" /> where values are as for <img src="http://latex.codecogs.com/png.latex?NUMD\_ABSMEAN%.png" title="NUMD\_ABSMEAN" />  ||
-|| 151 || NUMD_VARIANCE || Variance of the dissimilarity values (mean squared deviation), set 1 vs set 2. || cluster metric || 1 || <img src="http://latex.codecogs.com/png.latex?= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}%.png" title="= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}" /> where values are as for <img src="http://latex.codecogs.com/png.latex?NUMD\_ABSMEAN%.png" title="NUMD\_ABSMEAN" />  ||
+|| 149 || NUMD_ABSMEAN || Mean absolute dissimilarity of labels in set 1 to those in set 2. || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} abs (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}%.png" title="= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} abs (l_{1i} - l_{2j})(w_{1i} \times w_{2j})}{n_1 \times n_2}" /> where<img src="http://latex.codecogs.com/png.latex?L1%.png" title="L1" /> and <img src="http://latex.codecogs.com/png.latex?L2%.png" title="L2" /> are the labels in neighbour sets 1 and 2 respectively, and <img src="http://latex.codecogs.com/png.latex?n1%.png" title="n1" /> and <img src="http://latex.codecogs.com/png.latex?n2%.png" title="n2" /> are the sample counts in neighbour sets 1 and 2  ||
+|| 150 || NUMD_COUNT || Count of comparisons used. ||   || 2 || <img src="http://latex.codecogs.com/png.latex?= n1 * n2%.png" title="= n1 * n2" /> where values are as for <img src="http://latex.codecogs.com/png.latex?NUMD\_ABSMEAN%.png" title="NUMD\_ABSMEAN" />  ||
+|| 151 || NUMD_VARIANCE || Variance of the dissimilarity values (mean squared deviation), set 1 vs set 2. || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}%.png" title="= \frac{\sum_{l_{1i} \in L_1} \sum_{l_{2j} \in L_2} (l_{1i} - l_{2j})^2(w_{1i} \times w_{2j})}{n_1 \times n_2}" /> where values are as for <img src="http://latex.codecogs.com/png.latex?NUMD\_ABSMEAN%.png" title="NUMD\_ABSMEAN" />  ||
 
 
 
@@ -1393,7 +1393,7 @@ Label values are constant for all neighbourhoods in which each label is found.
 *Subroutine:*   calc_phylo_jaccard
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
-|| 258 || PHYLO_JACCARD || Phylo Jaccard score || cluster metric || 1 || <img src="http://latex.codecogs.com/png.latex?= 1 - (A / (A + B + C))%.png" title="= 1 - (A / (A + B + C))" /> where A is the length of shared branches, and B and C are the length of branches found only in neighbour sets 1 and 2  ||
+|| 258 || PHYLO_JACCARD || Phylo Jaccard score || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= 1 - (A / (A + B + C))%.png" title="= 1 - (A / (A + B + C))" /> where A is the length of shared branches, and B and C are the length of branches found only in neighbour sets 1 and 2  ||
 
 
 
@@ -1409,7 +1409,7 @@ Label values are constant for all neighbourhoods in which each label is found.
 *Subroutine:*   calc_phylo_s2
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
-|| 259 || PHYLO_S2 || Phylo S2 score || cluster metric || 1 || <img src="http://latex.codecogs.com/png.latex?= 1 - (A / (A + min (B, C)))%.png" title="= 1 - (A / (A + min (B, C)))" /> where A is the length of shared branches, and B and C are the length of branches found only in neighbour sets 1 and 2  ||
+|| 259 || PHYLO_S2 || Phylo S2 score || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= 1 - (A / (A + min (B, C)))%.png" title="= 1 - (A / (A + min (B, C)))" /> where A is the length of shared branches, and B and C are the length of branches found only in neighbour sets 1 and 2  ||
 
 
 
@@ -1425,7 +1425,7 @@ Label values are constant for all neighbourhoods in which each label is found.
 *Subroutine:*   calc_phylo_sorenson
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
-|| 260 || PHYLO_SORENSON || Phylo Sorenson score || cluster metric || 1 || <img src="http://latex.codecogs.com/png.latex?1 - (2A / (2A + B + C))%.png" title="1 - (2A / (2A + B + C))" /> where A is the length of shared branches, and B and C are the length of branches found only in neighbour sets 1 and 2  ||
+|| 260 || PHYLO_SORENSON || Phylo Sorenson score || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?1 - (2A / (2A + B + C))%.png" title="1 - (2A / (2A + B + C))" /> where A is the length of shared branches, and B and C are the length of branches found only in neighbour sets 1 and 2  ||
 
 
 
@@ -1440,10 +1440,10 @@ Label values are constant for all neighbourhoods in which each label is found.
 *Subroutine:*   calc_phylo_abc
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 261 || PHYLO_A || Length of branches shared by labels in nbr sets 1 and 2 ||   || 1 ||
-|| 262 || PHYLO_ABC || Length of all branches associated with labels in nbr sets 1 and 2 ||   || 1 ||
-|| 263 || PHYLO_B || Length of branches unique to labels in nbr set 1 ||   || 1 ||
-|| 264 || PHYLO_C || Length of branches unique to labels in nbr set 2 ||   || 1 ||
+|| 261 || PHYLO_A || Length of branches shared by labels in nbr sets 1 and 2 ||   || 2 ||
+|| 262 || PHYLO_ABC || Length of all branches associated with labels in nbr sets 1 and 2 ||   || 2 ||
+|| 263 || PHYLO_B || Length of branches unique to labels in nbr set 1 ||   || 2 ||
+|| 264 || PHYLO_C || Length of branches unique to labels in nbr set 2 ||   || 2 ||
 
 
 
@@ -1739,7 +1739,7 @@ by sample counts instead of by groups occupied.
 *Subroutine:*   calc_beta_diversity
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
-|| 302 || BETA_2 || The other beta || cluster metric || 1 || <img src="http://latex.codecogs.com/png.latex?= \frac{A + B + C}{max((A+B), (A+C))} - 1%.png" title="= \frac{A + B + C}{max((A+B), (A+C))} - 1" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.  ||
+|| 302 || BETA_2 || The other beta || cluster metric || 2 || <img src="http://latex.codecogs.com/png.latex?= \frac{A + B + C}{max((A+B), (A+C))} - 1%.png" title="= \frac{A + B + C}{max((A+B), (A+C))} - 1" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.  ||
 
 
 
@@ -1758,10 +1758,10 @@ Reduces to the Sorenson metric for binary data (where sample counts are 1 or 0).
    <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{2W}{A + B}%.png" title="= 1 - \frac{2W}{A + B}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the sum of the sample counts in neighbour set 1, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the sum of sample counts in neighbour set 2, and <img src="http://latex.codecogs.com/png.latex?W=\sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})%.png" title="W=\sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})" /> (meaning it sums the minimum of the sample counts for each of the <img src="http://latex.codecogs.com/png.latex?n%.png" title="n" /> labels across the two neighbour sets), 
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 303 || BC_A || The A factor used in calculations (see formula) ||   || 1 ||
-|| 304 || BC_B || The B factor used in calculations (see formula) ||   || 1 ||
-|| 305 || BC_W || The W factor used in calculations (see formula) ||   || 1 ||
-|| 306 || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 1 ||
+|| 303 || BC_A || The A factor used in calculations (see formula) ||   || 2 ||
+|| 304 || BC_B || The B factor used in calculations (see formula) ||   || 2 ||
+|| 305 || BC_W || The W factor used in calculations (see formula) ||   || 2 ||
+|| 306 || BRAY_CURTIS || Bray Curtis dissimilarity || cluster metric || 2 ||
 
 
 
@@ -1783,10 +1783,10 @@ for unbalanced sizes.
    <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{2W}{A + B}%.png" title="= 1 - \frac{2W}{A + B}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the sum of the sample counts in neighbour set 1 normalised (divided) by the number of groups, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the sum of the sample counts in neighbour set 2 normalised by the number of groups, and <img src="http://latex.codecogs.com/png.latex?W = \sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})%.png" title="W = \sum^n_{i=1} min(sample\_count\_label_{i_{set1}},sample\_count\_label_{i_{set2}})" /> (meaning it sums the minimum of the normalised sample counts for each of the <img src="http://latex.codecogs.com/png.latex?n%.png" title="n" /> labels across the two neighbour sets), 
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 307 || BCN_A || The A factor used in calculations (see formula) ||   || 1 ||
-|| 308 || BCN_B || The B factor used in calculations (see formula) ||   || 1 ||
-|| 309 || BCN_W || The W factor used in calculations (see formula) ||   || 1 ||
-|| 310 || BRAY_CURTIS_NORM || Bray Curtis dissimilarity normalised by groups || cluster metric || 1 ||
+|| 307 || BCN_A || The A factor used in calculations (see formula) ||   || 2 ||
+|| 308 || BCN_B || The B factor used in calculations (see formula) ||   || 2 ||
+|| 309 || BCN_W || The W factor used in calculations (see formula) ||   || 2 ||
+|| 310 || BRAY_CURTIS_NORM || Bray Curtis dissimilarity normalised by groups || cluster metric || 2 ||
 
 
 
@@ -1804,7 +1804,7 @@ for unbalanced sizes.
    <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{A}{A + B + C}%.png" title="= 1 - \frac{A}{A + B + C}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 311 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 1 ||
+|| 311 || JACCARD || Jaccard value, 0 is identical, 1 is completely dissimilar || cluster metric || 2 ||
 
 
 
@@ -1823,7 +1823,7 @@ for unbalanced sizes.
    <img src="http://latex.codecogs.com/png.latex?= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})%.png" title="= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 312 || KULCZYNSKI2 || Kulczynski 2 index || cluster metric || 1 ||
+|| 312 || KULCZYNSKI2 || Kulczynski 2 index || cluster metric || 2 ||
 
 
 
@@ -1844,7 +1844,7 @@ for unbalanced sizes.
    <img src="http://latex.codecogs.com/png.latex?=\frac{ \left | B - C \right | }{ 2A + B + C } \times \frac { A }{ A + min (B, C) }= SORENSON - S2%.png" title="=\frac{ \left | B - C \right | }{ 2A + B + C } \times \frac { A }{ A + min (B, C) }= SORENSON - S2" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 313 || NEST_RESULTANT || Nestedness-resultant index || cluster metric || 1 ||
+|| 313 || NEST_RESULTANT || Nestedness-resultant index || cluster metric || 2 ||
 
 
 
@@ -1887,7 +1887,7 @@ Should collapse to be the Simpson index for presence/absence data.
    <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{A}{A + min(B, C)}%.png" title="= 1 - \frac{A}{A + min(B, C)}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 317 || S2 || S2 dissimilarity index || cluster metric || 1 ||
+|| 317 || S2 || S2 dissimilarity index || cluster metric || 2 ||
 
 
 
@@ -1928,7 +1928,7 @@ It is the complement of the (unimplemented) Czechanowski index, and numerically 
    <img src="http://latex.codecogs.com/png.latex?= 1 - \frac{2A}{2A + B + C}%.png" title="= 1 - \frac{2A}{2A + B + C}" /> where <img src="http://latex.codecogs.com/png.latex?A%.png" title="A" /> is the count of labels found in both neighbour sets, <img src="http://latex.codecogs.com/png.latex?B%.png" title="B" /> is the count unique to neighbour set 1, and <img src="http://latex.codecogs.com/png.latex?C%.png" title="C" /> is the count unique to neighbour set 2. Use the [#Label_counts Label counts] calculation to derive these directly.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 322 || SORENSON || Sorenson index || cluster metric || 1 ||
+|| 322 || SORENSON || Sorenson index || cluster metric || 2 ||
 
 
 <img src="http://www.codecogs.com/images/poweredbycc.gif" width="102" height="34" vspace="5" border="0" alt="Powered by CodeCogs"/>

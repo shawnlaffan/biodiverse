@@ -164,7 +164,7 @@ sub get_metadata_calc_chao2 {
         description     => 'Chao2 species richness estimator (incidence based)',
         name            => 'Chao2',
         type            => 'Richness estimators',
-        pre_calc        => 'calc_abc2',
+        pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             CHAO2              => {
@@ -457,7 +457,7 @@ sub get_metadata_calc_ice {
         description     => 'Incidence Coverage-based Estimator of species richness',
         name            => 'ICE',
         type            => 'Richness estimators',
-        pre_calc        => 'calc_abc2',
+        pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             ICE_SCORE => {

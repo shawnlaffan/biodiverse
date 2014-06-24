@@ -5,7 +5,9 @@ use Carp;
 
 use List::Util qw /max min/;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
+
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 
 sub get_metadata_calc_chao1 {
@@ -48,7 +50,7 @@ sub get_metadata_calc_chao1 {
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new (\%metadata);
 }
 
 sub calc_chao1 {
@@ -197,7 +199,7 @@ sub get_metadata_calc_chao2 {
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 #  very similar to chao1 - could refactor common code
@@ -375,7 +377,7 @@ sub get_metadata_calc_ace {
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new (\%metadata);
 }
 
 
@@ -467,7 +469,7 @@ sub get_metadata_calc_ice {
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new (\%metadata);
 }
 
 sub calc_ice {

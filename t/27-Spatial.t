@@ -92,7 +92,7 @@ sub test_def_queries {
             "Correct number of groups passed $def_query_text",
         );
         
-        my @got_element_list = sort keys $passed_defq;
+        my @got_element_list = sort keys %$passed_defq;
         
         is_deeply (
             \@expected_element_list,

@@ -13,7 +13,7 @@ use Biodiverse::ReadNexus;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 require      Exporter;
 use parent qw/Exporter Biodiverse::Common/;
@@ -779,7 +779,7 @@ sub delete_base_data {
 
     # Clear selection
     my $selected = $self->get_selected_base_data;
-    if ($basedata_ref eq $selected) {
+    if (!defined $selected or $basedata_ref eq $selected) {
         $self->set_param (SELECTED_BASEDATA => undef);
         #print "CLEARED SELECTED_BASEDATA\n";
     }

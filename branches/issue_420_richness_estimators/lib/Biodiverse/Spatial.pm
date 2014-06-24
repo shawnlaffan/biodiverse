@@ -12,7 +12,7 @@ use Scalar::Util qw /weaken blessed/;
 use List::Util;
 use Time::HiRes qw /time/;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::SpatialConditions;
 use Biodiverse::SpatialConditions::DefQuery;
@@ -554,12 +554,12 @@ sub sp_calc {
             if (ref ($list_ref) =~ /ARRAY|HASH/) {
                 $self->add_to_lists (
                     element => $element,
-                    $key    => $sp_calc_values{$key},
+                    $key    => $list_ref,
                 );
 
                 #  if we can recycle results, then store these results 
                 if ($results_are_recyclable) {
-                    $recycle_lists->{$key} = $sp_calc_values{$key};
+                    $recycle_lists->{$key} = $list_ref;
                 }
 
                 delete $sp_calc_values{$key};
@@ -576,14 +576,11 @@ sub sp_calc {
         #  Note - only applies to groups in first nbr set
         my %nbrs_1;  #  the first nbr list as a hash
         if ($recyclable_nbrhoods->[0]) {
-            @nbrs_1{@{$nbr_list[0]}} = (1) x scalar @{$nbr_list[0]};
             #  Ignore those we aren't interested in
             #  - does not affect calcs, only recycled results.
-            foreach my $nbr (keys %nbrs_1) {
-                if (! exists $elements_to_use{$nbr}) {
-                    delete $nbrs_1{$nbr};
-                }
-            }
+            %nbrs_1 = map  {$_ => 1}
+                      grep {exists $elements_to_use{$_}}
+                      @{$nbr_list[0]};
 
             if (! $self->nbr_list_already_recycled(element => $element)) {
                 #  for each nbr in %nbrs_1,

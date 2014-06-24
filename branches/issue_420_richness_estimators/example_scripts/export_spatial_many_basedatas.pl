@@ -17,7 +17,11 @@ my $out_suffix  = $ARGV[2];
 my $list_name   = $ARGV[3] // 'SPATIAL_RESULTS';
 my $export_type = $ARGV[4] // 'ArcInfo floatgrid files';
 
-my $strip = qr /data_50km_w_props_(.+)_analysed/;
+#my $strip1 = qr /data_50km_w_props_(.+)_analysed/;
+my $strip1 = qr /_50km_analysed/;
+my $strip2 = qr /SPATIAL_RESULTS/;
+my $strip3 = qr /([A-Z_]+)\1/;
+
 my $dots = qr /\.(?!bds)/;
 
 my @bd_files = grep {/bds$/} glob $glob;
@@ -38,8 +42,16 @@ foreach my $bd_file (@bd_files) {
     $bd_name =~ s/\.bds$//;
 
     foreach my $sp ($bd->get_spatial_output_refs) {
-        my $filename = ($out_prefix // $bd_name) . '_' . ($out_suffix // $sp->get_param('NAME')) . '_' . $list_name;
-        $filename =~ s/$strip/$1/;
+        my $filename
+          = ($out_prefix // $bd_name)
+            . '_'
+            . ($out_suffix // $sp->get_param('NAME'))
+            . '_'
+            . $list_name;
+        $filename =~ s/$strip1//;
+        $filename =~ s/$strip2//;
+        $filename =~ s/$strip3/$1/;
+        $filename =~ s/_$//;
         $filename =~ s/$dots//;  #  should only be used if we used $bd_name
         $sp->export (format => $export_type, file => $filename, list => $list_name);
     }

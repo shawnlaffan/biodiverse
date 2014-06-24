@@ -64,7 +64,7 @@ die "\nError: Basedata file not specified\n$usage\n"
 die "\nError: Randomisation name not specified\n$usage\n"
   if !defined $rand_name;
 
-my $tmp_bd     = Biodiverse::BaseData->new();
+my $tmp_bd     = Biodiverse::BaseData->new(CELL_SIZES => [100000, 100000]);
 my $extensions = join ('|', $tmp_bd->get_param('OUTSUFFIX'), $tmp_bd->get_param('OUTSUFFIX_YAML'));
 my $re_valid   = qr/($extensions)$/i;
 croak "$in_file does not have a valid BaseData extension ($extensions)\n" if not $in_file =~ $re_valid;

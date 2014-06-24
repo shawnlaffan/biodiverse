@@ -8,7 +8,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use English ( -no_match_vars );
 
@@ -236,11 +236,11 @@ sub get_value_index_key {
 }
 
 #  need to flesh this out - total number of elements, symmetry, summary stats etc
-sub describe {
+sub _describe {
     my $self = shift;
     
     my @description = (
-        ['TYPE: ', blessed $self],
+        'TYPE: ' . blessed $self,
     );
     
     my @keys = qw /
@@ -254,34 +254,16 @@ sub describe {
         if ((ref $desc) =~ /ARRAY/) {
             $desc = join q{, }, @$desc;
         }
-        push @description,
-            ["$key:", $desc];
+        push @description, "$key: $desc";
     }
 
-    push @description, [
-        'Element count: ',
-        $self->get_element_count,
-    ];
+    push @description,  'Element count: ' . $self->get_element_count,;
 
-    push @description, [
-        'Max value: ',
-        $self->get_max_value,
-    ];
-    push @description, [
-        'Min value: ',
-        $self->get_min_value,
-    ];
-    push @description, [
-        'Symmetric: ',
-        ($self->is_symmetric ? 'yes' : 'no'),
-    ];
-
+    push @description, 'Max value: ' . $self->get_max_value;
+    push @description, 'Min value: ' . $self->get_min_value;
+    push @description, 'Symmetric: ' . ($self->is_symmetric ? 'yes' : 'no');
     
-    my $description;
-    foreach my $row (@description) {
-        $description .= join "\t", @$row;
-        $description .= "\n";
-    }
+    my $description = join "\n", @description;
     
     return wantarray ? @description : $description;
 }
@@ -705,16 +687,16 @@ sub get_min_value {
     my $val_hash = $self->{BYVALUE};
     my $min_key  = min keys %$val_hash;
     my $min      = $ludicrously_extreme_pos_val;
-    
+
     my $element_hash = $val_hash->{$min_key};
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
             #  we know the order in which these are stored
-            my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $val = $self->get_defined_value_aa ($el1, $el2);
             $min = min ($min, $val);
         }
     }
-    
 
     return $min;
 }
@@ -729,7 +711,8 @@ sub get_max_value {
     my $element_hash = $val_hash->{$max_key};
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $val = $self->get_defined_value_aa ($el1, $el2);
             $max = max ($max, $val);
         }
     }
@@ -972,7 +955,8 @@ sub get_element_pairs_with_value {
 
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            my $value = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            #my $value = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
+            my $value = $self->get_defined_value (element1 => $el1, element2 => $el2);
             next if $val ne $value;  #  stringification implicitly uses %.15f precision
             $results{$el1}{$el2} ++;
         }

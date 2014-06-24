@@ -4,21 +4,23 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.18_007';
+our $VERSION = '0.99_001';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
 
-use Data::Dumper;
+#use Data::Dumper;
+
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_get_lbp_stats_objects_abc2 {
     my $self = shift;
 
-    my $desc = 'Get the stats object for the property values '
-             . " across both neighbour sets\n";
-    my %arguments = (
+    my $desc = 'Get the stats object for the property values'
+             . " across both neighbour sets, local range weighted\n";
+    my %metadata = (
         description     => $desc,
-        name            => 'Label property stats objects',
+        name            => 'Label property stats objects, local range weighted',
         type            => 'Element Properties',
         pre_calc        => ['calc_abc2'],
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
@@ -29,7 +31,7 @@ sub get_metadata_get_lbp_stats_objects_abc2 {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_lbp_stats_objects_abc2 {
@@ -51,10 +53,13 @@ sub get_lbp_stats_objects_abc2 {
 sub get_metadata_calc_lbprop_hashes_abc2 {
     my $self = shift;
 
-    my $desc = 'Hashes of the labels and their property values '
-             . 'used in the label properties calculations. '
-             . 'Hash keys are the property values, '
-             . 'hash values are the property value frequencies.';
+    my $desc = <<'END_OF_DESC'
+Hashes of the labels and their property values
+used in the local range weighted label properties calculations.
+Hash keys are the property values,
+hash values are the property value frequencies.
+END_OF_DESC
+  ;
 
     my %indices;
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
@@ -66,16 +71,16 @@ sub get_metadata_calc_lbprop_hashes_abc2 {
         };
     }
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
-        name            => 'Label property hashes',
+        name            => 'Label property hashes (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         uses_nbr_lists  => 1,
         indices         => \%indices,
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -110,9 +115,9 @@ sub get_metadata_calc_lbprop_stats_abc2 {
     my $desc = "List of summary statistics for each label property across both neighbour sets, weighted by local ranges\n";
     my $stats_list_text .= '(' . join (q{ }, @stats) . ')';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
-        name            => 'Label property summary stats',
+        name            => 'Label property summary stats (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         uses_nbr_lists  => 1,
@@ -124,7 +129,7 @@ sub get_metadata_calc_lbprop_stats_abc2 {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_lbprop_stats_abc2 {
@@ -155,12 +160,12 @@ sub calc_lbprop_stats_abc2 {
 sub get_metadata_calc_lbprop_quantiles_abc2 {
     my $self = shift;
 
-    my $desc = "List of quantiles for each label property across both neighbour sets\n";
+    my $desc = "List of quantiles for each label property across both neighbour sets (local range weighted)\n";
     my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
-        name            => 'Label property quantiles',
+        name            => 'Label property quantiles (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         uses_nbr_lists  => 1,
@@ -172,7 +177,7 @@ sub get_metadata_calc_lbprop_quantiles_abc2 {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_lbprop_quantiles_abc2 {
@@ -200,12 +205,12 @@ sub calc_lbprop_quantiles_abc2 {
 sub get_metadata_calc_lbprop_gistar_abc2 {
     my $self = shift;
 
-    my $desc = 'List of Getis-Ord Gi* statistic for each label property across both neighbour sets';
+    my $desc = 'List of Getis-Ord Gi* statistic for each label property across both neighbour sets (local range weighted)';
     my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
-        name            => 'Label property Gi* statistics',
+        name            => 'Label property Gi* statistics (local range weighted)',
         type            => 'Element Properties',
         pre_calc        => ['get_lbp_stats_objects_abc2'],
         pre_calc_global => [qw /_get_lbprop_global_summary_stats_range_weighted/],
@@ -219,7 +224,7 @@ sub get_metadata_calc_lbprop_gistar_abc2 {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_lbprop_gistar_abc2 {
@@ -250,20 +255,20 @@ sub calc_lbprop_gistar_abc2 {
 sub get_metadata__get_lbprop_global_summary_stats_range_weighted {
     my $self = shift;
     
-    my $descr = 'Global summary stats for label properties, weighted by ther ranges';
+    my $descr = 'Global summary stats for label properties, weighted by their ranges';
 
-    my %arguments = (
+    my %metadata = (
         description     => $descr,
         name            => $descr,
         type            => 'Element Properties',
         indices         => {
-            GPPROP_GLOBAL_SUMMARY_STATS_RANGE_WEIGHTED => {
+            LBPROP_GLOBAL_SUMMARY_STATS_RANGE_WEIGHTED => {
                 description => $descr,
             }
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub _get_lbprop_global_summary_stats_range_weighted {

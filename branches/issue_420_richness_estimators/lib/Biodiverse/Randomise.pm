@@ -22,7 +22,7 @@ use Class::Inspector;
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 my $EMPTY_STRING = q{};
 
@@ -724,7 +724,7 @@ sub rand_nochange {
     my $self = shift;
     my %args = @_;
 
-    print "[RANDOMISE] Running 'no change' randomisation\n";
+    say "[RANDOMISE] Running 'no change' randomisation";
 
     my $bd = $self->get_param ('BASEDATA_REF') || $args{basedata_ref};
 
@@ -752,7 +752,8 @@ sub get_metadata_rand_csr_by_group {
     return wantarray ? %args : \%args;
 }
 
-sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles the subelement lists between elements
+#  complete spatial randomness by group - just shuffles the subelement lists between elements
+sub rand_csr_by_group {
     my $self = shift;
     my %args = @_;
 
@@ -769,15 +770,24 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
     $new_bd->get_groups_ref->set_param ($bd->get_groups_ref->get_params_hash);
     $new_bd->get_labels_ref->set_param ($bd->get_labels_ref->get_params_hash);
 
+    #  pre-assign the hash buckets to avoid rehashing larger structures
+    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
+    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
+
     my @orig_groups = sort $bd->get_groups;
     #  make sure shuffle does not work on the original data
     my $rand_order = $rand->shuffle ([@orig_groups]);
 
-    print "[RANDOMISE] CSR Shuffling ".(scalar @orig_groups)." groups\n";
+    say "[RANDOMISE] CSR Shuffling " . (scalar @orig_groups) . " groups";
 
     #print join ("\n", @candidates) . "\n";
 
     my $total_to_do = $#orig_groups;
+
+    my $csv_object = $bd->get_csv_object (
+        sep_char   => $self->get_param('JOIN_CHAR'),
+        quote_char => $self->get_param('QUOTES'),
+    );
 
     foreach my $i (0 .. $#orig_groups) {
 
@@ -797,7 +807,10 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
         );
 
         #  create the group (this allows for empty groups with no labels)
-        $new_bd->add_element(group => $rand_order->[$i]);
+        $new_bd->add_element(
+            group => $rand_order->[$i],
+            csv_object => $csv_object,
+        );
 
         #  get the labels from the original group and assign them to the random group
         my %tmp = $bd->get_labels_in_group_as_hash (group => $orig_groups[$i]);
@@ -807,6 +820,7 @@ sub rand_csr_by_group {  #  complete spatial randomness by group - just shuffles
                 label => $label,
                 group => $rand_order->[$i],
                 count => $counts,
+                csv_object => $csv_object,
             );
         }
     }
@@ -901,7 +915,11 @@ END_PROGRESS_TEXT
     my $new_bd_name = $new_bd->get_param ('NAME');
     $new_bd->rename (name => $new_bd_name . "_" . $name);
 
-    print "[RANDOMISE] Creating clone for destructive sampling\n";
+    #  pre-assign the hash buckets to avoid rehashing larger structures
+    $new_bd->set_group_hash_key_count (count => $bd->get_group_count);
+    $new_bd->set_label_hash_key_count (count => $bd->get_label_count);
+
+    say '[RANDOMISE] Creating clone for destructive sampling';
     $progress_bar->update (
         "$progress_text\n"
         . "Creating clone for destructive sampling\n",
@@ -970,7 +988,12 @@ END_PROGRESS_TEXT
     my $last_filled = $EMPTY_STRING;
     $i = 0;
     $total_to_do = scalar @$rand_label_order;
-    print "[RANDOMISE] Target is $total_to_do.  Running.\n";
+    say "[RANDOMISE] Target is $total_to_do.  Running.";
+
+    my $csv_object = $bd->get_csv_object (
+        sep_char   => $self->get_param ('JOIN_CHAR'),
+        quote_char => $self->get_param ('QUOTES'),
+    );
 
     BY_LABEL:
     foreach my $label (@$rand_label_order) {
@@ -1037,6 +1060,7 @@ END_PROGRESS_TEXT
                 label => $label,
                 group => $to_group,
                 count => $count,
+                csv_object => $csv_object,
             );
 
             #  now delete it from the list of candidates
@@ -1089,7 +1113,7 @@ END_PROGRESS_TEXT
               . "Creating $count empty groups in new basedata\n";
 
         foreach my $gp (keys %target_gps) {
-            $new_bd->add_element (group => $gp);
+            $new_bd->add_element (group => $gp, csv_object => $csv_object);
         }
     }
 
@@ -1133,6 +1157,11 @@ sub swap_to_reach_targets {
     my $bd = $self->get_param ('BASEDATA_REF')
              || $args{basedata_ref};
     my $progress_bar = Biodiverse::Progress->new();
+
+    my $csv_object = $bd->get_csv_object (
+        sep_char   => $self->get_param ('JOIN_CHAR'),
+        quote_char => $self->get_param ('QUOTES'),
+    );
 
     #  and now we do some amazing cell swapping work to
     #  shunt labels in and out of groups until we're happy
@@ -1190,7 +1219,7 @@ sub swap_to_reach_targets {
         if ($target_label_count == 0) {
             #  we ran out of labels before richness criterion is met,
             #  eg if multiplier is >1.
-            print "[Randomise structured] No more Labels to assign\n";
+            say "[Randomise structured] No more Labels to assign";
             last BY_UNFILLED_GP;  
         }
 
@@ -1313,6 +1342,7 @@ sub swap_to_reach_targets {
                     label => $remove_label,
                     group => $old_gp,
                     count => $removed_count,
+                    csv_object => $csv_object,
                 );
             }
             else {
@@ -1338,7 +1368,8 @@ sub swap_to_reach_targets {
                 $new_bd->add_element   (
                     label => $remove_label,
                     group => $return_gp,
-                    count => $removed_count
+                    count => $removed_count,
+                    csv_object => $csv_object,
                 );
 
                 my $new_richness = $new_bd->get_richness (
@@ -1368,6 +1399,7 @@ sub swap_to_reach_targets {
             label => $add_label,
             group => $target_group,
             count => $add_count,
+            csv_object => $csv_object,
         );
 
         #  check if we've filled this group, if nothing was swapped out

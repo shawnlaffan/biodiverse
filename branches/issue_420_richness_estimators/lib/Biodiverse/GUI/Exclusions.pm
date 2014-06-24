@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk2;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
@@ -62,7 +62,7 @@ sub show_dialog {
         # Load initial value
         my $fields = $g_widget_map{$name};
         my $value = $exclusions_hash->{$fields->[0]}{$fields->[1]};
-        
+
         if (defined $value) {
             $checkbox->set_active(1);
             $spinbutton->set_value($value);
@@ -74,7 +74,7 @@ sub show_dialog {
         # Set up the toggle checkbox signals
         $checkbox->signal_connect(toggled => \&on_toggled, $spinbutton);
     }
-    
+
     #  and the text matching
     my $label_filter_checkbox = $dlgxml->get_widget('chk_enable_label_exclusion_regex');
     my @label_filter_widget_names = qw /
@@ -126,80 +126,88 @@ sub show_dialog {
     my $response = $dlg->run();
     my $ret = 0;
 
-    if ($response eq 'ok') {
+    if ($response ne 'ok') {
+        $dlg->destroy;
+        return $ret;
+    }
+    
+    $ret = 1;
 
-        $ret = 1;
+    # Set fields
+    foreach my $name (keys %g_widget_map) {
+        my $checkbox   = $dlgxml->get_widget('chk' . $name);
+        my $spinbutton = $dlgxml->get_widget('spin' . $name);
 
-        # Set fields
-        foreach my $name (keys %g_widget_map) {
-            my $checkbox = $dlgxml->get_widget('chk' . $name);
-            my $spinbutton = $dlgxml->get_widget('spin' . $name);
-
-            my $fields = $g_widget_map{$name};
-            if ($checkbox->get_active()) {
-                my $value = $spinbutton->get_value();
-                #  round any decimals to six places to avoid floating point issues.
-                #  could cause trouble later on, but the GUI only allows two decimals now anyway...
-                $value = sprintf ("%.6f", $value) if $value =~ /\./;  
-                $exclusions_hash->{$fields->[0]}{$fields->[1]} = $value;
-            }
-            else {
-                delete $exclusions_hash->{$fields->[0]}{$fields->[1]};
-            }
+        my $fields = $g_widget_map{$name};
+        if ($checkbox->get_active()) {
+            my $value = $spinbutton->get_value();
+            #  round any decimals to six places to avoid floating point issues.
+            #  could cause trouble later on, but the GUI only allows two decimals now anyway...
+            $value = sprintf ("%.6f", $value) if $value =~ /\./;  
+            $exclusions_hash->{$fields->[0]}{$fields->[1]} = $value;
         }
-
-        my $regex_widget = $dlgxml->get_widget('Entry_label_exclusion_regex');
-        my $regex        = $regex_widget->get_text;
-        if ($label_filter_checkbox->get_active && length $regex) {
-
-            my $regex_negate_widget = $dlgxml->get_widget('chk_label_exclusion_regex');
-            my $regex_negate        = $regex_negate_widget->get_active;
-
-            my $regex_modifiers_widget = $dlgxml->get_widget('Entry_label_exclusion_regex_modifiers');
-            my $regex_modifiers        = $regex_modifiers_widget->get_text;
-
-            $exclusions_hash->{LABELS}{regex}{regex}  = $regex;
-            $exclusions_hash->{LABELS}{regex}{negate} = $regex_negate;
-        }
-
-        if ($file_list_checkbox->get_active) {
-            my $negate_widget = $dlgxml->get_widget('chk_label_exclusion_label_file');
-            my $negate        = $negate_widget->get_active;
-            my $file_widget   = $dlgxml->get_widget('filechooserbutton_exclusions');
-            my $filename      = $file_widget->get_filename;
-
-            #  This has the side-effect of prompting the user for a filename if one was not specified.
-            my %options = eval {
-                Biodiverse::GUI::BasedataImport::get_remap_info (
-                    $gui,
-                    undef,
-                    undef,
-                    undef,
-                    ['Input_element'],
-                    $filename,
-                );
-            };
-            if ($EVAL_ERROR) {
-                $dlg->destroy();
-                croak $EVAL_ERROR;
-            }
-            
-
-            ##  now do something with them...
-            if ($options{file}) {
-                my $check_list = Biodiverse::ElementProperties->new;
-                $check_list->import_data (%options);
-
-                $exclusions_hash->{LABELS}{element_check_list}{list}   = $check_list;
-                $exclusions_hash->{LABELS}{element_check_list}{negate} = $negate;
-            }
-        }
-
-        my $defq = $defq_extractor->();
-        if (defined $defq) {
-            $exclusions_hash->{GROUPS}{definition_query} = $defq;
+        else {
+            delete $exclusions_hash->{$fields->[0]}{$fields->[1]};
         }
     }
+
+    my $regex_widget = $dlgxml->get_widget('Entry_label_exclusion_regex');
+    my $regex        = $regex_widget->get_text;
+    if ($label_filter_checkbox->get_active && length $regex) {
+
+        my $regex_negate_widget = $dlgxml->get_widget('chk_label_exclusion_regex');
+        my $regex_negate        = $regex_negate_widget->get_active;
+
+        my $regex_modifiers_widget = $dlgxml->get_widget('Entry_label_exclusion_regex_modifiers');
+        my $regex_modifiers        = $regex_modifiers_widget->get_text;
+
+        $exclusions_hash->{LABELS}{regex}{regex}  = $regex;
+        $exclusions_hash->{LABELS}{regex}{negate} = $regex_negate;
+    }
+
+    if ($file_list_checkbox->get_active) {
+        my $negate_widget = $dlgxml->get_widget('chk_label_exclusion_label_file');
+        my $negate        = $negate_widget->get_active;
+        my $file_widget   = $dlgxml->get_widget('filechooserbutton_exclusions');
+        my $filename      = $file_widget->get_filename;
+
+        #  This has the side-effect of prompting the user for a filename if one was not specified.
+        my %options = eval {
+            Biodiverse::GUI::BasedataImport::get_remap_info (
+                $gui,
+                undef,
+                undef,
+                undef,
+                ['Input_element'],
+                $filename,
+            );
+        };
+        if (my $e = $EVAL_ERROR) {
+            $dlg->destroy();
+            croak $e;
+        }
+
+        ##  now do something with them...
+        if ($options{file}) {
+            my $check_list = Biodiverse::ElementProperties->new;
+            $check_list->import_data (%options);
+
+            $exclusions_hash->{LABELS}{element_check_list}{list}   = $check_list;
+            $exclusions_hash->{LABELS}{element_check_list}{negate} = $negate;
+        }
+    }
+
+    my $defq = $defq_extractor->();
+    if (defined $defq) {
+        $exclusions_hash->{GROUPS}{definition_query} = $defq;
+    }
+    
+    my $delete_empty_groups = $dlgxml->get_widget('chk_excl_delete_empty_groups')->get_active;
+    my $delete_empty_labels = $dlgxml->get_widget('chk_excl_delete_empty_labels')->get_active;
+    $exclusions_hash->{delete_empty_groups} = $delete_empty_groups || 0;
+    $exclusions_hash->{delete_empty_labels} = $delete_empty_labels || 0;
+    
+
 
     $dlg->destroy();
     return $ret;

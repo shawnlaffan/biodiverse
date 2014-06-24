@@ -19,7 +19,7 @@ use Tree::R;
 
 use Geo::ShapeFile;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -468,10 +468,10 @@ sub set_base_struct {
     $self->{cells} = {};
 
     my @tmpcell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
-    print "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
+    say "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
     
     my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
-    print join (q{ }, ($min_x, $max_x, $min_y, $max_y)) . "\n";
+    say join q{ }, $min_x, $max_x, $min_y, $max_y;
 
     my @res = $self->get_cell_sizes($data);  #  handles zero and text
     

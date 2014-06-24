@@ -20,7 +20,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -442,9 +442,9 @@ sub on_combo_metric_changed {
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
     
     my $source_sub = $indices_object->get_index_source (index => $metric);
-    my $metadata   = $indices_object->get_args (sub => $source_sub);
+    my $metadata   = $indices_object->get_metadata (sub => $source_sub);
 
-    my $explanation = 'Description: ' . $metadata->{indices}{$metric}{description};
+    my $explanation = 'Description: ' . $metadata->get_index_description ($metric);
 
     $widget->set_text($explanation);
 
@@ -1309,7 +1309,8 @@ sub on_grid_hover {
 
     no warnings 'uninitialized';  #  saves getting sprintf warnings we don't care about
 
-    my $string;
+    my $string = $self->get_grid_text_pfx;
+
     if ($element) {
         my $cluster_ref = $self->{output_ref};
         $self->{dendrogram}->clear_highlights();
@@ -1325,15 +1326,15 @@ sub on_grid_hover {
             #  need to get the displayed node, not the terminal node
             my $list_ref = $coloured_node->get_list_ref (list => 'SPATIAL_RESULTS');  #  will need changing when otehr lists can be selected
             my $value = $list_ref->{$analysis_name};
-            $string = sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
+            $string .= sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
             $string .= ", <b>Element:</b> $element";
         }
         elsif (! defined $analysis_name && defined $coloured_node) {
-            $string = sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
+            $string .= sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
             $string .= ", <b>Element:</b> $element";
         }
         else {
-            $string = '<b>Not a coloured group:</b> ' . $element;
+            $string .= '<b>Not a coloured group:</b> ' . $element;
         }
 
     }

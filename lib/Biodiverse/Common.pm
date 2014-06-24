@@ -33,7 +33,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 my $EMPTY_STRING = q{};
 
@@ -1102,12 +1102,8 @@ sub list2csv {  #  return a csv string from a list of values
         @_,
     );
 
-    my $csv_line = $args{csv_object};
-    if (!defined $csv_line
-        #or (blessed $csv_line) !~ /Text::CSV_XS/
-        ) {
-        $csv_line = $self->get_csv_object (@_);
-    }
+    my $csv_line = $args{csv_object}
+      // $self->get_csv_object (@_);
 
     if ($csv_line->combine(@{$args{list}})) {
         return $csv_line->string;
@@ -1121,23 +1117,21 @@ sub list2csv {  #  return a csv string from a list of values
     return;
 }
 
-sub csv2list {  #  return a list of values from a csv string
+#  return a list of values from a csv string
+sub csv2list {
     my $self = shift;
     my %args = @_;
 
-    my $csv_obj = $args{csv_object};
-    if (! defined $csv_obj
-        #|| (blessed $csv_obj) !~ /Text::CSV_XS/
-        ) {
-        $csv_obj = $self->get_csv_object (%args);
-    }
+    my $csv_obj = $args{csv_object}
+                // $self->get_csv_object (%args);
+
     my $string = $args{string};
     $string = $$string if ref $string;
 
-    my @Fld;
     if ($csv_obj->parse($string)) {
         #print "STRING IS: $string";
-        @Fld = $csv_obj->fields;
+        my @Fld = $csv_obj->fields;
+        return wantarray ? @Fld : \@Fld;
     }
     else {
         if (length $string > 50) {
@@ -1157,9 +1151,25 @@ sub csv2list {  #  return a list of values from a csv string
         );
         croak $error_string;
     }
-
-    return wantarray ? @Fld : \@Fld;
 }
+
+#  csv_xs v0.41 will not ignore invalid args
+#  - this is most annoying as we will have to update this list every time csv_xs is updated
+my %valid_csv_args = (
+    quote_char          => 1,
+    escape_char         => 1,
+    sep_char            => 1,
+    eol                 => 1,
+    always_quote        => 0,
+    binary              => 0,
+    keep_meta_info      => 0,
+    allow_loose_quotes  => 0,
+    allow_loose_escapes => 0,
+    allow_whitespace    => 0,
+    blank_is_undef      => 0,
+    verbatim            => 0,
+    empty_is_undef      => 1,
+);
 
 #  get a csv object to pass to the csv routines
 sub get_csv_object {
@@ -1175,27 +1185,7 @@ sub get_csv_object {
         @_,
     );
 
-    #  csv_xs v0.41 will not ignore invalid args
-    #  - this is most annoying as we will have to update this list every time csv_xs is updated
-    my %valid_csv_args = (
-        quote_char          => 1,
-        escape_char         => 1,
-        sep_char            => 1,
-        eol                 => 1,
-        always_quote        => 0,
-        binary              => 0,
-        keep_meta_info      => 0,
-        allow_loose_quotes  => 0,
-        allow_loose_escapes => 0,
-        allow_whitespace    => 0,
-        blank_is_undef      => 0,
-        verbatim            => 0,
-        empty_is_undef      => 1,
-    );
-
-    if (! defined $args{escape_char}) {
-        $args{escape_char} = $args{quote_char};
-    }
+    $args{escape_char} //= $args{quote_char};
 
     foreach my $arg (keys %args) {
         if (! exists $valid_csv_args{$arg}) {
@@ -1203,13 +1193,34 @@ sub get_csv_object {
         }
     }
 
-    my $csv = Text::CSV_XS -> new({%args});
+    my $csv = Text::CSV_XS->new({%args});
 
     croak Text::CSV_XS->error_diag ()
       if ! defined $csv;
 
     return $csv;
 }
+
+sub dequote_element {
+    my $self = shift;
+    my %args = @_;
+
+    my $quotes = $args{quote_char};
+    my $el     = $args{element};
+
+    croak "quote_char argument is undefined\n"
+      if !defined $quotes;
+    croak "element argument is undefined\n"
+      if !defined $el;
+
+    if ($el =~ /^$quotes[^$quotes\s]+$quotes$/) {
+        $el = substr ($el, 1);
+        chop $el
+    }
+
+    return $el;
+}
+
 
 #############################################################
 ## 
@@ -1522,7 +1533,7 @@ sub get_next_line_set {
             push @lines, $line;
         }
         elsif (not $csv->eof) {
-            say $csv->error_diag;
+            say $csv->error_diag, ', Skipping line ', scalar @lines, ' of chunk';
             $csv->SetDiag (0);
         }
         if ($csv->eof) {
@@ -1539,6 +1550,13 @@ sub get_next_line_set {
     return wantarray ? @lines : \@lines;
 }
 
+# a pass-through method
+sub get_metadata {
+    my $self = shift;
+    return $self->get_args(@_);
+}
+
+#my $indices_wantarray = 0;
 #  get the metadata for a subroutine
 sub get_args {
     my $self = shift;
@@ -1551,28 +1569,41 @@ sub get_args {
     }
 
     my $sub_args;
+
     #  use an eval to trap subs that don't allow the get_args option
-    if (blessed $self) {
-        $sub_args = eval {$self->$metadata_sub (%args)};
-        my $error = $EVAL_ERROR;
-        if (blessed $error) {
-            $error->rethrow;
-        }
-        elsif ($error) {
-            croak "$sub does not seem to have valid get_args metadata\n"
-                  . $error;
-        }
+    $sub_args = eval {$self->$metadata_sub (%args)};
+    my $error = $EVAL_ERROR;
+
+    if (blessed $error) {
+        $error->rethrow;
     }
-    else {  #  called in non-OO manner  - not ideal (old style)
-        croak "get_args called in non-OO manner - this is deprecated.\n";
+    elsif ($error) {
+        my $msg = '';
+        if (!$self->can($metadata_sub)) {
+            $msg = "cannot call method $metadata_sub for object $self\n"
+        }
+        elsif (!$self->can($sub)) {
+            $msg = "cannot call method $sub for object $self, and thus its metadata\n"
+        }
+        elsif (not blessed $self) {
+            #  trap a very old caller style, should not exist any more
+            $msg = "get_args called in non-OO manner - this is deprecated.\n"
+        }
+        croak $msg . $error;
     }
 
-    if (! defined $sub_args) {
-        $sub_args = {} ;
-    }
+    $sub_args //= {};
 
+#my $wa = wantarray;
+#$indices_wantarray ++ if $wa;
+#croak "get_args called in list context " if $wa;
     return wantarray ? %$sub_args : $sub_args;
 }
+
+#  temp end block
+#END {
+#    warn "get_args called in list context $indices_wantarray times\n";
+#}
 
 sub get_poss_elements {  #  generate a list of values between two extrema given a resolution
     my $self = shift;
@@ -1607,17 +1638,10 @@ sub get_poss_elements {  #  generate a list of values between two extrema given 
 
     #  need to fix the precision for some floating point comparisons
     for (my $value = $min;
-         (0 + $self -> set_precision (
-                precision => $precision->[$depth],
-                value => $value)
-          ) <= $max;
+         (0 + $self->set_precision_aa ($value, $precision->[$depth])) <= $max;
          $value += $res) {
 
-        my $val = 0
-            + $self -> set_precision (
-                precision => $precision->[$depth],
-                value     => $value,
-            );
+        my $val = 0 + $self -> set_precision_aa ($value, $precision->[$depth]);
         if ($depth > 0) {
             foreach my $element (@$so_far) {
                 #print "$element . $sep_char . $value\n";
@@ -1661,12 +1685,12 @@ sub get_surrounding_elements {  #  generate a list of values around a single poi
 
     foreach my $i (0..$#{$coord_ref}) {
         $minima[$i] = 0
-            + $self -> set_precision (
+            + $self->set_precision (
                 precision => $precision->[$i],
                 value     => $coord_ref->[$i] - ($resolutions->[$i] * $distance)
             );
         $maxima[$i] = 0
-            + $self -> set_precision (
+            + $self->set_precision (
                 precision => $precision->[$i],
                 value     => $coord_ref->[$i] + ($resolutions->[$i] * $distance)
             );
@@ -1759,7 +1783,6 @@ sub get_shared_hash_keys {
 
 
 #  get a list of available subs (analyses) with a specified prefix
-#sub get_analyses {  ### CHANGE TO USE Class::Inspector::methods
 sub get_subs_with_prefix {
     my $self = shift;
     my %args = @_;
@@ -1844,6 +1867,13 @@ sub store_rand_state_init {
     }
 }
 
+sub describe {
+    my $self = shift;
+    return if !$self->can('_describe');
+    
+    return $self->_describe;
+}
+
 #  find circular refs in the sub from which this is called,
 #  or some level higher
 #sub find_circular_refs {
@@ -1925,6 +1955,18 @@ sub set_precision {
     return $num;
 }
 
+#  array args variant for more speed when needed
+#  $_[0] is $self, and not used here
+sub set_precision_aa {
+    my $num = sprintf (($_[2] // '%.10f'), $_[1]);
+
+    if ($locale_uses_comma_radix) {
+        $num =~ s{,}{\.};  #  replace any comma with a decimal
+    }
+
+    return $num;
+}
+
 sub compare_lists_by_item {
     my $self = shift;
     my %args = @_;
@@ -1945,14 +1987,8 @@ sub compare_lists_by_item {
         #  this also allows for serialisation which
         #     rounds the numbers to 15 decimals
         #  should really make the precision an option in the metadata
-        my $base = $self->set_precision (
-            precision => '%.10f',
-            value     => $base_ref->{$index},
-        );
-        my $comp = $self->set_precision (
-            precision => '%.10f',
-            value     => $comp_ref->{$index},
-        );
+        my $base = $self->set_precision_aa ($base_ref->{$index}, '%.10f');
+        my $comp = $self->set_precision_aa ($comp_ref->{$index}, '%.10f');
 
         #  make sure it gets a value of 0 if false
         my $increment = 0;

@@ -11,15 +11,15 @@
 #  All parameters are listed at the end of this file.                          #
 #                                                                              #
 #  Most parameters are optional - the settings below show basic settings       #
-#																			   #
-#  Anything after a # is a comment and is ignored.							   #
+#									       #
+#  Anything after a # is a comment and is ignored.			       #
 #  If your argument contains a # then put it inside quotes.                    #
 #  Blank lines are also ignored.                                               #
 #                                                                              #
 #  Help is available at:                                                       #
 #    https://code.google.com/p/biodiverse/wiki/SitePairSampler                 #
 #                                                                              #
-#  Dan Rosauer	August 2013 and March 2014	                                   #
+#  Dan Rosauer	August 2013 to May 2014  	                               #
 ################################################################################
 
 # Inputs
@@ -44,7 +44,7 @@
   min_group_richness      5
   min_group_samples       5
   quota_dist_measure      geographic
-  dist_limit_max          15
+  geog_dist_limit_max     15
   
 # Regions
   regions                 0
@@ -143,14 +143,15 @@
 #                         AND
 #                       - more than one dist_measure is being used
 #                       - defaults to the only, or first distance measure.  Because key order is unreliable, with multiple
-#                           distance measures it is important to set this parameter explicitly
-#   dist_limit_max
-#                   - set a maximum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
+#
+#   geog_dist_limit_max
+#                   - set a maximum geographic distance.  This is a simple euclidean distance, with no adjustment for curvature etc
 #                   - site pairs beyond the limit will not be used
 #
-#   dist_limit_min
-#                   - set a minimum distance for the quota_dist_measure.  If this is geographic, it is a simple euclidean distance, with no adjustment for curvature etc
-#                   - site pairs closer than the limit will not be used
+#   geog_dist_limit_min
+#                   - set a minimum geographic distance.  This is a simple euclidean distance, with no adjustment for curvature etc
+#                   - site pairs closer than the limit will not be used.  This was created to prevent cases where the same location 
+#		    - is comapred to itself, but it may have other uses
 #
 #   sample_by_regions
 #                   - if 1 split sampling by regions, setting quotas for regions according to the parameter region_quota_strategy

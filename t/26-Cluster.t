@@ -59,7 +59,7 @@ sub main {
 
     foreach my $sub (@subs) {
         no strict 'refs';
-        &{$sub};
+        $sub->();
     }
     
     done_testing;

@@ -10,7 +10,7 @@ use File::Basename;
 use Gtk2;
 use Gtk2::GladeXML;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::GUI::GUIManager;
 

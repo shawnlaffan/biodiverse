@@ -17,7 +17,7 @@ use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::Exception;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use parent qw /Biodiverse::Common/;
 
@@ -540,11 +540,12 @@ sub get_csv_object_for_tabular_tree_import {
     return $csv_in;
 }
 
+
 sub process_unrooted_trees {
     my $self = shift;
     my @trees = $self->get_tree_array;
     
-    BY_LOADED_TREE:
+  BY_LOADED_TREE:
     foreach my $tree (@trees) {
         $tree->root_unrooted_tree;
     }
@@ -558,7 +559,7 @@ sub process_zero_length_trees {
     my @trees = $self->get_tree_array;
     
     #  now we check if the tree has all zero-length nodes.  Change these to length 1.
-    BY_LOADED_TREE:
+  BY_LOADED_TREE:
     foreach my $tree (@trees) {
         my %nodes = $tree->get_node_hash;
         my $len_sum = 0;
@@ -665,6 +666,11 @@ sub parse_newick {
             $name =~ s{$quote_char$} {};
             #  and now we need to make the name use the CSV rules used everywhere else
             $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
+            if ($name =~ /^$quote_char(?:[$quote_char]*)$quote_char$/) {
+                $name = substr ($name, 1);
+                chop $name;
+            }
+
             if ($use_element_properties) {
                 my $element = $element_properties->get_element_remapped (
                     element => $name,
@@ -817,16 +823,20 @@ sub parse_newick {
     if (my @components = $name =~ $RE_TEXT_IN_QUOTES) {
         $name = $components[1];
     }
-    
+
     #  and now we need to make the name use the CSV rules used everywhere else
     $name = $self->list2csv (csv_object => $csv_obj, list => [$name]);
-    
+    $name = $self->dequote_element (
+        element    => $name,
+        quote_char => $quote_char,
+    );
+
     if ($use_element_properties) {
         my $element = $element_properties->get_element_remapped (element => $name);
         my $original_name = $name;
-        $name = $element if defined $element;
         if (defined $element) {
-            print "$tree_name: Remapped $original_name to $element\n";
+            $name = $element;
+            say "$tree_name: Remapped $original_name to $element";
         }
     }
 

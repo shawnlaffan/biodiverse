@@ -6,12 +6,12 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Data::Dumper;
 #use Data::DumpXML::Parser;
 use Carp;
-use Scalar::Util qw /blessed/;
+use Scalar::Util qw /blessed reftype/;
 
 use English ( -no_match_vars );
 
@@ -1050,12 +1050,11 @@ sub do_describe_basedata {
     my $self = shift;
 
     my $bd = $self->{project}->get_selected_base_data;
-    
-    $self->print_describe ($bd);
-    
-    my @description = $bd->describe;
 
-    $self->show_describe_dialog (\@description);
+    my $description = $bd->describe;
+
+    say $description;
+    $self->show_describe_dialog ($description);
 
     return;
 }
@@ -1064,12 +1063,13 @@ sub do_describe_matrix {
     my $self = shift;
 
     my $mx = $self->{project}->get_selected_matrix;
-    
-    $self->print_describe ($mx);
-    
-    my @description = $mx->describe;
 
-    $self->show_describe_dialog (\@description);
+    die "No matrix selected\n" if !defined $mx;
+
+    my $description = $mx->describe;
+
+    say $description;
+    $self->show_describe_dialog ($description);
 
     return;
 }
@@ -1079,11 +1079,11 @@ sub do_describe_phylogeny {
 
     my $tree = $self->{project}->get_selected_phylogeny;
     
-    $self->print_describe ($tree);
-    
-    my @description = $tree->describe;
+    die "No tree selected\n" if !defined $tree;
 
-    $self->show_describe_dialog (\@description);
+    my $description = $tree->describe;
+
+    $self->show_describe_dialog ($description);
 
     return;
 }
@@ -1092,15 +1092,25 @@ sub print_describe {
     my $self = shift;
     my $object = shift;
     
-    print "DESCRIBE OBJECT\n";
-    print scalar ($object->describe);
-    return;
+    say "DESCRIBE OBJECT\n";
+    return scalar $object->describe;
 }
 
 
 sub show_describe_dialog {
     my $self        = shift;
     my $description = shift;
+    
+    #  passed a string so disassemble it into an array
+    if (!reftype ($description)) {
+        my @desc = split "\n", $description;
+        $description = [];
+        foreach my $line (@desc) {
+            my @line = split /\b:\s+/, $line;
+            push @$description, \@line;
+        }
+    }
+    
     
     my $table_widget;
     if (ref $description) {

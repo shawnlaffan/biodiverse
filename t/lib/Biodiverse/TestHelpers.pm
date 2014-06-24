@@ -924,6 +924,7 @@ sub print_indices_result_set_to_fh {
     $argv .= " -pbp";     # Format according to perl best practices
     $argv .= " -nst";     # Must turn off -st in case -pbp is specified
     $argv .= " -se";      # -se appends the errorfile to stderr
+    $argv .= " -no-log";  # Don't write the log file
 
     my $error = Perl::Tidy::perltidy(
         argv        => $argv,
@@ -934,8 +935,8 @@ sub print_indices_result_set_to_fh {
         ##phasers   => 'stun',                # uncomment to trigger an error
     );
 
-    say {$fh} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
-    say {$fh} $dest_string;
+    say   {$fh} "@@ RESULTS_${nbr_list_count}_NBR_LISTS";
+    say   {$fh} $dest_string;
     print {$fh} "\n";
     #say '#' x 20;
 

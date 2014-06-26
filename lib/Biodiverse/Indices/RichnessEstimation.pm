@@ -72,7 +72,7 @@ sub calc_chao1 {
     }
 
     my $richness = scalar keys %$label_hash;
-    my $correction = ($n - 1) / $n;
+    my $correction = $n ? ($n - 1) / $n : 1;  #  avoid divide by zero issues with empty sets
 
     my $chao_formula = 2;
     my $chao_partial = 0;
@@ -101,7 +101,7 @@ sub calc_chao1 {
         }
     }
     
-    $chao_partial *= ($n - 1) / $n;
+    $chao_partial *= $correction;
 
     my $chao = $richness + $chao_partial;
     
@@ -164,7 +164,7 @@ sub get_metadata_calc_chao2 {
         description     => 'Chao2 species richness estimator (incidence based)',
         name            => 'Chao2',
         type            => 'Richness estimators',
-        pre_calc        => 'calc_abc3',
+        pre_calc        => 'calc_abc2',
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             CHAO2              => {
@@ -179,7 +179,7 @@ sub get_metadata_calc_chao2 {
                 description => 'Number of duplicates in the sample',
             },
             CHAO2_VARIANCE    => {
-                description => 'Variance of the Chao1 estimator',
+                description => 'Variance of the Chao2 estimator',
             },
             CHAO2_CI_LOWER    => {
                 description => 'Lower confidence interval for the Chao2 estimate',
@@ -210,7 +210,7 @@ sub calc_chao2 {
     my $label_hash = $args{label_hash_all};
     my $R = $args{element_count_all};
 
-    my ($Q1, $Q2) = (0, 0, 0);  #  singletons and doubletons
+    my ($Q1, $Q2) = (0, 0);  #  singletons and doubletons
 
     foreach my $freq (values %$label_hash) {
         if ($freq == 1) {
@@ -222,7 +222,7 @@ sub calc_chao2 {
     }
 
     my $richness = scalar keys %$label_hash;
-    my $correction = ($R - 1) / $R;
+    my $correction = $R ? ($R - 1) / $R : 1;
 
     my $chao_partial = 0;
     my $variance;
@@ -230,17 +230,17 @@ sub calc_chao2 {
     #  flags to use variance formaulae from EstimateS website
     my $variance_uses_eq12 = !$Q1;  #  no uniques
     my $variance_uses_eq11;
-    
+
     my $chao_formula = 4;  #  eq 2 from EstimateS
 
     #  if $f1 == $f2 == 0 then the partial is zero.
     if ($Q1) {
         if ($Q2) {      #  one or more doubletons
             $chao_partial = $Q1 ** 2 / (2 * $Q2);
-            my $Q12_ratio  = $Q1 / $Q2;
-            $variance      = $Q2 * (  $Q12_ratio ** 2 * $correction / 2
-                                    + $Q12_ratio ** 3 * $correction ** 2
-                                    + $Q12_ratio ** 4 * $correction ** 2 / 4);
+            my $Q12_ratio = $Q1 / $Q2;
+            $variance     = $Q2 * (  $Q12_ratio ** 2 * $correction / 2
+                                   + $Q12_ratio ** 3 * $correction ** 2
+                                   + $Q12_ratio ** 4 * $correction ** 2 / 4);
         }
         elsif ($Q1 > 1) {   #  no doubletons, but singletons
             $chao_partial = $Q1 * ($Q1 - 1) / 2;
@@ -256,7 +256,6 @@ sub calc_chao2 {
     $chao_partial *= $correction;
     my $chao = $richness + $chao_partial;
 
-    
     if ($variance_uses_eq11) {
         $variance = $correction      * ($Q1 * ($Q1 - 1)) / 2
                   + $correction ** 2 * ($Q1 * (2 * $Q1 - 1) ** 2) / 4
@@ -275,7 +274,7 @@ sub calc_chao2 {
         $variance = $part1 - $part2 ** 2 / $R;
         $chao_formula = undef;
     }
-    
+
     $variance = max (0, $variance);
 
     #  and now the confidence interval
@@ -457,7 +456,7 @@ sub get_metadata_calc_ice {
         description     => 'Incidence Coverage-based Estimator of species richness',
         name            => 'ICE',
         type            => 'Richness estimators',
-        pre_calc        => 'calc_abc3',
+        pre_calc        => 'calc_abc2',
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             ICE_SCORE => {

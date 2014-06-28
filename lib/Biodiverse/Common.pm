@@ -1970,14 +1970,14 @@ sub set_precision_aa {
 sub compare_lists_by_item {
     my $self = shift;
     my %args = @_;
+
     my $base_ref = $args{base_list_ref};
     my $comp_ref = $args{comp_list_ref};
-
     my $results  = $args{results_list_ref};
 
-    COMP_BY_ITEM:
+  COMP_BY_ITEM:
     foreach my $index (keys %$base_ref) {
-    #while (my ($index, $op) = each %$comparisons) {
+
         next COMP_BY_ITEM
             if    not defined $base_ref->{$index}
                or not exists  $comp_ref->{$index}

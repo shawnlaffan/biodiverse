@@ -5,14 +5,17 @@ use 5.010;
 
 use Carp;
 
-use Scalar::Util qw /blessed weaken/;
+use Scalar::Util qw /blessed weaken reftype/;
+use List::Util qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
+
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 Readonly my $RE_ABC_REQUIRED_ARGS => qr /(?:element_list|(?:label_)(?:hash|list))[12]/;
 
@@ -23,7 +26,7 @@ Readonly my $RE_ABC_REQUIRED_ARGS => qr /(?:element_list|(?:label_)(?:hash|list)
 #        pre_calc_global => 'get_iei_element_cache',
 #    );
 #    
-#    return wantarray ? %metadata : \%metadata;
+#    return $metadata_class->new(\%metadata);
 #}
 #
 #sub debug_print_nothing {
@@ -52,7 +55,7 @@ Readonly my $RE_ABC_REQUIRED_ARGS => qr /(?:element_list|(?:label_)(?:hash|list)
 
 sub get_metadata_calc_richness {
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Richness',
         description     => 'Count the number of labels in the neighbour sets',
         type            => 'Lists and Counts',
@@ -74,7 +77,7 @@ sub get_metadata_calc_richness {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_richness {  #  calculate the aggregate richness for a set of elements
@@ -93,7 +96,7 @@ sub calc_richness {  #  calculate the aggregate richness for a set of elements
 
 sub get_metadata_calc_redundancy {
 
-    my %arguments = (
+    my %metadata = (
         name            => "Redundancy",
         description     => "Ratio of labels to samples.\n"
                          . "Values close to 1 are well sampled while zero means \n"
@@ -133,7 +136,7 @@ sub get_metadata_calc_redundancy {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
@@ -148,10 +151,10 @@ sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
     my $label_count_outer = keys %{$label_list2};
     my ($sample_count_all, $sample_count_inner, $sample_count_outer);
 
-    foreach my $subLabel (keys %{$label_list_all}) {
-        $sample_count_all += $label_list_all->{$subLabel};
-        $sample_count_inner += $label_list1->{$subLabel} if exists $label_list1->{$subLabel};
-        $sample_count_outer += $label_list2->{$subLabel} if exists $label_list2->{$subLabel};
+    foreach my $sub_label (keys %{$label_list_all}) {
+        $sample_count_all += $label_list_all->{$sub_label};
+        $sample_count_inner += $label_list1->{$sub_label} if exists $label_list1->{$sub_label};
+        $sample_count_outer += $label_list2->{$sub_label} if exists $label_list2->{$sub_label};
     }
 
     my %results;
@@ -177,7 +180,7 @@ sub calc_redundancy {  #  calculate the sample redundancy for a set of elements
 sub get_metadata_is_dissimilarity_valid {
     my $self = shift;
     
-    my %arguments = (
+    my %metadata = (
         name            => 'Dissimilarity is valid',
         description     => 'Check if the dissimilarity analyses will produce valid results',
         indices         => {
@@ -189,7 +192,7 @@ sub get_metadata_is_dissimilarity_valid {
         pre_calc        => 'calc_abc',
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub is_dissimilarity_valid {
@@ -197,7 +200,7 @@ sub is_dissimilarity_valid {
     my %args = @_;
 
     my %result = (
-        DISSIMILARITY_IS_VALID => ($args{A} || $args{B}) && ($args{A} || $args{C}),
+        DISSIMILARITY_IS_VALID => ($args{A} || ($args{B} && $args{C})),
     );
 
     return wantarray ? %result : \%result;
@@ -221,10 +224,90 @@ sub get_formula_explanation_ABC {
     return wantarray ? @explanation : \@explanation;
 }
 
+#  off for now - k1 index can go negative so we don't want it for clustering
+#sub get_metadata_calc_kulczynski1 {
+#    my $self = shift;
+#
+#    my %metadata = (
+#        name            => 'Kulczynski 1',
+#        description     => "Kulczynski 1 dissimilarity between two sets of labels.\n",
+#        formula         => [
+#             '= 1 - \frac{A}{B + C}',
+#            $self -> get_formula_explanation_ABC,
+#        ],
+#        indices         => {
+#            KULCZYNSKI1      => {
+#                cluster     => 1,
+#                description => 'Kulczynski 1 index',
+#            }
+#        },
+#        type            => 'Taxonomic Dissimilarity and Comparison',
+#        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+#        uses_nbr_lists  => 2,
+#    );
+#
+#    return $metadata_class->new(\%metadata);
+#}
+#
+#sub calc_kulczynski1 {
+#    my $self = shift;
+#    my %args = @_;
+#
+#    my $value = $args{DISSIMILARITY_IS_VALID}
+#        ? eval {1 - $args{A} / ($args{B} + $args{C})}
+#        : undef;
+#
+#    my %result = (KULCZYNSKI1 => $value);
+#
+#    return wantarray ? %result : \%result;
+#}
+
+sub get_metadata_calc_kulczynski2 {
+    my $self = shift;
+
+    my %metadata = (
+        name            => 'Kulczynski 2',
+        description     => "Kulczynski 2 dissimilarity between two sets of labels.\n",
+        formula         => [
+            '= 1 - 0.5 * (\frac{A}{A + B} + \frac{A}{A + C})',
+            $self -> get_formula_explanation_ABC,
+        ],
+        indices         => {
+            KULCZYNSKI2      => {
+                cluster     => 1,
+                description => 'Kulczynski 2 index',
+            }
+        },
+        type            => 'Taxonomic Dissimilarity and Comparison',
+        pre_calc        => [qw /calc_abc is_dissimilarity_valid/],
+        uses_nbr_lists  => 2,
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_kulczynski2 {
+    my $self = shift;
+    my %args = @_;
+
+    my $value;
+    if ($args{DISSIMILARITY_IS_VALID}) {
+        my ($a, $b, $c) = @args{'A', 'B', 'C'};
+        $value = eval {
+            1 - 0.5 * ($a / ($a + $b) + $a / ($a + $c));
+        };
+    }
+
+    my %result = (KULCZYNSKI2 => $value);
+
+    return wantarray ? %result : \%result;
+}
+
+
 sub get_metadata_calc_sorenson {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Sorenson',
         description     => "Sorenson dissimilarity between two sets of labels.\n"
                          . "It is the complement of the (unimplemented) "
@@ -244,7 +327,7 @@ sub get_metadata_calc_sorenson {
         uses_nbr_lists  => 2,
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 # calculate the Sorenson dissimilarity index between two lists (1 - Czechanowski)
@@ -266,7 +349,7 @@ sub calc_sorenson {
 sub get_metadata_calc_jaccard {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Jaccard',
         description     => 'Jaccard dissimilarity between the labels in neighbour sets 1 and 2.',
         type            => 'Taxonomic Dissimilarity and Comparison',
@@ -285,7 +368,7 @@ sub get_metadata_calc_jaccard {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  calculate the Jaccard dissimilarity index between two label lists.
@@ -318,7 +401,7 @@ sub calc_jaccard {
 #    my $ref = 'Hayes, W.B. (1978) http://dx.doi.org/10.2307/1936649, '
 #              . 'McKenna (2003) http://dx.doi.org/10.1016/S1364-8152(02)00094-4';
 #    
-#    my %arguments = (
+#    my %metadata = (
 #        name           => 'Fager',
 #        description    => "Fager dissimilarity between two sets of labels\n",
 #        type           => 'Taxonomic Dissimilarity and Comparison',
@@ -334,7 +417,7 @@ sub calc_jaccard {
 #        },
 #    );
 #    
-#    return wantarray ? %arguments : \%arguments;
+#    return $metadata_class->new(\%metadata);
 #}
 
 #sub calc_fager {
@@ -359,7 +442,7 @@ sub calc_jaccard {
 sub get_metadata_calc_nestedness_resultant {
     my $self = shift;
     
-    my %arguments = (
+    my %metadata = (
         name            => 'Nestedness-resultant',
         description     => 'Nestedness-resultant index between the '
                             . 'labels in neighbour sets 1 and 2. ',
@@ -382,7 +465,7 @@ sub get_metadata_calc_nestedness_resultant {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;    
+    return $metadata_class->new(\%metadata);    
 }
 
 #  nestedness-resultant dissimilarity
@@ -394,11 +477,11 @@ sub calc_nestedness_resultant {
     my ($A, $B, $C, $ABC) = @args{qw /A B C ABC/};
     
     my $score;
-    if ($A == 0 and $B > 0 and $C > 0) {
+    if (!$A && $B && $C) {
         #  nothing in common, no nestedness
         $score = 0;
     }
-    elsif ($A == 0 and min ($B, $C) == 0) {
+    elsif (!$A && ! ($B && $C)) {  #  could be re-arranged
         #  only one set has labels (possibly neither)
         $score = undef;
     }
@@ -418,7 +501,7 @@ sub calc_nestedness_resultant {
 
 sub get_metadata_calc_bray_curtis {
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Bray-Curtis non-metric',
         description     => "Bray-Curtis dissimilarity between two sets of labels.\n"
                          . "Reduces to the Sorenson metric for binary data (where sample counts are 1 or 0).",
@@ -461,7 +544,7 @@ sub get_metadata_calc_bray_curtis {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 # calculate the Bray-Curtis dissimilarity index between two label lists.
@@ -551,7 +634,7 @@ END_BCN_DESCR
 
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_bray_curtis_norm_by_gp_counts {
@@ -596,7 +679,7 @@ sub calc_bray_curtis_norm_by_gp_counts {
 sub get_metadata_calc_beta_diversity {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Beta diversity',
         description     => "Beta diversity between neighbour sets 1 and 2.\n",
         indices         => {
@@ -615,7 +698,7 @@ sub get_metadata_calc_beta_diversity {
         pre_calc        => 'calc_abc',
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 # calculate the beta diversity dissimilarity index between two label lists.
@@ -639,7 +722,7 @@ sub calc_beta_diversity {
 sub get_metadata_calc_s2 {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'S2',
         type            => 'Taxonomic Dissimilarity and Comparison',
         description     => "S2 dissimilarity between two sets of labels\n",
@@ -659,7 +742,7 @@ sub get_metadata_calc_s2 {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_s2 {  #  Used to calculate the species turnover between two element sets.
@@ -686,7 +769,7 @@ sub calc_s2 {  #  Used to calculate the species turnover between two element set
 sub get_metadata_calc_simpson_shannon {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Simpson and Shannon',
         description     => "Simpson and Shannon diversity metrics using samples from all neighbourhoods.\n",
         formula         => [
@@ -721,7 +804,7 @@ sub get_metadata_calc_simpson_shannon {
         },    
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  calculate the simpson and shannon indices
@@ -729,34 +812,38 @@ sub calc_simpson_shannon {
     my $self = shift;
     my %args = @_;
 
-    my $labels = $args{label_hash_all};
+    my $labels   = $args{label_hash_all};
     my $richness = $args{ABC};
 
-    my $n = 0;
-    foreach my $value (values %$labels) {
-        $n += $value;
-    }
+    my %results;
 
-    my ($simpson_d, $shannon_h, $sum_labels, $shannon_e);
-    foreach my $value (values %$labels) {  #  don't need the labels, so don't use keys
-        my $p_i = $value / $n;
-        $simpson_d += $p_i ** 2;
-        $shannon_h += $p_i * log ($p_i);
+    if ($richness) {  #  results not valid if cells are empty
+        my $n = sum 0, values %$labels;
+    
+        my ($simpson_d, $shannon_h, $sum_labels, $shannon_e);
+        foreach my $value (values %$labels) {  #  don't need the labels, so don't use keys
+            my $p_i     = $value / $n;
+            $simpson_d += $p_i ** 2;
+            $shannon_h += $p_i * log ($p_i);
+        }
+        $shannon_h *= -1;
+        #$simpson_d /= $richness ** 2;
+        #  trap divide by zero when sum_labels == 1
+        my $shannon_hmax = log ($richness);
+        $shannon_e = $shannon_hmax == 0
+            ? undef
+            : $shannon_h / $shannon_hmax;
+    
+        %results = (
+            SHANNON_H    => $shannon_h,
+            SHANNON_HMAX => $shannon_hmax,
+            SHANNON_E    => $shannon_e,
+            SIMPSON_D    => 1 - $simpson_d,
+        );
     }
-    $shannon_h *= -1;
-    #$simpson_d /= $richness ** 2;
-    #  trap divide by zero when sum_labels == 1
-    my $shannon_hmax = log ($richness);
-    $shannon_e = $shannon_hmax == 0
-        ? undef
-        : $shannon_h / $shannon_hmax;
-
-    my %results = (
-        SHANNON_H    => $shannon_h,
-        SHANNON_HMAX => $shannon_hmax,
-        SHANNON_E    => $shannon_e,
-        SIMPSON_D    => 1 - $simpson_d,
-    );
+    else {
+        @results{qw /SHANNON_H SHANNON_HMAX SHANNON_E SIMPSON_D/} = undef;
+    }
 
     return wantarray ? %results : \%results;
 }
@@ -780,7 +867,7 @@ sub get_formula_qe {
 sub get_metadata_calc_tx_rao_qe {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => q{Rao's quadratic entropy, taxonomically weighted},
         description     => "Calculate Rao's quadratic entropy for a taxonomic weights scheme.\n"
                          . "Should collapse to be the Simpson index for presence/absence data.",
@@ -799,11 +886,9 @@ sub get_metadata_calc_tx_rao_qe {
         indices => {
             TX_RAO_QE       => {
                 description => 'Taxonomically weighted quadratic entropy',
-                
             },
             TX_RAO_TN       => {
                 description => 'Count of comparisons used to calculate TX_RAO_QE',
-                type        => 'list',
             },
             TX_RAO_TLABELS  => {
                 description => 'List of labels and values used in the TX_RAO_QE calculations',
@@ -812,7 +897,7 @@ sub get_metadata_calc_tx_rao_qe {
         },
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_tx_rao_qe {
@@ -820,10 +905,11 @@ sub calc_tx_rao_qe {
     my %args = @_;
 
     my $r = $self -> _calc_rao_qe (@_, use_matrix => 0);
-    my %results = (TX_RAO_TN        => $r->{RAO_TN},
-                   TX_RAO_TLABELS   => $r->{RAO_TLABELS},
-                   TX_RAO_QE        => $r->{RAO_QE},
-                   );
+    my %results = (
+        TX_RAO_TN        => $r->{RAO_TN},
+        TX_RAO_TLABELS   => $r->{RAO_TLABELS},
+        TX_RAO_QE        => $r->{RAO_QE},
+    );
 
     return wantarray ? %results : \%results;
 }
@@ -831,7 +917,7 @@ sub calc_tx_rao_qe {
 sub get_metadata_calc_mx_rao_qe {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => q{Rao's quadratic entropy, matrix weighted},
         description     => qq{Calculate Rao's quadratic entropy for a matrix weights scheme.\n}
                          .  q{BaseData labels not in the matrix are ignored},
@@ -860,7 +946,7 @@ sub get_metadata_calc_mx_rao_qe {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_mx_rao_qe {
@@ -915,7 +1001,7 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
         $n += $value;
     }
 
-    my ($totalCount, $qe) = (undef, undef);
+    my ($total_count, $qe) = (undef, undef);
     my (%done, %p_values);
 
     BY_LABEL1:
@@ -938,7 +1024,7 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
             my $value = 1;
 
             if (defined $matrix) {
-                $value = $matrix -> get_value (
+                $value = $matrix->get_defined_value (
                     element1 => $label1,
                     element2 => $label2
                 );
@@ -977,7 +1063,7 @@ sub _calc_rao_qe {  #  calculate Rao's Quadratic entropy with or without a matri
 #
 
 sub get_metadata_calc_local_range_stats {
-    my %arguments = (
+    my %metadata = (
         name            => 'Local range summary statistics',
         description     => 'Summary stats of the local ranges within neighour sets.',
         type            => 'Lists and Counts',
@@ -1014,7 +1100,7 @@ sub get_metadata_calc_local_range_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  store the lists from calc_abc2 - mainly the lists
@@ -1063,7 +1149,7 @@ sub calc_local_range_stats {
 }
 
 sub get_metadata_calc_local_range_lists {
-    my %arguments = (
+    my %metadata = (
         name            => 'Local range lists',
         description     => "Lists of labels with their local ranges as values. \n"
                            . 'The local ranges are the number of elements in '
@@ -1089,7 +1175,7 @@ sub get_metadata_calc_local_range_lists {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  store the lists from calc_abc2 - mainly the lists
@@ -1112,7 +1198,7 @@ sub calc_local_range_lists {
 sub get_metadata_calc_local_sample_count_stats {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Sample count summary stats',
         description     => "Summary stats of the sample counts across the neighbour sets.\n",
         indices         => {
@@ -1163,7 +1249,7 @@ sub get_metadata_calc_local_sample_count_stats {
         pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         );  #  add to if needed
-        return wantarray ? %arguments : \%arguments;
+        return $metadata_class->new(\%metadata);
 }
 
 sub calc_local_sample_count_stats {
@@ -1186,7 +1272,7 @@ sub calc_local_sample_count_stats {
     if (scalar keys %{$args{label_hash_all}}) {
         $stats = $stats_class->new;
         #my @barry = values %{$args{label_hash_all}};
-        $stats -> add_data (values %{$args{label_hash_all}});
+        $stats->add_data (values %{$args{label_hash_all}});
         $results{ABC3_MEAN_ALL} = $stats->mean;
         $results{ABC3_SD_ALL}   = $stats->standard_deviation;
         $results{ABC3_SUM_ALL}  = $stats->sum;
@@ -1208,16 +1294,13 @@ sub calc_local_sample_count_stats {
         $results{ABC3_SUM_SET2}  = $stats->sum;
     }
     
-    return wantarray
-            ? %results
-            : \%results;
-
+    return wantarray ? %results : \%results;
 }
 
 sub get_metadata_calc_local_sample_count_lists {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Sample count lists',
         description     => "Lists of sample counts for each label within the neighbour sets.\n"
                          . "These form the basis of the sample indices.",
@@ -1241,7 +1324,7 @@ sub get_metadata_calc_local_sample_count_lists {
         pre_calc        => 'calc_abc3',
         uses_nbr_lists  => 1,  #  how many sets of lists it must have
         );  #  add to if needed
-        return wantarray ? %arguments : \%arguments;
+        return $metadata_class->new(\%metadata);
 }
 
 sub calc_local_sample_count_lists {
@@ -1263,7 +1346,7 @@ sub calc_local_sample_count_lists {
 sub get_metadata_calc_abc_counts {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Label counts',
         description     => "Counts of labels in neighbour sets 1 and 2.\n"
                            . 'These form the basis for the Taxonomic Dissimilarity and Comparison indices.',
@@ -1290,7 +1373,7 @@ sub get_metadata_calc_abc_counts {
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
     );  #  add to if needed
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_abc_counts {
@@ -1347,14 +1430,14 @@ sub get_metadata_calc_d {
         },
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 
 sub get_metadata_calc_elements_used {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Element counts',
         description     => "Counts of elements used in neighbour sets 1 and 2.\n",
         type            => 'Lists and Counts',
@@ -1378,7 +1461,7 @@ sub get_metadata_calc_elements_used {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_elements_used {
@@ -1401,7 +1484,7 @@ sub calc_elements_used {
 sub get_metadata_calc_element_lists_used {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         name            => "Element lists",
         description     => "Lists of elements used in neighbour sets 1 and 2.\n"
                            . 'These form the basis for all the spatial calculations.',
@@ -1426,7 +1509,7 @@ sub get_metadata_calc_element_lists_used {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_element_lists_used {
@@ -1449,7 +1532,8 @@ sub calc_element_lists_used {
 
 sub get_metadata_calc_abc {
 
-    my %arguments = (
+    my %metadata = (
+        name            => 'calc_abc',
         description     => 'Calculate the label lists in the element sets.',
         type            => 'not_for_gui',
         indices         => {},
@@ -1457,7 +1541,7 @@ sub get_metadata_calc_abc {
         required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI stuff
@@ -1472,7 +1556,8 @@ sub calc_abc {  #  wrapper for _calc_abc - use the other wrappers for actual GUI
 }
 
 sub get_metadata_calc_abc2 {
-    my %arguments = (
+    my %metadata = (
+        name            => 'calc_abc2',
         description     => 'Calculate the label lists in the element sets, '
                            . 'recording the count of groups per label.',
         type            => 'not_for_gui',  #  why not???
@@ -1481,7 +1566,7 @@ sub get_metadata_calc_abc2 {
         required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_abc2 {  #  run calc_abc, but keep a track of the label counts across groups
@@ -1493,7 +1578,8 @@ sub calc_abc2 {  #  run calc_abc, but keep a track of the label counts across gr
 
 sub get_metadata_calc_abc3 {
 
-    my %arguments = (
+    my %metadata = (
+        name            => 'calc_abc3',
         description     => 'Calculate the label lists in the element sets, '
                            . 'recording the count of samples per label.',
         type            => 'not_for_gui',  #  why not?
@@ -1502,7 +1588,7 @@ sub get_metadata_calc_abc3 {
         required_args   => [$RE_ABC_REQUIRED_ARGS],  #experimental - issue http://code.google.com/p/biodiverse/issues/detail?id=336
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_abc3 {  #  run calc_abc, but keep a track of the label counts and samples across groups
@@ -1518,15 +1604,19 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 
     my $bd = $self->get_basedata_ref;
 
-    croak "none of refs element_list1, element_list2, label_list1, "
-          . "label_list2, label_hash1, label_hash2 specified\n"
-        if (   ! defined $args{element_list1}
-            && ! defined $args{element_list2}
-            && ! defined $args{label_list1}
-            && ! defined $args{label_list2}
-            && ! defined $args{label_hash1}
-            && ! defined $args{label_hash2}
+    croak "At least one of element_list1, element_list2, label_list1, "
+          . "label_list2, label_hash1, label_hash2 must be specified\n"
+        if ! defined (
+                $args{element_list1}
+             // $args{element_list2}
+             // $args{label_hash1}
+             // $args{label_hash2}
+             // $args{label_list1}
+             // $args{label_list2}
         );
+
+    my $count_labels  = $args{count_labels};
+    my $count_samples = $args{count_samples};
 
     my ($a, $b, $c, $abc);
     my %label_list = (1 => {}, 2 => {});
@@ -1546,122 +1636,116 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
         my $el_listref = $args{$listname}
           // next LISTNAME;
 
-        if ((ref $el_listref) =~ /HASH/) {  #  silently convert the hash to an array
+        croak "_calc_abc argument $listname is not a list ref\n"
+          if !ref $el_listref;
+
+        if (reftype ($el_listref) eq 'HASH') {  #  silently convert the hash to an array
             $el_listref = [keys %$el_listref];
         }
-        elsif (! ref $el_listref) {
-            croak "_calc_abc argument $listname is not a list ref\n";
-        }
 
-        my @checked_elements;
-        my @label_list;
+        my (@checked_elements, @label_list);
 
         ELEMENT:
         foreach my $element (@$el_listref) {
-            #  Deal with lazy array refs pointing
-            #  to longer lists than we have elements.
-            #  Should really croak these days.
-            #next ELEMENT if ! defined $element;
-
             my $sublist = $bd->get_labels_in_group_as_hash (group => $element);
             push @label_list, %$sublist;
             push @checked_elements, $element;
         }
-        if ($args{count_labels}) {
+
+        if ($count_labels) {
             #  track the number of times each label occurs
-            for (my $i = 0; $i <= $#label_list; $i += 2) {
-                my $label = $label_list[$i];
+            foreach my $label (pairkeys @label_list) {
                 $label_list{$iter}{$label}++;
                 $label_list_master{$label}++;
             }
         }
-        elsif ($args{count_samples}) {
+        elsif ($count_samples) {
             #  track the number of samples for each label
-            for (my $i = 0; $i < $#label_list; $i += 2) {
-                #print "$i, $#label_list\n";
-                my $label = $label_list[$i];
-                my $value = $label_list[$i+1];
+            foreach my $pair (pairs @label_list) {
+                my ($label, $value) = @$pair;
                 $label_list{$iter}{$label} += $value;
                 $label_list_master{$label} += $value;
             }
         }
         else {
             %{$label_list{$iter}} = @label_list;
-            @label_list_master{keys %{$label_list{$iter}}} = (1) x scalar keys %{$label_list{$iter}};
+            @label_list_master{keys %{$label_list{$iter}}}
+              = (1) x scalar keys %{$label_list{$iter}};
         }
-        @{$element_check{$iter}}{@checked_elements} = (1) x @checked_elements;
         #  hash slice is faster than looping
-        @element_check_master{@checked_elements} = (1) x scalar @checked_elements;
+        @{$element_check{$iter}}{@checked_elements} = (1) x @checked_elements;
+        @element_check_master{@checked_elements}    = (1) x scalar @checked_elements;
     }
 
     #  run some checks on the elements
     my $element_count_master = scalar keys %element_check_master;
-    my $element_count1 = scalar keys %{$element_check{1}};
-    my $element_count2 = scalar keys %{$element_check{2}};
-    if ($element_count1 + $element_count2 > $element_count_master) {
-        croak '[INDICES] DOUBLE COUNTING OF ELEMENTS IN calc_abc, '
-              . "$element_count1 + $element_count2 > $element_count_master\n";
-    }
+    my $element_count1       = scalar keys %{$element_check{1}};
+    my $element_count2       = scalar keys %{$element_check{2}};
+
+    croak '[INDICES] DOUBLE COUNTING OF ELEMENTS IN calc_abc, '
+          . "$element_count1 + $element_count2 > $element_count_master\n"
+      if $element_count1 + $element_count2 > $element_count_master;
 
     %hash = (label_list1 => 1, label_list2 => 2);
-    while (($listname, $iter) = each (%hash)) {
-        next if ! defined $args{$listname};
+    while (($listname, $iter) = each %hash) {
+        next if !defined $args{$listname};
+
         my $label_listref = $args{$listname};
         if ((ref $label_listref) !~ /ARRAY/) {
             carp "[INDICES] $label_listref is not an array ref\n";
             next;
         }
 
-        if ($args{count_labels} || $args{count_samples}) {
+        if ($count_labels || $count_samples) {
             foreach my $lbl (@$label_listref) {
                 $label_list_master{$lbl}++;
                 $label_list{$iter}{$lbl}++;
             }
         }
         else {
-            @label_list_master{@$label_listref} = (1) x scalar @$label_listref;
+            @label_list_master{@$label_listref}    = (1) x scalar @$label_listref;
             @{$label_list{$iter}}{@$label_listref} = (1) x scalar @$label_listref;
         }
     }
 
     %hash = (label_hash1 => 1, label_hash2 => 2);
-    while (($listname, $iter) = each (%hash)) {
+    while (($listname, $iter) = each %hash) {
         next if ! defined $args{$listname};
+
         my $label_hashref = $args{$listname};
 
-        if ((ref $label_hashref) !~ /HASH/) {
-            croak "[INDICES] $label_hashref is not a hash ref\n";
-        }
+        croak "[INDICES] $label_hashref is not a hash ref\n"
+          if (ref $label_hashref) !~ /HASH/;
 
-        if ($args{count_labels} || $args{count_samples}) {
+        if ($count_labels || $count_samples) {
             while (($label, $value) = each %$label_hashref) {
                 $label_list_master{$label} += $value;
                 $label_list{$iter}{$label} += $value;
             }
         }
         else {  #  don't care about counts yet - assign using a slice
-            @label_list_master{keys %$label_hashref} = (1) x scalar keys %$label_hashref;
+            @label_list_master{keys %$label_hashref}    = (1) x scalar keys %$label_hashref;
             @{$label_list{$iter}}{keys %$label_hashref} = (1) x scalar keys %$label_hashref;
         }
     }
 
     #  set the counts to one if using plain old abc, as the elements section doesn't obey it properly
-    if (! $args{count_labels} && ! $args{count_samples}) {
+    if (!($count_labels || $count_samples)) {
         @label_list_master{keys %label_list_master} = (1) x scalar keys %label_list_master;
-        @{$label_list{1}}{keys %{$label_list{1}}} = (1) x scalar keys %{$label_list{1}};
-        @{$label_list{2}}{keys %{$label_list{2}}} = (1) x scalar keys %{$label_list{2}};
+        @{$label_list{1}}{keys %{$label_list{1}}}   = (1) x scalar keys %{$label_list{1}};
+        @{$label_list{2}}{keys %{$label_list{2}}}   = (1) x scalar keys %{$label_list{2}};
     }
 
     $abc = scalar keys %label_list_master;
 
     #  a, b and c are simply differences of the lists
     $a = scalar (keys %{$label_list{1}})
-         + scalar (keys %{$label_list{2}})
-         - scalar (keys %label_list_master);
+       + scalar (keys %{$label_list{2}})
+       - scalar (keys %label_list_master);
     $b = scalar (keys %label_list_master)    #  all keys not in label_list2
-         - scalar (keys %{$label_list{2}});
+       - scalar (keys %{$label_list{2}});
     $c = scalar (keys %label_list_master)    #  all keys not in label_list1
-         - scalar (keys %{$label_list{1}});
+       - scalar (keys %{$label_list{1}});
 
     my %results = (
         A   => $a,
@@ -1688,15 +1772,15 @@ sub _calc_abc {  #  required by all the other indices, as it gets the labels in 
 #
 #  miscellaneous local routines
 
-sub min {
-    no warnings 'uninitialized';
-    $_[0] < $_[1] ? $_[0] : $_[1];
-}
-
-sub max {
-    no warnings 'uninitialized';
-    $_[0] > $_[1] ? $_[0] : $_[1];
-}
+#sub min {
+#    no warnings 'uninitialized';
+#    $_[0] < $_[1] ? $_[0] : $_[1];
+#}
+#
+#sub max {
+#    no warnings 'uninitialized';
+#    $_[0] > $_[1] ? $_[0] : $_[1];
+#}
 
 sub numerically {$a <=> $b};
 

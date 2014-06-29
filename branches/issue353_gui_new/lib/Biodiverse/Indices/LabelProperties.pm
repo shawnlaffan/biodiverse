@@ -4,19 +4,21 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
 
-use Data::Dumper;
+#use Data::Dumper;
+
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_get_lbp_stats_objects {
     my $self = shift;
 
-    my $desc = 'Get the stats object for the property values '
+    my $desc = 'Get the stats object for the label property values'
              . " across both neighbour sets\n";
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Label property stats objects',
         type            => 'Element Properties',
@@ -29,7 +31,7 @@ sub get_metadata_get_lbp_stats_objects {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_lbp_stats_objects {
@@ -119,12 +121,12 @@ sub get_metadata_calc_lbprop_lists {
         $l =~ s/STATS/LIST/;
         $l =~ s/_DATA$//;
         $indices{$l} = {
-            $list_name => 'List of data for property ' . $prop,
-            type       => 'list',
+            description => 'List of data for property ' . $prop,
+            type        => 'list',
         };
     }
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Label property lists',
         type            => 'Element Properties',
@@ -133,7 +135,7 @@ sub get_metadata_calc_lbprop_lists {
         indices         => \%indices,
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_lbprop_lists {
@@ -174,12 +176,12 @@ sub get_metadata_calc_lbprop_data {
     my %prop_hash_names = $self->_get_lbprop_stats_hash_keynames;
     while (my ($prop, $list_name) = each %prop_hash_names) {
         $indices{$list_name} = {
-            $list_name => 'List of data for property ' . $prop,
-            type       => 'list',
+            description => 'List of data for property ' . $prop,
+            type        => 'list',
         };
     }
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Label property data',
         type            => 'Element Properties',
@@ -188,7 +190,7 @@ sub get_metadata_calc_lbprop_data {
         indices         => \%indices,
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_lbprop_data {
@@ -220,12 +222,12 @@ sub get_metadata_calc_lbprop_hashes {
     while (my ($prop, $list_name) = each %prop_hash_names) {
         $list_name =~ s/DATA$/HASH/;
         $indices{$list_name} = {
-            $list_name => 'Hash of values for property ' . $prop,
-            type       => 'list',
+            description => 'Hash of values for property ' . $prop,
+            type        => 'list',
         };
     }
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Label property hashes',
         type            => 'Element Properties',
@@ -236,7 +238,7 @@ sub get_metadata_calc_lbprop_hashes {
     
     #print Data::Dumper::Dump \%arguments;
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -274,7 +276,7 @@ sub get_metadata_calc_lbprop_stats {
     my $desc = "List of summary statistics for each label property across both neighbour sets\n";
     my $stats_list_text .= '(' . join (q{ }, @stats) . ')';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Label property summary stats',
         type            => 'Element Properties',
@@ -288,7 +290,7 @@ sub get_metadata_calc_lbprop_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_lbprop_stats {
@@ -325,7 +327,7 @@ sub get_metadata_calc_lbprop_quantiles {
     my $desc = "List of quantiles for each label property across both neighbour sets\n";
     my $quantile_list_text .= '(' . join (q{ }, @quantiles) . ')';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Label property quantiles',
         type            => 'Element Properties',
@@ -339,7 +341,7 @@ sub get_metadata_calc_lbprop_quantiles {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_lbprop_quantiles {
@@ -370,7 +372,7 @@ sub get_metadata_calc_lbprop_gistar {
     my $desc = 'List of Getis-Ord Gi* statistic for each label property across both neighbour sets';
     my $ref  = 'Getis and Ord (1992) Geographical Analysis. http://dx.doi.org/10.1111/j.1538-4632.1992.tb00261.x';
 
-    my %arguments = (
+    my %metadata = (
         description     => $desc,
         name            => 'Label property Gi* statistics',
         type            => 'Element Properties',
@@ -386,7 +388,7 @@ sub get_metadata_calc_lbprop_gistar {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_lbprop_gistar {
@@ -419,18 +421,18 @@ sub get_metadata__get_lbprop_global_summary_stats {
     
     my $descr = 'Global summary stats for label properties';
 
-    my %arguments = (
+    my %metadata = (
         description     => $descr,
         name            => $descr,
         type            => 'Element Properties',
         indices         => {
-            GPPROP_GLOBAL_SUMMARY_STATS => {
+            LBPROP_GLOBAL_SUMMARY_STATS => {
                 description => $descr,
             }
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub _get_lbprop_global_summary_stats {

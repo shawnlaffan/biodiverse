@@ -5,12 +5,12 @@ use English qw { -no_match_vars };
 use Carp;
 use POSIX qw /fmod/;
 use List::Util qw /max min/;
-my $NULL_STRING = q{};
+my $NULL_STRING = q//;
 
 require Biodiverse::Config;
 use Biodiverse::Exception;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 sub new {
     my $class = shift;
@@ -41,10 +41,12 @@ sub new {
             require Biodiverse::GUI::ProgressDialog;
             $gui_progress = Biodiverse::GUI::ProgressDialog->new($args{text});  #  should pass on all relevant args
         };
-        if (! $EVAL_ERROR and defined $gui_progress) {
+        my $e = $EVAL_ERROR;
+        if (! $e and defined $gui_progress) {
             #  if we are in the GUI then we can use a GUI progress dialogue
             $self->{gui_progress} = $gui_progress;
         }
+        warn $e if $e;
     }
 
     return $self;
@@ -64,13 +66,15 @@ sub destroy {
 }
 
 sub update {
-    my $self = shift;
-    
+    my $self     = shift;
     my $text     = shift;
     my $progress = shift; # fraction 0 .. 1
     my $no_update_text = shift;
 
     croak "No progress set\n" if not defined $progress;
+
+    #  no point doing anything if these conditions are true
+    return if $self->{gui_only} && !$self->{gui_progress};
 
     #  make it tolerant
     $progress = max (0, min (1, $progress));
@@ -87,21 +91,15 @@ sub update {
 
     return if $self->{gui_only};
 
-    if (not defined $text) {
-        $text = $NULL_STRING;
-    }
+    $text //= $NULL_STRING;
 
-    
-    croak "ERROR [Progress] progress $progress is not between 0 & 1\n"
-      if ($progress < 0 || $progress > 1);
+    #  trapped above now
+    #croak "ERROR [Progress] progress $progress is not between 0 & 1\n"
+    #  if ($progress < 0 || $progress > 1);
 
     #  do something with the text if it differs
     if ($self->{print_text}) {
-        print $text . q{ };
-        print q{ } x 4;
-        #if (not $text =~ /[\r\n]$/) {
-        #    print "\n";
-        #}
+        print $text . q{     };  #  five spaces
     }
     $self->{print_text} = 0;
 
@@ -112,9 +110,9 @@ sub update {
 
     $self->{last_reported_prog} = $prog_pct;
 
-    #  update the percent progress, use sprintf to make the string consistent length
-    my $prog_text = sprintf "\b\b\b\b%3i%%", $prog_pct;
-    print $prog_text;
+    #  Update the percent progress.
+    #  Use printf for a consistent string length.
+    printf "\b\b\b\b%3i%%", $prog_pct;
 
     return;
 }

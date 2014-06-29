@@ -7,7 +7,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 #use Exporter;
 #use Devel::Symdump;
@@ -19,6 +19,7 @@ our @EXPORT = qw /use_base add_lib_paths/;
 use Carp;
 use Data::Dumper qw /Dumper/;
 use FindBin qw ( $Bin );
+use Path::Class;
 
 #  These global vars need to be converted to subroutines.
 #  update interval for progress bars  - need to check for tainting
@@ -42,6 +43,54 @@ GNU General Public License for more details.
 For a full copy of the license see <http://www.gnu.org/licenses/>.
 END_OF_LICENSE
   ;
+
+BEGIN {
+    #  Add the gtk and gdal libs if using windows - brittle?
+    #  Search up the tree until we find a dir of the requisite name
+    #  and which contains a bin folder
+    if ($OSNAME eq 'MSWin32') {
+        #say "PAR_PROGNAME: $ENV{PAR_PROGNAME}";
+        my $prog_name  = $ENV{PAR_PROGNAME} || $Bin;
+        
+
+        my @paths;
+        use Config;
+        my $use_x64 = $Config{archname} =~ /x(?:86_)?64/;
+        my $gtk_dir  = $use_x64 ? 'gtk_win64'  : 'gtk_win32';  #  maybe should use ivsize?
+        my $gdal_dir = $use_x64 ? 'gdal_win64' : 'gdal_win32';
+
+        #  add the gtk and gdal bin dirs to the path
+        foreach my $g_dir ($gtk_dir, $gdal_dir) {
+            my $origin_dir = Path::Class::file($prog_name)->dir;
+
+          ORIGIN_DIR:
+            while ($origin_dir) {
+
+                foreach my $inner_path (
+                  Path::Class::dir($origin_dir, $g_dir,),
+                  Path::Class::dir($origin_dir, $g_dir, 'c'),
+                  ) {
+                    #say "Checking $inner_path";
+                    my $bin_path = Path::Class::dir($inner_path, 'bin');
+                    if (-d $bin_path) {
+                        #say "Adding $bin_path to the path";
+                        push @paths, $bin_path;
+                    }
+                }
+    
+                my $old_dir = $origin_dir;
+                $origin_dir = $origin_dir->parent;
+                last ORIGIN_DIR if $old_dir eq $origin_dir;
+            }
+        }
+
+        my $sep = ';';  #  should get from system, but this block only works on windows anyway
+        say 'Prepending to path: ', join ' ', @paths;
+        $ENV{PATH} = join $sep, @paths, $ENV{PATH};
+
+    }
+}
+
 
 #  add biodiverse lib paths so we get all the extensions
 #  should be a sub not a begin block
@@ -151,7 +200,7 @@ if ($ENV{BDV_PP_BUILDING}) {
       or croak "Cannot open $Bin via File::BOM\n";
     $fh->close;
 
-    #  exercide the unicode regexp matching - needed for the spatial conditions
+    #  exercise the unicode regexp matching - needed for the spatial conditions
     use 5.016;
     use feature 'unicode_strings';
     my $string = "sp_self_only () and \N{WHITE SMILING FACE}";

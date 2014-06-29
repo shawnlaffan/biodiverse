@@ -1023,10 +1023,11 @@ Shapefile
                         <property name="can_focus">False</property>
                         <property name="spacing">2</property>
                         <child>
-                          <widget class="GtkImage" id="image17">
+                          <widget class="GtkLabel" id="label78">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="stock">gtk-go-forward</property>
+                            <property name="label">Next</property>
+                            <property name="use_underline">True</property>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -1035,11 +1036,10 @@ Shapefile
                           </packing>
                         </child>
                         <child>
-                          <widget class="GtkLabel" id="label78">
+                          <widget class="GtkImage" id="image17">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="label">Next</property>
-                            <property name="use_underline">True</property>
+                            <property name="stock">gtk-go-forward</property>
                           </widget>
                           <packing>
                             <property name="expand">False</property>
@@ -1061,7 +1061,7 @@ Shapefile
           </widget>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
+            <property name="fill">False</property>
             <property name="pack_type">end</property>
             <property name="position">1</property>
           </packing>
@@ -4837,7 +4837,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Delete data set</property>
+                    <property name="tooltip" translatable="yes">Delete selected BaseData</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_basedata_delete"/>
                     <child>
@@ -4864,7 +4864,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Save to Biodiverse format</property>
+                    <property name="tooltip" translatable="yes">Save selected BaseData to Biodiverse format</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_basedata_save"/>
                     <child>
@@ -4922,7 +4922,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Import basedata from file</property>
+                    <property name="tooltip" translatable="yes">Import new BaseData from file</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_basedata_import"/>
                     <child>
@@ -4999,6 +4999,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                       <widget class="GtkImage" id="image6">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Delete selected matrix</property>
                         <property name="stock">gtk-delete</property>
                         <property name="icon-size">2</property>
                       </widget>
@@ -5019,7 +5020,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Save to Biodiverse format</property>
+                    <property name="tooltip" translatable="yes">Save selected matrix to Biodiverse format</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_matrix_save"/>
                     <child>
@@ -5071,7 +5072,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Import marix from file</property>
+                    <property name="tooltip" translatable="yes">Import new matrix from file</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_matrix_import"/>
                     <child>
@@ -5179,6 +5180,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                       <widget class="GtkImage" id="image88">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="tooltip" translatable="yes">Delete selected tree</property>
                         <property name="stock">gtk-delete</property>
                         <property name="icon-size">2</property>
                       </widget>
@@ -5199,7 +5201,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Save to Biodiverse format</property>
+                    <property name="tooltip" translatable="yes">Save selected tree to Biodiverse format</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_phylogeny_save"/>
                     <child>
@@ -5251,7 +5253,7 @@ This can help interpret phylogenetic endemism and related analyses.  </property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">False</property>
-                    <property name="tooltip" translatable="yes">Import tree from file</property>
+                    <property name="tooltip" translatable="yes">Import tree(s) from file</property>
                     <property name="relief">none</property>
                     <signal name="clicked" handler="on_phylogeny_import"/>
                     <child>

@@ -7,7 +7,7 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 #use Statistics::Descriptive;
 #my $stats_class = 'Statistics::Descriptive::Full';
@@ -15,6 +15,7 @@ our $VERSION = '0.19';
 use Biodiverse::Statistics;
 my $stats_class = 'Biodiverse::Statistics';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 ######################################################
 #
@@ -23,7 +24,7 @@ my $stats_class = 'Biodiverse::Statistics';
 
 sub get_metadata_calc_matrix_stats {
     
-    my %arguments = (
+    my %metadata = (
         name            => 'Matrix statistics',
         description     => 'Calculate summary statistics of matrix elements'
                             . ' in the selected matrix for labels found'
@@ -58,7 +59,7 @@ sub get_metadata_calc_matrix_stats {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_matrix_stats {
@@ -72,7 +73,7 @@ sub calc_matrix_stats {
     my %label_list = %{$ABC{label_hash_all}};  
 
     #  we need to get the distance between two percentiles
-    my @valueList;
+    my @value_list;
     my %done;
     
     my $labels_in_matrix = $matrix->get_elements;
@@ -90,16 +91,16 @@ sub calc_matrix_stats {
             
             #$value = 0 if ! defined $value && $label1 eq $label2;
             
-            push (@valueList, $value);
+            push (@value_list, $value);
         }
         $done{$label1}++;
     }
 
     my $stats = $stats_class->new;
-    $stats->add_data (\@valueList);
+    $stats->add_data (\@value_list);
 
     $stats->sort_data;
-    my $valuesRef = [$stats->get_data];
+    my $values_ref = [$stats->get_data];
     my $null;
     (my $mx_pct95, $null) = eval {$stats->percentile(95)};
     (my $mx_pct05, $null) = eval {$stats->percentile( 5)};
@@ -122,7 +123,7 @@ sub calc_matrix_stats {
         MX_PCT05    => $mx_pct05,
         MX_PCT25    => $mx_pct25,
         MX_PCT75    => $mx_pct75,
-        MX_VALUES   => $valuesRef,
+        MX_VALUES   => $values_ref,
         MX_LABELS   => \%label_list,
     );
 
@@ -134,7 +135,7 @@ sub calc_matrix_stats {
 sub get_metadata_calc_compare_dissim_matrix_values {
     my $self = shift;
     
-    my %arguments = (
+    my %metadata = (
         name            => 'Compare dissimilarity matrix values',
         description     => q{Compare the set of labels in one neighbour set with those in another }
                            . q{using their matrix values. Labels not in the matrix are ignored. }
@@ -171,7 +172,7 @@ sub get_metadata_calc_compare_dissim_matrix_values {
         },
     );  #  add to if needed
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
     
 }
 
@@ -203,7 +204,7 @@ sub calc_compare_dissim_matrix_values {
     );
     
     #  we need to get the distance between and across two groups
-    my ($sumX, $sumXsqr, $count) = (undef, undef, 0);
+    my ($sum_X, $sum_X_sqr, $count) = (undef, undef, 0);
     #my ($totalSumX, $totalSumXsqr, $totalCount) = (undef, undef, 0);
     my (%list1_hash, %list2_hash);
     
@@ -232,8 +233,8 @@ sub calc_compare_dissim_matrix_values {
             }
 
             #  tally the stats
-            $sumX += $value;
-            $sumXsqr += $value**2;
+            $sum_X += $value;
+            $sum_X_sqr += $value**2;
             $count ++;
             #$centre_compared{$label2} ++;
 
@@ -250,8 +251,8 @@ sub calc_compare_dissim_matrix_values {
         #  suppress these warnings within this block
         no warnings qw /uninitialized numeric/;  
         
-        $results{MXD_MEAN}      = eval {$sumX / $count};
-        $results{MXD_VARIANCE}  = eval {$sumXsqr / $count};
+        $results{MXD_MEAN}      = eval {$sum_X / $count};
+        $results{MXD_VARIANCE}  = eval {$sum_X_sqr / $count};
         $results{MXD_COUNT}     = $count;
         $results{MXD_LIST1}     = \%list1_hash;
         $results{MXD_LIST2}     = \%list2_hash;

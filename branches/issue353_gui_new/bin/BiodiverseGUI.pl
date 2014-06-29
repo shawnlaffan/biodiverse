@@ -10,7 +10,7 @@ use 5.010;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -87,8 +87,8 @@ $gladexml->signal_autoconnect_from_package('Biodiverse::GUI::Callbacks');
 
 # Initialise the GUI Manager object
 my $gui = Biodiverse::GUI::GUIManager->instance;
-$gui->setGladeXML($gladexml);
-$gui->setGladeFile($gladefile);
+$gui->set_glade_xml($gladexml);
+$gui->set_glade_file($gladefile);
 $gui->init();
 
 if ( defined $filename ) {
@@ -134,17 +134,17 @@ sub get_gladefile {
             $gladefile = PerlApp::extract_bound_file('biodiverse.glade')
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
-        print "Using perlapp glade file\n";
+        say 'Using perlapp glade file';
         return $gladefile;
     }
     elsif ($ENV{PAR_0}) {  #  we are running under PAR
         $gladefile = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'glade', 'biodiverse.glade')->stringify;
         if (-e $gladefile) {
-            print "Using PAR glade file $gladefile\n";
+            say "Using PAR glade file $gladefile";
             return $gladefile;
         }
         else {
-            print "Cannot locate $gladefile\n";
+            say "Cannot locate $gladefile";
         }
     }
 
@@ -158,6 +158,8 @@ sub get_gladefile {
     }
 
     croak 'Cannot find glade file biodiverse.glade' if ! -e $gladefile;
+
+    say "Using $gladefile";
 
     return $gladefile;
 }

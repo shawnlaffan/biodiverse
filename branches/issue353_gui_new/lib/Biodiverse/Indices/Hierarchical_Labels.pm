@@ -6,7 +6,9 @@ use warnings;
 use Scalar::Util qw /blessed/;
 use Biodiverse::Progress;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
+
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 ######################################################
 #
@@ -58,7 +60,7 @@ END_H_DESC
     my $ref = 'Jones and Laffan (2008) Trans Philol Soc '
             . 'http://dx.doi.org/10.1111/j.1467-968X.2008.00209.x';
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Ratios of hierarchical labels',
         description     => $desc,
         type            => 'Hierarchical Labels',
@@ -69,7 +71,7 @@ END_H_DESC
         uses_nbr_lists  => 2,  #  how many sets of lists it must have
     );
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -127,14 +129,31 @@ sub calc_hierarchical_label_ratios {
     
 }
 
-#  get a series of basedata objects, but with the labels reduced by one from the right
-#  the groups remain the same, as do the total sample counts
-#  now including the full set, but without all the other paraphernalia (just the groups and labels)
+sub get_metadata_get_basedatas_by_label_hierarchy {
+    my $desc = << 'END_BDLH_DESCR'
+Get a series of basedata objects, but with the labels reduced by one from the right.
+The groups remain the same, as do the total sample counts.
+END_BDLH_DESCR
+  ;
+
+    my %metadata = (
+        name        => 'get_basedatas_by_label_hierarchy',
+        description => '$desc',
+        indices => {
+            BD_HIERARCHY => {
+                description => 'List of hierarchical basedatas',
+                type        => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
 sub get_basedatas_by_label_hierarchy {
     my $self = shift;
     my %args = @_;
     
-    #my $progress_bar = $args{progress};
     my $progress_bar = Biodiverse::Progress->new();
     
     my $bd  = $self->get_basedata_ref;
@@ -149,8 +168,8 @@ sub get_basedatas_by_label_hierarchy {
     #  generate a set of new basedata objects
     foreach my $i (0 .. $label_max_index) {
         #  just to allow greater abstraction, eg we may extend the basedata types
-        my $cell_sizes = $bd->get_param('CELL_SIZES');
-        push @{$results{BD_HIERARCHY}}, blessed ($bd)->new (CELL_SIZES => [@$cell_sizes]);  
+        my $cell_sizes = $bd->get_cell_sizes;
+        push @{$results{BD_HIERARCHY}}, blessed ($bd)->new (CELL_SIZES => $cell_sizes);  
     }
 
     my $targets = $results{BD_HIERARCHY};
@@ -183,7 +202,7 @@ sub get_basedatas_by_label_hierarchy {
                 );
 
                 #  now add this new label/group pair to the new basedata
-                $targets->[$i] -> add_element (
+                $targets->[$i]->add_element (
                     label => $new_label,
                     group => $group,
                     count => $count,
@@ -195,9 +214,6 @@ sub get_basedatas_by_label_hierarchy {
     return wantarray ? %results : \%results;
 }
 
-sub get_metadata_get_basedatas_by_label_hierarchy {    
-    return wantarray ? () : {};
-}
 
 1;
 

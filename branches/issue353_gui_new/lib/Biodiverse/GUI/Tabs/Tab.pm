@@ -2,7 +2,7 @@ package Biodiverse::GUI::Tabs::Tab;
 use strict;
 use warnings;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use List::Util qw/min max/;
 use Gtk2;
@@ -19,23 +19,23 @@ sub add_to_notebook {
     my $label = $args{label};
     my $label_widget = $args{label_widget};
 
-    $self->{notebook}   = $self->{gui}->getNotebook();
+    $self->{notebook}   = $self->{gui}->get_notebook();
     $self->{notebook}->append_page_menu($page, $label, $label_widget);
     $self->{page}       = $page;
-    $self->{gui}->addTab($self);
+    $self->{gui}->add_tab($self);
     $self->set_tab_reorderable($page);
 
     return;
 }
 
-sub getPageIndex {
+sub get_page_index {
     my $self = shift;
     my $page = shift || $self->{page};
     my $index = $self->{notebook}->page_num($page);
     return $index >= 0 ? $index : undef;
 }
 
-sub setPageIndex {
+sub set_page_index {
     my $self = shift;
     
     #  no-op now
@@ -83,10 +83,10 @@ sub remove {
     my $self = shift;
 
     if (exists $self->{current_registration}) {  #  deregister if necessary
-        #$self->{project}->registerInOutputsModel($self->{current_registration}, undef);
-        $self->registerInOutputsModel($self->{current_registration}, undef);
+        #$self->{project}->register_in_outputs_model($self->{current_registration}, undef);
+        $self->register_in_outputs_model($self->{current_registration}, undef);
     }
-    my $index = $self->getPageIndex;
+    my $index = $self->get_page_index;
     if (defined $index && $index > -1) {
         $self->{notebook}->remove_page( $index );
     }
@@ -103,20 +103,20 @@ sub set_tab_reorderable {
     return;
 }
 
-sub onClose {
+sub on_close {
     my $self = shift;
-    $self->{gui}->removeTab($self);
-    #print "[GUI] Closed tab - ", $self->getPageIndex(), "\n";
+    $self->{gui}->remove_tab($self);
+    #print "[GUI] Closed tab - ", $self->get_page_index(), "\n";
     return;
 }
 
 # Make ourselves known to the Outputs tab to that it
 # can switch to this tab if the user presses "Show"
-sub registerInOutputsModel {
+sub register_in_outputs_model {
     my $self = shift;
     my $output_ref = shift;
     my $tabref = shift; # either $self, or undef to deregister
-    my $model = $self->{project}->getBaseDataOutputModel();
+    my $model = $self->{project}->get_base_data_output_model();
 
     # Find iter
     my $iter;
@@ -146,6 +146,20 @@ sub registerInOutputsModel {
     return;
 }
 
+#  prepend some text to the grid hover text
+sub get_grid_text_pfx {
+    my $self = shift;
+
+    my $bd = $self->get_base_ref;
+    my @cellsizes = $bd->get_cell_sizes;
+    my $col_count = scalar @cellsizes;
+    my $pfx = $col_count > 2
+        ? "<i>Note: Basedata has more than two axes so some cells will be overplotted and thus not visible</i>\n"
+        : q{};
+
+    return $pfx;
+}
+
 ##########################################################
 # Keyboard shortcuts
 ##########################################################
@@ -155,9 +169,9 @@ my $handler_entered = 0;
 
 # Called when user switches to this tab
 #   installs keyboard-shortcut handler
-sub setKeyboardHandler {
+sub set_keyboard_handler {
     my $self = shift;
-    # Make CTRL-G activate the "go!" button (onRun)
+    # Make CTRL-G activate the "go!" button (on_run)
     if ($snooper_id) {
         ##print "[Tab] Removing keyboard snooper $snooper_id\n";
         Gtk2->key_snooper_remove($snooper_id);
@@ -165,11 +179,11 @@ sub setKeyboardHandler {
     }
 
 
-    $snooper_id = Gtk2->key_snooper_install(\&hotkeyHandler, $self);
+    $snooper_id = Gtk2->key_snooper_install(\&hotkey_handler, $self);
     ##print "[Tab] Installed keyboard snooper $snooper_id\n";
 }
 
-sub removeKeyboardHandler {
+sub remove_keyboard_handler {
     my $self = shift;
     if ($snooper_id) {
         ##print "[Tab] Removing keyboard snooper $snooper_id\n";
@@ -179,11 +193,11 @@ sub removeKeyboardHandler {
 }
     
 # Processes keyboard shortcuts like CTRL-G = Go!
-sub hotkeyHandler {
+sub hotkey_handler {
     my ($widget, $event, $self) = @_;
     my $retval;
 
-    # stop recursion into onRun if shortcut triggered during processing
+    # stop recursion into on_run if shortcut triggered during processing
     #   (this happens because progress-dialogs pump events..)
 
     return 1 if ($handler_entered == 1);
@@ -198,14 +212,14 @@ sub hotkeyHandler {
             
             # Go!
             if ((uc chr $keyval) eq 'G') {
-                $self->onRun();
+                $self->on_run();
                 $retval = 1; # stop processing
             }
 
             # Close tab (CTRL-W)
             elsif ((uc chr $keyval) eq 'W') {
-                if ($self->getRemovable) {
-                    $self->{gui}->removeTab($self);
+                if ($self->get_removable) {
+                    $self->{gui}->remove_tab($self);
                     $retval = 1; # stop processing
                 }
             }
@@ -214,14 +228,14 @@ sub hotkeyHandler {
             elsif ($keyval eq Gtk2::Gdk->keyval_from_name ('Tab')) {
                 #  switch tabs
                 #print "keyval is $keyval (tab), state is " . $event->state . "\n";
-                my $page_index = $self->getPageIndex;
-                $self->{gui}->switchTab (undef, $page_index + 1); #  go right
+                my $page_index = $self->get_page_index;
+                $self->{gui}->switch_tab (undef, $page_index + 1); #  go right
             }
             elsif ($keyval eq Gtk2::Gdk->keyval_from_name ('ISO_Left_Tab')) {
                 #  switch tabs
                 #print "keyval is $keyval (left tab), state is " . $event->state . "\n";
-                my $page_index = $self->getPageIndex;
-                $self->{gui}->switchTab (undef, $page_index - 1); #  go left
+                my $page_index = $self->get_page_index;
+                $self->{gui}->switch_tab (undef, $page_index - 1); #  go left
             }
         }
         elsif ($event->state == []) {
@@ -243,7 +257,7 @@ sub hotkeyHandler {
 #  Other stuff
 
 
-sub onRun {} # default for tabs that don't implement onRun
+sub on_run {} # default for tabs that don't implement on_run
 
 # Default for tabs that don't implement onBareKey
 sub on_bare_key {
@@ -251,7 +265,7 @@ sub on_bare_key {
     #print "default bare key: ", $keyval, "\n";
 }
 
-sub getRemovable { return 1; } # default - tabs removable
+sub get_removable { return 1; } # default - tabs removable
 
 #  codes to define percentiles etc
 sub get_display_stretch_codes {

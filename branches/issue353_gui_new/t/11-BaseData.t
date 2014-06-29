@@ -4,9 +4,11 @@
 #  Need to add tests for the number of elements returned,
 #  amongst the myriad of other things that a basedata object does.
 
+use 5.010;
 use strict;
 use warnings;
 use English qw { -no_match_vars };
+use Data::Dumper;
 
 use rlib;
 
@@ -64,6 +66,10 @@ my @setup = (
     },
 );
 
+use Devel::Symdump;
+my $obj = Devel::Symdump->rnew(__PACKAGE__); 
+my @test_subs = grep {$_ =~ 'main::test_'} $obj->functions();
+
 
 exit main( @ARGV );
 
@@ -79,16 +85,12 @@ sub main {
         done_testing;
         return 0;
     }
-    
-    test_import();
-    test_import_small();
-    test_bounds();
-    test_coords_near_zero();
-    test_rename_labels();
-    test_multidimensional_import();
-    test_reorder_axes();
-    test_attach_ranges_and_sample_counts();
 
+    foreach my $sub (@test_subs) {
+        no strict 'refs';
+        $sub->();
+    }
+    
     done_testing;
     return 0;
 }
@@ -166,14 +168,6 @@ sub test_import_small {
             CELL_ORIGINS  => [0, 0, 0, 0, 0],
         );
     };
-    #eval {
-    #    $bd_x2->import_data(
-    #        input_files   => [$fname],
-    #        group_columns => [3, 4, 5],
-    #        label_columns => [1, 2],
-    #    );
-    #    1;
-    #};
     $e = $EVAL_ERROR;
     ok ($e, q{Exception when cell_size and cell_origin col counts don't match});
     
@@ -188,7 +182,63 @@ sub test_import_small {
     };
     $e = $EVAL_ERROR;
     ok (!$e, 'cell_origins argument ignored for second import');
+    
+    #  now check we can import zeros
+    
+    my $bd_disallow_zeroes = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_disallow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (disallow empty groups)});
 
+    #  need to check what was imported
+    is ($bd_disallow_zeroes->get_group_count, 0, "0 groups when sample_count_cols specified");
+    is ($bd_disallow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    my $bd_allow_zeroes = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd_allow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+            allow_empty_groups   => 1,
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (allow empty groups)});
+
+    #  need to check what was imported
+    is ($bd_allow_zeroes->get_group_count, 3, "3 groups when sample_count_cols specified");
+    is ($bd_allow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    #  now add zeroes to an existing basedata
+    eval {
+        $bd_disallow_zeroes->import_data(
+            input_files     => [$fname],
+            group_columns   => [3, 4, 5],
+            label_columns   => [1, 2],
+            sample_count_columns => [-1],
+            allow_empty_groups   => 1,
+        );
+        1;
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, q{No exception when sample_count_columns specified (allow empty groups)});
+
+    #  need to check what was imported
+    is ($bd_disallow_zeroes->get_group_count, 3, "3 groups when sample_count_cols specified");
+    is ($bd_disallow_zeroes->get_label_count, 0, "0 labels when sample_count_cols specified");
+
+    
     #  using inclusions columns
     my @incl_cols_data = (
         [1, [6]],
@@ -264,7 +314,7 @@ sub test_import_small {
 
         my $groups = $bd->get_groups;
         is ($groups->[0], '1.5:1.5:1.5', "Only remaining group is '1.5:1.5:1.5'");
-        
+
         my $labels = $bd->get_labels;
         is ($labels->[0], 'g1:sp1', "Only remaining label is 'g1:sp1'");
     }
@@ -303,6 +353,391 @@ sub test_import_small {
         is ($bd->get_group_count, $expected_count, "$expected_count groups for incl/excl cols $cols_text");
         is ($bd->get_label_count, $expected_count, "$expected_count labels for incl/excl cols $cols_text");
 
+    }
+    
+}
+
+
+
+sub test_import_null_labels {
+
+    my %bd_args = (
+        NAME => 'test null axes',
+        CELL_SIZES => [1,1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_null_label());
+    my $fname = $tmp_file->filename;
+
+    my $e;
+
+    #  vanilla import
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4, 5],
+            label_columns => [1],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    ok ($bd->exists_label (element => q{}), q{Null label exists});
+
+}
+
+
+#  can we reimport delimited text files after exporting and get the same answer
+sub test_roundtrip_delimited_text {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+
+    my $e;
+
+    #  get the original - should add some labels with special characters
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    $bd->add_element (group => '1.5:1.5', label => 'bazungalah:smith', count => 25);
+    
+    my $lb = $bd->get_labels_ref;
+    my $gp = $bd->get_groups_ref;
+
+    #  export should return file names?  Or should we cache them on the object?
+
+    my $format = 'export_table_delimited_text';
+    my @out_options = (
+        {symmetric => 0, one_value_per_line => 1},
+        {symmetric => 1, one_value_per_line => 1},
+        #{symmetric => 0, one_value_per_line => 0},  #  cannot import this format
+        {symmetric => 1, one_value_per_line => 0},
+    );
+    my @in_options = (
+        {label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
+        {label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
+        #{label_columns   => [3], group_columns => [1,2], sample_count_columns => [4]},
+        {label_start_col => 3,   group_columns => [1,2], data_in_matrix_form  =>  1, },
+    );
+    
+    my $tmp_folder = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+
+    my $i = 0;
+    foreach my $out_options_hash (@out_options) {
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
+        #say Dumper $out_options_hash;
+
+        #  need to use a better approach for the name, but at least it goes into a temp folder
+        my $fname = $tmp_folder . '/' . 'delimtxt' . $i
+                   . ($out_options_hash->{symmetric} ? '_symm' : '_asym')
+                   . ($out_options_hash->{one_value_per_line} ? '_notmx' : '_mx')
+                   . '.txt';  
+        my $success = eval {
+            $gp->export (
+                format    => $format,
+                file      => $fname,
+                list      => 'SUBELEMENTS',
+                %$out_options_hash,
+            );
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions exporting $format to $fname");
+        diag $e if $e;
+
+        #  Now we re-import and check we get the same numbers
+        #  We do not yet guarantee the labels will be the same due to the csv quoting rules.
+        my $new_bd = Biodiverse::BaseData->new (
+            name         => $fname,
+            CELL_SIZES   => $bd->get_param ('CELL_SIZES'),
+            CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
+        );
+        my $in_options_hash = $in_options[$i];
+        $success = eval {
+            $new_bd->import_data (input_files => [$fname], %$in_options_hash);
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions importing $fname");
+        diag $e if $e;
+
+        my @new_labels  = sort $new_bd->get_labels;
+        my @orig_labels = sort $bd->get_labels;
+        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+        
+        my $new_lb = $new_bd->get_labels_ref;
+        subtest "sample counts match for $fname" => sub {
+            foreach my $label (sort $bd->get_labels) {
+                my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+            }
+        };
+
+        $i++;
+    }
+    
+}
+
+#  can we reimport raster files after exporting and get the same answer
+sub test_roundtrip_raster {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+    say "testing filename $fname";
+    my $e;
+
+    #  get the original - should add some labels with special characters
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    # not sure why this is used
+    $bd->add_element (group => '1.5:1.5', label => 'bazungalah:smith', count => 25);
+    
+    my $lb = $bd->get_labels_ref;
+    my $gp = $bd->get_groups_ref;
+
+    #  export should return file names?  Or should we cache them on the object?
+
+    #my $format = 'export_asciigrid';
+    my @out_options = (
+        { format => 'export_asciigrid'},
+        { format => 'export_floatgrid'},
+        { format => 'export_geotiff'},
+    );
+
+    # the raster data file won't specify the origin and cell size info, so pass as
+    # parameters.
+    # assume export was in format labels_as_bands = 0
+    my @cell_sizes      = $bd->get_cell_sizes; # probably not set anywhere, and is using the default
+    my @cell_origins    = $bd->get_cell_origins;    
+    my %in_options_hash = (
+        labels_as_bands   => 0,
+        raster_origin_e   => $cell_origins[0],
+        raster_origin_n   => $cell_origins[1], 
+        raster_cellsize_e => $cell_sizes[0],
+        raster_cellsize_n => $cell_sizes[1],
+    );
+
+    my $i = 0;
+    foreach my $out_options_hash (@out_options) {
+        my $format = $out_options_hash->{format};
+
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
+        #say Dumper $out_options_hash;
+
+        #  need to use a better approach for the name
+        my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+        my $fname_base = $format; 
+        my $suffix = '';
+        my $fname = $tmp_dir . '/' . $fname_base . $suffix;  
+        #my @exported_files;
+        my $success = eval {
+            $gp->export (
+                format    => $format,
+                file      => $fname,
+                list      => 'SUBELEMENTS',
+            );
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions exporting $format to $fname");
+        diag $e if $e;
+
+        #  Now we re-import and check we get the same numbers
+        my $new_bd = Biodiverse::BaseData->new (
+            name         => $fname,
+            CELL_SIZES   => $bd->get_param ('CELL_SIZES'),
+            CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
+        );
+        
+        use URI::Escape::XS qw/uri_unescape/;
+
+        # each band was written to a separate file, load each in turn and add to
+        # the basedata object
+        # Should import the lot at once and then rename the labels to their unescaped form
+        # albeit that would be just as contorted in the end.
+
+        #  make sure we skip world and hdr files 
+        my @exported_files = grep {$_ !~ /(?:(?:hdr)|w)$/} glob "$tmp_dir/*";
+
+        foreach my $this_file (@exported_files) {
+            # find label name from file name
+            my $this_label = Path::Class::File->new($this_file)->basename();
+            $this_label =~ s/.*${fname_base}_//; 
+            $this_label =~ s/\....$//;  #  hackish way of clearing suffix
+            $this_label = uri_unescape($this_label);
+            note "got label $this_label\n";
+
+            $success = eval {
+                $new_bd->import_data_raster (
+                    input_files => [$this_file],
+                    %in_options_hash,
+                    #labels_as_bands => 1,
+                    given_label => $this_label,
+                );
+            };
+            $e = $EVAL_ERROR;
+            ok (!$e, "no exceptions importing $fname");
+            diag $e if $e;
+        }
+        my @new_labels  = sort $new_bd->get_labels;
+        my @orig_labels = sort $bd->get_labels;
+        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+
+        my $new_lb = $new_bd->get_labels_ref;
+        subtest "sample counts match for $format" => sub {
+            foreach my $label (sort $bd->get_labels) {
+                my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $format");
+            }
+        };
+
+        $i++;
+    }
+    
+}
+
+#can we reimport shapefiles after exporting and get the same answer
+sub test_roundtrip_shapefile {
+    my %bd_args = (
+        NAME => 'test include exclude',
+        CELL_SIZES => [1,1],
+    );
+
+    my $tmp_file = write_data_to_temp_file (get_import_data_small());
+    my $fname = $tmp_file->filename;
+    say "testing filename $fname";
+    my $e;
+
+    #  get the original - should add some labels with special characters
+    my $bd = Biodiverse::BaseData->new (%bd_args);
+    eval {
+        $bd->import_data(
+            input_files   => [$fname],
+            group_columns => [3, 4],
+            label_columns => [1, 2],
+        );
+    };
+    $e = $EVAL_ERROR;
+    ok (!$e, 'import vanilla with no exceptions raised');
+    
+    # add some labels so we have multiple entries in some cells 
+    # with different labels
+    $bd->add_element (group => '1.5:1.5', label => 'bazungalah:smith', count => 25);
+    $bd->add_element (group => '1.5:1.5', label => 'repeat:1', count => 14);
+    $bd->add_element (group => '1.5:1.5', label => 'repeat:2', count => 12);
+
+    my $lb = $bd->get_labels_ref;
+    my $gp = $bd->get_groups_ref;
+
+    #  export should return file names?  Or should we cache them on the object?
+
+    my $format = 'export_shapefile';
+    my @out_options = ( { data => $bd, shapetype => 'point' } ); # not sure what parameters are needed for export
+
+    # the raster data file won't specify the origin and cell size info, so pass as
+    # parameters.
+    # assume export was in format labels_as_bands = 0
+    my @cell_sizes   = @{$bd->get_param('CELL_SIZES')}; # probably not set anywhere, and is using the default
+    my @cell_origins = @{$bd->get_cell_origins};    
+    my @in_options = (
+        {
+            group_field_names => [':shape_x', ':shape_y'],
+            label_field_names => ['KEY'],
+            sample_count_col_names => ['VALUE'],
+        },
+    );
+
+    my $tmp_dir = File::Temp->newdir (TEMPLATE => 'biodiverseXXXX', TMPDIR => 1);
+
+    my $i = 0;
+    foreach my $out_options_hash (@out_options) {
+        #local $Data::Dumper::Sortkeys = 1;
+        #local $Data::Dumper::Purity   = 1;
+        #local $Data::Dumper::Terse    = 1;
+        #say Dumper $out_options_hash;
+
+        #  need to use a better approach for the name
+        my $fname_base = $tmp_dir . '/' . 'shapefile_' . $i; 
+        my $suffix = ''; # leave off, .shp will be added (or similar)
+        my $fname = $fname_base . $suffix;  
+        my @exported_files;
+        my $success = eval {
+            $gp->export (
+                format    => $format,
+                file      => $fname,
+                list      => 'SUBELEMENTS',
+                %$out_options_hash
+            );
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions exporting $format to $fname");
+        diag $e if $e;
+
+        #  Now we re-import and check we get the same numbers
+        my $new_bd = Biodiverse::BaseData->new (
+            name         => $fname,
+            CELL_SIZES   => $bd->get_param ('CELL_SIZES'),
+            CELL_ORIGINS => $bd->get_param ('CELL_ORIGINS'),
+        );
+        my $in_options_hash = $in_options[$i];
+
+        use URI::Escape::XS qw/uri_unescape/;
+
+        # import as shapefile
+        $success = eval {
+            $new_bd->import_data_shapefile (input_files => [$fname], %$in_options_hash);
+        };
+        $e = $EVAL_ERROR;
+        ok (!$e, "no exceptions importing $fname");
+        diag $e if $e;
+
+        my @new_labels  = sort $new_bd->get_labels;
+        my @orig_labels = sort $bd->get_labels;
+        is_deeply (\@new_labels, \@orig_labels, "label lists match for $fname");
+
+        my $new_lb = $new_bd->get_labels_ref;
+        subtest "sample counts match for $fname" => sub {
+            foreach my $label (sort $bd->get_labels) {
+                my $new_list  = $new_lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                my $orig_list = $lb->get_list_ref (list => 'SUBELEMENTS', element => $label);
+                
+                #say "new list: " . join(',', keys %$new_list) . join(',', values %$new_list) if ($new_list);
+                #say "orig list: " . join(',', keys %$orig_list) . join(',', values %$orig_list)if ($orig_list);
+                is_deeply ($new_list, $orig_list, "SUBELEMENTS match for $label, $fname");
+            }
+        };
+
+        $i++;
     }
     
 }
@@ -434,10 +869,12 @@ sub test_coords_near_zero {
                 push @groups, "$i:$j";
             }
         }
-        foreach my $group (@groups) {
-            ok ($bd->exists_group(group => $group), "Group $group exists");
-        }
-        
+        subtest 'Requisite groups exist' => sub {
+            foreach my $group (@groups) {
+                ok ($bd->exists_group(group => $group), "Group $group exists");
+            }
+        };
+
         #  should also text the extents of the data set, min & max on each axis
 
         my $bounds = $bd->get_coord_bounds;
@@ -541,6 +978,16 @@ sub test_rename_labels {
             my %observed_hash = $bd->get_groups_with_label_as_hash (label => $label);
             is_deeply ($hash, \%observed_hash, $label);
         }
+    };
+    
+    subtest 'Rename label element arrays are updated' => sub {
+        my $lb = $bd->get_labels_ref;
+        foreach my $label (reverse sort $bd->get_labels) {
+            my $el_array = $lb->get_element_name_as_array (element => $label);
+            foreach my $el (@$el_array) {
+                ok ($label =~ /$el/, "Label $label contains $el");
+            }
+        }
     }
     
 }
@@ -581,6 +1028,10 @@ sub get_import_data_small {
     return get_data_section('BASEDATA_IMPORT_SMALL');
 }
 
+sub get_import_data_null_label {
+    return get_data_section('BASEDATA_IMPORT_NULL_LABEL');
+}
+
 1;
 
 __DATA__
@@ -595,6 +1046,12 @@ id,gen_name_in,sp_name_in,gen_name_out,sp_name_out
 @@ BASEDATA_IMPORT_SMALL
 id,gen_name_in,sp_name_in,x,y,z,incl1,excl1,incl2,excl2,incl3,excl3
 1,g1,sp1,1,1,1,1,1,,,1,0
-2,g2,sp2,1,2,2,0,,1,1,1,0
+2,g2,sp2,2,2,2,0,,1,1,1,0
 3,g2,sp3,1,3,3,,,1,1,1,0
 
+@@ BASEDATA_IMPORT_NULL_LABEL
+id,gen_name_in,sp_name_in,x,y,z,incl1,excl1,incl2,excl2,incl3,excl3
+1,g1,sp1,1,1,1,1,1,,,1,0
+2,g2,sp2,2,2,2,0,,1,1,1,0
+3,g2,sp3,1,3,3,,,1,1,1,0
+4,,sp3,1,3,3,,,1,1,1,0

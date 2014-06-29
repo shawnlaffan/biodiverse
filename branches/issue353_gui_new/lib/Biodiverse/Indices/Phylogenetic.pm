@@ -1,19 +1,19 @@
 #  Phylogenetic indices
 #  A plugin for the biodiverse system and not to be used on its own.
-
 package Biodiverse::Indices::Phylogenetic;
+use 5.010;
 use strict;
 use warnings;
+
 use English qw /-no_match_vars/;
 use Carp;
+
 use Biodiverse::Progress;
 
-use List::Util qw /sum min max/;
-use List::MoreUtils qw /pairwise any/;
-use Math::BigInt;
-#use POSIX qw /floor/;
+use List::Util 1.33 qw /any sum min max/;
+use Scalar::Util qw /blessed/;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -21,10 +21,11 @@ my $stats_package = 'Biodiverse::Statistics';
 use Biodiverse::Matrix::LowMem;
 my $mx_class_for_trees = 'Biodiverse::Matrix::LowMem';
 
+my $metadata_class = 'Biodiverse::Metadata::Indices';
 
 sub get_metadata_calc_pd {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Phylogenetic diversity (PD) based on branch '
                            . "lengths back to the root of the tree.\n"
                            . 'Uses labels in both neighbourhoods.',
@@ -85,7 +86,7 @@ sub get_metadata_calc_pd {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_pd {
@@ -101,7 +102,7 @@ sub calc_pd {
 
 sub get_metadata_calc_pd_node_list {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Phylogenetic diversity (PD) nodes used.',
         name            => 'Phylogenetic Diversity node list',
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -116,7 +117,7 @@ sub get_metadata_calc_pd_node_list {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_pd_node_list {
@@ -133,7 +134,7 @@ sub calc_pd_node_list {
 
 sub get_metadata_calc_pd_terminal_node_list {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Phylogenetic diversity (PD) terminal nodes used.',
         name            => 'Phylogenetic Diversity terminal node list',
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -148,7 +149,7 @@ sub get_metadata_calc_pd_terminal_node_list {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_pd_terminal_node_list {
@@ -175,8 +176,41 @@ sub calc_pd_terminal_node_list {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pd_terminal_node_count {
+
+    my %metadata = (
+        description     => 'Number of terminal nodes in neighbour sets 1 and 2.',
+        name            => 'Phylogenetic Diversity terminal node count',
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc        => 'calc_pd_terminal_node_list',
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PD_INCLUDED_TERMINAL_NODE_COUNT => {
+                description   => 'Count of tree terminal nodes included in the PD calculations',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pd_terminal_node_count {
+    my $self = shift;
+    my %args = @_;
+
+
+    #  loop over nodes and just keep terminals
+    my $node_list = $args{PD_INCLUDED_TERMINAL_NODE_LIST};
+    
+    my %results = (
+        PD_INCLUDED_TERMINAL_NODE_COUNT => scalar keys %$node_list,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata__calc_pd {
-        my %arguments = (
+    my %metadata = (
         description     => 'Phylogenetic diversity (PD) base calcs.',
         name            => 'Phylogenetic Diversity base calcs',
         type            => 'Phylogenetic Indices',
@@ -185,11 +219,12 @@ sub get_metadata__calc_pd {
         required_args   => {'tree_ref' => 1},
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
-sub _calc_pd { #  calculate the phylogenetic diversity of the species in the central elements only
-              #  this function expects a tree reference as an argument.
+#  calculate the phylogenetic diversity of the species in the central elements only
+#  this function expects a tree reference as an argument.
+sub _calc_pd {
     my $self = shift;
     my %args = @_;
 
@@ -236,11 +271,12 @@ sub get_metadata_get_path_length_cache {
     my $self = shift;
 
     my %metadata = (
+        name            => 'get_path_length_cache',
         description     => 'Cache for path lengths.',
         uses_nbr_lists  => 1,  #  how many lists it must have
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_path_length_cache {
@@ -254,13 +290,19 @@ sub get_path_length_cache {
 
 sub get_metadata_get_path_lengths_to_root_node {
 
-    my %arguments = (
+    my %metadata = (
+        name            => 'get_path_lengths_to_root_node',
         description     => 'Get the path lengths to the root node of a tree for a set of labels.',
         uses_nbr_lists  => 1,  #  how many lists it must have
         pre_calc_global => 'get_path_length_cache',
+        indices         => {
+            path_length_cache => {
+                description => 'Path length cache hash',
+            }
+        }
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  get the paths to the root node of a tree for a set of labels
@@ -318,7 +360,7 @@ sub get_path_lengths_to_root_node {
 
 sub get_metadata_calc_pe {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Phylogenetic endemism (PE).'
                             . 'Uses labels in both neighbourhoods and '
                             . 'trims the tree to exclude labels not in the '
@@ -337,8 +379,8 @@ sub get_metadata_calc_pe {
             },
         },
     );
-    
-    return wantarray ? %arguments : \%arguments;
+
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_pe {
@@ -354,7 +396,7 @@ sub calc_pe {
 
 sub get_metadata_calc_pe_lists {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Lists used in the Phylogenetic endemism (PE) calculations.',
         name            => 'Phylogenetic Endemism lists',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
@@ -377,7 +419,7 @@ sub get_metadata_calc_pe_lists {
         },
     );
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_pe_lists {
@@ -391,9 +433,553 @@ sub calc_pe_lists {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_pe_central {
+
+    my $desc = <<'END_PEC_DESC'
+Phylogenetic endemism (PE).
+Uses labels from neighbour set one but local ranges from across
+both neighbour sets.
+Trims the tree to exclude labels not in the BaseData object.
+END_PEC_DESC
+  ;
+
+    my %metadata = (
+        description     => $desc,
+        name            => 'Phylogenetic Endemism central',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        type            => 'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        pre_calc_global => [qw /get_trimmed_tree/],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PEC_WE           => {
+                description => 'Phylogenetic endemism, central variant'
+            },
+            PEC_WE_P         => {
+                description => 'Phylogenetic weighted endemism as a proportion of the total tree length, central variant'
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pe_central {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree_ref    = $args{trimmed_tree};
+
+    my $pe      = $args{PE_WE};
+    my $pe_p    = $args{PE_WE_P};
+    my $wt_list = $args{PE_WTLIST};
+    my $c_list  = $args{PHYLO_C_LIST};  #  those only in nbr set 2
+
+    #  remove the PE component found only in nbr set 2
+    #  (assuming c_list is shorter than a+b, so this will be the faster approach)
+    $pe -= sum (0, @$wt_list{keys %$c_list});
+
+    $pe_p = $pe ? $pe / $tree_ref->get_total_tree_length : undef;
+
+    my %results = (
+        PEC_WE     => $pe,
+        PEC_WE_P   => $pe_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pe_central_lists {
+
+    my $desc = <<'END_PEC_DESC'
+Lists underlying the phylogenetic endemism central indices.
+Uses labels from neighbour set one but local ranges from across
+both neighbour sets.
+END_PEC_DESC
+  ;
+
+    my %metadata = (
+        description     => $desc,
+        name            => 'Phylogenetic Endemism central lists',
+        reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
+        type            => 'Phylogenetic Indices',
+        pre_calc        => [qw /_calc_pe _calc_phylo_abc_lists/],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+        indices         => {
+            PEC_WTLIST           => {
+                description => 'Phylogenetic endemism weights, central variant',
+                type => 'list',
+            },
+            PEC_LOCAL_RANGELIST  => {
+                description => 'Phylogenetic endemism local range lists, central variant',
+                type => 'list',
+            },
+            PEC_RANGELIST => {
+                description => 'Phylogenetic endemism global range lists, central variant',
+                type => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pe_central_lists {
+    my $self = shift;
+    my %args = @_;
+
+    my %wt_list = %{$args{PE_WTLIST}};    #  need a copy since we will delete from it
+    my $c_list  =   $args{PHYLO_C_LIST};  #  those only in nbr set 2
+    my $a_list  =   $args{PHYLO_A_LIST};
+    my $b_list  =   $args{PHYLO_B_LIST};
+    my (%local_range_list_c, %global_range_list_c);
+
+    my $local_range_list  = $args{PE_LOCAL_RANGELIST};
+    my $global_range_list = $args{PE_RANGELIST};
+
+    #  avoid copies and slices if there are no nodes found only in nbr set 2
+    if (scalar keys %$c_list) {
+        #  remove the PE component found only in nbr set 2
+        #  (assuming c_list is shorter than a+b, so this will be the faster approach)
+        delete @wt_list{keys %$c_list};
+
+        #  Keep any node found in nbr set 1
+        my @keepers = keys %wt_list;
+        @local_range_list_c{@keepers}  = @{$local_range_list}{@keepers};
+        @global_range_list_c{@keepers} = @{$global_range_list}{@keepers};
+    }
+    else {
+        %local_range_list_c  = %$local_range_list;
+        %global_range_list_c = %$global_range_list;
+    }
+
+    my %results = (
+        PEC_WTLIST => \%wt_list,
+        PEC_LOCAL_RANGELIST  => \%local_range_list_c,
+        PEC_RANGELIST        => \%global_range_list_c,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pe_central_cwe {
+
+    my %metadata = (
+        name            => 'Corrected weighted phylogenetic endemism, central variant',
+        description     => 'What proportion of the PD in neighbour set 1 is '
+                         . 'range-restricted to neighbour sets 1 and 2?',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pe_central calc_pe_central_lists calc_pd_node_list/],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PEC_CWE => {
+                description => 'Corrected weighted phylogenetic endemism, central variant',
+            },
+            PEC_CWE_PD => {
+                description => 'PD used in the PEC_CWE index.',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pe_central_cwe {
+    my $self = shift;
+    my %args = @_;
+
+    my $pe      = $args{PEC_WE};
+    my $wt_list = $args{PEC_WTLIST};
+
+    my $pd_included_node_list = $args{PD_INCLUDED_NODE_LIST};
+
+    my $pd = sum @$pd_included_node_list{keys %$wt_list};
+
+    my $cwe = $pd ? $pe / $pd : undef;
+
+    my %results = (
+        PEC_CWE    => $cwe,
+        PEC_CWE_PD => $pd,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pd_clade_contributions {
+
+    my %metadata = (
+        description     => 'Contribution of each node and its descendents to the Phylogenetic diversity (PD) calculation.',
+        name            => 'PD clade contributions',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd calc_pd_node_list get_sub_tree/],
+        #pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_SCORE  => {
+                description => 'List of PD scores for each node (clade), being the sum of all descendent branch lengths',
+                type        => 'list',
+            },
+            PD_CLADE_CONTR  => {
+                description => 'List of node (clade) contributions to the PD calculation',
+                type        => 'list',
+            },
+            PD_CLADE_CONTR_P => {
+                description => 'List of node (clade) contributions to the PD calculation, proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pd_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_contributions(
+        %args,
+        node_list => $args{PD_INCLUDED_NODE_LIST},
+        p_score   => $args{PD},
+        res_pfx   => 'PD_',
+    );
+}
+
+
+sub _calc_pd_pe_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+
+    my $main_tree = $args{tree_ref};
+    my $sub_tree  = $args{SUBTREE};
+    my $wt_list   = $args{node_list};
+    my $p_score   = $args{p_score};
+    my $res_pfx   = $args{res_pfx};
+    my $sum_of_branches = $main_tree->get_total_tree_length;
+
+    my $contr   = {};
+    my $contr_p = {};
+    my $clade_score = {};
+
+  NODE_NAME:
+    foreach my $node_name (keys %$wt_list) {
+        next if defined $contr->{$node_name};
+
+        my $node_ref = $sub_tree->get_node_ref (node => $node_name);
+
+        #  Possibly inefficient as we are not caching by node
+        #  but at least the descendants are cached and perhaps that
+        #  is where any slowness would come from as List::Util::sum is pretty quick
+        my $node_hash = $node_ref->get_all_descendents_and_self;
+        my $wt_sum = sum @$wt_list{keys %$node_hash};
+
+        #  round off to avoid spurious spatial variation.
+        $contr->{$node_name}    = 0 + sprintf '%.11f', $wt_sum / $p_score;
+        $contr_p->{$node_name}  = 0 + sprintf '%.11f', $wt_sum / $sum_of_branches;
+        $clade_score->{$node_name} = $wt_sum;
+    }
+
+    my %results = (
+        "${res_pfx}CLADE_SCORE"   => $clade_score,
+        "${res_pfx}CLADE_CONTR"   => $contr,
+        "${res_pfx}CLADE_CONTR_P" => $contr_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pe_clade_contributions {
+
+    my %metadata = (
+        description     => 'Contribution of each node and its descendents to the Phylogenetic endemism (PE) calculation.',
+        name            => 'PE clade contributions',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => ['_calc_pe', 'get_sub_tree'],
+        pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PE_CLADE_SCORE  => {
+                description => 'List of PE scores for each node (clade), being the sum of all descendent PE weights',
+                type        => 'list',
+            },
+            PE_CLADE_CONTR  => {
+                description => 'List of node (clade) contributions to the PE calculation',
+                type        => 'list',
+            },
+            PE_CLADE_CONTR_P => {
+                description => 'List of node (clade) contributions to the PE calculation, proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+    
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pe_clade_contributions {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_contributions(
+        %args,
+        node_list => $args{PE_WTLIST},
+        p_score   => $args{PE_WE},
+        res_pfx   => 'PE_',
+    );
+}
+
+
+sub get_metadata_calc_pd_clade_loss {
+
+    my %metadata = (
+        description     => 'How much of the PD would be lost if a clade were to be removed? '
+                         . 'Calculates the clade PD below the last ancestral node in the '
+                         . 'neighbour set which would still be in the neighbour set.',
+        name            => 'PD clade loss',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd_clade_contributions get_sub_tree/],
+        #pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_LOSS_SCORE  => {
+                description => 'List of how much PD would be lost if each clade were removed.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_CONTR  => {
+                description => 'List of the proportion of the PD score which would be lost '
+                             . 'if each clade were removed.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_CONTR_P => {
+                description => 'As per PD_CLADE_LOSS but proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pd_clade_loss {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss (
+        %args,
+        res_pfx => 'PD_',
+    );
+}
+
+sub get_metadata_calc_pe_clade_loss {
+
+    my %metadata = (
+        description     => 'How much of the PE would be lost if a clade were to be removed? '
+                         . 'Calculates the clade PE below the last ancestral node in the '
+                         . 'neighbour set which would still be in the neighbour set.',
+        name            => 'PE clade loss',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pe_clade_contributions get_sub_tree/],
+        #pre_calc_global => ['get_trimmed_tree'],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PE_CLADE_LOSS_SCORE  => {
+                description => 'List of how much PE would be lost if each clade were removed.',
+                type        => 'list',
+            },
+            PE_CLADE_LOSS_CONTR  => {
+                description => 'List of the proportion of the PE score which would be lost '
+                             . 'if each clade were removed.',
+                type        => 'list',
+            },
+            PE_CLADE_LOSS_CONTR_P => {
+                description => 'As per PE_CLADE_LOSS but proportional to the entire tree',
+                type        => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_pe_clade_loss {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss (
+        %args,
+        res_pfx => 'PE_',
+    );
+}
+
+
+sub _calc_pd_pe_clade_loss {
+    my $self = shift;
+    my %args = @_;
+
+    my $main_tree = $args{trimmed_tree};
+    my $sub_tree  = $args{SUBTREE};
+
+    my $pfx = $args{res_pfx};
+    my @score_names = map {$pfx . $_} qw /CLADE_SCORE CLADE_CONTR CLADE_CONTR_P/;
+
+    my ($p_clade_score, $p_clade_contr, $p_clade_contr_p) =
+      @args{@score_names};
+
+    my (%loss_contr, %loss_contr_p, %loss_score, %loss_ancestral);
+
+  NODE:
+    foreach my $node_ref ($sub_tree->get_node_refs) {
+        #  skip if we have already done this one
+        next NODE if defined $loss_score{$node_ref->get_name};
+
+        my $terminal_count = $node_ref->get_terminal_element_count;
+        my @ancestors = ($node_ref->get_name);
+
+        #  find the ancestors with no children outside this clade
+      PARENT:
+        while (my $parent = $node_ref->get_parent) {
+            last PARENT
+              if $parent->get_terminal_element_count > $terminal_count;
+
+            push @ancestors, $parent->get_name;
+            $node_ref = $parent;
+        }
+
+        my $last_ancestor = $ancestors[-1];
+
+        foreach my $node_name (@ancestors) {
+            #  these all have the same loss
+            $loss_contr{$node_name}   = $p_clade_contr->{$last_ancestor};
+            $loss_score{$node_name}   = $p_clade_score->{$last_ancestor};
+            $loss_contr_p{$node_name} = $p_clade_contr_p->{$last_ancestor};
+        }
+    }
+
+    my %results = (
+        "${pfx}CLADE_LOSS_SCORE"   => \%loss_score,
+        "${pfx}CLADE_LOSS_CONTR"   => \%loss_contr,
+        "${pfx}CLADE_LOSS_CONTR_P" => \%loss_contr_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+sub get_metadata_calc_pd_clade_loss_ancestral {
+
+    my %metadata = (
+        description     => 'How much of the PD clade loss is due to the ancestral branches? '
+                         . 'The score is zero when there is no ancestral loss.',
+        name            => 'PD clade loss (ancestral component)',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pd_clade_contributions calc_pd_clade_loss/],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PD_CLADE_LOSS_ANC => {
+                description => 'List of how much ancestral PE would be lost '
+                             . 'if each clade were removed.  '
+                             . 'The value is 0 when no ancestral PD is lost.',
+                type        => 'list',
+            },
+            PD_CLADE_LOSS_ANC_P  => {
+                description => 'List of the proportion of the clade\'s PD loss '
+                             . 'that is due to the ancestral branches.',
+                type        => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+
+sub calc_pd_clade_loss_ancestral {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss_ancestral (
+        %args,
+        res_pfx => 'PD_',
+    );
+}
+
+
+sub get_metadata_calc_pe_clade_loss_ancestral {
+
+    my %metadata = (
+        description     => 'How much of the PE clade loss is due to the ancestral branches? '
+                         . 'The score is zero when there is no ancestral loss.',
+        name            => 'PE clade loss (ancestral component)',
+        reference       => '',
+        type            => 'Phylogenetic Indices', 
+        pre_calc        => [qw /calc_pe_clade_contributions calc_pe_clade_loss/],
+        uses_nbr_lists  => 1,
+        indices         => {
+            PE_CLADE_LOSS_ANC => {
+                description => 'List of how much ancestral PE would be lost '
+                             . 'if each clade were removed.  '
+                             . 'The value is 0 when no ancestral PE is lost.',
+                type        => 'list',
+            },
+            PE_CLADE_LOSS_ANC_P  => {
+                description => 'List of the proportion of the clade\'s PE loss '
+                             . 'that is due to the ancestral branches.',
+                type        => 'list',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+
+sub calc_pe_clade_loss_ancestral {
+    my $self = shift;
+    my %args = @_;
+    
+    return $self->_calc_pd_pe_clade_loss_ancestral (
+        %args,
+        res_pfx => 'PE_',
+    );
+}
+
+sub _calc_pd_pe_clade_loss_ancestral {
+    my $self = shift;
+    my %args = @_;
+
+    my $pfx = $args{res_pfx};
+    my @score_names = map {$pfx . $_} qw /CLADE_SCORE CLADE_LOSS_SCORE/;
+
+    my ($p_clade_score, $p_clade_loss) =
+      @args{@score_names};
+
+    my (%loss_ancestral, %loss_ancestral_p);
+
+    while (my ($node_name, $score) = each %$p_clade_score) {
+        my $score = $p_clade_loss->{$node_name}
+                  - $p_clade_score->{$node_name};
+        $loss_ancestral{$node_name}   = $score;
+        my $loss = $p_clade_loss->{$node_name};
+        $loss_ancestral_p{$node_name} = $loss ? $score / $loss : 0;
+    }
+
+    my %results = (
+        "${pfx}CLADE_LOSS_ANC"   => \%loss_ancestral,
+        "${pfx}CLADE_LOSS_ANC_P" => \%loss_ancestral_p,
+    );
+
+    return wantarray ? %results : \%results;
+}
+
+
 sub get_metadata_calc_pe_single {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'PE scores, but not weighted by local ranges.',
         name            => 'Phylogenetic Endemism single',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
@@ -416,7 +1002,7 @@ sub get_metadata_calc_pe_single {
         },
     );
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_pe_single {
@@ -449,7 +1035,7 @@ sub calc_pe_single {
 
 sub get_metadata_calc_pd_endemism {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Absolute endemism analogue of PE.  '
                         .  'It is the sum of the branch lengths restricted '
                         .  'to the neighbour sets.',
@@ -457,7 +1043,7 @@ sub get_metadata_calc_pd_endemism {
         reference       => 'See Faith (2004) Cons Biol.  http://dx.doi.org/10.1111/j.1523-1739.2004.00330.x',
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         pre_calc        => ['calc_pe_lists'],
-        pre_calc_global => ['get_trimmed_tree'],
+        pre_calc_global => [qw /get_trimmed_tree/],
         uses_nbr_lists  => 1,  #  how many lists it must have
         indices         => {
             PD_ENDEMISM => {
@@ -465,44 +1051,56 @@ sub get_metadata_calc_pd_endemism {
             },
             PD_ENDEMISM_WTS => {
                 description => 'Phylogenetic Diversity Endemism weights per node found only in the neighbour set',
-            }
+                type        => 'list',
+            },
+            PD_ENDEMISM_P => {
+                description => 'Phylogenetic Diversity Endemism, as a proportion of the whole tree',
+            },
+            #PD_ENDEMISM_R => {  #  should put in its own calc as it needs an extra dependency
+            #    description => 'Phylogenetic Diversity Endemism, as a proportion of the local PD',
+            #},
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_pd_endemism {
     my $self = shift;
     my %args = @_;
-    
-    my $weights = $args{PE_WTLIST};
-    my $tree_ref = $args{trimmed_tree};
-    
+
+    my $weights   = $args{PE_WTLIST};
+    my $tree_ref  = $args{trimmed_tree};
+    my $total_len = $tree_ref->get_total_tree_length;
+    my $global_range_hash = $args{PE_RANGELIST};
+    my $local_range_hash  = $args{PE_LOCAL_RANGELIST};
+
     my $pd_e;
     my %pd_e_wts;
 
+  LABEL:
     foreach my $label (keys %$weights) {
-        my $wt = $weights->{$label};
-        my $tree_node = $tree_ref->get_node_ref(node => $label);
-        my $length = $tree_node->get_length;
-        next if $wt != $length || $wt == 0;
+        next LABEL if $global_range_hash->{$label} != $local_range_hash->{$label};
 
+        my $wt = $weights->{$label};
         $pd_e += $wt;
         $pd_e_wts{$label} = $wt;
     }
 
+    my $pd_e_p = (defined $pd_e && $total_len) ? ($pd_e / $total_len) : undef;
+
     my %results = (
         PD_ENDEMISM     => $pd_e,
+        PD_ENDEMISM_P   => $pd_e_p,
         PD_ENDEMISM_WTS => \%pd_e_wts,
     );
-    
+
     return wantarray ? %results : \%results;
 }
 
 sub get_metadata__calc_pe {
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Phylogenetic endemism (PE) base calcs.',
         name            => 'Phylogenetic Endemism base calcs',
         reference       => 'Rosauer et al (2009) Mol. Ecol. http://dx.doi.org/10.1111/j.1365-294X.2009.04311.x',
@@ -513,7 +1111,7 @@ sub get_metadata__calc_pe {
         required_args   => {'tree_ref' => 1},
     );
     
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub _calc_pe {
@@ -617,15 +1215,46 @@ sub _calc_pe {
     return wantarray ? %results : \%results;
 }
 
+sub get_metadata_calc_count_labels_on_tree {
+    my $self = shift;
+
+    my %metadata = (
+        description     => 'Count the number of labels that are on the tree',
+        name            => 'Count labels on tree',
+        indices         => {
+            PHYLO_LABELS_ON_TREE_COUNT => {
+                description => 'The number of labels that are found on the tree, across both neighbour sets',
+            },
+        },
+        type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        pre_calc        => ['calc_labels_on_tree'],
+        uses_nbr_lists  => 1,  #  how many lists it must have
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub calc_count_labels_on_tree {
+    my $self = shift;
+    my %args = @_;
+    
+    my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
+    
+    my %results = (PHYLO_LABELS_ON_TREE_COUNT => scalar keys %$labels_on_tree);
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_calc_labels_on_tree {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Create a hash of the labels that are on the tree',
         name            => 'Labels on tree',
         indices         => {
             PHYLO_LABELS_ON_TREE => {
                 description => 'A hash of labels that are found on the tree, across both neighbour sets',
+                type        => 'list',
             },  #  should poss also do nbr sets 1 and 2
         },
         type            => 'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
@@ -635,7 +1264,7 @@ sub get_metadata_calc_labels_on_tree {
         required_args   => ['tree_ref'],
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_labels_on_tree {
@@ -654,7 +1283,7 @@ sub calc_labels_on_tree {
 sub get_metadata_calc_labels_not_on_tree {
     my $self = shift;
 
-    my %arguments = (
+    my %metadata = (
         description     => 'Create a hash of the labels that are not on the tree',
         name            => 'Labels not on tree',
         indices         => {
@@ -678,7 +1307,7 @@ sub get_metadata_calc_labels_not_on_tree {
         required_args   => ['tree_ref'],
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_labels_not_on_tree {
@@ -712,7 +1341,8 @@ sub calc_labels_not_on_tree {
 
 sub get_metadata_get_pe_element_cache {
     
-    my %arguments = (
+    my %metadata = (
+        name        => 'get_pe_element_cache',
         description => 'Create a hash in which to cache the PE scores for each element',
         indices     => {
             PE_RESULTS_CACHE => {
@@ -721,7 +1351,7 @@ sub get_metadata_get_pe_element_cache {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 #  create a hash in which to cache the PE scores for each element
@@ -737,8 +1367,18 @@ sub get_pe_element_cache {
 
 #  get the node ranges as lists
 sub get_metadata_get_node_range_hash_as_lists {
-    my %arguments = (pre_calc_global => ['get_trimmed_tree']);
-    return wantarray ? %arguments : \%arguments;
+    my %metadata = (
+        name            => 'get_node_range_hash_as_lists',
+        description     => 'Get a hash of the node range lists across the basedata',
+        pre_calc_global => ['get_trimmed_tree'],
+        indices => {
+            node_range_hash => {
+                description => 'Hash of node range lists',
+            },
+        },
+    );
+
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_node_range_hash_as_lists {
@@ -754,13 +1394,23 @@ sub get_node_range_hash_as_lists {
 }
 
 sub get_metadata_get_node_range_hash {
-    my %arguments = (pre_calc_global => ['get_trimmed_tree']);
-    return wantarray ? %arguments : \%arguments;
+    my %metadata = (
+        name            => 'get_node_range_hash',
+        description     => 'Get a hash of the node ranges across the basedata',
+        pre_calc_global => ['get_trimmed_tree'],
+        indices => {
+            node_range => {
+                description => 'Hash of node ranges',
+            },
+        },
+    );
+    return $metadata_class->new(\%metadata);
 }
 
 #  needs a cleanup - see get_global_node_abundance_hash
-sub get_node_range_hash { # calculate the range occupied by each node/clade in a tree
-                          # this function expects a tree reference as an argument
+# calculate the range occupied by each node/clade in a tree
+# this function expects a tree reference as an argument
+sub get_node_range_hash { 
     my $self = shift;
     my %args = @_;
 
@@ -768,25 +1418,25 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
 
     my $progress_bar = Biodiverse::Progress->new();    
 
-    print "[PD INDICES] Calculating range for each node in the tree\n";
-    
+    say "[PD INDICES] Calculating range for each node in the tree";
+
     my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
     my $nodes = $tree->get_node_hash;
     my %node_range;
-  
-    my $toDo = scalar keys %$nodes;
-    my $count = 0;
-    print "[PD INDICES] Progress (% of $toDo nodes): ";
 
-    my $progress      = $count / $toDo;
+    my $to_do = scalar keys %$nodes;
+    my $count = 0;
+    print "[PD INDICES] Progress (% of $to_do nodes): ";
+
+    my $progress      = $count / $to_do;
     my $progress_text = int (100 * $progress);
     $progress_bar->update(
         "Calculating node ranges\n($progress_text %)",
         $progress,
     );
 
-    foreach my $node_name (keys %{$nodes}) {
-        my $node  = $tree->get_node_ref (node => $node_name);
+    foreach my $node_name (keys %$nodes) {
+        my $node = $nodes->{$node_name};
         if ($return_lists) {
             my @range = $self->get_node_range (
                 %args,
@@ -806,7 +1456,7 @@ sub get_node_range_hash { # calculate the range occupied by each node/clade in a
             }
         }
         $count ++;
-        $progress     = $count / $toDo;
+        $progress     = $count / $to_do;
         $progress_text = int (100 * $progress);
         $progress_bar->update(
             "Calculating node ranges\n($progress_text)",
@@ -834,9 +1484,9 @@ sub get_node_range {
     #  collect the set of non-internal (named) nodes
     #  Possibly should only work with terminals
     #  which would simplify things.
-    foreach my $name (keys %$children) {
-        next if $children->{$name}->is_internal_node;
-        push (@labels, $name);
+    foreach my $node_ref (values %$children) {
+        next if $node_ref->is_internal_node;
+        push @labels, $node_ref->get_name;
     }
 
     my @range = $bd->get_range_union (labels => \@labels);
@@ -846,8 +1496,18 @@ sub get_node_range {
 
 
 sub get_metadata_get_global_node_abundance_hash {
-    my %arguments = (pre_calc_global => ['get_trimmed_tree']);
-    return wantarray ? %arguments : \%arguments;
+    my %metadata = (
+        name            => 'get_global_node_abundance_hash',
+        description     => 'Get a hash of all nodes and their corresponding abundances in the basedata',
+        pre_calc_global => ['get_trimmed_tree'],
+        indices         => {
+            global_node_abundance_hash => {
+                description => 'Global node abundance hash',
+            }
+        }
+    );
+
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -857,16 +1517,16 @@ sub get_global_node_abundance_hash {
 
     my $progress_bar = Biodiverse::Progress->new();    
 
-    print "[PD INDICES] Calculating abundance for each node in the tree\n";
+    say '[PD INDICES] Calculating abundance for each node in the tree';
 
     my $tree  = $args{trimmed_tree} || croak "Argument trimmed_tree missing\n";  
     my $nodes = $tree->get_node_hash;
     my %node_hash;
 
-    my $toDo = scalar keys %$nodes;
+    my $to_do = scalar keys %$nodes;
     my $count = 0;
 
-    my $progress = int (100 * $count / $toDo);
+    my $progress = int (100 * $count / $to_do);
     $progress_bar->update(
         "Calculating node abundances\n($progress)",
         $progress,
@@ -884,7 +1544,7 @@ sub get_global_node_abundance_hash {
         }
 
         $count ++;
-        my $progress = $count / $toDo;
+        my $progress = $count / $to_do;
         $progress_bar->update(
             "Calculating node abundances\n($progress)",
             $progress,
@@ -920,25 +1580,58 @@ sub get_node_abundance_global {
 
 
 sub get_metadata_get_trimmed_tree {
-    my %arguments = (required_args => 'tree_ref');
-    return wantarray ? %arguments : \%arguments;
+    my %metadata = (
+        name            => 'get_trimmed_tree',
+        description     => 'Get a version of the tree trimmed to contain only labels in the basedata',
+        required_args   => 'tree_ref',
+        indices         => {
+            trimmed_tree => {
+                description => 'Trimmed tree',
+            },
+        },
+    );
+    return $metadata_class->new(\%metadata);
 }
 
-sub get_trimmed_tree { # create a copy of the current tree, including only those branches
-                       # which have records in the base-data
-                       # this function expects a tree reference as an argument
+#  Create a copy of the current tree, including only those branches
+#  which have records in the basedata.
+#  This function expects a tree reference as an argument.
+#  Returns the original tree ref if all its branches occur in the basedata.
+sub get_trimmed_tree {
     my $self = shift;
     my %args = @_;                          
 
-    print "[PD INDICES] Creating a trimmed tree by removing clades not present in the spatial data\n";
+    my $tree = $args{tree_ref};
 
     my $bd = $self->get_basedata_ref;
+    my $lb = $bd->get_labels_ref;
+    
+    my $terminals  = $tree->get_root_node->get_terminal_elements;  #  should use named nodes?
+    my $label_hash = $lb->get_element_hash;
+
+    my $terminal_count = keys %$terminals;
+    my $label_count    = keys %$label_hash;
+
+    
+    if ($label_count >= $terminal_count) {
+        my $expected_deletions = $label_count - $terminal_count;
+        #  make a copy since we do need to run the deletions
+        my %lb_hash_copy = %$label_hash;
+        delete @lb_hash_copy{keys %$terminals};
+
+        #  are the tree terminals a subset of the basedata labels?  
+        if (keys %lb_hash_copy == $expected_deletions) {
+            say '[PD INDICES] Tree terminals are all basedata labels, no need to trim';
+            my %results = (trimmed_tree => $tree);
+            return wantarray ? %results : \%results;
+        }
+    }
 
     #  keep only those that match the basedata object
-    my $trimmed_tree = $args{tree_ref}->clone;
+    say '[PD INDICES] Creating a trimmed tree by removing clades not present in the basedata';
+    my $trimmed_tree = $tree->clone;
     $trimmed_tree->trim (keep => scalar $bd->get_labels);
-    my $name = $trimmed_tree->get_param('NAME');
-    if (!defined $name) {$name = 'noname'};
+    my $name = $trimmed_tree->get_param('NAME') // 'noname';
     $trimmed_tree->rename(new_name => $name . ' trimmed');
 
     my %results = (trimmed_tree => $trimmed_tree);
@@ -946,12 +1639,91 @@ sub get_trimmed_tree { # create a copy of the current tree, including only those
     return wantarray ? %results : \%results;
 }
 
+
+sub get_metadata_get_sub_tree {
+    my $self = shift;
+
+    my %metadata = (
+        name          => 'get_sub_tree',
+        description   => 'get a tree that is a subset of the main tree, e.g. for the set of nodes in a neighbour set',
+        required_args => 'tree_ref',
+        pre_calc      => ['calc_labels_on_tree'],
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+
+#  get a tree that is a subset of the main tree,
+#  e.g. for the set of nodes in a neighbour set
+sub get_sub_tree {
+    my $self = shift;
+    my %args = @_;
+
+    my $tree       = $args{tree_ref};
+    my $label_list = $args{labels} // $args{PHYLO_LABELS_ON_TREE};
+
+    #  Could devise a better naming scheme,
+    #  but element lists can be too long to be workable
+    #  and abbreviations will be ambiguous in many cases
+    my $subtree = blessed ($tree)->new (NAME => 'subtree');
+
+  LABEL:
+    foreach my $label (keys %$label_list) {
+        my $node_ref = eval {$tree->get_node_ref (node => $label)};
+        next LABEL if !defined $node_ref;  # not a tree node name
+
+        my $child_name = $label;
+        my $st_node_ref = $subtree->add_node (
+            name   => $label,
+            length => $node_ref->get_length,
+        );
+
+      NODE_IN_PATH:
+        while (my $parent = $node_ref->get_parent()) {
+
+            my $parent_name = $parent->get_name;
+            my $st_parent = eval {$subtree->get_node_ref (node => $parent_name)};
+            my $last = defined $st_parent;  #  we have the rest of the path in this case
+
+            if (!$last) {
+                $st_parent = $subtree->add_node (
+                    name   => $parent_name,
+                    length => $parent->get_length,
+                );
+            }
+            $st_parent->add_children (children => [$st_node_ref]);
+
+            last NODE_IN_PATH if $last;
+
+            $node_ref    = $parent;
+            $st_node_ref = $st_parent;
+        }
+    }
+
+    #  make sure the topology is correct - needed?
+    $subtree->set_parents_below;
+
+    my %results = (SUBTREE => $subtree);
+
+    return wantarray ? %results : \%results;
+}
+
 sub get_metadata_get_labels_not_on_tree {
     my $self = shift;
 
-    my %arguments = (required_args => 'tree_ref');
+    my %metadata = (
+        name          => 'get_labels_not_on_tree',
+        description   => 'Hash of the basedata labels that are not on the tree',
+        required_args => 'tree_ref',
+        indices       => {
+            labels_not_on_tree => {
+                description => 'Hash of the basedata labels that are not on the tree',
+            },
+        },
+    );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_labels_not_on_tree {
@@ -1010,7 +1782,7 @@ sub get_metadata_calc_taxonomic_distinctness {
         indices         => $indices,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 #  sample count weighted version
@@ -1071,7 +1843,7 @@ sub get_metadata_calc_taxonomic_distinctness_binary {
         indices         => $indices,
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 #  sample count weighted version
@@ -1169,368 +1941,16 @@ sub _calc_taxonomic_distinctness {
     return wantarray ? %results : \%results;
 }
 
-my $webb_et_al_ref = 'Webb et al. (2008) http://dx.doi.org/10.1093/bioinformatics/btn358';
-
-sub get_mpd_mntd_metadata {
-    my $self = shift;
-    my %args = @_;
-
-    my $abc_sub = $args{abc_sub} || 'calc_abc';
-
-    my $num = 1;
-    if ($abc_sub =~ /(\d)$/) {
-        $num = $1;
-    }
-
-    my $indices = {
-        PNTD_MEAN => {
-            description    => 'Mean of nearest taxon distances',
-        },
-        PNTD_MAX => {
-            description    => 'Maximum of nearest taxon distances',
-        },
-        PNTD_MIN => {
-            description    => 'Minimum of nearest taxon distances',
-        },
-        PNTD_RMSD => {
-            description    => 'Root mean squared nearest taxon distances',
-        },
-        PNTD_N => {
-            description    => 'Count of nearest taxon distances',
-        },
-        PMPD_MEAN => {
-            description    => 'Mean of pairwise phylogenetic distances',
-        },
-        PMPD_MAX => {
-            description    => 'Maximum of pairwise phylogenetic distances',
-        },
-        PMPD_MIN => {
-            description    => 'Minimum of pairwise phylogenetic distances',
-        },
-        PMPD_RMSD => {
-            description    => 'Root mean squared pairwise phylogenetic distances',
-        },
-        PMPD_N => {
-            description    => 'Count of pairwise phylogenetic distances',
-        },
-    };
-
-    my $pre_calc = [$abc_sub, 'calc_labels_on_tree'];
-    
-    my $indices_filtered = {};
-    my $pfx_re = qr /(PNTD|PMPD)/;
-    foreach my $key (keys %$indices) {
-        next if not $key =~ /$pfx_re/;  #  next prob redundant, but need $1 from re
-        my $pfx = $1;
-        my $new_key = $key;
-        $new_key =~ s/$pfx/$pfx$num/;
-        $indices_filtered->{$new_key} = $indices->{$key};
-    }
-
-    my %metadata = (
-        type            => 'PhyloCom Indices',
-        reference       => $webb_et_al_ref,
-        pre_calc        => $pre_calc,
-        pre_calc_global => [qw /get_phylo_mpd_mntd_matrix/],
-        required_args   => 'tree_ref',
-        uses_nbr_lists  => 1,
-        indices         => $indices_filtered,
-    );
-
-    return wantarray ? %metadata : \%metadata;    
-}
-
-
-sub get_metadata_calc_phylo_mpd_mntd1 {
-    my $self = shift;
-    my %args = @_;
-
-    my %submeta = $self->get_mpd_mntd_metadata (
-        abc_sub => 'calc_abc',
-    );
-
-    my %metadata = (
-        description     => 'Distance stats from each label to the nearest label '
-                         . 'along the tree.  Compares with '
-                         . 'all other labels across both neighbour sets. ',
-        name            => 'Phylogenetic and Nearest taxon distances, unweighted',
-        %submeta,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-sub calc_phylo_mpd_mntd1 {
-    my $self = shift;
-    my %args = @_;
-
-    my %results = $self->_calc_phylo_mpd_mntd (
-        %args,
-        label_hash1 => $args{label_hash_all},
-        label_hash2 => $args{label_hash_all},
-        abc_num     => 1,
-    );
-
-    return wantarray ? %results : \%results;
-}
-
-sub get_metadata_calc_phylo_mpd_mntd2 {
-    my $self = shift;
-    my %args = @_;
-
-    my %submeta = $self->get_mpd_mntd_metadata (
-        abc_sub => 'calc_abc2',
-    );
-
-    my %metadata = (
-        description     => 'Distance stats from each label to the nearest label '
-                         . 'along the tree.  Compares with '
-                         . 'all other labels across both neighbour sets. '
-                         . 'Weighted by sample counts',
-        name            => 'Phylogenetic and Nearest taxon distances, local range weighted',
-        %submeta,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-sub calc_phylo_mpd_mntd2 {
-    my $self = shift;
-    my %args = @_;
-
-    my %results = $self->_calc_phylo_mpd_mntd (
-        %args,
-        label_hash1 => $args{label_hash_all},
-        label_hash2 => $args{label_hash_all},
-        abc_num     => 2,
-    );
-
-    return wantarray ? %results : \%results;
-}
-
-sub get_metadata_calc_phylo_mpd_mntd3 {
-    my $self = shift;
-    my %args = @_;
-
-    my %submeta = $self->get_mpd_mntd_metadata (
-        abc_sub => 'calc_abc3',
-    );
-
-    my %metadata = (
-        description     => 'Distance stats from each label to the nearest label '
-                         . 'along the tree.  Compares with '
-                         . 'all other labels across both neighbour sets. '
-                         . 'Weighted by sample counts (which currently must be integers)',
-        name            => 'Phylogenetic and Nearest taxon distances, abundance weighted',
-        %submeta,
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-sub calc_phylo_mpd_mntd3 {
-    my $self = shift;
-    my %args = @_;
-
-    my %results = $self->_calc_phylo_mpd_mntd (
-        %args,
-        label_hash1 => $args{label_hash_all},
-        label_hash2 => $args{label_hash_all},
-        abc_num     => 3,
-    );
-
-    return wantarray ? %results : \%results;
-}
-
-sub default_mpd_mntd_results {
-    my $self = shift;
-    my %args = @_;
-
-    my $abcnum = $args{abcnum} || 1;
-    
-    my $mpd_pfx  = 'PMPD' . $abcnum;
-    my $mntd_pfx = 'PNTD' . $abcnum;
-    my %results;
-    foreach my $pfx ($mpd_pfx, $mntd_pfx) {
-        $results{$pfx . '_RMSD'}   = undef;
-        $results{$pfx . '_N'}    = 0;
-        $results{$pfx . '_MIN'}  = undef;
-        $results{$pfx . '_MAX'}  = undef;
-        #$results{$pfx . '_SUM'}  = undef;
-        $results{$pfx . '_MEAN'} = undef;
-    };
-    
-    return wantarray ? %results : \%results;
-}
-
-
-#  mean nearest taxon distance and mean phylogenetic distance
-sub _calc_phylo_mpd_mntd {
-    my $self = shift;
-    my %args = @_;
-
-    my $label_hash1 = $args{label_hash1};
-    my $label_hash2 = $args{label_hash2};
-    my $mx          = $args{PHYLO_MPD_MNTD_MATRIX}
-      || croak "Argument PHYLO_MPD_MNTD_MATRIX not defined\n";
-    my $labels_on_tree = $args{PHYLO_LABELS_ON_TREE};
-    my $tree_ref       = $args{tree_ref};
-    my $abc_num        = $args{abc_num} || 1;
-    my $use_wts        = $abc_num == 1 ? $args{mpd_mntd_use_wts} : 1;
-    my $return_means_only       = $args{mpd_mntd_means_only};
-    my $label_hashrefs_are_same = $label_hash1 eq $label_hash2;
-    
-    return $self->default_mpd_mntd_results (@_)
-        if $label_hashrefs_are_same
-           && scalar keys %$label_hash1 == 1;
-
-    #  Are we on the tree and have a non-zero count?
-    #  Could be a needless slowdown under permutations using only labels on the tree.
-    my @labels1 = sort grep { exists $labels_on_tree->{$_} && $label_hash1->{$_}} keys %$label_hash1;
-    my @labels2 = $label_hashrefs_are_same
-        ? @labels1
-        : sort grep { exists $labels_on_tree->{$_} && $label_hash2->{$_} } keys %$label_hash2;
-
-    my (@mpd_path_lengths, @mntd_path_lengths, @mpd_wts, @mntd_wts);
-
-    #  Loop over all possible pairs, 
-    BY_LABEL:
-    foreach my $label1 (@labels1) {
-        my $label_count1 = $label_hash1->{$label1};
-
-        my @mpd_path_lengths_this_node;
-        my @mntd_path_lengths_this_node;
-        my @mpd_wts_this_node;
-        my $i = 0;
-
-        LABEL2:
-        foreach my $label2 (@labels2) {
-
-            #  skip same labels (FIXME: but not if used as dissim measure)
-            next LABEL2 if $label1 eq $label2;
-
-            my $label_count2 = $label_hash2->{$label2};
-
-            my $path_length = $mx->get_value(
-                element1 => $label1,
-                element2 => $label2,
-            );
-            if (!defined $path_length) {  #  need to calculate it
-                my $last_ancestor = $tree_ref->get_last_shared_ancestor_for_nodes (
-                    node_names => {$label1 => 1, $label2 => 1},
-                );
-
-                my %path;
-                foreach my $node_name ($label1, $label2) {
-                    my $node_ref = $tree_ref->get_node_ref (node => $node_name);
-                    my $sub_path = $node_ref->get_path_lengths_to_ancestral_node (
-                        ancestral_node => $last_ancestor,
-                        %args,
-                    );
-                    @path{keys %$sub_path} = values %$sub_path;
-                }
-                delete $path{$last_ancestor->get_name()};
-                $path_length = sum values %path;
-                $mx->set_value(
-                    element1 => $label1,
-                    element2 => $label2,
-                    value    => $path_length,
-                );
-            }
-
-            push @mpd_path_lengths_this_node, $path_length;
-            push @mntd_path_lengths_this_node, $path_length;
-            if ($use_wts) {
-                push @mpd_wts_this_node, $label_count2;
-            }
-
-            $i ++;
-        }
-
-        if ($i) {  #  only if we added something
-            #  weighting scheme won't work with non-integer wts - need to use weighted stats
-            push @mpd_path_lengths, @mpd_path_lengths_this_node;
-            my $min = min (@mntd_path_lengths_this_node);
-            push @mntd_path_lengths, $min;
-            if ($use_wts) {
-                push @mpd_wts, map {$_ * $label_count1} @mpd_wts_this_node;
-                push @mntd_wts, $label_count1;
-            }
-        }
-    }
-
-    my %results;
-
-    my @paths = (\@mntd_path_lengths, \@mpd_path_lengths);
-    my @pfxs  = qw /PNTD PMPD/;
-    my $i = -1;
-    foreach my $path (@paths) {
-        $i++;
-
-        my $pfx  = $pfxs[$i] . $abc_num;
-        my ($mean, $n, $wts);
-
-        if ($use_wts) {
-            $wts  = $pfx =~ /^PMPD/ ? \@mpd_wts : \@mntd_wts;
-            $n    = sum @$wts;
-            $mean = eval {sum (pairwise {$a * $b} @$path, @$wts) / $n};
-        }
-        else {
-            $n    = scalar @$path;
-            $mean = eval {sum (@$path) / $n};;
-        }
-
-        $results{$pfx . '_MEAN'} = $mean;
-
-        next if $return_means_only;
-
-        $results{$pfx . '_N'}   = $n;
-        $results{$pfx . '_MIN'} = min @$path;
-        $results{$pfx . '_MAX'} = max @$path;
-
-        my $rmsd;
-        if ($n) {
-            my $sumsq = $use_wts
-                ? sum (pairwise {$a ** 2 * $b} @$path, @$wts)
-                : sum (map {$_ ** 2} @$path);
-            $rmsd = sqrt ($sumsq / $n);
-        }
-        $results{$pfx . '_RMSD'} = $rmsd;
-    }
-
-    return wantarray ? %results : \%results;
-}
-
-sub get_metadata_get_phylo_mpd_mntd_matrix {
-    my $self = shift;
-
-    my %metadata = (
-        #required_args => 'tree_ref',
-        #pre_calc_global => ['get_trimmed_tree'],  #  need to work with whole tree, so comment out
-    );
-
-    return wantarray ? %metadata : \%metadata;
-}
-
-
-sub get_phylo_mpd_mntd_matrix {
-    my $self = shift;
-
-    my $mx = Biodiverse::Matrix::LowMem->new (NAME => 'mntd_matrix');
-    
-    my %results = (PHYLO_MPD_MNTD_MATRIX => $mx);
-    
-    return wantarray ? %results : \%results;
-}
-
 sub get_metadata_get_trimmed_tree_as_matrix {
     my $self = shift;
 
     my %metadata = (
+        name            => 'get_trimmed_tree_as_matrix',
+        description     => 'Get the trimmed tree as a matrix',
         pre_calc_global => ['get_trimmed_tree'],
     );
 
-    return wantarray ? %metadata : \%metadata;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_trimmed_tree_as_matrix {
@@ -1547,7 +1967,7 @@ sub get_trimmed_tree_as_matrix {
 
 sub get_metadata_calc_phylo_sorenson {
     
-    my %arguments = (
+    my %metadata = (
         name           =>  'Phylo Sorenson',
         type           =>  'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
         description    =>  "Sorenson phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
@@ -1567,7 +1987,7 @@ sub get_metadata_calc_phylo_sorenson {
         required_args => {'tree_ref' => 1}
     );
 
-    return wantarray ? %arguments : \%arguments;   
+    return $metadata_class->new(\%metadata); 
 }
 
 # calculate the phylogenetic Sorenson dissimilarity index between two label lists.
@@ -1579,7 +1999,7 @@ sub calc_phylo_sorenson {
     my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - (2 * $A / ($A + $ABC))};
     }
 
@@ -1590,7 +2010,7 @@ sub calc_phylo_sorenson {
 
 sub get_metadata_calc_phylo_jaccard {
 
-    my %arguments = (
+    my %metadata = (
         name           =>  'Phylo Jaccard',
         type           =>  'Phylogenetic Indices',
         description    =>  "Jaccard phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
@@ -1610,7 +2030,7 @@ sub get_metadata_calc_phylo_jaccard {
         required_args => {'tree_ref' => 1}
     );
 
-    return wantarray ? %arguments : \%arguments;   
+    return $metadata_class->new(\%metadata);
 }
 
 # calculate the phylogenetic Sorenson dissimilarity index between two label lists.
@@ -1621,7 +2041,7 @@ sub calc_phylo_jaccard {
     my ($A, $B, $C, $ABC) = @args{qw /PHYLO_A PHYLO_B PHYLO_C PHYLO_ABC/};  
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - ($A / $ABC)};
     }    
 
@@ -1632,7 +2052,7 @@ sub calc_phylo_jaccard {
 
 sub get_metadata_calc_phylo_s2 {
 
-    my %arguments = (
+    my %metadata = (
         name           =>  'Phylo S2',
         type           =>  'Phylogenetic Indices',
         description    =>  "S2 phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
@@ -1652,10 +2072,10 @@ sub get_metadata_calc_phylo_s2 {
         required_args => {'tree_ref' => 1}
     );
 
-    return wantarray ? %arguments : \%arguments;   
+    return $metadata_class->new(\%metadata);
 }
 
-# calculate the phylogenetic Sorenson dissimilarity index between two label lists.
+# calculate the phylogenetic S2 dissimilarity index between two label lists.
 sub calc_phylo_s2 {
     my $self = shift;
     my %args = @_;
@@ -1663,9 +2083,9 @@ sub calc_phylo_s2 {
     my ($A, $B, $C) = @args{qw /PHYLO_A PHYLO_B PHYLO_C/};  
 
     my $val;
-    if ($A + $B and $A + $C) {  #  sum of each side must be non-zero
+    if ($A || ($B && $C)) {  #  sum of each side must be non-zero
         $val = eval {1 - ($A / ($A + min ($B, $C)))};
-    }    
+    }
 
     my %results = (PHYLO_S2 => $val);
 
@@ -1674,14 +2094,13 @@ sub calc_phylo_s2 {
 
 sub get_metadata_calc_phylo_abc {
     
-    my %arguments = (
+    my %metadata = (
         name            =>  'Phylogenetic ABC',
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
         type            =>  'Phylogenetic Indices',
-        pre_calc        =>  'calc_abc',
-        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
+        pre_calc        =>  '_calc_phylo_abc_lists',
+        #pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have
-        required_args   => {tree_ref => 1},
         indices         => {
             PHYLO_A => {
                 description  =>  'Length of branches shared by labels in nbr sets 1 and 2',
@@ -1702,24 +2121,61 @@ sub get_metadata_calc_phylo_abc {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;   
+    return $metadata_class->new(\%metadata);
 }
+
+my $_calc_phylo_abc_precision = '%.10f';
 
 sub calc_phylo_abc {
     my $self = shift;
     my %args = @_;
 
-    #  seems inefficient, but might clear a memory leak
+    my $A = $args{PHYLO_A_LIST};
+    my $B = $args{PHYLO_B_LIST};
+    my $C = $args{PHYLO_C_LIST};
 
-    my %results = $self->_calc_phylo_abc(%args);
+    my $phylo_A = sum (0, values %$A);
+    my $phylo_B = sum (0, values %$B);
+    my $phylo_C = sum (0, values %$C);
+
+    my $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
+    
+    #  return the values but reduce the precision to avoid
+    #  floating point problems later on
+
+    $phylo_A   = 0 + $self->set_precision_aa ($phylo_A, $_calc_phylo_abc_precision);
+    $phylo_B   = 0 + $self->set_precision_aa ($phylo_B, $_calc_phylo_abc_precision);
+    $phylo_C   = 0 + $self->set_precision_aa ($phylo_C, $_calc_phylo_abc_precision);
+    $phylo_ABC = 0 + $self->set_precision_aa ($phylo_ABC, $_calc_phylo_abc_precision);
+
+    my %results = (
+        PHYLO_A   => $phylo_A,
+        PHYLO_B   => $phylo_B,
+        PHYLO_C   => $phylo_C,
+        PHYLO_ABC => $phylo_ABC,
+    );
+
     return wantarray ? %results : \%results;
 }
 
-my $_calc_phylo_abc_precision = '%.10f';
 
-#  Need to add a caching system for when it is building a matrix
-#  - should really speed things up
-sub _calc_phylo_abc {
+
+sub get_metadata__calc_phylo_abc_lists {
+
+    my %metadata = (
+        name            =>  'Phylogenetic ABC lists',
+        description     =>  'Calculate the sets of shared and not shared branches between two sets of labels',
+        type            =>  'Phylogenetic Indices',
+        pre_calc        =>  'calc_abc',
+        pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
+        uses_nbr_lists  =>  1,  #  how many sets of lists it must have
+        required_args   => {tree_ref => 1},
+    );
+
+    return $metadata_class->new(\%metadata);
+}
+
+sub _calc_phylo_abc_lists {
     my $self = shift;
     my %args = @_;
 
@@ -1748,45 +2204,19 @@ sub _calc_phylo_abc {
     # then get length of B
     my %B = %A;
     delete @B{keys %$nodes_in_path2};
-    my $phylo_B = sum (0, values %B);
 
     # create a new hash %C for nodes in label hash 2 but not 1
     # then get length of C
     my %C = %A;
     delete @C{keys %$nodes_in_path1};
-    my $phylo_C = sum (0, values %C);
 
     # get length of %A = branches not in %B or %C
     delete @A{keys %B, keys %C};
-    my $phylo_A = sum (0, values %A);
-
-    my $phylo_ABC = $phylo_A + $phylo_B + $phylo_C;
-    
-    #  return the values but reduce the precision to avoid
-    #  floating point problems later on
-
-    $phylo_A = 0 + $self->set_precision (
-        precision => $_calc_phylo_abc_precision,
-        value     => $phylo_A,
-    );
-    $phylo_B = 0 + $self->set_precision (
-        precision => $_calc_phylo_abc_precision,
-        value     => $phylo_B,
-    );
-    $phylo_C = 0 + $self->set_precision (
-        precision => $_calc_phylo_abc_precision,
-        value     => $phylo_C,
-    );
-    $phylo_ABC = 0 + $self->set_precision (
-        precision => $_calc_phylo_abc_precision,
-        value     => $phylo_ABC,
-    );
 
     my %results = (
-        PHYLO_A   => $phylo_A,
-        PHYLO_B   => $phylo_B,
-        PHYLO_C   => $phylo_C,
-        PHYLO_ABC => $phylo_ABC,
+        PHYLO_A_LIST => \%A,
+        PHYLO_B_LIST => \%B,
+        PHYLO_C_LIST => \%C,
     );
 
     return wantarray ? %results : \%results;
@@ -1798,7 +2228,7 @@ sub get_metadata_calc_phylo_corrected_weighted_endemism{
               . 'This is the phylogenetic analogue of corrected '
               . 'weighted endemism.';
 
-    my %arguments = (
+    my %metadata = (
         name            => 'Corrected weighted phylogenetic endemism',
         description     => q{What proportion of the PD is range-restricted to this neighbour set?},
         type            => 'Phylogenetic Indices',
@@ -1814,7 +2244,7 @@ sub get_metadata_calc_phylo_corrected_weighted_endemism{
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_corrected_weighted_endemism {
@@ -1838,7 +2268,7 @@ sub get_metadata_calc_phylo_corrected_weighted_rarity {
               . 'This is the phylogenetic rarity analogue of corrected '
               . 'weighted endemism.';
 
-    my %arguments = (
+    my %metadata = (
         name            =>  'Corrected weighted phylogenetic rarity',
         description     =>  q{What proportion of the PD is abundance-restricted to this neighbour set?},
         type            =>  'Phylogenetic Indices',
@@ -1854,7 +2284,7 @@ sub get_metadata_calc_phylo_corrected_weighted_rarity {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_corrected_weighted_rarity {
@@ -1879,7 +2309,7 @@ sub get_metadata_calc_phylo_aed_t {
               . ' This is equivalent to a phylogenetic rarity score '
               . '(see phylogenetic endemism)';
 
-    my %arguments = (
+    my %metadata = (
         name            =>  'Evolutionary distinctiveness per site',
         description     =>  'Site level evolutionary distinctiveness',
         type            =>  'Phylogenetic Indices',
@@ -1894,7 +2324,7 @@ sub get_metadata_calc_phylo_aed_t {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_aed_t {
@@ -1907,7 +2337,7 @@ sub calc_phylo_aed_t {
 }
 
 sub get_metadata_calc_phylo_aed_t_wtlists {
-    my %arguments = (
+    my %metadata = (
         name            =>  'Evolutionary distinctiveness per terminal taxon per site',
         description     =>  'Site level evolutionary distinctiveness per terminal taxon',
         type            =>  'Phylogenetic Indices',
@@ -1930,7 +2360,7 @@ sub get_metadata_calc_phylo_aed_t_wtlists {
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub calc_phylo_aed_t_wtlists {
@@ -1954,13 +2384,14 @@ sub calc_phylo_aed_t_wtlists {
 }
 
 sub get_metadata__calc_phylo_aed_t {
-    my %arguments = (
-        name            => 'Inner sub for AED_T calcs',
+    my %metadata = (
+        name            => '_calc_phylo_aed_t',
+        description     => 'Inner sub for AED_T calcs',
         pre_calc        => [qw /calc_abc3 calc_phylo_aed/],
         uses_nbr_lists  =>  1,
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 sub _calc_phylo_aed_t {
@@ -1972,8 +2403,12 @@ sub _calc_phylo_aed_t {
     my $aed_t;
     my %scores;
 
+  LABEL:
     foreach my $label (keys %$label_hash) {
         my $abundance = $label_hash->{$label};
+
+        next LABEL if !exists $aed_hash->{$label};
+
         my $aed_score = $aed_hash->{$label};
         my $weight    = $abundance * $aed_score;
 
@@ -1995,7 +2430,7 @@ sub get_metadata_calc_phylo_aed {
                 . 'Label values are constant for all '
                 . 'neighbourhoods in which each label is found. ';
 
-    my %arguments = (
+    my %metadata = (
         name            =>  'Evolutionary distinctiveness',
         description     =>  $descr,
         type            =>  'Phylogenetic Indices',
@@ -2006,23 +2441,23 @@ sub get_metadata_calc_phylo_aed {
         indices         => {
             PHYLO_AED_LIST => {
                 description  =>  'Abundance weighted ED per terminal label',
-                list         => 1,
+                type         => 'list',
                 reference    => 'Cadotte & Davies (2010) http://dx.doi.org/10.1111/j.1472-4642.2010.00650.x',
             },
             PHYLO_ES_LIST => {
                 description  =>  'Equal splits partitioning of PD per terminal label',
-                list         => 1,
+                type         => 'list',
                 reference    => 'Redding & Mooers (2006) http://dx.doi.org/10.1111%2Fj.1523-1739.2006.00555.x',
             },
             PHYLO_ED_LIST => {
                 description  =>  q{"Fair proportion" partitioning of PD per terminal label},
-                list         => 1,
+                type         => 'list',
                 reference    => 'Isaac et al. (2007) http://dx.doi.org/10.1371/journal.pone.0000296',
             },
         },
     );
 
-    return wantarray ? %arguments : \%arguments;
+    return $metadata_class->new(\%metadata);
 }
 
 
@@ -2038,7 +2473,9 @@ sub calc_phylo_aed {
     my (%es, %ed, %aed);
     # now loop over the terminals and extract the weights (would slices be faster?)
     # Do we want the proportional values?  Divide by PD to get them.
+  LABEL:
     foreach my $label (keys %$label_hash) {
+        next LABEL if !exists $aed_wts->{$label};
         $aed{$label} = $aed_wts->{$label};
         $ed{$label}  = $ed_wts->{$label};
         $es{$label}  = $es_wts->{$label};
@@ -2055,7 +2492,8 @@ sub calc_phylo_aed {
 
 sub get_metadata_get_aed_scores {
 
-    my %args = (
+    my %metadata = (
+        name            => 'get_aed_scores',
         description     => 'A hash of the ES, ED and BED scores for each label',
         pre_calc        => [qw /calc_abc/],
         pre_calc_global => [qw /get_trimmed_tree get_global_node_abundance_hash/],
@@ -2068,11 +2506,11 @@ sub get_metadata_get_aed_scores {
             },
             AED_SCORES => {
                 description => 'Hash of AED scores for each label'
-            }
+            },
         },
     );
 
-    return wantarray ? %args : \%args;
+    return $metadata_class->new(\%metadata);
 }
 
 sub get_aed_scores {
@@ -2099,12 +2537,12 @@ sub get_aed_scores {
         my $length  = $node_ref->get_length;
         my $es_sum  = $length;
         my $ed_sum  = $length;
-        my $aed_sum = $length / $node_abundances->{$label};
+        my $aed_sum = eval {$length / $node_abundances->{$label}};
         my $es_wt  = 1;
         my ($ed_wt, $aed_wt);
         #my $aed_label_count = $node_abundances->{$label};
 
-        TRAVERSE_TO_ROOT:
+      TRAVERSE_TO_ROOT:
         while ($node_ref = $node_ref->get_parent) {
             my $node_len = $node_ref->get_length;
 

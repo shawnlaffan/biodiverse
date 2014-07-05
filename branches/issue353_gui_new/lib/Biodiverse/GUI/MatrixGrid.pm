@@ -481,7 +481,7 @@ sub highlight {
 
     my @mask_rects = $self->get_mask_rects($sel_rows, $sel_cols);
     return if not @mask_rects; # if nothing to mask, return
-
+    
     # Create a GnomeCanvasPathDef for all the regions we have to mask
     my @paths;
     my ($x, $y, $w, $h);
@@ -501,6 +501,8 @@ sub highlight {
     }
 
     # concatenate each region
+    #  mask and stipple need to use Cairo
+    #  - see issue 480 https://code.google.com/p/biodiverse/issues/detail?id=480
     my $mask_path    = Gnome2::Canvas::PathDef->concat(@paths);
     my $mask_stipple = Gtk2::Gdk::Bitmap->create_from_data(
         undef,
@@ -509,18 +511,19 @@ sub highlight {
         $gray50_height,
     );
 
-
     $self->{mask} = Gnome2::Canvas::Item->new (
         $self->{cells_group},
         'Gnome2::Canvas::Shape',
-        fill_color    => 'white',
-        fill_stipple  => $mask_stipple,
+        #fill_color    => 'white',
+        #fill_stipple  => $mask_stipple,  #  off for now - issue 480
+        #fill_color_rgba => 0xFFFFFFFF,
         outline_color => 'black',
         width_pixels  => 0,
     );
+
     $self->{mask}->signal_connect_swapped (event => \&on_event, $self);
     $self->{mask}->set_path_def($mask_path);
-    
+
     return;
 }
 
@@ -790,7 +793,6 @@ sub on_event {
                 $event->time,
             );
             $self->{selecting} = 1;
-say "Matrix selecting $x $y $x $y";
             $self->{sel_rect} = Gnome2::Canvas::Item->new (
                 $self->{canvas}->root,
                 'Gnome2::Canvas::Rect',
@@ -798,7 +800,6 @@ say "Matrix selecting $x $y $x $y";
                 y1 => $y,
                 x2 => $x,
                 y2 => $y,
-            
                 fill_color_gdk    => undef,
                 outline_color_gdk => CELL_BLACK,
                 width_pixels      => 0,
@@ -807,14 +808,12 @@ say "Matrix selecting $x $y $x $y";
             return 0;
         }
         elsif ($self->{drag_mode} eq 'click') {
-say 'Matrix drag click func';
             if (defined $self->{grid_click_func}) {
                 $self->{grid_click_func}->();
             }
         }
     }
     elsif ($event->type eq 'button-release') {
-say 'Matrix button release';
         if ($self->{selecting} and $event->button == 1) {
             $self->{sel_rect}->destroy;
             delete $self->{sel_rect};
@@ -823,31 +822,28 @@ say 'Matrix button release';
 
             # Establish the selection
             my ($horz_start, $vert_start) = ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt});
-            my ($horz_end, $vert_end)     = ($horz_elt, $vert_elt);
+            my ($horz_end,   $vert_end)   = ($horz_elt, $vert_elt);
             my $tmp;
 
             if ($horz_start > $horz_end) {
-                ($horz_start, $horz_end) = ($horz_end, $horz_start)
+                ($horz_start, $horz_end) = ($horz_end, $horz_start);
             }
             if ($vert_start > $vert_end) {
                 ($vert_start, $vert_end) = ($vert_end, $vert_start);
             }
 
             if (my $f = $self->{select_func}) {
-say 'Matrix select func';
                 $f->($horz_start, $horz_end, $vert_start, $vert_end);
             }
         }
     }
     elsif ($event->type eq 'motion-notify') {
-say 'Matrix motion notify';
         # Call client-defined callback function
         if (my $f = $self->{hover_func}) {
             $f->($horz_elt, $vert_elt);
         }
 
         if ($self->{selecting}) {
-say 'Matrix resize selection rectangle';
             # Resize selection rectangle
             $self->{sel_rect}->set(x2 => $x, y2 => $y);
         }

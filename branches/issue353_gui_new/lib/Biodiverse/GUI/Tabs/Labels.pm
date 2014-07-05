@@ -1253,7 +1253,6 @@ sub on_matrix_clicked {
 
         $hlist->scroll_to_cell( $h_start );
         $vlist->scroll_to_cell( $v_start );
-say 'Matrix select completed';
     }
     elsif ($self->{tool} eq 'Zoom') {
         my $rect = [

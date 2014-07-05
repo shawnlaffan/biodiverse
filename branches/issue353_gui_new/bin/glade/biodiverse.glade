@@ -527,6 +527,12 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1243,6 +1249,12 @@ Shapefile
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1296,8 +1308,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1314,8 +1326,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -7604,7 +7616,7 @@ Both</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">Select (B)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnSelectTool2">
+                      <widget class="GtkToggleButton" id="btnSelectToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7631,7 +7643,7 @@ Both</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">Pan (C)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnPanTool2">
+                      <widget class="GtkToggleButton" id="btnPanToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7657,7 +7669,7 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomTool2">
+                      <widget class="GtkToggleButton" id="btnZoomToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7683,7 +7695,7 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom Out (X)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomOutTool2">
+                      <widget class="GtkToggleButton" id="btnZoomOutToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7709,7 +7721,7 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomFitTool2">
+                      <widget class="GtkToggleButton" id="btnZoomFitToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -9300,6 +9312,12 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

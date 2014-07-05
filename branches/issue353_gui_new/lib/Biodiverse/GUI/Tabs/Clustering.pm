@@ -202,7 +202,7 @@ sub new {
     $self->queue_set_pane(1  , 'vpaneDendrogram');
 
     # Set up options menu
-    $self->{toolbar_menu} = $xml_page->get_widget('menu_clustering_data');
+    $self->{toolbar_menu}        = $xml_page->get_widget('menu_clustering_data');
     $self->{toolbar_menu_button} = $xml_page->get_widget('menuitem_clustering_data');
 
     $self->make_indices_model($cluster_ref);
@@ -246,11 +246,11 @@ sub new {
         menuitem_cluster_overlays => {activate => \&on_overlays},
         spinClusters        => {'value-changed' => \&on_clusters_changed},
 
-        btnSelectTool       => {clicked => \&on_select_tool},
-        btnPanTool          => {clicked => \&on_pan_tool},
-        btnZoomTool         => {clicked => \&on_zoom_tool},
-        btnZoomOutTool      => {clicked => \&on_zoom_out_tool},
-        btnZoomFitTool      => {clicked => \&on_zoom_fit_tool},
+        btnSelectToolCL     => {clicked => \&on_select_tool},
+        btnPanToolCL        => {clicked => \&on_pan_tool},
+        btnZoomToolCL       => {clicked => \&on_zoom_tool},
+        btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
+        btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
 
         plot_length         => {toggled => \&on_plot_mode_changed},
         group_length        => {toggled => \&on_group_mode_changed},
@@ -275,9 +275,15 @@ sub new {
         menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
     );
 
-    while (my ($widget, $args) = each %widgets_and_signals) {
-        print $widget, "\n";
-        $xml_page->get_widget($widget)->signal_connect_swapped(
+    foreach my $widget_name (sort keys %widgets_and_signals) {
+        my $args = $widgets_and_signals{$widget_name};
+        #say $widget_name;
+        my $widget = $xml_page->get_widget($widget_name);
+        if (!defined $widget) {
+            warn "$widget_name not found";
+            next;
+        };
+        $widget->signal_connect_swapped(
             %$args,
             $self,
         );
@@ -592,7 +598,7 @@ sub on_map_lists_ready {
     # Delete old menu items
     my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_lists_end');
     my @menu_items = $menu->get_children();
-    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
+    while (defined $menu_items[$pos] and refaddr($menu_items[$pos]) != refaddr($ending)) {
         my $menu_item = $menu_items[$pos++];
         $menu->remove($menu_item);
         $menu_item->destroy();
@@ -675,10 +681,21 @@ sub update_menu_map_indices {
     # Clear out old entries from menu.
     my $menu = $self->{toolbar_menu};
 
+    #  need to look for these in the menu children?
     my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
-    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices_end');
+    my $ending  = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices_end');
+
+    warn 'widget menuitem_cluster_map_indices not found' if !defined $heading;
+    warn 'widget menuitem_cluster_map_indices_end not found' if !defined $ending;
+my $aa1 = $self->{xmlPage}->get_widget('menubar_clustering');
+my $aa2 = $self->{xmlPage}->get_widget('menuitem_clustering_data');
+my $aa3 = $self->{xmlPage}->get_widget('menu_clustering_data');
 
     my @menu_items = $menu->get_children();
+foreach my $mi (@menu_items) {
+    my $text = $mi->get_label;
+    say $text;
+}
 
     my $pos = 0;
     while (refaddr($menu_items[$pos]) != refaddr($heading)) {
@@ -701,11 +718,11 @@ sub update_menu_map_indices {
     for my $index (@$indices) {
         $index =~ s/_/__/g;
         my $menu_item = Gtk2::RadioMenuItem->new($first_item, $index);
-        if (not defined $first_item) {
-            $first_item = $menu_item;
-        }
-        $menu_item->signal_connect_swapped(toggled => \&on_map_index_changed,
-                $self);
+        $first_item //= $menu_item;
+        $menu_item->signal_connect_swapped(
+            toggled => \&on_map_index_changed,
+            $self,
+        );
         $menu->insert($menu_item, $pos++);
     }
 
@@ -1811,9 +1828,9 @@ sub choose_tool {
 
     if ($old_tool) {
         $self->{ignore_tool_click} = 1;
-        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}Tool");
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}ToolCL");
         $widget->set_active(0);
-        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}Tool");
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}ToolCL");
         $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }

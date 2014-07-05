@@ -1124,9 +1124,9 @@ sub select_map_list {
         $self->{analysis_max}        = undef;
 
         $self->{cluster_colour_mode} = 'palette';
-        $self->recolourClusterElements();
+        $self->recolour_cluster_elements();
 
-        $self->recolourClusterLines($self->{processed_nodes});
+        $self->recolour_cluster_lines($self->{processed_nodes});
 
         # blanking out the other combo left to tab
     }
@@ -1867,7 +1867,7 @@ my $type = $event->type;
         # Just click - colour nodes
         }
         elsif ($event->button == 1) {
-	        $self->do_colour_nodes_below($node);
+            $self->do_colour_nodes_below($node);
             if (defined $self->{click_func}) {
                 $f = $self->{click_func};
                 $f->($node);
@@ -1959,7 +1959,7 @@ sub on_background_event {
             # FIXME: WHAT IS THIS (obsolete??)
             # If clicked without dragging, we also remove the element mark (see onEvent)
             if (not $self->{dragged}) {
-                #$self->markElements(undef);
+                #$self->mark_elements(undef);
                 if ($self->{click_line}) {
                     $self->{click_line}->set(fill_color => 'black');
                 }

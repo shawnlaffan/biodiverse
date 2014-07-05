@@ -1016,7 +1016,7 @@ sub on_output_index_toggled {
     $self->{selected_index} = $index;
 
     # Process
-    $self->onActiveIndexChanged();
+    $self->on_active_index_changed();
 }
 
 #  should be called on_active_index_changed, but many such occurrences need to be edited
@@ -1249,10 +1249,10 @@ sub on_bare_key {
 
     if ($tool eq 'ZoomOut') {
         # Do an instant zoom out and keep the current tool.
-        $self->{grid}->zoomOut();
+        $self->{grid}->zoom_out();
     }
     elsif ($tool eq 'ZoomFit') {
-        $self->{grid}->zoomFit();
+        $self->{grid}->zoom_fit();
     }
     else {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};
@@ -1329,10 +1329,10 @@ sub on_grid_select {
 sub on_grid_click {
     my $self = shift;
     if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoomOut();
+        $self->{grid}->zoom_out();
     }
     elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoomFit();
+        $self->{grid}->zoom_fit();
     }
 }
 

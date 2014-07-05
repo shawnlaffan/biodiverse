@@ -428,10 +428,9 @@ sub handle_grid_drag_zoom {
     }
 
     # Apply and pan
-    $grid->postZoom;
-    $canvas->scroll_to($canvas->w2c(
-            $rect->[0], $rect->[1]));
-    $grid->updateScrollbars;
+    $grid->post_zoom;
+    $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
+    $grid->update_scrollbars;
 }
 
 

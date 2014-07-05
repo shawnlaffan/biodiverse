@@ -1,4 +1,5 @@
 package Biodiverse::GUI::Tabs::Labels;
+use 5.010;
 use strict;
 use warnings;
 
@@ -130,20 +131,23 @@ sub new {
 
     # Connect signals for new side tool chooser
     my $sig_clicked = sub {
-        my ($widget, $f) = @_;
-        $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
-            clicked => $f, $self);
+        my ($widget_name, $f) = @_;
+        my $widget = $self->{xmlPage}->get_widget($widget_name)
+            // warn "Cannot find widget $widget_name";
+        $widget->signal_connect_swapped(
+            clicked => $f, $self
+        );
     };
 
-    $sig_clicked->('btnSelectTool', \&onSelectTool);
-    $sig_clicked->('btnPanTool', \&onPanTool);
-    $sig_clicked->('btnZoomTool', \&onZoomTool);
-    $sig_clicked->('btnZoomOutTool', \&onZoomOutTool);
-    $sig_clicked->('btnZoomFitTool', \&onZoomFitTool);
+    $sig_clicked->('btnSelectToolVL',  \&on_select_tool);
+    $sig_clicked->('btnPanToolVL',     \&on_pan_tool);
+    $sig_clicked->('btnZoomToolVL',    \&on_zoom_tool);
+    $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
+    $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
 
-    $xml->get_widget('menuitem_labels_overlays')->signal_connect_swapped(activate => \&onOverlays, $self);
+    $xml->get_widget('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
 
-    $self->{xmlPage}->get_widget("btnSelectTool")->set_active(1);
+    $self->{xmlPage}->get_widget("btnSelectToolVL")->set_active(1);
 
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     #$xml->get_widget('btnZoomInVL')->signal_connect_swapped(clicked => \&onZoomIn, $self->{grid});
@@ -332,17 +336,17 @@ sub init_list {
         $start_col = 0;
     }
 
-#  set a special sort func for all cols (except the labels if not numeric)
+    #  set a special sort func for all cols (except the labels if not numeric)
     foreach my $col_id ($start_col .. $i) {
         $wrapper_model->set_sort_func ($col_id, $sort_func, [$col_id, $wrapper_model]);
     }
 
-# Monitor selections
+    # Monitor selections
     $tree->get_selection->set_mode('multiple');
     $tree->get_selection->signal_connect(
-            changed => \&on_selected_labels_changed,
-            [$self, $id],
-            );
+        changed => \&on_selected_labels_changed,
+        [$self, $id],
+    );
 
 #$tree->signal_connect_swapped(
 #    'start-interactive-search' => \&on_interactive_search,
@@ -450,17 +454,19 @@ sub make_labels_model {
     return;
 }
 
-sub setPhylogenyOptionsSensitive {
+sub set_phylogeny_options_sensitive {
     my $self = shift;
     my $enabled = shift;
 
     my $page = $self->{xmlPage};
 
     for my $widget (
-            'phylogeny_plot_length',
-            'phylogeny_plot_depth',
-            'highlight_groups_on_map_labels_tab',
-            'use_highlight_path_changed1') {
+        qw /
+            phylogeny_plot_length
+            phylogeny_plot_depth
+            highlight_groups_on_map_labels_tab
+            use_highlight_path_changed1
+        /) {
         $page->get_widget($widget)->set_sensitive($enabled);
     }
 }
@@ -474,11 +480,11 @@ sub on_selected_phylogeny_changed {
     $self->{dendrogram}->clear;
     if ($phylogeny) {
         $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
-            $self->setPhylogenyOptionsSensitive(1);
+            $self->set_phylogeny_options_sensitive(1);
     }
     else {
 #$self->{dendrogram}->clear;
-        $self->setPhylogenyOptionsSensitive(0);
+        $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);
     }
@@ -531,41 +537,41 @@ sub on_selected_matrix_changed {
 # Called when user changes selection in one of the two labels lists
 sub on_selected_labels_changed {
     my $selection = shift;
-    my $args = shift;
+    my $args      = shift;
     my ($self, $id) = @$args;
 
-# Ignore waste-of-time events fired on on_phylogeny_click as it
-# selects labels one-by-one
+    # Ignore waste-of-time events fired on on_phylogeny_click as it
+    # selects labels one-by-one
     return if (defined $self->{ignore_selected_change});
 
-# are we changing the row or col list?
+    # are we changing the row or col list?
     my $rowcol = $id eq 'listLabels1' ? 'rows' : 'cols';
     my $select_list_name = 'selected_' . $rowcol;
 
-# Select rows/cols in the matrix
+    # Select rows/cols in the matrix
     my @paths = $selection->get_selected_rows();
     my @selected = map { ($_->get_indices)[0] } @paths;
     $self->{$select_list_name} = \@selected;
 
     if ($self->{matrix_ref}) {
         $self->{matrix_grid}->highlight(
-                $self->{selected_rows},
-                $self->{selected_cols},
-                );
+            $self->{selected_rows},
+            $self->{selected_cols},
+        );
     }
 
-#  need to avoid changing paths due to re-sorts
-#  the run for listLabels1 is at the end.
+    #  need to avoid changing paths due to re-sorts
+    #  the run for listLabels1 is at the end.
     if ($id eq 'listLabels2') {
         $self->set_selected_list_cols ($selection, $rowcol);
     }
 
     return if $id ne 'listLabels1';
 
-# Now, for the top list, colour the grid, based on how many labels occur in a given cell
+    # Now, for the top list, colour the grid, based on how many labels occur in a given cell
     my %group_richness; # analysis list
-#my $max_value;
-        my ($iter, $iter1, $label, $hash);
+    #my $max_value;
+    my ($iter, $iter1, $label, $hash);
 
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
@@ -577,14 +583,14 @@ sub on_selected_labels_changed {
 
     foreach my $path (@paths) {
 
-# don't know why all this is needed (gtk bug?)
+        # don't know why all this is needed (gtk bug?)
         $iter  = $sorted_model->get_iter($path);
         $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
         $label = $global_model->get($iter1, LABELS_MODEL_NAME);
 
-# find phylogeny nodes to colour
+        # find phylogeny nodes to colour
         if (defined $tree) {
-#  not all will match
+            #  not all will match
             eval {
                 my $node_ref = $tree->get_node_ref (node => $label);
                 if (defined $node_ref) {
@@ -593,19 +599,19 @@ sub on_selected_labels_changed {
             }
         }
 
-#FIXME: This copies the hash (???recheck???) - not very fast...
-#my %hash = $self->{base_ref}->get_groups_with_label_as_hash(label => $label);
-#  SWL - just use a ref.  Unless Eugene was thinking of what the sub does...
+        #FIXME: This copies the hash (???recheck???) - not very fast...
+        #my %hash = $self->{base_ref}->get_groups_with_label_as_hash(label => $label);
+        #  SWL - just use a ref.  Unless Eugene was thinking of what the sub does...
         my $hash = $bd->get_groups_with_label_as_hash (label => $label);
 
-# groups contains count of how many different labels occur in it
+        # groups contains count of how many different labels occur in it
         foreach my $group (keys %$hash) {
             $group_richness{$group}++;
         }
     }
 
-#  richness is the number of labels selected,
-#  which is the number of items in @paths
+    #  richness is the number of labels selected,
+    #  which is the number of items in @paths
     my $max_value = scalar @paths;
 
     my $grid = $self->{grid};
@@ -620,12 +626,12 @@ sub on_selected_labels_changed {
     $grid->set_legend_min_max(0, $max_value);
 
     if (defined $tree) {
-#print "[Labels] Recolouring cluster lines\n";
+        #print "[Labels] Recolouring cluster lines\n";
         $self->{dendrogram}->recolour_cluster_lines(\@phylogeny_colour_nodes);
     }
 
-# have to run this after everything else is updated
-# otherwise incorrect nodes are selected.
+    # have to run this after everything else is updated
+    # otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
 
     return;
@@ -825,13 +831,12 @@ sub on_grid_hover {
 }
 
 sub on_grid_select {
-    my $self = shift;
-    my $groups = shift;
+    my $self          = shift;
+    my $groups        = shift;
     my $ignore_change = shift;
-    my $rect = shift; # [x1, y1, x2, y2]
+    my $rect          = shift; # [x1, y1, x2, y2]
 
-    print 'Rect: ';
-    print Dumper $rect;
+    #say 'Rect: ' . Dumper ($rect);
 
     if ($self->{tool} eq 'Select') {
         # convert groups into a hash of labels that are in them
@@ -988,10 +993,10 @@ sub on_phylogeny_click {
         $self->{grid}->mark_if_exists( {}, 'circle' );
     }
     elsif ($self->{tool} eq 'ZoomOut') {
-        $self->{dendrogram}->zoomOut();
+        $self->{dendrogram}->zoom_out();
     }
     elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{dendrogram}->zoomFit();
+        $self->{dendrogram}->zoom_fit();
     }
 
     return;
@@ -1237,15 +1242,24 @@ sub on_matrix_clicked {
         $hsel->unselect_all;
         $vsel->unselect_all;
 
-        $hsel->select_range($h_start, $h_end);
-        $vsel->select_range($v_start, $v_end);
+        eval {
+            $hsel->select_range($h_start, $h_end);
+        };
+        warn $EVAL_ERROR if $EVAL_ERROR;
+        eval {
+            $vsel->select_range($v_start, $v_end);
+        };
+        warn $EVAL_ERROR if $EVAL_ERROR;
 
         $hlist->scroll_to_cell( $h_start );
         $vlist->scroll_to_cell( $v_start );
+say 'Matrix select completed';
     }
     elsif ($self->{tool} eq 'Zoom') {
-        my $rect = [map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_} (
-            $v_start, $h_start, $v_end, $h_end)];
+        my $rect = [
+            map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
+                ($v_start, $h_start, $v_end, $h_end)
+        ];
         handle_grid_drag_zoom ($self->{matrix_grid}, $rect);
     }
 
@@ -1256,10 +1270,10 @@ sub on_matrix_grid_clicked {
     my $self = shift;
 
     if ($self->{tool} eq 'ZoomOut') {
-        $self->{matrix_grid}->zoomOut();
+        $self->{matrix_grid}->zoom_out();
     }
     elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{matrix_grid}->zoomFit();
+        $self->{matrix_grid}->zoom_fit();
     }
 }
 
@@ -1302,46 +1316,46 @@ sub choose_tool {
 
     if ($old_tool) {
         $self->{ignore_tool_click} = 1;
-        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}Tool");
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}ToolVL");
         $widget->set_active(0);
-        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}Tool");
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}ToolVL");
         $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{grid}->{drag_mode}        = $drag_modes{$tool};
     $self->{matrix_grid}->{drag_mode} = $drag_modes{$tool};
-    $self->{dendrogram}->{drag_mode} = $dendogram_drag_modes{$tool};
+    $self->{dendrogram}->{drag_mode}  = $dendogram_drag_modes{$tool};
 }
 
 # Called from GTK
-sub onSelectTool {
+sub on_select_tool {
     my $self = shift;
     return if $self->{ignore_tool_click};
     $self->choose_tool('Select');
 }
 
-sub onPanTool {
+sub on_pan_tool {
     my $self = shift;
     return if $self->{ignore_tool_click};
     $self->choose_tool('Pan');
 }
 
-sub onZoomTool {
+sub on_zoom_tool {
     my $self = shift;
     return if $self->{ignore_tool_click};
     $self->choose_tool('Zoom');
 }
 
-sub onZoomOutTool {
+sub on_zoom_out_tool {
     my $self = shift;
     return if $self->{ignore_tool_click};
     $self->choose_tool('ZoomOut');
 }
 
-sub onZoomFitTool {
+sub on_zoom_fit_tool {
     my $self = shift;
     return if $self->{ignore_tool_click};
     $self->choose_tool('ZoomFit');
@@ -1367,10 +1381,10 @@ sub on_bare_key {
 
     if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
         # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoomOut();
+        $self->{$self->{active_pane}}->zoom_out();
     }
     elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-        $self->{$self->{active_pane}}->zoomFit();
+        $self->{$self->{active_pane}}->zoom_fit();
     }
     else {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};

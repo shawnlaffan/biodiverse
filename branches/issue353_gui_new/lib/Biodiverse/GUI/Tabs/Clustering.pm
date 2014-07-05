@@ -1508,16 +1508,16 @@ sub on_dendrogram_popup {
     return;
 }
 
-sub onDendrogramClick {
+sub on_dendrogram_click {
     my ($self, $node) = @_;
     if ($self->{tool} eq 'Select') {
-        $self->{dendrogram}->doColourNodesBelow($node);
+        $self->{dendrogram}->do_colour_nodes_below($node);
     }
     elsif ($self->{tool} eq 'ZoomOut') {
-        $self->{dendrogram}->zoomOut();
+        $self->{dendrogram}->zoom_out();
     }
     elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{dendrogram}->zoomFit();
+        $self->{dendrogram}->zoom_fit();
     }
 }
 
@@ -1898,16 +1898,14 @@ sub on_bare_key {
     # TODO: Add other tools
     my $tool = $key_tool_map{$keyval};
 
-    if (not defined $tool) {
-        return;
-    }
+    return if not defined $tool;
 
     if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
         # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoomOut();
+        $self->{$self->{active_pane}}->zoom_out();
     }
     elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-        $self->{$self->{active_pane}}->zoomFit();
+        $self->{$self->{active_pane}}->zoom_fit();
     }
     else {
         $self->choose_tool($tool) if exists $key_tool_map{$keyval};

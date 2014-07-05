@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <glade-interface>
   <!-- interface-requires gtk+ 2.22 -->
   <!-- interface-naming-policy toplevel-contextual -->
@@ -431,6 +431,12 @@
                             <property name="n_columns">2</property>
                             <property name="column_spacing">3</property>
                             <property name="row_spacing">3</property>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                             <child>
                               <placeholder/>
                             </child>
@@ -974,7 +980,7 @@ Shapefile
                 <property name="padding">9</property>
                 <property name="position">7</property>
               </packing>
-            </child>          
+            </child>
           </widget>
           <packing>
             <property name="expand">True</property>
@@ -1066,7 +1072,6 @@ Shapefile
             <property name="position">1</property>
           </packing>
         </child>
-        
       </widget>
     </child>
   </widget>
@@ -1232,6 +1237,12 @@ Shapefile
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1285,8 +1296,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1303,8 +1314,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -6922,7 +6933,7 @@ Both</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">Select (B)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnSelectTool1">
+                      <widget class="GtkToggleButton" id="btnSelectToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -6949,7 +6960,7 @@ Both</property>
                     <property name="has_tooltip">True</property>
                     <property name="tooltip" translatable="yes">Pan (C)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnPanTool1">
+                      <widget class="GtkToggleButton" id="btnPanToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -6975,7 +6986,7 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomTool1">
+                      <widget class="GtkToggleButton" id="btnZoomToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7001,7 +7012,7 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom Out (X)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomOutTool1">
+                      <widget class="GtkToggleButton" id="btnZoomOutToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7027,7 +7038,7 @@ Both</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom to Fit (V)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomFitTool1">
+                      <widget class="GtkToggleButton" id="btnZoomFitToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -8295,24 +8306,24 @@ system must rebuild the matrices each time you export.</property>
                                                         </child>
                                                         <child>
                                                           <widget class="GtkCheckButton" id="chk_clear_singletons">
-                                                          <property name="label" translatable="yes">Clear singleton
+                                                            <property name="label" translatable="yes">Clear singleton
 nodes from tree</property>
-                                                          <property name="visible">True</property>
-                                                          <property name="can_focus">True</property>
-                                                          <property name="receives_default">False</property>
-                                                          <property name="has_tooltip">True</property>
-                                                          <property name="tooltip" translatable="yes">Singletons are terminal nodes 
+                                                            <property name="visible">True</property>
+                                                            <property name="can_focus">True</property>
+                                                            <property name="receives_default">False</property>
+                                                            <property name="has_tooltip">True</property>
+                                                            <property name="tooltip" translatable="yes">Singletons are terminal nodes 
 connected directly to the root.
 Clearing them is useful 
 for RegionGrower analyses.  </property>
-                                                          <property name="draw_indicator">True</property>
-                                                      </widget>
+                                                            <property name="draw_indicator">True</property>
+                                                          </widget>
                                                           <packing>
                                                             <property name="expand">True</property>
                                                             <property name="fill">True</property>
                                                             <property name="position">6</property>
                                                           </packing>
-                                                    </child>                                                      
+                                                        </child>
                                                       </widget>
                                                     </child>
                                                     <child>
@@ -9373,7 +9384,12 @@ Set to undef or leave blank to use system seed.</property>
                         <child>
                           <placeholder/>
                         </child>
- 
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                       </widget>
                     </child>
                   </widget>

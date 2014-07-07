@@ -1912,7 +1912,9 @@ sub post_zoom {
 sub set_legend_mode {
     my $self = shift;
     my $mode = shift;
-    
+
+    $mode = ucfirst lc $mode;
+
     croak "Invalid display mode '$mode'\n"
         if not $mode =~ /^Hue|Sat|Grey$/;
     

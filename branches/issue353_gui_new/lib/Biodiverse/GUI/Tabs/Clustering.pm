@@ -262,9 +262,9 @@ sub new {
         menu_use_slider_to_select_nodes =>
             {toggled => \&on_menu_use_slider_to_select_nodes},
 
-        menuitem_cluster_colour_mode_hue => {toggled => \&on_colour_mode_changed},
-        menuitem_cluster_colour_mode_sat => {activate => \&on_colour_mode_changed},
-        menuitem_cluster_colour_mode_grey => {toggled => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_sat  => {activate => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
         txtClusterName      => {changed => \&on_name_changed},
 
         comboLinkage        => {changed => \&on_combo_linkage_changed},
@@ -685,17 +685,17 @@ sub update_menu_map_indices {
     my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
     my $ending  = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices_end');
 
-    warn 'widget menuitem_cluster_map_indices not found' if !defined $heading;
-    warn 'widget menuitem_cluster_map_indices_end not found' if !defined $ending;
-my $aa1 = $self->{xmlPage}->get_widget('menubar_clustering');
-my $aa2 = $self->{xmlPage}->get_widget('menuitem_clustering_data');
-my $aa3 = $self->{xmlPage}->get_widget('menu_clustering_data');
+    #warn 'widget menuitem_cluster_map_indices not found' if !defined $heading;
+    #warn 'widget menuitem_cluster_map_indices_end not found' if !defined $ending;
+    #my $aa1 = $self->{xmlPage}->get_widget('menubar_clustering');
+    #my $aa2 = $self->{xmlPage}->get_widget('menuitem_clustering_data');
+    #my $aa3 = $self->{xmlPage}->get_widget('menu_clustering_data');
 
     my @menu_items = $menu->get_children();
-foreach my $mi (@menu_items) {
-    my $text = $mi->get_label;
-    say $text;
-}
+    #foreach my $mi (@menu_items) {
+    #    my $text = $mi->get_label;
+    #    say $text;
+    #}
 
     my $pos = 0;
     while (refaddr($menu_items[$pos]) != refaddr($heading)) {
@@ -1979,43 +1979,41 @@ sub on_group_mode_changed {
     $self->{dendrogram}->set_group_mode($mode);
 }
 
-sub on_colour_mode_changed {
-    my ($self, $menu_item) = @_;
-
-    # Just got the signal for the deselected option. Wait for signal for
-    # selected one.
-    if (!$menu_item->get_active()) {
-        return;
-    }
-
-    my $mode = $menu_item->get_label();
-    if ($mode eq 'Sat...') {
-        $mode = 'Sat';
-
-        # Pop up dialog for choosing the hue to use in saturation mode
-        my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
-        my $colour_select = $colour_dialog->get_color_selection();
-        $colour_select->set_previous_color($self->{hue});
-        $colour_select->set_current_color($self->{hue});
-        my $on_response = sub {
-            my ($_ignore, $response, $_ignore2) = @_;
-            if ($response eq 'ok') {
-                $self->{hue} = $colour_select->get_current_color();
-                $self->{grid}->set_legend_hue($self->{hue});
-                $self->{dendrogram}->recolour();
-            }
-            $colour_dialog->destroy();
-        };
-        $colour_dialog->signal_connect_swapped(
-            response => $on_response,
-            undef
-        );
-        $colour_dialog->show_all();
-    }
-
-    $self->{colour_mode} = $mode;
-    $self->recolour();
-}
+#sub on_colour_mode_changed {
+#    my ($self, $menu_item) = @_;
+#
+#    # Just got the signal for the deselected option. Wait for signal for
+#    # selected one.
+#    return if !$menu_item->get_active();
+#
+#    my $mode = $menu_item->get_label();
+#    if ($mode eq 'Sat...') {
+#        $mode = 'Sat';
+#
+#        # Pop up dialog for choosing the hue to use in saturation mode
+#        my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+#        my $colour_select = $colour_dialog->get_color_selection();
+#        $colour_select->set_previous_color($self->{hue});
+#        $colour_select->set_current_color($self->{hue});
+#        my $on_response = sub {
+#            my ($_ignore, $response, $_ignore2) = @_;
+#            if ($response eq 'ok') {
+#                $self->{hue} = $colour_select->get_current_color();
+#                $self->{grid}->set_legend_hue($self->{hue});
+#                $self->{dendrogram}->recolour();
+#            }
+#            $colour_dialog->destroy();
+#        };
+#        $colour_dialog->signal_connect_swapped(
+#            response => $on_response,
+#            undef
+#        );
+#        $colour_dialog->show_all();
+#    }
+#
+#    $self->{colour_mode} = $mode;
+#    $self->recolour();
+#}
 
 sub recolour {
     my $self = shift;

@@ -137,7 +137,7 @@ sub new {
                 clicked => \&on_close, $self);
         my %widgets_and_signals = (
             btnSpatialRun => { clicked => \&on_run},
-            btnOverlays => { clicked => \&on_overlays},
+            #btnOverlays => { clicked => \&on_overlays},
             txtSpatialName => { changed => \&on_name_changed},
             comboLists => { changed => \&on_active_list_changed},
             comboColours => { changed => \&on_colours_changed},
@@ -150,14 +150,31 @@ sub new {
             btnZoomFitTool => {clicked => \&on_zoom_fit_tool},
 
             colourButton => { color_set => \&on_colour_set},
+
+            menuitem_spatial_overlays => {activate => \&on_overlays},
         );
 
         while (my ($widget, $args) = each %widgets_and_signals) {
             $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
-                    %$args,
-                    $self,
-                    );
+                %$args,
+                $self,
+            );
         }
+
+        my %colour_widget_handlers = (
+            menuitem_spatial_colour_mode_hue =>  [{activate => \&on_menu_colours_changed}, 'hue'],
+            menuitem_spatial_colour_mode_sat =>  [{activate => \&on_menu_colours_changed}, 'sat'],
+            menuitem_spatial_colour_mode_grey => [{activate => \&on_menu_colours_changed}, 'grey'],
+        );
+        while (my ($widget, $opts) = each %colour_widget_handlers) {
+            my $sigs = $opts->[0];
+            my $args = $opts->[1];
+            $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
+                %$sigs,
+                [$self, $args],
+            );
+        }
+
 
 #  do some hiding
         my @to_hide = qw /
@@ -172,7 +189,9 @@ sub new {
             labelDefQuery1
             /;
         foreach my $w_name (@to_hide) {
-            $self->{xmlPage}->get_widget($w_name)->hide;
+            my $w = $self->{xmlPage}->get_widget($w_name);
+            next if !defined $w;
+            $w->hide;
         }
 
         $self->update_output_indices_menu();
@@ -473,6 +492,15 @@ sub on_active_index_changed {
     return;
 }
 
+sub on_menu_colours_changed {
+    my $args = shift;
+    my ($self, $type) = @$args;
+
+    $self->{grid}->set_legend_mode($type);
+    $self->recolour();
+
+    return;
+}
 
 sub set_plot_min_max_values {
     my $self = shift;
@@ -558,7 +586,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = 'SUPER::' . $method;
-    print $method, "\n";
+    #print $method, "\n";
     return $self->$method (@_);
 }
 

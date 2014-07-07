@@ -123,7 +123,7 @@ sub register_in_outputs_model {
     my $iter_base = $model->get_iter_first();
 
     while ($iter_base) {
-        
+
         my $iter_output = $model->iter_children($iter_base);
         while ($iter_output) {
             if ($model->get($iter_output, MODEL_OBJECT) eq $output_ref) {
@@ -331,6 +331,45 @@ sub set_legend_ltgt_flags {
     return;
 }
 
+sub on_colour_mode_changed {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    return if !$menu_item->get_active();
+
+    my $mode = $menu_item->get_label();
+    if ($mode eq 'Sat...') {
+        $mode = 'Sat';
+
+        # Pop up dialog for choosing the hue to use in saturation mode
+        my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+        my $colour_select = $colour_dialog->get_color_selection();
+        if (my $col = $self->{hue}) {
+            $colour_select->set_previous_color($col);
+            $colour_select->set_current_color($col);
+        }
+        my $on_response = sub {
+            my ($_ignore, $response, $_ignore2) = @_;
+            if ($response eq 'ok') {
+                $self->{hue} = $colour_select->get_current_color();
+                $self->{grid}->set_legend_hue($self->{hue});
+                eval {$self->{dendrogram}->recolour()};  #  only clusters have dendrograms
+            }
+            $colour_dialog->destroy();
+        };
+        $colour_dialog->signal_connect_swapped(
+            response => $on_response,
+            undef
+        );
+        $colour_dialog->show_all();
+    }
+
+    $self->{colour_mode} = $mode;
+    $self->recolour();
+}
+
+
 sub set_active_pane {
     my ($self, $active_pane) = @_;
     $self->{active_pane} = $active_pane;
@@ -356,37 +395,38 @@ sub handle_grid_drag_zoom {
     my $canvas = $grid->{canvas};
     rect_canonicalise ($rect);
 
-# Scale
+    # Scale
     my $width_px  = $grid->{width_px}; # Viewport/window size
-        my $height_px = $grid->{height_px};
+    my $height_px = $grid->{height_px};
     my ($xc, $yc) = $canvas->world_to_window(rect_centre ($rect));
-    print "Centre: $xc $yc\n";
+    #print "Centre: $xc $yc\n";
     my ($x1, $y1) = $canvas->world_to_window($rect->[0], $rect->[1]);
     my ($x2, $y2) = $canvas->world_to_window($rect->[2], $rect->[3]);
     print "Window Rect: $x1 $x2 $y1 $y2\n";
     my $width_s   = max ($x2 - $x1, 1); # Selected box width
-        my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
+    my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
 
-# Special case: If the rect is tiny, the user probably just clicked
-# and released. Do something sensible, like just double the zoom level.
-        if ($width_s <= 2 || $height_s <= 2) {
-            $width_s = $width_px / 2;
-            $height_s = $height_px / 2;
-            ($rect->[0], $rect->[1]) = $canvas->window_to_world(
-                    $xc - $width_s / 2, $yc - $height_s / 2);
-            ($rect->[2], $rect->[3]) = $canvas->window_to_world(
-                    $xc + $width_s / 2, $yc + $height_s / 2);
-        }
+    # Special case: If the rect is tiny, the user probably just clicked
+    # and released. Do something sensible, like just double the zoom level.
+    if ($width_s <= 2 || $height_s <= 2) {
+        $width_s  = $width_px / 2;
+        $height_s = $height_px / 2;
+        ($rect->[0], $rect->[1])
+            = $canvas->window_to_world ($xc - $width_s / 2, $yc - $height_s / 2);
+        ($rect->[2], $rect->[3])
+            = $canvas->window_to_world ($xc + $width_s / 2, $yc + $height_s / 2);
+    }
 
     my $ratio = min ($width_px / $width_s, $height_px / $height_s);
     if (exists $grid->{render_width}) {
         $grid->{render_width} *= $ratio;
         $grid->{render_height} *= $ratio;
-    } else {
+    }
+    else {
         my $oppu = $canvas->get_pixels_per_unit;
-        print "Old PPU: $oppu\n";
+        #print "Old PPU: $oppu\n";
         my $ppu = $oppu * $ratio;
-        print "New PPU: $ppu\n";
+        #print "New PPU: $ppu\n";
         $canvas->set_pixels_per_unit($ppu);
     }
 
@@ -411,17 +451,17 @@ sub handle_grid_drag_zoom {
     # We can cover both if we expand rect along both axes until it is
     # the same aspect ratio as the window. (One axis will not change).
     my $window_aspect = $width_px / $height_px;
-    my $rect_aspect = ($rect->[2] - $rect->[0]) / ($rect->[3] - $rect->[1]);
+    my $rect_aspect   = ($rect->[2] - $rect->[0]) / ($rect->[3] - $rect->[1]);
     if ($rect_aspect > $window_aspect) {
         # 2nd case illustrated above. We need to change the height.
-        my $mid = ($rect->[1] + $rect->[3]) / 2;
-        my $width = $rect->[2] - $rect->[0];
+        my $mid    = ($rect->[1] + $rect->[3]) / 2;
+        my $width  = $rect->[2] - $rect->[0];
         $rect->[1] = $mid - 0.5 * $width / $window_aspect;
         $rect->[3] = $mid + 0.5 * $width / $window_aspect;
     }
     else {
         # 1st case illustracted above. We need to change the width.
-        my $mid = ($rect->[0] + $rect->[2]) / 2;
+        my $mid    = ($rect->[0] + $rect->[2]) / 2;
         my $height = $rect->[3] - $rect->[1];
         $rect->[0] = $mid - 0.5 * $height * $window_aspect;
         $rect->[2] = $mid + 0.5 * $height * $window_aspect;

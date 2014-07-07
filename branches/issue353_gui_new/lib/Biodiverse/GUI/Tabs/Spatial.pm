@@ -93,7 +93,7 @@ sub new {
             $self->{basedata_ref},
             'Spatial'
         );
-        print "[Spatial tab] New spatial output " . $self->{output_name} . "\n";
+        say "[Spatial tab] New spatial output " . $self->{output_name};
 
         $self->queue_set_pane(1);
         $self->{existing} = 0;
@@ -112,10 +112,9 @@ sub new {
 
         $self->{output_name} = $output_ref->get_param('NAME');
         $self->{basedata_ref} = $output_ref->get_param('BASEDATA_REF');
-        print "[Spatial tab] Existing spatial output - " . $self->{output_name}
+        say "[Spatial tab] Existing spatial output - " . $self->{output_name}
               . ". Part of Basedata set - "
-              . ($self->{basedata_ref}->get_param ('NAME') || "no name")
-              . "\n";
+              . ($self->{basedata_ref}->get_param ('NAME') || "no name");
 
         if ($elt_count and $completed) {
             $self->queue_set_pane(0.01);
@@ -227,10 +226,10 @@ sub new {
 
     my %widgets_and_signals = (
         btnSpatialRun => {clicked => \&on_run},
-        btnOverlays => {clicked => \&on_overlays},
+        #btnOverlays => {clicked => \&on_overlays},
         txtSpatialName => {changed => \&on_name_changed},
         comboLists => {changed => \&on_active_list_changed},
-        comboColours => {changed => \&on_colours_changed},
+        #comboColours => {changed => \&on_colours_changed},
         comboNeighbours => {changed => \&on_neighbours_changed},
         comboSpatialStretch => {changed => \&on_stretch_changed},
 
@@ -240,15 +239,37 @@ sub new {
         btnZoomOutTool => {clicked => \&on_zoom_out_tool},
         btnZoomFitTool => {clicked => \&on_zoom_fit_tool},
 
-        colourButton => {color_set => \&on_colour_set},
+        #colourButton => {color_set => \&on_colour_set},
+        menuitem_spatial_overlays => {activate => \&on_overlays},
+        menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
+        menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
+        menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
+
     );
 
     while (my ($widget, $args) = each %widgets_and_signals) {
         $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
-                %$args,
-                $self,
-                );
+            %$args,
+            $self,
+        );
     }
+
+    my %colour_widget_handlers = (
+        menuitem_spatial_colour_mode_hue =>  [{activate => \&on_menu_colours_changed}, 'hue'],
+        menuitem_spatial_colour_mode_sat =>  [{activate => \&on_menu_colours_changed}, 'sat'],
+        menuitem_spatial_colour_mode_grey => [{activate => \&on_menu_colours_changed}, 'grey'],
+    );
+    while (my ($widget, $opts) = each %colour_widget_handlers) {
+        my $sigs = $opts->[0];
+        my $args = $opts->[1];
+        $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
+            %$sigs,
+            [$self, $args],
+        );
+    }
+
+    $self->{grid}->set_legend_mode('Hue');
+    $self->recolour();
 
     $self->set_frame_label_widget;
 
@@ -264,10 +285,9 @@ sub new {
 
     #my $options_menu = $self->{xmlPage}->get_widget('menu_spatial_grid_options');
     #$options_menu->set_menu ($self->get_options_menu);
-    
 
-    print "[Spatial tab] - Loaded tab - Spatial Analysis\n";
-    
+    say "[Spatial tab] - Loaded tab - Spatial Analysis";
+
     return $self;
 }
 
@@ -1129,7 +1149,17 @@ sub on_colours_changed {
     my $colours = $self->{xmlPage}->get_widget('comboColours')->get_active_text();
     $self->{grid}->set_legend_mode($colours);
     $self->recolour();
-    
+
+    return;
+}
+
+sub on_menu_colours_changed {
+    my $args = shift;
+    my ($self, $type) = @$args;
+
+    $self->{grid}->set_legend_mode($type);
+    $self->recolour();
+
     return;
 }
 
@@ -1156,6 +1186,8 @@ sub on_neighbours_changed {
 
 #  should be called onSatSet
 sub on_colour_set {
+    return;
+
     my $self = shift;
     my $button = shift;
 
@@ -1349,7 +1381,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = "SUPER::" . $method;
-    print $method, "\n";
+    #print $method, "\n";
     return $self->$method(@_);
 }
 

@@ -143,15 +143,20 @@ sub new {
             comboColours => { changed => \&on_colours_changed},
             comboSpatialStretch => { changed => \&on_stretch_changed},
 
-            btnSelectTool => {clicked => \&on_select_tool},
-            btnPanTool => {clicked => \&on_pan_tool},
-            btnZoomTool => {clicked => \&on_zoom_tool},
-            btnZoomOutTool => {clicked => \&on_zoom_out_tool},
-            btnZoomFitTool => {clicked => \&on_zoom_fit_tool},
+            #  need to refactor common elements with Spatial.pm
+            btnSelectToolSP  => {clicked => \&on_select_tool},
+            btnPanToolSP     => {clicked => \&on_pan_tool},
+            btnZoomToolSP    => {clicked => \&on_zoom_tool},
+            btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
+            btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
 
             colourButton => { color_set => \&on_colour_set},
 
             menuitem_spatial_overlays => {activate => \&on_overlays},
+
+            menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
+            menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
+            menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
         );
 
         while (my ($widget, $args) = each %widgets_and_signals) {

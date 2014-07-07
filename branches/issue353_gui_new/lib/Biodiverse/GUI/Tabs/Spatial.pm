@@ -189,11 +189,9 @@ sub new {
     $self->{hover_neighbours} = 'Both';
     $self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
     $self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
-    $self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
-    $self->{xmlPage}->get_widget('colourButton')    ->set_color(
-        Gtk2::Gdk::Color->new(65535,0,0)  # red
-    );
-    
+    $self->{xmlPage}->get_widget('comboColours')->set_active(0);
+    $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # red, for Sat mode
+    $self->{xmlPage}->get_widget('colourButton')->set_color($self->{hue});
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model (
@@ -225,30 +223,31 @@ sub new {
             clicked => \&on_close, $self);
 
     my %widgets_and_signals = (
-        btnSpatialRun => {clicked => \&on_run},
-        #btnOverlays => {clicked => \&on_overlays},
-        txtSpatialName => {changed => \&on_name_changed},
-        comboLists => {changed => \&on_active_list_changed},
+        btnSpatialRun   => {clicked => \&on_run},
+        #btnOverlays     => {clicked => \&on_overlays},
+        txtSpatialName  => {changed => \&on_name_changed},
+        comboLists      => {changed => \&on_active_list_changed},
         #comboColours => {changed => \&on_colours_changed},
         comboNeighbours => {changed => \&on_neighbours_changed},
         comboSpatialStretch => {changed => \&on_stretch_changed},
 
-        btnSelectTool => {clicked => \&on_select_tool},
-        btnPanTool => {clicked => \&on_pan_tool},
-        btnZoomTool => {clicked => \&on_zoom_tool},
-        btnZoomOutTool => {clicked => \&on_zoom_out_tool},
-        btnZoomFitTool => {clicked => \&on_zoom_fit_tool},
+        btnSelectToolSP  => {clicked => \&on_select_tool},
+        btnPanToolSP     => {clicked => \&on_pan_tool},
+        btnZoomToolSP    => {clicked => \&on_zoom_tool},
+        btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
+        btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
 
         #colourButton => {color_set => \&on_colour_set},
         menuitem_spatial_overlays => {activate => \&on_overlays},
         menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
-
     );
 
-    while (my ($widget, $args) = each %widgets_and_signals) {
-        $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
+    while (my ($widget_name, $args) = each %widgets_and_signals) {
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        warn "Cannot connect $widget_name\n" if !defined $widget;
+        $widget->signal_connect_swapped(
             %$args,
             $self,
         );
@@ -1302,9 +1301,9 @@ sub choose_tool {
 
     if ($old_tool) {
         $self->{ignore_tool_click} = 1;
-        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}Tool");
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}ToolSP");
         $widget->set_active(0);
-        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}Tool");
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}ToolSP");
         $new_widget->set_active(1);
         $self->{ignore_tool_click} = 0;
     }

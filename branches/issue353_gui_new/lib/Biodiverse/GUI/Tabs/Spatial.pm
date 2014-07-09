@@ -188,10 +188,10 @@ sub new {
 
     $self->{hover_neighbours} = 'Both';
     $self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
-    $self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
-    $self->{xmlPage}->get_widget('comboColours')->set_active(0);
+    #$self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
+    #$self->{xmlPage}->get_widget('comboColours')->set_active(0);
     $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # red, for Sat mode
-    $self->{xmlPage}->get_widget('colourButton')->set_color($self->{hue});
+    #$self->{xmlPage}->get_widget('colourButton')->set_color($self->{hue});
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model (
@@ -229,7 +229,7 @@ sub new {
         comboLists      => {changed => \&on_active_list_changed},
         #comboColours => {changed => \&on_colours_changed},
         comboNeighbours => {changed => \&on_neighbours_changed},
-        comboSpatialStretch => {changed => \&on_stretch_changed},
+        #comboSpatialStretch => {changed => \&on_stretch_changed},
 
         btnSelectToolSP  => {clicked => \&on_select_tool},
         btnPanToolSP     => {clicked => \&on_pan_tool},
@@ -243,6 +243,11 @@ sub new {
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
     );
+
+    for my $n (0..6) {
+        my $widget_name = "radio_colour_stretch$n";
+        $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
+    }
 
     while (my ($widget_name, $args) = each %widgets_and_signals) {
         my $widget = $self->{xmlPage}->get_widget($widget_name);
@@ -1062,32 +1067,31 @@ sub set_plot_min_max_values {
     return;
 }
 
-#sub set_legend_ltgt_flags {
-#    my $self = shift;
-#    my $stats = shift;
-#
-#    my $flag = 0;
-#    my $minstat = ($self->{PLOT_STAT_MIN} || 'MIN');
-#    eval {
-#        if ($stats->{$minstat} != $stats->{MIN}
-#            and $minstat =~ /PCT/) {
-#            $flag = 1;
-#        }
-#        $self->{grid}->set_legend_lt_flag ($flag);
-#    };
-#    $flag = 0;
-#    my $maxstat = ($self->{PLOT_STAT_MAX} || 'MAX');
-#    eval {
-#        if ($stats->{$maxstat} != $stats->{MAX}
-#            and $minstat =~ /PCT/) {
-#            $flag = 1;
-#        }
-#        $self->{grid}->set_legend_gt_flag ($flag);
-#    };
-#    return;
-#}
+
+sub on_menu_stretch_changed {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    return if !$menu_item->get_active();
+
+    my $sel = $menu_item->get_label();
+
+    my ($min, $max) = split (/-/, uc $sel);
+
+    my %stretch_codes = $self->get_display_stretch_codes;
+
+    $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
+    $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
+
+    $self->on_active_index_changed;
+
+    return;
+}
 
 sub on_stretch_changed {
+    return;
+    
     my $self = shift;
     my $sel = $self->{xmlPage}->get_widget('comboSpatialStretch')->get_active_text();
     
@@ -1130,6 +1134,8 @@ sub recolour {
 }
 
 sub on_colours_changed {
+    return;
+
     my $self = shift;
     my $colours = $self->{xmlPage}->get_widget('comboColours')->get_active_text();
     $self->{grid}->set_legend_mode($colours);

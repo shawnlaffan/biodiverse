@@ -239,7 +239,7 @@ sub new {
     
     $self->{xmlPage}->get_widget('chk_output_gdm_format')->set_sensitive (0);
 
-    $self->set_colour_stretch_widgets_and_signals;
+    #$self->set_colour_stretch_widgets_and_signals;
 
     my %widgets_and_signals = (
         btnCluster          => {clicked => \&on_run},
@@ -275,6 +275,12 @@ sub new {
         menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
     );
 
+    for my $n (0..6) {
+        my $widget_name = "radio_dendro_colour_stretch$n";
+        $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
+    }
+
+    
     foreach my $widget_name (sort keys %widgets_and_signals) {
         my $args = $widgets_and_signals{$widget_name};
         #say $widget_name;
@@ -1979,47 +1985,11 @@ sub on_group_mode_changed {
     $self->{dendrogram}->set_group_mode($mode);
 }
 
-#sub on_colour_mode_changed {
-#    my ($self, $menu_item) = @_;
-#
-#    # Just got the signal for the deselected option. Wait for signal for
-#    # selected one.
-#    return if !$menu_item->get_active();
-#
-#    my $mode = $menu_item->get_label();
-#    if ($mode eq 'Sat...') {
-#        $mode = 'Sat';
-#
-#        # Pop up dialog for choosing the hue to use in saturation mode
-#        my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
-#        my $colour_select = $colour_dialog->get_color_selection();
-#        $colour_select->set_previous_color($self->{hue});
-#        $colour_select->set_current_color($self->{hue});
-#        my $on_response = sub {
-#            my ($_ignore, $response, $_ignore2) = @_;
-#            if ($response eq 'ok') {
-#                $self->{hue} = $colour_select->get_current_color();
-#                $self->{grid}->set_legend_hue($self->{hue});
-#                $self->{dendrogram}->recolour();
-#            }
-#            $colour_dialog->destroy();
-#        };
-#        $colour_dialog->signal_connect_swapped(
-#            response => $on_response,
-#            undef
-#        );
-#        $colour_dialog->show_all();
-#    }
-#
-#    $self->{colour_mode} = $mode;
-#    $self->recolour();
-#}
-
 sub recolour {
     my $self = shift;
     $self->set_plot_min_max_values;
-    $self->{grid}->set_legend_mode($self->{colour_mode});
     $self->{dendrogram}->recolour();
+    $self->{grid}->set_legend_mode($self->{colour_mode});
 }
 
 sub set_plot_min_max_values {
@@ -2049,7 +2019,30 @@ sub set_plot_min_max_values {
     return;
 }
 
+#  Same as the version in Spatial.pm except it calls
+#  recolour instead of on_active_index_changed
+sub on_menu_stretch_changed {
+    my ($self, $menu_item) = @_;
 
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    return if !$menu_item->get_active();
+
+    my $sel = $menu_item->get_label();
+
+    my ($min, $max) = split (/-/, uc $sel);
+
+    my %stretch_codes = $self->get_display_stretch_codes;
+
+    $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
+    $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
+
+    $self->recolour;
+    #  not properly redisplaying map
+    #  poss need to call on_map_index_changed, grabbing the current index
+
+    return;
+}
 
 sub on_stretch_changed {
     my $self = shift;

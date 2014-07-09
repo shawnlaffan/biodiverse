@@ -113,9 +113,9 @@ sub new {
 
 #$self->{hover_neighbours} = 'Both';
 #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
-        $self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
+        #$self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
         $self->{xmlPage}->get_widget('comboNeighbours') ->hide;
-        $self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
+        #$self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
         $self->{xmlPage}->get_widget('colourButton')    ->set_color(
                 Gtk2::Gdk::Color->new(65535,0,0)  # red
                 ); 
@@ -140,8 +140,8 @@ sub new {
             #btnOverlays => { clicked => \&on_overlays},
             txtSpatialName => { changed => \&on_name_changed},
             comboLists => { changed => \&on_active_list_changed},
-            comboColours => { changed => \&on_colours_changed},
-            comboSpatialStretch => { changed => \&on_stretch_changed},
+            #comboColours => { changed => \&on_colours_changed},
+            #comboSpatialStretch => { changed => \&on_stretch_changed},
 
             #  need to refactor common elements with Spatial.pm
             btnSelectToolSP  => {clicked => \&on_select_tool},
@@ -158,6 +158,11 @@ sub new {
             menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
             menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
         );
+
+        for my $n (0..6) {
+            my $widget_name = "radio_colour_stretch$n";
+            $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
+        }
 
         while (my ($widget, $args) = each %widgets_and_signals) {
             $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(

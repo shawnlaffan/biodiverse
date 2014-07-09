@@ -339,6 +339,7 @@ sub on_colour_mode_changed {
     return if !$menu_item->get_active();
 
     my $mode = $menu_item->get_label();
+
     if ($mode eq 'Sat...') {
         $mode = 'Sat';
 
@@ -360,7 +361,10 @@ sub on_colour_mode_changed {
     }
 
     $self->{colour_mode} = $mode;
+    $self->{grid}->set_legend_mode($mode);
     $self->recolour();
+
+    return;
 }
 
 

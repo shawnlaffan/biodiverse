@@ -166,19 +166,19 @@ sub new {
             );
         }
 
-        my %colour_widget_handlers = (
-            menuitem_spatial_colour_mode_hue =>  [{activate => \&on_menu_colours_changed}, 'hue'],
-            menuitem_spatial_colour_mode_sat =>  [{activate => \&on_menu_colours_changed}, 'sat'],
-            menuitem_spatial_colour_mode_grey => [{activate => \&on_menu_colours_changed}, 'grey'],
-        );
-        while (my ($widget, $opts) = each %colour_widget_handlers) {
-            my $sigs = $opts->[0];
-            my $args = $opts->[1];
-            $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
-                %$sigs,
-                [$self, $args],
-            );
-        }
+        #my %colour_widget_handlers = (
+        #    menuitem_spatial_colour_mode_hue =>  [{activate => \&on_menu_colours_changed}, 'hue'],
+        #    menuitem_spatial_colour_mode_sat =>  [{activate => \&on_menu_colours_changed}, 'sat'],
+        #    menuitem_spatial_colour_mode_grey => [{activate => \&on_menu_colours_changed}, 'grey'],
+        #);
+        #while (my ($widget, $opts) = each %colour_widget_handlers) {
+        #    my $sigs = $opts->[0];
+        #    my $args = $opts->[1];
+        #    $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
+        #        %$sigs,
+        #        [$self, $args],
+        #    );
+        #}
 
 
 #  do some hiding

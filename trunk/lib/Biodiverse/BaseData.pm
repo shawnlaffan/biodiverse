@@ -167,6 +167,8 @@ sub rename {
     my $self = shift;
     my %args = @_;
     
+    $args{name} //= $args{new_name};
+
     croak "[BASEDATA] rename: argument name not supplied\n"
         if not defined $args{name};
 
@@ -2592,6 +2594,25 @@ sub delete_groups {
     }
 
     return;
+}
+
+
+sub delete_label {
+    my $self = shift;
+    my %args = @_;
+    
+    my $label = $args{label} // croak "Argument 'label' not defined\n";
+    
+    return $self->delete_element (type => 'LABELS', element => $label);
+}
+
+sub delete_group {
+    my $self = shift;
+    my %args = @_;
+    
+    my $group = $args{group} // croak "Argument 'group' not defined\n";
+    
+    return $self->delete_element (type => 'GROUPS', element => $group);
 }
 
 

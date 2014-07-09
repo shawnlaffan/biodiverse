@@ -60,7 +60,7 @@ sub rename_object {
     my $self = shift;
     my %args = @_;
     
-    my $new_name = $args{name};
+    my $new_name = $args{name} // $args{new_name};
     my $old_name = $self->get_param ('NAME');
     
     $self->set_param (NAME => $new_name);

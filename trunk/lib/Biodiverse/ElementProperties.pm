@@ -309,8 +309,8 @@ sub import_data {
         REMAP:
         while (exists $props->{REMAP} and defined $props->{REMAP}) {
             if (exists $r_hash{$element} or $element eq $props->{REMAP}) {
-                warn "Circular remap for $element_orig\n";
-                last;  #  avoid circular remaps
+                warn "Circular remap for $element_orig via path " . join (' ', @remap_history) . "\n";
+                last REMAP;  #  avoid circular remaps
             }
             $r_hash{$element}++;
 

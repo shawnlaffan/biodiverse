@@ -358,9 +358,11 @@ sub get_element_properties {
 
     #  remap the element name if need be
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    my $remap = $self->get_element_remapped (@_);
+    my $remap = $self->get_element_remapped (%args);
     if (defined $remap) {
-        $props = $self->get_list_ref (element => $remap, list => 'PROPERTIES');
+        $props = $self->exists_element (element => $remap)
+            ? $self->get_list_ref (element => $remap, list => 'PROPERTIES')
+            : {};
     }
 
     return wantarray ? %$props : $props;

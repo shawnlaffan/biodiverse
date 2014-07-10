@@ -1518,6 +1518,13 @@ sub import_data_shapefile {
 
         my $shape_count = $shapefile->shapes();
         say "have $shape_count shapes";
+        
+        #  some validation
+        my %db_rec1 = $shapefile->get_dbf_record(1);
+        foreach my $key (@label_field_names) {
+            croak "Shapefile $file does not have a field called $key\n"
+              if !exists $db_rec1{$key};
+        }
 
         # iterate over shapes
       SHAPE:

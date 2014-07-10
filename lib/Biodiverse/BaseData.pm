@@ -1803,7 +1803,9 @@ sub assign_element_properties {
         my %props = $prop_obj->get_element_properties (element => $element);
 
         #  but don't add these ones
-        delete @props{qw /INCLUDE EXCLUDE/}; #/
+        delete @props{qw /INCLUDE EXCLUDE REMAP/}; #/
+
+        next ELEMENT_PROPS if !scalar keys %props;
 
         $gp_lb_ref->add_to_lists (
             element    => $element,

@@ -272,7 +272,7 @@ sub new {
         chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
 
-        menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
+        #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
     );
 
     for my $n (0..6) {
@@ -534,7 +534,7 @@ sub init_dendrogram {
     my $self = shift;
 
     my $frame       =  $self->{xmlPage}->get_widget('clusterFrame');
-    my $graph_frame  =  $self->{xmlPage}->get_widget('graphFrame');
+    my $graph_frame =  $self->{xmlPage}->get_widget('graphFrame');
     my $hscroll     =  $self->{xmlPage}->get_widget('clusterHScroll');
     my $vscroll     =  $self->{xmlPage}->get_widget('clusterVScroll');
     my $list_combo  =  $self->{xmlPage}->get_widget('comboMapList');

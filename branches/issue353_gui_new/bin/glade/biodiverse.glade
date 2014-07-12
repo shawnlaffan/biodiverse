@@ -557,6 +557,12 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1303,6 +1309,12 @@ Shapefile
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1356,8 +1368,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1374,8 +1386,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -5995,48 +6007,6 @@ Merely closes the window if no file is selected.</property>
                         <property name="can_focus">False</property>
                         <property name="pack_direction">ttb</property>
                         <child>
-                          <widget class="GtkMenuItem" id="menuitem_spatial_data">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="label" translatable="yes">Data</property>
-                            <child>
-                              <widget class="GtkMenu" id="menu_spatial_data">
-                                <property name="can_focus">False</property>
-                                <child>
-                                  <widget class="GtkMenuItem" id="menuitem_spatial_map_list">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Lists</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_map_lists_end">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkMenuItem" id="menuitem_spatial_indices">
-                                    <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">Indices</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_indices_end">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                </child>
-                              </widget>
-                            </child>
-                          </widget>
-                        </child>
-                        <child>
                           <widget class="GtkMenuItem" id="menuitem_spatial_display">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -6694,7 +6664,11 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
                                 <child>
-                                  <placeholder/>
+                                  <widget class="GtkComboBox" id="comboIndices">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="add_tearoffs">True</property>
+                                  </widget>
                                 </child>
                               </widget>
                               <packing>
@@ -9170,6 +9144,12 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

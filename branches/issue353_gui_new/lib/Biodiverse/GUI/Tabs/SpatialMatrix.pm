@@ -92,7 +92,7 @@ sub new {
         $completed //= 1;  #  backwards compatibility - old versions did not have this flag
 
         my $elements = $groups_ref->get_element_list_sorted;
-        $self->{selected_index} = $elements->[0];
+        $self->{selected_element} = $elements->[0];
 
         say "[SpatialMatrix tab] Existing matrix output - "
             . $self->{output_name}
@@ -111,8 +111,8 @@ sub new {
         $self->{label_widget}->set_text($self->{output_name} );
 
 
-#$self->{hover_neighbours} = 'Both';
-#$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
+        #$self->{hover_neighbours} = 'Both';
+        #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
         #$self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
         #$self->{xmlPage}->get_widget('comboNeighbours') ->hide;
         #$self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
@@ -132,15 +132,17 @@ sub new {
         }
 
 
-# Connect signals
+        # Connect signals
         $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
             clicked => \&on_close, $self
         );
         my %widgets_and_signals = (
-            btnSpatialRun => { clicked => \&on_run},
-            #btnOverlays => { clicked => \&on_overlays},
-            txtSpatialName => { changed => \&on_name_changed},
-            comboLists => { changed => \&on_active_list_changed},
+            btnSpatialRun  => { clicked => \&on_run },
+            #btnOverlays => { clicked => \&on_overlays },
+            txtSpatialName => { changed => \&on_name_changed },
+            #comboLists     => { changed => \&on_active_list_changed },
+            comboIndices   => { changed   => \&on_active_index_changed },
+
             #comboColours => { changed => \&on_colours_changed},
             #comboSpatialStretch => { changed => \&on_stretch_changed},
 
@@ -193,14 +195,15 @@ sub new {
             labelNbrSet2
             labelDefQuery1
             menuitem_spatial_nbr_highlighting
-            /;
+        /;
         foreach my $w_name (@to_hide) {
             my $w = $self->{xmlPage}->get_widget($w_name);
             next if !defined $w;
             $w->hide;
         }
 
-        $self->update_output_indices_menu();
+        $self->init_output_indices_combo();
+        #$self->update_output_indices_menu();
 
         $self->set_frame_label_widget;
 
@@ -217,7 +220,7 @@ sub new {
         print "[SpatialMatrix tab] - Loaded tab \n";
 
 
-#  debug stuff
+        #  debug stuff
         $self->{selected_list} = 'SUBELEMENTS';
 
         return $self;
@@ -266,10 +269,12 @@ sub init_grid {
 
 # Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->on_grid_hover(@_); };
-    my $click_closure = sub { Biodiverse::GUI::CellPopup::cell_clicked(
+    my $click_closure = sub {
+        Biodiverse::GUI::CellPopup::cell_clicked(
             $_[0],
             $self->{groups_ref},
-            ); };
+        );
+    };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
 
@@ -331,7 +336,6 @@ sub make_output_indices_array {
     return [@array];
 }
 
-=for comment
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
 sub make_output_indices_model {
@@ -341,18 +345,17 @@ sub make_output_indices_model {
     my $element_array = $matrix_ref->get_elements_as_array;
     my $groups_ref = $self->{groups_ref};
 
-# Make model for combobox
+    # Make model for combobox
     my $model = Gtk2::ListStore->new('Glib::String');
     foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
         my $iter = $model->append;
-#print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
+        #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
         $model->set($iter, 0, $x);
-#print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
+        #print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
     }
 
     return $model;
 }
-=cut
 
 # Generates ComboBox model with analyses
 #  hidden 
@@ -408,24 +411,43 @@ sub on_cell_selected {
     }
     else {  #  get the first sorted element that is in the matrix
         my @sorted = $self->{groups_ref}->get_element_list_sorted (list => $data);
-CHECK_SORTED:
+        CHECK_SORTED:
         while (defined ($element = shift @sorted)) {
             last CHECK_SORTED
-                if $self->{output_ref}->element_is_in_matrix (element => $element);
+              if $self->{output_ref}->element_is_in_matrix (element => $element);
         }
-
+        
     }
 
     return if ! defined $element;
-    return if $element eq $self->{selected_index};
+    return if $element eq $self->{selected_element};
     return if ! $self->{output_ref}->element_is_in_matrix (element => $element);
 
-#print "Element selected: $element\n";
+    #print "Element selected: $element\n";
 
-    $self->{selected_index} = $element;
+    $self->{selected_element} = $element;
 
-    $self->on_active_index_changed();
-    $self->change_selected_index($element);
+    my $combo = $self->{xmlPage}->get_widget('comboIndices');
+    $combo->set_model($self->{output_indices_model});  #  already have this?
+
+    # Select the previous analysis (or the first one)
+    my $iter = $self->{output_indices_model}->get_iter_first();
+    my $selected = $iter;
+    
+    BY_ITER:
+    while ($iter) {
+        my ($analysis) = $self->{output_indices_model}->get($iter, 0);
+        if ($self->{selected_element} && ($analysis eq $self->{selected_element}) ) {
+            $selected = $iter;
+            last BY_ITER; # break loop
+        }
+        $iter = $self->{output_indices_model}->iter_next($iter);
+    }
+
+    if ($selected) {
+        $combo->set_active_iter($selected);
+    }
+    $self->on_active_index_changed($combo);
 
     return;
 }
@@ -451,17 +473,17 @@ sub on_grid_hover {
 
             my $val = $matrix_ref->get_value (
                     element1 => $element,
-                    element2 => $self->{selected_index},
+                    element2 => $self->{selected_element},
                     );
 
         $text = defined $val
             ? sprintf (
                     '<b>%s</b> v <b>%s</b>, value: %s',  #  should list the index used
-                    $self->{selected_index},
+                    $self->{selected_element},
                     $element,
                     $self->format_number_for_display (number => $val),
                     ) # round to 4 d.p.
-            : '<b>Selected element: ' . $self->{selected_index} . '</b>'; 
+            : '<b>Selected element: ' . $self->{selected_element} . '</b>'; 
         $self->{xmlPage}->get_widget('lblOutput')->set_markup($text);
 
     }
@@ -475,12 +497,12 @@ sub show_analysis {
     my $self = shift;
     my $name = shift;
 
-# Reinitialising is a cheap way of showing 
-# the SPATIAL_RESULTS list (the default), and
-# selecting what we want
+    # Reinitialising is a cheap way of showing 
+    # the SPATIAL_RESULTS list (the default), and
+    # selecting what we want
 
-#$self->{selected_index} = $name;
-#$self->update_lists_combo();
+    #$self->{selected_element} = $name;
+    #$self->update_lists_combo();
     $self->update_output_calculations_combo();
 
     return;
@@ -488,9 +510,16 @@ sub show_analysis {
 
 sub on_active_index_changed {
     my $self  = shift;
+    my $combo = shift
+              ||  $self->{xmlPage}->get_widget('comboIndices');
 
-#  This is redundant when only changing the element,
-#  but doesn;t take long and makes stretch changes easier.  
+    my $iter = $combo->get_active_iter() || return;
+    my $element = $self->{output_indices_model}->get($iter, 0);
+
+    $self->{selected_element} = $element;
+
+    #  This is redundant when only changing the element,
+    #  but doesn't take long and makes stretch changes easier.  
     $self->set_plot_min_max_values;  
 
     $self->recolour();
@@ -537,8 +566,8 @@ sub recolour {
     return if not defined $grid;  #  if no grid then no need to colour.
 
 #my $elements_hash = $self->{groups_ref}->get_element_hash;
-        my $matrix_ref    = $self->{output_ref};
-    my $sel_element   = $self->{selected_index};
+    my $matrix_ref    = $self->{output_ref};
+    my $sel_element   = $self->{selected_element};
 
     my $colour_func = sub {
         my $elt = shift;

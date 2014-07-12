@@ -215,7 +215,8 @@ sub new {
         }
     }
     $self->init_lists_combo();
-    $self->make_output_indices_array();
+    #$self->make_output_indices_array();
+    $self->init_output_indices_combo();
     
 
     # Connect signals
@@ -227,6 +228,7 @@ sub new {
         #btnOverlays     => {clicked => \&on_overlays},
         txtSpatialName  => {changed => \&on_name_changed},
         comboLists      => {changed => \&on_active_list_changed},
+        comboIndices    => {changed => \&on_active_index_changed},
         #comboColours => {changed => \&on_colours_changed},
         #comboNeighbours => {changed => \&on_neighbours_changed},
         #comboSpatialStretch => {changed => \&on_stretch_changed},
@@ -461,7 +463,9 @@ sub update_lists_combo {
     return;
 }
 
-sub update_output_indices_menu {
+
+
+sub __update_output_indices_menu {
     my $self = shift;
     my $indices = $self->make_output_indices_array();
     $self->{output_indices_array} = $indices;
@@ -513,11 +517,11 @@ sub update_output_indices_menu {
 }
 
 # Changes which index is displayed as selected in the menu
-sub change_selected_index {
-    my ($self, $index) = @_;
-
-    $self->{index_menu_items}->{$index}->activate();
-}
+#sub change_selected_index {
+#    my ($self, $index) = @_;
+#
+#    $self->{index_menu_items}->{$index}->activate();
+#}
 
 # Generates Perl array with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
@@ -561,7 +565,6 @@ sub make_output_indices_array {
     return [@analyses];
 }
 
-=for comment
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
 sub make_output_indices_model {
@@ -615,7 +618,6 @@ sub make_output_indices_model {
 
     return $model;
 }
-=cut
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
@@ -1003,8 +1005,8 @@ sub show_analysis {
 
     $self->{selected_index} = $name;
     $self->update_lists_combo();
-    #$self->update_output_indices_combo();
-    $self->update_output_indices_menu();
+    $self->update_output_indices_combo();
+    #$self->update_output_indices_menu();
     
     return;
 }
@@ -1017,11 +1019,42 @@ sub on_active_list_changed {
     my ($list) = $self->{output_lists_model}->get($iter, 0);
 
     $self->{selected_list} = $list;
-    #$self->update_output_indices_combo();
-    $self->update_output_indices_menu();
+    $self->update_output_indices_combo();
+    #$self->update_output_indices_menu();
     
     return;
 }
+
+sub update_output_indices_combo {
+    my $self = shift;
+
+    # Make the model
+    $self->{output_indices_model} = $self->make_output_indices_model();
+    my $combo = $self->{xmlPage}->get_widget('comboIndices');
+    $combo->set_model($self->{output_indices_model});
+
+    # Select the previous analysis (or the first one)
+    my $iter = $self->{output_indices_model}->get_iter_first();
+    my $selected = $iter;
+    
+    BY_ITER:
+    while ($iter) {
+        my ($analysis) = $self->{output_indices_model}->get($iter, 0);
+        if ($self->{selected_index} && ($analysis eq $self->{selected_index}) ) {
+            $selected = $iter;
+            last BY_ITER; # break loop
+        }
+        $iter = $self->{output_indices_model}->iter_next($iter);
+    }
+
+    if ($selected) {
+        $combo->set_active_iter($selected);
+    }
+    $self->on_active_index_changed($combo);
+    
+    return;
+}
+
 
 sub on_output_index_toggled {
     my ($self, $menu_item) = @_;
@@ -1042,9 +1075,31 @@ sub on_output_index_toggled {
     $self->on_active_index_changed();
 }
 
+sub init_output_indices_combo {
+    my $self = shift;
+
+    my $combo = $self->{xmlPage}->get_widget('comboIndices');
+    my $renderer = Gtk2::CellRendererText->new();
+    $combo->pack_start($renderer, 1);
+    $combo->add_attribute($renderer, text => 0);
+
+    # Only do this if we aren't a new spatial analysis...
+    if ($self->{existing}) {
+        $self->update_output_indices_combo();
+    }
+    
+    return;
+}
+
 #  should be called on_active_index_changed, but many such occurrences need to be edited
 sub on_active_index_changed {
     my $self = shift;
+    my $combo = shift
+        ||  $self->{xmlPage}->get_widget('comboIndices');
+
+    my $iter = $combo->get_active_iter() || return;
+    my ($index) = $self->{output_indices_model}->get($iter, 0);
+    $self->{selected_index} = $index;  #  should be called calculation
 
     $self->set_plot_min_max_values;
 

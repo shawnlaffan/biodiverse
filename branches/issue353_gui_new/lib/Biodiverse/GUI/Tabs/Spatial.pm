@@ -187,7 +187,7 @@ sub new {
     }
 
     $self->{hover_neighbours} = 'Both';
-    $self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
+    #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
     #$self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
     #$self->{xmlPage}->get_widget('comboColours')->set_active(0);
     $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # red, for Sat mode
@@ -228,7 +228,7 @@ sub new {
         txtSpatialName  => {changed => \&on_name_changed},
         comboLists      => {changed => \&on_active_list_changed},
         #comboColours => {changed => \&on_colours_changed},
-        comboNeighbours => {changed => \&on_neighbours_changed},
+        #comboNeighbours => {changed => \&on_neighbours_changed},
         #comboSpatialStretch => {changed => \&on_stretch_changed},
 
         btnSelectToolSP  => {clicked => \&on_select_tool},
@@ -242,11 +242,24 @@ sub new {
         menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
+        
+
+        
     );
 
     for my $n (0..6) {
         my $widget_name = "radio_colour_stretch$n";
         $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
+    }
+
+    my @nbr_menu_options = qw /
+        menuitem_nbr_highlight_all
+        menuitem_nbr_highlight_set1
+        menuitem_nbr_highlight_set2
+        menuitem_nbr_highlight_off
+    /;
+    for my $w (@nbr_menu_options) {
+        $widgets_and_signals{$w} = {toggled  => \&on_menu_neighbours_changed};
     }
 
     while (my ($widget_name, $args) = each %widgets_and_signals) {
@@ -1154,7 +1167,30 @@ sub on_menu_colours_changed {
     return;
 }
 
-sub on_neighbours_changed {
+sub on_menu_neighbours_changed {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    return if !$menu_item->get_active();
+
+    my $sel = $menu_item->get_label();
+
+    $self->{hover_neighbours} = $sel;
+
+    # Turn off markings if deselected
+    if ($sel eq 'Set1' || $sel eq 'Off') {
+        $self->{grid}->mark_if_exists({}, 'minus');
+    }
+    if ($sel eq 'Set2' || $sel eq 'Off') {
+        $self->{grid}->mark_if_exists({}, 'circle');
+    }
+    
+    return;    
+}
+
+#  redundant now
+sub __on_neighbours_changed {
     my $self = shift;
     my $sel = $self->{xmlPage}->get_widget('comboNeighbours')->get_active_text();
     $self->{hover_neighbours} = $sel;

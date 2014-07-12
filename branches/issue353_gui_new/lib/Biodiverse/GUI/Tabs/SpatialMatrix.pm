@@ -94,16 +94,16 @@ sub new {
         my $elements = $groups_ref->get_element_list_sorted;
         $self->{selected_index} = $elements->[0];
 
-        print "[SpatialMatrix tab] Existing matrix output - " . $self->{output_name}
-        . ". Part of Basedata set - "
-            . ($self->{basedata_ref}->get_param ('NAME') || "no name")
-            . "\n";
+        say "[SpatialMatrix tab] Existing matrix output - "
+            . $self->{output_name}
+            . ". Part of Basedata set - "
+            . ($self->{basedata_ref}->get_param ('NAME') || "no name");
 
         $self->queue_set_pane(0.01);
         $self->{existing} = 1;
 #}
 
-# Initialise widgets
+        # Initialise widgets
         $self->{title_widget} = $self->{xmlPage} ->get_widget('txtSpatialName');
         $self->{label_widget} = $self->{xmlLabel}->get_widget('lblSpatialName');
 
@@ -114,11 +114,11 @@ sub new {
 #$self->{hover_neighbours} = 'Both';
 #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
         #$self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
-        $self->{xmlPage}->get_widget('comboNeighbours') ->hide;
+        #$self->{xmlPage}->get_widget('comboNeighbours') ->hide;
         #$self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
-        $self->{xmlPage}->get_widget('colourButton')    ->set_color(
-                Gtk2::Gdk::Color->new(65535,0,0)  # red
-                ); 
+        #$self->{xmlPage}->get_widget('colourButton')    ->set_color(
+        #        Gtk2::Gdk::Color->new(65535,0,0)  # red
+        #        ); 
 
         $self->set_plot_min_max_values;
 
@@ -134,7 +134,8 @@ sub new {
 
 # Connect signals
         $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
-                clicked => \&on_close, $self);
+            clicked => \&on_close, $self
+        );
         my %widgets_and_signals = (
             btnSpatialRun => { clicked => \&on_run},
             #btnOverlays => { clicked => \&on_overlays},
@@ -150,7 +151,7 @@ sub new {
             btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
             btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
 
-            colourButton => { color_set => \&on_colour_set},
+            #colourButton => { color_set => \&on_colour_set},
 
             menuitem_spatial_overlays => {activate => \&on_overlays},
 
@@ -164,8 +165,16 @@ sub new {
             $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
         }
 
-        while (my ($widget, $args) = each %widgets_and_signals) {
-            $self->{xmlPage}->get_widget($widget)->signal_connect_swapped(
+      WIDGET:
+        foreach my $widget_name (sort keys %widgets_and_signals) {
+            my $args = $widgets_and_signals{$widget_name};
+            my $widget = $self->{xmlPage}->get_widget($widget_name);
+            if (!$widget) {
+                warn "$widget_name cannot be found\n";
+                next WIDGET;
+            }
+
+            $widget->signal_connect_swapped(
                 %$args,
                 $self,
             );
@@ -183,6 +192,7 @@ sub new {
             labelNbrSet1
             labelNbrSet2
             labelDefQuery1
+            menuitem_spatial_nbr_highlighting
             /;
         foreach my $w_name (@to_hide) {
             my $w = $self->{xmlPage}->get_widget($w_name);

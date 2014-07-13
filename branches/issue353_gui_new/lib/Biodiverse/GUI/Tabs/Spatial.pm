@@ -134,6 +134,8 @@ sub new {
     $self->{label_widget}->set_text($self->{output_name} );
     $self->{tab_menu_label}->set_text($self->{output_name} );
 
+    $self->set_label_widget_tooltip;
+
     # Spatial parameters
     my ($initial_sp1, $initial_sp2);
     my $initial_def1 = $NULL_STRING;

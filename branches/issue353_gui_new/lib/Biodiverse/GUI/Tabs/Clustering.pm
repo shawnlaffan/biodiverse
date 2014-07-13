@@ -169,6 +169,8 @@ sub new {
 
     $self->{title_widget} = $xml_page ->get_widget('txtClusterName');
     $self->{label_widget} = $xml_label->get_widget('lblClusteringName');
+    $self->set_label_widget_tooltip;
+
 
     $self->{spatialParams1}
         = Biodiverse::GUI::SpatialParams->new($sp_initial1);

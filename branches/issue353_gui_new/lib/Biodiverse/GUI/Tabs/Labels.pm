@@ -82,6 +82,8 @@ sub new {
     $self->{label_widget} = $label_widget;
     $self->{tab_menu_label}->set_text($text);
 
+    $self->set_label_widget_tooltip;
+
     $self->make_labels_model();
     $self->init_list('listLabels1');
     $self->init_list('listLabels2');

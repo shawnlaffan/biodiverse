@@ -109,7 +109,7 @@ sub new {
 
         $self->{title_widget}->set_text($self->{output_name} );
         $self->{label_widget}->set_text($self->{output_name} );
-
+        $self->set_label_widget_tooltip;
 
         #$self->{hover_neighbours} = 'Both';
         #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);

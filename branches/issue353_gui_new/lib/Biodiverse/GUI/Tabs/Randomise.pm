@@ -68,6 +68,9 @@ sub new {
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
     
+    $self->{label_widget} = $xml_label->get_widget('lblRandomiseName');
+    #$self->set_label_widget_tooltip;  not yet
+
     # Add to notebook
     $self->add_to_notebook (
         page         => $page,

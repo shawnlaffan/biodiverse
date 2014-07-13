@@ -69,6 +69,18 @@ sub update_current_registration {
     $self->{current_registration} = $object;
 }
 
+sub set_label_widget_tooltip {
+    my $self = shift;
+    my $bd = $self->get_base_ref;
+    
+    my $text = "Part of basedata " . $bd->get_name;
+    my $w = $self->{label_widget} || $self->{tab_menu_label};
+    
+    eval {$w->set_tooltip_text ($text)};
+
+    return;
+}
+
 sub update_name {
     my $self = shift;
     my $new_name = shift;

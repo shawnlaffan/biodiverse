@@ -587,6 +587,18 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1249,6 +1261,18 @@ Shapefile
                     <property name="n_columns">2</property>
                     <property name="column_spacing">3</property>
                     <property name="row_spacing">3</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                     <child>
                       <placeholder/>
                     </child>
@@ -6097,7 +6121,7 @@ Merely closes the window if no file is selected.</property>
                           </widget>
                         </child>
                         <child>
-                          <widget class="GtkMenuItem" id="menuitem_clustering_desplay">
+                          <widget class="GtkMenuItem" id="menuitem_clustering_display">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <property name="label" translatable="yes">Display</property>
@@ -6166,6 +6190,105 @@ Colours are currently taken from the outer ring.</property>
                                 </child>
                                 <child>
                                   <widget class="GtkSeparatorMenuItem" id="menuitem_cluster_display_sep2">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menu_item_dendro_colour_stretch">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Sets the colour stretch for analysis results.</property>
+                                    <property name="label" translatable="yes">Colour stretch</property>
+                                    <property name="use_underline">True</property>
+                                    <child>
+                                      <widget class="GtkMenu" id="menu_dendro_colour_stretch">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch0">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">min-max</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="active">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch1">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">5-95</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_dendro_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch2">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">2.5-97.5</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="group">radio_dendro_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch3">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">min-95</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_dendro_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch4">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">min-97.5</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_dendro_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch5">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">5-max</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_dendro_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                        <child>
+                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch6">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="label" translatable="yes">2.5-max</property>
+                                            <property name="use_underline">True</property>
+                                            <property name="draw_as_radio">True</property>
+                                            <property name="group">radio_dendro_colour_stretch0</property>
+                                          </widget>
+                                        </child>
+                                      </widget>
+                                    </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menu_cluster_cell_outline_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Set the outline colour of the grid cells.</property>
+                                    <property name="label" translatable="yes">Set cell outline colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkSeparatorMenuItem" id="separatormenuitem1">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                   </widget>
@@ -6273,141 +6396,10 @@ Does not affect the slidys groups using the plot method.</property>
                                     <property name="active">True</property>
                                   </widget>
                                 </child>
-                                <child>
-                                  <widget class="GtkMenuItem" id="menu_item_dendro_colour_stretch">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip" translatable="yes">Sets the colour stretch for analysis results.</property>
-                                    <property name="label" translatable="yes">Colour stretch</property>
-                                    <property name="use_underline">True</property>
-                                    <child>
-                                      <widget class="GtkMenu" id="menu_dendro_colour_stretch">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
-                                        <child>
-                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch0">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">min-max</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="active">True</property>
-                                            <property name="draw_as_radio">True</property>
-                                          </widget>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch1">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">5-95</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="draw_as_radio">True</property>
-                                            <property name="group">radio_dendro_colour_stretch0</property>
-                                          </widget>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch2">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">2.5-97.5</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="group">radio_dendro_colour_stretch0</property>
-                                          </widget>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch3">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">min-95</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="draw_as_radio">True</property>
-                                            <property name="group">radio_dendro_colour_stretch0</property>
-                                          </widget>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch4">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">min-97.5</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="draw_as_radio">True</property>
-                                            <property name="group">radio_dendro_colour_stretch0</property>
-                                          </widget>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch5">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">5-max</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="draw_as_radio">True</property>
-                                            <property name="group">radio_dendro_colour_stretch0</property>
-                                          </widget>
-                                        </child>
-                                        <child>
-                                          <widget class="GtkRadioMenuItem" id="radio_dendro_colour_stretch6">
-                                            <property name="visible">True</property>
-                                            <property name="can_focus">False</property>
-                                            <property name="label" translatable="yes">2.5-max</property>
-                                            <property name="use_underline">True</property>
-                                            <property name="draw_as_radio">True</property>
-                                            <property name="group">radio_dendro_colour_stretch0</property>
-                                          </widget>
-                                        </child>
-                                      </widget>
-                                    </child>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkMenuItem" id="menu_cluster_cell_outline_colour">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="tooltip" translatable="yes">Set the outline colour of the grid cells.</property>
-                                    <property name="label" translatable="yes">Set cell outline colour</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                </child>
                               </widget>
                             </child>
                           </widget>
                         </child>
-                      </widget>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkSeparatorToolItem" id="toolitem_clustering_sep2">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkToolItem" id="toolitem_clustering_spin_clustersxx">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <child>
-                      <widget class="GtkSpinButton" id="spinClustersxx">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="tooltip" translatable="yes">This value determines how many descendent nodes will be selected to be coloured when you click on a node.
-
-All siblings are included in the selection, so if the tree topology results in more than this number then the next lowest number will be selected.
-For example, if 7 nodes are to be coloured but the system finds a 7th and 8th node are siblings then it will select their parent instead, resulting in 6 selected nodes.
-
-This setting has no effect on the slider bar.</property>
-                        <property name="width_chars">2</property>
-                        <property name="primary_icon_activatable">False</property>
-                        <property name="secondary_icon_activatable">False</property>
-                        <property name="primary_icon_sensitive">True</property>
-                        <property name="secondary_icon_sensitive">True</property>
-                        <property name="adjustment">6 1 13 1 1 0</property>
-                        <property name="climb_rate">1</property>
-                        <property name="numeric">True</property>
                       </widget>
                     </child>
                   </widget>
@@ -7360,6 +7352,7 @@ Select a set of indices to determine the ordering of clustering when there is mo
                           <widget class="GtkComboBox" id="comboMapShow">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="resize_mode">immediate</property>
                             <property name="add_tearoffs">True</property>
                           </widget>
                         </child>
@@ -9313,6 +9306,18 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

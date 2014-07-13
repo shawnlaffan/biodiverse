@@ -346,34 +346,37 @@ sub set_legend_ltgt_flags {
 sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 
-    # Just got the signal for the deselected option. Wait for signal for
-    # selected one.
-    return if !$menu_item->get_active();
+    if ($menu_item) {
+        # Just got the signal for the deselected option. Wait for signal for
+        # selected one.
+        return if !$menu_item->get_active();
 
-    my $mode = $menu_item->get_label();
+        my $mode = $menu_item->get_label();
+    
+        if ($mode eq 'Sat...') {
+            $mode = 'Sat';
 
-    if ($mode eq 'Sat...') {
-        $mode = 'Sat';
-
-        # Pop up dialog for choosing the hue to use in saturation mode
-        my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
-        my $colour_select = $colour_dialog->get_color_selection();
-        if (my $col = $self->{hue}) {
-            $colour_select->set_previous_color($col);
-            $colour_select->set_current_color($col);
+            # Pop up dialog for choosing the hue to use in saturation mode
+            my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+            my $colour_select = $colour_dialog->get_color_selection();
+            if (my $col = $self->{hue}) {
+                $colour_select->set_previous_color($col);
+                $colour_select->set_current_color($col);
+            }
+            $colour_dialog->show_all();
+            my $response = $colour_dialog->run;
+            if ($response eq 'ok') {
+                $self->{hue} = $colour_select->get_current_color();
+                $self->{grid}->set_legend_hue($self->{hue});
+                eval {$self->{dendrogram}->recolour()};  #  only clusters have dendrograms - needed here?  recolour below does this
+            }
+            $colour_dialog->destroy();
         }
-        $colour_dialog->show_all();
-        my $response = $colour_dialog->run;
-        if ($response eq 'ok') {
-            $self->{hue} = $colour_select->get_current_color();
-            $self->{grid}->set_legend_hue($self->{hue});
-            eval {$self->{dendrogram}->recolour()};  #  only clusters have dendrograms
-        }
-        $colour_dialog->destroy();
+
+        $self->{colour_mode} = $mode;
     }
 
-    $self->{colour_mode} = $mode;
-    $self->{grid}->set_legend_mode($mode);
+    $self->{grid}->set_legend_mode($self->{colour_mode});
     $self->recolour();
 
     return;

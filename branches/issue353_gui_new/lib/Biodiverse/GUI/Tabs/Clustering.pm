@@ -220,6 +220,9 @@ sub new {
         $self->on_close;
         return;
     }
+    $self->init_map_show_combo();
+    $self->init_map_list_combo();
+
     $self->{colour_mode} = 'Hue';
     $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # For Sat mode
 
@@ -271,6 +274,8 @@ sub new {
 
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
+        comboMapList        => {changed => \&on_combo_map_list_changed},
+
         chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
 
@@ -301,7 +306,15 @@ sub new {
 
     $self->set_frame_label_widget;
     
-    print "[Clustering tab] - Loaded tab - Clustering Analysis\n";
+    #  hide this menu - should delete from glade
+    do {
+        my $wname = 'menuitem_clustering_data';
+        if (my $widget = $xml_page->get_widget ($wname)) {
+            $widget->hide;
+        }
+    };
+
+    say "[Clustering tab] - Loaded tab - Clustering Analysis";
 
     return $self;
 }
@@ -737,6 +750,7 @@ sub update_menu_map_indices {
     $menu->show_all();
 }
 
+
 sub on_map_index_changed {
     my ($self, $menu_item) = @_;
 
@@ -756,9 +770,73 @@ sub on_map_index_changed {
     $self->{dendrogram}->select_map_index($index);
 }
 
-sub on_toolbar_data_menu_tearoff {
+
+sub init_map_show_combo {
     my $self = shift;
+
+    my $combo = $self->{xmlPage}->get_widget('comboMapShow');
+    my $renderer = Gtk2::CellRendererText->new();
+    $combo->pack_start($renderer, 1);
+    $combo->add_attribute($renderer, markup => 0);
+
+    return;
 }
+
+sub init_map_list_combo {
+    my $self = shift;
+
+    my $combo = $self->{xmlPage}->get_widget('comboMapList');
+    my $renderer = Gtk2::CellRendererText->new();
+    $combo->pack_start($renderer, 1);
+    $combo->add_attribute($renderer, markup => 0);
+
+    #  trigger sensitivity
+    $self->on_combo_map_list_changed;
+
+    return;
+}
+
+#  if the list combo is "cluster" then desensitise several other widgets
+sub on_combo_map_list_changed {
+    my $self = shift;
+
+    my $combo = $self->{xmlPage}->get_widget('comboMapList');
+
+    my $iter = $combo->get_active_iter;
+    return if ! defined $iter; # this can occur if we are a new cluster output
+                                #  as there are no map lists
+
+    my $model = $combo->get_model;
+    my $list = $model->get($iter, 0);
+
+    my $sensitive = 1;
+    if ($list eq '<i>Cluster</i>') {
+        $sensitive = 0;
+        $self->{grid}->hide_legend;
+    }
+    else {
+        $self->{grid}->show_legend;
+    }
+
+    my @widgets = qw {
+        comboMapShow
+        menuitem_cluster_colour_mode_hue
+        menuitem_cluster_colour_mode_sat
+        menuitem_cluster_colour_mode_grey
+    };
+    foreach my $widget_name (@widgets) {
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        if (!$widget) {
+            warn "$widget_name not found\n";
+            next;
+        }
+        
+        $widget->set_sensitive($sensitive);
+    }
+
+    return;
+}
+
 
 ##################################################
 # Indices combo

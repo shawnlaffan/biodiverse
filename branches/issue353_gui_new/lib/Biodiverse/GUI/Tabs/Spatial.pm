@@ -275,8 +275,12 @@ sub new {
         );
     }
 
-    $self->{grid}->set_legend_mode('Hue');
-    $self->recolour();
+    #  We don't have the grid for new outputs
+    #  Could perhaps move tis to were the grid is initialised
+    if ($self->{grid}) {
+        $self->{grid}->set_legend_mode('Hue');
+        $self->recolour();
+    }
 
     $self->set_frame_label_widget;
 

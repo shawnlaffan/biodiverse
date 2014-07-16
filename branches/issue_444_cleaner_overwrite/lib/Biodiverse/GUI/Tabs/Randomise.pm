@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Gtk2;
 use Biodiverse::Randomise;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;

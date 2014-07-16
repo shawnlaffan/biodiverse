@@ -20,7 +20,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -122,11 +122,10 @@ sub new {
 
         $self->{output_name}  = $cluster_ref->get_param('NAME');
         $self->{basedata_ref} = $cluster_ref->get_param('BASEDATA_REF');
-        print "[Clustering tab] Existing spatial output - "
+        say "[Clustering tab] Existing spatial output - "
               . $self->{output_name}
               . " within Basedata set - "
-              . $self->{basedata_ref}->get_param ('NAME')
-              . "\n";
+              . $self->{basedata_ref}->get_param ('NAME');
 
         my $completed = $cluster_ref->get_param ('COMPLETED');
         $completed = 1 if not defined $completed;
@@ -443,9 +442,9 @@ sub on_combo_metric_changed {
     my $indices_object = Biodiverse::Indices->new (BASEDATA_REF => $bd);
     
     my $source_sub = $indices_object->get_index_source (index => $metric);
-    my $metadata   = $indices_object->get_args (sub => $source_sub);
+    my $metadata   = $indices_object->get_metadata (sub => $source_sub);
 
-    my $explanation = 'Description: ' . $metadata->{indices}{$metric}{description};
+    my $explanation = 'Description: ' . $metadata->get_index_description ($metric);
 
     $widget->set_text($explanation);
 
@@ -844,54 +843,75 @@ sub remove {
 # Running the thing
 ##################################################
 
-sub get_no_cache_abc_value {
+#sub get_no_cache_abc_value {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_no_cache_abc');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_build_matrices_only {
+#    my $self = shift;
+#    
+#    my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_output_gdm_format {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_keep_spatial_nbrs_output {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_no_clone_matrices {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
+#
+#    return $widget->get_active;
+#}
+#
+#sub get_clear_singletons {
+#    my $self = shift;
+#
+#    my $widget = $self->{xmlPage}->get_widget('chk_clear_singletons');
+#
+#    return $widget->get_active;
+#}
+
+my @chk_flags = qw /
+    no_cache_abc
+    build_matrices_only
+    output_gdm_format
+    keep_sp_nbrs_output
+    no_clone_matrices
+    clear_singletons
+/;
+
+sub get_flag_widget_values {
     my $self = shift;
 
-    my $widget = $self->{xmlPage}->get_widget('chk_no_cache_abc');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
-}
+    my %flag_hash;
 
-sub get_build_matrices_only {
-    my $self = shift;
-    
-    my $widget = $self->{xmlPage}->get_widget('chk_build_matrices_only');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
-}
+    foreach my $flag_name (@chk_flags) {
+        my $widget_name = 'chk_' . $flag_name;
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        $flag_hash{$flag_name} = $widget->get_active;
+    }
 
-sub get_output_gdm_format {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_output_gdm_format');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
-}
-
-sub get_keep_spatial_nbrs_output {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_keep_spatial_nbrs_output');
-    
-    my $value = $widget->get_active;
-    
-    return $value;
-}
-
-sub get_no_clone_matrices {
-    my $self = shift;
-
-    my $widget = $self->{xmlPage}->get_widget('chk_no_clone_matrices');
-
-    my $value = $widget->get_active;
-
-    return $value;
+    return wantarray ? %flag_hash : \%flag_hash;
 }
 
 sub get_prng_seed {
@@ -1066,13 +1086,16 @@ sub on_run_analysis {
 
     my $selected_index      = $self->get_selected_metric;
     my $selected_linkage    = $self->get_selected_linkage;
-    my $no_cache_abc        = $self->get_no_cache_abc_value;
-    my $build_matrices_only = $self->get_build_matrices_only;
+    #my $no_cache_abc        = $self->get_no_cache_abc_value;
+    #my $build_matrices_only = $self->get_build_matrices_only;
     my $file_handles        = $self->get_output_file_handles;
-    my $output_gdm_format   = $self->get_output_gdm_format;
-    my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
-    my $no_clone_matrices   = $self->get_no_clone_matrices;
+    #my $output_gdm_format   = $self->get_output_gdm_format;
+    #my $keep_sp_nbrs_output = $self->get_keep_spatial_nbrs_output;
+    #my $no_clone_matrices   = $self->get_no_clone_matrices;
+    #my $clear_singletons    = $self->get_clear_singletons;
     my $prng_seed           = $self->get_prng_seed;
+
+    my %flag_values = $self->get_flag_widget_values;
 
     # Get spatial calculations to run
     my @calculations_to_run
@@ -1120,35 +1143,38 @@ sub on_run_analysis {
             $self->{gui}->report_error ($EVAL_ERROR);
             return;
         }
-    
+
         $self->{output_ref} = $output_ref;
         $self->{project}->add_output($self->{basedata_ref}, $output_ref);
     }
 
     my %analysis_args = (
         %args,
+        %flag_values,
         matrix_ref           => $self->{project}->get_selected_matrix,
         tree_ref             => $self->{project}->get_selected_phylogeny,
         definition_query     => $self->{definition_query1}->get_text(),
         index                => $selected_index,
         linkage_function     => $selected_linkage,
-        no_cache_abc         => $no_cache_abc,
-        build_matrices_only  => $build_matrices_only,
+        #no_cache_abc         => $no_cache_abc,
+        #build_matrices_only  => $build_matrices_only,
         file_handles         => $file_handles,
-        output_gdm_format    => $output_gdm_format,
-        keep_sp_nbrs_output  => $keep_sp_nbrs_output,
+        #output_gdm_format    => $output_gdm_format,
+        #keep_sp_nbrs_output  => $keep_sp_nbrs_output,
         spatial_calculations => \@calculations_to_run,
         spatial_conditions   => [
             $self->{spatialParams1}->get_text(),
             $self->{spatialParams2}->get_text(),
         ],
-        no_clone_matrices   => $no_clone_matrices,
+        #no_clone_matrices   => $no_clone_matrices,
+        #clear_singletons    => $clear_singletons,
         prng_seed           => $prng_seed,
     );
 
-    my $tie_breakers  = $self->get_tie_breakers;
     if ($self->get_use_tie_breakers) {
-        $output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
+        my $tie_breakers = $self->get_tie_breakers;
+        $analysis_args{cluster_tie_breaker} = $tie_breakers;
+        #$output_ref->set_param (CLUSTER_TIE_BREAKER => $tie_breakers);
     }
 
     # Perform the clustering
@@ -1157,6 +1183,7 @@ sub on_run_analysis {
         $output_ref->run_analysis (
             %analysis_args,
             flatten_tree => 1,
+            
         )
     };
     if (Biodiverse::Cluster::MatrixExists->caught) {
@@ -1186,10 +1213,16 @@ sub on_run_analysis {
         return;
     }
 
-    if ($keep_sp_nbrs_output) {
+    if ($flag_values{keep_sp_nbrs_output}) {
         my $sp_name = $output_ref->get_param('SP_NBRS_OUTPUT_NAME');
-        my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
-        $self->{project}->add_output($self->{basedata_ref}, $sp_ref);
+        if (defined $sp_name) {
+            my $sp_ref  = $self->{basedata_ref}->get_spatial_output_ref(name => $sp_name);
+            $self->{project}->add_output($self->{basedata_ref}, $sp_ref);
+        }
+        else {
+            say '[CLUSTER] Unable to add spatial output, probably because a recycled '
+                . 'matrix was used so no spatial output was needed.'
+        }
     }
 
     #  add the matrices to the outputs tab
@@ -1276,7 +1309,8 @@ sub on_grid_hover {
 
     no warnings 'uninitialized';  #  saves getting sprintf warnings we don't care about
 
-    my $string;
+    my $string = $self->get_grid_text_pfx;
+
     if ($element) {
         my $cluster_ref = $self->{output_ref};
         $self->{dendrogram}->clear_highlights();
@@ -1292,15 +1326,15 @@ sub on_grid_hover {
             #  need to get the displayed node, not the terminal node
             my $list_ref = $coloured_node->get_list_ref (list => 'SPATIAL_RESULTS');  #  will need changing when otehr lists can be selected
             my $value = $list_ref->{$analysis_name};
-            $string = sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
+            $string .= sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
             $string .= ", <b>Element:</b> $element";
         }
         elsif (! defined $analysis_name && defined $coloured_node) {
-            $string = sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
+            $string .= sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
             $string .= ", <b>Element:</b> $element";
         }
         else {
-            $string = '<b>Not a coloured group:</b> ' . $element;
+            $string .= '<b>Not a coloured group:</b> ' . $element;
         }
 
     }

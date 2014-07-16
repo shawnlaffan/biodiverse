@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Gtk2;
 use Carp;
@@ -771,7 +771,7 @@ sub on_grid_hover {
     return if $self->{initialising_grid};
 
     my $output_ref = $self->{output_ref};
-    my $text = '';
+    my $text = $self->get_grid_text_pfx;
 
     my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
 
@@ -782,7 +782,7 @@ sub on_grid_hover {
 
         my $val = $elts->{$element}{ $self->{selected_list} }{$self->{selected_index}};
 
-        $text = sprintf '<b>%s, Output - %s: </b>',
+        $text .= sprintf '<b>%s, Output - %s: </b>',
             $element,
             $self->{selected_index};
         $text .= defined $val
@@ -847,7 +847,7 @@ sub on_name_changed {
 
     my $bd = $self->{basedata_ref};
 
-    my $name_in_use = $bd->get_spatial_output_ref (name => $name);
+    my $name_in_use = eval {$bd->get_spatial_output_ref (name => $name)};
     
     #  make things go red
     if ($name_in_use) {

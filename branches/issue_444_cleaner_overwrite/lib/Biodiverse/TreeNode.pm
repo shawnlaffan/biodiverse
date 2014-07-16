@@ -15,7 +15,7 @@ use Biodiverse::BaseStruct;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 my $EMPTY_STRING = q{};
 my $SPACE = q{ };
@@ -69,21 +69,19 @@ sub set_value {
 
 sub get_value {
     my $self = shift;
-    my $key = shift;
-    
-    return exists $self->{NODE_VALUES}{$key}
-        ? $self->{NODE_VALUES}{$key}
-        : undef;
+    my $key  = shift;
+
+    no autovivification;
+
+    return $self->{NODE_VALUES}{$key};
 }
 
 
 sub delete_values {
     my $self = shift;
     my %args = @_;
+
     delete $self->{NODE_VALUES}{keys %args};
-    #foreach my $key (@{$args{keys}}) {
-    #    delete $self->{NODE_VALUES}{$key};
-    #}
     
     return;
 }
@@ -97,20 +95,20 @@ sub delete_values {
 sub set_cached_value {
     my $self = shift;
     my %args = @_;
+
     @{$self->{_cache}}{keys %args} = values %args;
-    #foreach my $key (keys %args) {
-    #    $self->{_cache}{$key} = $args{$key};
-    #}
     
     return;
 }
 
 sub get_cached_value {
     my $self = shift;
-    my $key = shift;
-    return if ! exists $self->{_cache};
-    return $self->{_cache}{$key} if exists $self->{_cache}{$key};
-    return;
+    my $key  = shift;
+    no autovivification;
+    return $self->{_cache}{$key};
+    #return if ! exists $self->{_cache};
+    #return $self->{_cache}{$key} if exists $self->{_cache}{$key};
+    #return;
 }
 
 sub get_cached_value_keys {
@@ -131,22 +129,12 @@ sub delete_cached_values {
     
     return if ! exists $self->{_cache};
     
-    #no warnings 'uninitialized';
-    #if ((blessed $self->{_cache}{_cluster_colour}) =~ /Gtk2/) {
-    #    print Data::Dumper::Dumper ($self->{_cache}{_cluster_colour});
-    #}
-    
     my $keys = $args{keys} || $self->get_cached_value_keys;
     return if not defined $keys or scalar @$keys == 0;
 
     delete @{$self->{_cache}}{@$keys};
-    delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
-    
-    #warn "Cache deletion problem at node " . $self->get_name . "\n$EVAL_ERROR\n"
-    #  if $EVAL_ERROR;
-    
-    #warn "XXXXXXX "  . $self->get_name . "\n" if exists $self->{_cache};
-    
+    delete $self->{_cache} if !scalar keys %{$self->{_cache}};
+
     return;
 }
 
@@ -172,18 +160,17 @@ sub delete_cached_values_below {
 sub set_name {
     my $self = shift;
     my %args = @_;
-    croak "name argument missing\n" if not exists ($args{name});
-    #$self->{0name_for_debug} = $args{name}; #  temporary
+
+    croak "name argument missing\n" if not defined $args{name};
+
     $self->{NODE_VALUES}{NAME} = $args{name};
     
     return;
 }
 
 sub get_name {
-    my $self = shift;
-    #my %args = @_;
-    croak "name parameter missing\n" if not exists ($self->{NODE_VALUES}{NAME});
-    return $self->{NODE_VALUES}{NAME};
+    return $_[0]->{NODE_VALUES}{NAME}
+      // croak "name parameter missing or undefined\n";
 }
 
 sub set_length {
@@ -196,8 +183,7 @@ sub set_length {
 }
 
 sub get_length {
-    my $self = shift;
-    return defined $self->{NODE_VALUES}{LENGTH} ? $self->{NODE_VALUES}{LENGTH} : $default_length;
+    return $_[0]->{NODE_VALUES}{LENGTH} // $default_length;
 }
 
 #  loop through all the parent nodes and sum their lengths up to a target node (root by default)
@@ -424,14 +410,21 @@ sub has_child {
     return;
 }
 
-sub delete_child {  #  remove a child from a list.
+#  Remove a child from a list.
+#  The no_delete_cache arg means the caller promises to
+#  clean up the cache and any circular refs.
+sub delete_child {  
     my $self = shift;
     my %args = @_;
+    my $target_child = $args{child};
+
     my $i = 0;
     foreach my $child ($self->get_children) {
-        if ($child eq $args{child}) {
-            splice (@{$self->{_CHILDREN}}, $i, 1);
-            $child->delete_cached_values_below;
+        if ($child eq $target_child) {
+            splice @{$self->{_CHILDREN}}, $i, 1;
+            if (!$args{no_delete_cache}) {
+                $child->delete_cached_values_below;
+            }
             return 1;
         }
         $i++;
@@ -443,12 +436,15 @@ sub delete_child {  #  remove a child from a list.
 sub delete_children {
     my $self = shift;
     my %args = @_;
+    my $children = $args{children};
+
     croak "children argument not specified or not an array ref"
-        if ! defined $args{children} || ! ref ($args{children}) =~ /ARRAY/;
+        if ! defined $children || ! ref ($children) =~ /ARRAY/;
+
     my $count = 0;
-    foreach my $child (@{$args{children}}) {
-        #  function returns 1 if it deletes something, undef otherwise
-        $count ++ if (defined $self->delete_child (child => $child));
+    foreach my $child (@$children) {
+        #  delete_child returns 1 if it deletes something, undef otherwise
+        $count ++ if defined $self->delete_child (%args, child => $child);
     }
     return $count;
 }
@@ -765,6 +761,11 @@ sub get_all_children {
     return $self->get_all_descendents (@_);
 }
 
+sub get_descendent_count {
+    my $self = shift;
+    my $descendents = $self->get_all_descendents(@_);
+    return scalar keys %$descendents;
+}
 
 #  get all the nodes (whether terminal or not) which are descendants of a node
 sub get_all_descendents {
@@ -1124,8 +1125,8 @@ sub is_tree_node {  #  check if a node is a TreeNode - used to check children fo
 
 sub is_terminal_node {
     my $self = shift;
-    my $children = $self->get_children;
-    return !scalar @$children;  #  terminal if it has no children
+    #my $children = $self->get_children;
+    return !$self->get_child_count;  #  terminal if it has no children
 }
 
 #  check if it is a "named" node, or internal (name ends in three underscores)

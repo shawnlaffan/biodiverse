@@ -8,7 +8,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use Biodiverse::Exception;
 
@@ -65,13 +65,40 @@ sub get_value {  #  return the value of a pair of elements. argument checking is
             " sub element_pair_exists.  What were you thinking?\n";
 }
 
-#  check an element pair exists, returning 1 if yes, 2 if yes, but in different order, undef otherwise
+#  Same as get_value except it does not check for existence or self-similarity
+#  and returns undef if nothing found
+sub get_defined_value {
+    my $self = shift;
+    my %args = @_;
+    
+    no autovivification;
+
+    my ($el_ref, $element1, $element2) = ($self->{BYELEMENT}, $args{element1}, $args{element2});
+
+    return $el_ref->{$element1}{$element2} // $el_ref->{$element2}{$element1};
+}
+
+#  a bare metal version of get_defined_value
+#  uses array args for speed, hence the _aa in the name
+sub get_defined_value_aa {
+    no autovivification;
+
+    my $el_ref = $_[0]->{BYELEMENT};
+
+    $el_ref->{$_[1]}{$_[2]} // $el_ref->{$_[2]}{$_[1]};
+}
+
+
+
+#  check an element pair exists, returning:
+#  1 if yes,
+#  2 if yes but in different order,
+#  undef otherwise
 sub element_pair_exists {  
     my $self = shift;
     my %args = @_;
 
-    my $element1 = $args{element1};
-    my $element2 = $args{element2};
+    my ($element1, $element2) = @args{'element1', 'element2'};
 
     Biodiverse::MissingArgument->throw ('element1 and/or element2 not defined')
       if ! (defined $element1 && defined $element2);
@@ -80,8 +107,9 @@ sub element_pair_exists {
     my $hash_ref = $self->{BYELEMENT};
 
     #  need to stop autovivification of element1 or 2
-    return 1 if exists $hash_ref->{$element1} && exists $hash_ref->{$element1}{$element2};
-    return 2 if exists $hash_ref->{$element2} && exists $hash_ref->{$element2}{$element1};
+    no autovivification;
+    return 1 if exists $hash_ref->{$element1}{$element2};
+    return 2 if exists $hash_ref->{$element2}{$element1};
 
     return 0;
 }
@@ -123,9 +151,9 @@ sub load_data {
 
     my $in_sep_char = $args{sep_char};
     if (! defined $in_sep_char) {
-        $in_sep_char = $self -> guess_field_separator (string => $header);
+        $in_sep_char = $self->guess_field_separator (string => $header);
     }
-    my $eol = $self -> guess_eol (string => $header);
+    my $eol = $self->guess_eol (string => $header);
 
     #  Re-open the file as the header is often important to us
     #  (seeking back to zero causes probs between File::BOM and Text::CSV_XS)
@@ -139,9 +167,9 @@ sub load_data {
 
     my $input_quote_char = $args{input_quote_char};
     if (! defined $input_quote_char) {  #  guess the quotes character
-        $input_quote_char = $self -> guess_quote_char (string => \$whole_file);
+        $input_quote_char = $self->guess_quote_char (string => \$whole_file);
         #  if all else fails...
-        $input_quote_char = $self -> get_param ('QUOTES') if ! defined $input_quote_char;
+        $input_quote_char = $self->get_param ('QUOTES') if ! defined $input_quote_char;
     }
 
     my $IDcount = 0;
@@ -150,11 +178,11 @@ sub load_data {
     my $out_sep_char = $self->get_param('JOIN_CHAR');
     my $out_quote_char = $self->get_param('QUOTES');
     
-    my $in_csv = $self -> get_csv_object (
+    my $in_csv = $self->get_csv_object (
         sep_char    => $in_sep_char,
         quote_char  => $input_quote_char,
     );
-    my $out_csv = $self -> get_csv_object (
+    my $out_csv = $self->get_csv_object (
         sep_char    => $out_sep_char,
         quote_char  => $out_quote_char,
     );
@@ -163,7 +191,7 @@ sub load_data {
 
     open (my $fh, '<:via(File::BOM)', $file) || croak "Could not open $file for reading\n";
 
-    my $lines = $self -> get_next_line_set (
+    my $lines = $self->get_next_line_set (
         progress            => $args{progress_bar},
         file_handle         => $fh,
         target_line_count   => $lines_to_read_per_chunk,
@@ -171,7 +199,7 @@ sub load_data {
         csv_object          => $in_csv,
     );
 
-    #$fh -> close;
+    #$fh->close;
     
     #  two pass system - one reads in the labels and data
     #  the other puts them into the matrix
@@ -187,7 +215,7 @@ sub load_data {
     while (my $flds_ref = shift @$lines) {
 
         if (scalar @$lines == 0) {
-            $lines = $self -> get_next_line_set (
+            $lines = $self->get_next_line_set (
                 progress           => $args{progress_bar},
                 file_handle        => $fh,
                 file_name          => $file,
@@ -206,23 +234,22 @@ sub load_data {
             list       => \@tmp,
             csv_object => $out_csv,
         );
+        $label = $self->dequote_element(element => $label, quote_char => $out_quote_char);
 
         if ($element_properties) {
+            #  test include and exclude before remapping
+            next BY_LINE
+              if $element_properties->get_element_exclude (element => $label)
+                || !$element_properties->get_element_include (element => $label);
 
             my $remapped_label
-                = $element_properties -> get_element_remapped (element => $label);
-
-            next BY_LINE if $element_properties -> get_element_exclude (element => $label);
-
-            #  test include and exclude before remapping
-            my $include = $element_properties -> get_element_include (element => $label);
-            next BY_LINE if defined $include and not $include;
+                = $element_properties->get_element_remapped (element => $label);
 
             if (defined $remapped_label) {
                 $label = $remapped_label;
             }
         }
-        
+
         #print "IDcount is $IDcount\n";
 
         $label_list{$IDcount} = $label;
@@ -230,7 +257,7 @@ sub load_data {
 
         #  strip the leading labels and other data
         splice (@$flds_ref, 0, $values_start_col);  
-        
+
         push @data, $flds_ref;
         push @cols_to_use, $valid_col_index;
 
@@ -256,18 +283,18 @@ sub load_data {
             next BY_FIELD if !$undef_allowed && !defined $val;
             next BY_FIELD if defined $val && $val eq $EMPTY_STRING;  
             next BY_FIELD if defined $val && !$text_allowed && !looks_like_number ($val);
-            
+
             my $label = $label_list{$label_count};
             my $label2 = $label_list{$i};
             
             next BY_FIELD  #  skip if in the matrix and already defined
                 if defined 
-                    $self -> get_value (
+                    $self->get_defined_value (
                         element1 => $label,
                         element2 => $label2,
                     );
 
-            $self -> add_element (
+            $self->add_element (
                 element1 => $label,
                 element2 => $label2,
                 value    => $val,

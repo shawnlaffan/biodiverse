@@ -12,7 +12,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.19';
+our $VERSION = '0.99_001';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -750,7 +750,9 @@ sub on_grid_hover {
     my $self = shift;
     my $group = shift;
 
-    my $text = defined $group? "Group: $group" : '<b>Groups</b>';
+    my $pfx = $self->get_grid_text_pfx;
+
+    my $text = $pfx . (defined $group ? "Group: $group" : '<b>Groups</b>');
     $self->{xmlPage}->get_widget('label_VL_grid')->set_markup($text);
 
     my $tree = $self->{project}->get_selected_phylogeny;
@@ -761,7 +763,7 @@ sub on_grid_hover {
     return if ! defined $group;
 
     # get labels in the group
-    my $bd = $self->{base_ref};
+    my $bd = $self->get_base_ref;
     my $labels = $bd->get_labels_in_group_as_hash(group => $group);
 
     # highlight in the tree

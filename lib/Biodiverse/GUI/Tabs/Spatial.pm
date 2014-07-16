@@ -658,8 +658,10 @@ sub on_run {
 
         $overwrite    = 1;
         $new_result   = 0;
-        $output_name .= time();  #  create a temporary name
     }
+
+    my $time = time();
+    $output_name .= " (tmp$time)";  #  work under a temporary name
 
     # Add spatial output
     $output_ref = eval {
@@ -668,6 +670,9 @@ sub on_run {
         );
     };
     if ($EVAL_ERROR) {
+        if ($output_ref) {  #  clean up
+            $self->{basedata_ref}->delete_output (output => $output_ref);
+        }
         $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }
@@ -689,7 +694,7 @@ sub on_run {
     say "[Spatial tab] Running calculations @to_run";
 
     my $success = eval {
-        $output_ref->sp_calc(%args)
+        $output_ref->run_analysis(%args)
     };
     if ($EVAL_ERROR) {
         $self->{gui}->report_error ($EVAL_ERROR);
@@ -697,9 +702,9 @@ sub on_run {
 
     #  only add to the project if successful
     if (!$success) {
-        if ($overwrite) {  #  remove the failed run
+        #if ($overwrite) {  #  remove the failed run
             $self->{basedata_ref}->delete_output(output => $output_ref);
-        }
+        #}
 
         $self->{initialising_grid} = 0;
         $self->on_close;  #  close the tab to avoid horrible problems with multiple instances
@@ -711,9 +716,10 @@ sub on_run {
         my $old_ref = $self->{output_ref};
         $self->{basedata_ref}->delete_output(output => $old_ref);
         $self->{project}->delete_output($old_ref);
-        $output_ref->rename (new_name => $self->{output_name});
     }
 
+    #  fix the temp name before we add it to the basedata
+    $output_ref->rename (new_name => $self->{output_name});
     $self->{output_ref} = $output_ref;
     $self->{project}->add_output($self->{basedata_ref}, $output_ref);
 

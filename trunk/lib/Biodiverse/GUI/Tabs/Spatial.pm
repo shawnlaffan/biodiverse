@@ -641,6 +641,8 @@ sub on_run {
     my $overwrite  = 0;
     my $output_ref = $self->{output_ref};
 
+    my $time = time();
+
     # Delete existing?
     if (defined $output_ref) {
         my $text = "$output_name exists.  Do you mean to overwrite it?";
@@ -658,10 +660,12 @@ sub on_run {
 
         $overwrite    = 1;
         $new_result   = 0;
+        $output_name .= " (overwriting)";  #  work under a temporary name
     }
+    #else {
+    #   $output_name .= " (tmp $time)";  #  work under a temporary name
+    #}
 
-    my $time = time();
-    $output_name .= " (tmp$time)";  #  work under a temporary name
 
     # Add spatial output
     $output_ref = eval {
@@ -670,9 +674,6 @@ sub on_run {
         );
     };
     if ($EVAL_ERROR) {
-        if ($output_ref) {  #  clean up
-            $self->{basedata_ref}->delete_output (output => $output_ref);
-        }
         $self->{gui}->report_error ($EVAL_ERROR);
         return;
     }

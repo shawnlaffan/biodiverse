@@ -1612,20 +1612,38 @@ sub get_trimmed_tree {
     my $terminal_count = keys %$terminals;
     my $label_count    = keys %$label_hash;
 
-    
-    if ($label_count >= $terminal_count) {
-        my $expected_deletions = $label_count - $terminal_count;
-        #  make a copy since we do need to run the deletions
-        my %lb_hash_copy = %$label_hash;
-        delete @lb_hash_copy{keys %$terminals};
+    my (%tmp_combo, %tmp1, %tmp2);
+    my ($a, $b, $c);
+    @tmp1{keys %$terminals}  = (1) x scalar keys %$terminals;
+    @tmp2{keys %$label_hash} = (1) x scalar keys %$label_hash;
+    %tmp_combo = %tmp1;
+    @tmp_combo{keys %tmp2} = (1) x scalar keys %tmp2;
+    $a = scalar (keys %tmp1)
+       + scalar (keys %tmp2)
+       - scalar (keys %tmp_combo);
+    $b = scalar (keys %tmp_combo)
+       - scalar (keys %tmp2);
+    $c = scalar (keys %tmp_combo)
+       - scalar (keys %tmp1);
 
-        #  are the tree terminals a subset of the basedata labels?  
-        if (keys %lb_hash_copy == $expected_deletions) {
+    #  a is common
+    #  b is unique to tree
+    #  c is unique to basedata
+
+    #if ($label_count >= $terminal_count) {
+    #    my $expected_deletions = $label_count - $terminal_count;
+    #    #  make a copy since we do need to run the deletions
+    #    my %lb_hash_copy = %$label_hash;
+    #    delete @lb_hash_copy{keys %$terminals};
+    #
+    #    #  are the tree terminals a subset of the basedata labels?  
+    #    if (keys %lb_hash_copy == $expected_deletions) {
+        if (!$b) {
             say '[PD INDICES] Tree terminals are all basedata labels, no need to trim';
             my %results = (trimmed_tree => $tree);
             return wantarray ? %results : \%results;
         }
-    }
+    #}
 
     #  keep only those that match the basedata object
     say '[PD INDICES] Creating a trimmed tree by removing clades not present in the basedata';

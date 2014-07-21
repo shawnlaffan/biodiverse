@@ -238,7 +238,7 @@ sub reset_total_length_below {
     
     $self->reset_total_length;
     foreach my $child ($self->get_children) {
-        $child->reset_total_length;
+        $child->reset_total_length_below;
     }
 
 }

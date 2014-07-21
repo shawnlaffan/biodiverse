@@ -2048,7 +2048,7 @@ sub collapse_tree {
     $self->delete_cached_values;
 
     #  reset all the total length values
-    $self->reset_total_length_below;
+    $self->reset_total_length;
     $self->get_total_tree_length;
 
     my @now_empty = $self->flatten_tree;
@@ -2065,6 +2065,15 @@ sub collapse_tree {
     }
 
     return $self;
+}
+
+sub reset_total_length {
+    my $self = shift;
+
+    $self->delete_param('TOTAL_LENGTH');
+    $self->reset_total_length_below;
+
+    return;
 }
 
 #  collapse all nodes below a cutoff so they form a set of polytomies

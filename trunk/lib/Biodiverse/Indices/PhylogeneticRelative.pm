@@ -15,7 +15,7 @@ sub get_metadata_calc_phylo_rpd1 {
                          . 'PD evenly distributed across terminals and where '
                          . 'ancestral nodes are collapsed to zero length.',
         name            => 'Relative Phylogenetic Diversity, type 1',
-        reference       => 'TBA',
+        reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pd calc_labels_on_tree/],
         required_args   => ['tree_ref'],
@@ -75,7 +75,7 @@ sub get_metadata_calc_phylo_rpe1 {
                          . 'but with the same range per terminal and where '
                          . 'ancestral nodes are of zero length (as per RPD1).',
         name            => 'Relative Phylogenetic Endemism, type 1',
-        reference       => 'TBA',
+        reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pe calc_endemism_whole_lists calc_labels_on_trimmed_tree/],
         pre_calc_global => ['get_trimmed_tree'],
@@ -141,7 +141,7 @@ sub get_metadata_calc_phylo_rpd2 {
                          . 'PD evenly distributed across all nodes '
                          . '(all branches are of equal length).',
         name            => 'Relative Phylogenetic Diversity, type 2',
-        reference       => 'TBA',
+        reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pd calc_pd_node_list/],
         pre_calc_global => ['get_tree_with_equalised_branch_lengths'],  #  should just use node counts in the original tree
@@ -202,7 +202,7 @@ sub get_metadata_calc_phylo_rpe2 {
                          . 'PE is calculated using a tree where all branches '
                          . 'are of equal length.',
         name            => 'Relative Phylogenetic Endemism, type 2',
-        reference       => 'TBA',
+        reference       => 'Mishler et al. (2014) http://dx.doi.org/10.1038/ncomms5473',
         type            => 'Phylogenetic Indices (relative)',
         pre_calc        => [qw /calc_pe calc_pe_lists/],
         pre_calc_global => ['get_trimmed_tree_with_equalised_branch_lengths'],

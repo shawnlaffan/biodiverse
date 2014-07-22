@@ -425,6 +425,7 @@ sub import_tabular_tree {
     push @trees, $tree;
 
     #  process the data and generate the nodes
+  LINE:
     foreach my $line (@data) {
         $csv->parse ($line);
         my @line_array = $csv->fields;
@@ -432,7 +433,9 @@ sub import_tabular_tree {
 
         # check all necessary values are defined (?)
         foreach my $col_name (keys %columns) {
-            #    croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
+            #croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
+            #  skip line if we don't have sufficient values - safe in all cases?
+            next LINE if $columns{$col_name} > $#line_array;
             $line_hash{$col_name} = $line_array[$columns{$col_name}]
         }
 
@@ -462,6 +465,7 @@ sub import_tabular_tree {
         );
 
         my $node_number = $line_hash{NODENUM_COL};
+        next if !defined $node_number;
         $node_hash->{$node_number} = {%line_hash}; # store as reference to duplicate of line_hash (instead of \%line_hash);
     }
 

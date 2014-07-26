@@ -269,7 +269,7 @@ sub run_tests {
         my $msg = "$sub expected $test->{ex} +/- $tol";
 
         my $val = $tree->$sub;
-        diag "$msg, $val\n";
+        #diag "$msg, $val\n";
 
         is_between (eval {$tree->$sub}, $lower, $upper, $msg);
     }

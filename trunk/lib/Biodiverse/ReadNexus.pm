@@ -617,24 +617,20 @@ sub parse_newick {
     my $tree = $args{tree};
     my $tree_name = $tree->get_param ('NAME');
 
-    my $node_count             = $args{node_count};
-    my $translate_hash         = $args{translate_hash}
-                               || $self->get_param ('TRANSLATE_HASH');
+    my $node_count      = $args{node_count};
+    my $translate_hash  = $args{translate_hash}
+                        || $self->get_param ('TRANSLATE_HASH');
     my $element_properties     = $args{element_properties}
                                || $self->get_param ('ELEMENT_PROPERTIES');
     my $use_element_properties = $self->get_param ('USE_ELEMENT_PROPERTIES');
 
     my $quote_char = $self->get_param ('QUOTES') || q{'};
-    my $csv_obj    = $self->get_csv_object (quote_char => $quote_char);
+    my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char);
 
     my $name;
 
-    my $default_length = 0;
-    my $length = $default_length;
-    my $boot_value;
-
-    my @nodes_added;
-    my @children_of_current_node;
+    my ($length, $default_length) = (0, 0);
+    my ($boot_value, @nodes_added, @children_of_current_node);
 
     pos ($string) = 0;
 
@@ -720,10 +716,11 @@ sub parse_newick {
                 #print "Position is " . (pos $string) . " of $str_len\n";
                 
                 @children_of_current_node = $self->parse_newick (
-                    string => $sub_newick,
-                    tree => $tree,
-                    node_count => $node_count,
+                    string         => $sub_newick,
+                    tree           => $tree,
+                    node_count     => $node_count,
                     translate_hash => $translate_hash,
+                    csv_object     => $csv_obj,
                 );
             }
             else {
@@ -776,13 +773,11 @@ sub parse_newick {
             #print "length value is $1\n";
             $length = $1;
             if (! looks_like_number $length) {
-                if (!defined $length) {
-                    $length = q{};
-                }
+                $length //= q{};
                 croak "Length '$length' does not look like a number\n";
             }
             $length += 0;  #  make it numeric
-            my $x = $length;
+            #my $x = $length;
         }
 
         #  next value is a name, but it can be empty

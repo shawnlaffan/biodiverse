@@ -843,6 +843,34 @@ sub set_cell_outline_colour {
     return;
 }
 
+sub set_cell_show_outline {
+    my $self = shift;
+    my $active = shift;
+    
+    if ($active) {
+    	# only give call to set outline colour if any cells do not 
+    	# have defined colours
+    	# (prevents multiple pop-ups of chooser, eg if outline
+    	# menu item is off and choose colour sets it active)
+        foreach my $cell (values %{$self->{cells}}) {
+            my $rect = $cell->[INDEX_RECT];
+            if (! $rect->get('outline_color_gdk')) {
+		        # calls chooser to set colour
+		        $self->set_cell_outline_colour;
+            	last;
+            }
+        }
+    } else {
+        # clear outline settings
+        foreach my $cell (values %{$self->{cells}}) {
+            my $rect = $cell->[INDEX_RECT];
+            $rect->set('outline_color', undef);
+        }
+    }
+
+    return;
+}
+
 sub get_colour_from_chooser {
     my $self = shift;
     

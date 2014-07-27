@@ -526,6 +526,7 @@ sub init_map {
     my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
+    my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         $frame,
@@ -536,7 +537,8 @@ sub init_map {
         $hover_closure,
         $click_closure,
         $select_closure,
-        $grid_click_closure
+        $grid_click_closure,
+        $end_hover_closure
     );
     $self->{grid}->{page} = $self;
 
@@ -1572,6 +1574,11 @@ sub on_grid_hover {
     $self->{xmlPage}->get_widget('lblMap')->set_markup($string);
     
     return;
+}
+
+sub on_end_grid_hover {
+	my $self = shift;
+    $self->{dendrogram}->clear_highlights;
 }
 
 sub on_grid_popup {

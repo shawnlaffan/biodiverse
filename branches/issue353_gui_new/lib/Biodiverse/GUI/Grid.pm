@@ -104,6 +104,8 @@ whenever cell is hovered over or clicked
 Closure that will be called whenever the grid has been right clicked, but not
 dragged
 
+=item end_hover_func
+
 =back
 
 =cut
@@ -131,6 +133,7 @@ sub new {
     $self->{select_func} = shift || undef; # Callback function for when users select a set of elements
     $self->{grid_click_func} = shift || undef; # Callback function for when the user right clicks anywhere
     my $g = 0;
+    $self->{end_hover_func}  = shift || undef; # Callback function for when users move mouse out of hovering over cells
     $self->{colour_none} = Gtk2::Gdk::Color->new($g, $g, $g);
 
     # Make the canvas and hook it up
@@ -273,6 +276,7 @@ sub destroy {
     delete $self->{click_func};  #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
     delete $self->{grid_click_func};
+    delete $self->{end_hover_func};  #??? not sure if helps
     
     delete $self->{cells_group}; #!!!! Without this, GnomeCanvas __crashes__
                                 # Apparently, a reference cycle prevents it
@@ -1455,6 +1459,13 @@ sub on_event {
         #    # the popups on win32 - we receive leave-notify on button click!
         #    #$f->(undef);
         #}
+        print "leave notify\n";
+        
+        # call to end hovering
+        if (defined $self->{end_hover_func} and not $self->{clicked_cell}) {
+            print "calling $self->{end_hover_func}\n";
+            $self->{end_hover_func}->();
+        }
 
         # Change cursor back to default
         $self->{canvas}->window->set_cursor(undef);

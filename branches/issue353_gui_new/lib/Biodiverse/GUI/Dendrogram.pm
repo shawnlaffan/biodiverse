@@ -1229,13 +1229,30 @@ sub get_plot_min_max_values {
 # Remove any existing highlights
 sub clear_highlights {
     my $self = shift;
+    
+    # set all nodes to recorded/default colour
     if ($self->{highlighted_lines}) {
-        foreach my $line (@{$self->{highlighted_lines}}) {
-
-            $line->set(width_pixels => NORMAL_WIDTH);
-        }
+    	my @nodes_remaining;
+	    push(@nodes_remaining, $self->{tree_node});
+	    while (scalar @nodes_remaining) {
+	    	my $node = shift(@nodes_remaining);
+	    	next if (! defined $node);
+	    	push(@nodes_remaining, $node->get_children);
+	        
+	 	    # assume node has associated line
+	        my $line = $self->{node_lines}->{$node->get_name};	
+	        my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
+	        $line->set(fill_color_gdk => $colour_ref) if (defined $line);
+	    }
+	    $self->{highlighted_lines} = undef;
     }
-    $self->{highlighted_lines} = undef;
+    
+#    if ($self->{highlighted_lines}) {
+#        foreach my $line (@{$self->{highlighted_lines}}) {
+#            $line->set(width_pixels => NORMAL_WIDTH);
+#        }
+#    }
+#    $self->{highlighted_lines} = undef;
 
     return;
 }
@@ -1243,8 +1260,25 @@ sub clear_highlights {
 sub highlight_node {
     my ($self, $node_ref) = @_;
 
+    # if first highlight, set all other nodes to grey
+    if (! $self->{highlighted_lines}) {
+	    my @nodes_remaining;
+	    push(@nodes_remaining, $self->{tree_node});
+	    while (scalar @nodes_remaining) {
+	        my $node = shift(@nodes_remaining);
+	        push(@nodes_remaining, $node->get_children);
+	
+	        # assume node has associated line
+	        my $line = $self->{node_lines}->{$node->get_name};  
+	        $line->set(fill_color_gdk => COLOUR_GRAY);
+	    }
+    }
+
+    # highlight this node/line by setting black
     my $line = $self->{node_lines}->{$node_ref->get_name};
-    $line->set(width_pixels => HIGHLIGHT_WIDTH);
+    my $colour_ref = $self->{node_colours_cache}{$node_ref->get_name} || DEFAULT_LINE_COLOUR;
+    $line->set(fill_color_gdk => $colour_ref);
+    #$line->set(width_pixels => HIGHLIGHT_WIDTH);
     push @{$self->{highlighted_lines}}, $line;
 
     return;
@@ -1253,11 +1287,27 @@ sub highlight_node {
 # Highlights all nodes above and including the given node
 sub highlight_path {
     my ($self, $node_ref) = @_;
-    my @highlighted_lines;
 
+    # if first highlight set all other nodes to grey
+    if (! $self->{highlighted_lines}) {
+	    my @nodes_remaining;
+	    push(@nodes_remaining, $self->{tree_node});
+	    while (scalar @nodes_remaining) {
+	        my $node = shift(@nodes_remaining);
+	        push(@nodes_remaining, $node->get_children);
+    
+	        # assume node has associated line
+	        my $line = $self->{node_lines}->{$node->get_name};  
+	        $line->set(fill_color_gdk => COLOUR_GRAY);
+	    }
+    }
+
+    # set path to highlighted colour
     while ($node_ref) {
         my $line = $self->{node_lines}->{$node_ref->get_name};
-        $line->set(width_pixels => HIGHLIGHT_WIDTH);
+        my $colour_ref = $self->{node_colours_cache}{$node_ref->get_name} || DEFAULT_LINE_COLOUR;
+        $line->set(fill_color_gdk => $colour_ref);
+        #$line->set(width_pixels => HIGHLIGHT_WIDTH);
         push @{$self->{highlighted_lines}}, $line;
 
         $node_ref = $node_ref->get_parent;

@@ -185,6 +185,7 @@ sub init_grid {
     my $click_closure  = sub { Biodiverse::GUI::CellPopup::cell_clicked($_[0], $self->{base_ref}); };
     my $select_closure = sub { $self->on_grid_select(@_); };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
+    my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         $frame,
@@ -195,7 +196,8 @@ sub init_grid {
         $hover_closure,
         $click_closure,
         $select_closure,
-        $grid_click_closure
+        $grid_click_closure,
+        $end_hover_closure
     );
     $self->{grid}->{page} = $self; # Hacky
 
@@ -830,6 +832,12 @@ sub on_grid_hover {
     }
 
     return;
+}
+
+sub on_end_grid_hover {
+    my $self = shift;
+    print "labels end grid hover\n";
+	$self->{dendrogram}->clear_highlights;
 }
 
 sub on_grid_select {

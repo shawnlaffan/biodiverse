@@ -40,7 +40,7 @@ sub new {
     bless $self, $class;
 
     #  now we loop through and add any specified arguments
-    $self->set_length(%args);
+    $self->set_length(length => $args{length});
 
     if (exists $args{parent}) {
         $self->set_parent(%args);
@@ -50,7 +50,7 @@ sub new {
         $self->add_children(%args);
     }
 
-    $self->set_name(%args);
+    $self->set_name(name => $args{name});
 
     return $self;
 }

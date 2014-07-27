@@ -1,5 +1,5 @@
 package Biodiverse::TreeNode;
-
+use 5.010;
 use strict;
 use warnings;
 no warnings 'recursion';
@@ -367,32 +367,28 @@ sub add_children {
     CHILD:
     foreach my $child (@{$args{children}}) {
         next if $self->has_child (node_ref => $child);  #  don't re-add our own child
-        if ($self->is_tree_node(node => $child)) {
+        my $is_tree_node = $self->is_tree_node(node => $child);
+        if ($is_tree_node) {
             if (defined $child->get_parent) {  #  too many parents - this is a single parent system
                 if ($args{warn}) {
-                    print 'TreeNode WARNING: child '
-                          . $self->get_name .
-                          " already has parent, resetting\n";
+                    say 'TreeNode WARNING: child '
+                        . $self->get_name
+                        . ' already has parent, resetting';
                 }
                 $child->get_parent->delete_child (child => $child);
             }
         }
         #  not a tree node, and not a ref, so make it one
-        my $tmp;
-        if (! $self->is_tree_node(node => $child)) {
-            if (! ref($child)) {
-                $tmp = Biodiverse::TreeNode->new(name => $child);
-                $child = $tmp;
-            }
-            else {
-                croak "Warning: Cannot add $child as a child - already a blessed object\n";
-                #next CHILD;
-            }
+        else {
+            croak "Warning: Cannot add $child as a child - already a reference\n"
+              if ref $child;
+
+            $child = Biodiverse::TreeNode->new(name => $child);
         }
         push @{$self->{_CHILDREN}}, $child;
         $child->set_parent(parent => $self);
     }
-    
+
     return;
 }
 
@@ -1119,8 +1115,7 @@ sub is_tree_node {  #  check if a node is a TreeNode - used to check children fo
     my $self = shift;
     my %args = @_;
     return if ! defined $args{node};
-    return 1 if ref($args{node}) =~ /::TreeNode/;  #  should really use devel::symdump to allow abstraction
-    return 0;
+    return ref($args{node}) =~ /::TreeNode/;  #  should really use devel::symdump to allow abstraction
 }
 
 sub is_terminal_node {
@@ -1148,25 +1143,22 @@ sub set_parent {
     my $self = shift;
     my %args = @_;
 
-    croak "argument 'parent' not specified\n"
-      if ! exists ($args{parent});
+    my $parent = $args{parent}
+      // croak "argument 'parent' not specified\n";
 
     croak "Reference not type Biodiverse::TreeNode\n"
-        if (defined $args{parent}
-            && ! ref($args{parent}) =~ /Biodiverse::Treenode/
-            );
+        if blessed($parent) ne 'Biodiverse::TreeNode';
 
-    $self->{_PARENT} = $args{parent};
+    $self->{_PARENT} = $parent;
     #  avoid potential memory leakage caused by circular refs
-    #weaken ($self->{_PARENT});  
+
     $self->weaken_parent_ref;
     
     return;
 }
 
 sub get_parent {
-    my $self = shift;
-    return $self->{_PARENT};
+    return $_[0]->{_PARENT};
 }
 
 sub set_parents_below {  #  sometimes the parents aren't set properly by extension subs
@@ -1182,16 +1174,20 @@ sub set_parents_below {  #  sometimes the parents aren't set properly by extensi
 
 sub weaken_parent_ref {
     my $self = shift;
-    
-    if (! exists ($self->{_PARENT}) || ! defined ($self->{_PARENT})) {
-        return;
-    }
-    elsif (not isweak ($self->{_PARENT})) {
-        #print "Tree weakening parent ref\n";
-        return weaken ($self->{_PARENT});
-    }
-    
+
+    return if !$self->{_PARENT};
+    return weaken ($self->{_PARENT}) if !isweak $self->{_PARENT};
     return 0;
+
+    #if (! exists ($self->{_PARENT}) || ! defined ($self->{_PARENT})) {
+    #    return;
+    #}
+    #elsif (not isweak ($self->{_PARENT})) {
+    #    #print "Tree weakening parent ref\n";
+    #    return weaken ($self->{_PARENT});
+    #}
+    #
+    #return 0;
 }
 
 sub is_root_node {

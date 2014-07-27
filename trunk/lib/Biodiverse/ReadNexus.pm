@@ -635,17 +635,18 @@ sub parse_newick {
     my $progress_bar = $args{progress_bar};
     if (!$progress_bar) {
         $est_node_count = () = $string =~ /([(,])/g;
-        say "Estimated node count is $est_node_count";
+        #say "Estimated node count is $est_node_count";
         $progress_bar = Biodiverse::Progress->new ();
         $tree->set_cached_value (ESTIMATED_NODE_COUNT => $est_node_count);
     }
     else {
         $est_node_count = $tree->get_cached_value ('ESTIMATED_NODE_COUNT');
     }
-    my $prog = ($$node_count // 0) / $est_node_count;
+
+    my $nc = $tree->get_node_count;
     $progress_bar->update (
-        "node $$node_count of an estimated $est_node_count",
-        $prog,
+        "node $nc of an estimated $est_node_count",
+        $nc / $est_node_count,
     );
 
     pos ($string) = 0;
@@ -898,18 +899,7 @@ sub add_node_to_tree {
             boot   => $boot,
         )
     };
-    if (Biodiverse::Tree::NodeAlreadyExists->caught) {
-        my $e = $EVAL_ERROR;
-        my $prefix = $e->name;
-        $name = $tree->get_unique_name(
-            prefix  => $prefix,
-            exclude => $translate_hash,
-        );
-        goto ADD_NODE_TO_TREE;
-    }
-    elsif ($EVAL_ERROR) {
-        croak $EVAL_ERROR;
-    }
+    croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $node;
 }

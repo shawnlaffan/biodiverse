@@ -16,6 +16,7 @@ use File::BOM qw / :subs /;
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::Exception;
+use Biodiverse::Progress;
 
 our $VERSION = '0.99_001';
 
@@ -612,9 +613,9 @@ sub parse_newick {
     my $self = shift;
     my %args = @_;
 
-    my $string = $args{string};
-    my $str_len = length ($string);
-    my $tree = $args{tree};
+    my $string    = $args{string};
+    my $str_len   = length ($string);
+    my $tree      = $args{tree};
     my $tree_name = $tree->get_param ('NAME');
 
     my $node_count      = $args{node_count};
@@ -627,10 +628,26 @@ sub parse_newick {
     my $quote_char = $self->get_param ('QUOTES') || q{'};
     my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char);
 
-    my $name;
-
     my ($length, $default_length) = (0, 0);
-    my ($boot_value, @nodes_added, @children_of_current_node);
+    my ($name, $boot_value, $exp_node_count,
+        @nodes_added, @children_of_current_node);
+
+    my $progress_bar = $args{progress_bar};
+    if (!$progress_bar) {
+        $exp_node_count = () = $string =~ /([(,])/g;
+        #$exp_node_count;
+        say "Estimated node count is $exp_node_count";
+        $progress_bar = Biodiverse::Progress->new;
+        $tree->set_cached_value (EXPECTED_NODE_COUNT => $exp_node_count);
+    }
+    else {
+        $exp_node_count = $tree->get_cached_value ('EXPECTED_NODE_COUNT');
+    }
+    my $prog = $$node_count / $exp_node_count;
+    $progress_bar->update (
+        "node $$node_count of $exp_node_count",
+        $$node_count / $exp_node_count,
+    );
 
     pos ($string) = 0;
 
@@ -721,6 +738,7 @@ sub parse_newick {
                     node_count     => $node_count,
                     translate_hash => $translate_hash,
                     csv_object     => $csv_obj,
+                    progress_bar   => $progress_bar,
                 );
             }
             else {

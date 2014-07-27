@@ -2,6 +2,7 @@
 use strict;
 use warnings;
 use English qw { -no_match_vars };
+use Carp;
 
 use FindBin qw/$Bin/;
 use rlib;
@@ -44,6 +45,7 @@ our $tol = 1E-13;
     my $result = eval {
         $trees->import_data (data => $nex_tree);
     };
+    croak $EVAL_ERROR if $EVAL_ERROR;
 
     is ($result, 1, 'import nexus trees, no remap');
 

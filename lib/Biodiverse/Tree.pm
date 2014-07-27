@@ -341,7 +341,8 @@ sub weaken_parent_refs {
 
 sub get_node_count {
     my $self = shift;
-    return my $tmp = keys %{$self->get_node_hash};
+    my $hash_ref = $self->get_node_hash;
+    return scalar keys %$hash_ref;
 }
 
 sub get_node_hash {

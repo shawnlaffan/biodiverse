@@ -1263,7 +1263,7 @@ sub setup_tie_breaker {
 
     my @invalid_calcs = $indices_object->get_invalid_calculations;
     if (@invalid_calcs) {
-        croak  "Unable to run the following caluclations needed for the tie breakers.\n"
+        croak  "Unable to run the following calculations needed for the tie breakers.\n"
              . "Check that all needed arguments are being passed (e.g. trees, matrices):\n"
              . join (' ', @invalid_calcs)
              . "\n";

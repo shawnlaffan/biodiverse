@@ -570,10 +570,12 @@ sub get_tree_object {
 
     my $tree = Biodiverse::Tree->new;
     my $newick = '(((a,b),c),d)';
+    my $node_count = 0;
     my $read_nex = Biodiverse::ReadNexus->new;
     my $nodes = $read_nex->parse_newick(
         string => $newick,
         tree   => $tree,
+        node_count => \$node_count,
     );
 
     return $tree;

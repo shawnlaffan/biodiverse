@@ -3398,7 +3398,6 @@ sub add_spatial_output {
             if $class ne $obj_class;
         
         $object->set_param (BASEDATA_REF => $self);
-        $object->weaken_basedata_ref;
     }
     else {  #  create a new object
         $object = $class->new (
@@ -3409,6 +3408,7 @@ sub add_spatial_output {
             BASEDATA_REF => $self,
         );
     }
+    $object->weaken_basedata_ref;
 
     $self->{SPATIAL_OUTPUTS}{$name} = $object;  #  add or replace (take care with the replace)
 

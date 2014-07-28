@@ -903,7 +903,7 @@ sub recolour_cluster_lines {
         $line->set(fill_color_gdk => $colour_ref);
 
         # And also colour all nodes below
-        foreach my $child_ref (@{$node_ref->get_children}) {
+        foreach my $child_ref ($node_ref->get_children) {
             $self->colour_lines($child_ref, $colour_ref, \%coloured_nodes);
         }
 
@@ -943,7 +943,7 @@ sub colour_lines {
     $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
     $coloured_nodes->{ $node_ref } = (); # mark as coloured
 
-    foreach my $child_ref (@{$node_ref->get_children}) {
+    foreach my $child_ref ($node_ref->get_children) {
         $self->colour_lines($child_ref, $colour_ref, $coloured_nodes);
     }
 

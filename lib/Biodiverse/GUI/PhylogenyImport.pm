@@ -168,7 +168,8 @@ sub run {
     }
     my $feedback =
           "[Phylogeny import] $tree_count trees parsed from $filename\nNames are: "
-        . join ', ', @names;
+        . join (', ', @names)
+        . "\n";
 
     #########
     #  4.  add the phylogenies to the GUI
@@ -180,7 +181,7 @@ sub run {
         'Import results'
     );
 
-    #  SWL:  not sure why we return undef in scalar context
+    #  SWL:  not sure why we return undef in void context
     return defined wantarray ? $phylogeny_ref : undef;
 }
 

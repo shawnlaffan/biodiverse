@@ -320,12 +320,13 @@ sub get_node_ref {
     my $self = shift;
     my %args = @_;
 
-    croak "node not specified in call to get_node_ref\n" if ! defined $args{node};
+    my $node = $args{node} //
+      croak "node not specified in call to get_node_ref\n";
 
-    Biodiverse::Tree::NotExistsNode->throw ("[Tree] $args{node} does not exist")
-      if !exists $self->{TREE_BY_NAME}{$args{node}};
+    Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
+      if !exists $self->{TREE_BY_NAME}{$node};
 
-    return $self->{TREE_BY_NAME}{$args{node}};    
+    return $self->{TREE_BY_NAME}{$node};    
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.
@@ -340,14 +341,15 @@ sub weaken_parent_refs {
 
 sub get_node_count {
     my $self = shift;
-    return my $tmp = keys %{$self->get_node_hash};
+    my $hash_ref = $self->get_node_hash;
+    return scalar keys %$hash_ref;
 }
 
 sub get_node_hash {
     my $self = shift;
 
     #  create an empty hash if needed
-    $self->{TREE_BY_NAME} = {} if ! exists $self->{TREE_BY_NAME};
+    $self->{TREE_BY_NAME} //= {};
 
     return wantarray ? %{$self->{TREE_BY_NAME}} : $self->{TREE_BY_NAME};
 }
@@ -566,17 +568,32 @@ sub get_free_internal_name {
     #  iterate over the existing nodes and get the highest internal name that isn't used
     #  also check the whole translate table (keys and values) to ensure no
     #    overlaps with valid user defined names
-    my %node_hash = $self->get_node_hash;
-    my $highest = -1;
-    foreach my $name (keys %node_hash, %$skip) {  #  should be keys %$skip?
-        if ($name =~ /^(\d+)___$/) {
-            my $num = $1;
-            next if not defined $num;
-            $highest = $num if $num > $highest;
-        }
+    my $node_hash = $self->get_node_hash;
+    my %reverse_skip = reverse %$skip;
+    my $highest   = $self->get_cached_value ('HIGHEST_INTERNAL_NODE_NUMBER') // -1;
+    my $name;
+
+    while (1) {
+        $highest++;
+        $name = $highest . '___';
+        last if !exists $node_hash->{$name}
+             && !exists $skip->{$name}
+             && !exists $reverse_skip{$name};
     }
-    $highest ++;
-    return $highest . '___';
+
+    #foreach my $name (keys %$node_hash, %$skip) {
+    #    if ($name =~ /^(\d+)___$/) {
+    #        my $num = $1;
+    #        next if not defined $num;
+    #        $highest = $num if $num > $highest;
+    #    }
+    #}
+
+    #$highest ++;
+    $self->set_cached_value (HIGHEST_INTERNAL_NODE_NUMBER => $highest);
+
+    #return $highest . '___';
+    return $name;
 }
 
 sub get_unique_name {
@@ -589,14 +606,16 @@ sub get_unique_name {
     #  iterate over the existing nodes and see if we can geberate a unique name
     #  also check the whole translate table (keys and values) to ensure no
     #    overlaps with valid user defined names
-    my %node_hash = $self->get_node_hash;
+    my $node_hash = $self->get_node_hash;
 
     my $i = 1;
-    my $unique_name = $prefix . $suffix . $i;
-    my %exists = (%node_hash, %$skip);
-    while (exists $exists{$unique_name}) {
+    my $pfx = $prefix . $suffix;
+    my $unique_name = $pfx . $i;
+    #my $exists = $skip ? {%$node_hash, %$skip} : $node_hash;
+
+    while (exists $node_hash->{$unique_name} || exists $skip->{$unique_name}) {
         $i++;
-        $unique_name = $prefix . $suffix . $i;
+        $unique_name = $pfx . $i;
     }
 
     return $unique_name;
@@ -2048,7 +2067,7 @@ sub collapse_tree {
     $self->delete_cached_values;
 
     #  reset all the total length values
-    $self->reset_total_length_below;
+    $self->reset_total_length;
     $self->get_total_tree_length;
 
     my @now_empty = $self->flatten_tree;
@@ -2065,6 +2084,15 @@ sub collapse_tree {
     }
 
     return $self;
+}
+
+sub reset_total_length {
+    my $self = shift;
+
+    $self->delete_param('TOTAL_LENGTH');
+    $self->reset_total_length_below;
+
+    return;
 }
 
 #  collapse all nodes below a cutoff so they form a set of polytomies

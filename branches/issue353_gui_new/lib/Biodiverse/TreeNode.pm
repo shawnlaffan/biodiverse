@@ -1,5 +1,5 @@
 package Biodiverse::TreeNode;
-
+use 5.010;
 use strict;
 use warnings;
 no warnings 'recursion';
@@ -9,7 +9,7 @@ use English ( -no_match_vars );
 use Carp;
 use Scalar::Util qw /weaken isweak blessed/;
 use Data::Dumper qw/Dumper/;
-use List::Util qw /min/;
+use List::Util qw /min max pairgrep/;
 
 use Biodiverse::BaseStruct;
 
@@ -40,7 +40,7 @@ sub new {
     bless $self, $class;
 
     #  now we loop through and add any specified arguments
-    $self->set_length(%args);
+    $self->set_length(length => $args{length});
 
     if (exists $args{parent}) {
         $self->set_parent(%args);
@@ -50,7 +50,7 @@ sub new {
         $self->add_children(%args);
     }
 
-    $self->set_name(%args);
+    $self->set_name(name => $args{name});
 
     return $self;
 }
@@ -238,7 +238,7 @@ sub reset_total_length_below {
     
     $self->reset_total_length;
     foreach my $child ($self->get_children) {
-        $child->reset_total_length;
+        $child->reset_total_length_below;
     }
 
 }
@@ -266,7 +266,7 @@ sub get_max_total_length {
     }
 
     my $max_length = $self->get_total_length;
-    foreach my $child (@{$self->get_children}) {
+    foreach my $child ($self->get_children) {
         my $child_length = $child->get_max_total_length (%args) || 0;  #  pass on the args
 
         $max_length = $child_length if $child_length > $max_length;
@@ -321,16 +321,18 @@ sub set_depth {
 sub get_depth {
     my $self = shift;
 
-    #return $self->{DEPTH} if defined $self->{DEPTH}; # overwrite as needed - saves messing about with cached values
+    my $depth = $self->{NODE_VALUES}{DEPTH};
+
+    return $depth if defined $depth;
     
     if ($self->is_root_node) {
         $self->set_depth(depth => 0);
+        return 0;
     }
-    else {
-        #  recursively search up the tree
-        $self->set_depth(depth => ($self->get_parent->get_depth + 1));
-    }
-    
+
+    #  recursively search up the tree
+    $self->set_depth(depth => ($self->get_parent->get_depth + 1));
+
     return $self->{NODE_VALUES}{DEPTH};
 }
 
@@ -345,7 +347,7 @@ sub get_depth_below {  #  gets the deepest depth below the caller in total tree 
     }
 
     my $max_depth_below = 0;
-    foreach my $child (@{$self->get_children}) {
+    foreach my $child ($self->get_children) {
         my $depth_below_child = $child->get_depth_below;
         $max_depth_below = $depth_below_child if $depth_below_child > $max_depth_below;
     }
@@ -367,32 +369,28 @@ sub add_children {
     CHILD:
     foreach my $child (@{$args{children}}) {
         next if $self->has_child (node_ref => $child);  #  don't re-add our own child
-        if ($self->is_tree_node(node => $child)) {
+        my $is_tree_node = $self->is_tree_node(node => $child);
+        if ($is_tree_node) {
             if (defined $child->get_parent) {  #  too many parents - this is a single parent system
                 if ($args{warn}) {
-                    print 'TreeNode WARNING: child '
-                          . $self->get_name .
-                          " already has parent, resetting\n";
+                    say 'TreeNode WARNING: child '
+                        . $self->get_name
+                        . ' already has parent, resetting';
                 }
                 $child->get_parent->delete_child (child => $child);
             }
         }
         #  not a tree node, and not a ref, so make it one
-        my $tmp;
-        if (! $self->is_tree_node(node => $child)) {
-            if (! ref($child)) {
-                $tmp = Biodiverse::TreeNode->new(name => $child);
-                $child = $tmp;
-            }
-            else {
-                croak "Warning: Cannot add $child as a child - already a blessed object\n";
-                #next CHILD;
-            }
+        else {
+            croak "Warning: Cannot add $child as a child - already a reference\n"
+              if ref $child;
+
+            $child = Biodiverse::TreeNode->new(name => $child);
         }
         push @{$self->{_CHILDREN}}, $child;
         $child->set_parent(parent => $self);
     }
-    
+
     return;
 }
 
@@ -458,7 +456,7 @@ sub get_children {
 
 sub get_child_count {
     my $self = shift;
-    return $#{$self->{_CHILDREN}} + 1;
+    return scalar @{$self->{_CHILDREN}};
 }
     
 # should be get_terminal_node_count
@@ -512,14 +510,16 @@ sub group_nodes_below {
 
 
     my $group_count = 1;
-    NODE_SEARCH: while ($group_count < $groups_needed) {
+  NODE_SEARCH:
+    while ($group_count < $groups_needed) {
         @current_nodes = values %{$search_hash{$lower_value}{$upper_value}};
         #print "check $i $upper_value\n"; 
         my $current_node_string = join ($EMPTY_STRING, sort @current_nodes);
         foreach my $current_node (@current_nodes) {
             my @children = $current_node->get_children;
 
-            CNODE: foreach my $child (@children) {
+          CNODE:
+            foreach my $child (@children) {
                 my $include_in_search = 1;  #  flag to include this child in further searching
                 my ($upper_bound, $lower_bound);
                 
@@ -527,7 +527,7 @@ sub group_nodes_below {
                     $include_in_search = 0;
                 }
                 else {  #  only consider length if it has children
-                    #  and that length is from its children
+                        #  and that length is from its children
                     if ($use_depth) {
                         $upper_bound = $child->get_depth;
                         $lower_bound = $upper_bound + 1;
@@ -538,22 +538,23 @@ sub group_nodes_below {
                             $lower_bound = $child->get_cached_value ('LOWER_BOUND_LENGTH');
                         }
                         else {
-                            my $length = $child->get_length;
-                            if ($length < 0) {  # recursion
+                            my $length       = $child->get_length;
+                            my $length_below = $child->get_length_below;
+                            if ($length < 0) {  # reversal
                                 my $parent = $child->get_parent;
                                 #  parent_pos is wherever its children begin
                                 my $parent_pos = $parent->get_length_below - $parent->get_length;
-                                $upper_bound = min ($parent_pos, $child->get_length_below);
-                                $lower_bound = min ($parent_pos, $child->get_length_below - $length);
+                                $upper_bound = min ($parent_pos, $length_below);
+                                $lower_bound = min ($parent_pos, $length_below - $length);
                             }
                             else {
-                                $upper_bound = $child->get_length_below;
-                                $lower_bound = $child->get_length_below - $length;
+                                $upper_bound = $length_below;
+                                $lower_bound = $length_below - $length;
                             }
                             $child->set_cached_value (UPPER_BOUND_LENGTH => $upper_bound);
                             $child->set_cached_value (LOWER_BOUND_LENGTH => $lower_bound);
 
-                            #  swap them if they are inverted (eg for depth)
+                            #  swap them if they are inverted (eg for depth) (use List::MoreUtils::minmax?)
                             ($lower_bound, $upper_bound) = sort numerically ($lower_bound, $upper_bound);
                         }
                     }
@@ -584,8 +585,10 @@ sub group_nodes_below {
         }
         last if ! scalar keys %search_hash;  #  drop out - they must all be terminal nodes
 
-        $lower_value = (reverse sort numerically keys %search_hash)[0];
-        $upper_value = (reverse sort numerically keys %{$search_hash{$lower_value}})[0];
+        #$lower_value = (reverse sort numerically keys %search_hash)[0];
+        #$upper_value = (reverse sort numerically keys %{$search_hash{$lower_value}})[0];
+        $lower_value = max (keys %search_hash);
+        $upper_value = max (keys %{$search_hash{$lower_value}});
 
         #print scalar keys %final_hash, "\n";
 
@@ -602,14 +605,14 @@ sub group_nodes_below {
 #  deep recursion this way (unless the tree really is that deep...)
 sub flatten_tree {
     my $self = shift;
-    my $iter = 0;
+    #my $iter = 0;
     my $count = 1;
     my @empty_nodes;
     print "[TREENODE] FLATTENING TREE.  ";
     while ($count > 0) {
         my %raised = $self->raise_zerolength_children;
         print " Raised $raised{raised_count},";
-        $iter ++;
+        #$iter ++;
         push @empty_nodes, @{$raised{empty_node_names}};
         $count = $raised{raised_count};
     }
@@ -622,15 +625,16 @@ sub flatten_tree {
 sub raise_zerolength_children {
     my $self = shift;
     
-    my %results = (empty_node_names => [],
-                   raised_count => 0,
-                  );
-    
+    my %results = (
+        empty_node_names => [],
+        raised_count     => 0,
+    );
+
     if ($self->is_terminal_node) {
         return wantarray ? %results : \%results;
     };
     
-    my $child_count = $#{$self->get_children} + 1;
+    my $child_count = $self->get_child_count;
     
     if (! $self->is_root_node) {
         #  raise all children with length zero to be children of the parent node
@@ -666,8 +670,7 @@ sub raise_zerolength_children {
         $self->get_parent->delete_child (child => $self);
         $results{raised_count} ++;
         push @{$results{empty_node_names}}, $self->get_name;  #  add to list of names deleted
-        return %results if wantarray;
-        return \%results;
+        return wantarray ? %results : \%results;
     }
     
     #  now loop through any children and flatten them
@@ -677,21 +680,16 @@ sub raise_zerolength_children {
         push @{$results{empty_node_names}}, @{$res{empty_node_names}};
     }
     
-    return %results if wantarray;
-    return \%results;
+    return wantarray ? %results : \%results;
 }
 
-#  a bit inefficient, but should work
+#  not really a list of only the refs, as it is a hash
 sub get_terminal_node_refs {
     my $self = shift;
     
     my %descendents = $self->get_all_descendents;
 
-    my %terminals;
-    while (my ($name, $node_ref) = each %descendents) {
-        next if ! $node_ref->is_terminal_node;
-        $terminals{$name} = $node_ref;
-    }
+    my %terminals = pairgrep {$b->is_terminal_node} %descendents;
 
     return wantarray ? %terminals : \%terminals;
 }
@@ -1105,7 +1103,7 @@ sub get_hash_lists_below {
     my %hash_list;
     @hash_list{@list} = undef;
 
-    foreach my $child (@{$self->get_children}) {
+    foreach my $child ($self->get_children) {
         my $list_below = $child->get_hash_lists_below;
         @hash_list{@$list_below} = undef;
     }
@@ -1115,17 +1113,17 @@ sub get_hash_lists_below {
         : [keys %hash_list];
 }
 
-sub is_tree_node {  #  check if a node is a TreeNode - used to check children for terminal entries
+#  check if a node is a TreeNode - used to check children for terminal entries
+sub is_tree_node {  
     my $self = shift;
     my %args = @_;
-    return if ! defined $args{node};
-    return 1 if ref($args{node}) =~ /::TreeNode/;  #  should really use devel::symdump to allow abstraction
-    return 0;
+    my $b = blessed $args{node};
+    return if !$b;
+    return $b eq blessed ($self);
 }
 
 sub is_terminal_node {
     my $self = shift;
-    #my $children = $self->get_children;
     return !$self->get_child_count;  #  terminal if it has no children
 }
 
@@ -1148,25 +1146,22 @@ sub set_parent {
     my $self = shift;
     my %args = @_;
 
-    croak "argument 'parent' not specified\n"
-      if ! exists ($args{parent});
+    my $parent = $args{parent}
+      // croak "argument 'parent' not specified\n";
 
-    croak "Reference not type Biodiverse::TreeNode\n"
-        if (defined $args{parent}
-            && ! ref($args{parent}) =~ /Biodiverse::Treenode/
-            );
+    croak 'parent Reference not same type as child (' . blessed ($self) . ")\n"
+        if blessed($parent) ne blessed($self);
 
-    $self->{_PARENT} = $args{parent};
+    $self->{_PARENT} = $parent;
+
     #  avoid potential memory leakage caused by circular refs
-    #weaken ($self->{_PARENT});  
     $self->weaken_parent_ref;
     
     return;
 }
 
 sub get_parent {
-    my $self = shift;
-    return $self->{_PARENT};
+    return $_[0]->{_PARENT};
 }
 
 sub set_parents_below {  #  sometimes the parents aren't set properly by extension subs
@@ -1182,21 +1177,13 @@ sub set_parents_below {  #  sometimes the parents aren't set properly by extensi
 
 sub weaken_parent_ref {
     my $self = shift;
-    
-    if (! exists ($self->{_PARENT}) || ! defined ($self->{_PARENT})) {
-        return;
-    }
-    elsif (not isweak ($self->{_PARENT})) {
-        #print "Tree weakening parent ref\n";
-        return weaken ($self->{_PARENT});
-    }
-    
-    return 0;
+
+    return if !$self->{_PARENT} or isweak ($self->{_PARENT});
+    return weaken ($self->{_PARENT});
 }
 
 sub is_root_node {
-    my $self = shift;
-    return defined $self->get_parent ? 0 : 1;  #  if it's undef then it's a root node
+    return !$_[0]->get_parent;  #  if it's false then it's a root node
 }
 
 sub get_root_node {
@@ -1258,7 +1245,7 @@ sub assign_plot_coords_inner {
     }
     else {
         my @ch_y_pos;
-        foreach my $child (@{$self->get_children}) {
+        foreach my $child ($self->get_children) {
             $child->assign_plot_coords_inner (%args);
             my $coords = $child->get_list_ref (list => 'PLOT_COORDS');
             push @ch_y_pos, $coords->{plot_y1};

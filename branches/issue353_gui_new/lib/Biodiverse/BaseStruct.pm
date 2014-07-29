@@ -735,7 +735,7 @@ sub export_shapefile {
     if (defined $list_name) {  # repeated polys per list item
         push @label_count_specs, (
             [ key   => 'C', 100  ],
-            [ value => 'N', 8, 0 ],
+            [ value => 'F', 16, 3 ],
         );
     }
 

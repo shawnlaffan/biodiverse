@@ -167,6 +167,8 @@ sub rename {
     my $self = shift;
     my %args = @_;
     
+    $args{name} //= $args{new_name};
+
     croak "[BASEDATA] rename: argument name not supplied\n"
         if not defined $args{name};
 
@@ -1516,6 +1518,13 @@ sub import_data_shapefile {
 
         my $shape_count = $shapefile->shapes();
         say "have $shape_count shapes";
+        
+        #  some validation
+        my %db_rec1 = $shapefile->get_dbf_record(1);
+        foreach my $key (@label_field_names) {
+            croak "Shapefile $file does not have a field called $key\n"
+              if !exists $db_rec1{$key};
+        }
 
         # iterate over shapes
       SHAPE:
@@ -1801,7 +1810,9 @@ sub assign_element_properties {
         my %props = $prop_obj->get_element_properties (element => $element);
 
         #  but don't add these ones
-        delete @props{qw /INCLUDE EXCLUDE/}; #/
+        delete @props{qw /INCLUDE EXCLUDE REMAP/}; #/
+
+        next ELEMENT_PROPS if !scalar keys %props;
 
         $gp_lb_ref->add_to_lists (
             element    => $element,
@@ -2595,6 +2606,25 @@ sub delete_groups {
 }
 
 
+sub delete_label {
+    my $self = shift;
+    my %args = @_;
+    
+    my $label = $args{label} // croak "Argument 'label' not defined\n";
+    
+    return $self->delete_element (type => 'LABELS', element => $label);
+}
+
+sub delete_group {
+    my $self = shift;
+    my %args = @_;
+    
+    my $group = $args{group} // croak "Argument 'group' not defined\n";
+    
+    return $self->delete_element (type => 'GROUPS', element => $group);
+}
+
+
 
 #  delete all occurrences of this label (or group) from the LABELS and GROUPS sub hashes
 sub delete_element {  
@@ -3368,7 +3398,6 @@ sub add_spatial_output {
             if $class ne $obj_class;
         
         $object->set_param (BASEDATA_REF => $self);
-        $object->weaken_basedata_ref;
     }
     else {  #  create a new object
         $object = $class->new (
@@ -3379,6 +3408,7 @@ sub add_spatial_output {
             BASEDATA_REF => $self,
         );
     }
+    $object->weaken_basedata_ref;
 
     $self->{SPATIAL_OUTPUTS}{$name} = $object;  #  add or replace (take care with the replace)
 

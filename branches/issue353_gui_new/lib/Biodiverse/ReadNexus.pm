@@ -16,6 +16,7 @@ use File::BOM qw / :subs /;
 use Biodiverse::Tree;
 use Biodiverse::TreeNode;
 use Biodiverse::Exception;
+use Biodiverse::Progress;
 
 our $VERSION = '0.99_001';
 
@@ -425,6 +426,7 @@ sub import_tabular_tree {
     push @trees, $tree;
 
     #  process the data and generate the nodes
+  LINE:
     foreach my $line (@data) {
         $csv->parse ($line);
         my @line_array = $csv->fields;
@@ -432,7 +434,9 @@ sub import_tabular_tree {
 
         # check all necessary values are defined (?)
         foreach my $col_name (keys %columns) {
-            #    croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
+            #croak 'Specified column not present in data' if ($columns{$col_name} > $#line_array); 
+            #  skip line if we don't have sufficient values - safe in all cases?
+            next LINE if $columns{$col_name} > $#line_array;
             $line_hash{$col_name} = $line_array[$columns{$col_name}]
         }
 
@@ -462,6 +466,7 @@ sub import_tabular_tree {
         );
 
         my $node_number = $line_hash{NODENUM_COL};
+        next if !defined $node_number;
         $node_hash->{$node_number} = {%line_hash}; # store as reference to duplicate of line_hash (instead of \%line_hash);
     }
 
@@ -608,29 +613,41 @@ sub parse_newick {
     my $self = shift;
     my %args = @_;
 
-    my $string = $args{string};
-    my $str_len = length ($string);
-    my $tree = $args{tree};
+    my $string    = $args{string};
+    my $str_len   = length ($string);
+    my $tree      = $args{tree};
     my $tree_name = $tree->get_param ('NAME');
 
-    my $node_count             = $args{node_count};
-    my $translate_hash         = $args{translate_hash}
-                               || $self->get_param ('TRANSLATE_HASH');
+    my $node_count      = $args{node_count} // croak 'node_count arg not passed (must be scalar ref)';
+    my $translate_hash  = $args{translate_hash}
+                        || $self->get_param ('TRANSLATE_HASH');
     my $element_properties     = $args{element_properties}
                                || $self->get_param ('ELEMENT_PROPERTIES');
     my $use_element_properties = $self->get_param ('USE_ELEMENT_PROPERTIES');
 
     my $quote_char = $self->get_param ('QUOTES') || q{'};
-    my $csv_obj    = $self->get_csv_object (quote_char => $quote_char);
+    my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char);
 
-    my $name;
+    my ($length, $default_length) = (0, 0);
+    my ($name, $boot_value, $est_node_count,
+        @nodes_added, @children_of_current_node);
 
-    my $default_length = 0;
-    my $length = $default_length;
-    my $boot_value;
+    my $progress_bar = $args{progress_bar};
+    if (!$progress_bar) {
+        $est_node_count = () = $string =~ /([(,])/g;
+        #say "Estimated node count is $est_node_count";
+        $progress_bar = Biodiverse::Progress->new ();
+        $tree->set_cached_value (ESTIMATED_NODE_COUNT => $est_node_count);
+    }
+    else {
+        $est_node_count = $tree->get_cached_value ('ESTIMATED_NODE_COUNT');
+    }
 
-    my @nodes_added;
-    my @children_of_current_node;
+    my $nc = $tree->get_node_count;
+    $progress_bar->update (
+        "node $nc of an estimated $est_node_count",
+        $nc / $est_node_count,
+    );
 
     pos ($string) = 0;
 
@@ -716,10 +733,12 @@ sub parse_newick {
                 #print "Position is " . (pos $string) . " of $str_len\n";
                 
                 @children_of_current_node = $self->parse_newick (
-                    string => $sub_newick,
-                    tree => $tree,
-                    node_count => $node_count,
+                    string         => $sub_newick,
+                    tree           => $tree,
+                    node_count     => $node_count,
                     translate_hash => $translate_hash,
+                    csv_object     => $csv_obj,
+                    progress_bar   => $progress_bar,
                 );
             }
             else {
@@ -772,13 +791,11 @@ sub parse_newick {
             #print "length value is $1\n";
             $length = $1;
             if (! looks_like_number $length) {
-                if (!defined $length) {
-                    $length = q{};
-                }
+                $length //= q{};
                 croak "Length '$length' does not look like a number\n";
             }
             $length += 0;  #  make it numeric
-            my $x = $length;
+            #my $x = $length;
         }
 
         #  next value is a name, but it can be empty
@@ -867,6 +884,13 @@ sub add_node_to_tree {
     my $translate_hash = $args{translate_hash};
 
 
+    if (defined $name && $tree->exists_node (name => $name)) {
+        $name = $tree->get_unique_name(
+            prefix  => $name,
+            exclude => $translate_hash,
+        );
+    }
+
   ADD_NODE_TO_TREE:
     my $node = eval {
         $tree->add_node (
@@ -875,18 +899,7 @@ sub add_node_to_tree {
             boot   => $boot,
         )
     };
-    if (Biodiverse::Tree::NodeAlreadyExists->caught) {
-        my $e = $EVAL_ERROR;
-        my $prefix = $e->name;
-        $name = $tree->get_unique_name(
-            prefix  => $prefix,
-            exclude => $translate_hash,
-        );
-        goto ADD_NODE_TO_TREE;
-    }
-    elsif ($EVAL_ERROR) {
-        croak $EVAL_ERROR;
-    }
+    croak $EVAL_ERROR if $EVAL_ERROR;
 
     return $node;
 }

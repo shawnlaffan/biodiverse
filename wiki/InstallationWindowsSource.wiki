@@ -40,7 +40,7 @@ _DO NOT USE A PATH WITH SPACES IN IT_.  This causes problems with the batch file
 
 {{{
   svn co https://biodiverse.googlecode.com/svn/branches/gtk_win_builds/etc/gtk_win64 %GTK_PATH%
-  svn co https://biodiverse.googlecode.com/svn/branches/gdal_win_builds/etc/gdal_win64 %GDAL_PATH%
+  svn co http://biodiverse.googlecode.com/svn/branches/gdal_win_builds/gdal_1.10.1/gdal_win64/ %GDAL_PATH%
 }}}
 
 

@@ -1459,11 +1459,9 @@ sub on_event {
         #    # the popups on win32 - we receive leave-notify on button click!
         #    #$f->(undef);
         #}
-        print "leave notify\n";
         
         # call to end hovering
         if (defined $self->{end_hover_func} and not $self->{clicked_cell}) {
-            print "calling $self->{end_hover_func}\n";
             $self->{end_hover_func}->();
         }
 

@@ -470,7 +470,7 @@ sub set_phylogeny_options_sensitive {
             phylogeny_plot_depth
             highlight_groups_on_map_labels_tab
             use_highlight_path_changed1
-        /) {
+        /) { #/
         $page->get_widget($widget)->set_sensitive($enabled);
     }
 }
@@ -836,7 +836,6 @@ sub on_grid_hover {
 
 sub on_end_grid_hover {
     my $self = shift;
-    print "labels end grid hover\n";
 	$self->{dendrogram}->clear_highlights;
 }
 

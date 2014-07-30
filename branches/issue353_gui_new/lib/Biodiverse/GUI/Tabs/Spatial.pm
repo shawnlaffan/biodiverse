@@ -95,7 +95,7 @@ sub new {
         );
         say "[Spatial tab] New spatial output " . $self->{output_name};
 
-        $self->queue_set_pane(1);
+        $self->queue_set_pane(1, 'vpaneSpatial');
         $self->{existing} = 0;
     }
     else {
@@ -117,10 +117,10 @@ sub new {
               . ($self->{basedata_ref}->get_param ('NAME') || "no name");
 
         if ($elt_count and $completed) {
-            $self->queue_set_pane(0.01);
+            $self->queue_set_pane(0.01, 'vpaneSpatial');
         }
         else {
-            $self->queue_set_pane(1);
+            $self->queue_set_pane(1, 'vpaneSpatial');
         }
         $self->{existing} = 1;
     }
@@ -189,6 +189,7 @@ sub new {
     }
 
     $self->{hover_neighbours} = 'Both';
+    $self->{xmlPage}->get_widget('comboTreeSelect')->set_active(0);
     #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
     #$self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
     #$self->{xmlPage}->get_widget('comboColours')->set_active(0);
@@ -219,7 +220,22 @@ sub new {
     $self->init_lists_combo();
     #$self->make_output_indices_array();
     $self->init_output_indices_combo();
-    
+
+    $self->queue_set_pane(0.5, 'spatial_hpaned');
+    $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
+
+    $self->init_dendrogram();    
+    # Register callbacks when selected phylogeny is changed
+    $self->{phylogeny_callback} = sub { $self->on_selected_phylogeny_changed(); };
+    $self->{project}->register_selection_callback(
+        'phylogeny',
+        $self->{phylogeny_callback},
+    );
+    $self->{xmlPage}->get_widget('comboTreeSelect')->signal_connect_swapped(
+        changed => \&on_selected_phylogeny_changed, 
+        $self
+    );
+    $self->on_selected_phylogeny_changed();
 
     # Connect signals
     $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
@@ -261,7 +277,7 @@ sub new {
         menuitem_nbr_highlight_set1
         menuitem_nbr_highlight_set2
         menuitem_nbr_highlight_off
-    /;
+    /; #/
     for my $w (@nbr_menu_options) {
         $widgets_and_signals{$w} = {toggled  => \&on_menu_neighbours_changed};
     }
@@ -370,6 +386,47 @@ sub on_show_hide_parameters {
     return;
 }
 
+# For the phylogeny tree:
+sub init_dendrogram {
+    my $self = shift;
+    
+    my $frame      = $self->{xmlPage}->get_widget('spatialPhylogenyFrame');
+    my $graph_frame = $self->{xmlPage}->get_widget('spatialPhylogenyGraphFrame');
+    my $hscroll    = $self->{xmlPage}->get_widget('spatialPhylogenyHScroll');
+    my $vscroll    = $self->{xmlPage}->get_widget('spatialPhylogenyVScroll');
+
+    my $list_combo  = $self->{xmlPage}->get_widget('comboLists');
+    my $index_combo = $self->{xmlPage}->get_widget('comboShow');
+
+    my $hover_closure       = sub { $self->on_phylogeny_hover(@_); };
+    my $highlight_closure  = sub { $self->on_phylogeny_highlight(@_); };
+    my $ctrl_click_closure = sub { $self->on_phylogeny_popup(@_); };
+    my $click_closure      = sub { $self->on_phylogeny_click(@_); };
+    my $select_closure      = sub { $self->on_phylogeny_select(@_); };
+
+    $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
+        $frame,
+        $graph_frame,
+        $hscroll,
+        $vscroll,
+        undef,
+        $list_combo,
+        $index_combo,
+        $hover_closure,
+        $highlight_closure,
+        $ctrl_click_closure,
+        $click_closure,
+        $select_closure,
+        $self,
+    );
+
+    $self->{dendrogram}->{page} = $self;
+    
+    #  cannot colour more than one in a phylogeny
+    $self->{dendrogram}->set_num_clusters (1);
+    
+    return 1;
+}
 
 sub init_grid {
     my $self = shift;
@@ -391,6 +448,7 @@ sub init_grid {
     };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
     my $select_closure = sub { $self->on_grid_select(@_); };
+    my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
         $frame,
@@ -402,6 +460,7 @@ sub init_grid {
         $click_closure, # Middle click
         $select_closure,
         $grid_click_closure, # Left click
+        $end_hover_closure
     );
     $self->{grid}->{page} = $self;
     $self->{grid}->{drag_mode} = 'select';
@@ -659,9 +718,9 @@ sub make_lists_model {
 sub set_pane {
     my $self = shift;
     my $pos = shift;
+    my $id = shift;
 
-    my $pane = $self->{xmlPage}->get_widget("vpaneSpatial");
-    
+    my $pane = $self->{xmlPage}->get_widget($id);
     my $max_pos = $pane->get('max-position');
     $pane->set_position( $max_pos * $pos );
     #print "[Spatial tab] Updating pane: maxPos = $max_pos, pos = $pos\n";
@@ -674,28 +733,337 @@ sub set_pane {
 sub queue_set_pane {
     my $self = shift;
     my $pos = shift;
+    my $id = shift;
 
-    my $pane = $self->{xmlPage}->get_widget("vpaneSpatial");
+    my $pane = $self->{xmlPage}->get_widget($id);
 
     # remember id so can disconnect later
-    my $id = $pane->signal_connect_swapped("size-allocate", \&Biodiverse::GUI::Tabs::Spatial::set_pane_signal, $self);
-    $self->{set_pane_signalID} = $id;
-    $self->{set_panePos} = $pos;
+    my $sig_id = $pane->signal_connect_swapped(
+        'size-allocate',
+        \&Biodiverse::GUI::Tabs::Spatial::set_pane_signal,
+        [$self, $id]
+    );
+    $self->{"set_paneSignalID$id"} = $sig_id; 
+    $self->{"set_panePos$id"} = $pos;
     
     return;
 }
 
 sub set_pane_signal {
-    my $self = shift; shift;  #  FIXME FIXME - check why double shift, assign vars directly from list my ($self, undef, $pane) = @_;
+    my $args = shift;
+    shift;
     my $pane = shift;
-    $self->set_pane( $self->{set_panePos} );
-    $pane->signal_handler_disconnect( $self->{set_pane_signalID} );
-    delete $self->{set_panePos};
-    delete $self->{set_pane_signalID};
+
+    my ($self, $id) = ($args->[0], $args->[1]);
+
+    $self->set_pane( $self->{"set_panePos$id"}, $id );
+    $pane->signal_handler_disconnect( $self->{"set_paneSignalID$id"} );
+    delete $self->{"set_panePos$id"};
+    delete $self->{"set_paneSignalID$id"};
     
     return;
 }
+
+##################################################
+# Dendrogram related
+##################################################
+
+sub on_selected_phylogeny_changed {
+    my $self = shift;
+
+    # phylogenies
+    my $phylogeny = $self->get_current_tree;
+
+    $self->{dendrogram}->clear;
+    if ($phylogeny) {
+        $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
+            $self->set_phylogeny_options_sensitive(1);
+    }
+    else {
+#$self->{dendrogram}->clear;
+        $self->set_phylogeny_options_sensitive(0);
+        my $str = '<i>No selected tree</i>';
+        $self->{xmlPage}->get_widget('spatial_label_VL_tree')->set_markup($str);
+    }
+
+    return;
+}
+
+sub set_phylogeny_options_sensitive {
+    my $self = shift;
+    my $enabled = shift;
+
+    my $page = $self->{xmlPage};
+
+    # this is to make phylogeny options in display menu visible (add to glade on spatial pane?)
+#    for my $widget (
+#        qw /
+#            phylogeny_plot_length
+#            phylogeny_plot_depth
+#            highlight_groups_on_map_labels_tab
+#            use_highlight_path_changed1
+#        /) { #/
+#        $page->get_widget($widget)->set_sensitive($enabled);
+#    }
+}
+ 
+## START PASTE OF PHYLO METHODS FROM LABELS
+   
+# Called by dendrogram when user hovers over a node
+# Updates those info labels
+sub on_phylogeny_hover {
+    my $self = shift;
+    my $node = shift || return;
+
+    no warnings 'uninitialized';  #  don't complain if nodes have not been numbered
+
+    my $map_text = '<b>Node label: </b> ' . $node->get_name;
+    my $dendro_text = sprintf (
+        '<b>Node Length: </b> %.4f <b>Element numbers: First</b> %d <b>Last:</b> %d',
+         $node->get_total_length, # round to 4 d.p.
+         $node->get_value ('TERMINAL_NODE_FIRST'),
+         $node->get_value ('TERMINAL_NODE_LAST'),
+    );
+
+    $self->{xmlPage}->get_widget('lblOutput')->set_markup($map_text);
+    $self->{xmlPage}->get_widget('spatial_label_VL_tree')->set_markup($dendro_text);
+
+    return;
+}
+
+# many other phylogeny methods are given in Labels.pm
+# Called by dendrogram when user hovers over a node
+sub on_phylogeny_highlight {
+    my $self = shift;
+    my $node = shift;
+
+    print "for node $node\n";
+    my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
+
+    # Hash of groups that have the selected labels
+    my %groups;
+    my ($iter, $label, $hash);
+
+    #my $bd = $self->{base_ref};
+    my $bd = $self->get_base_ref;
+
+    LABEL:
+    foreach my $label (keys %$terminal_elements) {
+    	print "have label: $label\n";
+        my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
+        next LABEL if !$containing;
+
+        @groups{keys %$containing} = values %$containing;
+    }
+
+    $self->{grid}->mark_if_exists( \%groups, 'circle' );
     
+    #if (defined $node) {
+    #    my $text = 'Node: ' . $node->get_name;
+    #    $self->{xmlPage}->get_widget('spatial_label_VL_tree')->set_markup($text);
+    #}
+    
+    return;
+}
+
+sub on_phylogeny_click {
+    my $self = shift;
+    if ($self->{tool} eq 'Select') {
+	    my $node = shift;
+        $self->{dendrogram}->do_colour_nodes_below($node);
+    }
+    elsif ($self->{tool} eq 'ZoomOut') {
+        $self->{dendrogram}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{dendrogram}->zoom_fit();
+    }
+
+    return;
+}
+
+sub on_phylogeny_select {
+    my $self = shift;
+    my $rect = shift; # [x1, y1, x2, y2]
+
+    if ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{dendrogram};
+        handle_grid_drag_zoom ($grid, $rect);
+    }
+
+    return;
+}
+
+sub on_phylogeny_popup {
+    my $self = shift;
+    my $node_ref = shift;
+    #my $basedata_ref = $self->{base_ref};
+    my $basedata_ref = $self->get_base_ref;
+    
+    my ($sources, $default_source) = get_sources_for_node($node_ref, $basedata_ref);
+    Biodiverse::GUI::Popup::show_popup($node_ref->get_name, $sources, $default_source);
+    
+    return;
+}
+
+sub on_use_highlight_path_changed {
+    my $self = shift;
+    
+    #  set to the complement
+    $self->{use_highlight_path} = not $self->{use_highlight_path};  
+    
+    #  clear any highlights
+    if ($self->{dendrogram} and not $self->{use_highlight_path}) {
+        $self->{dendrogram}->clear_highlights;
+    }
+    
+    return;
+}
+
+sub get_sources_for_node {
+    my $node_ref     = shift;
+    my $basedata_ref = shift;
+
+    my %sources;
+
+    #print Data::Dumper::Dumper($node_ref->get_value_keys);
+    $sources{Labels} = sub { show_phylogeny_labels(@_, $node_ref); };
+    $sources{Groups} = sub { show_phylogeny_groups(@_, $node_ref, $basedata_ref); };
+    $sources{Descendents} = sub { show_phylogeny_descendents(@_, $node_ref); };
+
+    # Custom lists - getValues() - all lists in node's $self
+    # FIXME: try to merge with CellPopup::showOutputList
+    #my @lists = $node_ref->get_value_keys;
+    my @lists = $node_ref->get_list_names;
+    foreach my $name (@lists) {
+        next if not defined $name;
+        next if $name =~ /^_/; # leading underscore marks internal list
+
+        #print "[Labels] Phylogenies: adding custom list $name\n";
+        $sources{$name} = sub { show_list(@_, $node_ref, $name); };
+    }
+
+    return (\%sources, 'Labels (cluster)'); # return a default too
+}
+
+# Called by popup dialog
+# Shows a custom list
+# FIXME: duplicates function in Clustering.pm
+sub show_list {
+    my $popup = shift;
+    my $node_ref = shift;
+    my $name = shift;
+
+    #my $ref = $node_ref->get_value($name);
+    my $ref = $node_ref->get_list_ref (list => $name);
+
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    my $iter;
+
+    if (ref($ref) eq 'HASH') {
+        foreach my $key (sort keys %$ref) {
+            my $val = $ref->{$key};
+            #print "[Dendrogram] Adding output hash entry $key\t\t$val\n";
+            $iter = $model->append;
+            $model->set($iter,    0,$key ,  1,$val);
+        }
+    }
+    elsif (ref($ref) eq 'ARRAY') {
+        foreach my $elt (sort @$ref) {
+            #print "[Dendrogram] Adding output array entry $elt\n";
+            $iter = $model->append;
+            $model->set($iter,    0,$elt ,  1,'');
+        }
+    }
+    elsif (not ref($ref)) {
+        $iter = $model->append;
+        $model->set($iter,    0, $ref,  1,'');
+    }
+
+    $popup->set_value_column(1);
+    $popup->set_list_model($model);
+    
+    return;
+}
+
+# Called by popup dialog
+# Shows the labels for all elements under given node
+sub show_phylogeny_groups {
+    my $popup        = shift;
+    my $node_ref     = shift;
+    my $basedata_ref = shift;
+
+    # Get terminal elements
+    my $elements = $node_ref->get_terminal_elements;
+
+    # For each element, get its groups and put into %total_groups
+    my %total_groups;
+    foreach my $element (sort keys %{$elements}) {
+        my $ref = eval {$basedata_ref->get_groups_with_label_as_hash(label => $element)};
+
+        next if !$ref || !scalar keys %$ref;
+
+        @total_groups{keys %$ref} = undef;
+    }
+
+    # Add each label into the model
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::String');
+    foreach my $label (sort keys %total_groups) {
+        my $iter = $model->append;
+        $model->set($iter, 0, $label, 1, q{});
+    }
+
+    $popup->set_list_model($model);
+    $popup->set_value_column(1);
+    
+    return;
+}
+
+# Called by popup dialog
+# Shows all elements under given node
+sub show_phylogeny_labels {
+    my $popup = shift;
+    my $node_ref = shift;
+
+    my $elements = $node_ref->get_terminal_elements;
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+
+    foreach my $element (sort keys %{$elements}) {
+        my $count = $elements->{$element};
+        my $iter = $model->append;
+        $model->set($iter, 0,$element,  1, $count);
+    }
+
+    $popup->set_list_model($model);
+    $popup->set_value_column(1);
+    
+    return;
+}
+
+# Called by popup dialog
+# Shows all descendent nodes under given node
+sub show_phylogeny_descendents {
+    my $popup    = shift;
+    my $node_ref = shift;
+
+    my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
+
+    my $node_hash = $node_ref->get_all_descendents_and_self;
+
+    foreach my $element (sort keys %$node_hash) {
+        my $node_ref = $node_hash->{$element};
+        my $count = $node_ref->get_child_count;
+        my $iter  = $model->append;
+        $model->set($iter, 0, $element, 1, $count);
+    }
+
+    $popup->set_list_model($model);
+    $popup->set_value_column(1);
+
+    return;
+}
+
+### END PASTE OF PHYLO METHODS FROM LABELS
 ##################################################
 # Misc interaction with rest of GUI
 ##################################################
@@ -939,13 +1307,103 @@ sub on_grid_hover {
         if ($neighbours eq 'Set2' || $neighbours eq 'Both') {
             $self->{grid}->mark_if_exists(\%nbrs_hash_outer, 'minus');
         }
+        
+        
+        
+    
+        # dendrogram highlighting from labels.pm
+        $self->{dendrogram}->clear_highlights();
+        
+        my $group = $element; # is this the same?
+        return if ! defined $group;
+
+        my $tree = $self->get_current_tree;
+        
+        # get labels in the group
+        my $bd = $self->get_base_ref;
+        my %labels;
+        my @neighbour_grps = (@$nbrs_inner, @$nbrs_outer);
+        foreach my $grp (@neighbour_grps) {
+	        my $this_labels = $bd->get_labels_in_group_as_hash(group => $group);
+	        @labels{keys %$this_labels} = values %$this_labels;
+        }
+
+        # highlight in the tree
+        foreach my $label (keys %labels) {
+            # Might not match some or all nodes
+            eval {
+                my $node_ref = $tree->get_node_ref (node => $label);
+                #if ($self->{use_highlight_path}) {
+                    $self->{dendrogram}->highlight_path($node_ref) ;
+                #}
+            }
+        }
+        
+        
+        
+        
+        
+        # highlighting from cluster
+#        my $node_ref = eval {$output_ref->get_node_ref (node => $element)};
+#        if ($self->{use_highlight_path} and $node_ref) {
+#            $self->{dendrogram}->highlight_path($node_ref);
+#        }
+#        
+#        my $analysis_name = $self->{grid}{analysis};
+#        my $coloured_node = $self->get_coloured_node_for_element($element);
+#        if (defined $coloured_node && defined $analysis_name) {
+#            #  need to get the displayed node, not the terminal node
+#            my $list_ref = $coloured_node->get_list_ref (list => 'SPATIAL_RESULTS');  #  will need changing when otehr lists can be selected
+#            my $value = $list_ref->{$analysis_name};
+#            $string .= sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
+#            $string .= ", <b>Element:</b> $element";
+#        }
+#        elsif (! defined $analysis_name && defined $coloured_node) {
+#            $string .= sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
+#            $string .= ", <b>Element:</b> $element";
+#        }
+#        else {
+#            $string .= '<b>Not a coloured group:</b> ' . $element;
+#        }        
+        
+        
+        
+        
     }
     else {
         $self->{grid}->mark_if_exists({}, 'circle');
         $self->{grid}->mark_if_exists({}, 'minus');
+
+        $self->{dendrogram}->clear_highlights();
     }
     
+    
+    
+    
+    
+    
     return;
+}
+
+sub on_end_grid_hover {
+    my $self = shift;
+    $self->{dendrogram}->clear_highlights;
+}
+sub get_current_tree {
+	my $self = shift;
+	
+    # check combo box to choose if project phylogeny or tree used in spatial analysis
+    my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active();
+    
+    # phylogenies
+    if ($tree_method == 0) {
+        # get tree from spatial analysis        
+        return $self->{output_ref}->get_embedded_tree;
+    } 
+    elsif ($tree_method == 1) {
+        # get tree from project
+        return $self->{project}->get_selected_phylogeny;
+    } 	
 }
 
 # Keep name in sync with the tab label

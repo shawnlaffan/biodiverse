@@ -175,12 +175,9 @@ sub calc_phylo_rpd2 {
     my $pd_score       = $args{PD};
     my $included_nodes = $args{PD_INCLUDED_NODE_LIST};  #  stores branch lengths
 
-    #  allow for zero length nodes, as we keep them as zero
-    my $pd_score_eq_branch_lengths;
-    foreach my $len (values %$included_nodes) {
-        $pd_score_eq_branch_lengths += $len ? 1 : 0;
-    }
-
+    #  Allow for zero length nodes, as we keep them as zero.
+    #  The grep in scalar context is a fast way of counting the number of non-zero branches.
+    my $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
 
     my %results;
     {

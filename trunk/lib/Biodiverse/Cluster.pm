@@ -912,13 +912,8 @@ sub cluster_matrix_elements {
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
 
-    #  set the option for the linkage rule - default is specified in the object params
-    my $linkage_function = $self->get_param ('LINKAGE_FUNCTION')
-                            || $args{linkage_function}
-                            || $self->get_default_linkage;
-    $self->set_param (LINKAGE_FUNCTION => $linkage_function);
-
     my $objective_function = $self->get_objective_function(%args);
+    my $linkage_function   = $self->get_param ('LINKAGE_FUNCTION');
 
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
@@ -932,6 +927,7 @@ sub cluster_matrix_elements {
     my $max_poss_value = $self->get_param('MAX_POSS_INDEX_VALUE');
 
     my $matrix_count = $self->get_matrix_count;
+
     say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
         ($self->get_matrix_count - 1);
 
@@ -1345,6 +1341,27 @@ sub override_cached_spatial_calculations_arg {
     return $spatial_calculations;
 }
 
+sub setup_linkage_function {
+    my $self = shift;
+    my %args = @_;
+
+    #  set the option for the linkage rule - default is specified in the object params
+    my $linkage_function = $self->get_param ('LINKAGE_FUNCTION')
+                            || $args{linkage_function}
+                            || $self->get_default_linkage;
+
+    my @linkage_functions = $self->get_linkage_functions;
+    my $valid = grep {$linkage_function eq $_} @linkage_functions;
+    
+    my $class = blessed $self;
+    croak "Linkage function $linkage_function is not valid for an object of type $class\n"
+      if !$valid;
+
+    $self->set_param (LINKAGE_FUNCTION => $linkage_function);
+
+    return;
+}
+
 sub run_analysis {
     my $self = shift;
     return $self->cluster(@_);
@@ -1391,6 +1408,9 @@ sub cluster {
 
         return 1;
     }
+    
+    #  check the linkage function is valid
+    $self->setup_linkage_function (%args);
 
     #  make sure we do this before the matrices are built so we fail early if needed
     $self->setup_tie_breaker (%args);

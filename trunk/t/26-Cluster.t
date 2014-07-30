@@ -331,6 +331,29 @@ sub test_two_spatial_conditions {
     
 }
 
+
+sub test_exception_for_invalid_linkage {
+    my $data = get_cluster_mini_data();
+    my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    
+    my $cl = $bd->add_cluster_output (name => 'test invalid linkage');
+    my $success = eval {
+        $cl->run_analysis (linkage_function => 'link_barry_the_wonder_dog');
+        1;
+    };
+    my $e = $@;
+    ok ($e, 'exception thrown when invalid linkage function passed');
+
+    my $cl2 = $bd->add_cluster_output (name => 'test undef linkage');
+    $success = eval {
+        $cl2->run_analysis ();
+        1;
+    };
+    $e = $@;
+    ok (!$e, 'no exception thrown when no linkage function passed');
+    
+}
+
 ######################################
 
 

@@ -247,7 +247,7 @@ sub progress_destroy_callback {
 
     say "progress_destroy_callback";
     # call destroy on each child object (?) (need to record each child obj)
-    foreach my $dialog (values $self_gui->{progress_bars}->{dialog_objects}) {
+    foreach my $dialog (values %{$self_gui->{progress_bars}->{dialog_objects}}) {
         $dialog->end_dialog();
     }
 

@@ -18,8 +18,9 @@ use Data::Section::Simple qw(get_data_section);
 use Test::Most; # tests => 2;
 use Test::Exception;
 
-die_on_fail();
+#die_on_fail();
 
+use Biodiverse::Config;
 use Biodiverse::TestHelpers qw /:cluster :tree/;
 use Biodiverse::Cluster;
 

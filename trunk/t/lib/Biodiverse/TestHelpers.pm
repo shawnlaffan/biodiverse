@@ -11,6 +11,7 @@ $| = 1;
 
 our $VERSION = '0.19';
 
+
 use Data::Section::Simple qw(get_data_section);
 
 BEGIN {
@@ -1261,9 +1262,9 @@ sub check_cluster_order_is_same_given_same_prng {
     my $type = $args{type} // 'Biodiverse::Cluster';
     my $prng_seed = $args{prng_seed} || $default_prng_seed;
     
-    my $cl1 = $bd->add_output (name => 'cl1', type => $type);
-    my $cl2 = $bd->add_output (name => 'cl2', type => $type);
-    my $cl3 = $bd->add_output (name => 'cl3', type => $type);
+    my $cl1 = $bd->add_output (name => 'cl1 with prng seed', type => $type);
+    my $cl2 = $bd->add_output (name => 'cl2 with prng seed', type => $type);
+    my $cl3 = $bd->add_output (name => 'cl3 with prng seed+1', type => $type);
     
     $cl1->run_analysis (
         prng_seed => $prng_seed,
@@ -1275,12 +1276,17 @@ sub check_cluster_order_is_same_given_same_prng {
         prng_seed => $prng_seed + 1,  #  different prng
     );
     
-    my $newick1 = $cl1->to_newick;
-    my $newick2 = $cl2->to_newick;
-    my $newick3 = $cl3->to_newick;
+    #my $newick1 = $cl1->to_newick;
+    #my $newick2 = $cl2->to_newick;
+    #my $newick3 = $cl3->to_newick;
+    #is   ($newick1, $newick2, 'trees are the same');
+    #isnt ($newick1, $newick3, 'trees are not the same');
+    
+    my $cmp2 = $cl1->trees_are_same (comparison => $cl2);
+    my $cmp3 = $cl1->trees_are_same (comparison => $cl3);
 
-    is   ($newick1, $newick2, 'trees are the same');
-    isnt ($newick1, $newick3, 'trees are not the same');
+    ok ($cmp2,  'trees are the same given same PRNG seed');
+    ok (!$cmp3, 'trees are not the same given different PRNG seed');
 }
 
 #  Need to use an index that needs arguments
@@ -1291,7 +1297,7 @@ sub cluster_test_matrix_recycling {
     my $index = $args{index} // 'SORENSON';
     my $tie_breaker = exists $args{tie_breaker}  #  use undef if the user passed the arg key
         ? $args{tie_breaker}
-        : [ENDW_WE => 'max', PD => 'max', ABC3_SUM_ALL => 'max', none => 'max'];  #  we will fail if random tiebreaker is use
+        : [ENDW_WE => 'maximise', PD => 'maximise', ABC3_SUM_ALL => 'maximise', none => 'maximise'];  #  we will fail if random tiebreaker is use
         #: [ENDW_WE => 'max', PD => 'max'];
         #: [RICHNESS_ALL => 'max', PD => 'max'];
         #: [random => 'max', PD => 'max'];
@@ -1307,18 +1313,25 @@ sub cluster_test_matrix_recycling {
         #prng_seed   => $default_prng_seed,  #  should not need this when using appropriate tie breakers
     );
     
-    my $cl1 = $bd->add_output (name => 'cl1', type => $type);
+    my $cl1 = $bd->add_output (name => 'cl1 mx recyc', type => $type);
     $cl1->run_analysis (%analysis_args);
 
-    my $cl2 = $bd->add_output (name => 'cl2', type => $type);
+    my $cl2 = $bd->add_output (name => 'cl2 mx recyc', type => $type);
     $cl2->run_analysis (%analysis_args);
 
+    if ($cl1->get_type eq 'RegionGrower') {
+        #  we should have no negative branch lengths
+        my %nodes = $cl1->get_node_hash;
+        my $neg_count = grep {$_->get_length < 0} values %nodes;
+        is ($neg_count, 0, 'No negative branch lengths');
+    }
+    
     ok (
         $cl1->trees_are_same (comparison => $cl2),
         'Clustering using reycled matrices'
     );
 
-    my $cl3 = $bd->add_output (name => 'cl3', type => $type);
+    my $cl3 = $bd->add_output (name => 'cl3 mx recyc', type => $type);
     $cl3->run_analysis (%analysis_args);
 
     ok (
@@ -1326,6 +1339,8 @@ sub cluster_test_matrix_recycling {
         'Clustering using reycled matrices, 2nd time round'
     );
 
+#$bd->save (filename => 'check.bds');
+    
     my $mx_ref1 = $cl1->get_orig_matrices;
     my $mx_ref2 = $cl2->get_orig_matrices;
     my $mx_ref3 = $cl3->get_orig_matrices;
@@ -1336,17 +1351,17 @@ sub cluster_test_matrix_recycling {
     #  now check what happens when we destroy the matrix in the clustering
     $bd->delete_all_outputs;
 
-    my $cl4 = $bd->add_output (name => 'cl4', type => $type);
+    my $cl4 = $bd->add_output (name => 'cl4 mx recyc', type => $type);
     $cl4->run_analysis (%analysis_args, no_clone_matrices => 1);
 
-    my $cl5 = $bd->add_output (name => 'cl5', type => $type);
+    my $cl5 = $bd->add_output (name => 'cl5 mx recyc', type => $type);
     $cl5->run_analysis (%analysis_args);
 
     ok (
         $cl4->trees_are_same (comparison => $cl5),
         'Clustering using reycled matrices when matrix is destroyed in clustering'
     );
-    
+
     my $mx_ref4 = $cl4->get_orig_matrices;
     my $mx_ref5 = $cl5->get_orig_matrices;
     isnt ($mx_ref1, $mx_ref4, 'did not recycle matrices, 1 v 4');
@@ -1356,22 +1371,22 @@ sub cluster_test_matrix_recycling {
     #  now we try with a combinatoin of spatial condition and def query
     $bd->delete_all_outputs;
 
-    my $cl6 = $bd->add_output (name => 'cl6', type => $type);
+    my $cl6 = $bd->add_output (name => 'cl6 mx recyc', type => $type);
     $cl6->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
 
-    my $cl7 = $bd->add_output (name => 'cl7', type => $type);
+    my $cl7 = $bd->add_output (name => 'cl7 mx recyc', type => $type);
     $cl7->run_analysis (%analysis_args, def_query => 'sp_select_all()');
 
     my $mx_ref6 = $cl6->get_orig_matrices;
     my $mx_ref7 = $cl7->get_orig_matrices;
     isnt ($mx_ref6, $mx_ref7, 'did not recycle matrices, 6 v 7');
     
-    my $cl8 = $bd->add_output (name => 'cl8', type => $type);
+    my $cl8 = $bd->add_output (name => 'cl8 mx recyc', type => $type);
     $cl8->run_analysis (%analysis_args, spatial_conditions => ['sp_select_all()']);
     my $mx_ref8 = $cl8->get_orig_matrices;
     is ($mx_ref6, $mx_ref8, 'did recycle matrices, 6 v 8');
 
-    my $cl9 = $bd->add_output (name => 'cl9', type => $type);
+    my $cl9 = $bd->add_output (name => 'cl9 mx recyc', type => $type);
     $cl9->run_analysis (%analysis_args, def_query => 'sp_select_all()');
     my $mx_ref9 = $cl9->get_orig_matrices;
     is ($mx_ref7, $mx_ref9, 'did recycle matrices, 7 v 8');

@@ -25,6 +25,10 @@ our %PARAMS = (  #  most of these are not used
 
 #  use the new sub from Cluster
 
+sub get_default_linkage {
+    return $PARAMS{DEFAULT_LINKAGE};
+}
+
 #  need to modify to use something else
 sub get_default_cluster_index {
     return $PARAMS{DEFAULT_CLUSTER_INDEX};

@@ -984,6 +984,19 @@ sub get_element_values {  #  get all values associated with one element
     return wantarray ? %values : \%values;    
 }
 
+sub delete_all_elements {
+    my $self = shift;
+
+    no autovivification;
+
+    $self->{BYVALUE}   = undef;
+    $self->{BYELEMENT} = undef;
+    $self->{ELEMENTS}  = undef;
+
+    return;
+}
+
+
 #  clear all pairs containing this element.
 #  should properly be delete_element, but it's already used
 sub delete_all_pairs_with_element {  

@@ -47,6 +47,10 @@ my $mx_class_lowmem  = 'Biodiverse::Matrix::LowMem';
 
 #  use the "new" sub from Tree.
 
+sub get_default_linkage {
+    return $PARAMS{DEFAULT_LINKAGE};
+}
+
 sub get_default_cluster_index {
     return $PARAMS{DEFAULT_CLUSTER_INDEX};
 }
@@ -873,11 +877,6 @@ sub get_most_similar_matrix_value {
     return $matrix->$sub;
 }
 
-sub get_default_linkage {
-    my $self = shift;
-
-    return $PARAMS{DEFAULT_LINKAGE};
-}
 
 sub get_default_objective_function {
     return 'get_min_value';
@@ -1609,6 +1608,12 @@ sub cluster {
     #  the root node is the last one we created
     $self->{TREE} = $root_node;
 
+    # clean up elements from no_clone matrices as region growers can have leftovers
+    if ($args{no_clone_matrices}) {
+        foreach my $mx (@{$self->get_matrices_ref}) {
+            $mx->delete_all_elements;
+        }
+    }
     #  clear all our refs to the matrix
     #  it should be empty anyway, since we don't do partial (yet)
     $self->set_param(MATRIX_REF => undef);
@@ -1954,7 +1959,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     croak "one of the nodes not specified\n"
       if ! (defined $node1 and defined $node2 and defined $new_node);
 
-    my $linkage_function = $args{linkage_function} || $PARAMS{DEFAULT_LINKAGE};
+    my $linkage_function = $args{linkage_function} || $self->get_default_linkage;
 
     my $shadow_matrix   = $self->get_shadow_matrix;
     my $matrix_array    = $self->get_matrices_ref;

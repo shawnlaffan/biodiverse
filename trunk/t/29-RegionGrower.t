@@ -10,15 +10,15 @@ use FindBin qw/$Bin/;
 use rlib;
 use List::Util qw /first/;
 
-use Test::More;
-
 use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
 
-use Test::More; # tests => 2;
+use Test::Most; # tests => 2;
 use Test::Exception;
+
+die_on_fail();
 
 use Biodiverse::TestHelpers qw /:cluster :tree/;
 use Biodiverse::Cluster;
@@ -51,7 +51,7 @@ sub main {
         return 0;
     }
 
-    foreach my $sub (@subs) {
+    foreach my $sub (sort @subs) {
         no strict 'refs';
         &{$sub};
     }
@@ -96,6 +96,7 @@ sub test_matrix_recycling {
         index => 'RICHNESS_ALL',
         type  => 'Biodiverse::RegionGrower',
         objective_function => 'get_max_value',
+        prng_seed   => $default_prng_seed,
     );
 
     cluster_test_matrix_recycling (

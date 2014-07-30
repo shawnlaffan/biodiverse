@@ -244,7 +244,10 @@ sub calc_phylo_rpe2 {
     my %results;
     {
         foreach my $node (keys %$node_ranges_global) {
-            $pe_null += $node_ranges_local->{$node} / $node_ranges_global->{$node};
+            my $node_ref = $tree_ref->get_node_ref(node => $node);
+            $pe_null += $node_ref->get_length
+                      * $node_ranges_local->{$node}
+                      / $node_ranges_global->{$node};
         }
 
         no warnings qw /numeric uninitialized/;

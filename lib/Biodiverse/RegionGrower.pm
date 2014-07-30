@@ -26,7 +26,7 @@ our %PARAMS = (  #  most of these are not used
 #  use the new sub from Cluster
 
 sub get_default_linkage {
-    return $PARAMS{DEFAULT_LINKAGE};
+    return 'link_recalculate';
 }
 
 #  need to modify to use something else

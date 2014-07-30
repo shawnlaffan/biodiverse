@@ -62,6 +62,30 @@ sub main {
 }
 
 
+sub test_exception_for_invalid_linkage {
+    my $data = get_cluster_mini_data();
+    my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    
+    my ($success, $e);
+
+    my $cl = $bd->add_cluster_output (name => 'test invalid linkage', type => 'Biodiverse::RegionGrower');
+    $success = eval {
+        $cl->run_analysis (linkage_function => 'link_average');
+        1;
+    };
+    $e = $@;
+    ok ($e, 'exception thrown when invalid linkage function passed');
+    
+    my $cl2 = $bd->add_cluster_output (name => 'test undef linkage', type => 'Biodiverse::RegionGrower');
+    $success = eval {
+        $cl2->run_analysis ();
+        1;
+    };
+    $e = $@;
+    ok (!$e, 'no exception thrown when no linkage function passed');
+    
+}
+
 #  make sure we get the same result with the same prng across two runs
 sub test_same_results_given_same_prng_seed {
     my $data = get_cluster_mini_data();

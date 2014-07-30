@@ -2,6 +2,7 @@ package Biodiverse::Indices::PhylogeneticRelative;
 
 use strict;
 use warnings;
+use List::Util qw /sum/;
 
 use Carp;
 
@@ -170,10 +171,15 @@ sub calc_phylo_rpd2 {
 
     my $tree_ref = $args{TREE_REF_EQUALISED_BRANCHES};
 
-    my $pd_p_score   = $args{PD_P};
-    my $pd_score     = $args{PD};
-    my $included_nodes = $args{PD_INCLUDED_NODE_LIST};
-    my $pd_score_eq_branch_lengths = scalar %$included_nodes;
+    my $pd_p_score     = $args{PD_P};
+    my $pd_score       = $args{PD};
+    my $included_nodes = $args{PD_INCLUDED_NODE_LIST};  #  stores branch lengths
+
+    #  allow for zero length nodes, as we keep them as zero
+    my $pd_score_eq_branch_lengths;
+    foreach my $len (values %$included_nodes) {
+        $pd_score_eq_branch_lengths += $len ? 1 : 0;
+    }
 
 
     my %results;

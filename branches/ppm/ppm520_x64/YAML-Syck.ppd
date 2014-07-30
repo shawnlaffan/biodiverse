@@ -1,0 +1,9 @@
+<SOFTPKG NAME="YAML-Syck" VERSION="1.26">
+    <ABSTRACT>Fast, lightweight YAML loader and dumper</ABSTRACT>
+    <AUTHOR>Audrey Tang &lt;cpan@audreyt.org&gt;</AUTHOR>
+    <IMPLEMENTATION>
+        <PERLCORE VERSION="5,006,0,0" />
+        <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.20" />
+        <CODEBASE HREF="YAML-Syck-1.26_p5.20.tar.gz" />
+    </IMPLEMENTATION>
+</SOFTPKG>

@@ -891,8 +891,8 @@ sub recolour_cluster_lines {
         $line->set(fill_color_gdk => $colour_ref);
 
         # And also colour all nodes below
-        foreach my $child_ref ($node_ref->get_children) {
-            $self->colour_lines($child_ref, $colour_ref, \%coloured_nodes);
+        foreach my $child_ref (values %{$node_ref->get_all_descendents}) {
+            $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
         }
 
         $coloured_nodes{$node_ref} = (); # mark as coloured
@@ -921,6 +921,22 @@ sub recolour_cluster_lines {
     return;
 }
 
+#  non-recursive version of colour_lines.
+#  Assumes it is called for each of the relevant nodes
+sub colour_line {
+    my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
+
+    # We set the cached value to make it easier to recolour if the tree has to be re-rendered
+    #$node_ref->set_cached_value(__gui_colour => $colour_ref);
+    my $name = $node_ref->get_name;
+    $self->{node_colours_cache}{$name} = $colour_ref;
+
+    $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
+    $coloured_nodes->{ $node_ref } = (); # mark as coloured
+
+    return;
+}
+
 sub colour_lines {
     my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
 
@@ -938,6 +954,7 @@ sub colour_lines {
 
     return;
 }
+
 
 sub restore_line_colours {
     my $self = shift;
@@ -1216,13 +1233,10 @@ sub clear_highlights {
     
     # set all nodes to recorded/default colour
     if ($self->{highlighted_lines}) {
-        my @nodes_remaining;
-        push(@nodes_remaining, $self->{tree_node});
-        while (scalar @nodes_remaining) {
-            my $node = shift(@nodes_remaining);
-            next if (! defined $node);
-            push(@nodes_remaining, $node->get_children);
-            
+        my @nodes_remaining
+          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
+
+        foreach my $node (@nodes_remaining) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node->get_name};
             my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
@@ -1246,12 +1260,9 @@ sub highlight_node {
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        my @nodes_remaining;
-        push(@nodes_remaining, $self->{tree_node});
-        while (scalar @nodes_remaining) {
-            my $node = shift(@nodes_remaining);
-            push(@nodes_remaining, $node->get_children);
-    
+        my @nodes_remaining
+          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
+        foreach my $node (@nodes_remaining) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node->get_name};  
             $line->set(fill_color_gdk => COLOUR_GRAY);
@@ -1272,14 +1283,11 @@ sub highlight_node {
 sub highlight_path {
     my ($self, $node_ref) = @_;
 
-    # if first highlight set all other nodes to grey
+    # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-        my @nodes_remaining;
-        push(@nodes_remaining, $self->{tree_node});
-        while (scalar @nodes_remaining) {
-            my $node = shift(@nodes_remaining);
-            push(@nodes_remaining, $node->get_children);
-
+        my @nodes_remaining
+          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
+        foreach my $node (@nodes_remaining) {
             # assume node has associated line
             my $line = $self->{node_lines}->{$node->get_name};  
             $line->set(fill_color_gdk => COLOUR_GRAY);

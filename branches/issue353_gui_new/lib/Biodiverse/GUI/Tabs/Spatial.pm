@@ -837,22 +837,23 @@ sub on_phylogeny_highlight {
     my $self = shift;
     my $node = shift;
 
-    print "for node $node\n";
+    return if !$node;
+
+    say "for node $node";
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
 
     # Hash of groups that have the selected labels
     my %groups;
     my ($iter, $label, $hash);
 
-    #my $bd = $self->{base_ref};
     my $bd = $self->get_base_ref;
 
     LABEL:
     foreach my $label (keys %$terminal_elements) {
-    	print "have label: $label\n";
         my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
         next LABEL if !$containing;
 
+        #print "have label: $label\n";
         @groups{keys %$containing} = values %$containing;
     }
 
@@ -869,7 +870,7 @@ sub on_phylogeny_highlight {
 sub on_phylogeny_click {
     my $self = shift;
     if ($self->{tool} eq 'Select') {
-	    my $node = shift;
+	my $node = shift;
         $self->{dendrogram}->do_colour_nodes_below($node);
     }
     elsif ($self->{tool} eq 'ZoomOut') {

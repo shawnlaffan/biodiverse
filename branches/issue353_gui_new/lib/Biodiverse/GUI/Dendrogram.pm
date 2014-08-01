@@ -1290,16 +1290,16 @@ sub highlight_path {
 
     # if first highlight set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-	    my @nodes_remaining;
-	    push(@nodes_remaining, $self->{tree_node});
-	    while (scalar @nodes_remaining) {
-	        my $node = shift(@nodes_remaining);
-	        push(@nodes_remaining, $node->get_children);
-    
-	        # assume node has associated line
-	        my $line = $self->{node_lines}->{$node->get_name};  
-	        $line->set(fill_color_gdk => COLOUR_GRAY);
-	    }
+        my @nodes_remaining;
+        push(@nodes_remaining, $self->{tree_node});
+        while (scalar @nodes_remaining) {
+            my $node = shift(@nodes_remaining);
+            push(@nodes_remaining, $node->get_children);
+
+            # assume node has associated line
+            my $line = $self->{node_lines}->{$node->get_name};  
+            $line->set(fill_color_gdk => COLOUR_GRAY);
+        }
     }
 
     # set path to highlighted colour
@@ -1308,6 +1308,7 @@ sub highlight_path {
         my $colour_ref = $self->{node_colours_cache}{$node_ref->get_name} || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
         #$line->set(width_pixels => HIGHLIGHT_WIDTH);
+        $line->raise_to_top;
         push @{$self->{highlighted_lines}}, $line;
 
         $node_ref = $node_ref->get_parent;
@@ -1623,13 +1624,9 @@ sub render_tree {
     # Recursive draw
     my $length_func = $self->{length_func};
     my $root_offset = $self->{render_width}
-                      - ($self->{border_len}
-                         + $self->{neg_len}
-                         )
-                      * $self->{length_scale}
-                      ;
-    #print "[Dendrogram] root offset = $root_offset\n";
-    #print "$self->{render_width} - ($self->{border_len} + $self->{neg_len}) * $self->{length_scale}\n";
+                      - ($self->{border_len} + $self->{neg_len})
+                      * $self->{length_scale};
+
     $self->draw_node($tree, $root_offset, $length_func, $self->{length_scale}, $self->{height_scale});
 
     # Draw a circle to mark out the root node

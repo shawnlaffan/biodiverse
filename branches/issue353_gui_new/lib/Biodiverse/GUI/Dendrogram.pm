@@ -768,10 +768,10 @@ sub recolour_cluster_elements {
     my $map = $self->{map};
     return if not defined $map;
 
-    my $list_name = $self->{analysis_list_name};
-    my $list_index = $self->{analysis_list_index};
-    my $analysis_min = $self->{analysis_min};
-    my $analysis_max = $self->{analysis_max};
+    my $list_name         = $self->{analysis_list_name};
+    my $list_index        = $self->{analysis_list_index};
+    my $analysis_min      = $self->{analysis_min};
+    my $analysis_max      = $self->{analysis_max};
     my $terminal_elements = $self->{terminal_elements};
 
     # sets colours according to palette
@@ -781,18 +781,12 @@ sub recolour_cluster_elements {
 
         if ($cluster_node) {
             my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
-            return $colour_ref if $colour_ref;
-            return COLOUR_PALETTE_OVERFLOW;
+            return $colour_ref ? $colour_ref : COLOUR_PALETTE_OVERFLOW;
         }
         else {
-            if (exists $terminal_elements->{$elt}) {
-                # in tree
-                return COLOUR_OUTSIDE_SELECTION;
-            }
-            else {
-                # not even in the tree
-                return $self->get_colour_not_in_tree;
-            }
+            return exists $terminal_elements->{$elt}
+                ? COLOUR_OUTSIDE_SELECTION
+                : $self->get_colour_not_in_tree;
         }
 
         die "how did I get here?\n";
@@ -805,28 +799,20 @@ sub recolour_cluster_elements {
         my $cluster_node = $self->{element_to_cluster}{$elt};
 
         if ($cluster_node) {
+            no autovivification;
 
-            my $list_ref = $cluster_node->get_list_ref (list => $list_name);
-            my $val = defined $list_ref
-                ? $list_ref->{$list_index}
-                : undef;  #  allows for missing lists
+            my $list_ref = $cluster_node->get_list_ref (list => $list_name)
+              // return COLOUR_LIST_UNDEF;
 
-            if (defined $val) {
-                return $map->get_colour ($val, $analysis_min, $analysis_max);
-            }
-            else {
-                return COLOUR_LIST_UNDEF;
-            }
+            my $val = $list_ref->{$list_index}
+              // return COLOUR_LIST_UNDEF;
+
+            return $map->get_colour ($val, $analysis_min, $analysis_max);
         }
         else {
-            if (exists $terminal_elements->{$elt}) {
-                # in tree
-                return COLOUR_OUTSIDE_SELECTION;
-            }
-            else {
-                # not even in the tree
-                return $self->get_colour_not_in_tree;
-            }
+            return exists $terminal_elements->{$elt}
+              ? COLOUR_OUTSIDE_SELECTION
+              : $self->get_colour_not_in_tree;
         }
 
         die "how did I get here?\n";
@@ -872,8 +858,8 @@ sub recolour_cluster_lines {
     tie %coloured_nodes, 'Tie::RefHash';
 
     my $map = $self->{map};
-    my $list_name = $self->{analysis_list_name};
-    my $list_index = $self->{analysis_list_index};
+    my $list_name    = $self->{analysis_list_name};
+    my $list_index   = $self->{analysis_list_index};
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
 
@@ -886,15 +872,12 @@ sub recolour_cluster_lines {
 
             $list_ref = $node_ref->get_list_ref (list => $list_name);
             $val = defined $list_ref
-                ? $list_ref->{$list_index}
-                : undef;  #  allows for missing lists
+              ? $list_ref->{$list_index}
+              : undef;  #  allows for missing lists
 
-            if (defined $val) {
-                $colour_ref = $map->get_colour ($val, $analysis_min, $analysis_max);
-            }
-            else {
-                $colour_ref = undef;
-            }
+            $colour_ref = defined $val
+              ? $map->get_colour ($val, $analysis_min, $analysis_max)
+              : undef;
         }
         else {
             die "unknown colouring mode";
@@ -920,14 +903,15 @@ sub recolour_cluster_lines {
     if ($self->{recolour_nodes}) {
         #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
         # uncolour previously coloured nodes that aren't being coloured this time
+      NODE:
         foreach my $node (keys %{ $self->{recolour_nodes} }) {
 
-            if (not exists $coloured_nodes{$node}) {
-                my $name = $node->get_name;
-                $self->{node_lines}->{$name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-                #$node->set_cached_value(__gui_colour => DEFAULT_LINE_COLOUR);
-                $self->{node_colours_cache}{$name} = DEFAULT_LINE_COLOUR;
-            }
+            next NODE if exists $coloured_nodes{$node};
+
+            my $name = $node->get_name;
+            $self->{node_lines}->{$name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
+            #$node->set_cached_value(__gui_colour => DEFAULT_LINE_COLOUR);
+            $self->{node_colours_cache}{$name} = DEFAULT_LINE_COLOUR;
         }
         #print "[Dendrogram] Recoloured nodes\n";
     }

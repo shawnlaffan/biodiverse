@@ -1232,19 +1232,19 @@ sub clear_highlights {
     
     # set all nodes to recorded/default colour
     if ($self->{highlighted_lines}) {
-    	my @nodes_remaining;
-	    push(@nodes_remaining, $self->{tree_node});
-	    while (scalar @nodes_remaining) {
-	    	my $node = shift(@nodes_remaining);
-	    	next if (! defined $node);
-	    	push(@nodes_remaining, $node->get_children);
-	        
-	 	    # assume node has associated line
-	        my $line = $self->{node_lines}->{$node->get_name};	
-	        my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
-	        $line->set(fill_color_gdk => $colour_ref) if (defined $line);
-	    }
-	    $self->{highlighted_lines} = undef;
+        my @nodes_remaining;
+        push(@nodes_remaining, $self->{tree_node});
+        while (scalar @nodes_remaining) {
+            my $node = shift(@nodes_remaining);
+            next if (! defined $node);
+            push(@nodes_remaining, $node->get_children);
+            
+            # assume node has associated line
+            my $line = $self->{node_lines}->{$node->get_name};
+            my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
+            $line->set(fill_color_gdk => $colour_ref) if (defined $line);
+        }
+        $self->{highlighted_lines} = undef;
     }
     
 #    if ($self->{highlighted_lines}) {
@@ -1262,16 +1262,16 @@ sub highlight_node {
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
-	    my @nodes_remaining;
-	    push(@nodes_remaining, $self->{tree_node});
-	    while (scalar @nodes_remaining) {
-	        my $node = shift(@nodes_remaining);
-	        push(@nodes_remaining, $node->get_children);
-	
-	        # assume node has associated line
-	        my $line = $self->{node_lines}->{$node->get_name};  
-	        $line->set(fill_color_gdk => COLOUR_GRAY);
-	    }
+        my @nodes_remaining;
+        push(@nodes_remaining, $self->{tree_node});
+        while (scalar @nodes_remaining) {
+            my $node = shift(@nodes_remaining);
+            push(@nodes_remaining, $node->get_children);
+    
+            # assume node has associated line
+            my $line = $self->{node_lines}->{$node->get_name};  
+            $line->set(fill_color_gdk => COLOUR_GRAY);
+        }
     }
 
     # highlight this node/line by setting black

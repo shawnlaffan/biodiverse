@@ -152,19 +152,10 @@ sub new {
     $self->{xmlPage}->get_widget("btnSelectToolVL")->set_active(1);
 
     #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
-    #$xml->get_widget('btnZoomInVL')->signal_connect_swapped(clicked => \&onZoomIn, $self->{grid});
-    #$xml->get_widget('btnZoomOutVL')->signal_connect_swapped(clicked => \&onZoomOut, $self->{grid});
-    #$xml->get_widget('btnZoomFitVL')->signal_connect_swapped(clicked => \&onZoomFit, $self->{grid});
-    #$xml->get_widget('btnMatrixZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{matrix_grid});
-    #$xml->get_widget('btnMatrixZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{matrix_grid});
-    #$xml->get_widget('btnMatrixZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{matrix_grid});
-    #$xml->get_widget('btnPhylogenyZoomIn')->signal_connect_swapped(clicked => \&onZoomIn, $self->{dendrogram});
-    #$xml->get_widget('btnPhylogenyZoomOut')->signal_connect_swapped(clicked => \&onZoomOut, $self->{dendrogram});
-    #$xml->get_widget('btnPhylogenyZoomFit')->signal_connect_swapped(clicked => \&onZoomFit, $self->{dendrogram});
-    $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped('toggled' => \&on_phylogeny_plot_mode_changed, $self);
-    #$xml->get_widget('phylogeny_plot_range_weighted')->signal_connect_swapped('toggled' => \&on_phylogeny_plot_mode_changed, $self);
-    $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped('toggled' => \&on_highlight_groups_on_map_changed, $self);
-    $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(toggled => \&on_use_highlight_path_changed, $self);
+    #  plot length triggers depth and vice versa
+    $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped(toggled => \&on_phylogeny_plot_mode_changed, $self);
+    $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
+    $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
     
     $self->{use_highlight_path} = 1;
     

@@ -866,8 +866,10 @@ sub recolour_cluster_lines {
 
     foreach my $node_ref (@$cluster_nodes) {
 
+        my $node_name = $node_ref->get_name;
+
         if ($self->{cluster_colour_mode} eq 'palette') {
-            $colour_ref = $self->{node_palette_colours}{$node_ref->get_name} || COLOUR_RED;
+            $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
         elsif ($self->{cluster_colour_mode} eq 'list-values') {
 
@@ -885,10 +887,10 @@ sub recolour_cluster_lines {
         }
 
         #$node_ref->set_cached_value(__gui_colour => $colour_ref);
-        $self->{node_colours_cache}{$node_ref->get_name} = $colour_ref;
+        $self->{node_colours_cache}{$node_name} = $colour_ref;
         $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
 
-        $line = $self->{node_lines}->{$node_ref->get_name};
+        $line = $self->{node_lines}->{$node_name};
         $line->set(fill_color_gdk => $colour_ref);
 
         # And also colour all nodes below
@@ -1238,9 +1240,10 @@ sub clear_highlights {
           = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
 
         foreach my $node (@nodes_remaining) {
+            my $node_name = $node->get_name;
             # assume node has associated line
-            my $line = $self->{node_lines}->{$node->get_name};
-            my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
+            my $line = $self->{node_lines}->{$node_name};
+            my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
             $line->set(fill_color_gdk => $colour_ref) if (defined $line);
         }
         $self->{highlighted_lines} = undef;
@@ -1271,8 +1274,9 @@ sub highlight_node {
     }
 
     # highlight this node/line by setting black
-    my $line = $self->{node_lines}->{$node_ref->get_name};
-    my $colour_ref = $self->{node_colours_cache}{$node_ref->get_name} || DEFAULT_LINE_COLOUR;
+    my $node_name = $node_ref->get_name;
+    my $line = $self->{node_lines}->{$node_name};
+    my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
     $line->set(fill_color_gdk => $colour_ref);
     #$line->set(width_pixels => HIGHLIGHT_WIDTH);
     push @{$self->{highlighted_lines}}, $line;
@@ -1712,7 +1716,7 @@ sub render_graph {
     return if $render_props_graph eq ($self->{last_render_props_graph} // '');
     $self->{last_render_props_graph} = $render_props_graph;
 
-    say $render_props_graph;
+    #say $render_props_graph;
 
     # Delete old lines
     if ($self->{graph_group}) {

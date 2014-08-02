@@ -483,6 +483,14 @@ sub group_nodes_below {
     #$target_value = 1 if defined $target_value;  #  for debugging
     #print "[TREENODE] Target is $target_value\n" if defined $target_value;
 
+    my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
+    my $cache_hash = $self->get_cached_value ($cache_key) //
+        do {my $c = {}; $self->set_cached_value ($cache_key => $c); $c};
+    my $cache_val = $target_value // $groups_needed;
+    if (my $cached_result = $cache_hash->{$cache_val}) {
+        return wantarray ? %$cached_result : $cached_result;
+    }
+    
     $final_hash{$self->get_name} = $self;
 
     if ($self->is_terminal_node) {
@@ -568,12 +576,13 @@ sub group_nodes_below {
                     }
                 }
 
+                my $child_name = $child->get_name;
                 if ($include_in_search) {
                     #  add to the values hash if it bounds the target value or it is not specified
-                    $search_hash{$lower_bound}{$upper_bound}{$child->get_name} = $child;
+                    $search_hash{$lower_bound}{$upper_bound}{$child_name} = $child;
                 }    
 
-                $final_hash{$child->get_name} = $child;  #  add this child node to the tracking hashes        
+                $final_hash{$child_name} = $child;  #  add this child node to the tracking hashes        
                 delete $final_hash{$child->get_parent->get_name};
                 #  clear parent from length consideration
                 delete $search_hash{$lower_value}{$upper_value}{$current_node->get_name};
@@ -594,6 +603,9 @@ sub group_nodes_below {
     }
 
     #print scalar keys %final_hash, "\n";
+    
+    $cache_hash->{$cache_val} = \%final_hash;
+
     return wantarray ? %final_hash : \%final_hash;
 }
 

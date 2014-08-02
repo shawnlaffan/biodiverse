@@ -948,9 +948,12 @@ sub on_phylogeny_highlight {
     my ($iter, $label, $hash);
 
     my $bd = $self->{base_ref};
+    my $label_hash = $bd->get_labels_ref->get_element_hash;
 
-    LABEL:
+  LABEL:
     foreach my $label (keys %$terminal_elements) {
+        next LABEL if !exists $label_hash->{$label};
+
         my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
         next LABEL if !$containing;
 
@@ -958,12 +961,12 @@ sub on_phylogeny_highlight {
     }
 
     $self->{grid}->mark_if_exists( \%groups, 'circle' );
-    
+
     if (defined $node) {
         my $text = 'Node: ' . $node->get_name;
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($text);
     }
-    
+
     return;
 }
 

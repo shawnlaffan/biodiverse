@@ -1021,9 +1021,10 @@ sub mark_if_exists {
         # sometimes we are called before the data are populated
         next CELL if !$cell || !$cell->[INDEX_RECT];
 
-        my $group = $cell->[INDEX_RECT]->parent;
-
         if (exists $hash->{$cell->[INDEX_ELEMENT]}) {
+
+            my $group = $cell->[INDEX_RECT]->parent;
+
             # Circle
             if ($shape eq 'circle' && not $cell->[INDEX_CIRCLE]) {
                 $cell->[INDEX_CIRCLE] = $self->draw_circle($group);

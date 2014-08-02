@@ -1,5 +1,6 @@
 package Biodiverse::GUI::Dendrogram;
 
+use 5.010;
 use strict;
 use warnings;
 no warnings 'recursion';
@@ -1402,10 +1403,15 @@ sub make_total_length_array {
 
     make_total_length_array_inner($self->{tree_node}, 0, \@array, $lf);
 
+    my %cache;
+
     # Sort it
     @array = sort {
-        $a->get_value('total_length_gui') <=> $b->get_value('total_length_gui')
-        } @array;
+        ($cache{$a} // do {$cache{$a} = $a->get_value('total_length_gui')})
+          <=>
+        ($cache{$b} // do {$cache{$b} = $b->get_value('total_length_gui')})
+        }
+        @array;
 
     $self->{total_lengths_array} = \@array;
 
@@ -1564,6 +1570,8 @@ sub clear {
     delete $self->{unscaled_width};
     delete $self->{unscaled_height};
     delete $self->{tree_node};
+    delete $self->{last_render_props_tree};
+    delete $self->{last_render_props_graph};
 
     if ($self->{lines_group}) {
         $self->{lines_group}->destroy();
@@ -1586,7 +1594,19 @@ sub render_tree {
     my $self = shift;
     my $tree = $self->{tree_node};
 
-    return if ($self->{render_width} == 0);
+    return if !$self->{render_width};
+
+    my $render_props_tree = join ',',
+        ($self->{unscaled_width},
+         $self->{unscaled_height},
+         $self->{render_width},
+         $self->{render_height},
+         $self->{length_func}
+        );
+
+    #  don't redraw needlessly
+    return if $render_props_tree eq ($self->{last_render_props_tree} // '');
+    $self->{last_render_props_tree} = $render_props_tree;
 
     # Remove any highlights. The lines highlightened are destroyed next,
     # and may cause a crash when they get unhighlighted
@@ -1674,12 +1694,25 @@ sub render_graph {
     my $self = shift;
     my $lengths = $self->{total_lengths_array};
 
-    if ($self->{render_width} == 0) {
-        return;
-    }
+    return if !$self->{render_width};
 
     my $graph_height_units = $self->{graph_height_px};
     $self->{graph_height_units} = $graph_height_units;
+
+    my $render_props_graph = join ',', (
+        #$self->{graph_height_px},
+        $self->{render_width},
+        $self->{unscaled_width},
+        $self->{unscaled_height},
+        $self->{render_width},
+        $self->{render_height},
+        $self->{length_func}
+    );
+
+    return if $render_props_graph eq ($self->{last_render_props_graph} // '');
+    $self->{last_render_props_graph} = $render_props_graph;
+
+    say $render_props_graph;
 
     # Delete old lines
     if ($self->{graph_group}) {
@@ -1776,10 +1809,12 @@ sub resize_background_rect {
 sub draw_node {
     my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale) = @_;
 
+    my $node_name = $node->get_name;
+
     my $length = $length_func->($node) * $length_scale;
     my $new_current_xpos = $current_xpos - $length;
     my $y = $node->get_value('_y') * $height_scale;
-    my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
+    my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
 
     # Draw our horizontal line
     my $line = $self->draw_line($current_xpos, $y, $new_current_xpos, $y, $colour_ref);
@@ -1787,7 +1822,7 @@ sub draw_node {
     $line->{node} =  $node; # Remember the node (for hovering, etc...)
 
     # Remember line (for colouring, etc...)
-    $self->{node_lines}->{$node->get_name} = $line;
+    $self->{node_lines}->{$node_name} = $line;
 
     # Draw children
     my ($ymin, $ymax);
@@ -1795,8 +1830,8 @@ sub draw_node {
     foreach my $child ($node->get_children) {
         my $child_y = $self->draw_node($child, $new_current_xpos, $length_func, $length_scale, $height_scale);
 
-        $ymin = $child_y if ( (not defined $ymin) || $child_y <= $ymin);
-        $ymax = $child_y if ( (not defined $ymax) || $child_y >= $ymax);
+        $ymin = $child_y if ( (not defined $ymin) || $child_y < $ymin);
+        $ymax = $child_y if ( (not defined $ymax) || $child_y > $ymax);
     }
 
     # Vertical line
@@ -1810,21 +1845,17 @@ sub draw_line {
     my ($self, $x1, $y1, $x2, $y2, $colour_ref) = @_;
     #print "Line ($x1,$y1) - ($x2,$y2)\n";
 
-    my $line_style;
-    if ($x1 >= $x2) {
-        $line_style = 'solid';
-    }
-    else {
-        $line_style = 'on-off-dash';
-    }
+    my $line_style = $x1 >= $x2
+      ? 'solid'
+      : 'on-off-dash';
 
     return Gnome2::Canvas::Item->new (
         $self->{lines_group},
         'Gnome2::Canvas::Line',
         points => [$x1, $y1, $x2, $y2],
         fill_color_gdk => $colour_ref,
-        line_style => $line_style,
-        width_pixels => NORMAL_WIDTH
+        line_style     => $line_style,
+        width_pixels   => NORMAL_WIDTH,
     );
 }
 

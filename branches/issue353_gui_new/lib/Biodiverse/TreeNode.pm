@@ -67,13 +67,10 @@ sub set_value {
     return;
 }
 
+#  extremely heavy usage sub so make it as fast as we can
 sub get_value {
-    my $self = shift;
-    my $key  = shift;
-
     no autovivification;
-
-    return $self->{NODE_VALUES}{$key};
+    $_[0]->{NODE_VALUES}{$_[1]};
 }
 
 
@@ -102,10 +99,11 @@ sub set_cached_value {
 }
 
 sub get_cached_value {
-    my $self = shift;
-    my $key  = shift;
     no autovivification;
-    return $self->{_cache}{$key};
+    $_[0]->{_cache}{$_[1]};
+    #my $self = shift;
+    #my $key  = shift;
+    #return $self->{_cache}{$key};
     #return if ! exists $self->{_cache};
     #return $self->{_cache}{$key} if exists $self->{_cache}{$key};
     #return;
@@ -169,7 +167,7 @@ sub set_name {
 }
 
 sub get_name {
-    return $_[0]->{NODE_VALUES}{NAME}
+    $_[0]->{NODE_VALUES}{NAME}
       // croak "name parameter missing or undefined\n";
 }
 
@@ -258,7 +256,8 @@ sub get_max_total_length {
     my $self = shift;
     my %args = @_;
 
-    return $self->get_total_length if $self->is_terminal_node;  # no children
+    #  comment next line as we might as well cache the total length on terminals as well
+    #return $self->get_total_length if $self->is_terminal_node;  # no children
 
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
         my $cached_length = $self->get_cached_value ('MAX_TOTAL_LENGTH');
@@ -285,7 +284,7 @@ sub get_length_below {
     my %args = (cache => 1, @_);  #  defaults to caching
 
 
-    return $self->get_length if $self->is_terminal_node;  # no children
+    #return $self->get_length if $self->is_terminal_node;  # no children
 
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
         my $cached_length = $self->get_cached_value ('LENGTH_BELOW');
@@ -455,8 +454,7 @@ sub get_children {
 }
 
 sub get_child_count {
-    my $self = shift;
-    return scalar @{$self->{_CHILDREN}};
+    scalar @{$_[0]->{_CHILDREN}};
 }
     
 # should be get_terminal_node_count

@@ -1600,13 +1600,13 @@ sub render_tree {
 
     return if !$self->{render_width};
 
-    my $render_props_tree = join ',',
-        ($self->{unscaled_width},
-         $self->{unscaled_height},
-         $self->{render_width},
-         $self->{render_height},
-         $self->{length_func}
-        );
+    my $render_props_tree = join ',', (
+        $self->{unscaled_width},
+        $self->{unscaled_height},
+        $self->{render_width},
+        $self->{render_height},
+        $self->{length_func}
+    );
 
     #  don't redraw needlessly
     return if $render_props_tree eq ($self->{last_render_props_tree} // '');
@@ -2248,7 +2248,7 @@ sub onVScroll {
 sub centre_tree {
     my $self = shift;
     return if !defined $self->{lines_group};
-    
+
     my $xoffset = $self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2;
     my $yoffset = $self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2;
 

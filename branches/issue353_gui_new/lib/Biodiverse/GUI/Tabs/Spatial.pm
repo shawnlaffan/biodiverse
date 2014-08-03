@@ -83,7 +83,7 @@ sub new {
                 = $self->{gui}->warn_outputs_exist_if_randomisation_run(
                     $self->{basedata_ref}->get_param ('NAME')
                 );
-            if (not $response eq 'yes') {
+            if ($response ne 'yes') {
                 $self->on_close;
                 croak "User cancelled operation\n";
             }
@@ -190,11 +190,7 @@ sub new {
 
     $self->{hover_neighbours} = 'Both';
     $self->{xmlPage}->get_widget('comboTreeSelect')->set_active(0);
-    #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
-    #$self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
-    #$self->{xmlPage}->get_widget('comboColours')->set_active(0);
     $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # red, for Sat mode
-    #$self->{xmlPage}->get_widget('colourButton')->set_color($self->{hue});
 
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model (
@@ -224,7 +220,7 @@ sub new {
     $self->queue_set_pane(0.5, 'spatial_hpaned');
     $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
 
-    $self->init_dendrogram();    
+    $self->init_dendrogram();
     # Register callbacks when selected phylogeny is changed
     $self->{phylogeny_callback} = sub { $self->on_selected_phylogeny_changed(); };
     $self->{project}->register_selection_callback(
@@ -243,13 +239,9 @@ sub new {
 
     my %widgets_and_signals = (
         btnSpatialRun   => {clicked => \&on_run},
-        #btnOverlays     => {clicked => \&on_overlays},
         txtSpatialName  => {changed => \&on_name_changed},
         comboLists      => {changed => \&on_active_list_changed},
         comboIndices    => {changed => \&on_active_index_changed},
-        #comboColours => {changed => \&on_colours_changed},
-        #comboNeighbours => {changed => \&on_neighbours_changed},
-        #comboSpatialStretch => {changed => \&on_stretch_changed},
 
         btnSelectToolSP  => {clicked => \&on_select_tool},
         btnPanToolSP     => {clicked => \&on_pan_tool},
@@ -257,14 +249,10 @@ sub new {
         btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
 
-        #colourButton => {color_set => \&on_colour_set},
         menuitem_spatial_overlays => {activate => \&on_overlays},
         menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
         menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
-        
-
-        
     );
 
     for my $n (0..6) {
@@ -292,7 +280,7 @@ sub new {
     }
 
     #  We don't have the grid for new outputs
-    #  Could perhaps move tis to were the grid is initialised
+    #  Could perhaps move this to where the grid is initialised
     if ($self->{grid}) {
         $self->{grid}->set_legend_mode('Hue');
         $self->recolour();
@@ -395,13 +383,15 @@ sub init_dendrogram {
     my $hscroll    = $self->{xmlPage}->get_widget('spatialPhylogenyHScroll');
     my $vscroll    = $self->{xmlPage}->get_widget('spatialPhylogenyVScroll');
 
-    my $list_combo  = $self->{xmlPage}->get_widget('comboLists');
-    my $index_combo = $self->{xmlPage}->get_widget('comboShow');
+    #my $list_combo  = $self->{xmlPage}->get_widget('comboLists');
+    #my $index_combo = $self->{xmlPage}->get_widget('comboShow');
+    my $list_combo  = undef;  #  these are under the control of the spatial plot, not the denrogram
+    my $index_combo = undef;
 
     my $hover_closure       = sub { $self->on_phylogeny_hover(@_); };
-    my $highlight_closure  = sub { $self->on_phylogeny_highlight(@_); };
-    my $ctrl_click_closure = sub { $self->on_phylogeny_popup(@_); };
-    my $click_closure      = sub { $self->on_phylogeny_click(@_); };
+    my $highlight_closure   = sub { $self->on_phylogeny_highlight(@_); };
+    my $ctrl_click_closure  = sub { $self->on_phylogeny_popup(@_); };
+    my $click_closure       = sub { $self->on_phylogeny_click(@_); };
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
 
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(

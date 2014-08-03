@@ -1002,6 +1002,12 @@ sub setup_map_list_model {
     my $self  = shift;
     my $lists = shift;
 
+    my $combo = $self->{map_list_combo};
+
+    #  some uses don't have the map list
+    #  - need to clean up the logic and abstract such components to a different class
+    return if !defined $combo;  
+
     my $model = Gtk2::ListStore->new('Glib::String');
     my $iter;
 
@@ -1016,8 +1022,10 @@ sub setup_map_list_model {
     $iter = $model->insert(0);
     $model->set($iter, 0, '<i>Cluster</i>');
 
-    $self->{map_list_combo}->set_model($model);
-    $self->{map_list_combo}->set_active_iter($iter);
+    if ($combo) {
+        $combo->set_model($model);
+        $combo->set_active_iter($iter);
+    }
 
     return;
 }
@@ -1041,7 +1049,12 @@ sub setup_map_index_model {
     my $indices = shift;
 
     my $model = Gtk2::ListStore->new('Glib::String');
-    $self->{map_index_combo}->set_model($model);
+    my $combo = $self->{map_index_combo};
+    
+    return if !defined $combo;
+    
+    $combo->set_model($model);
+    
     my $iter;
 
     # Add all the analyses

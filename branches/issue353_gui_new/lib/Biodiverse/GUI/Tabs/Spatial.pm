@@ -848,6 +848,7 @@ sub on_phylogeny_highlight {
     }
 
     $self->{grid}->mark_if_exists( \%groups, 'circle' );
+    $self->{grid}->mark_if_exists( {}, 'minus' );  #  clear any nbr_set2 highlights
     
     #if (defined $node) {
     #    my $text = 'Node: ' . $node->get_name;

@@ -1334,6 +1334,7 @@ sub mark_elements {
 
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
     $self->{map}->mark_if_exists( $terminal_elements, 'circle' );
+    $self->{map}->mark_if_exists( {}, 'minus');
 
     return;
 }

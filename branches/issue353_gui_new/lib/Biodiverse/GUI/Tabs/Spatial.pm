@@ -1309,25 +1309,23 @@ sub on_grid_hover {
         if ($neighbours eq 'Set2' || $neighbours eq 'Both') {
             $self->{grid}->mark_if_exists(\%nbrs_hash_outer, 'minus');
         }
-        
-        
-        
-    
+
+
         # dendrogram highlighting from labels.pm
         $self->{dendrogram}->clear_highlights();
-        
+
         my $group = $element; # is this the same?
         return if ! defined $group;
 
         my $tree = $self->get_current_tree;
-        
+
         # get labels in the group
-        my $bd = $self->get_base_ref;
+        my $bd = $bd_ref;
         my %labels;
-        my @neighbour_grps = (@$nbrs_inner, @$nbrs_outer);
-        foreach my $grp (@neighbour_grps) {
-	        my $this_labels = $bd->get_labels_in_group_as_hash(group => $group);
-	        @labels{keys %$this_labels} = values %$this_labels;
+
+        foreach my $nbr_grp (@$nbrs_inner, @$nbrs_outer) {
+            my $this_labels = $bd->get_labels_in_group_as_hash(group => $nbr_grp);
+            @labels{keys %$this_labels} = values %$this_labels;
         }
 
         # highlight in the tree
@@ -1340,37 +1338,6 @@ sub on_grid_hover {
                 #}
             }
         }
-        
-        
-        
-        
-        
-        # highlighting from cluster
-#        my $node_ref = eval {$output_ref->get_node_ref (node => $element)};
-#        if ($self->{use_highlight_path} and $node_ref) {
-#            $self->{dendrogram}->highlight_path($node_ref);
-#        }
-#        
-#        my $analysis_name = $self->{grid}{analysis};
-#        my $coloured_node = $self->get_coloured_node_for_element($element);
-#        if (defined $coloured_node && defined $analysis_name) {
-#            #  need to get the displayed node, not the terminal node
-#            my $list_ref = $coloured_node->get_list_ref (list => 'SPATIAL_RESULTS');  #  will need changing when otehr lists can be selected
-#            my $value = $list_ref->{$analysis_name};
-#            $string .= sprintf ("<b>Node %s : %s:</b> %.4f", $coloured_node->get_name, $analysis_name, $value);
-#            $string .= ", <b>Element:</b> $element";
-#        }
-#        elsif (! defined $analysis_name && defined $coloured_node) {
-#            $string .= sprintf '<b>Node %s </b>', $coloured_node->get_name;  #  should really grab the node number?
-#            $string .= ", <b>Element:</b> $element";
-#        }
-#        else {
-#            $string .= '<b>Not a coloured group:</b> ' . $element;
-#        }        
-        
-        
-        
-        
     }
     else {
         $self->{grid}->mark_if_exists({}, 'circle');
@@ -1378,11 +1345,6 @@ sub on_grid_hover {
 
         $self->{dendrogram}->clear_highlights();
     }
-    
-    
-    
-    
-    
     
     return;
 }

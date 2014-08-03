@@ -456,24 +456,58 @@ sub on_grid_hover {
 
     if ($element) {
         no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
-# Update the Value label
-#my $elts = $output_ref->get_element_hash();
+        # Update the Value label
+        #my $elts = $output_ref->get_element_hash();
 
-            my $val = $matrix_ref->get_value (
-                    element1 => $element,
-                    element2 => $self->{selected_element},
-                    );
+        my $val = $matrix_ref->get_value (
+            element1 => $element,
+            element2 => $self->{selected_element},
+        );
 
         $text = defined $val
             ? sprintf (
-                    '<b>%s</b> v <b>%s</b>, value: %s',  #  should list the index used
-                    $self->{selected_element},
-                    $element,
-                    $self->format_number_for_display (number => $val),
-                    ) # round to 4 d.p.
+                '<b>%s</b> v <b>%s</b>, value: %s',  #  should list the index used
+                $self->{selected_element},
+                $element,
+                $self->format_number_for_display (number => $val),
+              ) # round to 4 d.p.
             : '<b>Selected element: ' . $self->{selected_element} . '</b>'; 
         $self->{xmlPage}->get_widget('lblOutput')->set_markup($text);
 
+        # dendrogram highlighting from labels.pm
+        $self->{dendrogram}->clear_highlights();
+
+        my $group = $element; # is this the same?
+        return if ! defined $group;
+
+        my $tree = $self->get_current_tree;
+
+        # get labels in the hovered and selected groups
+        my %labels;
+
+        my @nbr_gps = ($element);
+        if (defined $self->{selected_element}) {
+            push @nbr_gps, $self->{selected_element};
+        }
+
+        foreach my $nbr_grp (@nbr_gps) {
+            my $this_labels = $bd_ref->get_labels_in_group_as_hash(group => $nbr_grp);
+            @labels{keys %$this_labels} = values %$this_labels;
+        }
+
+        # highlight those labels on the tree
+        foreach my $label (keys %labels) {
+            # Might not match some or all nodes
+            eval {
+                my $node_ref = $tree->get_node_ref (node => $label);
+                #if ($self->{use_highlight_path}) {
+                    $self->{dendrogram}->highlight_path($node_ref) ;
+                #}
+            }
+        }
+    }
+    else {
+        $self->{dendrogram}->clear_highlights();
     }
 
     return;

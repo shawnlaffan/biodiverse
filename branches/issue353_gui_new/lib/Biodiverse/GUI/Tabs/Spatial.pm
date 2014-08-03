@@ -97,6 +97,7 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneSpatial');
         $self->{existing} = 0;
+        $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->hide;
     }
     else {
         # We're being called to show an EXISTING output
@@ -1238,6 +1239,7 @@ sub on_run {
             $self->{grid}->set_base_struct($output_ref);
         }
         $self->update_lists_combo(); # will display first analysis as a side-effect...
+        $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->show;
     }
 
     #  make sure the grid is sensitive again
@@ -1358,6 +1360,8 @@ sub on_end_grid_hover {
 
 sub get_current_tree {
     my $self = shift;
+
+    return if !$self->{output_ref};
 
     # check combo box to choose if project phylogeny or tree used in spatial analysis
     my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();

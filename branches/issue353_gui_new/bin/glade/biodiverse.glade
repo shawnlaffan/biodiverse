@@ -497,6 +497,12 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1225,6 +1231,12 @@ Shapefile
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1278,8 +1290,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1296,8 +1308,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -8988,8 +9000,8 @@ Use the checkbox to show/hide the edit box to free up screen real estate.</prope
                             <property name="tooltip" translatable="yes">Select tree to display</property>
                             <property name="active">0</property>
                             <property name="add_tearoffs">True</property>
-                            <property name="items" translatable="yes">Spatial analysis tree
-Project tree</property>
+                            <property name="items" translatable="yes">Plot analysis tree
+Plot project tree</property>
                           </widget>
                         </child>
                       </widget>
@@ -9297,6 +9309,12 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

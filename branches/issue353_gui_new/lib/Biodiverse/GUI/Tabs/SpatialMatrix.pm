@@ -63,7 +63,7 @@ sub new {
 
     my $page  = $self->{xmlPage}->get_widget('hboxSpatialPage');
     my $label = $self->{xmlLabel}->get_widget('hboxSpatialLabel');
-    my $label_text = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
+    my $label_text   = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
 
@@ -79,7 +79,8 @@ sub new {
 
     my ($elt_count, $completed);  #  used to control display
 
-    croak "Only existing outputs can be displayed\n" if (not defined $groups_ref );
+    croak "Only existing outputs can be displayed\n"
+      if not defined $groups_ref;
 
     #else {
         # We're being called to show an EXISTING output
@@ -99,7 +100,7 @@ sub new {
             . ". Part of Basedata set - "
             . ($self->{basedata_ref}->get_param ('NAME') || "no name");
 
-        $self->queue_set_pane(0.01);
+        $self->queue_set_pane(0.01, 'vpaneSpatial');
         $self->{existing} = 1;
 #}
 
@@ -111,17 +112,10 @@ sub new {
         $self->{label_widget}->set_text($self->{output_name} );
         $self->set_label_widget_tooltip;
 
-        #$self->{hover_neighbours} = 'Both';
-        #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
-        #$self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
-        #$self->{xmlPage}->get_widget('comboNeighbours') ->hide;
-        #$self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
-        #$self->{xmlPage}->get_widget('colourButton')    ->set_color(
-        #        Gtk2::Gdk::Color->new(65535,0,0)  # red
-        #        ); 
-
         $self->set_plot_min_max_values;
 
+        $self->queue_set_pane(0.5, 'spatial_hpaned');
+        $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
 
         eval {
             $self->init_grid();
@@ -131,20 +125,14 @@ sub new {
             $self->on_close;
         }
 
-
         # Connect signals
         $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
             clicked => \&on_close, $self
         );
         my %widgets_and_signals = (
             btnSpatialRun  => { clicked => \&on_run },
-            #btnOverlays => { clicked => \&on_overlays },
             txtSpatialName => { changed => \&on_name_changed },
-            #comboLists     => { changed => \&on_active_list_changed },
             comboIndices   => { changed   => \&on_active_index_changed },
-
-            #comboColours => { changed => \&on_colours_changed},
-            #comboSpatialStretch => { changed => \&on_stretch_changed},
 
             #  need to refactor common elements with Spatial.pm
             btnSelectToolSP  => {clicked => \&on_select_tool},
@@ -152,8 +140,6 @@ sub new {
             btnZoomToolSP    => {clicked => \&on_zoom_tool},
             btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
             btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
-
-            #colourButton => { color_set => \&on_colour_set},
 
             menuitem_spatial_overlays => {activate => \&on_overlays},
 
@@ -216,6 +202,8 @@ sub new {
         };
 
         $self->choose_tool('Select');
+        
+        $self->setup_dendrogram;
 
         print "[SpatialMatrix tab] - Loaded tab \n";
 

@@ -189,7 +189,6 @@ sub new {
     }
 
     $self->{hover_neighbours} = 'Both';
-    $self->{xmlPage}->get_widget('comboTreeSelect')->set_active(0);
     $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # red, for Sat mode
 
     $self->{calculations_model}
@@ -220,18 +219,7 @@ sub new {
     $self->queue_set_pane(0.5, 'spatial_hpaned');
     $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
 
-    $self->init_dendrogram();
-    # Register callbacks when selected phylogeny is changed
-    $self->{phylogeny_callback} = sub { $self->on_selected_phylogeny_changed(); };
-    $self->{project}->register_selection_callback(
-        'phylogeny',
-        $self->{phylogeny_callback},
-    );
-    $self->{xmlPage}->get_widget('comboTreeSelect')->signal_connect_swapped(
-        changed => \&on_selected_phylogeny_changed, 
-        $self
-    );
-    $self->on_selected_phylogeny_changed();
+    $self->setup_dendrogram;
 
     # Connect signals
     $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
@@ -374,18 +362,38 @@ sub on_show_hide_parameters {
     return;
 }
 
+
+sub setup_dendrogram {
+    my $self = shift;
+
+    $self->{xmlPage}->get_widget('comboTreeSelect')->set_active(0);
+
+    $self->init_dendrogram();
+    # Register callbacks when selected phylogeny is changed
+    $self->{phylogeny_callback} = sub { $self->on_selected_phylogeny_changed(); };
+    $self->{project}->register_selection_callback(
+        'phylogeny',
+        $self->{phylogeny_callback},
+    );
+    $self->{xmlPage}->get_widget('comboTreeSelect')->signal_connect_swapped(
+        changed => \&on_selected_phylogeny_changed, 
+        $self
+    );
+    $self->on_selected_phylogeny_changed();
+}
+
 # For the phylogeny tree:
 sub init_dendrogram {
     my $self = shift;
     
-    my $frame      = $self->{xmlPage}->get_widget('spatialPhylogenyFrame');
+    my $frame       = $self->{xmlPage}->get_widget('spatialPhylogenyFrame');
     my $graph_frame = $self->{xmlPage}->get_widget('spatialPhylogenyGraphFrame');
-    my $hscroll    = $self->{xmlPage}->get_widget('spatialPhylogenyHScroll');
-    my $vscroll    = $self->{xmlPage}->get_widget('spatialPhylogenyVScroll');
+    my $hscroll     = $self->{xmlPage}->get_widget('spatialPhylogenyHScroll');
+    my $vscroll     = $self->{xmlPage}->get_widget('spatialPhylogenyVScroll');
 
     #my $list_combo  = $self->{xmlPage}->get_widget('comboLists');
     #my $index_combo = $self->{xmlPage}->get_widget('comboShow');
-    my $list_combo  = undef;  #  these are under the control of the spatial plot, not the denrogram
+    my $list_combo  = undef;  #  these are under the control of the spatial plot, not the dendrogram
     my $index_combo = undef;
 
     my $hover_closure       = sub { $self->on_phylogeny_hover(@_); };
@@ -411,7 +419,7 @@ sub init_dendrogram {
     );
 
     $self->{dendrogram}->{page} = $self;
-    
+
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
     
@@ -707,8 +715,10 @@ sub make_lists_model {
 # Sets the vertical pane's position (0 -> all the way down | 1 -> fully up)
 sub set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
+
+    return if !defined $id;
 
     my $pane = $self->{xmlPage}->get_widget($id);
     my $max_pos = $pane->get('max-position');
@@ -1213,7 +1223,7 @@ sub on_run {
     });
     if ($response eq 'yes') {
         # If just ran a new analysis, pull up the pane
-        $self->set_pane(0.01);
+        $self->set_pane(0.01, 'vpaneSpatial');
 
         # Update output display if we are a new result
         # or grid is not defined yet (this can happen)
@@ -1381,21 +1391,24 @@ sub on_end_grid_hover {
     my $self = shift;
     $self->{dendrogram}->clear_highlights;
 }
+
 sub get_current_tree {
-	my $self = shift;
-	
+    my $self = shift;
+
     # check combo box to choose if project phylogeny or tree used in spatial analysis
-    my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active();
-    
+    my $tree_method = $self->{xmlPage}->get_widget('comboTreeSelect')->get_active_text();
+
     # phylogenies
-    if ($tree_method == 0) {
-        # get tree from spatial analysis        
-        return $self->{output_ref}->get_embedded_tree;
-    } 
-    elsif ($tree_method == 1) {
-        # get tree from project
-        return $self->{project}->get_selected_phylogeny;
-    } 	
+    if ($tree_method eq 'Plot analysis tree') {
+        # get tree from spatial analysis
+        if ($self->{output_ref}->can('get_embedded_tree')) {
+            return $self->{output_ref}->get_embedded_tree;
+        }
+    }
+
+    # get tree from project
+    return $self->{project}->get_selected_phylogeny;
+
 }
 
 # Keep name in sync with the tab label

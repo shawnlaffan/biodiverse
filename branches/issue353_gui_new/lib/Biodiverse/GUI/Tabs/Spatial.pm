@@ -1300,16 +1300,18 @@ sub on_grid_hover {
         my $nbrs_outer = $nbr_list[1] || [];  #  an empty list by default
 
         my (%nbrs_hash_inner, %nbrs_hash_outer);
-        @nbrs_hash_inner{ @$nbrs_inner } = undef; # convert to hash using a hash slice (thanks google)
-        @nbrs_hash_outer{ @$nbrs_outer } = undef; # convert to hash using a hash slice (thanks google)
 
         if ($neighbours eq 'Set1' || $neighbours eq 'Both') {
+            @nbrs_hash_inner{ @$nbrs_inner } = undef;
             $self->{grid}->mark_if_exists(\%nbrs_hash_inner, 'circle');
         }
         if ($neighbours eq 'Set2' || $neighbours eq 'Both') {
+            @nbrs_hash_outer{ @$nbrs_outer } = undef;
             $self->{grid}->mark_if_exists(\%nbrs_hash_outer, 'minus');
         }
-
+        if ($neighbours eq 'Off') {  #  highlight the labels from the hovered group on the tree
+            $nbrs_hash_inner{$element} = 1;
+        }
 
         # dendrogram highlighting from labels.pm
         $self->{dendrogram}->clear_highlights();
@@ -1323,7 +1325,7 @@ sub on_grid_hover {
         my $bd = $bd_ref;
         my %labels;
 
-        foreach my $nbr_grp (@$nbrs_inner, @$nbrs_outer) {
+        foreach my $nbr_grp (keys %nbrs_hash_inner, keys %nbrs_hash_outer) {
             my $this_labels = $bd->get_labels_in_group_as_hash(group => $nbr_grp);
             @labels{keys %$this_labels} = values %$this_labels;
         }

@@ -778,10 +778,10 @@ sub on_selected_phylogeny_changed {
     $self->{dendrogram}->clear;
     if ($phylogeny) {
         $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
-            $self->set_phylogeny_options_sensitive(1);
+        $self->set_phylogeny_options_sensitive(1);
     }
     else {
-#$self->{dendrogram}->clear;
+        #$self->{dendrogram}->clear;
         $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('spatial_label_VL_tree')->set_markup($str);
@@ -840,7 +840,7 @@ sub on_phylogeny_highlight {
 
     return if !$node;
 
-    say "for node $node";
+    #say "for node $node";
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
 
     # Hash of groups that have the selected labels
@@ -860,12 +860,7 @@ sub on_phylogeny_highlight {
 
     $self->{grid}->mark_if_exists( \%groups, 'circle' );
     $self->{grid}->mark_if_exists( {}, 'minus' );  #  clear any nbr_set2 highlights
-    
-    #if (defined $node) {
-    #    my $text = 'Node: ' . $node->get_name;
-    #    $self->{xmlPage}->get_widget('spatial_label_VL_tree')->set_markup($text);
-    #}
-    
+
     return;
 }
 
@@ -1228,7 +1223,7 @@ sub on_run {
 
         # Update output display if we are a new result
         # or grid is not defined yet (this can happen)
-        if ($new_result || !defined $self->{grid}) {
+        if ($new_result || !defined $self->{grid} || !blessed($self->{grid})) {
             eval {$self->init_grid()};
             if ($EVAL_ERROR) {
                 $self->{gui}->report_error ($EVAL_ERROR);
@@ -1238,8 +1233,9 @@ sub on_run {
         elsif (defined $output_ref) {
             $self->{grid}->set_base_struct($output_ref);
         }
-        $self->update_lists_combo(); # will display first analysis as a side-effect...
         $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->show;
+        $self->update_lists_combo(); # will display first analysis as a side-effect...
+        $self->on_selected_phylogeny_changed;  # update the tree plot
     }
 
     #  make sure the grid is sensitive again
@@ -1368,10 +1364,9 @@ sub get_current_tree {
 
     # phylogenies
     if ($tree_method eq 'Plot analysis tree') {
-        # get tree from spatial analysis
-        if ($self->{output_ref}->can('get_embedded_tree')) {
-            return $self->{output_ref}->get_embedded_tree;
-        }
+        # get tree from spatial analysis, if possible
+        return if !$self->{output_ref}->can('get_embedded_tree');
+        return $self->{output_ref}->get_embedded_tree;
     }
 
     # get tree from project
@@ -1837,7 +1832,9 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode} = $self->{drag_modes}->{$tool};
+    if ($self->{grid} && blessed $self->{grid}) {  # might not be initialised yet
+        $self->{grid}->{drag_mode} = $self->{drag_modes}->{$tool};
+    }
     $self->{dendrogram}->{drag_mode} = $self->{drag_modes}->{$tool};
 }
 

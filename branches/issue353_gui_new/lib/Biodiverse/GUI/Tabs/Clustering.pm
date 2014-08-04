@@ -114,6 +114,8 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneClustering');
         $self->{existing} = 0;
+        $xml_page->get_widget('toolbarClustering')->hide;
+        $xml_page->get_widget('toolbar_clustering_bottom')->hide;
     }
     else {  # We're being called to show an EXISTING output
 
@@ -1461,6 +1463,9 @@ sub on_run_analysis {
     }
 
     if (Biodiverse::GUI::YesNoCancel->run({header => 'display results?'}) eq 'yes') {
+        $self->{xmlPage}->get_widget('toolbar_clustering_bottom')->show;
+        $self->{xmlPage}->get_widget('toolbarClustering')->show;
+
         # If just ran a new analysis, pull up the pane
         if ($isnew or not $new_analysis) {
             $self->set_pane(0.01, 'vpaneClustering');

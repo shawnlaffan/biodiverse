@@ -98,6 +98,7 @@ sub new {
         $self->queue_set_pane(1, 'vpaneSpatial');
         $self->{existing} = 0;
         $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->hide;
+        $self->{xmlPage}->get_widget('toolbarSpatial')->hide;
     }
     else {
         # We're being called to show an EXISTING output
@@ -1230,6 +1231,7 @@ sub on_run {
             $self->{grid}->set_base_struct($output_ref);
         }
         $self->{xmlPage}->get_widget('toolbar_spatial_tab_bottom')->show;
+        $self->{xmlPage}->get_widget('toolbarSpatial')->show;
         $self->update_lists_combo(); # will display first analysis as a side-effect...
         $self->on_selected_phylogeny_changed;  # update the tree plot
     }

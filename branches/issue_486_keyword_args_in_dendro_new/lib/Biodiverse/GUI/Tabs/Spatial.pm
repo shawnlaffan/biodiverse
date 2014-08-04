@@ -431,8 +431,6 @@ sub init_grid {
     my $hscroll = $self->{xmlPage}->get_widget('gridHScroll');
     my $vscroll = $self->{xmlPage}->get_widget('gridVScroll');
 
-#print "Initialising grid\n";
-
     $self->{initialising_grid} = 1;
 
     # Use closure to automatically pass $self (which grid doesn't know)
@@ -448,16 +446,16 @@ sub init_grid {
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        1,
-        0,
-        $hover_closure,
-        $click_closure, # Middle click
-        $select_closure,
-        $grid_click_closure, # Left click
-        $end_hover_closure
+        frame => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        show_legend => 1,
+        show_value  => 0,
+        hover_func      => $hover_closure,
+        click_func      => $click_closure, # Middle click
+        select_func     => $select_closure,
+        grid_click_func => $grid_click_closure, # Left click
+        end_hover_func  => $end_hover_closure,
     );
     $self->{grid}->{page} = $self;
     $self->{grid}->{drag_mode} = 'select';

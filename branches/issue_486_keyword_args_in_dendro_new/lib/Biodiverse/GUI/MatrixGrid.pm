@@ -59,10 +59,12 @@ my $gray50_bits   = pack "CC", 0x02, 0x01;
 ##########################################################
 
 sub new {
-    my $class   = shift;
-    my $frame   = shift;
-    my $hscroll = shift;
-    my $vscroll = shift;
+    my $class = shift;
+    my %args  = @_;
+
+    my $frame   = $args{frame};
+    my $hscroll = $args{hscroll};
+    my $vscroll = $args{vscroll};
 
     my $self = {
         colours => 'Hue',
@@ -70,14 +72,15 @@ sub new {
     }; 
     bless $self, $class;
 
-    $self->{hover_func}  = shift || undef; #Callback function for when users move mouse over a cell
-    $self->{select_func} = shift || undef; #Callback function for when users click on a cell
-    $self->{grid_click_func} = shift || undef; #Callback function for when users click on a cell
+    #  callbacks
+    $self->{hover_func}  = $args{hover_func};  # move mouse over a cell
+    $self->{select_func} = $args{select_func}; # click on a cell
+    $self->{grid_click_func} = $args{grid_click_func}; # click on a cell
 
     # Make the canvas and hook it up
     $self->{canvas} = Gnome2::Canvas->new();
     $frame->add($self->{canvas});
-    
+
     $self->{canvas}->signal_connect_swapped (
         size_allocate => \&on_size_allocate,
         $self,
@@ -89,7 +92,7 @@ sub new {
 
     $hscroll->set_adjustment( $self->{hadjust} );
     $vscroll->set_adjustment( $self->{vadjust} );
-    
+
     $self->{hadjust}->signal_connect_swapped(
         'value-changed',
         \&on_scrollbars_scroll,
@@ -140,8 +143,6 @@ sub new {
     $self->show_legend;
 
     $self->{drag_mode} = 'select';
-
-    # Labels::initMatrixGrid will set {page} (hacky}
 
     return $self;
 }

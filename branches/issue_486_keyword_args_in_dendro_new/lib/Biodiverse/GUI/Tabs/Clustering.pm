@@ -529,16 +529,16 @@ sub init_map {
     my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        1,
-        0,
-        $hover_closure,
-        $click_closure,
-        $select_closure,
-        $grid_click_closure,
-        $end_hover_closure
+        frame => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        show_legend => 1,
+        show_value  => 0,
+        hover_func  => $hover_closure,
+        click_func  => $click_closure,
+        select_func => $select_closure,
+        grid_click_func => $grid_click_closure,
+        end_hover_func  => $end_hover_closure
     );
     $self->{grid}->{page} = $self;
 

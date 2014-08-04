@@ -48,20 +48,22 @@ use constant DEFAULT_LINE_COLOUR     => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB => "#000000";
 
 use constant HOVER_CURSOR => 'hand2';
+
 ##########################################################
 # Construction
 ##########################################################
 
 sub new {
-    #  FIXME FIXME this sub desperately needs to use a hash of key-value pairs
-    my $class           = shift;
-    my $main_frame       = shift;    # GTK frame to add dendrogram
-    my $graph_frame      = shift;    # GTK frame for the graph (below!)
-    my $hscroll         = shift;
-    my $vscroll         = shift;
-    my $map             = shift;    # Grid.pm object of the dataset to link in
-    my $map_list_combo  = shift;    # Combo for selecting how to colour the grid (based on spatial result or cluster)
-    my $map_index_combo = shift;    # Combo for selecting how to colour the grid (which spatial result)
+    my $class = shift;
+    my %args  = @_;
+
+    my $main_frame      = $args{main_frame};  # GTK frame to add dendrogram
+    my $graph_frame     = $args{graph_frame}; # GTK frame for the graph (below!)
+    my $hscroll         = $args{hscroll};
+    my $vscroll         = $args{vscroll};
+    my $map             = $args{grid};        # Grid.pm object of the dataset to link in
+    my $map_list_combo  = $args{list_combo};  # Combo for selecting how to colour the grid (based on spatial result or cluster)
+    my $map_index_combo = $args{index_combo}; # Combo for selecting how to colour the grid (which spatial result)
 
     my $grey = 0.9 * 255 * 257;
 
@@ -82,26 +84,26 @@ sub new {
         graph_height_px     => 0,
         use_slider_to_select_nodes => 1,
         colour_not_in_tree  => Gtk2::Gdk::Color->new($grey, $grey, $grey),
+        use_highlight_func  => 1, #  should we highlight?
     };
 
-    $self->{hover_func}         = shift || undef; #Callback function for when users move mouse over a cell
-    $self->{highlight_func}     = shift || undef; #Callback function to highlight elements
-    $self->{use_highlight_func} = 1;  #  should we highlight?
-    $self->{ctrl_click_func}    = shift || undef; #Callback function for when users control-click on a cell
-    $self->{click_func}         = shift || undef; #Callback function for when users click on a cell
-    $self->{select_func}        = shift || undef; #Callback function for when users drag a selection rectangle on the background
-    $self->{parent_tab}         = shift;
+    #  callback functions 
+    $self->{hover_func}      = $args{hover_func};      # when users move mouse over a cell
+    $self->{highlight_func}  = $args{highlight_func};  # highlight elements    
+    $self->{ctrl_click_func} = $args{ctrl_click_func}; # when users control-click on a cell
+    $self->{click_func}      = $args{click_func};      # when users click on a cell
+    $self->{select_func}     = $args{select_func};     # when users drag a selection rectangle on the background
+    $self->{parent_tab}      = $args{parent_tab};
 
-    my $basedata_ref = shift;
+    if (my $basedata_ref = $args{basedata_ref}) {
+        $self->{basedata_ref} = $basedata_ref;
+        weaken $self->{basedata_ref};
+    }
 
     if (defined $self->{parent_tab}) {
         weaken $self->{parent_tab};
     }
 
-    if (defined $basedata_ref) {
-        $self->{basedata_ref} = $basedata_ref;
-        weaken $self->{basedata_ref};
-    }
 
     # starting off with the "clustering" view, not a spatial analysis
     $self->{sp_list}  = undef;
@@ -662,27 +664,26 @@ sub do_colour_nodes_below {
 
         #  keep the user informed of what happened
         if ($original_num_clusters != $num_clusters) {
-            print "[Dendrogram] Could not colour requested number of clusters ($original_num_clusters)\n";
+            say "[Dendrogram] Could not colour requested number of clusters ($original_num_clusters)";
 
             if ($original_num_clusters < $num_clusters) {
                 if ($excess_flag) {
-                    print "[Dendrogram] More clusters were requested ("
-                          . "$original_num_clusters) than available colours ("
-                          . $self->get_palette_max_colours
-                          . ")\n";
+                    printf "[Dendrogram] More clusters were requested (%d)"
+                        . "than available colours (%d))\n",
+                        $original_num_clusters,
+                        $self->get_palette_max_colours;
                 }
                 else {
-                    print "[Dendrogram] Requested number not feasible.  "
-                          . "Returned $num_clusters.\n";
+                    say "[Dendrogram] Requested number not feasible.  Returned $num_clusters.";
                 }
             }
             else {
-                print "[Dendrogram] Fewer clusters were identified ($num_clusters)\n";
+                say "[Dendrogram] Fewer clusters were identified ($num_clusters)";
             }
         }
     }
     else {
-        print "[Dendrogram] Clearing colouring\n"
+        say "[Dendrogram] Clearing colouring"
     }
 
     # Set up colouring

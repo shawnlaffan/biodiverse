@@ -264,25 +264,23 @@ sub init_grid {
         );
     };
     my $grid_click_closure = sub { $self->on_grid_click(@_); };
-    my $select_closure = sub { $self->on_grid_select(@_); };
+    my $select_closure     = sub { $self->on_grid_select(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
-            $frame,
-            $hscroll,
-            $vscroll,
-            1,
-            0,
-            $hover_closure,
-            $click_closure, # Middle click
-            $select_closure,
-            $grid_click_closure, # Left click
-            );
+        frame   => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        show_legend => 1,
+        show_value  => 0,
+        hover_func      => $hover_closure,
+        click_func      => $click_closure, # Middle click
+        select_func     => $select_closure,
+        grid_click_func => $grid_click_closure, # Left click
+    );
 
     my $data = $self->{groups_ref};  #  should be the groups?
-        my $elt_count = $data->get_element_count;
-    my $completed = $data->get_param ('COMPLETED');
-#  backwards compatibility - old versions did not have this flag
-    $completed = 1 if not defined $completed;  
+    my $elt_count = $data->get_element_count;
+    my $completed = $data->get_param ('COMPLETED') // 1; #  old versions did not have this flag
 
     if (defined $data and $elt_count and $completed) {
         $self->{grid}->set_base_struct ($data);
@@ -290,7 +288,7 @@ sub init_grid {
 
     $self->{grid}->{page} = $self; # Hacky
 
-        return;
+    return;
 }
 
 sub init_lists_combo {

@@ -111,15 +111,15 @@ dragged
 =cut
 
 
-#  badly needs to use keyword args
 sub new {
     my $class   = shift;
-    my $frame   = shift;
-    my $hscroll = shift;
-    my $vscroll = shift;
+    my %args = @_;
+    my $frame   = $args{frame};
+    my $hscroll = $args{hscroll};
+    my $vscroll = $args{vscroll};
     
-    my $show_legend = shift || 0;  #  this is irrelevant now, gets hidden as appropriate (but should allow user to show/hide)
-    my $show_value  = shift || 0;
+    my $show_legend = $args{show_legend} // 0;  #  this is irrelevant now, gets hidden as appropriate (but should allow user to show/hide)
+    my $show_value  = $args{show_value}  // 0;
 
     my $self = {
         legend_mode => 'Hue',
@@ -127,13 +127,14 @@ sub new {
     }; 
     bless $self, $class;
 
-    $self->{hover_func}  = shift || undef; # Callback function for when users move mouse over a cell
-    #$self->{use_hover_func} = 1;          #  we should use the hover func by default
-    $self->{click_func}  = shift || undef; # Callback function for when users click on a cell
-    $self->{select_func} = shift || undef; # Callback function for when users select a set of elements
-    $self->{grid_click_func} = shift || undef; # Callback function for when the user right clicks anywhere
+    #  callback funcs
+    $self->{hover_func}      = $args{hover_func};      # move mouse over a cell
+    $self->{click_func}      = $args{click_func};      # click on a cell
+    $self->{select_func}     = $args{select_func};     # select a set of elements
+    $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
+    $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
+
     my $g = 0;
-    $self->{end_hover_func}  = shift || undef; # Callback function for when users move mouse out of hovering over cells
     $self->{colour_none} = Gtk2::Gdk::Color->new($g, $g, $g);
 
     # Make the canvas and hook it up

@@ -179,16 +179,16 @@ sub init_grid {
     my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        0,
-        0,
-        $hover_closure,
-        $click_closure,
-        $select_closure,
-        $grid_click_closure,
-        $end_hover_closure
+        frame => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        show_legend => 0,
+        show_value  => 0,
+        hover_func      => $hover_closure,
+        click_func      => $click_closure,
+        select_func     => $select_closure,
+        grid_click_func =>  $grid_click_closure,
+        end_hover_func  => $end_hover_closure,
     );
     $self->{grid}->{page} = $self; # Hacky
 
@@ -210,22 +210,22 @@ sub init_matrix_grid {
     my $hscroll = $self->{xmlPage}->get_widget('matrixHScroll');
     my $vscroll = $self->{xmlPage}->get_widget('matrixVScroll');
 
-    my $hover_closure = sub { $self->on_matrix_hover(@_); };
-    my $click_closure = sub { $self->on_matrix_clicked(@_); };
+    my $hover_closure  = sub { $self->on_matrix_hover(@_); };
+    my $select_closure = sub { $self->on_matrix_clicked(@_); };
     my $grid_click_closure = sub { $self->on_matrix_grid_clicked(@_); };
 
     $self->{matrix_grid} = Biodiverse::GUI::MatrixGrid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        $hover_closure,
-        $click_closure,
-        $grid_click_closure
+        frame => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        hover_func      => $hover_closure,
+        select_func     => $select_closure,
+        grid_click_func => $grid_click_closure,
     );
     $self->{matrix_grid}->{page} = $self; # Hacky
 
     $self->{matrix_drawn} = 0;
-    
+
     return 1;
 }
 
@@ -247,19 +247,20 @@ sub init_dendrogram {
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
     
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        $frame,
-        $graph_frame,
-        $hscroll,
-        $vscroll,
-        undef,
-        $list_combo,
-        $index_combo,
-        undef,
-        $highlight_closure,
-        $ctrl_click_closure,
-        $click_closure,
-        $select_closure,
-        $self->{base_ref},
+        main_frame  => $frame,
+        graph_frame => $graph_frame,
+        hscroll     => $hscroll,
+        vscroll     => $vscroll,
+        grid        => undef,
+        list_combo  => $list_combo,
+        index_combo => $index_combo,
+        hover_func      => undef,
+        highlight_func  => $highlight_closure,
+        ctrl_click_func => $ctrl_click_closure,
+        click_func      => $click_closure,
+        select_func     => $select_closure,
+        parent_tab      => undef,
+        basedata_ref    => $self->{base_ref},
     );
     $self->{dendrogram}->{page} = $self;
     

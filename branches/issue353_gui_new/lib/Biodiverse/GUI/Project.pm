@@ -1325,13 +1325,14 @@ sub set_phylogeny_buttons {
                 menu_trim_tree_to_basedata
                 menu_phylogeny_export
                 menu_phylogeny_delete_cached_values
+                menu_range_weight_tree_branches
                 /) {
         $instance->get_widget($_)->set_sensitive($sensitive);
     }
 }
 
 
-# Makes a new name like "Ferns_Spatial3" which isn't already used (up to 100)
+# Makes a new name like "Ferns_Spatial3" which isn't already used (up to 1000)
 sub make_new_output_name {
     my $self = shift;
     my $source_ref = shift; # BaseData object used to generate output
@@ -1344,13 +1345,16 @@ sub make_new_output_name {
     my $prefix = $source_name . "_" . $type;
     my $name;
 
-    for (my $i = 0; $i < 100; $i++) {
+    my $i = 0;
+    while (1) {
         $name = $prefix . $i;
-        if ($self->member_of($name, \@outputs) == 0) {
-            last; # "break"
+        last if !$self->member_of($name, \@outputs);
+        $i++;
+        if ($i > 1000) {
+            $i = rand();  #  don't waste any more time
         }
     }
-    
+
     return $name;
 }
 
@@ -1358,9 +1362,7 @@ sub make_new_output_name {
 sub member_of {
     my ($self, $elem, $array) = @_;
     foreach my $member (@$array) {
-        if ($elem eq $member) {
-            return 1;
-        }
+        return 1 if $elem eq $member;
     }
     return 0;
 }

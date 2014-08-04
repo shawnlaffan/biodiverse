@@ -565,20 +565,20 @@ sub init_dendrogram {
     my $select_closure      = sub { $self->on_dendrogram_select(@_); };
 
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        $frame,
-        $graph_frame,
-        $hscroll,
-        $vscroll,
-        $self->{grid},
-        $list_combo,
-        $index_combo,
-        $hover_closure,
-        $highlight_closure,
-        $popup_closure,
-        $click_closure, # click_func
-        $select_closure, # select_func
-        $self,
-        undef # basedata_ref
+        main_frame  => $frame,
+        graph_frame => $graph_frame,
+        hscroll     => $hscroll,
+        vscroll     => $vscroll,
+        grid        => $self->{grid},
+        list_combo  => $list_combo,
+        index_combo => $index_combo,
+        hover_func      => $hover_closure,
+        highlight_func  => $highlight_closure,
+        ctrl_click_func => $popup_closure,
+        click_func      => $click_closure, # click_func
+        select_func     => $select_closure, # select_func
+        parent_tab      => $self,
+        basedata_ref    => undef, # basedata_ref
     );
 
     # TODO: Abstract this properly

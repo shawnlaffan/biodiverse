@@ -392,8 +392,6 @@ sub init_dendrogram {
     my $hscroll     = $self->{xmlPage}->get_widget('spatialPhylogenyHScroll');
     my $vscroll     = $self->{xmlPage}->get_widget('spatialPhylogenyVScroll');
 
-    #my $list_combo  = $self->{xmlPage}->get_widget('comboLists');
-    #my $index_combo = $self->{xmlPage}->get_widget('comboShow');
     my $list_combo  = undef;  #  these are under the control of the spatial plot, not the dendrogram
     my $index_combo = undef;
 
@@ -404,19 +402,19 @@ sub init_dendrogram {
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
 
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        $frame,
-        $graph_frame,
-        $hscroll,
-        $vscroll,
-        undef,
-        $list_combo,
-        $index_combo,
-        $hover_closure,
-        $highlight_closure,
-        $ctrl_click_closure,
-        $click_closure,
-        $select_closure,
-        $self,
+        main_frame  => $frame,
+        graph_frame => $graph_frame,
+        hscroll     => $hscroll,
+        vscroll     => $vscroll,
+        grid        => undef,
+        list_combo  => undef,  #  the combos are under the control of the spatial plot, not the dendrogram
+        index_combo => undef,
+        hover_func      => $hover_closure,
+        highlight_func  => $highlight_closure,
+        ctrl_click_func => $ctrl_click_closure,
+        click_func      => $click_closure,
+        select_func     => $select_closure,
+        parent_tab      => $self,
     );
 
     $self->{dendrogram}->{page} = $self;

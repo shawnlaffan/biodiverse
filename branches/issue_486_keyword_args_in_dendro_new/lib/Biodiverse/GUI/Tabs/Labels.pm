@@ -247,19 +247,20 @@ sub init_dendrogram {
     my $select_closure      = sub { $self->on_phylogeny_select(@_); };
     
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        $frame,
-        $graph_frame,
-        $hscroll,
-        $vscroll,
-        undef,
-        $list_combo,
-        $index_combo,
-        undef,
-        $highlight_closure,
-        $ctrl_click_closure,
-        $click_closure,
-        $select_closure,
-        $self->{base_ref},
+        main_frame  => $frame,
+        graph_frame => $graph_frame,
+        hscroll     => $hscroll,
+        vscroll     => $vscroll,
+        grid        => undef,
+        list_combo  => $list_combo,
+        index_combo => $index_combo,
+        hover_func      => undef,
+        highlight_func  => $highlight_closure,
+        ctrl_click_func => $ctrl_click_closure,
+        click_func      => $click_closure,
+        select_func     => $select_closure,
+        parent_tab      => undef,
+        basedata_ref    => $self->{base_ref},
     );
     $self->{dendrogram}->{page} = $self;
     

@@ -1274,7 +1274,7 @@ sub clear_highlights {
 }
 
 sub highlight_node {
-    my ($self, $node_ref) = @_;
+    my ($self, $node_ref, $node_colour) = @_;
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
@@ -1290,9 +1290,10 @@ sub highlight_node {
     # highlight this node/line by setting black
     my $node_name = $node_ref->get_name;
     my $line = $self->{node_lines}->{$node_name};
-    my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+    my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
     $line->set(fill_color_gdk => $colour_ref);
     #$line->set(width_pixels => HIGHLIGHT_WIDTH);
+    $line->raise_to_top;
     push @{$self->{highlighted_lines}}, $line;
 
     return;
@@ -1300,7 +1301,7 @@ sub highlight_node {
 
 # Highlights all nodes above and including the given node
 sub highlight_path {
-    my ($self, $node_ref) = @_;
+    my ($self, $node_ref, $node_colour) = @_;
 
     # if first highlight, set all other nodes to grey
     if (! $self->{highlighted_lines}) {
@@ -1316,7 +1317,7 @@ sub highlight_path {
     # set path to highlighted colour
     while ($node_ref) {
         my $line = $self->{node_lines}->{$node_ref->get_name};
-        my $colour_ref = $self->{node_colours_cache}{$node_ref->get_name} || DEFAULT_LINE_COLOUR;
+        my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_ref->get_name} || DEFAULT_LINE_COLOUR;
         $line->set(fill_color_gdk => $colour_ref);
         #$line->set(width_pixels => HIGHLIGHT_WIDTH);
         $line->raise_to_top;

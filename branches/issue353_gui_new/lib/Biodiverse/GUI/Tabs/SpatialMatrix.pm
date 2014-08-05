@@ -481,26 +481,45 @@ sub on_grid_hover {
         my $tree = $self->get_current_tree;
 
         # get labels in the hovered and selected groups
-        my %labels;
+        my ($labels1, $labels2);
 
-        my @nbr_gps = ($element);
+        $labels1 = $bd_ref->get_labels_in_group_as_hash(group => $group);
+        #my @nbr_gps = ($element);
         if (defined $self->{selected_element}) {
-            push @nbr_gps, $self->{selected_element};
+            #push @nbr_gps, $self->{selected_element};
+            $labels2 = $bd_ref->get_labels_in_group_as_hash(group => $self->{selected_element});
         }
 
-        foreach my $nbr_grp (@nbr_gps) {
-            my $this_labels = $bd_ref->get_labels_in_group_as_hash(group => $nbr_grp);
-            @labels{keys %$this_labels} = values %$this_labels;
-        }
+        # Highlight the branches in the groups on the tree.
+        # Last colour is when branch is in both groups.
+        my @colours = map {Gtk2::Gdk::Color->parse($_)} ('#e31a1c', '#1F78B4', '#000000');
+        my %coloured_branch;
+        my @hashrefs = ($labels1, $labels2);
+        my $dendrogram = $self->{dendrogram};
 
-        # highlight those labels on the tree
-        foreach my $label (keys %labels) {
-            # Might not match some or all nodes
-            eval {
-                my $node_ref = $tree->get_node_ref (node => $label);
-                #if ($self->{use_highlight_path}) {
-                    $self->{dendrogram}->highlight_path($node_ref) ;
-                #}
+        foreach my $i (0, 1) {
+            my $href   = $hashrefs[$i];
+            my $colour = $colours[$i];
+            my $node_ref;
+          LABEL:
+            foreach my $label (keys %$href) {
+                # Might not match some or all nodes
+                my $success = eval {
+                    $node_ref = $tree->get_node_ref (node => $label);
+                };
+                next LABEL if !$success;
+                # set path to highlighted colour
+              NODE:
+                while ($node_ref) {
+                    my $node_name = $node_ref->get_name;
+                    last NODE if $coloured_branch{$node_name} > 1;
+                    my $colour_ref = $coloured_branch{$node_name} ? $colours[-1] : $colour;
+
+                    $dendrogram->highlight_node ($node_ref, $colour_ref);
+
+                    $coloured_branch{$node_name}++;            
+                    $node_ref = $node_ref->get_parent;
+                }
             }
         }
     }

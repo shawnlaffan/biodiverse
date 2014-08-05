@@ -9,7 +9,7 @@ use English ( -no_match_vars );
 use Carp;
 use Scalar::Util qw /weaken isweak blessed/;
 use Data::Dumper qw/Dumper/;
-use List::Util qw /min max pairgrep/;
+use List::Util 1.39 qw /min max pairgrep sum/;
 
 use Biodiverse::BaseStruct;
 
@@ -249,6 +249,31 @@ sub get_total_length {
     my $tmp = $self->get_value ('TOTAL_LENGTH');
     return $tmp if defined $tmp;
     return $self->get_length_below;  #  calculate total length otherwise
+}
+
+sub get_longest_path_length_to_terminals {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+
+    if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
+        my $cached_length = $self->get_cached_value ('LONGEST_PATH_LENGTH_TO_TERMINALS');
+        return $cached_length if defined $cached_length;
+    }
+
+    my $terminal_node_hash = $self->get_terminal_node_refs;
+    my $max_length = 0;
+    foreach my $child (values %$terminal_node_hash) {
+        my $path = $child->get_path_lengths_to_ancestral_node (ancestral_node => $self);
+        my $path_length = sum (0, values %$path);
+
+        $max_length = max ($path_length, $max_length);
+    }
+
+    if ($args{cache}) {
+        $self->set_cached_value (LONGEST_PATH_LENGTH_TO_TERMINALS => $max_length);
+    }
+
+    return $max_length;    
 }
 
 #  get the maximum tree node position from zero
@@ -1013,7 +1038,7 @@ sub get_path_lengths_to_ancestral_node {
     my $self = shift;
     my %args = (cache => 1, @_);
 
-    my $ancestor = $args{ancestral_node} or croak "ancestral_node not defined\n";
+    my $ancestor = $args{ancestral_node} // croak "ancestral_node not defined\n";
     
     if ($self->is_root_node) {
         my %result = ($self->get_name, $self->get_length);

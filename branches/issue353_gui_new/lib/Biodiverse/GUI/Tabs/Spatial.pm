@@ -422,7 +422,7 @@ sub init_dendrogram {
 
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
-    
+
     return 1;
 }
 
@@ -864,8 +864,13 @@ sub on_phylogeny_highlight {
 sub on_phylogeny_click {
     my $self = shift;
     if ($self->{tool} eq 'Select') {
-	my $node = shift;
+        my $node = shift;
         $self->{dendrogram}->do_colour_nodes_below($node);
+        if (!$node) {  #  clear the highlights.  Maybe should copy Clustering.pm and add a leave event
+            $self->{grid}->mark_if_exists( {}, 'circle' );
+            $self->{grid}->mark_if_exists( {}, 'minus');
+        }
+        
     }
     elsif ($self->{tool} eq 'ZoomOut') {
         $self->{dendrogram}->zoom_out();
@@ -1262,7 +1267,7 @@ sub on_grid_hover {
 
     my $bd_ref = $output_ref->get_param ('BASEDATA_REF') || $output_ref;
 
-    if ($element) {
+    if (defined $element) {
         no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
         # Update the Value label
         my $elts = $output_ref->get_element_hash();
@@ -1331,9 +1336,7 @@ sub on_grid_hover {
             # Might not match some or all nodes
             eval {
                 my $node_ref = $tree->get_node_ref (node => $label);
-                #if ($self->{use_highlight_path}) {
-                    $self->{dendrogram}->highlight_path($node_ref) ;
-                #}
+                $self->{dendrogram}->highlight_path($node_ref);
             }
         }
     }

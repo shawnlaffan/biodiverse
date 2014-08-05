@@ -683,7 +683,7 @@ sub do_colour_nodes_below {
         }
     }
     else {
-        say "[Dendrogram] Clearing colouring"
+        say "[Dendrogram] Clearing colouring";
     }
 
     # Set up colouring
@@ -1249,26 +1249,19 @@ sub clear_highlights {
     my $self = shift;
     
     # set all nodes to recorded/default colour
-    if ($self->{highlighted_lines}) {
-        my @nodes_remaining
-          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
+    return if !$self->{highlighted_lines};
 
-        foreach my $node (@nodes_remaining) {
-            my $node_name = $node->get_name;
-            # assume node has associated line
-            my $line = $self->{node_lines}->{$node_name};
-            my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
-            $line->set(fill_color_gdk => $colour_ref) if (defined $line);
-        }
-        $self->{highlighted_lines} = undef;
+    my @nodes_remaining
+      = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendents});
+
+    foreach my $node (@nodes_remaining) {
+        my $node_name = $node->get_name;
+        # assume node has associated line
+        my $line = $self->{node_lines}->{$node_name};
+        my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+        $line->set(fill_color_gdk => $colour_ref) if defined $line;
     }
-    
-#    if ($self->{highlighted_lines}) {
-#        foreach my $line (@{$self->{highlighted_lines}}) {
-#            $line->set(width_pixels => NORMAL_WIDTH);
-#        }
-#    }
-#    $self->{highlighted_lines} = undef;
+    $self->{highlighted_lines} = undef;
 
     return;
 }
@@ -1333,6 +1326,8 @@ sub highlight_path {
 sub mark_elements {
     my $self = shift;
     my $node = shift;
+
+    return if !$self->{map};
 
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
     $self->{map}->mark_if_exists( $terminal_elements, 'circle' );

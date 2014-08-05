@@ -395,17 +395,24 @@ sub on_cell_selected {
     if (scalar @$data == 1) {
         $element = $data->[0];
     }
-    else {  #  get the first sorted element that is in the matrix
+    elsif (@$data) {  #  get the first sorted element that is in the matrix
         my @sorted = $self->{groups_ref}->get_element_list_sorted (list => $data);
-        CHECK_SORTED:
+      CHECK_SORTED:
         while (defined ($element = shift @sorted)) {
             last CHECK_SORTED
               if $self->{output_ref}->element_is_in_matrix (element => $element);
         }
-        
     }
 
-    return if ! defined $element;
+    #  clicked on the background area
+    if (!defined $element) {
+        #  clear any highlights
+        $self->{grid}->mark_if_exists( {}, 'circle' );
+        $self->{grid}->mark_if_exists( {}, 'minus' );  #  clear any nbr_set2 highlights
+        $self->{dendrogram}->clear_highlights;
+        return;
+    }
+
     return if $element eq $self->{selected_element};
     return if ! $self->{output_ref}->element_is_in_matrix (element => $element);
 
@@ -420,7 +427,7 @@ sub on_cell_selected {
     my $iter = $self->{output_indices_model}->get_iter_first();
     my $selected = $iter;
     
-    BY_ITER:
+  BY_ITER:
     while ($iter) {
         my ($analysis) = $self->{output_indices_model}->get($iter, 0);
         if ($self->{selected_element} && ($analysis eq $self->{selected_element}) ) {
@@ -438,6 +445,10 @@ sub on_cell_selected {
     return;
 }
 
+
+my @dendro_highlight_branch_colours
+  = map {Gtk2::Gdk::Color->parse($_)} ('#e31a1c', '#1F78B4', '#000000');
+
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
 sub on_grid_hover {
@@ -452,24 +463,23 @@ sub on_grid_hover {
 
     my $bd_ref = $output_ref->get_param ('BASEDATA_REF');
 
-    if ($element) {
-        no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
-        # Update the Value label
-        #my $elts = $output_ref->get_element_hash();
+    if (defined $element) {
+        #no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
 
         my $val = $matrix_ref->get_value (
             element1 => $element,
             element2 => $self->{selected_element},
         );
 
+        my $selected_el = $self->{selected_element} // '';
         $text = defined $val
             ? sprintf (
                 '<b>%s</b> v <b>%s</b>, value: %s',  #  should list the index used
-                $self->{selected_element},
+                $selected_el,
                 $element,
                 $self->format_number_for_display (number => $val),
               ) # round to 4 d.p.
-            : '<b>Selected element: ' . $self->{selected_element} . '</b>'; 
+            : "<b>Selected element: $selected_el</b>";
         $self->{xmlPage}->get_widget('lblOutput')->set_markup($text);
 
         # dendrogram highlighting from labels.pm
@@ -484,7 +494,7 @@ sub on_grid_hover {
         my ($labels1, $labels2);
 
         $labels1 = $bd_ref->get_labels_in_group_as_hash(group => $group);
-        #my @nbr_gps = ($element);
+
         if (defined $self->{selected_element}) {
             #push @nbr_gps, $self->{selected_element};
             $labels2 = $bd_ref->get_labels_in_group_as_hash(group => $self->{selected_element});
@@ -492,14 +502,13 @@ sub on_grid_hover {
 
         # Highlight the branches in the groups on the tree.
         # Last colour is when branch is in both groups.
-        my @colours = map {Gtk2::Gdk::Color->parse($_)} ('#e31a1c', '#1F78B4', '#000000');
         my %coloured_branch;
         my @hashrefs = ($labels1, $labels2);
         my $dendrogram = $self->{dendrogram};
 
         foreach my $i (0, 1) {
             my $href   = $hashrefs[$i];
-            my $colour = $colours[$i];
+            my $colour = $dendro_highlight_branch_colours[$i];
             my $node_ref;
           LABEL:
             foreach my $label (keys %$href) {
@@ -512,8 +521,11 @@ sub on_grid_hover {
               NODE:
                 while ($node_ref) {
                     my $node_name = $node_ref->get_name;
-                    last NODE if $coloured_branch{$node_name} > 1;
-                    my $colour_ref = $coloured_branch{$node_name} ? $colours[-1] : $colour;
+                    last NODE if ($coloured_branch{$node_name} // 0) > 1;
+
+                    my $colour_ref = $coloured_branch{$node_name}
+                      ? $dendro_highlight_branch_colours[-1]
+                      : $colour;
 
                     $dendrogram->highlight_node ($node_ref, $colour_ref);
 

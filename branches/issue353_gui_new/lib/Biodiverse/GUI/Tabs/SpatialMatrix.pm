@@ -446,8 +446,6 @@ sub on_cell_selected {
 }
 
 
-my @dendro_highlight_branch_colours
-  = map {Gtk2::Gdk::Color->parse($_)} ('#e31a1c', '#1F78B4', '#000000');
 
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
@@ -500,40 +498,7 @@ sub on_grid_hover {
             $labels2 = $bd_ref->get_labels_in_group_as_hash(group => $self->{selected_element});
         }
 
-        # Highlight the branches in the groups on the tree.
-        # Last colour is when branch is in both groups.
-        my %coloured_branch;
-        my @hashrefs = ($labels1, $labels2);
-        my $dendrogram = $self->{dendrogram};
-
-        foreach my $i (0, 1) {
-            my $href   = $hashrefs[$i];
-            my $colour = $dendro_highlight_branch_colours[$i];
-            my $node_ref;
-          LABEL:
-            foreach my $label (keys %$href) {
-                # Might not match some or all nodes
-                my $success = eval {
-                    $node_ref = $tree->get_node_ref (node => $label);
-                };
-                next LABEL if !$success;
-                # set path to highlighted colour
-              NODE:
-                while ($node_ref) {
-                    my $node_name = $node_ref->get_name;
-                    last NODE if ($coloured_branch{$node_name} // 0) > 1;
-
-                    my $colour_ref = $coloured_branch{$node_name}
-                      ? $dendro_highlight_branch_colours[-1]
-                      : $colour;
-
-                    $dendrogram->highlight_node ($node_ref, $colour_ref);
-
-                    $coloured_branch{$node_name}++;            
-                    $node_ref = $node_ref->get_parent;
-                }
-            }
-        }
+        $self->highlight_paths_on_dendrogram ([$labels1, $labels2]);
     }
     else {
         $self->{dendrogram}->clear_highlights();

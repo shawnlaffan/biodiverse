@@ -1317,28 +1317,24 @@ sub on_grid_hover {
         # dendrogram highlighting from labels.pm
         $self->{dendrogram}->clear_highlights();
 
+        #  does this even trigger now?
         my $group = $element; # is this the same?
         return if ! defined $group;
 
-        my $tree = $self->get_current_tree;
-
         # get labels in the group
         my $bd = $bd_ref;
-        my %labels;
+        my (%labels1, %labels2);
 
-        foreach my $nbr_grp (keys %nbrs_hash_inner, keys %nbrs_hash_outer) {
+        foreach my $nbr_grp (keys %nbrs_hash_inner) {
             my $this_labels = $bd->get_labels_in_group_as_hash(group => $nbr_grp);
-            @labels{keys %$this_labels} = values %$this_labels;
+            @labels1{keys %$this_labels} = values %$this_labels;
+        }
+        foreach my $nbr_grp (keys %nbrs_hash_outer) {
+            my $this_labels = $bd->get_labels_in_group_as_hash(group => $nbr_grp);
+            @labels2{keys %$this_labels} = values %$this_labels;
         }
 
-        # highlight in the tree
-        foreach my $label (keys %labels) {
-            # Might not match some or all nodes
-            eval {
-                my $node_ref = $tree->get_node_ref (node => $label);
-                $self->{dendrogram}->highlight_path($node_ref);
-            }
-        }
+        $self->highlight_paths_on_dendrogram ([\%labels1, \%labels2]);
     }
     else {
         $self->{grid}->mark_if_exists({}, 'circle');
@@ -1347,6 +1343,60 @@ sub on_grid_hover {
         $self->{dendrogram}->clear_highlights();
     }
     
+    return;
+}
+
+
+#  #1F78B4 = blue
+#  #e31a1c = red
+#  #000000 = black
+my @dendro_highlight_branch_colours
+  = map {Gtk2::Gdk::Color->parse($_)} ('#1F78B4', '#e31a1c', '#000000');
+
+sub highlight_paths_on_dendrogram {
+    my $self = shift;
+    my $hashrefs = shift;
+
+    my $tree = $self->get_current_tree;
+
+    # Highlight the branches in the groups on the tree.
+    # Last colour is when branch is in both groups.
+    #my (%coloured_branch, %done);
+    my %done;
+    my @hashrefs   = @$hashrefs;
+    my $dendrogram = $self->{dendrogram};
+
+    foreach my $idx (0, 1) {
+        my $alt_idx = !$idx;
+        my $href   = $hashrefs[$idx];
+        my $colour = $dendro_highlight_branch_colours[$idx];
+        my $node_ref;
+      LABEL:
+        foreach my $label (keys %$href) {
+            # Might not match some or all nodes
+            my $success = eval {
+                $node_ref = $tree->get_node_ref (node => $label);
+            };
+            next LABEL if !$success;
+            # set path to highlighted colour
+          NODE:
+            while ($node_ref) {
+                my $node_name = $node_ref->get_name;
+                last NODE if ($done{$node_name}[$idx] // 0) > 1;
+
+                my $colour_ref = $done{$node_name}[$alt_idx]
+                  ? $dendro_highlight_branch_colours[-1]
+                  : $colour;
+
+                $dendrogram->highlight_node ($node_ref, $colour_ref);
+
+                $done{$node_name}[$idx]++;
+
+                $node_ref = $node_ref->get_parent;
+            }
+        }
+    }
+
     return;
 }
 

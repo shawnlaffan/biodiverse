@@ -621,7 +621,7 @@ sub on_grid_select {
     }
     elsif ($self->{tool} eq 'Zoom') {
         my $grid = $self->{grid};
-        handle_grid_drag_zoom($grid, $rect);
+        $self->handle_grid_drag_zoom($grid, $rect);
     }
 }
 

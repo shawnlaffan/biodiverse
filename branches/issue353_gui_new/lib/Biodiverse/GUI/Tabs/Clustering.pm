@@ -1526,7 +1526,7 @@ sub on_dendrogram_select {
 
     if ($self->{tool} eq 'Zoom') {
         my $grid = $self->{dendrogram};
-        handle_grid_drag_zoom ($grid, $rect);
+        $self->handle_grid_drag_zoom ($grid, $rect);
     }
 
     return;
@@ -1975,7 +1975,7 @@ sub on_grid_select {
 
     if ($self->{tool} eq 'Zoom') {
         my $grid = $self->{grid};
-        handle_grid_drag_zoom ($grid, $rect);
+        $self->handle_grid_drag_zoom ($grid, $rect);
     }
 
     return;

@@ -877,7 +877,7 @@ sub on_grid_select {
     }
     elsif ($self->{tool} eq 'Zoom') {
         my $grid = $self->{grid};
-        handle_grid_drag_zoom ($grid, $rect);
+        $self->handle_grid_drag_zoom ($grid, $rect);
     }
 
     return;
@@ -1012,7 +1012,7 @@ sub on_phylogeny_select {
 
     if ($self->{tool} eq 'Zoom') {
         my $grid = $self->{dendrogram};
-        handle_grid_drag_zoom ($grid, $rect);
+        $self->handle_grid_drag_zoom ($grid, $rect);
     }
 
     return;
@@ -1263,7 +1263,7 @@ sub on_matrix_clicked {
             map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
                 ($v_start, $h_start, $v_end, $h_end)
         ];
-        handle_grid_drag_zoom ($self->{matrix_grid}, $rect);
+        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $rect);
     }
 
     return;

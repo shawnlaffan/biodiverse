@@ -230,9 +230,9 @@ sub set_frame_label_widget {
     $frame->set_label_widget ($widget);
 
     $widget->signal_connect_swapped (
-            clicked => \&on_show_hide_parameters,
-            $self,
-            );
+        clicked => \&on_show_hide_parameters,
+        $self,
+    );
     $widget->set_active (0);
     $widget->set_has_tooltip (1);
     $widget->set_tooltip_text ('show/hide the parameters section');
@@ -491,11 +491,13 @@ sub on_grid_hover {
         # get labels in the hovered and selected groups
         my ($labels1, $labels2);
 
-        $labels1 = $bd_ref->get_labels_in_group_as_hash(group => $group);
+        # hovered group
+        $labels2 = $bd_ref->get_labels_in_group_as_hash(group => $group);
 
+        #  index group
         if (defined $self->{selected_element}) {
             #push @nbr_gps, $self->{selected_element};
-            $labels2 = $bd_ref->get_labels_in_group_as_hash(group => $self->{selected_element});
+            $labels1 = $bd_ref->get_labels_in_group_as_hash(group => $self->{selected_element});
         }
 
         $self->highlight_paths_on_dendrogram ([$labels1, $labels2]);

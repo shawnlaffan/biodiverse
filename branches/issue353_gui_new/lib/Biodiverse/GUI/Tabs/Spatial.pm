@@ -1348,10 +1348,10 @@ sub on_grid_hover {
 
 
 #  #1F78B4 = blue
-#  #e31a1c = red
+#  #E31A1C = red
 #  #000000 = black
 my @dendro_highlight_branch_colours
-  = map {Gtk2::Gdk::Color->parse($_)} ('#1F78B4', '#e31a1c', '#000000');
+  = map {Gtk2::Gdk::Color->parse($_)} ('#1F78B4', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
     my $self = shift;
@@ -1367,9 +1367,9 @@ sub highlight_paths_on_dendrogram {
     my $dendrogram = $self->{dendrogram};
 
     foreach my $idx (0, 1) {
-        my $alt_idx = !$idx;
-        my $href   = $hashrefs[$idx];
-        my $colour = $dendro_highlight_branch_colours[$idx];
+        my $alt_idx = $idx ? 0 : 1;
+        my $href    = $hashrefs[$idx];
+        my $colour  = $dendro_highlight_branch_colours[$idx];
         my $node_ref;
       LABEL:
         foreach my $label (keys %$href) {

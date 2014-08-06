@@ -82,136 +82,135 @@ sub new {
     croak "Only existing outputs can be displayed\n"
       if not defined $groups_ref;
 
-    #else {
-        # We're being called to show an EXISTING output
+    # We're being called to show an EXISTING output
 
-        # Register as a tab for this output
-        $self->register_in_outputs_model($matrix_ref, $self);
-        
-        $elt_count = $groups_ref->get_element_count;
-        $completed = $groups_ref->get_param ('COMPLETED');
-        $completed //= 1;  #  backwards compatibility - old versions did not have this flag
+    # Register as a tab for this output
+    $self->register_in_outputs_model($matrix_ref, $self);
+    
+    $elt_count = $groups_ref->get_element_count;
+    $completed = $groups_ref->get_param ('COMPLETED');
+    $completed //= 1;  #  backwards compatibility - old versions did not have this flag
 
-        my $elements = $groups_ref->get_element_list_sorted;
-        $self->{selected_element} = $elements->[0];
+    my $elements = $groups_ref->get_element_list_sorted;
+    $self->{selected_element} = $elements->[0];
 
-        say "[SpatialMatrix tab] Existing matrix output - "
-            . $self->{output_name}
-            . ". Part of Basedata set - "
-            . ($self->{basedata_ref}->get_param ('NAME') || "no name");
+    say "[SpatialMatrix tab] Existing matrix output - "
+        . $self->{output_name}
+        . ". Part of Basedata set - "
+        . ($self->{basedata_ref}->get_param ('NAME') || "no name");
 
-        $self->queue_set_pane(0.01, 'vpaneSpatial');
-        $self->{existing} = 1;
-#}
+    $self->queue_set_pane(0.01, 'vpaneSpatial');
+    $self->{existing} = 1;
 
-        # Initialise widgets
-        $self->{title_widget} = $self->{xmlPage} ->get_widget('txtSpatialName');
-        $self->{label_widget} = $self->{xmlLabel}->get_widget('lblSpatialName');
 
-        $self->{title_widget}->set_text($self->{output_name} );
-        $self->{label_widget}->set_text($self->{output_name} );
-        $self->set_label_widget_tooltip;
+    # Initialise widgets
+    $self->{title_widget} = $self->{xmlPage} ->get_widget('txtSpatialName');
+    $self->{label_widget} = $self->{xmlLabel}->get_widget('lblSpatialName');
 
-        $self->set_plot_min_max_values;
+    $self->{title_widget}->set_text($self->{output_name} );
+    $self->{label_widget}->set_text($self->{output_name} );
+    $self->set_label_widget_tooltip;
 
-        $self->queue_set_pane(0.5, 'spatial_hpaned');
-        $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
+    $self->set_plot_min_max_values;
 
-        eval {
-            $self->init_grid();
-        };
-        if ($EVAL_ERROR) {
-            $self->{gui}->report_error ($EVAL_ERROR);
-            $self->on_close;
+    $self->queue_set_pane(0.5, 'spatial_hpaned');
+    $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
+
+    eval {
+        $self->init_grid();
+    };
+    if ($EVAL_ERROR) {
+        $self->{gui}->report_error ($EVAL_ERROR);
+        $self->on_close;
+    }
+
+    # Connect signals
+    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
+        clicked => \&on_close, $self
+    );
+    my %widgets_and_signals = (
+        btnSpatialRun  => { clicked => \&on_run },
+        txtSpatialName => { changed => \&on_name_changed },
+        comboIndices   => { changed   => \&on_active_index_changed },
+
+        #  need to refactor common elements with Spatial.pm
+        btnSelectToolSP  => {clicked => \&on_select_tool},
+        btnPanToolSP     => {clicked => \&on_pan_tool},
+        btnZoomToolSP    => {clicked => \&on_zoom_tool},
+        btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
+        btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
+
+        menuitem_spatial_overlays => {activate => \&on_overlays},
+
+        menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
+        menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
+        menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
+    );
+
+    for my $n (0..6) {
+        my $widget_name = "radio_colour_stretch$n";
+        $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
+    }
+
+  WIDGET:
+    foreach my $widget_name (sort keys %widgets_and_signals) {
+        my $args = $widgets_and_signals{$widget_name};
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        if (!$widget) {
+            warn "$widget_name cannot be found\n";
+            next WIDGET;
         }
 
-        # Connect signals
-        $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
-            clicked => \&on_close, $self
+        $widget->signal_connect_swapped(
+            %$args,
+            $self,
         );
-        my %widgets_and_signals = (
-            btnSpatialRun  => { clicked => \&on_run },
-            txtSpatialName => { changed => \&on_name_changed },
-            comboIndices   => { changed   => \&on_active_index_changed },
-
-            #  need to refactor common elements with Spatial.pm
-            btnSelectToolSP  => {clicked => \&on_select_tool},
-            btnPanToolSP     => {clicked => \&on_pan_tool},
-            btnZoomToolSP    => {clicked => \&on_zoom_tool},
-            btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
-            btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
-
-            menuitem_spatial_overlays => {activate => \&on_overlays},
-
-            menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
-            menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
-            menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
-        );
-
-        for my $n (0..6) {
-            my $widget_name = "radio_colour_stretch$n";
-            $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
-        }
-
-      WIDGET:
-        foreach my $widget_name (sort keys %widgets_and_signals) {
-            my $args = $widgets_and_signals{$widget_name};
-            my $widget = $self->{xmlPage}->get_widget($widget_name);
-            if (!$widget) {
-                warn "$widget_name cannot be found\n";
-                next WIDGET;
-            }
-
-            $widget->signal_connect_swapped(
-                %$args,
-                $self,
-            );
-        }
+    }
 
 
-#  do some hiding
-        my @to_hide = qw /
-            comboLists
-            comboNeighbours
-            label_spatial_neighbours_combo
-            frame_spatial_analysis_tree
-            separatortoolitem4
-            btnSpatialRun
-            labelNbrSet1
-            labelNbrSet2
-            labelDefQuery1
-            menuitem_spatial_nbr_highlighting
-        /;
-        foreach my $w_name (@to_hide) {
-            my $w = $self->{xmlPage}->get_widget($w_name);
-            next if !defined $w;
-            $w->hide;
-        }
+    #  do some hiding
+    my @to_hide = qw /
+        comboLists
+        comboNeighbours
+        label_spatial_neighbours_combo
+        frame_spatial_analysis_tree
+        separatortoolitem4
+        btnSpatialRun
+        labelNbrSet1
+        labelNbrSet2
+        labelDefQuery1
+        menuitem_spatial_nbr_highlighting
+    /;
+    foreach my $w_name (@to_hide) {
+        my $w = $self->{xmlPage}->get_widget($w_name);
+        next if !defined $w;
+        $w->hide;
+    }
 
-        $self->init_output_indices_combo();
-        #$self->update_output_indices_menu();
+    $self->init_output_indices_combo();
+    #$self->update_output_indices_menu();
 
-        $self->set_frame_label_widget;
+    $self->set_frame_label_widget;
 
-        $self->{drag_modes} = {
-            Select  => 'select',
-            Pan     => 'pan',
-            Zoom    => 'select',
-            ZoomOut => 'click',
-            ZoomFit => 'click',
-        };
+    $self->{drag_modes} = {
+        Select  => 'select',
+        Pan     => 'pan',
+        Zoom    => 'select',
+        ZoomOut => 'click',
+        ZoomFit => 'click',
+    };
 
-        $self->choose_tool('Select');
-        
-        $self->setup_dendrogram;
+    $self->choose_tool('Select');
+    
+    $self->setup_dendrogram;
 
-        print "[SpatialMatrix tab] - Loaded tab \n";
+    say '[SpatialMatrix tab] - Loaded tab';
 
 
-        #  debug stuff
-        $self->{selected_list} = 'SUBELEMENTS';
+    #  debug stuff
+    $self->{selected_list} = 'SUBELEMENTS';
 
-        return $self;
+    return $self;
 }
 
 

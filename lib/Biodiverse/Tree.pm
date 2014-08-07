@@ -2130,7 +2130,7 @@ sub collapse_tree_below {
             };
         }
         #  still need to ensure they are in the node hash
-        $node->add_children (children => [values %terminals]);  
+        $node->add_children (children => [sort values %terminals]);  
 
         #print "";
     }

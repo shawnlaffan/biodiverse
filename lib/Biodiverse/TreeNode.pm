@@ -10,6 +10,7 @@ use Carp;
 use Scalar::Util qw /weaken isweak blessed reftype/;
 use Data::Dumper qw/Dumper/;
 use List::Util 1.39 qw /min max pairgrep any/;
+use List::MoreUtils qw /uniq/;
 
 use Biodiverse::BaseStruct;
 
@@ -362,19 +363,23 @@ sub add_children {
     croak "TreeNode WARNING: children argument not an array ref\n"
       if reftype ($children) ne 'ARRAY';
     
-    #  remove any duplicates
-    my %children_to_add;
-    @children_to_add{@$children} = @$children;
+    #  Remove any duplicates.
+    #  Could use a hash but we need to retain the insertion order
+    $children = [uniq @$children];
 
+    # need to skip any that already exist
     my $existing_children = $self->get_children;
+    my (%skip, $use_skip);
     if (scalar @$existing_children) {
-        delete @children_to_add{@$existing_children};
+        $use_skip = 1;
+        @skip{@$existing_children} = (1) x @$existing_children;
     }
 
+
   CHILD:  #  use a slice to retain the order in which they were passed
-    foreach my $child (@children_to_add{@$children}) {
-        #  don't re-add our own child - now taken care of above
-        #next CHILD if $self->has_child_aa ($child);  
+    foreach my $child (@$children) {
+        #  don't re-add our own child
+        next CHILD if $use_skip && $skip{$child};
 
         if ($self->is_tree_node_aa($child)) {
             if (defined $child->get_parent) {  #  too many parents - this is a single parent system

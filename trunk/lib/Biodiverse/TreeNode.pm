@@ -7,7 +7,7 @@ no warnings 'recursion';
 use English ( -no_match_vars );
 
 use Carp;
-use Scalar::Util qw /weaken isweak blessed/;
+use Scalar::Util qw /weaken isweak blessed reftype/;
 use Data::Dumper qw/Dumper/;
 use List::Util 1.39 qw /min max pairgrep any/;
 
@@ -41,6 +41,7 @@ sub new {
 
     #  now we loop through and add any specified arguments
     $self->set_length(length => $args{length});
+    $self->set_name(name => $args{name});
 
     if (exists $args{parent}) {
         $self->set_parent(%args);
@@ -50,8 +51,6 @@ sub new {
         $self->add_children(%args);
     }
 
-    $self->set_name(name => $args{name});
-
     return $self;
 }
 
@@ -60,9 +59,6 @@ sub set_value {
     my $self = shift;
     my %args = @_;
     @{$self->{NODE_VALUES}}{keys %args} = values %args;
-    #foreach my $key (keys %args) {
-    #    $self->{NODE_VALUES}{$key} = $args{$key};
-    #}
     
     return;
 }
@@ -360,15 +356,25 @@ sub get_depth_below {  #  gets the deepest depth below the caller in total tree 
 sub add_children {
     my $self = shift;
     my %args = @_;
-    
-    return if ! exists ($args{children});  #  should croak
-    
-    croak "TreeNode WARNING: children argument not an array ref\n"
-      if ref($args{children}) !~ /ARRAY/;
+    my $children = $args{children}
+      // return;  #  should croak
 
-  CHILD:
-    foreach my $child (@{$args{children}}) {
-        next CHILD if $self->has_child_aa ($child);  #  don't re-add our own child
+    croak "TreeNode WARNING: children argument not an array ref\n"
+      if reftype ($children) ne 'ARRAY';
+    
+    #  remove any duplicates
+    my %children_to_add;
+    @children_to_add{@$children} = @$children;
+
+    my $existing_children = $self->get_children;
+    if (scalar @$existing_children) {
+        delete @children_to_add{@$existing_children};
+    }
+
+  CHILD:  #  use a slice to retain the order in which they were passed
+    foreach my $child (@children_to_add{@$children}) {
+        #  don't re-add our own child - now taken care of above
+        #next CHILD if $self->has_child_aa ($child);  
 
         if ($self->is_tree_node_aa($child)) {
             if (defined $child->get_parent) {  #  too many parents - this is a single parent system

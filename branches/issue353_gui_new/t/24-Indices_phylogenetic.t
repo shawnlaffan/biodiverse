@@ -246,8 +246,8 @@ sub get_pe_check_hashes {
         );
         foreach my $idx_whole (sort keys %$scalar_indices_to_check) {
             my $idx_central = $scalar_indices_to_check->{$idx_whole};
-            $sp_res_w{$elt}{$idx_whole} = 0 + sprintf '%.13f', $results_list->{$idx_whole};
-            $sp_res_c{$elt}{$idx_whole} = 0 + sprintf '%.13f', $results_list->{$idx_central};
+            $sp_res_w{$elt}{$idx_whole} = 0 + sprintf '%.12f', $results_list->{$idx_whole};
+            $sp_res_c{$elt}{$idx_whole} = 0 + sprintf '%.12f', $results_list->{$idx_central};
         }
 
         foreach my $idx_whole (sort keys %$list_indices_to_check) {

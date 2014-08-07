@@ -7,9 +7,9 @@ no warnings 'recursion';
 use English ( -no_match_vars );
 
 use Carp;
-use Scalar::Util qw /weaken isweak blessed/;
+use Scalar::Util qw /weaken isweak blessed reftype/;
 use Data::Dumper qw/Dumper/;
-use List::Util 1.39 qw /min max pairgrep sum/;
+use List::Util 1.39 qw /min max pairgrep sum any/;
 
 use Biodiverse::BaseStruct;
 
@@ -41,6 +41,7 @@ sub new {
 
     #  now we loop through and add any specified arguments
     $self->set_length(length => $args{length});
+    $self->set_name(name => $args{name});
 
     if (exists $args{parent}) {
         $self->set_parent(%args);
@@ -50,8 +51,6 @@ sub new {
         $self->add_children(%args);
     }
 
-    $self->set_name(name => $args{name});
-
     return $self;
 }
 
@@ -60,9 +59,6 @@ sub set_value {
     my $self = shift;
     my %args = @_;
     @{$self->{NODE_VALUES}}{keys %args} = values %args;
-    #foreach my $key (keys %args) {
-    #    $self->{NODE_VALUES}{$key} = $args{$key};
-    #}
     
     return;
 }
@@ -384,22 +380,35 @@ sub get_depth_below {  #  gets the deepest depth below the caller in total tree 
 sub add_children {
     my $self = shift;
     my %args = @_;
-    
-    return if ! exists ($args{children});  #  should croak
-    
-    croak "TreeNode WARNING: children argument not an array ref\n"
-      if ref($args{children}) !~ /ARRAY/;
+    my $children = $args{children}
+      // return;  #  should croak
 
-    CHILD:
-    foreach my $child (@{$args{children}}) {
-        next if $self->has_child (node_ref => $child);  #  don't re-add our own child
-        my $is_tree_node = $self->is_tree_node(node => $child);
-        if ($is_tree_node) {
+    croak "TreeNode WARNING: children argument not an array ref\n"
+      if reftype ($children) ne 'ARRAY';
+    
+    #  Remove any duplicates.
+    #  Could use a hash but we need to retain the insertion order
+    $children = [uniq @$children];
+
+    # need to skip any that already exist
+    my $existing_children = $self->get_children;
+    my (%skip, $use_skip);
+    if (scalar @$existing_children) {
+        $use_skip = 1;
+        @skip{@$existing_children} = (1) x @$existing_children;
+    }
+
+
+  CHILD:  #  use a slice to retain the order in which they were passed
+    foreach my $child (@$children) {
+        #  don't re-add our own child
+        next CHILD if $use_skip && $skip{$child};
+
+        if ($self->is_tree_node_aa($child)) {
             if (defined $child->get_parent) {  #  too many parents - this is a single parent system
                 if ($args{warn}) {
-                    say 'TreeNode WARNING: child '
-                        . $self->get_name
-                        . ' already has parent, resetting';
+                    my $name = $self->get_name;
+                    say "TreeNode WARNING: child $name already has a parent, resetting";
                 }
                 $child->get_parent->delete_child (child => $child);
             }
@@ -421,16 +430,23 @@ sub add_children {
 sub has_child {
     my $self = shift;
     my %args = @_;
+
     my $node_ref = $args{node_ref} || croak "missing node_ref argument\n";
 
     my @children = $self->get_children;
 
-    foreach my $child (@children) {
-        return 1 if $child eq $node_ref;
-    }
-
-    return;
+    return any {$_ eq $node_ref} @children;
 }
+
+#  array args variant
+sub has_child_aa {
+    my ($self, $node_ref) = @_;
+
+    my @children = $self->get_children;
+
+    return any {$_ eq $node_ref} @children;
+}
+
 
 #  Remove a child from a list.
 #  The no_delete_cache arg means the caller promises to
@@ -1153,6 +1169,13 @@ sub is_tree_node {
     my $self = shift;
     my %args = @_;
     my $b = blessed $args{node};
+    return if !$b;
+    return $b eq blessed ($self);
+}
+
+sub is_tree_node_aa {
+    my ($self, $node) = @_;
+    my $b = blessed $node;
     return if !$b;
     return $b eq blessed ($self);
 }

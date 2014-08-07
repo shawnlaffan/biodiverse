@@ -7,11 +7,11 @@ use 5.010;
 use Carp;
 use strict;
 use warnings;
-use Data::Dumper;
+#use Data::Dumper;
 #use Devel::Symdump;
-use Scalar::Util;
-#use Scalar::Util qw /looks_like_number/;
-use Time::HiRes qw /tv_interval gettimeofday/;
+#use Scalar::Util;
+use Scalar::Util qw /looks_like_number/;
+#use Time::HiRes qw /tv_interval gettimeofday/;
 use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max/;
 
@@ -214,7 +214,7 @@ sub add_to_node_hash {
     my $node_ref = $args{node_ref};
     my $name = $node_ref->get_name;
 
-    if ($self->exists_node (@_)) {
+    if ($self->exists_node (name => $name)) {
         Biodiverse::Tree::NodeAlreadyExists->throw(
             message => "Node $name already exists in this tree\n",
             name    => $name,
@@ -337,6 +337,23 @@ sub weaken_parent_refs {
     foreach my $node_ref (values %$node_list) {
         $node_ref->weaken_parent_ref;
     }
+}
+
+#  pre-allocate hash buckets for really large node hashes
+#  and thus gain a minor speed improvement in such cases
+sub set_node_hash_key_count {
+    my $self  = shift;
+    my $count = shift;
+
+    croak "Count $count is not numeric" if !looks_like_number $count;
+
+    my $node_hash = $self->get_node_hash;
+
+    #  has no effect if $count is negative or
+    #  smaller than current key count
+    keys %$node_hash = $count;
+
+    return;
 }
 
 sub get_node_count {
@@ -1627,7 +1644,7 @@ sub compare {
 
     my $to_do = max ($self->get_node_count, $comparison->get_node_count);
     my $i = 0;
-    my $last_update = [gettimeofday];
+    #my $last_update = [gettimeofday];
 
   BASE_NODE:
     foreach my $base_node ($self->get_node_refs) {
@@ -2113,7 +2130,7 @@ sub collapse_tree_below {
             };
         }
         #  still need to ensure they are in the node hash
-        $node->add_children (children => [values %terminals]);  
+        $node->add_children (children => [sort values %terminals]);  
 
         #print "";
     }

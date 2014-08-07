@@ -2,6 +2,7 @@ package Biodiverse::Indices::PhylogeneticRelative;
 
 use strict;
 use warnings;
+use List::Util qw /sum/;
 
 use Carp;
 
@@ -170,11 +171,13 @@ sub calc_phylo_rpd2 {
 
     my $tree_ref = $args{TREE_REF_EQUALISED_BRANCHES};
 
-    my $pd_p_score   = $args{PD_P};
-    my $pd_score     = $args{PD};
-    my $included_nodes = $args{PD_INCLUDED_NODE_LIST};
-    my $pd_score_eq_branch_lengths = scalar %$included_nodes;
+    my $pd_p_score     = $args{PD_P};
+    my $pd_score       = $args{PD};
+    my $included_nodes = $args{PD_INCLUDED_NODE_LIST};  #  stores branch lengths
 
+    #  Allow for zero length nodes, as we keep them as zero.
+    #  The grep in scalar context is a fast way of counting the number of non-zero branches.
+    my $pd_score_eq_branch_lengths = grep {$_} values %$included_nodes;
 
     my %results;
     {
@@ -244,7 +247,10 @@ sub calc_phylo_rpe2 {
     my %results;
     {
         foreach my $node (keys %$node_ranges_global) {
-            $pe_null += $node_ranges_local->{$node} / $node_ranges_global->{$node};
+            my $node_ref = $tree_ref->get_node_ref(node => $node);
+            $pe_null += $node_ref->get_length
+                      * $node_ranges_local->{$node}
+                      / $node_ranges_global->{$node};
         }
 
         no warnings qw /numeric uninitialized/;

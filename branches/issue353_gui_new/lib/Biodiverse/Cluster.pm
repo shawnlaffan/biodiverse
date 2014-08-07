@@ -47,6 +47,10 @@ my $mx_class_lowmem  = 'Biodiverse::Matrix::LowMem';
 
 #  use the "new" sub from Tree.
 
+sub get_default_linkage {
+    return $PARAMS{DEFAULT_LINKAGE};
+}
+
 sub get_default_cluster_index {
     return $PARAMS{DEFAULT_CLUSTER_INDEX};
 }
@@ -873,11 +877,6 @@ sub get_most_similar_matrix_value {
     return $matrix->$sub;
 }
 
-sub get_default_linkage {
-    my $self = shift;
-
-    return $PARAMS{DEFAULT_LINKAGE};
-}
 
 sub get_default_objective_function {
     return 'get_min_value';
@@ -913,13 +912,8 @@ sub cluster_matrix_elements {
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
 
-    #  set the option for the linkage rule - default is specified in the object params
-    my $linkage_function = $self->get_param ('LINKAGE_FUNCTION')
-                            || $args{linkage_function}
-                            || $self->get_default_linkage;
-    $self->set_param (LINKAGE_FUNCTION => $linkage_function);
-
     my $objective_function = $self->get_objective_function(%args);
+    my $linkage_function   = $self->get_param ('LINKAGE_FUNCTION');
 
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
@@ -933,6 +927,7 @@ sub cluster_matrix_elements {
     my $max_poss_value = $self->get_param('MAX_POSS_INDEX_VALUE');
 
     my $matrix_count = $self->get_matrix_count;
+
     say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
         ($self->get_matrix_count - 1);
 
@@ -1346,6 +1341,27 @@ sub override_cached_spatial_calculations_arg {
     return $spatial_calculations;
 }
 
+sub setup_linkage_function {
+    my $self = shift;
+    my %args = @_;
+
+    #  set the option for the linkage rule - default is specified in the object params
+    my $linkage_function = $self->get_param ('LINKAGE_FUNCTION')
+                            || $args{linkage_function}
+                            || $self->get_default_linkage;
+
+    my @linkage_functions = $self->get_linkage_functions;
+    my $valid = grep {$linkage_function eq $_} @linkage_functions;
+    
+    my $class = blessed $self;
+    croak "Linkage function $linkage_function is not valid for an object of type $class\n"
+      if !$valid;
+
+    $self->set_param (LINKAGE_FUNCTION => $linkage_function);
+
+    return;
+}
+
 sub run_analysis {
     my $self = shift;
     return $self->cluster(@_);
@@ -1392,6 +1408,9 @@ sub cluster {
 
         return 1;
     }
+    
+    #  check the linkage function is valid
+    $self->setup_linkage_function (%args);
 
     #  make sure we do this before the matrices are built so we fail early if needed
     $self->setup_tie_breaker (%args);
@@ -1609,6 +1628,12 @@ sub cluster {
     #  the root node is the last one we created
     $self->{TREE} = $root_node;
 
+    # clean up elements from no_clone matrices as region growers can have leftovers
+    if ($args{no_clone_matrices}) {
+        foreach my $mx (@{$self->get_matrices_ref}) {
+            $mx->delete_all_elements;
+        }
+    }
     #  clear all our refs to the matrix
     #  it should be empty anyway, since we don't do partial (yet)
     $self->set_param(MATRIX_REF => undef);
@@ -1954,7 +1979,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     croak "one of the nodes not specified\n"
       if ! (defined $node1 and defined $node2 and defined $new_node);
 
-    my $linkage_function = $args{linkage_function} || $PARAMS{DEFAULT_LINKAGE};
+    my $linkage_function = $args{linkage_function} || $self->get_default_linkage;
 
     my $shadow_matrix   = $self->get_shadow_matrix;
     my $matrix_array    = $self->get_matrices_ref;

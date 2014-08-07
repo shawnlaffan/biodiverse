@@ -566,20 +566,18 @@ sub process_zero_length_trees {
     #  now we check if the tree has all zero-length nodes.  Change these to length 1.
   BY_LOADED_TREE:
     foreach my $tree (@trees) {
-        my %nodes = $tree->get_node_hash;
+        my $nodes = $tree->get_node_hash;
         my $len_sum = 0;
 
-        LEN_SUM:
-        foreach my $node (values %nodes) {
-            $len_sum += $node->get_length;
-            last LEN_SUM if $len_sum;  #  drop out if we have a non-zero length
+      LEN_SUM:
+        foreach my $node (values %$nodes) {
+            #  skip this tree if we have a non-zero length
+            next BY_LOADED_TREE if $node->get_length;
         }
 
-        if ($len_sum == 0) {
-            print "[READNEXUS] All nodes are of length zero, converting all to length 1\n";
-            foreach my $node (values %nodes) {
-                $node->set_length (length => 1);
-            }
+        say '[READNEXUS] All nodes are of length zero, converting all to length 1';
+        foreach my $node (values %$nodes) {
+            $node->set_length (length => 1);
         }
     }
 
@@ -621,23 +619,27 @@ sub parse_newick {
     my $node_count      = $args{node_count} // croak 'node_count arg not passed (must be scalar ref)';
     my $translate_hash  = $args{translate_hash}
                         || $self->get_param ('TRANSLATE_HASH');
-    my $element_properties     = $args{element_properties}
-                               || $self->get_param ('ELEMENT_PROPERTIES');
     my $use_element_properties = $self->get_param ('USE_ELEMENT_PROPERTIES');
+    my $element_properties     = $use_element_properties
+      ? ($args{element_properties} || $self->get_param ('ELEMENT_PROPERTIES'))
+      : undef;
+    
 
     my $quote_char = $self->get_param ('QUOTES') || q{'};
     my $csv_obj    = $args{csv_object} // $self->get_csv_object (quote_char => $quote_char);
 
     my ($length, $default_length) = (0, 0);
-    my ($name, $boot_value, $est_node_count,
-        @nodes_added, @children_of_current_node);
+    my ($name, $boot_value, $est_node_count, @nodes_added);
+    my $children_of_current_node = [];
 
     my $progress_bar = $args{progress_bar};
     if (!$progress_bar) {
-        $est_node_count = () = $string =~ /([(,])/g;
+        #$est_node_count = () = $string =~ /([(,])/g;
+        $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /(,/
         #say "Estimated node count is $est_node_count";
-        $progress_bar = Biodiverse::Progress->new ();
         $tree->set_cached_value (ESTIMATED_NODE_COUNT => $est_node_count);
+        $tree->set_node_hash_key_count ($est_node_count);
+        $progress_bar = Biodiverse::Progress->new ();
     }
     else {
         $est_node_count = $tree->get_cached_value ('ESTIMATED_NODE_COUNT');
@@ -671,11 +673,9 @@ sub parse_newick {
             #    #print "hit the end of line\n";
             #}
             #print "Position is " . (pos $string) . " of $str_len\n";
-            if (not defined $name) {
-                $name = $tree->get_free_internal_name (
-                    exclude => $translate_hash,
-                );
-            }
+
+            $name //= $tree->get_free_internal_name (exclude => $translate_hash);
+
             if (exists $translate_hash->{$name}) {
                 $name = $translate_hash->{$name} ;
             }
@@ -689,15 +689,12 @@ sub parse_newick {
             }
 
             if ($use_element_properties) {
-                my $element = $element_properties->get_element_remapped (
-                    element => $name,
-                );
-
-                my $original_name = $name;
+                my $element = $element_properties->get_element_remapped (element => $name);
 
                 if (defined $element) {
+                    my $original_name = $name;
                     $name = $element;
-                    print "$tree_name: Remapped $original_name to $element\n";
+                    say "$tree_name: Remapped $original_name to $element";
                 }
             }
 
@@ -711,15 +708,15 @@ sub parse_newick {
             );
             push @nodes_added, $node;
             #  add any relevant children
-            if (scalar @children_of_current_node) {
-                $node->add_children (children => \@children_of_current_node);
+            if (scalar @$children_of_current_node) {
+                $node->add_children (children => $children_of_current_node);
             }
             #  reset name, length and children
             $$node_count ++;
-            $name = undef;
-            $length = undef;
-            @children_of_current_node = ();
-            $boot_value = undef;
+            $name        = undef;
+            $length      = undef;
+            $boot_value  = undef;
+            $children_of_current_node = [];
         }
 
         #  use positive look-ahead to find if we start with an opening bracket
@@ -732,7 +729,7 @@ sub parse_newick {
                 #print "Eating to closing bracket\n";
                 #print "Position is " . (pos $string) . " of $str_len\n";
                 
-                @children_of_current_node = $self->parse_newick (
+                $children_of_current_node = $self->parse_newick (
                     string         => $sub_newick,
                     tree           => $tree,
                     node_count     => $node_count,
@@ -799,7 +796,6 @@ sub parse_newick {
         }
 
         #  next value is a name, but it can be empty
-        #elsif ($string =~ m/ \G ( [\w\d]* )  /xgcs) {
         #  anything except special chars is fair game
         elsif ($string =~ m/ \G ( [^(),:'\[\]]* )  /xgcs) {  
             #print "found a name value $1\n";
@@ -828,10 +824,10 @@ sub parse_newick {
     
     #  the following is a duplicate of code from above, but converting to a sub uses
     #  almost as many lines as the two blocks combined
-    if (not defined $name) {
-        #print "Tree is $tree";
-        $name = $tree->get_free_internal_name (exclude => $translate_hash);
-    }
+    
+    #print "Tree is $tree";
+    $name //= $tree->get_free_internal_name (exclude => $translate_hash);
+
     if (exists $translate_hash->{$name}) {
         $name = $translate_hash->{$name};
     }
@@ -850,8 +846,8 @@ sub parse_newick {
 
     if ($use_element_properties) {
         my $element = $element_properties->get_element_remapped (element => $name);
-        my $original_name = $name;
         if (defined $element) {
+            my $original_name = $name;
             $name = $element;
             say "$tree_name: Remapped $original_name to $element";
         }
@@ -866,9 +862,12 @@ sub parse_newick {
     );
     
     push @nodes_added, $node;
+
     #  add any relevant children
-    $node->add_children (children => \@children_of_current_node) if scalar @children_of_current_node;
-    
+    if (scalar @$children_of_current_node) {
+        $node->add_children (children => $children_of_current_node);
+    }
+
     return wantarray ? @nodes_added : \@nodes_added;
 }
 

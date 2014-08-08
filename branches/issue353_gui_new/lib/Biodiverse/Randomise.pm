@@ -14,6 +14,7 @@ use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { gettimeofday tv_interval };
 use Scalar::Util qw { blessed };
+use List::Util qw /any/;
 use List::MoreUtils qw /first_index/;
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
 #use MRO::Compat;
@@ -1245,16 +1246,17 @@ sub swap_to_reach_targets {
 
         #  Now add this label to a group that does not already contain it.
         #  Ideally we want to find a group that has not yet
-        #  hit its richness target, but that is unlikely wo we don't look anymore.
+        #  hit its richness target, but that is unlikely so we don't look anymore.
         #  Instead we select one at random.
         #  This also avoids the overhead of sorting and
         #  shuffling lists many times.
-        my @target_groups
-            = sort $new_bd->get_groups_without_label (label => $add_label);
+        my $target_groups_tmp
+            = $new_bd->get_groups_without_label_as_hash (label => $add_label);
+        my @target_groups = sort keys %$target_groups_tmp;
         $i = int $rand->rand(scalar @target_groups);
         my $target_group = $target_groups[$i];
         my $target_gp_richness
-            = $new_bd->get_richness (element => $target_group);
+          = $new_bd->get_richness (element => $target_group);
 
         #  If the target group is at its richness threshold then
         #  we must first remove one label.
@@ -1267,8 +1269,8 @@ sub swap_to_reach_targets {
             #  (Do we want this?)
             my %labels_in_unfilled;
             foreach my $gp (keys %unfilled_groups) {
-                my @list = $new_bd->get_labels_in_group (group => $gp);
-                @labels_in_unfilled{@list} = undef;
+                my $list = $new_bd->get_labels_in_group_as_hash (group => $gp);
+                @labels_in_unfilled{keys %$list} = undef;
             }
 
             #  we will remove one of these labels
@@ -1280,9 +1282,9 @@ sub swap_to_reach_targets {
             delete @loser_labels{keys %labels_in_unfilled};
 
             #  use the lot if all labels are in the unfilled groups
-            my $loser_labels_hash_to_use = ! scalar keys %loser_labels
-                                            ? \%loser_labels2
-                                            : \%loser_labels;
+            my $loser_labels_hash_to_use = scalar keys %loser_labels
+                                            ? \%loser_labels
+                                            : \%loser_labels2;
 
             my $loser_labels_array
                 = $rand->shuffle ([sort keys %$loser_labels_hash_to_use]);
@@ -1296,16 +1298,19 @@ sub swap_to_reach_targets {
             my $removed_count = $loser_labels_hash_to_use->{$remove_label};
             my $swap_to_unfilled = undef;
 
-            BY_LOSER_LABEL:
+          BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
                 #  find those unfilled groups without this label
-                my %check_hash = $new_bd->get_groups_without_label_as_hash (
+                #  $check_hash is a copy, so can treat with impunity
+                my $check_hash = $new_bd->get_groups_without_label_as_hash (
                     label => $label,
                 );
 
-                delete @check_hash{keys %filled_groups};
+                #  profiling suggests List::Util::any is not meaningfully
+                #  faster than slice deletion
+                delete @$check_hash{keys %filled_groups};
 
-                if (scalar keys %check_hash) {
+                if (scalar keys %$check_hash) {
                     $remove_label  = $label;
                     $removed_count = $loser_labels_hash_to_use->{$remove_label};
                     $swap_to_unfilled = $label;
@@ -1358,7 +1363,7 @@ sub swap_to_reach_targets {
                 delete @unfilled_tmp{@$gps_with_label};
 
                 croak "ISSUES WITH RETURN GROUPS\n"
-                    if (scalar keys %unfilled_tmp == 0);
+                  if !scalar keys %unfilled_tmp;
 
                 #  and get one of them at random
                 $i = int $rand->rand (scalar keys %unfilled_tmp);
@@ -1388,8 +1393,8 @@ sub swap_to_reach_targets {
 
             $swap_count ++;
 
-            if (($swap_count % 500) == 0) {
-                print "Swap count $swap_count\n";
+            if (!($swap_count % 500)) {
+                say "Swap count $swap_count";
             }
         }
 

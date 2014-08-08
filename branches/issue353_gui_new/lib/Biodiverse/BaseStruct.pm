@@ -2418,16 +2418,14 @@ sub get_sub_element_list {
     my $self = shift;
     my %args = @_;
 
+    no autovivification;
+
     my $element = $args{element} // croak "argument 'element' not specified\n";
 
-    my $el_hash = $self->{ELEMENTS};
+    my $el_hash = $self->{ELEMENTS}{$element}{SUBELEMENTS}
+      // return;
 
-    return if ! exists $el_hash->{$element};
-    return if ! exists $el_hash->{$element}{SUBELEMENTS};
-
-    return wantarray
-        ?  keys %{$el_hash->{$element}{SUBELEMENTS}}
-        : [keys %{$el_hash->{$element}{SUBELEMENTS}}];
+    return wantarray ?  keys %$el_hash : [keys %$el_hash];
 }
 
 sub get_sub_element_hash {

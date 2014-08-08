@@ -2831,23 +2831,24 @@ sub get_range_union {
     my $self = shift;
     my %args = @_;
 
-    my $labels = $args{labels};
-    my $lref = ref $labels;
+    my $labels = $args{labels} // croak "argument labels not specified\n";
 
-    croak "argument labels not specified\n" if not $labels;
+    my $lref = reftype $labels;
+
     croak "argument labels not an array or hash ref"
-      if not $lref =~ /ARRAY|HASH/;
+      if not $lref =~ /^(?:ARRAY|HASH)/;
 
-    if ($lref =~ /HASH/) {
+    if ($lref eq 'HASH') {
         $labels = [keys %$labels];
     }
 
     #  now loop through the labels and get the elements they occur in
     my %shared_elements;
+  LABEL:
     foreach my $label (@$labels) {
         next if not $self->exists_label (label => $label);  #  skip if it does not exist
         my $elements_now = $self->get_groups_with_label_as_hash (label => $label);
-        next if (scalar keys %$elements_now) == 0;  #  empty hash - must be no groups with this label
+        next LABEL if !scalar keys %$elements_now;  #  empty hash - must be no groups with this label
         #  add these elements as a hash slice
         @shared_elements{keys %$elements_now} = values %$elements_now;
     }
@@ -2921,12 +2922,13 @@ sub get_groups_without_label_as_hash {
     my %args = @_;
 
     croak "Label not specified\n"
-        if ! defined $args{label};
+      if ! defined $args{label};
 
     my $label_gps = $self->get_labels_ref->get_sub_element_hash (element => $args{label});
 
-    my %groups = $self->get_groups_ref->get_element_hash;  #  make a copy
+    my $gps = $self->get_groups_ref->get_element_hash;
 
+    my %groups = %$gps;  #  make a copy
     delete @groups{keys %$label_gps};
 
     return wantarray ? %groups : \%groups;

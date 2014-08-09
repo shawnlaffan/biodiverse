@@ -1182,6 +1182,17 @@ sub swap_to_reach_targets {
 
     my $swap_count = 0;
     my $last_filled = $EMPTY_STRING;
+    
+    #  Track the labels in the unfilled groups.
+    #  This avoids collating them every iteration.
+    my %labels_in_unfilled_gps;
+    foreach my $gp (keys %unfilled_groups) {
+        my $list = $new_bd->get_labels_in_group_as_hash (group => $gp);
+        foreach my $label (keys %$list) {
+            $labels_in_unfilled_gps{$label}++;
+        }
+    }
+    my @labels_in_unfilled_a = sort keys %labels_in_unfilled_gps;
 
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
@@ -1270,8 +1281,45 @@ sub swap_to_reach_targets {
             my %labels_in_unfilled;
             foreach my $gp (keys %unfilled_groups) {
                 my $list = $new_bd->get_labels_in_group_as_hash (group => $gp);
-                @labels_in_unfilled{keys %$list} = undef;
+                #@labels_in_unfilled{keys %$list} = undef;
+                foreach my $lb (keys %$list) {
+                    $labels_in_unfilled{$lb} ++;
+                }
             }
+
+            #  debug:
+            #  check that %labels_in_unfilled is the same as %labels_in_unfilled_gps
+            do {
+                my $c1 = scalar keys %labels_in_unfilled;
+                my $c2 = scalar keys %labels_in_unfilled_gps;
+                my $x = $c1 == $c2;
+                my $e;
+                my %missing;
+                if (1) {
+                    my %combined = (%labels_in_unfilled_gps, %labels_in_unfilled);
+                    no autovivification;
+                    foreach my $lb (keys %combined) {
+                        my $e1 = exists $labels_in_unfilled{$lb}
+                              && exists $labels_in_unfilled_gps{$lb};
+                        if ($e1) {
+                            $e++;
+                        }
+                        else {
+                            no warnings 'uninitialized';
+                            $missing{$lb} = "$labels_in_unfilled{$lb} : $labels_in_unfilled_gps{$lb}";
+                        }
+                    }
+                    #$x = $e == scalar keys %combined;
+                    $x = !scalar keys %missing;
+                }
+                if (!$x) {
+                    die 'Mismatch: ' . join ' ', %missing;
+                    print '';
+                }
+                #else {
+                #    say 'No mismatch';
+                #}
+            };
 
             #  we will remove one of these labels
             my %loser_labels = $new_bd->get_labels_in_group_as_hash (
@@ -1296,7 +1344,7 @@ sub swap_to_reach_targets {
             #  set some defaults
             my $remove_label  = $loser_labels_array->[0];
             my $removed_count = $loser_labels_hash_to_use->{$remove_label};
-            my $swap_to_unfilled = undef;
+            my $swap_to_unfilled;
 
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
@@ -1313,7 +1361,7 @@ sub swap_to_reach_targets {
                 if (scalar keys %$check_hash) {
                     $remove_label  = $label;
                     $removed_count = $loser_labels_hash_to_use->{$remove_label};
-                    $swap_to_unfilled = $label;
+                    $swap_to_unfilled = 1;
                     last BY_LOSER_LABEL;
                 }
             }
@@ -1325,6 +1373,7 @@ sub swap_to_reach_targets {
             );
 
             if (! $swap_to_unfilled) {
+                #say ":: Swap to unfilled $remove_label";
                 #  We can't swap it, so put it back into the
                 #  unallocated lists.
                 #  Use one of its old locations.
@@ -1342,7 +1391,7 @@ sub swap_to_reach_targets {
                 #  make sure it does not add to an existing case
                 delete @old_groups{@cloned_self_gps_with_label}; 
                 my @old_gps = sort keys %old_groups;
-                my $old_gp = shift @old_gps;
+                my $old_gp = $old_gps[0];
                 $cloned_bd->add_element   (
                     label => $remove_label,
                     group => $old_gp,
@@ -1384,10 +1433,26 @@ sub swap_to_reach_targets {
                 warn "ISSUES WITH RETURN $return_gp\n"
                     if $new_richness > $target_richness{$return_gp};
 
+                $labels_in_unfilled_gps{$remove_label}++;
+
+                #  we are now filled, update the tracking hashes
                 if ($new_richness >= $target_richness{$return_gp}) {
-                    $filled_groups{$return_gp} = $new_richness;
-                    delete $unfilled_groups{$return_gp};  #  no effect if it's not in the list
                     $last_filled = $return_gp;
+                    #  clean up the tracker hashes
+                    $filled_groups{$last_filled} = $new_richness;
+                    delete $unfilled_groups{$last_filled};
+                  LB:
+                    foreach my $label ($new_bd->get_labels_in_group (group => $last_filled)) {
+                        no autovivification;
+                        #  don't decrement empties
+                        next LB if !$labels_in_unfilled_gps{$label};
+                        $labels_in_unfilled_gps{$label}--;
+                        if (!$labels_in_unfilled_gps{$label}) {
+                            delete $labels_in_unfilled_gps{$label};
+                            #say "== Deleted $label";
+                        }
+                        #else {say "-- Decremented $label"}
+                    }
                 }
             }
 

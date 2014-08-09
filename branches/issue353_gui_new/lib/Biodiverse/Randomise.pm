@@ -561,7 +561,7 @@ sub run_randomisation {
     $self->store_rand_state (rand_object => $rand_object);
 
     #  return the rand_bd's if told to
-    return wantarray ? @rand_bd_array : \@rand_bd_array
+    return (wantarray ? @rand_bd_array : \@rand_bd_array)
       if $args{return_rand_bd_array};
     
     #  return 1 if successful and ran some iterations
@@ -1184,20 +1184,20 @@ sub swap_to_reach_targets {
     my $last_filled = $EMPTY_STRING;
 
     #  keep going until we've reached the fill threshold for each group
-    BY_UNFILLED_GP:
+  BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
 
-        my $precision = '%8d';
-        my $fmt = "Total gps:\t\t\t$precision\n"
-                    . "Unfilled groups:\t\t$precision\n"
-                    . "Filled groups:\t\t$precision\n"
-                    . "Labels to assign:\t\t$precision\n"
-                    . "Old gps to empty:\t$precision\n"
-                    . "Swap count:\t\t\t$precision\n"
-                    . "Last group filled: %s\n";
+        my $p = '%8d';
+        my $fmt = "Total gps:\t\t\t$p\n"
+                . "Unfilled groups:\t\t$p\n"
+                . "Filled groups:\t\t$p\n"
+                . "Labels to assign:\t\t$p\n"
+                . "Old gps to empty:\t$p\n"
+                . "Swap count:\t\t\t$p\n"
+                . "Last group filled: %s\n";
         my $check_text
             = sprintf $fmt,
                 $total_to_do,
@@ -1419,10 +1419,9 @@ sub swap_to_reach_targets {
             delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
             $last_filled = $target_group;
         }
-
     }
 
-    print "[Randomise structured] Final swap count is $swap_count\n";
+    say "[Randomise structured] Final swap count is $swap_count";
 
     return;
 }

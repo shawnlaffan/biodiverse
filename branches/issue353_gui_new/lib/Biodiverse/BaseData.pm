@@ -2902,9 +2902,7 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
     #  now we delete those keys we don't want.  Twisted, but should work.
     delete @results{keys %sub_results};
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 #  get the complement of the labels in a group

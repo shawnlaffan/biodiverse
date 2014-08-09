@@ -107,7 +107,7 @@ elsif ($time_taken > 60) {
     $time_taken /= 60;
 }
 $time_taken = 0 + sprintf "%.3f", $time_taken;
-printf "Time taken:  %s %s\n", $time_taken, $units;
+printf "Time taken: %s %s\n", $time_taken, $units;
 
 
 croak "Analysis not successful\n"

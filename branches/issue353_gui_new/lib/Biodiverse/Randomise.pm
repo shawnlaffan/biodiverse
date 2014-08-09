@@ -1277,49 +1277,6 @@ sub swap_to_reach_targets {
         if ($target_gp_richness >= $target_richness{$target_group})  {
             #  candidates to swap out are ideally
             #  those not in the unfilled groups
-            #  (Do we want this?)
-            my %labels_in_unfilled;
-            foreach my $gp (keys %unfilled_groups) {
-                my $list = $new_bd->get_labels_in_group_as_hash (group => $gp);
-                #@labels_in_unfilled{keys %$list} = undef;
-                foreach my $lb (keys %$list) {
-                    $labels_in_unfilled{$lb} ++;
-                }
-            }
-
-            #  debug:
-            #  check that %labels_in_unfilled is the same as %labels_in_unfilled_gps
-            do {
-                my $c1 = scalar keys %labels_in_unfilled;
-                my $c2 = scalar keys %labels_in_unfilled_gps;
-                my $x = $c1 == $c2;
-                my $e;
-                my %missing;
-                if (1) {
-                    my %combined = (%labels_in_unfilled_gps, %labels_in_unfilled);
-                    no autovivification;
-                    foreach my $lb (keys %combined) {
-                        my $e1 = exists $labels_in_unfilled{$lb}
-                              && exists $labels_in_unfilled_gps{$lb};
-                        if ($e1) {
-                            $e++;
-                        }
-                        else {
-                            no warnings 'uninitialized';
-                            $missing{$lb} = "$labels_in_unfilled{$lb} : $labels_in_unfilled_gps{$lb}";
-                        }
-                    }
-                    #$x = $e == scalar keys %combined;
-                    $x = !scalar keys %missing;
-                }
-                if (!$x) {
-                    die 'Mismatch: ' . join ' ', %missing;
-                    print '';
-                }
-                #else {
-                #    say 'No mismatch';
-                #}
-            };
 
             #  we will remove one of these labels
             my %loser_labels = $new_bd->get_labels_in_group_as_hash (
@@ -1327,7 +1284,7 @@ sub swap_to_reach_targets {
             );
             my %loser_labels2 = %loser_labels;  #  keep a copy
             #  get those not in the unfilled groups
-            delete @loser_labels{keys %labels_in_unfilled};
+            delete @loser_labels{keys %labels_in_unfilled_gps};
 
             #  use the lot if all labels are in the unfilled groups
             my $loser_labels_hash_to_use = scalar keys %loser_labels

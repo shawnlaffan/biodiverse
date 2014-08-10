@@ -1192,7 +1192,10 @@ sub swap_to_reach_targets {
             $labels_in_unfilled_gps{$label}++;
         }
     }
-    my @labels_in_unfilled_a = sort keys %labels_in_unfilled_gps;
+
+    #  Track which groups don't have labels to avoid repeated and
+    # expensive method calls to get_groups_without_label_as_hash
+    my %groups_without_labels;
 
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
@@ -1261,8 +1264,14 @@ sub swap_to_reach_targets {
         #  Instead we select one at random.
         #  This also avoids the overhead of sorting and
         #  shuffling lists many times.
-        my $target_groups_tmp
-            = $new_bd->get_groups_without_label_as_hash (label => $add_label);
+
+        my $target_groups_tmp = $groups_without_labels{$add_label};
+        if (!$target_groups_tmp || !scalar keys %$target_groups_tmp) {
+            $target_groups_tmp = $new_bd->get_groups_without_label_as_hash (label => $add_label);
+            $groups_without_labels{$add_label} = $target_groups_tmp;
+        };
+        #my $target_groups_tmp
+        #    = $new_bd->get_groups_without_label_as_hash (label => $add_label);
         my @target_groups = sort keys %$target_groups_tmp;
         $i = int $rand->rand(scalar @target_groups);
         my $target_group = $target_groups[$i];
@@ -1305,12 +1314,10 @@ sub swap_to_reach_targets {
 
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
-                #  find those unfilled groups without this label
-
-                my $check1 = grep  #  unfilled groups without $label
+                #  do we have any unfilled groups without this label?
+                my $check1 = grep
                     {!$new_bd->exists_label_in_group(label => $label, group => $_)}
                     keys %unfilled_groups;
-                #my $check1 = (scalar @check) ? 1 : 0;
 
                 if ($check1) {
                     $remove_label  = $label;
@@ -1325,6 +1332,11 @@ sub swap_to_reach_targets {
                 label => $remove_label,
                 group => $target_group,
             );
+            #  track the removal only if the tracker hash includes $remove_label
+            #  else it will get it next time it needs it
+            if (exists $groups_without_labels{$remove_label}) {
+                $groups_without_labels{$remove_label}{$target_group} = 1;
+            }
 
             if (! $swap_to_unfilled) {
                 #say ":: Swap to unfilled $remove_label";
@@ -1388,6 +1400,10 @@ sub swap_to_reach_targets {
                     if $new_richness > $target_richness{$return_gp};
 
                 $labels_in_unfilled_gps{$remove_label}++;
+                delete $groups_without_labels{$remove_label}{$return_gp};
+                if (!scalar keys %{$groups_without_labels{$remove_label}}) {
+                    delete $groups_without_labels{$remove_label};
+                }
 
                 #  we are now filled, update the tracking hashes
                 if ($new_richness >= $target_richness{$return_gp}) {
@@ -1425,6 +1441,10 @@ sub swap_to_reach_targets {
             count => $add_count,
             csv_object => $csv_object,
         );
+        delete $groups_without_labels{$add_label}{$target_group};
+        if (!scalar keys %{$groups_without_labels{$add_label}}) {
+            delete $groups_without_labels{$add_label};
+        }
 
         #  check if we've filled this group, if nothing was swapped out
         my $new_richness = $new_bd->get_richness (element => $target_group);

@@ -84,7 +84,7 @@ sub test_rand_structured_richness_same {
 
     subtest 'richness scores match' => sub {
         foreach my $rand_bd (@$rand_bd_array) {
-            foreach my $group ($rand_bd->get_groups) {
+            foreach my $group (sort $rand_bd->get_groups) {
                 is ($rand_bd->get_richness (element => $group),
                     $bd->get_richness(element => $group),
                     "richness for $group matches",

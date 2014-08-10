@@ -1234,7 +1234,7 @@ sub swap_to_reach_targets {
         if ($target_label_count == 0) {
             #  we ran out of labels before richness criterion is met,
             #  eg if multiplier is >1.
-            say "[Randomise structured] No more Labels to assign";
+            say "[Randomise structured] No more labels to assign";
             last BY_UNFILLED_GP;  
         }
 
@@ -1270,11 +1270,13 @@ sub swap_to_reach_targets {
             $target_groups_tmp = $new_bd->get_groups_without_label_as_hash (label => $add_label);
             $groups_without_labels{$add_label} = $target_groups_tmp;
         };
-        #my $target_groups_tmp
-        #    = $new_bd->get_groups_without_label_as_hash (label => $add_label);
+        #  Now sort them for repeatability
+        #  We could cache the sort results but the target keys change nearly
+        #  every iteration $add_label is used so the difference is meaningless
         my @target_groups = sort keys %$target_groups_tmp;
         $i = int $rand->rand(scalar @target_groups);
         my $target_group = $target_groups[$i];
+
         my $target_gp_richness
           = $new_bd->get_richness (element => $target_group);
 
@@ -1315,11 +1317,13 @@ sub swap_to_reach_targets {
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
                 #  do we have any unfilled groups without this label?
-                my $check1 = grep
-                    {!$new_bd->exists_label_in_group(label => $label, group => $_)}
-                    keys %unfilled_groups;
+                #  Could use %groups_without_labels but it only caches what has been seen so far
+                #  and often that does not apply to $label here
+              UGROUP:
+                foreach my $group (keys %unfilled_groups) {
+                    next UGROUP
+                      if $new_bd->exists_label_in_group(label => $label, group => $group);
 
-                if ($check1) {
                     $remove_label  = $label;
                     $removed_count = $loser_labels_hash_to_use->{$remove_label};
                     $swap_to_unfilled = 1;

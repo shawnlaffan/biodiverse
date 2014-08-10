@@ -100,7 +100,7 @@ sub test_labels_in_groups {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
 
     subtest 'No overlap between groups_with_label and groups_without_label' => sub {
-        foreach my $label ($bd->get_labels) {
+        foreach my $label (sort $bd->get_labels) {
             my $groups_with_label    = $bd->get_groups_with_label_as_hash (label => $label);
             my $groups_without_label = $bd->get_groups_without_label_as_hash (label => $label);
             my $overlap = grep {exists $groups_with_label->{$_}} sort keys %$groups_without_label;

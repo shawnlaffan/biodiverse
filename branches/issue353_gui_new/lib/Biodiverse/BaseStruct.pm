@@ -2680,7 +2680,7 @@ sub exists_element {
 sub exists_sub_element {
     my $self = shift;
 
-    return if ! $self->exists_element (@_);  #  no point going further if element doesn't exist
+    #return if ! $self->exists_element (@_);  #  no point going further if element doesn't exist
 
     my %args = @_;
 
@@ -2692,7 +2692,7 @@ sub exists_sub_element {
       // croak "Argument 'subelement' not specified\n";
 
     no autovivification;
-    return exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};
+    exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};
 }
 
 sub add_values {  #  add a set of values and their keys to a list in $element

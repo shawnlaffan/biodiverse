@@ -3011,7 +3011,7 @@ sub exists_label_in_group {
     my %args = @_;
 
     my $groups_ref = $self->get_groups_ref;
-    return $groups_ref->exists_sub_element (element => $args{group}, subelement => $args{label});
+    $groups_ref->exists_sub_element (element => $args{group}, subelement => $args{label});
 }
 
 sub exists_group_with_label {
@@ -3019,7 +3019,7 @@ sub exists_group_with_label {
     my %args = @_;
 
     my $labels_ref = $self->get_labels_ref;
-    return $labels_ref->exists_sub_element (element => $args{label}, subelement => $args{group});
+    $labels_ref->exists_sub_element (element => $args{label}, subelement => $args{group});
 }
 
 sub write_table {  #  still needed?

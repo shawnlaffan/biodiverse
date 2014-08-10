@@ -1306,31 +1306,12 @@ sub swap_to_reach_targets {
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
                 #  find those unfilled groups without this label
-                #  $check_hash is a copy, so can treat with impunity
-                #my $check_hash = $new_bd->get_groups_without_label_as_hash (
-                #    label => $label,
-                #);
 
-                #my $cng = $new_bd->get_group_count;
-                #my $cnf = scalar keys %filled_groups;
-                #my $cnu = scalar keys %unfilled_groups;
-                #my $cnc = scalar keys %$check_hash;
-                my @check  = sort grep  #  unfilled groups without $label
+                my $check1 = grep  #  unfilled groups without $label
                     {!$new_bd->exists_label_in_group(label => $label, group => $_)}
                     keys %unfilled_groups;
-                my $check1 = (scalar @check) ? 1 : 0;
-                #my %check_hashf = %$check_hash;
+                #my $check1 = (scalar @check) ? 1 : 0;
 
-                #  profiling suggests List::Util::any is not meaningfully
-                #  faster than slice deletion
-                #delete @$check_hash{keys %filled_groups};
-                #my $check_hashu = \%unfilled_groups;
-
-                #my $check2 = (scalar keys %$check_hash) ? 1 : 0;
-                #my $check3 = (scalar @check == scalar keys %unfilled_groups) ? 0 : 1;
-                #my $check4 = (scalar @check == scalar keys %$check_hash) ? 0 : 1;
-
-                #if (scalar keys %$check_hash) {
                 if ($check1) {
                     $remove_label  = $label;
                     $removed_count = $loser_labels_hash_to_use->{$remove_label};

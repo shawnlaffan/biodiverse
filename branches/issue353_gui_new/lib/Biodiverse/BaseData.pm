@@ -2627,7 +2627,7 @@ sub delete_group {
 
 
 #  delete all occurrences of this label (or group) from the LABELS and GROUPS sub hashes
-sub delete_element {  
+sub delete_element {
     my $self = shift;
     my %args = @_;
 
@@ -2707,13 +2707,13 @@ sub delete_sub_element {
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
     my $delete_empty_lbs = $args{delete_empty_labels} // 1;
     
-    if ($delete_empty_gps && $groups_ref->get_variety (element => $group) == 0) {
+    if ($delete_empty_gps && !$groups_ref->get_variety (element => $group)) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($delete_empty_lbs && $labels_ref->get_variety (element => $label) == 0) {
+    if ($delete_empty_lbs && !$labels_ref->get_variety (element => $label)) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,
@@ -2994,7 +2994,7 @@ sub exists_group {
     my $self = shift;
     my %args = @_;
     return $self->get_groups_ref->exists_element (
-        element => defined $args{group} ? $args{group} : $args{element}
+        element => ($args{group} // $args{element})
     );
 }
 
@@ -3002,8 +3002,24 @@ sub exists_label {
     my $self = shift;
     my %args = @_;
     return $self->get_labels_ref->exists_element (
-        element => defined $args{label} ? $args{label} : $args{element}
+        element => ($args{label} // $args{element})
     );
+}
+
+sub exists_label_in_group {
+    my $self = shift;
+    my %args = @_;
+
+    my $groups_ref = $self->get_groups_ref;
+    return $groups_ref->exists_sub_element (element => $args{group}, subelement => $args{label});
+}
+
+sub exists_group_with_label {
+    my $self = shift;
+    my %args = @_;
+
+    my $labels_ref = $self->get_labels_ref;
+    return $labels_ref->exists_sub_element (element => $args{label}, subelement => $args{group});
 }
 
 sub write_table {  #  still needed?

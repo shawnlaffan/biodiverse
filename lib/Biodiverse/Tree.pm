@@ -509,6 +509,16 @@ sub get_terminal_node_refs {
 
 sub get_root_nodes {  #  if there are several root nodes
     my $self = shift;
+    my %args = @_;
+    
+    my $cache = $args{cache} // 1;
+
+    if ($cache) {
+        if (my $cached_root_nodes = $self->get_cached_value ('ROOT_NODE_HASH')) {
+            return wantarray ? %$cached_root_nodes : $cached_root_nodes;
+        }
+    }
+
     my %node_list;
     my $node_hash = $self->get_node_hash;
 
@@ -519,6 +529,10 @@ sub get_root_nodes {  #  if there are several root nodes
         }
     }
 
+    if ($cache) {
+        $self->set_cached_value (ROOT_NODE_HASH => \%node_list);
+    }
+    
     return wantarray ? %node_list : \%node_list;
 }
 

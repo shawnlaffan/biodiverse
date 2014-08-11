@@ -32,6 +32,9 @@ These also assume you have [http://code.google.com/p/biodiverse/downloads/list d
   #  skip this if you already have cpanm installed
   cpan App::cpanminus
 
+  #  This is not yet in the Task files on CPAN
+  cpanm List::BinarySearch
+
   # YAML::Syck has installation failures at v1.27 
   cpanm YAML::Syck@1.23
 

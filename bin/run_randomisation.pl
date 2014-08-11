@@ -10,6 +10,7 @@ use Carp;
 use English qw { -no_match_vars };
 use Path::Class;
 use Scalar::Util qw /blessed/;
+use Time::HiRes qw /gettimeofday tv_interval time/;
 
 use rlib;
 
@@ -81,6 +82,8 @@ my $rand = $bd->get_randomisation_output_ref (name => $rand_name)
 
 $iterations //= 10;
 
+my $time = time();
+
 my $success = eval {
     $rand->run_analysis (
         save_checkpoint => 99,
@@ -92,6 +95,19 @@ if ($EVAL_ERROR) {
     report_error ($EVAL_ERROR);
     exit;
 }
+
+my $time_taken = time() - $time;
+my $units = 'seconds';
+if ($time_taken > 3600) {
+    $units = 'hours';
+    $time_taken /= 3600;
+}
+elsif ($time_taken > 60) {
+    $units = 'minutes';
+    $time_taken /= 60;
+}
+$time_taken = 0 + sprintf "%.3f", $time_taken;
+printf "Time taken: %s %s\n", $time_taken, $units;
 
 
 croak "Analysis not successful\n"

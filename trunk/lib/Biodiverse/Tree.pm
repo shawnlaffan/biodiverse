@@ -304,7 +304,7 @@ sub get_terminal_element_count {
         $node_ref = $self->get_node_ref(node => $node);
     }
     else {
-        $node_ref = $self->get_root_node;
+        $node_ref = $self->get_tree_ref;
     }
 
     #  follow logic of get_terminal_elements, which returns a hash of
@@ -507,17 +507,10 @@ sub get_terminal_node_refs {
     return wantarray ? @node_list : \@node_list;
 }
 
+#  don't cache these results as they can change as clusters are built
 sub get_root_nodes {  #  if there are several root nodes
     my $self = shift;
     my %args = @_;
-    
-    my $cache = $args{cache} // 1;
-
-    if ($cache) {
-        if (my $cached_root_nodes = $self->get_cached_value ('ROOT_NODE_HASH')) {
-            return wantarray ? %$cached_root_nodes : $cached_root_nodes;
-        }
-    }
 
     my %node_list;
     my $node_hash = $self->get_node_hash;
@@ -527,10 +520,6 @@ sub get_root_nodes {  #  if there are several root nodes
         if ($node_ref->is_root_node) {
             $node_list{$node_ref->get_name} = $node_ref ;
         }
-    }
-
-    if ($cache) {
-        $self->set_cached_value (ROOT_NODE_HASH => \%node_list);
     }
     
     return wantarray ? %node_list : \%node_list;
@@ -552,6 +541,9 @@ sub get_root_node {
 
     my @refs = values %root_nodes;
     my $root_node_ref = $refs[0];
+
+    croak $root_node_ref->get_name . " is not a root node!\n"
+      if !$root_node_ref->is_root_node;
 
     return wantarray ? %root_nodes : $root_node_ref;
 }

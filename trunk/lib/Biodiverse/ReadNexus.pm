@@ -636,6 +636,7 @@ sub parse_newick {
     if (!$progress_bar) {
         #$est_node_count = () = $string =~ /([(,])/g;
         $est_node_count = $string =~ tr/,(//;  #  tr shortcuts to count items matching /(,/
+        $est_node_count ||= 1;
         #say "Estimated node count is $est_node_count";
         $tree->set_cached_value (ESTIMATED_NODE_COUNT => $est_node_count);
         $tree->set_node_hash_key_count ($est_node_count);

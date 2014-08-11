@@ -1197,8 +1197,7 @@ sub swap_to_reach_targets {
 
     #  Track which groups don't have labels to avoid repeated and
     # expensive method calls to get_groups_without_label_as_hash
-    my %groups_without_labels;
-    my %groups_without_labels_a;  #  sorted array variant
+    my %groups_without_labels_a;  #  stores sorted arrays
 
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
@@ -1268,35 +1267,14 @@ sub swap_to_reach_targets {
         #  This also avoids the overhead of sorting and
         #  shuffling lists many times.
 
-        my $target_groups_tmp   = $groups_without_labels{$add_label};
         my $target_groups_tmp_a = $groups_without_labels_a{$add_label};
-        if (!$target_groups_tmp || !scalar keys %$target_groups_tmp) {
-            $target_groups_tmp = $new_bd->get_groups_without_label_as_hash (label => $add_label);
-            $groups_without_labels{$add_label} = $target_groups_tmp;
+        if (!$target_groups_tmp_a || !scalar @$target_groups_tmp_a) {
+            my $target_groups_tmp = $new_bd->get_groups_without_label_as_hash (label => $add_label);
             $target_groups_tmp_a = $groups_without_labels_a{$add_label} = [sort keys %$target_groups_tmp];
         };
-        #  Now sort them for repeatability
-        #  We could cache the sort results but the target keys change nearly
-        #  every iteration $add_label is used so the difference is meaningless
-        #my @target_groups = sort keys %$target_groups_tmp;
-        #$i = int $rand->rand(scalar @target_groups);
-        #my $target_group = $target_groups[$i];
+        #  cache maintains a sorted list, so no need to re-sort.  
         $i = int $rand->rand(scalar @$target_groups_tmp_a);
         my $target_group = $target_groups_tmp_a->[$i];
-
-        #my $xx = $target_groups_tmp_a->[$i];
-        #my $check1 = $target_group ne $xx;
-        #my $check2;
-        #foreach my $tgi (0 .. $#$target_groups_tmp_a) {
-        #    if ($target_groups_tmp_a->[$tgi] ne $target_groups[$tgi] ) {
-        #        $check2 ++;
-        #    }
-        #}
-        #if ($check1 || $check2) {
-        #    printf "=== %d %12s %16s %16s\n", $check1, $add_label, $target_group, $xx;
-        #    say $check2 ? "Array mismatch" : "Arrays match";
-        #    die "mismatch\n";
-        #}
 
         my $target_gp_richness
           = $new_bd->get_richness (element => $target_group);
@@ -1359,9 +1337,8 @@ sub swap_to_reach_targets {
             );
             #  track the removal only if the tracker hash includes $remove_label
             #  else it will get it next time it needs it
-            if (exists $groups_without_labels{$remove_label}) {
-                $groups_without_labels{$remove_label}{$target_group} = 1;
-                #  need to insert into $groups_without_labels_a
+            if (exists $groups_without_labels_a{$remove_label}) {
+                #  need to insert into $groups_without_labels_a in sort order
                 my $aref = $groups_without_labels_a{$remove_label};
                 my $idx = binsearch_pos { $a cmp $b } $target_group, @$aref;
                 splice @$aref, $idx, 0, $target_group;
@@ -1429,14 +1406,12 @@ sub swap_to_reach_targets {
                     if $new_richness > $target_richness{$return_gp};
 
                 $labels_in_unfilled_gps{$remove_label}++;
-                delete $groups_without_labels{$remove_label}{$return_gp};
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
                     my $idx  = binsearch { $a cmp $b } $return_gp, @$aref;
                     splice @$aref, $idx, 1;
-                }
-                if (!scalar keys %{$groups_without_labels{$remove_label}}) {
-                    delete $groups_without_labels{$remove_label};
-                    delete $groups_without_labels_a{$remove_label};
+                    if (!scalar @$aref) {
+                        delete $groups_without_labels_a{$remove_label};
+                    }
                 }
 
                 #  we are now filled, update the tracking hashes
@@ -1475,14 +1450,12 @@ sub swap_to_reach_targets {
             count => $add_count,
             csv_object => $csv_object,
         );
-        delete $groups_without_labels{$add_label}{$target_group};
         if (my $aref = $groups_without_labels_a{$add_label}) {
             my $idx = binsearch { $a cmp $b } $target_group, @$aref;
             splice @$aref, $idx, 1;
-        }
-        if (!scalar keys %{$groups_without_labels{$add_label}}) {
-            delete $groups_without_labels{$add_label};
-            delete $groups_without_labels_a{$add_label};
+            if (!scalar @$aref) {
+                delete $groups_without_labels_a{$add_label};
+            }
         }
 
         #  check if we've filled this group, if nothing was swapped out

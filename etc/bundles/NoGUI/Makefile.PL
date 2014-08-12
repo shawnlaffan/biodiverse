@@ -15,7 +15,7 @@ WriteMakefile(
     PREREQ_PM => {
         "Data::DumpXML" => "0",
         "Math::Random::MT::Auto" => "6.21",
-        "Text::CSV_XS" => "0.60",
+        "Text::CSV_XS" => "1.04",
         "DBD::XBase" => "0",
         "HTML::QuickTable" => "0",
         "YAML::Syck" => "0",
@@ -38,7 +38,7 @@ WriteMakefile(
         "Geo::ShapeFile" => "2.58",
         "Geo::Shapefile::Writer" => "0",
         "List::MoreUtils" => "0",
-        "List::Util" => "1.38",
+        "List::Util" => "1.39",
         "Class::Inspector" => "0",
         "autovivification" => "0.11",
         "List::BinarySearch" => 0,

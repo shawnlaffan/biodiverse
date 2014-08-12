@@ -30,7 +30,7 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_001]) are belo
     *  Users can now calculate the phylogenetic endemism analogous to the Endemism Central calculation, such that the set of branches considered are those in neighbour set 1 but the local ranges come from across neighbour sets 1 and 2.  Issue 460
 
   *  Trees
-    *  Tree imports are now considerably faster.  For example, the Open Tree of Life tree with ~2.5 million nodes takes 3 minutes (note that it needs 6.5GB RAM and the GUI will probably not be able to plot it). Issue 483
+    *  Tree imports are now considerably faster.  For example, the Open Tree of Life tree with ~2.5 million nodes takes 3 minutes (note that it needs 6.5GB RAM and the GUI is unlikely to be able to plot it). Issue 483
     *  Tree trimming is now considerably faster.  Issue 470
 
 

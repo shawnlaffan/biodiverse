@@ -25,7 +25,7 @@ Main changes since the preceding version ([#Version_0.99_001 0.99_001]) are belo
 
   *  Indices and Calculations
     *  The relative phylogenetic indices used in the CANAPE process have now been added (see http://dx.doi.org/10.1038/ncomms5473 ).  Issue 482
-    *  Users can now calculate the phylogenetic endemism analogous to the Endemism Central calculation, such that the set of branches consideredare htose in neigbour set 1 but the local ranges come from across neighbour sets 1 and 2.  Issue 460
+    *  Users can now calculate the phylogenetic endemism analogous to the Endemism Central calculation, such that the set of branches considered are those in neighbour set 1 but the local ranges come from across neighbour sets 1 and 2.  Issue 460
 
   *  Trees
     *  Tree imports are now considerably faster.  For example, the Open Tree of Life tree with ~2.5 million nodes takes 3 minutes (note that it needs 6.5GB RAM and the GUI will probably not be able to plot it). Issue 483

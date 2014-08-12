@@ -107,7 +107,7 @@ sub test_extra_labels_in_basedata {
         2 => $overlay2,
     );
 
-    run_indices_test1 (
+    my $results = run_indices_test1 (
         calcs_to_test   => [@calcs_to_test],
         #calcs_to_test   => [@calcs_to_test, @calcs_for_debug],
         callbacks       => [$cb],
@@ -115,6 +115,7 @@ sub test_extra_labels_in_basedata {
         expected_results_overlay => \%expected_results_overlay,
     );
     
+    check_rpd_rpe_diff_signs ($results, '(main tests)');
 }
 
 #  now try with extra labels that aren't on the tree
@@ -139,19 +140,19 @@ sub test_extra_labels_on_tree {
     #  The RPE scores will not be affected since they trim the tree
     my $overlay1 = {
         PHYLO_RPD1      => 1.07673100373221,
-        PHYLO_RPD2      => 0.215346200746441,
-        PHYLO_RPD_DIFF1 => -1.00943531599894,
-        PHYLO_RPD_DIFF2 => -1.17130704833189,
+        PHYLO_RPD2      => 0.149276923076923,
+        PHYLO_RPD_DIFF1 => 0.00516366566662244,
+        PHYLO_RPD_DIFF2 => -1.26993323313609,
         PHYLO_RPD_NULL1 => 0.0625,
-        PHYLO_RPD_NULL2 => 0.3125,
+        PHYLO_RPD_NULL2 => 0.450811058709893,
     };
     my $overlay2 = {
         PHYLO_RPD1      => 0.984741731213716,
-        PHYLO_RPD2      => 0.417769219302788,
-        PHYLO_RPD_DIFF1 => -0.553917223807715,
-        PHYLO_RPD_DIFF2 => -5.5641778178274,
+        PHYLO_RPD2      => 0.770261998089516,
+        PHYLO_RPD_DIFF1 => -0.00657363613371936,
+        PHYLO_RPD_DIFF2 => -2.19552647596466,
         PHYLO_RPD_NULL1 => 0.4375,
-        PHYLO_RPD_NULL2 => 1.03125,
+        PHYLO_RPD_NULL2 => 0.559322033898305,
     };
 
     my %expected_results_overlay = (
@@ -159,14 +160,44 @@ sub test_extra_labels_on_tree {
         2 => $overlay2,
     );
 
-    run_indices_test1 (
+    my $results = run_indices_test1 (
         calcs_to_test   => [@calcs_to_test],
         #calcs_to_test   => [@calcs_to_test, @calcs_for_debug],
         callbacks       => [$cb],
         expected_results_overlay => \%expected_results_overlay,
+        descr_suffix    => ' (test_extra_labels_on_tree)',
         #generate_result_sets => 1,
     );
 
+    check_rpd_rpe_diff_signs ($results, '(extra labels on tree)');
+}
+
+
+sub check_rpd_rpe_diff_signs {
+    my ($results, $suffix) = @_;
+    
+    #  we expect any RPE/RPD < 1 to have a negative diff as in such cases observed < null
+
+    my %indices;
+    foreach my $pfx (qw /PHYLO_RPD PHYLO_RPE/) {
+        foreach my $i (1, 2) {
+            $indices{$pfx . $i} = $pfx . '_DIFF' . $i;
+        }
+    }
+
+    subtest "Expected RPE/RPD diff signs $suffix" => sub {
+        foreach my $nbr_count (sort keys %$results) {
+            my $res_hash = $results->{$nbr_count};
+            foreach my $rpde_idx (sort keys %indices) {
+                my $diff_idx  = $indices{$rpde_idx};
+                my $sign_idx  = $res_hash->{$rpde_idx} <=> 1;
+                my $sign_diff = $res_hash->{$diff_idx} <=> 0;
+                is ($sign_idx, $sign_diff, "Sign of $diff_idx $nbr_count nbrs $suffix");
+            }
+        }
+    };
+    
+    return;
 }
 
 sub test_sum_to_pd {
@@ -259,11 +290,11 @@ __DATA__
         'Genus:sp5'  => 1
     },
     PHYLO_RPD1      => '0.999004792949887',
-    PHYLO_RPD2      => '0.423820215190861',
-    PHYLO_RPD_DIFF1 => '-0.547841338069293',
-    PHYLO_RPD_DIFF2 => '-5.50635054690253',
+    PHYLO_RPD2      => '0.792953951002256',
+    PHYLO_RPD_DIFF1 => '-0.000449001051050668',
+    PHYLO_RPD_DIFF2 => '-1.97866734514191',
     PHYLO_RPD_NULL1 => '0.451612903225806',
-    PHYLO_RPD_NULL2 => '1.06451612903226',
+    PHYLO_RPD_NULL2 => '0.568965517241379',
     PHYLO_RPE1      => '0.93376090017044',
     PHYLO_RPE2      => '1.0686301259127',
     PHYLO_RPE_DIFF1 => '-0.10486223299973',
@@ -282,11 +313,11 @@ __DATA__
         'Genus:sp26' => 1
     },
     PHYLO_RPD1      => '1.09232644393007',
-    PHYLO_RPD2      => '0.218465288786014',
-    PHYLO_RPD_DIFF1 => '-1.02185377012813',
-    PHYLO_RPD_DIFF2 => '-1.16665096967836',
+    PHYLO_RPD2      => '0.149276923076923',
+    PHYLO_RPD_DIFF1 => '0.00650649136637681',
+    PHYLO_RPD_DIFF2 => '-1.26993323313609',
     PHYLO_RPD_NULL1 => '0.0645161290322581',
-    PHYLO_RPD_NULL2 => '0.32258064516129',
+    PHYLO_RPD_NULL2 => '0.472093558397',
     PHYLO_RPE1      => '0.862260609118506',
     PHYLO_RPE2      => '1.14312240745805',
     PHYLO_RPE_DIFF1 => '-0.0360681957551517',
@@ -294,6 +325,5 @@ __DATA__
     PHYLO_RPE_NULL1 => '0.014336917562724',
     PHYLO_RPE_NULL2 => '0.0108143792736999'
 }
-
 
 

@@ -28,8 +28,8 @@ sub get_metadata_calc_phylo_rpd1 {
             PHYLO_RPD_NULL1 => {
                 description => 'Null model score used as the denominator in the RPD1 calculations',
             },
-            PHYLO_RPD_DIFF1 => {description => 'How much more or less PD is there, in original tree units.'
-                             . ' This is calculated as the RPD1 * PD - PD.',
+            PHYLO_RPD_DIFF1 => {description => 'How much more or less PD is there than expected, in original tree units.'
+                             . ' This is calculated as RPD1 * PD - PD.',
                 formula     => ['= PHYLO\_RPD1 * PD - PD'],
             }
         },
@@ -53,13 +53,17 @@ sub calc_phylo_rpd1 {
     {
         no warnings qw /numeric uninitialized/;
 
+        #  Null is the number of terminals in the sample divided
+        #  by the number of terminals on the tree, since the null
+        #  is a rake/star tree with no internals
         my $n    = $tree->get_terminal_element_count;  #  should this be a pre_calc_global?  The value is cached, though.
         my $null = eval {$richness / $n};
         my $phylo_rpd1 = eval {$pd_p_score / $null};
 
         $results{PHYLO_RPD1}      = $phylo_rpd1;
         $results{PHYLO_RPD_NULL1} = $null;
-        $results{PHYLO_RPD_DIFF1} = $phylo_rpd1 * $null - $phylo_rpd1;
+        #  if ratio is -ve then we have less than expected so diff is -ve
+        $results{PHYLO_RPD_DIFF1} = $phylo_rpd1 * $pd_score - $pd_score;
     }
 
     return wantarray ? %results : \%results;
@@ -88,9 +92,9 @@ sub get_metadata_calc_phylo_rpe1 {
             PHYLO_RPE_NULL1        => {
                 description => 'Null score used as the denominator in the RPE calculations',
             },
-            PHYLO_RPE_DIFF1 => {description => 'How much more or less PE is there, in original tree units.'
-                             . ' This is calculated as the RPE1 * PE - PE.',
-                formula     => ['= PHYLO\_RPE1 * PE\_WE - PE\_WE']
+            PHYLO_RPE_DIFF1 => {description => 'How much more or less PE is there than expected, in original tree units.'
+                             . ' This is calculated as RPE1 * PE - PE.',
+                formula     => ['= PE\_WE - PHYLO\_RPE1 * PE\_WE']
             }
         },
     );
@@ -128,6 +132,7 @@ sub calc_phylo_rpe1 {
 
         $results{PHYLO_RPE1}      = $phylo_rpe1;
         $results{PHYLO_RPE_NULL1} = $null;
+        #  if ratio is -ve then we have less than expected so diff is -ve
         $results{PHYLO_RPE_DIFF1} = $phylo_rpe1 * $pe_score - $pe_score;
     }
 
@@ -155,8 +160,8 @@ sub get_metadata_calc_phylo_rpd2 {
             PHYLO_RPD_NULL2 => {
                 description => 'Null model score used as the denominator in the RPD2 calculations',
             },
-            PHYLO_RPD_DIFF2 => {description => 'How much more or less PD is there, in original tree units.'
-                             . ' This is calculated as the RPD2 * PD - PD.',
+            PHYLO_RPD_DIFF2 => {description => 'How much more or less PD is there than expected, in original tree units.'
+                             . ' This is calculated as RPD2 * PD - PD.',
                 formula     => ['= PHYLO\_RPD2 * PD - PD'],
             }
         },
@@ -170,6 +175,7 @@ sub calc_phylo_rpd2 {
     my %args = @_;
 
     my $tree_ref = $args{TREE_REF_EQUALISED_BRANCHES};
+    my $total_tree_length = $tree_ref->get_total_tree_length;
 
     my $pd_p_score     = $args{PD_P};
     my $pd_score       = $args{PD};
@@ -183,13 +189,14 @@ sub calc_phylo_rpd2 {
     {
         no warnings qw /numeric uninitialized/;
 
-        my $n    = $tree_ref->get_terminal_element_count;
-        my $null = eval {$pd_score_eq_branch_lengths / $n};
+        #my $n    = $tree_ref->get_terminal_element_count;
+        my $null = eval {$pd_score_eq_branch_lengths / $total_tree_length};
         my $phylo_rpd2 = eval {$pd_p_score / $null};
 
         $results{PHYLO_RPD2}      = $phylo_rpd2;
         $results{PHYLO_RPD_NULL2} = $null;
-        $results{PHYLO_RPD_DIFF2} = eval {$pd_score * $phylo_rpd2 - $pd_score}
+        #  if ratio is -ve then we have less than expected so diff is -ve
+        $results{PHYLO_RPD_DIFF2} = eval {$pd_score * $phylo_rpd2 - $pd_score};
     }
 
     return wantarray ? %results : \%results;
@@ -218,8 +225,8 @@ sub get_metadata_calc_phylo_rpe2 {
                 description => 'Null score used as the denominator in the RPE2 calculations',
             },
             PHYLO_RPE_DIFF2  => {
-                description => 'How much more or less PE is there, in original tree units.'
-                             . ' This is calculated as the RPE2 * PE - PE.',
+                description => 'How much more or less PE is there than expected, in original tree units.'
+                             . ' This is calculated as RPE2 * PE - PE.',
                 formula     => ['= PHYLO\_RPE2 * PE\_WE - PE\_WE'],
             }
         },
@@ -260,6 +267,7 @@ sub calc_phylo_rpe2 {
 
         $results{PHYLO_RPE2}      = $phylo_rpe2;
         $results{PHYLO_RPE_NULL2} = $null;
+        #  if ratio is -ve then we have less than expected so diff is -ve
         $results{PHYLO_RPE_DIFF2} = eval {$pe_score * $phylo_rpe2 - $pe_score};
     }
 

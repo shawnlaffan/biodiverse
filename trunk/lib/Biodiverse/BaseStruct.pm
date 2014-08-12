@@ -2418,16 +2418,14 @@ sub get_sub_element_list {
     my $self = shift;
     my %args = @_;
 
+    no autovivification;
+
     my $element = $args{element} // croak "argument 'element' not specified\n";
 
-    my $el_hash = $self->{ELEMENTS};
+    my $el_hash = $self->{ELEMENTS}{$element}{SUBELEMENTS}
+      // return;
 
-    return if ! exists $el_hash->{$element};
-    return if ! exists $el_hash->{$element}{SUBELEMENTS};
-
-    return wantarray
-        ?  keys %{$el_hash->{$element}{SUBELEMENTS}}
-        : [keys %{$el_hash->{$element}{SUBELEMENTS}}];
+    return wantarray ?  keys %$el_hash : [keys %$el_hash];
 }
 
 sub get_sub_element_hash {
@@ -2645,22 +2643,24 @@ sub delete_sub_element {
     my $self = shift;
     my %args = (@_);
 
-    croak "element not specified\n" if ! defined $args{element};
-    croak "subelement not specified\n" if ! defined $args{subelement};
-    my $element     = $args{element};
-    my $sub_element = $args{subelement};
+    #croak "element not specified\n" if ! defined $args{element};
+    #croak "subelement not specified\n" if ! defined $args{subelement};
+    my $element     = $args{element} // croak "element not specified\n";
+    my $sub_element = $args{subelement} // croak "subelement not specified\n";
 
     return if ! exists $self->{ELEMENTS}{$element};
 
-    if (exists $self->{ELEMENTS}{$element}{BASE_STATS}) {
-        delete $self->{ELEMENTS}{$element}{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
-        delete $self->{ELEMENTS}{$element}{BASE_STATS}{VARIETY};
-        if (exists $self->{ELEMENTS}{$element}{BASE_STATS}{SAMPLECOUNT}) {
-            $self->{ELEMENTS}{$element}{BASE_STATS}{SAMPLECOUNT} -= $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
+    my $href = $self->{ELEMENTS}{$element};
+
+    if (exists $href->{BASE_STATS}) {
+        delete $href->{BASE_STATS}{REDUNDANCY};  #  gets recalculated if needed
+        delete $href->{BASE_STATS}{VARIETY};
+        if (exists $href->{BASE_STATS}{SAMPLECOUNT}) {
+            $href->{BASE_STATS}{SAMPLECOUNT} -= $href->{SUBELEMENTS}{$sub_element};
         }
     }
-    if (exists $self->{ELEMENTS}{$element}{SUBELEMENTS}) {
-        delete $self->{ELEMENTS}{$element}{SUBELEMENTS}{$sub_element};
+    if (exists $href->{SUBELEMENTS}) {
+        delete $href->{SUBELEMENTS}{$sub_element};
     }
 
     return;
@@ -2680,7 +2680,7 @@ sub exists_element {
 sub exists_sub_element {
     my $self = shift;
 
-    return if ! $self->exists_element (@_);  #  no point going further if element doesn't exist
+    #return if ! $self->exists_element (@_);  #  no point going further if element doesn't exist
 
     my %args = @_;
 
@@ -2692,7 +2692,7 @@ sub exists_sub_element {
       // croak "Argument 'subelement' not specified\n";
 
     no autovivification;
-    return exists $self->{ELEMENT}{$element}{SUBELEMENTS}{$subelement};
+    exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};
 }
 
 sub add_values {  #  add a set of values and their keys to a list in $element
@@ -3245,7 +3245,8 @@ sub get_variety {
     my $href = $self->{ELEMENTS}{$element}{SUBELEMENTS}
       // return;  #  should croak? 
 
-    return scalar keys %$href;
+    #  no explicit return - minor speedup prior to perl 5.20
+    scalar keys %$href;
 }
 
 sub get_redundancy {

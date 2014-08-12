@@ -2627,7 +2627,7 @@ sub delete_group {
 
 
 #  delete all occurrences of this label (or group) from the LABELS and GROUPS sub hashes
-sub delete_element {  
+sub delete_element {
     my $self = shift;
     my %args = @_;
 
@@ -2707,13 +2707,13 @@ sub delete_sub_element {
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
     my $delete_empty_lbs = $args{delete_empty_labels} // 1;
     
-    if ($delete_empty_gps && $groups_ref->get_variety (element => $group) == 0) {
+    if ($delete_empty_gps && !$groups_ref->get_variety (element => $group)) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($delete_empty_lbs && $labels_ref->get_variety (element => $label) == 0) {
+    if ($delete_empty_lbs && !$labels_ref->get_variety (element => $label)) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,
@@ -2831,23 +2831,24 @@ sub get_range_union {
     my $self = shift;
     my %args = @_;
 
-    my $labels = $args{labels};
-    my $lref = ref $labels;
+    my $labels = $args{labels} // croak "argument labels not specified\n";
 
-    croak "argument labels not specified\n" if not $labels;
+    my $lref = reftype $labels;
+
     croak "argument labels not an array or hash ref"
-      if not $lref =~ /ARRAY|HASH/;
+      if not $lref =~ /^(?:ARRAY|HASH)/;
 
-    if ($lref =~ /HASH/) {
+    if ($lref eq 'HASH') {
         $labels = [keys %$labels];
     }
 
     #  now loop through the labels and get the elements they occur in
     my %shared_elements;
+  LABEL:
     foreach my $label (@$labels) {
         next if not $self->exists_label (label => $label);  #  skip if it does not exist
         my $elements_now = $self->get_groups_with_label_as_hash (label => $label);
-        next if (scalar keys %$elements_now) == 0;  #  empty hash - must be no groups with this label
+        next LABEL if !scalar keys %$elements_now;  #  empty hash - must be no groups with this label
         #  add these elements as a hash slice
         @shared_elements{keys %$elements_now} = values %$elements_now;
     }
@@ -2901,9 +2902,7 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
     #  now we delete those keys we don't want.  Twisted, but should work.
     delete @results{keys %sub_results};
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 #  get the complement of the labels in a group
@@ -2921,12 +2920,13 @@ sub get_groups_without_label_as_hash {
     my %args = @_;
 
     croak "Label not specified\n"
-        if ! defined $args{label};
+      if ! defined $args{label};
 
     my $label_gps = $self->get_labels_ref->get_sub_element_hash (element => $args{label});
 
-    my %groups = $self->get_groups_ref->get_element_hash;  #  make a copy
+    my $gps = $self->get_groups_ref->get_element_hash;
 
+    my %groups = %$gps;  #  make a copy
     delete @groups{keys %$label_gps};
 
     return wantarray ? %groups : \%groups;
@@ -2994,7 +2994,7 @@ sub exists_group {
     my $self = shift;
     my %args = @_;
     return $self->get_groups_ref->exists_element (
-        element => defined $args{group} ? $args{group} : $args{element}
+        element => ($args{group} // $args{element})
     );
 }
 
@@ -3002,8 +3002,24 @@ sub exists_label {
     my $self = shift;
     my %args = @_;
     return $self->get_labels_ref->exists_element (
-        element => defined $args{label} ? $args{label} : $args{element}
+        element => ($args{label} // $args{element})
     );
+}
+
+sub exists_label_in_group {
+    my $self = shift;
+    my %args = @_;
+
+    my $groups_ref = $self->get_groups_ref;
+    $groups_ref->exists_sub_element (element => $args{group}, subelement => $args{label});
+}
+
+sub exists_group_with_label {
+    my $self = shift;
+    my %args = @_;
+
+    my $labels_ref = $self->get_labels_ref;
+    $labels_ref->exists_sub_element (element => $args{label}, subelement => $args{group});
 }
 
 sub write_table {  #  still needed?

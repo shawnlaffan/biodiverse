@@ -7,7 +7,7 @@ use English qw( -no_match_vars );
 
 use Gtk2;
 use Carp;
-use Scalar::Util qw /blessed isweak weaken/;
+use Scalar::Util qw /blessed isweak weaken refaddr/;
 use Biodiverse::GUI::GUIManager;
 #use Biodiverse::GUI::ProgressDialog;
 use Biodiverse::GUI::Grid;
@@ -51,13 +51,13 @@ sub new {
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example.
     # These have different objects/widgets)
-    my $xml_page  = Gtk2::GladeXML->new($gui->get_glade_file, 'vpaneClustering');
+    my $xml_page  = Gtk2::GladeXML->new($gui->get_glade_file, 'hboxClusteringPage');
     my $xml_label = Gtk2::GladeXML->new($gui->get_glade_file, 'hboxClusteringLabel');
 
     $self->{xmlPage}  = $xml_page;
     $self->{xmlLabel} = $xml_label;
 
-    my $page  = $xml_page->get_widget('vpaneClustering');
+    my $page  = $xml_page->get_widget('hboxClusteringPage');
     my $label = $xml_label->get_widget('hboxClusteringLabel');
 
 
@@ -114,6 +114,8 @@ sub new {
 
         $self->queue_set_pane(1, 'vpaneClustering');
         $self->{existing} = 0;
+        $xml_page->get_widget('toolbarClustering')->hide;
+        $xml_page->get_widget('toolbar_clustering_bottom')->hide;
     }
     else {  # We're being called to show an EXISTING output
 
@@ -169,6 +171,8 @@ sub new {
 
     $self->{title_widget} = $xml_page ->get_widget('txtClusterName');
     $self->{label_widget} = $xml_label->get_widget('lblClusteringName');
+    $self->set_label_widget_tooltip;
+
 
     $self->{spatialParams1}
         = Biodiverse::GUI::SpatialParams->new($sp_initial1);
@@ -201,6 +205,10 @@ sub new {
     $self->queue_set_pane(0.5, 'hpaneClustering');
     $self->queue_set_pane(1  , 'vpaneDendrogram');
 
+    # Set up options menu
+    $self->{toolbar_menu}        = $xml_page->get_widget('menu_clustering_data');
+    $self->{toolbar_menu_button} = $xml_page->get_widget('menuitem_clustering_data');
+
     $self->make_indices_model($cluster_ref);
     $self->make_linkage_model($cluster_ref);
     $self->init_indices_combo();
@@ -217,6 +225,9 @@ sub new {
     $self->init_map_show_combo();
     $self->init_map_list_combo();
 
+    $self->{colour_mode} = 'Hue';
+    $self->{hue} = Gtk2::Gdk::Color->new(65535, 0, 0); # For Sat mode
+
     $self->{calculations_model}
         = Biodiverse::GUI::Tabs::CalculationsTree::make_calculations_model(
             $self->{basedata_ref}, $cluster_ref
@@ -227,12 +238,6 @@ sub new {
         $self->{calculations_model}
     );
 
-    # select hue colour mode, red
-    $xml_page->get_widget('comboClusterColours')->set_active(0);
-    $xml_page->get_widget('clusterColourButton')->set_color(
-        Gtk2::Gdk::Color->new(65535,0,0),  # red
-    );
-
     # Connect signals
     $xml_label->get_widget('btnClose')->signal_connect_swapped(
         clicked => \&on_close,
@@ -241,18 +246,18 @@ sub new {
     
     $self->{xmlPage}->get_widget('chk_output_gdm_format')->set_sensitive (0);
 
-    $self->set_colour_stretch_widgets_and_signals;
+    #$self->set_colour_stretch_widgets_and_signals;
 
     my %widgets_and_signals = (
         btnCluster          => {clicked => \&on_run},
-        btnMapOverlays      => {clicked => \&on_overlays},
-        btnMapZoomIn        => {clicked => \&on_map_zoom_in},
-        btnMapZoomOut       => {clicked => \&on_map_zoom_out},
-        btnMapZoomFit       => {clicked => \&on_map_zoom_fit},
-        btnClusterZoomIn    => {clicked => \&on_cluster_zoom_in},
-        btnClusterZoomOut   => {clicked => \&on_cluster_zoom_out},
-        btnClusterZoomFit   => {clicked => \&on_cluster_zoom_fit},
+        menuitem_cluster_overlays => {activate => \&on_overlays},
         spinClusters        => {'value-changed' => \&on_clusters_changed},
+
+        btnSelectToolCL     => {clicked => \&on_select_tool},
+        btnPanToolCL        => {clicked => \&on_pan_tool},
+        btnZoomToolCL       => {clicked => \&on_zoom_tool},
+        btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
+        btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
 
         plot_length         => {toggled => \&on_plot_mode_changed},
         group_length        => {toggled => \&on_group_mode_changed},
@@ -264,29 +269,54 @@ sub new {
         menu_use_slider_to_select_nodes =>
             {toggled => \&on_menu_use_slider_to_select_nodes},
 
-        clusterColourButton => {color_set => \&on_hue_set},
-    
-        comboClusterColours => {changed => \&on_colour_mode_changed},
-        comboMapList        => {changed => \&on_combo_map_list_changed},
+        menuitem_cluster_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_sat  => {activate => \&on_colour_mode_changed},
+        menuitem_cluster_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
         txtClusterName      => {changed => \&on_name_changed},
-        
+
         comboLinkage        => {changed => \&on_combo_linkage_changed},
         comboMetric         => {changed => \&on_combo_metric_changed},
-        chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
+        comboMapList        => {changed => \&on_combo_map_list_changed},
 
+        chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
+        menu_cluster_cell_show_outline => {toggled => \&on_set_cell_show_outline},
+        #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
     );
 
-    while (my ($widget, $args) = each %widgets_and_signals) {
-        $xml_page->get_widget($widget)->signal_connect_swapped(
-            %$args, 
+    for my $n (0..6) {
+        my $widget_name = "radio_dendro_colour_stretch$n";
+        $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
+    }
+
+    
+    foreach my $widget_name (sort keys %widgets_and_signals) {
+        my $args = $widgets_and_signals{$widget_name};
+        #say $widget_name;
+        my $widget = $xml_page->get_widget($widget_name);
+        if (!defined $widget) {
+            warn "$widget_name not found";
+            next;
+        };
+        $widget->signal_connect_swapped(
+            %$args,
             $self,
         );
     }
 
+    $self->choose_tool('Select');
+
     $self->set_frame_label_widget;
     
-    print "[Clustering tab] - Loaded tab - Clustering Analysis\n";
+    #  hide this menu - should delete from glade
+    do {
+        my $wname = 'menuitem_clustering_data';
+        if (my $widget = $xml_page->get_widget ($wname)) {
+            $widget->hide;
+        }
+    };
+
+    say "[Clustering tab] - Loaded tab - Clustering Analysis";
 
     return $self;
 }
@@ -496,16 +526,23 @@ sub init_map {
 
     my $click_closure = sub { $self->on_grid_popup(@_); };
     my $hover_closure = sub { $self->on_grid_hover(@_); };
+    my $select_closure = sub { $self->on_grid_select(@_); };
+    my $grid_click_closure = sub { $self->on_grid_click(@_); };
+    my $end_hover_closure = sub { $self->on_end_grid_hover(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        1,
-        0,
-        $hover_closure,
-        $click_closure
+        frame => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        show_legend => 1,
+        show_value  => 0,
+        hover_func  => $hover_closure,
+        click_func  => $click_closure,
+        select_func => $select_closure,
+        grid_click_func => $grid_click_closure,
+        end_hover_func  => $end_hover_closure
     );
+    $self->{grid}->{page} = $self;
 
     $self->{grid}->set_base_struct($self->{basedata_ref}->get_groups_ref);
 
@@ -516,7 +553,7 @@ sub init_dendrogram {
     my $self = shift;
 
     my $frame       =  $self->{xmlPage}->get_widget('clusterFrame');
-    my $graph_frame  =  $self->{xmlPage}->get_widget('graphFrame');
+    my $graph_frame =  $self->{xmlPage}->get_widget('graphFrame');
     my $hscroll     =  $self->{xmlPage}->get_widget('clusterHScroll');
     my $vscroll     =  $self->{xmlPage}->get_widget('clusterVScroll');
     my $list_combo  =  $self->{xmlPage}->get_widget('comboMapList');
@@ -525,22 +562,31 @@ sub init_dendrogram {
 
     my $hover_closure       = sub { $self->on_dendrogram_hover(@_); };
     my $highlight_closure   = sub { $self->on_dendrogram_highlight(@_); };
-    my $click_closure       = sub { $self->on_dendrogram_popup(@_); };
+    my $popup_closure       = sub { $self->on_dendrogram_popup(@_); };
+    my $click_closure       = sub { $self->on_dendrogram_click(@_); };
+    my $select_closure      = sub { $self->on_dendrogram_select(@_); };
 
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        $frame,
-        $graph_frame,
-        $hscroll,
-        $vscroll,
-        $self->{grid},
-        $list_combo,
-        $index_combo,
-        $hover_closure,
-        $highlight_closure,
-        $click_closure,
-        undef,
-        $self,
+        main_frame  => $frame,
+        graph_frame => $graph_frame,
+        hscroll     => $hscroll,
+        vscroll     => $vscroll,
+        grid        => $self->{grid},
+        list_combo  => $list_combo,
+        index_combo => $index_combo,
+        hover_func      => $hover_closure,
+        highlight_func  => $highlight_closure,
+        ctrl_click_func => $popup_closure,
+        click_func      => $click_closure, # click_func
+        select_func     => $select_closure, # select_func
+        parent_tab      => $self,
+        basedata_ref    => undef, # basedata_ref
     );
+
+    # TODO: Abstract this properly
+    $self->{dendrogram}->{map_lists_ready_cb} = sub { $self->on_map_lists_ready(@_) };
+
+    $self->{dendrogram}->{page} = $self;
 
     if ($self->{existing}) {
         my $cluster_ref = $self->{output_ref};
@@ -563,6 +609,171 @@ sub init_dendrogram {
 
     return;
 }
+
+# Called by Dendrogram when it has the map list.
+# We then update the toolbar menu so the user can select them.
+sub on_map_lists_ready {
+    my ($self, $lists) = @_;
+
+    my $menu = $self->{toolbar_menu};
+
+    my $first_pos = 2; # Beneath (Cluster)
+    my $pos = 2;
+
+    # Delete old menu items
+    my $ending = $self->{xmlPage}->get_widget('menuitem_cluster_map_lists_end');
+    my @menu_items = $menu->get_children();
+    while (defined $menu_items[$pos] and refaddr($menu_items[$pos]) != refaddr($ending)) {
+        my $menu_item = $menu_items[$pos++];
+        $menu->remove($menu_item);
+        $menu_item->destroy();
+    }
+
+    $pos = $first_pos;
+
+    # Establish radio group with first item.
+    my $first = Gtk2::RadioMenuItem->new(undef, '(Cluster)');
+    $first->set_tooltip_text('Uses contrasting colours to display classes');
+    $first->signal_connect_swapped(toggled => \&on_map_list_changed, $self);
+    $menu->insert($first, $pos++);
+    my $group = $first->get_group();
+
+    # Add to the toolbar menu
+    for my $item (@$lists) {
+        my $menu_item = Gtk2::RadioMenuItem->new($group, $item);
+        $menu_item->set_tooltip_text('Uses a continuous colour scale to display classes');
+        $menu_item =~ s/_/__/g;
+        $menu_item->signal_connect_swapped(toggled => \&on_map_list_changed,
+                $self);
+        $menu->insert($menu_item, $pos++);
+    }
+
+    $menu->show_all();
+}
+
+sub on_map_list_changed {
+    my ($self, $menu_item) = @_;
+    #print "on_map_list_changed called\n";
+    #print "Widget: ", $menu_item->get_label(), "\n";
+    #print "Active: ", $menu_item->get_active(), "\n";
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    # Got signal for newly selected option.
+    my $list = $menu_item->get_label();
+    $list =~ s/__/_/g;
+    if ($list eq '(Cluster)') {
+        undef $list;
+    }
+
+    if (not defined $list) {
+        $self->{grid}->hide_legend;
+    }
+    else {
+        $self->{grid}->show_legend;
+    }
+
+    $self->{dendrogram}->select_map_list($list);
+
+    my $indices = $self->{dendrogram}->get_map_indices();
+
+    # Default to the first in the list, if it exists
+    if (@$indices) {
+        $self->{dendrogram}->select_map_index($indices->[0]);
+    }
+
+    $self->update_menu_map_indices($indices);
+
+    # Desensitise some options if (Cluster) is selected.
+    my @widgets = qw{
+        menuitem_cluster_colour_mode_hue
+        menuitem_cluster_colour_mode_sat
+        menuitem_cluster_colour_mode_grey
+    };
+    my $sensitive = defined $list;
+    foreach my $widget (@widgets) {
+        $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
+    }
+}
+
+sub update_menu_map_indices {
+    my ($self, $indices) = @_;
+
+    # Clear out old entries from menu.
+    my $menu = $self->{toolbar_menu};
+
+    #  need to look for these in the menu children?
+    my $heading = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices');
+    my $ending  = $self->{xmlPage}->get_widget('menuitem_cluster_map_indices_end');
+
+    #warn 'widget menuitem_cluster_map_indices not found' if !defined $heading;
+    #warn 'widget menuitem_cluster_map_indices_end not found' if !defined $ending;
+    #my $aa1 = $self->{xmlPage}->get_widget('menubar_clustering');
+    #my $aa2 = $self->{xmlPage}->get_widget('menuitem_clustering_data');
+    #my $aa3 = $self->{xmlPage}->get_widget('menu_clustering_data');
+
+    my @menu_items = $menu->get_children();
+    #foreach my $mi (@menu_items) {
+    #    my $text = $mi->get_label;
+    #    say $text;
+    #}
+
+    my $pos = 0;
+    while (refaddr($menu_items[$pos]) != refaddr($heading)) {
+        $pos++;
+    }
+    $pos++;
+
+    my $first_pos = $pos;
+
+    # Remove everything until the end
+    while (refaddr($menu_items[$pos]) != refaddr($ending)) {
+        my $menu_item = $menu_items[$pos++];
+        $menu->remove($menu_item);
+        $menu_item->destroy();
+    }
+
+    # Start inserting at $first_pos
+    $pos = $first_pos;
+    my $first_item = undef;
+    for my $index (@$indices) {
+        $index =~ s/_/__/g;
+        my $menu_item = Gtk2::RadioMenuItem->new($first_item, $index);
+        $first_item //= $menu_item;
+        $menu_item->signal_connect_swapped(
+            toggled => \&on_map_index_changed,
+            $self,
+        );
+        $menu->insert($menu_item, $pos++);
+    }
+
+    $menu->show_all();
+}
+
+
+sub on_map_index_changed {
+    my ($self, $menu_item) = @_;
+
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    if (!$menu_item->get_active()) {
+        return;
+    }
+
+    # Got signal for newly selected option.
+    my $index = $menu_item->get_label();
+    $index =~ s/__/_/g;
+
+    print "on_map_index_changed to $index\n";
+
+    # Pass it on to the dendrogram.
+    $self->{dendrogram}->select_map_index($index);
+}
+
 
 sub init_map_show_combo {
     my $self = shift;
@@ -613,15 +824,23 @@ sub on_combo_map_list_changed {
 
     my @widgets = qw {
         comboMapShow
-        comboClusterColours
-        clusterColourButton
+        menuitem_cluster_colour_mode_hue
+        menuitem_cluster_colour_mode_sat
+        menuitem_cluster_colour_mode_grey
     };
-    foreach my $widget (@widgets) {
-        $self->{xmlPage}->get_widget($widget)->set_sensitive($sensitive);
+    foreach my $widget_name (@widgets) {
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        if (!$widget) {
+            warn "$widget_name not found\n";
+            next;
+        }
+        
+        $widget->set_sensitive($sensitive);
     }
 
     return;
 }
+
 
 ##################################################
 # Indices combo
@@ -1244,6 +1463,9 @@ sub on_run_analysis {
     }
 
     if (Biodiverse::GUI::YesNoCancel->run({header => 'display results?'}) eq 'yes') {
+        $self->{xmlPage}->get_widget('toolbar_clustering_bottom')->show;
+        $self->{xmlPage}->get_widget('toolbarClustering')->show;
+
         # If just ran a new analysis, pull up the pane
         if ($isnew or not $new_analysis) {
             $self->set_pane(0.01, 'vpaneClustering');
@@ -1298,6 +1520,18 @@ sub on_dendrogram_highlight {
     return;
 }
 
+sub on_dendrogram_select {
+    my $self = shift;
+    my $rect = shift; # [x1, y1, x2, y2]
+
+    if ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{dendrogram};
+        $self->handle_grid_drag_zoom ($grid, $rect);
+    }
+
+    return;
+}
+
 ##################################################
 # Popup dialogs
 ##################################################
@@ -1347,6 +1581,11 @@ sub on_grid_hover {
     return;
 }
 
+sub on_end_grid_hover {
+	my $self = shift;
+    $self->{dendrogram}->clear_highlights;
+}
+
 sub on_grid_popup {
     my $self = shift;
     my $element = shift;
@@ -1382,6 +1621,19 @@ sub on_dendrogram_popup {
     Biodiverse::GUI::Popup::show_popup($node_ref->get_name, $sources, $default_source);
     
     return;
+}
+
+sub on_dendrogram_click {
+    my ($self, $node) = @_;
+    if ($self->{tool} eq 'Select') {
+        $self->{dendrogram}->do_colour_nodes_below($node);
+    }
+    elsif ($self->{tool} eq 'ZoomOut') {
+        $self->{dendrogram}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{dendrogram}->zoom_fit();
+    }
 }
 
 # Returns which coloured node the given element is under
@@ -1630,36 +1882,6 @@ sub on_name_changed {
     return;
 }
 
-sub on_map_zoom_in {
-    my $self = shift;
-    $self->{grid}->zoom_in();
-}
-
-sub on_map_zoom_out {
-    my $self = shift;
-    $self->{grid}->zoom_out();
-}
-
-sub on_map_zoom_fit {
-    my $self = shift;
-    $self->{grid}->zoom_fit();
-}
-
-sub on_cluster_zoom_in {
-    my $self = shift;
-    $self->{dendrogram}->zoom_in();
-}
-
-sub on_cluster_zoom_out {
-    my $self = shift;
-    $self->{dendrogram}->zoom_out();
-}
-
-sub on_cluster_zoom_fit {
-    my $self = shift;
-    $self->{dendrogram}->zoom_fit();
-}
-
 sub on_clusters_changed {
     my $self = shift;
     my $spinbutton = $self->{xmlPage}->get_widget('spinClusters');
@@ -1685,11 +1907,124 @@ sub on_plot_mode_changed {
     $self->{dendrogram}->set_plot_mode($mode) if defined $self->{output_ref};
 }
 
+####
+# TODO: This whole section needs to be deduplicated between Labels.pm
+####
+my %drag_modes = (
+    Select  => 'click',
+    Pan     => 'pan',
+    Zoom    => 'select',
+    ZoomOut => 'click',
+    ZoomFit => 'click',
+);
+
+sub choose_tool {
+    my $self = shift;
+    my ($tool, ) = @_;
+
+    my $old_tool = $self->{tool};
+
+    if ($old_tool) {
+        $self->{ignore_tool_click} = 1;
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}ToolCL");
+        $widget->set_active(0);
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}ToolCL");
+        $new_widget->set_active(1);
+        $self->{ignore_tool_click} = 0;
+    }
+
+    $self->{tool} = $tool;
+
+    $self->{grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
+}
+
+# Called from GTK
+sub on_select_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Select');
+}
+
+sub on_pan_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Pan');
+}
+
+sub on_zoom_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Zoom');
+}
+
+sub on_zoom_out_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomOut');
+}
+
+sub on_zoom_fit_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomFit');
+}
+
+sub on_grid_select {
+    my ($self, $groups, $ignore_change, $rect) = @_;
+
+    if ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{grid};
+        $self->handle_grid_drag_zoom ($grid, $rect);
+    }
+
+    return;
+}
+
+sub on_grid_click {
+    my $self = shift;
+
+    if ($self->{tool} eq 'ZoomOut') {
+        $self->{grid}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{grid}->zoom_fit();
+    }
+}
+
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
     $self->{dendrogram}->set_use_highlight_func;
 
     return;
+}
+
+my %key_tool_map = (
+    Z => 'Zoom',
+    X => 'ZoomOut',
+    C => 'Pan',
+    V => 'ZoomFit',
+    B => 'Select'
+);
+
+# Override from tab
+sub on_bare_key {
+    my ($self, $keyval) = @_;
+    # TODO: Add other tools
+    my $tool = $key_tool_map{$keyval};
+
+    return if not defined $tool;
+
+    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
+        # Do an instant zoom out and keep the current tool.
+        $self->{$self->{active_pane}}->zoom_out();
+    }
+    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
+        $self->{$self->{active_pane}}->zoom_fit();
+    }
+    else {
+        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+    }
 }
 
 sub on_use_highlight_path_changed {
@@ -1720,7 +2055,18 @@ sub on_set_cell_outline_colour {
     my $self = shift;
     my $menu_item = shift;
     $self->{grid}->set_cell_outline_colour (@_);
+
+    # set menu item for show outline as active if not currently
+    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active(1);
+
     return;
+}
+
+sub on_set_cell_show_outline {
+    my $self = shift;
+    my $menu_item = shift;
+    $self->{grid}->set_cell_show_outline($menu_item->get_active);
+    return;	
 }
 
 sub on_group_mode_changed {
@@ -1742,17 +2088,11 @@ sub on_group_mode_changed {
     $self->{dendrogram}->set_group_mode($mode);
 }
 
-sub on_colour_mode_changed {
+sub recolour {
     my $self = shift;
-    
     $self->set_plot_min_max_values;
-
-    my $colours = $self->{xmlPage}->get_widget('comboClusterColours')->get_active_text();
-
-    $self->{grid}->set_legend_mode($colours);
     $self->{dendrogram}->recolour();
-
-    return;
+    $self->{grid}->set_legend_mode($self->{colour_mode});
 }
 
 sub set_plot_min_max_values {
@@ -1782,7 +2122,30 @@ sub set_plot_min_max_values {
     return;
 }
 
+#  Same as the version in Spatial.pm except it calls
+#  recolour instead of on_active_index_changed
+sub on_menu_stretch_changed {
+    my ($self, $menu_item) = @_;
 
+    # Just got the signal for the deselected option. Wait for signal for
+    # selected one.
+    return if !$menu_item->get_active();
+
+    my $sel = $menu_item->get_label();
+
+    my ($min, $max) = split (/-/, uc $sel);
+
+    my %stretch_codes = $self->get_display_stretch_codes;
+
+    $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
+    $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
+
+    $self->recolour;
+    #  not properly redisplaying map
+    #  poss need to call on_map_index_changed, grabbing the current index
+
+    return;
+}
 
 sub on_stretch_changed {
     my $self = shift;
@@ -1802,26 +2165,7 @@ sub on_stretch_changed {
     $self->{PLOT_STAT_MAX} = $stretch_codes{$max} || $max;
     $self->{PLOT_STAT_MIN} = $stretch_codes{$min} || $min;
 
-    $self->on_colour_mode_changed;
-
-    return;
-}
-
-#  should be onSatSet?
-sub on_hue_set {
-    my $self = shift;
-    my $button = shift;
-
-    my $combo_colours_hue_choice = 1;
-
-    my $widget = $self->{xmlPage}->get_widget('comboClusterColours');
-
-    #  a bodge to set the active colour mode to Hue
-    my $active = $widget->get_active;
-
-    $widget->set_active($combo_colours_hue_choice);
-    $self->{grid}->set_legend_hue($button->get_color());
-    $self->{dendrogram}->recolour();
+    $self->recolour;
 
     return;
 }
@@ -1848,6 +2192,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = "SUPER::" . $method;
+    print 'Trying to call ', $method, "\n";
     return $self->$method(@_);
 }
 

@@ -6,6 +6,8 @@ A component that displays a 2D matrix using GnomeCanvas
 
 package Biodiverse::GUI::MatrixGrid;
 
+use 5.010;
+
 use strict;
 use warnings;
 use Data::Dumper;
@@ -57,10 +59,12 @@ my $gray50_bits   = pack "CC", 0x02, 0x01;
 ##########################################################
 
 sub new {
-    my $class   = shift;
-    my $frame   = shift;
-    my $hscroll = shift;
-    my $vscroll = shift;
+    my $class = shift;
+    my %args  = @_;
+
+    my $frame   = $args{frame};
+    my $hscroll = $args{hscroll};
+    my $vscroll = $args{vscroll};
 
     my $self = {
         colours => 'Hue',
@@ -68,13 +72,15 @@ sub new {
     }; 
     bless $self, $class;
 
-    $self->{hover_func}  = shift || undef; #Callback function for when users move mouse over a cell
-    $self->{select_func} = shift || undef; #Callback function for when users click on a cell
+    #  callbacks
+    $self->{hover_func}  = $args{hover_func};  # move mouse over a cell
+    $self->{select_func} = $args{select_func}; # click on a cell
+    $self->{grid_click_func} = $args{grid_click_func}; # click on a cell
 
     # Make the canvas and hook it up
     $self->{canvas} = Gnome2::Canvas->new();
     $frame->add($self->{canvas});
-    
+
     $self->{canvas}->signal_connect_swapped (
         size_allocate => \&on_size_allocate,
         $self,
@@ -86,7 +92,7 @@ sub new {
 
     $hscroll->set_adjustment( $self->{hadjust} );
     $vscroll->set_adjustment( $self->{vadjust} );
-    
+
     $self->{hadjust}->signal_connect_swapped(
         'value-changed',
         \&on_scrollbars_scroll,
@@ -135,6 +141,8 @@ sub new {
     $self->{back_rect} = $rect;
 
     $self->show_legend;
+
+    $self->{drag_mode} = 'select';
 
     return $self;
 }
@@ -209,6 +217,7 @@ sub destroy {
 
     delete $self->{hover_func}; #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
+    delete $self->{click_func}; #??? not sure if helps
     
     delete $self->{cells_group}; #!!!! Without this, GnomeCanvas __crashes__
                                 # Apparently, a reference cycle prevents it from being destroyed properly,
@@ -473,7 +482,7 @@ sub highlight {
 
     my @mask_rects = $self->get_mask_rects($sel_rows, $sel_cols);
     return if not @mask_rects; # if nothing to mask, return
-
+    
     # Create a GnomeCanvasPathDef for all the regions we have to mask
     my @paths;
     my ($x, $y, $w, $h);
@@ -493,6 +502,8 @@ sub highlight {
     }
 
     # concatenate each region
+    #  mask and stipple need to use Cairo
+    #  - see issue 480 https://code.google.com/p/biodiverse/issues/detail?id=480
     my $mask_path    = Gnome2::Canvas::PathDef->concat(@paths);
     my $mask_stipple = Gtk2::Gdk::Bitmap->create_from_data(
         undef,
@@ -501,18 +512,19 @@ sub highlight {
         $gray50_height,
     );
 
-
     $self->{mask} = Gnome2::Canvas::Item->new (
         $self->{cells_group},
         'Gnome2::Canvas::Shape',
-        fill_color    => 'white',
-        fill_stipple  => $mask_stipple,
+        #fill_color    => 'white',
+        #fill_stipple  => $mask_stipple,  #  off for now - issue 480
+        #fill_color_rgba => 0xFFFFFFFF,
         outline_color => 'black',
         width_pixels  => 0,
     );
+
     $self->{mask}->signal_connect_swapped (event => \&on_event, $self);
     $self->{mask}->set_path_def($mask_path);
-    
+
     return;
 }
 
@@ -724,6 +736,11 @@ sub maxmin {
 sub on_event {
     my ($self, $event, $cell) = @_;
 
+    # Do everything with left clck now.
+    if ($event->type =~ m/^button-/ && $event->button != 1) {
+        return;
+    }
+
     my ($x, $y) = ($event->x, $event->y);
 
     #print $event->x . "\n";
@@ -766,7 +783,7 @@ sub on_event {
     }
     elsif ($event->type eq 'button-press') {
 
-        if ($event->button == 1) {
+        if ($self->{drag_mode} eq 'select') {
 
             ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt}) = ($horz_elt, $vert_elt);
 
@@ -777,7 +794,6 @@ sub on_event {
                 $event->time,
             );
             $self->{selecting} = 1;
-
             $self->{sel_rect} = Gnome2::Canvas::Item->new (
                 $self->{canvas}->root,
                 'Gnome2::Canvas::Rect',
@@ -785,7 +801,6 @@ sub on_event {
                 y1 => $y,
                 x2 => $x,
                 y2 => $y,
-            
                 fill_color_gdk    => undef,
                 outline_color_gdk => CELL_BLACK,
                 width_pixels      => 0,
@@ -793,9 +808,13 @@ sub on_event {
 
             return 0;
         }
+        elsif ($self->{drag_mode} eq 'click') {
+            if (defined $self->{grid_click_func}) {
+                $self->{grid_click_func}->();
+            }
+        }
     }
     elsif ($event->type eq 'button-release') {
-
         if ($self->{selecting} and $event->button == 1) {
             $self->{sel_rect}->destroy;
             delete $self->{sel_rect};
@@ -804,11 +823,11 @@ sub on_event {
 
             # Establish the selection
             my ($horz_start, $vert_start) = ($self->{sel_start_horez_elt}, $self->{sel_start_vert_elt});
-            my ($horz_end, $vert_end)     = ($horz_elt, $vert_elt);
+            my ($horz_end,   $vert_end)   = ($horz_elt, $vert_elt);
             my $tmp;
 
             if ($horz_start > $horz_end) {
-                ($horz_start, $horz_end) = ($horz_end, $horz_start)
+                ($horz_start, $horz_end) = ($horz_end, $horz_start);
             }
             if ($vert_start > $vert_end) {
                 ($vert_start, $vert_end) = ($vert_end, $vert_start);
@@ -820,7 +839,6 @@ sub on_event {
         }
     }
     elsif ($event->type eq 'motion-notify') {
-
         # Call client-defined callback function
         if (my $f = $self->{hover_func}) {
             $f->($horz_elt, $vert_elt);
@@ -859,10 +877,21 @@ sub on_size_allocate {
 sub on_background_event {
     my ($self, $event, $item) = @_;
 
-    if ( $event->type eq 'button-press') {
+    # Do everything with left clck now.
+    if ($event->type =~ m/^button-/ && $event->button != 1) {
+        return;
+    }
+
+    if ($event->type eq 'enter-notify') {
+        $self->{page}->set_active_pane('matrix_grid');
+    }
+    elsif ($event->type eq 'leave-notify') {
+        $self->{page}->set_active_pane('');
+    }
+    elsif ( $event->type eq 'button-press') {
 #        print "Background Event\tPress\n";
 
-        if ($event->button != 1) {
+        if ($self->{drag_mode} eq 'pan') {
             ($self->{pan_start_x}, $self->{pan_start_y}) = $event->coords;
 
             # Grab mouse
@@ -876,7 +905,7 @@ sub on_background_event {
     elsif ( $event->type eq 'button-release') {
 #        print "Background Event\tRelease\n";
 
-        if ($event->button != 1) {
+        if ($self->{dragging}) {
             $item->ungrab ($event->time);
             $self->{dragging} = 0;
             $self->update_scrollbars(); #FIXME: If we do this for motion-notify - get great flicker!?!?
@@ -962,6 +991,12 @@ sub fit_grid {
     if (!$self->{width_px} or !$self->{height_px}) {
         #carp "width_px and/or height_px not defined\n";
         return;
+    }
+    if ($self->{width_units} == 0) {
+        $self->{width_units} = 0.00001;
+    }
+    if ($self->{height_units} == 0) {
+        $self->{height_units} = 0.00001;
     }
     my $ppu_width = $self->{width_px} / ($self->{width_units} // 1);
     my $ppu_height = $self->{height_px} / ($self->{height_units} // 1);

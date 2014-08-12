@@ -9,7 +9,7 @@ use English ( -no_match_vars );
 use Carp;
 use Scalar::Util qw /weaken isweak blessed reftype/;
 use Data::Dumper qw/Dumper/;
-use List::Util 1.39 qw /min max pairgrep any/;
+use List::Util 1.39 qw /min max pairgrep sum any/;
 use List::MoreUtils qw /uniq/;
 
 use Biodiverse::BaseStruct;
@@ -64,13 +64,10 @@ sub set_value {
     return;
 }
 
+#  extremely heavy usage sub so make it as fast as we can
 sub get_value {
-    my $self = shift;
-    my $key  = shift;
-
     no autovivification;
-
-    return $self->{NODE_VALUES}{$key};
+    $_[0]->{NODE_VALUES}{$_[1]};
 }
 
 
@@ -99,10 +96,11 @@ sub set_cached_value {
 }
 
 sub get_cached_value {
-    my $self = shift;
-    my $key  = shift;
     no autovivification;
-    return $self->{_cache}{$key};
+    $_[0]->{_cache}{$_[1]};
+    #my $self = shift;
+    #my $key  = shift;
+    #return $self->{_cache}{$key};
     #return if ! exists $self->{_cache};
     #return $self->{_cache}{$key} if exists $self->{_cache}{$key};
     #return;
@@ -166,7 +164,7 @@ sub set_name {
 }
 
 sub get_name {
-    return $_[0]->{NODE_VALUES}{NAME}
+    $_[0]->{NODE_VALUES}{NAME}
       // croak "name parameter missing or undefined\n";
 }
 
@@ -250,12 +248,38 @@ sub get_total_length {
     return $self->get_length_below;  #  calculate total length otherwise
 }
 
+sub get_longest_path_length_to_terminals {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+
+    if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
+        my $cached_length = $self->get_cached_value ('LONGEST_PATH_LENGTH_TO_TERMINALS');
+        return $cached_length if defined $cached_length;
+    }
+
+    my $terminal_node_hash = $self->get_terminal_node_refs;
+    my $max_length = 0;
+    foreach my $child (values %$terminal_node_hash) {
+        my $path = $child->get_path_lengths_to_ancestral_node (ancestral_node => $self);
+        my $path_length = sum (0, values %$path);
+
+        $max_length = max ($path_length, $max_length);
+    }
+
+    if ($args{cache}) {
+        $self->set_cached_value (LONGEST_PATH_LENGTH_TO_TERMINALS => $max_length);
+    }
+
+    return $max_length;    
+}
+
 #  get the maximum tree node position from zero
 sub get_max_total_length {
     my $self = shift;
     my %args = @_;
 
-    return $self->get_total_length if $self->is_terminal_node;  # no children
+    #  comment next line as we might as well cache the total length on terminals as well
+    #return $self->get_total_length if $self->is_terminal_node;  # no children
 
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
         my $cached_length = $self->get_cached_value ('MAX_TOTAL_LENGTH');
@@ -282,7 +306,7 @@ sub get_length_below {
     my %args = (cache => 1, @_);  #  defaults to caching
 
 
-    return $self->get_length if $self->is_terminal_node;  # no children
+    #return $self->get_length if $self->is_terminal_node;  # no children
 
     if ($args{cache}) {  #  lots of conditions, but should save a little number crunching overall.
         my $cached_length = $self->get_cached_value ('LENGTH_BELOW');
@@ -472,8 +496,7 @@ sub get_children {
 }
 
 sub get_child_count {
-    my $self = shift;
-    return scalar @{$self->{_CHILDREN}};
+    scalar @{$_[0]->{_CHILDREN}};
 }
     
 # should be get_terminal_node_count
@@ -502,6 +525,14 @@ sub group_nodes_below {
     #$target_value = 1 if defined $target_value;  #  for debugging
     #print "[TREENODE] Target is $target_value\n" if defined $target_value;
 
+    my $cache_key  = 'group_nodes_below by ' . ($use_depth ? 'depth ' : 'length ');
+    my $cache_hash = $self->get_cached_value ($cache_key) //
+        do {my $c = {}; $self->set_cached_value ($cache_key => $c); $c};
+    my $cache_val = $target_value // $groups_needed;
+    if (my $cached_result = $cache_hash->{$cache_val}) {
+        return wantarray ? %$cached_result : $cached_result;
+    }
+    
     $final_hash{$self->get_name} = $self;
 
     if ($self->is_terminal_node) {
@@ -587,12 +618,13 @@ sub group_nodes_below {
                     }
                 }
 
+                my $child_name = $child->get_name;
                 if ($include_in_search) {
                     #  add to the values hash if it bounds the target value or it is not specified
-                    $search_hash{$lower_bound}{$upper_bound}{$child->get_name} = $child;
+                    $search_hash{$lower_bound}{$upper_bound}{$child_name} = $child;
                 }    
 
-                $final_hash{$child->get_name} = $child;  #  add this child node to the tracking hashes        
+                $final_hash{$child_name} = $child;  #  add this child node to the tracking hashes        
                 delete $final_hash{$child->get_parent->get_name};
                 #  clear parent from length consideration
                 delete $search_hash{$lower_value}{$upper_value}{$current_node->get_name};
@@ -613,6 +645,9 @@ sub group_nodes_below {
     }
 
     #print scalar keys %final_hash, "\n";
+    
+    $cache_hash->{$cache_val} = \%final_hash;
+
     return wantarray ? %final_hash : \%final_hash;
 }
 
@@ -1020,7 +1055,7 @@ sub get_path_lengths_to_ancestral_node {
     my $self = shift;
     my %args = (cache => 1, @_);
 
-    my $ancestor = $args{ancestral_node} or croak "ancestral_node not defined\n";
+    my $ancestor = $args{ancestral_node} // croak "ancestral_node not defined\n";
     
     if ($self->is_root_node) {
         my %result = ($self->get_name, $self->get_length);

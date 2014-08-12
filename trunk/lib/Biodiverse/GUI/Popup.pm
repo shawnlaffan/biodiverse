@@ -465,3 +465,4 @@ sub clipboard_clear_func {
 
 
 1;
+

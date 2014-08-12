@@ -331,3 +331,4 @@ sub add_column {
 }
 
 1;
+

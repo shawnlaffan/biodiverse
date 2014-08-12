@@ -2,10 +2,39 @@
 #labels Featured
 #sidebar TOC
 
+= Version 0.99_002 = 
+
+This is the second phase of the development version leading towards version 1.0.
+
+This comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.  
+
+For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
+
+To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
+
+Main changes since the preceding version ([#Version_0.99_001 0.99_001]) are below.  Issue numbers which are not crossed out are yet to be completed.  
+
+
+  *  GUI
+    *  The pan and zoom interface has been rewritten to be more like other tools and to present a cleaner interface.  Issue 353
+    *  Tree plots now grey-out non-highlighted branches.  This makes it much easier to see which branches are selected.  Issue 464
+    *  The Spatial and Matrix tabs now have a tree panel which plots the tree used in the analysis, or the tree selected at the project level.  This works similarly to the View Labels tab in that branches are highlighted as cells are hovered over, and cells are highlighted as branches are hovered over.  Issue 409
+
+  *  Analyses
+    *  The rand_structured randomisation is now considerably faster.  Issue 487
+
+  *  Indices and Calculations
+    *  The relative phylogenetic indices used in the CANAPE process have now been added (see http://dx.doi.org/10.1038/ncomms5473 ).  Issue 482
+    *  Users can now calculate the phylogenetic endemism analogous to the Endemism Central calculation, such that the set of branches consideredare htose in neigbour set 1 but the local ranges come from across neighbour sets 1 and 2.  Issue 460
+
+  *  Trees
+    *  Tree imports are now considerably faster.  For example, the Open Tree of Life tree with ~2.5 million nodes takes 3 minutes (note that it needs 6.5GB RAM and the GUI will probably not be able to plot it). Issue 483
+    *  Tree trimming is now considerably faster.  Issue 470
+
 
 = Version 0.99_001 = 
 
-This is the current development version, leading towards version 1.0.
+This is the first phase of the development version leading towards version 1.0.
 
 This comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.  
 
@@ -17,7 +46,7 @@ Main changes since the previous version (0.19) are below.  Issue numbers which a
 
   *  Analyses
     *  The !RegionGrower analyses now stop once the maximum optimisation criterion is reached and delete singleton nodes by default.  This leaves a smaller tree consisting only of those elements required to optimise the index.  Issue  451, Issue 448
-    *  The Cluster and !RegionGrower tie breakers are now optional and are faster and less memory intensive.  If they are turned off then the pre-0.19 tie-breaker appraoch is used.  Issue 427
+    *  The Cluster and !RegionGrower tie breakers are now optional and are faster and less memory intensive.  If they are turned off then the pre-0.19 tie-breaker approach is used.  Issue 427
 
   *  Indices and calculations
     *  The NRI and NTI indices from PhyloCom are now supported.  Note that these reverse the sign compared to PhyloCom, so positive values are dispersed and negative are clustered.  This is consistent with the picante package in R.  Issue 442
@@ -31,7 +60,6 @@ Main changes since the previous version (0.19) are below.  Issue numbers which a
     *  sp_box() function is now available.  Issue 159
 
   *  GUI
-    *  The pan and zoom interface has been rewritten to be more like other tools and to present a cleaner interface.  Issue 353
     *  Exclusions dialogue.  Empty groups and labels can optionally not be deleted.  This allows the geographic extent to be consistent before and after exclusions are run.  Issue 423
     *  The progress dialogues are now unified into a single window, greatly reducing the number of popup windows generated in several analyses.  Issue 295
     *  The label range and sample counts can now be added as label properties.  This is useful when one wants to subset a data set using the Exclusions dialogue, but retain their original ranges and abundances.  This is accessed via the basedata menu.  Issue 412
@@ -51,9 +79,8 @@ Main changes since the previous version (0.19) are below.  Issue numbers which a
       *  Shapefile format (polygons and points) is now supported.  Issue 419
       *  GeoTIFF is now supported.  Issue 447
       *  The ER-Mapper exports are no longer offset by half a cell.  Issue 453
-
-  *  Trees
-      *  Export to shapefile format is now supported.      Issue 410
+    *  Trees
+        *  Export to shapefile format is now supported.      Issue 410
 
 
 = Version 0.19 = 

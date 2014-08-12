@@ -1964,7 +1964,8 @@ sub set_precision_aa {
         $num =~ s{,}{\.};  #  replace any comma with a decimal
     }
 
-    return $num;
+    #  explicit return takes time, and this is a heavy usage sub
+    $num;
 }
 
 sub compare_lists_by_item {

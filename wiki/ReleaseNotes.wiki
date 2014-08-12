@@ -2,6 +2,8 @@
 #labels Featured
 #sidebar TOC
 
+<wiki:toc max_depth="4" />
+
 = Version 0.99_002 = 
 
 This is the second phase of the development version leading towards version 1.0.

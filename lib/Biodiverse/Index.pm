@@ -383,9 +383,9 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
     $self->update_log (text => "[INDEX] PREDICTING SPATIAL INDEX NEIGHBOURS\n$conditions\n");
 
     my $csv_object = $self->get_cached_value ('CSV_OBJECT');
+    my $sep        = $self->get_param('JOIN_CHAR');
     #  this for backwards compatibility, as pre 0.10 versions didn't have this cached
     if (!$csv_object) {
-        my $sep     = $self->get_param('JOIN_CHAR');
         my $quotes  = $self->get_param('QUOTES');
         $csv_object = $self->get_csv_object (
             sep_char   => $sep,
@@ -603,10 +603,13 @@ sub predict_offsets {  #  predict the maximum spatial distances needed to search
                                 $index_res_precision[$i],
                         );
                 }
-                my $offsets = $self->list2csv (
-                    list        => \@offset_list,
-                    csv_object  => $csv_object,
-                );
+                #my $offsets = $self->list2csv (
+                #    list        => \@offset_list,
+                #    csv_object  => $csv_object,
+                #);
+                #  We only ever have numbers here so there is
+                #  no need for csv quoting to kick in.
+                my $offsets = join $sep, @offset_list;  
 
                 $offsets_checked{$offsets} ++;
 

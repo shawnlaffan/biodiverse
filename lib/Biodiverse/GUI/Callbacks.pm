@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_002';
 
 use constant FALSE => 0;
 use constant TRUE  => 1;

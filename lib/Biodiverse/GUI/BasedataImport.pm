@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Carp;
 use List::Util qw /min/;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_002';
 
 use File::Basename;
 use Gtk2;

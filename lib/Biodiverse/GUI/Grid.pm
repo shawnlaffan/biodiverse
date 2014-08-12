@@ -97,20 +97,29 @@ It can be changed by calling set_value_label
 Closures that will be invoked with the grid cell's element name
 whenever cell is hovered over or clicked
 
+=item select_func
+
+=item grid_click_func
+
+Closure that will be called whenever the grid has been right clicked, but not
+dragged
+
+=item end_hover_func
+
 =back
 
 =cut
 
 
-#  badly needs to use keyword args
 sub new {
     my $class   = shift;
-    my $frame   = shift;
-    my $hscroll = shift;
-    my $vscroll = shift;
+    my %args = @_;
+    my $frame   = $args{frame};
+    my $hscroll = $args{hscroll};
+    my $vscroll = $args{vscroll};
     
-    my $show_legend = shift || 0;  #  this is irrelevant now, gets hidden as appropriate (but should allow user to show/hide)
-    my $show_value  = shift || 0;
+    my $show_legend = $args{show_legend} // 0;  #  this is irrelevant now, gets hidden as appropriate (but should allow user to show/hide)
+    my $show_value  = $args{show_value}  // 0;
 
     my $self = {
         legend_mode => 'Hue',
@@ -118,10 +127,13 @@ sub new {
     }; 
     bless $self, $class;
 
-    $self->{hover_func}  = shift || undef; # Callback function for when users move mouse over a cell
-    #$self->{use_hover_func} = 1;          #  we should use the hover func by default
-    $self->{click_func}  = shift || undef; # Callback function for when users click on a cell
-    $self->{select_func} = shift || undef; # Callback function for when users select a set of elements
+    #  callback funcs
+    $self->{hover_func}      = $args{hover_func};      # move mouse over a cell
+    $self->{click_func}      = $args{click_func};      # click on a cell
+    $self->{select_func}     = $args{select_func};     # select a set of elements
+    $self->{grid_click_func} = $args{grid_click_func}; # right click anywhere
+    $self->{end_hover_func}  = $args{end_hover_func};  # move mouse out of hovering over cells
+
     my $g = 0;
     $self->{colour_none} = Gtk2::Gdk::Color->new($g, $g, $g);
 
@@ -177,6 +189,10 @@ sub new {
     #if ($show_legend) {
         $self->show_legend;
     #}
+
+    $self->{drag_mode} = 'select';
+
+    # Labels::initGrid will set {page} (hacky)
 
     return $self;
 }
@@ -260,6 +276,8 @@ sub destroy {
     delete $self->{hover_func};  #??? not sure if helps
     delete $self->{click_func};  #??? not sure if helps
     delete $self->{select_func}; #??? not sure if helps
+    delete $self->{grid_click_func};
+    delete $self->{end_hover_func};  #??? not sure if helps
     
     delete $self->{cells_group}; #!!!! Without this, GnomeCanvas __crashes__
                                 # Apparently, a reference cycle prevents it
@@ -467,7 +485,7 @@ sub set_base_struct {
     $self->{base_struct} = $data;
     $self->{cells} = {};
 
-    my @tmpcell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
+    my @tmpcell_sizes = $data->get_cell_sizes;  #  work on a copy
     say "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
     
     my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
@@ -830,6 +848,34 @@ sub set_cell_outline_colour {
     return;
 }
 
+sub set_cell_show_outline {
+    my $self = shift;
+    my $active = shift;
+    
+    if ($active) {
+    	# only give call to set outline colour if any cells do not 
+    	# have defined colours
+    	# (prevents multiple pop-ups of chooser, eg if outline
+    	# menu item is off and choose colour sets it active)
+        foreach my $cell (values %{$self->{cells}}) {
+            my $rect = $cell->[INDEX_RECT];
+            if (! $rect->get('outline_color_gdk')) {
+		        # calls chooser to set colour
+		        $self->set_cell_outline_colour;
+            	last;
+            }
+        }
+    } else {
+        # clear outline settings
+        foreach my $cell (values %{$self->{cells}}) {
+            my $rect = $cell->[INDEX_RECT];
+            $rect->set('outline_color', undef);
+        }
+    }
+
+    return;
+}
+
 sub get_colour_from_chooser {
     my $self = shift;
     
@@ -976,9 +1022,10 @@ sub mark_if_exists {
         # sometimes we are called before the data are populated
         next CELL if !$cell || !$cell->[INDEX_RECT];
 
-        my $group = $cell->[INDEX_RECT]->parent;
-
         if (exists $hash->{$cell->[INDEX_ELEMENT]}) {
+
+            my $group = $cell->[INDEX_RECT]->parent;
+
             # Circle
             if ($shape eq 'circle' && not $cell->[INDEX_CIRCLE]) {
                 $cell->[INDEX_CIRCLE] = $self->draw_circle($group);
@@ -1414,6 +1461,11 @@ sub on_event {
         #    # the popups on win32 - we receive leave-notify on button click!
         #    #$f->(undef);
         #}
+        
+        # call to end hovering
+        if (defined $self->{end_hover_func} and not $self->{clicked_cell}) {
+            $self->{end_hover_func}->();
+        }
 
         # Change cursor back to default
         $self->{canvas}->window->set_cursor(undef);
@@ -1428,7 +1480,7 @@ sub on_event {
                 and not $self->{selecting}
                 and $event->state >= [ 'control-mask' ])
             ) {
-            #print "===========Cell popup\n";
+            print "===========Cell popup\n";
             # Show/Hide the labels popup dialog
             my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
             my $f = $self->{click_func};
@@ -1437,13 +1489,12 @@ sub on_event {
             return 1;  #  Don't propagate the events
         }
         
-        elsif ($event->button == 1) { # left click and drag
+        elsif ($self->{drag_mode} eq 'select' and $event->button == 1) { # left click and drag
             
             if (defined $self->{select_func}
                 and not $self->{selecting}
                 and not ($event->state >= [ 'control-mask' ])
                 ) {
-                
                 ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
                 
                 # Grab mouse
@@ -1482,7 +1533,6 @@ sub on_event {
     }
     elsif ($event->type eq 'button-release') {
         $cell->ungrab ($event->time);
-
         if ($self->{selecting} and defined $self->{select_func}) {
 
             $cell->ungrab ($event->time);
@@ -1539,20 +1589,25 @@ sub on_size_allocate {
 sub on_background_event {
     my ($self, $event, $cell) = @_;
 
-my $type = $event->type;
-my $state = $event->state;
+#my $type = $event->type;
+#my $state = $event->state;
 #print "BK Event is $type, state is $state \n";
 
+    # Do everything with left clck now.
+    if ($event->type =~ m/^button-/ && $event->button != 1) {
+        return;
+    }
 
-    if ( $event->type eq 'button-press') {
-        
-        if ($event->button == 1 and defined $self->{select_func} and not $self->{selecting}) {
-#print "COMMENCING SELECTION  $self->{select_func}\n";
+    if ($event->type eq 'enter-notify') {
+        $self->{page}->set_active_pane('grid');
+    }
+    elsif ($event->type eq 'button-press') {
+        if ($self->{drag_mode} eq 'select' and not $self->{selecting} and defined $self->{select_func}) {
             ($self->{sel_start_x}, $self->{sel_start_y}) = ($event->x, $event->y);
 
             # Grab mouse
             $cell->grab (
-                [qw /pointer-motion-mask button-release-mask/ ],
+                [qw/pointer-motion-mask button-release-mask/],
                 Gtk2::Gdk::Cursor->new ('fleur'),
                 $event->time,
             );
@@ -1564,14 +1619,14 @@ my $state = $event->state;
                 'Gnome2::Canvas::Rect',
                 x1 => $event->x,
                 y1 => $event->y,
-                x2 => $event->x,
-                y2 => $event->y,
+                x2 => $event->x + 1,
+                y2 => $event->y + 1,
                 fill_color_gdk => undef,
                 outline_color_gdk => CELL_BLACK,
                 width_pixels => 0,
             );
         }
-        else {
+        elsif ($self->{drag_mode} eq 'pan') {
             ($self->{pan_start_x}, $self->{pan_start_y}) = $event->coords;
 
             # Grab mouse
@@ -1582,11 +1637,14 @@ my $state = $event->state;
             );
             $self->{dragging} = 1;
         }
-
+        elsif ($self->{drag_mode} eq 'click') {
+            if (defined $self->{grid_click_func}) {
+                $self->{grid_click_func}->();
+            }
+        }
     }
-    elsif ( $event->type eq 'button-release') {
-
-        if ($self->{selecting} and $event->button == 1) {
+    elsif ($event->type eq 'button-release') {
+        if ($self->{selecting}) {
             # Establish the selection
             my ($x_start, $y_start) = ($self->{sel_start_x}, $self->{sel_start_y});
             my ($x_end, $y_end)     = ($event->x, $event->y);
@@ -1621,7 +1679,6 @@ my $state = $event->state;
 #        print "Background Event\tMotion\n";
         
         if ($self->{selecting}) {
-
             # Resize selection rectangle
             $self->{sel_rect}->set(x2 => $event->x, y2 => $event->y);
 
@@ -1638,7 +1695,7 @@ my $state = $event->state;
         }
     }
 
-    return 0;    
+    return 0;
 }
 
 # Called to complete selection. Finds selected elements and calls callback
@@ -1685,10 +1742,11 @@ sub end_selection {
         }
     }
 
-    # call callback
+    # call callback, using original event coords
+    # TODO: the call with rect info could be a separate callback.
     my $f = $self->{select_func};
-    $f->($elements);
-    
+    &$f($elements, undef, [$x_start, $y_start, $x_end, $y_end]);
+
     return;
 }
 
@@ -1893,7 +1951,9 @@ sub post_zoom {
 sub set_legend_mode {
     my $self = shift;
     my $mode = shift;
-    
+
+    $mode = ucfirst lc $mode;
+
     croak "Invalid display mode '$mode'\n"
         if not $mode =~ /^Hue|Sat|Grey$/;
     

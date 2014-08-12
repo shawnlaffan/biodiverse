@@ -84,3 +84,4 @@ sub on_file_selection {
 }
 
 1;
+

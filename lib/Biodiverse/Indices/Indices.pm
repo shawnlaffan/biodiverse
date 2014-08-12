@@ -6,7 +6,7 @@ use 5.010;
 use Carp;
 
 use Scalar::Util qw /blessed weaken reftype/;
-use List::Util qw /min max pairs pairkeys sum/;
+use List::Util 1.39 qw /min max pairs pairkeys sum/;
 use English ( -no_match_vars );
 use Readonly;
 

@@ -352,3 +352,4 @@ sub on_calculation_toggled {
 
 
 1;
+

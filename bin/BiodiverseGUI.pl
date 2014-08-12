@@ -37,6 +37,8 @@ use Gtk2 qw/-init/;
 use Gtk2::GladeXML;
 use Biodiverse::GUI::Callbacks;
 
+use Data::Dumper;
+use Scalar::Util qw/blessed/;
 
 # Load filename specified in the arguments
 my $numargs = scalar @ARGV;
@@ -97,10 +99,6 @@ if ( defined $filename ) {
 #my $ic = Gtk2::IconTheme->new;
 #$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
 #print join "\n", $ic->get_search_path;
-
-# DEBUG
-#$Carp::Verbose = 1;
-#say "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui";
 
 # Go!
 Gtk2->main;

@@ -7,7 +7,7 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use rlib;
-use List::Util qw /first/;
+use List::Util qw /first sum/;
 
 use Test::More;
 
@@ -82,6 +82,30 @@ sub _chklk {
 
     $tree1->trim (trim => \@delete_targets);
 
+}
+
+#  should all be equal for 
+sub test_max_path_length {
+    my $tree1 = shift || get_site_data_as_tree();
+    
+    my $root_node = $tree1->get_root_node;
+    my $max_path_length = $root_node->get_longest_path_length_to_terminals ();
+
+    my $exp = 0.963138848558473;
+    is ($max_path_length, $exp, 'max path length correct for ultrametric tree, root node');
+
+    subtest 'inner node max path lengths correct for ultrametric tree' => sub {
+        #  the length for the other nodes should be the difference
+        my $node_hash = $tree1->get_node_hash;
+        foreach my $node_name (sort keys %$node_hash) {
+            my $node_ref = $node_hash->{$node_name};
+            my $max_to_terminals = $node_ref->get_longest_path_length_to_terminals ();
+            my $path_lengths_to_root = $node_ref->get_path_lengths_to_root_node;
+            my $root_path_len    = sum (0, values %$path_lengths_to_root);
+            my $exp_inner = $exp - $root_path_len;
+            is ($max_path_length, $exp, 'node ' . $node_name);
+        }
+    };
 }
 
 

@@ -718,7 +718,8 @@ sub run_indices_test1 {
     my $callbacks              = $args{callbacks};
     my $expected_results_overlay = $args{expected_results_overlay};
     my $sort_array_lists       = $args{sort_array_lists};
-    my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.  
+    my $precision              = $args{precisions} // '%10f';  #  compare numeric values to 10 dp.
+    my $descr_suffix           = $args{descr_suffix} // '';
     delete $args{callbacks};
 
     # Used for acquiring sample results
@@ -844,6 +845,8 @@ sub run_indices_test1 {
         mpd_mntd_use_binomial => $args{mpd_mntd_use_binomial},
     };
 
+    my %results_by_nbr_list;
+
     foreach my $nbr_list_count (2, 1) {
         if ($nbr_list_count == 1) {
             delete $elements{element_list2};
@@ -879,7 +882,7 @@ sub run_indices_test1 {
                 hash_got => \%results,
                 hash_exp => \%{$expected},
                 no_strict_match  => $args{no_strict_match},
-                descr_suffix     => "$nbr_list_count nbr sets",
+                descr_suffix     => "$nbr_list_count nbr sets " . $descr_suffix,
                 sort_array_lists => $sort_array_lists,
                 precision        => $precision,
             );
@@ -887,7 +890,10 @@ sub run_indices_test1 {
 
         print_indices_result_set_to_fh ($generate_result_sets, \%results, $nbr_list_count);
 
+        $results_by_nbr_list{$nbr_list_count} = \%results;
     }
+    
+    return \%results_by_nbr_list;
 }
 
 #  put the results sets into a file

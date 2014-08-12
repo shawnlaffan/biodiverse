@@ -690,7 +690,9 @@ sub element_properties_from_string {
     # (LBPROP1 => 3, LBPROP2 => 4, ...)
     my $i = 3;
     $data =~ m/^(.*)$/m;
-    my @prop_names = split ',', $1;
+    my $tmp = $1;
+    $tmp =~ s/[\r\n]+$//;  #  clear any lurking \n or \r chars due to mixed line endings
+    my @prop_names = split ',', $tmp;
     my %prop_cols = map { $_ => $i++; } @prop_names[3..$#prop_names];
 
     my $success = eval { $props->import_data (

@@ -48,7 +48,7 @@ sub new {
         ELEMENT_COLUMNS      => [1,2],  #  default columns in input file to define the names (eg genus,species).  Should not be used as a list here.
         PARAM_CHANGE_WARN    => undef,
         CACHE_MATRIX_AS_TREE => 1,
-        VAL_INDEX_PRECISION  => '%.2g'
+        VAL_INDEX_PRECISION  => '%.2g',  #  %g keeps 0 as 0.  %f does not.
     );
 
     $self->set_params (%PARAMS, %args);  #  load the defaults, with the rest of the args as params
@@ -686,13 +686,16 @@ sub get_min_value {
 
     my $val_hash = $self->{BYVALUE};
     my $min_key  = min keys %$val_hash;
-    my $min      = $ludicrously_extreme_pos_val;
+    
+    #  Special case the zeroes - only valid for index precisions using %.g
+    #  Useful for cluster analyses with many zero values due to identical assemblages
+    return 0 if $min_key eq 0;
+
+    my $min = $ludicrously_extreme_pos_val;
 
     my $element_hash = $val_hash->{$min_key};
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            #  we know the order in which these are stored
-            #my $val = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
             my $val = $self->get_defined_value_aa ($el1, $el2);
             $min = min ($min, $val);
         }
@@ -923,30 +926,16 @@ sub get_element_pair_count {
     return $count;
 }
 
-##  superceded by get_element_pairs_with_value - yes
-#sub get_elements_with_value {  #  returns a hash of the elements with $value
-#    my $self = shift;
-#    my %args = @_;
-#    
-#    croak "Value not specified in call to get_elements_with_value\n"
-#        if ! defined $args{value};
-#    
-#    my $value = $args{value};
-#
-#    return if ! exists $self->{BYVALUE}{$value};
-#    return $self->{BYVALUE}{$value} if ! wantarray;
-#    return %{$self->{BYVALUE}{$value}};
-#}
-
 sub get_element_pairs_with_value {
     my $self = shift;
     my %args = @_;
 
     my $val = $args{value};
-    my $val_key = $val;
-    if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
-        $val_key = sprintf $prec, $val;
-    }
+    #my $val_key = $val;
+    #if (my $prec = $self->get_param('VAL_INDEX_PRECISION')) {
+    #    $val_key = sprintf $prec, $val;
+    #}
+    my $val_key = $self->get_value_index_key (value => $val);
 
     my %results;
 
@@ -955,10 +944,9 @@ sub get_element_pairs_with_value {
 
     while (my ($el1, $hash_ref) = each %$element_hash) {
         foreach my $el2 (keys %$hash_ref) {
-            #my $value = $self->get_value (element1 => $el1, element2 => $el2, pair_exists => 1);
             my $value = $self->get_defined_value (element1 => $el1, element2 => $el2);
             next if $val ne $value;  #  stringification implicitly uses %.15f precision
-            $results{$el1}{$el2} ++;
+            $results{$el1}{$el2}++;
         }
     }
 

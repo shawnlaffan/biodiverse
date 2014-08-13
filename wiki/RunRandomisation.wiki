@@ -30,7 +30,7 @@ run_randomisation_x64.exe --basedata Example.bds --rand_name rand_test --iterati
 
 Note that there should be no spaces between the argument name, equals sign and value.  Use quotes if an argument has any special characters or whitespace (e.g. to use the name `rand structa` then put it in quotes: `"rand structa"`).
 
-To see the help at the command line, specify --help or --h as an argument.  Note that this help also listed which arguments can be abbreviated.
+To see the help at the command line, specify --help or --h as an argument.  Note that this help also lists which arguments can be abbreviated.
 {{{
 run_randomisation_x64.exe --help
 run_randomisation_x32.exe --help

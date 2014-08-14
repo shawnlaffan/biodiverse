@@ -686,7 +686,7 @@ sub get_min_value {
 
     my $val_hash = $self->{BYVALUE};
     my $min_key  = min keys %$val_hash;
-    
+
     #  Special case the zeroes - only valid for index precisions using %.g
     #  Useful for cluster analyses with many zero values due to identical assemblages
     return 0 if $min_key eq 0;

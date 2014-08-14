@@ -551,7 +551,7 @@ sub get_metadata_import_data_common {
             },
             { name       => 'skip_lines_with_undef_groups',
               label_text => 'Skip lines with undef groups?',
-              tooltip    => 'Turn off if some records have undefined/null '
+              tooltip    => 'Turn off if some records have undefined/blank/NA '
                           . 'group values and should be skipped.  '
                           . 'Import will otherwise fail if they are found.',
               type       => 'boolean',
@@ -992,7 +992,7 @@ sub import_data {
                 if ($cell_sizes[$i] >= 0) {
                     next BYLINE
                       if $skip_lines_with_undef_groups
-                         and not defined $coord;
+                         && (!defined $coord || $coord eq 'NA');
 
                     if ($cell_is_lat_array[$i]) {
                         my $lat_args = {
@@ -1112,6 +1112,8 @@ sub import_data {
           ADD_ELEMENTS:
             while (my ($el, $count) = each %elements) {
                 if (defined $count) {
+                    next ADD_ELEMENTS if $count eq 'NA';
+
                     next ADD_ELEMENTS
                       if $data_in_matrix_form
                          && $count eq $EMPTY_STRING;

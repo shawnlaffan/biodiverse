@@ -1129,6 +1129,7 @@ END_PROGRESS_TEXT
         rand_object     => $rand,
         target_richness => \%target_richness,
         progress_text   => $progress_text,
+        progress_bar    => $progress_bar,
     );
 
     $bd->transfer_label_properties (
@@ -1156,10 +1157,11 @@ sub swap_to_reach_targets {
     my %target_richness = %{$args{target_richness}};
     my $rand            = $args{rand_object};
     my $progress_text   = $args{progress_text};
+    my $progress_bar    = $args{progress_bar} // Biodiverse::Progress->new();
 
     my $bd = $self->get_param ('BASEDATA_REF')
              || $args{basedata_ref};
-    my $progress_bar = Biodiverse::Progress->new();
+    
 
     my $csv_object = $bd->get_csv_object (
         sep_char   => $self->get_param ('JOIN_CHAR'),

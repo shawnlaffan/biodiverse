@@ -28,7 +28,7 @@ These also assume you have [http://code.google.com/p/biodiverse/downloads/list d
   sudo apt-get install libcairo2-dev libpango1.0-dev libgtk+2.0-dev libgnomecanvas2-dev libglade2-dev
   # GDAL:
   sudo apt-get install libarmadillo-dev libpoppler-dev libepsilon-dev liblzma-dev
-  sudo apt-get install libgdal-dev
+  sudo apt-get install libgdal-dev libkml-dev libfreexl-dev gdal-perl libogdi3.2-dev
 
   #  skip this if you already have cpanm installed
   cpan App::cpanminus

@@ -6204,9 +6204,9 @@ Colours are currently taken from the outer ring.</property>
                                     <property name="can_focus">False</property>
                                     <property name="tooltip" translatable="yes">Should the grouping be done by length or depth?
 
-This allows decoupling o from the display.
+This allows decoupling of node selection from the tree display so trees with many reversals can be more easily plotted by depth, but selections still use the branch lengths.
 
-Does not affect the slidys groups using the plot method.</property>
+This setting has no effect on the slider bar.  It always groups using the plot method, selecting whichever branches it crosses.</property>
                                     <property name="label" translatable="yes">Group by</property>
                                     <property name="use_underline">True</property>
                                     <child>

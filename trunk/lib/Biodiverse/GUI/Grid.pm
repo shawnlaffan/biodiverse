@@ -859,17 +859,20 @@ sub set_cell_show_outline {
     	# menu item is off and choose colour sets it active)
         foreach my $cell (values %{$self->{cells}}) {
             my $rect = $cell->[INDEX_RECT];
-            if (! $rect->get('outline_color_gdk')) {
-		        # calls chooser to set colour
-		        $self->set_cell_outline_colour;
+            my $col = $rect->get('outline_color_gdk');
+            my $c = $col->to_string;
+            if ($c eq '#000000000000') {
+                # calls chooser to set colour
+                $self->set_cell_outline_colour;
             	last;
             }
         }
-    } else {
+    }
+    else {
         # clear outline settings
         foreach my $cell (values %{$self->{cells}}) {
             my $rect = $cell->[INDEX_RECT];
-            $rect->set('outline_color', undef);
+            $rect->set(outline_color => undef);
         }
     }
 

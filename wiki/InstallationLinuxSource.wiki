@@ -28,20 +28,15 @@ These also assume you have [http://code.google.com/p/biodiverse/downloads/list d
   sudo apt-get install libcairo2-dev libpango1.0-dev libgtk+2.0-dev libgnomecanvas2-dev libglade2-dev
   # GDAL:
   sudo apt-get install libarmadillo-dev libpoppler-dev libepsilon-dev liblzma-dev
+  sudo apt-get install libgdal-dev
 
   #  skip this if you already have cpanm installed
   cpan App::cpanminus
 
-  #  This is not yet in the Task files on CPAN
-  cpanm List::BinarySearch
-
-  # YAML::Syck has installation failures at v1.27 
-  cpanm YAML::Syck@1.23
-
   # Now install the rest of the dependencies
-  cpanm Task::Biodiverse::NoGUI@0.191
-  cpanm Task::Biodiverse~0.19
-  cpanm Task::Biodiverse~0.19
+  cpanm Task::Biodiverse::NoGUI
+  cpanm Task::Biodiverse
+  cpanm Task::Biodiverse
 
   #  The last cpan command is listed twice to get Gnome::Canvas
   #  and Gtk2::GladeXML to install after their dependencies.

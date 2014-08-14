@@ -980,7 +980,7 @@ END_PROGRESS_TEXT
     #  algorithm:
     #  pick a label at random and then scatter its occurrences across
     #  other groups that don't already contain it
-    #  and that does not exceed the richness threshold factor
+    #  and which do not exceed the richness threshold factor
     #  (multiplied by the original richness)
 
     my @target_groups = $bd->get_groups;
@@ -988,7 +988,7 @@ END_PROGRESS_TEXT
         = $bd->array_to_hash_keys (list => \@target_groups);
     my %filled_groups;
     my %unfilled_groups = %target_richness;
-    my $last_filled = $EMPTY_STRING;
+    my $last_filled     = $EMPTY_STRING;
     $i = 0;
     $total_to_do = scalar @$rand_label_order;
     say "[RANDOMISE] Target is $total_to_do.  Running.";
@@ -1026,7 +1026,7 @@ END_PROGRESS_TEXT
             delete @target_groups{keys %$new_bd_has_label} ;
         }
 
-        my $check = scalar keys %target_groups;
+        my $check  = scalar keys %target_groups;
         my $check2 = $check;
         if (scalar keys %filled_groups) {
             delete @target_groups{keys %filled_groups};

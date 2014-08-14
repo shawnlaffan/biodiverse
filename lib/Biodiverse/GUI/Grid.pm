@@ -872,7 +872,7 @@ sub set_cell_show_outline {
 
     if ($active) {
         #  reinstate previous colouring
-    	$self->set_cell_outline_colour ($self->get_cell_outline_colour);
+        $self->set_cell_outline_colour ($self->get_cell_outline_colour);
     }
     else {
         # clear outline settings

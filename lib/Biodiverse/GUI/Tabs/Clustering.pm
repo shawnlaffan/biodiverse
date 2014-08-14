@@ -1582,7 +1582,7 @@ sub on_grid_hover {
 }
 
 sub on_end_grid_hover {
-	my $self = shift;
+    my $self = shift;
     $self->{dendrogram}->clear_highlights;
 }
 
@@ -2051,23 +2051,12 @@ sub on_menu_use_slider_to_select_nodes {
     return;
 }
 
-sub on_set_cell_outline_colour {
-    my $self = shift;
-    my $menu_item = shift;
-    $self->{grid}->set_cell_outline_colour (@_);
 
-    # set menu item for show outline as active if not currently
-    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active(1);
-
-    return;
+sub set_cell_outline_menuitem_active {
+    my ($self, $active) = @_;
+    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active($active);
 }
 
-sub on_set_cell_show_outline {
-    my $self = shift;
-    my $menu_item = shift;
-    $self->{grid}->set_cell_show_outline($menu_item->get_active);
-    return;	
-}
 
 sub on_group_mode_changed {
     my $self = shift;

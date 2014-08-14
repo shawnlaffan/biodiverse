@@ -644,6 +644,9 @@ sub set_base_struct {
         }
     }
 
+
+    $self->store_cell_outline_colour (CELL_BLACK);
+
     $progress_bar = undef;
 
     #  THIS SHOULD BE ABOVE THE init_grid CALL to display properly from first?
@@ -828,6 +831,19 @@ sub colour {
     return;
 }
 
+sub store_cell_outline_colour {
+    my $self = shift;
+    my $col  = shift;
+    
+    $self->{cell_outline_colour} = $col;
+}
+
+sub get_cell_outline_colour {
+    my $self = shift;
+    return $self->{cell_outline_colour};
+}
+
+
 sub set_cell_outline_colour {
     my $self = shift;
     my $colour = shift;
@@ -842,31 +858,21 @@ sub set_cell_outline_colour {
 
     foreach my $cell (values %{$self->{cells}}) {
         my $rect = $cell->[INDEX_RECT];
-        $rect->set('outline_color_gdk', $colour);
+        $rect->set(outline_color_gdk => $colour);
     }
+
+    $self->store_cell_outline_colour ($colour);  #  store for later re-use
 
     return;
 }
 
 sub set_cell_show_outline {
-    my $self = shift;
+    my $self   = shift;
     my $active = shift;
-    
+
     if ($active) {
-    	# only give call to set outline colour if any cells do not 
-    	# have defined colours
-    	# (prevents multiple pop-ups of chooser, eg if outline
-    	# menu item is off and choose colour sets it active)
-        foreach my $cell (values %{$self->{cells}}) {
-            my $rect = $cell->[INDEX_RECT];
-            my $col = $rect->get('outline_color_gdk');
-            my $c = $col->to_string;
-            if ($c eq '#000000000000') {
-                # calls chooser to set colour
-                $self->set_cell_outline_colour;
-            	last;
-            }
-        }
+        #  reinstate previous colouring
+    	$self->set_cell_outline_colour ($self->get_cell_outline_colour);
     }
     else {
         # clear outline settings

@@ -503,6 +503,24 @@
                             <child>
                               <placeholder/>
                             </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
+                            <child>
+                              <placeholder/>
+                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1249,6 +1267,24 @@ Shapefile
                     <child>
                       <placeholder/>
                     </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
+                    <child>
+                      <placeholder/>
+                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1302,8 +1338,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Escape" signal="clicked"/>
                 <accelerator key="c" signal="clicked"/>
+                <accelerator key="Escape" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1320,8 +1356,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="Return" signal="clicked"/>
                 <accelerator key="o" signal="clicked"/>
+                <accelerator key="Return" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -6154,7 +6190,7 @@ Colours are currently taken from the outer ring.</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
                                     <property name="tooltip" translatable="yes">Show or hide cell outlines.</property>
-                                    <property name="label" translatable="yes">Show or hide cell outlines</property>
+                                    <property name="label" translatable="yes">Show cell outlines</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
                                   </widget>
@@ -8201,12 +8237,6 @@ This setting has no effect on the slider bar.</property>
                                   </widget>
                                 </child>
                                 <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_display_sep1">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                </child>
-                                <child>
                                   <widget class="GtkMenuItem" id="menu_item_colour_stretch">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -8293,12 +8323,6 @@ but you can also set percentile ranges.</property>
                                   </widget>
                                 </child>
                                 <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_display_sep2">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                  </widget>
-                                </child>
-                                <child>
                                   <widget class="GtkMenuItem" id="menuitem_spatial_colour_mode">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -8350,12 +8374,6 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                         </child>
                                       </widget>
                                     </child>
-                                  </widget>
-                                </child>
-                                <child>
-                                  <widget class="GtkSeparatorMenuItem" id="menuitem_spatial_display_sep3">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
                                   </widget>
                                 </child>
                                 <child>
@@ -8411,6 +8429,25 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                         </child>
                                       </widget>
                                     </child>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkMenuItem" id="menuitem_spatial_cell_outline_colour">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Choose the colour used for the cell outlines</property>
+                                    <property name="label" translatable="yes">Set cell outline colour</property>
+                                    <property name="use_underline">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="menuitem_spatial_cell_show_outline">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Show or hide the cell outlines</property>
+                                    <property name="label" translatable="yes">Show cell outlines</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
                                   </widget>
                                 </child>
                               </widget>
@@ -9321,6 +9358,24 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
+                        <child>
+                          <placeholder/>
+                        </child>
                         <child>
                           <placeholder/>
                         </child>

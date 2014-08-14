@@ -828,7 +828,7 @@ sub on_grid_hover {
 
 sub on_end_grid_hover {
     my $self = shift;
-	$self->{dendrogram}->clear_highlights;
+    $self->{dendrogram}->clear_highlights;
 }
 
 sub on_grid_select {

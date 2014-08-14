@@ -489,4 +489,23 @@ sub handle_grid_drag_zoom {
 
 
 
+sub on_set_cell_outline_colour {
+    my $self = shift;
+    my $menu_item = shift;
+    $self->{grid}->set_cell_outline_colour (@_);
+
+    # set menu item for show outline as active if not currently
+    $self->set_cell_outline_menuitem_active (1);
+    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active(1);
+
+    return;
+}
+
+sub on_set_cell_show_outline {
+    my $self = shift;
+    my $menu_item = shift;
+    $self->{grid}->set_cell_show_outline($menu_item->get_active);
+    return;
+}
+
 1;

@@ -176,16 +176,22 @@ sub test_merge {
             }
         }
     };
-    
+
     $bd_x1 = $bd_x0->clone;
     $bd_x2 = $bd_x0->clone;
     $bd_x2->add_element (label => 'bongo_dog_band');
     $bd_x2->add_element (group => '100:100');
-    
+
     $bd_x1->merge (from => $bd_x2);
-    ok ($bd_x1->exists_label (label => 'bongo_dog_band'), 'label with no groups exists');
-    ok ($bd_x1->exists_group (group => '100:100'),        'group without labels exists');
-    
+    ok (
+        $bd_x1->exists_label (label => 'bongo_dog_band'),
+        'label with no groups exists',
+    );
+    ok (
+        $bd_x1->exists_group (group => '100:100'),
+        'group without labels exists',
+    );
+
     #  we cannot merge into ourselves
     eval {$bd_x0->merge (from => $bd_x0)};
     $e = $EVAL_ERROR;

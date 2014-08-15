@@ -22,6 +22,8 @@ To cite Biodiverse or acknowledge its use, cite this publication as follows, sub
 
   *  Bui, E.N., González-Orozco, C.E. and Miller, J.T. (2014) _Acacia_, climate, and geochemistry in Australia.  [http://dx.doi.org/10.1007/s11104-014-2113-x Plant and Soil, 381, 161-175].
 
+  *  Carnaval, A., Waltari, E., Rodrigues, M., Rosauer, D., VanDerWal, J., Damasceno, R., Prates, I., Strangas, M., Spanos, Z., Rivera, D.,Pie, M., Firkowski, C., Bornschein, M., Ribeiro, L. & Moritz, C. (2014) Prediction of phylogeographic endemism in an environmentally complex biome. [http://dx.doi.org/10.1098/rspb.2014.1461 Proceedings of the Royal Society B. 281, 20141461].
+
   *  Di Virgilio, G. & Laffan, S.W. (2014) Using maps of continuous variation in species compositional turnover to supplement uniform polygon species range maps.  [http://dx.doi.org/10.1080/13658816.2013.871725 International Journal of Geographical Information Science, 28, 1658-1673].
 
   *  González-Orozco, C.E., Ebach, M.C., Laffan, S.W., Thornhill, A.H., Knerr, N., Schmidt-Lebuhn, A., Cargill, C.C., Clements, M., Nagalingum, N., Mishler, B.D. & Miller, J.T. (2014) Quantifying phytogeographical regions of Australia using geospatial turnover in species composition.  [http://dx.doi.org/10.1371/journal.pone.0092558 PLoS One, 9, e92558].

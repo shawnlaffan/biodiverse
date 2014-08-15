@@ -2746,14 +2746,16 @@ sub get_richness {
 
 sub get_label_sample_count {  
     my $self = shift;
+    my %args = @_;
 
-    return $self->get_labels_ref->get_sample_count(@_);
+    return $self->get_labels_ref->get_sample_count(element => $args{label}, @_);
 }
 
 sub get_group_sample_count {
     my $self = shift;
+    my %args = @_;
 
-    return $self->get_groups_ref->get_sample_count(@_);
+    return $self->get_groups_ref->get_sample_count(element => $args{group}, @_);
 }
 
 #  get the abundance for a label as defined by the user,
@@ -3950,6 +3952,83 @@ sub has_empty_groups {
     
     return 1;
 }
+
+
+#  merge labels and groups from another basedata into this one
+sub merge {
+    my $self = shift;
+    my %args = @_;
+
+    my $from_bd = $args{from} || croak "from argument is undefined\n";
+
+    croak "Cannot merge into self" if $self eq $from_bd;
+
+    croak "Cannot merge into basedata with existing outputs"
+      if $self->get_output_ref_count;
+
+    my @cellsizes      = $self->get_cell_sizes;
+    my @from_cellsizes = $from_bd->get_cell_sizes;
+
+    my @cellorigins      = $self->get_cell_origins;
+    my @from_cellorigins = $from_bd->get_cell_origins;
+
+    my $not_same;
+    for my $i (0 .. $#cellsizes) {
+        if (   $cellsizes[$i]   != $from_cellsizes[$i]
+            || $cellorigins[$i] != $from_cellorigins[$i]) {
+            $not_same = 1;
+            last;
+        }
+    }
+
+    croak "cannot merge into basedata with different cell sizes and offsets"
+      if $not_same;
+
+    my $csv_object = $self->get_csv_object;
+
+    #  need to do labels without groups - work directly with gp and lb objects?
+    #  or just check labels without groups at the end?
+    foreach my $group ($from_bd->get_groups) {
+        my %tmp = $from_bd->get_labels_in_group_as_hash (group => $group);
+
+        if (!scalar keys %tmp) {
+            #  make sure we get any empty groups
+            $self->add_element(
+                group => $group,
+                csv_object => $csv_object,
+                count => 0,
+                allow_empty_groups => 1,
+            );
+        }
+
+        foreach my $label (keys %tmp) {
+            my $count = $tmp{$label};
+            $self->add_element(
+                label => $label,
+                group => $group,
+                count => $count,
+                csv_object => $csv_object,
+            );
+        }
+    }
+    #  make sure we get any labels without groups
+    foreach my $label ($from_bd->get_labels) {
+        my %tmp = $from_bd->get_groups_with_label_as_hash(label => $label);
+
+        next if scalar keys %tmp; 
+
+        $self->add_element(
+            label => $label,
+            csv_object => $csv_object,
+            count => 0,
+            allow_empty_groups => 1,
+        );
+    }
+
+    return;
+}
+
+
 
 sub numerically {$a <=> $b};
 

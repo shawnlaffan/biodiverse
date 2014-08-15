@@ -95,6 +95,104 @@ sub main {
     return 0;
 }
 
+sub test_merge {
+    my $e;
+    my %args = (
+        x_spacing   => 1,
+        y_spacing   => 1,
+        CELL_SIZES  => [1, 1],
+        x_max       => 10,
+        y_max       => 10,
+        x_min       => 1,
+        y_min       => 1,
+    );
+
+    my $bd1 = get_basedata_object (%args);
+
+    my $bd2 = $bd1->clone;
+    
+    $bd1->merge (from => $bd2);
+
+    is ($bd1->get_group_count, $bd2->get_group_count, 'merged group count constant');
+    is ($bd1->get_label_count, $bd2->get_label_count, 'merged label count constant');
+    
+    #  now we check the sample counts - they should have doubled
+    subtest 'merge: sample counts have doubled' => sub {
+        foreach my $label ($bd1->get_labels) {
+            my $c1 = $bd1->get_label_sample_count (label => $label);
+            my $c2 = $bd2->get_label_sample_count (label => $label);
+            is ($c1, 2 * $c2, "expected sample count, $label");
+        }
+    };
+
+    #  now run an analysis and croak when the merge is called
+    my $sp = $bd1->add_spatial_output (name => 'bongo');
+    
+    eval {$bd1->merge (from => $bd2)};
+    $e = $EVAL_ERROR;
+    ok ($e, 'tried merging into basedata with outputs and got exception');
+
+    my $bd3 = get_basedata_object (%args, CELL_SIZES => [2, 2]);
+    eval {$bd1->merge (from => $bd3)};
+    $e = $EVAL_ERROR;
+    ok ($e, 'tried merging into basedata with different cell sizes and got exception');
+
+    $bd3 = get_basedata_object (%args, CELL_ORIGINS => [2, 2]);
+    eval {$bd1->merge (from => $bd3)};
+    $e = $EVAL_ERROR;
+    ok ($e, 'tried merging into basedata with different cell origins and got exception');
+
+    #  now one with no overlap so we get double the groups and labels
+    my $bd_x0 = get_basedata_object (%args);
+    my $bd_x1 = $bd_x0->clone;
+    my $bd_x2 = get_basedata_object (
+        %args,
+        x_max       => 30,
+        y_max       => 30,
+        x_min       => 21,
+        y_min       => 21,
+    );
+
+    $bd_x1->merge (from => $bd_x2);
+
+    is (
+        $bd_x0->get_group_count * 2,
+        $bd_x1->get_group_count,
+        'merge: group count has doubled when no overlap',
+    );
+    is (
+        $bd_x0->get_label_count * 2,
+        $bd_x1->get_label_count,
+        'merge: label count has doubled when no overlap',
+    );
+
+    #  now we check the sample counts - they should have doubled
+    subtest 'merge: sample counts are unchanged when no overlap' => sub {
+        foreach my $bd_xx ($bd_x0, $bd_x2) {
+            foreach my $label ($bd_xx->get_labels) {
+                my $c1 = $bd_x1->get_label_sample_count (label => $label);
+                my $c2 = $bd_xx->get_label_sample_count (label => $label);
+                is ($c1, $c2, "expected sample count, $label");
+            }
+        }
+    };
+    
+    $bd_x1 = $bd_x0->clone;
+    $bd_x2 = $bd_x0->clone;
+    $bd_x2->add_element (label => 'bongo_dog_band');
+    $bd_x2->add_element (group => '100:100');
+    
+    $bd_x1->merge (from => $bd_x2);
+    ok ($bd_x1->exists_label (label => 'bongo_dog_band'), 'label with no groups exists');
+    ok ($bd_x1->exists_group (group => '100:100'),        'group without labels exists');
+    
+    #  we cannot merge into ourselves
+    eval {$bd_x0->merge (from => $bd_x0)};
+    $e = $EVAL_ERROR;
+    ok ($e, 'exception raised when merging into self');
+
+    return;
+}
 
 sub test_labels_in_groups {
     my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);

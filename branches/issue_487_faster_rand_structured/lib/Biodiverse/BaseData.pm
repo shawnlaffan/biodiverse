@@ -3012,16 +3012,14 @@ sub exists_label_in_group {
     my $self = shift;
     my %args = @_;
 
-    my $groups_ref = $self->get_groups_ref;
-    $groups_ref->exists_sub_element (element => $args{group}, subelement => $args{label});
+    $self->get_groups_ref->exists_sub_element_aa ($args{group}, $args{label});
 }
 
 sub exists_group_with_label {
     my $self = shift;
     my %args = @_;
 
-    my $labels_ref = $self->get_labels_ref;
-    $labels_ref->exists_sub_element (element => $args{label}, subelement => $args{group});
+    $self->get_labels_ref->exists_sub_element_aa ($args{label}, $args{group});
 }
 
 sub write_table {  #  still needed?
@@ -3046,14 +3044,14 @@ sub write_sub_elements_csv {
     return;
 }
 
+#  heavy usage sub, so bare-bones code
 sub get_groups_ref {
-    my $self = shift;
-    return $self->{GROUPS};
+    $_[0]->{GROUPS};
 }
 
+#  heavy usage sub, so bare-bones code
 sub get_labels_ref {
-    my $self = shift;
-    return $self->{LABELS};
+    $_[0]->{LABELS};
 }
 
 sub build_spatial_index {  #  builds GROUPS, not LABELS

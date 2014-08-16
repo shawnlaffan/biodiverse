@@ -1317,9 +1317,10 @@ sub swap_to_reach_targets {
 
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
-                #  do we have any unfilled groups without this label?
-                #  Could use %groups_without_labels but it only caches what has been seen so far
-                #  and often that does not apply to $label here
+                #  Do we have any unfilled groups without this label?
+                #  Could use %groups_without_labels but it only caches
+                #  what has been seen so far and often that does
+                #  not apply to $label here
               UGROUP:
                 foreach my $group (keys %unfilled_groups) {
                     next UGROUP

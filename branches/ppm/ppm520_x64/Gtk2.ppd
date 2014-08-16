@@ -1,0 +1,13 @@
+<SOFTPKG NAME="Gtk2" VERSION="1.2492">
+    <ABSTRACT>Perl interface to the 2.x series of the Gimp Toolkit library</ABSTRACT>
+    <AUTHOR></AUTHOR>
+    <IMPLEMENTATION>
+        <REQUIRE VERSION="1" NAME="Cairo;" \>
+        <REQUIRE NAME="ExtUtils;Depends" VERSION="0.3" \>
+        <REQUIRE NAME="ExtUtils;PkgConfig" VERSION="1.03" \>
+        <REQUIRE VERSION="1.28" NAME="Glib;" \>
+        <REQUIRE NAME="Pango;" VERSION="1.22" \>
+        <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.20" />
+        <CODEBASE HREF="" />
+    </IMPLEMENTATION>
+</SOFTPKG>

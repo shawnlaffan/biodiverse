@@ -1,0 +1,10 @@
+<SOFTPKG NAME="Cairo" VERSION="1.104">
+    <ABSTRACT>Perl interface to the cairo 2d vector graphics library</ABSTRACT>
+    <AUTHOR></AUTHOR>
+    <IMPLEMENTATION>
+        <REQUIRE VERSION="0.2" NAME="ExtUtils;Depends" \>
+        <REQUIRE NAME="ExtUtils;PkgConfig" VERSION="1" \>
+        <ARCHITECTURE NAME="MSWin32-x64-multi-thread-5.20" />
+        <CODEBASE HREF="" />
+    </IMPLEMENTATION>
+</SOFTPKG>

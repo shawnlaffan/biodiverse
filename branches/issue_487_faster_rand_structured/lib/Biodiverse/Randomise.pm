@@ -1122,7 +1122,7 @@ END_PROGRESS_TEXT
         }
     }
 
-    $self->swap_to_reach_targets (
+    $self->swap_to_reach_richness_targets (
         basedata_ref    => $bd,
         cloned_bd       => $cloned_bd,
         new_bd          => $new_bd,
@@ -1148,7 +1148,7 @@ END_PROGRESS_TEXT
     return $new_bd;
 }
 
-sub swap_to_reach_targets {
+sub swap_to_reach_richness_targets {
     my $self = shift;
     my %args = @_;
 
@@ -1482,7 +1482,7 @@ sub swap_to_reach_targets {
             $filled_groups{$target_group} = $new_richness;
             delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
             LB:
-            #  nuclear option - see previous nuclear optin for how to speed up if needed
+            #  nuclear option - see previous nuclear option comments for how to speed up if needed
             foreach my $label (keys %unfilled_gps_without_label) {
                 no autovivification;
                 delete $unfilled_gps_without_label{$label}{$target_group};

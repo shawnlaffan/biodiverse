@@ -1381,20 +1381,14 @@ sub swap_to_reach_targets {
                 #  get a list of unfilled candidates to move it to
                 #  do this by removing those that have the label
                 #  from the list of unfilled groups
-                my $gps_with_label = $new_bd->get_groups_with_label (
-                    label => $remove_label,
-                )
-                || [];
-
-                my %unfilled_tmp = %unfilled_groups;
-                delete @unfilled_tmp{@$gps_with_label};
+                my $unfilled_tmp = $unfilled_gps_without_label{$remove_label} // {};
 
                 croak "ISSUES WITH RETURN GROUPS\n"
-                  if !scalar keys %unfilled_tmp;
+                  if !scalar keys %$unfilled_tmp;
 
                 #  and get one of them at random
-                $i = int $rand->rand (scalar keys %unfilled_tmp);
-                my @tmp = sort keys %unfilled_tmp;
+                $i = int $rand->rand (scalar keys %$unfilled_tmp);
+                my @tmp = sort keys %$unfilled_tmp;
                 my $return_gp = $tmp[$i];
 
                 $new_bd->add_element   (

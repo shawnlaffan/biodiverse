@@ -2695,6 +2695,14 @@ sub exists_sub_element {
     exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};
 }
 
+#  array args variant, with no testing of args - let perl warn as needed
+sub exists_sub_element_aa {
+    my ($self, $element, $subelement) = @_;
+
+    no autovivification;
+    exists $self->{ELEMENTS}{$element}{SUBELEMENTS}{$subelement};
+}
+
 sub add_values {  #  add a set of values and their keys to a list in $element
     my $self = shift;
     my %args = @_;

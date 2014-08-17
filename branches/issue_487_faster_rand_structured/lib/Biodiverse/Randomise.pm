@@ -1318,36 +1318,19 @@ sub swap_to_reach_targets {
             #  set some defaults
             my $remove_label  = $loser_labels_array->[0];
             my $removed_count = $loser_labels_hash_to_use->{$remove_label};
-            my $swap_to_unfilled   = 0;
+            my $swap_to_unfilled = 0;
 
-my $rm_l_x = $remove_label;
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
-                #  This is a major bottleneck for large data sets
-                #  - need to index unfilled groups by labels not in them
                 #  Do we have any unfilled groups without this label?
-                #  Could use %groups_without_labels but it only caches
-                #  what has been seen so far and often that does
-                #  not apply to $label here
-                my $x;
-                {
-                    no autovivification;
-                    $x = $unfilled_gps_without_label{$label} // {};
-                    if (scalar keys %$x) {
-                        $rm_l_x = $label;
-                    }
-                }
+                my $x = $unfilled_gps_without_label{$label} // {};
 
-              UNFILLED_GROUP:
-                foreach my $group (keys %unfilled_groups) {
-                    next UNFILLED_GROUP
-                      if $new_bd->exists_label_in_group(label => $label, group => $group);
+                next BY_LOSER_LABEL if !scalar keys %$x;
 
-                    $remove_label  = $label;
-                    $removed_count = $loser_labels_hash_to_use->{$remove_label};
-                    $swap_to_unfilled = 1;
-                    last BY_LOSER_LABEL;
-                }
+                $remove_label  = $label;
+                $removed_count = $loser_labels_hash_to_use->{$remove_label};
+                $swap_to_unfilled = 1;
+                last BY_LOSER_LABEL;
             }
 
             #  Remove it from $target_group in new_bd

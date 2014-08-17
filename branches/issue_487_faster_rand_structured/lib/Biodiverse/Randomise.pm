@@ -1210,26 +1210,6 @@ sub swap_to_reach_targets {
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
 
-#  debug code
-#state $xxxx = 0;
-#say $xxxx++;
-#my %not_tracked;
-#foreach my $label (sort keys %unfilled_gps_without_label) {
-#    my $href = $unfilled_gps_without_label{$label};
-#    #say "Del count: $del_count";
-#    foreach my $gp (sort keys %$href) {
-#        #next if $gp = $last_filled;
-#        my $cu = exists $unfilled_groups{$gp} || 0;
-#        my $cf = exists $filled_groups{$gp}   || 0;
-#        if ($cf) {
-#            #say "group: $gp not properly tracked wrt $label, F: $cf, U: $cu";
-#            #print "";
-#            $not_tracked{$gp}++;
-#        }
-#    }
-#}
-#say 'Not tracked: ' . join ' ', %not_tracked if keys %not_tracked;
-
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
 
@@ -1340,10 +1320,7 @@ sub swap_to_reach_targets {
             my $removed_count = $loser_labels_hash_to_use->{$remove_label};
             my $swap_to_unfilled   = 0;
 
-#my $skip_count = 0;
 my $rm_l_x = $remove_label;
-#my $triggered_x = 0;
-#my @triggered_a;
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
                 #  This is a major bottleneck for large data sets
@@ -1358,8 +1335,6 @@ my $rm_l_x = $remove_label;
                     $x = $unfilled_gps_without_label{$label} // {};
                     if (scalar keys %$x) {
                         $rm_l_x = $label;
-                        #$triggered_x ++;
-                        #push @triggered_a, $label;
                     }
                 }
 
@@ -1373,35 +1348,8 @@ my $rm_l_x = $remove_label;
                     $swap_to_unfilled = 1;
                     last BY_LOSER_LABEL;
                 }
-#$skip_count++;
             }
-#say "Swap to unfilled: $swap_to_unfilled";
-#state $no_swap_to_unfilled;
-#state %no_swap_to_unfilled_h;
-#if (!$swap_to_unfilled) {
-#    $no_swap_to_unfilled++;
-#    $no_swap_to_unfilled_h{$remove_label}++;
-#}
-#if ($triggered_x > 1) {
-#    say "Triggered:  $triggered_x";
-#    my $x = $unfilled_gps_without_label{$triggered_a[0]} // {};
-#    foreach my $group (sort keys %$x) {
-#        say "$group" if !exists $unfilled_groups{$group};
-#    }
-#    print '';
-#}
-#if ($remove_label ne $rm_l_x) {
-    #my $x1 = $unfilled_gps_without_label{$remove_label} // {};
-    #my $x2 = $unfilled_gps_without_label{$rm_l_x} // {};
-    #$x1 = scalar keys %$x1;
-    #$x2 = scalar keys %$x2;
-    ##my $max = max values %unfilled_gps_without_label;
-    ##my $ufg = scalar keys %unfilled_groups;
-    #say "Skip count:  $skip_count";
-    #say "O: $remove_label: $x1, N: $rm_l_x: $x2, $swap_to_unfilled, $triggered_x";
-    ##say "UFG: $ufg, max ufgl: $max";
-    #print '';
-#}
+
             #  Remove it from $target_group in new_bd
             $new_bd->delete_sub_element (
                 label => $remove_label,
@@ -1490,21 +1438,17 @@ my $rm_l_x = $remove_label;
                     }
                 }
 
-#my $del_count = 0;
-#say "Return gp: $return_gp";
-
                 #  if we are now filled then update the tracking hashes
                 if ($new_richness >= $target_richness{$return_gp}) {
-#say "Return gp filled";
                     $last_filled = $return_gp;
                     #  clean up the tracker hashes
                     $filled_groups{$last_filled} = $new_richness;
                     delete $unfilled_groups{$last_filled};
-                    #  nuclear option for unfilled_gps_without_label
+                    #  Nuclear option for unfilled_gps_without_label to ensure we get them all, but still fast
+                    #  If we need faster then we should track the reverse hash (labels index by group)
                     foreach my $label (keys %unfilled_gps_without_label) {
                         no autovivification;
-                        #$del_count +=
-                          delete $unfilled_gps_without_label{$label}{$last_filled};
+                        delete $unfilled_gps_without_label{$label}{$last_filled};
                     }
                     #  more nuanced for labels_in_unfilled_gps
                   LB:
@@ -1519,9 +1463,7 @@ my $rm_l_x = $remove_label;
                             delete $labels_in_unfilled_gps{$label};
                         }
                     }
-                    
                 }
-
             }
 
             $swap_count ++;
@@ -1532,7 +1474,6 @@ my $rm_l_x = $remove_label;
         }
 
         #  add the new label to new_bd
-        #print "A: $add_label, $target_group, $add_count\n";
         $new_bd->add_element (
             label => $add_label,
             group => $target_group,
@@ -1549,7 +1490,6 @@ my $rm_l_x = $remove_label;
         if (exists $unfilled_groups{$target_group}) {
             delete $unfilled_gps_without_label{$add_label}{$target_group};
         }
-#say "Target gp: $target_group";
 
         #  check if we've filled this group, if nothing was swapped out
         my $new_richness = $new_bd->get_richness (element => $target_group);
@@ -1559,21 +1499,17 @@ my $rm_l_x = $remove_label;
 
         if (    $new_richness != $target_gp_richness 
             and $new_richness >= $target_richness{$target_group}) {
-#say "Target gp filled";
+
             $filled_groups{$target_group} = $new_richness;
-            #if (exists $unfilled_groups{$target_group}) {
-                delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
-            #}
+            delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
             LB:
-            #  nuclear option
+            #  nuclear option - see previous nuclear optin for how to speed up if needed
             foreach my $label (keys %unfilled_gps_without_label) {
                 no autovivification;
-                #$del_count +=
-                  delete $unfilled_gps_without_label{$label}{$target_group};
+                delete $unfilled_gps_without_label{$label}{$target_group};
             }
             $last_filled = $target_group;
         }
-
     }
 
     say "[Randomise structured] Final swap count is $swap_count";

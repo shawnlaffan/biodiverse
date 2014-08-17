@@ -988,6 +988,7 @@ END_PROGRESS_TEXT
         = $bd->array_to_hash_keys (list => \@target_groups);
     my %filled_groups;
     my %unfilled_groups = %target_richness;
+    my %new_bd_richness;
     my $last_filled     = $EMPTY_STRING;
     $i = 0;
     $total_to_do = scalar @$rand_label_order;
@@ -1073,20 +1074,21 @@ END_PROGRESS_TEXT
             );
             delete $tmp{$from_group};
 
-            #  check if we've filled this group.
-            my $richness = $new_bd->get_richness (element => $to_group);
+            #  increment richness and then check if we've filled this group.
+            my $richness = ++$new_bd_richness{$to_group};
 
             if ($richness >= $target_richness{$to_group}) {
 
                 warn "ISSUES $to_group $richness > $target_richness{$to_group}\n"
-                    if ($richness > $target_richness{$to_group});
+                  if ($richness > $target_richness{$to_group});
 
                 $filled_groups{$to_group} = $richness;
                 delete $unfilled_groups{$to_group};
                 $last_filled = $to_group;
             };
 
-            last BY_GROUP if scalar @target_groups == 0;  #  no more targets for this label, move to next label
+            #  move to next label if no more targets for this label
+            last BY_GROUP if !scalar @target_groups;  
         }
     }
 

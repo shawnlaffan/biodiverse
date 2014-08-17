@@ -14,7 +14,7 @@ use Carp;
 use POSIX qw { ceil floor };
 use Time::HiRes qw { gettimeofday tv_interval };
 use Scalar::Util qw { blessed };
-use List::Util qw /any all none/;
+use List::Util qw /any all none minstr max/;
 use List::MoreUtils qw /first_index/;
 use List::BinarySearch qw /binsearch  binsearch_pos/;
 use List::BinarySearch::XS;  #  make sure we have the XS version available
@@ -1189,11 +1189,16 @@ sub swap_to_reach_targets {
     
     #  Track the labels in the unfilled groups.
     #  This avoids collating them every iteration.
-    my %labels_in_unfilled_gps;
+    my (%labels_in_unfilled_gps, %unfilled_gps_without_label);
     foreach my $gp (keys %unfilled_groups) {
         my $list = $new_bd->get_labels_in_group_as_hash (group => $gp);
-        foreach my $label (keys %$list) {
-            $labels_in_unfilled_gps{$label}++;
+        foreach my $label ($bd->get_labels) {
+            if (exists $list->{$label}) {
+                $labels_in_unfilled_gps{$label}++;
+            }
+            else {
+                $unfilled_gps_without_label{$label}{$gp}++;
+            }
         }
     }
 
@@ -1204,6 +1209,26 @@ sub swap_to_reach_targets {
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
     while (scalar keys %unfilled_groups) {
+
+#  debug code
+#state $xxxx = 0;
+#say $xxxx++;
+#my %not_tracked;
+#foreach my $label (sort keys %unfilled_gps_without_label) {
+#    my $href = $unfilled_gps_without_label{$label};
+#    #say "Del count: $del_count";
+#    foreach my $gp (sort keys %$href) {
+#        #next if $gp = $last_filled;
+#        my $cu = exists $unfilled_groups{$gp} || 0;
+#        my $cf = exists $filled_groups{$gp}   || 0;
+#        if ($cf) {
+#            #say "group: $gp not properly tracked wrt $label, F: $cf, U: $cu";
+#            #print "";
+#            $not_tracked{$gp}++;
+#        }
+#    }
+#}
+#say 'Not tracked: ' . join ' ', %not_tracked if keys %not_tracked;
 
         my $target_label_count = $cloned_bd->get_label_count;
         my $target_group_count = $cloned_bd->get_group_count; 
@@ -1272,7 +1297,7 @@ sub swap_to_reach_targets {
         my $target_groups_tmp_a = $groups_without_labels_a{$add_label};
         if (!$target_groups_tmp_a || !scalar @$target_groups_tmp_a) {
             my $target_groups_tmp = $new_bd->get_groups_without_label_as_hash (label => $add_label);
-            $target_groups_tmp_a = $groups_without_labels_a{$add_label} = [sort keys %$target_groups_tmp];
+            $target_groups_tmp_a  = $groups_without_labels_a{$add_label} = [sort keys %$target_groups_tmp];
         };
         #  cache maintains a sorted list, so no need to re-sort.  
         $i = int $rand->rand(scalar @$target_groups_tmp_a);
@@ -1313,17 +1338,34 @@ sub swap_to_reach_targets {
             #  set some defaults
             my $remove_label  = $loser_labels_array->[0];
             my $removed_count = $loser_labels_hash_to_use->{$remove_label};
-            my $swap_to_unfilled;
+            my $swap_to_unfilled   = 0;
 
+#my $skip_count = 0;
+my $rm_l_x = $remove_label;
+#my $triggered_x = 0;
+#my @triggered_a;
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
+                #  This is a major bottleneck for large data sets
+                #  - need to index unfilled groups by labels not in them
                 #  Do we have any unfilled groups without this label?
                 #  Could use %groups_without_labels but it only caches
                 #  what has been seen so far and often that does
                 #  not apply to $label here
-              UGROUP:
+                my $x;
+                {
+                    no autovivification;
+                    $x = $unfilled_gps_without_label{$label} // {};
+                    if (scalar keys %$x) {
+                        $rm_l_x = $label;
+                        #$triggered_x ++;
+                        #push @triggered_a, $label;
+                    }
+                }
+
+              UNFILLED_GROUP:
                 foreach my $group (keys %unfilled_groups) {
-                    next UGROUP
+                    next UNFILLED_GROUP
                       if $new_bd->exists_label_in_group(label => $label, group => $group);
 
                     $remove_label  = $label;
@@ -1331,9 +1373,36 @@ sub swap_to_reach_targets {
                     $swap_to_unfilled = 1;
                     last BY_LOSER_LABEL;
                 }
+#$skip_count++;
             }
-
-            #  Remove it from new_bd and add it to an unfilled group
+#say "Swap to unfilled: $swap_to_unfilled";
+#state $no_swap_to_unfilled;
+#state %no_swap_to_unfilled_h;
+#if (!$swap_to_unfilled) {
+#    $no_swap_to_unfilled++;
+#    $no_swap_to_unfilled_h{$remove_label}++;
+#}
+#if ($triggered_x > 1) {
+#    say "Triggered:  $triggered_x";
+#    my $x = $unfilled_gps_without_label{$triggered_a[0]} // {};
+#    foreach my $group (sort keys %$x) {
+#        say "$group" if !exists $unfilled_groups{$group};
+#    }
+#    print '';
+#}
+#if ($remove_label ne $rm_l_x) {
+    #my $x1 = $unfilled_gps_without_label{$remove_label} // {};
+    #my $x2 = $unfilled_gps_without_label{$rm_l_x} // {};
+    #$x1 = scalar keys %$x1;
+    #$x2 = scalar keys %$x2;
+    ##my $max = max values %unfilled_gps_without_label;
+    ##my $ufg = scalar keys %unfilled_groups;
+    #say "Skip count:  $skip_count";
+    #say "O: $remove_label: $x1, N: $rm_l_x: $x2, $swap_to_unfilled, $triggered_x";
+    ##say "UFG: $ufg, max ufgl: $max";
+    #print '';
+#}
+            #  Remove it from $target_group in new_bd
             $new_bd->delete_sub_element (
                 label => $remove_label,
                 group => $target_group,
@@ -1343,8 +1412,12 @@ sub swap_to_reach_targets {
             if (exists $groups_without_labels_a{$remove_label}) {
                 #  need to insert into $groups_without_labels_a in sort order
                 my $aref = $groups_without_labels_a{$remove_label};
-                my $idx = binsearch_pos { $a cmp $b } $target_group, @$aref;
+                my $idx  = binsearch_pos { $a cmp $b } $target_group, @$aref;
                 splice @$aref, $idx, 0, $target_group;
+            }
+            #   unfilled_groups condition will never trigger in this if-branch
+            if (exists $unfilled_groups{$target_group}) {  
+                $unfilled_gps_without_label{$remove_label}{$target_group}++;
             }
 
             if (! $swap_to_unfilled) {
@@ -1364,9 +1437,8 @@ sub swap_to_reach_targets {
                     );
 
                 #  make sure it does not add to an existing case
-                delete @old_groups{@cloned_self_gps_with_label}; 
-                my @old_gps = sort keys %old_groups;
-                my $old_gp = $old_gps[0];
+                delete @old_groups{@cloned_self_gps_with_label};
+                my $old_gp = minstr keys %old_groups;
                 $cloned_bd->add_element   (
                     label => $remove_label,
                     group => $old_gp,
@@ -1406,9 +1478,10 @@ sub swap_to_reach_targets {
                 );
 
                 warn "ISSUES WITH RETURN $return_gp\n"
-                    if $new_richness > $target_richness{$return_gp};
+                  if $new_richness > $target_richness{$return_gp};
 
                 $labels_in_unfilled_gps{$remove_label}++;
+                delete $unfilled_gps_without_label{$remove_label}{$return_gp};
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
                     my $idx  = binsearch { $a cmp $b } $return_gp, @$aref;
                     splice @$aref, $idx, 1;
@@ -1417,25 +1490,38 @@ sub swap_to_reach_targets {
                     }
                 }
 
-                #  we are now filled, update the tracking hashes
+#my $del_count = 0;
+#say "Return gp: $return_gp";
+
+                #  if we are now filled then update the tracking hashes
                 if ($new_richness >= $target_richness{$return_gp}) {
+#say "Return gp filled";
                     $last_filled = $return_gp;
                     #  clean up the tracker hashes
                     $filled_groups{$last_filled} = $new_richness;
                     delete $unfilled_groups{$last_filled};
+                    #  nuclear option for unfilled_gps_without_label
+                    foreach my $label (keys %unfilled_gps_without_label) {
+                        no autovivification;
+                        #$del_count +=
+                          delete $unfilled_gps_without_label{$label}{$last_filled};
+                    }
+                    #  more nuanced for labels_in_unfilled_gps
                   LB:
                     foreach my $label ($new_bd->get_labels_in_group (group => $last_filled)) {
                         no autovivification;
+                        #$del_count +=
+                          delete $unfilled_gps_without_label{$label}{$last_filled};
                         #  don't decrement empties
-                        next LB if !$labels_in_unfilled_gps{$label};
+                        next LB if !$labels_in_unfilled_gps{$label}; #  also empty
                         $labels_in_unfilled_gps{$label}--;
                         if (!$labels_in_unfilled_gps{$label}) {
                             delete $labels_in_unfilled_gps{$label};
-                            #say "== Deleted $label";
                         }
-                        #else {say "-- Decremented $label"}
                     }
+                    
                 }
+
             }
 
             $swap_count ++;
@@ -1460,19 +1546,34 @@ sub swap_to_reach_targets {
                 delete $groups_without_labels_a{$add_label};
             }
         }
+        if (exists $unfilled_groups{$target_group}) {
+            delete $unfilled_gps_without_label{$add_label}{$target_group};
+        }
+#say "Target gp: $target_group";
 
         #  check if we've filled this group, if nothing was swapped out
         my $new_richness = $new_bd->get_richness (element => $target_group);
 
         warn "ISSUES WITH TARGET $target_group\n"
-            if $new_richness > $target_richness{$target_group};
+          if $new_richness > $target_richness{$target_group};
 
-        if ($target_gp_richness != $new_richness
+        if (    $new_richness != $target_gp_richness 
             and $new_richness >= $target_richness{$target_group}) {
+#say "Target gp filled";
             $filled_groups{$target_group} = $new_richness;
-            delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
+            #if (exists $unfilled_groups{$target_group}) {
+                delete $unfilled_groups{$target_group};  #  no effect if it's not in the list
+            #}
+            LB:
+            #  nuclear option
+            foreach my $label (keys %unfilled_gps_without_label) {
+                no autovivification;
+                #$del_count +=
+                  delete $unfilled_gps_without_label{$label}{$target_group};
+            }
             $last_filled = $target_group;
         }
+
     }
 
     say "[Randomise structured] Final swap count is $swap_count";

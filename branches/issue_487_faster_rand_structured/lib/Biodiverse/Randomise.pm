@@ -1259,18 +1259,32 @@ sub swap_to_reach_richness_targets {
         my $from_groups_hash = $cloned_bd->get_groups_with_label_as_hash (
             label => $add_label,
         );
-        my @from_groups_array = sort keys %$from_groups_hash;
+        #my @from_groups_array = sort keys %$from_groups_hash;
 
-        $i = int ($rand->rand (scalar @from_groups_array));
+        my $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label};
+        if (!$from_cloned_groups_tmp_a  || !scalar @$from_cloned_groups_tmp_a) {
+            my $gps_tmp = $cloned_bd->get_groups_with_label_as_hash (label => $add_label);
+            $from_cloned_groups_tmp_a = $cloned_bd_groups_with_label_a{$add_label} = [sort keys %$gps_tmp];
+        };
 
-        my $from_group = $from_groups_array[$i];
+        #$i = int ($rand->rand (scalar @from_groups_array));
+        #my $from_group = $from_groups_array[$i];
+        $i = int ($rand->rand (scalar @$from_cloned_groups_tmp_a));
+        my $from_group = $from_cloned_groups_tmp_a->[$i];
         my $add_count  = $from_groups_hash->{$from_group};
+
+#my $a_check_name = $from_cloned_groups_tmp_a->[$i];
+#my $a_check = $a_check_name eq $from_group;
+#say 'Not same' if !$a_check;
+#require Test::More;
+#Test::More::is_deeply (\@from_groups_array, $from_cloned_groups_tmp_a, 'same items');
 
         #  clear the pair out of cloned_self
         $cloned_bd->delete_sub_element (
             group => $from_group,
             label => $add_label,
         );
+        $self->delete_from_sorted_list (item => $from_group, list => $from_cloned_groups_tmp_a);
 
         #  Now add this label to a group that does not already contain it.
         #  Ideally we want to find a group that has not yet
@@ -1381,6 +1395,10 @@ sub swap_to_reach_richness_targets {
                     group => $old_gp,
                     count => $removed_count,
                     csv_object => $csv_object,
+                );
+                $self->insert_into_sorted_list ( #  update the tracker
+                    item => $old_gp,
+                    list => $cloned_bd_groups_with_label_a{$remove_label},
                 );
             }
             else {

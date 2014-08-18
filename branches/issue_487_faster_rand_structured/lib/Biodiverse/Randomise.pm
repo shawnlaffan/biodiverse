@@ -1447,7 +1447,7 @@ sub swap_to_reach_richness_targets {
 
             $swap_count ++;
 
-            if (!($swap_count % 500)) {
+            if (!($swap_count % 1000)) {
                 say "Swap count $swap_count";
             }
         }

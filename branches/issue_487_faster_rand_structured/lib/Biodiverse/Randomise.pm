@@ -1204,9 +1204,10 @@ sub swap_to_reach_richness_targets {
         }
     }
 
-    #  Track which groups don't have labels to avoid repeated and
-    # expensive method calls to get_groups_without_label_as_hash
-    my %groups_without_labels_a;  #  stores sorted arrays
+    #  Track which groups do and don't have labels to avoid repeated and
+    # expensive method calls to get_groups_with(out)_label_as_hash
+    my %groups_without_labels_a;       #  store sorted arrays
+    my %cloned_bd_groups_with_label_a;
 
     #  keep going until we've reached the fill threshold for each group
   BY_UNFILLED_GP:
@@ -1253,6 +1254,8 @@ sub swap_to_reach_richness_targets {
         my @labels = sort $cloned_bd->get_labels;
         my $i = int $rand->rand (scalar @labels);
         my $add_label = $labels[$i];
+        
+        
         my $from_groups_hash = $cloned_bd->get_groups_with_label_as_hash (
             label => $add_label,
         );
@@ -1344,9 +1347,10 @@ sub swap_to_reach_richness_targets {
             #  else it will get it next time it needs it
             if (exists $groups_without_labels_a{$remove_label}) {
                 #  need to insert into $groups_without_labels_a in sort order
-                my $aref = $groups_without_labels_a{$remove_label};
-                my $idx  = binsearch_pos { $a cmp $b } $target_group, @$aref;
-                splice @$aref, $idx, 0, $target_group;
+                $self->insert_into_sorted_list (
+                    item => $target_group,
+                    list => $groups_without_labels_a{$remove_label},
+                );
             }
             #   unfilled_groups condition will never trigger in this if-branch
             if (exists $unfilled_groups{$target_group}) {  
@@ -1410,8 +1414,10 @@ sub swap_to_reach_richness_targets {
                 $labels_in_unfilled_gps{$remove_label}++;
                 delete $unfilled_gps_without_label{$remove_label}{$return_gp};
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
-                    my $idx  = binsearch { $a cmp $b } $return_gp, @$aref;
-                    splice @$aref, $idx, 1;
+                    $self->delete_from_sorted_list (
+                        item => $return_gp,
+                        list => $aref,
+                    );
                     if (!scalar @$aref) {
                         delete $groups_without_labels_a{$remove_label};
                     }
@@ -1433,8 +1439,7 @@ sub swap_to_reach_richness_targets {
                   LB:
                     foreach my $label ($new_bd->get_labels_in_group (group => $last_filled)) {
                         no autovivification;
-                        #$del_count +=
-                          delete $unfilled_gps_without_label{$label}{$last_filled};
+                        delete $unfilled_gps_without_label{$label}{$last_filled};
                         #  don't decrement empties
                         next LB if !$labels_in_unfilled_gps{$label}; #  also empty
                         $labels_in_unfilled_gps{$label}--;
@@ -1460,8 +1465,7 @@ sub swap_to_reach_richness_targets {
             csv_object => $csv_object,
         );
         if (my $aref = $groups_without_labels_a{$add_label}) {
-            my $idx = binsearch { $a cmp $b } $target_group, @$aref;
-            splice @$aref, $idx, 1;
+            $self->delete_from_sorted_list (item => $target_group, list => $aref);
             if (!scalar @$aref) {
                 delete $groups_without_labels_a{$add_label};
             }
@@ -1720,6 +1724,34 @@ sub get_tree_shuffle_metadata {
 
     return wantarray ? %metadata : \%metadata;
 }
+
+
+#  handlers to factor out binsearch calls into subs
+sub insert_into_sorted_list {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{list};
+    my $item = $args{item};
+
+    my $idx  = binsearch_pos { $a cmp $b } $item, @$list;
+    splice @$list, $idx, 0, $item;
+
+    return $idx;
+}
+
+sub delete_from_sorted_list {
+    my $self = shift;
+    my %args = @_;
+    my $list = $args{list};
+    my $item = $args{item};
+    
+    my $idx  = binsearch { $a cmp $b } $item, @$list;
+    if (defined $idx) {
+        splice @$list, $idx, 1;
+    }
+    return $idx;
+}
+
 
 
 #  these appear redundant but might help with mem leaks

@@ -1199,7 +1199,12 @@ sub swap_to_reach_richness_targets {
                 $labels_in_unfilled_gps{$label}++;
             }
             else {
-                $unfilled_gps_without_label{$label}{$gp}++;
+                #$unfilled_gps_without_label{$label}{$gp}++;
+                $unfilled_gps_without_label{$label} //= [];
+                $self->insert_into_sorted_list (
+                    item => $gp,
+                    list => $unfilled_gps_without_label{$label},
+                )
             }
         }
     }
@@ -1332,9 +1337,9 @@ sub swap_to_reach_richness_targets {
           BY_LOSER_LABEL:
             foreach my $label (@$loser_labels_array) {
                 #  Do we have any unfilled groups without this label?
-                my $x = $unfilled_gps_without_label{$label} // {};
+                my $x = $unfilled_gps_without_label{$label} // [];
 
-                next BY_LOSER_LABEL if !scalar keys %$x;
+                next BY_LOSER_LABEL if !scalar @$x;
 
                 $remove_label  = $label;
                 $removed_count = $loser_labels_hash_to_use->{$remove_label};
@@ -1358,7 +1363,7 @@ sub swap_to_reach_richness_targets {
             }
             #   unfilled_groups condition will never trigger in this if-branch
             if (exists $unfilled_groups{$target_group}) {  
-                $unfilled_gps_without_label{$remove_label}{$target_group}++;
+                $unfilled_gps_without_label{$remove_label}{$target_group}++;  #  breakage if ever it
             }
 
             if (! $swap_to_unfilled) {
@@ -1395,15 +1400,17 @@ sub swap_to_reach_richness_targets {
                 #  get a list of unfilled candidates to move it to
                 #  do this by removing those that have the label
                 #  from the list of unfilled groups
-                my $unfilled_tmp = $unfilled_gps_without_label{$remove_label} // {};
+                my $unfilled_tmp = $unfilled_gps_without_label{$remove_label} // [];
 
                 croak "ISSUES WITH RETURN GROUPS\n"
-                  if !scalar keys %$unfilled_tmp;
+                  if !scalar @$unfilled_tmp;
 
                 #  and get one of them at random
-                $i = int $rand->rand (scalar keys %$unfilled_tmp);
-                my @tmp = sort keys %$unfilled_tmp;
-                my $return_gp = $tmp[$i];
+                #$i = int $rand->rand (scalar keys %$unfilled_tmp);
+                #my @tmp = sort keys %$unfilled_tmp;
+                #my $return_gp = $tmp[$i];
+                $i = int $rand->rand (scalar @$unfilled_tmp);
+                my $return_gp = $unfilled_tmp->[$i];
 
                 $new_bd->add_element   (
                     label => $remove_label,
@@ -1420,7 +1427,12 @@ sub swap_to_reach_richness_targets {
                   if $new_richness > $target_richness{$return_gp};
 
                 $labels_in_unfilled_gps{$remove_label}++;
-                delete $unfilled_gps_without_label{$remove_label}{$return_gp};
+                #delete $unfilled_gps_without_label{$remove_label}{$return_gp};
+                #my $list = $unfilled_gps_without_label{$remove_label};
+                $self->delete_from_sorted_list (
+                    item => $return_gp,
+                    list => $unfilled_gps_without_label{$remove_label},
+                );
                 if (my $aref = $groups_without_labels_a{$remove_label}) {
                     $self->delete_from_sorted_list (
                         item => $return_gp,
@@ -1441,13 +1453,14 @@ sub swap_to_reach_richness_targets {
                     #  If we need faster then we should track the reverse hash (labels index by group)
                     foreach my $label (keys %unfilled_gps_without_label) {
                         no autovivification;
-                        delete $unfilled_gps_without_label{$label}{$last_filled};
+                        #delete $unfilled_gps_without_label{$label}{$last_filled};
+                        my $list = $unfilled_gps_without_label{$label};
+                        $self->delete_from_sorted_list (item => $last_filled, list => $list);
                     }
                     #  more nuanced for labels_in_unfilled_gps
                   LB:
                     foreach my $label ($new_bd->get_labels_in_group (group => $last_filled)) {
                         no autovivification;
-                        delete $unfilled_gps_without_label{$label}{$last_filled};
                         #  don't decrement empties
                         next LB if !$labels_in_unfilled_gps{$label}; #  also empty
                         $labels_in_unfilled_gps{$label}--;
@@ -1479,7 +1492,9 @@ sub swap_to_reach_richness_targets {
             }
         }
         if (exists $unfilled_groups{$target_group}) {
-            delete $unfilled_gps_without_label{$add_label}{$target_group};
+            #delete $unfilled_gps_without_label{$add_label}{$target_group};
+            my $list = $unfilled_gps_without_label{$add_label};
+            $self->delete_from_sorted_list (item => $target_group, list => $list);
         }
 
         #  check if we've filled this group, if nothing was swapped out
@@ -1497,7 +1512,9 @@ sub swap_to_reach_richness_targets {
             #  nuclear option - see previous nuclear option comments for how to speed up if needed
             foreach my $label (keys %unfilled_gps_without_label) {
                 no autovivification;
-                delete $unfilled_gps_without_label{$label}{$target_group};
+                #delete $unfilled_gps_without_label{$label}{$target_group};
+                my $list = $unfilled_gps_without_label{$label};
+                $self->delete_from_sorted_list (item => $target_group, list => $list);
             }
             $last_filled = $target_group;
         }

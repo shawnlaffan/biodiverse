@@ -1253,15 +1253,15 @@ sub swap_to_reach_richness_targets {
         my @labels = sort $cloned_bd->get_labels;
         my $i = int $rand->rand (scalar @labels);
         my $add_label = $labels[$i];
-        my %from_groups_hash = $cloned_bd->get_groups_with_label_as_hash (
+        my $from_groups_hash = $cloned_bd->get_groups_with_label_as_hash (
             label => $add_label,
         );
-        my @from_groups_array = sort keys %from_groups_hash;
+        my @from_groups_array = sort keys %$from_groups_hash;
 
         $i = int ($rand->rand (scalar @from_groups_array));
 
         my $from_group = $from_groups_array[$i];
-        my $add_count  = $from_groups_hash{$from_group};
+        my $add_count  = $from_groups_hash->{$from_group};
 
         #  clear the pair out of cloned_self
         $cloned_bd->delete_sub_element (

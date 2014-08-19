@@ -222,6 +222,12 @@ sub rename_output {
         
         $object->rename (new_name => $new_name);
     }
+    else {
+        warn "[BASEDATA] Cannot locate object with name $name\n"
+            . 'Currently have '
+            . join ' ', sort keys %$hash_ref
+            . "\n";
+    }
     
     $object = undef;
     return;

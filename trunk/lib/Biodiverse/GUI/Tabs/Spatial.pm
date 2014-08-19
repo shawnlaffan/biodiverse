@@ -1858,9 +1858,7 @@ sub on_bare_key {
     my ($self, $keyval) = @_;
     my $tool = $key_tool_map{$keyval};
 
-    if (not defined $tool) {
-        return;
-    }
+    return if !defined $tool || ! defined $self->{grid};
 
     if ($tool eq 'ZoomOut') {
         # Do an instant zoom out and keep the current tool.

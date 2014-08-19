@@ -82,3 +82,15 @@ sub set_keys_inner {
     }
 }
 
+__END__
+
+The differences are all in the noise.
+
+results on HPC with 5.20.0:
+
+           s/iter outer_init      outer       none      inner
+outer_init   5.17         --        -0%        -0%        -2%
+outer        5.17         0%         --        -0%        -2%
+none         5.17         0%         0%         --        -2%
+inner        5.07         2%         2%         2%         --
+

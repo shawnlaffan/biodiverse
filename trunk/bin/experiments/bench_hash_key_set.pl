@@ -25,28 +25,37 @@ cmpthese (
 
 
 sub no_set_keys {
+    state $run_count;
+    $run_count ++;
+    say 'nsk ' . $run_count if !($run_count % 5);
     my %hash;
     foreach my $key1 (@keys_outer) {
         foreach my $key2 (@keys) {
             $hash{$key1}{$key2}++;
         }
-        #say 'nsk ' . scalar keys %hash if !(scalar (keys %hash) % 100);
     }
     
 }
 
 sub set_keys_outer {
+    state $run_count;
+    $run_count ++;
+    say 'sko ' . $run_count if !($run_count % 5);
+
     my %hash;
     keys %hash = scalar @keys_outer;
     foreach my $key1 (@keys_outer) {
         foreach my $key2 (@keys) {
             $hash{$key1}{$key2}++;
         }
-        #say 'sko ' . scalar keys %hash if !(scalar (keys %hash) % 100);
     }
 }
 
 sub set_keys_outer_init {
+    state $run_count;
+    $run_count ++;
+    say 'skoi ' . $run_count if !($run_count % 5);
+
     my %hash;
     keys %hash = scalar @keys_outer;
     foreach my $key1 (@keys_outer) {
@@ -54,11 +63,14 @@ sub set_keys_outer_init {
         foreach my $key2 (@keys) {
             $hash{$key1}{$key2}++;
         }
-        #say 'skoi ' . scalar keys %hash if !(scalar (keys %hash) % 100);
     }
 }
 
 sub set_keys_inner {
+    state $run_count;
+    $run_count ++;
+    say 'ski ' . $run_count if !($run_count % 5);
+
     my %hash;
     keys %hash = scalar @keys_outer;
     foreach my $key1 (@keys_outer) {
@@ -67,7 +79,6 @@ sub set_keys_inner {
         foreach my $key2 (@keys) {
             $hash{$key1}{$key2}++;
         }
-        #say 'ski ' . scalar keys %hash if !(scalar (keys %hash) % 100);
     }
 }
 

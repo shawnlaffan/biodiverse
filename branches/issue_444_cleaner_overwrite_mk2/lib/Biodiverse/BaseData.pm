@@ -184,9 +184,9 @@ sub rename_output {
     my $self = shift;
     my %args = @_;
     
-    my $object = $args{output};
+    my $object   = $args{output};
     my $new_name = $args{new_name};
-    my $name = $object->get_param ('NAME');
+    my $name     = $object->get_param ('NAME');
     my $hash_ref;
     
     if ((blessed $object) =~ /Spatial/) {

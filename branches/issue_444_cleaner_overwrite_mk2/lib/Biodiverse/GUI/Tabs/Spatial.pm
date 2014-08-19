@@ -1155,9 +1155,9 @@ sub on_run {
         $new_result   = 0;
         $output_name .= " (overwriting)";  #  work under a temporary name
     }
-    else {
-       $output_name .= " (tmp $time)";  #  work under a temporary name
-    }
+    #else {
+    #   $output_name .= " (tmp $time)";  #  work under a temporary name
+    #}
 
 
     # Add spatial output
@@ -1210,10 +1210,10 @@ sub on_run {
         my $old_ref = $self->{output_ref};
         $self->{basedata_ref}->delete_output(output => $old_ref);
         $self->{project}->delete_output($old_ref);
+        #  rename the temp file in the basedata
+        $self->{basedata_ref}->rename_output (output => $output_ref, new_name => $self->{output_name});
     }
 
-    #  rename the temp file in the basedata
-    $self->{basedata_ref}->rename_output (output => $output_ref, new_name => $self->{output_name});
     $self->{output_ref} = $output_ref;
     $self->{project}->add_output($self->{basedata_ref}, $output_ref);
 

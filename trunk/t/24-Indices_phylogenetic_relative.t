@@ -138,14 +138,6 @@ sub test_extra_labels_on_tree {
 
     #  Adjust the RPD scores
     #  The RPE scores will not be affected since they trim the tree
-    my $overlay1 = {
-        PHYLO_RPD1      => 1.07673100373221,
-        PHYLO_RPD2      => 0.149276923076923,
-        PHYLO_RPD_DIFF1 => 0.00516366566662244,
-        PHYLO_RPD_DIFF2 => -1.26993323313609,
-        PHYLO_RPD_NULL1 => 0.0625,
-        PHYLO_RPD_NULL2 => 0.450811058709893,
-    };
     my $overlay2 = {
         PHYLO_RPD1      => 0.984741731213716,
         PHYLO_RPD2      => 0.770261998089516,
@@ -154,6 +146,15 @@ sub test_extra_labels_on_tree {
         PHYLO_RPD_NULL1 => 0.4375,
         PHYLO_RPD_NULL2 => 0.559322033898305,
     };
+    my $overlay1 = {
+        PHYLO_RPD1      => 1.07673100373221,
+        PHYLO_RPD2      => 0.397044557626251,
+        PHYLO_RPD_DIFF1 => 0.00516366566662244,
+        PHYLO_RPD_DIFF2 => -0.900073331900382,
+        PHYLO_RPD_NULL1 => 0.0625,
+        PHYLO_RPD_NULL2 => 0.169491525423729,
+    };
+
 
     my %expected_results_overlay = (
         1 => $overlay1,
@@ -313,11 +314,11 @@ __DATA__
         'Genus:sp26' => 1
     },
     PHYLO_RPD1      => '1.09232644393007',
-    PHYLO_RPD2      => '0.149276923076923',
+    PHYLO_RPD2      => '0.408741508051251',
     PHYLO_RPD_DIFF1 => '0.00650649136637681',
-    PHYLO_RPD_DIFF2 => '-1.26993323313609',
+    PHYLO_RPD_DIFF2 => '-0.882612484212109',
     PHYLO_RPD_NULL1 => '0.0645161290322581',
-    PHYLO_RPD_NULL2 => '0.472093558397',
+    PHYLO_RPD_NULL2 => '0.172413793103448',
     PHYLO_RPE1      => '0.862260609118506',
     PHYLO_RPE2      => '1.14312240745805',
     PHYLO_RPE_DIFF1 => '-0.0360681957551517',
@@ -325,5 +326,4 @@ __DATA__
     PHYLO_RPE_NULL1 => '0.014336917562724',
     PHYLO_RPE_NULL2 => '0.0108143792736999'
 }
-
 

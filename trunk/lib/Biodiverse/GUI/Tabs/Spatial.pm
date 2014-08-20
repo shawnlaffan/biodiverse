@@ -1413,7 +1413,10 @@ sub highlight_paths_on_dendrogram {
 
 sub on_end_grid_hover {
     my $self = shift;
-    $self->{dendrogram}->clear_highlights;
+    my $dendrogram = $self->{dendrogram}
+      // return;
+
+    $dendrogram->clear_highlights;
 }
 
 sub get_current_tree {

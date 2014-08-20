@@ -672,7 +672,7 @@ sub _calc_pd_pe_clade_contributions {
         #  Possibly inefficient as we are not caching by node
         #  but at least the descendants are cached and perhaps that
         #  is where any slowness would come from as List::Util::sum is pretty quick
-        my $node_hash = $node_ref->get_all_descendents_and_self;
+        my $node_hash = $node_ref->get_all_descendants_and_self;
         my $wt_sum = sum @$wt_list{keys %$node_hash};
 
         #  round off to avoid spurious spatial variation.
@@ -1480,15 +1480,16 @@ sub get_node_range {
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
     my @labels   = ($node_ref->get_name);
-    my $children =  $node_ref->get_all_descendents;
+    my $children =  $node_ref->get_all_named_descendants;
 
     #  collect the set of non-internal (named) nodes
     #  Possibly should only work with terminals
     #  which would simplify things.
-    foreach my $node_ref (values %$children) {
-        next if $node_ref->is_internal_node;
-        push @labels, $node_ref->get_name;
-    }
+    #foreach my $node_ref (values %$children) {
+    #    next if $node_ref->is_internal_node;
+    #    push @labels, $node_ref->get_name;
+    #}
+    push @labels, (keys %$children);
 
     my @range = $bd->get_range_union (labels => \@labels);
 

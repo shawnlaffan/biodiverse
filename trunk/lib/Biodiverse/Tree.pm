@@ -151,7 +151,7 @@ sub delete_node {
     return if ! defined $node_ref;  #  node does not exist anyway
 
     #  get the names of all descendents 
-    my %node_hash = $node_ref->get_all_descendents (cache => 0);
+    my %node_hash = $node_ref->get_all_descendants (cache => 0);
     $node_hash{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
 
     #  Now we delete it from the treenode structure.
@@ -1861,7 +1861,7 @@ sub trim {
             next NAME if $node->is_internal_node;
             next NAME if $node->is_root_node;  #  never delete the root node
 
-            my %children    = $node->get_all_descendents;  #  make sure we use a copy
+            my %children    = $node->get_all_descendants;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
             #  If none were deleted then we can trim this node.
@@ -1933,7 +1933,7 @@ sub trim {
                 $i / $to_do,
             );
 
-            my $children = $node->get_all_descendents;
+            my $children = $node->get_all_descendants;
           DESCENDENT:
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};

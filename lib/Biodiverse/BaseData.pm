@@ -2819,9 +2819,10 @@ sub get_range_intersection {
     my $elements = {};
     foreach my $label (@$labels) {
         next if not $self->exists_label (label => $label);  #  skip if it does not exist
-        my $res = $self->calc_abc (label_hash1 => $elements,
-                                     label_hash2 => {$self->get_groups_with_label_as_hash (label => $label)}
-                                    );
+        my $res = $self->calc_abc (
+            label_hash1 => $elements,
+            label_hash2 => {$self->get_groups_with_label_as_hash (label => $label)}
+        );
         #  delete those that are not shared (label_hash1 and label_hash2)
         my @tmp = delete @{$res->{label_hash_all}}{keys %{$res->{label_hash1}}};
         @tmp = delete @{$res->{label_hash_all}}{keys %{$res->{label_hash2}}};

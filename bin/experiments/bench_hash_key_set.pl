@@ -5,7 +5,7 @@ use Data::Dumper;
 
 my @keys;
 for (0..16000) {
-    push @keys, rand();
+    push @keys, "$_:$_";
 }
 
 my @keys_outer = @keys[0..257];
@@ -14,7 +14,7 @@ my @keys_outer = @keys[0..257];
 $| = 1;
 
 cmpthese (
-    30,
+    3,
     {
         none       => sub {no_set_keys()},
         outer      => sub {set_keys_outer()},
@@ -86,7 +86,7 @@ __END__
 
 The differences are all in the noise.
 
-results on HPC with 5.20.0:
+results on HPC with 5.20.0 using rand() as the keys:
 
            s/iter outer_init      outer       none      inner
 outer_init   5.17         --        -0%        -0%        -2%
@@ -94,3 +94,12 @@ outer        5.17         0%         --        -0%        -2%
 none         5.17         0%         0%         --        -2%
 inner        5.07         2%         2%         2%         --
 
+
+Small relative improvement when using "$_:$_" as the keys,
+but the absolute values are also far less than for rand() keys:
+
+           s/iter       none      outer outer_init      inner
+none         1.55         --        -1%        -2%        -5%
+outer        1.53         1%         --        -0%        -4%
+outer_init   1.52         2%         0%         --        -4%
+inner        1.47         6%         4%         4%         --

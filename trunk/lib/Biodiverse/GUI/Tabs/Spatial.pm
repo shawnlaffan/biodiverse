@@ -1210,10 +1210,10 @@ sub on_run {
         my $old_ref = $self->{output_ref};
         $self->{basedata_ref}->delete_output(output => $old_ref);
         $self->{project}->delete_output($old_ref);
+        #  rename the temp file in the basedata
+        $self->{basedata_ref}->rename_output (output => $output_ref, new_name => $self->{output_name});
     }
 
-    #  fix the temp name before we add it to the basedata
-    $output_ref->rename (new_name => $self->{output_name});
     $self->{output_ref} = $output_ref;
     $self->{project}->add_output($self->{basedata_ref}, $output_ref);
 

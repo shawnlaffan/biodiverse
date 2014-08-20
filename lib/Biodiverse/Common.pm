@@ -550,6 +550,12 @@ sub delete_cached_values {
     return;
 }
 
+sub delete_cached_value {
+    my ($self, $key) = @_;
+    no autovivification;
+    delete $self->{_cache}{$key};
+}
+
 sub clear_spatial_condition_caches {
     my $self = shift;
     my %args = @_;

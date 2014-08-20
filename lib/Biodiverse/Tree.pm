@@ -1258,7 +1258,7 @@ sub get_total_tree_length { #  calculate the total length of the tree
     my $node_length;
 
     #check if length is already stored in tree object
-    $length = $self->get_param('TOTAL_LENGTH');
+    $length = $self->get_cached_value ('TOTAL_LENGTH');
     return $length if (defined $length);
 
     foreach my $node_ref (values %{$self->get_node_hash}) {
@@ -1268,7 +1268,7 @@ sub get_total_tree_length { #  calculate the total length of the tree
 
     #  cache the result
     if (defined $length) {
-        $self->set_param (TOTAL_LENGTH => $length);
+        $self->set_cached_value (TOTAL_LENGTH => $length);
     }
 
     return $length;
@@ -2112,7 +2112,9 @@ sub collapse_tree {
 sub reset_total_length {
     my $self = shift;
 
+    #  older versions had this as a param
     $self->delete_param('TOTAL_LENGTH');
+    $self->delete_cached_value('TOTAL_LENGTH');
     $self->reset_total_length_below;
 
     return;

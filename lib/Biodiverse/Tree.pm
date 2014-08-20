@@ -2192,6 +2192,9 @@ sub shuffle_terminal_names {
     #  and now we override the old with the new
     @{$node_hash}{keys %tmp} = values %tmp;
 
+    $self->delete_cached_values;
+    $self->delete_cached_values_below;
+
     return if !defined wantarray;
     return wantarray ? %reordered : \%reordered;
 }

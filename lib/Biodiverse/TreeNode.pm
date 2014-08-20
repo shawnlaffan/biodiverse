@@ -1956,6 +1956,8 @@ sub shuffle_terminal_names {
         my $name = $node_ref->get_name;
         $node_ref->set_name (name => $reordered{$name});
     }
+    
+    $self->get_root_node->delete_cached_values_below;
 
     return wantarray ? %reordered : \%reordered;
 }

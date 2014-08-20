@@ -728,6 +728,7 @@ sub calc_pe_clade_contributions {
         node_list => $args{PE_WTLIST},
         p_score   => $args{PE_WE},
         res_pfx   => 'PE_',
+        tree_ref  => $args{trimmed_tree},
     );
 }
 

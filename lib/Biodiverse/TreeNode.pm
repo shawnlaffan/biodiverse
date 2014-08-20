@@ -142,7 +142,7 @@ sub delete_cached_values_below {
     my %args = @_;
 
     #  this approach seems to avoid memory leaks
-    my %descendents = $self->get_all_descendents (cache => 0);
+    my %descendents = $self->get_all_descendants (cache => 0);
     foreach my $node (values %descendents) {
         $node->delete_cached_values (%args);
     }
@@ -739,7 +739,7 @@ sub raise_zerolength_children {
 sub get_terminal_node_refs {
     my $self = shift;
     
-    my %descendents = $self->get_all_descendents;
+    my %descendents = $self->get_all_descendants;
 
     my %terminals = pairgrep {$b->is_terminal_node} %descendents;
 
@@ -789,10 +789,51 @@ sub get_terminal_element_count {
     return scalar keys %$hash;
 }
 
-sub get_all_descendents_and_self {
+sub get_all_named_descendants {
+    my $self = shift;
+    my %args = (cache => 1, @_);  #  cache unless told otherwise
+
+    #  we have cached values from a previous pass - return them unless told not to
+    if ($args{cache}) {
+        my $cache_ref = $self->get_cached_value ('NAMED_DESCENDANTS');
+
+        return wantarray ? %$cache_ref : $cache_ref
+          if defined $cache_ref;
+    }
+
+    my @list;
+
+    #if (!$self->is_internal_node) {
+    #    push @list, ($self->get_name, $self);
+    #}
+    #else {
+        foreach my $child ($self->get_children) {
+            if ($child->is_terminal_node) {
+                push @list, ($child->get_name, $child);
+            }
+            else {
+                push @list, $child->get_all_named_descendants (%args);
+            }
+        }
+    #}
+
+    #  the values are really a hash, and need to be coerced into one when used
+    #  why not use a hash directly?  cargo cult leftover?  
+    my %list = @list;
+    if ($args{cache}) {
+        foreach my $node_ref (grep {!isweak ($_)} values %list) {
+            weaken $node_ref;
+        }
+        $self->set_cached_value (NAMED_DESCENDANTS => \%list);
+    }
+
+    return wantarray ? %list : \%list;
+}
+
+sub get_all_descendants_and_self {
     my $self = shift;
 
-    my %descendents = $self->get_all_descendents(@_);
+    my %descendents = $self->get_all_descendants(@_);
     my $name = $self->get_name;
     $descendents{$name} = $self;
     
@@ -808,17 +849,17 @@ sub get_all_descendents_and_self {
 #  a left over - here just in case 
 sub get_all_children {
     my $self = shift;
-    return $self->get_all_descendents (@_);
+    return $self->get_all_descendants (@_);
 }
 
 sub get_descendent_count {
     my $self = shift;
-    my $descendents = $self->get_all_descendents(@_);
+    my $descendents = $self->get_all_descendants(@_);
     return scalar keys %$descendents;
 }
 
 #  get all the nodes (whether terminal or not) which are descendants of a node
-sub get_all_descendents {
+sub get_all_descendants {
     my $self = shift;
     my %args = (
         cache => 1, #  cache unless told otherwise
@@ -980,13 +1021,13 @@ sub get_path_to_node {
         #  check if the target is one of our descendents
         #  if yes then get the path downwards
         #  else go up to the parent and try it from there
-        my $descendents = $self->get_all_descendents;
+        my $descendents = $self->get_all_descendants;
         if (exists $descendents->{$target_name}) {
             foreach my $child ($self->get_children) {
                 my $child_name = $child->get_name;
 
                 #  use the child or the child that is an ancestor of the target 
-                my $ch_descendents = $child->get_all_descendents;
+                my $ch_descendents = $child->get_all_descendants;
                 if ($child_name eq $target_name or exists $ch_descendents->{$target_name}) {  #  follow this one
                     my $sub_path = $child->get_path_to_node (@_);
                     @$path{keys %$sub_path} = values %$sub_path;
@@ -1188,8 +1229,7 @@ sub is_terminal_node {
 
 #  check if it is a "named" node, or internal (name ends in three underscores)
 sub is_internal_node {
-    my $self = shift;
-    return ($self->get_name) =~ /___$/;
+    $_[0]->get_name =~ /___$/;
 }
 
 sub set_node_as_parent {  #  loop through the children and set this node as the parent
@@ -1426,7 +1466,7 @@ sub to_table {
                             : undef;
 
 
-    my %children = $self->get_all_descendents;  #   all descendents below this node
+    my %children = $self->get_all_descendants;  #   all descendents below this node
     foreach my $node ($self, values %children) {  # maybe sort by child depth?
         $parent_num = $node->is_root_node
                         ? 0
@@ -1509,7 +1549,7 @@ sub to_basestruct_group_nodes {
         NAME => 'TEMP',
     );
 
-    my $get_node_method = $args{terminals_only} ? 'get_terminal_elements' : 'get_all_descendents_and_self';
+    my $get_node_method = $args{terminals_only} ? 'get_terminal_elements' : 'get_all_descendants_and_self';
 
     foreach my $element (sort keys %{$self->$get_node_method}) {
         $bs->add_element (element => $element);
@@ -1606,7 +1646,7 @@ sub to_nexus {
     my %remap;  #  create a remap table unless one is already specified in the args
     if (! defined $args{remap} && ! $args{no_remap}) {
         #  get a hash of all the nodes in the tree.
-        my %nodes = ($self->get_name() => $self, $self->get_all_descendents);
+        my %nodes = ($self->get_name() => $self, $self->get_all_descendants);
 
         my $i = 0;
         foreach my $node (values %nodes) {
@@ -1874,7 +1914,7 @@ sub get_node_range {
     return $cached_range if defined $cached_range;
 
     my @labels   = ($self->get_name);
-    my $children =  $self->get_all_descendents;
+    my $children =  $self->get_all_descendants;
 
     #  collect the set of non-internal (named) nodes
     #  Possibly should only work with terminals

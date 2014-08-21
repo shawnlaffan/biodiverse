@@ -246,7 +246,7 @@ sub new {
 
         menuitem_spatial_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
         menuitem_spatial_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
-        
+        menuitem_spatial_show_legend         => {toggled => \&on_show_hide_legend},
     );
 
     for my $n (0..6) {
@@ -1687,6 +1687,8 @@ sub recolour {
     my $elements_hash = $self->{output_ref}->get_element_hash;
     my $list = $self->{selected_list};
     my $index = $self->{selected_index};
+
+    return if !defined $index;
 
     my $colour_func = sub {
         my $elt = shift // return;

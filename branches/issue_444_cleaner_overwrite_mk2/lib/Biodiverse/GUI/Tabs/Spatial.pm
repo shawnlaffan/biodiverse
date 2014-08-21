@@ -1059,7 +1059,7 @@ sub show_phylogeny_descendents {
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    my $node_hash = $node_ref->get_all_descendents_and_self;
+    my $node_hash = $node_ref->get_all_descendants_and_self;
 
     foreach my $element (sort keys %$node_hash) {
         my $node_ref = $node_hash->{$element};
@@ -1413,7 +1413,10 @@ sub highlight_paths_on_dendrogram {
 
 sub on_end_grid_hover {
     my $self = shift;
-    $self->{dendrogram}->clear_highlights;
+    my $dendrogram = $self->{dendrogram}
+      // return;
+
+    $dendrogram->clear_highlights;
 }
 
 sub get_current_tree {

@@ -151,7 +151,7 @@ sub delete_node {
     return if ! defined $node_ref;  #  node does not exist anyway
 
     #  get the names of all descendents 
-    my %node_hash = $node_ref->get_all_descendents (cache => 0);
+    my %node_hash = $node_ref->get_all_descendants (cache => 0);
     $node_hash{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
 
     #  Now we delete it from the treenode structure.
@@ -1258,7 +1258,7 @@ sub get_total_tree_length { #  calculate the total length of the tree
     my $node_length;
 
     #check if length is already stored in tree object
-    $length = $self->get_param('TOTAL_LENGTH');
+    $length = $self->get_cached_value ('TOTAL_LENGTH');
     return $length if (defined $length);
 
     foreach my $node_ref (values %{$self->get_node_hash}) {
@@ -1268,7 +1268,7 @@ sub get_total_tree_length { #  calculate the total length of the tree
 
     #  cache the result
     if (defined $length) {
-        $self->set_param (TOTAL_LENGTH => $length);
+        $self->set_cached_value (TOTAL_LENGTH => $length);
     }
 
     return $length;
@@ -1861,7 +1861,7 @@ sub trim {
             next NAME if $node->is_internal_node;
             next NAME if $node->is_root_node;  #  never delete the root node
 
-            my %children    = $node->get_all_descendents;  #  make sure we use a copy
+            my %children    = $node->get_all_descendants;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
             #  If none were deleted then we can trim this node.
@@ -1933,7 +1933,7 @@ sub trim {
                 $i / $to_do,
             );
 
-            my $children = $node->get_all_descendents;
+            my $children = $node->get_all_descendants;
           DESCENDENT:
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};
@@ -1954,7 +1954,7 @@ sub trim {
     #  now some cleanup
     if ($deleted_internal_count || $deleted_count) {
         $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up
-        
+        $self->delete_cached_values;
         #  This avoids circular refs in the ones that were deleted
         foreach my $node (values %tree_node_hash) {
             $node->delete_cached_values;
@@ -2112,7 +2112,9 @@ sub collapse_tree {
 sub reset_total_length {
     my $self = shift;
 
+    #  older versions had this as a param
     $self->delete_param('TOTAL_LENGTH');
+    $self->delete_cached_value('TOTAL_LENGTH');
     $self->reset_total_length_below;
 
     return;
@@ -2189,6 +2191,9 @@ sub shuffle_terminal_names {
 
     #  and now we override the old with the new
     @{$node_hash}{keys %tmp} = values %tmp;
+
+    $self->delete_cached_values;
+    $self->delete_cached_values_below;
 
     return if !defined wantarray;
     return wantarray ? %reordered : \%reordered;

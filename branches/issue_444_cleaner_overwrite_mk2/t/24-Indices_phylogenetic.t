@@ -413,19 +413,33 @@ sub test_extra_labels_in_bd {
     
 }
 
+
 #  check we trim the tree properly
 sub test_pe_with_extra_nodes_in_tree {
     my $cb = sub {
         my %args = @_;
         my $tree = $args{tree_ref};
         my $root = $tree->get_root_node;
-        $root->add_children (children => [qw /node1 node2/]);
+        use Biodiverse::TreeNode;
+        my $node1 = Biodiverse::TreeNode-> new (
+            name   => 'EXTRA_NODE 1',
+            length => 1,
+        );
+        my $node2 = Biodiverse::TreeNode-> new (
+            name   => 'EXTRA_NODE 2',
+            length => 1,
+        );
+        $root->add_children (children => [$node1, $node2]);
+        #  add it to the Biodiverse::Tree object as well so the trimming works
+        $tree->add_node (node_ref => $node1);
+        $tree->add_node (node_ref => $node2);
     };
 
     my @calcs_to_test = qw/
         calc_pe_clade_contributions
         calc_pe_lists
         calc_pe_single
+        calc_pe
     /;
 
     run_indices_test1 (

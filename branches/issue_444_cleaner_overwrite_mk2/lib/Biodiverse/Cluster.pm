@@ -13,6 +13,7 @@ use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval time/;
 use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
+use Time::HiRes qw /time/;
 
 our $VERSION = '0.99_002';
 
@@ -423,6 +424,9 @@ sub build_matrices {
     #print "[CLUSTER] Progress (% of $to_do elements):     ";
     my @processed_elements;
 
+    my $no_progress;
+    my $build_start_time = time();
+
     #  Use $sp for the groups so any def query will have an effect
     BY_ELEMENT:
     foreach my $element1 (sort @elements_to_calc) {
@@ -458,6 +462,7 @@ sub build_matrices {
                                 ? [$matrix, $shadow_matrix]
                                 : [$matrix];
 
+
             #  this actually takes most of the args from params,
             #  but setting explicitly might save micro-seconds of time
             my $x = $self->build_matrix_elements (
@@ -472,9 +477,19 @@ sub build_matrices {
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
                 processed_elements => \@processed_elements,
+                no_progress        => $no_progress,
             );
 
             $valid_count += $x;
+            
+            #  do we need the progress dialogue?
+            my $build_end_time = time();
+            if (!$no_progress &&
+                ($build_end_time - $build_start_time
+                 < 3 * $Biodiverse::Config::progress_update_interval)) {
+                $no_progress = 1;
+            }
+            $build_start_time= $build_end_time;
         }
 
         push @processed_elements, $element1;
@@ -573,7 +588,7 @@ sub build_matrix_elements {
     #print "Elements to calc: ", (scalar @$element_list2), "\n";
     my $progress;
     my $to_do = scalar @$element_list2;
-    if ($to_do > 100) {  #  arbitrary threshold
+    if ($to_do > 100 && !$args{no_progress}) {  #  arbitrary threshold
         $progress = Biodiverse::Progress->new (text => 'Processing row', gui_only => 1);
     }
     my $n_matrices = scalar @$matrices;

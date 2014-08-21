@@ -19,7 +19,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster/;
+use Biodiverse::TestHelpers qw /:cluster :basedata :tree/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
@@ -152,6 +152,37 @@ sub test_trim_tree {
     check_trimmings($tree3, \@exp_deleted, \@keep_targets, 'trim/keep');
     $node_count = $tree3->get_node_count;
     is ($node_count, $start_node_count - 5, 'trim/keep: node count is as expected');
+
+}
+
+sub test_trim_tree_after_adding_extras {
+    my $tree1 = shift || get_tree_object_from_sample_data();
+    my $bd    = shift || get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my $tree2 = $tree1->clone;
+    my $root = $tree2->get_root_node;
+    use Biodiverse::TreeNode;
+    my $node1 = Biodiverse::TreeNode-> new (
+        name   => 'EXTRA_NODE 1',
+        length => 1,
+    );
+    my $node2 = Biodiverse::TreeNode-> new (
+        name   => 'EXTRA_NODE 2',
+        length => 1,
+    );
+    $root->add_children (children => [$node1, $node2]);
+    #  add it to the Biodiverse::Tree object as well so the trimming works
+    $tree2->add_node (node_ref => $node1);
+    $tree2->add_node (node_ref => $node2);
+
+    $tree2->trim (keep => scalar $bd->get_labels);
+    my $name = $tree2->get_param('NAME') // 'noname';
+    $tree2->rename(new_name => $name . ' trimmed');
+
+    ok (
+        $tree1->trees_are_same (comparison => $tree2),
+        'trimmed and original tree same after trimming extra added nodes'
+    );
 
 }
 

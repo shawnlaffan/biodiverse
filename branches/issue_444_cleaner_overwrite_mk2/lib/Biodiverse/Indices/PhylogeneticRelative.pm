@@ -428,6 +428,12 @@ sub get_tree_with_equalised_branch_lengths {
     my $tree_ref = $args{tree_ref} // croak "missing tree_ref argument\n";
 
     my $new_tree = $tree_ref->clone;
+    $new_tree->delete_cached_values;
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
     foreach my $node ($new_tree->get_node_refs) {
         my $len = $node->get_length ? 1 : 0;
         $node->set_length (length => $len);

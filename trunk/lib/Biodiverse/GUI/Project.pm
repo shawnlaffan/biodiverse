@@ -974,7 +974,8 @@ sub delete_output {
     return;
 }
 
-#  should probably be called set name, as we assume it is already renamed
+#  should probably be called set name or update name, as we assume it is already renamed
+#  actually, we already have update_output_name which is very similar code
 sub rename_output {
     my $self = shift;
     my $output_ref = shift;
@@ -991,6 +992,7 @@ sub rename_output {
     
     return;
 }
+
 
 #  go through and clean them all up.  
 sub delete_all_basedata_outputs {

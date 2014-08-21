@@ -320,7 +320,7 @@ sub build_matrices {
     #  now we loop over the conditions and initialise the matrices
     #  kept separate from previous loop for cleaner default matrix generation
     my $mx_class = $self->get_param('MATRIX_CLASS') // $mx_class_default;
-    my %mx_common_args = (BASEDATA_REF => $bd,);
+    my %mx_common_args = (BASEDATA_REF => $bd, INDEX => $index);
     if ($self->exists_param ('MATRIX_INDEX_PRECISION')) {  #  undef is OK, but must be explicitly set
         my $mx_index_precision = $self->get_param('MATRIX_INDEX_PRECISION');
         $mx_common_args{VAL_INDEX_PRECISION} = $mx_index_precision;
@@ -329,7 +329,7 @@ sub build_matrices {
     my @matrices;
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
-        my $mx_name = $name . " Matrix_$i";
+        my $mx_name = $name . " $index Matrix_$i";
 
         my $already_there = $bd->get_matrix_outputs;
         if (exists $already_there->{$mx_name}) {
@@ -344,6 +344,7 @@ sub build_matrices {
             JOIN_CHAR    => $bd->get_param('JOIN_CHAR'),
             NAME         => $mx_name,
             %mx_common_args,
+            SPATIAL_CONDITION => $condition->get_conditions_unparsed,
         );
         $i ++;
     }

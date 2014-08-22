@@ -2207,6 +2207,10 @@ sub to_tree {
                 csv_object  => $csv_obj,
                 list        => [@components[0..$i]],
             );
+            $node_name = $self->dequote_element (
+                element    => $node_name,
+                quote_char => $quotes,
+            );
 
             my $parent_name = $i ? $prev_names[$i-1] : undef;  #  no parent if at highest level
 

@@ -6,7 +6,7 @@ use warnings;
 use English qw { -no_match_vars };
 
 
-use PAR::Packer;
+use PAR::Packer 1.007;
 use Module::ScanDeps 1.13;
 BEGIN {
     eval 'use Win32::Exe' if $OSNAME eq 'MSWin32';
@@ -49,6 +49,7 @@ my $root_dir = Path::Class::file ($script)->dir->parent;
 #  assume bin folder is at parent folder level
 my $bin_folder = Path::Class::dir ($root_dir, 'bin');
 my $icon_file  = $opt->icon_file // Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute;
+#$icon_file = undef;  #  DEBUG
 
 my $perlpath     = $Config{perlpath};
 my $bits         = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
@@ -97,8 +98,8 @@ if ($script =~ 'BiodiverseGUI.pl') {
     $glade_arg = qq{-a "$glade_folder;glade"};
 }
 
-my $icon_file_base = basename ($icon_file);
-my $icon_file_arg  = qq{-a "$icon_file;$icon_file_base"};
+my $icon_file_base = $icon_file ? basename ($icon_file) : '';
+my $icon_file_arg  = $icon_file ? qq{-a "$icon_file;$icon_file_base"} : '';
 
 my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->absolute;
 

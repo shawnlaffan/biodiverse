@@ -15,7 +15,6 @@ use Carp;
 use Gtk2;
 use Gnome2::Canvas;
 use Tree::R;
-#use Algorithm::QuadTree;
 
 use Geo::ShapeFile;
 
@@ -200,7 +199,7 @@ sub new {
 sub show_legend {
     my $self = shift;
     #print "already have legend!\n" if $self->{legend};
-    return if $self->{legend};
+    return if $self->get_legend;
 
     # Create legend
     my $pixbuf = $self->make_legend_pixbuf;
@@ -222,7 +221,7 @@ sub show_legend {
     $self->{marks}[1] = $self->make_mark( 'w'  );
     $self->{marks}[2] = $self->make_mark( 'w'  );
     $self->{marks}[3] = $self->make_mark( 'sw' );
-    
+
     eval {
         $self->reposition;  #  trigger a redisplay of the legend
     };
@@ -233,17 +232,23 @@ sub show_legend {
 sub hide_legend {
     my $self = shift;
 
-    if ($self->{legend}) {
-        $self->{legend}->destroy();
-        delete $self->{legend};
+    return if !$self->get_legend;
 
-        foreach my $i (0..3) {
-            $self->{marks}[$i]->destroy();
-        }
+    $self->{legend}->destroy();
+    delete $self->{legend};
+
+    foreach my $i (0..3) {
+        $self->{marks}[$i]->destroy();
     }
+
     delete $self->{marks};
-    
+
     return;
+}
+
+sub get_legend {
+    my $self = shift;
+    return $self->{legend};
 }
 
 sub destroy {
@@ -909,7 +914,13 @@ sub get_colour_from_chooser {
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
-    
+
+    $min //= $self->{last_min};
+    $max //= $self->{last_max};
+
+    $self->{last_min} = $min;
+    $self->{last_max} = $max;
+
     return if ! ($self->{marks}
                  && defined $min
                  && defined $max
@@ -930,7 +941,7 @@ sub set_legend_min_max {
         elsif ($self->{legend_lt_flag} or $self->{legend_gt_flag}) {
             $text = '  ' . $text;
         }
-        
+
         my $mark = $self->{marks}[3 - $i];
         $mark->set( text => $text );
         #  move the mark to right align with the legend
@@ -943,6 +954,7 @@ sub set_legend_min_max {
         else {
             $mark->move ($offset - length ($text) - 0.5, 0);
         }
+        $mark->raise_to_top;
     }
     
     return;

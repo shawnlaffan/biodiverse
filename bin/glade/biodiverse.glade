@@ -431,96 +431,6 @@
                             <property name="n_columns">2</property>
                             <property name="column_spacing">3</property>
                             <property name="row_spacing">3</property>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
-                            <child>
-                              <placeholder/>
-                            </child>
                           </widget>
                         </child>
                       </widget>
@@ -1183,108 +1093,6 @@ Shapefile
                     <property name="n_columns">2</property>
                     <property name="column_spacing">3</property>
                     <property name="row_spacing">3</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <placeholder/>
-                    </child>
                   </widget>
                 </child>
               </widget>
@@ -1338,8 +1146,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="c" signal="clicked"/>
                 <accelerator key="Escape" signal="clicked"/>
+                <accelerator key="c" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -1356,8 +1164,8 @@ Shapefile
                 <property name="can_default">True</property>
                 <property name="receives_default">False</property>
                 <property name="use_stock">True</property>
-                <accelerator key="o" signal="clicked"/>
                 <accelerator key="Return" signal="clicked"/>
+                <accelerator key="o" signal="clicked"/>
               </widget>
               <packing>
                 <property name="expand">False</property>
@@ -6304,6 +6112,17 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                                     <property name="active">True</property>
                                   </widget>
                                 </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="menuitem_cluster_show_legend">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Show or hide the legend
+(continous values only)</property>
+                                    <property name="label" translatable="yes">Show legend</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                  </widget>
+                                </child>
                               </widget>
                             </child>
                           </widget>
@@ -6372,24 +6191,6 @@ This setting has no effect on the slider bar.  It always groups using the plot m
                                                     <property name="n_columns">3</property>
                                                     <property name="column_spacing">2</property>
                                                     <property name="row_spacing">4</property>
-                                                    <child>
-                                                      <placeholder/>
-                                                    </child>
-                                                    <child>
-                                                      <placeholder/>
-                                                    </child>
-                                                    <child>
-                                                      <placeholder/>
-                                                    </child>
-                                                    <child>
-                                                      <placeholder/>
-                                                    </child>
-                                                    <child>
-                                                      <placeholder/>
-                                                    </child>
-                                                    <child>
-                                                      <placeholder/>
-                                                    </child>
                                                     <child>
                                                       <widget class="GtkFrame" id="frame2">
                                                         <property name="visible">True</property>
@@ -7565,6 +7366,16 @@ This setting has no effect on the slider bar.</property>
                                   </widget>
                                 </child>
                                 <child>
+                                  <widget class="GtkCheckMenuItem" id="menuitem_labels_show_legend">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Show or hide the legend</property>
+                                    <property name="label" translatable="yes">Show legend</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
                                   <widget class="GtkMenuItem" id="menuitem_labels_overlays">
                                     <property name="visible">True</property>
                                     <property name="can_focus">False</property>
@@ -8446,6 +8257,16 @@ Colours are scaled using percentiles defined in the colour stretch menu. </prope
                                     <property name="can_focus">False</property>
                                     <property name="tooltip" translatable="yes">Show or hide the cell outlines</property>
                                     <property name="label" translatable="yes">Show cell outlines</property>
+                                    <property name="use_underline">True</property>
+                                    <property name="active">True</property>
+                                  </widget>
+                                </child>
+                                <child>
+                                  <widget class="GtkCheckMenuItem" id="menuitem_spatial_show_legend">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="tooltip" translatable="yes">Show or hide the legend</property>
+                                    <property name="label" translatable="yes">Show legend</property>
                                     <property name="use_underline">True</property>
                                     <property name="active">True</property>
                                   </widget>
@@ -9358,105 +9179,6 @@ Set to undef or leave blank to use system seed.</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">3</property>
                         <property name="row_spacing">3</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
-                        <child>
-                          <placeholder/>
-                        </child>
                         <child>
                           <placeholder/>
                         </child>

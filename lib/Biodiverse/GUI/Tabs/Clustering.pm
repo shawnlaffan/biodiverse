@@ -280,8 +280,10 @@ sub new {
         comboMapList        => {changed => \&on_combo_map_list_changed},
 
         chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
+
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
-        menu_cluster_cell_show_outline => {toggled => \&on_set_cell_show_outline},
+        menu_cluster_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
+        menuitem_cluster_show_legend     => {toggled => \&on_show_hide_legend},
         #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
     );
 
@@ -611,6 +613,23 @@ sub init_dendrogram {
     return;
 }
 
+#  only show the legend if the menuitem says we can
+sub show_legend {
+    my $self = shift;
+    my $widget = $self->{xmlPage}->get_widget('menuitem_cluster_show_legend');
+
+    if ($widget->get_active) {
+        $self->{grid}->show_legend;
+    }
+}
+
+#  for completeness with show_legend
+#  simple wrapper 
+sub hide_legend {
+    my $self = shift;
+    $self->{grid}->hide_legend;
+}
+
 # Called by Dendrogram when it has the map list.
 # We then update the toolbar menu so the user can select them.
 sub on_map_lists_ready {
@@ -672,10 +691,10 @@ sub on_map_list_changed {
     }
 
     if (not defined $list) {
-        $self->{grid}->hide_legend;
+        $self->hide_legend;
     }
     else {
-        $self->{grid}->show_legend;
+        $self->show_legend;  #  more control via $self
     }
 
     $self->{dendrogram}->select_map_list($list);
@@ -817,10 +836,10 @@ sub on_combo_map_list_changed {
     my $sensitive = 1;
     if ($list eq '<i>Cluster</i>') {
         $sensitive = 0;
-        $self->{grid}->hide_legend;
+        $self->hide_legend;
     }
     else {
-        $self->{grid}->show_legend;
+        $self->show_legend;
     }
 
     my @widgets = qw {

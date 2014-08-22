@@ -16,8 +16,8 @@ use Time::HiRes qw { gettimeofday tv_interval };
 use Scalar::Util qw { blessed };
 use List::Util qw /any all none minstr max/;
 use List::MoreUtils qw /first_index/;
+use List::BinarySearch::XS;  #  make sure we have the XS version available via PAR::Packer executables
 use List::BinarySearch qw /binsearch  binsearch_pos/;
-use List::BinarySearch::XS;  #  make sure we have the XS version available
 #eval {use Data::Structure::Util qw /has_circular_ref get_refs/}; #  hunting for circular refs
 #use MRO::Compat;
 use Class::Inspector;

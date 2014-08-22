@@ -344,6 +344,26 @@ sub set_legend_ltgt_flags {
     return;
 }
 
+sub on_show_hide_legend {
+    my $self = shift;
+    my $menu_item = shift;
+
+    my $grid = $self->{grid};
+
+    return if !$grid;
+
+    my $active = $menu_item->get_active;
+
+    if ($active) {
+        $grid->show_legend;
+        $grid->set_legend_min_max;
+    }
+    else {
+        $grid->hide_legend;
+    }
+
+}
+
 sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 

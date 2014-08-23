@@ -1,0 +1,11 @@
+prefix=c:/devel/target/b3995f7892269958c8da1f5632923d90
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Gail
+Description: GNOME Accessibility Implementation Library
+Version: 2.22.1
+Requires: atk gtk+-2.0
+Libs: -L${libdir} -lgailutil
+Cflags: -I${includedir}/gail-1.0

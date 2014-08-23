@@ -1,0 +1,11 @@
+prefix=c:/devel/target/711c49bd185da2a939ee9ef96ca900d3
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: Fontconfig
+Description: Font configuration and customization library
+Version: 2.8.0
+Libs: -L${libdir} -lfontconfig
+Libs.private:  -L/devel/dist/win64/expat-2.0.1-3/lib -lexpat -L/devel/dist/win64/freetype-2.4.2-1/bin/../lib -lfreetype 
+Cflags: -I${includedir}

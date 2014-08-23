@@ -143,7 +143,7 @@ sub new {
 
     $sig_clicked->('btnSelectToolVL',  \&on_select_tool);
     $sig_clicked->('btnPanToolVL',     \&on_pan_tool);
-    $sig_clicked->('btnZoomToolVL',    \&on_zoom_tool);
+    $sig_clicked->('btnZoomInToolVL',  \&on_zoom_in_tool);
     $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
     $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
 
@@ -877,7 +877,7 @@ sub on_grid_select {
         }
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
     }
-    elsif ($self->{tool} eq 'Zoom') {
+    elsif ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{grid};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1012,7 +1012,7 @@ sub on_phylogeny_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1260,7 +1260,7 @@ sub on_matrix_clicked {
         $hlist->scroll_to_cell( $h_start );
         $vlist->scroll_to_cell( $v_start );
     }
-    elsif ($self->{tool} eq 'Zoom') {
+    elsif ($self->{tool} eq 'ZoomIn') {
         my $rect = [
             map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
                 ($v_start, $h_start, $v_end, $h_end)
@@ -1303,12 +1303,12 @@ sub remove {
 my %drag_modes = (
     Select  => 'select',
     Pan     => 'pan',
-    Zoom    => 'select',
+    ZoomIn    => 'select',
     ZoomOut => 'click',
     ZoomFit => 'click',
 );
 
-my %dendogram_drag_modes = (
+my %dendrogram_drag_modes = (
     %drag_modes,
     Select  => 'click',
 );
@@ -1330,44 +1330,13 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode}        = $drag_modes{$tool};
-    $self->{matrix_grid}->{drag_mode} = $drag_modes{$tool};
-    $self->{dendrogram}->{drag_mode}  = $dendogram_drag_modes{$tool};
+    $self->{grid}{drag_mode}        = $drag_modes{$tool};
+    $self->{matrix_grid}{drag_mode} = $drag_modes{$tool};
+    $self->{dendrogram}{drag_mode}  = $dendrogram_drag_modes{$tool};
 }
 
-## Called from GTK
-#sub on_select_tool {
-#    my $self = shift;
-#    return if $self->{ignore_tool_click};
-#    $self->choose_tool('Select');
-#}
-#
-#sub on_pan_tool {
-#    my $self = shift;
-#    return if $self->{ignore_tool_click};
-#    $self->choose_tool('Pan');
-#}
-#
-#sub on_zoom_tool {
-#    my $self = shift;
-#    return if $self->{ignore_tool_click};
-#    $self->choose_tool('Zoom');
-#}
-#
-#sub on_zoom_out_tool {
-#    my $self = shift;
-#    return if $self->{ignore_tool_click};
-#    $self->choose_tool('ZoomOut');
-#}
-#
-#sub on_zoom_fit_tool {
-#    my $self = shift;
-#    return if $self->{ignore_tool_click};
-#    $self->choose_tool('ZoomFit');
-#}
-
 my %key_tool_map = (
-    Z => 'Zoom',
+    Z => 'ZoomIn',
     X => 'ZoomOut',
     C => 'Pan',
     V => 'ZoomFit',
@@ -1380,9 +1349,7 @@ sub on_bare_key {
     # TODO: Add other tools
     my $tool = $key_tool_map{$keyval};
 
-    if (not defined $tool) {
-        return;
-    }
+    return if not defined $tool;
 
     if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
         # Do an instant zoom out and keep the current tool.

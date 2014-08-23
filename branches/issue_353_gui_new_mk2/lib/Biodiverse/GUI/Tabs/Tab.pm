@@ -437,10 +437,10 @@ sub on_pan_tool {
     $self->choose_tool('Pan');
 }
 
-sub on_zoom_tool {
+sub on_zoom_in_tool {
     my $self = shift;
     return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
+    $self->choose_tool('ZoomIn');
 }
 
 sub on_zoom_out_tool {
@@ -457,7 +457,7 @@ sub on_zoom_fit_tool {
 
 sub on_grid_select {
     my ($self, $groups, $ignore_change, $rect) = @_;
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{grid};
         $self->handle_grid_drag_zoom($grid, $rect);
     }

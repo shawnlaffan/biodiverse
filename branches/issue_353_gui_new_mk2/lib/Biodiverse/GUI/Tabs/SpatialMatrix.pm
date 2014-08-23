@@ -136,7 +136,7 @@ sub new {
         #  need to refactor common elements with Spatial.pm
         btnSelectToolSP  => {clicked => \&on_select_tool},
         btnPanToolSP     => {clicked => \&on_pan_tool},
-        btnZoomToolSP    => {clicked => \&on_zoom_tool},
+        btnZoomInToolSP  => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
 
@@ -199,7 +199,7 @@ sub new {
     $self->{drag_modes} = {
         Select  => 'select',
         Pan     => 'pan',
-        Zoom    => 'select',
+        ZoomIn  => 'select',
         ZoomOut => 'click',
         ZoomFit => 'click',
     };
@@ -623,7 +623,7 @@ sub on_grid_select {
         shift;
         $self->on_cell_selected(@_);
     }
-    elsif ($self->{tool} eq 'Zoom') {
+    elsif ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{grid};
         $self->handle_grid_drag_zoom($grid, $rect);
     }

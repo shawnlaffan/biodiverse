@@ -235,7 +235,7 @@ sub new {
 
         btnSelectToolSP  => {clicked => \&on_select_tool},
         btnPanToolSP     => {clicked => \&on_pan_tool},
-        btnZoomToolSP    => {clicked => \&on_zoom_tool},
+        btnZoomInToolSP  => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
 
@@ -285,7 +285,7 @@ sub new {
     $self->{drag_modes} = {
         Select  => 'click',
         Pan     => 'pan',
-        Zoom    => 'select',
+        ZoomIn  => 'select',
         ZoomOut => 'click',
         ZoomFit => 'click',
     };
@@ -897,7 +897,7 @@ sub on_phylogeny_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1848,7 +1848,7 @@ sub get_options_menu {
 }
 
 my %key_tool_map = (
-    Z => 'Zoom',
+    Z => 'ZoomIn',
     X => 'ZoomOut',
     C => 'Pan',
     V => 'ZoomFit',
@@ -1895,9 +1895,9 @@ sub choose_tool {
     $self->{tool} = $tool;
 
     if ($self->{grid} && blessed $self->{grid}) {  # might not be initialised yet
-        $self->{grid}->{drag_mode} = $self->{drag_modes}->{$tool};
+        $self->{grid}->{drag_mode} = $self->{drag_modes}{$tool};
     }
-    $self->{dendrogram}->{drag_mode} = $self->{drag_modes}->{$tool};
+    $self->{dendrogram}->{drag_mode} = $self->{drag_modes}{$tool};
 }
 
 

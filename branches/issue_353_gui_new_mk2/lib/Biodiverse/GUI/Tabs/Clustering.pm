@@ -255,7 +255,7 @@ sub new {
 
         btnSelectToolCL     => {clicked => \&on_select_tool},
         btnPanToolCL        => {clicked => \&on_pan_tool},
-        btnZoomToolCL       => {clicked => \&on_zoom_tool},
+        btnZoomInToolCL     => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
 
@@ -1543,7 +1543,7 @@ sub on_dendrogram_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1932,7 +1932,7 @@ sub on_plot_mode_changed {
 my %drag_modes = (
     Select  => 'click',
     Pan     => 'pan',
-    Zoom    => 'select',
+    ZoomIn  => 'select',
     ZoomOut => 'click',
     ZoomFit => 'click',
 );
@@ -1954,7 +1954,7 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{grid}->{drag_mode}       = $drag_modes{$tool};
     $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
 }
 
@@ -1967,7 +1967,7 @@ sub on_highlight_groups_on_map_changed {
 }
 
 my %key_tool_map = (
-    Z => 'Zoom',
+    Z => 'ZoomIn',
     X => 'ZoomOut',
     C => 'Pan',
     V => 'ZoomFit',

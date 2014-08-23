@@ -622,6 +622,7 @@ sub on_selected_labels_changed {
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
 
+    
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
         $self->{dendrogram}->recolour_cluster_lines(\@phylogeny_colour_nodes);
@@ -883,17 +884,17 @@ sub on_grid_select {
 
     return;
 }
-
-sub on_grid_click {
-    my $self = shift;
-
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
+#
+#sub on_grid_click {
+#    my $self = shift;
+#
+#    if ($self->{tool} eq 'ZoomOut') {
+#        $self->{grid}->zoom_out();
+#    }
+#    elsif ($self->{tool} eq 'ZoomFit') {
+#        $self->{grid}->zoom_fit();
+#    }
+#}
 
 ##################################################
 # Phylogeny events
@@ -1334,36 +1335,36 @@ sub choose_tool {
     $self->{dendrogram}->{drag_mode}  = $dendogram_drag_modes{$tool};
 }
 
-# Called from GTK
-sub on_select_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Select');
-}
-
-sub on_pan_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Pan');
-}
-
-sub on_zoom_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
-}
-
-sub on_zoom_out_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomOut');
-}
-
-sub on_zoom_fit_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomFit');
-}
+## Called from GTK
+#sub on_select_tool {
+#    my $self = shift;
+#    return if $self->{ignore_tool_click};
+#    $self->choose_tool('Select');
+#}
+#
+#sub on_pan_tool {
+#    my $self = shift;
+#    return if $self->{ignore_tool_click};
+#    $self->choose_tool('Pan');
+#}
+#
+#sub on_zoom_tool {
+#    my $self = shift;
+#    return if $self->{ignore_tool_click};
+#    $self->choose_tool('Zoom');
+#}
+#
+#sub on_zoom_out_tool {
+#    my $self = shift;
+#    return if $self->{ignore_tool_click};
+#    $self->choose_tool('ZoomOut');
+#}
+#
+#sub on_zoom_fit_tool {
+#    my $self = shift;
+#    return if $self->{ignore_tool_click};
+#    $self->choose_tool('ZoomFit');
+#}
 
 my %key_tool_map = (
     Z => 'Zoom',
@@ -1395,16 +1396,18 @@ sub on_bare_key {
     }
 }
 
+#  no longer used?  
 sub on_zoom_in {
     my $grid = shift;
     $grid->zoom_in();
-    
+say 'LB: Called on_zoom_in';
     return;
 }
 
 sub on_zoom_out {
     my $grid = shift;
     $grid->zoom_out();
+say 'LB: Called on_zoom_out';
     
     return;
 }
@@ -1412,7 +1415,8 @@ sub on_zoom_out {
 sub on_zoom_fit {
     my $grid = shift;
     $grid->zoom_fit();
-    
+say 'LB: Called on_zoom_fit';
+
     return;
 }
 
@@ -1432,8 +1436,8 @@ sub on_overlays {
 # Sets the vertical pane's position (0->all the way down | 1->fully up)
 sub set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
     my $max_pos = $pane->get('max-position');
@@ -1447,8 +1451,8 @@ sub set_pane {
 # Need when the pane hasn't got it's size yet and doesn't know its max position
 sub queue_set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
 

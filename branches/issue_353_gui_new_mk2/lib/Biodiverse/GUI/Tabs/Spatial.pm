@@ -1900,58 +1900,6 @@ sub choose_tool {
     $self->{dendrogram}->{drag_mode} = $self->{drag_modes}->{$tool};
 }
 
-# Called from GTK
-sub on_select_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Select');
-}
-
-sub on_pan_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Pan');
-}
-
-sub on_zoom_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
-}
-
-sub on_zoom_out_tool {
-    # TODO: Since there is only one pane here, it'd probably make sense to just
-    # immediately zoom out
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomOut');
-}
-
-sub on_zoom_fit_tool {
-    # TODO: Since there is only one pane here, it'd probably make sense to just
-    # immediately zoom fit
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomFit');
-}
-
-sub on_grid_select {
-    my ($self, $groups, $ignore_change, $rect) = @_;
-    if ($self->{tool} eq 'Zoom') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom($grid, $rect);
-    }
-}
-
-sub on_grid_click {
-    my $self = shift;
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

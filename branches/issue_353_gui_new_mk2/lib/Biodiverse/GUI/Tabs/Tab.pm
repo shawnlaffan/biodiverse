@@ -424,6 +424,56 @@ sub rect_centre {
     return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
 }
 
+# Called from GTK
+sub on_select_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Select');
+}
+
+sub on_pan_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Pan');
+}
+
+sub on_zoom_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Zoom');
+}
+
+sub on_zoom_out_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomOut');
+}
+
+sub on_zoom_fit_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomFit');
+}
+
+sub on_grid_select {
+    my ($self, $groups, $ignore_change, $rect) = @_;
+    if ($self->{tool} eq 'Zoom') {
+        my $grid = $self->{grid};
+        $self->handle_grid_drag_zoom($grid, $rect);
+    }
+}
+
+sub on_grid_click {
+    my $self = shift;
+    if ($self->{tool} eq 'ZoomOut') {
+        $self->{grid}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{grid}->zoom_fit();
+    }
+}
+
+
 sub handle_grid_drag_zoom {
     my ($self, $grid, $rect) = @_;
     my $canvas = $grid->{canvas};

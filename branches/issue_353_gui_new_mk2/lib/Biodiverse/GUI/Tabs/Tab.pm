@@ -493,7 +493,7 @@ sub set_display_cursors {
     foreach my $widget (qw /grid matrix_grid dendrogram/) {
         no autovivification;
         my $wref = $self->{$widget};
-        next if !$wref;
+        next if !$wref || !$wref->{canvas};
 
         my $window = $wref->{canvas}->window;
         my $cursor;

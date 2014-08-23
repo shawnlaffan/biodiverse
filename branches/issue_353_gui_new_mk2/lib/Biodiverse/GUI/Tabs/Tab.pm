@@ -272,10 +272,32 @@ sub hotkey_handler {
 
 sub on_run {} # default for tabs that don't implement on_run
 
-# Default for tabs that don't implement onBareKey
+my %key_tool_map = (
+    Z => 'ZoomIn',
+    X => 'ZoomOut',
+    C => 'Pan',
+    V => 'ZoomFit',
+    B => 'Select'
+);
+
+# Default for tabs that don't implement on_bare_key
 sub on_bare_key {
-    my ($self, $keyval, ) = @_;
-    #print "default bare key: ", $keyval, "\n";
+    my ($self, $keyval) = @_;
+    # TODO: Add other tools
+    my $tool = $key_tool_map{$keyval};
+
+    return if not defined $tool;
+
+    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
+        # Do an instant zoom out and keep the current tool.
+        $self->{$self->{active_pane}}->zoom_out();
+    }
+    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
+        $self->{$self->{active_pane}}->zoom_fit();
+    }
+    else {
+        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+    }
 }
 
 sub get_removable { return 1; } # default - tabs removable
@@ -424,7 +446,6 @@ sub rect_centre {
     return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
 }
 
-# Called from GTK
 sub on_select_tool {
     my $self = shift;
     return if $self->{ignore_tool_click};
@@ -454,6 +475,44 @@ sub on_zoom_fit_tool {
     return if $self->{ignore_tool_click};
     $self->choose_tool('ZoomFit');
 }
+
+my %cursor_icons = (
+    Select  => undef,
+    ZoomIn  => 'zoom-in',
+    ZoomOut => 'zoom-out',
+    ZoomFit => 'zoom-fit-best',
+    Pan     => 'fleur',
+);
+
+sub set_display_cursors {
+    my $self = shift;
+    my $type = shift;
+
+    my $icon = $cursor_icons{$type};
+    
+    foreach my $widget (qw /grid matrix_grid dendrogram/) {
+        no autovivification;
+        my $wref = $self->{$widget};
+        next if !$wref;
+
+        my $window = $wref->{canvas}->window;
+        my $cursor;
+        if ($icon) {
+            #  check if it's a real cursor
+            $cursor = eval {Gtk2::Gdk::Cursor->new ($icon)};
+            if ($@) {  #  might need to come from an icon
+                my $ic = Gtk2::IconTheme->new();
+                my $pixbuf = $ic->load_icon($icon, 16, 'no-svg');
+                my $display = $window->get_display;
+                $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+            }
+        }
+        $window->set_cursor($cursor);
+        $wref->{cursor} = $cursor;
+    }
+    
+}
+
 
 sub on_grid_select {
     my ($self, $groups, $ignore_change, $rect) = @_;

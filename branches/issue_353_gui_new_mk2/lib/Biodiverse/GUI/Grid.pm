@@ -1448,17 +1448,12 @@ sub get_cell_sizes {
 
 # Implements pop-ups and hover-markers
 # FIXME FIXME FIXME Horrible problems between windows / linux due to the markers being on top...
+# SWL 20140823. Is this still the case?
 sub on_event {
     my ($self, $event, $cell) = @_;
 
-#my $type = $event->type;
-#my $state = $event->state;
-#if ($state) {
-#    print "Event is $type, state is $state \n";
-#}
-
     if ($event->type eq '2button_press') {
-        print "Double click does nothing";
+        say "Double click does nothing";
     }
     elsif ($event->type eq 'enter-notify') {
 
@@ -1469,8 +1464,8 @@ sub on_event {
         }
 
         # Change the cursor
-        my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
-        $self->{canvas}->window->set_cursor($cursor);
+        #my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+        #$self->{canvas}->window->set_cursor($cursor);
 
     }
     elsif ($event->type eq 'leave-notify') {
@@ -1489,7 +1484,7 @@ sub on_event {
         }
 
         # Change cursor back to default
-        $self->{canvas}->window->set_cursor(undef);
+        $self->{canvas}->window->set_cursor($self->{cursor});
 
     }
     elsif ($event->type eq 'button-press') {
@@ -1501,7 +1496,7 @@ sub on_event {
                 and not $self->{selecting}
                 and $event->state >= [ 'control-mask' ])
             ) {
-            print "===========Cell popup\n";
+            #print "===========Cell popup\n";
             # Show/Hide the labels popup dialog
             my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
             my $f = $self->{click_func};
@@ -1562,7 +1557,7 @@ sub on_event {
             
             # Establish the selection
             my ($x_start, $y_start) = ($self->{sel_start_x}, $self->{sel_start_y});
-            my ($x_end, $y_end)     = ($event->x, $event->y);
+            my ($x_end,   $y_end)   = ($event->x, $event->y);
 
             $self->end_selection($x_start, $y_start, $x_end, $y_end);
 
@@ -1610,14 +1605,8 @@ sub on_size_allocate {
 sub on_background_event {
     my ($self, $event, $cell) = @_;
 
-#my $type = $event->type;
-#my $state = $event->state;
-#print "BK Event is $type, state is $state \n";
-
-    # Do everything with left clck now.
-    if ($event->type =~ m/^button-/ && $event->button != 1) {
-        return;
-    }
+    # Do everything with left click now.
+    return if $event->type =~ m/^button-/ && $event->button != 1;
 
     if ($event->type eq 'enter-notify') {
         $self->{page}->set_active_pane('grid');

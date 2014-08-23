@@ -1333,35 +1333,10 @@ sub choose_tool {
     $self->{grid}{drag_mode}        = $drag_modes{$tool};
     $self->{matrix_grid}{drag_mode} = $drag_modes{$tool};
     $self->{dendrogram}{drag_mode}  = $dendrogram_drag_modes{$tool};
+    
+    $self->set_display_cursors ($tool);
 }
 
-my %key_tool_map = (
-    Z => 'ZoomIn',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select'
-);
-
-# Override from tab
-sub on_bare_key {
-    my ($self, $keyval) = @_;
-    # TODO: Add other tools
-    my $tool = $key_tool_map{$keyval};
-
-    return if not defined $tool;
-
-    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
-        # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoom_out();
-    }
-    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-        $self->{$self->{active_pane}}->zoom_fit();
-    }
-    else {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
-    }
-}
 
 #  no longer used?  
 sub on_zoom_in {

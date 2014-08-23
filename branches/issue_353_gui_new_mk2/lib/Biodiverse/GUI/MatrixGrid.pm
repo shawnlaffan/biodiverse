@@ -771,9 +771,11 @@ sub on_event {
             $f->($horz_elt, $vert_elt);
         }
 
-        #my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
-        #$self->{canvas}->window->set_cursor($cursor);
-
+        # Change the cursor if we are in select mode
+        if (!$self->{cursor}) {
+            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            $self->{canvas}->window->set_cursor($cursor);
+        }
     }
     elsif ($event->type eq 'leave-notify') {
 

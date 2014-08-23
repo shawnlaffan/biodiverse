@@ -1913,10 +1913,11 @@ my $type = $event->type;
             #$self->{hover_line} = $line;
         #}
 
-        # Change the cursor
-        #my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
-        #$self->{canvas}->window->set_cursor($cursor);
-
+        # Change the cursor if we are in select mode
+        if (!$self->{cursor}) {
+            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            $self->{canvas}->window->set_cursor($cursor);
+        }
     }
     elsif ($event->type eq 'leave-notify') {
         #print "leave - " . $node->get_name() . "\n";

@@ -801,6 +801,14 @@ sub get_orig_matrices {
     return wantarray ? @$matrices : $matrices;
 }
 
+sub get_orig_shadow_matrix {
+    my $self = shift;
+
+    my $matrix = $self->get_param ('ORIGINAL_SHADOW_MATRIX');
+
+    return $matrix;
+}
+
 sub get_matrices_ref {
     my $self = shift;
     #my %args = @_;
@@ -1378,6 +1386,61 @@ sub setup_linkage_function {
     return;
 }
 
+sub get_outputs_with_same_index_and_spatial_conditions {
+    my $self = shift;
+    my %args = @_;
+
+    my $bd  = $self->get_basedata_ref;
+    my @comparable = $bd->get_outputs_with_same_spatial_conditions (compare_with => $self);
+
+    return if !scalar @comparable;
+    
+    no autovivification;
+
+    my $cluster_index = $self->get_param ('CLUSTER_INDEX');
+    my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
+    my $tree_ref      = $analysis_args->{tree_ref} // '';
+    my $matrix_ref    = $analysis_args->{matrix_ref} // '';
+
+    #  Incomplete - need to get dependencies as well in case they are not declared,
+    #  but for now it will work as we won't get this far if they are not specified
+    #  Should also check optional args if we ever implement them
+    #  This should also all be encapsulated in Indices.pm
+    my $indices       = $self->get_indices_object_for_matrix_and_clustering;
+    my $valid_calcs   = $indices->get_valid_calculations_to_run;
+    my %required_args = $indices->get_required_args (calculations => $valid_calcs);
+    my %required;
+    foreach my $calc (%required_args) {
+        my $r = $required_args{$calc};
+        @required{keys %$r} = values %$r;
+    }
+
+
+  COMP:
+    foreach my $comp (@comparable) {
+        my $comp_cluster_index = $comp->get_param ('CLUSTER_INDEX');
+
+        next COMP if !defined $comp_cluster_index;
+        next COMP if $comp_cluster_index ne $cluster_index;
+
+        #  now we need to check required args and the like
+        #  currently blunt as we should only check args required by the indices objects
+        my $comp_analysis_args = $comp->get_param ('ANALYSIS_ARGS');
+        foreach my $arg_key (keys %required) {
+            next COMP if !exists $comp_analysis_args->{$arg_key}
+                      || !exists $analysis_args->{$arg_key};
+            my $c_val = $comp_analysis_args->{$arg_key} // '';
+            my $a_val = $analysis_args->{$arg_key} // '';
+            next COMP if $a_val ne $c_val;
+        }
+
+        return $comp;
+    }
+
+    return;    
+}
+
+
 sub run_analysis {
     my $self = shift;
     return $self->cluster(@_);
@@ -1468,12 +1531,11 @@ sub cluster {
 
         if (!$self->get_matrix_count) {
             #  can we get them from another output?
-            my $bd = $self->get_basedata_ref;
-            my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self);
+            my $ref = $self->get_outputs_with_same_index_and_spatial_conditions (compare_with => $self);
             if ($ref && !$args{build_matrices_only} && !$args{file_handles}) {
 
-                my $other_original_matrices = $ref->get_param('ORIGINAL_MATRICES');
-                my $other_orig_shadow_mx    = $self->get_param('ORIGINAL_SHADOW_MATRIX');
+                my $other_original_matrices = $ref->get_orig_matrices;
+                my $other_orig_shadow_mx    = $ref->get_orig_shadow_matrix;
                 #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
                 if (   eval {$other_orig_shadow_mx->get_element_count}
                     || eval {$other_original_matrices->[0]->get_element_count}) {

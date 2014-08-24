@@ -1376,7 +1376,7 @@ sub cluster_test_matrix_recycling {
     isnt ($mx_ref1, $mx_ref5, 'did not recycle matrices, 1 v 5');
     isnt ($mx_ref4, $mx_ref5, 'did not recycle matrices, 4 v 5');
     
-    #  now we try with a combinatoin of spatial condition and def query
+    #  now we try with a combination of spatial condition and def query
     $bd->delete_all_outputs;
 
     my $cl6 = $bd->add_output (name => 'cl6 mx recyc', type => $type);

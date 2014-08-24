@@ -196,7 +196,25 @@ sub check_order_is_same_given_same_prng {
 #  so we exercise the whole shebang.
 sub test_matrix_recycling {
     my %args = @_;
-    cluster_test_matrix_recycling (%args, index => 'SORENSON', type => 'Biodiverse::Cluster');
+    cluster_test_matrix_recycling (
+        %args,
+        index => 'SORENSON',
+        type => 'Biodiverse::Cluster',
+    );
+
+    
+    #  need to test one with different phylogenetic trees
+    
+}
+
+sub test_no_matrix_recycling_when_indices_differ {
+    my %args = @_;
+    
+    cluster_test_no_matrix_recycling_when_indices_differ (
+        %args,
+        indices => [qw/SORENSON JACCARD/],
+        type => 'Biodiverse::Cluster',
+    );
 }
 
 #  shadow matrix should contain all pair combinations across both matrices?
@@ -387,6 +405,124 @@ sub get_site_data_newick_tree {
     croak "should not get this far\n";
 }
 
+
+sub cluster_test_no_matrix_recycling_when_indices_differ {
+    my %args = @_;
+    my $type  = $args{type}  // 'Biodiverse::Cluster';
+    my $indices = $args{indices} // [qw /JACCARD SORENSON/];
+    my $tie_breaker = exists $args{tie_breaker}  #  use undef if the user passed the arg key
+        ? $args{tie_breaker}
+        : [
+           ENDW_WE => 'maximise',
+           PD      => 'maximise',
+           ABC3_SUM_ALL => 'maximise',
+           none         => 'maximise'
+        ];
+
+
+    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
+    #my $bd2 = $bd1->clone;
+
+    my $tree_ref1 = $args{tree_ref} // get_tree_object_from_sample_data();
+
+    my $index1 = $indices->[0];
+    my $index2 = $indices->[1];
+
+    my %analysis_args = (
+        %args,
+        tree_ref => $tree_ref1,
+        cluster_tie_breaker => $tie_breaker,
+    );
+
+    my $cl1a = $bd1->add_output (name => 'cl1a mx recyc', type => $type);
+    $cl1a->run_analysis (%analysis_args, index => $index1);
+
+    my $cl1b = $bd1->add_output (name => 'cl1b mx recyc', type => $type);
+    $cl1b->run_analysis (%analysis_args, index => $index2);
+
+    ok (
+        !$cl1a->trees_are_same (comparison => $cl1b),
+        'Clustering does not reycle matrices when index differs',
+    );
+
+    check_matrices_differ ($cl1a, $cl1b, 'JACCARD vs SORENSON');
+
+    my $cl1c = $bd1->add_output (name => 'cl1c mx recyc', type => $type);
+    $cl1c->run_analysis (%analysis_args, index => 'PHYLO_JACCARD');
+
+    my $cl1d = $bd1->add_output (name => 'cl1d mx recyc', type => $type);
+    $cl1d->run_analysis (%analysis_args, index => 'PHYLO_SORENSON');
+
+    ok (
+        !$cl1c->trees_are_same (comparison => $cl1d),
+        'Clustering does not reycle matrices when index differs',
+    );
+
+    check_matrices_differ ($cl1c, $cl1d, 'PHYLO JACCARD vs SORENSON');
+
+    #  now we need to check if we get differences when the arguments differ
+    my $tree_ref2 = $tree_ref1->clone;
+    foreach my $node (values %{$tree_ref2->get_node_hash}) {
+        $node->set_length (length => ($node->get_length + rand()));
+        $node->delete_cached_values;
+    }
+    $tree_ref2->delete_cached_values;
+    $tree_ref2->delete_cached_values_below;
+
+    ok (!$tree_ref1->trees_are_same(comparison => $tree_ref2), 'tree2 is not the same as tree1');
+
+    my $cl1e = $bd1->add_output (name => 'cl1e mx recyc', type => $type);
+    $cl1e->run_analysis (%analysis_args, tree_ref => $tree_ref2, index => 'PHYLO_JACCARD');
+
+    ok (
+        !$cl1c->trees_are_same (comparison => $cl1e),
+        'Clustering does not reycle matrices when phylo index same but tree differs',
+    );
+
+    check_matrices_differ ($cl1c, $cl1e, 'PHYLO JACCARD vs PHYLO JACCARD different tree');
+
+    #  now we try with a different basedata
+    my $cl2c = $bd1->add_output (name => 'cl2c mx recyc', type => $type);
+    $cl2c->run_analysis (%analysis_args, index => 'PHYLO_JACCARD');
+
+    ok (
+        $cl1c->trees_are_same (comparison => $cl2c),
+        'Clustering same for different basedatas when tree_ref same',
+    );
+
+    check_matrices_differ ($cl1c, $cl2c, 'PHYLO JACCARD vs PHYLO JACCARD', 'use_is');
+
+}
+
+sub check_matrices_differ {
+    my ($cl1a, $cl1b, $msg_suffix, $use_is) = @_;
+
+    my @mx1a = $cl1a->get_orig_matrices;
+    my @mx1b = $cl1b->get_orig_matrices;
+    
+    my @elements = $mx1a[0]->get_elements_as_array;
+
+    my ($i, $same_count) = (0, 0);
+    EL1:
+    foreach my $el1 (@elements) {
+        EL2:
+        foreach my $el2 (@elements) {
+            next EL2 if $el1 eq $el2;
+            my $val1 = $mx1a[0]->get_defined_value_aa ($el1, $el2);
+            my $val2 = $mx1b[0]->get_defined_value_aa ($el1, $el2);
+
+            $i++;
+            $same_count ++ if $val1 == $val2;
+            last EL1 if $val1 != $val2;
+        }
+    }
+    if ($use_is) {
+        is ($i, $same_count, 'matrices same ' . $msg_suffix);
+    }
+    else {
+        isnt ($i, $same_count, 'matrices do not match so therefore were not recycled ' . $msg_suffix);
+    }
+}
 
 
 1;

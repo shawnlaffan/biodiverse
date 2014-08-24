@@ -313,9 +313,10 @@ sub sp_calc {
 
     if (! $use_nbrs_from) {
         #  first look for a sibling with the same spatial parameters
-        $use_nbrs_from = eval {
-            $bd->get_outputs_with_same_conditions (compare_with => $self);
+        my @comparable = eval {
+            $bd->get_outputs_with_same_spatial_conditions (compare_with => $self);
         };
+        $use_nbrs_from = $comparable[0];  #  empty if none are comparable
     }
     #  try again if we didn't get it before, 
     #  but this time check the index

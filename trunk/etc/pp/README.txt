@@ -6,12 +6,10 @@ Needed for GTK modules to work properly.
 Also need to add the following lines before the open is attempted.
 This avoids duplicate DLL file names in modules ending in XS.  
 
-if (-e $filename) {
-    print "==== $filename\n";
+### DIRTY HACK 
+if (-e $filename && not $filename =~ /Glib|Gtk2|Gnome|Pango|Cairo/) {
     $filename .= $member->crc32String; #  kludge workaround
-    print "==== is now $filename\n";
 }
-
 
 Makefile.PL.patch needs to be applied to PAR-Packer-1.013
 This patch doesn't change the behaviour. It is just needed to make it build

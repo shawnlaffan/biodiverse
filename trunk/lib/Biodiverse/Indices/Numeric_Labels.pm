@@ -11,7 +11,7 @@ use List::MoreUtils qw /apply pairwise/;
 
 use Carp;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_003';
 
 use Biodiverse::Statistics;
 

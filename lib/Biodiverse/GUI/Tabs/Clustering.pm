@@ -21,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_003';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;

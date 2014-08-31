@@ -160,7 +160,7 @@ sub make_calculations_model {
             $name =~ s/^calc_//;
             $name = $info->get_name || $name;
             #$info->{func} = $func;  #  DIRTY HACK
-            $calc_metadata{$func} = $info;
+            $calc_metadata{$name} = $info;
         }
 
         # Add each analysis-function (eg: Jaccard, Endemism) row

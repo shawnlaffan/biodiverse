@@ -1976,7 +1976,7 @@ sub get_metadata_calc_phylo_sorenson {
     
     my %metadata = (
         name           =>  'Phylo Sorenson',
-        type           =>  'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        type           =>  'Phylogenetic Turnover',  #  keeps it clear of the other indices in the GUI
         description    =>  "Sorenson phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
@@ -2019,7 +2019,7 @@ sub get_metadata_calc_phylo_jaccard {
 
     my %metadata = (
         name           =>  'Phylo Jaccard',
-        type           =>  'Phylogenetic Indices',
+        type           =>  'Phylogenetic Turnover',
         description    =>  "Jaccard phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
@@ -2061,7 +2061,7 @@ sub get_metadata_calc_phylo_s2 {
 
     my %metadata = (
         name           =>  'Phylo S2',
-        type           =>  'Phylogenetic Indices',
+        type           =>  'Phylogenetic Turnover',
         description    =>  "S2 phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have

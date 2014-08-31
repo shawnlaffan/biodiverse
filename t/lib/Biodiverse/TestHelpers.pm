@@ -1310,7 +1310,7 @@ sub cluster_test_matrix_recycling {
         #: [RICHNESS_ALL => 'max', PD => 'max'];
         #: [random => 'max', PD => 'max'];
 
-    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [300000, 300000]);
     my $tree_ref  = get_tree_object_from_sample_data();
 
     my %analysis_args = (

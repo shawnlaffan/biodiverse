@@ -1482,26 +1482,26 @@ sub get_cluster_linkages {
 
 sub cluster_test_linkages_and_check_replication {
     my %args = (delete_outputs => 1, @_);
-    
+
     my $type = $args{type} // 'Biodiverse::Cluster';
     my $linkage_funcs = $args{linkage_funcs} // get_cluster_linkages();
-    my $tie_breaker   = 'ENDW_WE';
+    my @tie_breaker   = (ENDW_WE => 'max', ABC3_SUM_ALL => 'max');
 
-    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
-    my $bd2 = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $bd1 = get_basedata_object_from_site_data(CELL_SIZES => [200000, 300000]);
+    my $bd2 = $bd1->clone;
 
     foreach my $linkage (@$linkage_funcs) {
         my $cl1 = $bd1->add_output (name => $linkage, type => $type);
         $cl1->run_analysis (
             prng_seed        => $default_prng_seed,
             linkage_function => $linkage,
-            cluster_tie_breaker => [$tie_breaker => 'max'],
+            cluster_tie_breaker => [@tie_breaker],
         );
         my $cl2 = $bd2->add_output (name => $linkage, type => $type);
         $cl2->run_analysis (
             prng_seed        => $default_prng_seed,
             linkage_function => $linkage,
-            cluster_tie_breaker => [$tie_breaker => 'max'],
+            cluster_tie_breaker => [@tie_breaker],
         );
 
         my $suffix = $args{delete_outputs} ? ', no matrix recycle' : 'recycled matrix';

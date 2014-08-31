@@ -74,7 +74,7 @@ sub test_same_results_given_same_prng_seed {
     
     check_order_is_same_given_same_prng (basedata_ref => $bd);
     
-    my $site_bd = get_basedata_object_from_site_data(CELL_SIZES => [100000, 100000]);
+    my $site_bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 300000]);
     check_order_is_same_given_same_prng (basedata_ref => $site_bd);
 }
 

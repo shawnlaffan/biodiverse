@@ -319,7 +319,7 @@ sub get_path_lengths_to_root_node {
     if ($use_path_cache) {
         my $cache   = $args{path_length_cache};
         my @el_list = keys %{$args{el_list}};
-        if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element
+        if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
             my $path = $cache->{$el_list[0]};
             return (wantarray ? %$path : $path) if $path;
         }
@@ -332,11 +332,9 @@ sub get_path_lengths_to_root_node {
     my $tree_ref   = $args{tree_ref}
       or croak "argument tree_ref is not defined\n";
 
-    #my $return_lengths = $args{return_lengths};
-
-    #create a hash of terminal nodes for the taxa present
+    # get a hash of node refs
     my $all_nodes = $tree_ref->get_node_hash;
-    
+
     #  now loop through the labels and get the path to the root node
     my %path;
     foreach my $label (sort keys %$label_list) {
@@ -345,12 +343,17 @@ sub get_path_lengths_to_root_node {
         my $current_node = $all_nodes->{$label};
 
         my $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
-        @path{keys %$sub_path} = values %$sub_path;
+        @path{keys %$sub_path} = undef;  #  assign lengths later in one pass
     }
+
+    #  Assign the lengths once each.
+    #  ~15% faster than repeatedly assigning in the slice above
+    my $len_hash = $tree_ref->get_node_length_hash;
+    @path{keys %path} = @$len_hash{keys %path};
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};
-        my @el_list = keys %{$args{el_list}};
+        my @el_list = keys %{$args{el_list}};  #  can only have one item
         $cache_h->{$el_list[0]} = \%path;
     }
 

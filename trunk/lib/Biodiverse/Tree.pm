@@ -378,6 +378,31 @@ sub get_node_refs {
     return wantarray ? @refs : \@refs;
 }
 
+#  get a hash on the node lengths indexed by name
+sub get_node_length_hash {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+
+    my $use_cache = $args{cache};
+    if ($use_cache) {
+        my $cached_hash = $self->get_cached_value ('NODE_LENGTH_HASH');
+        return (wantarray ? %$cached_hash : $cached_hash) if $cached_hash;
+    }
+    
+    my %len_hash;
+    my $node_hash = $self->get_node_hash;
+    foreach my $node_name (keys %$node_hash) {
+        my $node_ref = $node_hash->{$node_name};
+        $len_hash{$node_name} = $node_ref->get_length;
+    }
+    
+    if ($use_cache) {
+        $self->set_cached_value (NODE_LENGTH_HASH => \%len_hash);
+    }
+    
+    return wantarray ? %len_hash : \%len_hash;
+}
+
 #  get a hash of node refs indexed by their total length
 sub get_node_hash_by_total_length {
     my $self = shift;

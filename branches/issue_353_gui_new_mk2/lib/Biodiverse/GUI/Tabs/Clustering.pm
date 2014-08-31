@@ -1968,33 +1968,6 @@ sub on_highlight_groups_on_map_changed {
     return;
 }
 
-#my %key_tool_map = (
-#    Z => 'ZoomIn',
-#    X => 'ZoomOut',
-#    C => 'Pan',
-#    V => 'ZoomFit',
-#    B => 'Select'
-#);
-
-# Override from tab
-#sub on_bare_key {
-#    my ($self, $keyval) = @_;
-#    # TODO: Add other tools
-#    my $tool = $key_tool_map{$keyval};
-#
-#    return if not defined $tool;
-#
-#    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
-#        # Do an instant zoom out and keep the current tool.
-#        $self->{$self->{active_pane}}->zoom_out();
-#    }
-#    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-#        $self->{$self->{active_pane}}->zoom_fit();
-#    }
-#    else {
-#        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
-#    }
-#}
 
 sub on_use_highlight_path_changed {
     my $self = shift;

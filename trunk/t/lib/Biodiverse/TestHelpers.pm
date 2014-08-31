@@ -414,7 +414,7 @@ sub compare_arr_sorted {
 sub get_basedata_import_data_file {
     my %args = @_;
 
-    my $tmp_obj = File::Temp->new;
+    my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
     my $ep_f = $tmp_obj->filename;
     print $tmp_obj $args{data} || get_basedata_test_data(@_);
     $tmp_obj->close;
@@ -621,7 +621,7 @@ sub get_matrix_object_from_sample_data {
 sub write_data_to_temp_file {
     my $data = shift;
 
-    my $tmp_obj = File::Temp->new;
+    my $tmp_obj = File::Temp->new (SUFFIX => '.txt', TEMPLATE => 'bd_XXXXXX');
     my $fname = $tmp_obj->filename;
     print $tmp_obj $data;
     $tmp_obj->close;

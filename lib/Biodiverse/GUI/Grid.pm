@@ -1501,7 +1501,7 @@ sub on_event {
                 and not $self->{selecting}
                 and $event->state >= [ 'control-mask' ])
             ) {
-            print "===========Cell popup\n";
+            #print "===========Cell popup\n";
             # Show/Hide the labels popup dialog
             my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
             my $f = $self->{click_func};

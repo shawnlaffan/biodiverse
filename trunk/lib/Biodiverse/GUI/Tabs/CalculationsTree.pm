@@ -152,7 +152,7 @@ sub make_calculations_model {
             MODEL_SHOW_CHECKBOX,   1
         );
 
-        my %calc_metadata;
+        my (%calc_metadata, %funcs_and_names);
         foreach my $func (@{$calculations{$type}}) {
             my $info = $indices->get_metadata (sub => $func);
             # If name unspecified then use the function name less the calc_
@@ -160,12 +160,15 @@ sub make_calculations_model {
             $name =~ s/^calc_//;
             $name = $info->get_name || $name;
             #$info->{func} = $func;  #  DIRTY HACK
-            $calc_metadata{$name} = $info;
+            $calc_metadata{$func}   = $info;
+            $funcs_and_names{$func} = $name;
         }
+
+        my @sorted_funcs = sort {$funcs_and_names{$a} cmp $funcs_and_names{$b}} keys %funcs_and_names;
 
         # Add each analysis-function (eg: Jaccard, Endemism) row
         CALCULATION_NAME:
-        foreach my $func (sort keys %calc_metadata) {
+        foreach my $func (@sorted_funcs) {
             my $info = $calc_metadata{$func};
             my $name = $info->get_name;
 

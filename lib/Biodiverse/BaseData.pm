@@ -225,7 +225,7 @@ sub rename_output {
     else {
         warn "[BASEDATA] Cannot locate object with name $name\n"
             . 'Currently have '
-            . join ' ', sort keys %$hash_ref
+            . join (' ', sort keys %$hash_ref)
             . "\n";
     }
     

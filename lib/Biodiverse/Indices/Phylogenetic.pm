@@ -2104,7 +2104,7 @@ sub get_metadata_calc_phylo_abc {
     my %metadata = (
         name            =>  'Phylogenetic ABC',
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
-        type            =>  'Phylogenetic Indices',
+        type            =>  'Phylogenetic Turnover',
         pre_calc        =>  '_calc_phylo_abc_lists',
         #pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have

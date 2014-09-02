@@ -1146,9 +1146,21 @@ sub run_sp_cond_tests {
 
     my $res = $bd->get_param('CELL_SIZES');
     my ($index, $index_offsets);
-    my $index_text = q{};
+    my $index_text = ' (no spatial index)';
 
-    foreach my $i (1 .. 3) {
+    foreach my $i (0 .. 2) {
+
+        if ($i) {
+            my @index_res;
+            foreach my $r (@$res) {
+                push @index_res, $r * $i;
+            }
+            $index = $bd->build_spatial_index (
+                resolutions => [@index_res],
+                version     => $index_version,
+            );
+            $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
+        }
 
         foreach my $condition (sort keys %$conditions) {
             my $expected = $conditions->{$condition};
@@ -1190,15 +1202,6 @@ sub run_sp_cond_tests {
             is (keys %$nbrs, $expected, $cond . $index_text);
         }
 
-        my @index_res;
-        foreach my $r (@$res) {
-            push @index_res, $r * $i;
-        }
-        $index = $bd->build_spatial_index (
-            resolutions => [@index_res],
-            version     => $index_version,
-        );
-        $index_text = ' (Index res is ' . join (q{ }, @index_res) . ')';
     }
 
     return;
@@ -1213,7 +1216,7 @@ sub test_sp_cond_res_pairs {
     {
         while (my $cond = shift @res_pairs) {
             my $res = $cond->{res};
-            my @x   = ($cond->{min_x}, $cond->{min_x} + 29);
+            my @x   = ($cond->{min_x}, $cond->{min_x} + 29);  #  max is 29+min
             my @y   = @x;
             my $bd = get_basedata_object(
                 x_spacing  => $res->[0],

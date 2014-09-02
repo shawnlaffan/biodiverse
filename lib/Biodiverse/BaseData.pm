@@ -1512,7 +1512,7 @@ sub import_data_shapefile {
 
         # open as shapefile
         my $fnamebase = $file->stringify;
-        $fnamebase =~ s/\.[^.]*//;
+        #$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
         my $shapefile = Geo::ShapeFile->new($fnamebase);
         #say "have $shapefile";
 

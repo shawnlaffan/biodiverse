@@ -1230,13 +1230,13 @@ sub sp_block {
     my $nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
-    if ( ( ref $size ) !~ /ARRAY/ ) {
+    if ( (reftype ( $size ) // '') ne 'ARRAY' ) {
         $size = [ ($size) x scalar @$coord ];
     };    #  make it an array if necessary;
 
     #  the origin allows the user to shift the blocks around
     my $origin = $args{origin} || [ (0) x scalar @$coord ];
-    if ( ( ref $origin ) !~ /ARRAY/ ) {
+    if ( (reftype ( $origin ) // '') ne 'ARRAY' ) {
         $origin = [ ($origin) x scalar @$coord ];
     }    #  make it an array if necessary
 

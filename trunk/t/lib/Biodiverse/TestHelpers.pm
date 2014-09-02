@@ -826,7 +826,7 @@ sub run_indices_test1 {
     if ($calc_topic_to_test) {
         my $expected_calcs_to_test = $indices->get_calculations->{$calc_topic_to_test};
 
-        subtest 'Right calculations are being tested' => sub {
+        subtest 'Correct calculations are being tested' => sub {
             compare_arr_vals (
                 arr_got => $calcs_to_test,
                 arr_exp => $expected_calcs_to_test

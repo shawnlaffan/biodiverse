@@ -1626,7 +1626,7 @@ sub get_remap_info {
     );
 
     my @headers = map
-        {defined $_ ? $_ : '<null>'}
+        {defined $_ ? $_ : '{null}'}
         @headers_full[0 .. min ($#headers_full, $max_cols_to_show-1)];
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (

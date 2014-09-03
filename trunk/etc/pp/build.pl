@@ -101,6 +101,9 @@ if ($script =~ 'BiodiverseGUI.pl') {
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
 my $icon_file_arg  = $icon_file ? qq{-a "$icon_file;$icon_file_base"} : '';
 
+##DEBUG
+#$icon_file_arg = '';
+
 my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->absolute;
 
 $ENV{BDV_PP_BUILDING}              = 1;
@@ -130,7 +133,15 @@ my $cmd = "pp$verbose -B -z 9 $glade_arg $icon_file_arg $execute -o $output_bina
 say $cmd;
 system $cmd;
 
-if ($OSNAME eq 'MSWin32' && $icon_file) {
+
+#  skip for now - exe_update.pl does not play nicely with PAR executables
+if (0 && $OSNAME eq 'MSWin32' && $icon_file) {
+    
+    ###  ADD SOME OTHER OPTIONS:
+    ###  Comments        CompanyName     FileDescription FileVersion
+    #### InternalName    LegalCopyright  LegalTrademarks OriginalFilename
+    #### ProductName     ProductVersion
+    #perl -e "use Win32::Exe; $exe = Win32::Exe->new('myapp.exe'); $exe->set_single_group_icon('myicon.ico'); $exe->write;"
     my @embed_icon_args = ("exe_update.pl", "--icon=$icon_file", $output_binary_fullpath);
     say join ' ', @embed_icon_args;
     system @embed_icon_args;

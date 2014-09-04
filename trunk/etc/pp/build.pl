@@ -27,8 +27,9 @@ my ($opt, $usage) = describe_options(
   [ 'icon_file|i=s',          'The location of the icon file to use'],
   [ 'verbose|v!',             'Verbose building?', ],
   [ 'execute|x!',             'Execute the script to find dependencies?', {default => 1} ],
+  [ '-', 'Any arguments after this will be passed through to pp'],
   [],
-  [ 'help',       "print usage message and exit" ],
+  [ 'help|?',       "print usage message and exit" ],
 );
 
 if ($opt->help) {
@@ -38,8 +39,9 @@ if ($opt->help) {
 
 my $script     = $opt->script;
 my $out_folder = $opt->out_folder // cwd();
-my $verbose    = $opt->verbose ? '-v' : q{};
+my $verbose    = $opt->verbose ? $opt->verbose : q{};
 my $execute    = $opt->execute ? '-x' : q{};
+my @rest_of_pp_args = @ARGV;
 
 die "Script file $script does not exist or is unreadable" if !-r $script;
 
@@ -51,7 +53,7 @@ my $bin_folder = Path::Class::dir ($root_dir, 'bin');
 my $icon_file  = $opt->icon_file // Path::Class::file ($bin_folder, 'Biodiverse_icon.ico')->absolute;
 #$icon_file = undef;  #  DEBUG
 
-my $perlpath     = $Config{perlpath};
+my $perlpath     = $EXECUTABLE_NAME;
 my $bits         = $Config{archname} =~ /x(86_64|64)/ ? 64 : 32;
 my $using_64_bit = $bits == 64;
 
@@ -66,8 +68,8 @@ if (!-d $out_folder) {
 }
 
 
+#my @links;  #  seems not to work properly
 
-#  NEED TO TRY THE --lib option
 if ($OSNAME eq 'MSWin32') {
     
     #  needed for Windows exes
@@ -76,9 +78,7 @@ if ($OSNAME eq 'MSWin32') {
     my $strawberry_base = Path::Class::dir ($perlpath)->parent->parent->parent;  #  clunky
     my $c_bin = Path::Class::dir($strawberry_base, 'c', 'bin');
 
-    #my @fnames = ($lib_expat, 'libgcc_s_sjlj-1.dll', 'libstdc++-6.dll', get_dll_list($c_bin));
     my @fnames = get_dll_list($c_bin);
-    #my @fnames = ($lib_expat);  #  should only need this with recent versions of PAR
     for my $fname (@fnames) {
         my $source = Path::Class::file ($fname)->stringify;
         my $fbase  = Path::Class::file ($fname)->basename;
@@ -86,6 +86,9 @@ if ($OSNAME eq 'MSWin32') {
 
         copy ($source, $target) or die "Copy of $source to $target failed: $!";
         say "Copied $source to $target";
+        
+        #  does not really work
+        #push @links, '--lib', $source;
     }
 
     $output_binary .= '.exe';
@@ -108,9 +111,6 @@ my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->ab
 $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-#my $cmd = "pp$verbose -B -z 9 $glade_arg $icon_file_arg $execute -o $output_binary_fullpath $script_fullname";
-#  array form is better, but needs the args to be in list form, e.g. $glade_arg, $icon_file_arg
-#  also need to filter empty args out of the list
 my @cmd = (
     'pp',
     #$verbose,
@@ -120,6 +120,8 @@ my @cmd = (
     @glade_arg,
     @icon_file_arg,
     $execute,
+    #@links,
+    @rest_of_pp_args,
     '-o',
     $output_binary_fullpath,
     $script_fullname,
@@ -130,8 +132,6 @@ if ($verbose) {
 
 say join ' ', @cmd;
 
-#say $cmd;
-#system $cmd;
 system @cmd;
 
 #  skip for now - exe_update.pl does not play nicely with PAR executables
@@ -163,8 +163,8 @@ sub get_dll_list {
     my @dll_files = grep {$_ =~ $regmatch} @files;
 
     say $folder;
-    say join ' ', @files;
-    say $regmatch;
+    #say join ' ', @files;
+    #say $regmatch;
     say 'DLL files are: ', join ' ', @dll_files;
 
     return @dll_files;

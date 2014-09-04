@@ -494,7 +494,8 @@ sub set_base_struct {
     say "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
     
     my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
-    say join q{ }, $min_x, $max_x, $min_y, $max_y;
+
+    say join q{ }, $min_x, $max_x, $min_y // '', $max_y // '';
 
     my @res = $self->get_cell_sizes($data);  #  handles zero and text
     
@@ -514,12 +515,6 @@ sub set_base_struct {
         $width_pixels = 1
     }
 
-#    my ($cell_x, $cell_y, $width_pixels) = $self->get_cell_sizes($data);
-    #$cell_y = 1 if ! defined $cell_y; #  catcher for single axis data sets
-    
-    #print "[GRID] Cellsizes:  $cell_x, $cell_y, (width: $width_pixels)\n";
-    #print "[GRID] Basedata cell size is: ", join (" ", @{$data->get_param ('CELL_SIZES')}), "\n";
-
     # Configure cell heights and y-offsets for the marks (circles, lines,...)
     my $ratio = eval {$cell_y / $cell_x} || 1;  #  trap divide by zero
     my $cell_size_y = CELL_SIZE_X * $ratio;
@@ -527,21 +522,19 @@ sub set_base_struct {
     
     #  setup the index if needed
     if (defined $self->{select_func}) {
-        my $rtree = $self->get_rtree();
+        $self->get_rtree();
     }
     
     my $elts = $data->get_element_hash();
-    #print Data::Dumper::Dumper($elts);
 
     my $count = scalar keys %$elts;
     
     croak "No groups to display - BaseData is empty\n"
       if $count == 0;
-    
-    #my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
+
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
-    print "[Grid] Grid loading $count elements (cells)\n";
+    say "[Grid] Grid loading $count elements (cells)";
     $progress_bar->update ("Grid loading $count elements (cells)", 0);
 
 
@@ -601,13 +594,9 @@ sub set_base_struct {
         my $x = eval {($x_bd - $min_x) / $cell_x};
         my $y = eval {($y_bd - $min_y) / $cell_y};
 
-        # We shift by half the cell size to make the coordinate hits cells center
+        # We shift by half the cell size to make the coordinate hit the cell center
         my $xcoord = $x * CELL_SIZE_X  - CELL_SIZE_X  / 2;
         my $ycoord = $y * $cell_size_y - $cell_size_y / 2;
-
-#my $testx = $x * CELL_SIZE_X;
-#my $testy = $y * $cell_size_y;
-#my @test = $self->units_canvas2basestruct ($testx, $testy);
 
         # Make container group ("cell") for the rectangle and any marks
         my $container = Gnome2::Canvas::Item->new (
@@ -739,16 +728,8 @@ sub load_shapefile {
     #@shapes = $shapefile->shapes_in_area ($shapefile->bounds);
     
     my $num = @shapes;
-    print "[Grid] Shapes within plot area: $num\n";
+    say "[Grid] Shapes within plot area: $num";
 
-    # Work out how far away a point has to be from the previous point
-    # to not get clipped - REDUNDANT NOW
-    # This will massively reduce detail when we're zoomed out
-    #my $ppu = $self->{canvas}->get_pixels_per_unit();
-    #my $min_distance = 1 / $ppu * 3; # don't draw points within 3px of each other
-    #my $min_distance2 = $min_distance * $min_distance;
-    ##print "[Grid] minimum point distance - $min_distance\n";
-    #
     my $unit_multiplier_x = CELL_SIZE_X / $cell_x;
     my $unit_multiplier_y = $self->{cell_size_y} / $cell_y;
     my $unit_multiplier2  = $unit_multiplier_x * $unit_multiplier_x; #FIXME: maybe take max of _x,_y
@@ -766,7 +747,6 @@ sub load_shapefile {
 
     # Add all shapes
     foreach my $shapeid (@shapes) {
-        #my $shape = $shapefile->get_shape($shapeid);
         my $shape = $shapefile->get_shp_record($shapeid);
 
         # Make polygon from each "part"
@@ -1384,60 +1364,57 @@ sub find_max_min {
         $max_y = $y if ( (not defined $max_y) || $y > $max_y);
     }
 
+    $max_x //= $min_x;
+    $max_y //= $min_y;
+
     return ($min_x, $max_x, $min_y, $max_y);
 }
 
 sub get_cell_sizes {
     my $data = $_[1];
-    #my ($cell_x, $cell_y) = @{$data->get_param("CELL_SIZES")};
-    my @cell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
-    #my $cellWidth = 0;
-    #print "cell sizes: ", join(/,/,@cell_sizes);
-    my $i = 0;
-    foreach my $axis (@cell_sizes) {
-        if ($axis == 0) {  
-            # If zero size, we want to display every point
-            # Fast dodgy method for computing cell size
-            #
-            # 1. Sort coordinates
-            # 2. Find successive differences
-            # 3. Sort differences
-            # 4. Make cells square with median distances
-    
-            print "[Grid] Calculating minimal cell size for axis $i\n";
-    
-            my $elts = $data->get_element_hash();
-            my %axis_coords;  #  want a list of all the unique coords on this axis
-            foreach my $element (keys %$elts) {
-                my @axes = $data->get_element_name_as_array(element => $element);
-                $axis_coords{$axes[$i]} = 1; 
-            }
-            
-            my $j = 0;
-            my @array = sort {$a <=> $b} keys %axis_coords;
-            #print "@array\n";
-            my @diffs;
-            foreach my $i (1 .. $#array) {
-                my $diff = abs( $array[$i] - $array[$i-1]);
-                push @diffs, $diff;
-            }
-            
-            @diffs = sort {$a <=> $b} @diffs;
-            $cell_sizes[$i] = ($diffs[int ($#diffs / 2)] || 0);
-            $j++;
-    
-            #$cellWidth = 2; # If have zero cell size, make squares more visible  NOW HANDLED ELSEWHERE
-            
+
+    #  handle text groups here
+    my @cell_sizes = map {$_ < 0 ? 1 : $_} $data->get_cell_sizes;
+
+    my @zero_axes = List::MoreUtils::indexes { $_ == 0 } @cell_sizes;
+
+  AXIS:
+    foreach my $i (@zero_axes) {
+        my $axis = $cell_sizes[$i];
+
+        # If zero size, we want to display every point
+        # Fast dodgy method for computing cell size
+        #
+        # 1. Sort coordinates
+        # 2. Find successive differences
+        # 3. Sort differences
+        # 4. Make cells square with median distances
+
+        say "[Grid] Calculating median separation distance for axis $i cell size";
+
+        #  Store a list of all the unique coords on this axis
+        #  Should be able to cache by indexing via @zero_axes
+        my %axis_coords;
+        my $elts = $data->get_element_hash();
+        foreach my $element (keys %$elts) {
+            my @axes = $data->get_element_name_as_array(element => $element);
+            $axis_coords{$axes[$i]} = undef;
         }
-        elsif ($axis < 0) {  #  really should loop over each axis
-            $cell_sizes[$i] = 1;
-            #$cellWidth = 2;
+
+        my @array = sort {$a <=> $b} keys %axis_coords;
+
+        my %diffs;
+        foreach my $i (1 .. $#array) {
+            my $d = abs( $array[$i] - $array[$i-1]);
+            $diffs{$d} = undef;
         }
-        $i++;
+
+        my @diffs = sort {$a <=> $b} keys %diffs;
+        $cell_sizes[$i] = ($diffs[int ($#diffs / 2)] || 1);
     }
-    print "[Grid]   using cellsizes ", join (", ", @cell_sizes) , "\n";
-    #my ($cell_x, $cell_y) = @cell_sizes;
-    #return ($cell_x, $cell_y, $cellWidth);
+
+    say '[Grid] Using cellsizes ', join (', ', @cell_sizes);
+
     return wantarray ? @cell_sizes : \@cell_sizes;
 }
 

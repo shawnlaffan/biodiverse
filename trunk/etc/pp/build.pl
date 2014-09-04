@@ -38,8 +38,8 @@ if ($opt->help) {
 
 my $script     = $opt->script;
 my $out_folder = $opt->out_folder // cwd();
-my $verbose    = $opt->verbose ? ' -v' : q{};
-my $execute    = $opt->execute ? ' -x' : q{};
+my $verbose    = $opt->verbose ? '-v' : q{};
+my $execute    = $opt->execute ? '-x' : q{};
 
 die "Script file $script does not exist or is unreadable" if !-r $script;
 
@@ -67,6 +67,7 @@ if (!-d $out_folder) {
 
 
 
+#  NEED TO TRY THE --lib option
 if ($OSNAME eq 'MSWin32') {
     
     #  needed for Windows exes
@@ -92,47 +93,46 @@ if ($OSNAME eq 'MSWin32') {
 
 
 #  clunky - should hunt for glade use in script?  
-my $glade_arg = q{};
+my @glade_arg = ();
 if ($script =~ 'BiodiverseGUI.pl') {
     my $glade_folder = Path::Class::dir ($bin_folder, 'glade')->absolute;
-    $glade_arg = qq{-a "$glade_folder;glade"};
+    @glade_arg = ('-a', "$glade_folder;glade");
 }
 
 my $icon_file_base = $icon_file ? basename ($icon_file) : '';
-my $icon_file_arg  = $icon_file ? qq{-a "$icon_file;$icon_file_base"} : '';
+my @icon_file_arg  = $icon_file ? ('-a', "$icon_file;$icon_file_base") : ();
 
-##DEBUG
-#$icon_file_arg = '';
 
 my $output_binary_fullpath = Path::Class::file ($out_folder, $output_binary)->absolute;
 
 $ENV{BDV_PP_BUILDING}              = 1;
 $ENV{BIODIVERSE_EXTENSIONS_IGNORE} = 1;
 
-my $cmd = "pp$verbose -B -z 9 $glade_arg $icon_file_arg $execute -o $output_binary_fullpath $script_fullname";
+#my $cmd = "pp$verbose -B -z 9 $glade_arg $icon_file_arg $execute -o $output_binary_fullpath $script_fullname";
 #  array form is better, but needs the args to be in list form, e.g. $glade_arg, $icon_file_arg
 #  also need to filter empty args out of the list
-#my @cmd = (
-#    'pp',
-#    #$verbose,
-#    '-B',
-#    '-z',
-#    9,
-#    $glade_arg,
-#    $icon_file_arg,
-#    $execute,
-#    '-o',
-#    $output_binary_fullpath,
-#    $script_fullname,
-#);
-#if ($verbose) {
-#    splice @cmd, 1, 0, $verbose;
-#}
-#say join ' ', @cmd;
+my @cmd = (
+    'pp',
+    #$verbose,
+    '-B',
+    '-z',
+    9,
+    @glade_arg,
+    @icon_file_arg,
+    $execute,
+    '-o',
+    $output_binary_fullpath,
+    $script_fullname,
+);
+if ($verbose) {
+    splice @cmd, 1, 0, $verbose;
+}
 
-say $cmd;
-system $cmd;
+say join ' ', @cmd;
 
+#say $cmd;
+#system $cmd;
+system @cmd;
 
 #  skip for now - exe_update.pl does not play nicely with PAR executables
 if (0 && $OSNAME eq 'MSWin32' && $icon_file) {

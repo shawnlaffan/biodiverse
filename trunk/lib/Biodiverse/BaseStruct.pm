@@ -812,7 +812,7 @@ sub export_shapefile {
             );
 
             # write a separate shape for each label
-            foreach my $key (keys %list_data) {
+            foreach my $key (sort keys %list_data) {
                 $shp_writer->add_shape(
                     $shape,
                     {

@@ -256,7 +256,7 @@ sub new {
 
         btnSelectToolCL     => {clicked => \&on_select_tool},
         btnPanToolCL        => {clicked => \&on_pan_tool},
-        btnZoomToolCL       => {clicked => \&on_zoom_tool},
+        btnZoomInToolCL     => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
 
@@ -1548,7 +1548,7 @@ sub on_dendrogram_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1937,7 +1937,7 @@ sub on_plot_mode_changed {
 my %drag_modes = (
     Select  => 'click',
     Pan     => 'pan',
-    Zoom    => 'select',
+    ZoomIn  => 'select',
     ZoomOut => 'click',
     ZoomFit => 'click',
 );
@@ -1959,62 +1959,12 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{grid}->{drag_mode}       = $drag_modes{$tool};
     $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
+    
+    $self->set_display_cursors ($tool);
 }
 
-# Called from GTK
-sub on_select_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Select');
-}
-
-sub on_pan_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Pan');
-}
-
-sub on_zoom_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
-}
-
-sub on_zoom_out_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomOut');
-}
-
-sub on_zoom_fit_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomFit');
-}
-
-sub on_grid_select {
-    my ($self, $groups, $ignore_change, $rect) = @_;
-
-    if ($self->{tool} eq 'Zoom') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom ($grid, $rect);
-    }
-
-    return;
-}
-
-sub on_grid_click {
-    my $self = shift;
-
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
 
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
@@ -2023,33 +1973,6 @@ sub on_highlight_groups_on_map_changed {
     return;
 }
 
-my %key_tool_map = (
-    Z => 'Zoom',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select'
-);
-
-# Override from tab
-sub on_bare_key {
-    my ($self, $keyval) = @_;
-    # TODO: Add other tools
-    my $tool = $key_tool_map{$keyval};
-
-    return if not defined $tool;
-
-    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
-        # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoom_out();
-    }
-    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-        $self->{$self->{active_pane}}->zoom_fit();
-    }
-    else {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
-    }
-}
 
 sub on_use_highlight_path_changed {
     my $self = shift;

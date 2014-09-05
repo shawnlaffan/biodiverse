@@ -368,8 +368,8 @@ sub on_slider_event {
         $self->{clusters_group}->hide;
 
         # Change cursor back to default
-        $self->{canvas}->window->set_cursor(undef);
-        $self->{graph}->window->set_cursor(undef);
+        $self->{canvas}->window->set_cursor($self->{cursor});
+        $self->{graph}->window->set_cursor($self->{cursor});
 
     }
     elsif ( $event->type eq 'button-press') {
@@ -1884,9 +1884,7 @@ sub on_event {
 
 my $type = $event->type;
     # If not in click mode, pass through button events to background
-    if ($event->type =~ m/^button-/ && $self->{drag_mode} ne 'click') {
-        return 0;
-    }
+    return 0 if ($event->type =~ m/^button-/ && $self->{drag_mode} ne 'click');
 
     my $node = $line->{node};
     my $f;
@@ -1915,10 +1913,11 @@ my $type = $event->type;
             #$self->{hover_line} = $line;
         #}
 
-        # Change the cursor
-        my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
-        $self->{canvas}->window->set_cursor($cursor);
-
+        # Change the cursor if we are in select mode
+        if (!$self->{cursor}) {
+            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            $self->{canvas}->window->set_cursor($cursor);
+        }
     }
     elsif ($event->type eq 'leave-notify') {
         #print "leave - " . $node->get_name() . "\n";
@@ -1938,7 +1937,7 @@ my $type = $event->type;
         #$line->set(fill_color => 'black') if (not $self->{click_line});
 
         # Change cursor back to default
-        $self->{canvas}->window->set_cursor(undef);
+        $self->{canvas}->window->set_cursor($self->{cursor});
 
     }
     elsif ($event->type eq 'button-press') {

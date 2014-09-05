@@ -5694,7 +5694,7 @@ Merely closes the window if no file is selected.</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomToolCL">
+                      <widget class="GtkToggleButton" id="btnZoomInToolCL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7266,7 +7266,7 @@ This setting has no effect on the slider bar.</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomToolVL">
+                      <widget class="GtkToggleButton" id="btnZoomInToolVL">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -7940,7 +7940,7 @@ This setting has no effect on the slider bar.</property>
                     <property name="can_focus">False</property>
                     <property name="tooltip" translatable="yes">Zoom In (Z)</property>
                     <child>
-                      <widget class="GtkToggleButton" id="btnZoomToolSP">
+                      <widget class="GtkToggleButton" id="btnZoomInToolSP">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>

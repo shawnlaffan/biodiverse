@@ -143,7 +143,7 @@ sub new {
 
     $sig_clicked->('btnSelectToolVL',  \&on_select_tool);
     $sig_clicked->('btnPanToolVL',     \&on_pan_tool);
-    $sig_clicked->('btnZoomToolVL',    \&on_zoom_tool);
+    $sig_clicked->('btnZoomInToolVL',  \&on_zoom_in_tool);
     $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
     $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
 
@@ -622,6 +622,7 @@ sub on_selected_labels_changed {
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
 
+    
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
         $self->{dendrogram}->recolour_cluster_lines(\@phylogeny_colour_nodes);
@@ -876,24 +877,24 @@ sub on_grid_select {
         }
         on_selected_labels_changed($hselection, [$self, 'listLabels1']);
     }
-    elsif ($self->{tool} eq 'Zoom') {
+    elsif ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{grid};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
 
     return;
 }
-
-sub on_grid_click {
-    my $self = shift;
-
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
+#
+#sub on_grid_click {
+#    my $self = shift;
+#
+#    if ($self->{tool} eq 'ZoomOut') {
+#        $self->{grid}->zoom_out();
+#    }
+#    elsif ($self->{tool} eq 'ZoomFit') {
+#        $self->{grid}->zoom_fit();
+#    }
+#}
 
 ##################################################
 # Phylogeny events
@@ -1011,7 +1012,7 @@ sub on_phylogeny_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1259,7 +1260,7 @@ sub on_matrix_clicked {
         $hlist->scroll_to_cell( $h_start );
         $vlist->scroll_to_cell( $v_start );
     }
-    elsif ($self->{tool} eq 'Zoom') {
+    elsif ($self->{tool} eq 'ZoomIn') {
         my $rect = [
             map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
                 ($v_start, $h_start, $v_end, $h_end)
@@ -1302,12 +1303,12 @@ sub remove {
 my %drag_modes = (
     Select  => 'select',
     Pan     => 'pan',
-    Zoom    => 'select',
+    ZoomIn    => 'select',
     ZoomOut => 'click',
     ZoomFit => 'click',
 );
 
-my %dendogram_drag_modes = (
+my %dendrogram_drag_modes = (
     %drag_modes,
     Select  => 'click',
 );
@@ -1329,82 +1330,26 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode}        = $drag_modes{$tool};
-    $self->{matrix_grid}->{drag_mode} = $drag_modes{$tool};
-    $self->{dendrogram}->{drag_mode}  = $dendogram_drag_modes{$tool};
+    $self->{grid}{drag_mode}        = $drag_modes{$tool};
+    $self->{matrix_grid}{drag_mode} = $drag_modes{$tool};
+    $self->{dendrogram}{drag_mode}  = $dendrogram_drag_modes{$tool};
+    
+    $self->set_display_cursors ($tool);
 }
 
-# Called from GTK
-sub on_select_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Select');
-}
 
-sub on_pan_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Pan');
-}
-
-sub on_zoom_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
-}
-
-sub on_zoom_out_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomOut');
-}
-
-sub on_zoom_fit_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomFit');
-}
-
-my %key_tool_map = (
-    Z => 'Zoom',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select'
-);
-
-# Override from tab
-sub on_bare_key {
-    my ($self, $keyval) = @_;
-    # TODO: Add other tools
-    my $tool = $key_tool_map{$keyval};
-
-    if (not defined $tool) {
-        return;
-    }
-
-    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
-        # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoom_out();
-    }
-    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-        $self->{$self->{active_pane}}->zoom_fit();
-    }
-    else {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
-    }
-}
-
+#  no longer used?  
 sub on_zoom_in {
     my $grid = shift;
     $grid->zoom_in();
-    
+say 'LB: Called on_zoom_in';
     return;
 }
 
 sub on_zoom_out {
     my $grid = shift;
     $grid->zoom_out();
+say 'LB: Called on_zoom_out';
     
     return;
 }
@@ -1412,7 +1357,8 @@ sub on_zoom_out {
 sub on_zoom_fit {
     my $grid = shift;
     $grid->zoom_fit();
-    
+say 'LB: Called on_zoom_fit';
+
     return;
 }
 
@@ -1432,8 +1378,8 @@ sub on_overlays {
 # Sets the vertical pane's position (0->all the way down | 1->fully up)
 sub set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
     my $max_pos = $pane->get('max-position');
@@ -1447,8 +1393,8 @@ sub set_pane {
 # Need when the pane hasn't got it's size yet and doesn't know its max position
 sub queue_set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
 

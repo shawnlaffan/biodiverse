@@ -300,6 +300,8 @@ sub on_bare_key {
     }
 }
 
+sub choose_tool {}
+
 sub get_removable { return 1; } # default - tabs removable
 
 #  codes to define percentiles etc

@@ -18,6 +18,7 @@ use English ( -no_match_vars );
 #use Cwd;
 use FindBin qw ( $Bin );
 use Path::Class ();
+use Text::Wrapper;
 
 use Biodiverse::Config;
 
@@ -322,6 +323,15 @@ sub init {
 
     # Show outputs tab
     Biodiverse::GUI::Tabs::Outputs->new();
+
+    #  check if we had any errors when loading extensions
+    my @load_extension_errors = Biodiverse::Config::get_load_extension_errors();
+    if (@load_extension_errors) {
+        my $count = scalar @load_extension_errors;
+        my $text = "Failed to load $count extensions\n"
+                 . join "\n", @load_extension_errors;
+        $self->report_error($text);
+    }
 
     #$self->progress_test();
     #$self->get_status_bar->hide();
@@ -2549,6 +2559,11 @@ sub report_error {
         ? $error
         : split ("\n", $error, 2);
 
+    if (@error_array > 1) {
+        my $text_wrapper = Text::Wrapper->new(columns => 80);
+        $error_array[1] = $text_wrapper->wrap($error_array[1]);
+    }
+
     my $show_details_value = -10;
 
     my $dlg = Gtk2::Dialog->new(
@@ -2559,17 +2574,20 @@ sub report_error {
         'gtk-ok' => 'ok',
     );
     my $text_widget = Gtk2::Label->new();
-    #$text_widget->set_use_markup(1);
-    $text_widget->set_alignment (0, 1);
+    my $extra_text_widget = Gtk2::Label->new();
+
+    foreach my $w ($text_widget, $extra_text_widget) {
+        #$w->set_use_markup(1);
+        $w->set_line_wrap (1);
+        $w->set_width_chars(90);
+        $w->set_alignment (0, 0);
+        $w->set_selectable (1);
+        $w->set_ellipsize('PANGO_ELLIPSIZE_END');
+    }
+
     $text_widget->set_text ($error_array[0]);
-    $text_widget->set_selectable (1);
-    
-    #  hbox and so forth for exra text
-    my $extra_text_widget = Gtk2::Label ->new();
-    $extra_text_widget->set_alignment (0, 1);
-    $extra_text_widget->set_text ($error_array[1] or 'There are no additional details');
-    $extra_text_widget->set_selectable (1);
-    
+    $extra_text_widget->set_text ($error_array[1] // 'There are no additional details');
+
     my $check_button = Gtk2::ToggleButton->new_with_label('show details');
     $check_button->signal_connect_swapped (
         clicked => \&on_report_error_show_hide,
@@ -2578,6 +2596,7 @@ sub report_error {
     $check_button->set_active (0);
 
     my $details_box = Gtk2::VBox->new(1, 6);
+    $details_box->set_homogeneous(0);
     $details_box->pack_start(Gtk2::HSeparator->new(), 0, 0, 0);
     #$details_box->pack_start($check_button, 0, 0, 0);
     $details_box->pack_start($extra_text_widget, 0, 0, 0);
@@ -2588,16 +2607,19 @@ sub report_error {
 
     $dlg->show_all;
     my $details_visible = 0;
-    $extra_text_widget->hide;
-    
+    #$extra_text_widget->hide;
+    $details_box->hide;
+    $dlg->resize(1,1);
+
     while (1) {
         my $response = $dlg->run;
         last if $response ne 'apply'; #  not sure whey we're being fed 'apply' as the value
         if ($details_visible) {  #  replace with set_visible when Gtk used is 2.18+
-            $extra_text_widget->hide;
+            $details_box->hide;
+            $dlg->resize(1,1);
         }
         else {
-            $extra_text_widget->show;
+            $details_box->show;
         }
         $details_visible = ! $details_visible;
     }

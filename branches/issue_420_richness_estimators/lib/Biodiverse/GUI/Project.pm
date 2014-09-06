@@ -13,7 +13,7 @@ use Biodiverse::ReadNexus;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 require      Exporter;
 use parent qw/Exporter Biodiverse::Common/;
@@ -974,7 +974,8 @@ sub delete_output {
     return;
 }
 
-#  should probably be called set name, as we assume it is already renamed
+#  should probably be called set name or update name, as we assume it is already renamed
+#  actually, we already have update_output_name which is very similar code
 sub rename_output {
     my $self = shift;
     my $output_ref = shift;
@@ -991,6 +992,7 @@ sub rename_output {
     
     return;
 }
+
 
 #  go through and clean them all up.  
 sub delete_all_basedata_outputs {
@@ -1325,13 +1327,14 @@ sub set_phylogeny_buttons {
                 menu_trim_tree_to_basedata
                 menu_phylogeny_export
                 menu_phylogeny_delete_cached_values
+                menu_range_weight_tree_branches
                 /) {
         $instance->get_widget($_)->set_sensitive($sensitive);
     }
 }
 
 
-# Makes a new name like "Ferns_Spatial3" which isn't already used (up to 100)
+# Makes a new name like "Ferns_Spatial3" which isn't already used (up to 1000)
 sub make_new_output_name {
     my $self = shift;
     my $source_ref = shift; # BaseData object used to generate output
@@ -1344,13 +1347,16 @@ sub make_new_output_name {
     my $prefix = $source_name . "_" . $type;
     my $name;
 
-    for (my $i = 0; $i < 100; $i++) {
+    my $i = 0;
+    while (1) {
         $name = $prefix . $i;
-        if ($self->member_of($name, \@outputs) == 0) {
-            last; # "break"
+        last if !$self->member_of($name, \@outputs);
+        $i++;
+        if ($i > 1000) {
+            $i = rand();  #  don't waste any more time
         }
     }
-    
+
     return $name;
 }
 
@@ -1358,9 +1364,7 @@ sub make_new_output_name {
 sub member_of {
     my ($self, $elem, $array) = @_;
     foreach my $member (@$array) {
-        if ($elem eq $member) {
-            return 1;
-        }
+        return 1 if $elem eq $member;
     }
     return 0;
 }

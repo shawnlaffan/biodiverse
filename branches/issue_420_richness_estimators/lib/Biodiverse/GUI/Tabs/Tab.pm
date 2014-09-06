@@ -1,9 +1,11 @@
 package Biodiverse::GUI::Tabs::Tab;
 use strict;
 use warnings;
+use 5.010;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
+use List::Util qw/min max/;
 use Gtk2;
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -68,6 +70,18 @@ sub update_current_registration {
     $self->{current_registration} = $object;
 }
 
+sub set_label_widget_tooltip {
+    my $self = shift;
+    my $bd = $self->get_base_ref;
+    
+    my $text = "Part of basedata " . $bd->get_name;
+    my $w = $self->{label_widget} || $self->{tab_menu_label};
+    
+    eval {$w->set_tooltip_text ($text)};
+
+    return;
+}
+
 sub update_name {
     my $self = shift;
     my $new_name = shift;
@@ -122,7 +136,7 @@ sub register_in_outputs_model {
     my $iter_base = $model->get_iter_first();
 
     while ($iter_base) {
-        
+
         my $iter_output = $model->iter_children($iter_base);
         while ($iter_output) {
             if ($model->get($iter_output, MODEL_OBJECT) eq $output_ref) {
@@ -199,7 +213,7 @@ sub hotkey_handler {
     # stop recursion into on_run if shortcut triggered during processing
     #   (this happens because progress-dialogs pump events..)
 
-    return 1 if ($handler_entered == 1);
+    return 1 if $handler_entered == 1;
 
     $handler_entered = 1;
 
@@ -237,6 +251,14 @@ sub hotkey_handler {
                 $self->{gui}->switch_tab (undef, $page_index - 1); #  go left
             }
         }
+        elsif ($event->state == []) {
+            # Catch alphabetic keys only for now.
+            my $keyval = $event->keyval;
+            if (($keyval >= ord('a') && $keyval <= ord('z')) or (
+                    $keyval >= ord('A') && $keyval <= ord('Z'))) {
+                $self->on_bare_key(uc chr $event->keyval);
+            }
+        }
     }
 
     $handler_entered = 0;
@@ -249,6 +271,36 @@ sub hotkey_handler {
 
 
 sub on_run {} # default for tabs that don't implement on_run
+
+my %key_tool_map = (
+    Z => 'ZoomIn',
+    X => 'ZoomOut',
+    C => 'Pan',
+    V => 'ZoomFit',
+    B => 'Select'
+);
+
+# Default for tabs that don't implement on_bare_key
+sub on_bare_key {
+    my ($self, $keyval) = @_;
+    # TODO: Add other tools
+    my $tool = $key_tool_map{$keyval};
+
+    return if not defined $tool;
+
+    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
+        # Do an instant zoom out and keep the current tool.
+        $self->{$self->{active_pane}}->zoom_out();
+    }
+    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
+        $self->{$self->{active_pane}}->zoom_fit();
+    }
+    else {
+        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+    }
+}
+
+sub choose_tool {}
 
 sub get_removable { return 1; } # default - tabs removable
 
@@ -315,5 +367,335 @@ sub set_legend_ltgt_flags {
     };
     return;
 }
+
+sub on_show_hide_legend {
+    my $self = shift;
+    my $menu_item = shift;
+
+    my $grid = $self->{grid};
+
+    return if !$grid;
+
+    my $active = $menu_item->get_active;
+
+    if ($active) {
+        $grid->show_legend;
+        $grid->set_legend_min_max;
+    }
+    else {
+        $grid->hide_legend;
+    }
+
+}
+
+sub on_colour_mode_changed {
+    my ($self, $menu_item) = @_;
+
+    if ($menu_item) {
+        # Just got the signal for the deselected option. Wait for signal for
+        # selected one.
+        return if !$menu_item->get_active();
+
+        my $mode = $menu_item->get_label();
+    
+        if ($mode eq 'Sat...') {
+            $mode = 'Sat';
+
+            # Pop up dialog for choosing the hue to use in saturation mode
+            my $colour_dialog = Gtk2::ColorSelectionDialog->new('Pick Hue');
+            my $colour_select = $colour_dialog->get_color_selection();
+            if (my $col = $self->{hue}) {
+                $colour_select->set_previous_color($col);
+                $colour_select->set_current_color($col);
+            }
+            $colour_dialog->show_all();
+            my $response = $colour_dialog->run;
+            if ($response eq 'ok') {
+                $self->{hue} = $colour_select->get_current_color();
+                $self->{grid}->set_legend_hue($self->{hue});
+                eval {$self->{dendrogram}->recolour()};  #  only clusters have dendrograms - needed here?  recolour below does this
+            }
+            $colour_dialog->destroy();
+        }
+
+        $self->{colour_mode} = $mode;
+    }
+
+    $self->{grid}->set_legend_mode($self->{colour_mode});
+    $self->recolour();
+
+    return;
+}
+
+
+sub set_active_pane {
+    my ($self, $active_pane) = @_;
+    $self->{active_pane} = $active_pane;
+}
+
+sub rect_canonicalise {
+    my ($self, $rect) = @_;
+    if ($rect->[0] > $rect->[2]) {
+        ($rect->[0], $rect->[2]) = ($rect->[2], $rect->[0]);
+    }
+    if ($rect->[1] > $rect->[3]) {
+        ($rect->[1], $rect->[3]) = ($rect->[3], $rect->[1]);
+    }
+}
+
+sub rect_centre {
+    my ($rect, ) = @_;
+    return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
+}
+
+sub on_select_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Select');
+}
+
+sub on_pan_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Pan');
+}
+
+sub on_zoom_in_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomIn');
+}
+
+sub on_zoom_out_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomOut');
+}
+
+sub on_zoom_fit_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomFit');
+}
+
+my %cursor_icons = (
+    Select  => undef,
+    ZoomIn  => 'zoom-in',
+    ZoomOut => 'zoom-out',
+    ZoomFit => 'zoom-fit-best',
+    Pan     => 'fleur',
+);
+
+sub set_display_cursors {
+    my $self = shift;
+    my $type = shift;
+
+    my $icon = $cursor_icons{$type};
+    
+    foreach my $widget (qw /grid matrix_grid dendrogram/) {
+        no autovivification;
+        my $wref = $self->{$widget};
+        next if !$wref || !$wref->{canvas};
+
+        my $window = $wref->{canvas}->window;
+        my $cursor;
+        if ($icon) {
+            #  check if it's a real cursor
+            $cursor = eval {Gtk2::Gdk::Cursor->new ($icon)};
+            if ($@) {  #  might need to come from an icon
+                my $cache_name = "ICON: $icon";
+                $cursor = $self->get_cached_value ($cache_name);
+                if (!$cursor) {
+                    my $ic = Gtk2::IconTheme->new();
+                    my $pixbuf = $ic->load_icon($icon, 16, 'no-svg');
+                    my $display = $window->get_display;
+                    $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+                    $self->set_cached_value ($cache_name => $cursor);
+                }
+            }
+        }
+        $window->set_cursor($cursor);
+        $wref->{cursor} = $cursor;
+    }
+    
+}
+
+
+sub on_grid_select {
+    my ($self, $groups, $ignore_change, $rect) = @_;
+    if ($self->{tool} eq 'ZoomIn') {
+        my $grid = $self->{grid};
+        $self->handle_grid_drag_zoom($grid, $rect);
+    }
+}
+
+sub on_grid_click {
+    my $self = shift;
+    if ($self->{tool} eq 'ZoomOut') {
+        $self->{grid}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{grid}->zoom_fit();
+    }
+}
+
+
+sub handle_grid_drag_zoom {
+    my ($self, $grid, $rect) = @_;
+    my $canvas = $grid->{canvas};
+    $self->rect_canonicalise ($rect);
+
+    # Scale
+    my $width_px  = $grid->{width_px}; # Viewport/window size
+    my $height_px = $grid->{height_px};
+    my ($xc, $yc) = $canvas->world_to_window(rect_centre ($rect));
+    #print "Centre: $xc $yc\n";
+    my ($x1, $y1) = $canvas->world_to_window($rect->[0], $rect->[1]);
+    my ($x2, $y2) = $canvas->world_to_window($rect->[2], $rect->[3]);
+    say "Window Rect: $x1 $x2 $y1 $y2";
+    my $width_s   = max ($x2 - $x1, 1); # Selected box width
+    my $height_s  = max ($y2 - $y1, 1); # Avoid div by 0
+
+    # Special case: If the rect is tiny, the user probably just clicked
+    # and released. Do something sensible, like just double the zoom level.
+    if ($width_s <= 2 || $height_s <= 2) {
+        $width_s  = $width_px  / 2;
+        $height_s = $height_px / 2;
+        ($rect->[0], $rect->[1])
+            = $canvas->window_to_world ($xc - $width_s / 2, $yc - $height_s / 2);
+        ($rect->[2], $rect->[3])
+            = $canvas->window_to_world ($xc + $width_s / 2, $yc + $height_s / 2);
+    }
+
+    my $ratio = min ($width_px / $width_s, $height_px / $height_s);
+    if (exists $grid->{render_width}) {
+        $grid->{render_width}  *= $ratio;
+        $grid->{render_height} *= $ratio;
+    }
+    else {
+        my $oppu = $canvas->get_pixels_per_unit;
+        #print "Old PPU: $oppu\n";
+        my $ppu = $oppu * $ratio;
+        #print "New PPU: $ppu\n";
+        $canvas->set_pixels_per_unit($ppu);
+    }
+
+
+    # Now pan so that the selection is centered. There are two cases.
+    # +------------------------------------------+
+    # |                +-----+                   |
+    # |                |     |                   |
+    # |                |     |                   |
+    # |                +-----+                   |
+    # +------------------------------------------+
+    # or
+    # +------------------------------------------+
+    # |                                          |
+    # |                                          |
+    # |+----------------------------------------+|
+    # ||                                        ||
+    # |+----------------------------------------+|
+    # |                                          |
+    # |                                          |
+    # +------------------------------------------+
+    # We can cover both if we expand rect along both axes until it is
+    # the same aspect ratio as the window. (One axis will not change).
+    my $window_aspect =  $width_px / $height_px;
+    my $rect_aspect   = ($rect->[2] - $rect->[0]) / ($rect->[3] - $rect->[1]);
+    if ($rect_aspect > $window_aspect) {
+        # 2nd case illustrated above. We need to change the height.
+        my $mid    = ($rect->[1] + $rect->[3]) / 2;
+        my $width  =  $rect->[2] - $rect->[0];
+        $rect->[1] = $mid - 0.5 * $width / $window_aspect;
+        $rect->[3] = $mid + 0.5 * $width / $window_aspect;
+    }
+    else {
+        # 1st case illustracted above. We need to change the width.
+        my $mid    = ($rect->[0] + $rect->[2]) / 2;
+        my $height =  $rect->[3] - $rect->[1];
+        $rect->[0] = $mid - 0.5 * $height * $window_aspect;
+        $rect->[2] = $mid + 0.5 * $height * $window_aspect;
+    }
+
+    # Apply and pan
+    $grid->post_zoom;
+    $canvas->scroll_to($canvas->w2c($rect->[0], $rect->[1]));
+    $grid->update_scrollbars;
+}
+
+
+
+sub on_set_cell_outline_colour {
+    my $self = shift;
+    my $menu_item = shift;
+    $self->{grid}->set_cell_outline_colour (@_);
+
+    # set menu item for show outline as active if not currently
+    $self->set_cell_outline_menuitem_active (1);
+    $self->{xmlPage}->get_widget('menu_cluster_cell_show_outline')->set_active(1);
+
+    return;
+}
+
+sub on_set_cell_show_outline {
+    my $self = shift;
+    my $menu_item = shift;
+    $self->{grid}->set_cell_show_outline($menu_item->get_active);
+    return;
+}
+
+
+########
+##
+##  Some cache methods which have been copied across from Biodiverse::Common
+##  since we don't want all the methods.
+##  Need to refactor Biodiverse::Common.
+
+
+#  set any value - allows user specified additions to the core stuff
+sub set_cached_value {
+    my $self = shift;
+    my %args = @_;
+    @{$self->{_cache}}{keys %args} = values %args;
+
+    return;
+}
+
+sub set_cached_values {
+    my $self = shift;
+    $self->set_cached_value (@_);
+}
+
+#  hot path, so needs to be lean and mean, even if less readable
+sub get_cached_value {
+    return if ! exists $_[0]->{_cache}{$_[1]};
+    return $_[0]->{_cache}{$_[1]};
+}
+
+sub get_cached_value_keys {
+    my $self = shift;
+    
+    return if ! exists $self->{_cache};
+    
+    return wantarray
+        ? keys %{$self->{_cache}}
+        : [keys %{$self->{_cache}}];
+}
+
+sub delete_cached_values {
+    my $self = shift;
+    my %args = @_;
+    
+    return if ! exists $self->{_cache};
+
+    my $keys = $args{keys} || $self->get_cached_value_keys;
+    return if not defined $keys or scalar @$keys == 0;
+
+    delete @{$self->{_cache}}{@$keys};
+    delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
+
+    return;
+}
+
 
 1;

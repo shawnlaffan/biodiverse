@@ -96,6 +96,33 @@ sub main {
 }
 
 
+sub test_labels_in_groups {
+    my $bd = get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    subtest 'No overlap between groups_with_label and groups_without_label' => sub {
+        foreach my $label (sort $bd->get_labels) {
+            my $groups_with_label    = $bd->get_groups_with_label_as_hash (label => $label);
+            my $groups_without_label = $bd->get_groups_without_label_as_hash (label => $label);
+            my $overlap = grep {exists $groups_with_label->{$_}} sort keys %$groups_without_label;
+            is ($overlap, 0, "No overlap for $label");
+
+            my $check1 = grep 
+                {$bd->exists_label_in_group(label => $label, group => $_)}
+                keys %$groups_without_label;
+            is ($check1, 0, "No overlap for label using exists, $label");
+            my $check2 = grep 
+                {$bd->exists_label_in_group(label => $label, group => $_)}
+                keys %$groups_with_label;
+            is ($check2, scalar keys %$groups_with_label, "groups_with_label counts match using exists, $label");
+            #my @checkers = map
+            #    {$bd->exists_label_in_group(label => $label, group => $_)}
+            #    keys %$groups_with_label;
+            #say join ' ', sort @checkers;
+        }        
+    };
+    
+}
+
 sub test_import {
     foreach my $this_run (@setup ) {
         my $expected = $this_run->{expected} || 'pass';  
@@ -702,6 +729,7 @@ sub test_roundtrip_shapefile {
         $e = $EVAL_ERROR;
         ok (!$e, "no exceptions exporting $format to $fname");
         diag $e if $e;
+        ok (-e $fname . '.shp', "$fname.shp exists");
 
         #  Now we re-import and check we get the same numbers
         my $new_bd = Biodiverse::BaseData->new (
@@ -720,6 +748,13 @@ sub test_roundtrip_shapefile {
         $e = $EVAL_ERROR;
         ok (!$e, "no exceptions importing $fname");
         diag $e if $e;
+        if ($e) {
+            diag "$fname:";
+            foreach my $ext (qw /shp dbf shx/) {
+                diag 'size: ' . -s ($fname . $ext);
+            }
+        }
+        
 
         my @new_labels  = sort $new_bd->get_labels;
         my @orig_labels = sort $bd->get_labels;

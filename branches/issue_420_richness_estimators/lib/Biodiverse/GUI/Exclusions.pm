@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk2;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
@@ -221,3 +221,4 @@ sub on_toggled {
 
 
 1;
+

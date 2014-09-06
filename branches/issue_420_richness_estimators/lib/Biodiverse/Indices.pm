@@ -17,7 +17,7 @@ use Class::Inspector;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -28,6 +28,7 @@ use parent qw {
     Biodiverse::Indices::IEI
     Biodiverse::Indices::Hierarchical_Labels
     Biodiverse::Indices::Phylogenetic
+    Biodiverse::Indices::PhylogeneticRelative
     Biodiverse::Indices::PhyloCom
     Biodiverse::Indices::Matrix_Indices
     Biodiverse::Indices::Endemism

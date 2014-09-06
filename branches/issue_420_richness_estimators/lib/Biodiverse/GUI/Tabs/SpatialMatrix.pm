@@ -5,7 +5,7 @@ use 5.010;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Gtk2;
 use Carp;
@@ -58,14 +58,17 @@ sub new {
 
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'vpaneSpatial');
+    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxSpatialPage');
     $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxSpatialLabel');
 
-    my $page  = $self->{xmlPage}->get_widget('vpaneSpatial');
+    my $page  = $self->{xmlPage}->get_widget('hboxSpatialPage');
     my $label = $self->{xmlLabel}->get_widget('hboxSpatialLabel');
-    my $label_text = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
+    my $label_text   = $self->{xmlLabel}->get_widget('lblSpatialName')->get_text;
     my $label_widget = Gtk2::Label->new ($label_text);
     $self->{tab_menu_label} = $label_widget;
+
+    # Set up options menu
+    $self->{toolbar_menu} = $self->{xmlPage}->get_widget('menu_spatial_data');
 
     # Add to notebook
     $self->add_to_notebook (
@@ -76,49 +79,42 @@ sub new {
 
     my ($elt_count, $completed);  #  used to control display
 
-    croak "Only existing outputs can be displayed\n" if (not defined $groups_ref );
+    croak "Only existing outputs can be displayed\n"
+      if not defined $groups_ref;
 
-    #else {
-        # We're being called to show an EXISTING output
+    # We're being called to show an EXISTING output
 
-        # Register as a tab for this output
-        $self->register_in_outputs_model($matrix_ref, $self);
-        
-        $elt_count = $groups_ref->get_element_count;
-        $completed = $groups_ref->get_param ('COMPLETED');
-        $completed //= 1;  #  backwards compatibility - old versions did not have this flag
+    # Register as a tab for this output
+    $self->register_in_outputs_model($matrix_ref, $self);
+    
+    $elt_count = $groups_ref->get_element_count;
+    $completed = $groups_ref->get_param ('COMPLETED');
+    $completed //= 1;  #  backwards compatibility - old versions did not have this flag
 
-        my $elements = $groups_ref->get_element_list_sorted;
-        $self->{selected_element} = $elements->[0];
-        
-        print "[SpatialMatrix tab] Existing matrix output - " . $self->{output_name}
-              . ". Part of Basedata set - "
-              . ($self->{basedata_ref}->get_param ('NAME') || "no name")
-              . "\n";
+    my $elements = $groups_ref->get_element_list_sorted;
+    $self->{selected_element} = $elements->[0];
 
-        $self->queue_set_pane(0.01);
-        $self->{existing} = 1;
-    #}
+    say "[SpatialMatrix tab] Existing matrix output - "
+        . $self->{output_name}
+        . ". Part of Basedata set - "
+        . ($self->{basedata_ref}->get_param ('NAME') || "no name");
+
+    $self->queue_set_pane(0.01, 'vpaneSpatial');
+    $self->{existing} = 1;
+
 
     # Initialise widgets
     $self->{title_widget} = $self->{xmlPage} ->get_widget('txtSpatialName');
     $self->{label_widget} = $self->{xmlLabel}->get_widget('lblSpatialName');
-    
+
     $self->{title_widget}->set_text($self->{output_name} );
     $self->{label_widget}->set_text($self->{output_name} );
-
-
-    #$self->{hover_neighbours} = 'Both';
-    #$self->{xmlPage}->get_widget('comboNeighbours') ->set_active(3);
-    $self->{xmlPage}->get_widget('comboSpatialStretch')->set_active(0);
-    $self->{xmlPage}->get_widget('comboNeighbours') ->hide;
-    $self->{xmlPage}->get_widget('comboColours')    ->set_active(0);
-    $self->{xmlPage}->get_widget('colourButton')    ->set_color(
-        Gtk2::Gdk::Color->new(65535,0,0)  # red
-    ); 
+    $self->set_label_widget_tooltip;
 
     $self->set_plot_min_max_values;
 
+    $self->queue_set_pane(0.5, 'spatial_hpaned');
+    $self->queue_set_pane(1  , 'spatial_vpanePhylogeny');
 
     eval {
         $self->init_grid();
@@ -128,23 +124,54 @@ sub new {
         $self->on_close;
     }
 
-
-    #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     # Connect signals
-    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(clicked   => \&on_close,                 $self);
-    $self->{xmlPage} ->get_widget('btnSpatialRun')  ->signal_connect_swapped(clicked   => \&on_run,                   $self);
-    $self->{xmlPage} ->get_widget('btnOverlays')    ->signal_connect_swapped(clicked   => \&on_overlays,              $self);
-    $self->{xmlPage} ->get_widget('txtSpatialName') ->signal_connect_swapped(changed   => \&on_name_changed,           $self);
-    $self->{xmlPage} ->get_widget('comboIndices')  ->signal_connect_swapped(changed   => \&on_active_index_changed, $self);
-    #$self->{xmlPage} ->get_widget('comboLists')     ->signal_connect_swapped(changed   => \&on_active_list_changed,     $self);
-    $self->{xmlPage} ->get_widget('comboColours')   ->signal_connect_swapped(changed   => \&on_colours_changed,        $self);
-    $self->{xmlPage} ->get_widget('comboSpatialStretch')->signal_connect_swapped(changed => \&on_stretch_changed,      $self);
+    $self->{xmlLabel}->get_widget('btnSpatialClose')->signal_connect_swapped(
+        clicked => \&on_close, $self
+    );
+    my %widgets_and_signals = (
+        btnSpatialRun  => { clicked => \&on_run },
+        txtSpatialName => { changed => \&on_name_changed },
+        comboIndices   => { changed   => \&on_active_index_changed },
 
-    $self->{xmlPage} ->get_widget('btnZoomIn')      ->signal_connect_swapped(clicked   => \&on_zoom_in,                $self);
-    $self->{xmlPage} ->get_widget('btnZoomOut')     ->signal_connect_swapped(clicked   => \&on_zoom_out,               $self);
-    $self->{xmlPage} ->get_widget('btnZoomFit')     ->signal_connect_swapped(clicked   => \&on_zoom_fit,               $self);
-    $self->{xmlPage} ->get_widget('colourButton')   ->signal_connect_swapped(color_set => \&on_colour_set,             $self);
-    
+        #  need to refactor common elements with Spatial.pm
+        btnSelectToolSP  => {clicked => \&on_select_tool},
+        btnPanToolSP     => {clicked => \&on_pan_tool},
+        btnZoomInToolSP  => {clicked => \&on_zoom_in_tool},
+        btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
+        btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
+
+        menuitem_spatial_overlays => {activate => \&on_overlays},
+
+        menuitem_spatial_colour_mode_hue  => {toggled  => \&on_colour_mode_changed},
+        menuitem_spatial_colour_mode_sat  => {activate => \&on_colour_mode_changed},
+        menuitem_spatial_colour_mode_grey => {toggled  => \&on_colour_mode_changed},
+
+        menuitem_spatial_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
+        menuitem_spatial_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
+        menuitem_spatial_show_legend         => {toggled => \&on_show_hide_legend},
+    );
+
+    for my $n (0..6) {
+        my $widget_name = "radio_colour_stretch$n";
+        $widgets_and_signals{$widget_name} = {toggled => \&on_menu_stretch_changed};
+    }
+
+  WIDGET:
+    foreach my $widget_name (sort keys %widgets_and_signals) {
+        my $args = $widgets_and_signals{$widget_name};
+        my $widget = $self->{xmlPage}->get_widget($widget_name);
+        if (!$widget) {
+            warn "$widget_name cannot be found\n";
+            next WIDGET;
+        }
+
+        $widget->signal_connect_swapped(
+            %$args,
+            $self,
+        );
+    }
+
+
     #  do some hiding
     my @to_hide = qw /
         comboLists
@@ -156,21 +183,36 @@ sub new {
         labelNbrSet1
         labelNbrSet2
         labelDefQuery1
+        menuitem_spatial_nbr_highlighting
     /;
     foreach my $w_name (@to_hide) {
-        $self->{xmlPage}->get_widget($w_name)->hide;
+        my $w = $self->{xmlPage}->get_widget($w_name);
+        next if !defined $w;
+        $w->hide;
     }
 
     $self->init_output_indices_combo();
-    
+    #$self->update_output_indices_menu();
 
     $self->set_frame_label_widget;
 
-    print "[SpatialMatrix tab] - Loaded tab \n";
+    $self->{drag_modes} = {
+        Select  => 'select',
+        Pan     => 'pan',
+        ZoomIn  => 'select',
+        ZoomOut => 'click',
+        ZoomFit => 'click',
+    };
+
+    $self->choose_tool('Select');
+    
+    $self->setup_dendrogram;
+
+    say '[SpatialMatrix tab] - Loaded tab';
 
 
-#  debug stuff
-$self->{selected_list} = 'SUBELEMENTS';
+    #  debug stuff
+    $self->{selected_list} = 'SUBELEMENTS';
 
     return $self;
 }
@@ -178,7 +220,7 @@ $self->{selected_list} = 'SUBELEMENTS';
 
 sub set_frame_label_widget {
     my $self = shift;
-    
+
     my $label = $self->{xmlPage}->get_widget('label_spatial_parameters');
     $label->hide;
 
@@ -216,7 +258,7 @@ sub init_grid {
 
 #print "Initialising grid\n";
 
-    # Use closure to automatically pass $self (which grid doesn't know)
+# Use closure to automatically pass $self (which grid doesn't know)
     my $hover_closure = sub { $self->on_grid_hover(@_); };
     my $click_closure = sub {
         Biodiverse::GUI::CellPopup::cell_clicked(
@@ -224,32 +266,31 @@ sub init_grid {
             $self->{groups_ref},
         );
     };
-    my $select_closure = sub {
-        $self->on_cell_selected ( @_ );
-    };
+    my $grid_click_closure = sub { $self->on_grid_click(@_); };
+    my $select_closure     = sub { $self->on_grid_select(@_); };
 
     $self->{grid} = Biodiverse::GUI::Grid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        1,
-        0,
-        $hover_closure,
-        $click_closure,
-        $select_closure,
+        frame   => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        show_legend => 1,
+        show_value  => 0,
+        hover_func      => $hover_closure,
+        click_func      => $click_closure, # Middle click
+        select_func     => $select_closure,
+        grid_click_func => $grid_click_closure, # Left click
     );
 
     my $data = $self->{groups_ref};  #  should be the groups?
     my $elt_count = $data->get_element_count;
-    my $completed = $data->get_param ('COMPLETED');
-    #  backwards compatibility - old versions did not have this flag
-    $completed = 1 if not defined $completed;  
-    
+    my $completed = $data->get_param ('COMPLETED') // 1; #  old versions did not have this flag
+
     if (defined $data and $elt_count and $completed) {
         $self->{grid}->set_base_struct ($data);
     }
 
-    
+    $self->{grid}->{page} = $self; # Hacky
+
     return;
 }
 
@@ -264,16 +305,35 @@ sub update_lists_combo {
     return;
 }
 
+# Generates array with analyses
+# (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
+sub make_output_indices_array {
+    my $self = shift;
+
+    my $matrix_ref = $self->{output_ref};
+    my $element_array = $matrix_ref->get_elements_as_array;
+    my $groups_ref = $self->{groups_ref};
+
+# Make array
+    my @array = ();
+    foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
+#print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);    #debug
+        push(@array, $x);
+#print ($model->get($iter, 0), "\n") if defined $model->get($iter, 0);      #debug
+    }
+
+    return [@array];
+}
 
 # Generates ComboBox model with analyses
 # (Jaccard, Endemism, CMP_XXXX) that can be shown on the grid
 sub make_output_indices_model {
     my $self = shift;
-    
+
     my $matrix_ref = $self->{output_ref};
     my $element_array = $matrix_ref->get_elements_as_array;
     my $groups_ref = $self->{groups_ref};
-    
+
     # Make model for combobox
     my $model = Gtk2::ListStore->new('Glib::String');
     foreach my $x (reverse $groups_ref->get_element_list_sorted(list => $element_array)) {
@@ -293,8 +353,8 @@ sub make_lists_model {
     my $output_ref = $self->{output_ref};
 
     my $lists = ('$elements_list_name');
- 
-    # Make model for combobox
+
+# Make model for combobox
     my $model = Gtk2::ListStore->new('Glib::String');
     foreach my $x (sort @$lists) {
         my $iter = $model->append;
@@ -338,17 +398,24 @@ sub on_cell_selected {
     if (scalar @$data == 1) {
         $element = $data->[0];
     }
-    else {  #  get the first sorted element that is in the matrix
+    elsif (@$data) {  #  get the first sorted element that is in the matrix
         my @sorted = $self->{groups_ref}->get_element_list_sorted (list => $data);
-        CHECK_SORTED:
+      CHECK_SORTED:
         while (defined ($element = shift @sorted)) {
             last CHECK_SORTED
               if $self->{output_ref}->element_is_in_matrix (element => $element);
         }
-        
     }
 
-    return if ! defined $element;
+    #  clicked on the background area
+    if (!defined $element) {
+        #  clear any highlights
+        $self->{grid}->mark_if_exists( {}, 'circle' );
+        $self->{grid}->mark_if_exists( {}, 'minus' );  #  clear any nbr_set2 highlights
+        $self->{dendrogram}->clear_highlights;
+        return;
+    }
+
     return if $element eq $self->{selected_element};
     return if ! $self->{output_ref}->element_is_in_matrix (element => $element);
 
@@ -363,7 +430,7 @@ sub on_cell_selected {
     my $iter = $self->{output_indices_model}->get_iter_first();
     my $selected = $iter;
     
-    BY_ITER:
+  BY_ITER:
     while ($iter) {
         my ($analysis) = $self->{output_indices_model}->get($iter, 0);
         if ($self->{selected_element} && ($analysis eq $self->{selected_element}) ) {
@@ -381,6 +448,8 @@ sub on_cell_selected {
     return;
 }
 
+
+
 # Called by grid when user hovers over a cell
 # and when mouse leaves a cell (element undef)
 sub on_grid_hover {
@@ -392,31 +461,54 @@ sub on_grid_hover {
     my $matrix_ref = $self->{output_ref};
     my $output_ref = $self->{groups_ref};
     my $text = '';
-    
+
     my $bd_ref = $output_ref->get_param ('BASEDATA_REF');
 
-    if ($element) {
-        no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
-        # Update the Value label
-        #my $elts = $output_ref->get_element_hash();
+    if (defined $element) {
+        #no warnings 'uninitialized';  #  sometimes the selected_list or analysis is undefined
 
         my $val = $matrix_ref->get_value (
             element1 => $element,
             element2 => $self->{selected_element},
         );
 
+        my $selected_el = $self->{selected_element} // '';
         $text = defined $val
             ? sprintf (
                 '<b>%s</b> v <b>%s</b>, value: %s',  #  should list the index used
-                $self->{selected_element},
+                $selected_el,
                 $element,
                 $self->format_number_for_display (number => $val),
-            ) # round to 4 d.p.
-            : '<b>Selected element: ' . $self->{selected_element} . '</b>'; 
+              ) # round to 4 d.p.
+            : "<b>Selected element: $selected_el</b>";
         $self->{xmlPage}->get_widget('lblOutput')->set_markup($text);
 
+        # dendrogram highlighting from labels.pm
+        $self->{dendrogram}->clear_highlights();
+
+        my $group = $element; # is this the same?
+        return if ! defined $group;
+
+        my $tree = $self->get_current_tree;
+
+        # get labels in the hovered and selected groups
+        my ($labels1, $labels2);
+
+        # hovered group
+        $labels2 = $bd_ref->get_labels_in_group_as_hash(group => $group);
+
+        #  index group
+        if (defined $self->{selected_element}) {
+            #push @nbr_gps, $self->{selected_element};
+            $labels1 = $bd_ref->get_labels_in_group_as_hash(group => $self->{selected_element});
+        }
+
+        $self->highlight_paths_on_dendrogram ([$labels1, $labels2]);
     }
-    
+    else {
+        $self->{dendrogram}->clear_highlights();
+    }
+
     return;
 }
 
@@ -430,10 +522,10 @@ sub show_analysis {
     # the SPATIAL_RESULTS list (the default), and
     # selecting what we want
 
-    #$self->{selected_index} = $name;
+    #$self->{selected_element} = $name;
     #$self->update_lists_combo();
     $self->update_output_calculations_combo();
-    
+
     return;
 }
 
@@ -448,7 +540,7 @@ sub on_active_index_changed {
     $self->{selected_element} = $element;
 
     #  This is redundant when only changing the element,
-    #  but doesn;t take long and makes stretch changes easier.  
+    #  but doesn't take long and makes stretch changes easier.  
     $self->set_plot_min_max_values;  
 
     $self->recolour();
@@ -456,10 +548,19 @@ sub on_active_index_changed {
     return;
 }
 
-    
+sub on_menu_colours_changed {
+    my $args = shift;
+    my ($self, $type) = @$args;
+
+    $self->{grid}->set_legend_mode($type);
+    $self->recolour();
+
+    return;
+}
+
 sub set_plot_min_max_values {
     my $self = shift;
-    
+
     my $matrix_ref = $self->{output_ref};
 
     my $stats = $self->{stats};
@@ -471,7 +572,7 @@ sub set_plot_min_max_values {
 
     $self->{plot_max_value} = $stats->{$self->{PLOT_STAT_MAX} || 'MAX'};
     $self->{plot_min_value} = $stats->{$self->{PLOT_STAT_MIN} || 'MIN'};
-    
+
     $self->set_legend_ltgt_flags ($stats);
 
     return;
@@ -481,11 +582,11 @@ sub recolour {
     my $self = shift;
     my ($max, $min) = ($self->{plot_max_value} || 0, $self->{plot_min_value} || 0);
 
-    # callback function to get colour of each element
+# callback function to get colour of each element
     my $grid = $self->{grid};
     return if not defined $grid;  #  if no grid then no need to colour.
-    
-    #my $elements_hash = $self->{groups_ref}->get_element_hash;
+
+#my $elements_hash = $self->{groups_ref}->get_element_hash;
     my $matrix_ref    = $self->{output_ref};
     my $sel_element   = $self->{selected_element};
 
@@ -515,6 +616,19 @@ sub on_neighbours_changed {
     return;
 }
 
+# Override to add on_cell_selected
+sub on_grid_select {
+    my ($self, $groups, $ignore_change, $rect) = @_;
+    if ($self->{tool} eq 'Select') {
+        shift;
+        $self->on_cell_selected(@_);
+    }
+    elsif ($self->{tool} eq 'ZoomIn') {
+        my $grid = $self->{grid};
+        $self->handle_grid_drag_zoom($grid, $rect);
+    }
+}
+
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::
 our $AUTOLOAD;
@@ -528,6 +642,7 @@ sub AUTOLOAD {
     $method =~ s/.*://;   # strip fully-qualified portion
 
     $method = 'SUPER::' . $method;
+    #print $method, "\n";
     return $self->$method (@_);
 }
 

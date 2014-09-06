@@ -3,7 +3,7 @@ use 5.010;
 use strict;
 use warnings;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use parent qw /
     Biodiverse::Cluster
@@ -24,6 +24,10 @@ our %PARAMS = (  #  most of these are not used
 
 
 #  use the new sub from Cluster
+
+sub get_default_linkage {
+    return 'link_recalculate';
+}
 
 #  need to modify to use something else
 sub get_default_cluster_index {

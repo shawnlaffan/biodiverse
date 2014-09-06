@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Carp;
 use List::Util qw /min/;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use File::Basename;
 use Gtk2;
@@ -16,7 +16,7 @@ use Gtk2::GladeXML;
 use Glib;
 use Text::Wrapper;
 use File::BOM qw / :subs /;
-use Scalar::Util qw /reftype/;
+use Scalar::Util qw /reftype looks_like_number/;
 use Geo::ShapeFile 2.54;  #  min version we neeed is 2.54
 
 no warnings 'redefine';  #  getting redefine warnings, which aren't a problem for us
@@ -215,16 +215,30 @@ sub run {
         # add new params to args
         push @{$args{parameters}}, @{$raster_args{parameters}};
     }
-    #if ($read_format == $text_idx or $read_format == $shapefile_idx) {
-        my $max_col_spinner = {
-            name       => 'max_opt_cols',
-            type       => 'integer',
-            default    => 100,
-            label_text => 'Maximum number of header columns to show options for (includes remap dialogues)',
-            tooltip    => $max_row_spinner_tooltip_text,
-        };
-        push @{$args{parameters}}, $max_col_spinner;
-    #}
+    my $max_col_spinner = {
+        name       => 'max_opt_cols',
+        type       => 'integer',
+        default    => 100,
+        label_text => 'Maximum number of header columns to show options for (includes remap dialogues)',
+        tooltip    => $max_row_spinner_tooltip_text,
+    };
+    push @{$args{parameters}}, $max_col_spinner;
+
+    my $gp_axis_dp = $ENV{BD_IMPORT_DP} || 7;
+    if (!looks_like_number $gp_axis_dp) {
+        $gp_axis_dp = 7;
+    }
+    my $gp_axis_precision_spinner = {
+        name       => 'gp_axis_precision',
+        type       => 'integer',
+        default    => $gp_axis_dp,
+        min        => 1,
+        max        => 15,
+        label_text => 'Number of decimal places used in cell sizes',
+        tooltip    => 'Number of decimal places in cell size specifiers (sizes and offsets)',
+    };
+    push @{$args{parameters}}, $gp_axis_precision_spinner;
+
 
     my %import_params;
     my $table_params;
@@ -415,6 +429,7 @@ sub run {
             $col_options,
             $file_list_as_text,
             $import_params{max_opt_cols},
+            $import_params{gp_axis_precision},
         );
         
         GET_COLUMN_TYPES:
@@ -1323,6 +1338,7 @@ sub make_columns_dialog {
     my $row_options  = shift;
     my $file_list    = shift;
     my $max_opt_rows = shift || 100;
+    my $gp_axis_prec = shift;
 
     #  don't try to generate ludicrous number of rows...
     my $num_columns = min (scalar @$header, $max_opt_rows);
@@ -1411,7 +1427,7 @@ sub make_columns_dialog {
     my $row_widgets = [];
     foreach my $i (0..($num_columns - 1)) {
         my $row_label_text = $header->[$i] // q{};
-        add_row($row_widgets, $table, $i, $row_label_text, $row_options);
+        add_row($row_widgets, $table, $i, $row_label_text, $row_options, $gp_axis_prec);
         #last if $i >= $max_opt_rows;  
     }
 
@@ -1430,12 +1446,10 @@ sub make_columns_dialog {
 }
 
 sub add_row {
-    my ($row_widgets, $table, $col_id, $header, $row_options) = @_;
-    
-    if (!defined $header) {
-        $header = q{};
-    }
-    
+    my ($row_widgets, $table, $col_id, $header, $row_options, $gp_axis_prec) = @_;
+
+    $header //= q{};
+
     if ((ref $row_options) !~ /ARRAY/ or scalar @$row_options == 0) {
         $row_options = [qw /
             Ignore
@@ -1465,18 +1479,23 @@ sub add_row {
     }
     $combo->set_active(0);
 
+    my $dp = $gp_axis_prec || $ENV{BD_IMPORT_DP} || 7;
+    if (!looks_like_number $dp) {
+        $dp = 7;
+    }
+
     # Cell sizes/snaps
     my $adj1  = Gtk2::Adjustment->new (100000, 0, 10000000, 100, 10000, 0);
-    my $spin1 = Gtk2::SpinButton->new ($adj1, 100, 7);
+    my $spin1 = Gtk2::SpinButton->new ($adj1, 100, $dp);
 
     my $adj2  = Gtk2::Adjustment->new (0, -1000000, 1000000, 100, 10000, 0);
-    my $spin2 = Gtk2::SpinButton->new ($adj2, 100, 7);
+    my $spin2 = Gtk2::SpinButton->new ($adj2, 100, $dp);
 
-    $spin1->hide(); # By default, columns are "ignored" so cell sizes don't apply
-    $spin2->hide();
-    $spin1->set_numeric(1);
-    $spin2->set_numeric(1);
-    
+    foreach my $spin ($spin1, $spin2) {
+        $spin->hide(); # By default, columns are "ignored" so cell sizes don't apply
+        $spin->set_numeric(1);
+    }
+
     #  degrees minutes seconds
     my $combo_dms = Gtk2::ComboBox->new_text;
     $combo_dms->set_has_tooltip (1);
@@ -1488,17 +1507,14 @@ sub add_row {
 
     # Attach to table
     my $i = 0;
+    my $c = $col_id;
     foreach my $option ($i_label, $label, $combo, $spin1, $spin2, $combo_dms) {
         $table->attach(
             $option,
-            $i,
-            $i + 1,
-            $col_id + 1,
-            $col_id + 2,
-            'shrink',
-            'shrink',
-            0,
-            0,
+            $i,       $i + 1,
+            $c + 1,   $c + 2,
+            'shrink', 'shrink',
+            0,        0,
         );
         $i++;
     }
@@ -1511,7 +1527,7 @@ sub add_row {
 
     # Store widgets
     $row_widgets->[$col_id] = [$combo, $spin1, $spin2, $combo_dms];
-    
+
     return;
 }
 
@@ -1610,7 +1626,7 @@ sub get_remap_info {
     );
 
     my @headers = map
-        {defined $_ ? $_ : '<null>'}
+        {defined $_ ? $_ : '{null}'}
         @headers_full[0 .. min ($#headers_full, $max_cols_to_show-1)];
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (
@@ -1846,3 +1862,4 @@ sub add_remap_row {
 
 
 1;
+

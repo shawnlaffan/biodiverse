@@ -60,7 +60,7 @@ use Text::Wrapper;
 use Carp;
 use English qw { -no_match_vars };
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::SpatialParams;
@@ -231,11 +231,13 @@ sub generate_comment {
 
 sub generate_integer {
     my $param = shift;
-    
+
     my $default = $param->{default} || 0;
     my $incr    = $param->{increment} || 1;
-    
-    my $adj = Gtk2::Adjustment->new($default, 0, 10000000, $incr, $incr * 10, 0);
+    my $min     = $param->{min} // 0;
+    my $max     = $param->{max} // 10000000;
+
+    my $adj = Gtk2::Adjustment->new($default, $min, $max, $incr, $incr * 10, 0);
     my $spin = Gtk2::SpinButton->new($adj, $incr, 0);
 
     my $extract = sub { return ($param->{name}, $spin->get_value_as_int); };
@@ -296,3 +298,4 @@ sub generate_spatial_conditions {
 
 
 1;
+

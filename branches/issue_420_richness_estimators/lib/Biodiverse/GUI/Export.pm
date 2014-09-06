@@ -12,8 +12,9 @@ use English ( -no_match_vars );
 use Glib;
 use Gtk2;
 use Gtk2::GladeXML;
+use Cwd;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;
@@ -85,6 +86,9 @@ sub Run {
     $dlg->set_transient_for( $gui->get_widget('wndMain') );
     $dlg->set_title ("Export format: $selected_format");
 
+    my $chooser = $dlgxml->get_widget('filechooser');
+    $chooser->set_current_folder_uri(getcwd());
+
     # Build widgets for parameters
     my $table = $dlgxml->get_widget('tableParameters');
     # (passing $dlgxml because generateFile uses existing glade widget on the dialog)
@@ -108,7 +112,6 @@ sub Run {
     
     # Export!
     $params = Biodiverse::GUI::ParametersTable::extract($extractors);
-    my $chooser = $dlgxml->get_widget('filechooser');
     my $filename = $chooser->get_filename();
     if ( (not -e $filename)
         || Biodiverse::GUI::YesNoCancel->run({
@@ -144,3 +147,4 @@ sub Run {
 
 
 1;
+

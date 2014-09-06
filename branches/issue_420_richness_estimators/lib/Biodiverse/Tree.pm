@@ -7,17 +7,17 @@ use 5.010;
 use Carp;
 use strict;
 use warnings;
-use Data::Dumper;
+#use Data::Dumper;
 #use Devel::Symdump;
-use Scalar::Util;
-#use Scalar::Util qw /looks_like_number/;
-use Time::HiRes qw /tv_interval gettimeofday/;
+#use Scalar::Util;
+use Scalar::Util qw /looks_like_number/;
+#use Time::HiRes qw /tv_interval gettimeofday/;
 use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 our $AUTOLOAD;
 
@@ -151,7 +151,7 @@ sub delete_node {
     return if ! defined $node_ref;  #  node does not exist anyway
 
     #  get the names of all descendents 
-    my %node_hash = $node_ref->get_all_descendents (cache => 0);
+    my %node_hash = $node_ref->get_all_descendants (cache => 0);
     $node_hash{$node_ref->get_name} = $node_ref;  #  add node_ref to this list
 
     #  Now we delete it from the treenode structure.
@@ -214,7 +214,7 @@ sub add_to_node_hash {
     my $node_ref = $args{node_ref};
     my $name = $node_ref->get_name;
 
-    if ($self->exists_node (@_)) {
+    if ($self->exists_node (name => $name)) {
         Biodiverse::Tree::NodeAlreadyExists->throw(
             message => "Node $name already exists in this tree\n",
             name    => $name,
@@ -304,7 +304,7 @@ sub get_terminal_element_count {
         $node_ref = $self->get_node_ref(node => $node);
     }
     else {
-        $node_ref = $self->get_root_node;
+        $node_ref = $self->get_tree_ref;
     }
 
     #  follow logic of get_terminal_elements, which returns a hash of
@@ -320,12 +320,13 @@ sub get_node_ref {
     my $self = shift;
     my %args = @_;
 
-    croak "node not specified in call to get_node_ref\n" if ! defined $args{node};
+    my $node = $args{node} //
+      croak "node not specified in call to get_node_ref\n";
 
-    Biodiverse::Tree::NotExistsNode->throw ("[Tree] $args{node} does not exist")
-      if !exists $self->{TREE_BY_NAME}{$args{node}};
+    Biodiverse::Tree::NotExistsNode->throw ("[Tree] $node does not exist")
+      if !exists $self->{TREE_BY_NAME}{$node};
 
-    return $self->{TREE_BY_NAME}{$args{node}};    
+    return $self->{TREE_BY_NAME}{$node};    
 }
 
 #  used when importing from a BDX file, as they don't keep weakened refs weak.
@@ -338,16 +339,34 @@ sub weaken_parent_refs {
     }
 }
 
+#  pre-allocate hash buckets for really large node hashes
+#  and thus gain a minor speed improvement in such cases
+sub set_node_hash_key_count {
+    my $self  = shift;
+    my $count = shift;
+
+    croak "Count $count is not numeric" if !looks_like_number $count;
+
+    my $node_hash = $self->get_node_hash;
+
+    #  has no effect if $count is negative or
+    #  smaller than current key count
+    keys %$node_hash = $count;
+
+    return;
+}
+
 sub get_node_count {
     my $self = shift;
-    return my $tmp = keys %{$self->get_node_hash};
+    my $hash_ref = $self->get_node_hash;
+    return scalar keys %$hash_ref;
 }
 
 sub get_node_hash {
     my $self = shift;
 
     #  create an empty hash if needed
-    $self->{TREE_BY_NAME} = {} if ! exists $self->{TREE_BY_NAME};
+    $self->{TREE_BY_NAME} //= {};
 
     return wantarray ? %{$self->{TREE_BY_NAME}} : $self->{TREE_BY_NAME};
 }
@@ -357,6 +376,31 @@ sub get_node_refs {
     my @refs = values %{$self->get_node_hash};
 
     return wantarray ? @refs : \@refs;
+}
+
+#  get a hash on the node lengths indexed by name
+sub get_node_length_hash {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+
+    my $use_cache = $args{cache};
+    if ($use_cache) {
+        my $cached_hash = $self->get_cached_value ('NODE_LENGTH_HASH');
+        return (wantarray ? %$cached_hash : $cached_hash) if $cached_hash;
+    }
+    
+    my %len_hash;
+    my $node_hash = $self->get_node_hash;
+    foreach my $node_name (keys %$node_hash) {
+        my $node_ref = $node_hash->{$node_name};
+        $len_hash{$node_name} = $node_ref->get_length;
+    }
+    
+    if ($use_cache) {
+        $self->set_cached_value (NODE_LENGTH_HASH => \%len_hash);
+    }
+    
+    return wantarray ? %len_hash : \%len_hash;
 }
 
 #  get a hash of node refs indexed by their total length
@@ -488,8 +532,11 @@ sub get_terminal_node_refs {
     return wantarray ? @node_list : \@node_list;
 }
 
+#  don't cache these results as they can change as clusters are built
 sub get_root_nodes {  #  if there are several root nodes
     my $self = shift;
+    my %args = @_;
+
     my %node_list;
     my $node_hash = $self->get_node_hash;
 
@@ -499,7 +546,7 @@ sub get_root_nodes {  #  if there are several root nodes
             $node_list{$node_ref->get_name} = $node_ref ;
         }
     }
-
+    
     return wantarray ? %node_list : \%node_list;
 }
 
@@ -519,6 +566,9 @@ sub get_root_node {
 
     my @refs = values %root_nodes;
     my $root_node_ref = $refs[0];
+
+    croak $root_node_ref->get_name . " is not a root node!\n"
+      if !$root_node_ref->is_root_node;
 
     return wantarray ? %root_nodes : $root_node_ref;
 }
@@ -566,17 +616,32 @@ sub get_free_internal_name {
     #  iterate over the existing nodes and get the highest internal name that isn't used
     #  also check the whole translate table (keys and values) to ensure no
     #    overlaps with valid user defined names
-    my %node_hash = $self->get_node_hash;
-    my $highest = -1;
-    foreach my $name (keys %node_hash, %$skip) {  #  should be keys %$skip?
-        if ($name =~ /^(\d+)___$/) {
-            my $num = $1;
-            next if not defined $num;
-            $highest = $num if $num > $highest;
-        }
+    my $node_hash = $self->get_node_hash;
+    my %reverse_skip = reverse %$skip;
+    my $highest   = $self->get_cached_value ('HIGHEST_INTERNAL_NODE_NUMBER') // -1;
+    my $name;
+
+    while (1) {
+        $highest++;
+        $name = $highest . '___';
+        last if !exists $node_hash->{$name}
+             && !exists $skip->{$name}
+             && !exists $reverse_skip{$name};
     }
-    $highest ++;
-    return $highest . '___';
+
+    #foreach my $name (keys %$node_hash, %$skip) {
+    #    if ($name =~ /^(\d+)___$/) {
+    #        my $num = $1;
+    #        next if not defined $num;
+    #        $highest = $num if $num > $highest;
+    #    }
+    #}
+
+    #$highest ++;
+    $self->set_cached_value (HIGHEST_INTERNAL_NODE_NUMBER => $highest);
+
+    #return $highest . '___';
+    return $name;
 }
 
 sub get_unique_name {
@@ -589,14 +654,16 @@ sub get_unique_name {
     #  iterate over the existing nodes and see if we can geberate a unique name
     #  also check the whole translate table (keys and values) to ensure no
     #    overlaps with valid user defined names
-    my %node_hash = $self->get_node_hash;
+    my $node_hash = $self->get_node_hash;
 
     my $i = 1;
-    my $unique_name = $prefix . $suffix . $i;
-    my %exists = (%node_hash, %$skip);
-    while (exists $exists{$unique_name}) {
+    my $pfx = $prefix . $suffix;
+    my $unique_name = $pfx . $i;
+    #my $exists = $skip ? {%$node_hash, %$skip} : $node_hash;
+
+    while (exists $node_hash->{$unique_name} || exists $skip->{$unique_name}) {
         $i++;
-        $unique_name = $prefix . $suffix . $i;
+        $unique_name = $pfx . $i;
     }
 
     return $unique_name;
@@ -1216,8 +1283,8 @@ sub get_total_tree_length { #  calculate the total length of the tree
     my $node_length;
 
     #check if length is already stored in tree object
-    $length = $self->get_param('TOTAL_LENGTH');
-    return $length if (defined $length);
+    $length = $self->get_cached_value ('TOTAL_LENGTH');
+    return $length if defined $length;
 
     foreach my $node_ref (values %{$self->get_node_hash}) {
         $node_length = $node_ref->get_length;
@@ -1226,7 +1293,7 @@ sub get_total_tree_length { #  calculate the total length of the tree
 
     #  cache the result
     if (defined $length) {
-        $self->set_param (TOTAL_LENGTH => $length);
+        $self->set_cached_value (TOTAL_LENGTH => $length);
     }
 
     return $length;
@@ -1244,16 +1311,16 @@ sub to_matrix {
 
     my $name = $self->get_param ('NAME');
 
-    print "[TREE] Converting tree $name to matrix\n";
+    say "[TREE] Converting tree $name to matrix";
 
     my $matrix = $class->new (NAME => ($args{name} || ($name . "_AS_MX")));
 
     my %nodes = $self->get_node_hash;  #  make sure we work on a copy
 
     if (! $use_internal) {  #  strip out the internal nodes
-        while (my ($name1, $node1) = each %nodes) {
-            if ($node1->is_internal_node) {
-                delete $nodes{$name1};
+        foreach my $node_name (keys %nodes) {
+            if ($nodes{$node_name}->is_internal_node) {
+                delete $nodes{$node_name};
             }
         }
     }
@@ -1608,7 +1675,7 @@ sub compare {
 
     my $to_do = max ($self->get_node_count, $comparison->get_node_count);
     my $i = 0;
-    my $last_update = [gettimeofday];
+    #my $last_update = [gettimeofday];
 
   BASE_NODE:
     foreach my $base_node ($self->get_node_refs) {
@@ -1819,7 +1886,7 @@ sub trim {
             next NAME if $node->is_internal_node;
             next NAME if $node->is_root_node;  #  never delete the root node
 
-            my %children    = $node->get_all_descendents;  #  make sure we use a copy
+            my %children    = $node->get_all_descendants;  #  make sure we use a copy
             my $child_count = scalar keys %children;
             delete @children{keys %$keep};
             #  If none were deleted then we can trim this node.
@@ -1891,7 +1958,7 @@ sub trim {
                 $i / $to_do,
             );
 
-            my $children = $node->get_all_descendents;
+            my $children = $node->get_all_descendants;
           DESCENDENT:
             foreach my $child (keys %$children) {
                 my $child_node = $children->{$child};
@@ -1912,7 +1979,7 @@ sub trim {
     #  now some cleanup
     if ($deleted_internal_count || $deleted_count) {
         $self->delete_param ('TOTAL_LENGTH');  #  need to clear this up
-        
+        $self->delete_cached_values;
         #  This avoids circular refs in the ones that were deleted
         foreach my $node (values %tree_node_hash) {
             $node->delete_cached_values;
@@ -2048,7 +2115,7 @@ sub collapse_tree {
     $self->delete_cached_values;
 
     #  reset all the total length values
-    $self->reset_total_length_below;
+    $self->reset_total_length;
     $self->get_total_tree_length;
 
     my @now_empty = $self->flatten_tree;
@@ -2065,6 +2132,17 @@ sub collapse_tree {
     }
 
     return $self;
+}
+
+sub reset_total_length {
+    my $self = shift;
+
+    #  older versions had this as a param
+    $self->delete_param('TOTAL_LENGTH');
+    $self->delete_cached_value('TOTAL_LENGTH');
+    $self->reset_total_length_below;
+
+    return;
 }
 
 #  collapse all nodes below a cutoff so they form a set of polytomies
@@ -2085,7 +2163,7 @@ sub collapse_tree_below {
             };
         }
         #  still need to ensure they are in the node hash
-        $node->add_children (children => [values %terminals]);  
+        $node->add_children (children => [sort values %terminals]);  
 
         #print "";
     }
@@ -2138,6 +2216,9 @@ sub shuffle_terminal_names {
 
     #  and now we override the old with the new
     @{$node_hash}{keys %tmp} = values %tmp;
+
+    $self->delete_cached_values;
+    $self->delete_cached_values_below;
 
     return if !defined wantarray;
     return wantarray ? %reordered : \%reordered;

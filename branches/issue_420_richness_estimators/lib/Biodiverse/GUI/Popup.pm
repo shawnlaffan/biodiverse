@@ -8,7 +8,7 @@ use Carp;
 
 use Gtk2;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use English qw { -no_match_vars };
 
@@ -465,3 +465,4 @@ sub clipboard_clear_func {
 
 
 1;
+

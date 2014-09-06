@@ -10,7 +10,7 @@ use 5.010;
 #no warnings 'redefine';
 no warnings 'once';
 use English qw { -no_match_vars };
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 local $OUTPUT_AUTOFLUSH = 1;
 
@@ -37,6 +37,8 @@ use Gtk2 qw/-init/;
 use Gtk2::GladeXML;
 use Biodiverse::GUI::Callbacks;
 
+#use Data::Dumper;
+use Scalar::Util qw/blessed/;
 
 # Load filename specified in the arguments
 my $numargs = scalar @ARGV;
@@ -94,13 +96,6 @@ if ( defined $filename ) {
     $gui->open($filename);
 }
 
-#my $ic = Gtk2::IconTheme->new;
-#$ic->prepend_search_path(File::Spec->catfile( $Bin, '..', 'gtk/share/icons' ));
-#print join "\n", $ic->get_search_path;
-
-# DEBUG
-#$Carp::Verbose = 1;
-#say "RUNNING UNDER GUI:  $Biodiverse::Config::running_under_gui";
 
 # Go!
 Gtk2->main;
@@ -176,18 +171,18 @@ sub get_iconfile {
         };
         croak $EVAL_ERROR if $EVAL_ERROR;
 
-        print "Using perlapp icon file\n";
+        say "Using perlapp icon file";
 
         return $icon;
     }
     elsif ($ENV{PAR_0}) {  #  we are running under PAR
         $icon = Path::Class::file ($ENV{PAR_TEMP}, 'inc', 'Biodiverse_icon.ico')->stringify;
         if (-e $icon) {
-            print "Using PAR icon file $icon\n";
+            say "Using PAR icon file $icon";
             return $icon;
         }
         else {
-            print "Cannot locate $icon\n";
+            say "Cannot locate $icon";
         }
     }
 
@@ -200,6 +195,19 @@ sub get_iconfile {
     }
 
     return $icon;
+}
+
+
+#  keep the console open if we have a failure
+END {
+    if ($?) {
+        say "\n\n=====  Program terminated abnormally.  ====\n\n";
+        say 'Press any key to continue.';
+        <STDIN>;
+    }
+    #else {
+        #$gui->destroy;  #  need to close the gui if we stay open always
+    #}
 }
 
 

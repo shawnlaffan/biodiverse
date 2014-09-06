@@ -1,5 +1,6 @@
 package Biodiverse::GUI::Dendrogram;
 
+use 5.010;
 use strict;
 use warnings;
 no warnings 'recursion';
@@ -15,7 +16,7 @@ use Gtk2;
 use Gnome2::Canvas;
 use POSIX; # for ceil()
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Scalar::Util qw /blessed/;
 
@@ -47,20 +48,22 @@ use constant DEFAULT_LINE_COLOUR     => COLOUR_BLACK;
 use constant DEFAULT_LINE_COLOUR_RGB => "#000000";
 
 use constant HOVER_CURSOR => 'hand2';
+
 ##########################################################
 # Construction
 ##########################################################
 
 sub new {
-    #  FIXME FIXME this sub desperately needs to use a hash of key-value pairs
-    my $class           = shift;
-    my $main_frame       = shift;    # GTK frame to add dendrogram
-    my $graph_frame      = shift;    # GTK frame for the graph (below!)
-    my $hscroll         = shift;
-    my $vscroll         = shift;
-    my $map             = shift;    # Grid.pm object of the dataset to link in
-    my $map_list_combo  = shift;    # Combo for selecting how to colour the grid (based on spatial result or cluster)
-    my $map_index_combo = shift;    # Combo for selecting how to colour the grid (which spatial result)
+    my $class = shift;
+    my %args  = @_;
+
+    my $main_frame      = $args{main_frame};  # GTK frame to add dendrogram
+    my $graph_frame     = $args{graph_frame}; # GTK frame for the graph (below!)
+    my $hscroll         = $args{hscroll};
+    my $vscroll         = $args{vscroll};
+    my $map             = $args{grid};        # Grid.pm object of the dataset to link in
+    my $map_list_combo  = $args{list_combo};  # Combo for selecting how to colour the grid (based on spatial result or cluster)
+    my $map_index_combo = $args{index_combo}; # Combo for selecting how to colour the grid (which spatial result)
 
     my $grey = 0.9 * 255 * 257;
 
@@ -81,25 +84,26 @@ sub new {
         graph_height_px     => 0,
         use_slider_to_select_nodes => 1,
         colour_not_in_tree  => Gtk2::Gdk::Color->new($grey, $grey, $grey),
+        use_highlight_func  => 1, #  should we highlight?
     };
 
-    $self->{hover_func}         = shift || undef; #Callback function for when users move mouse over a cell
-    $self->{highlight_func}     = shift || undef; #Callback function to highlight elements
-    $self->{use_highlight_func} = 1;  #  should we highlight?
-    $self->{ctrl_click_func}    = shift || undef; #Callback function for when users control-click on a cell
-    $self->{click_func}         = shift || undef; #Callback function for when users click on a cell
-    $self->{parent_tab}         = shift;
+    #  callback functions 
+    $self->{hover_func}      = $args{hover_func};      # when users move mouse over a cell
+    $self->{highlight_func}  = $args{highlight_func};  # highlight elements    
+    $self->{ctrl_click_func} = $args{ctrl_click_func}; # when users control-click on a cell
+    $self->{click_func}      = $args{click_func};      # when users click on a cell
+    $self->{select_func}     = $args{select_func};     # when users drag a selection rectangle on the background
+    $self->{parent_tab}      = $args{parent_tab};
 
-    my $basedata_ref = shift;
+    if (my $basedata_ref = $args{basedata_ref}) {
+        $self->{basedata_ref} = $basedata_ref;
+        weaken $self->{basedata_ref};
+    }
 
     if (defined $self->{parent_tab}) {
         weaken $self->{parent_tab};
     }
 
-    if (defined $basedata_ref) {
-        $self->{basedata_ref} = $basedata_ref;
-        weaken $self->{basedata_ref};
-    }
 
     # starting off with the "clustering" view, not a spatial analysis
     $self->{sp_list}  = undef;
@@ -168,6 +172,10 @@ sub new {
             $self
         );
     }
+
+    $self->{drag_mode} = 'click';
+
+    # Labels::initMatrixGrid will set {page} (hacky}
 
     return $self;
 }
@@ -360,8 +368,8 @@ sub on_slider_event {
         $self->{clusters_group}->hide;
 
         # Change cursor back to default
-        $self->{canvas}->window->set_cursor(undef);
-        $self->{graph}->window->set_cursor(undef);
+        $self->{canvas}->window->set_cursor($self->{cursor});
+        $self->{graph}->window->set_cursor($self->{cursor});
 
     }
     elsif ( $event->type eq 'button-press') {
@@ -656,27 +664,26 @@ sub do_colour_nodes_below {
 
         #  keep the user informed of what happened
         if ($original_num_clusters != $num_clusters) {
-            print "[Dendrogram] Could not colour requested number of clusters ($original_num_clusters)\n";
+            say "[Dendrogram] Could not colour requested number of clusters ($original_num_clusters)";
 
             if ($original_num_clusters < $num_clusters) {
                 if ($excess_flag) {
-                    print "[Dendrogram] More clusters were requested ("
-                          . "$original_num_clusters) than available colours ("
-                          . $self->get_palette_max_colours
-                          . ")\n";
+                    printf "[Dendrogram] More clusters were requested (%d)"
+                        . "than available colours (%d))\n",
+                        $original_num_clusters,
+                        $self->get_palette_max_colours;
                 }
                 else {
-                    print "[Dendrogram] Requested number not feasible.  "
-                          . "Returned $num_clusters.\n";
+                    say "[Dendrogram] Requested number not feasible.  Returned $num_clusters.";
                 }
             }
             else {
-                print "[Dendrogram] Fewer clusters were identified ($num_clusters)\n";
+                say "[Dendrogram] Fewer clusters were identified ($num_clusters)";
             }
         }
     }
     else {
-        print "[Dendrogram] Clearing colouring\n"
+        say "[Dendrogram] Clearing colouring";
     }
 
     # Set up colouring
@@ -763,10 +770,10 @@ sub recolour_cluster_elements {
     my $map = $self->{map};
     return if not defined $map;
 
-    my $list_name = $self->{analysis_list_name};
-    my $list_index = $self->{analysis_list_index};
-    my $analysis_min = $self->{analysis_min};
-    my $analysis_max = $self->{analysis_max};
+    my $list_name         = $self->{analysis_list_name};
+    my $list_index        = $self->{analysis_list_index};
+    my $analysis_min      = $self->{analysis_min};
+    my $analysis_max      = $self->{analysis_max};
     my $terminal_elements = $self->{terminal_elements};
 
     # sets colours according to palette
@@ -776,18 +783,12 @@ sub recolour_cluster_elements {
 
         if ($cluster_node) {
             my $colour_ref = $self->{node_palette_colours}{$cluster_node->get_name};
-            return $colour_ref if $colour_ref;
-            return COLOUR_PALETTE_OVERFLOW;
+            return $colour_ref ? $colour_ref : COLOUR_PALETTE_OVERFLOW;
         }
         else {
-            if (exists $terminal_elements->{$elt}) {
-                # in tree
-                return COLOUR_OUTSIDE_SELECTION;
-            }
-            else {
-                # not even in the tree
-                return $self->get_colour_not_in_tree;
-            }
+            return exists $terminal_elements->{$elt}
+                ? COLOUR_OUTSIDE_SELECTION
+                : $self->get_colour_not_in_tree;
         }
 
         die "how did I get here?\n";
@@ -800,28 +801,20 @@ sub recolour_cluster_elements {
         my $cluster_node = $self->{element_to_cluster}{$elt};
 
         if ($cluster_node) {
+            no autovivification;
 
-            my $list_ref = $cluster_node->get_list_ref (list => $list_name);
-            my $val = defined $list_ref
-                ? $list_ref->{$list_index}
-                : undef;  #  allows for missing lists
+            my $list_ref = $cluster_node->get_list_ref (list => $list_name)
+              // return COLOUR_LIST_UNDEF;
 
-            if (defined $val) {
-                return $map->get_colour ($val, $analysis_min, $analysis_max);
-            }
-            else {
-                return COLOUR_LIST_UNDEF;
-            }
+            my $val = $list_ref->{$list_index}
+              // return COLOUR_LIST_UNDEF;
+
+            return $map->get_colour ($val, $analysis_min, $analysis_max);
         }
         else {
-            if (exists $terminal_elements->{$elt}) {
-                # in tree
-                return COLOUR_OUTSIDE_SELECTION;
-            }
-            else {
-                # not even in the tree
-                return $self->get_colour_not_in_tree;
-            }
+            return exists $terminal_elements->{$elt}
+              ? COLOUR_OUTSIDE_SELECTION
+              : $self->get_colour_not_in_tree;
         }
 
         die "how did I get here?\n";
@@ -867,44 +860,43 @@ sub recolour_cluster_lines {
     tie %coloured_nodes, 'Tie::RefHash';
 
     my $map = $self->{map};
-    my $list_name = $self->{analysis_list_name};
-    my $list_index = $self->{analysis_list_index};
+    my $list_name    = $self->{analysis_list_name};
+    my $list_index   = $self->{analysis_list_index};
     my $analysis_min = $self->{analysis_min};
     my $analysis_max = $self->{analysis_max};
 
     foreach my $node_ref (@$cluster_nodes) {
 
+        my $node_name = $node_ref->get_name;
+
         if ($self->{cluster_colour_mode} eq 'palette') {
-            $colour_ref = $self->{node_palette_colours}{$node_ref->get_name} || COLOUR_RED;
+            $colour_ref = $self->{node_palette_colours}{$node_name} || COLOUR_RED;
         }
         elsif ($self->{cluster_colour_mode} eq 'list-values') {
 
             $list_ref = $node_ref->get_list_ref (list => $list_name);
             $val = defined $list_ref
-                ? $list_ref->{$list_index}
-                : undef;  #  allows for missing lists
+              ? $list_ref->{$list_index}
+              : undef;  #  allows for missing lists
 
-            if (defined $val) {
-                $colour_ref = $map->get_colour ($val, $analysis_min, $analysis_max);
-            }
-            else {
-                $colour_ref = undef;
-            }
+            $colour_ref = defined $val
+              ? $map->get_colour ($val, $analysis_min, $analysis_max)
+              : undef;
         }
         else {
             die "unknown colouring mode";
         }
 
         #$node_ref->set_cached_value(__gui_colour => $colour_ref);
-        $self->{node_colours_cache}{$node_ref->get_name} = $colour_ref;
+        $self->{node_colours_cache}{$node_name} = $colour_ref;
         $colour_ref = $colour_ref || DEFAULT_LINE_COLOUR; # if colour undef->we're clearing back to default
 
-        $line = $self->{node_lines}->{$node_ref->get_name};
+        $line = $self->{node_lines}->{$node_name};
         $line->set(fill_color_gdk => $colour_ref);
 
         # And also colour all nodes below
-        foreach my $child_ref (@{$node_ref->get_children}) {
-            $self->colour_lines($child_ref, $colour_ref, \%coloured_nodes);
+        foreach my $child_ref (values %{$node_ref->get_all_descendants}) {
+            $self->colour_line($child_ref, $colour_ref, \%coloured_nodes);
         }
 
         $coloured_nodes{$node_ref} = (); # mark as coloured
@@ -915,19 +907,36 @@ sub recolour_cluster_lines {
     if ($self->{recolour_nodes}) {
         #print "[Dendrogram] Recolouring ", scalar keys %{ $self->{recolour_nodes} }, " nodes\n";
         # uncolour previously coloured nodes that aren't being coloured this time
+      NODE:
         foreach my $node (keys %{ $self->{recolour_nodes} }) {
 
-            if (not exists $coloured_nodes{$node}) {
-                my $name = $node->get_name;
-                $self->{node_lines}->{$name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
-                #$node->set_cached_value(__gui_colour => DEFAULT_LINE_COLOUR);
-                $self->{node_colours_cache}{$name} = DEFAULT_LINE_COLOUR;
-            }
+            next NODE if exists $coloured_nodes{$node};
+
+            my $name = $node->get_name;
+            $self->{node_lines}->{$name}->set(fill_color_gdk => DEFAULT_LINE_COLOUR);
+            #$node->set_cached_value(__gui_colour => DEFAULT_LINE_COLOUR);
+            $self->{node_colours_cache}{$name} = DEFAULT_LINE_COLOUR;
         }
         #print "[Dendrogram] Recoloured nodes\n";
     }
 
     $self->{recolour_nodes} = \%coloured_nodes;
+
+    return;
+}
+
+#  non-recursive version of colour_lines.
+#  Assumes it is called for each of the relevant nodes
+sub colour_line {
+    my ($self, $node_ref, $colour_ref, $coloured_nodes) = @_;
+
+    # We set the cached value to make it easier to recolour if the tree has to be re-rendered
+    #$node_ref->set_cached_value(__gui_colour => $colour_ref);
+    my $name = $node_ref->get_name;
+    $self->{node_colours_cache}{$name} = $colour_ref;
+
+    $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
+    $coloured_nodes->{ $node_ref } = (); # mark as coloured
 
     return;
 }
@@ -943,12 +952,13 @@ sub colour_lines {
     $self->{node_lines}->{$name}->set(fill_color_gdk => $colour_ref);
     $coloured_nodes->{ $node_ref } = (); # mark as coloured
 
-    foreach my $child_ref (@{$node_ref->get_children}) {
+    foreach my $child_ref ($node_ref->get_children) {
         $self->colour_lines($child_ref, $colour_ref, $coloured_nodes);
     }
 
     return;
 }
+
 
 sub restore_line_colours {
     my $self = shift;
@@ -981,10 +991,23 @@ sub set_processed_nodes {
 # This is the one that selects how to colour the map
 ##########################################################
 
+# Provides list of results for tab to use as it sees fit
+sub get_map_lists {
+    my $self = shift;
+    my $lists = scalar $self->{tree_node}->get_hash_lists();
+    return [sort @$lists];
+}
+
 # Combo-box for the list of results (eg: REDUNDANCY or ENDC_SINGLE) to use for the map
 sub setup_map_list_model {
     my $self  = shift;
     my $lists = shift;
+
+    my $combo = $self->{map_list_combo};
+
+    #  some uses don't have the map list
+    #  - need to clean up the logic and abstract such components to a different class
+    return if !defined $combo;  
 
     my $model = Gtk2::ListStore->new('Glib::String');
     my $iter;
@@ -1000,10 +1023,25 @@ sub setup_map_list_model {
     $iter = $model->insert(0);
     $model->set($iter, 0, '<i>Cluster</i>');
 
-    $self->{map_list_combo}->set_model($model);
-    $self->{map_list_combo}->set_active_iter($iter);
+    if ($combo) {
+        $combo->set_model($model);
+        $combo->set_active_iter($iter);
+    }
 
     return;
+}
+
+# Provides list of map indices for tab to use as it sees fit.
+# Context sensitive on currently selected map list.
+sub get_map_indices {
+    my $self = shift;
+    if (not defined $self->{analysis_list_name}) {
+        return [];
+    }
+
+    my @indices = keys $self->{tree_node}->get_list_ref(
+            list => $self->{analysis_list_name});
+    return [sort @indices];
 }
 
 # Combo-box for analysis within the list of results (eg: REDUNDANCY or ENDC_SINGLE)
@@ -1012,7 +1050,12 @@ sub setup_map_index_model {
     my $indices = shift;
 
     my $model = Gtk2::ListStore->new('Glib::String');
-    $self->{map_index_combo}->set_model($model);
+    my $combo = $self->{map_index_combo};
+    
+    return if !defined $combo;
+    
+    $combo->set_model($model);
+    
     my $iter;
 
     # Add all the analyses
@@ -1081,6 +1124,38 @@ sub on_map_list_combo_changed {
     return;
 }
 
+# Called by the tab to indicate the user has changed the desired list to
+# display on the map.
+# Can either be the Cluster "list" (coloured by node, indicated by undef) or a
+# spatial analysis list
+# Update our display accordingly.
+sub select_map_list {
+    my ($self, $list) = @_;
+
+    if (not defined $list) {
+        # Selected cluster-palette-colouring mode
+        #print "[Dendrogram] Setting grid to use palette-based cluster colours\n";
+
+        $self->{analysis_list_name}  = undef;
+        $self->{analysis_list_index} = undef;
+        $self->{analysis_min}        = undef;
+        $self->{analysis_max}        = undef;
+
+        $self->{cluster_colour_mode} = 'palette';
+        $self->recolour_cluster_elements();
+
+        $self->recolour_cluster_lines($self->{processed_nodes});
+
+        # blanking out the other combo left to tab
+    }
+    else {
+        # Selected analysis-colouring mode
+        $self->{analysis_list_name} = $list;
+
+        # updating the map index menu left to tab
+    }
+}
+
 sub on_map_index_combo_changed {
     my $self = shift;
     my $combo = shift || $self->{map_index_combo};
@@ -1112,6 +1187,32 @@ sub on_map_index_combo_changed {
     }
 
     return;
+}
+
+
+sub select_map_index {
+    my ($self, $index) = @_;
+
+    if (defined $index) {
+        $self->{analysis_list_index} = $index;
+
+        $self->{parent_tab}->recolour;
+
+        my @minmax = $self->get_plot_min_max_values;
+        $self->{analysis_min} = $minmax[0];
+        $self->{analysis_max} = $minmax[1];
+
+        #print "[Dendrogram] Setting grid to use (spatial) analysis $analysis\n";
+        $self->{cluster_colour_mode} = 'list-values';
+        $self->recolour_cluster_elements();
+
+        $self->recolour_cluster_lines($self->{processed_nodes});
+    }
+    else {
+        $self->{analysis_list_index} = undef;
+        $self->{analysis_min}        = undef;
+        $self->{analysis_max}        = undef;
+    }
 }
 
 sub set_plot_min_max_values {
@@ -1146,11 +1247,19 @@ sub get_plot_min_max_values {
 # Remove any existing highlights
 sub clear_highlights {
     my $self = shift;
-    if ($self->{highlighted_lines}) {
-        foreach my $line (@{$self->{highlighted_lines}}) {
+    
+    # set all nodes to recorded/default colour
+    return if !$self->{highlighted_lines};
 
-            $line->set(width_pixels => NORMAL_WIDTH);
-        }
+    my @nodes_remaining
+      = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
+
+    foreach my $node (@nodes_remaining) {
+        my $node_name = $node->get_name;
+        # assume node has associated line
+        my $line = $self->{node_lines}->{$node_name};
+        my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+        $line->set(fill_color_gdk => $colour_ref) if defined $line;
     }
     $self->{highlighted_lines} = undef;
 
@@ -1158,10 +1267,26 @@ sub clear_highlights {
 }
 
 sub highlight_node {
-    my ($self, $node_ref) = @_;
+    my ($self, $node_ref, $node_colour) = @_;
 
-    my $line = $self->{node_lines}->{$node_ref->get_name};
-    $line->set(width_pixels => HIGHLIGHT_WIDTH);
+    # if first highlight, set all other nodes to grey
+    if (! $self->{highlighted_lines}) {
+        my @nodes_remaining
+          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
+        foreach my $node (@nodes_remaining) {
+            # assume node has associated line
+            my $line = $self->{node_lines}->{$node->get_name};  
+            $line->set(fill_color_gdk => COLOUR_GRAY);
+        }
+    }
+
+    # highlight this node/line by setting black
+    my $node_name = $node_ref->get_name;
+    my $line = $self->{node_lines}->{$node_name};
+    my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
+    $line->set(fill_color_gdk => $colour_ref);
+    #$line->set(width_pixels => HIGHLIGHT_WIDTH);
+    $line->raise_to_top;
     push @{$self->{highlighted_lines}}, $line;
 
     return;
@@ -1169,12 +1294,26 @@ sub highlight_node {
 
 # Highlights all nodes above and including the given node
 sub highlight_path {
-    my ($self, $node_ref) = @_;
-    my @highlighted_lines;
+    my ($self, $node_ref, $node_colour) = @_;
 
+    # if first highlight, set all other nodes to grey
+    if (! $self->{highlighted_lines}) {
+        my @nodes_remaining
+          = ($self->{tree_node}, values %{$self->{tree_node}->get_all_descendants});
+        foreach my $node (@nodes_remaining) {
+            # assume node has associated line
+            my $line = $self->{node_lines}->{$node->get_name};  
+            $line->set(fill_color_gdk => COLOUR_GRAY);
+        }
+    }
+
+    # set path to highlighted colour
     while ($node_ref) {
         my $line = $self->{node_lines}->{$node_ref->get_name};
-        $line->set(width_pixels => HIGHLIGHT_WIDTH);
+        my $colour_ref = $node_colour || $self->{node_colours_cache}{$node_ref->get_name} || DEFAULT_LINE_COLOUR;
+        $line->set(fill_color_gdk => $colour_ref);
+        #$line->set(width_pixels => HIGHLIGHT_WIDTH);
+        $line->raise_to_top;
         push @{$self->{highlighted_lines}}, $line;
 
         $node_ref = $node_ref->get_parent;
@@ -1188,8 +1327,11 @@ sub mark_elements {
     my $self = shift;
     my $node = shift;
 
+    return if !$self->{map};
+
     my $terminal_elements = (defined $node) ? $node->get_terminal_elements : {};
     $self->{map}->mark_if_exists( $terminal_elements, 'circle' );
+    $self->{map}->mark_if_exists( {}, 'minus');
 
     return;
 }
@@ -1276,10 +1418,15 @@ sub make_total_length_array {
 
     make_total_length_array_inner($self->{tree_node}, 0, \@array, $lf);
 
+    my %cache;
+
     # Sort it
     @array = sort {
-        $a->get_value('total_length_gui') <=> $b->get_value('total_length_gui')
-        } @array;
+        ($cache{$a} // do {$cache{$a} = $a->get_value('total_length_gui')})
+          <=>
+        ($cache{$b} // do {$cache{$b} = $b->get_value('total_length_gui')})
+        }
+        @array;
 
     $self->{total_lengths_array} = \@array;
 
@@ -1419,6 +1566,11 @@ sub set_cluster {
         $self->setup_map_list_model( scalar $self->{tree_node}->get_hash_lists() );
     }
 
+    # TODO: Abstract this properly
+    if (exists $self->{map_lists_ready_cb}) {
+        $self->{map_lists_ready_cb}->($self->get_map_lists());
+    }
+
     return;
 }
 
@@ -1433,6 +1585,8 @@ sub clear {
     delete $self->{unscaled_width};
     delete $self->{unscaled_height};
     delete $self->{tree_node};
+    delete $self->{last_render_props_tree};
+    delete $self->{last_render_props_graph};
 
     if ($self->{lines_group}) {
         $self->{lines_group}->destroy();
@@ -1455,7 +1609,19 @@ sub render_tree {
     my $self = shift;
     my $tree = $self->{tree_node};
 
-    return if ($self->{render_width} == 0);
+    return if !$self->{render_width};
+
+    my $render_props_tree = join ',', (
+        $self->{unscaled_width},
+        $self->{unscaled_height},
+        $self->{render_width},
+        $self->{render_height},
+        $self->{length_func}
+    );
+
+    #  don't redraw needlessly
+    return if $render_props_tree eq ($self->{last_render_props_tree} // '');
+    $self->{last_render_props_tree} = $render_props_tree;
 
     # Remove any highlights. The lines highlightened are destroyed next,
     # and may cause a crash when they get unhighlighted
@@ -1485,13 +1651,9 @@ sub render_tree {
     # Recursive draw
     my $length_func = $self->{length_func};
     my $root_offset = $self->{render_width}
-                      - ($self->{border_len}
-                         + $self->{neg_len}
-                         )
-                      * $self->{length_scale}
-                      ;
-    #print "[Dendrogram] root offset = $root_offset\n";
-    #print "$self->{render_width} - ($self->{border_len} + $self->{neg_len}) * $self->{length_scale}\n";
+                      - ($self->{border_len} + $self->{neg_len})
+                      * $self->{length_scale};
+
     $self->draw_node($tree, $root_offset, $length_func, $self->{length_scale}, $self->{height_scale});
 
     # Draw a circle to mark out the root node
@@ -1547,12 +1709,25 @@ sub render_graph {
     my $self = shift;
     my $lengths = $self->{total_lengths_array};
 
-    if ($self->{render_width} == 0) {
-        return;
-    }
+    return if !$self->{render_width};
 
     my $graph_height_units = $self->{graph_height_px};
     $self->{graph_height_units} = $graph_height_units;
+
+    my $render_props_graph = join ',', (
+        #$self->{graph_height_px},
+        $self->{render_width},
+        $self->{unscaled_width},
+        $self->{unscaled_height},
+        $self->{render_width},
+        $self->{render_height},
+        $self->{length_func}
+    );
+
+    return if $render_props_graph eq ($self->{last_render_props_graph} // '');
+    $self->{last_render_props_graph} = $render_props_graph;
+
+    #say $render_props_graph;
 
     # Delete old lines
     if ($self->{graph_group}) {
@@ -1649,10 +1824,12 @@ sub resize_background_rect {
 sub draw_node {
     my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale) = @_;
 
+    my $node_name = $node->get_name;
+
     my $length = $length_func->($node) * $length_scale;
     my $new_current_xpos = $current_xpos - $length;
     my $y = $node->get_value('_y') * $height_scale;
-    my $colour_ref = $self->{node_colours_cache}{$node->get_name} || DEFAULT_LINE_COLOUR;
+    my $colour_ref = $self->{node_colours_cache}{$node_name} || DEFAULT_LINE_COLOUR;
 
     # Draw our horizontal line
     my $line = $self->draw_line($current_xpos, $y, $new_current_xpos, $y, $colour_ref);
@@ -1660,7 +1837,7 @@ sub draw_node {
     $line->{node} =  $node; # Remember the node (for hovering, etc...)
 
     # Remember line (for colouring, etc...)
-    $self->{node_lines}->{$node->get_name} = $line;
+    $self->{node_lines}->{$node_name} = $line;
 
     # Draw children
     my ($ymin, $ymax);
@@ -1668,8 +1845,8 @@ sub draw_node {
     foreach my $child ($node->get_children) {
         my $child_y = $self->draw_node($child, $new_current_xpos, $length_func, $length_scale, $height_scale);
 
-        $ymin = $child_y if ( (not defined $ymin) || $child_y <= $ymin);
-        $ymax = $child_y if ( (not defined $ymax) || $child_y >= $ymax);
+        $ymin = $child_y if ( (not defined $ymin) || $child_y < $ymin);
+        $ymax = $child_y if ( (not defined $ymax) || $child_y > $ymax);
     }
 
     # Vertical line
@@ -1683,21 +1860,17 @@ sub draw_line {
     my ($self, $x1, $y1, $x2, $y2, $colour_ref) = @_;
     #print "Line ($x1,$y1) - ($x2,$y2)\n";
 
-    my $line_style;
-    if ($x1 >= $x2) {
-        $line_style = 'solid';
-    }
-    else {
-        $line_style = 'on-off-dash';
-    }
+    my $line_style = $x1 >= $x2
+      ? 'solid'
+      : 'on-off-dash';
 
     return Gnome2::Canvas::Item->new (
         $self->{lines_group},
         'Gnome2::Canvas::Line',
         points => [$x1, $y1, $x2, $y2],
         fill_color_gdk => $colour_ref,
-        line_style => $line_style,
-        width_pixels => NORMAL_WIDTH
+        line_style     => $line_style,
+        width_pixels   => NORMAL_WIDTH,
     );
 }
 
@@ -1708,6 +1881,10 @@ sub draw_line {
 # cleared when user leaves node
 sub on_event {
     my ($self, $event, $line) = @_;
+
+my $type = $event->type;
+    # If not in click mode, pass through button events to background
+    return 0 if ($event->type =~ m/^button-/ && $self->{drag_mode} ne 'click');
 
     my $node = $line->{node};
     my $f;
@@ -1736,10 +1913,11 @@ sub on_event {
             #$self->{hover_line} = $line;
         #}
 
-        # Change the cursor
-        my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
-        $self->{canvas}->window->set_cursor($cursor);
-
+        # Change the cursor if we are in select mode
+        if (!$self->{cursor}) {
+            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            $self->{canvas}->window->set_cursor($cursor);
+        }
     }
     elsif ($event->type eq 'leave-notify') {
         #print "leave - " . $node->get_name() . "\n";
@@ -1759,7 +1937,7 @@ sub on_event {
         #$line->set(fill_color => 'black') if (not $self->{click_line});
 
         # Change cursor back to default
-        $self->{canvas}->window->set_cursor(undef);
+        $self->{canvas}->window->set_cursor($self->{cursor});
 
     }
     elsif ($event->type eq 'button-press') {
@@ -1803,15 +1981,22 @@ sub on_event {
 sub on_background_event {
     my ($self, $event, $item) = @_;
 
-    if ( $event->type eq 'button-press') {
-        if ($event->button == 1) {
-            $self->do_colour_nodes_below;  #  no arg will clear colouring
+    # Do everything with left clck now.
+    if ($event->type =~ m/^button-/ && $event->button != 1) {
+        return;
+    }
+
+    if ($event->type eq 'enter-notify') {
+        $self->{page}->set_active_pane('dendrogram');
+    }
+    elsif ( $event->type eq 'button-press') {
+        if ($self->{drag_mode} eq 'click') {
             if (defined $self->{click_func}) {
                 my $f = $self->{click_func};
                 $f->();
             }
         }
-        else {
+        elsif ($self->{drag_mode} eq 'pan') {
             ($self->{drag_x}, $self->{drag_y}) = $event->coords;
 
             # Grab mouse
@@ -1822,29 +2007,71 @@ sub on_background_event {
             $self->{dragging} = 1;
             $self->{dragged}  = 0;
         }
+        elsif ($self->{drag_mode} eq 'select') {
+            my ($x, $y) = $event->coords;
 
+            $self->{sel_x} = $x;
+            $self->{sel_y} = $y;
+
+            # Grab mouse
+            $item->grab (
+                [qw/pointer-motion-mask button-release-mask/],
+                Gtk2::Gdk::Cursor->new ('fleur'),
+                $event->time,
+            );
+            $self->{selecting} = 1;
+
+            $self->{sel_rect} = Gnome2::Canvas::Item->new (
+                $self->{canvas}->root,
+                'Gnome2::Canvas::Rect',
+                x1 => $x,
+                y1 => $y,
+                x2 => $x,
+                y2 => $y,
+
+                fill_color_gdk    => undef,
+                outline_color_gdk => COLOUR_BLACK,
+                width_pixels      => 0,
+            );
+        }
     }
     elsif ( $event->type eq 'button-release') {
+        if ($self->{drag_mode} eq 'pan') {
+            $item->ungrab ($event->time);
+            $self->{dragging} = 0;
 
-        $item->ungrab ($event->time);
-        $self->{dragging} = 0;
-
-        # FIXME: WHAT IS THIS (obsolete??)
-        # If clicked without dragging, we also remove the element mark (see on_event)
-        if (not $self->{dragged}) {
-            #$self->mark_elements(undef);
-            if ($self->{click_line}) {
-                $self->{click_line}->set(fill_color => 'black');
+            # FIXME: WHAT IS THIS (obsolete??)
+            # If clicked without dragging, we also remove the element mark (see onEvent)
+            if (not $self->{dragged}) {
+                #$self->mark_elements(undef);
+                if ($self->{click_line}) {
+                    $self->{click_line}->set(fill_color => 'black');
+                }
+                $self->{click_line} = undef;
             }
-            $self->{click_line} = undef;
+        }
+        elsif ($self->{selecting}) {
+            $self->{sel_rect}->destroy;
+            delete $self->{sel_rect};
+            $item->ungrab ($event->time);
+            $self->{selecting} = 0;
+
+            # Establish the selection
+            my ($x_start, $y_start) = ($self->{sel_x}, $self->{sel_y});
+            my ($x_end, $y_end) = $event->coords;
+
+            if (defined $self->{select_func}) {
+                my $f = $self->{select_func};
+                &$f([$x_start, $y_start, $x_end, $y_end]);
+            }
         }
     }
     elsif ( $event->type eq 'motion-notify') {
+        my ($x, $y) = $event->coords;
 
         #if ($self->{dragging} && $event->state >= 'button1-mask' ) {
         if ($self->{dragging}) {
             # Work out how much we've moved away from last time
-            my ($x, $y) = $event->coords;
             my ($dx, $dy) = ($x - $self->{drag_x}, $y - $self->{drag_y});
             $self->{drag_x} = $x;
             $self->{drag_y} = $y;
@@ -1874,6 +2101,12 @@ sub on_background_event {
             $self->update_scrollbars();
 
             $self->{dragged} = 1;
+        }
+        elsif ($self->{selecting}) {
+            # Resize selection rectangle
+            if ($self->{selecting}) {
+                $self->{sel_rect}->set(x2 => $x, y2 => $y);
+            }
         }
     }
 
@@ -2025,7 +2258,7 @@ sub onVScroll {
 sub centre_tree {
     my $self = shift;
     return if !defined $self->{lines_group};
-    
+
     my $xoffset = $self->{centre_x} * $self->{length_scale} - $self->{width_px} / 2;
     my $yoffset = $self->{centre_y} * $self->{height_scale} - $self->{height_px} / 2;
 

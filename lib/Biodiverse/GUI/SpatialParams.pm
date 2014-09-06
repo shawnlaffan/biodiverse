@@ -20,7 +20,7 @@ use Carp;
 
 use English qw { -no_match_vars };
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Glib;
 use Gtk2;
@@ -220,3 +220,4 @@ sub on_show {
 #}
 
 1;
+

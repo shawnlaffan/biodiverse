@@ -10,7 +10,7 @@ use File::BOM qw / :subs /;
 use Gtk2;
 use Gtk2::GladeXML;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::BasedataImport;  #  needed for the ramp dialogue - should shift that to its own package
@@ -331,3 +331,4 @@ sub add_column {
 }
 
 1;
+

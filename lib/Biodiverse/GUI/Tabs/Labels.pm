@@ -1,8 +1,11 @@
 package Biodiverse::GUI::Tabs::Labels;
+use 5.010;
 use strict;
 use warnings;
 
 use English ( -no_match_vars );
+
+use Data::Dumper;
 
 use Gtk2;
 use Carp;
@@ -12,7 +15,7 @@ use Biodiverse::GUI::Grid;
 use Biodiverse::GUI::Project;
 use Biodiverse::GUI::Overlays;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use parent qw {
     Biodiverse::GUI::Tabs::Tab
@@ -53,10 +56,10 @@ sub new {
 
     # Load _new_ widgets from glade 
     # (we can have many Analysis tabs open, for example. These have a different object/widgets)
-    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'vpaneLabels');
+    $self->{xmlPage}  = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxLabelsPage');
     $self->{xmlLabel} = Gtk2::GladeXML->new($self->{gui}->get_glade_file, 'hboxLabelsLabel');
 
-    my $page  = $self->{xmlPage}->get_widget('vpaneLabels');
+    my $page  = $self->{xmlPage}->get_widget('hboxLabelsPage');
     my $label = $self->{xmlLabel}->get_widget('hboxLabelsLabel');
     my $tab_menu_label = Gtk2::Label->new('Labels tab');
     $self->{tab_menu_label} = $tab_menu_label;
@@ -78,6 +81,8 @@ sub new {
     $label_widget->set_text($text);
     $self->{label_widget} = $label_widget;
     $self->{tab_menu_label}->set_text($text);
+
+    $self->set_label_widget_tooltip;
 
     $self->make_labels_model();
     $self->init_list('listLabels1');
@@ -117,26 +122,41 @@ sub new {
     # vpaneLists is done after hpaneLabelsTop, since this panel isn't able to get
     # its max size before hpaneLabelsTop is resized
 
+    # Panes will modify this to keep track of which one the mouse is currently
+    # over
+    $self->{active_pane} = '';
+
     # Connect signals
-    $self->{xmlLabel}->get_widget('btnLabelsClose')->signal_connect_swapped(clicked => \&on_close, $self);
-    
-    
-    #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
     my $xml = $self->{xmlPage};
-    $xml->get_widget('btnZoomInVL')->signal_connect_swapped(clicked => \&on_zoom_in, $self->{grid});
-    $xml->get_widget('btnZoomOutVL')->signal_connect_swapped(clicked => \&on_zoom_out, $self->{grid});
-    $xml->get_widget('btnZoomFitVL')->signal_connect_swapped(clicked => \&on_zoom_fit, $self->{grid});
-    $xml->get_widget('btnMatrixZoomIn')->signal_connect_swapped(clicked => \&on_zoom_in, $self->{matrix_grid});
-    $xml->get_widget('btnMatrixZoomOut')->signal_connect_swapped(clicked => \&on_zoom_out, $self->{matrix_grid});
-    $xml->get_widget('btnMatrixZoomFit')->signal_connect_swapped(clicked => \&on_zoom_fit, $self->{matrix_grid});
-    $xml->get_widget('btnPhylogenyZoomIn')->signal_connect_swapped(clicked => \&on_zoom_in, $self->{dendrogram});
-    $xml->get_widget('btnPhylogenyZoomOut')->signal_connect_swapped(clicked => \&on_zoom_out, $self->{dendrogram});
-    $xml->get_widget('btnPhylogenyZoomFit')->signal_connect_swapped(clicked => \&on_zoom_fit, $self->{dendrogram});
-    $xml->get_widget('btnOverlaysVL')->signal_connect_swapped(clicked => \&on_overlays, $self);
-    $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped('toggled' => \&on_phylogeny_plot_mode_changed, $self);
-    #$xml->get_widget('phylogeny_plot_range_weighted')->signal_connect_swapped('toggled' => \&on_phylogeny_plot_mode_changed, $self);
-    $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped('toggled' => \&on_highlight_groups_on_map_changed, $self);
-    $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(toggled => \&on_use_highlight_path_changed, $self);
+
+    $self->{xmlLabel}->get_widget('btnLabelsClose')->signal_connect_swapped(clicked => \&on_close, $self);
+
+    # Connect signals for new side tool chooser
+    my $sig_clicked = sub {
+        my ($widget_name, $f) = @_;
+        my $widget = $self->{xmlPage}->get_widget($widget_name)
+            // warn "Cannot find widget $widget_name";
+        $widget->signal_connect_swapped(
+            clicked => $f, $self
+        );
+    };
+
+    $sig_clicked->('btnSelectToolVL',  \&on_select_tool);
+    $sig_clicked->('btnPanToolVL',     \&on_pan_tool);
+    $sig_clicked->('btnZoomInToolVL',  \&on_zoom_in_tool);
+    $sig_clicked->('btnZoomOutToolVL', \&on_zoom_out_tool);
+    $sig_clicked->('btnZoomFitToolVL', \&on_zoom_fit_tool);
+
+    $xml->get_widget('menuitem_labels_overlays')->signal_connect_swapped(activate => \&on_overlays, $self);
+
+    $self->{xmlPage}->get_widget("btnSelectToolVL")->set_active(1);
+
+    #  CONVERT THIS TO A HASH BASED LOOP, as per Clustering.pm
+    #  plot length triggers depth and vice versa
+    $xml->get_widget('phylogeny_plot_length')->signal_connect_swapped(toggled => \&on_phylogeny_plot_mode_changed, $self);
+    $xml->get_widget('highlight_groups_on_map_labels_tab')->signal_connect_swapped(activate => \&on_highlight_groups_on_map_changed, $self);
+    $xml->get_widget('use_highlight_path_changed1')->signal_connect_swapped(activate => \&on_use_highlight_path_changed, $self);
+    $xml->get_widget('menuitem_labels_show_legend')->signal_connect_swapped(toggled => \&on_show_hide_legend, $self);
     
     $self->{use_highlight_path} = 1;
     
@@ -156,17 +176,22 @@ sub init_grid {
     my $hover_closure  = sub { $self->on_grid_hover(@_); };
     my $click_closure  = sub { Biodiverse::GUI::CellPopup::cell_clicked($_[0], $self->{base_ref}); };
     my $select_closure = sub { $self->on_grid_select(@_); };
-    
+    my $grid_click_closure = sub { $self->on_grid_click(@_); };
+    my $end_hover_closure  = sub { $self->on_end_grid_hover(@_); };
+
     $self->{grid} = Biodiverse::GUI::Grid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        0,
-        0,
-        $hover_closure,
-        $click_closure,
-        $select_closure,
+        frame => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        show_legend => 0,
+        show_value  => 0,
+        hover_func      => $hover_closure,
+        click_func      => $click_closure,
+        select_func     => $select_closure,
+        grid_click_func =>  $grid_click_closure,
+        end_hover_func  => $end_hover_closure,
     );
+    $self->{grid}->{page} = $self; # Hacky
 
     eval {$self->{grid}->set_base_struct($self->{base_ref}->get_groups_ref)};
     if ($EVAL_ERROR) {
@@ -186,19 +211,22 @@ sub init_matrix_grid {
     my $hscroll = $self->{xmlPage}->get_widget('matrixHScroll');
     my $vscroll = $self->{xmlPage}->get_widget('matrixVScroll');
 
-    my $click_closure = sub { $self->on_matrix_clicked(@_); };
-    my $hover_closure = sub { $self->on_matrix_hover(@_); };
+    my $hover_closure  = sub { $self->on_matrix_hover(@_); };
+    my $select_closure = sub { $self->on_matrix_clicked(@_); };
+    my $grid_click_closure = sub { $self->on_matrix_grid_clicked(@_); };
 
     $self->{matrix_grid} = Biodiverse::GUI::MatrixGrid->new(
-        $frame,
-        $hscroll,
-        $vscroll,
-        $hover_closure,
-        $click_closure
+        frame => $frame,
+        hscroll => $hscroll,
+        vscroll => $vscroll,
+        hover_func      => $hover_closure,
+        select_func     => $select_closure,
+        grid_click_func => $grid_click_closure,
     );
+    $self->{matrix_grid}->{page} = $self; # Hacky
 
     $self->{matrix_drawn} = 0;
-    
+
     return 1;
 }
 
@@ -217,28 +245,31 @@ sub init_dendrogram {
     my $highlight_closure  = sub { $self->on_phylogeny_highlight(@_); };
     my $ctrl_click_closure = sub { $self->on_phylogeny_popup(@_); };
     my $click_closure      = sub { $self->on_phylogeny_click(@_); };
+    my $select_closure      = sub { $self->on_phylogeny_select(@_); };
     
     $self->{dendrogram} = Biodiverse::GUI::Dendrogram->new(
-        $frame,
-        $graph_frame,
-        $hscroll,
-        $vscroll,
-        undef,
-        $list_combo,
-        $index_combo,
-        undef,
-        $highlight_closure,
-        $ctrl_click_closure,
-        $click_closure,
-        $self->{base_ref},
+        main_frame  => $frame,
+        graph_frame => $graph_frame,
+        hscroll     => $hscroll,
+        vscroll     => $vscroll,
+        grid        => undef,
+        list_combo  => $list_combo,
+        index_combo => $index_combo,
+        hover_func      => undef,
+        highlight_func  => $highlight_closure,
+        ctrl_click_func => $ctrl_click_closure,
+        click_func      => $click_closure,
+        select_func     => $select_closure,
+        parent_tab      => undef,
+        basedata_ref    => $self->{base_ref},
     );
+    $self->{dendrogram}->{page} = $self;
     
     #  cannot colour more than one in a phylogeny
     $self->{dendrogram}->set_num_clusters (1);
     
     return 1;
 }
-
 
 ##################################################
 # Labels list
@@ -249,25 +280,25 @@ sub add_column {
     my $tree = shift;
     my $title = shift;
     my $model_id = shift;
-    
+
     my $col = Gtk2::TreeViewColumn->new();
     my $renderer = Gtk2::CellRendererText->new();
-    #$title = Glib::Markup::escape_text($title);
-    #  Double the underscores so they display without acting as hints.
-    #  Need to find out how to disable that hint setting.
+#$title = Glib::Markup::escape_text($title);
+#  Double the underscores so they display without acting as hints.
+#  Need to find out how to disable that hint setting.
     $title =~ s/_/__/g;  
     $col->set_title($title);
     my $a = $col->get_title;
-    #$col->set_sizing('fixed');
+#$col->set_sizing('fixed');
     $col->pack_start($renderer, 0);
     $col->add_attribute($renderer,  text => $model_id);
     $col->set_sort_column_id($model_id);
     $col->signal_connect_swapped(clicked => \&on_sorted, $self);
-    #$col->set('autosize' => 'True');
+#$col->set('autosize' => 'True');
     $col->set (resizable => 1);
-    
+
     $tree->insert_column($col, -1);
-    
+
     return;
 }
 
@@ -275,7 +306,7 @@ sub init_list {
     my $self = shift;
     my $id   = shift;
     my $tree = $self->{xmlPage}->get_widget($id);
-    
+
 
     my $labels_ref = $self->{base_ref}->get_labels_ref;
     my $stats_metadata = $labels_ref->get_args (sub => 'get_base_stats');
@@ -290,8 +321,8 @@ sub init_list {
     }
     $self->add_column ($tree, $selected_list1_name, ++$i);
     $self->add_column ($tree, $selected_list2_name, ++$i);
-    
-    # Set model to a wrapper that lets this list have independent sorting
+
+# Set model to a wrapper that lets this list have independent sorting
     my $wrapper_model = Gtk2::TreeModelSort->new( $self->{labels_model});
     $tree->set_model( $wrapper_model );
 
@@ -301,7 +332,7 @@ sub init_list {
         $sort_func = \&sort_by_column_numeric_labels;
         $start_col = 0;
     }
-    
+
     #  set a special sort func for all cols (except the labels if not numeric)
     foreach my $col_id ($start_col .. $i) {
         $wrapper_model->set_sort_func ($col_id, $sort_func, [$col_id, $wrapper_model]);
@@ -313,12 +344,12 @@ sub init_list {
         changed => \&on_selected_labels_changed,
         [$self, $id],
     );
-    
-    #$tree->signal_connect_swapped(
-    #    'start-interactive-search' => \&on_interactive_search,
-    #    [$self, $id],
-    #);
-    
+
+#$tree->signal_connect_swapped(
+#    'start-interactive-search' => \&on_interactive_search,
+#    [$self, $id],
+#);
+
     return;
 }
 
@@ -329,7 +360,7 @@ sub sort_by_column {
     my ($liststore, $itera, $iterb, $args) = @_;
     my $col_id = $args->[0];
     my $wrapper_model = $args->[1];
-    
+
     my $label_order = 1;
     my ($sort_column_id, $order) = $wrapper_model->get_sort_column_id;
     if ($order eq 'descending') {
@@ -337,24 +368,24 @@ sub sort_by_column {
     }
 
     return
-         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-      || $label_order * ($liststore->get($itera, 0) cmp $liststore->get($iterb, 0));
+        $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
+        || $label_order * ($liststore->get($itera, 0) cmp $liststore->get($iterb, 0));
 }
 
 sub sort_by_column_numeric_labels {
     my ($liststore, $itera, $iterb, $args) = @_;
     my $col_id = $args->[0];
     my $wrapper_model = $args->[1];
-    
+
     my $label_order = 1;
     my ($sort_column_id, $order) = $wrapper_model->get_sort_column_id;
     if ($order eq 'descending') {
         $label_order = -1;  #  ensure ascending order
     }
-    
+
     return
-         $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
-      || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));    
+        $liststore->get($itera, $col_id) <=> $liststore->get($iterb, $col_id)
+        || $label_order * (0+$liststore->get($itera, 0) <=> 0+$liststore->get($iterb, 0));    
 }
 
 #sub on_interactive_search {
@@ -373,20 +404,20 @@ sub make_labels_model {
     my $labels_ref = $base_ref->get_labels_ref();
 
     my $basestats_indices = $labels_ref->get_args (sub => 'get_base_stats');
-    
+
     my @column_order;
-    
-    #  the selection cols
+
+#  the selection cols
     my @selection_cols = (
-        {$selected_list1_name => 'Int'},
-        {$selected_list2_name => 'Int'},
-    );
-    
-    #my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
+            {$selected_list1_name => 'Int'},
+            {$selected_list2_name => 'Int'},
+            );
+
+#my $label_type = $base_ref->labels_are_numeric ? 'Glib::Float' : 'Glib::String';
     my $label_type = 'Glib::String';
-    
+
     my @types = ($label_type);
-    #my $i = 0;
+#my $i = 0;
     foreach my $column (@$basestats_indices, @selection_cols) {
         my ($key, $value) = %{$column};
         push @types, 'Glib::' . $value;
@@ -397,14 +428,14 @@ sub make_labels_model {
     my $model = $self->{labels_model};
 
     my @labels = $base_ref->get_labels();
-    
+
     my $sort_func = $base_ref->labels_are_numeric ? sub {$a <=> $b} : sub {$a cmp $b};
 
     foreach my $label (sort $sort_func @labels) {
         my $iter = $model->append();
         $model->set($iter, 0, $label);
 
-        #  set the values - selection cols will be undef
+#  set the values - selection cols will be undef
         my %stats = $labels_ref->get_base_stats (element => $label);
 
         my $i = 1;
@@ -413,28 +444,44 @@ sub make_labels_model {
             $i++;
         }
     }
-    
+
     $labels_model_list1_sel_col = scalar @column_order - 1;
     $labels_model_list2_sel_col = scalar @column_order;
 
     return;
 }
 
+sub set_phylogeny_options_sensitive {
+    my $self = shift;
+    my $enabled = shift;
+
+    my $page = $self->{xmlPage};
+
+    for my $widget (
+        qw /
+            phylogeny_plot_length
+            phylogeny_plot_depth
+            highlight_groups_on_map_labels_tab
+            use_highlight_path_changed1
+        /) { #/
+        $page->get_widget($widget)->set_sensitive($enabled);
+    }
+}
+
 sub on_selected_phylogeny_changed {
     my $self = shift;
 
-    # phylogenies
+# phylogenies
     my $phylogeny = $self->{project}->get_selected_phylogeny;
 
-    my $plot_menu = $self->{xmlPage}->get_widget('menubar_phylogeny_plot_mode');
     $self->{dendrogram}->clear;
     if ($phylogeny) {
         $self->{dendrogram}->set_cluster($phylogeny, 'length');  #  now storing tree objects directly
-        $plot_menu->set_sensitive(1);
+            $self->set_phylogeny_options_sensitive(1);
     }
     else {
-        #$self->{dendrogram}->clear;
-        $plot_menu->set_sensitive(0);
+#$self->{dendrogram}->clear;
+        $self->set_phylogeny_options_sensitive(0);
         my $str = '<i>No selected tree</i>';
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($str);
     }
@@ -445,7 +492,7 @@ sub on_selected_phylogeny_changed {
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
     $self->{dendrogram}->set_use_highlight_func;
-    
+
     return;
 }
 
@@ -453,33 +500,33 @@ sub on_selected_matrix_changed {
     my $self = shift;
 
     my $matrix_ref = $self->{project}->get_selected_matrix;
-    
+
     $self->{matrix_ref} = $matrix_ref;
-    
+
     my $xml_page = $self->{xmlPage};
 
-    #  hide the second list if no matrix selected
+#  hide the second list if no matrix selected
     my $list_window = $xml_page->get_widget('scrolledwindow_labels2');
-    
+
     my $list = $xml_page->get_widget('listLabels1');
     my $col  = $list->get_column ($labels_model_list2_sel_col);
-    
+
     if (! defined $matrix_ref) {
         $list_window->hide;     #  hide the second list
-        $col->set_visible (0);  #  hide the list 2 selection
-                                #    col from list 1
+            $col->set_visible (0);  #  hide the list 2 selection
+#    col from list 1
     }
     else {
         $list_window->show;
         $col->set_visible (1);
     }
-    
+
     $self->{matrix_drawable} = $self->get_label_count_in_matrix;
 
-    # matrix
+# matrix
     $self->on_sorted(); # (this reloads the whole matrix anyway)    
-    $self->{matrix_grid}->zoom_fit();
-    
+        $self->{matrix_grid}->zoom_fit();
+
     return;
 }
 
@@ -487,7 +534,7 @@ sub on_selected_matrix_changed {
 # Called when user changes selection in one of the two labels lists
 sub on_selected_labels_changed {
     my $selection = shift;
-    my $args = shift;
+    my $args      = shift;
     my ($self, $id) = @$args;
 
     # Ignore waste-of-time events fired on on_phylogeny_click as it
@@ -502,22 +549,22 @@ sub on_selected_labels_changed {
     my @paths = $selection->get_selected_rows();
     my @selected = map { ($_->get_indices)[0] } @paths;
     $self->{$select_list_name} = \@selected;
-    
+
     if ($self->{matrix_ref}) {
         $self->{matrix_grid}->highlight(
             $self->{selected_rows},
             $self->{selected_cols},
         );
     }
-    
+
     #  need to avoid changing paths due to re-sorts
     #  the run for listLabels1 is at the end.
     if ($id eq 'listLabels2') {
         $self->set_selected_list_cols ($selection, $rowcol);
     }
-    
+
     return if $id ne 'listLabels1';
-    
+
     # Now, for the top list, colour the grid, based on how many labels occur in a given cell
     my %group_richness; # analysis list
     #my $max_value;
@@ -548,7 +595,7 @@ sub on_selected_labels_changed {
                 }
             }
         }
-        
+
         #FIXME: This copies the hash (???recheck???) - not very fast...
         #my %hash = $self->{base_ref}->get_groups_with_label_as_hash(label => $label);
         #  SWL - just use a ref.  Unless Eugene was thinking of what the sub does...
@@ -559,7 +606,7 @@ sub on_selected_labels_changed {
             $group_richness{$group}++;
         }
     }
-    
+
     #  richness is the number of labels selected,
     #  which is the number of items in @paths
     my $max_value = scalar @paths;
@@ -575,6 +622,7 @@ sub on_selected_labels_changed {
     $grid->colour($colour_func);
     $grid->set_legend_min_max(0, $max_value);
 
+    
     if (defined $tree) {
         #print "[Labels] Recolouring cluster lines\n";
         $self->{dendrogram}->recolour_cluster_lines(\@phylogeny_colour_nodes);
@@ -583,7 +631,7 @@ sub on_selected_labels_changed {
     # have to run this after everything else is updated
     # otherwise incorrect nodes are selected.
     $self->set_selected_list_cols ($selection, $rowcol);
-    
+
     return;
 }
 
@@ -596,66 +644,66 @@ sub set_selected_list_cols {
         ? 'listLabels1'
         : 'listLabels2';
 
-    # Select all terminal labels
-    #my $model      = $self->{labels_model};
-    #my $widget     = $self->{xmlPage}->get_widget($widget_name);
-    
+# Select all terminal labels
+#my $model      = $self->{labels_model};
+#my $widget     = $self->{xmlPage}->get_widget($widget_name);
+
     my $sorted_model = $selection->get_tree_view()->get_model();
     my $global_model = $self->{labels_model};
 
     my $change_col
         = $rowcol eq 'rows'
-          ? $labels_model_list1_sel_col
-          : $labels_model_list2_sel_col;
+        ? $labels_model_list1_sel_col
+        : $labels_model_list2_sel_col;
 
-    #my $selection_array
-    #    = $rowcol eq 'rows'
-    #        ? $self->{selected_rows}
-    #        : $self->{selected_cols};
+#my $selection_array
+#    = $rowcol eq 'rows'
+#        ? $self->{selected_rows}
+#        : $self->{selected_cols};
 
-    #my %selection_hash;
-    #@selection_hash{@$selection_array} = (1) x scalar @$selection_array;
+#my %selection_hash;
+#@selection_hash{@$selection_array} = (1) x scalar @$selection_array;
 
     my $max_iter = $self->{base_ref}-> get_label_count() - 1;
-    
-    #  get the selection changes
+
+#  get the selection changes
     my @changed_iters;
     foreach my $cell_iter (0..$max_iter) {
 
         my $iter = $sorted_model->iter_nth_child(undef,$cell_iter);
-        
+
         my $iter1 = $sorted_model->convert_iter_to_child_iter($iter);
         my $orig_label = $global_model->get($iter1, LABELS_MODEL_NAME);
         my $orig_value = $global_model->get($iter1, $change_col);
-    
+
         my $value = $selection->iter_is_selected ($iter) || 0;
-        
+
         if ($value != $orig_value) {
-            #print "[Labels] $rowcol : ",
-            #      "Changing $orig_label to $value, ",
-            #      "Cell iter $cell_iter\n"
-            #      #$iter . ' ' . $sorted_iter,
-            #      ;
+#print "[Labels] $rowcol : ",
+#      "Changing $orig_label to $value, ",
+#      "Cell iter $cell_iter\n"
+#      #$iter . ' ' . $sorted_iter,
+#      ;
             push (@changed_iters, [$iter1, $value]);
-            #$global_model->set($iter1, $change_col, $value);
+#$global_model->set($iter1, $change_col, $value);
         }
     }
-    
+
     $self->{ignore_selected_change} = 'listLabels1';
-    
-    #  and now loop over the iters and change the selection values
+
+#  and now loop over the iters and change the selection values
     foreach my $array_ref (@changed_iters) {
         $global_model->set($array_ref->[0], $change_col, $array_ref->[1]);
     }
 
     delete $self->{ignore_selected_change};
-    
-    #print "[Labels] \n";
-    
+
+#print "[Labels] \n";
+
     return;    
 }
-    
-    
+
+
 sub on_sorted {
     my $self = shift;
 
@@ -669,12 +717,12 @@ sub on_sorted {
     my $values_func = sub {
         my ($h, $v) = @_; # integer indices
 
-        my $hiter = $hmodel->iter_nth_child(undef,$h);
+            my $hiter = $hmodel->iter_nth_child(undef,$h);
         my $viter = $vmodel->iter_nth_child(undef,$v);
 
-        # some bug in gtk2-perl stops me from just doing
-        # $hlabel = $hmodel->get($hiter, 0)
-        #
+# some bug in gtk2-perl stops me from just doing
+# $hlabel = $hmodel->get($hiter, 0)
+#
         my $hi = $hmodel->convert_iter_to_child_iter($hiter);
         my $vi = $vmodel->convert_iter_to_child_iter($viter);
 
@@ -682,9 +730,9 @@ sub on_sorted {
         my $vlabel = $model->get($vi, 0);
 
         return $matrix_ref->get_value(
-            element1 => $hlabel,
-            element2 => $vlabel,
-        );
+                element1 => $hlabel,
+                element2 => $vlabel,
+                );
     };
 
     my $label_widget = $self->{xmlPage}->get_widget('lblMatrix');
@@ -699,9 +747,9 @@ sub on_sorted {
             }
             $self->{matrix_grid}->set_values($values_func);
             $self->{matrix_grid}->set_colouring(
-                $matrix_ref->get_min_value,
-                $matrix_ref->get_max_value,
-            );
+                    $matrix_ref->get_min_value,
+                    $matrix_ref->get_max_value,
+                    );
         }
         else {
             my $str = '<i>No matrix elements in basedata</i>';
@@ -709,7 +757,7 @@ sub on_sorted {
         }
     }
     else {
-        # clear matrix
+# clear matrix
         $self->{matrix_grid}->draw_matrix( 0 );
         $self->{matrix_drawn} = 0;
         $self->{matrix_drawable} = 0;
@@ -722,23 +770,23 @@ sub on_sorted {
         $self->{matrix_grid}->set_colouring(0, 0);
         $self->{matrix_grid}->highlight(undef, undef);
     }
-    
+
     return;
 }
 
 #  how many labels are in the matrix?  We don't draw it if there are none.
 sub get_label_count_in_matrix {
     my $self = shift;
-    
+
     return if !$self->{matrix_ref};
-    
-    #  should probably use List::MoreUtils::any 
+
+#  should probably use List::MoreUtils::any 
     my %labels      = $self->{base_ref}->get_labels_ref->get_element_hash;
     my %mx_elements = $self->{matrix_ref}->get_elements;
     my $mx_count    = scalar keys %mx_elements;
     delete @mx_elements{keys %labels};
-    
-    #  if the counts differ then we have commonality
+
+#  if the counts differ then we have commonality
     return $mx_count != scalar keys %mx_elements;
 }
 
@@ -762,13 +810,13 @@ sub on_grid_hover {
 
     return if ! defined $group;
 
-    # get labels in the group
+# get labels in the group
     my $bd = $self->get_base_ref;
     my $labels = $bd->get_labels_in_group_as_hash(group => $group);
 
-    # highlight in the tree
+# highlight in the tree
     foreach my $label (keys %$labels) {
-        # Might not match some or all nodes
+# Might not match some or all nodes
         eval {
             my $node_ref = $tree->get_node_ref (node => $label);
             if ($self->{use_highlight_path}) {
@@ -776,53 +824,77 @@ sub on_grid_hover {
             }
         }
     }
-    
+
     return;
+}
+
+sub on_end_grid_hover {
+    my $self = shift;
+    $self->{dendrogram}->clear_highlights;
 }
 
 sub on_grid_select {
-    my $self = shift;
-    my $groups = shift;
+    my $self          = shift;
+    my $groups        = shift;
     my $ignore_change = shift;
-    
+    my $rect          = shift; # [x1, y1, x2, y2]
 
-    # convert groups into a hash of labels that are in them
-    my %hash;
-    my $bd = $self->{base_ref};
-    foreach my $group (@$groups) {
-        my $hashref = $bd->get_labels_in_group_as_hash(group => $group);
-        @hash{ keys %$hashref } = ();
-    }
+    #say 'Rect: ' . Dumper ($rect);
 
-    # Select all terminal labels
-    my $xml_page = $self->{xmlPage};
-    my $model = $self->{labels_model};
-    my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
-    my $hselection = $xml_page ->get_widget('listLabels1')->get_selection();
-
-    $hselection->unselect_all();
-    my $iter = $hmodel->get_iter_first();
-    my $elt;
-
-    
-    $self->{ignore_selected_change} = 'listLabels1';
-    while ($iter) {
-        my $hi = $hmodel->convert_iter_to_child_iter($iter);
-        $elt = $model->get($hi, 0);
-
-        if (exists $hash{ $elt } ) {
-            $hselection->select_iter($iter);
+    if ($self->{tool} eq 'Select') {
+        # convert groups into a hash of labels that are in them
+        my %hash;
+        my $bd = $self->{base_ref};
+        foreach my $group (@$groups) {
+            my $hashref = $bd->get_labels_in_group_as_hash(group => $group);
+            @hash{ keys %$hashref } = ();
         }
 
-        $iter = $hmodel->iter_next($iter);
+        # Select all terminal labels
+        my $xml_page = $self->{xmlPage};
+        my $model = $self->{labels_model};
+        my $hmodel = $xml_page->get_widget('listLabels1')->get_model();
+        my $hselection = $xml_page ->get_widget('listLabels1')->get_selection();
+
+        $hselection->unselect_all();
+        my $iter = $hmodel->get_iter_first();
+        my $elt;
+
+
+        $self->{ignore_selected_change} = 'listLabels1';
+        while ($iter) {
+            my $hi = $hmodel->convert_iter_to_child_iter($iter);
+            $elt = $model->get($hi, 0);
+
+            if (exists $hash{ $elt } ) {
+                $hselection->select_iter($iter);
+            }
+
+            $iter = $hmodel->iter_next($iter);
+        }
+        if (not $ignore_change) {
+            delete $self->{ignore_selected_change};
+        }
+        on_selected_labels_changed($hselection, [$self, 'listLabels1']);
     }
-    if (not $ignore_change) {
-        delete $self->{ignore_selected_change};
+    elsif ($self->{tool} eq 'ZoomIn') {
+        my $grid = $self->{grid};
+        $self->handle_grid_drag_zoom ($grid, $rect);
     }
-    on_selected_labels_changed($hselection, [$self, 'listLabels1']);
-    
+
     return;
 }
+#
+#sub on_grid_click {
+#    my $self = shift;
+#
+#    if ($self->{tool} eq 'ZoomOut') {
+#        $self->{grid}->zoom_out();
+#    }
+#    elsif ($self->{tool} eq 'ZoomFit') {
+#        $self->{grid}->zoom_fit();
+#    }
+#}
 
 ##################################################
 # Phylogeny events
@@ -870,9 +942,12 @@ sub on_phylogeny_highlight {
     my ($iter, $label, $hash);
 
     my $bd = $self->{base_ref};
+    my $label_hash = $bd->get_labels_ref->get_element_hash;
 
-    LABEL:
+  LABEL:
     foreach my $label (keys %$terminal_elements) {
+        next LABEL if !exists $label_hash->{$label};
+
         my $containing = eval {$bd->get_groups_with_label_as_hash(label => $label)};
         next LABEL if !$containing;
 
@@ -880,47 +955,68 @@ sub on_phylogeny_highlight {
     }
 
     $self->{grid}->mark_if_exists( \%groups, 'circle' );
-    
+
     if (defined $node) {
         my $text = 'Node: ' . $node->get_name;
         $self->{xmlPage}->get_widget('label_VL_tree')->set_markup($text);
     }
-    
+
     return;
 }
 
 sub on_phylogeny_click {
     my $self = shift;
-    my $node_ref = shift;
-    my $terminal_elements = (defined $node_ref) ? $node_ref->get_terminal_elements : {};
+    if ($self->{tool} eq 'Select') {
+        my $node_ref = shift;
+        $self->{dendrogram}->do_colour_nodes_below($node_ref);
+        my $terminal_elements = (defined $node_ref) ? $node_ref->get_terminal_elements : {};
 
-    # Select all terminal labels
-    my $model      = $self->{labels_model};
-    my $hmodel     = $self->{xmlPage}->get_widget('listLabels1')->get_model();
-    my $hselection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
+        # Select all terminal labels
+        my $model      = $self->{labels_model};
+        my $hmodel     = $self->{xmlPage}->get_widget('listLabels1')->get_model();
+        my $hselection = $self->{xmlPage}->get_widget('listLabels1')->get_selection();
 
-    $hselection->unselect_all();
-    my $iter = $hmodel->get_iter_first();
-    my $elt;
+        $hselection->unselect_all();
+        my $iter = $hmodel->get_iter_first();
+        my $elt;
 
-    $self->{ignore_selected_change} = 'listLabels1';
-    while ($iter) {
-        my $hi = $hmodel->convert_iter_to_child_iter($iter);
-        $elt = $model->get($hi, 0);
-        #print "[on_phylogeny_click] selected: $elt\n";
+        $self->{ignore_selected_change} = 'listLabels1';
+        while ($iter) {
+            my $hi = $hmodel->convert_iter_to_child_iter($iter);
+            $elt = $model->get($hi, 0);
+            #print "[onPhylogenyClick] selected: $elt\n";
 
-        if (exists $terminal_elements->{ $elt } ) {
-            $hselection->select_iter($iter);
+            if (exists $terminal_elements->{ $elt } ) {
+                $hselection->select_iter($iter);
+            }
+
+            $iter = $hmodel->iter_next($iter);
         }
+        delete $self->{ignore_selected_change};
+        on_selected_labels_changed($hselection, [$self, 'listLabels1']);
 
-        $iter = $hmodel->iter_next($iter);
+        # Remove the hover marks
+        $self->{grid}->mark_if_exists( {}, 'circle' );
     }
-    delete $self->{ignore_selected_change};
-    on_selected_labels_changed($hselection, [$self, 'listLabels1']);
+    elsif ($self->{tool} eq 'ZoomOut') {
+        $self->{dendrogram}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{dendrogram}->zoom_fit();
+    }
 
-    # Remove the hover marks
-    $self->{grid}->mark_if_exists( {}, 'circle' );
-    
+    return;
+}
+
+sub on_phylogeny_select {
+    my $self = shift;
+    my $rect = shift; # [x1, y1, x2, y2]
+
+    if ($self->{tool} eq 'ZoomIn') {
+        my $grid = $self->{dendrogram};
+        $self->handle_grid_drag_zoom ($grid, $rect);
+    }
+
     return;
 }
 
@@ -1076,7 +1172,7 @@ sub show_phylogeny_descendents {
 
     my $model = Gtk2::ListStore->new('Glib::String', 'Glib::Int');
 
-    my $node_hash = $node_ref->get_all_descendents_and_self;
+    my $node_hash = $node_ref->get_all_descendants_and_self;
 
     foreach my $element (sort keys %$node_hash) {
         my $node_ref = $node_hash->{$element};
@@ -1137,27 +1233,53 @@ sub on_matrix_clicked {
 
     #print "horez=$h_start-$h_end vert=$v_start-$v_end\n";
 
-    $h_start = Gtk2::TreePath->new_from_indices($h_start);
-    $h_end   = Gtk2::TreePath->new_from_indices($h_end);
-    $v_start = Gtk2::TreePath->new_from_indices($v_start);
-    $v_end   = Gtk2::TreePath->new_from_indices($v_end);
+    if ($self->{tool} eq 'Select') {
+        $h_start = Gtk2::TreePath->new_from_indices($h_start);
+        $h_end   = Gtk2::TreePath->new_from_indices($h_end);
+        $v_start = Gtk2::TreePath->new_from_indices($v_start);
+        $v_end   = Gtk2::TreePath->new_from_indices($v_end);
 
-    my $hlist = $self->{xmlPage}->get_widget('listLabels1');
-    my $vlist = $self->{xmlPage}->get_widget('listLabels2');
+        my $hlist = $self->{xmlPage}->get_widget('listLabels1');
+        my $vlist = $self->{xmlPage}->get_widget('listLabels2');
 
-    my $hsel = $hlist->get_selection;
-    my $vsel = $vlist->get_selection;
+        my $hsel = $hlist->get_selection;
+        my $vsel = $vlist->get_selection;
 
-    $hsel->unselect_all;
-    $vsel->unselect_all;
+        $hsel->unselect_all;
+        $vsel->unselect_all;
 
-    $hsel->select_range($h_start, $h_end);
-    $vsel->select_range($v_start, $v_end);
+        eval {
+            $hsel->select_range($h_start, $h_end);
+        };
+        warn $EVAL_ERROR if $EVAL_ERROR;
+        eval {
+            $vsel->select_range($v_start, $v_end);
+        };
+        warn $EVAL_ERROR if $EVAL_ERROR;
 
-    $hlist->scroll_to_cell( $h_start );
-    $vlist->scroll_to_cell( $v_start );
-    
+        $hlist->scroll_to_cell( $h_start );
+        $vlist->scroll_to_cell( $v_start );
+    }
+    elsif ($self->{tool} eq 'ZoomIn') {
+        my $rect = [
+            map {Biodiverse::GUI::MatrixGrid::CELL_SIZE * $_}
+                ($v_start, $h_start, $v_end, $h_end)
+        ];
+        $self->handle_grid_drag_zoom ($self->{matrix_grid}, $rect);
+    }
+
     return;
+}
+
+sub on_matrix_grid_clicked {
+    my $self = shift;
+
+    if ($self->{tool} eq 'ZoomOut') {
+        $self->{matrix_grid}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{matrix_grid}->zoom_fit();
+    }
 }
 
 ##################################################
@@ -1178,16 +1300,56 @@ sub remove {
     return;
 }
 
+my %drag_modes = (
+    Select  => 'select',
+    Pan     => 'pan',
+    ZoomIn    => 'select',
+    ZoomOut => 'click',
+    ZoomFit => 'click',
+);
+
+my %dendrogram_drag_modes = (
+    %drag_modes,
+    Select  => 'click',
+);
+
+sub choose_tool {
+    my $self = shift;
+    my ($tool, ) = @_;
+
+    my $old_tool = $self->{tool};
+
+    if ($old_tool) {
+        $self->{ignore_tool_click} = 1;
+        my $widget = $self->{xmlPage}->get_widget("btn${old_tool}ToolVL");
+        $widget->set_active(0);
+        my $new_widget = $self->{xmlPage}->get_widget("btn${tool}ToolVL");
+        $new_widget->set_active(1);
+        $self->{ignore_tool_click} = 0;
+    }
+
+    $self->{tool} = $tool;
+
+    $self->{grid}{drag_mode}        = $drag_modes{$tool};
+    $self->{matrix_grid}{drag_mode} = $drag_modes{$tool};
+    $self->{dendrogram}{drag_mode}  = $dendrogram_drag_modes{$tool};
+    
+    $self->set_display_cursors ($tool);
+}
+
+
+#  no longer used?  
 sub on_zoom_in {
     my $grid = shift;
     $grid->zoom_in();
-    
+say 'LB: Called on_zoom_in';
     return;
 }
 
 sub on_zoom_out {
     my $grid = shift;
     $grid->zoom_out();
+say 'LB: Called on_zoom_out';
     
     return;
 }
@@ -1195,7 +1357,8 @@ sub on_zoom_out {
 sub on_zoom_fit {
     my $grid = shift;
     $grid->zoom_fit();
-    
+say 'LB: Called on_zoom_fit';
+
     return;
 }
 
@@ -1215,8 +1378,8 @@ sub on_overlays {
 # Sets the vertical pane's position (0->all the way down | 1->fully up)
 sub set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
     my $max_pos = $pane->get('max-position');
@@ -1230,8 +1393,8 @@ sub set_pane {
 # Need when the pane hasn't got it's size yet and doesn't know its max position
 sub queue_set_pane {
     my $self = shift;
-    my $pos = shift;
-    my $id = shift;
+    my $pos  = shift;
+    my $id   = shift;
 
     my $pane = $self->{xmlPage}->get_widget($id);
 

@@ -20,7 +20,7 @@ use Scalar::Util qw /looks_like_number blessed reftype/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 our $NULL_STRING = q{};
 
@@ -686,7 +686,8 @@ sub evaluate {
 
     my $code_ref = $self->get_conditions_code_ref (%args);
 
-    return $self->$code_ref (%args);
+    #  no explicit return here for speed reasons
+    $self->$code_ref (%args);
 }
 
 #  get a subroutine reference based on the conditions
@@ -1229,13 +1230,13 @@ sub sp_block {
     my $nbrcoord = $h->{nbrcoord_array};
 
     my $size = $args{size};    #  need a handler for size == 0
-    if ( ( ref $size ) !~ /ARRAY/ ) {
+    if ( (reftype ( $size ) // '') ne 'ARRAY' ) {
         $size = [ ($size) x scalar @$coord ];
     };    #  make it an array if necessary;
 
     #  the origin allows the user to shift the blocks around
     my $origin = $args{origin} || [ (0) x scalar @$coord ];
-    if ( ( ref $origin ) !~ /ARRAY/ ) {
+    if ( (reftype ( $origin ) // '') ne 'ARRAY' ) {
         $origin = [ ($origin) x scalar @$coord ];
     }    #  make it an array if necessary
 
@@ -1622,9 +1623,10 @@ sub get_metadata_sp_is_left_of {
 
 sub sp_is_left_of {
     my $self = shift;
-    my %args = @_;
-    
-    return $self->_sp_side(@_) < 0; 
+    #my %args = @_;
+
+    #  no explicit return here for speed reasons
+    $self->_sp_side(@_) < 0; 
 }
 
 sub get_metadata_sp_is_right_of {
@@ -1658,9 +1660,10 @@ sub get_metadata_sp_is_right_of {
 
 sub sp_is_right_of {
     my $self = shift;
-    my %args = @_;
-    
-    return $self->_sp_side(@_) > 0; 
+    #my %args = @_;
+
+    #  no explicit return here for speed reasons
+    $self->_sp_side(@_) > 0; 
 }
 
 sub get_metadata_sp_in_line_with {
@@ -1694,9 +1697,10 @@ sub get_metadata_sp_in_line_with {
 
 sub sp_in_line_with {
     my $self = shift;
-    my %args = @_;
-    
-    return $self->_sp_side(@_) == 0; 
+    #my %args = @_;
+
+    #  no explicit return here for speed reasons
+    $self->_sp_side(@_) == 0; 
 }
 
 
@@ -1761,7 +1765,9 @@ sub _sp_side {
     elsif ($dir > pi && $dir < Math::Trig::pi2) {
         $test = 1;
     }
-    return $test;
+
+    #  no explicit return here for speed reasons
+    $test;
 }
 
 

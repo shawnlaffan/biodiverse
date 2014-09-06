@@ -3,7 +3,7 @@ package Biodiverse::GUI::PopupObject;
 use strict;
 use warnings;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Gtk2;
 
@@ -30,3 +30,4 @@ sub set_list_model {
 
 
 1;
+

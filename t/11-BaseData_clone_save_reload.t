@@ -31,8 +31,8 @@ sub main {
     
     if (@args) {
         for my $name (@args) {
-            die "No test method test_$name\n"
-                if not my $func = (__PACKAGE__->can( 'test_' . $name ) || __PACKAGE__->can( $name ));
+            die "No test method $name\n"
+                if not my $func = (__PACKAGE__->can( 'test_' . $name ) or __PACKAGE__->can( $name ));
             $func->($bd);
         }
         done_testing;
@@ -107,7 +107,7 @@ sub test_save_and_reload {
     my $class = blessed $bd;
 
     #  need a temp file name
-    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverseXXXX', SUFFIX => $suffix);
+    my $tmp_obj = File::Temp->new (TEMPLATE => 'biodiverseXXXX', SUFFIX => ".$suffix");
     my $fname = $tmp_obj->filename;
     $tmp_obj->close;
     

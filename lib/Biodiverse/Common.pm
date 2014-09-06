@@ -33,7 +33,7 @@ use Biodiverse::Exception;
 
 require Clone;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -60,7 +60,7 @@ sub rename_object {
     my $self = shift;
     my %args = @_;
     
-    my $new_name = $args{name};
+    my $new_name = $args{name} // $args{new_name};
     my $old_name = $self->get_param ('NAME');
     
     $self->set_param (NAME => $new_name);
@@ -548,6 +548,12 @@ sub delete_cached_values {
     #warn "XXXXXXX "  . $self->get_name . "\n" if exists $self->{_cache};
 
     return;
+}
+
+sub delete_cached_value {
+    my ($self, $key) = @_;
+    no autovivification;
+    delete $self->{_cache}{$key};
 }
 
 sub clear_spatial_condition_caches {
@@ -1964,20 +1970,21 @@ sub set_precision_aa {
         $num =~ s{,}{\.};  #  replace any comma with a decimal
     }
 
-    return $num;
+    #  explicit return takes time, and this is a heavy usage sub
+    $num;
 }
 
 sub compare_lists_by_item {
     my $self = shift;
     my %args = @_;
+
     my $base_ref = $args{base_list_ref};
     my $comp_ref = $args{comp_list_ref};
-
     my $results  = $args{results_list_ref};
 
-    COMP_BY_ITEM:
+  COMP_BY_ITEM:
     foreach my $index (keys %$base_ref) {
-    #while (my ($index, $op) = each %$comparisons) {
+
         next COMP_BY_ITEM
             if    not defined $base_ref->{$index}
                or not exists  $comp_ref->{$index}

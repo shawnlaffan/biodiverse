@@ -13,7 +13,7 @@ use Biodiverse::Progress;
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -319,7 +319,7 @@ sub get_path_lengths_to_root_node {
     if ($use_path_cache) {
         my $cache   = $args{path_length_cache};
         my @el_list = keys %{$args{el_list}};
-        if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element
+        if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
             my $path = $cache->{$el_list[0]};
             return (wantarray ? %$path : $path) if $path;
         }
@@ -332,11 +332,9 @@ sub get_path_lengths_to_root_node {
     my $tree_ref   = $args{tree_ref}
       or croak "argument tree_ref is not defined\n";
 
-    #my $return_lengths = $args{return_lengths};
-
-    #create a hash of terminal nodes for the taxa present
+    # get a hash of node refs
     my $all_nodes = $tree_ref->get_node_hash;
-    
+
     #  now loop through the labels and get the path to the root node
     my %path;
     foreach my $label (sort keys %$label_list) {
@@ -345,12 +343,17 @@ sub get_path_lengths_to_root_node {
         my $current_node = $all_nodes->{$label};
 
         my $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
-        @path{keys %$sub_path} = values %$sub_path;
+        @path{keys %$sub_path} = undef;  #  assign lengths later in one pass
     }
+
+    #  Assign the lengths once each.
+    #  ~15% faster than repeatedly assigning in the slice above
+    my $len_hash = $tree_ref->get_node_length_hash;
+    @path{keys %path} = @$len_hash{keys %path};
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};
-        my @el_list = keys %{$args{el_list}};
+        my @el_list = keys %{$args{el_list}};  #  can only have one item
         $cache_h->{$el_list[0]} = \%path;
     }
 
@@ -672,7 +675,7 @@ sub _calc_pd_pe_clade_contributions {
         #  Possibly inefficient as we are not caching by node
         #  but at least the descendants are cached and perhaps that
         #  is where any slowness would come from as List::Util::sum is pretty quick
-        my $node_hash = $node_ref->get_all_descendents_and_self;
+        my $node_hash = $node_ref->get_all_descendants_and_self;
         my $wt_sum = sum @$wt_list{keys %$node_hash};
 
         #  round off to avoid spurious spatial variation.
@@ -728,6 +731,7 @@ sub calc_pe_clade_contributions {
         node_list => $args{PE_WTLIST},
         p_score   => $args{PE_WE},
         res_pfx   => 'PE_',
+        tree_ref  => $args{trimmed_tree},
     );
 }
 
@@ -1479,15 +1483,16 @@ sub get_node_range {
     my $bd = $args{basedata_ref} || $self->get_basedata_ref;
 
     my @labels   = ($node_ref->get_name);
-    my $children =  $node_ref->get_all_descendents;
+    my $children =  $node_ref->get_all_named_descendants;
 
     #  collect the set of non-internal (named) nodes
     #  Possibly should only work with terminals
     #  which would simplify things.
-    foreach my $node_ref (values %$children) {
-        next if $node_ref->is_internal_node;
-        push @labels, $node_ref->get_name;
-    }
+    #foreach my $node_ref (values %$children) {
+    #    next if $node_ref->is_internal_node;
+    #    push @labels, $node_ref->get_name;
+    #}
+    push @labels, (keys %$children);
 
     my @range = $bd->get_range_union (labels => \@labels);
 
@@ -1609,22 +1614,24 @@ sub get_trimmed_tree {
     my $terminals  = $tree->get_root_node->get_terminal_elements;  #  should use named nodes?
     my $label_hash = $lb->get_element_hash;
 
-    my $terminal_count = keys %$terminals;
-    my $label_count    = keys %$label_hash;
+    my (%tmp_combo, %tmp1, %tmp2);
+    my $b_score;
+    @tmp1{keys %$terminals}  = (1) x scalar keys %$terminals;
+    @tmp2{keys %$label_hash} = (1) x scalar keys %$label_hash;
+    %tmp_combo = %tmp1;
+    @tmp_combo{keys %tmp2} = (1) x scalar keys %tmp2;
 
-    
-    if ($label_count >= $terminal_count) {
-        my $expected_deletions = $label_count - $terminal_count;
-        #  make a copy since we do need to run the deletions
-        my %lb_hash_copy = %$label_hash;
-        delete @lb_hash_copy{keys %$terminals};
+    #  a is common to tree and basedata
+    #  b is unique to tree
+    #  c is unique to basedata
+    #  but we only need b here
+    $b_score = scalar (keys %tmp_combo)
+       - scalar (keys %tmp2);
 
-        #  are the tree terminals a subset of the basedata labels?  
-        if (keys %lb_hash_copy == $expected_deletions) {
-            say '[PD INDICES] Tree terminals are all basedata labels, no need to trim';
-            my %results = (trimmed_tree => $tree);
-            return wantarray ? %results : \%results;
-        }
+    if (!$b_score) {
+        say '[PD INDICES] Tree terminals are all basedata labels, no need to trim';
+        my %results = (trimmed_tree => $tree);
+        return wantarray ? %results : \%results;
     }
 
     #  keep only those that match the basedata object
@@ -1969,7 +1976,7 @@ sub get_metadata_calc_phylo_sorenson {
     
     my %metadata = (
         name           =>  'Phylo Sorenson',
-        type           =>  'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        type           =>  'Phylogenetic Turnover',  #  keeps it clear of the other indices in the GUI
         description    =>  "Sorenson phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
@@ -2012,7 +2019,7 @@ sub get_metadata_calc_phylo_jaccard {
 
     my %metadata = (
         name           =>  'Phylo Jaccard',
-        type           =>  'Phylogenetic Indices',
+        type           =>  'Phylogenetic Turnover',
         description    =>  "Jaccard phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
@@ -2054,7 +2061,7 @@ sub get_metadata_calc_phylo_s2 {
 
     my %metadata = (
         name           =>  'Phylo S2',
-        type           =>  'Phylogenetic Indices',
+        type           =>  'Phylogenetic Turnover',
         description    =>  "S2 phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
@@ -2097,7 +2104,7 @@ sub get_metadata_calc_phylo_abc {
     my %metadata = (
         name            =>  'Phylogenetic ABC',
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
-        type            =>  'Phylogenetic Indices',
+        type            =>  'Phylogenetic Turnover',
         pre_calc        =>  '_calc_phylo_abc_lists',
         #pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have

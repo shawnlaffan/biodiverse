@@ -13,8 +13,9 @@ use Scalar::Util qw/blessed/;
 use Time::HiRes qw /gettimeofday tv_interval time/;
 use List::Util qw /first reduce min max/;
 use List::MoreUtils qw /any natatime/;
+use Time::HiRes qw /time/;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Biodiverse::Matrix;
 use Biodiverse::Matrix::LowMem;
@@ -46,6 +47,10 @@ my $mx_class_lowmem  = 'Biodiverse::Matrix::LowMem';
 
 
 #  use the "new" sub from Tree.
+
+sub get_default_linkage {
+    return $PARAMS{DEFAULT_LINKAGE};
+}
 
 sub get_default_cluster_index {
     return $PARAMS{DEFAULT_CLUSTER_INDEX};
@@ -315,7 +320,7 @@ sub build_matrices {
     #  now we loop over the conditions and initialise the matrices
     #  kept separate from previous loop for cleaner default matrix generation
     my $mx_class = $self->get_param('MATRIX_CLASS') // $mx_class_default;
-    my %mx_common_args = (BASEDATA_REF => $bd,);
+    my %mx_common_args = (BASEDATA_REF => $bd, INDEX => $index);
     if ($self->exists_param ('MATRIX_INDEX_PRECISION')) {  #  undef is OK, but must be explicitly set
         my $mx_index_precision = $self->get_param('MATRIX_INDEX_PRECISION');
         $mx_common_args{VAL_INDEX_PRECISION} = $mx_index_precision;
@@ -324,7 +329,7 @@ sub build_matrices {
     my @matrices;
     my $i = 0;
     foreach my $condition (@spatial_conditions) {
-        my $mx_name = $name . " Matrix_$i";
+        my $mx_name = $name . " $index Matrix_$i";
 
         my $already_there = $bd->get_matrix_outputs;
         if (exists $already_there->{$mx_name}) {
@@ -339,6 +344,7 @@ sub build_matrices {
             JOIN_CHAR    => $bd->get_param('JOIN_CHAR'),
             NAME         => $mx_name,
             %mx_common_args,
+            SPATIAL_CONDITION => $condition->get_conditions_unparsed,
         );
         $i ++;
     }
@@ -418,6 +424,9 @@ sub build_matrices {
     #print "[CLUSTER] Progress (% of $to_do elements):     ";
     my @processed_elements;
 
+    my $no_progress;
+    my $build_start_time = time();
+
     #  Use $sp for the groups so any def query will have an effect
     BY_ELEMENT:
     foreach my $element1 (sort @elements_to_calc) {
@@ -453,6 +462,7 @@ sub build_matrices {
                                 ? [$matrix, $shadow_matrix]
                                 : [$matrix];
 
+
             #  this actually takes most of the args from params,
             #  but setting explicitly might save micro-seconds of time
             my $x = $self->build_matrix_elements (
@@ -467,9 +477,19 @@ sub build_matrices {
                 spatial_object     => $sp,
                 indices_object     => $indices_object,
                 processed_elements => \@processed_elements,
+                no_progress        => $no_progress,
             );
 
             $valid_count += $x;
+            
+            #  do we need the progress dialogue?
+            my $build_end_time = time();
+            if (!$no_progress &&
+                ($build_end_time - $build_start_time
+                 < 3 * $Biodiverse::Config::progress_update_interval)) {
+                $no_progress = 1;
+            }
+            $build_start_time= $build_end_time;
         }
 
         push @processed_elements, $element1;
@@ -568,7 +588,7 @@ sub build_matrix_elements {
     #print "Elements to calc: ", (scalar @$element_list2), "\n";
     my $progress;
     my $to_do = scalar @$element_list2;
-    if ($to_do > 100) {  #  arbitrary threshold
+    if ($to_do > 100 && !$args{no_progress}) {  #  arbitrary threshold
         $progress = Biodiverse::Progress->new (text => 'Processing row', gui_only => 1);
     }
     my $n_matrices = scalar @$matrices;
@@ -781,6 +801,14 @@ sub get_orig_matrices {
     return wantarray ? @$matrices : $matrices;
 }
 
+sub get_orig_shadow_matrix {
+    my $self = shift;
+
+    my $matrix = $self->get_param ('ORIGINAL_SHADOW_MATRIX');
+
+    return $matrix;
+}
+
 sub get_matrices_ref {
     my $self = shift;
     #my %args = @_;
@@ -873,11 +901,6 @@ sub get_most_similar_matrix_value {
     return $matrix->$sub;
 }
 
-sub get_default_linkage {
-    my $self = shift;
-
-    return $PARAMS{DEFAULT_LINKAGE};
-}
 
 sub get_default_objective_function {
     return 'get_min_value';
@@ -913,13 +936,8 @@ sub cluster_matrix_elements {
         $self->set_param (ANALYSIS_ARGS => \%args_sub);
     }
 
-    #  set the option for the linkage rule - default is specified in the object params
-    my $linkage_function = $self->get_param ('LINKAGE_FUNCTION')
-                            || $args{linkage_function}
-                            || $self->get_default_linkage;
-    $self->set_param (LINKAGE_FUNCTION => $linkage_function);
-
     my $objective_function = $self->get_objective_function(%args);
+    my $linkage_function   = $self->get_param ('LINKAGE_FUNCTION');
 
     my $rand = $self->initialise_rand (
         seed  => $args{prng_seed} || undef,
@@ -933,6 +951,7 @@ sub cluster_matrix_elements {
     my $max_poss_value = $self->get_param('MAX_POSS_INDEX_VALUE');
 
     my $matrix_count = $self->get_matrix_count;
+
     say "[CLUSTER] CLUSTERING USING $linkage_function, matrix iter $mx_iter of ",
         ($self->get_matrix_count - 1);
 
@@ -1263,7 +1282,7 @@ sub setup_tie_breaker {
 
     my @invalid_calcs = $indices_object->get_invalid_calculations;
     if (@invalid_calcs) {
-        croak  "Unable to run the following caluclations needed for the tie breakers.\n"
+        croak  "Unable to run the following calculations needed for the tie breakers.\n"
              . "Check that all needed arguments are being passed (e.g. trees, matrices):\n"
              . join (' ', @invalid_calcs)
              . "\n";
@@ -1346,6 +1365,82 @@ sub override_cached_spatial_calculations_arg {
     return $spatial_calculations;
 }
 
+sub setup_linkage_function {
+    my $self = shift;
+    my %args = @_;
+
+    #  set the option for the linkage rule - default is specified in the object params
+    my $linkage_function = $self->get_param ('LINKAGE_FUNCTION')
+                            || $args{linkage_function}
+                            || $self->get_default_linkage;
+
+    my @linkage_functions = $self->get_linkage_functions;
+    my $valid = grep {$linkage_function eq $_} @linkage_functions;
+    
+    my $class = blessed $self;
+    croak "Linkage function $linkage_function is not valid for an object of type $class\n"
+      if !$valid;
+
+    $self->set_param (LINKAGE_FUNCTION => $linkage_function);
+
+    return;
+}
+
+sub get_outputs_with_same_index_and_spatial_conditions {
+    my $self = shift;
+    my %args = @_;
+
+    my $bd  = $self->get_basedata_ref;
+    my @comparable = $bd->get_outputs_with_same_spatial_conditions (compare_with => $self);
+
+    return if !scalar @comparable;
+    
+    no autovivification;
+
+    my $cluster_index = $self->get_param ('CLUSTER_INDEX');
+    my $analysis_args = $self->get_param ('ANALYSIS_ARGS');
+    my $tree_ref      = $analysis_args->{tree_ref} // '';
+    my $matrix_ref    = $analysis_args->{matrix_ref} // '';
+
+    #  Incomplete - need to get dependencies as well in case they are not declared,
+    #  but for now it will work as we won't get this far if they are not specified
+    #  Should also check optional args if we ever implement them
+    #  This should also all be encapsulated in Indices.pm
+    my $indices       = $self->get_indices_object_for_matrix_and_clustering;
+    my $valid_calcs   = $indices->get_valid_calculations_to_run;
+    my %required_args = $indices->get_required_args (calculations => $valid_calcs);
+    my %required;
+    foreach my $calc (%required_args) {
+        my $r = $required_args{$calc};
+        @required{keys %$r} = values %$r;
+    }
+
+
+  COMP:
+    foreach my $comp (@comparable) {
+        my $comp_cluster_index = $comp->get_param ('CLUSTER_INDEX');
+
+        next COMP if !defined $comp_cluster_index;
+        next COMP if $comp_cluster_index ne $cluster_index;
+
+        #  now we need to check required args and the like
+        #  currently blunt as we should only check args required by the indices objects
+        my $comp_analysis_args = $comp->get_param ('ANALYSIS_ARGS');
+        foreach my $arg_key (keys %required) {
+            next COMP if !exists $comp_analysis_args->{$arg_key}
+                      || !exists $analysis_args->{$arg_key};
+            my $c_val = $comp_analysis_args->{$arg_key} // '';
+            my $a_val = $analysis_args->{$arg_key} // '';
+            next COMP if $a_val ne $c_val;
+        }
+
+        return $comp;
+    }
+
+    return;    
+}
+
+
 sub run_analysis {
     my $self = shift;
     return $self->cluster(@_);
@@ -1392,6 +1487,9 @@ sub cluster {
 
         return 1;
     }
+    
+    #  check the linkage function is valid
+    $self->setup_linkage_function (%args);
 
     #  make sure we do this before the matrices are built so we fail early if needed
     $self->setup_tie_breaker (%args);
@@ -1433,12 +1531,11 @@ sub cluster {
 
         if (!$self->get_matrix_count) {
             #  can we get them from another output?
-            my $bd = $self->get_basedata_ref;
-            my $ref = $bd->get_outputs_with_same_conditions (compare_with => $self);
+            my $ref = $self->get_outputs_with_same_index_and_spatial_conditions (compare_with => $self);
             if ($ref && !$args{build_matrices_only} && !$args{file_handles}) {
 
-                my $other_original_matrices = $ref->get_param('ORIGINAL_MATRICES');
-                my $other_orig_shadow_mx    = $self->get_param('ORIGINAL_SHADOW_MATRIX');
+                my $other_original_matrices = $ref->get_orig_matrices;
+                my $other_orig_shadow_mx    = $ref->get_orig_shadow_matrix;
                 #  if the shadow matrix is empty then the matrices were consumed in clustering, so don't copy
                 if (   eval {$other_orig_shadow_mx->get_element_count}
                     || eval {$other_original_matrices->[0]->get_element_count}) {
@@ -1609,6 +1706,12 @@ sub cluster {
     #  the root node is the last one we created
     $self->{TREE} = $root_node;
 
+    # clean up elements from no_clone matrices as region growers can have leftovers
+    if ($args{no_clone_matrices}) {
+        foreach my $mx (@{$self->get_matrices_ref}) {
+            $mx->delete_all_elements;
+        }
+    }
     #  clear all our refs to the matrix
     #  it should be empty anyway, since we don't do partial (yet)
     $self->set_param(MATRIX_REF => undef);
@@ -1954,7 +2057,7 @@ sub run_linkage {  #  rebuild the similarity matrices using the linkage function
     croak "one of the nodes not specified\n"
       if ! (defined $node1 and defined $node2 and defined $new_node);
 
-    my $linkage_function = $args{linkage_function} || $PARAMS{DEFAULT_LINKAGE};
+    my $linkage_function = $args{linkage_function} || $self->get_default_linkage;
 
     my $shadow_matrix   = $self->get_shadow_matrix;
     my $matrix_array    = $self->get_matrices_ref;

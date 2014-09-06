@@ -35,7 +35,7 @@ use Biodiverse::Indices;
 use Geo::GDAL;
 
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use parent qw {Biodiverse::Common};
 
@@ -167,6 +167,8 @@ sub rename {
     my $self = shift;
     my %args = @_;
     
+    $args{name} //= $args{new_name};
+
     croak "[BASEDATA] rename: argument name not supplied\n"
         if not defined $args{name};
 
@@ -182,9 +184,9 @@ sub rename_output {
     my $self = shift;
     my %args = @_;
     
-    my $object = $args{output};
+    my $object   = $args{output};
     my $new_name = $args{new_name};
-    my $name = $object->get_param ('NAME');
+    my $name     = $object->get_param ('NAME');
     my $hash_ref;
     
     if ((blessed $object) =~ /Spatial/) {
@@ -219,6 +221,12 @@ sub rename_output {
         delete $hash_ref->{$name};
         
         $object->rename (new_name => $new_name);
+    }
+    else {
+        warn "[BASEDATA] Cannot locate object with name $name\n"
+            . 'Currently have '
+            . join (' ', sort keys %$hash_ref)
+            . "\n";
     }
     
     $object = undef;
@@ -549,7 +557,7 @@ sub get_metadata_import_data_common {
             },
             { name       => 'skip_lines_with_undef_groups',
               label_text => 'Skip lines with undef groups?',
-              tooltip    => 'Turn off if some records have undefined/null '
+              tooltip    => 'Turn off if some records have undefined/blank/NA '
                           . 'group values and should be skipped.  '
                           . 'Import will otherwise fail if they are found.',
               type       => 'boolean',
@@ -990,7 +998,7 @@ sub import_data {
                 if ($cell_sizes[$i] >= 0) {
                     next BYLINE
                       if $skip_lines_with_undef_groups
-                         and not defined $coord;
+                         && (!defined $coord || $coord eq 'NA');
 
                     if ($cell_is_lat_array[$i]) {
                         my $lat_args = {
@@ -1110,6 +1118,8 @@ sub import_data {
           ADD_ELEMENTS:
             while (my ($el, $count) = each %elements) {
                 if (defined $count) {
+                    next ADD_ELEMENTS if $count eq 'NA';
+
                     next ADD_ELEMENTS
                       if $data_in_matrix_form
                          && $count eq $EMPTY_STRING;
@@ -1502,7 +1512,7 @@ sub import_data_shapefile {
 
         # open as shapefile
         my $fnamebase = $file->stringify;
-        $fnamebase =~ s/\.[^.]*//;
+        #$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
         my $shapefile = Geo::ShapeFile->new($fnamebase);
         #say "have $shapefile";
 
@@ -1516,6 +1526,13 @@ sub import_data_shapefile {
 
         my $shape_count = $shapefile->shapes();
         say "have $shape_count shapes";
+        
+        #  some validation
+        my %db_rec1 = $shapefile->get_dbf_record(1);
+        foreach my $key (@label_field_names) {
+            croak "Shapefile $file does not have a field called $key\n"
+              if !exists $db_rec1{$key};
+        }
 
         # iterate over shapes
       SHAPE:
@@ -1801,7 +1818,9 @@ sub assign_element_properties {
         my %props = $prop_obj->get_element_properties (element => $element);
 
         #  but don't add these ones
-        delete @props{qw /INCLUDE EXCLUDE/}; #/
+        delete @props{qw /INCLUDE EXCLUDE REMAP/}; #/
+
+        next ELEMENT_PROPS if !scalar keys %props;
 
         $gp_lb_ref->add_to_lists (
             element    => $element,
@@ -2595,9 +2614,28 @@ sub delete_groups {
 }
 
 
+sub delete_label {
+    my $self = shift;
+    my %args = @_;
+    
+    my $label = $args{label} // croak "Argument 'label' not defined\n";
+    
+    return $self->delete_element (type => 'LABELS', element => $label);
+}
+
+sub delete_group {
+    my $self = shift;
+    my %args = @_;
+    
+    my $group = $args{group} // croak "Argument 'group' not defined\n";
+    
+    return $self->delete_element (type => 'GROUPS', element => $group);
+}
+
+
 
 #  delete all occurrences of this label (or group) from the LABELS and GROUPS sub hashes
-sub delete_element {  
+sub delete_element {
     my $self = shift;
     my %args = @_;
 
@@ -2677,13 +2715,13 @@ sub delete_sub_element {
     my $delete_empty_gps = $args{delete_empty_groups} // 1;
     my $delete_empty_lbs = $args{delete_empty_labels} // 1;
     
-    if ($delete_empty_gps && $groups_ref->get_variety (element => $group) == 0) {
+    if ($delete_empty_gps && !$groups_ref->get_variety (element => $group)) {
         $self->delete_element (
             type => 'GROUPS',
             element => $group,
         );
     }
-    if ($delete_empty_lbs && $labels_ref->get_variety (element => $label) == 0) {
+    if ($delete_empty_lbs && !$labels_ref->get_variety (element => $label)) {
         $self->delete_element (
             type => 'LABELS',
             element => $label,
@@ -2781,9 +2819,10 @@ sub get_range_intersection {
     my $elements = {};
     foreach my $label (@$labels) {
         next if not $self->exists_label (label => $label);  #  skip if it does not exist
-        my $res = $self->calc_abc (label_hash1 => $elements,
-                                     label_hash2 => {$self->get_groups_with_label_as_hash (label => $label)}
-                                    );
+        my $res = $self->calc_abc (
+            label_hash1 => $elements,
+            label_hash2 => {$self->get_groups_with_label_as_hash (label => $label)}
+        );
         #  delete those that are not shared (label_hash1 and label_hash2)
         my @tmp = delete @{$res->{label_hash_all}}{keys %{$res->{label_hash1}}};
         @tmp = delete @{$res->{label_hash_all}}{keys %{$res->{label_hash2}}};
@@ -2801,23 +2840,24 @@ sub get_range_union {
     my $self = shift;
     my %args = @_;
 
-    my $labels = $args{labels};
-    my $lref = ref $labels;
+    my $labels = $args{labels} // croak "argument labels not specified\n";
 
-    croak "argument labels not specified\n" if not $labels;
+    my $lref = reftype $labels;
+
     croak "argument labels not an array or hash ref"
-      if not $lref =~ /ARRAY|HASH/;
+      if not $lref =~ /^(?:ARRAY|HASH)/;
 
-    if ($lref =~ /HASH/) {
+    if ($lref eq 'HASH') {
         $labels = [keys %$labels];
     }
 
     #  now loop through the labels and get the elements they occur in
     my %shared_elements;
+  LABEL:
     foreach my $label (@$labels) {
-        next if not $self->exists_label (label => $label);  #  skip if it does not exist
+        #next if not $self->exists_label (label => $label);  #  skip if it does not exist - get_groups_with_label_as_hash has same effect
         my $elements_now = $self->get_groups_with_label_as_hash (label => $label);
-        next if (scalar keys %$elements_now) == 0;  #  empty hash - must be no groups with this label
+        next LABEL if !scalar keys %$elements_now;  #  empty hash - must be no groups with this label
         #  add these elements as a hash slice
         @shared_elements{keys %$elements_now} = values %$elements_now;
     }
@@ -2871,9 +2911,7 @@ sub get_groups_with_label_as_hash {  #  get a hash of the groups that contain $l
     #  now we delete those keys we don't want.  Twisted, but should work.
     delete @results{keys %sub_results};
 
-    return wantarray
-            ? %results
-            : \%results;
+    return wantarray ? %results : \%results;
 }
 
 #  get the complement of the labels in a group
@@ -2891,12 +2929,13 @@ sub get_groups_without_label_as_hash {
     my %args = @_;
 
     croak "Label not specified\n"
-        if ! defined $args{label};
+      if ! defined $args{label};
 
     my $label_gps = $self->get_labels_ref->get_sub_element_hash (element => $args{label});
 
-    my %groups = $self->get_groups_ref->get_element_hash;  #  make a copy
+    my $gps = $self->get_groups_ref->get_element_hash;
 
+    my %groups = %$gps;  #  make a copy
     delete @groups{keys %$label_gps};
 
     return wantarray ? %groups : \%groups;
@@ -2964,7 +3003,7 @@ sub exists_group {
     my $self = shift;
     my %args = @_;
     return $self->get_groups_ref->exists_element (
-        element => defined $args{group} ? $args{group} : $args{element}
+        element => ($args{group} // $args{element})
     );
 }
 
@@ -2972,8 +3011,22 @@ sub exists_label {
     my $self = shift;
     my %args = @_;
     return $self->get_labels_ref->exists_element (
-        element => defined $args{label} ? $args{label} : $args{element}
+        element => ($args{label} // $args{element})
     );
+}
+
+sub exists_label_in_group {
+    my $self = shift;
+    my %args = @_;
+
+    $self->get_groups_ref->exists_sub_element_aa ($args{group}, $args{label});
+}
+
+sub exists_group_with_label {
+    my $self = shift;
+    my %args = @_;
+
+    $self->get_labels_ref->exists_sub_element_aa ($args{label}, $args{group});
 }
 
 sub write_table {  #  still needed?
@@ -2998,14 +3051,14 @@ sub write_sub_elements_csv {
     return;
 }
 
+#  heavy usage sub, so bare-bones code
 sub get_groups_ref {
-    my $self = shift;
-    return $self->{GROUPS};
+    $_[0]->{GROUPS};
 }
 
+#  heavy usage sub, so bare-bones code
 sub get_labels_ref {
-    my $self = shift;
-    return $self->{LABELS};
+    $_[0]->{LABELS};
 }
 
 sub build_spatial_index {  #  builds GROUPS, not LABELS
@@ -3368,7 +3421,6 @@ sub add_spatial_output {
             if $class ne $obj_class;
         
         $object->set_param (BASEDATA_REF => $self);
-        $object->weaken_basedata_ref;
     }
     else {  #  create a new object
         $object = $class->new (
@@ -3379,6 +3431,7 @@ sub add_spatial_output {
             BASEDATA_REF => $self,
         );
     }
+    $object->weaken_basedata_ref;
 
     $self->{SPATIAL_OUTPUTS}{$name} = $object;  #  add or replace (take care with the replace)
 
@@ -3827,7 +3880,7 @@ sub get_neighbours_as_array {
 #  Modified version of get_spatial_outputs_with_same_nbrs.
 #  Useful for faster nbr searching for spatial analyses, and matrix building for cluster analyses
 #  It can eventually supplant that sub.
-sub get_outputs_with_same_conditions {
+sub get_outputs_with_same_spatial_conditions {
     my $self = shift;
     my %args = @_;
 
@@ -3844,9 +3897,9 @@ sub get_outputs_with_same_conditions {
         $def_conditions = $def_query->get_conditions_unparsed();
     }
 
-    my $cluster_index = $compare->get_param ('CLUSTER_INDEX');
-
     my @outputs = $self->get_output_refs_of_class (class => $compare);
+
+    my @comparable_outputs;
 
     LOOP_OUTPUTS:
     foreach my $output (@outputs) {
@@ -3881,14 +3934,11 @@ sub get_outputs_with_same_conditions {
             $i++;
         }
 
-        #  if we are a cluster (or output with a cluster index, like a RegionGrower)
-        next LOOP_OUTPUTS if defined $cluster_index && $cluster_index ne $output->get_param ('CLUSTER_INDEX');
-
         #  if we get this far then we have a match
-        return $output;  #  we want to keep this one
+        push @comparable_outputs, $output;  #  we want to keep this one
     }
 
-    return;
+    return wantarray ? @comparable_outputs : \@comparable_outputs;
 }
 
 sub has_empty_groups {

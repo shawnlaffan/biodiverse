@@ -10,16 +10,17 @@ use FindBin qw/$Bin/;
 use rlib;
 use List::Util qw /first/;
 
-use Test::More;
-
 use English qw / -no_match_vars /;
 local $| = 1;
 
 use Data::Section::Simple qw(get_data_section);
 
-use Test::More; # tests => 2;
+use Test::Most; # tests => 2;
 use Test::Exception;
 
+#die_on_fail();
+
+use Biodiverse::Config;
 use Biodiverse::TestHelpers qw /:cluster :tree/;
 use Biodiverse::Cluster;
 
@@ -51,7 +52,7 @@ sub main {
         return 0;
     }
 
-    foreach my $sub (@subs) {
+    foreach my $sub (sort @subs) {
         no strict 'refs';
         &{$sub};
     }
@@ -60,6 +61,30 @@ sub main {
     return 0;
 }
 
+
+sub test_exception_for_invalid_linkage {
+    my $data = get_cluster_mini_data();
+    my $bd = get_basedata_object (data => $data, CELL_SIZES => [1,1]);
+    
+    my ($success, $e);
+
+    my $cl = $bd->add_cluster_output (name => 'test invalid linkage', type => 'Biodiverse::RegionGrower');
+    $success = eval {
+        $cl->run_analysis (linkage_function => 'link_average');
+        1;
+    };
+    $e = $@;
+    ok ($e, 'exception thrown when invalid linkage function passed');
+    
+    my $cl2 = $bd->add_cluster_output (name => 'test undef linkage', type => 'Biodiverse::RegionGrower');
+    $success = eval {
+        $cl2->run_analysis ();
+        1;
+    };
+    $e = $@;
+    ok (!$e, 'no exception thrown when no linkage function passed');
+    
+}
 
 #  make sure we get the same result with the same prng across two runs
 sub test_same_results_given_same_prng_seed {
@@ -96,6 +121,7 @@ sub test_matrix_recycling {
         index => 'RICHNESS_ALL',
         type  => 'Biodiverse::RegionGrower',
         objective_function => 'get_max_value',
+        prng_seed   => $default_prng_seed,
     );
 
     cluster_test_matrix_recycling (

@@ -7,7 +7,7 @@ use Carp;
 
 use FindBin qw/$Bin/;
 use rlib;
-use List::Util qw /first/;
+use List::Util qw /first sum/;
 
 use Test::More;
 
@@ -19,7 +19,7 @@ use Data::Section::Simple qw(get_data_section);
 use Test::More; # tests => 2;
 use Test::Exception;
 
-use Biodiverse::TestHelpers qw /:cluster/;
+use Biodiverse::TestHelpers qw /:cluster :basedata :tree/;
 use Biodiverse::Cluster;
 
 my $default_prng_seed = 2345;
@@ -84,6 +84,30 @@ sub _chklk {
 
 }
 
+#  should all be equal for 
+sub test_max_path_length {
+    my $tree1 = shift || get_site_data_as_tree();
+    
+    my $root_node = $tree1->get_root_node;
+    my $max_path_length = $root_node->get_longest_path_length_to_terminals ();
+
+    my $exp = 0.963138848558473;
+    is ($max_path_length, $exp, 'max path length correct for ultrametric tree, root node');
+
+    subtest 'inner node max path lengths correct for ultrametric tree' => sub {
+        #  the length for the other nodes should be the difference
+        my $node_hash = $tree1->get_node_hash;
+        foreach my $node_name (sort keys %$node_hash) {
+            my $node_ref = $node_hash->{$node_name};
+            my $max_to_terminals = $node_ref->get_longest_path_length_to_terminals ();
+            my $path_lengths_to_root = $node_ref->get_path_lengths_to_root_node;
+            my $root_path_len    = sum (0, values %$path_lengths_to_root);
+            my $exp_inner = $exp - $root_path_len;
+            is ($max_path_length, $exp, 'node ' . $node_name);
+        }
+    };
+}
+
 
 sub test_trim_tree {
     my $tree1 = shift || get_site_data_as_tree();
@@ -128,6 +152,37 @@ sub test_trim_tree {
     check_trimmings($tree3, \@exp_deleted, \@keep_targets, 'trim/keep');
     $node_count = $tree3->get_node_count;
     is ($node_count, $start_node_count - 5, 'trim/keep: node count is as expected');
+
+}
+
+sub test_trim_tree_after_adding_extras {
+    my $tree1 = shift || get_tree_object_from_sample_data();
+    my $bd    = shift || get_basedata_object_from_site_data(CELL_SIZES => [200000, 200000]);
+
+    my $tree2 = $tree1->clone;
+    my $root = $tree2->get_root_node;
+    use Biodiverse::TreeNode;
+    my $node1 = Biodiverse::TreeNode-> new (
+        name   => 'EXTRA_NODE 1',
+        length => 1,
+    );
+    my $node2 = Biodiverse::TreeNode-> new (
+        name   => 'EXTRA_NODE 2',
+        length => 1,
+    );
+    $root->add_children (children => [$node1, $node2]);
+    #  add it to the Biodiverse::Tree object as well so the trimming works
+    $tree2->add_node (node_ref => $node1);
+    $tree2->add_node (node_ref => $node2);
+
+    $tree2->trim (keep => scalar $bd->get_labels);
+    my $name = $tree2->get_param('NAME') // 'noname';
+    $tree2->rename(new_name => $name . ' trimmed');
+
+    ok (
+        $tree1->trees_are_same (comparison => $tree2),
+        'trimmed and original tree same after trimming extra added nodes'
+    );
 
 }
 

@@ -8,7 +8,7 @@ use File::BOM qw /:subs/;
 
 use Biodiverse::Exception;
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use parent qw /Biodiverse::BaseStruct Biodiverse::Common/; #/
 
@@ -309,8 +309,8 @@ sub import_data {
         REMAP:
         while (exists $props->{REMAP} and defined $props->{REMAP}) {
             if (exists $r_hash{$element} or $element eq $props->{REMAP}) {
-                warn "Circular remap for $element_orig\n";
-                last;  #  avoid circular remaps
+                warn "Circular remap for $element_orig via path " . join (' ', @remap_history) . "\n";
+                last REMAP;  #  avoid circular remaps
             }
             $r_hash{$element}++;
 
@@ -358,9 +358,11 @@ sub get_element_properties {
 
     #  remap the element name if need be
     my $props = $self->get_list_ref (element => $element, list => 'PROPERTIES');
-    my $remap = $self->get_element_remapped (@_);
+    my $remap = $self->get_element_remapped (%args);
     if (defined $remap) {
-        $props = $self->get_list_ref (element => $remap, list => 'PROPERTIES');
+        $props = $self->exists_element (element => $remap)
+            ? $self->get_list_ref (element => $remap, list => 'PROPERTIES')
+            : {};
     }
 
     return wantarray ? %$props : $props;

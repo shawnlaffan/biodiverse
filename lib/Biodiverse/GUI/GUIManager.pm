@@ -6,7 +6,7 @@ use 5.010;
 
 #use Data::Structure::Util qw /has_circular_ref get_refs/; #  hunting for circular refs
 
-our $VERSION = '0.99_001';
+our $VERSION = '0.99_004';
 
 use Data::Dumper;
 #use Data::DumpXML::Parser;
@@ -247,7 +247,7 @@ sub progress_destroy_callback {
 
     say "progress_destroy_callback";
     # call destroy on each child object (?) (need to record each child obj)
-    foreach my $dialog (values $self_gui->{progress_bars}->{dialog_objects}) {
+    foreach my $dialog (values %{$self_gui->{progress_bars}->{dialog_objects}}) {
         $dialog->end_dialog();
     }
 

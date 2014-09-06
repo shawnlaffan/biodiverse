@@ -42,15 +42,11 @@ my @calcs = qw/
     calc_pe_clade_loss_ancestral
     calc_pe_lists
     calc_pe_single
-    calc_phylo_abc
     calc_phylo_aed
     calc_phylo_aed_t
     calc_phylo_aed_t_wtlists
     calc_phylo_corrected_weighted_endemism
     calc_phylo_corrected_weighted_rarity
-    calc_phylo_jaccard
-    calc_phylo_s2
-    calc_phylo_sorenson
     calc_taxonomic_distinctness
     calc_taxonomic_distinctness_binary
 /;
@@ -246,8 +242,8 @@ sub get_pe_check_hashes {
         );
         foreach my $idx_whole (sort keys %$scalar_indices_to_check) {
             my $idx_central = $scalar_indices_to_check->{$idx_whole};
-            $sp_res_w{$elt}{$idx_whole} = 0 + sprintf '%.13f', $results_list->{$idx_whole};
-            $sp_res_c{$elt}{$idx_whole} = 0 + sprintf '%.13f', $results_list->{$idx_central};
+            $sp_res_w{$elt}{$idx_whole} = 0 + sprintf '%.12f', $results_list->{$idx_whole};
+            $sp_res_c{$elt}{$idx_whole} = 0 + sprintf '%.12f', $results_list->{$idx_central};
         }
 
         foreach my $idx_whole (sort keys %$list_indices_to_check) {
@@ -413,19 +409,33 @@ sub test_extra_labels_in_bd {
     
 }
 
+
 #  check we trim the tree properly
 sub test_pe_with_extra_nodes_in_tree {
     my $cb = sub {
         my %args = @_;
         my $tree = $args{tree_ref};
         my $root = $tree->get_root_node;
-        $root->add_children (children => [qw /node1 node2/]);
+        use Biodiverse::TreeNode;
+        my $node1 = Biodiverse::TreeNode-> new (
+            name   => 'EXTRA_NODE 1',
+            length => 1,
+        );
+        my $node2 = Biodiverse::TreeNode-> new (
+            name   => 'EXTRA_NODE 2',
+            length => 1,
+        );
+        $root->add_children (children => [$node1, $node2]);
+        #  add it to the Biodiverse::Tree object as well so the trimming works
+        $tree->add_node (node_ref => $node1);
+        $tree->add_node (node_ref => $node2);
     };
 
     my @calcs_to_test = qw/
         calc_pe_clade_contributions
         calc_pe_lists
         calc_pe_single
+        calc_pe
     /;
 
     run_indices_test1 (
@@ -1235,8 +1245,6 @@ __DATA__
         'Genus:sp30' => '0.020703933747412',
         'Genus:sp5'  => '0.06'
     },
-    PHYLO_A        => '1.4927692308',
-    PHYLO_ABC      => '9.5566534823',
     PHYLO_AED_LIST => {
         'Genus:sp1'  => '0.0107499482131097',
         'Genus:sp10' => '0.00545225560494617',
@@ -1286,8 +1294,6 @@ __DATA__
         'Genus:sp30' => '0.00362010571355224',
         'Genus:sp5'  => '0.0127818802754979'
     },
-    PHYLO_B       => '0',
-    PHYLO_C       => '8.0638842515',
     PHYLO_ED_LIST => {
         'Genus:sp1'  => '0.678240495563069',
         'Genus:sp10' => '0.80762333894188',
@@ -1320,7 +1326,6 @@ __DATA__
         'Genus:sp30' => '0.506327788030815',
         'Genus:sp5'  => '0.677086839428004'
     },
-    PHYLO_JACCARD              => '0.84379791173084',
     PHYLO_LABELS_NOT_ON_TREE   => {},
     PHYLO_LABELS_NOT_ON_TREE_N => 0,
     PHYLO_LABELS_NOT_ON_TREE_P => 0,
@@ -1342,8 +1347,6 @@ __DATA__
     },
     PHYLO_LABELS_ON_TREE_COUNT => 14,
     PHYLO_RARITY_CWR           => '0.144409172195734',
-    PHYLO_S2                   => 0,
-    PHYLO_SORENSON             => '0.729801407809261',
     TDB_DENOMINATOR            => 182,
     TDB_DISTINCTNESS           => '0.385156952955119',
     TDB_NUMERATOR              => '70.0985654378316',

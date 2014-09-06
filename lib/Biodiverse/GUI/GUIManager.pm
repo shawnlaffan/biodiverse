@@ -238,6 +238,9 @@ sub clear_progress_entry {
         ) {
         $self->{progress_bars}->{window}->hide;
     }
+    else {
+        $self->{progress_bars}->{window}->resize(1,1);
+    }
 }
 
 # called when window closed, try to stop active process?

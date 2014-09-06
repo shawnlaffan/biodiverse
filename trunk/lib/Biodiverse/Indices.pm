@@ -127,11 +127,10 @@ sub get_calculations {
 
     my $list = Class::Inspector->methods (blessed $self);
 
-    foreach my $method (@$list) {
-        next if $method !~ /^calc_/;
-        next if $method =~ /calc_abc\d?$/;
-        my $ref = $self->get_metadata (sub => $method);
-        push @{$calculations{$ref->get_type}}, $method;
+    foreach my $method (grep {$_ =~ /^calc_/} @$list) {
+        next if $method =~ /calc_abc\d?$/;  #  skip calc_abc1,2&3
+        my $metadata = $self->get_metadata (sub => $method);
+        push @{$calculations{$metadata->get_type}}, $method;
     }
 
     return wantarray ? %calculations : \%calculations;

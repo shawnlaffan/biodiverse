@@ -824,14 +824,22 @@ sub run_indices_test1 {
     my $indices = Biodiverse::Indices->new(BASEDATA_REF => $bd);
 
     if ($calc_topic_to_test) {
-        my $expected_calcs_to_test = $indices->get_calculations->{$calc_topic_to_test};
+        if (!ref $calc_topic_to_test) {
+            $calc_topic_to_test = [$calc_topic_to_test];
+        }
+        my @expected_calcs_to_test;
+        foreach my $topic (@$calc_topic_to_test) {
+            my $calcs = $indices->get_calculations->{$topic};
+            push @expected_calcs_to_test, @$calcs;
+        }
 
         subtest 'Correct calculations are being tested' => sub {
             compare_arr_vals (
                 arr_got => $calcs_to_test,
-                arr_exp => $expected_calcs_to_test
-            )
+                arr_exp => \@expected_calcs_to_test,
+            );
         };
+        
     }
 
     my %elements = (

@@ -201,10 +201,13 @@ sub get_iconfile {
 #  keep the console open if we have a failure
 END {
     if ($?) {
-        say "\n\n=====  Program terminated abnormally.  ====\n\n"
-            . 'Press enter to continue.';
+        say "\n\n=====  Program terminated abnormally.  ====\n\n";
+        say 'Press any key to continue.';
         <STDIN>;
     }
+    #else {
+        #$gui->destroy;  #  need to close the gui if we stay open always
+    #}
 }
 
 

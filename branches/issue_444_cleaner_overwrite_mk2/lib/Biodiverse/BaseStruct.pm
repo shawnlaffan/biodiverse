@@ -25,7 +25,7 @@ use POSIX qw /fmod/;
 use Time::localtime;
 use Geo::Shapefile::Writer;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 my $EMPTY_STRING = q{};
 
@@ -812,7 +812,7 @@ sub export_shapefile {
             );
 
             # write a separate shape for each label
-            foreach my $key (keys %list_data) {
+            foreach my $key (sort keys %list_data) {
                 $shp_writer->add_shape(
                     $shape,
                     {
@@ -2206,6 +2206,10 @@ sub to_tree {
             my $node_name = $self->list2csv (
                 csv_object  => $csv_obj,
                 list        => [@components[0..$i]],
+            );
+            $node_name = $self->dequote_element (
+                element    => $node_name,
+                quote_char => $quotes,
             );
 
             my $parent_name = $i ? $prev_names[$i-1] : undef;  #  no parent if at highest level

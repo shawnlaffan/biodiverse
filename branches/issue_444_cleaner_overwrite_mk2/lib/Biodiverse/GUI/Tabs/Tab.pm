@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use 5.010;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use List::Util qw/min max/;
 use Gtk2;
@@ -213,7 +213,7 @@ sub hotkey_handler {
     # stop recursion into on_run if shortcut triggered during processing
     #   (this happens because progress-dialogs pump events..)
 
-    return 1 if ($handler_entered == 1);
+    return 1 if $handler_entered == 1;
 
     $handler_entered = 1;
 
@@ -272,11 +272,35 @@ sub hotkey_handler {
 
 sub on_run {} # default for tabs that don't implement on_run
 
-# Default for tabs that don't implement onBareKey
+my %key_tool_map = (
+    Z => 'ZoomIn',
+    X => 'ZoomOut',
+    C => 'Pan',
+    V => 'ZoomFit',
+    B => 'Select'
+);
+
+# Default for tabs that don't implement on_bare_key
 sub on_bare_key {
-    my ($self, $keyval, ) = @_;
-    #print "default bare key: ", $keyval, "\n";
+    my ($self, $keyval) = @_;
+    # TODO: Add other tools
+    my $tool = $key_tool_map{$keyval};
+
+    return if not defined $tool;
+
+    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
+        # Do an instant zoom out and keep the current tool.
+        $self->{$self->{active_pane}}->zoom_out();
+    }
+    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
+        $self->{$self->{active_pane}}->zoom_fit();
+    }
+    else {
+        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
+    }
 }
+
+sub choose_tool {}
 
 sub get_removable { return 1; } # default - tabs removable
 
@@ -344,6 +368,26 @@ sub set_legend_ltgt_flags {
     return;
 }
 
+sub on_show_hide_legend {
+    my $self = shift;
+    my $menu_item = shift;
+
+    my $grid = $self->{grid};
+
+    return if !$grid;
+
+    my $active = $menu_item->get_active;
+
+    if ($active) {
+        $grid->show_legend;
+        $grid->set_legend_min_max;
+    }
+    else {
+        $grid->hide_legend;
+    }
+
+}
+
 sub on_colour_mode_changed {
     my ($self, $menu_item) = @_;
 
@@ -403,6 +447,98 @@ sub rect_centre {
     my ($rect, ) = @_;
     return (($rect->[0] + $rect->[2]) / 2, ($rect->[1] + $rect->[3]) / 2);
 }
+
+sub on_select_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Select');
+}
+
+sub on_pan_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('Pan');
+}
+
+sub on_zoom_in_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomIn');
+}
+
+sub on_zoom_out_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomOut');
+}
+
+sub on_zoom_fit_tool {
+    my $self = shift;
+    return if $self->{ignore_tool_click};
+    $self->choose_tool('ZoomFit');
+}
+
+my %cursor_icons = (
+    Select  => undef,
+    ZoomIn  => 'zoom-in',
+    ZoomOut => 'zoom-out',
+    ZoomFit => 'zoom-fit-best',
+    Pan     => 'fleur',
+);
+
+sub set_display_cursors {
+    my $self = shift;
+    my $type = shift;
+
+    my $icon = $cursor_icons{$type};
+    
+    foreach my $widget (qw /grid matrix_grid dendrogram/) {
+        no autovivification;
+        my $wref = $self->{$widget};
+        next if !$wref || !$wref->{canvas};
+
+        my $window = $wref->{canvas}->window;
+        my $cursor;
+        if ($icon) {
+            #  check if it's a real cursor
+            $cursor = eval {Gtk2::Gdk::Cursor->new ($icon)};
+            if ($@) {  #  might need to come from an icon
+                my $cache_name = "ICON: $icon";
+                $cursor = $self->get_cached_value ($cache_name);
+                if (!$cursor) {
+                    my $ic = Gtk2::IconTheme->new();
+                    my $pixbuf = $ic->load_icon($icon, 16, 'no-svg');
+                    my $display = $window->get_display;
+                    $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+                    $self->set_cached_value ($cache_name => $cursor);
+                }
+            }
+        }
+        $window->set_cursor($cursor);
+        $wref->{cursor} = $cursor;
+    }
+    
+}
+
+
+sub on_grid_select {
+    my ($self, $groups, $ignore_change, $rect) = @_;
+    if ($self->{tool} eq 'ZoomIn') {
+        my $grid = $self->{grid};
+        $self->handle_grid_drag_zoom($grid, $rect);
+    }
+}
+
+sub on_grid_click {
+    my $self = shift;
+    if ($self->{tool} eq 'ZoomOut') {
+        $self->{grid}->zoom_out();
+    }
+    elsif ($self->{tool} eq 'ZoomFit') {
+        $self->{grid}->zoom_fit();
+    }
+}
+
 
 sub handle_grid_drag_zoom {
     my ($self, $grid, $rect) = @_;
@@ -507,5 +643,59 @@ sub on_set_cell_show_outline {
     $self->{grid}->set_cell_show_outline($menu_item->get_active);
     return;
 }
+
+
+########
+##
+##  Some cache methods which have been copied across from Biodiverse::Common
+##  since we don't want all the methods.
+##  Need to refactor Biodiverse::Common.
+
+
+#  set any value - allows user specified additions to the core stuff
+sub set_cached_value {
+    my $self = shift;
+    my %args = @_;
+    @{$self->{_cache}}{keys %args} = values %args;
+
+    return;
+}
+
+sub set_cached_values {
+    my $self = shift;
+    $self->set_cached_value (@_);
+}
+
+#  hot path, so needs to be lean and mean, even if less readable
+sub get_cached_value {
+    return if ! exists $_[0]->{_cache}{$_[1]};
+    return $_[0]->{_cache}{$_[1]};
+}
+
+sub get_cached_value_keys {
+    my $self = shift;
+    
+    return if ! exists $self->{_cache};
+    
+    return wantarray
+        ? keys %{$self->{_cache}}
+        : [keys %{$self->{_cache}}];
+}
+
+sub delete_cached_values {
+    my $self = shift;
+    my %args = @_;
+    
+    return if ! exists $self->{_cache};
+
+    my $keys = $args{keys} || $self->get_cached_value_keys;
+    return if not defined $keys or scalar @$keys == 0;
+
+    delete @{$self->{_cache}}{@$keys};
+    delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
+
+    return;
+}
+
 
 1;

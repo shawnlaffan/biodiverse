@@ -5,7 +5,7 @@ use warnings;
 
 use English ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Gtk2;
 use Carp;
@@ -235,7 +235,7 @@ sub new {
 
         btnSelectToolSP  => {clicked => \&on_select_tool},
         btnPanToolSP     => {clicked => \&on_pan_tool},
-        btnZoomToolSP    => {clicked => \&on_zoom_tool},
+        btnZoomInToolSP  => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolSP => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolSP => {clicked => \&on_zoom_fit_tool},
 
@@ -246,7 +246,7 @@ sub new {
 
         menuitem_spatial_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
         menuitem_spatial_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
-        
+        menuitem_spatial_show_legend         => {toggled => \&on_show_hide_legend},
     );
 
     for my $n (0..6) {
@@ -285,7 +285,7 @@ sub new {
     $self->{drag_modes} = {
         Select  => 'click',
         Pan     => 'pan',
-        Zoom    => 'select',
+        ZoomIn  => 'select',
         ZoomOut => 'click',
         ZoomFit => 'click',
     };
@@ -897,7 +897,7 @@ sub on_phylogeny_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1359,10 +1359,11 @@ sub on_grid_hover {
 
 
 #  #1F78B4 = blue
+#  #8DA0CB = mid-blue
 #  #E31A1C = red
 #  #000000 = black
 my @dendro_highlight_branch_colours
-  = map {Gtk2::Gdk::Color->parse($_)} ('#1F78B4', '#E31A1C', '#000000');
+  = map {Gtk2::Gdk::Color->parse($_)} ('#8DA0CB', '#E31A1C', '#000000');
 
 sub highlight_paths_on_dendrogram {
     my $self = shift;
@@ -1691,6 +1692,8 @@ sub recolour {
     my $list = $self->{selected_list};
     my $index = $self->{selected_index};
 
+    return if !defined $index;
+
     my $colour_func = sub {
         my $elt = shift // return;
         my $val = $elements_hash->{$elt}{$list}{$index};
@@ -1848,33 +1851,6 @@ sub get_options_menu {
     return $menu;
 }
 
-my %key_tool_map = (
-    Z => 'Zoom',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select'
-);
-
-# Override from tab
-sub on_bare_key {
-    my ($self, $keyval) = @_;
-    my $tool = $key_tool_map{$keyval};
-
-    return if !defined $tool || ! defined $self->{grid};
-
-    if ($tool eq 'ZoomOut') {
-        # Do an instant zoom out and keep the current tool.
-        $self->{grid}->zoom_out();
-    }
-    elsif ($tool eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-    else {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
-    }
-}
-
 ####
 # TODO: This whole section needs to be deduplicated between Labels.pm
 ####
@@ -1896,63 +1872,13 @@ sub choose_tool {
     $self->{tool} = $tool;
 
     if ($self->{grid} && blessed $self->{grid}) {  # might not be initialised yet
-        $self->{grid}->{drag_mode} = $self->{drag_modes}->{$tool};
+        $self->{grid}{drag_mode} = $self->{drag_modes}{$tool};
     }
-    $self->{dendrogram}->{drag_mode} = $self->{drag_modes}->{$tool};
+    $self->{dendrogram}->{drag_mode} = $self->{drag_modes}{$tool};
+    
+    $self->set_display_cursors ($tool);
 }
 
-# Called from GTK
-sub on_select_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Select');
-}
-
-sub on_pan_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Pan');
-}
-
-sub on_zoom_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
-}
-
-sub on_zoom_out_tool {
-    # TODO: Since there is only one pane here, it'd probably make sense to just
-    # immediately zoom out
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomOut');
-}
-
-sub on_zoom_fit_tool {
-    # TODO: Since there is only one pane here, it'd probably make sense to just
-    # immediately zoom fit
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomFit');
-}
-
-sub on_grid_select {
-    my ($self, $groups, $ignore_change, $rect) = @_;
-    if ($self->{tool} eq 'Zoom') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom($grid, $rect);
-    }
-}
-
-sub on_grid_click {
-    my $self = shift;
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
 
 #  methods aren't inherited when called as GTK callbacks
 #  so we have to manually inherit them using SUPER::

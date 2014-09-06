@@ -17,7 +17,7 @@ use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 our $AUTOLOAD;
 
@@ -376,6 +376,31 @@ sub get_node_refs {
     my @refs = values %{$self->get_node_hash};
 
     return wantarray ? @refs : \@refs;
+}
+
+#  get a hash on the node lengths indexed by name
+sub get_node_length_hash {
+    my $self = shift;
+    my %args = (cache => 1, @_);
+
+    my $use_cache = $args{cache};
+    if ($use_cache) {
+        my $cached_hash = $self->get_cached_value ('NODE_LENGTH_HASH');
+        return (wantarray ? %$cached_hash : $cached_hash) if $cached_hash;
+    }
+    
+    my %len_hash;
+    my $node_hash = $self->get_node_hash;
+    foreach my $node_name (keys %$node_hash) {
+        my $node_ref = $node_hash->{$node_name};
+        $len_hash{$node_name} = $node_ref->get_length;
+    }
+    
+    if ($use_cache) {
+        $self->set_cached_value (NODE_LENGTH_HASH => \%len_hash);
+    }
+    
+    return wantarray ? %len_hash : \%len_hash;
 }
 
 #  get a hash of node refs indexed by their total length
@@ -1259,7 +1284,7 @@ sub get_total_tree_length { #  calculate the total length of the tree
 
     #check if length is already stored in tree object
     $length = $self->get_cached_value ('TOTAL_LENGTH');
-    return $length if (defined $length);
+    return $length if defined $length;
 
     foreach my $node_ref (values %{$self->get_node_hash}) {
         $node_length = $node_ref->get_length;
@@ -1286,16 +1311,16 @@ sub to_matrix {
 
     my $name = $self->get_param ('NAME');
 
-    print "[TREE] Converting tree $name to matrix\n";
+    say "[TREE] Converting tree $name to matrix";
 
     my $matrix = $class->new (NAME => ($args{name} || ($name . "_AS_MX")));
 
     my %nodes = $self->get_node_hash;  #  make sure we work on a copy
 
     if (! $use_internal) {  #  strip out the internal nodes
-        while (my ($name1, $node1) = each %nodes) {
-            if ($node1->is_internal_node) {
-                delete $nodes{$name1};
+        foreach my $node_name (keys %nodes) {
+            if ($nodes{$node_name}->is_internal_node) {
+                delete $nodes{$node_name};
             }
         }
     }

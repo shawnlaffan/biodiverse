@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Gtk2;
 use Biodiverse::Randomise;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::Project;
@@ -404,7 +404,7 @@ sub on_function_changed {
                 next if $parameter->{name} ne $arg;
                 my $def_val = $args->{$arg};
                 if ($parameter->{type} eq 'choice') {
-                    my $def_val = first_index {$_ eq $args->{$arg}} @{$parameter->{choices}};
+                    $def_val = first_index {$_ eq $args->{$arg}} @{$parameter->{choices}};
                     #  if no full match then get the first suffix match - allows for shorthand options
                     if ($def_val < 0) {  
                         $def_val = first_index {$_ =~ /$args->{$arg}$/} @{$parameter->{choices}};

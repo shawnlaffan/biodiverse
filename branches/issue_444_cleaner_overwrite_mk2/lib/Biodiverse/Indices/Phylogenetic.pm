@@ -13,7 +13,7 @@ use Biodiverse::Progress;
 use List::Util 1.33 qw /any sum min max/;
 use Scalar::Util qw /blessed/;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::Statistics;
 my $stats_package = 'Biodiverse::Statistics';
@@ -319,7 +319,7 @@ sub get_path_lengths_to_root_node {
     if ($use_path_cache) {
         my $cache   = $args{path_length_cache};
         my @el_list = keys %{$args{el_list}};
-        if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element
+        if (scalar @el_list == 1) {  #  caching makes sense only if we have only one element (group) containing labels
             my $path = $cache->{$el_list[0]};
             return (wantarray ? %$path : $path) if $path;
         }
@@ -332,11 +332,9 @@ sub get_path_lengths_to_root_node {
     my $tree_ref   = $args{tree_ref}
       or croak "argument tree_ref is not defined\n";
 
-    #my $return_lengths = $args{return_lengths};
-
-    #create a hash of terminal nodes for the taxa present
+    # get a hash of node refs
     my $all_nodes = $tree_ref->get_node_hash;
-    
+
     #  now loop through the labels and get the path to the root node
     my %path;
     foreach my $label (sort keys %$label_list) {
@@ -345,12 +343,17 @@ sub get_path_lengths_to_root_node {
         my $current_node = $all_nodes->{$label};
 
         my $sub_path = $current_node->get_path_lengths_to_root_node (cache => $cache);
-        @path{keys %$sub_path} = values %$sub_path;
+        @path{keys %$sub_path} = undef;  #  assign lengths later in one pass
     }
+
+    #  Assign the lengths once each.
+    #  ~15% faster than repeatedly assigning in the slice above
+    my $len_hash = $tree_ref->get_node_length_hash;
+    @path{keys %path} = @$len_hash{keys %path};
 
     if ($use_path_cache) {
         my $cache_h = $args{path_length_cache};
-        my @el_list = keys %{$args{el_list}};
+        my @el_list = keys %{$args{el_list}};  #  can only have one item
         $cache_h->{$el_list[0]} = \%path;
     }
 
@@ -1973,7 +1976,7 @@ sub get_metadata_calc_phylo_sorenson {
     
     my %metadata = (
         name           =>  'Phylo Sorenson',
-        type           =>  'Phylogenetic Indices',  #  keeps it clear of the other indices in the GUI
+        type           =>  'Phylogenetic Turnover',  #  keeps it clear of the other indices in the GUI
         description    =>  "Sorenson phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
@@ -2016,7 +2019,7 @@ sub get_metadata_calc_phylo_jaccard {
 
     my %metadata = (
         name           =>  'Phylo Jaccard',
-        type           =>  'Phylogenetic Indices',
+        type           =>  'Phylogenetic Turnover',
         description    =>  "Jaccard phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
@@ -2058,7 +2061,7 @@ sub get_metadata_calc_phylo_s2 {
 
     my %metadata = (
         name           =>  'Phylo S2',
-        type           =>  'Phylogenetic Indices',
+        type           =>  'Phylogenetic Turnover',
         description    =>  "S2 phylogenetic dissimilarity between two sets of taxa, represented by spanning sets of branches\n",
         pre_calc       =>  'calc_phylo_abc',
         uses_nbr_lists =>  2,  #  how many sets of lists it must have
@@ -2101,7 +2104,7 @@ sub get_metadata_calc_phylo_abc {
     my %metadata = (
         name            =>  'Phylogenetic ABC',
         description     =>  'Calculate the shared and not shared branch lengths between two sets of labels',
-        type            =>  'Phylogenetic Indices',
+        type            =>  'Phylogenetic Turnover',
         pre_calc        =>  '_calc_phylo_abc_lists',
         #pre_calc_global =>  [qw /get_trimmed_tree get_path_length_cache/],
         uses_nbr_lists  =>  2,  #  how many sets of lists it must have

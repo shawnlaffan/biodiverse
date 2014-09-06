@@ -35,7 +35,7 @@ use Biodiverse::Indices;
 use Geo::GDAL;
 
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use parent qw {Biodiverse::Common};
 
@@ -225,7 +225,7 @@ sub rename_output {
     else {
         warn "[BASEDATA] Cannot locate object with name $name\n"
             . 'Currently have '
-            . join ' ', sort keys %$hash_ref
+            . join (' ', sort keys %$hash_ref)
             . "\n";
     }
     
@@ -1512,7 +1512,7 @@ sub import_data_shapefile {
 
         # open as shapefile
         my $fnamebase = $file->stringify;
-        $fnamebase =~ s/\.[^.]*//;
+        #$fnamebase =~ s/\.[^.]*//;  #  don't strip extensions - causes grief with dirs with dots
         my $shapefile = Geo::ShapeFile->new($fnamebase);
         #say "have $shapefile";
 
@@ -3880,7 +3880,7 @@ sub get_neighbours_as_array {
 #  Modified version of get_spatial_outputs_with_same_nbrs.
 #  Useful for faster nbr searching for spatial analyses, and matrix building for cluster analyses
 #  It can eventually supplant that sub.
-sub get_outputs_with_same_conditions {
+sub get_outputs_with_same_spatial_conditions {
     my $self = shift;
     my %args = @_;
 
@@ -3897,9 +3897,9 @@ sub get_outputs_with_same_conditions {
         $def_conditions = $def_query->get_conditions_unparsed();
     }
 
-    my $cluster_index = $compare->get_param ('CLUSTER_INDEX');
-
     my @outputs = $self->get_output_refs_of_class (class => $compare);
+
+    my @comparable_outputs;
 
     LOOP_OUTPUTS:
     foreach my $output (@outputs) {
@@ -3934,14 +3934,11 @@ sub get_outputs_with_same_conditions {
             $i++;
         }
 
-        #  if we are a cluster (or output with a cluster index, like a RegionGrower)
-        next LOOP_OUTPUTS if defined $cluster_index && $cluster_index ne $output->get_param ('CLUSTER_INDEX');
-
         #  if we get this far then we have a match
-        return $output;  #  we want to keep this one
+        push @comparable_outputs, $output;  #  we want to keep this one
     }
 
-    return;
+    return wantarray ? @comparable_outputs : \@comparable_outputs;
 }
 
 sub has_empty_groups {

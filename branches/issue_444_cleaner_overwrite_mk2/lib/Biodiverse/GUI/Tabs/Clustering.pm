@@ -21,7 +21,7 @@ use Biodiverse::GUI::Tabs::CalculationsTree;
 
 use Biodiverse::Indices;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::Cluster;
 use Biodiverse::RegionGrower;
@@ -256,7 +256,7 @@ sub new {
 
         btnSelectToolCL     => {clicked => \&on_select_tool},
         btnPanToolCL        => {clicked => \&on_pan_tool},
-        btnZoomToolCL       => {clicked => \&on_zoom_tool},
+        btnZoomInToolCL     => {clicked => \&on_zoom_in_tool},
         btnZoomOutToolCL    => {clicked => \&on_zoom_out_tool},
         btnZoomFitToolCL    => {clicked => \&on_zoom_fit_tool},
 
@@ -280,8 +280,10 @@ sub new {
         comboMapList        => {changed => \&on_combo_map_list_changed},
 
         chk_output_to_file  => {clicked => \&on_chk_output_to_file_changed},
+
         menu_cluster_cell_outline_colour => {activate => \&on_set_cell_outline_colour},
-        menu_cluster_cell_show_outline => {toggled => \&on_set_cell_show_outline},
+        menu_cluster_cell_show_outline   => {toggled => \&on_set_cell_show_outline},
+        menuitem_cluster_show_legend     => {toggled => \&on_show_hide_legend},
         #menuitem_cluster_data_tearoff => {activate => \&on_toolbar_data_menu_tearoff},
     );
 
@@ -611,6 +613,23 @@ sub init_dendrogram {
     return;
 }
 
+#  only show the legend if the menuitem says we can
+sub show_legend {
+    my $self = shift;
+    my $widget = $self->{xmlPage}->get_widget('menuitem_cluster_show_legend');
+
+    if ($widget->get_active) {
+        $self->{grid}->show_legend;
+    }
+}
+
+#  for completeness with show_legend
+#  simple wrapper 
+sub hide_legend {
+    my $self = shift;
+    $self->{grid}->hide_legend;
+}
+
 # Called by Dendrogram when it has the map list.
 # We then update the toolbar menu so the user can select them.
 sub on_map_lists_ready {
@@ -672,10 +691,10 @@ sub on_map_list_changed {
     }
 
     if (not defined $list) {
-        $self->{grid}->hide_legend;
+        $self->hide_legend;
     }
     else {
-        $self->{grid}->show_legend;
+        $self->show_legend;  #  more control via $self
     }
 
     $self->{dendrogram}->select_map_list($list);
@@ -817,10 +836,10 @@ sub on_combo_map_list_changed {
     my $sensitive = 1;
     if ($list eq '<i>Cluster</i>') {
         $sensitive = 0;
-        $self->{grid}->hide_legend;
+        $self->hide_legend;
     }
     else {
-        $self->{grid}->show_legend;
+        $self->show_legend;
     }
 
     my @widgets = qw {
@@ -1529,7 +1548,7 @@ sub on_dendrogram_select {
     my $self = shift;
     my $rect = shift; # [x1, y1, x2, y2]
 
-    if ($self->{tool} eq 'Zoom') {
+    if ($self->{tool} eq 'ZoomIn') {
         my $grid = $self->{dendrogram};
         $self->handle_grid_drag_zoom ($grid, $rect);
     }
@@ -1918,7 +1937,7 @@ sub on_plot_mode_changed {
 my %drag_modes = (
     Select  => 'click',
     Pan     => 'pan',
-    Zoom    => 'select',
+    ZoomIn  => 'select',
     ZoomOut => 'click',
     ZoomFit => 'click',
 );
@@ -1940,62 +1959,12 @@ sub choose_tool {
 
     $self->{tool} = $tool;
 
-    $self->{grid}->{drag_mode} = $drag_modes{$tool};
+    $self->{grid}->{drag_mode}       = $drag_modes{$tool};
     $self->{dendrogram}->{drag_mode} = $drag_modes{$tool};
+    
+    $self->set_display_cursors ($tool);
 }
 
-# Called from GTK
-sub on_select_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Select');
-}
-
-sub on_pan_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Pan');
-}
-
-sub on_zoom_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('Zoom');
-}
-
-sub on_zoom_out_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomOut');
-}
-
-sub on_zoom_fit_tool {
-    my $self = shift;
-    return if $self->{ignore_tool_click};
-    $self->choose_tool('ZoomFit');
-}
-
-sub on_grid_select {
-    my ($self, $groups, $ignore_change, $rect) = @_;
-
-    if ($self->{tool} eq 'Zoom') {
-        my $grid = $self->{grid};
-        $self->handle_grid_drag_zoom ($grid, $rect);
-    }
-
-    return;
-}
-
-sub on_grid_click {
-    my $self = shift;
-
-    if ($self->{tool} eq 'ZoomOut') {
-        $self->{grid}->zoom_out();
-    }
-    elsif ($self->{tool} eq 'ZoomFit') {
-        $self->{grid}->zoom_fit();
-    }
-}
 
 sub on_highlight_groups_on_map_changed {
     my $self = shift;
@@ -2004,33 +1973,6 @@ sub on_highlight_groups_on_map_changed {
     return;
 }
 
-my %key_tool_map = (
-    Z => 'Zoom',
-    X => 'ZoomOut',
-    C => 'Pan',
-    V => 'ZoomFit',
-    B => 'Select'
-);
-
-# Override from tab
-sub on_bare_key {
-    my ($self, $keyval) = @_;
-    # TODO: Add other tools
-    my $tool = $key_tool_map{$keyval};
-
-    return if not defined $tool;
-
-    if ($tool eq 'ZoomOut' and $self->{active_pane} ne '') {
-        # Do an instant zoom out and keep the current tool.
-        $self->{$self->{active_pane}}->zoom_out();
-    }
-    elsif ($tool eq 'ZoomFit' and $self->{active_pane} ne '') {
-        $self->{$self->{active_pane}}->zoom_fit();
-    }
-    else {
-        $self->choose_tool($tool) if exists $key_tool_map{$keyval};
-    }
-}
 
 sub on_use_highlight_path_changed {
     my $self = shift;

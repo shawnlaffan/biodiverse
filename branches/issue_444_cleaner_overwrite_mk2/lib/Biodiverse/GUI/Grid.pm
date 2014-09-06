@@ -15,11 +15,10 @@ use Carp;
 use Gtk2;
 use Gnome2::Canvas;
 use Tree::R;
-#use Algorithm::QuadTree;
 
 use Geo::ShapeFile;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::CellPopup;
@@ -200,7 +199,7 @@ sub new {
 sub show_legend {
     my $self = shift;
     #print "already have legend!\n" if $self->{legend};
-    return if $self->{legend};
+    return if $self->get_legend;
 
     # Create legend
     my $pixbuf = $self->make_legend_pixbuf;
@@ -222,7 +221,7 @@ sub show_legend {
     $self->{marks}[1] = $self->make_mark( 'w'  );
     $self->{marks}[2] = $self->make_mark( 'w'  );
     $self->{marks}[3] = $self->make_mark( 'sw' );
-    
+
     eval {
         $self->reposition;  #  trigger a redisplay of the legend
     };
@@ -233,17 +232,23 @@ sub show_legend {
 sub hide_legend {
     my $self = shift;
 
-    if ($self->{legend}) {
-        $self->{legend}->destroy();
-        delete $self->{legend};
+    return if !$self->get_legend;
 
-        foreach my $i (0..3) {
-            $self->{marks}[$i]->destroy();
-        }
+    $self->{legend}->destroy();
+    delete $self->{legend};
+
+    foreach my $i (0..3) {
+        $self->{marks}[$i]->destroy();
     }
+
     delete $self->{marks};
-    
+
     return;
+}
+
+sub get_legend {
+    my $self = shift;
+    return $self->{legend};
 }
 
 sub destroy {
@@ -489,7 +494,8 @@ sub set_base_struct {
     say "setBaseStruct data $data checking set cell sizes: ", join(',', @tmpcell_sizes);
     
     my ($min_x, $max_x, $min_y, $max_y) = $self->find_max_min($data);
-    say join q{ }, $min_x, $max_x, $min_y, $max_y;
+
+    say join q{ }, $min_x, $max_x, $min_y // '', $max_y // '';
 
     my @res = $self->get_cell_sizes($data);  #  handles zero and text
     
@@ -509,12 +515,6 @@ sub set_base_struct {
         $width_pixels = 1
     }
 
-#    my ($cell_x, $cell_y, $width_pixels) = $self->get_cell_sizes($data);
-    #$cell_y = 1 if ! defined $cell_y; #  catcher for single axis data sets
-    
-    #print "[GRID] Cellsizes:  $cell_x, $cell_y, (width: $width_pixels)\n";
-    #print "[GRID] Basedata cell size is: ", join (" ", @{$data->get_param ('CELL_SIZES')}), "\n";
-
     # Configure cell heights and y-offsets for the marks (circles, lines,...)
     my $ratio = eval {$cell_y / $cell_x} || 1;  #  trap divide by zero
     my $cell_size_y = CELL_SIZE_X * $ratio;
@@ -522,21 +522,19 @@ sub set_base_struct {
     
     #  setup the index if needed
     if (defined $self->{select_func}) {
-        my $rtree = $self->get_rtree();
+        $self->get_rtree();
     }
     
     my $elts = $data->get_element_hash();
-    #print Data::Dumper::Dumper($elts);
 
     my $count = scalar keys %$elts;
     
     croak "No groups to display - BaseData is empty\n"
       if $count == 0;
-    
-    #my $progress_bar = Biodiverse::GUI::ProgressDialog->new;
+
     my $progress_bar = Biodiverse::Progress->new(gui_only => 1);
 
-    print "[Grid] Grid loading $count elements (cells)\n";
+    say "[Grid] Grid loading $count elements (cells)";
     $progress_bar->update ("Grid loading $count elements (cells)", 0);
 
 
@@ -596,13 +594,9 @@ sub set_base_struct {
         my $x = eval {($x_bd - $min_x) / $cell_x};
         my $y = eval {($y_bd - $min_y) / $cell_y};
 
-        # We shift by half the cell size to make the coordinate hits cells center
+        # We shift by half the cell size to make the coordinate hit the cell center
         my $xcoord = $x * CELL_SIZE_X  - CELL_SIZE_X  / 2;
         my $ycoord = $y * $cell_size_y - $cell_size_y / 2;
-
-#my $testx = $x * CELL_SIZE_X;
-#my $testy = $y * $cell_size_y;
-#my @test = $self->units_canvas2basestruct ($testx, $testy);
 
         # Make container group ("cell") for the rectangle and any marks
         my $container = Gnome2::Canvas::Item->new (
@@ -734,16 +728,8 @@ sub load_shapefile {
     #@shapes = $shapefile->shapes_in_area ($shapefile->bounds);
     
     my $num = @shapes;
-    print "[Grid] Shapes within plot area: $num\n";
+    say "[Grid] Shapes within plot area: $num";
 
-    # Work out how far away a point has to be from the previous point
-    # to not get clipped - REDUNDANT NOW
-    # This will massively reduce detail when we're zoomed out
-    #my $ppu = $self->{canvas}->get_pixels_per_unit();
-    #my $min_distance = 1 / $ppu * 3; # don't draw points within 3px of each other
-    #my $min_distance2 = $min_distance * $min_distance;
-    ##print "[Grid] minimum point distance - $min_distance\n";
-    #
     my $unit_multiplier_x = CELL_SIZE_X / $cell_x;
     my $unit_multiplier_y = $self->{cell_size_y} / $cell_y;
     my $unit_multiplier2  = $unit_multiplier_x * $unit_multiplier_x; #FIXME: maybe take max of _x,_y
@@ -761,7 +747,6 @@ sub load_shapefile {
 
     # Add all shapes
     foreach my $shapeid (@shapes) {
-        #my $shape = $shapefile->get_shape($shapeid);
         my $shape = $shapefile->get_shp_record($shapeid);
 
         # Make polygon from each "part"
@@ -909,7 +894,13 @@ sub get_colour_from_chooser {
 # Sets the values of the textboxes next to the legend */
 sub set_legend_min_max {
     my ($self, $min, $max) = @_;
-    
+
+    $min //= $self->{last_min};
+    $max //= $self->{last_max};
+
+    $self->{last_min} = $min;
+    $self->{last_max} = $max;
+
     return if ! ($self->{marks}
                  && defined $min
                  && defined $max
@@ -930,7 +921,7 @@ sub set_legend_min_max {
         elsif ($self->{legend_lt_flag} or $self->{legend_gt_flag}) {
             $text = '  ' . $text;
         }
-        
+
         my $mark = $self->{marks}[3 - $i];
         $mark->set( text => $text );
         #  move the mark to right align with the legend
@@ -943,6 +934,7 @@ sub set_legend_min_max {
         else {
             $mark->move ($offset - length ($text) - 0.5, 0);
         }
+        $mark->raise_to_top;
     }
     
     return;
@@ -1372,60 +1364,57 @@ sub find_max_min {
         $max_y = $y if ( (not defined $max_y) || $y > $max_y);
     }
 
+    $max_x //= $min_x;
+    $max_y //= $min_y;
+
     return ($min_x, $max_x, $min_y, $max_y);
 }
 
 sub get_cell_sizes {
     my $data = $_[1];
-    #my ($cell_x, $cell_y) = @{$data->get_param("CELL_SIZES")};
-    my @cell_sizes = @{$data->get_param("CELL_SIZES")};  #  work on a copy
-    #my $cellWidth = 0;
-    #print "cell sizes: ", join(/,/,@cell_sizes);
-    my $i = 0;
-    foreach my $axis (@cell_sizes) {
-        if ($axis == 0) {  
-            # If zero size, we want to display every point
-            # Fast dodgy method for computing cell size
-            #
-            # 1. Sort coordinates
-            # 2. Find successive differences
-            # 3. Sort differences
-            # 4. Make cells square with median distances
-    
-            print "[Grid] Calculating minimal cell size for axis $i\n";
-    
-            my $elts = $data->get_element_hash();
-            my %axis_coords;  #  want a list of all the unique coords on this axis
-            foreach my $element (keys %$elts) {
-                my @axes = $data->get_element_name_as_array(element => $element);
-                $axis_coords{$axes[$i]} = 1; 
-            }
-            
-            my $j = 0;
-            my @array = sort {$a <=> $b} keys %axis_coords;
-            #print "@array\n";
-            my @diffs;
-            foreach my $i (1 .. $#array) {
-                my $diff = abs( $array[$i] - $array[$i-1]);
-                push @diffs, $diff;
-            }
-            
-            @diffs = sort {$a <=> $b} @diffs;
-            $cell_sizes[$i] = ($diffs[int ($#diffs / 2)] || 0);
-            $j++;
-    
-            #$cellWidth = 2; # If have zero cell size, make squares more visible  NOW HANDLED ELSEWHERE
-            
+
+    #  handle text groups here
+    my @cell_sizes = map {$_ < 0 ? 1 : $_} $data->get_cell_sizes;
+
+    my @zero_axes = List::MoreUtils::indexes { $_ == 0 } @cell_sizes;
+
+  AXIS:
+    foreach my $i (@zero_axes) {
+        my $axis = $cell_sizes[$i];
+
+        # If zero size, we want to display every point
+        # Fast dodgy method for computing cell size
+        #
+        # 1. Sort coordinates
+        # 2. Find successive differences
+        # 3. Sort differences
+        # 4. Make cells square with median distances
+
+        say "[Grid] Calculating median separation distance for axis $i cell size";
+
+        #  Store a list of all the unique coords on this axis
+        #  Should be able to cache by indexing via @zero_axes
+        my %axis_coords;
+        my $elts = $data->get_element_hash();
+        foreach my $element (keys %$elts) {
+            my @axes = $data->get_element_name_as_array(element => $element);
+            $axis_coords{$axes[$i]} = undef;
         }
-        elsif ($axis < 0) {  #  really should loop over each axis
-            $cell_sizes[$i] = 1;
-            #$cellWidth = 2;
+
+        my @array = sort {$a <=> $b} keys %axis_coords;
+
+        my %diffs;
+        foreach my $i (1 .. $#array) {
+            my $d = abs( $array[$i] - $array[$i-1]);
+            $diffs{$d} = undef;
         }
-        $i++;
+
+        my @diffs = sort {$a <=> $b} keys %diffs;
+        $cell_sizes[$i] = ($diffs[int ($#diffs / 2)] || 1);
     }
-    print "[Grid]   using cellsizes ", join (", ", @cell_sizes) , "\n";
-    #my ($cell_x, $cell_y) = @cell_sizes;
-    #return ($cell_x, $cell_y, $cellWidth);
+
+    say '[Grid] Using cellsizes ', join (', ', @cell_sizes);
+
     return wantarray ? @cell_sizes : \@cell_sizes;
 }
 
@@ -1436,17 +1425,12 @@ sub get_cell_sizes {
 
 # Implements pop-ups and hover-markers
 # FIXME FIXME FIXME Horrible problems between windows / linux due to the markers being on top...
+# SWL 20140823. Is this still the case?
 sub on_event {
     my ($self, $event, $cell) = @_;
 
-#my $type = $event->type;
-#my $state = $event->state;
-#if ($state) {
-#    print "Event is $type, state is $state \n";
-#}
-
     if ($event->type eq '2button_press') {
-        print "Double click does nothing";
+        say "Double click does nothing";
     }
     elsif ($event->type eq 'enter-notify') {
 
@@ -1456,10 +1440,11 @@ sub on_event {
             $f->($self->{cells}{$cell}[INDEX_ELEMENT]);
         }
 
-        # Change the cursor
-        my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
-        $self->{canvas}->window->set_cursor($cursor);
-
+        # Change the cursor if we are in select mode
+        if (!$self->{cursor}) {
+            my $cursor = Gtk2::Gdk::Cursor->new(HOVER_CURSOR);
+            $self->{canvas}->window->set_cursor($cursor);
+        }
     }
     elsif ($event->type eq 'leave-notify') {
 
@@ -1477,7 +1462,7 @@ sub on_event {
         }
 
         # Change cursor back to default
-        $self->{canvas}->window->set_cursor(undef);
+        $self->{canvas}->window->set_cursor($self->{cursor});
 
     }
     elsif ($event->type eq 'button-press') {
@@ -1489,7 +1474,7 @@ sub on_event {
                 and not $self->{selecting}
                 and $event->state >= [ 'control-mask' ])
             ) {
-            print "===========Cell popup\n";
+            #print "===========Cell popup\n";
             # Show/Hide the labels popup dialog
             my $element = $self->{cells}{$cell}[INDEX_ELEMENT];
             my $f = $self->{click_func};
@@ -1550,7 +1535,7 @@ sub on_event {
             
             # Establish the selection
             my ($x_start, $y_start) = ($self->{sel_start_x}, $self->{sel_start_y});
-            my ($x_end, $y_end)     = ($event->x, $event->y);
+            my ($x_end,   $y_end)   = ($event->x, $event->y);
 
             $self->end_selection($x_start, $y_start, $x_end, $y_end);
 
@@ -1598,14 +1583,8 @@ sub on_size_allocate {
 sub on_background_event {
     my ($self, $event, $cell) = @_;
 
-#my $type = $event->type;
-#my $state = $event->state;
-#print "BK Event is $type, state is $state \n";
-
-    # Do everything with left clck now.
-    if ($event->type =~ m/^button-/ && $event->button != 1) {
-        return;
-    }
+    # Do everything with left click now.
+    return if $event->type =~ m/^button-/ && $event->button != 1;
 
     if ($event->type eq 'enter-notify') {
         $self->{page}->set_active_pane('grid');

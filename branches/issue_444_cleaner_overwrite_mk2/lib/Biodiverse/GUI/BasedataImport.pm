@@ -8,7 +8,7 @@ use English ( -no_match_vars );
 use Carp;
 use List::Util qw /min/;
 
-our $VERSION = '0.99_002';
+our $VERSION = '0.99_004';
 
 use File::Basename;
 use Gtk2;
@@ -1626,7 +1626,7 @@ sub get_remap_info {
     );
 
     my @headers = map
-        {defined $_ ? $_ : '<null>'}
+        {defined $_ ? $_ : '{null}'}
         @headers_full[0 .. min ($#headers_full, $max_cols_to_show-1)];
 
     ($dlg, my $col_widgets) = make_remap_columns_dialog (

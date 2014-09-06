@@ -213,7 +213,7 @@ sub hotkey_handler {
     # stop recursion into on_run if shortcut triggered during processing
     #   (this happens because progress-dialogs pump events..)
 
-    return 1 if ($handler_entered == 1);
+    return 1 if $handler_entered == 1;
 
     $handler_entered = 1;
 

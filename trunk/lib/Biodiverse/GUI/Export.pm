@@ -14,7 +14,7 @@ use Gtk2;
 use Gtk2::GladeXML;
 use Cwd;
 
-our $VERSION = '0.99_003';
+our $VERSION = '0.99_004';
 
 use Biodiverse::GUI::GUIManager;
 use Biodiverse::GUI::ParametersTable;

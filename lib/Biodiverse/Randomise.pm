@@ -25,7 +25,7 @@ use Class::Inspector;
 require Biodiverse::BaseData;
 use Biodiverse::Progress;
 
-our $VERSION = '0.99_003';
+our $VERSION = '0.99_004';
 
 my $EMPTY_STRING = q{};
 

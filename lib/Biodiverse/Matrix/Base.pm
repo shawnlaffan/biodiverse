@@ -8,7 +8,7 @@ use Scalar::Util qw /looks_like_number blessed/;
 use List::Util qw /min max sum/;
 use File::BOM qw /:subs/;
 
-our $VERSION = '0.99_003';
+our $VERSION = '0.99_004';
 
 use Biodiverse::Exception;
 

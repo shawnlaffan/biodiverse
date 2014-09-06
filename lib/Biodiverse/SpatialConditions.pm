@@ -20,7 +20,7 @@ use Scalar::Util qw /looks_like_number blessed reftype/;
 
 use parent qw /Biodiverse::Common/;
 
-our $VERSION = '0.99_003';
+our $VERSION = '0.99_004';
 
 our $NULL_STRING = q{};
 

@@ -501,10 +501,15 @@ sub set_display_cursors {
             #  check if it's a real cursor
             $cursor = eval {Gtk2::Gdk::Cursor->new ($icon)};
             if ($@) {  #  might need to come from an icon
-                my $ic = Gtk2::IconTheme->new();
-                my $pixbuf = $ic->load_icon($icon, 16, 'no-svg');
-                my $display = $window->get_display;
-                $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+                my $cache_name = "ICON: $icon";
+                $cursor = $self->get_cached_value ($cache_name);
+                if (!$cursor) {
+                    my $ic = Gtk2::IconTheme->new();
+                    my $pixbuf = $ic->load_icon($icon, 16, 'no-svg');
+                    my $display = $window->get_display;
+                    $cursor = Gtk2::Gdk::Cursor->new_from_pixbuf($display, $pixbuf, 0, 0);
+                    $self->set_cached_value ($cache_name => $cursor);
+                }
             }
         }
         $window->set_cursor($cursor);
@@ -636,5 +641,59 @@ sub on_set_cell_show_outline {
     $self->{grid}->set_cell_show_outline($menu_item->get_active);
     return;
 }
+
+
+########
+##
+##  Some cache methods which have been copied across from Biodiverse::Common
+##  since we don't want all the methods.
+##  Need to refactor Biodiverse::Common.
+
+
+#  set any value - allows user specified additions to the core stuff
+sub set_cached_value {
+    my $self = shift;
+    my %args = @_;
+    @{$self->{_cache}}{keys %args} = values %args;
+
+    return;
+}
+
+sub set_cached_values {
+    my $self = shift;
+    $self->set_cached_value (@_);
+}
+
+#  hot path, so needs to be lean and mean, even if less readable
+sub get_cached_value {
+    return if ! exists $_[0]->{_cache}{$_[1]};
+    return $_[0]->{_cache}{$_[1]};
+}
+
+sub get_cached_value_keys {
+    my $self = shift;
+    
+    return if ! exists $self->{_cache};
+    
+    return wantarray
+        ? keys %{$self->{_cache}}
+        : [keys %{$self->{_cache}}];
+}
+
+sub delete_cached_values {
+    my $self = shift;
+    my %args = @_;
+    
+    return if ! exists $self->{_cache};
+
+    my $keys = $args{keys} || $self->get_cached_value_keys;
+    return if not defined $keys or scalar @$keys == 0;
+
+    delete @{$self->{_cache}}{@$keys};
+    delete $self->{_cache} if scalar keys %{$self->{_cache}} == 0;
+
+    return;
+}
+
 
 1;

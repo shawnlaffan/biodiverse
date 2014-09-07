@@ -207,12 +207,15 @@ sub get_calculation_metadata_as_wiki {
       BY_NAME:  #  loop through the names
         foreach my $ref (sort {$a->get_name cmp $b->get_name} values %$type_ref) {
 
-            #my $starter = $ref->{name};
-            #print $starter . "\n";
+            #  escape any highlight characters
+            my $name = $ref->{name};
+            $name =~ s/\*/`\*`/;
+            my $description = $ref->get_description;
+            $description =~ s/\*/`\*`/;
 
             $html .= "\n \n \n";
-            $html .= "\n \n  ===$ref->{name}===\n \n";
-            $html .= "*Description:*   " . $ref->get_description . "\n\n";
+            $html .= "\n \n  ===$name===\n \n";
+            $html .= "*Description:*   $description\n\n";
             $html .= "*Subroutine:*   $ref->{analysis}\n\n";
             #$html .= "<p><b>Module:</b>   $ref->{source_module}</p>\n";  #  not supported yet
             if (my $reference = $ref->get_reference) {
@@ -265,8 +268,6 @@ sub get_calculation_metadata_as_wiki {
             my $uses_formula = 0;
             foreach my $index (sort keys %{$ref->get_indices}) {
 
-                #my $index_hash = $ref->{indices}{$index};
-
                 #  repeated code from above - need to generalise to a sub
                 my $formula_url;
                 my $formula = $ref->get_index_formula ($index);
@@ -305,6 +306,7 @@ sub get_calculation_metadata_as_wiki {
 
                 my $description = $ref->get_index_description ($index) || $SPACE;
                 $description =~ s{\n}{ }gmo;  # purge any newlines
+                $description =~ s/\*/`\*`/;  #  avoid needless bolding
                 push @line, $description;
 
                 push @line, $ref->get_index_is_cluster_metric ($index) ? "cluster metric" : $SPACE;

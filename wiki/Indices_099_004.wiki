@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Sun Sep  7 00:25:32 2014 using build_indices_table.pl, Biodiverse version 0.99_004._
+_Generated GMT Sun Sep  7 09:47:21 2014 using build_indices_table.pl, Biodiverse version 0.99_004._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -27,9 +27,9 @@ Table of contents:
  
 
  
-  ===Group property Gi* statistics===
+  ===Group property Gi`*` statistics===
  
-*Description:*   List of Getis-Ord Gi* statistics for each group property across both neighbour sets
+*Description:*   List of Getis-Ord Gi`*` statistics for each group property across both neighbour sets
 
 *Subroutine:*   calc_gpprop_gistar
 
@@ -37,7 +37,7 @@ Table of contents:
  
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 1 || GPPROP_GISTAR_LIST || List of Gi* scores ||   || 1 ||
+|| 1 || GPPROP_GISTAR_LIST || List of Gi`*` scores ||   || 1 ||
 
 
 
@@ -107,9 +107,9 @@ Table of contents:
  
 
  
-  ===Label property Gi* statistics===
+  ===Label property Gi`*` statistics===
  
-*Description:*   List of Getis-Ord Gi* statistic for each label property across both neighbour sets
+*Description:*   List of Getis-Ord Gi`*` statistic for each label property across both neighbour sets
 
 *Subroutine:*   calc_lbprop_gistar
 
@@ -117,7 +117,7 @@ Table of contents:
  
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 8 || LBPROP_GISTAR_LIST || List of Gi* scores ||   || 1 ||
+|| 8 || LBPROP_GISTAR_LIST || List of Gi`*` scores ||   || 1 ||
 
 
 
@@ -125,9 +125,9 @@ Table of contents:
  
 
  
-  ===Label property Gi* statistics (local range weighted)===
+  ===Label property Gi`*` statistics (local range weighted)===
  
-*Description:*   List of Getis-Ord Gi* statistic for each label property across both neighbour sets (local range weighted)
+*Description:*   List of Getis-Ord Gi`*` statistic for each label property across both neighbour sets (local range weighted)
 
 *Subroutine:*   calc_lbprop_gistar_abc2
 
@@ -135,7 +135,7 @@ Table of contents:
  
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 9 || LBPROP_GISTAR_LIST_ABC2 || List of Gi* scores ||   || 1 ||
+|| 9 || LBPROP_GISTAR_LIST_ABC2 || List of Gi`*` scores ||   || 1 ||
 
 
 
@@ -924,9 +924,9 @@ Weights by samples so multiple occurrences are accounted for.
  
 
  
-  ===Numeric labels Gi* statistic===
+  ===Numeric labels Gi`*` statistic===
  
-*Description:*   Getis-Ord Gi* statistic for numeric labels across both neighbour sets
+*Description:*   Getis-Ord Gi`*` statistic for numeric labels across both neighbour sets
 
 *Subroutine:*   calc_num_labels_gistar
 
@@ -934,7 +934,7 @@ Weights by samples so multiple occurrences are accounted for.
  
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* ||
-|| 182 || NUM_GISTAR || List of Gi* scores ||   || 1 ||
+|| 182 || NUM_GISTAR || List of Gi`*` scores ||   || 1 ||
 
 
 ==!PhyloCom Indices==

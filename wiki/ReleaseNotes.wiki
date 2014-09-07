@@ -4,6 +4,33 @@
 
 <wiki:toc max_depth="4" />
 
+= Version 0.99_004 = 
+
+This is the fourth phase of the development version leading towards version 1.0 (0.99_003 was only used for internal numbering).
+
+As with previous releases in the 0.99 series, this comprises several major changes to the underlying code-base, as well as the addition of a number of major new features.  It is not backwards compatible with previous versions (0.19 and earlier) in several respects.  It can still use most files created using earlier versions, but files created using this version are not guaranteed to work with earlier versions.
+
+For the full list of issues and changes leading to the 1.0 release, see http://code.google.com/p/biodiverse/issues/list?can=1&q=label%3AMilestone-Release1.0
+
+To see the full list of open issues or to report a bug or enhancement request, see http://code.google.com/p/biodiverse/issues/
+
+Main changes since the preceding version ([#Version_0.99_001 0.99_002]) are below.  Issue numbers which are not crossed out are yet to be completed.  
+
+  *  GUI
+    *  The phylogenetic endemism and related indices are now in their own category (Phyloegentic Endemism).  The Phylogenetic Indices category was getting too busy.  Issue 499
+    *  Cell outlines can now be turned off.  This is useful when cells are small and any outlines obscure the cell contents.  Issue 311
+    *  The legend can be hidden so it no longer overlaps with the grid.  Issue 59
+    *  Display cursors now change to match the selected mode (e.g. zoom in, pan, select).  Issue 490
+    *  A warning is now shown at startup when extensions cannot be loaded.  this was previously only sent to the console window.  Issue 500
+
+  *  Analyses
+    *  Analyses are now run as temporary objects and then copied across on success.  This means that many of the optimisations where neighbours and matrices are recycled can apply more often since the originals are not replaced until the analysis completes successfully.  Issue 444
+
+  *  Imports
+    *  Basedata imports now ignore records with a value of NA.  This makes it easier to work with data exported from R as no special processing is needed.  Issue 489
+    *  Basedata imports now have an option to control the number of decimal places used in the group axis calculation.  The default is currently 7.  Issue 488
+
+
 = Version 0.99_002 = 
 
 This is the second phase of the development version leading towards version 1.0.
@@ -74,7 +101,7 @@ Main changes since the previous version (0.19) are below.  Issue numbers which a
     *  Trees
       *  The tabular tree formats can now be imported.  Issue 322
     *  Matrices
-      *  Sparse matrices can be imported.  Issue 82
+      *  Sparse matrices can be imported (but not yet in the GUI).  Issue 82
 
   *  Exports
     *  BaseStructs (groups, labels and spatial outputs).

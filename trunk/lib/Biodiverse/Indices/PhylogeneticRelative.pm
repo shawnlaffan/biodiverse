@@ -30,7 +30,7 @@ sub get_metadata_calc_phylo_rpd1 {
             },
             PHYLO_RPD_DIFF1 => {
                 description => 'How much more or less PD is there than expected, in original tree units.',
-                formula     => ['= tree_length * (PD\_P - PHYLO\_RPD\_NULL1)'],
+                formula     => ['= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL1)'],
             }
         },
     );
@@ -94,7 +94,7 @@ sub get_metadata_calc_phylo_rpe1 {
             },
             PHYLO_RPE_DIFF1 => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
-                formula     => ['= tree_length * (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
+                formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
             }
         },
     );
@@ -164,7 +164,7 @@ sub get_metadata_calc_phylo_rpd2 {
             },
             PHYLO_RPD_DIFF2 => {
                 description => 'How much more or less PD is there than expected, in original tree units.',
-                formula     => ['= tree_length * (PD\_P - PHYLO\_RPD\_NULL2)'],
+                formula     => ['= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL2)'],
             }
         },
     );
@@ -229,7 +229,7 @@ sub get_metadata_calc_phylo_rpe2 {
             },
             PHYLO_RPE_DIFF2  => {
                 description => 'How much more or less PE is there than expected, in original tree units.',
-                formula     => ['= tree_length * (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
+                formula     => ['= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)'],
             }
         },
     );

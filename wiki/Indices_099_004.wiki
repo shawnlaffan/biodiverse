@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Sun Sep  7 09:47:21 2014 using build_indices_table.pl, Biodiverse version 0.99_004._
+_Generated GMT Mon Sep  8 05:07:29 2014 using build_indices_table.pl, Biodiverse version 0.99_004._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -796,7 +796,7 @@ Labels not in the matrix are ignored.
   ===Rao's quadratic entropy, matrix weighted===
  
 *Description:*   Calculate Rao's quadratic entropy for a matrix weights scheme.
-BaseData labels not in the matrix are ignored
+!BaseData labels not in the matrix are ignored
 
 *Subroutine:*   calc_mx_rao_qe
 
@@ -1212,7 +1212,7 @@ so values >0 have longer branches than expected.
  
   ===Phylogenetic Endemism===
  
-*Description:*   Phylogenetic endemism (PE).Uses labels in both neighbourhoods and trims the tree to exclude labels not in the BaseData object.
+*Description:*   Phylogenetic endemism (PE).Uses labels in both neighbourhoods and trims the tree to exclude labels not in the !BaseData object.
 
 *Subroutine:*   calc_pe
 
@@ -1234,7 +1234,7 @@ so values >0 have longer branches than expected.
 *Description:*   Phylogenetic endemism (PE).
 Uses labels from neighbour set one but local ranges from across
 both neighbour sets.
-Trims the tree to exclude labels not in the BaseData object.
+Trims the tree to exclude labels not in the !BaseData object.
 
 
 *Subroutine:*   calc_pe_central

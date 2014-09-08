@@ -163,6 +163,8 @@ sub get_calculation_metadata_as_wiki {
     );
 
     foreach my $text (@header) {
+        $text =~ s/\*/`\*`/;  #  escape any highlight characters
+        $text =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
         $text = "*$text*";
     }
 
@@ -200,18 +202,22 @@ sub get_calculation_metadata_as_wiki {
     #loop through the types
   BY_TYPE:
     foreach my $type (sort keys %calculation_hash) {
-        $html .= "==$type==";
+        my $type_text = $type;
+        $type_text =~ s/\*/`\*`/;  #  escape any highlight characters
+        $type_text =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
+        $html .= "==$type_text==";
 
         my $type_ref = $calculation_hash{$type};
 
       BY_NAME:  #  loop through the names
         foreach my $ref (sort {$a->get_name cmp $b->get_name} values %$type_ref) {
 
-            #  escape any highlight characters
             my $name = $ref->{name};
-            $name =~ s/\*/`\*`/;
             my $description = $ref->get_description;
-            $description =~ s/\*/`\*`/;
+            foreach ($name, $description) {
+                $_ =~ s/\*/`\*`/;  #  escape any highlight characters
+                $_ =~ s/\b([A-Z][a-z]+[A-Z][a-z]+)\b/!$1/;  #  escape any wiki page confusion, e.g. PhyloCom
+            }
 
             $html .= "\n \n \n";
             $html .= "\n \n  ===$name===\n \n";

@@ -467,5 +467,8 @@ sub on_delete {
 }
 
 
+#  ignore keyboard events for now (was triggering when exporting outputs)
+sub on_bare_key {}
+
 1;
 

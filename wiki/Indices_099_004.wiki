@@ -2,7 +2,7 @@
 #labels Featured
 
 = Indices available in Biodiverse =
-_Generated GMT Mon Sep  8 05:07:29 2014 using build_indices_table.pl, Biodiverse version 0.99_004._
+_Generated GMT Mon Sep  8 05:18:48 2014 using build_indices_table.pl, Biodiverse version 0.99_004._
 
 
 This is a listing of the indices available in Biodiverse,
@@ -1638,7 +1638,7 @@ Uses labels in both neighbourhoods.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
 || 289 || PHYLO_RPD1 || RPD1 ||   || 1 ||   ||
-|| 290 || PHYLO_RPD_DIFF1 || How much more or less PD is there than expected, in original tree units. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= tree_length * (PD\_P - PHYLO\_RPD\_NULL1)%.png" title="= tree_length * (PD\_P - PHYLO\_RPD\_NULL1)" />  ||
+|| 290 || PHYLO_RPD_DIFF1 || How much more or less PD is there than expected, in original tree units. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL1)%.png" title="= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL1)" />  ||
 || 291 || PHYLO_RPD_NULL1 || Null model score used as the denominator in the RPD1 calculations ||   || 1 ||   ||
 
 
@@ -1658,7 +1658,7 @@ Uses labels in both neighbourhoods.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
 || 292 || PHYLO_RPD2 || RPD2 ||   || 1 ||   ||
-|| 293 || PHYLO_RPD_DIFF2 || How much more or less PD is there than expected, in original tree units. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= tree_length * (PD\_P - PHYLO\_RPD\_NULL2)%.png" title="= tree_length * (PD\_P - PHYLO\_RPD\_NULL2)" />  ||
+|| 293 || PHYLO_RPD_DIFF2 || How much more or less PD is there than expected, in original tree units. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL2)%.png" title="= tree\_length \times (PD\_P - PHYLO\_RPD\_NULL2)" />  ||
 || 294 || PHYLO_RPD_NULL2 || Null model score used as the denominator in the RPD2 calculations ||   || 1 ||   ||
 
 
@@ -1678,7 +1678,7 @@ Uses labels in both neighbourhoods.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
 || 295 || PHYLO_RPE1 || Relative Phylogenetic Endemism score ||   || 1 ||   ||
-|| 296 || PHYLO_RPE_DIFF1 || How much more or less PE is there than expected, in original tree units. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= tree_length * (PE\_WE\_P - PHYLO\_RPE\_NULL1)%.png" title="= tree_length * (PE\_WE\_P - PHYLO\_RPE\_NULL1)" />  ||
+|| 296 || PHYLO_RPE_DIFF1 || How much more or less PE is there than expected, in original tree units. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)%.png" title="= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)" />  ||
 || 297 || PHYLO_RPE_NULL1 || Null score used as the denominator in the RPE calculations ||   || 1 ||   ||
 
 
@@ -1698,7 +1698,7 @@ Uses labels in both neighbourhoods.
 
 || *Index #* || *Index* || *Index description* || *Valid cluster metric?* || *Minimum number of neighbour sets* || *Formula* ||
 || 298 || PHYLO_RPE2 || Relative Phylogenetic Endemism score, type 2 ||   || 1 ||   ||
-|| 299 || PHYLO_RPE_DIFF2 || How much more or less PE is there than expected, in original tree units. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= tree_length * (PE\_WE\_P - PHYLO\_RPE\_NULL1)%.png" title="= tree_length * (PE\_WE\_P - PHYLO\_RPE\_NULL1)" />  ||
+|| 299 || PHYLO_RPE_DIFF2 || How much more or less PE is there than expected, in original tree units. ||   || 1 || <img src="http://latex.codecogs.com/png.latex?= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)%.png" title="= tree\_length \times (PE\_WE\_P - PHYLO\_RPE\_NULL1)" />  ||
 || 300 || PHYLO_RPE_NULL2 || Null score used as the denominator in the RPE2 calculations ||   || 1 ||   ||
 
 

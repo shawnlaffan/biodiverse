@@ -12,7 +12,7 @@ use warnings;
 #use Scalar::Util;
 use Scalar::Util qw /looks_like_number/;
 #use Time::HiRes qw /tv_interval gettimeofday/;
-use List::MoreUtils qw /first_index/;
+#use List::MoreUtils qw /first_index/;
 use List::Util qw /sum min max/;
 
 use English qw ( -no_match_vars );

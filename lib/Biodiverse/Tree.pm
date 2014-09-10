@@ -1551,6 +1551,8 @@ sub get_last_shared_ancestor_for_nodes {
     my $self = shift;
     my %args = @_;
 
+    no autovivification;
+
     my @node_names = keys %{$args{node_names}};
     
     return if !scalar @node_names;
@@ -1562,6 +1564,8 @@ sub get_last_shared_ancestor_for_nodes {
     return $first_node if !scalar @node_names;
 
     my @reference_path = $first_node->get_path_to_root_node;
+    my %ref_path_hash;
+    @ref_path_hash{@reference_path} = (0 .. $#reference_path);
     
   PATH:
     while (my $node_name = shift @node_names) {
@@ -1575,23 +1579,41 @@ sub get_last_shared_ancestor_for_nodes {
         #  comparisons near terminals.
         #  Should see a pay-off for larger trees.
         my $start_iter = max (0, scalar @path - scalar @reference_path);
+        my $min = max (0, scalar @path - scalar @reference_path);
+        my $max = $#path;
+        my $found_idx;
 
-        # work up the tree until we find the lowest shared node
-        # should do a bisect search to speed up the search on densely branching trees?
-      PATH_NODE_REF:
-        foreach my $i ($start_iter .. $#path) {
-            my $path_node_ref = $path[$i];
+        # run a binary search to find the lowest shared node
+      PATH_NODE_REF_BISECT:
+        while ($max > $min) {
+            my $mid = int( ( $min + $max ) / 2 );
+
+            my $path_node_ref = $path[$mid];
+
             #my $node_name_path = $path_node_ref->get_name; #  for debug
             my $idx = first_index { $_ eq $path_node_ref } @reference_path;
+            #my $idx = $ref_path_hash{$path_node_ref};
 
-            next PATH_NODE_REF if $idx < 0;  #  not in reference path, try the next node
-
-            if ($idx) {
-                #  reduce length of reference_path to reduce comparisons in next iter
-                #  if $idx is 2 then it will remove items 0 and 1
-                splice @reference_path, 0, $idx;
+            if ( $idx >= 0 ) {   #  we are in the path, try a node nearer the tips
+                $max = $mid;
+                $found_idx = $idx;  #  keep track
             }
-            next PATH;
+            else {               #  we are not in the path, try a node nearer the root
+                $min = $mid + 1;
+            }
+            
+        }
+        if ($max == $min && !defined $found_idx) {
+            my $idx = first_index { $_ eq $path[$min] } @reference_path;
+            if ($idx >= 0) {
+                $found_idx = $idx;
+            }
+        }
+
+        if ($found_idx) {
+            #  reduce length of reference_path to reduce comparisons in next iter
+            #  if $idx is 2 then it will remove items 0 and 1
+            splice @reference_path, 0, $found_idx;
         }
     }
 

@@ -3302,6 +3302,8 @@ sub binarise_subelement_sample_counts {
         $self->delete_lists(element => $element, lists => ['BASE_STATS']);
     }
 
+    $self->delete_cached_values;
+
     return;
 }
 

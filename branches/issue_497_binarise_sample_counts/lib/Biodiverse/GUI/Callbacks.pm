@@ -213,6 +213,9 @@ my %data_funcs = (
     on_rename_basedata_labels => {
         METHOD => 'do_rename_basedata_labels',
     },
+    on_binarise_basedata_elements => {
+        METHOD => 'do_binarise_basedata_elements',
+    },
     on_basedata_export_labels => {
         METHOD => 'do_export_labels',
     },

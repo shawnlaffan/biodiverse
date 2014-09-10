@@ -1269,6 +1269,7 @@ sub do_duplicate_basedata {
 
     $dlg->destroy();
     
+    $self->set_dirty;
     return;
 }
 
@@ -1292,7 +1293,19 @@ sub do_rename_basedata_labels {
         $bd->rename_labels (remap => $check_list);
     }
 
+    $self->set_dirty;
     return;
+}
+
+sub do_binarise_basedata_elements {
+    my $self = shift;
+
+    my $bd = $self->{project}->get_selected_base_data();
+    return if !$bd;
+
+    $bd->binarise_sample_counts;
+
+    $self->set_dirty;
 }
 
 sub do_add_basedata_label_properties {
@@ -1314,6 +1327,7 @@ sub do_add_basedata_label_properties {
         );
     }
 
+    $self->set_dirty;
     return;
 }
 
@@ -1336,6 +1350,7 @@ sub do_add_basedata_group_properties {
         );
     }
 
+    $self->set_dirty;
     return;
 }
 

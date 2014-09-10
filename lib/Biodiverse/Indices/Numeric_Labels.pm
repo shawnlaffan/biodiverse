@@ -7,7 +7,7 @@ use warnings;
 use 5.010;
 
 use List::Util qw /sum min/;
-use List::MoreUtils qw /apply pairwise/;
+#use List::MoreUtils qw /apply pairwise/;
 
 use Carp;
 

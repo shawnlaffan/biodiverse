@@ -1591,10 +1591,9 @@ sub get_last_shared_ancestor_for_nodes {
             my $path_node_ref = $path[$mid];
 
             #my $node_name_path = $path_node_ref->get_name; #  for debug
-            my $idx = first_index { $_ eq $path_node_ref } @reference_path;
-            #my $idx = $ref_path_hash{$path_node_ref};
+            my $idx = $ref_path_hash{$path_node_ref};
 
-            if ( $idx >= 0 ) {   #  we are in the path, try a node nearer the tips
+            if (defined $idx) {   #  we are in the path, try a node nearer the tips
                 $max = $mid;
                 $found_idx = $idx;  #  keep track
             }
@@ -1604,10 +1603,7 @@ sub get_last_shared_ancestor_for_nodes {
             
         }
         if ($max == $min && !defined $found_idx) {
-            my $idx = first_index { $_ eq $path[$min] } @reference_path;
-            if ($idx >= 0) {
-                $found_idx = $idx;
-            }
+            $found_idx = $ref_path_hash{$path[$min]};
         }
 
         if ($found_idx) {

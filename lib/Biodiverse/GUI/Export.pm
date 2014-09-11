@@ -113,6 +113,7 @@ sub Run {
     # Export!
     $params = Biodiverse::GUI::ParametersTable::extract($extractors);
     my $filename = $chooser->get_filename();
+    $filename = Path::Class::File->new($filename)->stringify;  #  normalise the file name
     if ( (not -e $filename)
         || Biodiverse::GUI::YesNoCancel->run({
             header => "Overwrite file $filename?"})

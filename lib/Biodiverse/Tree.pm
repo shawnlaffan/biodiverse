@@ -1567,19 +1567,24 @@ sub get_last_shared_ancestor_for_nodes {
     my %ref_path_hash;
     @ref_path_hash{@reference_path} = (0 .. $#reference_path);
     
+    my $common_anc_idx = 0;
+
   PATH:
     while (my $node_name = shift @node_names) {
-        #  must be just the root node left, so drop out
-        last PATH if scalar @reference_path == 1;
+        #  Must be just the root node left, so drop out.
+        #  One day we will need to check for existence across all paths,
+        #  as undefined ancestors can occur if we have multiple root nodes.
+        last PATH if $common_anc_idx == $#reference_path;
 
         my $node_ref = $self->get_node_ref (node => $node_name);
         my @path = $node_ref->get_path_to_root_node;
 
         #  Start from an equivalent relative depth to avoid needless
-        #  comparisons near terminals.
-        #  Should see a pay-off for larger trees.
-        my $start_iter = max (0, scalar @path - scalar @reference_path);
-        my $min = max (0, scalar @path - scalar @reference_path);
+        #  comparisons near terminals which cannot be ancestral.
+        #  i.e. if the current common ancestor is at depth 3
+        #  then anything deeper cannot be an ancestor.
+        #  The pay-off is for larger trees.
+        my $min = max (0, $#path - $#reference_path + $common_anc_idx);
         my $max = $#path;
         my $found_idx;
 
@@ -1588,33 +1593,27 @@ sub get_last_shared_ancestor_for_nodes {
         while ($max > $min) {
             my $mid = int( ( $min + $max ) / 2 );
 
-            my $path_node_ref = $path[$mid];
-
-            #my $node_name_path = $path_node_ref->get_name; #  for debug
-            my $idx = $ref_path_hash{$path_node_ref};
+            my $idx = $ref_path_hash{$path[$mid]};
 
             if (defined $idx) {   #  we are in the path, try a node nearer the tips
                 $max = $mid;
-                $found_idx = $idx;  #  keep track
+                $found_idx = $idx;  #  track the index
             }
             else {               #  we are not in the path, try a node nearer the root
                 $min = $mid + 1;
             }
-            
         }
+        #  Sometimes $max == $min and that's the one we want to use
         if ($max == $min && !defined $found_idx) {
             $found_idx = $ref_path_hash{$path[$min]};
         }
 
-        if ($found_idx) {
-            #  reduce length of reference_path to reduce comparisons in next iter
-            #  if $idx is 2 then it will remove items 0 and 1
-            splice @reference_path, 0, $found_idx;
+        if (defined $found_idx) {
+            $common_anc_idx = $found_idx;
         }
     }
 
-    my $node = $reference_path[0];
-    #my $ancestor_name = $node->get_name;
+    my $node = $reference_path[$common_anc_idx];
 
     return $node;
 }

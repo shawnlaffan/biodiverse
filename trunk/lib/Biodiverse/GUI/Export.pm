@@ -62,7 +62,7 @@ sub Run {
     # Show the dialog
     $format_dlg->show_all();
 
-    RUN_FORMAT_DIALOG:
+  RUN_FORMAT_DIALOG:
     my $format_response = $format_dlg->run();
     
     if ($format_response ne 'ok') {
@@ -102,7 +102,7 @@ sub Run {
     # Show the dialog
     $dlg->show_all();
 
-    RUN_DIALOG:
+  RUN_DIALOG:
     my $response = $dlg->run();
 
     if ($response ne 'ok') {

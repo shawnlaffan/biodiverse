@@ -3291,6 +3291,22 @@ sub get_base_stats_all {
     return;
 }
 
+sub binarise_subelement_sample_counts {
+    my $self = shift;
+
+    foreach my $element ($self->get_element_list) {
+        my $list_ref = $self->get_list_ref (element => $element, list => 'SUBELEMENTS');
+        foreach my $val (values %$list_ref) {
+            $val = 1;
+        }
+        $self->delete_lists(element => $element, lists => ['BASE_STATS']);
+    }
+
+    $self->delete_cached_values;
+
+    return;
+}
+
 #  are the sample counts floats or ints?  
 sub sample_counts_are_floats {
     my $self = shift;

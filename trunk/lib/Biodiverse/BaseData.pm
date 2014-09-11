@@ -146,6 +146,20 @@ sub new {
 }
 
 
+sub binarise_sample_counts {
+    my $self = shift;
+    
+    die "Cannot binarise a basedata with existing outputs\n"
+      if $self->get_output_ref_count;
+    
+    my $gp = $self->get_groups_ref;
+    my $lb = $self->get_labels_ref;
+    
+    $gp->binarise_subelement_sample_counts;
+    $lb->binarise_subelement_sample_counts;
+    $self->delete_cached_values;
+}
+
 sub set_group_hash_key_count {
     my $self = shift;
     my %args = @_;
@@ -2750,7 +2764,7 @@ sub get_richness {
     return $self->get_groups_ref->get_variety(@_);
 }
 
-sub get_label_sample_count {  
+sub get_label_sample_count {
     my $self = shift;
 
     return $self->get_labels_ref->get_sample_count(@_);

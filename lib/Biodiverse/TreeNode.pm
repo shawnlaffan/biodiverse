@@ -1641,7 +1641,7 @@ sub to_nexus {
     my %args = (@_);
     my $string;
     my $tree_name = $args{tree_name} || $self->get_param ('NAME') || 'Biodiverse_tree';
-    
+
     #  first, build a hash of the label names for the taxon block, unless told not to
     my %remap;  #  create a remap table unless one is already specified in the args
     if (! defined $args{remap} && ! $args{no_remap}) {
@@ -1659,25 +1659,36 @@ sub to_nexus {
     my %reverse_remap;
     @reverse_remap{values %remap} = (keys %remap);
 
-    my $translate_table;
     my $quote_char = q{'};
     my $csv_obj = $self->get_csv_object (
         quote_char  => $quote_char,
         escape_char => $quote_char,
         quote_space => 1,
     );
-    my $j = 0;
-    foreach my $mapped_key (sort numerically keys %reverse_remap) {
-        my $remapped = $self->list2csv (
-            csv_object => $csv_obj,
-            list       => [$reverse_remap{$mapped_key}],
-        );
-        $translate_table .= "\t\t$mapped_key $remapped,\n";
-        $j++;
+
+    my $translate_table_block = '';
+
+    #  a dirty way of suppressing the translate table
+    #  as we probably don't need the contortions above
+    if ($args{no_translate_block}) {
+        %remap = ();
     }
-    chop $translate_table;  #  strip the last two characters - cheaper than checking for them in the loop
-    chop $translate_table;
-    $translate_table .= "\n\t\t;";
+    else {
+        my $j = 0;
+        my $translate_table = '';
+        foreach my $mapped_key (sort numerically keys %reverse_remap) {
+            my $remapped = $self->list2csv (
+                csv_object => $csv_obj,
+                list       => [$reverse_remap{$mapped_key}],
+            );
+            $translate_table .= "\t\t$mapped_key $remapped,\n";
+            $j++;
+        }
+        chop $translate_table;  #  strip the last two characters - cheaper than checking for them in the loop
+        chop $translate_table;
+        $translate_table .= "\n\t\t;";
+        $translate_table_block = "\tTranslate \n$translate_table\n";
+    }
 
     my $type = blessed $self;
 
@@ -1695,11 +1706,9 @@ sub to_nexus {
     $string .= "[ID: $tree_name]\n";
     $string .= "begin trees;\n";
     $string .= "\t[Export of a $type tree using Biodiverse::TreeNode version $VERSION]\n";
-    $string .= "\tTranslate \n$translate_table\n";
+    $string .= $translate_table_block;
     $string .= "\tTree $tree_name = " . $self->to_newick (remap => \%remap, %args) . ";\n";
     $string .= "end;\n\n";
-
-    #print $EMPTY_STRING;
 
     return $string;
 }

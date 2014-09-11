@@ -802,6 +802,14 @@ sub get_metadata_export_nexus {
                 type        => 'boolean',
                 default     => 1,
             },
+            {
+                name        => 'no_translate_block',
+                label_text  => 'Do not use a translate block',
+                tooltip     => 'read.nexus in the R ape package mishandles '
+                             . 'named internal nodes if there is a translate block',
+                type        => 'boolean',
+                default     => 0,
+            },
         ],
     );
 
@@ -813,7 +821,7 @@ sub export_nexus {
     my %args = @_;
 
     my $file = $args{file};
-    print "[TREE] WRITING TO TREE TO NEXUS FILE $file\n";
+    say "[TREE] WRITING TO TREE TO NEXUS FILE $file";
     open (my $fh, '>', $file)
         || croak "Could not open file '$file' for writing\n";
 

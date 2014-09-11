@@ -47,7 +47,7 @@ sub Run {
     #my $format_dlg = $dlgxml->get_widget('dlgExport');
     $format_dlg->set_transient_for( $gui->get_widget('wndMain') );
     $format_dlg->set_title ('Export parameters');
-    
+
     # Build widgets for parameters
     my $format_table = $dlgxml->get_widget('tableImportParameters');
     
@@ -119,22 +119,17 @@ sub Run {
             header => "Overwrite file $filename?"})
                 eq 'yes'
         ) {
-        #  progress bar for some processes
-        #my $progress = Biodiverse::GUI::ProgressDialog->new;
-        
+
         eval {
             $object->export(
                 format   => $selected_format,
                 file     => $filename,
                 @$params,
-                #progress => $progress
             )
         };
         if ($EVAL_ERROR) {
             $gui->report_error ($EVAL_ERROR);
         }
-        
-        #$progress->destroy;  #  clean up the progress bar
     }
     else {
         goto RUN_DIALOG; # my first ever goto!

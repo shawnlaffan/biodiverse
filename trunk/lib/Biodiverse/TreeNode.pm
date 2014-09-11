@@ -1638,26 +1638,10 @@ sub to_basestruct_group_nodes {
 #  basically builds a taxon block and then passes that through to to_newick
 sub to_nexus {
     my $self = shift;
-    my %args = (@_);
+    my %args = @_;
+
     my $string;
     my $tree_name = $args{tree_name} || $self->get_param ('NAME') || 'Biodiverse_tree';
-
-    #  first, build a hash of the label names for the taxon block, unless told not to
-    my %remap;  #  create a remap table unless one is already specified in the args
-    if (! defined $args{remap} && ! $args{no_remap}) {
-        #  get a hash of all the nodes in the tree.
-        my %nodes = ($self->get_name() => $self, $self->get_all_descendants);
-
-        my $i = 0;
-        foreach my $node (values %nodes) {
-            #  no remap for internals - TreeView does not like it
-            next if ! $args{use_internal_names} && $node->is_internal_node;  
-            $remap{$node->get_name} = $i;
-            $i++;
-        }
-    }
-    my %reverse_remap;
-    @reverse_remap{values %remap} = (keys %remap);
 
     my $quote_char = q{'};
     my $csv_obj = $self->get_csv_object (
@@ -1667,13 +1651,27 @@ sub to_nexus {
     );
 
     my $translate_table_block = '';
+    my %remap;
 
-    #  a dirty way of suppressing the translate table
-    #  as we probably don't need the contortions above
-    if ($args{no_translate_block}) {
-        %remap = ();
-    }
-    else {
+    if (not $args{no_translate_block}) {
+        #  build a hash of the label names for the taxon block, unless told not to
+        #  SWL 20140911: There is no support for external remaps now, so do we need th checks?   
+        if (! defined $args{remap} && ! $args{no_remap}) {
+            #  get a hash of all the nodes in the tree.
+            my %nodes = ($self->get_name() => $self, $self->get_all_descendants);
+    
+            my $i = 0;
+            foreach my $node (values %nodes) {
+                #  no remap for internals - TreeView does not like it
+                next if ! $args{use_internal_names} && $node->is_internal_node;  
+                $remap{$node->get_name} = $i;
+                $i++;
+            }
+        }
+
+        my %reverse_remap;
+        @reverse_remap{values %remap} = (keys %remap);
+
         my $j = 0;
         my $translate_table = '';
         foreach my $mapped_key (sort numerically keys %reverse_remap) {

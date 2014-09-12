@@ -8,14 +8,13 @@ use 5.010;
 
 our $VERSION = '0.99_004';
 
-use Data::Dumper;
-#use Data::DumpXML::Parser;
+#use Data::Dumper;
 use Carp;
 use Scalar::Util qw /blessed reftype/;
 
 use English ( -no_match_vars );
+use Readonly;
 
-#use Cwd;
 use FindBin qw ( $Bin );
 use Path::Class ();
 use Text::Wrapper;
@@ -275,6 +274,18 @@ sub show_progress {
 ##########################################################
 # Initialisation
 ##########################################################
+
+my $dev_version_warning = <<"END_OF_DEV_WARNING"
+This is a development version.
+Features are subject to change
+and it is not guaranteed to be
+backwards compatible.
+
+To turn off this warning set an environment
+variable called BD_NO_GUI_DEV_WARN to a true value.
+END_OF_DEV_WARNING
+  ;
+
 sub init {
     my $self = shift;
 
@@ -313,13 +324,9 @@ sub init {
     # see Project.pm
     $self->{basedata_output_model}
       = Gtk2::TreeStore->new(
-        'Glib::String',
-        'Glib::String',
-        'Glib::String',
-        'Glib::Scalar',
-        'Glib::Scalar',
-        'Glib::Boolean',
-        'Glib::String',
+        'Glib::String',  'Glib::String', 'Glib::String',
+        'Glib::Scalar',  'Glib::Scalar',
+        'Glib::Boolean', 'Glib::String',
     );
 
     $self->do_new;
@@ -336,9 +343,18 @@ sub init {
         $self->report_error($text);
     }
 
-    #$self->progress_test();
-    #$self->get_status_bar->hide();
-    
+    #  warn if we are a dev version
+    if ($VERSION =~ /_/ && !$ENV{BD_NO_GUI_DEV_WARN}) {
+        my $dlg = Gtk2::MessageDialog->new (
+            undef,   'modal',
+            'error', 'ok',
+            $dev_version_warning,
+        );
+
+        $dlg->run;
+        $dlg->destroy;
+    }
+
     return;
 }
 

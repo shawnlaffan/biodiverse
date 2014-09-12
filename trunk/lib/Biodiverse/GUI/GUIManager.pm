@@ -277,9 +277,9 @@ sub show_progress {
 
 my $dev_version_warning = <<"END_OF_DEV_WARNING"
 This is a development version.
-Features are subject to change
-and it is not guaranteed to be
-backwards compatible.
+
+Features are subject to change and it is not guaranteed
+to be backwards compatible with previous versions.
 
 To turn off this warning set an environment
 variable called BD_NO_GUI_DEV_WARN to a true value.
@@ -1782,15 +1782,6 @@ sub do_range_weight_tree {
     );
 }
 
-sub do_tree_equalise_branch_lengths {
-    my $self = shift;
-
-    return $self->do_trim_tree_to_basedata (
-        do_equalise_branch_lengths => 1,
-        suffix  => 'EQ',
-        no_trim => 1,
-    );
-}
 
 #  Should probably rename this sub as it is being used for more purposes,
 #  some of which do not involve trimming.  
@@ -1849,25 +1840,78 @@ sub do_trim_tree_to_basedata {
             $node->set_length (length => $node->get_length / $range);
         }
     }
-    elsif ($args{do_equalise_branch_lengths}) {
-        foreach my $node ($new_tree->get_node_refs) {
-            my $len = $node->get_length == 0 ? 0 : 1;
-            $node->set_length (length => $len);
-        }
-    }
 
     $new_tree->set_param (NAME => $chosen_name);
 
     #  now we add it if it is not already in the list
     #  otherwise we select it
     my $phylogenies = $self->{project}->get_phylogeny_list;
-    my $in_list = 0;
-    foreach my $ph (@$phylogenies) {
-        if ($new_tree eq $phylogeny) {
-            $in_list = 1;
-            last;
-        }
+
+    my $in_list = grep {$_ eq $new_tree} @$phylogenies;
+
+    if ($in_list) {
+        $self->{project}->select_phylogeny ($new_tree);
     }
+    else {
+        $self->{project}->add_phylogeny ($new_tree, 0);
+    }
+
+    return;
+}
+
+sub do_tree_equalise_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $phylogeny = $self->{project}->get_selected_phylogeny;
+
+    if (! defined $phylogeny) {
+        Biodiverse::GUI::YesNoCancel->run({
+            header       => 'no tree selected',
+            hide_yes     => 1,
+            hide_no      => 1,
+            hide_cancel  => 1,
+            }
+        );
+
+        return 0;
+    }
+
+    # Show the Get Name dialog
+    my $dlgxml = Gtk2::GladeXML->new($self->get_glade_file, 'dlgDuplicate');
+    my $dlg = $dlgxml->get_widget('dlgDuplicate');
+    $dlg->set_transient_for( $self->get_widget('wndMain') );
+
+    my $txt_name = $dlgxml->get_widget('txtName');
+    my $name = $phylogeny->get_param('NAME');
+
+    my $suffix = $args{suffix} || 'EQ';
+    # If ends with _TRIMMED followed by a number then increment it
+    if ($name =~ /(.*_$suffix)([0-9]+)$/) {
+        $name = $1 . ($2 + 1)
+    }
+    else {
+        $name .= "_${suffix}1";
+    }
+    $txt_name->set_text($name);
+
+    my $response    = $dlg->run();
+    my $chosen_name = $txt_name->get_text;
+
+    $dlg->destroy;
+
+    return if $response ne 'ok';  #  they chickened out
+
+    my $new_tree = $phylogeny->clone_tree_with_equalised_branch_lengths;
+
+    $new_tree->set_param (NAME => $chosen_name);
+
+    #  now we add it if it is not already in the list
+    #  otherwise we select it
+    my $phylogenies = $self->{project}->get_phylogeny_list;
+
+    my $in_list = grep {$_ eq $new_tree} @$phylogenies;
+
     if ($in_list) {
         $self->{project}->select_phylogeny ($new_tree);
     }

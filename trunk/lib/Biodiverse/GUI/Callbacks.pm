@@ -295,6 +295,9 @@ my %data_funcs = (
     on_range_weight_tree => {
         METHOD => 'do_range_weight_tree',
     },
+    on_tree_equalise_branch_lengths => {
+        METHOD => 'do_tree_equalise_branch_lengths',
+    },
     on_matrix_export => {
         METHOD => 'do_export_matrix',
     },

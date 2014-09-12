@@ -520,6 +520,23 @@ sub _test_export_nexus {
 }
 
 
+
+
+
+sub test_equalise_branch_lengths {
+    my $tree = shift // get_site_data_as_tree();
+
+    my $eq_tree = $tree->clone_tree_with_equalised_branch_lengths;
+
+    is ($tree->get_total_tree_length,
+        $eq_tree->get_total_tree_length,
+        'eq tree has same total length as orig',
+    );
+
+    is ($tree->get_node_count, $eq_tree->get_node_count, 'node counts match');
+}
+
+
 ######################################
 
 

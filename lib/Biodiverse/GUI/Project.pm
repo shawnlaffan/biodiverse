@@ -1328,6 +1328,7 @@ sub set_phylogeny_buttons {
                 menu_phylogeny_export
                 menu_phylogeny_delete_cached_values
                 menu_range_weight_tree_branches
+                menu_equalise_tree_branches
                 menu_binarise_basedata_elements
                 menu_attach_ranges_as_properties
                 menu_attach_abundances_as_properties

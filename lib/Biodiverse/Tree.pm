@@ -2249,6 +2249,42 @@ sub shuffle_terminal_names {
     return wantarray ? %reordered : \%reordered;
 }
 
+
+sub clone_tree_with_equalised_branch_lengths {
+    my $self = shift;
+    my %args = @_;
+
+    my $name = $args{name} // ($self->get_param ('NAME') . ' EQ');
+
+    my $non_zero_len = $args{node_length};
+
+    if (!defined $non_zero_len) {
+        my $non_zero_node_count = grep {$_->get_length} $self->get_node_refs;
+        $non_zero_len = $self->get_total_tree_length / $non_zero_node_count;
+    }
+
+    my $new_tree = $self->clone;
+    $new_tree->delete_cached_values;
+
+    #  reset all the total length values
+    $new_tree->reset_total_length;
+    $new_tree->reset_total_length_below;
+
+    foreach my $node ($new_tree->get_node_refs) {
+        my $len = $node->get_length ? $non_zero_len : 0;
+        $node->set_length (length => $len);
+        $node->delete_cached_values;
+        my $sub_list_ref = $node->get_list_ref (list => 'NODE_VALUES');
+        delete $sub_list_ref->{_y};  #  the GUI adds these - should fix there
+        delete $sub_list_ref->{total_length_gui};
+        my $null;
+    }
+    $new_tree->rename(new_name => $name);
+
+    return $new_tree;
+}
+
+
 #  Let the system take care of most of the memory stuff.  
 sub DESTROY {
     my $self = shift;

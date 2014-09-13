@@ -713,7 +713,7 @@ sub build_matrix_elements {
                 list       => $res_list,
                 csv_object => $csv_out,
             );
-            print {$ofh} ($text . "\n");
+            say {$ofh} $text;
         }
         else {
             foreach my $mx (@$matrices) {

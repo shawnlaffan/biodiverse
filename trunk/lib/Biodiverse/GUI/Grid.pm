@@ -196,6 +196,7 @@ sub new {
     return $self;
 }
 
+
 sub show_legend {
     my $self = shift;
     #print "already have legend!\n" if $self->{legend};

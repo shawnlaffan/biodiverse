@@ -1824,6 +1824,8 @@ sub resize_background_rect {
 sub draw_node {
     my ($self, $node, $current_xpos, $length_func, $length_scale, $height_scale) = @_;
 
+    return if !$node;
+
     my $node_name = $node->get_name;
 
     my $length = $length_func->($node) * $length_scale;
